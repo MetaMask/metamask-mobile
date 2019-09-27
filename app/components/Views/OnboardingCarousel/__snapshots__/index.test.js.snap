@@ -1,0 +1,371 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OnboardingCarousel should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "flex": 1,
+    }
+  }
+  testID="onboarding-carousel-screen"
+>
+  <OnboardingScreenWithBg
+    screen="carousel"
+  >
+    <ScrollViewMock
+      contentContainerStyle={
+        Object {
+          "flexGrow": 1,
+        }
+      }
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "paddingVertical": 30,
+          }
+        }
+      >
+        <ScrollableTabView
+          contentProps={Object {}}
+          initialPage={0}
+          locked={false}
+          onChangeTab={[Function]}
+          onScroll={[Function]}
+          page={-1}
+          prerenderingSiblingsNumber={0}
+          renderTabBar={[Function]}
+          scrollWithoutAnimation={false}
+          tabBarPosition="top"
+        >
+          <View
+            key="1"
+          >
+            <View
+              style={
+                Object {
+                  "marginHorizontal": 30,
+                }
+              }
+            >
+              <Text
+                style={
+                  Object {
+                    "color": "#000000",
+                    "fontFamily": "Roboto",
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "justifyContent": "center",
+                    "marginBottom": 12,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                Welcome to MetaMask
+              </Text>
+              <Text
+                style={
+                  Object {
+                    "color": "#6a737d",
+                    "fontFamily": "Roboto",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "justifyContent": "center",
+                    "lineHeight": 19,
+                    "marginBottom": 25,
+                    "marginTop": 12,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                A secure browser – and so much more. Swipe to see what’s possible.
+              </Text>
+            </View>
+            <View
+              style={
+                Object {
+                  "alignItems": "center",
+                  "marginTop": 25,
+                }
+              }
+            >
+              <Image
+                resizeMethod="auto"
+                source={
+                  Object {
+                    "testUri": "../../../app/images/onboarding-carousel-1.png",
+                  }
+                }
+                style={
+                  Array [
+                    Object {},
+                    Object {
+                      "height": 285,
+                      "width": 200,
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+          <View
+            key="2"
+          >
+            <View
+              style={
+                Object {
+                  "marginHorizontal": 30,
+                }
+              }
+            >
+              <Text
+                style={
+                  Object {
+                    "color": "#000000",
+                    "fontFamily": "Roboto",
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "justifyContent": "center",
+                    "marginBottom": 12,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                Say hello to your wallet...
+              </Text>
+              <Text
+                style={
+                  Object {
+                    "color": "#6a737d",
+                    "fontFamily": "Roboto",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "justifyContent": "center",
+                    "lineHeight": 19,
+                    "marginBottom": 25,
+                    "marginTop": 12,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                Store, spend and send crypto currencies and assets.
+              </Text>
+            </View>
+            <View
+              style={
+                Object {
+                  "alignItems": "center",
+                  "marginTop": 25,
+                }
+              }
+            >
+              <Image
+                resizeMethod="auto"
+                source={
+                  Object {
+                    "testUri": "../../../app/images/onboarding-carousel-2.png",
+                  }
+                }
+                style={
+                  Array [
+                    Object {},
+                    Object {
+                      "height": 222,
+                      "width": 240,
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+          <View
+            key="3"
+          >
+            <View
+              style={
+                Object {
+                  "marginHorizontal": 30,
+                }
+              }
+            >
+              <Text
+                style={
+                  Object {
+                    "color": "#000000",
+                    "fontFamily": "Roboto",
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "justifyContent": "center",
+                    "marginBottom": 12,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                Say hello to your wallet...
+              </Text>
+              <Text
+                style={
+                  Object {
+                    "color": "#6a737d",
+                    "fontFamily": "Roboto",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "justifyContent": "center",
+                    "lineHeight": 19,
+                    "marginBottom": 25,
+                    "marginTop": 12,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                Use your MetaMask to login to decentralized apps – no signup needed.
+              </Text>
+            </View>
+            <View
+              style={
+                Object {
+                  "alignItems": "center",
+                  "marginTop": 25,
+                }
+              }
+            >
+              <Image
+                resizeMethod="auto"
+                source={
+                  Object {
+                    "testUri": "../../../app/images/onboarding-carousel-3.png",
+                  }
+                }
+                style={
+                  Array [
+                    Object {},
+                    Object {
+                      "height": 214,
+                      "width": 276,
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </ScrollableTabView>
+        <View
+          style={
+            Object {
+              "alignSelf": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <View
+            key="1"
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#6a737d",
+                  "borderRadius": 4,
+                  "height": 8,
+                  "marginHorizontal": 8,
+                  "opacity": 0.4,
+                  "width": 8,
+                },
+                Object {
+                  "opacity": 1,
+                },
+              ]
+            }
+          />
+          <View
+            key="2"
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#6a737d",
+                  "borderRadius": 4,
+                  "height": 8,
+                  "marginHorizontal": 8,
+                  "opacity": 0.4,
+                  "width": 8,
+                },
+                Object {},
+              ]
+            }
+          />
+          <View
+            key="3"
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#6a737d",
+                  "borderRadius": 4,
+                  "height": 8,
+                  "marginHorizontal": 8,
+                  "opacity": 0.4,
+                  "width": 8,
+                },
+                Object {},
+              ]
+            }
+          />
+        </View>
+        <View
+          style={
+            Object {
+              "flex": 1,
+              "flexDirection": "column",
+              "paddingHorizontal": 40,
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "flex": 1,
+                "justifyContent": "flex-end",
+              }
+            }
+          >
+            <View
+              style={
+                Object {
+                  "marginTop": 24,
+                }
+              }
+            >
+              <View>
+                <StyledButton
+                  disabledContainerStyle={
+                    Object {
+                      "opacity": 0.6,
+                    }
+                  }
+                  onPress={[Function]}
+                  styleDisabled={
+                    Object {
+                      "opacity": 0.6,
+                    }
+                  }
+                  testID="onboarding-get-started-button"
+                  type="normal"
+                >
+                  Get started
+                </StyledButton>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </ScrollViewMock>
+  </OnboardingScreenWithBg>
+  <FadeOutOverlay
+    duration={300}
+    style={null}
+  />
+</View>
+`;

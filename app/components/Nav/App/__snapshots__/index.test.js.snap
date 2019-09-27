@@ -239,6 +239,7 @@ exports[`App should render correctly 1`] = `
           },
           "LockScreen": null,
           "Login": null,
+          "OnboardingCarousel": null,
           "OnboardingRootNav": Object {
             "childRouters": Object {
               "Onboarding": Object {
@@ -410,6 +411,11 @@ exports[`App should render correctly 1`] = `
             "key": "Login",
             "params": undefined,
             "routeName": "Login",
+          },
+          Object {
+            "key": "OnboardingCarousel",
+            "params": undefined,
+            "routeName": "OnboardingCarousel",
           },
           Object {
             "key": "LockScreen",
@@ -659,6 +665,7 @@ exports[`App should render correctly 1`] = `
             },
             "LockScreen": null,
             "Login": null,
+            "OnboardingCarousel": null,
             "OnboardingRootNav": Object {
               "childRouters": Object {
                 "Onboarding": Object {
@@ -830,6 +837,11 @@ exports[`App should render correctly 1`] = `
               "key": "Login",
               "params": undefined,
               "routeName": "Login",
+            },
+            Object {
+              "key": "OnboardingCarousel",
+              "params": undefined,
+              "routeName": "OnboardingCarousel",
             },
             Object {
               "key": "LockScreen",

@@ -20,7 +20,7 @@ The code is built using React-Native and running code locally requires a Mac or 
  -  Now clone this repo and then install all our dependencies
 
 ```bash
-cd MetaMask
+cd metamask-mobile
 yarn install
 ```
 

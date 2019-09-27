@@ -1,9 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, Text, View, ScrollView, StyleSheet, Image, Alert, InteractionManager } from 'react-native';
+import { Text, View, ScrollView, StyleSheet, Alert, InteractionManager } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
-import AnimatedFox from 'react-native-animated-fox';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
@@ -16,61 +15,29 @@ import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({
 	scroll: {
 		flexGrow: 1
 	},
 	wrapper: {
-		paddingTop: 60,
 		paddingHorizontal: 40,
-		paddingBottom: 30,
+		paddingVertical: 30,
 		flex: 1
 	},
-	content: {
-		flex: 1,
-		alignItems: 'flex-start'
-	},
 	termsAndConditions: {
-		paddingTop: 30
-	},
-	foxWrapper: {
-		width: Platform.OS === 'ios' ? 90 : 45,
-		height: Platform.OS === 'ios' ? 90 : 45,
-		marginTop: 30,
-		marginBottom: 0
-	},
-	image: {
-		alignSelf: 'center',
-		width: Platform.OS === 'ios' ? 90 : 60,
-		height: Platform.OS === 'ios' ? 90 : 60
+		paddingVertical: 30
 	},
 	title: {
 		fontSize: 28,
-		marginTop: 20,
-		marginBottom: 10,
 		color: colors.fontPrimary,
-		justifyContent: 'flex-start',
-		textAlign: 'left',
-		...fontStyles.bold
-	},
-	subtitle: {
-		fontSize: 14,
-		lineHeight: 19,
-		marginBottom: 20,
-		color: colors.grey500,
-		justifyContent: 'flex-start',
-		textAlign: 'left',
-		...fontStyles.normal
+		...fontStyles.bold,
+		justifyContent: 'center',
+		textAlign: 'center'
 	},
 	ctas: {
-		flex: 1,
-		flexDirection: 'column',
-		marginBottom: 40
-	},
-	ctaWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end'
+		flex: 1
 	},
 	footer: {
 		marginTop: -20,
@@ -83,13 +50,16 @@ const styles = StyleSheet.create({
 	},
 	buttonDescription: {
 		...fontStyles.normal,
-		fontSize: 16,
+		fontSize: 14,
 		textAlign: 'center',
-		marginBottom: 8,
+		marginBottom: 16,
 		color: colors.fontSecondary
 	},
 	importWrapper: {
-		marginTop: 24
+		marginVertical: 24
+	},
+	createWrapper: {
+		marginVertical: 24
 	}
 });
 
@@ -97,9 +67,7 @@ const styles = StyleSheet.create({
  * View that is displayed to first time (new) users
  */
 class Onboarding extends PureComponent {
-	static navigationOptions = () => ({
-		header: null
-	});
+	static navigationOptions = ({ navigation }) => getTransparentOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
 		/**
@@ -194,72 +162,50 @@ class Onboarding extends PureComponent {
 
 	render() {
 		return (
-			<View style={baseStyles.flexGrow} testID={'home-screen'}>
-				<OnboardingScreenWithBg screen={'b'}>
+			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
+				<OnboardingScreenWithBg screen={'c'}>
 					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
-							<View style={styles.content}>
-								<View style={styles.foxWrapper}>
-									{Platform.OS === 'android' ? (
-										<Image
-											source={require('../../../images/fox.png')}
-											style={styles.image}
-											resizeMethod={'auto'}
-										/>
-									) : (
-										<AnimatedFox />
-									)}
-								</View>
-								<Text style={styles.title}>{strings('onboarding.title')}</Text>
-								<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
-							</View>
 							<View style={styles.ctas}>
-								<View style={styles.ctaWrapper}>
-									<View>
-										<Text style={styles.buttonDescription}>
-											{strings('onboarding.new_to_metamask')}
-										</Text>
-										<View style={styles.flexGrow}>
-											<StyledButton
-												type={'blue'}
-												onPress={this.onPressCreate}
-												testID={'start-exploring-button'}
-											>
-												{strings('onboarding.start_exploring_now')}
-											</StyledButton>
-										</View>
+								<Text style={styles.title}>{strings('onboarding.title')}</Text>
+								<View style={styles.importWrapper}>
+									<Text style={styles.buttonDescription}>{strings('onboarding.sync_desc')}</Text>
+									<View style={styles.flexGrow}>
+										<StyledButton
+											type={'normal'}
+											onPress={this.onPressImport}
+											testID={'onboarding-import-button'}
+										>
+											{strings('onboarding.import_wallet_button')}
+										</StyledButton>
 									</View>
-									<View style={styles.importWrapper}>
-										<Text style={styles.buttonDescription}>
-											{strings('onboarding.already_have_wallet')}
-										</Text>
-										<View style={styles.flexGrow}>
-											<StyledButton
-												type={'normal'}
-												onPress={this.onPressImport}
-												testID={'onboarding-import-button'}
-											>
-												{strings('onboarding.import_wallet_button')}
-											</StyledButton>
-										</View>
-									</View>
-									<View style={[styles.termsAndConditions]}>
-										<TermsAndConditions
-											navigation={this.props.navigation}
-											action={strings('onboarding.start_exploring_now')}
-										/>
+								</View>
+								<View style={styles.createWrapper}>
+									<Text style={styles.buttonDescription}>{strings('onboarding.create_desc')}</Text>
+									<View style={styles.flexGrow}>
+										<StyledButton
+											type={'blue'}
+											onPress={this.onPressCreate}
+											testID={'start-exploring-button'}
+										>
+											{strings('onboarding.start_exploring_now')}
+										</StyledButton>
 									</View>
 								</View>
 							</View>
-							{this.state.existingUser && (
-								<View style={styles.footer}>
-									<Button style={styles.login} onPress={this.onLogin}>
-										{strings('onboarding.login')}
-									</Button>
-								</View>
-							)}
 						</View>
+
+						{this.state.existingUser && (
+							<View style={styles.footer}>
+								<Button style={styles.login} onPress={this.onLogin}>
+									{strings('onboarding.login')}
+								</Button>
+							</View>
+						)}
 					</ScrollView>
+					<View style={styles.termsAndConditions}>
+						<TermsAndConditions navigation={this.props.navigation} />
+					</View>
 				</OnboardingScreenWithBg>
 				<FadeOutOverlay />
 			</View>

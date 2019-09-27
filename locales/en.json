@@ -9,15 +9,25 @@
 		"info": "Info"
 	},
 	"onboarding": {
-		"title": "Welcome to MetaMask",
-		"subtitle": "A browser that connects you to applications on the decentralized web",
-		"import_wallet_button": "Sync or import your wallet",
-		"start_exploring_now": "Start exploring",
+		"title": "Get started!",
+		"sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
+		"create_desc": "New to crypto? Set up your first wallet and start exploring decentralized apps.",
+		"import_wallet_button": "Sync or import wallet",
+		"start_exploring_now": "Create wallet",
 		"login": "Log in",
 		"new_to_metamask": "New to MetaMask?",
 		"already_have_wallet": "Already have a wallet?",
 		"optin_back_title": "Heads up!",
 		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings."
+	},
+	"onboarding_carousel": {
+		"title1": "Welcome to MetaMask",
+		"title2": "Say hello to your wallet...",
+		"title3": "Explore decentralized apps",
+		"subtitle1": "A secure browser – and so much more. Swipe to see what’s possible.",
+		"subtitle2": "Store, spend and send crypto currencies and assets.",
+		"subtitle3": "Use your MetaMask to login to decentralized apps – no signup needed.",
+		"get_started": "Get started"
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Skip Tutorial",
@@ -59,8 +69,8 @@
 		}
 	},
 	"create_wallet": {
-		"title": "Creating your new wallet",
-		"subtitle": "Sit tight while we do some hard math! You will use your wallet to login & interact securely with decentralized applications"
+		"title": "Creating your wallet...",
+		"subtitle": "This shouldn’t take long"
 	},
 	"import_wallet": {
 		"title": "Already a MetaMask user?",
@@ -210,7 +220,7 @@
 	},
 	"terms_and_conditions": {
 		"title": "Terms and Conditions",
-		"description": "By clicking \"{{action}}\" you agree to these ",
+		"description": "By proceding, you agree to these ",
 		"terms": "Terms and Conditions"
 	},
 	"privacy_policy": {
@@ -863,7 +873,7 @@
 		"buy_title": "Buy",
 		"buy_description": "Buy Crypto with Credit Card",
 		"public_address": "Public Address",
-		"public_address_qr_code": "Public Address QR Code",
+		"public_address_qr_code": "Public Address",
 		"coming_soon": "Coming soon..."
 	},
 	"experimental_settings": {
@@ -954,6 +964,7 @@
 		"error_desc": "Our Payment Channels provider is having issues, please try again later.",
 		"ask_a_friend": "Or you can also request from a friend",
 		"receive_funds_action": "Receive Funds",
+		"view_address": "View my address",
 		"gas_error": "You don't have enough ETH to pay for gas."
 	},
 	"webview_error": {

@@ -7,6 +7,7 @@ import {
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
+import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import CreateWallet from '../../Views/CreateWallet';
 import ImportWallet from '../../Views/ImportWallet';
 import ImportFromSeed from '../../Views/ImportFromSeed';
@@ -127,6 +128,7 @@ const App = createSwitchNavigator(
 		HomeNav,
 		OnboardingRootNav,
 		Login,
+		OnboardingCarousel,
 		LockScreen
 	},
 	{

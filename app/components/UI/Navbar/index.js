@@ -52,9 +52,6 @@ const styles = StyleSheet.create({
 		height: 40,
 		marginRight: 10
 	},
-	metamaskNameWrapper: {
-		marginLeft: Platform.OS === 'android' ? 20 : 0
-	},
 	closeIcon: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
 		color: colors.blue
@@ -126,6 +123,13 @@ const styles = StyleSheet.create({
 		marginRight: 3,
 		width: 24,
 		height: 24
+	},
+	metamaskNameTransparentWrapper: {
+		alignItems: 'center',
+		flex: 1
+	},
+	metamaskNameWrapper: {
+		marginLeft: Platform.OS === 'android' ? 20 : 0
 	}
 });
 
@@ -393,6 +397,42 @@ export function getOnboardingNavbarOptions() {
 			</View>
 		),
 		headerBackTitle: strings('navigation.back')
+	};
+}
+
+/**
+ * Function that returns a transparent navigation options for our onboarding screens.
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle
+ */
+export function getTransparentOnboardingNavbarOptions() {
+	return {
+		headerTransparent: true,
+		headerTitle: (
+			<View style={styles.metamaskNameTransparentWrapper}>
+				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+			</View>
+		),
+		headerLeft: <View />,
+		headerRight: <View />
+	};
+}
+
+/**
+ * Function that returns a transparent navigation options for our onboarding screens.
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle and a back button
+ */
+export function getTransparentBackOnboardingNavbarOptions() {
+	return {
+		headerTransparent: true,
+		headerTitle: (
+			<View style={styles.metamaskNameTransparentWrapper}>
+				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+			</View>
+		),
+		headerBackTitle: strings('navigation.back'),
+		headerRight: <View />
 	};
 }
 
