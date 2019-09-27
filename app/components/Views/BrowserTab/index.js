@@ -15,7 +15,7 @@ import {
 	InteractionManager
 } from 'react-native';
 import { withNavigation } from 'react-navigation';
-import Web3Webview from 'react-native-web3-webview';
+import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -32,7 +32,7 @@ import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
-import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserSripts';
+import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
@@ -414,10 +414,7 @@ export class BrowserTab extends PureComponent {
 		if (!currentPageTitle || currentPageTitle !== {}) {
 			// We need to get the title to add bookmark
 			const { current } = this.webview;
-			current &&
-				(Platform.OS === 'ios'
-					? current.evaluateJavaScript(JS_WINDOW_INFORMATION)
-					: current.injectJavaScript(JS_WINDOW_INFORMATION));
+			current && current.injectJavaScript(JS_WINDOW_INFORMATION);
 		}
 		setTimeout(() => {
 			callback();
@@ -1263,11 +1260,7 @@ export class BrowserTab extends PureComponent {
 		this.setState({ autocompleteInputValue: inputValue });
 	};
 
-	sendStateUpdate = () => {
-		this.backgroundBridge.sendStateUpdate();
-	};
-
-	onLoadProgress = progress => {
+	onLoadProgress = ({ nativeEvent: { progress } }) => {
 		this.setState({ progress });
 	};
 
@@ -1296,7 +1289,7 @@ export class BrowserTab extends PureComponent {
 		// Inject favorites on the homepage
 		if (this.isHomepage() && current) {
 			const js = this.state.homepageScripts;
-			Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
+			current.injectJavaScript(js);
 		}
 	};
 
@@ -1438,7 +1431,7 @@ export class BrowserTab extends PureComponent {
 		if (this.isHomepage()) {
 			const { current } = this.webview;
 			const blur = `document.getElementsByClassName('autocomplete-input')[0].blur();`;
-			current && (Platform.OS === 'ios' ? current.evaluateJavaScript(blur) : current.injectJavaScript(blur));
+			current && current.injectJavaScript(blur);
 		}
 	};
 
@@ -1709,13 +1702,13 @@ export class BrowserTab extends PureComponent {
 			>
 				<View style={styles.webview}>
 					{activated && !forceReload && (
-						<Web3Webview
+						<WebView
 							// eslint-disable-next-line react/jsx-no-bind
 							renderError={() => (
 								<WebviewError error={this.state.lastError} onReload={this.forceReload} />
 							)}
-							injectedOnStartLoadingJavaScript={entryScriptWeb3}
-							onProgress={this.onLoadProgress}
+							injectedJavaScript={entryScriptWeb3}
+							onLoadProgress={this.onLoadProgress}
 							onLoadStart={this.onLoadStart}
 							onLoadEnd={this.onLoadEnd}
 							onError={this.onError}
@@ -1727,6 +1720,8 @@ export class BrowserTab extends PureComponent {
 							userAgent={USER_AGENT}
 							sendCookies
 							javascriptEnabled
+							allowsInlineMediaPlayback
+							useWebkit
 						/>
 					)}
 				</View>
