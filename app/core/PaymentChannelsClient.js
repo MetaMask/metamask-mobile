@@ -366,7 +366,8 @@ class PaymentChannelsClient {
 	}
 
 	deposit = async ({ depositAmount }) => {
-		if (this.state.blocked) {
+		const { channelState } = this.state;
+		if (this.state.blocked || hasPendingOps(channelState)) {
 			throw new Error('still_blocked');
 		}
 		try {
