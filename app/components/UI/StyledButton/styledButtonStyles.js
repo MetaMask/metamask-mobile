@@ -128,6 +128,10 @@ function getStyles(type) {
 			fontStyle = styles.whiteText;
 			containerStyle = styles.transparent;
 			break;
+		case 'transparent-blue':
+			fontStyle = styles.normalText;
+			containerStyle = styles.transparent;
+			break;
 		case 'warning':
 			fontStyle = styles.warningText;
 			containerStyle = styles.warning;

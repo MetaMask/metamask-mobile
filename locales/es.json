@@ -855,7 +855,7 @@
 		"buy_title": "Comprar",
 		"buy_description": "Compre con tarjeta de crédito",
 		"public_address": "Dirección Pública",
-		"public_address_qr_code": "Código QR de Dirección Pública",
+		"public_address_qr_code": "Dirección Pública",
 		"coming_soon": "Pronto..."
 	},
 	"experimental_settings": {
@@ -944,7 +944,8 @@
 		"error_title": "Funcionalidad temporalmente no disponible",
 		"error_desc": "Nuestro proveedor de Canales de Pago tiene problemas, inténtalo de nuevo más tarde.",
 		"ask_a_friend": "O también puedes pedirle a un amigo",
-		"receive_funds_action": "Recibir Fondos"
+		"receive_funds_action": "Recibir Fondos",
+		"view_address": "Ver mi dirección"
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",
