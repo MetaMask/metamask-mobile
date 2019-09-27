@@ -9,7 +9,9 @@ import { toChecksumAddress } from 'ethereumjs-util';
 const styles = StyleSheet.create({
 	itemLogoWrapper: {
 		width: 50,
-		height: 50,
+		height: 50
+	},
+	roundImage: {
 		overflow: 'hidden',
 		borderRadius: 25
 	}
@@ -53,7 +55,7 @@ export default class TokenElement extends Component {
 		// When image is defined, is coming from a token added by watchAsset, so it has to be handled alone
 		const watchedAsset = asset.image !== undefined;
 		return (
-			<View style={[styles.itemLogoWrapper, containerStyle]}>
+			<View style={[styles.itemLogoWrapper, containerStyle, asset.logo || asset.image ? {} : styles.roundImage]}>
 				{asset.logo || asset.image ? (
 					<AssetIcon watchedAsset={watchedAsset} logo={asset.image || asset.logo} customStyle={iconStyle} />
 				) : (
