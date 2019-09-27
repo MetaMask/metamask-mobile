@@ -155,6 +155,7 @@ buildIosRelease(){
 		echo "Setting up env vars...";
 		echo $IOS_ENV | tr "|" "\n" > .ios.env
 		echo "Build started..."
+		brew install watchman
 		cd ios && bundle install && bundle exec fastlane prerelease
 		# Generate sourcemaps
 		yarn sourcemaps:ios
