@@ -13,6 +13,7 @@ import TransactionsNotificationManager from '../../../core/TransactionsNotificat
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getTransactionReviewActionKey } from '../../../util/transactions';
+import { strings } from '../../../../locales/i18n';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -179,7 +180,7 @@ class Approval extends PureComponent {
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
 		} catch (error) {
-			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 			this.setState({ transactionHandled: false });
 		}
 		this.trackOnConfirm();

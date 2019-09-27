@@ -583,7 +583,8 @@
 		"view_on": "VIEW ON",
 		"view_on_etherscan": "VIEW ON ETHERSCAN",
 		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
-		"address_copied_to_clipboard": "Address copied to clipboard"
+		"address_copied_to_clipboard": "Address copied to clipboard",
+		"transaction_error": "Transaction error"
 	},
 	"transaction_submitted": {
 		"title": "Transaction Submitted",
@@ -963,7 +964,8 @@
 		"error_desc": "Our Payment Channels provider is having issues, please try again later.",
 		"ask_a_friend": "Or you can also request from a friend",
 		"receive_funds_action": "Receive Funds",
-		"view_address": "View my address"
+		"view_address": "View my address",
+		"gas_error": "You don't have enough ETH to pay for gas."
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",
