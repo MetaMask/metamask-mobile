@@ -196,8 +196,7 @@
 		"private_key_detected": "Llave privada detectada",
 		"do_you_want_to_import_this_account": "Deseas importar esta cuenta?",
 		"error": "Error",
-		"logout_to_import_seed": "Primero debes cerrar la sesión para poder importar una nueva frase semilla.",
-		"transaction_error": "Error de transacción"
+		"logout_to_import_seed": "Primero debes cerrar la sesión para poder importar una nueva frase semilla."
 	},
 	"transactions_view": {
 		"title": "Transacciones"
@@ -575,7 +574,8 @@
 		"view_on": "VER EN",
 		"view_on_etherscan": "VER EN ETHERSCAN",
 		"hash_copied_to_clipboard": "El hash de la transacción fue copiado al portapapeles",
-		"address_copied_to_clipboard": "La dirección fue copiada al portapapeles"
+		"address_copied_to_clipboard": "La dirección fue copiada al portapapeles",
+		"transaction_error": "Error de transacción"
 	},
 	"transaction_submitted": {
 		"title": "Transacción Enviada",
