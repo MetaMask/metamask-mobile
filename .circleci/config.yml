@@ -19,8 +19,8 @@ version: 2
 jobs:
   prep-deps:
     <<: *defaults
-    macos:
-      xcode: 10.3.0
+    docker:
+      - image: circleci/node:10
     steps:
       - checkout
       - run: *install-node-dependencies
