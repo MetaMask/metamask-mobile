@@ -4,6 +4,8 @@ import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -52,6 +54,10 @@ const styles = StyleSheet.create({
 		width: '70%',
 		left: '30%',
 		opacity: 0.5
+	},
+	qrCode: {
+		maxWidth: 24,
+		marginTop: 12
 	}
 });
 
@@ -64,11 +70,12 @@ export default class AssetCard extends PureComponent {
 	static propTypes = {
 		balance: PropTypes.string,
 		balanceFiat: PropTypes.string,
-		description: PropTypes.string
+		description: PropTypes.string,
+		openQrModal: PropTypes.func
 	};
 
 	render() {
-		const { balance, balanceFiat, description } = this.props;
+		const { balance, balanceFiat, description, openQrModal } = this.props;
 		return (
 			<ElevatedView elevation={10} style={styles.wrapper}>
 				<ImageBackground
@@ -80,7 +87,13 @@ export default class AssetCard extends PureComponent {
 						<Text style={styles.title}>{strings('payment_request.balance')}</Text>
 						<Text style={styles.balance}>{balance}</Text>
 						<Text style={styles.balanceFiat}>{balanceFiat}</Text>
+						<View style={styles.qrCode}>
+							<TouchableOpacity onPress={openQrModal}>
+								<FontAwesome name={'qrcode'} size={24} color={colors.blue} />
+							</TouchableOpacity>
+						</View>
 					</View>
+
 					{description && (
 						<View style={styles.descriptionWrapper}>
 							<Text style={styles.description}>{description}</Text>
