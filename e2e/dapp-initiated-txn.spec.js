@@ -13,8 +13,12 @@ describe('Import seedphrase flow', () => {
 	});
 
 	it('should import wallet via seed phrase', async () => {
-		// Check that we are on the home screen
-		await TestHelpers.checkIfVisible('home-screen');
+		// Check that we are on the onboarding carousel screen
+		await TestHelpers.checkIfVisible('onboarding-carousel-screen');
+		// Check that Get started CTA is visible & tap it
+		await TestHelpers.waitAndTap('onboarding-get-started-button');
+		// Check that we are on the onboarding screen
+		await TestHelpers.checkIfVisible('onboarding-screen');
 		// Check that Sync or import your wallet CTA is visible & tap it
 		await TestHelpers.waitAndTap('onboarding-import-button');
 		// Check that we are on the import wallet screen
