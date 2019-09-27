@@ -872,7 +872,7 @@
 		"buy_title": "Buy",
 		"buy_description": "Buy Crypto with Credit Card",
 		"public_address": "Public Address",
-		"public_address_qr_code": "Public Address QR Code",
+		"public_address_qr_code": "Public Address",
 		"coming_soon": "Coming soon..."
 	},
 	"experimental_settings": {
@@ -962,7 +962,8 @@
 		"error_title": "Feature temporarily unavailable",
 		"error_desc": "Our Payment Channels provider is having issues, please try again later.",
 		"ask_a_friend": "Or you can also request from a friend",
-		"receive_funds_action": "Receive Funds"
+		"receive_funds_action": "Receive Funds",
+		"view_address": "View my address"
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",
