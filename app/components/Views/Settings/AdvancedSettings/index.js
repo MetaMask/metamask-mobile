@@ -192,9 +192,9 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	downloadStateLogs = async () => {
-		const appName = getApplicationName();
-		const appVersion = getVersion();
-		const buildNumber = getBuildNumber();
+		const appName = await getApplicationName();
+		const appVersion = await getVersion();
+		const buildNumber = await getBuildNumber();
 		const path = RNFS.DocumentDirectoryPath + `/state-logs-v${appVersion}-(${buildNumber}).json`;
 		// A not so great way to copy objects by value
 		const fullState = JSON.parse(JSON.stringify(this.props.fullState));
