@@ -137,16 +137,16 @@ describe('Import seedphrase flow', () => {
 	// 	await TestHelpers.checkIfElementHasString('balance', '1.9 ETH');
 	// });
 
-	it('should log out', async () => {
-		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on Log Out
-		await TestHelpers.tapByText('Log Out');
-		// Tap YES
-		await TestHelpers.tapAlertWithButton('YES');
-		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('login');
-	});
+	// it('should log out', async () => {
+	// 	// Open Drawer
+	// 	await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+	// 	// Check that the drawer is visbile
+	// 	await TestHelpers.checkIfVisible('drawer-screen');
+	// 	// Tap on Log Out
+	// 	await TestHelpers.tapByText('Log Out');
+	// 	// Tap YES
+	// 	await TestHelpers.tapAlertWithButton('YES');
+	// 	// Check that we are on the wallet screen
+	// 	await TestHelpers.checkIfVisible('login');
+	// });
 });
