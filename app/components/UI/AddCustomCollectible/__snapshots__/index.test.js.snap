@@ -47,6 +47,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
+          placeholderTextColor="#d6d9dc"
           rejectResponderTermination={true}
           style={
             Array [
@@ -100,6 +101,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="Enter the collectible ID"
+          placeholderTextColor="#d6d9dc"
           rejectResponderTermination={true}
           returnKeyType="done"
           style={

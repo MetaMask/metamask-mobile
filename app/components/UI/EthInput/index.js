@@ -523,6 +523,7 @@ class EthInput extends PureComponent {
 							numberOfLines={1}
 							onChangeText={this.onChange}
 							placeholder={'0.00'}
+							placeholderTextColor={colors.grey100}
 							spellCheck={false}
 							style={styles.input}
 							value={readableValue}

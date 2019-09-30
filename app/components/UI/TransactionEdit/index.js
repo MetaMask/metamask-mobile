@@ -451,6 +451,7 @@ class TransactionEdit extends PureComponent {
 										multiline
 										onChangeText={this.updateData}
 										placeholder={strings('transaction.optional')}
+										placeholderTextColor={colors.grey100}
 										style={styles.hexData}
 										value={data}
 									/>
