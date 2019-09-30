@@ -48,9 +48,8 @@ export default class TestHelpers {
 		}
 	}
 
-	static async selectAllAndClear(elementId) {
-		await TestHelpers.tapByText('Select All');
-		return element(by.id(elementId)).tapBackspaceKey();
+	static async clearField(elementId) {
+		return element(by.id(elementId)).replaceText('');
 	}
 
 	static async tapAndLongPress(elementId) {
