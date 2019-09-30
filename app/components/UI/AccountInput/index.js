@@ -388,6 +388,7 @@ class AccountInput extends PureComponent {
 								placeholder={
 									DeviceSize.isSmallDevice() ? placeholder.substr(0, 13) + '...' : placeholder
 								}
+								placeholderTextColor={colors.grey100}
 								spellCheck={false}
 								editable={this.state.inputEnabled}
 								style={styles.input}

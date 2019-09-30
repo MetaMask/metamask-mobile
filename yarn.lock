@@ -2922,10 +2922,10 @@ detect-newline@^2.1.0:
   resolved "https://registry.yarnpkg.com/detect-newline/-/detect-newline-2.1.0.tgz#f41f1c10be4b00e87b5f13da680759f2c5bfd3e2"
   integrity sha1-9B8cEL5LAOh7XxPaaAdZ8sW/0+I=
 
-detox@14.3.0:
-  version "14.3.0"
-  resolved "https://registry.yarnpkg.com/detox/-/detox-14.3.0.tgz#1e81759b2a0be5fc8bb53bbde994ada54e045123"
-  integrity sha512-tis2br/6EYI//0gignY/BuilwISkEvKMSrPgfAbG30KLxn9s1JE21wUS2j6xGseLbwaCA5zianGdUP2FSGCwjA==
+detox@14.3.4:
+  version "14.3.4"
+  resolved "https://registry.yarnpkg.com/detox/-/detox-14.3.4.tgz#ec8e040fe2a1e6c5c6cbce70486ac5973bfb37dc"
+  integrity sha512-P+rLrGrnJLlxcwDrk2LEt6tt36G5RKOs9DYtwlWef4KiYtVfjjijgGRsUoojXl2g2BkGK0baIm1uOZtmYllW8g==
   dependencies:
     "@babel/core" "^7.4.5"
     bunyan "^1.8.12"
@@ -8844,9 +8844,9 @@ react-native-actionsheet@2.4.2:
   resolved "https://registry.yarnpkg.com/react-native-actionsheet/-/react-native-actionsheet-2.4.2.tgz#6a00dd51a75ef2c8974312130e405af73191500f"
   integrity sha512-DBoWIvVwuWXuptF4t46pBqkFxaUxS+rsIdHiA05t0n4BdTIDV2R4s9bLEUVOGzb94D7VxIamsXZPA/3mmw+SXg==
 
-"react-native-aes-crypto@git+ssh://git@github.com/brunobar79/react-native-aes.git#495bf43f119f6ee5998e7e42b9cb02bb39a5a524":
+"react-native-aes-crypto@git+ssh://git@github.com/brunobar79/react-native-aes.git#6256794f4cc6d9892f6bebcb82cbf37f06649620":
   version "1.2.1"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-aes.git#495bf43f119f6ee5998e7e42b9cb02bb39a5a524"
+  resolved "git+ssh://git@github.com/brunobar79/react-native-aes.git#6256794f4cc6d9892f6bebcb82cbf37f06649620"
 
 react-native-animatable@^1.2.4:
   version "1.3.2"

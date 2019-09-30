@@ -168,6 +168,7 @@ export default class AddCustomToken extends PureComponent {
 							<TextInput
 								style={styles.textInput}
 								placeholder={'0x...'}
+								placeholderTextColor={colors.grey100}
 								value={this.state.address}
 								onChangeText={this.onAddressChange}
 								onBlur={this.onAddressBlur}
@@ -182,6 +183,7 @@ export default class AddCustomToken extends PureComponent {
 							<TextInput
 								style={styles.textInput}
 								placeholder={'GNO'}
+								placeholderTextColor={colors.grey100}
 								value={this.state.symbol}
 								onChangeText={this.onSymbolChange}
 								onBlur={this.validateCustomTokenSymbol}
@@ -200,6 +202,7 @@ export default class AddCustomToken extends PureComponent {
 								keyboardType="numeric"
 								maxLength={2}
 								placeholder={'18'}
+								placeholderTextColor={colors.grey100}
 								onChangeText={this.onDecimalsChange}
 								onBlur={this.validateCustomTokenDecimals}
 								testID={'input-token-decimals'}

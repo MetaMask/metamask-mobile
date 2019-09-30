@@ -99,6 +99,7 @@ export default class AddBookmark extends PureComponent {
 						<TextInput
 							style={styles.textInput}
 							placeholder={''}
+							placeholderTextColor={colors.grey100}
 							value={this.state.title}
 							onChangeText={this.onTitleChange}
 							testID={'add-bookmark-title'}

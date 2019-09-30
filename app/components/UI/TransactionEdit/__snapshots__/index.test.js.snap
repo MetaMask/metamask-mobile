@@ -296,6 +296,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           multiline={true}
           onChangeText={[Function]}
           placeholder="Optional"
+          placeholderTextColor="#d6d9dc"
           rejectResponderTermination={true}
           style={
             Object {
