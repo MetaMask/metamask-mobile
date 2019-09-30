@@ -47,10 +47,8 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
 		// Ensure error is displayed
 		await TestHelpers.checkIfHasText('invalid-seed-phrase', Invalid_Seed_Error);
-		// Tap back into seed phrase text input and long press
-		await TestHelpers.tapAndLongPress('input-seed-phrase');
-		// Select all and delete
-		await TestHelpers.selectAllAndClear('input-seed-phrase');
+		// Clear field content
+		await TestHelpers.clearField('input-seed-phrase');
 		// Input correct seed phrase
 		await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Correct_Seed_Words);
 		// Tap outside of box
