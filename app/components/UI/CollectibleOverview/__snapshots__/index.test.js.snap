@@ -1,69 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleOverview should render correctly 1`] = `
-<View
-  style={
-    Object {
-      "flex": 1,
-    }
-  }
->
-  <View
-    style={
-      Object {
-        "alignItems": "center",
-        "flex": 1,
-        "justifyContent": "center",
-        "padding": 25,
-      }
-    }
-  >
-    <View>
-      <CollectibleImage
-        collectible={
-          Object {
-            "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
-            "name": "Leopard",
-            "tokenId": 6904,
-          }
-        }
-        renderFull={true}
-      />
-    </View>
-  </View>
-  <View
-    style={
-      Object {
-        "flex": 1,
-        "paddingHorizontal": 30,
-      }
-    }
-  >
-    <Text
-      style={
-        Object {
-          "fontFamily": "Roboto",
-          "fontSize": 24,
-          "fontWeight": "400",
-        }
-      }
-    >
-      Leopard
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#848c96",
-          "fontFamily": "Roboto",
-          "fontSize": 12,
-          "fontWeight": "400",
-          "marginTop": 8,
-        }
-      }
-    >
-      #
-      6904
-    </Text>
-  </View>
-</View>
+<ContextConsumer>
+  <Component />
+</ContextConsumer>
 `;

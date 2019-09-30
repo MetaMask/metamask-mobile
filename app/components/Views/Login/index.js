@@ -306,6 +306,7 @@ class Login extends PureComponent {
 							onChangeText={this.setPassword}
 							secureTextEntry
 							placeholder={''}
+							placeholderTextColor={colors.grey100}
 							underlineColorAndroid={colors.grey100}
 							onSubmitEditing={this.onLogin}
 							returnKeyType={'done'}

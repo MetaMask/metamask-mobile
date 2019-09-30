@@ -489,6 +489,7 @@ class ImportFromSeed extends PureComponent {
 							multiline
 							style={[styles.seedPhrase, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+							placeholderTextColor={colors.grey100}
 							onChangeText={this.onSeedWordsChange}
 							testID={'input-seed-phrase'}
 							blurOnSubmit
@@ -524,6 +525,7 @@ class ImportFromSeed extends PureComponent {
 								onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
 								secureTextEntry={this.state.secureTextEntry}
 								placeholder={''}
+								placeholderTextColor={colors.grey100}
 								underlineColorAndroid={colors.grey100}
 								onSubmitEditing={this.jumpToConfirmPassword}
 								returnKeyType={'next'}
@@ -570,6 +572,7 @@ class ImportFromSeed extends PureComponent {
 								onChangeText={this.onPasswordConfirmChange} // eslint-disable-line  react/jsx-no-bind
 								secureTextEntry={this.state.secureTextEntry}
 								placeholder={''}
+								placeholderTextColor={colors.grey100}
 								underlineColorAndroid={colors.grey100}
 								onSubmitEditing={this.onPressImport}
 								returnKeyType={'done'}

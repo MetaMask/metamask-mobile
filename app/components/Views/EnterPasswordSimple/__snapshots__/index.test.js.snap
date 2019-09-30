@@ -62,6 +62,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Password"
+            placeholderTextColor="#d6d9dc"
             rejectResponderTermination={true}
             secureTextEntry={true}
             style={

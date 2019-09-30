@@ -326,6 +326,7 @@ class RevealPrivateCredential extends PureComponent {
 										style={styles.input}
 										testID={'private-credential-password-text-input'}
 										placeholder={'Password'}
+										placeholderTextColor={colors.grey100}
 										onChangeText={this.onPasswordChange}
 										secureTextEntry
 										onSubmitEditing={this.tryUnlock}

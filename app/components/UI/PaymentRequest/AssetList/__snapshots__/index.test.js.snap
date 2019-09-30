@@ -1,18 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetList should render correctly 1`] = `
-<View
-  testID="add-searched-token-screen"
->
-  <Text
-    style={
-      Object {
-        "fontFamily": "Roboto",
-        "fontWeight": "400",
-      }
-    }
-  >
-    Enpty Message
-  </Text>
-</View>
+<ContextConsumer>
+  <Component />
+</ContextConsumer>
 `;

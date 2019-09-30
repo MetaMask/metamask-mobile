@@ -274,6 +274,7 @@ export default class AccountBackupStep4 extends PureComponent {
 					<TextInput
 						style={styles.input}
 						placeholder={'Password'}
+						placeholderTextColor={colors.grey100}
 						onChangeText={this.onPasswordChange}
 						secureTextEntry
 						onSubmitEditing={this.tryUnlock}

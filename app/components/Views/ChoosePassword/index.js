@@ -471,6 +471,7 @@ class ChoosePassword extends PureComponent {
 									onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
 									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
+									placeholderTextColor={colors.grey100}
 									underlineColorAndroid={colors.grey100}
 									testID={'input-password-confirm'}
 									onSubmitEditing={this.onPressCreate}
