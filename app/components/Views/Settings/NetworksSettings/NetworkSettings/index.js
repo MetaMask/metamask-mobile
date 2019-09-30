@@ -311,6 +311,7 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onNicknameChange}
 							placeholder={strings('app_settings.network_name_placeholder')}
+							placeholderTextColor={colors.grey100}
 							onSubmitEditing={this.jumpToRpcURL}
 						/>
 
@@ -325,6 +326,7 @@ class NetworkSettings extends PureComponent {
 							onChangeText={this.onRpcUrlChange}
 							onBlur={this.validateRpcUrl}
 							placeholder={strings('app_settings.network_rpc_placeholder')}
+							placeholderTextColor={colors.grey100}
 							onSubmitEditing={this.jumpToChainId}
 						/>
 						{warningRpcUrl && (
@@ -344,6 +346,7 @@ class NetworkSettings extends PureComponent {
 							onChangeText={this.onChainIDChange}
 							onBlur={this.validateChainId}
 							placeholder={strings('app_settings.network_chain_id_placeholder')}
+							placeholderTextColor={colors.grey100}
 							onSubmitEditing={this.jumpToSymbol}
 							keyboardType={'numeric'}
 						/>
@@ -363,6 +366,7 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onTickerChange}
 							placeholder={strings('app_settings.network_symbol_placeholder')}
+							placeholderTextColor={colors.grey100}
 							onSubmitEditing={this.jumpBlockExplorerURL}
 						/>
 
@@ -376,6 +380,7 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onBlockExplorerUrlChange}
 							placeholder={strings('app_settings.network_block_explorer_placeholder')}
+							placeholderTextColor={colors.grey100}
 							onSubmitEditing={this.addRpcUrl}
 						/>
 					</View>

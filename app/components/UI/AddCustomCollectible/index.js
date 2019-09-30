@@ -180,6 +180,7 @@ class AddCustomCollectible extends PureComponent {
 									this.state.inputWidth ? { width: this.state.inputWidth } : {}
 								]}
 								placeholder={'0x...'}
+								placeholderTextColor={colors.grey100}
 								value={this.state.address}
 								onChangeText={this.onAddressChange}
 								onBlur={this.validateCustomCollectibleAddress}
@@ -204,6 +205,7 @@ class AddCustomCollectible extends PureComponent {
 								onSubmitEditing={this.addCollectible}
 								returnKeyType={'done'}
 								placeholder={strings('collectible.id_placeholder')}
+								placeholderTextColor={colors.grey100}
 							/>
 							<Text style={styles.warningText}>{this.state.warningTokenId}</Text>
 						</View>

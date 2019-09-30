@@ -80,6 +80,7 @@ export default class AssetSearch extends PureComponent {
 					style={styles.textInput}
 					value={searchQuery}
 					placeholder={strings('token.search_tokens_placeholder')}
+					placeholderTextColor={colors.grey100}
 					onChangeText={this.handleSearch}
 					testID={'input-search-asset'}
 				/>

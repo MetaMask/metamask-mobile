@@ -45,6 +45,7 @@ exports[`AddBookmark should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
+          placeholderTextColor="#d6d9dc"
           rejectResponderTermination={true}
           returnKeyType="next"
           style={
