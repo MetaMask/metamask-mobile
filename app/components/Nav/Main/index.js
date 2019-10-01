@@ -665,6 +665,7 @@ class Main extends PureComponent {
 
 			if (
 				(value === '0x0' || !value) &&
+				data &&
 				data !== '0x' &&
 				to &&
 				(await getMethodData(data)).name === TOKEN_METHOD_TRANSFER
