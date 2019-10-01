@@ -129,7 +129,7 @@
     "react-native-tcp": "3.3.0",
     "react-native-vector-icons": "6.4.2",
     "react-native-view-shot": "git+ssh://git@github.com/brunobar79/react-native-view-shot.git#androidx",
-    "react-native-webview": "git+ssh://git@github.com/brunobar79/react-native-webview.git#e56c638e71958612658ac8931b1d1044fdd358ac",
+    "react-native-webview": "git+ssh://git@github.com/brunobar79/react-native-webview.git#29368fb2d6d7314fefc0e4b67206b09952706267",
     "react-navigation": "3.11.1",
     "react-redux": "5.1.1",
     "readable-stream": "1.0.33",
