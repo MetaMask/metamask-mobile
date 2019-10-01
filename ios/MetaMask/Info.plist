@@ -129,5 +129,9 @@
 	<string>$(MM_FOX_CODE)</string>
 	<key>mixpanel_token</key>
 	<string>$(MM_MIXPANEL_TOKEN)</string>
+	<key>UIUserInterfaceStyle</key>
+	<string>Light</string>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
 </dict>
 </plist>
