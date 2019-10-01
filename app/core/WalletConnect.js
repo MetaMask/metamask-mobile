@@ -95,9 +95,7 @@ class WalletConnect {
 						txParams.value = payload.params[0].value;
 						txParams.gasLimit = payload.params[0].gasLimit;
 						txParams.gasPrice = payload.params[0].gasPrice;
-						if (payload.params[0].data && payload.params[0].data.toString() !== '0x') {
-							txParams.data = payload.params[0].data;
-						}
+						txParams.data = payload.params[0].data;
 
 						const hash = await (await TransactionController.addTransaction(txParams)).result;
 						this.walletConnector.approveRequest({
