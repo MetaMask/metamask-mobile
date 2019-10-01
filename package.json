@@ -58,7 +58,7 @@
     "@react-native-community/async-storage": "1.2.0",
     "@react-native-community/netinfo": "4.1.5",
     "@tradle/react-native-http": "2.0.1",
-    "@walletconnect/react-native": "1.0.0-beta.32",
+    "@walletconnect/react-native": "1.0.0-beta.37",
     "asyncstorage-down": "4.2.0",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
