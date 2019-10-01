@@ -290,6 +290,18 @@ class InpageBridge {
 	}
 
 	/**
+	 * Simulate the once event to keep parity with the EventEmitter interface
+	 * because there are some dapps that use it
+	 *
+	 * @param {string} event - Event name
+	 * @param {Function} listener - Callback invoked when event triggered
+	 * @returns {InpageBridge}
+	 */
+	once(event, listener) {
+		this.on(event, listener);
+	}
+
+	/**
 	 * Remove a listener for a specific event
 	 *
 	 * @param {string} event - Event name
