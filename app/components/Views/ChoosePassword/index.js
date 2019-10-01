@@ -239,6 +239,8 @@ class ChoosePassword extends PureComponent {
 						});
 					}
 					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+					await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+					await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
 				}
 
 				// mark the user as existing so it doesn't see the create password screen again
