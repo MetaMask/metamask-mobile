@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 export default {
 	DEFAULT_LOCK_TIMEOUT: 30000,
 	DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
@@ -24,5 +26,9 @@ export default {
 	DAI_ADDRESS: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
 	HOMEPAGE_URL: 'https://home.metamask.io/',
 	ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
-	INSTAPAY_GAS_PONDERATOR: 1.2
+	INSTAPAY_GAS_PONDERATOR: 1.2,
+	USER_AGENT:
+		Platform.OS === 'android'
+			? 'Mozilla/5.0 (Linux; Android 10; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.92 Mobile Safari/537.36'
+			: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/76.0.3809.123 Mobile/15E148 Safari/605.1'
 };
