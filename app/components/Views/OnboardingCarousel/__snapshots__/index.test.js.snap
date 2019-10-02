@@ -137,7 +137,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   }
                 }
               >
-                Explore decentralized apps
+                Say hello to your wallet...
               </Text>
               <Text
                 style={
@@ -207,7 +207,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   }
                 }
               >
-                Say hello to your wallet...
+                Explore decentralized apps
               </Text>
               <Text
                 style={
