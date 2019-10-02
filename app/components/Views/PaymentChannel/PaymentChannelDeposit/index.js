@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import {
+	SafeAreaView,
 	Platform,
 	TextInput,
 	Alert,
@@ -37,7 +38,6 @@ import AssetIcon from '../../../UI/AssetIcon';
 import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { getTicker } from '../../../../util/transactions';
-import { SafeAreaView } from 'react-navigation';
 import Modal from 'react-native-modal';
 import AddressQRCode from '../../AddressQRCode';
 
