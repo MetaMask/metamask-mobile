@@ -49,7 +49,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
-            new ReanimatedPackage(),
+            	new ReanimatedPackage(),
 				new RNCWebViewPackage(),
             	new FabricPackage(),
 				new NetInfoPackage(),
