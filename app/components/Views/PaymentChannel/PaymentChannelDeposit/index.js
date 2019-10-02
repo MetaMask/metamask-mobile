@@ -36,10 +36,11 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import contractMap from 'eth-contract-metadata';
 import AssetIcon from '../../../UI/AssetIcon';
 import { hexToBN } from 'gaba/util';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { getTicker } from '../../../../util/transactions';
 import Modal from 'react-native-modal';
 import AddressQRCode from '../../AddressQRCode';
+
+const DAI_LOGO = contractMap[AppConstants.DAI_ADDRESS].logo;
 
 const TOO_LOW = 'too_low';
 const TOO_HIGH = 'too_high';
@@ -246,7 +247,12 @@ class Deposit extends PureComponent {
 				current && current.focus();
 			}, 300);
 		}
+		this.mount = true;
 	};
+
+	componentWillUnmount() {
+		this.mounted = false;
+	}
 
 	deposit = async () => {
 		if (this.state.depositing || !this.state.validAmount) {
@@ -351,6 +357,7 @@ class Deposit extends PureComponent {
 	};
 
 	renderTransactionDirection() {
+		if (!this.mounted) return null;
 		const { selectedAddress, identities } = this.props;
 		return (
 			<View style={styles.graphic}>
@@ -365,10 +372,7 @@ class Deposit extends PureComponent {
 				</View>
 				<View style={[styles.addressGraphic, styles.toGraphic]}>
 					<View style={styles.daiLogoWrapper}>
-						<AssetIcon
-							logo={contractMap[toChecksumAddress(AppConstants.DAI_ADDRESS)].logo}
-							customStyle={styles.daiLogo}
-						/>
+						<AssetIcon logo={DAI_LOGO} customStyle={styles.daiLogo} />
 					</View>
 					<Text style={styles.directionText} numberOfLines={1}>
 						{strings('payment_channel.insta_pay')}
