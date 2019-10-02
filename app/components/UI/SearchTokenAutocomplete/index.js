@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, InteractionManager } from 'react-native';
 import { colors } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
@@ -44,11 +44,23 @@ export default class SearchTokenAutocomplete extends PureComponent {
 		this.setState({ selectedAsset: asset });
 	};
 
-	addToken = () => {
+	addToken = async () => {
 		const { AssetsController } = Engine.context;
 		const { address, symbol, decimals } = this.state.selectedAsset;
-		AssetsController.addToken(address, symbol, decimals);
-		this.props.navigation.goBack();
+		await AssetsController.addToken(address, symbol, decimals);
+		// Clear state before closing
+		this.setState(
+			{
+				searchResults: [],
+				searchQuery: '',
+				selectedAsset: {}
+			},
+			() => {
+				InteractionManager.runAfterInteractions(() => {
+					this.props.navigation.goBack();
+				});
+			}
+		);
 	};
 
 	render = () => {
