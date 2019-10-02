@@ -7,6 +7,7 @@ import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 import setOnboardingWizardStep from '../../../actions/wizard';
+// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';

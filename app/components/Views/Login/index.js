@@ -23,6 +23,7 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
+// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
