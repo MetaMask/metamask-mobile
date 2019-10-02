@@ -14,6 +14,7 @@ import {
 	BackHandler,
 	InteractionManager
 } from 'react-native';
+// eslint-disable-next-line import/named
 import { withNavigation } from 'react-navigation';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';

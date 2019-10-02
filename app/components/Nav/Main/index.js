@@ -12,7 +12,8 @@ import {
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
+import { createBottomTabNavigator } from 'react-navigation-tabs';
 import ENS from 'ethjs-ens';
 import GlobalAlert from '../../UI/GlobalAlert';
 import FlashMessage from 'react-native-flash-message';

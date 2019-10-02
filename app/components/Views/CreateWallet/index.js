@@ -21,6 +21,7 @@ import { passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
+// eslint-disable-next-line import/named
 import { NavigationActions, withNavigationFocus } from 'react-navigation';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 

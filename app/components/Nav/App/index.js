@@ -1,9 +1,12 @@
 import {
-	createSwitchNavigator,
-	createDrawerNavigator,
-	createStackNavigator,
-	createAppContainer
+	// eslint-disable-next-line import/named
+	createAppContainer,
+	// eslint-disable-next-line import/named
+	createSwitchNavigator
 } from 'react-navigation';
+
+import { createStackNavigator } from 'react-navigation-stack';
+import { createDrawerNavigator } from 'react-navigation-drawer';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
