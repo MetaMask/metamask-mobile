@@ -28,7 +28,9 @@ exports[`Root should render correctly 1`] = `
       }
     }
   >
-    <NavigationContainer />
+    <NavigationContainer
+      theme="light"
+    />
   </PersistGate>
 </Provider>
 `;
