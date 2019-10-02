@@ -156,7 +156,7 @@ export default class OnboardingCarousel extends PureComponent {
 								</View>
 								<View key={'3'}>
 									<View style={styles.tab}>
-										<Text style={styles.title}>{strings('onboarding_carousel.title2')}</Text>
+										<Text style={styles.title}>{strings('onboarding_carousel.title3')}</Text>
 										<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle3')}</Text>
 									</View>
 									<View style={styles.carouselImageWrapper}>
