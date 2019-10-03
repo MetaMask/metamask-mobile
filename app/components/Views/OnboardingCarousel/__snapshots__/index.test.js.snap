@@ -46,6 +46,11 @@ exports[`OnboardingCarousel should render correctly 1`] = `
         >
           <View
             key="1"
+            style={
+              Object {
+                "flex": 1,
+              }
+            }
           >
             <View
               style={
@@ -91,7 +96,9 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 Object {
                   "alignItems": "center",
-                  "marginTop": 25,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "justifyContent": "center",
                 }
               }
             >
@@ -107,6 +114,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                     Object {},
                     Object {
                       "height": 285,
+                      "marginTop": 30,
                       "width": 200,
                     },
                   ]
@@ -116,6 +124,11 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           </View>
           <View
             key="2"
+            style={
+              Object {
+                "flex": 1,
+              }
+            }
           >
             <View
               style={
@@ -161,7 +174,9 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 Object {
                   "alignItems": "center",
-                  "marginTop": 25,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "justifyContent": "center",
                 }
               }
             >
@@ -186,6 +201,11 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           </View>
           <View
             key="3"
+            style={
+              Object {
+                "flex": 1,
+              }
+            }
           >
             <View
               style={
@@ -231,7 +251,9 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 Object {
                   "alignItems": "center",
-                  "marginTop": 25,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "justifyContent": "center",
                 }
               }
             >
@@ -246,8 +268,8 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   Array [
                     Object {},
                     Object {
-                      "height": 214,
-                      "width": 276,
+                      "height": 470.95238095238096,
+                      "width": 690,
                     },
                   ]
                 }
@@ -260,6 +282,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
             Object {
               "alignSelf": "center",
               "flexDirection": "row",
+              "marginVertical": 36,
             }
           }
         >
@@ -317,7 +340,6 @@ exports[`OnboardingCarousel should render correctly 1`] = `
         <View
           style={
             Object {
-              "flex": 1,
               "flexDirection": "column",
               "paddingHorizontal": 40,
             }
@@ -326,38 +348,27 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           <View
             style={
               Object {
-                "flex": 1,
                 "justifyContent": "flex-end",
               }
             }
           >
-            <View
-              style={
+            <StyledButton
+              disabledContainerStyle={
                 Object {
-                  "marginTop": 24,
+                  "opacity": 0.6,
                 }
               }
+              onPress={[Function]}
+              styleDisabled={
+                Object {
+                  "opacity": 0.6,
+                }
+              }
+              testID="onboarding-get-started-button"
+              type="normal"
             >
-              <View>
-                <StyledButton
-                  disabledContainerStyle={
-                    Object {
-                      "opacity": 0.6,
-                    }
-                  }
-                  onPress={[Function]}
-                  styleDisabled={
-                    Object {
-                      "opacity": 0.6,
-                    }
-                  }
-                  testID="onboarding-get-started-button"
-                  type="normal"
-                >
-                  Get started
-                </StyledButton>
-              </View>
-            </View>
+              Get started
+            </StyledButton>
           </View>
         </View>
       </View>
