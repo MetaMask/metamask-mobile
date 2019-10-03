@@ -152,9 +152,8 @@ rm -rf node_modules/react-native-branch/native-tests/
 
 echo "16. Connext v2 fixes"
 TARGET="node_modules/websocket-nats/lib/nats.js"
-this.url = url;this.url.port = 4222;
 # set default nats port
 sed -i'' -e 's/this.url = url;/this.url = url;this.url.port = 4222;/' $TARGET;
 # remove core-js/stable
 TARGET="node_modules/@connext/client/dist/connext.js"
-sed -i'' -e 's/require("core-js/stable");//' $TARGET;
+sed -i'' -e 's/require("core-js\/stable");//' $TARGET;

@@ -1,21 +1,18 @@
 import Logger from '../util/Logger';
 // eslint-disable-next-line
 import * as connext from '@connext/client';
-import tokenArtifacts from "./InstaPay/contracts/ERC20Mintable.json";
+import tokenArtifacts from './InstaPay/contracts/ERC20Mintable.json';
 
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import { Currency, inverse, store } from "./InstaPay/utils";
+import { Currency, inverse, store } from './InstaPay/utils';
 import AppConstants from './AppConstants';
-import { Contract, ethers as eth } from "ethers";
-import { AddressZero } from "ethers/constants";
+import { Contract, ethers as eth } from 'ethers';
+import { AddressZero } from 'ethers/constants';
 import Engine from './Engine';
 
-
-const  { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS }  = AppConstants.CONNEXT;
-const API_URL = 'indra.connext.network/api'
-
-
+const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
+const API_URL = 'indra.connext.network/api';
 
 // Constants for channel max/min - this is also enforced on the hub
 // const WITHDRAW_ESTIMATED_GAS = toBN("300000");
@@ -34,7 +31,6 @@ const API_URL = 'indra.connext.network/api'
 // const DEFAULT_COLLATERAL_MINIMUM = Currency.DAI("5");
 // const DEFAULT_AMOUNT_TO_COLLATERALIZE = Currency.DAI("10");
 
-
 const hub = new EventEmitter();
 let client = null;
 let reloading = false;
@@ -46,33 +42,33 @@ const mnemonic = 'hard fashion film sting orange phone tank rack green tiger onl
  */
 class InstaPay {
 	constructor(mnemonic, network) {
-		const swapRate = "314.08";
+		const swapRate = '314.08';
 		this.state = {
 			ready: false,
-			address: "",
+			address: '',
 			balance: {
 				channel: {
-					ether: Currency.ETH("0", swapRate),
-					token: Currency.DAI("0", swapRate),
-					total: Currency.ETH("0", swapRate),
+					ether: Currency.ETH('0', swapRate),
+					token: Currency.DAI('0', swapRate),
+					total: Currency.ETH('0', swapRate)
 				},
 				onChain: {
-					ether: Currency.ETH("0", swapRate),
-					token: Currency.DAI("0", swapRate),
-					total: Currency.ETH("0", swapRate),
-				},
+					ether: Currency.ETH('0', swapRate),
+					token: Currency.DAI('0', swapRate),
+					total: Currency.ETH('0', swapRate)
+				}
 			},
 			ethprovider: null,
 			freeBalanceAddress: null,
 			loadingConnext: true,
 			maxDeposit: null,
 			minDeposit: null,
-			pending: { type: "null", complete: true, closed: true },
+			pending: { type: 'null', complete: true, closed: true },
 			sendScanArgs: { amount: null, recipient: null },
 			swapRate,
 			token: null,
-			xpub: "",
-			tokenProfile: null,
+			xpub: '',
+			tokenProfile: null
 		};
 
 		this.initialize(mnemonic, network);
@@ -90,13 +86,13 @@ class InstaPay {
 			ethProviderUrl,
 			store,
 			logLevel: 5
-		}
+		};
 
 		// Wait for channel to be available
-		const channelIsAvailable = async (channel) => {
-			const chan = await channel.getChannel()
-			return chan && chan.available
-		}
+		const channelIsAvailable = async channel => {
+			const chan = await channel.getChannel();
+			return chan && chan.available;
+		};
 
 		const channel = await connext.connect(options);
 		while (!(await channelIsAvailable(channel))) {
@@ -107,7 +103,7 @@ class InstaPay {
 		const connextConfig = await channel.config();
 		const token = new Contract(connextConfig.contractAddresses.Token, tokenArtifacts.abi, cfWallet);
 		const swapRate = await channel.getLatestSwapRate(AddressZero, token.address);
-		const invSwapRate = inverse(swapRate)
+		const invSwapRate = inverse(swapRate);
 
 		Logger.log(`Client created successfully!`);
 		Logger.log(` - Public Identifier: ${channel.publicIdentifier}`);
@@ -115,14 +111,13 @@ class InstaPay {
 		Logger.log(` - CF Account address: ${cfWallet.address}`);
 		Logger.log(` - Free balance address: ${freeBalanceAddress}`);
 		Logger.log(` - Token address: ${token.address}`);
-		Logger.log(` - Swap rate: ${swapRate} or ${invSwapRate}`)
+		Logger.log(` - Swap rate: ${swapRate} or ${invSwapRate}`);
 
-		channel.subscribeToSwapRates(AddressZero, token.address, (res) => {
-
-		if (!res || !res.swapRate) return;
+		channel.subscribeToSwapRates(AddressZero, token.address, res => {
+			if (!res || !res.swapRate) return;
 			Logger.log(`Got swap rate upate: ${this.state.swapRate} -> ${res.swapRate}`);
 			this.setState({ swapRate: res.swapRate });
-		})
+		});
 
 		this.setState({
 			address: cfWallet.address,
@@ -133,11 +128,11 @@ class InstaPay {
 			swapRate,
 			token,
 			wallet: cfWallet,
-			xpub: channel.publicIdentifier,
+			xpub: channel.publicIdentifier
 		});
 
 		// await this.startPoller();
-	}
+	};
 
 	setState = data => {
 		Object.keys(data).forEach(key => {
@@ -146,7 +141,6 @@ class InstaPay {
 	};
 }
 
-
 const instance = {
 	/**
 	 * Method that initializes the connext client for a
@@ -154,14 +148,11 @@ const instance = {
 	 */
 	async init() {
 		const { provider } = Engine.context.NetworkController.state;
-		if(SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
+		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			initListeners();
 			Logger.log('PC::Initialzing payment channels');
 			try {
-
 				client = new InstaPay(mnemonic, provider.type);
-
-
 			} catch (e) {
 				client.logCurrentState('PC::init');
 				Logger.error('PC::init', e);
@@ -235,20 +226,20 @@ const instance = {
 	},
 	/**
 	 *	Returns the current exchange rate for DAI / ETH
-	*/
+	 */
 	getExchangeRate: () => (client && client.state && client.state.exchangeRate) || 0,
 	/**
 	 *	Minimum deposit amount in ETH
-	*/
+	 */
 	MIN_DEPOSIT_ETH,
 	/**
 	 *	MAX deposit amount in USD
-	*/
+	 */
 	MAX_DEPOSIT_TOKEN,
 	/**
 	 *	Event emitter instance that allows to subscribe
-	*  to the events emitted by the instance
-	*/
+	 *  to the events emitted by the instance
+	 */
 	hub,
 	/**
 	 * returns the entire state of the client

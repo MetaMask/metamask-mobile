@@ -30,7 +30,7 @@ export const store = {
 		}
 		return raw;
 	},
-	set: async (pairs) => {
+	set: async pairs => {
 		for (const pair of pairs) {
 			await AsyncStorage.setItem(
 				`CF_NODE:${pair.path}`,
@@ -40,9 +40,9 @@ export const store = {
 	},
 	reset: async () => {
 		for (const k of Object.keys(localStorage)) {
-		  if (k.startsWith(ConnextClientStorePrefix)) {
-			await AsyncStorage.removeItem(k);
-		  }
+			if (k.startsWith(ConnextClientStorePrefix)) {
+				await AsyncStorage.removeItem(k);
+			}
 		}
-	  }
+	}
 };
