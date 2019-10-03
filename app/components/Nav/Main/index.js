@@ -74,6 +74,7 @@ import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
+import InstaPay from '../../../core/InstaPay';
 import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDeposit';
@@ -466,6 +467,7 @@ class Main extends PureComponent {
 				if (this.props.paymentChannelsEnabled) {
 					this.initializePaymentChannels();
 				}
+				InstaPay.init();
 
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 			}, 1000);

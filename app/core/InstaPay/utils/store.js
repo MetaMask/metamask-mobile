@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-community/async-storage';
 
+// eslint-disable-next-line import/prefer-default-export
 export const store = {
 	get: async path => {
 		const raw = await AsyncStorage.getItem(`CF_NODE:${path}`);
@@ -29,12 +30,19 @@ export const store = {
 		}
 		return raw;
 	},
-	set: async (pairs, allowDelete) => {
+	set: async (pairs) => {
 		for (const pair of pairs) {
 			await AsyncStorage.setItem(
 				`CF_NODE:${pair.path}`,
 				typeof pair.value === 'string' ? pair.value : JSON.stringify(pair.value)
 			);
 		}
-	}
+	},
+	reset: async () => {
+		for (const k of Object.keys(localStorage)) {
+		  if (k.startsWith(ConnextClientStorePrefix)) {
+			await AsyncStorage.removeItem(k);
+		  }
+		}
+	  }
 };

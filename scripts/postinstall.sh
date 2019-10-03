@@ -116,6 +116,7 @@ sed -i'' -e 's/<uses-sdk android:minSdkVersion="16" \/>//' $TARGET;
 # which contains a fix
 echo "13. Fix react-native v0.59.8"
 TARGET="node_modules/react-native/react.gradle"
+
 if grep -q "doLast" $TARGET;
 then
 	echo "Already patched";
@@ -148,3 +149,12 @@ rm -rf node_modules/react-native/React/React.xcodeproj/project.pbxproj.bak
 echo "15. Remove Branch examples"
 rm -rf node_modules/react-native-branch/examples/
 rm -rf node_modules/react-native-branch/native-tests/
+
+echo "16. Connext v2 fixes"
+TARGET="node_modules/websocket-nats/lib/nats.js"
+this.url = url;this.url.port = 4222;
+# set default nats port
+sed -i'' -e 's/this.url = url;/this.url = url;this.url.port = 4222;/' $TARGET;
+# remove core-js/stable
+TARGET="node_modules/@connext/client/dist/connext.js"
+sed -i'' -e 's/require("core-js/stable");//' $TARGET;
