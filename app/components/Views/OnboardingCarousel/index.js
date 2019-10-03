@@ -12,6 +12,8 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { NavigationActions } from 'react-navigation';
 
 const IMAGE_3_RATIO = 215 / 315;
+const IMAGE_2_RATIO = 222 / 239;
+const IMAGE_1_RATIO = 285 / 203;
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
@@ -50,12 +52,12 @@ const styles = StyleSheet.create({
 	carouselImage: {},
 	carouselImage1: {
 		marginTop: 30,
-		width: 200,
-		height: 285
+		width: DEVICE_WIDTH - 100,
+		height: (DEVICE_WIDTH - 100) * IMAGE_1_RATIO
 	},
 	carouselImage2: {
-		width: 240,
-		height: 222
+		width: DEVICE_WIDTH - 100,
+		height: (DEVICE_WIDTH - 100) * IMAGE_2_RATIO
 	},
 	carouselImage3: {
 		width: DEVICE_WIDTH - 60,
