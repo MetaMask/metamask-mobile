@@ -8,6 +8,8 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
+// eslint-disable-next-line import/named
+import { NavigationActions } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -107,7 +109,8 @@ export default class OnboardingCarousel extends PureComponent {
 
 	onPresGetStarted = () => {
 		const { navigation } = this.props;
-		navigation && navigation.navigate('OnboardingRootNav');
+		navigation &&
+			navigation.navigate('OnboardingRootNav', {}, NavigationActions.navigate({ routeName: 'Onboarding' }));
 	};
 
 	renderTabBar = () => <View />;
