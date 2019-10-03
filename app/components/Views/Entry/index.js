@@ -157,7 +157,6 @@ class Entry extends PureComponent {
 
 	async unlockKeychain() {
 		try {
-			// Retreive the credentials
 			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
