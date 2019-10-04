@@ -8855,9 +8855,9 @@ react-native-animatable@^1.2.4:
   dependencies:
     prop-types "^15.5.10"
 
-"react-native-animated-fox@git+ssh://git@github.com/brunobar79/react-native-animated-fox.git#d8537eced2eebefee1feccfc8475aac608fd3fb1":
+"react-native-animated-fox@git+ssh://git@github.com/brunobar79/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9":
   version "1.0.0"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-animated-fox.git#d8537eced2eebefee1feccfc8475aac608fd3fb1"
+  resolved "git+ssh://git@github.com/brunobar79/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9"
   dependencies:
     prop-types "^15.5.10"
 
