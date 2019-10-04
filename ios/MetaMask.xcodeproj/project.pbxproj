@@ -2544,7 +2544,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = MetaMask;
-				PROVISIONING_PROFILE_SPECIFIER = "match Development io.metamask.MetaMask";
+				PROVISIONING_PROFILE_SPECIFIER = "match Development io.metamask.MetaMask 1570210279";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -2611,7 +2611,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = MetaMask;
-				PROVISIONING_PROFILE_SPECIFIER = "match AppStore io.metamask.MetaMask";
+				PROVISIONING_PROFILE_SPECIFIER = "match AppStore io.metamask.MetaMask 1570221071";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
