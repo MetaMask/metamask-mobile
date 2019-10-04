@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, ScrollView, StyleSheet, Image } from 'react-native';
+import { Text, View, ScrollView, StyleSheet, Image, Dimensions } from 'react-native';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -8,6 +8,13 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
+// eslint-disable-next-line import/named
+import { NavigationActions } from 'react-navigation';
+
+const IMAGE_3_RATIO = 215 / 315;
+const IMAGE_2_RATIO = 222 / 239;
+const IMAGE_1_RATIO = 285 / 203;
+const DEVICE_WIDTH = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -36,33 +43,31 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	ctas: {
-		flex: 1,
 		paddingHorizontal: 40,
 		flexDirection: 'column'
 	},
 	ctaWrapper: {
-		flex: 1,
 		justifyContent: 'flex-end'
-	},
-	importWrapper: {
-		marginTop: 24
 	},
 	carouselImage: {},
 	carouselImage1: {
-		width: 200,
-		height: 285
+		marginTop: 30,
+		width: DEVICE_WIDTH - 100,
+		height: (DEVICE_WIDTH - 100) * IMAGE_1_RATIO
 	},
 	carouselImage2: {
-		width: 240,
-		height: 222
+		width: DEVICE_WIDTH - 100,
+		height: (DEVICE_WIDTH - 100) * IMAGE_2_RATIO
 	},
 	carouselImage3: {
-		width: 276,
-		height: 214
+		width: DEVICE_WIDTH - 60,
+		height: (DEVICE_WIDTH - 60) * IMAGE_3_RATIO
 	},
 	carouselImageWrapper: {
+		flex: 1,
+		flexDirection: 'row',
 		alignItems: 'center',
-		marginTop: 25
+		justifyContent: 'center'
 	},
 	circle: {
 		width: 8,
@@ -77,7 +82,8 @@ const styles = StyleSheet.create({
 	},
 	progessContainer: {
 		flexDirection: 'row',
-		alignSelf: 'center'
+		alignSelf: 'center',
+		marginVertical: 36
 	},
 	tab: {
 		marginHorizontal: 30
@@ -107,7 +113,8 @@ export default class OnboardingCarousel extends PureComponent {
 
 	onPresGetStarted = () => {
 		const { navigation } = this.props;
-		navigation && navigation.navigate('OnboardingRootNav');
+		navigation &&
+			navigation.navigate('OnboardingRootNav', {}, NavigationActions.navigate({ routeName: 'Onboarding' }));
 	};
 
 	renderTabBar = () => <View />;
@@ -128,7 +135,7 @@ export default class OnboardingCarousel extends PureComponent {
 								renderTabBar={this.renderTabBar}
 								onChangeTab={this.onChangeTab}
 							>
-								<View key={'1'}>
+								<View key={'1'} style={baseStyles.flexGrow}>
 									<View style={styles.tab}>
 										<Text style={styles.title}>{strings('onboarding_carousel.title1')}</Text>
 										<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle1')}</Text>
@@ -141,7 +148,7 @@ export default class OnboardingCarousel extends PureComponent {
 										/>
 									</View>
 								</View>
-								<View key={'2'}>
+								<View key={'2'} style={baseStyles.flexGrow}>
 									<View style={styles.tab}>
 										<Text style={styles.title}>{strings('onboarding_carousel.title2')}</Text>
 										<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle2')}</Text>
@@ -154,7 +161,7 @@ export default class OnboardingCarousel extends PureComponent {
 										/>
 									</View>
 								</View>
-								<View key={'3'}>
+								<View key={'3'} style={baseStyles.flexGrow}>
 									<View style={styles.tab}>
 										<Text style={styles.title}>{strings('onboarding_carousel.title3')}</Text>
 										<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle3')}</Text>
@@ -177,17 +184,13 @@ export default class OnboardingCarousel extends PureComponent {
 
 							<View style={styles.ctas}>
 								<View style={styles.ctaWrapper}>
-									<View style={styles.importWrapper}>
-										<View style={styles.flexGrow}>
-											<StyledButton
-												type={'normal'}
-												onPress={this.onPresGetStarted}
-												testID={'onboarding-get-started-button'}
-											>
-												{strings('onboarding_carousel.get_started')}
-											</StyledButton>
-										</View>
-									</View>
+									<StyledButton
+										type={'normal'}
+										onPress={this.onPresGetStarted}
+										testID={'onboarding-get-started-button'}
+									>
+										{strings('onboarding_carousel.get_started')}
+									</StyledButton>
 								</View>
 							</View>
 						</View>
