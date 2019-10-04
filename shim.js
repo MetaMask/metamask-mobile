@@ -8,6 +8,18 @@ if (!global.atob) {
 	global.atob = decode;
 }
 
+
+if(!global.localStorage){
+	global.localStorage = {
+		setItem : (key, val) => null,
+		getItem : (key) => null,
+	}
+	console.log('localStorage set');
+	console.log('localStorate mocked?', localStorage);
+	console.log('localStorate window mocked?', window.localStorage);
+	console.log('localStorate global mocked?', global.localStorage);
+}
+
 // Fix for https://github.com/facebook/react-native/issues/5667
 if (typeof global.self === 'undefined') {
 	global.self = global;

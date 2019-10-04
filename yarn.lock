@@ -5752,6 +5752,11 @@ inquirer@^6.2.2:
     strip-ansi "^5.1.0"
     through "^2.3.6"
 
+interval-promise@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/interval-promise/-/interval-promise-1.3.0.tgz#26fc4fbcd18605162d0dd012c2cc5657c4f8bc22"
+  integrity sha512-AebPZJ0o6D1jWg487njjrhfzBp6/hfmtWCMQhXr0SXD7Zg5RexQe4Y6joYiGieJziP7W7WEMQWxFKSbywXmhbw==
+
 invariant@2.2.4, invariant@^2.2.2, invariant@^2.2.4:
   version "2.2.4"
   resolved "https://registry.yarnpkg.com/invariant/-/invariant-2.2.4.tgz#610f3c92c9359ce1db616e538008d23ff35158e6"
