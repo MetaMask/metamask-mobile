@@ -2,8 +2,25 @@
 
 ## Current Develop Branch
 
-## v0.2.5 - Sept 27 2019
+## v0.2.5 - Oct 4 2019
 
+- [#1136](https://github.com/MetaMask/metamask-mobile/pull/1136): Select correct profiles (#1136)
+- [#1135](https://github.com/MetaMask/metamask-mobile/pull/1135): Fix fastlane config (#1135)
+- [#1134](https://github.com/MetaMask/metamask-mobile/pull/1134): renew certs if needed (#1134)
+- [#1132](https://github.com/MetaMask/metamask-mobile/pull/1132): Fix animated fox (#1132)
+- [#1131](https://github.com/MetaMask/metamask-mobile/pull/1131): Bugfix: wizard design qa (#1131)
+- [#1130](https://github.com/MetaMask/metamask-mobile/pull/1130): Bugfix: onboarding design qa (#1130)
+- [#1129](https://github.com/MetaMask/metamask-mobile/pull/1129): Design QA issues (#1129)
+- [#1128](https://github.com/MetaMask/metamask-mobile/pull/1128): Navigation fixes (#1128)
+- [#1127](https://github.com/MetaMask/metamask-mobile/pull/1127): Fix: Add tokens android crash (#1127)
+- [#1125](https://github.com/MetaMask/metamask-mobile/pull/1125): update user agents (#1125)
+- [#1124](https://github.com/MetaMask/metamask-mobile/pull/1124): fix apk generation (#1124)
+- [#1123](https://github.com/MetaMask/metamask-mobile/pull/1123): Support provider.once (#1123)
+- [#1122](https://github.com/MetaMask/metamask-mobile/pull/1122): fix statusbar in dark mode (#1122)
+- [#1121](https://github.com/MetaMask/metamask-mobile/pull/1121): Fix walletconnect sendTransaction (#1121)
+- [#1120](https://github.com/MetaMask/metamask-mobile/pull/1120): fix webview black flash (#1120)
+- [#1119](https://github.com/MetaMask/metamask-mobile/pull/1119): Bump rubyzip from 1.2.3 to 1.3.0 in /ios (#1119)
+- [#1116](https://github.com/MetaMask/metamask-mobile/pull/1116): iOS 13 Support (#1116)
 - [#1115](https://github.com/MetaMask/metamask-mobile/pull/1115): Bump react-native-device-info (#1115)
 - [#1113](https://github.com/MetaMask/metamask-mobile/pull/1113): Fix develop builds (#1113)
 - [#1112](https://github.com/MetaMask/metamask-mobile/pull/1112): bump to v0.2.5 (#1112)
