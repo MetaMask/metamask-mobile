@@ -15,7 +15,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
+import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -60,6 +60,10 @@ const styles = StyleSheet.create({
 	},
 	createWrapper: {
 		marginVertical: 24
+	},
+	buttonWrapper: {
+		flexGrow: 1,
+		marginHorizontal: 50
 	}
 });
 
@@ -67,7 +71,7 @@ const styles = StyleSheet.create({
  * View that is displayed to first time (new) users
  */
 class Onboarding extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransparentOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation }) => getTransparentBackOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
 		/**
@@ -170,7 +174,7 @@ class Onboarding extends PureComponent {
 								<Text style={styles.title}>{strings('onboarding.title')}</Text>
 								<View style={styles.importWrapper}>
 									<Text style={styles.buttonDescription}>{strings('onboarding.sync_desc')}</Text>
-									<View style={styles.flexGrow}>
+									<View style={styles.buttonWrapper}>
 										<StyledButton
 											type={'normal'}
 											onPress={this.onPressImport}
@@ -182,7 +186,7 @@ class Onboarding extends PureComponent {
 								</View>
 								<View style={styles.createWrapper}>
 									<Text style={styles.buttonDescription}>{strings('onboarding.create_desc')}</Text>
-									<View style={styles.flexGrow}>
+									<View style={styles.buttonWrapper}>
 										<StyledButton
 											type={'blue'}
 											onPress={this.onPressCreate}
