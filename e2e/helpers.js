@@ -2,7 +2,7 @@ export default class TestHelpers {
 	static async waitAndTap(elementId) {
 		await waitFor(element(by.id(elementId)))
 			.toBeVisible()
-			.withTimeout(5000);
+			.withTimeout(8000);
 
 		return element(by.id(elementId)).tap();
 	}
@@ -48,6 +48,19 @@ export default class TestHelpers {
 		}
 	}
 
+	static async clearField(elementId) {
+		return element(by.id(elementId)).replaceText('');
+	}
+
+	static async tapAndLongPress(elementId) {
+		await TestHelpers.tap(elementId);
+		return element(by.id(elementId)).longPress();
+	}
+
+	static async replaceTextInField(elementId, text) {
+		return element(by.id(elementId)).replaceText(text);
+	}
+
 	static tapAlertWithButton(text) {
 		if (device.getPlatform() === 'android') {
 			return element(by.text(text))
@@ -66,6 +79,10 @@ export default class TestHelpers {
 
 	static async scrollTo(scrollviewId, edge) {
 		await element(by.id(scrollviewId)).scrollTo(edge);
+	}
+
+	static async goToURL(inputURL) {
+		await device.openURL({ url: inputURL, sourceApp: 'io.metamask' });
 	}
 
 	static checkIfVisible(elementId) {
@@ -93,7 +110,13 @@ export default class TestHelpers {
 	}
 
 	static checkIfElementByTextIsVisible(text) {
-		return expect(element(by.text(text))).toBeVisible();
+		return waitFor(element(by.text(text)))
+			.toBeVisible()
+			.withTimeout(25000);
+	}
+
+	static checkIfElementHasString(elementID, text) {
+		return expect(element(by.id(elementID))).toString(text);
 	}
 
 	static relaunchApp() {

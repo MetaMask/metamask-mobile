@@ -84,6 +84,7 @@ export default class EnterPasswordSimple extends PureComponent {
 								<TextInput
 									style={styles.input}
 									placeholder={strings('enter_password.password')}
+									placeholderTextColor={colors.grey100}
 									onChangeText={this.onPasswordChange}
 									secureTextEntry
 									onSubmitEditing={this.onPressConfirm}

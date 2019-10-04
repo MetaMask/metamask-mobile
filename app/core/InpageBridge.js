@@ -41,9 +41,10 @@ class InpageBridge {
 		const oldNetwork = this._network;
 		this._selectedAddress = state.selectedAddress && state.selectedAddress.toLowerCase();
 		this._network = state.network;
-
-		this._selectedAddress !== oldAddress && this.emit('accountsChanged', [this._selectedAddress]);
-		this._network !== oldNetwork && this.emit('networkChanged', this._network);
+		oldAddress !== undefined &&
+			this._selectedAddress !== oldAddress &&
+			this.emit('accountsChanged', [this._selectedAddress]);
+		oldNetwork !== undefined && this._network !== oldNetwork && this.emit('networkChanged', this._network);
 
 		// Legacy web3 support
 		if (window.web3 && window.web3.eth) {
@@ -148,6 +149,44 @@ class InpageBridge {
 		this._network = undefined; // INITIAL_NETWORK
 		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
 		this._subscribe();
+
+		/**
+		 * Called by dapps to request access to user accounts
+		 *
+		 * @param {object} params - Configuration object for account access
+		 * @returns {Promise<Array<string>>} - Promise resolving to array of user accounts
+		 */
+		this.enable = params =>
+			new Promise((resolve, reject) => {
+				// Temporary fix for peepeth calling
+				// ethereum.enable with the wrong context
+				const self = this || window.ethereum;
+				try {
+					self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
+						if (error) {
+							reject(error);
+							return;
+						}
+						resolve(result);
+					});
+				} catch (e) {
+					if (e.toString().indexOf('Bridge not ready') !== -1) {
+						// Wait 1s and retry
+
+						setTimeout(() => {
+							self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
+								if (error) {
+									reject(error);
+									return;
+								}
+								resolve(result);
+							});
+						}, 1000);
+					} else {
+						throw e;
+					}
+				}
+			});
 	}
 
 	/**
@@ -178,7 +217,7 @@ class InpageBridge {
 	 * @param {Function} callback - Function called when operation completes
 	 */
 	sendAsync(payload, callback) {
-		if (!window.postMessageToNative) {
+		if (!window.ReactNativeWebView.postMessage) {
 			throw new Error('Bridge not ready');
 		}
 		const random = Math.floor(Math.random() * 100 + 1);
@@ -206,49 +245,12 @@ class InpageBridge {
 			}));
 		}
 		this._pending[`${payload.__mmID}`] = callback;
-		window.postMessageToNative({
-			payload,
-			type: 'INPAGE_REQUEST'
-		});
-	}
-
-	/**
-	 * Called by dapps to request access to user accounts
-	 *
-	 * @param {object} params - Configuration object for account access
-	 * @returns {Promise<Array<string>>} - Promise resolving to array of user accounts
-	 */
-	enable(params) {
-		return new Promise((resolve, reject) => {
-			// Temporary fix for peepeth calling
-			// ethereum.enable with the wrong context
-			const self = this || window.ethereum;
-			try {
-				self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
-					if (error) {
-						reject(error);
-						return;
-					}
-					resolve(result);
-				});
-			} catch (e) {
-				if (e.toString().indexOf('Bridge not ready') !== -1) {
-					// Wait 1s and retry
-
-					setTimeout(() => {
-						self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
-							if (error) {
-								reject(error);
-								return;
-							}
-							resolve(result);
-						});
-					}, 1000);
-				} else {
-					throw e;
-				}
-			}
-		});
+		window.ReactNativeWebView.postMessage(
+			JSON.stringify({
+				payload,
+				type: 'INPAGE_REQUEST'
+			})
+		);
 	}
 
 	/**
@@ -285,6 +287,18 @@ class InpageBridge {
 		}
 
 		this.events[event].push(listener);
+	}
+
+	/**
+	 * Simulate the once event to keep parity with the EventEmitter interface
+	 * because there are some dapps that use it
+	 *
+	 * @param {string} event - Event name
+	 * @param {Function} listener - Callback invoked when event triggered
+	 * @returns {InpageBridge}
+	 */
+	once(event, listener) {
+		this.on(event, listener);
 	}
 
 	/**

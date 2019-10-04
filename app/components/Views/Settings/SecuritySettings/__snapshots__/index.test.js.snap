@@ -137,6 +137,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
+      testID="clear-privacy"
     >
       <Text
         style={
@@ -418,6 +419,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "lineHeight": 20,
           }
         }
+        testID="reveal-seed-title"
       >
         Reveal Seed Phrase
       </Text>
@@ -457,6 +459,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
+        testID="reveal-seedphrase-button"
         type="danger"
       >
         REVEAL SEED PHRASE

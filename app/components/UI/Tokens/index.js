@@ -142,7 +142,7 @@ class Tokens extends PureComponent {
 			asset.balance ||
 			(itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals) : 0);
 		const balanceFiat = asset.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
-		const balanceValue = balance + ' ' + asset.symbol;
+		const balanceValue = `${balance} ${asset.symbol}`;
 
 		// render balances according to primary currency
 		let mainBalance, secondaryBalance;
@@ -158,8 +158,9 @@ class Tokens extends PureComponent {
 		return (
 			<AssetElement
 				key={itemAddress || '0x'}
+				testID={'asset'}
 				onPress={this.onItemPress}
-				onLongPress={this.showRemoveMenu}
+				onLongPress={asset.isETH ? null : this.showRemoveMenu}
 				asset={asset}
 			>
 				{asset.isETH ? (
@@ -170,7 +171,7 @@ class Tokens extends PureComponent {
 					<TokenImage asset={asset} containerStyle={styles.ethLogo} />
 				)}
 
-				<View style={styles.balances}>
+				<View style={styles.balances} testID={'balance'}>
 					<Text style={styles.balance}>{mainBalance}</Text>
 					{secondaryBalance ? <Text style={styles.balanceFiat}>{secondaryBalance}</Text> : null}
 				</View>

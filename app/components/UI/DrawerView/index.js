@@ -38,7 +38,7 @@ import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
-import DeviceInfo from 'react-native-device-info';
+import { getVersion, getBuildNumber, getSystemName, getApiLevel, getSystemVersion } from 'react-native-device-info';
 import Logger from '../../../util/Logger';
 import DeviceSize from '../../../util/DeviceSize';
 import OnboardingWizard from '../OnboardingWizard';
@@ -49,6 +49,8 @@ import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import URL from 'url-parse';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import EthereumAddress from '../EthereumAddress';
+// eslint-disable-next-line import/named
+import { NavigationActions } from 'react-navigation';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -542,7 +544,11 @@ class DrawerView extends PureComponent {
 					onPress: async () => {
 						await SecureKeychain.resetGenericPassword();
 						if (!passwordSet) {
-							this.props.navigation.navigate('Onboarding');
+							this.props.navigation.navigate(
+								'OnboardingRootNav',
+								{},
+								NavigationActions.navigate({ routeName: 'Onboarding' })
+							);
 						} else {
 							this.props.navigation.navigate('Login');
 						}
@@ -594,11 +600,11 @@ class DrawerView extends PureComponent {
 		this.goToFeedback(formId);
 	};
 
-	goToFeedback = formId => {
-		const appVersion = DeviceInfo.getVersion();
-		const buildNumber = DeviceInfo.getBuildNumber();
-		const systemName = DeviceInfo.getSystemName();
-		const systemVersion = systemName === 'Android' ? DeviceInfo.getAPILevel() : DeviceInfo.getSystemVersion();
+	goToFeedback = async formId => {
+		const appVersion = await getVersion();
+		const buildNumber = await getBuildNumber();
+		const systemName = await getSystemName();
+		const systemVersion = systemName === 'Android' ? await getApiLevel() : await getSystemVersion();
 		this.goToBrowserUrl(
 			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`,
 			strings('drawer.feedback')
@@ -831,7 +837,11 @@ class DrawerView extends PureComponent {
 							<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
 							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 						</View>
-						<TouchableOpacity style={styles.settings} onPress={this.showSettings}>
+						<TouchableOpacity
+							style={styles.settings}
+							testID={`settings-button`}
+							onPress={this.showSettings}
+						>
 							<FeatherIcon name="settings" size={22} style={styles.settingsIcon} />
 						</TouchableOpacity>
 					</View>

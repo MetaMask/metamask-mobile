@@ -60,6 +60,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Enter your seed phrase here"
+        placeholderTextColor="#d6d9dc"
         rejectResponderTermination={true}
         returnKeyType="next"
         style={
@@ -159,6 +160,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           onFocus={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
+          placeholderTextColor="#d6d9dc"
           rejectResponderTermination={true}
           returnKeyType="next"
           secureTextEntry={true}
@@ -174,6 +176,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
               "paddingVertical": 10,
             }
           }
+          testID="input-password-field"
           underlineColorAndroid="#d6d9dc"
           value=""
         />
@@ -268,6 +271,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           onFocus={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
+          placeholderTextColor="#d6d9dc"
           rejectResponderTermination={true}
           returnKeyType="done"
           secureTextEntry={true}
@@ -283,6 +287,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
               "paddingVertical": 10,
             }
           }
+          testID="input-password-field-confirm"
           underlineColorAndroid="#d6d9dc"
           value=""
         />

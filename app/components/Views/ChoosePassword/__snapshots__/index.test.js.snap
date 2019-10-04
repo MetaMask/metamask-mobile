@@ -246,6 +246,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             onFocus={[Function]}
             onSubmitEditing={[Function]}
             placeholder=""
+            placeholderTextColor="#d6d9dc"
             rejectResponderTermination={true}
             returnKeyType="done"
             secureTextEntry={true}

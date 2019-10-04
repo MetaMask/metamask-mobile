@@ -174,8 +174,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 17
-        versionName "0.2.4"
+        versionCode 18
+        versionName "0.2.5"
         multiDexEnabled true
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy "minReactNative", "minReactNative46"
@@ -255,6 +255,8 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-reanimated')
+    implementation project(':react-native-webview')
     implementation project(':react-native-fabric')
     implementation project(':@react-native-community_netinfo')
     implementation project(':react-native-view-shot')
@@ -274,7 +276,6 @@ dependencies {
     implementation project(':react-native-branch')
 	implementation "io.branch.sdk.android:library:3.0.4"
 
-    implementation project(':react-native-web3-webview')
     implementation project(':react-native-camera')
     implementation project(':react-native-share')
     implementation project(':react-native-i18n')

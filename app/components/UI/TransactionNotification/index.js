@@ -118,7 +118,9 @@ export const TransactionNotification = props => {
 		<Fragment>
 			<View style={styles.flashIcon}>{this._getIcon()}</View>
 			<View style={styles.flashLabel}>
-				<Text style={styles.flashTitle}>{this._getTitle()}</Text>
+				<Text style={styles.flashTitle} testID={'notification-title'}>
+					{this._getTitle()}
+				</Text>
 				<Text style={styles.flashText}>{this._getDescription()}</Text>
 			</View>
 		</Fragment>
@@ -138,6 +140,7 @@ export const TransactionNotification = props => {
 		<ElevatedView elevation={10} style={baseStyles.flex}>
 			<GestureRecognizer
 				// eslint-disable-next-line react/jsx-no-bind
+				testID={'notification-swipe'}
 				onSwipeDown={() => hideMessage()}
 				config={{
 					velocityThreshold: 0.2,
@@ -147,6 +150,7 @@ export const TransactionNotification = props => {
 			>
 				<TouchableOpacity
 					style={[styles.defaultFlash, styles.defaultFlashFloating]}
+					testID={'press-notification-button'}
 					onPress={this._onPress}
 					activeOpacity={0.8}
 				>

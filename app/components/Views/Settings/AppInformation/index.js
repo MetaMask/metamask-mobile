@@ -10,7 +10,7 @@ import {
 	TouchableOpacity,
 	Linking
 } from 'react-native';
-import DeviceInfo from 'react-native-device-info';
+import { getApplicationName, getVersion, getBuildNumber } from 'react-native-device-info';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -83,6 +83,17 @@ export default class AppInformation extends PureComponent {
 		navigation: PropTypes.object
 	};
 
+	state = {
+		appInfo: ''
+	};
+
+	componentDidMount = async () => {
+		const appName = await getApplicationName();
+		const appVersion = await getVersion();
+		const buildNumber = await getBuildNumber();
+		this.setState({ appInfo: `${appName} v${appVersion} (${buildNumber})` });
+	};
+
 	goTo = (url, title) => {
 		InteractionManager.runAfterInteractions(() => {
 			this.props.navigation.navigate('Webview', {
@@ -122,20 +133,12 @@ export default class AppInformation extends PureComponent {
 		Linking.openURL('mailto:help@metamask.io?subject=Feedback');
 	};
 
-	getAppInfo = () => {
-		const appName = DeviceInfo.getApplicationName();
-		const appVersion = DeviceInfo.getVersion();
-		const buildNumber = DeviceInfo.getBuildNumber();
-
-		return `${appName} v${appVersion} (${buildNumber})`;
-	};
-
 	render = () => (
 		<SafeAreaView style={styles.wrapper} testID={'app-settings-screen'}>
 			<ScrollView contentContainerStyle={styles.wrapperContent}>
 				<View style={styles.logoWrapper}>
 					<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
-					<Text style={styles.versionInfo}>{this.getAppInfo()}</Text>
+					<Text style={styles.versionInfo}>{this.state.appInfo}</Text>
 				</View>
 				<Text style={styles.title}>{strings('app_information.links')}</Text>
 				<View style={styles.links}>

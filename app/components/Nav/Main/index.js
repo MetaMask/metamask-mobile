@@ -12,7 +12,8 @@ import {
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
+import { createBottomTabNavigator } from 'react-navigation-tabs';
 import ENS from 'ethjs-ens';
 import GlobalAlert from '../../UI/GlobalAlert';
 import FlashMessage from 'react-native-flash-message';
@@ -84,6 +85,7 @@ import { isENS } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import { BN } from 'gaba';
+import { BNToHex } from 'gaba/util';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -625,11 +627,16 @@ class Main extends PureComponent {
 			});
 
 			const fullTx = transactions.find(({ id }) => id === transactionMeta.id);
-			const updatedTx = { ...fullTx, transaction: transactionMeta.transaction };
+			const gasPrice = BNToHex(
+				hexToBN(transactionMeta.transaction.gasPrice)
+					.mul(new BN(AppConstants.INSTAPAY_GAS_PONDERATOR * 10))
+					.div(new BN(10))
+			);
+			const updatedTx = { ...fullTx, transaction: { ...transactionMeta.transaction, gasPrice } };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transactionMeta.id);
 		} catch (error) {
-			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 			this.setState({ transactionHandled: false });
 		}
 	};
@@ -640,7 +647,7 @@ class Main extends PureComponent {
 		}
 		// Check if it's a payment channel deposit transaction to sign
 		const to = toChecksumAddress(transactionMeta.transaction.to);
-		const networkId = Networks[this.props.providerType].networkId.toString();
+		const networkId = Networks[this.props.providerType].networkId;
 		if (
 			this.props.paymentChannelsEnabled &&
 			AppConstants.CONNEXT.SUPPORTED_NETWORKS.includes(this.props.providerType) &&
@@ -659,6 +666,7 @@ class Main extends PureComponent {
 
 			if (
 				(value === '0x0' || !value) &&
+				data &&
 				data !== '0x' &&
 				to &&
 				(await getMethodData(data)).name === TOKEN_METHOD_TRANSFER

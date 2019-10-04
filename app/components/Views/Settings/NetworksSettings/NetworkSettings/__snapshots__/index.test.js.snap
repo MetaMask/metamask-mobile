@@ -78,6 +78,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Network Name (optional)"
+        placeholderTextColor="#d6d9dc"
         rejectResponderTermination={true}
         style={
           Array [
@@ -115,6 +116,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="New RPC Network"
+        placeholderTextColor="#d6d9dc"
         rejectResponderTermination={true}
         style={
           Array [
@@ -153,6 +155,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Chain ID (optional)"
+        placeholderTextColor="#d6d9dc"
         rejectResponderTermination={true}
         style={
           Array [
@@ -189,6 +192,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Symbol (optional)"
+        placeholderTextColor="#d6d9dc"
         rejectResponderTermination={true}
         style={
           Array [
@@ -225,6 +229,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Block Explorer URL (optional)"
+        placeholderTextColor="#d6d9dc"
         rejectResponderTermination={true}
         style={
           Array [

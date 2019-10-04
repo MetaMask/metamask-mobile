@@ -11,7 +11,7 @@ import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setShowHexData } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import DeviceInfo from 'react-native-device-info';
+import { getApplicationName, getVersion, getBuildNumber } from 'react-native-device-info';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import RNFS from 'react-native-fs';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -192,9 +192,9 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	downloadStateLogs = async () => {
-		const appName = DeviceInfo.getApplicationName();
-		const appVersion = DeviceInfo.getVersion();
-		const buildNumber = DeviceInfo.getBuildNumber();
+		const appName = await getApplicationName();
+		const appVersion = await getVersion();
+		const buildNumber = await getBuildNumber();
 		const path = RNFS.DocumentDirectoryPath + `/state-logs-v${appVersion}-(${buildNumber}).json`;
 		// A not so great way to copy objects by value
 		const fullState = JSON.parse(JSON.stringify(this.props.fullState));
@@ -229,9 +229,9 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	downloadInstapayStateLogs = async () => {
-		const appName = DeviceInfo.getApplicationName();
-		const appVersion = DeviceInfo.getVersion();
-		const buildNumber = DeviceInfo.getBuildNumber();
+		const appName = getApplicationName();
+		const appVersion = getVersion();
+		const buildNumber = getBuildNumber();
 		const path = RNFS.DocumentDirectoryPath + `/instapay-logs-v${appVersion}-(${buildNumber}).json`;
 
 		try {

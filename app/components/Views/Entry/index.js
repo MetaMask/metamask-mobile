@@ -7,11 +7,13 @@ import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 import setOnboardingWizardStep from '../../../actions/wizard';
+// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
+
 /**
  * Entry Screen that decides which screen to show
  * depending on the state of the user
@@ -132,6 +134,7 @@ class Entry extends PureComponent {
 	}
 
 	onAnimationFinished = () => {
+		const { viewToGo } = this.state;
 		setTimeout(() => {
 			Animated.timing(this.opacity, {
 				toValue: 0,
@@ -139,8 +142,14 @@ class Entry extends PureComponent {
 				useNativeDriver: true,
 				isInteraction: false
 			}).start(() => {
-				if (this.state.viewToGo !== 'WalletView') {
-					this.props.navigation.navigate(this.state.viewToGo);
+				if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
+					this.props.navigation.navigate(viewToGo);
+				} else if (viewToGo === 'Onboarding') {
+					this.props.navigation.navigate(
+						'OnboardingRootNav',
+						{},
+						NavigationActions.navigate({ routeName: 'Oboarding' })
+					);
 				} else {
 					this.props.navigation.navigate(
 						'HomeNav',
@@ -175,7 +184,7 @@ class Entry extends PureComponent {
 			} else if (this.props.passwordSet) {
 				this.animateAndGoTo('Login');
 			} else {
-				this.animateAndGoTo('OnboardingRootNav');
+				this.animateAndGoTo('Onboarding');
 			}
 		} catch (error) {
 			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line

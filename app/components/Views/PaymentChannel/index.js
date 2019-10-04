@@ -9,16 +9,11 @@ import {
 	SafeAreaView,
 	StyleSheet,
 	ActivityIndicator,
-	TouchableOpacity,
-	Dimensions,
-	Platform,
 	Clipboard
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
-import QRCode from 'react-native-qrcode-svg';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import getNavbarOptions from '../../UI/Navbar';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { connect } from 'react-redux';
@@ -37,10 +32,10 @@ import PaymentChannelWelcome from './PaymentChannelWelcome';
 import AsyncStorage from '@react-native-community/async-storage';
 import AppConstants from '../../../core/AppConstants';
 import Analytics from '../../../core/Analytics';
+// eslint-disable-next-line import/named
 import { withNavigationFocus } from 'react-navigation';
-import DeviceSize from '../../../util/DeviceSize';
 import { showAlert } from '../../../actions/alert';
-import GlobalAlert from '../../UI/GlobalAlert';
+import AddressQRCode from '../AddressQRCode';
 
 const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
 
@@ -134,53 +129,6 @@ const styles = StyleSheet.create({
 	},
 	bottomModal: {
 		margin: 0
-	},
-	detailsWrapper: {
-		padding: 10,
-		alignItems: 'center'
-	},
-	qrCode: {
-		marginBottom: 16,
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingHorizontal: 36,
-		paddingBottom: 24,
-		paddingTop: 16,
-		backgroundColor: colors.grey000,
-		borderRadius: 8
-	},
-	qrCodeWrapper: {
-		borderColor: colors.grey300,
-		borderRadius: 8,
-		borderWidth: 1,
-		padding: 15
-	},
-	addressWrapper: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingHorizontal: 16,
-		paddingTop: 16,
-		marginTop: 10,
-		borderRadius: 5,
-		backgroundColor: colors.grey000
-	},
-	titleQr: {
-		flexDirection: 'row'
-	},
-	closeIcon: {
-		position: 'absolute',
-		right: DeviceSize.isSmallDevice() ? (Platform.OS === 'ios' ? -30 : -30) : Platform.OS === 'ios' ? -40 : -50,
-		bottom: Platform.OS === 'ios' ? 8 : 10
-	},
-	addressTitle: {
-		fontSize: 16,
-		marginBottom: 16,
-		...fontStyles.normal
-	},
-	address: {
-		...fontStyles.normal,
-		fontSize: Platform.OS === 'ios' ? 14 : 20,
-		textAlign: 'center'
 	}
 });
 
@@ -555,6 +503,7 @@ class PaymentChannel extends PureComponent {
 						balance={mainBalance}
 						balanceFiat={secondaryBalance}
 						description={strings('payment_channel.asset_card_desc')}
+						openQrModal={this.openQrModal}
 					/>
 				</View>
 				<View style={styles.actionsWrapper}>
@@ -761,28 +710,7 @@ class PaymentChannel extends PureComponent {
 					swipeDirection={'down'}
 					propagateSwipe
 				>
-					<View style={styles.detailsWrapper}>
-						<View style={styles.qrCode}>
-							<View style={styles.titleQr}>
-								<Text style={styles.addressTitle}>
-									{strings('receive_request.public_address_qr_code')}
-								</Text>
-								<TouchableOpacity style={styles.closeIcon} onPress={this.closeQrModal}>
-									<IonicIcon name={'ios-close'} size={28} color={colors.black} />
-								</TouchableOpacity>
-							</View>
-							<View style={styles.qrCodeWrapper}>
-								<QRCode
-									value={`ethereum:${this.props.selectedAddress}`}
-									size={Dimensions.get('window').width - 160}
-								/>
-							</View>
-							<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
-								<Text style={styles.address}>{this.props.selectedAddress}</Text>
-							</TouchableOpacity>
-						</View>
-						<GlobalAlert />
-					</View>
+					<AddressQRCode closeQrModal={this.closeQrModal} />
 				</Modal>
 			</SafeAreaView>
 		);

@@ -14,8 +14,9 @@ import {
 	BackHandler,
 	InteractionManager
 } from 'react-native';
+// eslint-disable-next-line import/named
 import { withNavigation } from 'react-navigation';
-import Web3Webview from 'react-native-web3-webview';
+import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -32,7 +33,7 @@ import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
-import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserSripts';
+import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
@@ -59,13 +60,8 @@ import OnboardingWizard from '../../UI/OnboardingWizard';
 import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
-const { HOMEPAGE_URL } = AppConstants;
+const { HOMEPAGE_URL, USER_AGENT } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
-
-const USER_AGENT =
-	Platform.OS === 'android'
-		? 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36'
-		: 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -389,7 +385,8 @@ export class BrowserTab extends PureComponent {
 			suggestedAssetMeta: undefined,
 			watchAsset: false,
 			activated: props.id === props.activeTab,
-			lastError: null
+			lastError: null,
+			showApprovalDialogHostname: undefined
 		};
 	}
 
@@ -413,10 +410,7 @@ export class BrowserTab extends PureComponent {
 		if (!currentPageTitle || currentPageTitle !== {}) {
 			// We need to get the title to add bookmark
 			const { current } = this.webview;
-			current &&
-				(Platform.OS === 'ios'
-					? current.evaluateJavaScript(JS_WINDOW_INFORMATION)
-					: current.injectJavaScript(JS_WINDOW_INFORMATION));
+			current && current.injectJavaScript(JS_WINDOW_INFORMATION);
 		}
 		setTimeout(() => {
 			callback();
@@ -571,7 +565,7 @@ export class BrowserTab extends PureComponent {
 
 					setTimeout(async () => {
 						await this.getPageMeta();
-						this.setState({ showApprovalDialog: true });
+						this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
 					}, 1000);
 				}
 				return !this.isReloading && promise;
@@ -1262,11 +1256,7 @@ export class BrowserTab extends PureComponent {
 		this.setState({ autocompleteInputValue: inputValue });
 	};
 
-	sendStateUpdate = () => {
-		this.backgroundBridge.sendStateUpdate();
-	};
-
-	onLoadProgress = progress => {
+	onLoadProgress = ({ nativeEvent: { progress } }) => {
 		this.setState({ progress });
 	};
 
@@ -1295,7 +1285,7 @@ export class BrowserTab extends PureComponent {
 		// Inject favorites on the homepage
 		if (this.isHomepage() && current) {
 			const js = this.state.homepageScripts;
-			Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
+			current.injectJavaScript(js);
 		}
 	};
 
@@ -1437,7 +1427,7 @@ export class BrowserTab extends PureComponent {
 		if (this.isHomepage()) {
 			const { current } = this.webview;
 			const blur = `document.getElementsByClassName('autocomplete-input')[0].blur();`;
-			current && (Platform.OS === 'ios' ? current.evaluateJavaScript(blur) : current.injectJavaScript(blur));
+			current && current.injectJavaScript(blur);
 		}
 	};
 
@@ -1484,12 +1474,13 @@ export class BrowserTab extends PureComponent {
 				animationOutTiming={300}
 				useNativeDriver
 			>
-				<View style={styles.urlModalContent}>
+				<View style={styles.urlModalContent} testID={'url-modal'}>
 					<TextInput
 						ref={this.inputRef}
 						autoCapitalize="none"
 						autoCorrect={false}
 						clearButtonMode="while-editing"
+						testID={'url-input'}
 						onChangeText={this.onURLChange}
 						onSubmitEditing={this.onUrlInputSubmit}
 						placeholder={strings('autocomplete.placeholder')}
@@ -1505,7 +1496,11 @@ export class BrowserTab extends PureComponent {
 							<MaterialIcon name="close" size={20} style={[styles.icon, styles.iconClose]} />
 						</TouchableOpacity>
 					) : (
-						<TouchableOpacity style={styles.cancelButton} onPress={this.hideUrlModal}>
+						<TouchableOpacity
+							style={styles.cancelButton}
+							testID={'cancel-url-button'}
+							onPress={this.hideUrlModal}
+						>
 							<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
 						</TouchableOpacity>
 					)}
@@ -1550,24 +1545,31 @@ export class BrowserTab extends PureComponent {
 
 	onAccountsConfirm = () => {
 		const { approveHost, selectedAddress } = this.props;
-		this.setState({ showApprovalDialog: false });
+		this.setState({ showApprovalDialog: false, showApprovalDialogHostname: undefined });
 		approveHost(this.state.fullHostname);
 		this.backgroundBridge.enableAccounts();
 		this.approvalRequest && this.approvalRequest.resolve && this.approvalRequest.resolve([selectedAddress]);
 	};
 
 	onAccountsReject = () => {
-		this.setState({ showApprovalDialog: false });
+		this.setState({ showApprovalDialog: false, showApprovalDialogHostname: undefined });
 		this.approvalRequest &&
 			this.approvalRequest.reject &&
 			this.approvalRequest.reject('User rejected account access');
 	};
 
 	renderApprovalModal = () => {
-		const { showApprovalDialog, currentPageTitle, currentPageUrl, currentPageIcon, inputValue } = this.state;
+		const {
+			showApprovalDialogHostname,
+			currentPageTitle,
+			currentPageUrl,
+			currentPageIcon,
+			inputValue
+		} = this.state;
 		const url =
 			currentPageUrl && currentPageUrl.length && currentPageUrl !== 'localhost' ? currentPageUrl : inputValue;
-
+		const showApprovalDialog =
+			this.state.showApprovalDialog && showApprovalDialogHostname === new URL(url).hostname;
 		return (
 			<Modal
 				isVisible={showApprovalDialog}
@@ -1696,13 +1698,13 @@ export class BrowserTab extends PureComponent {
 			>
 				<View style={styles.webview}>
 					{activated && !forceReload && (
-						<Web3Webview
+						<WebView
 							// eslint-disable-next-line react/jsx-no-bind
 							renderError={() => (
 								<WebviewError error={this.state.lastError} onReload={this.forceReload} />
 							)}
-							injectedOnStartLoadingJavaScript={entryScriptWeb3}
-							onProgress={this.onLoadProgress}
+							injectedJavaScript={entryScriptWeb3}
+							onLoadProgress={this.onLoadProgress}
 							onLoadStart={this.onLoadStart}
 							onLoadEnd={this.onLoadEnd}
 							onError={this.onError}
@@ -1714,7 +1716,8 @@ export class BrowserTab extends PureComponent {
 							userAgent={USER_AGENT}
 							sendCookies
 							javascriptEnabled
-							testID={'browser-webview'}
+							allowsInlineMediaPlayback
+							useWebkit
 						/>
 					)}
 				</View>
@@ -1740,7 +1743,7 @@ const mapStateToProps = state => ({
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	network: state.engine.backgroundState.NetworkController.network,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress.toLowerCase(),
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,

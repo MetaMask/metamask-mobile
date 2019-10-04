@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Text, TextInput, View, StyleSheet } from 'react-native';
+import { Text, TextInput, View, StyleSheet, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
@@ -54,8 +54,23 @@ export default class AddCustomToken extends PureComponent {
 		if (!(await this.validateCustomToken())) return;
 		const { AssetsController } = Engine.context;
 		const { address, symbol, decimals } = this.state;
-		AssetsController.addToken(address, symbol, decimals);
-		this.props.navigation.goBack();
+		await AssetsController.addToken(address, symbol, decimals);
+		// Clear state before closing
+		this.setState(
+			{
+				address: '',
+				symbol: '',
+				decimals: '',
+				warningAddress: '',
+				warningSymbol: '',
+				warningDecimals: ''
+			},
+			() => {
+				InteractionManager.runAfterInteractions(() => {
+					this.props.navigation.goBack();
+				});
+			}
+		);
 	};
 
 	cancelAddToken = () => {
@@ -168,6 +183,7 @@ export default class AddCustomToken extends PureComponent {
 							<TextInput
 								style={styles.textInput}
 								placeholder={'0x...'}
+								placeholderTextColor={colors.grey100}
 								value={this.state.address}
 								onChangeText={this.onAddressChange}
 								onBlur={this.onAddressBlur}
@@ -182,6 +198,7 @@ export default class AddCustomToken extends PureComponent {
 							<TextInput
 								style={styles.textInput}
 								placeholder={'GNO'}
+								placeholderTextColor={colors.grey100}
 								value={this.state.symbol}
 								onChangeText={this.onSymbolChange}
 								onBlur={this.validateCustomTokenSymbol}
@@ -200,6 +217,7 @@ export default class AddCustomToken extends PureComponent {
 								keyboardType="numeric"
 								maxLength={2}
 								placeholder={'18'}
+								placeholderTextColor={colors.grey100}
 								onChangeText={this.onDecimalsChange}
 								onBlur={this.validateCustomTokenDecimals}
 								testID={'input-token-decimals'}

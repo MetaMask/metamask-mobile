@@ -226,7 +226,7 @@ class TransactionEdit extends PureComponent {
 
 	componentDidUpdate = prevProps => {
 		if (this.props.transaction.data !== prevProps.transaction.data) {
-			this.setState({ data: this.props.transaction.data });
+			this.updateData(this.props.transaction.data);
 		}
 	};
 
@@ -451,6 +451,7 @@ class TransactionEdit extends PureComponent {
 										multiline
 										onChangeText={this.updateData}
 										placeholder={strings('transaction.optional')}
+										placeholderTextColor={colors.grey100}
 										style={styles.hexData}
 										value={data}
 									/>

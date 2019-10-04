@@ -560,6 +560,7 @@ class PaymentRequest extends PureComponent {
 										numberOfLines={1}
 										onChangeText={this.updateAmount}
 										placeholder={strings('payment_request.amount_placeholder')}
+										placeholderTextColor={colors.grey100}
 										spellCheck={false}
 										style={styles.input}
 										value={amount}

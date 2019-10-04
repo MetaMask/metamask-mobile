@@ -18,6 +18,7 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getTransactionReviewActionKey, decodeTransferData } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
+import { isENS } from '../../../util/address';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -167,6 +168,19 @@ class Send extends PureComponent {
 	}
 
 	/**
+	 * Handle deeplink txMeta recipient
+	 */
+	handleNewTxMetaRecipient = recipient => {
+		let ensRecipient, to;
+		if (isENS(recipient)) {
+			ensRecipient = recipient;
+		} else if (recipient && recipient.toLowerCase().substr(0, 2) === '0x') {
+			to = toChecksumAddress(recipient);
+		}
+		return { ensRecipient, to };
+	};
+
+	/**
 	 * Handle txMeta object, setting neccesary state to make a transaction
 	 */
 	handleNewTxMeta = async ({
@@ -185,14 +199,9 @@ class Send extends PureComponent {
 				newTxMeta = {
 					symbol: 'ETH',
 					assetType: 'ETH',
-					type: 'ETHER_TRANSACTION'
+					type: 'ETHER_TRANSACTION',
+					...this.handleNewTxMetaRecipient(target_address)
 				};
-				if (target_address.toLowerCase().substr(0, 2) === '0x') {
-					newTxMeta.to = toChecksumAddress(target_address);
-				} else {
-					// ENS Name
-					newTxMeta.ensRecipient = target_address;
-				}
 				if (parameters && parameters.value) {
 					newTxMeta.value = toBN(parameters.value);
 					newTxMeta.readableValue = fromWei(newTxMeta.value);
@@ -203,9 +212,9 @@ class Send extends PureComponent {
 				newTxMeta = {
 					assetType: 'ERC20',
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
-					selectedAsset
+					selectedAsset,
+					...this.handleNewTxMetaRecipient(parameters.address)
 				};
-				newTxMeta.to = toChecksumAddress(parameters.address);
 				if (parameters && parameters.uint256) {
 					newTxMeta.value = toTokenMinimalUnit(parameters.uint256, selectedAsset.decimals);
 					newTxMeta.readableValue = String(
@@ -438,7 +447,7 @@ class Send extends PureComponent {
 				this.removeCollectible();
 			});
 		} catch (error) {
-			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 			this.setState({ transactionConfirmed: false });
 			await this.reset();
 		}

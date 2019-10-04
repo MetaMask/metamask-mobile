@@ -139,7 +139,7 @@ buildAndroid(){
 
 buildIosSimulator(){
 	prebuild_ios
-	react-native run-ios
+	react-native run-ios --simulator "iPhone 11 Pro (13.1)"
 }
 
 buildIosDevice(){
@@ -155,11 +155,15 @@ buildIosRelease(){
 		echo "Setting up env vars...";
 		echo $IOS_ENV | tr "|" "\n" > .ios.env
 		echo "Build started..."
+		brew install watchman
 		cd ios && bundle install && bundle exec fastlane prerelease
 		# Generate sourcemaps
-		npm run sourcemaps:ios
+		yarn sourcemaps:ios
 	else
-		react-native run-ios  --configuration Release
+		if [ ! -f "ios/release.xcconfig" ] ; then
+			echo $IOS_ENV | tr "|" "\n" > ios/release.xcconfig
+		fi
+		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone 11 Pro (13.1)"
 	fi
 }
 
@@ -177,7 +181,7 @@ buildAndroidRelease(){
 	fi
 
 	# GENERATE APK
-	cd android && ./gradlew assembleRelease
+	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -186,7 +190,7 @@ buildAndroidRelease(){
 
 	if [ "$PRE_RELEASE" = true ] ; then
 		# Generate sourcemaps
-		npm run sourcemaps:android
+		yarn sourcemaps:android
 	fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
