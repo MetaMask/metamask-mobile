@@ -26,7 +26,7 @@ platform :ios do
   			build_number: latest_testflight_build_number + 1
 		})
 
-		match(type: "appstore", force: true)
+		match(type: "appstore", force: true, readonly: false)
 		gym(
 			clean: true,
 			scheme: "MetaMask",
@@ -49,7 +49,7 @@ platform :ios do
   			build_number: latest_testflight_build_number + 1
 		})
 
-		match(type: "appstore", force: true)
+		match(type: "appstore", force: true, readonly: false)
 		gym(
 			clean: true,
 			scheme: "MetaMask",
