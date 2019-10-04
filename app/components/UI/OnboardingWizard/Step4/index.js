@@ -100,7 +100,9 @@ class Step4 extends PureComponent {
 			<View style={[styles.main, { top: this.state.viewTop }]}>
 				<View style={styles.coachmarkContainer}>
 					<View style={styles.hamburgerContainer}>
-						<TouchableWithoutFeedback style={styles.hamburger} onPress={this.onNext} />
+						<TouchableWithoutFeedback style={styles.hamburger} onPress={this.onNext}>
+							<View style={styles.hamburger} />
+						</TouchableWithoutFeedback>
 					</View>
 					<Coachmark
 						title={strings('onboarding_wizard.step4.title')}
