@@ -23,6 +23,10 @@ const styles = StyleSheet.create({
 class Step6 extends PureComponent {
 	static propTypes = {
 		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
 		 * Dispatch set onboarding wizard step
 		 */
 		setOnboardingWizardStep: PropTypes.func,
@@ -56,7 +60,8 @@ class Step6 extends PureComponent {
 	 * Dispatches 'setOnboardingWizardStep' with back step, opening drawer
 	 */
 	onBack = () => {
-		const { setOnboardingWizardStep } = this.props;
+		const { setOnboardingWizardStep, navigation } = this.props;
+		navigation && navigation.openDrawer();
 		setOnboardingWizardStep && setOnboardingWizardStep(5);
 	};
 

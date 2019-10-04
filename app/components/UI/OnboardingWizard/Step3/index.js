@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, Text, View, StyleSheet } from 'react-native';
+import { Platform, Text, View, StyleSheet, Dimensions } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
 	},
 	accountLabelContainer: {
 		flex: 1,
+		width: Dimensions.get('window').width,
 		alignItems: 'center',
 		backgroundColor: colors.transparent
 	}
