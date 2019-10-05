@@ -2,6 +2,9 @@
 
 ## Current Develop Branch
 
+## v0.2.6 - Oct 4 2019
+- [#1139](https://github.com/MetaMask/metamask-mobile/pull/1139): Fix onboarding carousel dimensions (#1139)
+
 ## v0.2.5 - Oct 4 2019
 
 - [#1136](https://github.com/MetaMask/metamask-mobile/pull/1136): Select correct profiles (#1136)
