@@ -9388,9 +9388,9 @@ react-native-animatable@^1.2.4:
   dependencies:
     prop-types "^15.5.10"
 
-"react-native-animated-fox@git+ssh://git@github.com/brunobar79/react-native-animated-fox.git#4515395b0d8c3855630790ab3f806ed35579b23d":
+"react-native-animated-fox@git+ssh://git@github.com/brunobar79/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9":
   version "1.0.0"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-animated-fox.git#4515395b0d8c3855630790ab3f806ed35579b23d"
+  resolved "git+ssh://git@github.com/brunobar79/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9"
   dependencies:
     prop-types "^15.5.10"
 
@@ -9621,6 +9621,13 @@ react-native-search-api@1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/react-native-search-api/-/react-native-search-api-1.2.0.tgz#824b49e1f9a40aa36ef81b95c528dc29d4b88454"
   integrity sha1-gktJ4fmkCqNu+BuVxSjcKdS4hFQ=
+
+react-native-sensors@5.3.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/react-native-sensors/-/react-native-sensors-5.3.0.tgz#8c89541f80a68c185ff2f7059c3078f4975c730c"
+  integrity sha512-+VIWli3mWIBniOghoHAuVAnw9LO0Oc1kIoJnSh3RKalM4iUR39erx6TZz3FbShSqbLO6apAbk0P0g6u1DB4v6w==
+  dependencies:
+    rxjs ">= 6"
 
 "react-native-share@git+ssh://git@github.com/brunobar79/react-native-share.git#androidx":
   version "1.2.1"
@@ -10341,19 +10348,19 @@ rx-lite@*, rx-lite@^4.0.8:
   resolved "https://registry.yarnpkg.com/rx-lite/-/rx-lite-4.0.8.tgz#0b1e11af8bc44836f04a6407e92da42467b79444"
   integrity sha1-Cx4Rr4vESDbwSmQH6S2kJGe3lEQ=
 
+"rxjs@>= 6", rxjs@^6.3.3, rxjs@^6.4.0:
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.5.3.tgz#510e26317f4db91a7eb1de77d9dd9ba0a4899a3a"
+  integrity sha512-wuYsAYYFdWTAnAaPoKGNhfpWwKZbJW+HgAJ+mImp+Epl7BG8oNWBCTyRM8gba9k4lk8BgWdoYm21Mo/RYhhbgA==
+  dependencies:
+    tslib "^1.9.0"
+
 rxjs@^5.4.3:
   version "5.5.12"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.5.12.tgz#6fa61b8a77c3d793dbaf270bee2f43f652d741cc"
   integrity sha512-xx2itnL5sBbqeeiVgNPVuQQ1nC8Jp2WfNJhXWHmElW9YmrpS9UVnNzhP3EH3HFqexO5Tlp8GhYY+WEcqcVMvGw==
   dependencies:
     symbol-observable "1.0.1"
-
-rxjs@^6.3.3, rxjs@^6.4.0:
-  version "6.5.3"
-  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.5.3.tgz#510e26317f4db91a7eb1de77d9dd9ba0a4899a3a"
-  integrity sha512-wuYsAYYFdWTAnAaPoKGNhfpWwKZbJW+HgAJ+mImp+Epl7BG8oNWBCTyRM8gba9k4lk8BgWdoYm21Mo/RYhhbgA==
-  dependencies:
-    tslib "^1.9.0"
 
 safe-buffer@5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.2"
