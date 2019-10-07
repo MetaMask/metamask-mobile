@@ -113,9 +113,9 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   Array [
                     Object {},
                     Object {
-                      "height": 912.5615763546798,
+                      "height": 800.2463054187192,
                       "marginTop": 30,
-                      "width": 650,
+                      "width": 570,
                     },
                   ]
                 }
@@ -191,8 +191,8 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   Array [
                     Object {},
                     Object {
-                      "height": 603.7656903765691,
-                      "width": 650,
+                      "height": 557.3221757322176,
+                      "width": 600,
                     },
                   ]
                 }
