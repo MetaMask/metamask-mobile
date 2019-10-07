@@ -28,6 +28,7 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -162,7 +163,11 @@ class ChoosePassword extends PureComponent {
 		 * The action to update the lock time
 		 * in the redux store
 		 */
-		setLockTime: PropTypes.func
+		setLockTime: PropTypes.func,
+		/**
+		 * A string representing the selected address => account
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -206,10 +211,26 @@ class ChoosePassword extends PureComponent {
 		} else {
 			try {
 				this.setState({ loading: true });
-				const { KeyringController } = Engine.context;
+				const { KeyringController, PreferencesController } = Engine.context;
 				const mnemonic = await KeyringController.exportSeedPhrase('');
 				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
+				// Preserve the selected address
+				const selectedAddress = this.props.selectedAddress;
+				// Preserve the keyring before restoring
+				const hdKeyring = Engine.context.KeyringController.state.keyrings[0];
+				const existingAccountCount = hdKeyring.accounts.length;
+				// Recreate keyring
 				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
+				for (let i = 0; i < existingAccountCount - 1; i++) {
+					await KeyringController.addNewAccount();
+				}
+
+				// Reselect previous selected account
+				if (hdKeyring.accounts.includes(toChecksumAddress(selectedAddress))) {
+					await PreferencesController.update({ selectedAddress: toChecksumAddress(selectedAddress) });
+				} else {
+					await PreferencesController.update({ selectedAddress: toChecksumAddress(hdKeyring[0]) });
+				}
 
 				if (this.state.biometryType) {
 					const authOptions = {
@@ -518,12 +539,16 @@ class ChoosePassword extends PureComponent {
 	}
 }
 
+const mapStateToProps = state => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+});
+
 const mapDispatchToProps = dispatch => ({
 	passwordSet: () => dispatch(passwordSet()),
 	setLockTime: time => dispatch(setLockTime(time))
 });
 
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(ChoosePassword);
