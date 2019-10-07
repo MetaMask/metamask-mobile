@@ -19,6 +19,11 @@ describe('TransactionReviewSummary', () => {
 					},
 					AssetsController: {
 						tokens: []
+					},
+					NetworkController: {
+						provider: {
+							ticker: 'ETH'
+						}
 					}
 				}
 			},

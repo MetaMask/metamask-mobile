@@ -8,6 +8,7 @@ import StyledButton from '../../UI/StyledButton';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AsyncStorage from '@react-native-community/async-storage';
 import setOnboardingWizardStep from '../../../actions/wizard';
+// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import TermsAndConditions from '../TermsAndConditions';

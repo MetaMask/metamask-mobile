@@ -11,3 +11,6 @@ type("development") # The default type, can be: appstore, adhoc, enterprise or d
 app_identifier("io.metamask.MetaMask") # The bundle identifier of your app
 shallow_clone true
 force_for_new_devices true
+readonly false
+force true
+

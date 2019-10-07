@@ -4,8 +4,10 @@ let LISTENER;
 describe('InpageBridge', () => {
 	beforeAll(() => {
 		global.window = {
-			postMessageToNative: jest.fn(),
 			postMessage: jest.fn(),
+			ReactNativeWebView: {
+				postMessage: jest.fn()
+			},
 			addEventListener: jest.fn()
 		};
 
@@ -82,7 +84,7 @@ describe('InpageBridge', () => {
 
 	it('should forward asynchronous RPC request', () => {
 		global.window.location = { hostname: 'hostname' };
-		const stub = spyOn(global.window, 'postMessageToNative');
+		const stub = spyOn(global.window.ReactNativeWebView, 'postMessage');
 		INSTANCE.sendAsync({ method: 'foo' }, () => {
 			/* eslint-disable-line no-empty */
 		});

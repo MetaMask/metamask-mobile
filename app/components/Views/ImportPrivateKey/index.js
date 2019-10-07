@@ -222,6 +222,7 @@ export default class ImportPrivateKey extends PureComponent {
 								onSubmitEditing={this.goNext}
 								returnKeyType={'next'}
 								placeholder={strings('import_private_key.example')}
+								placeholderTextColor={colors.grey100}
 								autoCapitalize={'none'}
 							/>
 							<View style={styles.scanPkeyRow}>

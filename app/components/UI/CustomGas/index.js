@@ -219,11 +219,14 @@ class CustomGas extends PureComponent {
 
 	componentDidUpdate = prevProps => {
 		if (this.state.advancedCustomGas) {
-			// Handles gas recalculation for custom gas input
-			const actualGasLimitWei = renderWei(hexToBN(this.props.gas));
-			if (renderWei(hexToBN(prevProps.gas)) !== actualGasLimitWei) {
-				this.setState({ customGasLimit: actualGasLimitWei });
-			}
+			this.handleGasRecalculationForCustomGasInput(prevProps);
+		}
+	};
+
+	handleGasRecalculationForCustomGasInput = prevProps => {
+		const actualGasLimitWei = renderWei(hexToBN(this.props.gas));
+		if (renderWei(hexToBN(prevProps.gas)) !== actualGasLimitWei) {
+			this.setState({ customGasLimit: actualGasLimitWei });
 		}
 	};
 

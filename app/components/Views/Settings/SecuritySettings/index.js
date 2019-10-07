@@ -466,7 +466,7 @@ class Settings extends PureComponent {
 							/>
 						</View>
 					</View>
-					<View style={styles.setting}>
+					<View style={styles.setting} testID={'clear-privacy'}>
 						<Text style={styles.title}>{strings('app_settings.clear_privacy_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.clear_privacy_desc')}</Text>
 						<StyledButton
@@ -505,15 +505,15 @@ class Settings extends PureComponent {
 						</View>
 					</View>
 					{biometryType && (
-						<View style={styles.setting}>
+						<View style={styles.setting} testID={'biometrics-option'}>
 							<Text style={styles.title}>
 								{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
 							</Text>
 							<View style={styles.switchElement}>
 								<Switch
-									onValueChange={biometryChoice =>
-										this.onSecuritySettingChange(biometryChoice, 'biometrics')
-									} // eslint-disable-line react/jsx-no-bind
+									onValueChange={(
+										biometryChoice // eslint-disable-line react/jsx-no-bind
+									) => this.onSecuritySettingChange(biometryChoice, 'biometrics')}
 									value={this.state.biometryChoice}
 									trackColor={
 										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
@@ -532,9 +532,9 @@ class Settings extends PureComponent {
 							</Text>
 							<View style={styles.switchElement}>
 								<Switch
-									onValueChange={passcodeChoice =>
-										this.onSecuritySettingChange(passcodeChoice, 'passcode')
-									} // eslint-disable-line react/jsx-no-bind
+									onValueChange={(
+										passcodeChoice // eslint-disable-line react/jsx-no-bind
+									) => this.onSecuritySettingChange(passcodeChoice, 'passcode')}
 									value={this.state.passcodeChoice}
 									trackColor={
 										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
@@ -560,10 +560,13 @@ class Settings extends PureComponent {
 						</StyledButton>
 					</View>
 					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('reveal_credential.seed_phrase_title')}</Text>
+						<Text style={styles.title} testID={'reveal-seed-title'}>
+							{strings('reveal_credential.seed_phrase_title')}
+						</Text>
 						<Text style={[styles.desc, styles.red]}>{strings('reveal_credential.seed_warning')}</Text>
 						<StyledButton
 							type="danger"
+							testID={'reveal-seedphrase-button'}
 							onPress={this.goToRevealPrivateCredential}
 							containerStyle={styles.clearHistoryConfirm}
 						>

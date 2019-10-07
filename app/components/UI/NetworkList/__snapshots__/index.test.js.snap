@@ -9,7 +9,7 @@ exports[`NetworkList should render correctly 1`] = `
       "minHeight": 450,
     }
   }
-  testID="account-list"
+  testID="networks-list"
 >
   <View
     style={

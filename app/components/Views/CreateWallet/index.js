@@ -12,7 +12,7 @@ import {
 	BackHandler
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import AnimatedFox from 'react-native-animated-fox';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -21,21 +21,19 @@ import { passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
+// eslint-disable-next-line import/named
 import { NavigationActions, withNavigationFocus } from 'react-navigation';
+import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 
 const styles = StyleSheet.create({
-	flex: {
-		flex: 1
+	scroll: {
+		flexGrow: 1
 	},
 	wrapper: {
-		paddingTop: 10,
 		paddingHorizontal: 40,
 		paddingBottom: 30,
+		alignItems: 'center',
 		flex: 1
-	},
-	content: {
-		flex: 1,
-		alignItems: 'center'
 	},
 	title: {
 		fontSize: 22,
@@ -55,15 +53,15 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	foxWrapper: {
-		width: 100,
+		width: Platform.OS === 'ios' ? 90 : 80,
+		height: Platform.OS === 'ios' ? 90 : 80,
 		marginTop: 30,
-		marginBottom: 30,
-		height: 100
+		marginBottom: 30
 	},
 	image: {
 		alignSelf: 'center',
-		width: 100,
-		height: 100
+		width: 80,
+		height: 80
 	}
 });
 
@@ -73,15 +71,7 @@ const styles = StyleSheet.create({
  */
 class CreateWallet extends PureComponent {
 	static navigationOptions = () => ({
-		headerStyle: {
-			shadowColor: 'transparent',
-			elevation: 0,
-			backgroundColor: 'white',
-			borderBottomWidth: 0
-		},
-		headerLeft: null,
-		headerRight: null,
-		headerTitle: null
+		header: null
 	});
 
 	static propTypes = {
@@ -161,26 +151,31 @@ class CreateWallet extends PureComponent {
 
 	render() {
 		return (
-			<ScrollView style={styles.flex} contentContainerStyle={styles.flex} testID={'create-wallet-screen'}>
-				<View style={styles.wrapper}>
-					<View style={styles.content}>
-						<View style={styles.foxWrapper}>
-							{Platform.OS === 'android' ? (
-								<Image
-									source={require('../../../images/fox.png')}
-									style={styles.image}
-									resizeMethod={'auto'}
-								/>
-							) : (
-								<AnimatedFox />
-							)}
+			<View style={baseStyles.flexGrow} testID={'create-wallet-screen'}>
+				<OnboardingScreenWithBg screen={'d'}>
+					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
+						<View style={styles.wrapper}>
+							<View style={styles.foxWrapper}>
+								{Platform.OS === 'android' ? (
+									<Image
+										source={require('../../../images/fox.png')}
+										style={styles.image}
+										resizeMethod={'auto'}
+									/>
+								) : (
+									<AnimatedFox />
+								)}
+							</View>
+							<ActivityIndicator
+								size="large"
+								color={Platform.OS === 'android' ? colors.blue : colors.grey}
+							/>
+							<Text style={styles.title}>{strings('create_wallet.title')}</Text>
+							<Text style={styles.subtitle}>{strings('create_wallet.subtitle')}</Text>
 						</View>
-						<ActivityIndicator size="large" color={Platform.OS === 'android' ? colors.blue : colors.grey} />
-						<Text style={styles.title}>{strings('create_wallet.title')}</Text>
-						<Text style={styles.subtitle}>{strings('create_wallet.subtitle')}</Text>
-					</View>
-				</View>
-			</ScrollView>
+					</ScrollView>
+				</OnboardingScreenWithBg>
+			</View>
 		);
 	}
 }

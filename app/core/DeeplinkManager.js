@@ -84,6 +84,7 @@ class DeeplinkManager {
 							this.handlePaymentChannelsUrl(urlObj.pathname.replace('/payment/', ''), params);
 							break;
 						case 'focus':
+						case '':
 							break;
 
 						default:

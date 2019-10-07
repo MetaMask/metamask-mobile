@@ -53,9 +53,6 @@ const styles = StyleSheet.create({
 	rowWrapper: {
 		padding: 20
 	},
-	contentWrapper: {
-		paddingVertical: 20
-	},
 	warningWrapper: {
 		backgroundColor: colors.red000
 	},
@@ -267,6 +264,7 @@ class RevealPrivateCredential extends PureComponent {
 					cancelText={strings('reveal_credential.cancel')}
 					confirmText={strings('reveal_credential.confirm')}
 					onCancelPress={this.cancel}
+					testID={`next-button`}
 					onConfirmPress={this.tryUnlock}
 					showConfirmButton={!unlocked}
 				>
@@ -283,7 +281,7 @@ class RevealPrivateCredential extends PureComponent {
 							</View>
 						</View>
 
-						<View style={styles.contentWrapper}>
+						<View style={styles.rowWrapper}>
 							{unlocked ? (
 								<ScrollableTabView renderTabBar={this.renderTabBar}>
 									<View tabLabel={strings(`reveal_credential.text`)} style={styles.tabContent}>
@@ -326,13 +324,16 @@ class RevealPrivateCredential extends PureComponent {
 									</Text>
 									<TextInput
 										style={styles.input}
+										testID={'private-credential-password-text-input'}
 										placeholder={'Password'}
+										placeholderTextColor={colors.grey100}
 										onChangeText={this.onPasswordChange}
 										secureTextEntry
 										onSubmitEditing={this.tryUnlock}
-										testID={'private-credential-password-text-input'}
 									/>
-									<Text style={styles.warningText}>{this.state.warningIncorrectPassword}</Text>
+									<Text style={styles.warningText} testID={'password-warning'}>
+										{this.state.warningIncorrectPassword}
+									</Text>
 								</View>
 							)}
 						</View>

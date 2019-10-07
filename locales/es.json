@@ -9,15 +9,25 @@
 		"info": "Información"
 	},
 	"onboarding": {
-		"title": "Bienvenido a MetaMask",
-		"subtitle": "Un navegador que te conecta a aplicaciones en la web decentralizada",
-		"import_wallet_button": "Sincroniza o importa tu billetera",
-		"start_exploring_now": "Comenzar a explorar",
+		"title": "¡Empezar!",
+		"sync_desc": "Si ya tiene la extensión MetaMask u otra billetera, sincronícela o impórtela para administrar sus activos.",
+		"create_desc": "¿Nuevo en crypto? Configure su primera billetera y comience a explorar aplicaciones descentralizadas.",
+		"import_wallet_button": "Sincroniza o importa billetera",
+		"start_exploring_now": "Crear billetera",
 		"login": "Ingresar",
 		"new_to_metamask": "Nuevo en MetaMask?",
 		"already_have_wallet": "Ya tienes una billetera?",
 		"optin_back_title": "Aviso",
 		"optin_back_desc": "Por favor acepte o rechace el uso de análisis de datos. Puede actualizar esta opción en la configuración."
+	},
+	"onboarding_carousel": {
+		"title1": "Bienvenido a MetaMask",
+		"title2": "Saluda a tu billetera...",
+		"title3": "Explora aplicaciones decentralizadas",
+		"subtitle1": "Un navegador seguro, y mucho más. Desliza para ver que es posible.",
+		"subtitle2": "Almacene, gaste y envíe criptomonedas y activos.",
+		"subtitle3": "Use su MetaMask para iniciar sesión en aplicaciones descentralizadas, sin necesidad de registrarse.",
+		"get_started": "Empezar"
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Saltar Tutorial",
@@ -59,8 +69,8 @@
 		}
 	},
 	"create_wallet": {
-		"title": "Creando tu nueva billetera",
-		"subtitle": "Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
+		"title": "Creando tu billetera...",
+		"subtitle": "Esto no debería tomar mucho tiempo"
 	},
 	"import_wallet": {
 		"title": "Ya eres usuario de MetaMask?",
@@ -206,7 +216,7 @@
 	},
 	"terms_and_conditions": {
 		"title": "Términos y Condiciones",
-		"description": "Haciendo click en \"{{action}}\" estas de acuerdo con estos ",
+		"description": "Procediendo estás de acuerdo con estos ",
 		"terms": "Términos y Condiciones"
 	},
 	"privacy_policy": {
@@ -564,7 +574,8 @@
 		"view_on": "VER EN",
 		"view_on_etherscan": "VER EN ETHERSCAN",
 		"hash_copied_to_clipboard": "El hash de la transacción fue copiado al portapapeles",
-		"address_copied_to_clipboard": "La dirección fue copiada al portapapeles"
+		"address_copied_to_clipboard": "La dirección fue copiada al portapapeles",
+		"transaction_error": "Error de transacción"
 	},
 	"transaction_submitted": {
 		"title": "Transacción Enviada",
@@ -845,7 +856,7 @@
 		"buy_title": "Comprar",
 		"buy_description": "Compre con tarjeta de crédito",
 		"public_address": "Dirección Pública",
-		"public_address_qr_code": "Código QR de Dirección Pública",
+		"public_address_qr_code": "Dirección Pública",
 		"coming_soon": "Pronto..."
 	},
 	"experimental_settings": {
@@ -934,7 +945,9 @@
 		"error_title": "Funcionalidad temporalmente no disponible",
 		"error_desc": "Nuestro proveedor de Canales de Pago tiene problemas, inténtalo de nuevo más tarde.",
 		"ask_a_friend": "O también puedes pedirle a un amigo",
-		"receive_funds_action": "Recibir Fondos"
+		"receive_funds_action": "Recibir Fondos",
+		"view_address": "Ver mi dirección",
+		"gas_error": "No tienes suficiente ETH para pagar el gas."
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",

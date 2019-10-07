@@ -8,19 +8,15 @@ exports[`SimpleWebview should render correctly 1`] = `
     }
   }
 >
-  <Web3Webview
+  <WebView
+    cacheEnabled={true}
     javaScriptEnabled={true}
-    messagingEnabled={true}
-    openNewWindowInWebView={true}
     originWhitelist={
       Array [
         "http://*",
         "https://*",
       ]
     }
-    saveFormDataDisabled={false}
-    scalesPageToFit={true}
-    showDefaultLoader={false}
     source={
       Object {
         "uri": Object {
@@ -29,7 +25,7 @@ exports[`SimpleWebview should render correctly 1`] = `
         },
       }
     }
-    thirdPartyCookiesEnabled={true}
+    useSharedProcessPool={true}
   />
 </View>
 `;

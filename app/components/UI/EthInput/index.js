@@ -219,11 +219,17 @@ class EthInput extends PureComponent {
 	 * Used to 'fillMax' feature. Will process value coming from parent to render corresponding values on input
 	 */
 	componentDidUpdate = () => {
+		this.handleComponentDidUpdate();
+	};
+
+	handleComponentDidUpdate = () => {
 		const { fillMax, readableValue } = this.props;
+
 		if (fillMax) {
 			const { processedReadableValue } = this.processValue(readableValue);
 			this.setState({ readableValue: processedReadableValue });
 		}
+
 		this.props.updateFillMax(false);
 
 		// Workaround https://github.com/facebook/react-native/issues/9958
@@ -517,9 +523,11 @@ class EthInput extends PureComponent {
 							numberOfLines={1}
 							onChangeText={this.onChange}
 							placeholder={'0.00'}
+							placeholderTextColor={colors.grey100}
 							spellCheck={false}
 							style={styles.input}
 							value={readableValue}
+							testID={'amount-input'}
 						/>
 						<Text style={styles.eth} numberOfLines={1}>
 							{currency}

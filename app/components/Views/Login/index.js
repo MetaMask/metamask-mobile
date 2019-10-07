@@ -23,6 +23,7 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
+// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
@@ -235,7 +236,11 @@ class Login extends PureComponent {
 	};
 
 	onPressGoBack = () => {
-		this.props.navigation.navigate('OnboardingRootNav');
+		this.props.navigation.navigate(
+			'OnboardingRootNav',
+			{},
+			NavigationActions.navigate({ routeName: 'Onboarding' })
+		);
 	};
 
 	updateBiometryChoice = async biometryChoice => {
@@ -301,10 +306,12 @@ class Login extends PureComponent {
 						<Text style={styles.label}>{strings('login.password')}</Text>
 						<TextInput
 							style={styles.input}
+							testID={'login-password-input'}
 							value={this.state.password}
 							onChangeText={this.setPassword}
 							secureTextEntry
 							placeholder={''}
+							placeholderTextColor={colors.grey100}
 							underlineColorAndroid={colors.grey100}
 							onSubmitEditing={this.onLogin}
 							returnKeyType={'done'}
@@ -314,9 +321,13 @@ class Login extends PureComponent {
 
 					{this.renderSwitch()}
 
-					{!!this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+					{!!this.state.error && (
+						<Text style={styles.errorMsg} testID={'invalid-password-error'}>
+							{this.state.error}
+						</Text>
+					)}
 
-					<View style={styles.ctaWrapper}>
+					<View style={styles.ctaWrapper} testID={'log-in-button'}>
 						<StyledButton type={'confirm'} onPress={this.onLogin}>
 							{this.state.loading ? (
 								<ActivityIndicator size="small" color="white" />

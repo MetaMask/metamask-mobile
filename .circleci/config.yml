@@ -1,25 +1,16 @@
 aliases:
-  - &restore-cache
-    keys:
-      - v1.0.5-{{ .Branch }}-{{ checksum "package.json" }}
-      - v1.0.5-{{ .Branch }}
-
-  - &save-cache
-    key: v1.0.5-{{ .Branch }}-{{ checksum "package.json" }}
-    paths:
-      - node_modules
   - &restore-node-cache
     keys:
-      - v1.0.5-node-{{ .Branch }}-{{ checksum "package.json" }}
-      - v1.0.5-node-{{ .Branch }}
+      - v1.1.0-node-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.1.0-node-{{ .Branch }}
   - &save-node-cache
-    key: v1.0.5-node-{{ .Branch }}-{{ checksum "package.json" }}
+    key: v1.1.0-node-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
 
   - &install-node-dependencies
       |
-        rm -rf node_modules/websocket/.git && npm install
+        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
 
 defaults: &defaults
   working_directory: ~/MetaMask
@@ -28,17 +19,15 @@ version: 2
 jobs:
   prep-deps:
     <<: *defaults
-    macos:
-      xcode: 10.2.0
+    docker:
+      - image: circleci/node:10
     steps:
       - checkout
-      - restore_cache: *restore-cache
       - run: *install-node-dependencies
       - persist_to_workspace:
           root: .
           paths:
           - node_modules
-      - save_cache: *save-cache
   prep-node-deps:
     <<: *defaults
     docker:
@@ -61,7 +50,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm run lint
+      - run: yarn lint
 
   test-unit:
     <<: *defaults
@@ -72,7 +61,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm run test:unit -- -w 3
+      - run: yarn test:unit -- -w 3
     #   - persist_to_workspace:
     #       root: .
     #       paths:
@@ -81,7 +70,7 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: 10.2.0
+      xcode: 11.1.0
     steps:
       - checkout
       - attach_workspace:
@@ -91,9 +80,10 @@ jobs:
           command:
             |
               brew update
+              brew install watchman
               brew tap wix/brew
               brew install --HEAD applesimutils
-              npm install -g detox-cli
+              yarn global add detox-cli
       - run: echo $IOS_ENV | tr "|" "\n" > .ios.env
       - run: detox clean-framework-cache && detox build-framework-cache
       - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
@@ -105,7 +95,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm install codecov
+      - run: yarn install codecov
       - run: ./node_modules/bin/codecov
 
   all-tests-pass:
@@ -121,10 +111,9 @@ jobs:
     docker:
       - image: circleci/android:api-28-node8-alpha
     steps:
-      - checkout:
-          path: ~/MetaMask
+      - checkout
       - attach_workspace:
-          at: ~/MetaMask
+          at: .
       - run:
           name: build:accept-android-licenses
           command: (echo y; echo y; echo y; echo y; echo y; echo y) | $ANDROID_HOME/tools/bin/sdkmanager --licenses
@@ -132,7 +121,7 @@ jobs:
           name: build:pre-release
           command:
             |
-              npm run build:android:pre-release:bundle
+              yarn build:android:pre-release:bundle
       - store_artifacts:
           path: android/app/build/outputs/bundle/release
           destination: bundle
@@ -144,22 +133,21 @@ jobs:
           destination: sourcemaps-android
       - run:
           name: Announcing pre-release
-          command: npm run build:announce
+          command: yarn build:announce
   publish-pre-release-ios:
     macos:
-      xcode: 10.2.0
+      xcode: 11.1.0
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
     shell: /bin/bash --login -o pipefail
     steps:
-      - checkout:
-          path: ~/MetaMask
+      - checkout
       - attach_workspace:
-          at: ~/MetaMask
+          at: .
       - run:
           name: pre-release
-          command: npm run build:ios:pre-release
+          command: yarn build:ios:pre-release
       - store_artifacts:
           path: sourcemaps/ios
           destination: sourcemaps-ios
@@ -185,14 +173,15 @@ workflows:
       - test-unit:
           requires:
             - prep-node-deps
-    #   - test-e2e-ios:
-    #       requires:
-    #         - test-unit
+      - test-e2e-ios:
+          requires:
+            - prep-node-deps
+            - test-unit
       - all-tests-pass:
           requires:
             - lint
             - test-unit
-            # - test-e2e-ios
+            - test-e2e-ios
     #   - upload-coverage:
     #       requires:
     #         - test-unit

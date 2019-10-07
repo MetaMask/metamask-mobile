@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import {
+	SafeAreaView,
 	Platform,
 	TextInput,
 	Alert,
@@ -35,8 +36,11 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import contractMap from 'eth-contract-metadata';
 import AssetIcon from '../../../UI/AssetIcon';
 import { hexToBN } from 'gaba/util';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { getTicker } from '../../../../util/transactions';
+import Modal from 'react-native-modal';
+import AddressQRCode from '../../AddressQRCode';
+
+const DAI_LOGO = contractMap[AppConstants.DAI_ADDRESS].logo;
 
 const TOO_LOW = 'too_low';
 const TOO_HIGH = 'too_high';
@@ -54,7 +58,7 @@ const styles = StyleSheet.create({
 		flexGrow: 1
 	},
 	button: {
-		marginBottom: 24
+		marginBottom: 8
 	},
 	buttonsWrapper: {
 		flex: 1,
@@ -64,7 +68,8 @@ const styles = StyleSheet.create({
 	buttonsContainer: {
 		flex: 1,
 		flexDirection: 'column',
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
+		marginBottom: 24
 	},
 	fiatValue: {
 		...fontStyles.normal,
@@ -226,7 +231,8 @@ class Deposit extends PureComponent {
 		validAmount: false,
 		depositing: undefined,
 		invalidAmountType: undefined,
-		value: undefined
+		value: undefined,
+		qrModalVisible: false
 	};
 
 	amountInput = React.createRef();
@@ -241,7 +247,12 @@ class Deposit extends PureComponent {
 				current && current.focus();
 			}, 300);
 		}
+		this.mount = true;
 	};
+
+	componentWillUnmount() {
+		this.mounted = false;
+	}
 
 	deposit = async () => {
 		if (this.state.depositing || !this.state.validAmount) {
@@ -257,6 +268,11 @@ class Deposit extends PureComponent {
 		} catch (e) {
 			if (e.message === 'still_blocked') {
 				Alert.alert(strings('payment_channel.not_ready'), strings('payment_channel.please_wait'));
+			} else if (e.message.includes('Insufficient funds')) {
+				Alert.alert(
+					strings('payment_channel.heads_up'),
+					`${strings('payment_channel.gas_error')} ${strings('payment_channel.security_reasons')}`
+				);
 			} else {
 				Alert.alert(strings('payment_channel.heads_up'), strings('payment_channel.security_reasons'));
 				Logger.log('Deposit error', e);
@@ -264,6 +280,14 @@ class Deposit extends PureComponent {
 			this.setState({ depositing: false });
 			this.props.navigation.pop();
 		}
+	};
+
+	openQrModal = () => {
+		this.setState({ qrModalVisible: true });
+	};
+
+	closeQrModal = () => {
+		this.setState({ qrModalVisible: false });
 	};
 
 	updateAmount = async amount => {
@@ -333,6 +357,7 @@ class Deposit extends PureComponent {
 	};
 
 	renderTransactionDirection() {
+		if (!this.mounted) return null;
 		const { selectedAddress, identities } = this.props;
 		return (
 			<View style={styles.graphic}>
@@ -347,10 +372,7 @@ class Deposit extends PureComponent {
 				</View>
 				<View style={[styles.addressGraphic, styles.toGraphic]}>
 					<View style={styles.daiLogoWrapper}>
-						<AssetIcon
-							logo={contractMap[toChecksumAddress(AppConstants.DAI_ADDRESS)].logo}
-							customStyle={styles.daiLogo}
-						/>
+						<AssetIcon logo={DAI_LOGO} customStyle={styles.daiLogo} />
 					</View>
 					<Text style={styles.directionText} numberOfLines={1}>
 						{strings('payment_channel.insta_pay')}
@@ -391,7 +413,7 @@ class Deposit extends PureComponent {
 
 	render() {
 		const { conversionRate, currentCurrency, ticker, primaryCurrency } = this.props;
-		const { amount, validAmount, error, value } = this.state;
+		const { amount, validAmount, error, value, qrModalVisible } = this.state;
 		let secondaryAmount, currency, secondaryCurrency;
 		if (primaryCurrency === 'ETH') {
 			secondaryAmount = weiToFiatNumber(value, conversionRate).toString();
@@ -404,7 +426,7 @@ class Deposit extends PureComponent {
 		}
 		return (
 			<TouchableWithoutFeedback style={styles.root} onPress={Keyboard.dismiss}>
-				<View style={styles.root}>
+				<SafeAreaView style={styles.root}>
 					{this.renderTransactionDirection()}
 					<View style={styles.wrapper}>
 						<Text style={styles.title}>{strings('payment_channel.deposit_amount')}</Text>
@@ -416,6 +438,7 @@ class Deposit extends PureComponent {
 								numberOfLines={1}
 								onChangeText={this.updateAmount}
 								placeholder={strings('payment_request.amount_placeholder')}
+								placeholderTextColor={colors.grey100}
 								spellCheck={false}
 								value={amount}
 								style={styles.input}
@@ -459,10 +482,23 @@ class Deposit extends PureComponent {
 										strings('payment_channel.load_funds')
 									)}
 								</StyledButton>
+								<StyledButton type={'transparent-blue'} onPress={this.openQrModal}>
+									{strings('payment_channel.view_address')}
+								</StyledButton>
 							</View>
 						</KeyboardAvoidingView>
 					</View>
-				</View>
+					<Modal
+						isVisible={qrModalVisible}
+						onBackdropPress={this.closeQrModal}
+						onBackButtonPress={this.closeQrModal}
+						onSwipeComplete={this.closeQrModal}
+						swipeDirection={'down'}
+						propagateSwipe
+					>
+						<AddressQRCode closeQrModal={this.closeQrModal} />
+					</Modal>
+				</SafeAreaView>
 			</TouchableWithoutFeedback>
 		);
 	}

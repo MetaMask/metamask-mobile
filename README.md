@@ -11,10 +11,8 @@ To learn how to develop MetaMask-compatible applications, visit our [Developer D
 ### Building locally
 The code is built using React-Native and running code locally requires a Mac or Linux OS.
 
-- Install [Node.js](https://nodejs.org) **version 8 (latest stable) and npm@6**
+- Install [Node.js](https://nodejs.org) **version 10 (latest stable) and yarn@1 (latest)**
     - If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
-    - If you install Node.js manually, ensure you're using npm@6
-        - Install npm@6 using `npm install -g npm@6`
 
 - Before starting, you need to install React Native dependencies:
     - [MacOs](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1)
@@ -22,34 +20,34 @@ The code is built using React-Native and running code locally requires a Mac or 
  -  Now clone this repo and then install all our dependencies
 
 ```bash
-cd MetaMask
-npm i
+cd metamask-mobile
+yarn install
 ```
 
 - Running the app on Android:
 
 ```bash
-npm run start:android
+yarn start:android
 ```
 
 - Running the app on iOS:
 
 ```bash
-npm run start:ios
+yarn start:ios
 ```
 
 ### Running tests:
  - Unit test:
 ```
-npm run test:unit
+yarn test:unit
 ```
  - E2E Tests (iOS)
 ```
-npm run test:e2e:ios
+yarn test:e2e:ios
 ```
  - E2E Tests (Android)
 ```
-npm run test:e2e:android
+yarn test:e2e:android
 ```
 
 ### Troubleshooting
