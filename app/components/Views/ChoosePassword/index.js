@@ -28,7 +28,6 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
-import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -217,7 +216,9 @@ class ChoosePassword extends PureComponent {
 				// Preserve the selected address
 				const selectedAddress = this.props.selectedAddress;
 				// Preserve the keyring before restoring
-				const hdKeyring = Engine.context.KeyringController.state.keyrings[0];
+				const hdKeyring = KeyringController.state.keyrings[0];
+				// Preserve all the prefs
+				const prefs = PreferencesController.state;
 				const existingAccountCount = hdKeyring.accounts.length;
 				// Recreate keyring
 				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
@@ -225,11 +226,14 @@ class ChoosePassword extends PureComponent {
 					await KeyringController.addNewAccount();
 				}
 
-				// Reselect previous selected account
-				if (hdKeyring.accounts.includes(toChecksumAddress(selectedAddress))) {
-					await PreferencesController.update({ selectedAddress: toChecksumAddress(selectedAddress) });
+				// Set prefs again
+				await PreferencesController.update(prefs);
+
+				// Reselect previous selected account if still available
+				if (hdKeyring.accounts.includes(selectedAddress)) {
+					await PreferencesController.update({ selectedAddress });
 				} else {
-					await PreferencesController.update({ selectedAddress: toChecksumAddress(hdKeyring[0]) });
+					await PreferencesController.update({ selectedAddress: hdKeyring[0] });
 				}
 
 				if (this.state.biometryType) {
