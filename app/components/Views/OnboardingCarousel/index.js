@@ -52,12 +52,12 @@ const styles = StyleSheet.create({
 	carouselImage: {},
 	carouselImage1: {
 		marginTop: 30,
-		width: DEVICE_WIDTH - 100,
-		height: (DEVICE_WIDTH - 100) * IMAGE_1_RATIO
+		width: DEVICE_WIDTH - 180,
+		height: (DEVICE_WIDTH - 180) * IMAGE_1_RATIO
 	},
 	carouselImage2: {
-		width: DEVICE_WIDTH - 100,
-		height: (DEVICE_WIDTH - 100) * IMAGE_2_RATIO
+		width: DEVICE_WIDTH - 150,
+		height: (DEVICE_WIDTH - 150) * IMAGE_2_RATIO
 	},
 	carouselImage3: {
 		width: DEVICE_WIDTH - 60,
