@@ -20,7 +20,7 @@ const {
 
 // eslint-disable-next-line
 const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
-const PUBLIC_URL = 'https://daicard.io';
+const PUBLIC_URL = 'https://hub.connext.network';
 
 const { hasPendingOps } = new Connext.Utils();
 // Constants for channel max/min - this is also enforced on the hub
