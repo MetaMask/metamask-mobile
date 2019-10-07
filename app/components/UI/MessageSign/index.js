@@ -67,7 +67,7 @@ export default class MessageSign extends PureComponent {
 		const { KeyringController, MessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
 		const cleanMessageParams = await MessageManager.approveMessage(messageParams);
-		const rawSig = await KeyringController.signPersonalMessage(cleanMessageParams);
+		const rawSig = await KeyringController.signMessage(cleanMessageParams);
 		MessageManager.setMessageStatusSigned(messageId, rawSig);
 	};
 
@@ -102,8 +102,8 @@ export default class MessageSign extends PureComponent {
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
 					currentPageInformation={currentPageInformation}
-					showWarning
 					type="ethSign"
+					showWarning
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
