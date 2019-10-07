@@ -97,7 +97,7 @@ class PaymentChannelsClient {
 				hubUrl = `https://rinkeby.${PUBLIC_URL}/api/hub`;
 				break;
 			case 'mainnet':
-				hubUrl = `https://mainnet.${PUBLIC_URL}/api/hub`;
+				hubUrl = `https://${PUBLIC_URL}/api/hub`;
 				break;
 			default:
 				throw new Error(`Unrecognized network: ${type}`);
