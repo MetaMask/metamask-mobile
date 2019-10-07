@@ -6,7 +6,7 @@ import interval from 'interval-promise';
 
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import { Currency, inverse, store, minBN, toBN, tokenToWei, weiToToken } from './utils';
+import { Currency, store, minBN, toBN, tokenToWei, weiToToken } from './utils';
 import AppConstants from '../AppConstants';
 import { Contract, ethers as eth } from 'ethers';
 import { AddressZero, Zero } from 'ethers/constants';
@@ -35,8 +35,8 @@ const DEFAULT_AMOUNT_TO_COLLATERALIZE = Currency.DAI('10');
 
 const hub = new EventEmitter();
 let client = null;
-let reloading = false;
-const mnemonic = 'upper over artist sun entire entry adapt rent aunt unveil random exhibit';
+// let reloading = false;
+const mnemonic = 'raccoon fork afford lunch coral feed chunk staff exhibit crack capital pizza';
 
 /**
  * Class that wraps the connext client for
@@ -46,7 +46,6 @@ class InstaPay {
 	constructor(mnemonic, network) {
 		const swapRate = '314.08';
 		this.state = {
-			ready: false,
 			address: '',
 			balance: {
 				channel: {
@@ -70,7 +69,10 @@ class InstaPay {
 			swapRate,
 			token: null,
 			xpub: '',
-			tokenProfile: null
+			tokenProfile: null,
+			receivingTransferCompleted: false,
+			receivingTransferFailed: false,
+			receivingTransferStarted: false
 		};
 
 		this.start(mnemonic, network);
@@ -97,6 +99,7 @@ class InstaPay {
 		// Wait for channel to be available
 		const channelIsAvailable = async channel => {
 			const chan = await channel.getChannel();
+			Logger.log('channel available?', chan, chan && chan.available);
 			return chan && chan.available;
 		};
 
@@ -104,11 +107,11 @@ class InstaPay {
 			await new Promise(res => setTimeout(() => res(), 1000));
 		}
 
+		Logger.log('PC:Channel is available!');
+
 		const freeBalanceAddress = channel.freeBalanceAddress || channel.myFreeBalanceAddress;
-		const connextConfig = await channel.config();
-		const token = new Contract(connextConfig.contractAddresses.Token, tokenArtifacts.abi, cfWallet);
+		const token = new Contract(channel.config.contractAddresses.Token, tokenArtifacts.abi, cfWallet);
 		const swapRate = await channel.getLatestSwapRate(AddressZero, token.address);
-		const invSwapRate = inverse(swapRate);
 
 		Logger.log(`Client created successfully!`);
 		Logger.log(` - Public Identifier: ${channel.publicIdentifier}`);
@@ -116,12 +119,27 @@ class InstaPay {
 		Logger.log(` - CF Account address: ${cfWallet.address}`);
 		Logger.log(` - Free balance address: ${freeBalanceAddress}`);
 		Logger.log(` - Token address: ${token.address}`);
-		Logger.log(` - Swap rate: ${swapRate} or ${invSwapRate}`);
+		Logger.log(` - Swap rate: ${swapRate}`);
 
 		channel.subscribeToSwapRates(AddressZero, token.address, res => {
 			if (!res || !res.swapRate) return;
 			Logger.log(`Got swap rate upate: ${this.state.swapRate} -> ${res.swapRate}`);
 			this.setState({ swapRate: res.swapRate });
+		});
+
+		channel.on('RECIEVE_TRANSFER_STARTED', data => {
+			Logger.log('Received RECIEVE_TRANSFER_STARTED event: ', data);
+			this.setState({ receivingTransferStarted: true });
+		});
+
+		channel.on('RECIEVE_TRANSFER_FINISHED', data => {
+			Logger.log('Received RECIEVE_TRANSFER_FINISHED event: ', data);
+			this.setState({ receivingTransferCompleted: true });
+		});
+
+		channel.on('RECIEVE_TRANSFER_FAILED', data => {
+			Logger.log('Received RECIEVE_TRANSFER_FAILED event: ', data);
+			this.setState({ receivingTransferFailed: true });
 		});
 
 		this.setState({
@@ -136,6 +154,7 @@ class InstaPay {
 			xpub: channel.publicIdentifier
 		});
 
+		await this.addDefaultPaymentProfile();
 		await this.startPoller();
 	};
 
@@ -143,6 +162,8 @@ class InstaPay {
 		Object.keys(data).forEach(key => {
 			this.state[key] = data[key];
 		});
+		this.state.ready = true;
+		hub.emit('state::change', this.state);
 	};
 
 	startPoller = async () => {
@@ -227,7 +248,7 @@ class InstaPay {
 		}
 
 		let nowMaxDeposit = maxDeposit.wad.sub(this.state.balance.channel.total.wad);
-		if (nowMaxDeposit.lte(Zero)) {
+		if (nowMaxDeposit && nowMaxDeposit.lte(Zero)) {
 			Logger.log(
 				`Channel balance (${balance.channel.total.toDAI().format()}) is at or above ` +
 					`cap of ${maxDeposit.toDAI(swapRate).format()}`
@@ -253,14 +274,14 @@ class InstaPay {
 		}
 
 		nowMaxDeposit = maxDeposit.wad.sub(this.state.balance.channel.total.wad);
-		if (nowMaxDeposit.lte(Zero)) {
+		if (nowMaxDeposit && nowMaxDeposit.lte(Zero)) {
 			Logger.log(
 				`Channel balance (${balance.channel.total.toDAI().format()}) is at or above ` +
 					`cap of ${maxDeposit.toDAI(swapRate).format()}`
 			);
 			return;
 		}
-		if (balance.onChain.ether.wad.lt(minDeposit.wad)) {
+		if (balance.onChain.ether && balance.onChain.ether.wad && balance.onChain.ether.wad.lt(minDeposit.wad)) {
 			Logger.log(`Not enough on-chain eth to deposit: ${balance.onChain.ether.toETH().format()}`);
 			return;
 		}
@@ -441,25 +462,26 @@ const instance = {
 	 * returns the entire state of the client
 	 * only used for debugging purposes
 	 */
-	dump: () => (client && client.state) || {}
+	dump: () => (client && client.state) || {},
+	xpub: (client && client.state && client.state.publicIdentifier) || null
 };
 
-const reloadClient = () => {
-	if (!reloading) {
-		reloading = true;
-		if (client) {
-			//client.stop();
-			removeListeners();
-		}
-		setTimeout(() => {
-			const { provider } = Engine.context.NetworkController.state;
-			client = new InstaPay(mnemonic, provider.type);
-			setTimeout(() => {
-				reloading = false;
-			}, 1000);
-		}, 1000);
-	}
-};
+// const reloadClient = () => {
+// 	if (!reloading) {
+// 		reloading = true;
+// 		if (client) {
+// 			//client.stop();
+// 			removeListeners();
+// 		}
+// 		setTimeout(() => {
+// 			const { provider } = Engine.context.NetworkController.state;
+// 			client = new InstaPay(mnemonic, provider.type);
+// 			setTimeout(() => {
+// 				reloading = false;
+// 			}, 1000);
+// 		}, 1000);
+// 	}
+// };
 
 const onPaymentConfirm = async request => {
 	try {
@@ -477,14 +499,14 @@ const onPaymentConfirm = async request => {
 };
 
 function initListeners() {
-	Engine.context.TransactionController.hub.on('networkChange', reloadClient);
-	Engine.context.PreferencesController.subscribe(reloadClient);
+	// Engine.context.TransactionController.hub.on('networkChange', reloadClient);
+	// Engine.context.PreferencesController.subscribe(reloadClient);
 	hub.on('payment::confirm', onPaymentConfirm);
 }
 
 function removeListeners() {
-	Engine.context.TransactionController.hub.removeListener('networkChange', reloadClient);
-	Engine.context.PreferencesController.unsubscribe(reloadClient);
+	// Engine.context.TransactionController.hub.removeListener('networkChange', reloadClient);
+	// Engine.context.PreferencesController.unsubscribe(reloadClient);
 	hub.removeListener('payment::confirm', onPaymentConfirm);
 }
 

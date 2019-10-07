@@ -70,6 +70,10 @@ class AddressQRCode extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
+		 * A custom address as string
+		 */
+		address: PropTypes.string,
+		/**
 		/* Triggers global alert
 		*/
 		showAlert: PropTypes.func,
@@ -87,9 +91,11 @@ class AddressQRCode extends PureComponent {
 		closeQrModal && closeQrModal();
 	};
 
+	getAddress = () => this.props.address || this.props.selectedAddress;
+
 	copyAccountToClipboard = async () => {
-		const { selectedAddress } = this.props;
-		await Clipboard.setString(selectedAddress);
+		const address = this.getAddress();
+		await Clipboard.setString(address);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,
@@ -99,8 +105,9 @@ class AddressQRCode extends PureComponent {
 	};
 
 	processAddress = () => {
-		const { selectedAddress } = this.props;
-		const processedAddress = `${selectedAddress.slice(0, 2)} ${selectedAddress
+		const address = this.getAddress();
+		const index = address.substr(0, 4) === 'xpub' ? 4 : 2;
+		const processedAddress = `${address.slice(0, index)} ${address
 			.slice(2)
 			.match(/.{1,4}/g)
 			.join(' ')}`;

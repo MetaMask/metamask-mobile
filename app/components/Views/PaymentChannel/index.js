@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
+import InstaPay from '../../../core/InstaPay';
 import {
 	InteractionManager,
 	ScrollView,
@@ -200,6 +200,7 @@ class PaymentChannel extends PureComponent {
 	};
 
 	state = {
+		ready: false,
 		balance: '0.00',
 		balanceFiat: undefined,
 		status: { type: null },
@@ -209,7 +210,8 @@ class PaymentChannel extends PureComponent {
 		depositAmount: '',
 		exchangeRate: undefined,
 		displayWelcomeModal: false,
-		connextStateDisabled: false
+		connextStateDisabled: false,
+		transactions: []
 	};
 
 	client = null;
@@ -218,15 +220,8 @@ class PaymentChannel extends PureComponent {
 	withdrawing = false;
 
 	onStateChange = state => {
-		if (state.balance !== this.state.balance || state.status.type !== this.state.status.type || !this.state.ready) {
-			this.setState({
-				balance: state.balance,
-				status: state.status,
-				transactions: this.handleTransactions(state.transactions),
-				ready: true
-			});
-			this.getBalanceFiat(state.balance);
-		}
+		Logger.log('set state', state);
+		this.setState(state);
 	};
 
 	componentDidMount() {
@@ -239,8 +234,8 @@ class PaymentChannel extends PureComponent {
 
 	init = () => {
 		setTimeout(() => {
-			PaymentChannelsClient.hub.on('state::change', this.onStateChange);
-			PaymentChannelsClient.hub.on('state::cs_chainsaw_error', this.handleChainsawError);
+			InstaPay.hub.on('state::change', this.onStateChange);
+			InstaPay.hub.on('state::cs_chainsaw_error', this.handleChainsawError);
 		}, 1000);
 		this.checkifEnabled();
 	};
@@ -260,7 +255,7 @@ class PaymentChannel extends PureComponent {
 							onPress: async () => {
 								try {
 									this.withdrawing = true;
-									await PaymentChannelsClient.withdrawAll();
+									await InstaPay.withdrawAll();
 									this.withdrawing = false;
 									Logger.log('withdraw succesful');
 								} catch (e) {
@@ -285,10 +280,10 @@ class PaymentChannel extends PureComponent {
 				]);
 			}
 		} else {
-			const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
-			if (!paymentChannelFirstTime) {
-				this.setState({ displayWelcomeModal: true });
-			}
+			// const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
+			// if (!paymentChannelFirstTime) {
+			// 	this.setState({ displayWelcomeModal: true });
+			// }
 		}
 	};
 
@@ -306,7 +301,7 @@ class PaymentChannel extends PureComponent {
 			prevProps.selectedAddress !== this.props.selectedAddress ||
 			prevProps.provider.type !== this.props.provider.type
 		) {
-			this.reinitialize();
+			//this.reinitialize();
 		}
 		if (prevProps.currentCurrency !== this.props.currentCurrency) {
 			this.getBalanceFiat(this.state.balance);
@@ -382,8 +377,8 @@ class PaymentChannel extends PureComponent {
 	}
 
 	removeListeners() {
-		PaymentChannelsClient.hub.removeListener('state::change', this.onStateChange);
-		PaymentChannelsClient.hub.removeListener('state::cs_chainsaw_error', this.handleChainsawError);
+		InstaPay.hub.removeListener('state::change', this.onStateChange);
+		InstaPay.hub.removeListener('state::cs_chainsaw_error', this.handleChainsawError);
 	}
 
 	copyAccountToClipboard = async () => {
@@ -420,7 +415,7 @@ class PaymentChannel extends PureComponent {
 			Logger.log('Sending ', params);
 			this.sending = true;
 			this.props.navigation.pop();
-			await PaymentChannelsClient.send(params);
+			await InstaPay.send(params);
 			this.sending = false;
 
 			Logger.log('Send succesful');
@@ -455,7 +450,7 @@ class PaymentChannel extends PureComponent {
 					onPress: async () => {
 						try {
 							this.withdrawing = true;
-							await PaymentChannelsClient.withdrawAll();
+							await InstaPay.withdrawAll();
 							this.withdrawing = false;
 							Logger.log('withdraw succesful');
 						} catch (e) {
@@ -488,13 +483,14 @@ class PaymentChannel extends PureComponent {
 		const isDisabled = this.areButtonsDisabled();
 		const noFundsAndNoHistory = this.state.balance === '0.00' && !this.state.transactions.length;
 		const noFunds = this.state.balance === '0.00';
+
 		let mainBalance, secondaryBalance;
 		if (this.props.primaryCurrency === 'ETH') {
-			mainBalance = balance + ' ' + strings('unit.dai');
-			secondaryBalance = balanceFiat;
+			mainBalance = balance.channel.token.toDAI().format({ decimals: 2, symbol: false }) + ' ' + strings('unit.dai');
+			secondaryBalance = balance.channel.token.toFIN().format({ decimals: 2, symbol: false });
 		} else {
-			mainBalance = balanceFiat;
-			secondaryBalance = balance + ' ' + strings('unit.dai');
+			mainBalance = balance.channel.token.toDAI().format({ decimals: 2, symbol: false });
+			secondaryBalance = balance.channel.token.toFIN().format({ decimals: 2, symbol: false }) + ' ' + strings('unit.dai');
 		}
 		return (
 			<View style={styles.data}>
@@ -710,7 +706,7 @@ class PaymentChannel extends PureComponent {
 					swipeDirection={'down'}
 					propagateSwipe
 				>
-					<AddressQRCode closeQrModal={this.closeQrModal} />
+					<AddressQRCode closeQrModal={this.closeQrModal} address={this.state.xpub} />
 				</Modal>
 			</SafeAreaView>
 		);

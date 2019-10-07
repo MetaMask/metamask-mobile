@@ -468,6 +468,7 @@ class Main extends PureComponent {
 					this.initializePaymentChannels();
 				}
 				InstaPay.init();
+				this.props.navigation.navigate('PaymentChannelHome');
 
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 			}, 1000);
