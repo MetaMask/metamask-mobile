@@ -220,7 +220,6 @@ class PaymentChannel extends PureComponent {
 	withdrawing = false;
 
 	onStateChange = state => {
-		Logger.log('set state', state);
 		this.setState(state);
 	};
 
