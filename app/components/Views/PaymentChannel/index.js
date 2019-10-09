@@ -485,11 +485,13 @@ class PaymentChannel extends PureComponent {
 
 		let mainBalance, secondaryBalance;
 		if (this.props.primaryCurrency === 'ETH') {
-			mainBalance = balance.channel.token.toDAI().format({ decimals: 2, symbol: false }) + ' ' + strings('unit.dai');
+			mainBalance =
+				balance.channel.token.toDAI().format({ decimals: 2, symbol: false }) + ' ' + strings('unit.dai');
 			secondaryBalance = balance.channel.token.toFIN().format({ decimals: 2, symbol: false });
 		} else {
 			mainBalance = balance.channel.token.toDAI().format({ decimals: 2, symbol: false });
-			secondaryBalance = balance.channel.token.toFIN().format({ decimals: 2, symbol: false }) + ' ' + strings('unit.dai');
+			secondaryBalance =
+				balance.channel.token.toFIN().format({ decimals: 2, symbol: false }) + ' ' + strings('unit.dai');
 		}
 		return (
 			<View style={styles.data}>
