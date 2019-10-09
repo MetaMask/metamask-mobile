@@ -35,7 +35,7 @@ class DeeplinkManager {
 				callback(url);
 			} else {
 				this.navigation.navigate('BrowserView', {
-					url
+					newTabUrl: url
 				});
 			}
 		});
