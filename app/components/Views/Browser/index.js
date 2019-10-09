@@ -112,6 +112,10 @@ class Browser extends PureComponent {
 
 			if (currentUrl && prevUrl !== currentUrl) {
 				this.newTab(currentUrl);
+				this.props.navigation.setParams({
+					...this.props.navigation.state.params,
+					url: null
+				});
 			}
 		}
 	}
