@@ -98,9 +98,21 @@ class Browser extends PureComponent {
 		});
 	}
 
-	componentDidUpdate() {
+	componentDidUpdate(prevProps) {
 		if (this.props.tabs.length !== Object.keys(this.tabs).length) {
 			this.createBrowserTabs(this.props.tabs);
+		}
+
+		const prevNavigation = prevProps.navigation;
+		const { navigation } = this.props;
+
+		if (prevNavigation && navigation) {
+			const prevUrl = prevNavigation.getParam('url', null);
+			const currentUrl = navigation.getParam('url', null);
+
+			if (currentUrl && prevUrl !== currentUrl) {
+				this.newTab(currentUrl);
+			}
 		}
 	}
 
