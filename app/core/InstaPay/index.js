@@ -44,7 +44,7 @@ const mnemonic = 'tomorrow recipe alert grant peace catalog oil cinnamon pencil 
  */
 class InstaPay {
 	constructor(mnemonic, network) {
-		const swapRate = "100.00";
+		const swapRate = '100.00';
 		this.state = {
 			address: '',
 			balance: {
@@ -72,7 +72,7 @@ class InstaPay {
 			swapRate,
 			token: null,
 			xpub: '',
-			tokenProfile: null,
+			tokenProfile: null
 		};
 
 		this.start(mnemonic, network);
@@ -171,12 +171,11 @@ class InstaPay {
 		await this.autoDeposit();
 		await this.autoSwap();
 		interval(async (iteration, stop) => {
-		  await this.refreshBalances();
-		  await this.autoDeposit();
-		  await this.autoSwap();
+			await this.refreshBalances();
+			await this.autoDeposit();
+			await this.autoSwap();
 		}, 3000);
-	  }
-
+	};
 
 	addDefaultPaymentProfile = async () => {
 		// add the payment profile for tokens only
@@ -195,24 +194,24 @@ class InstaPay {
 		const tokenProfile = await channel.addPaymentProfile({
 			amountToCollateralize: DEFAULT_AMOUNT_TO_COLLATERALIZE.wad.toString(),
 			minimumMaintainedCollateral: DEFAULT_COLLATERAL_MINIMUM.wad.toString(),
-			assetId: token.address,
-		  });
-		this.setState({ tokenProfile })
-		Logger.log(`Got a default token profile: ${JSON.stringify(this.state.tokenProfile)}`)
+			assetId: token.address
+		});
+		this.setState({ tokenProfile });
+		Logger.log(`Got a default token profile: ${JSON.stringify(this.state.tokenProfile)}`);
 		return tokenProfile;
 	};
 
 	refreshBalances = async () => {
-		const {
-		  address, balance, channel, ethprovider, freeBalanceAddress, swapRate, token,
-		} = this.state;
+		const { address, balance, channel, ethprovider, freeBalanceAddress, swapRate, token } = this.state;
 		let gasPrice = await ethprovider.getGasPrice();
 		let totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(toBN(2)).mul(gasPrice);
 		let totalWithdrawalGasWei = WITHDRAW_ESTIMATED_GAS.mul(gasPrice);
 		const minDeposit = Currency.WEI(totalDepositGasWei.add(totalWithdrawalGasWei), swapRate).toETH();
 		const maxDeposit = MAX_CHANNEL_VALUE.toETH(swapRate); // Or get based on payment profile?
 		this.setState({ maxDeposit, minDeposit });
-		if (!channel || !swapRate) { return; }
+		if (!channel || !swapRate) {
+			return;
+		}
 		const getTotal = (ether, token) => Currency.WEI(ether.wad.add(token.toETH().wad), swapRate);
 		const freeEtherBalance = await channel.getFreeBalance();
 		const freeTokenBalance = await channel.getFreeBalance(token.address);
@@ -223,134 +222,132 @@ class InstaPay {
 		balance.channel.token = Currency.DEI(freeTokenBalance[freeBalanceAddress], swapRate).toDAI();
 		balance.channel.total = getTotal(balance.channel.ether, balance.channel.token).toETH();
 		this.setState({ balance });
-	}
+	};
 
 	autoDeposit = async () => {
 		const { balance, channel, minDeposit, maxDeposit, pending, swapRate, token } = this.state;
 		if (!channel) {
-		  console.warn(`Channel not available yet.`);
-		  return;
+			console.warn(`Channel not available yet.`);
+			return;
 		}
 		if (balance.onChain.ether.wad.eq(Zero)) {
-		  console.debug(`No on-chain eth to deposit`)
-		  return;
+			console.debug(`No on-chain eth to deposit`);
+			return;
 		}
 		if (!pending.complete) {
-		  Logger.log(`An operation of type ${pending.type} is pending, waiting to deposit`)
-		  return;
+			Logger.log(`An operation of type ${pending.type} is pending, waiting to deposit`);
+			return;
 		}
 
 		let nowMaxDeposit = maxDeposit.wad.sub(this.state.balance.channel.total.wad);
 		if (nowMaxDeposit.lte(Zero)) {
-		  console.debug(`Channel balance (${balance.channel.total.toDAI().format()}) is at or above ` +
-			`cap of ${maxDeposit.toDAI(swapRate).format()}`)
-		  return;
+			console.debug(
+				`Channel balance (${balance.channel.total.toDAI().format()}) is at or above ` +
+					`cap of ${maxDeposit.toDAI(swapRate).format()}`
+			);
+			return;
 		}
 
 		if (balance.onChain.token.wad.gt(Zero)) {
-		  this.setPending({ type: "deposit", complete: false, closed: false });
-		  const amount = minBN([
-			Currency.WEI(nowMaxDeposit, swapRate).toDAI().wad,
-			balance.onChain.token.wad
-		  ]);
-		  const depositParams = {
-			amount: amount.toString(),
-			assetId: token.address.toLowerCase(),
-		  };
-		  Logger.log(`Depositing ${depositParams.amount} tokens into channel: ${channel.opts.multisigAddress}`);
-		  const result = await channel.deposit(depositParams);
-		  await this.refreshBalances();
-		  await this.refreshBalances();
-		  Logger.log(`Successfully deposited tokens! Result: ${JSON.stringify(result, null, 2)}`);
-		  this.setPending({ type: "deposit", complete: true, closed: false });
+			this.setPending({ type: 'deposit', complete: false, closed: false });
+			const amount = minBN([Currency.WEI(nowMaxDeposit, swapRate).toDAI().wad, balance.onChain.token.wad]);
+			const depositParams = {
+				amount: amount.toString(),
+				assetId: token.address.toLowerCase()
+			};
+			Logger.log(`Depositing ${depositParams.amount} tokens into channel: ${channel.opts.multisigAddress}`);
+			const result = await channel.deposit(depositParams);
+			await this.refreshBalances();
+			await this.refreshBalances();
+			Logger.log(`Successfully deposited tokens! Result: ${JSON.stringify(result, null, 2)}`);
+			this.setPending({ type: 'deposit', complete: true, closed: false });
 		} else {
-		  console.debug(`No tokens to deposit`);
+			console.debug(`No tokens to deposit`);
 		}
 
 		nowMaxDeposit = maxDeposit.wad.sub(this.state.balance.channel.total.wad);
 		if (nowMaxDeposit.lte(Zero)) {
-		  console.debug(`Channel balance (${balance.channel.total.toDAI().format()}) is at or above ` +
-			`cap of ${maxDeposit.toDAI(swapRate).format()}`)
-		  return;
+			console.debug(
+				`Channel balance (${balance.channel.total.toDAI().format()}) is at or above ` +
+					`cap of ${maxDeposit.toDAI(swapRate).format()}`
+			);
+			return;
 		}
 		if (balance.onChain.ether.wad.lt(minDeposit.wad)) {
-		  console.debug(`Not enough on-chain eth to deposit: ${balance.onChain.ether.toETH().format()}`)
-		  return;
+			console.debug(`Not enough on-chain eth to deposit: ${balance.onChain.ether.toETH().format()}`);
+			return;
 		}
 
-		this.setPending({ type: "deposit", complete: false, closed: false });
-		const amount = minBN([
-		  balance.onChain.ether.wad.sub(minDeposit.wad),
-		  nowMaxDeposit,
-		]);
+		this.setPending({ type: 'deposit', complete: false, closed: false });
+		const amount = minBN([balance.onChain.ether.wad.sub(minDeposit.wad), nowMaxDeposit]);
 		Logger.log(`Depositing ${amount} wei into channel: ${channel.opts.multisigAddress}`);
 		const result = await channel.deposit({ amount: amount.toString() });
 		await this.refreshBalances();
 		Logger.log(`Successfully deposited ether! Result: ${JSON.stringify(result, null, 2)}`);
-		this.setPending({ type: "deposit", complete: true, closed: false });
+		this.setPending({ type: 'deposit', complete: true, closed: false });
 		this.autoSwap();
-	}
+	};
 
 	autoSwap = async () => {
 		const { balance, channel, maxDeposit, pending, swapRate, token } = this.state;
 		if (!channel) {
-		  console.warn(`Channel not available yet.`);
-		  return;
+			console.warn(`Channel not available yet.`);
+			return;
 		}
 		if (balance.channel.ether.wad.eq(Zero)) {
-		  console.debug(`No in-channel eth available to swap`)
-		  return;
+			console.debug(`No in-channel eth available to swap`);
+			return;
 		}
 		if (balance.channel.token.wad.gte(maxDeposit.toDAI(swapRate).wad)) {
-		  return; // swap ceiling has been reached, no need to swap more
+			return; // swap ceiling has been reached, no need to swap more
 		}
 		if (!pending.complete) {
-		  Logger.log(`An operation of type ${pending.type} is pending, waiting to swap`)
-		  return;
+			Logger.log(`An operation of type ${pending.type} is pending, waiting to swap`);
+			return;
 		}
 
-		const maxSwap = tokenToWei(maxDeposit.toDAI().wad.sub(balance.channel.token.wad), swapRate)
-		const weiToSwap = minBN([balance.channel.ether.wad, maxSwap])
+		const maxSwap = tokenToWei(maxDeposit.toDAI().wad.sub(balance.channel.token.wad), swapRate);
+		const weiToSwap = minBN([balance.channel.ether.wad, maxSwap]);
 
 		Logger.log(`Attempting to swap ${formatEther(weiToSwap)} eth for dai at rate: ${swapRate}`);
-		this.setPending({ type: "swap", complete: false, closed: false });
+		this.setPending({ type: 'swap', complete: false, closed: false });
 
-		const hubFBAddress = utils.freeBalanceAddressFromXpub(channel.nodePublicIdentifier)
+		const hubFBAddress = utils.freeBalanceAddressFromXpub(channel.nodePublicIdentifier);
 		const collateralNeeded = balance.channel.token.wad.add(weiToToken(weiToSwap, swapRate));
-		let collateral = formatEther((await channel.getFreeBalance(token.address))[hubFBAddress])
+		let collateral = formatEther((await channel.getFreeBalance(token.address))[hubFBAddress]);
 
 		Logger.log(`Collateral: ${collateral} tokens, need: ${formatEther(collateralNeeded)}`);
 		if (collateralNeeded.gt(parseEther(collateral))) {
-		  Logger.log(`Requesting more collateral...`)
-		  const tokenProfile = await channel.addPaymentProfile({
-			amountToCollateralize: collateralNeeded.add(parseEther("10")), // add a buffer of $10 so you dont collateralize on every payment
-			minimumMaintainedCollateral: collateralNeeded,
-			assetId: token.address,
-		  });
-		  Logger.log(`Got a new token profile: ${JSON.stringify(tokenProfile)}`)
-		  this.setState({ tokenProfile })
-		  await channel.requestCollateral(token.address);
-		  collateral = formatEther((await channel.getFreeBalance(token.address))[hubFBAddress])
-		  Logger.log(`Collateral: ${collateral} tokens, need: ${formatEther(collateralNeeded)}`);
+			Logger.log(`Requesting more collateral...`);
+			const tokenProfile = await channel.addPaymentProfile({
+				amountToCollateralize: collateralNeeded.add(parseEther('10')), // add a buffer of $10 so you dont collateralize on every payment
+				minimumMaintainedCollateral: collateralNeeded,
+				assetId: token.address
+			});
+			Logger.log(`Got a new token profile: ${JSON.stringify(tokenProfile)}`);
+			this.setState({ tokenProfile });
+			await channel.requestCollateral(token.address);
+			collateral = formatEther((await channel.getFreeBalance(token.address))[hubFBAddress]);
+			Logger.log(`Collateral: ${collateral} tokens, need: ${formatEther(collateralNeeded)}`);
 		}
 		await channel.swap({
-		  amount: weiToSwap.toString(),
-		  fromAssetId: AddressZero,
-		  swapRate,
-		  toAssetId: token.address,
+			amount: weiToSwap.toString(),
+			fromAssetId: AddressZero,
+			swapRate,
+			toAssetId: token.address
 		});
 		await this.refreshBalances();
-		this.setPending({ type: "swap", complete: true, closed: false });
-	}
+		this.setPending({ type: 'swap', complete: true, closed: false });
+	};
 
-	setPending = (pending) => {
+	setPending = pending => {
 		this.setState({ pending });
-	}
+	};
 
 	closeConfirmations = () => {
 		const { pending } = this.state;
 		this.setState({ pending: { ...pending, closed: true } });
-	}
+	};
 }
 
 const instance = {
