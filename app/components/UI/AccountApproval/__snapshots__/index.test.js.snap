@@ -104,6 +104,7 @@ exports[`AccountApproval should render correctly 1`] = `
                 "textAlign": "center",
               }
             }
+            testID="dapp-name-url"
           />
         </View>
         <View
