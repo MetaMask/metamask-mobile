@@ -210,7 +210,7 @@ describe('Browser Tests', () => {
 		await TestHelpers.checkIfVisible('browser-screen');
 	});
 
-	it('should test ENS and phishing sites', async () => {
+	it('should test phishing sites', async () => {
 		// Tap on search in bottom navbar
 		await TestHelpers.tap('search-button');
 		// Clear text
