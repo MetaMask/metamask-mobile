@@ -20,7 +20,7 @@ const {
 
 // eslint-disable-next-line
 const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
-const PUBLIC_URL = 'https://daicard.io';
+const PUBLIC_URL = 'hub.connext.network';
 
 const { hasPendingOps } = new Connext.Utils();
 // Constants for channel max/min - this is also enforced on the hub
@@ -94,10 +94,10 @@ class PaymentChannelsClient {
 		const ethprovider = new EthQuery(infuraProvider);
 		switch (type) {
 			case 'rinkeby':
-				hubUrl = `${PUBLIC_URL}/api/rinkeby/hub`;
+				hubUrl = `https://rinkeby.${PUBLIC_URL}/api/hub`;
 				break;
 			case 'mainnet':
-				hubUrl = `${PUBLIC_URL}/api/mainnet/hub`;
+				hubUrl = `https://${PUBLIC_URL}/api/hub`;
 				break;
 			default:
 				throw new Error(`Unrecognized network: ${type}`);

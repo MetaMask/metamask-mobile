@@ -229,9 +229,9 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	downloadInstapayStateLogs = async () => {
-		const appName = getApplicationName();
-		const appVersion = getVersion();
-		const buildNumber = getBuildNumber();
+		const appName = await getApplicationName();
+		const appVersion = await getVersion();
+		const buildNumber = await getBuildNumber();
 		const path = RNFS.DocumentDirectoryPath + `/instapay-logs-v${appVersion}-(${buildNumber}).json`;
 
 		try {
