@@ -10,7 +10,7 @@ const migrations = {
 		const addressBook = state.engine.backgroundState.AddressBookController.addressBook;
 		const migratedAddressBook = {};
 		Object.keys(addressBook).forEach(address => {
-			const chainId = addressBook[address].chainId;
+			const chainId = addressBook[address].chainId.toString();
 			migratedAddressBook[chainId]
 				? (migratedAddressBook[chainId] = { ...migratedAddressBook[chainId], [address]: addressBook[address] })
 				: (migratedAddressBook[chainId] = { [address]: addressBook[address] });
