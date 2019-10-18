@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -13,7 +13,6 @@ import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getHost } from '../../../util/browser';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -102,8 +101,6 @@ const styles = StyleSheet.create({
 		margin: 10
 	}
 });
-
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * PureComponent that renders scrollable content inside signature request user interface
