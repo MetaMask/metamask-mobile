@@ -4665,7 +4665,7 @@ g-status@^2.0.2:
     matcher "^1.0.0"
     simple-git "^1.85.0"
 
-gaba@^1.7.1:
+gaba@1.7.1:
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/gaba/-/gaba-1.7.1.tgz#ccf7d7fa8ab1d7a5144cc752a570bd3376d293af"
   integrity sha512-bznjmi09UkcsqBLjpI1Luxqc0ZyHyyp2nNAnRJ7lmaZ1jzzITdfvts6ERlDYA83RETajPTYQa5XEEKeeJYFgmg==
