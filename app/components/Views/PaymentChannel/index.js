@@ -279,10 +279,10 @@ class PaymentChannel extends PureComponent {
 				]);
 			}
 		} else {
-			// const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
-			// if (!paymentChannelFirstTime) {
-			// 	this.setState({ displayWelcomeModal: true });
-			// }
+			const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
+			if (!paymentChannelFirstTime) {
+				this.setState({ displayWelcomeModal: true });
+			}
 		}
 	};
 
@@ -302,9 +302,7 @@ class PaymentChannel extends PureComponent {
 		) {
 			//this.reinitialize();
 		}
-		if (prevProps.currentCurrency !== this.props.currentCurrency) {
-			this.getBalanceFiat(this.state.balance);
-		}
+		this.updateBalanceFiat();
 	}
 
 	reinitialize = () => {
@@ -391,44 +389,6 @@ class PaymentChannel extends PureComponent {
 		});
 	};
 
-	send = async () => {
-		if (this.sending) {
-			return;
-		}
-
-		try {
-			const params = {
-				sendRecipient: this.state.sendRecipient,
-				sendAmount: this.state.sendAmount.replace(',', '.')
-			};
-
-			if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
-				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_amount'));
-				return false;
-			}
-
-			if (!params.sendRecipient) {
-				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_recipient'));
-			}
-
-			Logger.log('Sending ', params);
-			this.sending = true;
-			this.props.navigation.pop();
-			await InstaPay.send(params);
-			this.sending = false;
-
-			Logger.log('Send succesful');
-		} catch (e) {
-			let msg = strings('payment_channel.unknown_error');
-			if (e.message === 'insufficient_balance') {
-				msg = strings('payment_channel.insufficient_balance');
-			}
-			Alert.alert(strings('payment_channel.error'), msg);
-			Logger.log('buy error error', e);
-			this.sending = false;
-		}
-	};
-
 	withdraw = async () => {
 		if (this.withdrawing) {
 			return;
@@ -487,9 +447,9 @@ class PaymentChannel extends PureComponent {
 		if (this.props.primaryCurrency === 'ETH') {
 			mainBalance =
 				balance.channel.token.toDAI().format({ decimals: 2, symbol: false }) + ' ' + strings('unit.dai');
-			secondaryBalance = balance.channel.token.toFIN().format({ decimals: 2, symbol: false });
+			secondaryBalance = balanceFiat;
 		} else {
-			mainBalance = balance.channel.token.toDAI().format({ decimals: 2, symbol: false });
+			mainBalance = balanceFiat;
 			secondaryBalance =
 				balance.channel.token.toFIN().format({ decimals: 2, symbol: false }) + ' ' + strings('unit.dai');
 		}
@@ -552,7 +512,10 @@ class PaymentChannel extends PureComponent {
 		});
 	};
 
-	getBalanceFiat = async balance => {
+	updateBalanceFiat = async () => {
+		if (!this.state.balance || !this.state.balance.channel || !this.state.balance.channel.token) return;
+		const balance = this.state.balance.channel.token.toDAI().format({ decimals: 2, symbol: false });
+		if (balance === this.lastKnownBalance) return;
 		const { TokenRatesController } = Engine.context;
 		const { nativeCurrency, currentCurrency, contractExchangeRates, conversionRate } = this.props;
 		let exchangeRate;
@@ -562,14 +525,15 @@ class PaymentChannel extends PureComponent {
 			const res = await TokenRatesController.fetchExchangeRate(
 				`contract_addresses=${DAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
 			);
-			if (!!res && Object.keys(res).includes(DAI_ADDRESS)) {
-				exchangeRate = res[DAI_ADDRESS][nativeCurrency.toLowerCase()];
+			if (!!res && Object.keys(res).includes(DAI_ADDRESS.toLowerCase())) {
+				exchangeRate = res[DAI_ADDRESS.toLowerCase()][nativeCurrency.toLowerCase()];
 			}
 		}
 
 		const balanceFiat =
 			exchangeRate && `${balanceToFiatNumber(balance, conversionRate, exchangeRate)} ${currentCurrency}`;
 		this.setState({ balanceFiat, exchangeRate });
+		this.lastKnownBalance = balance;
 	};
 
 	closeQrModal = () => {

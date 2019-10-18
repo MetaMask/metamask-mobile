@@ -6,11 +6,12 @@ import interval from 'interval-promise';
 
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import { Currency, store, minBN, toBN, tokenToWei, weiToToken } from './utils';
+import { Currency, minBN, toBN, tokenToWei, weiToToken, delay } from './utils';
+import Store from './utils/store';
 import AppConstants from '../AppConstants';
 import { Contract, ethers as eth } from 'ethers';
 import { AddressZero, Zero } from 'ethers/constants';
-import { formatEther, parseEther } from 'ethers/utils';
+import { formatEther, parseEther, hexlify, randomBytes } from 'ethers/utils';
 import Engine from '../Engine';
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
@@ -36,7 +37,7 @@ const DEFAULT_AMOUNT_TO_COLLATERALIZE = Currency.DAI('10');
 const hub = new EventEmitter();
 let client = null;
 // let reloading = false;
-const mnemonic = 'tomorrow recipe alert grant peace catalog oil cinnamon pencil dice vault minimum';
+const mnemonic = 'token face horse fame you love envelope velvet comfort section mask street';
 
 /**
  * Class that wraps the connext client for
@@ -83,7 +84,7 @@ class InstaPay {
 		const ethProviderUrl = `https://${network}.${API_URL}/ethprovider`;
 		const ethprovider = new eth.providers.JsonRpcProvider(ethProviderUrl);
 		const cfWallet = eth.Wallet.fromMnemonic(mnemonic, cfPath).connect(ethprovider);
-
+		const store = await Store.init();
 		const options = {
 			mnemonic,
 			nodeUrl: `wss://${network}.indra.connext.network/api/messaging`,
@@ -170,7 +171,7 @@ class InstaPay {
 		await this.refreshBalances();
 		await this.autoDeposit();
 		await this.autoSwap();
-		interval(async (iteration, stop) => {
+		interval(async () => {
 			await this.refreshBalances();
 			await this.autoDeposit();
 			await this.autoSwap();
@@ -203,9 +204,9 @@ class InstaPay {
 
 	refreshBalances = async () => {
 		const { address, balance, channel, ethprovider, freeBalanceAddress, swapRate, token } = this.state;
-		let gasPrice = await ethprovider.getGasPrice();
-		let totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(toBN(2)).mul(gasPrice);
-		let totalWithdrawalGasWei = WITHDRAW_ESTIMATED_GAS.mul(gasPrice);
+		const gasPrice = await ethprovider.getGasPrice();
+		const totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(toBN(2)).mul(gasPrice);
+		const totalWithdrawalGasWei = WITHDRAW_ESTIMATED_GAS.mul(gasPrice);
 		const minDeposit = Currency.WEI(totalDepositGasWei.add(totalWithdrawalGasWei), swapRate).toETH();
 		const maxDeposit = MAX_CHANNEL_VALUE.toETH(swapRate); // Or get based on payment profile?
 		this.setState({ maxDeposit, minDeposit });
@@ -227,11 +228,11 @@ class InstaPay {
 	autoDeposit = async () => {
 		const { balance, channel, minDeposit, maxDeposit, pending, swapRate, token } = this.state;
 		if (!channel) {
-			console.warn(`Channel not available yet.`);
+			Logger.warn(`Channel not available yet.`);
 			return;
 		}
 		if (balance.onChain.ether.wad.eq(Zero)) {
-			console.debug(`No on-chain eth to deposit`);
+			Logger.debug(`No on-chain eth to deposit`);
 			return;
 		}
 		if (!pending.complete) {
@@ -241,7 +242,7 @@ class InstaPay {
 
 		let nowMaxDeposit = maxDeposit.wad.sub(this.state.balance.channel.total.wad);
 		if (nowMaxDeposit.lte(Zero)) {
-			console.debug(
+			Logger.debug(
 				`Channel balance (${balance.channel.total.toDAI().format()}) is at or above ` +
 					`cap of ${maxDeposit.toDAI(swapRate).format()}`
 			);
@@ -262,19 +263,19 @@ class InstaPay {
 			Logger.log(`Successfully deposited tokens! Result: ${JSON.stringify(result, null, 2)}`);
 			this.setPending({ type: 'deposit', complete: true, closed: false });
 		} else {
-			console.debug(`No tokens to deposit`);
+			Logger.debug(`No tokens to deposit`);
 		}
 
 		nowMaxDeposit = maxDeposit.wad.sub(this.state.balance.channel.total.wad);
 		if (nowMaxDeposit.lte(Zero)) {
-			console.debug(
+			Logger.debug(
 				`Channel balance (${balance.channel.total.toDAI().format()}) is at or above ` +
 					`cap of ${maxDeposit.toDAI(swapRate).format()}`
 			);
 			return;
 		}
 		if (balance.onChain.ether.wad.lt(minDeposit.wad)) {
-			console.debug(`Not enough on-chain eth to deposit: ${balance.onChain.ether.toETH().format()}`);
+			Logger.debug(`Not enough on-chain eth to deposit: ${balance.onChain.ether.toETH().format()}`);
 			return;
 		}
 
@@ -291,11 +292,11 @@ class InstaPay {
 	autoSwap = async () => {
 		const { balance, channel, maxDeposit, pending, swapRate, token } = this.state;
 		if (!channel) {
-			console.warn(`Channel not available yet.`);
+			Logger.warn(`Channel not available yet.`);
 			return;
 		}
 		if (balance.channel.ether.wad.eq(Zero)) {
-			console.debug(`No in-channel eth available to swap`);
+			Logger.debug(`No in-channel eth available to swap`);
 			return;
 		}
 		if (balance.channel.token.wad.gte(maxDeposit.toDAI(swapRate).wad)) {
@@ -348,6 +349,39 @@ class InstaPay {
 		const { pending } = this.state;
 		this.setState({ pending: { ...pending, closed: true } });
 	};
+
+	getBalance = () => this.state.balance.channel.token.toDAI().format({ decimals: 2, symbol: false });
+
+	send = async ({ sendAmount, sendRecipient }) =>
+		new Promise(async (resolve, reject) => {
+			const amount = Currency.DAI(sendAmount);
+			const endingTs = Date.now() + 60 * 1000;
+			let transferRes = undefined;
+			while (Date.now() < endingTs) {
+				try {
+					const data = {
+						assetId: AppConstants.DAI_ADDRESS_RINKEBY,
+						amount: amount.wad.toString(),
+						conditionType: 'LINKED_TRANSFER_TO_RECIPIENT',
+						paymentId: hexlify(randomBytes(32)),
+						preImage: hexlify(randomBytes(32)),
+						recipient: sendRecipient
+					};
+					Logger.log('DATA', data);
+
+					transferRes = await this.state.channel.conditionalTransfer(data);
+					break;
+				} catch (e) {
+					Logger.error('ERROR SENDING INSTAPAY', e);
+					await delay(5000);
+				}
+			}
+			if (!transferRes) {
+				reject('ERROR');
+				return;
+			}
+			resolve();
+		});
 }
 
 const instance = {

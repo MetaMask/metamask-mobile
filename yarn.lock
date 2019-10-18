@@ -691,38 +691,38 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@connext/client@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@connext/client/-/client-0.2.0.tgz#558a6809dafe2cffca40f96d9ba40ed492c6930c"
-  integrity sha512-7EvBIldAugcDXFzpCg8aZHx4N41NoPfTu2Qh21t4iFPwfFE6m8OUX1ZSHHGsLcIANUx7d/WFOcC3XQhwFejtxg==
+"@connext/client@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@connext/client/-/client-0.2.1.tgz#0d63b38feaafc7c4e9e14877bcc5cc796ff1abde"
+  integrity sha512-dDUnGdP/otbA83Ulk3y+K6lWvFspz3CPHlCATPd2/Ve08I+LCKRF3OhHRlG1AVCCPrYrxoyl+UFD3QJcSa7jAg==
   dependencies:
-    "@connext/messaging" "0.2.0"
-    "@connext/types" "0.2.0"
-    "@counterfactual/cf-funding-protocol-contracts" "0.0.11"
+    "@connext/messaging" "0.2.1"
+    "@connext/types" "0.2.1"
+    "@counterfactual/cf-funding-protocol-contracts" "0.0.12"
     "@counterfactual/node" "0.2.82"
-    "@counterfactual/types" "0.0.43"
-    core-js "3.2.1"
+    "@counterfactual/types" "0.0.44"
+    core-js "3.3.1"
     eth-crypto "1.5.0"
     ethers "4.0.37"
     human-standard-token-abi "2.0.0"
     regenerator-runtime "0.13.3"
     uuid "3.3.3"
 
-"@connext/messaging@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-0.2.0.tgz#2b42e39e0e95cfe33d41b5bc4a019ced1474a31d"
-  integrity sha512-QhM8+bVjPCiyde8IoTxCDmPnmH1IPW8zSzoaDUS7yTuWvLb3lEv+sMIbOvoWfJoBuWRxvZ7+1DweFrZVH3nOKw==
+"@connext/messaging@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-0.2.1.tgz#fffec1fe512b01ac06574136306b3c8acda67baa"
+  integrity sha512-aW4Tz6uo5MLUXgt4Xpnh5uesMW3ryi9hLCTZ6qOrV//ddENiYq/fnru6FGwKOePHpcCXdEFzS7xmfBvYRHtdgQ==
   dependencies:
     ts-nats "1.2.4"
     websocket-nats "0.3.3"
 
-"@connext/types@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@connext/types/-/types-0.2.0.tgz#b4617a40e1ffbe5bd251a41d3b0e9585cfc998ef"
-  integrity sha512-Yq0OlfUN7DZVoCb62VRppHJx3Vjx1sQ985DlkwFIKuo+EgEyJTX+GxbHpMwhYrDuZUfewLpM2gfZe/BeFsTPdg==
+"@connext/types@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@connext/types/-/types-0.2.1.tgz#4f2f59b6af5622f4467d22f69e2909cd50fcae24"
+  integrity sha512-stxVyA5Wb8GujiWSeewro8JAfZmPnH3kGbnHWlFKNOF5zf3m/hTg8f7EVEWyxSFcPM002iRD5r3Lh2rEPNufFA==
   dependencies:
-    "@connext/messaging" "0.2.0"
-    "@counterfactual/types" "0.0.43"
+    "@connext/messaging" "0.2.1"
+    "@counterfactual/types" "0.0.44"
     ethers "4.0.37"
 
 "@counterfactual/cf-adjudicator-contracts@0.0.7":
@@ -734,6 +734,11 @@
   version "0.0.11"
   resolved "https://registry.yarnpkg.com/@counterfactual/cf-funding-protocol-contracts/-/cf-funding-protocol-contracts-0.0.11.tgz#5c8ac429086af7f51a466e1ec229c7496a1e9e41"
   integrity sha512-Nmf0LYTeZ2wSPduDEBIV/+M50ka+ZUSCM2/pOF34uziEZfZwZAOBcLYsJuBn/j16kNCeVRmjwNhLbVxFdpBz5g==
+
+"@counterfactual/cf-funding-protocol-contracts@0.0.12":
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/@counterfactual/cf-funding-protocol-contracts/-/cf-funding-protocol-contracts-0.0.12.tgz#2d0654fce516cffd018713f4dfbb862fdc772d1b"
+  integrity sha512-HfF0bjvyxHUzQTvhLy1tA+s1nhrSozcmruI1cUiCe5LW40Ci98RAD+wpi7MmzluCy+vVJobrAjMKXTRH/U7AAg==
 
 "@counterfactual/cf.js@0.2.6":
   version "0.2.6"
@@ -787,6 +792,11 @@
   version "0.0.43"
   resolved "https://registry.yarnpkg.com/@counterfactual/types/-/types-0.0.43.tgz#e2beb96c1b90cd1ebbda277691f7a96ce7341a69"
   integrity sha512-NToq3aTQrRk3LKsw0j88SQsxFaI3GXLLPVJvtkKzWmIqk/jTYU4lnKeEojLO8UrBb3IDR0sWGqJ7uiRnm6kErw==
+
+"@counterfactual/types@0.0.44":
+  version "0.0.44"
+  resolved "https://registry.yarnpkg.com/@counterfactual/types/-/types-0.0.44.tgz#16c685549756fb3108bcb7567b10141ae3d5defb"
+  integrity sha512-5Jq+m/soFxa5c47dOjzDjgAitCxahyjdhP8shGe3MdPtk21Hz0PozkEIVCNC8JhcYl1m43CBG0PlXLLM1/TIZA==
 
 "@ethersproject/address@^5.0.0-beta.125":
   version "5.0.0-beta.127"
@@ -2929,10 +2939,10 @@ core-js@3.0.1:
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.0.1.tgz#1343182634298f7f38622f95e73f54e48ddf4738"
   integrity sha512-sco40rF+2KlE0ROMvydjkrVMMG1vYilP2ALoRXcYR4obqbYIuV3Bg+51GEDW+HF8n7NRA+iaA4qD0nD9lo9mew==
 
-core-js@3.2.1, core-js@^3.0.0:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.2.1.tgz#cd41f38534da6cc59f7db050fe67307de9868b09"
-  integrity sha512-Qa5XSVefSVPRxy2XfUC13WbvqkxhkwB3ve+pgCQveNgYzbM/UxZeu1dcOX/xr4UmfUd+muuvsaxilQzCyUurMw==
+core-js@3.3.1:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.3.1.tgz#636a3dc323c3f9ba618e74c5900366e19f48e959"
+  integrity sha512-1PGI49Lz5qYo3EBz0kymSfJgTvn2G/c03lBTJ7PO0R1liQ7Yd6E570odu5p4CxG/WB0yUwCmAWummo79yOQUcQ==
 
 core-js@^1.0.0:
   version "1.2.7"
@@ -2943,6 +2953,11 @@ core-js@^2.2.2, core-js@^2.4.0, core-js@^2.4.1:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.9.tgz#6b4b214620c834152e179323727fc19741b084f2"
   integrity sha512-HOpZf6eXmnl7la+cUdMnLvUxKNqLUzJvgIziQ0DiF3JwSImNphIqdGqzj6hIKyX04MmV0poclQ7+wjWvxQyR2A==
+
+core-js@^3.0.0:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.2.1.tgz#cd41f38534da6cc59f7db050fe67307de9868b09"
+  integrity sha512-Qa5XSVefSVPRxy2XfUC13WbvqkxhkwB3ve+pgCQveNgYzbM/UxZeu1dcOX/xr4UmfUd+muuvsaxilQzCyUurMw==
 
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
@@ -5810,7 +5825,7 @@ inquirer@^6.2.2:
     strip-ansi "^5.1.0"
     through "^2.3.6"
 
-interval-promise@^1.3.0:
+interval-promise@1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/interval-promise/-/interval-promise-1.3.0.tgz#26fc4fbcd18605162d0dd012c2cc5657c4f8bc22"
   integrity sha512-AebPZJ0o6D1jWg487njjrhfzBp6/hfmtWCMQhXr0SXD7Zg5RexQe4Y6joYiGieJziP7W7WEMQWxFKSbywXmhbw==
@@ -11374,7 +11389,7 @@ tiny-queue@0.2.0:
   resolved "https://registry.yarnpkg.com/tiny-queue/-/tiny-queue-0.2.0.tgz#c49fcb5c87555be1b4a5df7eb87101d5b78bc9dc"
   integrity sha1-xJ/LXIdVW+G0pd9+uHEB1beLydw=
 
-tls@^0.0.1:
+tls@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/tls/-/tls-0.0.1.tgz#0ab2bf5968d71df2f8c0e1515d24a2240b98aac8"
   integrity sha1-CrK/WWjXHfL4wOFRXSSiJAuYqsg=

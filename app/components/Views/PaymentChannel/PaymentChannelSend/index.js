@@ -7,7 +7,7 @@ import { strings } from '../../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
 import { newTransaction } from '../../../../actions/transaction';
-import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
+import InstaPay from '../../../../core/InstaPay';
 import Logger from '../../../../util/Logger';
 import { fromTokenMinimalUnit } from '../../../../util/number';
 
@@ -91,37 +91,24 @@ class PaymentChannelSend extends PureComponent {
 			return;
 		}
 
+		const sendAmount = fromTokenMinimalUnit(transaction.value, 18);
+		const sendRecipient = transaction.to;
 		try {
-			const params = {
-				sendRecipient: transaction.to,
-				sendAmount: fromTokenMinimalUnit(transaction.value, 18)
-			};
-
-			if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
-				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_amount'));
-				return false;
-			}
-
-			if (!params.sendRecipient) {
-				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_recipient'));
-			}
-
-			Logger.log('Sending ', params);
-			this.sending = true;
-			await PaymentChannelsClient.send(params);
-			this.sending = false;
-
-			Logger.log('Send succesful');
-			navigation.pop();
+			await InstaPay.send({
+				sendAmount,
+				sendRecipient
+			});
 		} catch (e) {
-			let msg = strings('payment_channel.unknown_error');
-			if (e.message === 'insufficient_balance') {
-				msg = strings('payment_channel.insufficient_balance');
-			}
+			const msg = strings('payment_channel.unknown_error');
 			Alert.alert(strings('payment_channel.error'), msg);
-			Logger.log('buy error error', e);
+			Logger.log('buy error error');
 			this.sending = false;
+			return;
 		}
+
+		this.sending = false;
+		Logger.log('Send succesful');
+		navigation.pop();
 	};
 
 	renderLoader() {

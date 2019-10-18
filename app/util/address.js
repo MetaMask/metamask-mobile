@@ -86,3 +86,15 @@ export function isENS(name) {
 export function resemblesAddress(address) {
 	return address.length === 2 + 20 * 2;
 }
+
+/**
+ * Determines if a given string looks like a valid Ethereum XPUB
+ *
+ * @param {address} string
+ */
+export function isValidXpub(address) {
+	if (!address.startsWith('xpub') || address.length !== 111) {
+		return false;
+	}
+	return true;
+}

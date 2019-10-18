@@ -1,9 +1,11 @@
 import { ethers as eth } from 'ethers';
 
 import { toBN } from './bn';
+import Logger from '../../../util/Logger';
 
 const { commify, formatUnits, parseUnits } = eth.utils;
 
+// eslint-disable-next-line import/prefer-default-export
 export class Currency {
 	////////////////////////////////////////
 	// Static Properties/Methods
@@ -137,8 +139,8 @@ export class Currency {
 			return exchangeRates[currency];
 		}
 		if (!this.daiRateGiven) {
-			console.warn(`Provide DAI:ETH rate for accurate conversions between currency types`);
-			console.warn(`Using default eth price of $${this.daiRate}`);
+			Logger.warn(`Provide DAI:ETH rate for accurate conversions between currency types`);
+			Logger.warn(`Using default eth price of $${this.daiRate}`);
 		}
 		return exchangeRates[currency];
 	};

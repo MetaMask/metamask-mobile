@@ -73,7 +73,6 @@ import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
-import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import InstaPay from '../../../core/InstaPay';
 import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
@@ -359,10 +358,6 @@ class Main extends PureComponent {
 		 */
 		transaction: PropTypes.object,
 		/**
-		 * Selected address
-		 */
-		selectedAddress: PropTypes.string,
-		/**
 		 * Array of ERC20 assets
 		 */
 		tokens: PropTypes.array,
@@ -467,8 +462,6 @@ class Main extends PureComponent {
 				if (this.props.paymentChannelsEnabled) {
 					this.initializePaymentChannels();
 				}
-				InstaPay.init();
-				this.props.navigation.navigate('PaymentChannelHome');
 
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 			}, 1000);
@@ -492,8 +485,9 @@ class Main extends PureComponent {
 	};
 
 	initializePaymentChannels = () => {
-		PaymentChannelsClient.init(this.props.selectedAddress);
-		PaymentChannelsClient.hub.on('payment::request', async request => {
+		InstaPay.init();
+
+		InstaPay.hub.on('payment::request', async request => {
 			const validRequest = { ...request };
 			// Validate amount
 			if (isNaN(request.amount)) {
@@ -563,7 +557,7 @@ class Main extends PureComponent {
 			}
 		});
 
-		PaymentChannelsClient.hub.on('payment::complete', () => {
+		InstaPay.hub.on('payment::complete', () => {
 			// show the success screen
 			this.setState({ paymentChannelRequestCompleted: true });
 			// hide the modal and reset state
@@ -581,7 +575,7 @@ class Main extends PureComponent {
 			}, 800);
 		});
 
-		PaymentChannelsClient.hub.on('payment::error', error => {
+		InstaPay.hub.on('payment::error', error => {
 			if (error === 'INVALID_ENS_NAME') {
 				Alert.alert(
 					strings('payment_channel_request.title_error'),
@@ -748,7 +742,7 @@ class Main extends PureComponent {
 			if (this.props.paymentChannelsEnabled) {
 				this.initializePaymentChannels();
 			} else {
-				PaymentChannelsClient.stop();
+				InstaPay.stop();
 			}
 		}
 	}
@@ -775,8 +769,8 @@ class Main extends PureComponent {
 		Engine.context.TypedMessageManager.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
 		WalletConnect.hub.removeAllListeners();
-		PaymentChannelsClient.hub.removeAllListeners();
-		PaymentChannelsClient.stop();
+		InstaPay.hub.removeAllListeners();
+		InstaPay.stop();
 		this.removeConnectionStatusListener && this.removeConnectionStatusListener();
 	}
 
@@ -840,7 +834,7 @@ class Main extends PureComponent {
 	};
 
 	onPaymentChannelRequestApproval = () => {
-		PaymentChannelsClient.hub.emit('payment::confirm', this.state.paymentChannelRequestInfo);
+		InstaPay.hub.emit('payment::confirm', this.state.paymentChannelRequestInfo);
 		this.setState({
 			paymentChannelRequestLoading: true
 		});
@@ -941,7 +935,6 @@ class Main extends PureComponent {
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	transaction: state.transaction,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,

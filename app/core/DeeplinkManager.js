@@ -5,7 +5,7 @@ import qs from 'qs';
 import { InteractionManager, Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
-import PaymentChannelsClient from '../core/PaymentChannelsClient';
+import InstaPay from '../core/InstaPay';
 import AppConstants from './AppConstants';
 
 class DeeplinkManager {
@@ -37,7 +37,7 @@ class DeeplinkManager {
 
 	handlePaymentChannelsUrl(to, params) {
 		setTimeout(() => {
-			PaymentChannelsClient.hub.emit('payment::request', {
+			InstaPay.hub.emit('payment::request', {
 				to,
 				...params
 			});

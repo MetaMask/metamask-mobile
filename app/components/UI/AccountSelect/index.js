@@ -9,7 +9,7 @@ import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { weiToFiat, renderFromWei } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
-import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
+import InstaPay from '../../../core/InstaPay';
 import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -174,7 +174,7 @@ class AccountSelect extends PureComponent {
 		// render balances according to selected 'primaryCurrency'
 		let mainBalance, secondaryBalance;
 		if (paymentChannelTransaction) {
-			const state = PaymentChannelsClient.getState();
+			const state = InstaPay.getState();
 			mainBalance = `${state.balance} ${strings('unit.dai')}`;
 		} else if (primaryCurrency === 'ETH') {
 			mainBalance = renderFromWei(balance) + ' ' + getTicker(ticker);

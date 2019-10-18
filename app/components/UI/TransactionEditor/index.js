@@ -5,6 +5,7 @@ import { colors } from '../../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
 import { isBN, hexToBN, toBN, isDecimal } from '../../../util/number';
+import { isValidXpub } from '../../../util/address';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -13,7 +14,8 @@ import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from 'eth-contract-metadata';
-import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
+import InstaPay from '../../../core/InstaPay';
+import Logger from '../../../util/Logger';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -155,10 +157,12 @@ class TransactionEditor extends PureComponent {
 	 */
 	handleUpdateAmount = async (amount, mounting = false) => {
 		const {
-			transaction: { to, data, assetType, gas: gasLimit }
+			transaction: { to, data, assetType, gas: gasLimit, paymentChannelTransaction }
 		} = this.props;
-		// If ETH transaction, there is no need to generate new data
-		if (assetType === 'ETH') {
+		// If paymentChannelTransaction only set the value
+		if (paymentChannelTransaction) {
+			this.props.setTransactionObject({ value: amount });
+		} else if (assetType === 'ETH') {
 			const { gas } = mounting ? { gas: gasLimit } : await this.estimateGas({ amount, data, to });
 			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas) });
 		}
@@ -434,11 +438,12 @@ class TransactionEditor extends PureComponent {
 			const {
 				transaction: { value, readableValue, from }
 			} = this.props;
+			Logger.log('TRANSACTION VALUE', value, readableValue);
 			if (!value || !from || !readableValue) {
 				return strings('transaction.invalid_amount');
 			}
 			if (value && !isBN(value)) return strings('transaction.invalid_amount');
-			const state = PaymentChannelsClient.getState();
+			const state = InstaPay.getState();
 			if (isDecimal(state.balance) && parseFloat(readableValue) > parseFloat(state.balance)) {
 				return strings('transaction.insufficient');
 			}
@@ -479,11 +484,12 @@ class TransactionEditor extends PureComponent {
 	validateToAddress = () => {
 		let error;
 		const {
-			transaction: { to }
+			transaction: { to, paymentChannelTransaction }
 		} = this.props;
 		!to && (error = strings('transaction.required'));
 		!to && this.state.toFocused && (error = strings('transaction.required'));
-		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
+		to && !isValidAddress(to) && !paymentChannelTransaction && (error = strings('transaction.invalid_address'));
+		to && paymentChannelTransaction && !isValidXpub(to) && (error = strings('transaction.invalid_address'));
 		return error;
 	};
 

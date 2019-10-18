@@ -3,7 +3,7 @@ import React, { PureComponent } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, Platform, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
+import InstaPay from '../../../../core/InstaPay';
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
@@ -235,7 +235,7 @@ class AdvancedSettings extends PureComponent {
 		const path = RNFS.DocumentDirectoryPath + `/instapay-logs-v${appVersion}-(${buildNumber}).json`;
 
 		try {
-			const dump = PaymentChannelsClient.dump();
+			const dump = InstaPay.dump();
 			dump.connext = !!dump.connext;
 			delete dump.ethprovider;
 			const data = JSON.stringify(dump);

@@ -12,7 +12,7 @@ import { strings } from '../../../../locales/i18n';
 import CustomGas from '../CustomGas';
 import { addHexPrefix } from 'ethereumjs-util';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
-import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
+import InstaPay from '../../../core/InstaPay';
 
 const styles = StyleSheet.create({
 	root: {
@@ -244,7 +244,7 @@ class TransactionEdit extends PureComponent {
 				: fromWei(0);
 			readableValue = fromWei(value);
 		} else if (paymentChannelTransaction) {
-			const state = PaymentChannelsClient.getState();
+			const state = InstaPay.getState();
 			value = toTokenMinimalUnit(state.balance, selectedAsset.decimals);
 			readableValue = state.balance;
 		} else if (assetType === 'ERC20') {

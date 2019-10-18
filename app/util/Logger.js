@@ -18,12 +18,45 @@ export default class Logger {
 	 * @returns - void
 	 */
 	static async log(...args) {
-		// TODO use crashlytics opt-in
 		// Check if user passed accepted opt-in to metrics
 		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
 			console.log.apply(null, args); // eslint-disable-line no-console
+		} else if (metricsOptIn === 'agreed') {
+			Fabric.Crashlytics.log(JSON.stringify(args));
+		}
+	}
+
+	/**
+	 * console.warn wrapper
+	 *
+	 * @param {object} args - data to be logged
+	 * @returns - void
+	 */
+	static async warn(...args) {
+		// Check if user passed accepted opt-in to metrics
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		if (__DEV__) {
+			args.unshift('[MetaMask DEBUG]:');
+			console.warn.apply(null, args); // eslint-disable-line no-console
+		} else if (metricsOptIn === 'agreed') {
+			Fabric.Crashlytics.log(JSON.stringify(args));
+		}
+	}
+
+	/**
+	 * console.warn wrapper
+	 *
+	 * @param {object} args - data to be logged
+	 * @returns - void
+	 */
+	static async debug(...args) {
+		// Check if user passed accepted opt-in to metrics
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		if (__DEV__) {
+			args.unshift('[MetaMask DEBUG]:');
+			console.debug.apply(null, args); // eslint-disable-line no-console
 		} else if (metricsOptIn === 'agreed') {
 			Fabric.Crashlytics.log(JSON.stringify(args));
 		}
@@ -36,7 +69,6 @@ export default class Logger {
 	 * @returns - void
 	 */
 	static async error(...args) {
-		// TODO use crashlytics opt-in
 		// Check if user passed accepted opt-in to metrics
 		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 		if (__DEV__) {
