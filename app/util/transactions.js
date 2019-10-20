@@ -4,6 +4,7 @@ import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import { isSmartContractCode } from 'gaba/util';
+import InstaPay from '../core/InstaPay';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -216,6 +217,11 @@ export async function isCollectibleAddress(address, tokenId) {
  */
 export async function getTransactionActionKey(transaction) {
 	const { transaction: { data, to } = {} } = transaction;
+
+	if (to.toLowerCase() === InstaPay.getDepositAddress().toLowerCase()) {
+		return CONNEXT_DEPOSIT_ACTION_KEY;
+	}
+
 	let ret;
 	// if data in transaction try to get method data
 	if (data && data !== '0x') {

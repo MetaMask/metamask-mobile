@@ -15,9 +15,10 @@ import { formatEther, parseEther, hexlify, randomBytes } from 'ethers/utils';
 import Engine from '../Engine';
 import AsyncStorage from '@react-native-community/async-storage';
 import TransactionsNotificationManager from '../TransactionsNotificationManager';
-import { renderFromWei } from '../../util/number';
+import { renderFromWei, toWei, fromWei } from '../../util/number';
 import { BNToHex } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
+import Networks from '../../util/networks';
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 const API_URL = 'indra.connext.network/api';
@@ -42,8 +43,10 @@ const DEFAULT_AMOUNT_TO_COLLATERALIZE = Currency.DAI('10');
 const hub = new EventEmitter();
 let client = null;
 // let reloading = false;
-const mnemonic = 'token face horse fame you love envelope velvet comfort section mask street';
-
+// THIS TWO MNEMONICS ARE IN A BROKEN STATE
+// const mnemonic = 'token face horse fame you love envelope velvet comfort section mask street';
+// const mnemonic = 'avocado holiday swamp balcony good clap culture assume erode mask grape observe';
+const mnemonic = 'frequent answer slender job feed spell follow loyal real blade exchange kit';
 /**
  * Class that wraps the connext client for
  * payment channels
@@ -106,7 +109,6 @@ class InstaPay {
 		// Wait for channel to be available
 		const channelIsAvailable = async channel => {
 			const chan = await channel.getChannel();
-			Logger.log('channel available?', chan, chan && chan.available);
 			return chan && chan.available;
 		};
 
@@ -181,8 +183,10 @@ class InstaPay {
 			await this.refreshBalances();
 			await this.autoDeposit();
 			await this.autoSwap();
-			await this.checkPaymentHistory();
 		}, 3000);
+		// interval(async () => {
+		// 	await this.checkPaymentHistory();
+		// }, 5000);
 	};
 
 	checkPaymentHistory = async () => {
@@ -216,11 +220,6 @@ class InstaPay {
 		// then request collateral of this type
 		const { token, channel } = this.state;
 
-		// TODO: set default eth profile
-		// await channel.addPaymentProfile({
-		//   amountToCollateralize: ,
-		//   assetId: AddressZero,
-		// });
 		if (!token) {
 			Logger.log('No token found, not setting default token payment profile');
 			return;
@@ -247,8 +246,20 @@ class InstaPay {
 			return;
 		}
 		const getTotal = (ether, token) => Currency.WEI(ether.wad.add(token.toETH().wad), swapRate);
-		const freeEtherBalance = await channel.getFreeBalance();
-		const freeTokenBalance = await channel.getFreeBalance(token.address);
+		let freeEtherBalance, freeTokenBalance;
+		try {
+			freeEtherBalance = await channel.getFreeBalance();
+			freeTokenBalance = await channel.getFreeBalance(token.address);
+		} catch (e) {
+			if (e.message.includes(`This probably means that the StateChannel does not exist yet`)) {
+				// channel.connext was already called, meaning there should be
+				// an existing channel
+				await channel.restoreState(localStorage.getItem('mnemonic'));
+				return;
+			}
+			Logger.warn(e);
+			return;
+		}
 		balance.onChain.ether = Currency.WEI(await ethprovider.getBalance(address), swapRate).toETH();
 		balance.onChain.token = Currency.DEI(await token.balanceOf(address), swapRate).toDAI();
 		balance.onChain.total = getTotal(balance.onChain.ether, balance.onChain.token).toETH();
@@ -452,48 +463,90 @@ class InstaPay {
 	};
 
 	withdrawAll = async () => {
-		const { balance, channel, swapRate, token } = this.state;
-		Logger.log(balance);
-		this.setPending({ type: 'withdrawal', complete: false, closed: false });
-		TransactionsNotificationManager.showInstantPaymentNotification('pending_withdrawal');
-		const total = balance.channel.total;
-		Logger.log(`Withdrawing ${total.toETH().format()} to: ${this.state.selectedAddress}`);
+		let txHash = null;
 
-		if (balance.channel.token.wad.gt(Zero)) {
-			Logger.log('Got tokens to swap...');
-			Logger.log('Adding payment profile...');
-			await channel.addPaymentProfile({
-				amountToCollateralize: total.toETH().wad.toString(),
-				minimumMaintainedCollateral: total.toETH().wad.toString(),
-				assetId: AddressZero
+		try {
+			const { balance, channel, swapRate, token } = this.state;
+			const total = balance.channel.total;
+			if (total.wad.lte(Zero)) return;
+			Logger.log(balance);
+			this.setPending({ type: 'withdrawal', complete: false, closed: false });
+			TransactionsNotificationManager.showInstantPaymentNotification('pending_withdrawal');
+			Logger.log(`Withdrawing ${total.toETH().format()} to: ${this.state.selectedAddress}`);
+
+			if (balance.channel.token.wad.gt(Zero)) {
+				await channel.addPaymentProfile({
+					amountToCollateralize: total.toETH().wad.toString(),
+					minimumMaintainedCollateral: total.toETH().wad.toString(),
+					assetId: AddressZero
+				});
+				await channel.requestCollateral(AddressZero);
+				await channel.swap({
+					amount: balance.channel.token.wad.toString(),
+					fromAssetId: token.address,
+					swapRate: inverse(swapRate),
+					toAssetId: AddressZero
+				});
+				await this.refreshBalances();
+			}
+			const totalInWei = balance.channel.ether.wad.toString();
+			const totalInDAI = Currency.WEI(totalInWei, swapRate)
+				.toDAI()
+				.wad.toString();
+			this.setState({ withdrawalPendingValueInDAI: fromWei(totalInDAI) });
+
+			const result = await channel.withdraw({
+				amount: totalInWei,
+				assetId: AddressZero,
+				recipient: this.state.selectedAddress
 			});
-			Logger.log('Requesting collateral');
-			await channel.requestCollateral(AddressZero);
-			Logger.log('Swapping');
-			await channel.swap({
-				amount: balance.channel.token.wad.toString(),
-				fromAssetId: token.address,
-				swapRate: inverse(swapRate),
-				toAssetId: AddressZero
-			});
-			Logger.log('Updating balances');
-			await this.refreshBalances();
+
+			Logger.log(`Cashout result: ${JSON.stringify(result)}`);
+			txHash = result.transaction.hash;
+
+			this.setPending({ type: 'withdrawal', complete: true, closed: false, txHash });
+		} catch (e) {
+			Logger.warn('Error while withdrawing...', e);
+			this.setPending({ type: 'withdrawal', complete: true, closed: false });
+			throw e;
 		}
 
-		Logger.log('NOW WITHDRAWING FOR REAL');
+		try {
+			// Watch tx until it gets confirmed
+			await this.checkForTxConfirmed(txHash);
+		} catch (e) {
+			Logger.warn('Error while waiting for tx confirmation', txHash);
+			throw e;
+		}
+		try {
+			const newInternalTxs = this.handleInternalTransactions(txHash);
+			Engine.context.TransactionController.update({ internalTransactions: newInternalTxs });
+		} catch (e) {
+			Logger.warn('Error while storing the internal tx', txHash);
+			throw e;
+		}
 
-		const result = await channel.withdraw({
-			amount: balance.channel.ether.wad.toString(),
-			assetId: AddressZero,
-			recipient: this.state.selectedAddress
-		});
-		Logger.log(`Cashout result: ${JSON.stringify(result)}`);
-		const txHash = result.transaction.hash;
-		this.setPending({ type: 'withdrawal', complete: true, closed: false, txHash });
-
-		// Watch tx until it gets confirmed
-		await this.checkForTxConfirmed(txHash);
+		this.setState({ withdrawalPendingValueInDAI: undefined });
 		TransactionsNotificationManager.showInstantPaymentNotification('success_withdrawal');
+	};
+
+	handleInternalTransactions = txHash => {
+		const { withdrawalPendingValueInDAI } = this.state;
+		const networkID = Networks[Engine.context.NetworkController.state.provider.type].networkId.toString();
+		const newInternalTxs = Engine.context.TransactionController.state.internalTransactions || [];
+		newInternalTxs.push({
+			time: Date.now(),
+			status: 'confirmed',
+			paymentChannelTransaction: true,
+			networkID,
+			transaction: {
+				from: this.state.channel.opts.multisigAddress,
+				to: Engine.context.PreferencesController.state.selectedAddress,
+				value: BNToHex(toWei(withdrawalPendingValueInDAI))
+			},
+			transactionHash: txHash
+		});
+		return newInternalTxs;
 	};
 
 	checkForTxConfirmed = async txHash => {
@@ -621,7 +674,7 @@ const instance = {
 	dump: () => (client && client.state) || {},
 	xpub: (client && client.state && client.state.publicIdentifier) || null,
 	getDepositAddress: () =>
-		(client && client.state && client.state.wallet && toChecksumAddress(client.state.wallet.address)) || null
+		(client && client.state && client.state.wallet && toChecksumAddress(client.state.wallet.address)) || ''
 };
 
 // const reloadClient = () => {

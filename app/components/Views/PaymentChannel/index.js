@@ -211,7 +211,9 @@ class PaymentChannel extends PureComponent {
 		exchangeRate: undefined,
 		displayWelcomeModal: false,
 		connextStateDisabled: false,
-		transactions: []
+		transactions: [],
+		xpub: null,
+		wallet: null
 	};
 
 	client = null;
@@ -316,6 +318,7 @@ class PaymentChannel extends PureComponent {
 
 	handleTransactions = transactions => {
 		let parsedTransactions = [];
+		// Send and Receive
 		if (transactions && transactions.length && this.state.xpub) {
 			parsedTransactions = transactions.map(tx => ({
 				time: Date.parse(tx.createdOn),
@@ -330,23 +333,29 @@ class PaymentChannel extends PureComponent {
 				}
 			}));
 		}
+
+		// Deposits
 		const { transactions: onChainTransactions, provider, internalTransactions, selectedAddress } = this.props;
 
-		onChainTransactions.forEach(tx => {
-			if (
-				tx.transaction.from.toLowerCase() === selectedAddress.toLowerCase() &&
-				tx.toSmartContract &&
-				Networks[provider.type].networkId.toString() === tx.networkID &&
-				tx.transaction.data.substring(0, 10) === '0xea682e37' &&
-				tx.status === 'confirmed'
-			) {
-				parsedTransactions.push({
-					...tx,
-					actionKey: strings('transactions.instant_payment_deposit_tx'),
-					paymentChannelTransaction: true
-				});
-			}
-		});
+		this.state.wallet &&
+			this.state.wallet.address &&
+			onChainTransactions.forEach(tx => {
+				if (
+					tx.transaction.from.toLowerCase() === selectedAddress.toLowerCase() &&
+					Networks[provider.type].networkId.toString() === tx.networkID &&
+					tx.transaction.to.toLowerCase() === this.state.wallet.address.toLowerCase() &&
+					tx.status === 'confirmed'
+				) {
+					parsedTransactions.push({
+						...tx,
+						actionKey: strings('transactions.instant_payment_deposit_tx'),
+						paymentChannelTransaction: true,
+						isInstaPayDeposit: true
+					});
+				}
+			});
+
+		// Withdrawals
 		internalTransactions &&
 			internalTransactions.forEach(tx => {
 				if (
@@ -358,7 +367,8 @@ class PaymentChannel extends PureComponent {
 						from: undefined,
 						id: tx.transactionHash,
 						actionKey: strings('transactions.instant_payment_withdraw_tx'),
-						paymentChannelTransaction: true
+						paymentChannelTransaction: true,
+						isInstaPayWithdrawal: true
 					});
 				}
 			});

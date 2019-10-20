@@ -565,7 +565,7 @@
 		"sent": "Sent",
 		"contract_deploy": "Contract Deployment",
 		"to_contract": "New Contract",
-		"instant_payment_deposit": "Instant Payment Deposit",
+		"instant_payment_deposit": "InstaPay Deposit",
 		"instant_payment_deposit_tx": "Deposit",
 		"instant_payment_withdraw_tx": "Withdraw",
 		"tx_details_free": "Free",

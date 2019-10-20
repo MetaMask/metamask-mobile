@@ -15,12 +15,7 @@ import TokenImage from '../TokenImage';
 import contractMap from 'eth-contract-metadata';
 import TransferElement from './TransferElement';
 import { connect } from 'react-redux';
-import AppConstants from '../../../core/AppConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
-const {
-	CONNEXT: { CONTRACTS }
-} = AppConstants;
 
 const styles = StyleSheet.create({
 	row: {
@@ -256,14 +251,13 @@ class TransactionElement extends PureComponent {
 	renderTxElementImage = transactionElement => {
 		const {
 			renderTo,
-			renderFrom,
 			actionKey,
 			contractDeployment = false,
-			paymentChannelTransaction
+			paymentChannelTransaction,
+			isInstaPayDeposit,
+			isInstaPayWithdrawal
 		} = transactionElement;
-		const {
-			tx: { networkID }
-		} = this.props;
+
 		let logo;
 
 		if (contractDeployment) {
@@ -285,9 +279,7 @@ class TransactionElement extends PureComponent {
 				/>
 			);
 		} else if (paymentChannelTransaction) {
-			const contract = CONTRACTS[networkID];
-			const isDeposit = contract && renderTo.toLowerCase() === contract.toLowerCase();
-			if (isDeposit) {
+			if (isInstaPayDeposit) {
 				return (
 					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
 						<Ionicons
@@ -299,8 +291,7 @@ class TransactionElement extends PureComponent {
 					</FadeIn>
 				);
 			}
-			const isWithdraw = renderFrom === CONTRACTS[networkID];
-			if (isWithdraw) {
+			if (isInstaPayWithdrawal) {
 				return (
 					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
 						<Ionicons
@@ -498,22 +489,21 @@ class TransactionElement extends PureComponent {
 	decodePaymentChannelTx = () => {
 		const {
 			tx: {
-				networkID,
 				transactionHash,
-				transaction: { value, gas, gasPrice, from, to }
+				transaction: { value, gas, gasPrice, from, to },
+				isInstaPayDeposit,
+				isInstaPayWithdrawal
 			},
 			conversionRate,
 			currentCurrency,
 			exchangeRate
 		} = this.props;
 		const { actionKey } = this.state;
-		const contract = CONTRACTS[networkID];
-		const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
 		const totalEth = hexToBN(value);
 		const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 		const readableTotalEth = renderFromWei(totalEth);
-		const renderTotalEth = readableTotalEth + ' ' + (isDeposit ? strings('unit.eth') : strings('unit.dai'));
-		const renderTotalEthFiat = isDeposit
+		const renderTotalEth = readableTotalEth + ' ' + (isInstaPayDeposit ? strings('unit.eth') : strings('unit.dai'));
+		const renderTotalEthFiat = isInstaPayDeposit
 			? totalEthFiat
 			: balanceToFiat(parseFloat(readableTotalEth), conversionRate, exchangeRate, currentCurrency);
 
@@ -528,7 +518,7 @@ class TransactionElement extends PureComponent {
 			renderGasPrice: gasPrice ? renderToGwei(gasPrice) : strings('transactions.tx_details_not_available'),
 			renderValue: renderTotalEth,
 			renderTotalValue: renderTotalEth,
-			renderTotalValueFiat: isDeposit && totalEthFiat
+			renderTotalValueFiat: isInstaPayDeposit && totalEthFiat
 		};
 
 		const transactionElement = {
@@ -537,7 +527,9 @@ class TransactionElement extends PureComponent {
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat,
-			paymentChannelTransaction: true
+			paymentChannelTransaction: true,
+			isInstaPayWithdrawal,
+			isInstaPayDeposit
 		};
 
 		return [transactionElement, transactionDetails];
