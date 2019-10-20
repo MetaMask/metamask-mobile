@@ -157,3 +157,6 @@ sed -i'' -e 's/this.url = url;/this.url = url;this.url.port = 4222;/' $TARGET;
 # remove core-js/stable
 TARGET="node_modules/@connext/client/dist/connext.js"
 sed -i'' -e 's/require("core-js\/stable");//' $TARGET;
+# remove TCPSocket logs
+TARGET="node_modules/react-native-tcp/TcpSocket.js"
+sed -i'' -e 's/console.log.apply(console, args);//' $TARGET;

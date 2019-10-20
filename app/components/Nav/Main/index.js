@@ -78,8 +78,7 @@ import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval'
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDeposit';
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
-import Networks from '../../../util/networks';
-import { CONNEXT_DEPOSIT, getMethodData, TOKEN_METHOD_TRANSFER, decodeTransferData } from '../../../util/transactions';
+import { getMethodData, TOKEN_METHOD_TRANSFER, decodeTransferData } from '../../../util/transactions';
 import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
 import { isENS } from '../../../util/address';
 import Logger from '../../../util/Logger';
@@ -644,13 +643,10 @@ class Main extends PureComponent {
 		}
 		// Check if it's a payment channel deposit transaction to sign
 		const to = toChecksumAddress(transactionMeta.transaction.to);
-		const networkId = Networks[this.props.providerType].networkId;
 		if (
 			this.props.paymentChannelsEnabled &&
 			AppConstants.CONNEXT.SUPPORTED_NETWORKS.includes(this.props.providerType) &&
-			transactionMeta.transaction.data &&
-			transactionMeta.transaction.data.substr(0, 10) === CONNEXT_DEPOSIT &&
-			to === AppConstants.CONNEXT.CONTRACTS[networkId]
+			to === InstaPay.getDepositAddress()
 		) {
 			await this.paymentChannelDepositSign(transactionMeta);
 		} else {

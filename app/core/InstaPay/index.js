@@ -6,13 +6,18 @@ import interval from 'interval-promise';
 
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import { Currency, minBN, toBN, tokenToWei, weiToToken, delay } from './utils';
+import { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } from './utils';
 import Store from './utils/store';
 import AppConstants from '../AppConstants';
 import { Contract, ethers as eth } from 'ethers';
 import { AddressZero, Zero } from 'ethers/constants';
 import { formatEther, parseEther, hexlify, randomBytes } from 'ethers/utils';
 import Engine from '../Engine';
+import AsyncStorage from '@react-native-community/async-storage';
+import TransactionsNotificationManager from '../TransactionsNotificationManager';
+import { renderFromWei } from '../../util/number';
+import { BNToHex } from 'gaba/util';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 const API_URL = 'indra.connext.network/api';
@@ -44,10 +49,11 @@ const mnemonic = 'token face horse fame you love envelope velvet comfort section
  * payment channels
  */
 class InstaPay {
-	constructor(mnemonic, network) {
+	constructor(mnemonic, network, selectedAddress) {
 		const swapRate = '100.00';
 		this.state = {
 			address: '',
+			selectedAddress,
 			balance: {
 				channel: {
 					ether: Currency.ETH('0', swapRate),
@@ -175,7 +181,34 @@ class InstaPay {
 			await this.refreshBalances();
 			await this.autoDeposit();
 			await this.autoSwap();
+			await this.checkPaymentHistory();
 		}, 3000);
+	};
+
+	checkPaymentHistory = async () => {
+		const paymentHistory = await this.state.channel.getTransferHistory();
+		const lastKnownPaymentIDStr = await AsyncStorage.getItem('@MetaMask:lastKnownInstantPaymentID');
+		let lastKnownPaymentID = 0;
+		const latestPayment = paymentHistory.find(
+			payment => payment.receiverPublicIdentifier.toLowerCase() === this.state.xpub.toLowerCase()
+		);
+		if (latestPayment) {
+			const latestPaymentID = parseInt(latestPayment.id, 10);
+			if (lastKnownPaymentIDStr) {
+				lastKnownPaymentID = parseInt(lastKnownPaymentIDStr, 10);
+				if (lastKnownPaymentID < latestPaymentID) {
+					const amountToken = renderFromWei(latestPayment.amount);
+					setTimeout(() => {
+						TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
+					}, 300);
+					await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
+				}
+			} else {
+				// For first time flow
+				await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
+			}
+		}
+		this.setState({ transactions: paymentHistory.reverse() });
 	};
 
 	addDefaultPaymentProfile = async () => {
@@ -259,7 +292,6 @@ class InstaPay {
 			Logger.log(`Depositing ${depositParams.amount} tokens into channel: ${channel.opts.multisigAddress}`);
 			const result = await channel.deposit(depositParams);
 			await this.refreshBalances();
-			await this.refreshBalances();
 			Logger.log(`Successfully deposited tokens! Result: ${JSON.stringify(result, null, 2)}`);
 			this.setPending({ type: 'deposit', complete: true, closed: false });
 		} else {
@@ -339,6 +371,7 @@ class InstaPay {
 		});
 		await this.refreshBalances();
 		this.setPending({ type: 'swap', complete: true, closed: false });
+		TransactionsNotificationManager.showInstantPaymentNotification('success_deposit');
 	};
 
 	setPending = pending => {
@@ -382,6 +415,102 @@ class InstaPay {
 			}
 			resolve();
 		});
+
+	deposit = async ({ depositAmount }) => {
+		const normalizedTxMeta = {
+			from: this.state.selectedAddress,
+			value: BNToHex(depositAmount),
+			to: this.state.wallet.address,
+			silent: true
+		};
+
+		try {
+			const { TransactionController } = Engine.context;
+			const signedTx = await TransactionController.addTransaction(normalizedTxMeta);
+			const hash = await signedTx.result;
+
+			return new Promise(resolve => {
+				TransactionController.hub.on(`${signedTx.transactionMeta.id}:finished`, async () => {
+					TransactionController.hub.removeAllListeners(`${signedTx.transactionMeta.id}:finished`);
+				});
+
+				TransactionController.hub.on(`${signedTx.transactionMeta.id}:confirmed`, async () => {
+					TransactionController.hub.removeAllListeners(`${signedTx.transactionMeta.id}:confirmed`);
+					setTimeout(() => {
+						TransactionsNotificationManager.showInstantPaymentNotification('pending_deposit');
+					}, 1000);
+					resolve({
+						hash,
+						wait: () => Promise.resolve(1)
+					});
+				});
+			});
+		} catch (e) {
+			Logger.error('ExternalWallet::sign', e);
+			throw e;
+		}
+	};
+
+	withdrawAll = async () => {
+		const { balance, channel, swapRate, token } = this.state;
+		Logger.log(balance);
+		this.setPending({ type: 'withdrawal', complete: false, closed: false });
+		TransactionsNotificationManager.showInstantPaymentNotification('pending_withdrawal');
+		const total = balance.channel.total;
+		Logger.log(`Withdrawing ${total.toETH().format()} to: ${this.state.selectedAddress}`);
+
+		if (balance.channel.token.wad.gt(Zero)) {
+			Logger.log('Got tokens to swap...');
+			Logger.log('Adding payment profile...');
+			await channel.addPaymentProfile({
+				amountToCollateralize: total.toETH().wad.toString(),
+				minimumMaintainedCollateral: total.toETH().wad.toString(),
+				assetId: AddressZero
+			});
+			Logger.log('Requesting collateral');
+			await channel.requestCollateral(AddressZero);
+			Logger.log('Swapping');
+			await channel.swap({
+				amount: balance.channel.token.wad.toString(),
+				fromAssetId: token.address,
+				swapRate: inverse(swapRate),
+				toAssetId: AddressZero
+			});
+			Logger.log('Updating balances');
+			await this.refreshBalances();
+		}
+
+		Logger.log('NOW WITHDRAWING FOR REAL');
+
+		const result = await channel.withdraw({
+			amount: balance.channel.ether.wad.toString(),
+			assetId: AddressZero,
+			recipient: this.state.selectedAddress
+		});
+		Logger.log(`Cashout result: ${JSON.stringify(result)}`);
+		const txHash = result.transaction.hash;
+		this.setPending({ type: 'withdrawal', complete: true, closed: false, txHash });
+
+		// Watch tx until it gets confirmed
+		await this.checkForTxConfirmed(txHash);
+		TransactionsNotificationManager.showInstantPaymentNotification('success_withdrawal');
+	};
+
+	checkForTxConfirmed = async txHash => {
+		const txIsConfirmed = async txHash => {
+			const { TransactionController } = Engine.context;
+			const txObj = await TransactionController.query('getTransactionByHash', [txHash]);
+			if (txObj && txObj.blockNumber) {
+				return true;
+			}
+			return false;
+		};
+
+		while (!(await txIsConfirmed(txHash))) {
+			await new Promise(res => setTimeout(() => res(), 1000));
+		}
+		return true;
+	};
 }
 
 const instance = {
@@ -391,11 +520,12 @@ const instance = {
 	 */
 	async init() {
 		const { provider } = Engine.context.NetworkController.state;
+		const { selectedAddress } = Engine.context.PreferencesController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			initListeners();
 			Logger.log('PC::Initialzing payment channels');
 			try {
-				client = new InstaPay(mnemonic, provider.type);
+				client = new InstaPay(mnemonic, provider.type, selectedAddress);
 			} catch (e) {
 				client.logCurrentState('PC::init');
 				Logger.error('PC::init', e);
@@ -459,9 +589,9 @@ const instance = {
 	 */
 	getMaximumDepositEth: () => {
 		if (client.state) {
-			const { exchangeRate } = client.state;
-			if (exchangeRate) {
-				const ETH = parseFloat(exchangeRate);
+			const { swapRate } = client.state;
+			if (swapRate) {
+				const ETH = parseFloat(swapRate);
 				return (MAX_DEPOSIT_TOKEN / ETH).toFixed(2).toString();
 			}
 		}
@@ -470,7 +600,7 @@ const instance = {
 	/**
 	 *	Returns the current exchange rate for DAI / ETH
 	 */
-	getExchangeRate: () => (client && client.state && client.state.exchangeRate) || 0,
+	getExchangeRate: () => (client && client.state && client.state.swapRate) || 0,
 	/**
 	 *	Minimum deposit amount in ETH
 	 */
@@ -489,7 +619,9 @@ const instance = {
 	 * only used for debugging purposes
 	 */
 	dump: () => (client && client.state) || {},
-	xpub: (client && client.state && client.state.publicIdentifier) || null
+	xpub: (client && client.state && client.state.publicIdentifier) || null,
+	getDepositAddress: () =>
+		(client && client.state && client.state.wallet && toChecksumAddress(client.state.wallet.address)) || null
 };
 
 // const reloadClient = () => {

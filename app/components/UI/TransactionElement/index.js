@@ -5,7 +5,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
 import { renderFromWei, weiToFiat, hexToBN, toBN, isBN, renderToGwei, balanceToFiat } from '../../../util/number';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
 import { getActionKey, decodeTransferData, getTicker } from '../../../util/transactions';
 import TransactionDetails from './TransactionDetails';
@@ -517,8 +517,8 @@ class TransactionElement extends PureComponent {
 			? totalEthFiat
 			: balanceToFiat(parseFloat(readableTotalEth), conversionRate, exchangeRate, currentCurrency);
 
-		const renderFrom = renderFullAddress(from);
-		const renderTo = renderFullAddress(to);
+		const renderFrom = isValidAddress(from) ? renderFullAddress(from) : from;
+		const renderTo = isValidAddress(to) ? renderFullAddress(to) : to;
 
 		const transactionDetails = {
 			renderFrom,

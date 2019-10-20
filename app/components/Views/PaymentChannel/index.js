@@ -220,7 +220,10 @@ class PaymentChannel extends PureComponent {
 	withdrawing = false;
 
 	onStateChange = state => {
-		this.setState(state);
+		this.setState({
+			...state,
+			transactions: this.handleTransactions(state.transactions)
+		});
 	};
 
 	componentDidMount() {
@@ -234,7 +237,6 @@ class PaymentChannel extends PureComponent {
 	init = () => {
 		setTimeout(() => {
 			InstaPay.hub.on('state::change', this.onStateChange);
-			InstaPay.hub.on('state::cs_chainsaw_error', this.handleChainsawError);
 		}, 1000);
 		this.checkifEnabled();
 	};
@@ -312,29 +314,24 @@ class PaymentChannel extends PureComponent {
 		this.init();
 	};
 
-	handleChainsawError = ({ channelState }) => {
-		if (this.props.isFocused) {
-			!this.state.connextStateDisabled &&
-				Alert.alert(strings('payment_channel.error_title'), strings('payment_channel.error_desc'));
-			this.setState({ connextStateDisabled: true });
-			Logger.log('InstaPay:ChainSawError', channelState);
-			Logger.error('InstaPay:ChainSawError');
-		}
-	};
-
 	handleTransactions = transactions => {
+		let parsedTransactions = [];
+		if (transactions && transactions.length && this.state.xpub) {
+			parsedTransactions = transactions.map(tx => ({
+				time: Date.parse(tx.createdOn),
+				status: 'confirmed',
+				id: tx.id.toString(),
+				paymentChannelTransaction: true,
+				transaction: {
+					from: tx.senderPublicIdentifier,
+					to: tx.receiverPublicIdentifier,
+					value: BNToHex(toBN(tx.amount)),
+					paymentChannelAddress: this.state.xpub
+				}
+			}));
+		}
 		const { transactions: onChainTransactions, provider, internalTransactions, selectedAddress } = this.props;
-		const parsedTransactions = transactions.map(tx => ({
-			time: Date.parse(tx.createdOn),
-			status: 'confirmed',
-			id: tx.id.toString(),
-			paymentChannelTransaction: true,
-			transaction: {
-				from: tx.sender,
-				to: tx.recipient,
-				value: BNToHex(toBN(tx.amount.amountToken))
-			}
-		}));
+
 		onChainTransactions.forEach(tx => {
 			if (
 				tx.transaction.from.toLowerCase() === selectedAddress.toLowerCase() &&
@@ -393,6 +390,7 @@ class PaymentChannel extends PureComponent {
 		if (this.withdrawing) {
 			return;
 		}
+
 		Alert.alert(
 			strings('payment_channel.withdraw_funds'),
 			`${strings('payment_channel.withdraw_intro')}. ${strings('payment_channel.withdraw_info')}.\n${strings(
@@ -440,8 +438,6 @@ class PaymentChannel extends PureComponent {
 	renderInfo() {
 		const { balance, balanceFiat } = this.state;
 		const isDisabled = this.areButtonsDisabled();
-		const noFundsAndNoHistory = this.state.balance === '0.00' && !this.state.transactions.length;
-		const noFunds = this.state.balance === '0.00';
 
 		let mainBalance, secondaryBalance;
 		if (this.props.primaryCurrency === 'ETH') {
@@ -453,6 +449,10 @@ class PaymentChannel extends PureComponent {
 			secondaryBalance =
 				balance.channel.token.toFIN().format({ decimals: 2, symbol: false }) + ' ' + strings('unit.dai');
 		}
+
+		const noFunds = balance.channel.token.toDAI().format({ decimals: 2, symbol: false }) === '0.00';
+		const noFundsAndNoHistory = noFunds && !this.state.transactions.length;
+
 		return (
 			<View style={styles.data}>
 				<View style={styles.assetCardWrapper}>
@@ -545,9 +545,10 @@ class PaymentChannel extends PureComponent {
 	};
 
 	areButtonsDisabled = () => {
-		const { status, connextStateDisabled } = this.state;
-		if (status && status.type) {
-			return status.type.indexOf('_PENDING') !== -1;
+		const { pending, connextStateDisabled } = this.state;
+
+		if (!pending.complete) {
+			return true;
 		}
 		if (connextStateDisabled) {
 			return connextStateDisabled;

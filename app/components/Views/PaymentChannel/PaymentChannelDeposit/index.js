@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
+import InstaPay from '../../../../core/InstaPay';
 import {
 	SafeAreaView,
 	Platform,
@@ -259,11 +259,11 @@ class Deposit extends PureComponent {
 			return;
 		}
 		try {
-			const params = { depositAmount: fromWei(this.state.value) };
+			const params = { depositAmount: this.state.value };
 			Logger.log('About to deposit', params);
 			this.setState({ depositing: true });
-			await PaymentChannelsClient.deposit(params);
-			this.setState({ depositing: false });
+			await InstaPay.deposit(params);
+			this.mounted && this.setState({ depositing: false });
 			Logger.log('Deposit succesful');
 		} catch (e) {
 			if (e.message === 'still_blocked') {
@@ -324,7 +324,7 @@ class Deposit extends PureComponent {
 		}
 
 		const depositAmountNumber = parseFloat(fromWei(value));
-		const { MAX_DEPOSIT_TOKEN, getExchangeRate } = PaymentChannelsClient;
+		const { MAX_DEPOSIT_TOKEN, getExchangeRate } = InstaPay;
 
 		const ETH = parseFloat(getExchangeRate());
 		const maxDepositAmount = (MAX_DEPOSIT_TOKEN / ETH).toFixed(2);
@@ -384,23 +384,14 @@ class Deposit extends PureComponent {
 
 	renderMinimumsOrSpinner() {
 		const { conversionRate, currentCurrency } = this.props;
-		const maxETH = PaymentChannelsClient.getMaximumDepositEth();
+		const maxETH = InstaPay.getMaximumDepositEth();
 		const maxFiat =
 			conversionRate &&
 			maxETH &&
 			isDecimal(maxETH) &&
 			weiToFiat(toWei(maxETH), conversionRate, currentCurrency.toUpperCase());
-		const minFiat =
-			conversionRate &&
-			weiToFiat(toWei(PaymentChannelsClient.MIN_DEPOSIT_ETH), conversionRate, currentCurrency.toUpperCase());
 		return (
 			<React.Fragment>
-				<Text style={styles.explainerText}>
-					{`${strings('payment_channel.min_deposit')} `}
-					<Text style={fontStyles.bold}>
-						{PaymentChannelsClient.MIN_DEPOSIT_ETH} {strings('unit.eth')} {maxFiat && `(${minFiat})`}
-					</Text>
-				</Text>
 				<Text style={styles.explainerText}>
 					{`${strings('payment_channel.max_deposit')} `}
 					<Text style={fontStyles.bold}>

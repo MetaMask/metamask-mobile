@@ -1,4 +1,4 @@
-import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
+import { addHexPrefix, toChecksumAddress, isValidAddress } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
@@ -173,15 +173,18 @@ export async function getMethodData(data) {
  * @returns {boolean} - Wether the given address is a contract
  */
 export async function isSmartContractAddress(address) {
-	address = toChecksumAddress(address);
-	// If in contract map we don't need to cache it
-	if (contractMap[address]) {
-		return Promise.resolve(true);
+	if (isValidAddress(address)) {
+		address = toChecksumAddress(address);
+		// If in contract map we don't need to cache it
+		if (contractMap[address]) {
+			return Promise.resolve(true);
+		}
+		const { TransactionController } = Engine.context;
+		const code = address ? await TransactionController.query('getCode', [address]) : undefined;
+		const isSmartContract = isSmartContractCode(code);
+		return isSmartContract;
 	}
-	const { TransactionController } = Engine.context;
-	const code = address ? await TransactionController.query('getCode', [address]) : undefined;
-	const isSmartContract = isSmartContractCode(code);
-	return isSmartContract;
+	return false;
 }
 
 /**
@@ -242,10 +245,18 @@ export async function getTransactionActionKey(transaction) {
  */
 export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction) {
 	const actionKey = await getTransactionActionKey(tx);
+	const selectedAddressToUse = (paymentChannelTransaction && tx.transaction.paymentChannelAddress) || selectedAddress;
+
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		ticker = paymentChannelTransaction ? strings('unit.dai') : ticker;
-		const incoming = toChecksumAddress(tx.transaction.to) === toChecksumAddress(selectedAddress);
-		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === toChecksumAddress(selectedAddress);
+		const incoming = paymentChannelTransaction
+			? tx.transaction.to.toLowerCase() === selectedAddressToUse.toLowerCase()
+			: toChecksumAddress(tx.transaction.to) === toChecksumAddress(selectedAddress);
+		const selfSent =
+			incoming &&
+			(paymentChannelTransaction
+				? tx.transaction.from.toLowerCase() === selectedAddressToUse.toLowerCase()
+				: toChecksumAddress(tx.transaction.from) === toChecksumAddress(selectedAddress));
 		return incoming
 			? selfSent
 				? ticker
