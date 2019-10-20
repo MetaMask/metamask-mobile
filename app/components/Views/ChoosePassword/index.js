@@ -27,6 +27,7 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
+import InstaPay from '../../../core/InstaPay';
 import zxcvbn from 'zxcvbn';
 
 const styles = StyleSheet.create({
@@ -210,6 +211,7 @@ class ChoosePassword extends PureComponent {
 				const mnemonic = await KeyringController.exportSeedPhrase('');
 				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
 				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
+				InstaPay.upgradeSecurity(this.state.password);
 
 				if (this.state.biometryType) {
 					const authOptions = {

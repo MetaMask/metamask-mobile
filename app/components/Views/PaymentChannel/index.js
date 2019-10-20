@@ -310,7 +310,7 @@ class PaymentChannel extends PureComponent {
 	}
 
 	reinitialize = () => {
-		Logger.log('PC::reinitialize');
+		Logger.log('InstaPay::reinitialize');
 		this.removeListeners();
 		this.setState({ ready: false });
 		this.init();

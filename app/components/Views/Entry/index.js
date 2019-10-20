@@ -13,6 +13,7 @@ import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
+import InstaPay from '../../../core/InstaPay';
 
 /**
  * Entry Screen that decides which screen to show
@@ -169,6 +170,7 @@ class Entry extends PureComponent {
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;
 				await KeyringController.submitPassword(credentials.password);
+				InstaPay.secure(credentials.password);
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
 				// Check if user passed through metrics opt-in screen

@@ -19,7 +19,10 @@ import { renderFromWei, toWei, fromWei } from '../../util/number';
 import { BNToHex } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../../util/networks';
+import Encryptor from '../Encryptor';
 
+const privates = new WeakMap();
+const encryptor = new Encryptor();
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 const API_URL = 'indra.connext.network/api';
 
@@ -46,7 +49,7 @@ let client = null;
 // THIS TWO MNEMONICS ARE IN A BROKEN STATE
 // const mnemonic = 'token face horse fame you love envelope velvet comfort section mask street';
 // const mnemonic = 'avocado holiday swamp balcony good clap culture assume erode mask grape observe';
-const mnemonic = 'frequent answer slender job feed spell follow loyal real blade exchange kit';
+// const mnemonic = 'frequent answer slender job feed spell follow loyal real blade exchange kit';
 /**
  * Class that wraps the connext client for
  * payment channels
@@ -564,9 +567,39 @@ class InstaPay {
 		}
 		return true;
 	};
+
+	logCurrentState = prefix => {
+		Logger.log(`${prefix}:error - state dump:`, this.state);
+	};
 }
 
 const instance = {
+	// Sets the minumum security when no password
+	basicSecure(code) {
+		privates.set(this, { code, basic: true });
+	},
+	// Sets the password level security
+	secure(code) {
+		if (code !== '') {
+			privates.set(this, { code, basic: false });
+		}
+	},
+	// Allows upgrading security
+	async upgradeSecurity(newCode) {
+		if (newCode && privates.get(this).basic) {
+			const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
+			if (encryptedMnemonic) {
+				try {
+					const mnemonic = await encryptor.decrypt(privates.get(this).code, encryptedMnemonic);
+					privates.set(this, { code: newCode, basic: false });
+					const newEncryptedMnemonic = await encryptor.encrypt(privates.get(this).code, mnemonic);
+					AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', newEncryptedMnemonic);
+				} catch (e) {
+					Logger.error('InstaPay:: Upgrade security Error', e);
+				}
+			}
+		}
+	},
 	/**
 	 * Method that initializes the connext client for a
 	 * specific address, along with all the listeners required
@@ -576,12 +609,21 @@ const instance = {
 		const { selectedAddress } = Engine.context.PreferencesController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			initListeners();
-			Logger.log('PC::Initialzing payment channels');
+			Logger.log('InstaPay::Initialzing payment channels');
 			try {
+				let mnemonic;
+				const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
+				if (encryptedMnemonic) {
+					mnemonic = await encryptor.decrypt(privates.get(this).code, encryptedMnemonic);
+				} else {
+					mnemonic = eth.Wallet.createRandom().mnemonic;
+					const newEncryptedMnemonic = await encryptor.encrypt(privates.get(this).code, mnemonic);
+					AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', newEncryptedMnemonic);
+				}
 				client = new InstaPay(mnemonic, provider.type, selectedAddress);
 			} catch (e) {
-				client.logCurrentState('PC::init');
-				Logger.error('PC::init', e);
+				client.logCurrentState('InstaPay::init');
+				Logger.error('InstaPay::init', e);
 			}
 		}
 	},
