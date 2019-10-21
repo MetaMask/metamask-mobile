@@ -128,7 +128,7 @@ export default class BrowserBottomBar extends PureComponent {
 				<TouchableOpacity onPress={showTabs} style={styles.iconButton} testID={'show-tabs-button'}>
 					<TabCountIcon style={styles.tabIcon} />
 				</TouchableOpacity>
-				<TouchableOpacity onPress={goHome} style={styles.iconButton}>
+				<TouchableOpacity onPress={goHome} style={styles.iconButton} testID={'home-button'}>
 					<SimpleLineIcons name="home" size={22} style={styles.icon} />
 				</TouchableOpacity>
 
