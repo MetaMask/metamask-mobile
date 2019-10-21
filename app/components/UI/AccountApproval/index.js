@@ -264,7 +264,7 @@ class AccountApproval extends PureComponent {
 								<Text style={styles.headerTitle} testID={'dapp-name-title'} numberOfLines={1}>
 									{title}
 								</Text>
-								<Text style={styles.headerUrl} numberOfLines={1}>
+								<Text style={styles.headerUrl} testID={'dapp-name-url'} numberOfLines={1}>
 									{url}
 								</Text>
 							</View>
