@@ -5,8 +5,8 @@
   "scripts": {
     "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && yarn start -- --reset-cache",
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
-    "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
+    "lint": "eslint '**/*.js' --ignore-path='.prettierignore'",
+    "lint:fix": "eslint '**/*.js' --fix --ignore-path='.prettierignore'",
     "format": "prettier '**/*.{js,json}' --write",
     "start:ios": "./scripts/build.sh ios debug",
     "start:ios:device": "./scripts/build.sh ios debug --device",
@@ -46,7 +46,7 @@
   "lint-staged": {
     "*.js": [
       "prettier --write",
-      "eslint --ignore-path=.prettierignore",
+      "eslint --ignore-path='.prettierignore'",
       "git add"
     ],
     "*.json": [
