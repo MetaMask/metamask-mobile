@@ -55,6 +55,7 @@
     ]
   },
   "dependencies": {
+    "3box": "^1.13.0",
     "@connext/client": "0.2.1",
     "@react-native-community/async-storage": "1.2.0",
     "@react-native-community/netinfo": "4.1.5",
@@ -144,6 +145,7 @@
     "redux-mock-store": "1.5.3",
     "redux-persist": "5.10.0",
     "stream-browserify": "1.0.0",
+    "timers": "^0.1.1",
     "tls": "0.0.1",
     "url": "0.11.0",
     "url-parse": "1.4.4",

@@ -85,6 +85,7 @@ import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import { BN } from 'gaba';
 import { BNToHex } from 'gaba/util';
+import Box from '3box';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -451,12 +452,13 @@ class Main extends PureComponent {
 				});
 			});
 
-			setTimeout(() => {
+			setTimeout(async () => {
 				TransactionsNotificationManager.init(this.props.navigation);
 				this.pollForIncomingTransactions();
 
 				this.initializeWalletConnect();
 
+				await this.initialize3box();
 				// Only if enabled under settings
 				if (this.props.paymentChannelsEnabled) {
 					this.initializePaymentChannels();
@@ -483,8 +485,19 @@ class Main extends PureComponent {
 		WalletConnect.init();
 	};
 
+	initialize3box = async () => {
+		const allKeyrings = Engine.context.KeyringController.state.keyrings;
+		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+		const { provider } = Engine.context.NetworkController;
+		const box = await Box.openBox(accountsOrdered[0], provider);
+		await box.syncDone;
+		const space = await box.openSpace('MetaMask.InstaPay');
+		await space.syncDone;
+		this.setState({ instaPay3boxSpace: space });
+	};
+
 	initializePaymentChannels = () => {
-		InstaPay.init();
+		InstaPay.init(this.state.instaPay3boxSpace);
 
 		InstaPay.hub.on('payment::request', async request => {
 			const validRequest = { ...request };

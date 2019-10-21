@@ -55,9 +55,10 @@ let client = null;
  * payment channels
  */
 class InstaPay {
-	constructor(mnemonic, network, selectedAddress) {
+	constructor(mnemonic, network, selectedAddress, instaPay3boxSpace) {
 		const swapRate = '100.00';
 		this.state = {
+			username: '',
 			address: '',
 			selectedAddress,
 			balance: {
@@ -85,7 +86,8 @@ class InstaPay {
 			swapRate,
 			token: null,
 			xpub: '',
-			tokenProfile: null
+			tokenProfile: null,
+			instaPay3boxSpace
 		};
 
 		this.start(mnemonic, network);
@@ -165,6 +167,11 @@ class InstaPay {
 			wallet: cfWallet,
 			xpub: channel.publicIdentifier
 		});
+
+		const username = await this.state.instaPay3boxSpace.public.get(`address_${this.state.xpub}`);
+		if (username) {
+			this.setState({ username });
+		}
 
 		await this.addDefaultPaymentProfile();
 		await this.startPoller();
@@ -571,6 +578,13 @@ class InstaPay {
 	logCurrentState = prefix => {
 		Logger.log(`${prefix}:error - state dump:`, this.state);
 	};
+
+	setUsername = async username => {
+		await this.state.instaPay3boxSpace.public.set(`address_${this.state.xpub}`, username);
+		await this.state.instaPay3boxSpace.public.set(`username_${username}`, this.state.xpub);
+		this.setState(username);
+		Logger.log('username set to ', username);
+	};
 }
 
 const instance = {
@@ -604,12 +618,13 @@ const instance = {
 	 * Method that initializes the connext client for a
 	 * specific address, along with all the listeners required
 	 */
-	async init() {
+	async init(instaPay3boxSpace) {
 		const { provider } = Engine.context.NetworkController.state;
 		const { selectedAddress } = Engine.context.PreferencesController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			initListeners();
 			Logger.log('InstaPay::Initialzing payment channels');
+
 			try {
 				let mnemonic;
 				const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
@@ -620,7 +635,7 @@ const instance = {
 					const newEncryptedMnemonic = await encryptor.encrypt(privates.get(this).code, mnemonic);
 					AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', newEncryptedMnemonic);
 				}
-				client = new InstaPay(mnemonic, provider.type, selectedAddress);
+				client = new InstaPay(mnemonic, provider.type, selectedAddress, instaPay3boxSpace);
 			} catch (e) {
 				client.logCurrentState('InstaPay::init');
 				Logger.error('InstaPay::init', e);
@@ -716,7 +731,10 @@ const instance = {
 	dump: () => (client && client.state) || {},
 	xpub: (client && client.state && client.state.publicIdentifier) || null,
 	getDepositAddress: () =>
-		(client && client.state && client.state.wallet && toChecksumAddress(client.state.wallet.address)) || ''
+		(client && client.state && client.state.wallet && toChecksumAddress(client.state.wallet.address)) || '',
+	setUsername: username => {
+		client.setUsername(username);
+	}
 };
 
 // const reloadClient = () => {

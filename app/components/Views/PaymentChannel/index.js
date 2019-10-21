@@ -241,6 +241,8 @@ class PaymentChannel extends PureComponent {
 			InstaPay.hub.on('state::change', this.onStateChange);
 		}, 1000);
 		this.checkifEnabled();
+
+		InstaPay.setUsername('brunobar79');
 	};
 
 	checkifEnabled = async () => {
