@@ -426,12 +426,10 @@ class Send extends PureComponent {
 					Logger.log('Error decoding transfer data', transactionMeta.data);
 				}
 			}
-
-			const existingContact = addressBook[network][checksummedAddress];
+			const existingContact = addressBook[network] && addressBook[network][checksummedAddress];
 			if (!existingContact) {
-				AddressBookController.set(checksummedAddress, '');
+				AddressBookController.set(checksummedAddress, '', network);
 			}
-
 			await new Promise(resolve => {
 				resolve(result);
 			});
