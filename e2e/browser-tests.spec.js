@@ -1,7 +1,7 @@
 'use strict';
 import TestHelpers from './helpers';
 
-const EthereumEnable = 'https://brunobar79.github.io/dapp-issues-repro/';
+const ETHEREUM_ENABLE = 'https://brunobar79.github.io/dapp-issues-repro/';
 const Sign_Examples = 'https://danfinlay.github.io/js-eth-personal-sign-examples/';
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
@@ -121,7 +121,7 @@ describe('Browser Tests', () => {
 		// Tap on search in bottom navbar
 		await TestHelpers.tap('search-button');
 		// Navigate to URL
-		await TestHelpers.typeTextAndHideKeyboard('url-input', EthereumEnable);
+		await TestHelpers.typeTextAndHideKeyboard('url-input', ETHEREUM_ENABLE);
 		// Tap on CONNECT button
 		await TestHelpers.tapByText('CONNECT');
 		// Dismiss alert box
