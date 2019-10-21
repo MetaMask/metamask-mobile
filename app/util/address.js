@@ -51,17 +51,13 @@ export function renderAccountName(address, identities) {
 
 export async function importAccountFromPrivateKey(private_key) {
 	// Import private key
-	try {
-		let pkey = private_key;
-		// Handle PKeys with 0x
-		if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
-			pkey = pkey.substr(2);
-		}
-		const { KeyringController } = Engine.context;
-		return KeyringController.importAccountWithStrategy('privateKey', [pkey]);
-	} catch (e) {
-		throw e;
+	let pkey = private_key;
+	// Handle PKeys with 0x
+	if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
+		pkey = pkey.substr(2);
 	}
+	const { KeyringController } = Engine.context;
+	return KeyringController.importAccountWithStrategy('privateKey', [pkey]);
 }
 
 /**
