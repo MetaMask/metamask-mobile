@@ -1,12 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import { fontStyles } from '../../../../styles/common';
+import { fontStyles, colors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
 	main: {
@@ -17,6 +17,14 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0
+	},
+	hamburger: {
+		backgroundColor: colors.transparent,
+		height: 50,
+		width: 50
+	},
+	hamburgerContainer: {
+		maxWidth: 50
 	}
 });
 
@@ -52,7 +60,7 @@ class Step4 extends PureComponent {
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
 				this.setState({
-					viewTop: py
+					viewTop: py - 50
 				});
 			});
 	};
@@ -91,6 +99,11 @@ class Step4 extends PureComponent {
 		return (
 			<View style={[styles.main, { top: this.state.viewTop }]}>
 				<View style={styles.coachmarkContainer}>
+					<View style={styles.hamburgerContainer}>
+						<TouchableWithoutFeedback style={styles.hamburger} onPress={this.onNext}>
+							<View style={styles.hamburger} />
+						</TouchableWithoutFeedback>
+					</View>
 					<Coachmark
 						title={strings('onboarding_wizard.step4.title')}
 						content={this.content()}

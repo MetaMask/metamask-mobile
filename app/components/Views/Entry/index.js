@@ -7,6 +7,7 @@ import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 import setOnboardingWizardStep from '../../../actions/wizard';
+// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
@@ -94,7 +95,7 @@ class Entry extends PureComponent {
 			if (existingUser !== null) {
 				await this.unlockKeychain();
 			} else {
-				this.animateAndGoTo('OnboardingCarousel');
+				this.animateAndGoTo('OnboardingRootNav');
 			}
 		}, 100);
 	}
@@ -141,8 +142,14 @@ class Entry extends PureComponent {
 				useNativeDriver: true,
 				isInteraction: false
 			}).start(() => {
-				if (viewToGo !== 'WalletView') {
+				if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
 					this.props.navigation.navigate(viewToGo);
+				} else if (viewToGo === 'Onboarding') {
+					this.props.navigation.navigate(
+						'OnboardingRootNav',
+						{},
+						NavigationActions.navigate({ routeName: 'Oboarding' })
+					);
 				} else {
 					this.props.navigation.navigate(
 						'HomeNav',

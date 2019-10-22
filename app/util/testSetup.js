@@ -84,8 +84,10 @@ jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Prom
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-fabric', () => 'Fabric');
 jest.mock('react-native-branch', () => 'RNBranch');
+jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('react-native-device-info', () => 'DeviceInfo');
 jest.mock('react-native-search-api', () => 'SearchApi');
+jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock('react-native-camera', () => ({
 	RNCamera: View,

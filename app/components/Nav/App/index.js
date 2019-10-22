@@ -1,9 +1,12 @@
 import {
-	createSwitchNavigator,
-	createDrawerNavigator,
-	createStackNavigator,
-	createAppContainer
+	// eslint-disable-next-line import/named
+	createAppContainer,
+	// eslint-disable-next-line import/named
+	createSwitchNavigator
 } from 'react-navigation';
+
+import { createStackNavigator } from 'react-navigation-stack';
+import { createDrawerNavigator } from 'react-navigation-drawer';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
@@ -30,6 +33,9 @@ const OnboardingNav = createStackNavigator(
 		Onboarding: {
 			screen: Onboarding
 		},
+		OnboardingCarousel: {
+			screen: OnboardingCarousel
+		},
 		CreateWallet: {
 			screen: CreateWallet
 		},
@@ -47,7 +53,7 @@ const OnboardingNav = createStackNavigator(
 		}
 	},
 	{
-		initialRouteName: 'Onboarding'
+		initialRouteName: 'OnboardingCarousel'
 	}
 );
 
@@ -57,7 +63,7 @@ const OnboardingNav = createStackNavigator(
  */
 const OnboardingRootNav = createStackNavigator(
 	{
-		Onboarding: {
+		OnboardingNav: {
 			screen: OnboardingNav
 		},
 		SyncWithExtensionSuccess: {

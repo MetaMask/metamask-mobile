@@ -569,6 +569,10 @@ export function getWalletNavbarOptions(title, navigation) {
 			setTimeout(() => {
 				DeeplinkManager.parse(data);
 			}, 500);
+		} else if ((data && data.indexOf('https://') !== -1) || data.indexOf('http://')) {
+			setTimeout(() => {
+				DeeplinkManager.parse(data);
+			}, 500);
 		}
 	};
 
