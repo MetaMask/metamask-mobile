@@ -31,7 +31,13 @@ class DeeplinkManager {
 	handleBrowserUrl(url, callback) {
 		this.navigation.navigate('BrowserTabHome');
 		InteractionManager.runAfterInteractions(() => {
-			callback(url);
+			if (callback) {
+				callback(url);
+			} else {
+				this.navigation.navigate('BrowserView', {
+					newTabUrl: url
+				});
+			}
 		});
 	}
 

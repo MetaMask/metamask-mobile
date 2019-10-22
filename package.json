@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "0.2.6",
+  "version": "0.2.8",
   "private": true,
   "scripts": {
     "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && yarn start -- --reset-cache",
@@ -165,10 +165,10 @@
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
-    "eslint": "5.15.1",
+    "eslint": "6.5.1",
     "eslint-config-react-native": "4.0.0",
     "eslint-plugin-import": "2.18.2",
-    "eslint-plugin-react": "7.14.3",
+    "eslint-plugin-react": "7.16.0",
     "eslint-plugin-react-native": "3.7.0",
     "husky": "1.3.1",
     "jest": "24.5.0",
@@ -217,7 +217,8 @@
       "no-new": 0,
       "react/jsx-handler-names": 0,
       "react/no-did-mount-set-state": 0,
-      "react/prefer-stateless-function": 0
+      "react/prefer-stateless-function": 0,
+      "require-atomic-updates": 0
     }
   },
   "detox": {
