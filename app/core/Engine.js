@@ -8,6 +8,7 @@ import {
 	CurrencyRateController,
 	KeyringController,
 	PersonalMessageManager,
+	MessageManager,
 	NetworkController,
 	NetworkStatusController,
 	PhishingController,
@@ -71,6 +72,7 @@ class Engine {
 						currentCurrency
 					}),
 					new PersonalMessageManager(),
+					new MessageManager(),
 					new NetworkController(
 						{
 							providerConfig: {

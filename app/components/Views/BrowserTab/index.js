@@ -439,10 +439,10 @@ export class BrowserTab extends PureComponent {
 		this.mounted = true;
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
 			eth_sign: async payload => {
-				const { PersonalMessageManager } = Engine.context;
+				const { MessageManager } = Engine.context;
 				try {
 					const pageMeta = await this.getPageMeta();
-					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+					const rawSig = await MessageManager.addUnapprovedMessageAsync({
 						data: payload.params[1],
 						from: payload.params[0],
 						...pageMeta
