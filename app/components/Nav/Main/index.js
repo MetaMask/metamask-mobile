@@ -85,7 +85,7 @@ import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import { BN } from 'gaba';
 import { BNToHex } from 'gaba/util';
-import Box from '3box';
+import Web3Box from '../../../core/3box';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -385,6 +385,8 @@ class Main extends PureComponent {
 		paymentChannelRequestInfo: {}
 	};
 
+	web3BoxRef = React.createRef();
+
 	backgroundMode = false;
 	locale = I18n.locale;
 
@@ -486,18 +488,18 @@ class Main extends PureComponent {
 	};
 
 	initialize3box = async () => {
-		const allKeyrings = Engine.context.KeyringController.state.keyrings;
-		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
-		const { provider } = Engine.context.NetworkController;
-		const box = await Box.openBox(accountsOrdered[0], provider);
-		await box.syncDone;
-		const space = await box.openSpace('MetaMask.InstaPay');
-		await space.syncDone;
-		this.setState({ instaPay3boxSpace: space });
+		// const allKeyrings = Engine.context.KeyringController.state.keyrings;
+		// const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+		// const { provider } = Engine.context.NetworkController;
+		// const box = await Box.openBox(accountsOrdered[0], provider);
+		// await box.syncDone;
+		// const space = await box.openSpace('MetaMask.InstaPay');
+		// await space.syncDone;
+		// this.setState({ instaPay3boxSpace: space });
 	};
 
 	initializePaymentChannels = () => {
-		InstaPay.init(this.state.instaPay3boxSpace);
+		InstaPay.init(this.web3boxRef);
 
 		InstaPay.hub.on('payment::request', async request => {
 			const validRequest = { ...request };
@@ -936,6 +938,7 @@ class Main extends PureComponent {
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
 				{this.renderPaymentChannelRequestApproval()}
+				<Web3Box ref={this.web3BoxRef} />
 			</React.Fragment>
 		);
 	}

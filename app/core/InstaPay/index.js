@@ -168,10 +168,10 @@ class InstaPay {
 			xpub: channel.publicIdentifier
 		});
 
-		const username = await this.state.instaPay3boxSpace.public.get(`address_${this.state.xpub}`);
-		if (username) {
-			this.setState({ username });
-		}
+		// const username = await this.state.instaPay3boxSpace.public.get(`address_${this.state.xpub}`);
+		// if (username) {
+		// 	this.setState({ username });
+		// }
 
 		await this.addDefaultPaymentProfile();
 		await this.startPoller();
