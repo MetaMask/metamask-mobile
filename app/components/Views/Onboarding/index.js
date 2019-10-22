@@ -171,7 +171,9 @@ class Onboarding extends PureComponent {
 					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
 							<View style={styles.ctas}>
-								<Text style={styles.title}>{strings('onboarding.title')}</Text>
+								<Text style={styles.title} testID={'onboarding-screen-title'}>
+									{strings('onboarding.title')}
+								</Text>
 								<View style={styles.importWrapper}>
 									<Text style={styles.buttonDescription}>{strings('onboarding.sync_desc')}</Text>
 									<View style={styles.buttonWrapper}>

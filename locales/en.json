@@ -636,7 +636,9 @@
 		"signing": "You are signing:",
 		"account_title": "Account:",
 		"balance_title": "Balance:",
-		"message": "Message:"
+		"message": "Message:",
+		"learn_more": "Learn More",
+		"eth_sign_warning": "Signing this message can have dangerous side effects. Only sign messages from sites you fully trust with your entire account. This dangerous method will be removed in a future version."
 	},
 	"watch_asset_request": {
 		"title": "Add Suggested Token",
