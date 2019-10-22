@@ -71,6 +71,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                     "textAlign": "center",
                   }
                 }
+                testID="carousel-screen-one"
               >
                 Welcome to MetaMask
               </Text>
@@ -119,6 +120,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                     },
                   ]
                 }
+                testID="carousel-one-image"
               />
             </View>
           </View>
@@ -149,6 +151,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                     "textAlign": "center",
                   }
                 }
+                testID="carousel-screen-two"
               >
                 Say hello to your wallet...
               </Text>
@@ -196,6 +199,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                     },
                   ]
                 }
+                testID="carousel-two-image"
               />
             </View>
           </View>
@@ -226,6 +230,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                     "textAlign": "center",
                   }
                 }
+                testID="carousel-screen-three"
               >
                 Explore decentralized apps
               </Text>
@@ -273,6 +278,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                     },
                   ]
                 }
+                testID="carousel-three-image"
               />
             </View>
           </View>
