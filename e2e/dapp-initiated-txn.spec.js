@@ -6,7 +6,7 @@ const Correct_Password = `12345678`;
 const Ropsten = 'Ropsten Test Network';
 const Ropsten_Faucet = 'https://faucet.metamask.io';
 const CryptoKitties_url = 'https://cryptokitties.co';
-// const ETH_Faucet = 'Test Ether Faucet';
+const ETH_Faucet = 'Test Ether Faucet';
 
 describe('Import seedphrase flow', () => {
 	beforeEach(() => {
@@ -102,51 +102,51 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.waitAndTap('go-back-button');
 	});
 
-	// it('should donate ETH on MM Ropsten', async () => {
-	// 	// Tap to donate 1 ETH
-	// 	await TestHelpers.tapAtPoint('browser-screen', { x: 76, y: 189 });
-	// 	// Check that account approval is displayed with correct dapp name
-	// 	await TestHelpers.checkIfHasText('dapp-name-title', ETH_Faucet);
-	// 	// Tap on CONNECT button
-	// 	await TestHelpers.tapByText('CONNECT');
-	// 	// Check that we are on the confirm transaction screen
-	// 	await TestHelpers.checkIfVisible('confirm-transaction-screen');
-	// 	// Tap Edit
-	// 	await TestHelpers.tapAtPoint('confirm-transaction-screen', { x: 30, y: -20 });
-	// 	// Input Amount
-	// 	await TestHelpers.replaceTextInField('amount-input', '0.000001');
-	// 	// Tap on NEXT button
-	// 	await TestHelpers.tapByText('NEXT');
-	// 	// Tap on CONFIRM button
-	// 	await TestHelpers.tapByText('CONFIRM');
-	// 	// Check that we are on the browser screen
-	// 	await TestHelpers.checkIfVisible('browser-screen');
-	// 	// Wait for enable notifications alert to show up
-	// 	await TestHelpers.delay(10000);
-	// 	// Dismiss alert
-	// 	await TestHelpers.tapAlertWithButton('No, thanks');
-	// 	// Open Drawer
-	// 	await TestHelpers.tapAtPoint('browser-screen', { x: 30, y: -5 });
-	// 	// Check that the drawer is visbile
-	// 	await TestHelpers.checkIfVisible('drawer-screen');
-	// 	// Tap on Wallet
-	// 	await TestHelpers.tapByText('Wallet');
-	// 	// Check that we are on the wallet screen
-	// 	await TestHelpers.checkIfVisible('wallet-screen');
-	// 	// Ensure ETH Value is correct
-	// 	await TestHelpers.checkIfElementHasString('balance', '1.9 ETH');
-	// });
+	it('should donate ETH on MM Ropsten', async () => {
+		// Tap to donate 1 ETH
+		await TestHelpers.tapAtPoint('browser-screen', { x: 76, y: 189 });
+		// Check that account approval is displayed with correct dapp name
+		await TestHelpers.checkIfHasText('dapp-name-title', ETH_Faucet);
+		// Tap on CONNECT button
+		await TestHelpers.tapByText('CONNECT');
+		// Check that we are on the confirm transaction screen
+		await TestHelpers.checkIfVisible('confirm-transaction-screen');
+		// Tap Edit
+		await TestHelpers.tapAtPoint('confirm-transaction-screen', { x: 30, y: -20 });
+		// Input Amount
+		await TestHelpers.replaceTextInField('amount-input', '0.000001');
+		// Tap on NEXT button
+		await TestHelpers.tapByText('NEXT');
+		// Tap on CONFIRM button
+		await TestHelpers.tapByText('CONFIRM');
+		// Check that we are on the browser screen
+		await TestHelpers.checkIfVisible('browser-screen');
+		// Wait for enable notifications alert to show up
+		await TestHelpers.delay(10000);
+		// Dismiss alert
+		await TestHelpers.tapAlertWithButton('No, thanks');
+		// Open Drawer
+		await TestHelpers.tapAtPoint('browser-screen', { x: 30, y: -5 });
+		// Check that the drawer is visbile
+		await TestHelpers.checkIfVisible('drawer-screen');
+		// Tap on Wallet
+		await TestHelpers.tapByText('Wallet');
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Ensure ETH Value is correct
+		await TestHelpers.checkIfElementHasString('balance', '1.9 ETH');
+	});
 
-	// it('should log out', async () => {
-	// 	// Open Drawer
-	// 	await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
-	// 	// Check that the drawer is visbile
-	// 	await TestHelpers.checkIfVisible('drawer-screen');
-	// 	// Tap on Log Out
-	// 	await TestHelpers.tapByText('Log Out');
-	// 	// Tap YES
-	// 	await TestHelpers.tapAlertWithButton('YES');
-	// 	// Check that we are on the wallet screen
-	// 	await TestHelpers.checkIfVisible('login');
-	// });
+	it('should log out', async () => {
+		// Open Drawer
+		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		// Check that the drawer is visbile
+		await TestHelpers.checkIfVisible('drawer-screen');
+		// Tap on Log Out
+		await TestHelpers.tapByText('Log Out');
+		// Tap YES
+		await TestHelpers.tapAlertWithButton('YES');
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfVisible('login');
+	});
 });

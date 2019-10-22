@@ -121,7 +121,9 @@ class Step3 extends PureComponent {
 	 */
 	content = () => (
 		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step3.content1')}</Text>
+			<Text style={onboardingStyles.content} testID={'step3-title'}>
+				{strings('onboarding_wizard.step3.content1')}
+			</Text>
 			<Text style={onboardingStyles.content}>
 				<Text style={fontStyles.bold}>{strings('onboarding_wizard.step3.content2')} </Text>
 				{strings('onboarding_wizard.step3.content3')}
@@ -136,7 +138,7 @@ class Step3 extends PureComponent {
 		if (!coachmarkTopReady || !viewTopReady) return null;
 		return (
 			<View style={[styles.main, { top: this.state.viewTop }]}>
-				<View style={styles.accountLabelContainer}>
+				<View style={styles.accountLabelContainer} testID={'account-label'}>
 					<AccountOverview account={account} currentCurrency={currentCurrency} onboardingWizard />
 				</View>
 				<View style={[styles.coachmarkContainer, { top: -this.state.coachmarkTop }]}>
