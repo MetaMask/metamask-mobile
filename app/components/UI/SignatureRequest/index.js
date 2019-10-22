@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -49,7 +49,16 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.red,
 		textAlign: 'center',
-		padding: 10
+		paddingTop: 10,
+		paddingHorizontal: 10
+	},
+	warningLink: {
+		...fontStyles.normal,
+		color: colors.blue,
+		textAlign: 'center',
+		paddingHorizontal: 10,
+		paddingBottom: 10,
+		textDecorationLine: 'underline'
 	},
 	signText: {
 		...fontStyles.normal,
@@ -93,13 +102,15 @@ const styles = StyleSheet.create({
 	}
 });
 
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
-
 /**
  * PureComponent that renders scrollable content inside signature request user interface
  */
 class SignatureRequest extends PureComponent {
 	static propTypes = {
+		/**
+		 * Object representing the navigator
+		 */
+		navigation: PropTypes.object,
 		/**
 		 * Map of accounts to information objects including balances
 		 */
@@ -125,10 +136,6 @@ class SignatureRequest extends PureComponent {
 		 */
 		children: PropTypes.node,
 		/**
-		 * Custom message to be displayed to the user
-		 */
-		message: PropTypes.string,
-		/**
 		 * Object containing domain information for the signature request for EIP712
 		 */
 		domain: PropTypes.object,
@@ -143,7 +150,11 @@ class SignatureRequest extends PureComponent {
 		/**
 		 * String representing the selected the selected network
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Whether it should display the warning message
+		 */
+		showWarning: PropTypes.bool
 	};
 
 	renderPageInformation = () => {
@@ -199,8 +210,26 @@ class SignatureRequest extends PureComponent {
 		};
 	};
 
+	goToWarning = () => {
+		this.props.onCancel();
+		this.props.navigation.push('Webview', {
+			url: 'https://metamask.zendesk.com/hc/en-us/articles/360015488751',
+			title: 'metamask.zendesk.com'
+		});
+	};
+
+	showWarning = () => (
+		<TouchableOpacity onPress={this.goToWarning}>
+			<Text style={styles.warningText}>
+				{strings('signature_request.eth_sign_warning')}
+				{` `}
+				<Text style={styles.warningLink}>{strings('signature_request.learn_more')}</Text>
+			</Text>
+		</TouchableOpacity>
+	);
+
 	render() {
-		const { children, message, accounts, selectedAddress, identities } = this.props;
+		const { children, showWarning, accounts, selectedAddress, identities } = this.props;
 		const balance = renderFromWei(accounts[selectedAddress].balance);
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		return (
@@ -229,8 +258,8 @@ class SignatureRequest extends PureComponent {
 					</View>
 					{this.renderPageInformation()}
 					<View style={styles.signingInformation}>
-						{message ? (
-							<Text style={styles.warningText}>{message}</Text>
+						{showWarning ? (
+							this.showWarning()
 						) : (
 							<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
 						)}

@@ -5,7 +5,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import { strings } from '../../../../locales/i18n';
-import { hexToText } from 'gaba/util';
 import DeviceSize from '../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
@@ -26,13 +25,6 @@ const styles = StyleSheet.create({
 		margin: 5,
 		fontSize: 16
 	},
-	messageText: {
-		flex: 1,
-		margin: 5,
-		fontSize: 14,
-		color: colors.fontPrimary,
-		...fontStyles.normal
-	},
 	title: {
 		textAlign: 'center',
 		fontSize: 18,
@@ -44,9 +36,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * PureComponent that supports personal_sign
+ * PureComponent that supports eth_sign
  */
-export default class PersonalSign extends PureComponent {
+export default class MessageSign extends PureComponent {
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens
@@ -72,18 +64,18 @@ export default class PersonalSign extends PureComponent {
 
 	signMessage = async () => {
 		const { messageParams } = this.props;
-		const { KeyringController, PersonalMessageManager } = Engine.context;
+		const { KeyringController, MessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
-		const cleanMessageParams = await PersonalMessageManager.approveMessage(messageParams);
-		const rawSig = await KeyringController.signPersonalMessage(cleanMessageParams);
-		PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
+		const cleanMessageParams = await MessageManager.approveMessage(messageParams);
+		const rawSig = await KeyringController.signMessage(cleanMessageParams);
+		MessageManager.setMessageStatusSigned(messageId, rawSig);
 	};
 
 	rejectMessage = () => {
 		const { messageParams } = this.props;
-		const { PersonalMessageManager } = Engine.context;
+		const { MessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
-		PersonalMessageManager.rejectMessage(messageId);
+		MessageManager.rejectMessage(messageId);
 	};
 
 	cancelSignature = () => {
@@ -97,7 +89,7 @@ export default class PersonalSign extends PureComponent {
 	};
 
 	render() {
-		const { messageParams, currentPageInformation } = this.props;
+		const { messageParams, currentPageInformation, navigation } = this.props;
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
@@ -106,21 +98,16 @@ export default class PersonalSign extends PureComponent {
 					</Text>
 				</View>
 				<SignatureRequest
-					navigation={this.props.navigation}
+					navigation={navigation}
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
 					currentPageInformation={currentPageInformation}
-					type="personalSign"
+					type="ethSign"
+					showWarning
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						{hexToText(messageParams.data)
-							.split('\n')
-							.map((line, i) => (
-								<Text key={`txt_${i}`} style={styles.messageText}>
-									{line}
-								</Text>
-							))}
+						<Text>{messageParams.data}</Text>
 					</View>
 				</SignatureRequest>
 			</View>

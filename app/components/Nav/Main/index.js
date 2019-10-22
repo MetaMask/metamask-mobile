@@ -86,6 +86,7 @@ import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import { BN } from 'gaba';
 import { BNToHex } from 'gaba/util';
+import MessageSign from '../../UI/MessageSign';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -431,6 +432,18 @@ class Main extends PureComponent {
 			});
 
 			Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
+
+			Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams => {
+				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+				delete messageParams.meta;
+				this.setState({
+					signMessage: true,
+					signMessageParams: messageParams,
+					signType: 'eth',
+					currentPageTitle,
+					currentPageUrl
+				});
+			});
 
 			Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
 				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
@@ -808,6 +821,15 @@ class Main extends PureComponent {
 				)}
 				{signType === 'typed' && (
 					<TypedSign
+						messageParams={signMessageParams}
+						onCancel={this.onSignAction}
+						onConfirm={this.onSignAction}
+						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					/>
+				)}
+				{signType === 'eth' && (
+					<MessageSign
+						navigation={this.props.navigation}
 						messageParams={signMessageParams}
 						onCancel={this.onSignAction}
 						onConfirm={this.onSignAction}

@@ -258,7 +258,6 @@ class Approval extends PureComponent {
 const mapStateToProps = state => ({
 	transaction: state.transaction,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
