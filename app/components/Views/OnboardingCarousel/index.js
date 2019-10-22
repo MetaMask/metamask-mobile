@@ -140,7 +140,9 @@ export default class OnboardingCarousel extends PureComponent {
 							>
 								<View key={'1'} style={baseStyles.flexGrow}>
 									<View style={styles.tab}>
-										<Text style={styles.title}>{strings('onboarding_carousel.title1')}</Text>
+										<Text style={styles.title} testID={'carousel-screen-one'}>
+											{strings('onboarding_carousel.title1')}
+										</Text>
 										<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle1')}</Text>
 									</View>
 									<View style={styles.carouselImageWrapper}>
@@ -148,12 +150,15 @@ export default class OnboardingCarousel extends PureComponent {
 											source={onboarding_carousel_1}
 											style={[styles.carouselImage, styles.carouselImage1]}
 											resizeMethod={'auto'}
+											testID={'carousel-one-image'}
 										/>
 									</View>
 								</View>
 								<View key={'2'} style={baseStyles.flexGrow}>
 									<View style={styles.tab}>
-										<Text style={styles.title}>{strings('onboarding_carousel.title2')}</Text>
+										<Text style={styles.title} testID={'carousel-screen-two'}>
+											{strings('onboarding_carousel.title2')}
+										</Text>
 										<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle2')}</Text>
 									</View>
 									<View style={styles.carouselImageWrapper}>
@@ -161,12 +166,15 @@ export default class OnboardingCarousel extends PureComponent {
 											source={onboarding_carousel_2}
 											style={[styles.carouselImage, styles.carouselImage2]}
 											resizeMethod={'auto'}
+											testID={'carousel-two-image'}
 										/>
 									</View>
 								</View>
 								<View key={'3'} style={baseStyles.flexGrow}>
 									<View style={styles.tab}>
-										<Text style={styles.title}>{strings('onboarding_carousel.title3')}</Text>
+										<Text style={styles.title} testID={'carousel-screen-three'}>
+											{strings('onboarding_carousel.title3')}
+										</Text>
 										<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle3')}</Text>
 									</View>
 									<View style={styles.carouselImageWrapper}>
@@ -174,6 +182,7 @@ export default class OnboardingCarousel extends PureComponent {
 											source={onboarding_carousel_3}
 											style={[styles.carouselImage, styles.carouselImage3]}
 											resizeMethod={'auto'}
+											testID={'carousel-three-image'}
 										/>
 									</View>
 								</View>
