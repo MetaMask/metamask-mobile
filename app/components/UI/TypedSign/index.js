@@ -134,7 +134,7 @@ export default class TypedSign extends PureComponent {
 				</View>
 			);
 		}
-		if (messageParams.version === 'V3') {
+		if (messageParams.version === 'V3' || messageParams.version === 'V4') {
 			const { message } = JSON.parse(messageParams.data);
 			return this.renderTypedMessageV3(message);
 		}
