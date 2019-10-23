@@ -3706,7 +3706,7 @@ eth-sig-util@^1.4.0, eth-sig-util@^1.4.2:
     ethereumjs-abi "git+https://github.com/ethereumjs/ethereumjs-abi.git"
     ethereumjs-util "^5.1.1"
 
-eth-sig-util@^2.1.0, eth-sig-util@^2.4.4, eth-sig-util@^2.5.0:
+eth-sig-util@^2.3.0, eth-sig-util@^2.4.4, eth-sig-util@^2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/eth-sig-util/-/eth-sig-util-2.5.0.tgz#1018cf8bef2fe275ecbd526cf3248757b0880053"
   integrity sha512-ahApxr+e1cls/GwcFSGsgRLrMqG6D6cBnK9CRHhx97O/s9ow+URIxbPvov8jfE70ZnNBdHMircoSCpi1b4QHjA==
@@ -4717,10 +4717,10 @@ g-status@^2.0.2:
     matcher "^1.0.0"
     simple-git "^1.85.0"
 
-gaba@1.7.1:
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/gaba/-/gaba-1.7.1.tgz#ccf7d7fa8ab1d7a5144cc752a570bd3376d293af"
-  integrity sha512-bznjmi09UkcsqBLjpI1Luxqc0ZyHyyp2nNAnRJ7lmaZ1jzzITdfvts6ERlDYA83RETajPTYQa5XEEKeeJYFgmg==
+gaba@1.7.2:
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/gaba/-/gaba-1.7.2.tgz#b7c0662347678c33100e47902550643378426fdb"
+  integrity sha512-gsUy1A+8yvT+A5H5vxebUGH932gtABgY5dKNNiZdRSZ/ZN4N2R/Vb61HpbVpufGNh+YyKQFXhWTLeFNHb5wH2Q==
   dependencies:
     await-semaphore "^0.1.3"
     eth-contract-metadata "^1.9.1"
@@ -4730,7 +4730,7 @@ gaba@1.7.1:
     eth-method-registry "1.1.0"
     eth-phishing-detect "^1.1.13"
     eth-query "^2.1.2"
-    eth-sig-util "^2.1.0"
+    eth-sig-util "^2.3.0"
     ethereumjs-util "^6.1.0"
     ethereumjs-wallet "0.6.0"
     ethjs-query "^0.3.8"
