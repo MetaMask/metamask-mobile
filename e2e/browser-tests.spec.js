@@ -168,23 +168,31 @@ describe('Browser Tests', () => {
 		// Scroll to bottom of browser view
 		await TestHelpers.swipe('browser-screen', 'up');
 		// Tap on ethjs personal sign button
-		await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 188 });
+		await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 96 });
 		// Tap on SIGN button
 		await TestHelpers.tapByText('SIGN');
 		// Tap on sign typed data button
-		await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 308 });
-		// Tap on SIGN button
-		await TestHelpers.tapByText('SIGN');
-		// Tap on sign typed data v3 button
-		await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 400 });
-		// Tap on SIGN button
-		await TestHelpers.tapByText('SIGN');
-		// Tap on sign typed data with ethjs button
-		await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 496 });
+		await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 226 });
 		// Tap on SIGN button
 		await TestHelpers.tapByText('SIGN');
 		// Tap ok in alert box
 		await TestHelpers.tapAlertWithButton('Ok');
+		// Tap on sign typed data v3 button
+		await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 330 });
+		// Tap on SIGN button
+		await TestHelpers.tapByText('SIGN');
+		// Tap ok in alert box
+		await TestHelpers.tapAlertWithButton('Ok');
+		// Tap on sign typed data v4 button
+		await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 430 });
+		// Tap on SIGN button
+		await TestHelpers.tapByText('SIGN');
+		// Tap ok in alert box
+		await TestHelpers.tapAlertWithButton('Ok');
+		// Tap on sign typed data with ethjs button
+		await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 530 });
+		// Tap on SIGN button
+		await TestHelpers.tapByText('SIGN');
 	});
 
 	it('should test ENS sites', async () => {
