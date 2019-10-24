@@ -77,9 +77,9 @@ class Send extends PureComponent {
 		 */
 		addressBook: PropTypes.object,
 		/**
-		 * A string representing the network name
+		 * Network id
 		 */
-		providerType: PropTypes.string
+		network: PropTypes.string
 	};
 
 	state = {
@@ -387,6 +387,7 @@ class Send extends PureComponent {
 		this.setState({ transactionConfirmed: true });
 		const {
 			transaction: { selectedAsset, assetType },
+			network,
 			addressBook
 		} = this.props;
 		let { transaction } = this.props;
@@ -425,12 +426,10 @@ class Send extends PureComponent {
 					Logger.log('Error decoding transfer data', transactionMeta.data);
 				}
 			}
-
-			const existingContact = addressBook[checksummedAddress];
+			const existingContact = addressBook[network] && addressBook[network][checksummedAddress];
 			if (!existingContact) {
-				AddressBookController.set(checksummedAddress, '');
+				AddressBookController.set(checksummedAddress, '', network);
 			}
-
 			await new Promise(resolve => {
 				resolve(result);
 			});
@@ -562,7 +561,7 @@ const mapStateToProps = state => ({
 	transaction: state.transaction,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	network: state.engine.backgroundState.NetworkController.network
 });
 
 const mapDispatchToProps = dispatch => ({

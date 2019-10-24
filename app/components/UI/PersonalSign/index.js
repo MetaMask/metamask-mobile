@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * PureComponent that supports eth_sign and personal_sign
+ * PureComponent that supports personal_sign
  */
 export default class PersonalSign extends PureComponent {
 	static propTypes = {

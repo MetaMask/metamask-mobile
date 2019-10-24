@@ -87,7 +87,7 @@ class Step4 extends PureComponent {
 	 */
 	content = () => (
 		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content}>
+			<Text style={onboardingStyles.content} testID={'step4-title'}>
 				<Text style={fontStyles.bold}>{strings('onboarding_wizard.step4.content1')} </Text>
 				{strings('onboarding_wizard.step4.content2')}
 			</Text>

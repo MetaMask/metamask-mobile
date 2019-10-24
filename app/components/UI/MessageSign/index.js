@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -25,12 +25,6 @@ const styles = StyleSheet.create({
 		margin: 5,
 		fontSize: 16
 	},
-	messageText: {
-		margin: 5,
-		color: colors.black,
-		...fontStyles.normal,
-		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'Roboto'
-	},
 	title: {
 		textAlign: 'center',
 		fontSize: 18,
@@ -38,19 +32,13 @@ const styles = StyleSheet.create({
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
 		...fontStyles.bold
-	},
-	message: {
-		marginLeft: 20
-	},
-	msgKey: {
-		fontWeight: 'bold'
 	}
 });
 
 /**
- * PureComponent that supports eth_signTypedData and eth_signTypedData_v3
+ * PureComponent that supports eth_sign
  */
-export default class TypedSign extends PureComponent {
+export default class MessageSign extends PureComponent {
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens
@@ -65,7 +53,7 @@ export default class TypedSign extends PureComponent {
 		 */
 		onConfirm: PropTypes.func,
 		/**
-		 * Typed message to be displayed to the user
+		 * Personal message to be displayed to the user
 		 */
 		messageParams: PropTypes.object,
 		/**
@@ -76,19 +64,18 @@ export default class TypedSign extends PureComponent {
 
 	signMessage = async () => {
 		const { messageParams } = this.props;
-		const { KeyringController, TypedMessageManager } = Engine.context;
+		const { KeyringController, MessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
-		const version = messageParams.version;
-		const cleanMessageParams = await TypedMessageManager.approveMessage(messageParams);
-		const rawSig = await KeyringController.signTypedMessage(cleanMessageParams, version);
-		TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
+		const cleanMessageParams = await MessageManager.approveMessage(messageParams);
+		const rawSig = await KeyringController.signMessage(cleanMessageParams);
+		MessageManager.setMessageStatusSigned(messageId, rawSig);
 	};
 
 	rejectMessage = () => {
 		const { messageParams } = this.props;
-		const { TypedMessageManager } = Engine.context;
+		const { MessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
-		TypedMessageManager.rejectMessage(messageId);
+		MessageManager.rejectMessage(messageId);
 	};
 
 	cancelSignature = () => {
@@ -101,51 +88,8 @@ export default class TypedSign extends PureComponent {
 		this.props.onConfirm();
 	};
 
-	renderTypedMessageV3 = obj =>
-		Object.keys(obj).map(key => (
-			<View style={styles.message} key={key}>
-				{typeof obj[key] === 'object' ? (
-					<View>
-						<Text style={[styles.messageText, styles.msgKey]}>{key}:</Text>
-						<View>{this.renderTypedMessageV3(obj[key])}</View>
-					</View>
-				) : (
-					<Text style={styles.messageText}>
-						<Text style={styles.msgKey}>{key}:</Text> {obj[key]}
-					</Text>
-				)}
-			</View>
-		));
-
-	renderTypedMessage = () => {
-		const { messageParams } = this.props;
-		if (messageParams.version === 'V1') {
-			return (
-				<View style={styles.message}>
-					{messageParams.data.map((obj, i) => (
-						<View key={`${obj.name}_${i}`}>
-							<Text style={[styles.messageText, styles.msgKey]}>{obj.name}:</Text>
-							<Text style={styles.messageText} key={obj.name}>
-								{' '}
-								{obj.value}
-							</Text>
-						</View>
-					))}
-				</View>
-			);
-		}
-		if (messageParams.version === 'V3' || messageParams.version === 'V4') {
-			const { message } = JSON.parse(messageParams.data);
-			return this.renderTypedMessageV3(message);
-		}
-	};
-
 	render() {
-		const { messageParams, currentPageInformation } = this.props;
-		let domain;
-		if (messageParams.version === 'V3') {
-			domain = JSON.parse(messageParams.data).domain;
-		}
+		const { messageParams, currentPageInformation, navigation } = this.props;
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
@@ -154,16 +98,16 @@ export default class TypedSign extends PureComponent {
 					</Text>
 				</View>
 				<SignatureRequest
-					navigation={this.props.navigation}
+					navigation={navigation}
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
-					domain={domain}
 					currentPageInformation={currentPageInformation}
-					type="typedSign"
+					type="ethSign"
+					showWarning
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						{this.renderTypedMessage()}
+						<Text>{messageParams.data}</Text>
 					</View>
 				</SignatureRequest>
 			</View>

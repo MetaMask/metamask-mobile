@@ -95,7 +95,9 @@ class Step5 extends PureComponent {
 	 */
 	content = () => (
 		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step5.content1')}</Text>
+			<Text style={onboardingStyles.content} testID={'step5-title'}>
+				{strings('onboarding_wizard.step5.content1')}
+			</Text>
 		</View>
 	);
 

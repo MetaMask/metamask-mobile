@@ -439,10 +439,10 @@ export class BrowserTab extends PureComponent {
 		this.mounted = true;
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
 			eth_sign: async payload => {
-				const { PersonalMessageManager } = Engine.context;
+				const { MessageManager } = Engine.context;
 				try {
 					const pageMeta = await this.getPageMeta();
-					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+					const rawSig = await MessageManager.addUnapprovedMessageAsync({
 						data: payload.params[1],
 						from: payload.params[0],
 						...pageMeta
@@ -538,6 +538,45 @@ export class BrowserTab extends PureComponent {
 							...pageMeta
 						},
 						'V3'
+					);
+					return (
+						!this.isReloading &&
+						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
+				} catch (error) {
+					return (
+						!this.isReloading &&
+						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
+				}
+			},
+			eth_signTypedData_v4: async payload => {
+				const { TypedMessageManager } = Engine.context;
+
+				let data;
+				try {
+					data = JSON.parse(payload.params[1]);
+				} catch (e) {
+					throw new Error('Data must be passed as a valid JSON string.');
+				}
+
+				const chainId = data.domain.chainId;
+				const activeChainId =
+					this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
+
+				if (chainId && chainId !== activeChainId) {
+					throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
+				}
+
+				try {
+					const pageMeta = await this.getPageMeta();
+					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+						{
+							data: payload.params[1],
+							from: payload.params[0],
+							...pageMeta
+						},
+						'V4'
 					);
 					return (
 						!this.isReloading &&
