@@ -75,7 +75,6 @@ class InstaPay {
 			},
 			ethprovider: null,
 			freeBalanceAddress: null,
-			loadingConnext: true,
 			maxDeposit: null,
 			minDeposit: null,
 			pending: { type: 'null', complete: true, closed: true },
@@ -87,7 +86,8 @@ class InstaPay {
 			token: null,
 			xpub: '',
 			tokenProfile: null,
-			instaPay3boxSpace
+			instaPay3boxSpace,
+			usernameSynced: false
 		};
 
 		this.start(mnemonic, network);
@@ -156,22 +156,20 @@ class InstaPay {
 			this.setState({ receivingTransferFailed: true });
 		});
 
+		const savedUsername = await AsyncStorage.getItem('@MetaMask:InstaPayUsername');
+
 		this.setState({
 			address: cfWallet.address,
 			channel,
 			ethprovider,
 			freeBalanceAddress,
-			loadingConnext: false,
 			swapRate,
 			token,
 			wallet: cfWallet,
-			xpub: channel.publicIdentifier
+			xpub: channel.publicIdentifier,
+			ready: true,
+			username: savedUsername || null
 		});
-
-		// const username = await this.state.instaPay3boxSpace.public.get(`address_${this.state.xpub}`);
-		// if (username) {
-		// 	this.setState({ username });
-		// }
 
 		await this.addDefaultPaymentProfile();
 		await this.startPoller();
@@ -181,7 +179,6 @@ class InstaPay {
 		Object.keys(data).forEach(key => {
 			this.state[key] = data[key];
 		});
-		this.state.ready = true;
 		hub.emit('state::change', this.state);
 	};
 
@@ -580,10 +577,33 @@ class InstaPay {
 	};
 
 	setUsername = async username => {
-		await this.state.instaPay3boxSpace.public.set(`address_${this.state.xpub}`, username);
-		await this.state.instaPay3boxSpace.public.set(`username_${username}`, this.state.xpub);
-		this.setState(username);
+		this.setState({ username });
+		AsyncStorage.setItem('@MetaMask:InstaPayUsername', username);
+		// TBD since there's no nameserver yet
+		// await this.state.instaPay3boxSpace.publicSetSpace(`address_${this.state.xpub}`, username);
+		// await this.state.instaPay3boxSpace.publicSetSpace(`username_${username}`, this.state.xpub);
 		Logger.log('username set to ', username);
+	};
+
+	checkForExistingUsername = async xpub => {
+		// TBD where to check since there's no nameserver yet
+		// const username = await this.state.instaPay3boxSpace.publicGetSpace(`address_${xpub}`);
+		const username = null;
+		Logger.log(`Instapay check username ${xpub} resolved to `, username);
+		if (!this.state.username) {
+			this.setState({ username, usernameSynced: true });
+			if (username) {
+				AsyncStorage.setItem('@MetaMask:InstaPayUsername', username);
+			}
+		}
+	};
+
+	getXpubFromUsername = async username => {
+		// TBD where to check since there's no nameserver yet
+		// const xpub = await this.state.instaPay3boxSpace.publicGetSpace(`username_${username}`);
+		const xpub = null;
+		Logger.log(`Instapay check username ${username} resolved to `, xpub);
+		return xpub;
 	};
 }
 
@@ -608,6 +628,7 @@ const instance = {
 					privates.set(this, { code: newCode, basic: false });
 					const newEncryptedMnemonic = await encryptor.encrypt(privates.get(this).code, mnemonic);
 					AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', newEncryptedMnemonic);
+					await this.state.instaPay3boxSpace.privateSetSpace(`instapay_data`, mnemonic);
 				} catch (e) {
 					Logger.error('InstaPay:: Upgrade security Error', e);
 				}
@@ -637,7 +658,7 @@ const instance = {
 				}
 				client = new InstaPay(mnemonic, provider.type, selectedAddress, instaPay3boxSpace);
 			} catch (e) {
-				client.logCurrentState('InstaPay::init');
+				client && client.logCurrentState('InstaPay::init');
 				Logger.error('InstaPay::init', e);
 			}
 		}
@@ -733,7 +754,19 @@ const instance = {
 	getDepositAddress: () =>
 		(client && client.state && client.state.wallet && toChecksumAddress(client.state.wallet.address)) || '',
 	setUsername: username => {
-		client.setUsername(username);
+		client && client.setUsername(username);
+	},
+	syncUsername: () => {
+		if (client && !client.state.username) {
+			client.checkForExistingUsername(client.state.xpub);
+		}
+	},
+	getXpubFromUsername: username => client && client.getXpubFromUsername(username),
+	cleanUp: async () => {
+		await AsyncStorage.removeItem('@MetaMask:InstaPayUsername');
+		await AsyncStorage.removeItem('@MetaMask:InstaPayMnemonic');
+		await AsyncStorage.removeItem('@MetaMask:InstaPay');
+		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
 	}
 };
 

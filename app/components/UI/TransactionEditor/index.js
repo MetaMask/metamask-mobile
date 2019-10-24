@@ -92,7 +92,8 @@ class TransactionEditor extends PureComponent {
 
 	state = {
 		toFocused: false,
-		ensRecipient: undefined
+		ensRecipient: undefined,
+		instaPayRecipient: undefined
 	};
 
 	/**
@@ -208,20 +209,21 @@ class TransactionEditor extends PureComponent {
 	 *
 	 * @param {string} to - String containing to address
 	 * @param {string} ensRecipient? - String containing ens name
+	 * @param {string} instaPayRecipient? - String containing an InstaPay name
 	 */
-	handleUpdateToAddress = async (to, ensRecipient) => {
+	handleUpdateToAddress = async (to, ensRecipient, instaPayRecipient) => {
 		const {
 			transaction: { data, assetType }
 		} = this.props;
 		// If ETH transaction, there is no need to generate new data
 		if (assetType === 'ETH') {
 			const { gas } = await this.estimateGas({ data, to });
-			this.props.setTransactionObject({ to, gas: hexToBN(gas), ensRecipient });
+			this.props.setTransactionObject({ to, gas: hexToBN(gas), ensRecipient, instaPayRecipient });
 		}
 		// If selectedAsset defined, generates data
 		else {
 			const { data, gas } = await this.handleDataGeneration({ to });
-			this.props.setTransactionObject({ to, gas: hexToBN(gas), data, ensRecipient });
+			this.props.setTransactionObject({ to, gas: hexToBN(gas), data, ensRecipient, instaPayRecipient });
 		}
 	};
 

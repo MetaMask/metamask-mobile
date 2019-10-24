@@ -21,6 +21,7 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
+import InstaPay from '../../../core/InstaPay';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -255,6 +256,8 @@ class ImportFromSeed extends PureComponent {
 				const { KeyringController } = Engine.context;
 
 				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
+
+				InstaPay.cleanUp();
 
 				if (this.state.biometryType && this.state.biometryChoice) {
 					const authOptions = {

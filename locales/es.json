@@ -479,7 +479,8 @@
 		"value_not_available": "No disponible",
 		"rate_not_available": "Conversión no disponible",
 		"optional": "Opcional",
-		"no_address_for_ens": "No existe dirección para nombre ENS",
+		"no_address_for_ens": "No existe dirección para este nombre ENS",
+		"no_address_for_instapay": "No existe dirección para este nombre InstaPay",
 		"approve_warning": "Al aprobar esta acción, otorgas permiso para que este contrato gaste hasta"
 	},
 	"custom_gas": {

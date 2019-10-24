@@ -7,7 +7,8 @@ import {
 	View,
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 	Platform,
-	Alert
+	Alert,
+	Dimensions
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -100,6 +101,10 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	webview3boxWrapper: {
+		width: Dimensions.get('window').width,
+		height: 100
 	}
 });
 
@@ -460,14 +465,13 @@ class Main extends PureComponent {
 
 				this.initializeWalletConnect();
 
-				await this.initialize3box();
 				// Only if enabled under settings
 				if (this.props.paymentChannelsEnabled) {
 					this.initializePaymentChannels();
 				}
 
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
-			}, 1000);
+			}, 7000);
 		});
 	};
 
@@ -488,18 +492,18 @@ class Main extends PureComponent {
 	};
 
 	initialize3box = async () => {
-		// const allKeyrings = Engine.context.KeyringController.state.keyrings;
-		// const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
-		// const { provider } = Engine.context.NetworkController;
-		// const box = await Box.openBox(accountsOrdered[0], provider);
-		// await box.syncDone;
-		// const space = await box.openSpace('MetaMask.InstaPay');
-		// await space.syncDone;
-		// this.setState({ instaPay3boxSpace: space });
+		const allKeyrings = Engine.context.KeyringController.state.keyrings;
+		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+		console.log('OPENING BOX');
+
+		this.web3BoxRef.current && (await this.web3BoxRef.current.openBox(accountsOrdered[0]));
+		console.log('READY TO OPEN THE SPACE!');
+		await this.web3BoxRef.current.openSpace('InstaPay');
+		console.log('SPACE OPENED');
 	};
 
 	initializePaymentChannels = () => {
-		InstaPay.init(this.web3boxRef);
+		InstaPay.init(this.web3BoxRef.current);
 
 		InstaPay.hub.on('payment::request', async request => {
 			const validRequest = { ...request };
@@ -618,6 +622,8 @@ class Main extends PureComponent {
 				}, 800);
 			}, 800);
 		});
+
+		this.initialize3box();
 	};
 
 	paymentChannelDepositSign = async transactionMeta => {
@@ -938,7 +944,9 @@ class Main extends PureComponent {
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
 				{this.renderPaymentChannelRequestApproval()}
-				<Web3Box ref={this.web3BoxRef} />
+				<View style={styles.webview3boxWrapper}>
+					<Web3Box ref={this.web3BoxRef} style={styles.flex} />
+				</View>
 			</React.Fragment>
 		);
 	}

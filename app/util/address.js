@@ -28,6 +28,19 @@ export function renderShortAddress(address, chars = 4) {
 }
 
 /**
+ * Returns short xpub address format
+ *
+ * @param {String} address - String corresponding to an address
+ * @param {Number} chars - Number of characters to show at the end and beginning.
+ * Defaults to 4.
+ * @returns {String} - String corresponding to short address format
+ */
+export function renderShortXpubAddress(address, chars = 4) {
+	if (!address) return address;
+	return `${address.substr(0, chars + 4)}...${address.substr(-chars)}`;
+}
+
+/**
  * Returns address name if it's in known identities
  *
  * @param {String} address - String corresponding to an address
@@ -73,6 +86,19 @@ export function isENS(name) {
 	}
 	return true;
 }
+/**
+ * Validates an InstaPay name
+ *
+ * @param {String} name - String corresponding to an InstaPay name
+ * @returns {boolean} - Returns a boolean indicating if it is valid
+ */
+export function isInstaPay(name) {
+	if (!isValidXpub(name)) {
+		const matches = name.match(/^[a-zA-Z0-9]*$/);
+		return (matches && matches.length > 0) || false;
+	}
+	return false;
+}
 
 /**
  * Determines if a given string looks like a valid Ethereum address
@@ -89,7 +115,7 @@ export function resemblesAddress(address) {
  * @param {address} string
  */
 export function isValidXpub(address) {
-	if (!address.startsWith('xpub') || address.length !== 111) {
+	if (address && (!address.startsWith('xpub') || address.length !== 111)) {
 		return false;
 	}
 	return true;

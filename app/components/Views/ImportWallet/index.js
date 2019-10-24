@@ -17,6 +17,7 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
+import InstaPay from '../../../core/InstaPay';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
@@ -311,6 +312,12 @@ class ImportWallet extends PureComponent {
 	}
 
 	finishSync = async opts => {
+		InstaPay.cleanUp();
+		await AsyncStorage.removeItem('@MetaMask:InstaPayUsername');
+		await AsyncStorage.removeItem('@MetaMask:InstaPayMnemonic');
+		await AsyncStorage.removeItem('@MetaMask:InstaPay');
+		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
+
 		if (opts.biometrics) {
 			const authOptions = {
 				accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE

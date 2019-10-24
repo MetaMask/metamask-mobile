@@ -16,6 +16,7 @@ import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import AnimatedFox from 'react-native-animated-fox';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
+import InstaPay from '../../../core/InstaPay';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
@@ -117,7 +118,7 @@ class CreateWallet extends PureComponent {
 
 			await KeyringController.createNewVaultAndKeychain('');
 			await SecureKeychain.setGenericPassword('metamask-user', '');
-			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+			InstaPay.cleanUp();
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			// Get onboarding wizard state
 			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');

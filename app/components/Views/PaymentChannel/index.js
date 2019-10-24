@@ -9,7 +9,8 @@ import {
 	SafeAreaView,
 	StyleSheet,
 	ActivityIndicator,
-	Clipboard
+	Clipboard,
+	TextInput
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -36,6 +37,7 @@ import Analytics from '../../../core/Analytics';
 import { withNavigationFocus } from 'react-navigation';
 import { showAlert } from '../../../actions/alert';
 import AddressQRCode from '../AddressQRCode';
+import ChooseInstaPayUserModal from '../../UI/ChooseInstaPayUserModal';
 
 const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
 
@@ -129,7 +131,45 @@ const styles = StyleSheet.create({
 	},
 	bottomModal: {
 		margin: 0
+	},
+	textInput: {
+		width: '100%',
+		marginTop: 30,
+		borderWidth: 1,
+		borderRadius: 4,
+		borderColor: colors.grey100,
+		padding: 16,
+		fontSize: 18,
+		...fontStyles.normal
+	},
+	modalView: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: 20,
+		flexDirection: 'column'
+	},
+	modalText: {
+		fontSize: 18,
+		textAlign: 'center',
+		...fontStyles.normal
+	},
+	modalTitle: {
+		fontSize: 22,
+		marginBottom: 15,
+		textAlign: 'center',
+		...fontStyles.bold
 	}
+	// usernameWrapper: {
+	// 	flex: 1,
+	// 	alignItems: 'center',
+	// 	justifyContent: 'center',
+	// 	paddingVertical: 15
+	// },
+	// usernameText: {
+	// 	fontSize: 20,
+	// 	textAlign: 'center'
+	// }
 });
 
 /**
@@ -213,15 +253,51 @@ class PaymentChannel extends PureComponent {
 		connextStateDisabled: false,
 		transactions: [],
 		xpub: null,
-		wallet: null
+		wallet: null,
+		username: null,
+		newUsername: null,
+		chooseUserModalVisible: false
 	};
 
 	client = null;
 	sending = false;
 	depositing = false;
 	withdrawing = false;
+	userSet = false;
+
+	onNewUsernameChange = newUsername => {
+		this.setState({ newUsername });
+	};
+
+	setUsername = async () => {
+		if (this.state.settingUsername) return;
+		try {
+			this.setState({ settingUsername: true });
+			const taken = await InstaPay.getXpubFromUsername(this.state.newUsername);
+			if (taken) {
+				Alert.alert('Username not available', 'Try with a different one');
+				this.setState({ settingUsername: false });
+			} else {
+				await InstaPay.setUsername(this.state.newUsername);
+				this.setState({
+					settingUsername: false,
+					chooseUserModalVisible: false
+				});
+			}
+		} catch (e) {
+			Alert.alert('Error', 'Please try again');
+		}
+	};
 
 	onStateChange = state => {
+		// TBD
+		// if (!this.userSet && this.state.ready && !this.state.username && this.state.usernameSynced) {
+		// 	this.userSet = true;
+		// 	setTimeout(() => {
+		// 		this.setState({ chooseUserModalVisible: true });
+		// 	}, 100);
+		// }
+
 		this.setState({
 			...state,
 			transactions: this.handleTransactions(state.transactions)
@@ -241,8 +317,6 @@ class PaymentChannel extends PureComponent {
 			InstaPay.hub.on('state::change', this.onStateChange);
 		}, 1000);
 		this.checkifEnabled();
-
-		InstaPay.setUsername('brunobar79');
 	};
 
 	checkifEnabled = async () => {
@@ -510,6 +584,13 @@ class PaymentChannel extends PureComponent {
 						</View>
 					)}
 				</View>
+				{/* <View style={styles.usernameWrapper}>
+					{!this.state.username ? (
+						<ActivityIndicator size="small" />
+					) : (
+						<Text style={styles.usernameText}>{this.state.username && `@${this.state.username}`}</Text>
+					)}
+				</View> */}
 			</View>
 		);
 	}
@@ -642,8 +723,9 @@ class PaymentChannel extends PureComponent {
 				</View>
 			);
 		}
-		const noFundsAndNoHistory = this.state.balance === '0.00' && !this.state.transactions.length;
 
+		const noFunds = this.state.balance.channel.token.toDAI().format({ decimals: 2, symbol: false }) === '0.00';
+		const noFundsAndNoHistory = noFunds && !this.state.transactions.length;
 		return (
 			<View>
 				{noFundsAndNoHistory && this.renderNoFunds()}
@@ -686,6 +768,29 @@ class PaymentChannel extends PureComponent {
 				>
 					<AddressQRCode closeQrModal={this.closeQrModal} address={this.state.xpub} />
 				</Modal>
+				<ChooseInstaPayUserModal
+					modalVisible={this.state.chooseUserModalVisible}
+					confirmText={'Confirm'}
+					onConfirmPress={this.setUsername}
+					loading={this.state.settingUsername}
+				>
+					<View style={styles.modalView}>
+						<Text style={styles.modalTitle}>{'Choose your username'}</Text>
+						<Text style={styles.modalText}>{'This will make it easier for others to pay you'}</Text>
+						<TextInput
+							style={styles.textInput}
+							placeholder={''}
+							autoCapitalize={'none'}
+							autoCorrect={false}
+							spellCheck={false}
+							placeholderTextColor={colors.grey100}
+							value={this.state.newUsername}
+							onChangeText={this.onNewUsernameChange}
+							onSubmitEditing={this.setUsername}
+							returnKeyType={'done'}
+						/>
+					</View>
+				</ChooseInstaPayUserModal>
 			</SafeAreaView>
 		);
 	}

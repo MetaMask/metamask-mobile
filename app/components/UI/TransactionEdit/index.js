@@ -194,6 +194,7 @@ class TransactionEdit extends PureComponent {
 		gasError: '',
 		fillMax: false,
 		ensRecipient: undefined,
+		instaPayRecipient: undefined,
 		data: undefined,
 		accountSelectIsOpen: false,
 		ethInputIsOpen: false
@@ -316,12 +317,12 @@ class TransactionEdit extends PureComponent {
 		this.setState({ toAddressError: undefined });
 	};
 
-	updateAndValidateToAddress = async (to, ensRecipient) => {
-		await this.props.handleUpdateToAddress(to, ensRecipient);
+	updateAndValidateToAddress = async (to, ensRecipient, instaPayRecipient) => {
+		await this.props.handleUpdateToAddress(to, ensRecipient, instaPayRecipient);
 		let { toAddressError, toAddressWarning } = this.state;
 		toAddressError = toAddressError || this.props.validateToAddress();
 		toAddressWarning = toAddressWarning || this.props.checkForAssetAddress();
-		this.setState({ toAddressError, toAddressWarning, ensRecipient });
+		this.setState({ toAddressError, toAddressWarning, ensRecipient, instaPayRecipient });
 	};
 
 	renderAmountLabel = () => {
@@ -361,6 +362,7 @@ class TransactionEdit extends PureComponent {
 				selectedAsset,
 				readableValue,
 				ensRecipient,
+				instaPayRecipient,
 				paymentChannelTransaction
 			},
 			showHexData
@@ -419,6 +421,7 @@ class TransactionEdit extends PureComponent {
 								address={to}
 								updateToAddressError={this.updateToAddressError}
 								ensRecipient={ensRecipient}
+								instaPayRecipient={instaPayRecipient}
 								navigation={navigation}
 								openAccountSelect={this.openAccountSelect}
 								isOpen={accountSelectIsOpen}

@@ -5,12 +5,13 @@ import PropTypes from 'prop-types';
 import { ScrollView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import { renderShortAddress, isENS } from '../../../util/address';
+import { renderShortAddress, renderShortXpubAddress, isENS, isInstaPay, isValidXpub } from '../../../util/address';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ElevatedView from 'react-native-elevated-view';
 import ENS from 'ethjs-ens';
 import networkMap from 'ethjs-ens/lib/network-map.json';
 import Engine from '../../../core/Engine';
+import InstaPay from '../../../core/InstaPay';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import DeviceSize from '../../../util/DeviceSize';
@@ -151,6 +152,10 @@ class AccountInput extends PureComponent {
 		 */
 		ensRecipient: PropTypes.string,
 		/**
+		 * Value of this underlying input
+		 */
+		instaPayRecipient: PropTypes.string,
+		/**
 		 * Network id
 		 */
 		network: PropTypes.string,
@@ -179,13 +184,14 @@ class AccountInput extends PureComponent {
 	state = {
 		address: undefined,
 		ensRecipient: undefined,
+		instaPayRecipient: undefined,
 		value: undefined,
 		inputEnabled: Platform.OS === 'ios'
 	};
 
 	componentDidMount = async () => {
 		const { provider } = Engine.context.NetworkController;
-		const { address, network, ensRecipient } = this.props;
+		const { address, network, ensRecipient, instaPayRecipient } = this.props;
 
 		const networkHasEnsSupport = this.getNetworkEnsSupport();
 		if (networkHasEnsSupport) {
@@ -194,6 +200,12 @@ class AccountInput extends PureComponent {
 		if (ensRecipient) {
 			this.setState({ value: ensRecipient, ensRecipient, address }, () => {
 				// If we have an ENS name predefined
+				// We need to resolve it
+				this.onBlur();
+			});
+		} else if (instaPayRecipient) {
+			this.setState({ value: instaPayRecipient, instaPayRecipient, address }, () => {
+				// If we have an InstaPay name predefined
 				// We need to resolve it
 				this.onBlur();
 			});
@@ -216,6 +228,14 @@ class AccountInput extends PureComponent {
 		return true;
 	};
 
+	isInstaPayName = recipient => {
+		if (!isInstaPay(recipient)) {
+			this.setState({ ensRecipient: undefined });
+			return false;
+		}
+		return true;
+	};
+
 	lookupEnsName = async recipient => {
 		const { address } = this.state;
 		try {
@@ -225,6 +245,20 @@ class AccountInput extends PureComponent {
 				return true;
 			}
 			throw new Error(strings('transaction.no_address_for_ens'));
+		} catch (error) {
+			this.props.updateToAddressError && this.props.updateToAddressError(error.message);
+			return false;
+		}
+	};
+
+	lookupInstaPayName = async recipient => {
+		try {
+			const resolvedAddress = await InstaPay.getXpubFromUsername(recipient.trim());
+			if (isValidXpub(resolvedAddress)) {
+				this.setState({ address: resolvedAddress, instaPayRecipient: recipient });
+				return true;
+			}
+			throw new Error(strings('transaction.no_address_for_instapay'));
 		} catch (error) {
 			this.props.updateToAddressError && this.props.updateToAddressError(error.message);
 			return false;
@@ -244,8 +278,13 @@ class AccountInput extends PureComponent {
 		if (isEnsName) {
 			onBlur && onBlur(this.state.address, value);
 		} else {
-			this.setState({ address: value, ensRecipient: undefined });
-			onBlur && onBlur(value, undefined);
+			const isInstaPayName = this.isInstaPayName(value) && (await this.lookupInstaPayName(value));
+			if (isInstaPayName) {
+				onBlur && onBlur(this.state.address, value);
+			} else {
+				this.setState({ address: value, ensRecipient: undefined, instaPayRecipient: undefined });
+				onBlur && onBlur(value, undefined);
+			}
 		}
 	};
 
@@ -371,7 +410,7 @@ class AccountInput extends PureComponent {
 	};
 
 	render = () => {
-		const { value, ensRecipient, address } = this.state;
+		const { value, ensRecipient, instaPayRecipient, address } = this.state;
 		const { placeholder, isOpen } = this.props;
 		return (
 			<View style={styles.root}>
@@ -400,6 +439,9 @@ class AccountInput extends PureComponent {
 							/>
 							<View style={styles.ensView}>
 								{!!ensRecipient && <Text style={styles.ensAddress}>{renderShortAddress(address)}</Text>}
+								{!!instaPayRecipient && (
+									<Text style={styles.ensAddress}>{renderShortXpubAddress(address)}</Text>
+								)}
 							</View>
 						</View>
 					</View>
