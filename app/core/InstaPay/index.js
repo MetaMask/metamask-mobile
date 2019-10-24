@@ -190,10 +190,8 @@ class InstaPay {
 			await this.refreshBalances();
 			await this.autoDeposit();
 			await this.autoSwap();
+			await this.checkPaymentHistory();
 		}, 3000);
-		// interval(async () => {
-		// 	await this.checkPaymentHistory();
-		// }, 5000);
 	};
 
 	checkPaymentHistory = async () => {
