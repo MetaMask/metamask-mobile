@@ -6,7 +6,19 @@ import interval from 'interval-promise';
 
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } from './utils';
+import {
+	Currency,
+	minBN,
+	toBN,
+	tokenToWei,
+	weiToToken,
+	delay,
+	inverse,
+	decryptMnemonic,
+	saveMnemonic,
+	backupMnemonic,
+	getMnemonicFromBackup
+} from './utils';
 import Store from './utils/store';
 import AppConstants from '../AppConstants';
 import { Contract, ethers as eth } from 'ethers';
@@ -21,7 +33,6 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../../util/networks';
 import Encryptor from '../Encryptor';
 
-const privates = new WeakMap();
 const encryptor = new Encryptor();
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 const API_URL = 'indra.connext.network/api';
@@ -55,12 +66,11 @@ let client = null;
  * payment channels
  */
 class InstaPay {
-	constructor(mnemonic, network, selectedAddress, instaPay3boxSpace) {
+	constructor(mnemonic, network) {
 		const swapRate = '100.00';
 		this.state = {
 			username: '',
 			address: '',
-			selectedAddress,
 			balance: {
 				channel: {
 					ether: Currency.ETH('0', swapRate),
@@ -86,7 +96,6 @@ class InstaPay {
 			token: null,
 			xpub: '',
 			tokenProfile: null,
-			instaPay3boxSpace,
 			usernameSynced: false
 		};
 
@@ -173,6 +182,11 @@ class InstaPay {
 
 		await this.addDefaultPaymentProfile();
 		await this.startPoller();
+
+		const InstaPayBackedUp = await AsyncStorage.getItem('@MetaMask:InstaPayBackedUp');
+		if (!InstaPayBackedUp) {
+			hub.emit('backup::requested', null);
+		}
 	};
 
 	setState = data => {
@@ -434,7 +448,7 @@ class InstaPay {
 
 	deposit = async ({ depositAmount }) => {
 		const normalizedTxMeta = {
-			from: this.state.selectedAddress,
+			from: Engine.context.PreferencesController.state.selectedAddress,
 			value: BNToHex(depositAmount),
 			to: this.state.wallet.address,
 			silent: true
@@ -477,7 +491,8 @@ class InstaPay {
 			Logger.log(balance);
 			this.setPending({ type: 'withdrawal', complete: false, closed: false });
 			TransactionsNotificationManager.showInstantPaymentNotification('pending_withdrawal');
-			Logger.log(`Withdrawing ${total.toETH().format()} to: ${this.state.selectedAddress}`);
+			const selectedAddress = Engine.context.PreferencesController.state.selectedAddress;
+			Logger.log(`Withdrawing ${total.toETH().format()} to: ${selectedAddress}`);
 
 			if (balance.channel.token.wad.gt(Zero)) {
 				await channel.addPaymentProfile({
@@ -503,7 +518,7 @@ class InstaPay {
 			const result = await channel.withdraw({
 				amount: totalInWei,
 				assetId: AddressZero,
-				recipient: this.state.selectedAddress
+				recipient: selectedAddress
 			});
 
 			Logger.log(`Cashout result: ${JSON.stringify(result)}`);
@@ -606,55 +621,25 @@ class InstaPay {
 }
 
 const instance = {
-	// Sets the minumum security when no password
-	basicSecure(code) {
-		privates.set(this, { code, basic: true });
-	},
-	// Sets the password level security
-	secure(code) {
-		if (code !== '') {
-			privates.set(this, { code, basic: false });
-		}
-	},
-	// Allows upgrading security
-	async upgradeSecurity(newCode) {
-		if (newCode && privates.get(this).basic) {
-			const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
-			if (encryptedMnemonic) {
-				try {
-					const mnemonic = await encryptor.decrypt(privates.get(this).code, encryptedMnemonic);
-					privates.set(this, { code: newCode, basic: false });
-					const newEncryptedMnemonic = await encryptor.encrypt(privates.get(this).code, mnemonic);
-					AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', newEncryptedMnemonic);
-					await this.state.instaPay3boxSpace.privateSetSpace(`instapay_data`, mnemonic);
-				} catch (e) {
-					Logger.error('InstaPay:: Upgrade security Error', e);
-				}
-			}
-		}
-	},
 	/**
 	 * Method that initializes the connext client for a
 	 * specific address, along with all the listeners required
 	 */
-	async init(instaPay3boxSpace) {
+	async init() {
 		const { provider } = Engine.context.NetworkController.state;
-		const { selectedAddress } = Engine.context.PreferencesController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			initListeners();
 			Logger.log('InstaPay::Initialzing payment channels');
-
 			try {
 				let mnemonic;
 				const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
 				if (encryptedMnemonic) {
-					mnemonic = await encryptor.decrypt(privates.get(this).code, encryptedMnemonic);
+					mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
 				} else {
 					mnemonic = eth.Wallet.createRandom().mnemonic;
-					const newEncryptedMnemonic = await encryptor.encrypt(privates.get(this).code, mnemonic);
-					AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', newEncryptedMnemonic);
+					await saveMnemonic(encryptor, mnemonic);
 				}
-				client = new InstaPay(mnemonic, provider.type, selectedAddress, instaPay3boxSpace);
+				client = new InstaPay(mnemonic, provider.type);
 			} catch (e) {
 				client && client.logCurrentState('InstaPay::init');
 				Logger.error('InstaPay::init', e);
@@ -765,6 +750,18 @@ const instance = {
 		await AsyncStorage.removeItem('@MetaMask:InstaPayMnemonic');
 		await AsyncStorage.removeItem('@MetaMask:InstaPay');
 		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
+		await AsyncStorage.removeItem('@MetaMask:InstaPayBackedUp');
+	},
+	initBackup: async space => {
+		const encryptedMnemonic = AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
+		await backupMnemonic(space, encryptedMnemonic);
+		await AsyncStorage.setItem('@MetaMask:InstaPayBackedUp', 'true');
+	},
+	restoreBackup: async space => {
+		const backedupEncryptedMnemonic = await getMnemonicFromBackup(space);
+		await AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', backedupEncryptedMnemonic);
+		this.stop();
+		this.init();
 	}
 };
 

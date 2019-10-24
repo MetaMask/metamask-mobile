@@ -27,7 +27,6 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
-import InstaPay from '../../../core/InstaPay';
 import zxcvbn from 'zxcvbn';
 
 const styles = StyleSheet.create({
@@ -223,7 +222,6 @@ class ChoosePassword extends PureComponent {
 				const existingAccountCount = hdKeyring.accounts.length;
 				// Recreate keyring
 				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
-				InstaPay.upgradeSecurity(this.state.password);
 
 				for (let i = 0; i < existingAccountCount - 1; i++) {
 					await KeyringController.addNewAccount();

@@ -313,11 +313,6 @@ class ImportWallet extends PureComponent {
 
 	finishSync = async opts => {
 		InstaPay.cleanUp();
-		await AsyncStorage.removeItem('@MetaMask:InstaPayUsername');
-		await AsyncStorage.removeItem('@MetaMask:InstaPayMnemonic');
-		await AsyncStorage.removeItem('@MetaMask:InstaPay');
-		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
-
 		if (opts.biometrics) {
 			const authOptions = {
 				accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE

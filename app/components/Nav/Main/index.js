@@ -388,7 +388,8 @@ class Main extends PureComponent {
 		paymentChannelRequest: false,
 		paymentChannelRequestLoading: false,
 		paymentChannelRequestCompleted: false,
-		paymentChannelRequestInfo: {}
+		paymentChannelRequestInfo: {},
+		is3boxEnabled: false
 	};
 
 	web3BoxRef = React.createRef();
@@ -502,17 +503,6 @@ class Main extends PureComponent {
 			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
 		});
 		WalletConnect.init();
-	};
-
-	initialize3box = async () => {
-		const allKeyrings = Engine.context.KeyringController.state.keyrings;
-		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
-		console.log('OPENING BOX');
-
-		this.web3BoxRef.current && (await this.web3BoxRef.current.openBox(accountsOrdered[0]));
-		console.log('READY TO OPEN THE SPACE!');
-		await this.web3BoxRef.current.openSpace('InstaPay');
-		console.log('SPACE OPENED');
 	};
 
 	initializePaymentChannels = () => {
@@ -636,7 +626,35 @@ class Main extends PureComponent {
 			}, 800);
 		});
 
-		this.initialize3box();
+		InstaPay.hub.on('backup::requested', () => {
+			this.setState({ is3boxEnabled: true }, async () => {
+				const allKeyrings = Engine.context.KeyringController.state.keyrings;
+				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+				console.log('OPENING BOX');
+
+				this.web3BoxRef.current && (await this.web3BoxRef.current.openBox(accountsOrdered[0]));
+				console.log('READY TO OPEN THE SPACE!');
+				await this.web3BoxRef.current.openSpace('InstaPay');
+				console.log('SPACE OPENED');
+				await InstaPay.initBackup(this.web3BoxRef.current);
+				this.setState({ is3boxEnabled: false });
+			});
+		});
+
+		InstaPay.hub.on('backup::restore', () => {
+			this.setState({ is3boxEnabled: true }, async () => {
+				const allKeyrings = Engine.context.KeyringController.state.keyrings;
+				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+				console.log('OPENING BOX');
+
+				this.web3BoxRef.current && (await this.web3BoxRef.current.openBox(accountsOrdered[0]));
+				console.log('READY TO OPEN THE SPACE!');
+				await this.web3BoxRef.current.openSpace('InstaPay');
+				console.log('SPACE OPENED');
+				InstaPay.restoreBackup(this.web3BoxRef.current);
+				this.setState({ is3boxEnabled: false });
+			});
+		});
 	};
 
 	paymentChannelDepositSign = async transactionMeta => {
@@ -966,9 +984,11 @@ class Main extends PureComponent {
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
 				{this.renderPaymentChannelRequestApproval()}
-				<View style={styles.webview3boxWrapper}>
-					<Web3Box ref={this.web3BoxRef} style={styles.flex} />
-				</View>
+				{this.state.is3boxEnabled && (
+					<View style={styles.webview3boxWrapper}>
+						<Web3Box ref={this.web3BoxRef} style={styles.flex} />
+					</View>
+				)}
 			</React.Fragment>
 		);
 	}
