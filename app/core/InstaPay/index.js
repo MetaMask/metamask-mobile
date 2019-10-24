@@ -56,7 +56,9 @@ const DEFAULT_AMOUNT_TO_COLLATERALIZE = Currency.DAI('10');
 
 const hub = new EventEmitter();
 let client = null;
-// let reloading = false;
+let running = false;
+let reloading = false;
+
 // THIS TWO MNEMONICS ARE IN A BROKEN STATE
 // const mnemonic = 'token face horse fame you love envelope velvet comfort section mask street';
 // const mnemonic = 'avocado holiday swamp balcony good clap culture assume erode mask grape observe';
@@ -197,10 +199,15 @@ class InstaPay {
 	};
 
 	startPoller = async () => {
+		running = true;
 		await this.refreshBalances();
 		await this.autoDeposit();
 		await this.autoSwap();
-		interval(async () => {
+		await this.checkPaymentHistory();
+		interval(async (iteration, stop) => {
+			if (!running) {
+				stop();
+			}
 			await this.refreshBalances();
 			await this.autoDeposit();
 			await this.autoSwap();
@@ -661,7 +668,7 @@ const instance = {
 	 */
 	stop: () => {
 		if (client) {
-			// client.stop();
+			running = false;
 			removeListeners();
 			hub.removeAllListeners();
 		}
@@ -751,6 +758,7 @@ const instance = {
 		await AsyncStorage.removeItem('@MetaMask:InstaPay');
 		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
 		await AsyncStorage.removeItem('@MetaMask:InstaPayBackedUp');
+		instance.stop();
 	},
 	initBackup: async space => {
 		const encryptedMnemonic = AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
@@ -760,27 +768,25 @@ const instance = {
 	restoreBackup: async space => {
 		const backedupEncryptedMnemonic = await getMnemonicFromBackup(space);
 		await AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', backedupEncryptedMnemonic);
-		this.stop();
-		this.init();
+		instance.stop();
+		instance.init();
 	}
 };
 
-// const reloadClient = () => {
-// 	if (!reloading) {
-// 		reloading = true;
-// 		if (client) {
-// 			//client.stop();
-// 			removeListeners();
-// 		}
-// 		setTimeout(() => {
-// 			const { provider } = Engine.context.NetworkController.state;
-// 			client = new InstaPay(mnemonic, provider.type);
-// 			setTimeout(() => {
-// 				reloading = false;
-// 			}, 1000);
-// 		}, 1000);
-// 	}
-// };
+const reloadClient = () => {
+	if (!reloading) {
+		reloading = true;
+		if (client) {
+			instance.stop();
+		}
+		setTimeout(() => {
+			instance.init();
+			setTimeout(() => {
+				reloading = false;
+			}, 1000);
+		}, 1000);
+	}
+};
 
 const onPaymentConfirm = async request => {
 	try {
@@ -798,14 +804,14 @@ const onPaymentConfirm = async request => {
 };
 
 function initListeners() {
-	// Engine.context.TransactionController.hub.on('networkChange', reloadClient);
-	// Engine.context.PreferencesController.subscribe(reloadClient);
+	Engine.context.TransactionController.hub.on('networkChange', reloadClient);
+	Engine.context.PreferencesController.subscribe(reloadClient);
 	hub.on('payment::confirm', onPaymentConfirm);
 }
 
 function removeListeners() {
-	// Engine.context.TransactionController.hub.removeListener('networkChange', reloadClient);
-	// Engine.context.PreferencesController.unsubscribe(reloadClient);
+	Engine.context.TransactionController.hub.removeListener('networkChange', reloadClient);
+	Engine.context.PreferencesController.unsubscribe(reloadClient);
 	hub.removeListener('payment::confirm', onPaymentConfirm);
 }
 
