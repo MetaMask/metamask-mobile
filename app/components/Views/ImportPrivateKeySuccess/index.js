@@ -117,8 +117,12 @@ class ImportPrivateKeySuccess extends PureComponent {
 					style={styles.mainWrapper}
 					testID={'first-incoming-transaction-screen'}
 				>
-					<View style={styles.content}>
-						<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
+					<View style={styles.content} testID={'import-success-screen'}>
+						<TouchableOpacity
+							onPress={this.dismiss}
+							style={styles.navbarRightButton}
+							testID={'import-close-button'}
+						>
 							<MaterialIcon name="close" size={15} style={styles.closeIcon} />
 						</TouchableOpacity>
 						<View style={styles.top}>

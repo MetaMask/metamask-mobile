@@ -195,7 +195,9 @@ class ReceiveRequest extends PureComponent {
 					<View style={styles.dragger} />
 				</View>
 				<View style={styles.titleWrapper}>
-					<Text style={styles.title}>{strings('receive_request.title')}</Text>
+					<Text style={styles.title} testID={'receive-request-screen'}>
+						{strings('receive_request.title')}
+					</Text>
 				</View>
 
 				<View style={styles.actionsWrapper}>
@@ -239,6 +241,7 @@ class ReceiveRequest extends PureComponent {
 					onSwipeComplete={this.closeQrModal}
 					swipeDirection={'down'}
 					propagateSwipe
+					testID={'qr-modal'}
 				>
 					<AddressQRCode closeQrModal={this.closeQrModal} />
 				</Modal>
