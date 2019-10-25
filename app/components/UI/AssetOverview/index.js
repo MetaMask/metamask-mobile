@@ -175,15 +175,18 @@ class AssetOverview extends PureComponent {
 		}
 
 		return (
-			<View style={styles.wrapper}>
+			<View style={styles.wrapper} testID={'token-asset-overview'}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.balance}>
-					<Text style={styles.amount}>{mainBalance}</Text>
+					<Text style={styles.amount} testID={'token-amount'}>
+						{mainBalance}
+					</Text>
 					<Text style={styles.amountFiat}>{secondaryBalance}</Text>
 				</View>
 
 				<AssetActionButtons
 					leftText={strings('asset_overview.send_button').toUpperCase()}
+					testID={'token-send-button'}
 					middleText={strings('asset_overview.receive_button').toUpperCase()}
 					onLeftPress={this.onSend}
 					onMiddlePress={this.onReceive}

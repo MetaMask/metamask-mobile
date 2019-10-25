@@ -51,6 +51,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
           "fontWeight": "400",
         }
       }
+      testID="receive-request-screen"
     >
       Receive
     </Text>
@@ -199,6 +200,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
     }
     swipeDirection="down"
     swipeThreshold={100}
+    testID="qr-modal"
     useNativeDriver={false}
   >
     <Connect(AddressQRCode)

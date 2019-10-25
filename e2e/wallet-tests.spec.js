@@ -7,6 +7,7 @@ const TEST_PUBLIC_ADDRESS = '0xd3B9Cbea7856AECf4A6F7c3F4E8791F79cBeeD62';
 const Rinkeby = 'Rinkeby Test Network';
 const COLLECTIBLE_CONTRACT_ADDRESS = '0x16baf0de678e52367adc69fd067e5edd1d33e3bf';
 const COLLECTIBLE_IDENTIFIER = '404';
+const TOKEN_ADDRESS = '0x12525e53a7fB9e072e60062D087b19a05442BD8f';
 
 describe('Wallet Tests', () => {
 	beforeEach(() => {
@@ -100,7 +101,7 @@ describe('Wallet Tests', () => {
 		await TestHelpers.checkIfExists('wallet-screen');
 	});
 
-	it('should switch to ropsten network and validate ETH value', async () => {
+	it('should switch to ropsten network', async () => {
 		// Tap on Ethereum Main Network to prompt modal
 		await TestHelpers.tapAtPoint('wallet-screen', { x: 200, y: -5 });
 		// Check that the Networks modal pops up
@@ -128,16 +129,119 @@ describe('Wallet Tests', () => {
 		await TestHelpers.tapByText('ADD');
 		// Check that identifier warning appears
 		await TestHelpers.checkIfVisible('collectible-identifier-warning');
-		// Clear address field content
-		await TestHelpers.clearField('input-collectible-address');
-		// Input correct contract address
+		// Tap on back arrow
+		await TestHelpers.tapAtPoint('add-custom-token-screen', { x: 25, y: -22 });
+		// Tap on the add collectibles button
+		await TestHelpers.waitAndTap('add-collectible-button');
+		// Check that we are on the add collectible asset screen
+		await TestHelpers.checkIfVisible('add-custom-token-screen');
+		// Input incorrect contract address
 		await TestHelpers.typeTextAndHideKeyboard('input-collectible-address', COLLECTIBLE_CONTRACT_ADDRESS);
 		// Input correct identifier
 		await TestHelpers.typeTextAndHideKeyboard('input-token-decimals', COLLECTIBLE_IDENTIFIER);
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfExists('wallet-screen');
+		// Wait for asset to load
+		await TestHelpers.delay(3000);
+		// Check that the crypto kitty was added
+		await TestHelpers.checkIfElementByTextIsVisible('CryptoKitties');
+		// Tap on Crypto Kitty
+		await TestHelpers.tapByText('CryptoKitties');
+		// Check that we are on the overview screen
+		await TestHelpers.checkIfVisible('collectible-overview-screen');
+		// Check that the asset is correct
+		await TestHelpers.checkIfElementHasString('collectible-name', '1 CryptoKitties');
+		// Tap on back arrow
+		await TestHelpers.tapAtPoint('collectible-overview-screen', { x: 25, y: -22 });
 	});
 
-	// it('should ', async () => {
-	// 	// Check that we are on the onboarding carousel screen
-	// 	await TestHelpers.checkIfVisible('onboarding-carousel-screen');
-	// });
+	it('should add a token', async () => {
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Tap on TOKENS tab
+		await TestHelpers.tapByText('TOKENS');
+		// Tap on Add Tokens
+		await TestHelpers.tap('add-token-button');
+		// Search for DAI
+		await TestHelpers.typeTextAndHideKeyboard('input-search-asset', 'DAI');
+		// Wait for results to load
+		await TestHelpers.delay(2000);
+		// Tap on DAI
+		await TestHelpers.tapAtPoint('search-token-screen', { x: 115, y: 160 });
+		// Tap on Add Token button
+		await TestHelpers.tapByText('ADD TOKEN');
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Check that DAI is added to wallet
+		await TestHelpers.checkIfElementWithTextIsVisible('0 DAI');
+	});
+
+	it('should add a custom token', async () => {
+		// Tap on Add Tokens
+		await TestHelpers.tap('add-token-button');
+		// Tap on CUSTOM TOKEN
+		await TestHelpers.tapByText('CUSTOM TOKEN');
+		// Check that we are on the custom token screen
+		await TestHelpers.checkIfVisible('add-custom-token-screen');
+		// Type incorrect token address
+		await TestHelpers.typeTextAndHideKeyboard('input-token-address', '1234');
+		// Check that address warning is displayed
+		await TestHelpers.checkIfVisible('token-address-warning');
+		// Type incorrect token symbol
+		await TestHelpers.typeTextAndHideKeyboard('input-token-symbol', 'ROCK');
+		// Tap to focus outside of text input field
+		await TestHelpers.tapAtPoint('add-custom-token-screen', { x: 180, y: 15 });
+		// Check that token decimals warning is displayed
+		await TestHelpers.checkIfVisible('token-decimals-warning');
+		// Tap on cancel button
+		await TestHelpers.tapByText('CANCEL');
+		// Tap on Add Tokens
+		await TestHelpers.tap('add-token-button');
+		// Tap on CUSTOM TOKEN
+		await TestHelpers.tapByText('CUSTOM TOKEN');
+		// Check that we are on the custom token screen
+		await TestHelpers.checkIfVisible('add-custom-token-screen');
+		// Type incorrect token address
+		await TestHelpers.typeText('input-token-address', TOKEN_ADDRESS);
+		// Tap to focus outside of text input field
+		await TestHelpers.tapAtPoint('add-custom-token-screen', { x: 180, y: 15 });
+		// Tap on Add Token button
+		await TestHelpers.tapByText('ADD TOKEN');
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Check that TENX is added to wallet
+		await TestHelpers.checkIfElementWithTextIsVisible('0 TENX');
+	});
+
+	it('should send ETH to account 2', async () => {
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Tap on ETH asset
+		await TestHelpers.waitAndTap('eth-logo');
+		//await TestHelpers.tapAtPoint('wallet-screen', { x: 190, y: 250 });
+		// Check that we are on the token overview screen
+		await TestHelpers.checkIfVisible('token-asset-overview');
+		// Check that the token amount is correct
+		await TestHelpers.checkIfElementHasString('token-asset-overview', '3 ETH');
+		// Tap on Send button
+		await TestHelpers.tapByText('SEND');
+		// Tap on account drop down arrow
+		await TestHelpers.tap('account-drop-down');
+		// Tap on Account 2
+		await TestHelpers.tapByText('Account 2');
+		// Input Amount
+		await TestHelpers.replaceTextInField('amount-input', '0.000001');
+		// Tap on NEXT button
+		await TestHelpers.tapByText('NEXT');
+		// Tap on CONFIRM button
+		await TestHelpers.tapByText('CONFIRM');
+		// Check that we are on the token overview screen
+		await TestHelpers.checkIfVisible('token-asset-overview');
+		// Wait for enable notifications alert to show up
+		await TestHelpers.delay(10000);
+		// Dismiss alert
+		await TestHelpers.tapAlertWithButton('No, thanks');
+		// Check that the token amount is correct
+		await TestHelpers.checkIfElementHasString('token-asset-overview', '3 ETH');
+	});
 });

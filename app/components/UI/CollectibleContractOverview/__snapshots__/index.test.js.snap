@@ -13,6 +13,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
       "paddingHorizontal": 20,
     }
   }
+  testID="collectible-overview-screen"
 >
   <View
     style={
@@ -50,6 +51,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
           "textAlign": "center",
         }
       }
+      testID="collectible-name"
     >
        
       name
@@ -63,6 +65,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
     onMiddlePress={[Function]}
     onRightPress={[Function]}
     rightText="Info"
+    testID="collectible-info-button"
   />
 </View>
 `;
