@@ -1,10 +1,10 @@
 'use strict';
 import TestHelpers from './helpers';
 
-const Correct_Seed_Words = 'fold media south add since false relax immense pause cloth just raven';
-const Correct_Password = `12345678`;
+const CORRECT_SEED_WORDS = 'fold media south add since false relax immense pause cloth just raven';
+const CORRECT_PASSWORD = `12345678`;
 const TEST_PUBLIC_ADDRESS = '0xd3B9Cbea7856AECf4A6F7c3F4E8791F79cBeeD62';
-const Rinkeby = 'Rinkeby Test Network';
+const RINKEBY = 'Rinkeby Test Network';
 const COLLECTIBLE_CONTRACT_ADDRESS = '0x16baf0de678e52367adc69fd067e5edd1d33e3bf';
 const COLLECTIBLE_IDENTIFIER = '404';
 const TOKEN_ADDRESS = '0x12525e53a7fB9e072e60062D087b19a05442BD8f';
@@ -31,11 +31,11 @@ describe('Wallet Tests', () => {
 		// Check that we are on the import from seed screen
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input seed phrase
-		await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Correct_Seed_Words);
+		await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, CORRECT_SEED_WORDS);
 		// Input password
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, CORRECT_PASSWORD);
 		// Input password confirm
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, CORRECT_PASSWORD);
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
@@ -139,9 +139,9 @@ describe('Wallet Tests', () => {
 		// Check that the Networks modal pops up
 		await TestHelpers.checkIfVisible('networks-list');
 		// Tap on Rinkeby Test Nework
-		await TestHelpers.tapByText(Rinkeby);
+		await TestHelpers.tapByText(RINKEBY);
 		// Check that we are on Rinkeby network
-		await TestHelpers.checkIfElementWithTextIsVisible(Rinkeby);
+		await TestHelpers.checkIfElementWithTextIsVisible(RINKEBY);
 	});
 
 	it('should add a collectible', async () => {
