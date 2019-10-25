@@ -165,7 +165,7 @@ class Tokens extends PureComponent {
 			>
 				{asset.isETH ? (
 					<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
-						<Image source={ethLogo} style={styles.ethLogo} />
+						<Image source={ethLogo} style={styles.ethLogo} testID={'eth-logo'} />
 					</FadeIn>
 				) : (
 					<TokenImage asset={asset} containerStyle={styles.ethLogo} />
