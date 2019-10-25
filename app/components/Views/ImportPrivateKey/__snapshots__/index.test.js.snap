@@ -42,6 +42,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           "alignItems": "flex-start",
         }
       }
+      testID="import-account-screen"
     >
       <TouchableOpacity
         activeOpacity={0.2}
@@ -270,7 +271,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        testID="submit-button"
+        testID="import-button"
         type="confirm"
       >
         IMPORT

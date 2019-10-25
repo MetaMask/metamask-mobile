@@ -8,6 +8,7 @@ const Rinkeby = 'Rinkeby Test Network';
 const COLLECTIBLE_CONTRACT_ADDRESS = '0x16baf0de678e52367adc69fd067e5edd1d33e3bf';
 const COLLECTIBLE_IDENTIFIER = '404';
 const TOKEN_ADDRESS = '0x12525e53a7fB9e072e60062D087b19a05442BD8f';
+const TEST_PRIVATE_KEY = 'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 
 describe('Wallet Tests', () => {
 	beforeEach(() => {
@@ -62,6 +63,37 @@ describe('Wallet Tests', () => {
 		await TestHelpers.tapAtPoint('wallet-screen', { x: 50, y: 50 });
 	});
 
+	it('should be able to import account', async () => {
+		// Tap on account icon to prompt modal
+		await TestHelpers.tapAtPoint('wallet-screen', { x: 190, y: 50 });
+		// Check that the account list view is visible
+		await TestHelpers.checkIfVisible('account-list');
+		// Tap on Create New Account
+		await TestHelpers.waitAndTap('import-account-button');
+		// Check that we are on the import screen
+		await TestHelpers.checkIfVisible('import-account-screen');
+		// Tap on import button to make sure alert pops up
+		await TestHelpers.waitAndTap('import-button');
+		// Dimsiss alert
+		await TestHelpers.tapAlertWithButton('OK');
+		// Input incorrect private key
+		await TestHelpers.typeTextAndHideKeyboard('input-private-key', '1234');
+		// Dimsiss alert
+		await TestHelpers.tapAlertWithButton('OK');
+		// Clear text
+		await TestHelpers.clearField('input-private-key');
+		// Input correct private key
+		await TestHelpers.typeTextAndHideKeyboard('input-private-key', TEST_PRIVATE_KEY);
+		// Check that we are on the account succesfully imported screen
+		await TestHelpers.checkIfVisible('import-success-screen');
+		// Tap X to close modal
+		await TestHelpers.tap('import-close-button');
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfExists('wallet-screen');
+		// Check if account was added
+		await TestHelpers.checkIfElementHasString('account-label-text-input', 'Account 3');
+	});
+
 	it('should be able to switch accounts', async () => {
 		// Open Drawer
 		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
@@ -101,14 +133,14 @@ describe('Wallet Tests', () => {
 		await TestHelpers.checkIfExists('wallet-screen');
 	});
 
-	it('should switch to ropsten network', async () => {
+	it('should switch to Rinkeby network', async () => {
 		// Tap on Ethereum Main Network to prompt modal
 		await TestHelpers.tapAtPoint('wallet-screen', { x: 200, y: -5 });
 		// Check that the Networks modal pops up
 		await TestHelpers.checkIfVisible('networks-list');
-		// Tap on Ropsten Test Nework
+		// Tap on Rinkeby Test Nework
 		await TestHelpers.tapByText(Rinkeby);
-		// Check that we are on Ropsten network
+		// Check that we are on Rinkeby network
 		await TestHelpers.checkIfElementWithTextIsVisible(Rinkeby);
 	});
 
