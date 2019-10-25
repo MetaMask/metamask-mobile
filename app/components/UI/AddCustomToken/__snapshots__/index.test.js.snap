@@ -73,6 +73,7 @@ exports[`AddCustomToken should render correctly 1`] = `
               "marginTop": 15,
             }
           }
+          testID="token-address-warning"
         />
       </View>
       <View
@@ -177,6 +178,7 @@ exports[`AddCustomToken should render correctly 1`] = `
               "marginTop": 15,
             }
           }
+          testID="token-decimals-warning"
         />
       </View>
     </View>

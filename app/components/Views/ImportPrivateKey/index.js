@@ -191,7 +191,7 @@ export default class ImportPrivateKey extends PureComponent {
 					testID={'first-incoming-transaction-screen'}
 					resetScrollToCoords={{ x: 0, y: 0 }}
 				>
-					<View style={styles.content}>
+					<View style={styles.content} testID={'import-account-screen'}>
 						<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
 							<MaterialIcon name="close" size={15} style={styles.closeIcon} />
 						</TouchableOpacity>
@@ -239,7 +239,7 @@ export default class ImportPrivateKey extends PureComponent {
 							containerStyle={styles.button}
 							type={'confirm'}
 							onPress={this.goNext}
-							testID={'submit-button'}
+							testID={'import-button'}
 						>
 							{this.state.loading ? (
 								<ActivityIndicator size="small" color="white" />
