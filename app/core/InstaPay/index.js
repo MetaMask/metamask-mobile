@@ -300,7 +300,11 @@ class InstaPay {
 			if (e.message.includes(`This probably means that the StateChannel does not exist yet`)) {
 				// channel.connext was already called, meaning there should be
 				// an existing channel
-				await channel.restoreState(localStorage.getItem('mnemonic'));
+				const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
+				if (encryptedMnemonic) {
+					const mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
+					await channel.restoreState(mnemonic);
+				}
 				return;
 			}
 			Logger.warn(e);

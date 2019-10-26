@@ -715,15 +715,15 @@ class PaymentChannel extends PureComponent {
 	}
 
 	renderContent() {
-		if (InstaPay.isRestoring()) {
-			return (
-				<View style={styles.loader}>
-					<ActivityIndicator size="small" />
-					<Text>Please wait while we restore your account</Text>
-					<Text>(This might take a couple of minutes...)</Text>
-				</View>
-			);
-		}
+		// if (InstaPay.isRestoring()) {
+		// 	return (
+		// 		<View style={styles.loader}>
+		// 			<ActivityIndicator size="small" />
+		// 			<Text>Please wait while we restore your account</Text>
+		// 			<Text>(This might take a couple of minutes...)</Text>
+		// 		</View>
+		// 	);
+		// }
 
 		if (!this.state.ready) {
 			return (
