@@ -686,7 +686,7 @@ instance = {
 				if (encryptedMnemonic) {
 					try {
 						mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
-						Logger.log('recovered mnemonic', mnemonic);
+						Logger.log('recovered mnemonic');
 					} catch (e) {
 						Logger.error('Decrypt mnemonic error', encryptedMnemonic);
 					}
@@ -694,13 +694,12 @@ instance = {
 
 				if (!mnemonic) {
 					mnemonic = eth.Wallet.createRandom().mnemonic;
-					Logger.log('created new mnemonic', mnemonic);
+					Logger.log('created new mnemonic');
 					await saveMnemonic(encryptor, mnemonic);
 				}
 				try {
 					initListeners();
 					Logger.log('InstaPay::Starting client...');
-					Logger.log('initializing client with mnemonic', mnemonic);
 					client = new InstaPay(mnemonic, provider.type);
 				} catch (e) {
 					client && client.logCurrentState('InstaPay::init');
