@@ -304,6 +304,7 @@ class InstaPay {
 				if (encryptedMnemonic) {
 					const mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
 					await channel.restoreState(mnemonic);
+					reloadClient();
 				}
 				return;
 			}
@@ -830,6 +831,7 @@ instance = {
 		Logger.log('InstaPay::Restore backup process initiated');
 		const backedupEncryptedMnemonic = await getMnemonicFromBackup(space);
 		await AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', backedupEncryptedMnemonic);
+		await AsyncStorage.setItem('@MetaMask:InstaPayBackedUp', 'true');
 		await AsyncStorage.removeItem('@MetaMask:InstaPayRestoreBackUpNeeded');
 		Logger.log('InstaPay::Restore backup process completed');
 		restoring = false;
