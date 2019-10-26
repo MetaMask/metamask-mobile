@@ -506,7 +506,7 @@ class Main extends PureComponent {
 	};
 
 	initializePaymentChannels = () => {
-		InstaPay.init(this.web3BoxRef.current);
+		InstaPay.init();
 
 		InstaPay.hub.on('payment::request', async request => {
 			const validRequest = { ...request };
@@ -627,30 +627,32 @@ class Main extends PureComponent {
 		});
 
 		InstaPay.hub.on('backup::requested', () => {
+			Logger.log('InstaPay BACKUP STARTED...');
 			this.setState({ is3boxEnabled: true }, async () => {
 				const allKeyrings = Engine.context.KeyringController.state.keyrings;
 				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
-				console.log('OPENING BOX');
+				Logger.log('OPENING BOX');
 
 				this.web3BoxRef.current && (await this.web3BoxRef.current.openBox(accountsOrdered[0]));
-				console.log('READY TO OPEN THE SPACE!');
+				Logger.log('READY TO OPEN THE SPACE!');
 				await this.web3BoxRef.current.openSpace('InstaPay');
-				console.log('SPACE OPENED');
+				Logger.log('SPACE OPENED');
 				await InstaPay.initBackup(this.web3BoxRef.current);
 				this.setState({ is3boxEnabled: false });
 			});
 		});
 
 		InstaPay.hub.on('backup::restore', () => {
+			Logger.log('InstaPay RESTORE BACKUP STARTED...');
 			this.setState({ is3boxEnabled: true }, async () => {
 				const allKeyrings = Engine.context.KeyringController.state.keyrings;
 				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
-				console.log('OPENING BOX');
+				Logger.log('OPENING BOX');
 
 				this.web3BoxRef.current && (await this.web3BoxRef.current.openBox(accountsOrdered[0]));
-				console.log('READY TO OPEN THE SPACE!');
+				Logger.log('READY TO OPEN THE SPACE!');
 				await this.web3BoxRef.current.openSpace('InstaPay');
-				console.log('SPACE OPENED');
+				Logger.log('SPACE OPENED');
 				InstaPay.restoreBackup(this.web3BoxRef.current);
 				this.setState({ is3boxEnabled: false });
 			});

@@ -58,6 +58,23 @@ const hub = new EventEmitter();
 let client = null;
 let running = false;
 let reloading = false;
+// eslint-disable-next-line import/no-mutable-exports
+let instance = null;
+
+const reloadClient = () => {
+	if (!reloading) {
+		reloading = true;
+		if (client) {
+			instance.stop();
+		}
+		setTimeout(() => {
+			instance.init();
+			setTimeout(() => {
+				reloading = false;
+			}, 1000);
+		}, 1000);
+	}
+};
 
 // THIS TWO MNEMONICS ARE IN A BROKEN STATE
 // const mnemonic = 'token face horse fame you love envelope velvet comfort section mask street';
@@ -422,6 +439,12 @@ class InstaPay {
 
 	getBalance = () => this.state.balance.channel.token.toDAI().format({ decimals: 2, symbol: false });
 
+	getAssetId = () => {
+		const networkID = Networks[Engine.context.NetworkController.state.provider.type].networkId.toString();
+		if (networkID === '1') return AppConstants.DAI_ADDRESS;
+		return AppConstants.DAI_ADDRESS_RINKEBY;
+	};
+
 	send = async ({ sendAmount, sendRecipient }) =>
 		new Promise(async (resolve, reject) => {
 			const amount = Currency.DAI(sendAmount);
@@ -430,7 +453,7 @@ class InstaPay {
 			while (Date.now() < endingTs) {
 				try {
 					const data = {
-						assetId: AppConstants.DAI_ADDRESS_RINKEBY,
+						assetId: this.getAssetId(),
 						amount: amount.wad.toString(),
 						conditionType: 'LINKED_TRANSFER_TO_RECIPIENT',
 						paymentId: hexlify(randomBytes(32)),
@@ -627,25 +650,34 @@ class InstaPay {
 	};
 }
 
-const instance = {
+instance = {
 	/**
 	 * Method that initializes the connext client for a
 	 * specific address, along with all the listeners required
 	 */
 	async init() {
+		Logger.log('InstaPay::Starting client...');
 		const { provider } = Engine.context.NetworkController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			initListeners();
-			Logger.log('InstaPay::Initialzing payment channels');
-			try {
-				let mnemonic;
-				const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
-				if (encryptedMnemonic) {
+
+			let mnemonic;
+			const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
+			if (encryptedMnemonic) {
+				try {
 					mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
-				} else {
-					mnemonic = eth.Wallet.createRandom().mnemonic;
-					await saveMnemonic(encryptor, mnemonic);
+					Logger.log('recovered mnemonic', mnemonic);
+				} catch (e) {
+					Logger.error('Decrypt mnemonic error', encryptedMnemonic);
 				}
+			}
+
+			if (!mnemonic) {
+				mnemonic = eth.Wallet.createRandom().mnemonic;
+				Logger.log('created new mnemonic', mnemonic);
+				await saveMnemonic(encryptor, mnemonic);
+			}
+			try {
 				client = new InstaPay(mnemonic, provider.type);
 			} catch (e) {
 				client && client.logCurrentState('InstaPay::init');
@@ -668,6 +700,7 @@ const instance = {
 	 */
 	stop: () => {
 		if (client) {
+			Logger.log('InstaPay::stopping client...');
 			running = false;
 			removeListeners();
 			hub.removeAllListeners();
@@ -761,30 +794,18 @@ const instance = {
 		instance.stop();
 	},
 	initBackup: async space => {
+		Logger.log('InstaPay::Backup process initiated');
 		const encryptedMnemonic = AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
 		await backupMnemonic(space, encryptedMnemonic);
 		await AsyncStorage.setItem('@MetaMask:InstaPayBackedUp', 'true');
+		Logger.log('InstaPay::Backup process completed');
 	},
 	restoreBackup: async space => {
+		Logger.log('InstaPay::Restore backup process initiated');
 		const backedupEncryptedMnemonic = await getMnemonicFromBackup(space);
 		await AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', backedupEncryptedMnemonic);
-		instance.stop();
-		instance.init();
-	}
-};
-
-const reloadClient = () => {
-	if (!reloading) {
-		reloading = true;
-		if (client) {
-			instance.stop();
-		}
-		setTimeout(() => {
-			instance.init();
-			setTimeout(() => {
-				reloading = false;
-			}, 1000);
-		}, 1000);
+		Logger.log('InstaPay::Restore backup process completed');
+		reloadClient();
 	}
 };
 
@@ -804,14 +825,15 @@ const onPaymentConfirm = async request => {
 };
 
 function initListeners() {
-	Engine.context.TransactionController.hub.on('networkChange', reloadClient);
-	Engine.context.PreferencesController.subscribe(reloadClient);
+	Engine.context.TransactionController.hub.on('networkChange', () => {
+		Logger.log('InstaPay::Network has changed, reloading client...');
+		reloadClient();
+	});
 	hub.on('payment::confirm', onPaymentConfirm);
 }
 
 function removeListeners() {
 	Engine.context.TransactionController.hub.removeListener('networkChange', reloadClient);
-	Engine.context.PreferencesController.unsubscribe(reloadClient);
 	hub.removeListener('payment::confirm', onPaymentConfirm);
 }
 
