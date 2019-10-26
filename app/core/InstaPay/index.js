@@ -58,6 +58,7 @@ const hub = new EventEmitter();
 let client = null;
 let running = false;
 let reloading = false;
+let restoring = false;
 // eslint-disable-next-line import/no-mutable-exports
 let instance = null;
 
@@ -115,8 +116,7 @@ class InstaPay {
 			token: null,
 			xpub: '',
 			tokenProfile: null,
-			usernameSynced: false,
-			restoring: false
+			usernameSynced: false
 		};
 
 		this.start(mnemonic, network);
@@ -124,21 +124,23 @@ class InstaPay {
 
 	start = async (mnemonic, network) => {
 		const cfPath = "m/44'/60'/0'/25446";
-		const ethProviderUrl = `https://${network}.${API_URL}/ethprovider`;
+		const subdomain = network !== 'mainnet' ? `${network}.` : '';
+		const ethProviderUrl = `https://${subdomain}${API_URL}/ethprovider`;
 		const ethprovider = new eth.providers.JsonRpcProvider(ethProviderUrl);
 		const cfWallet = eth.Wallet.fromMnemonic(mnemonic, cfPath).connect(ethprovider);
 		const store = await Store.init();
 		const options = {
 			mnemonic,
-			nodeUrl: `wss://${network}.indra.connext.network/api/messaging`,
+			nodeUrl: `wss://${subdomain}indra.connext.network/api/messaging`,
 			ethProviderUrl,
 			store,
 			logLevel: 5
 		};
 
-		Logger.log('PC:Connect');
+		Logger.log('InstaPay::about to connect with options ', options);
+
 		const channel = await connect(options);
-		Logger.log('PC:Connect done');
+		Logger.log('InstaPay::connect complete ', options);
 
 		// Wait for channel to be available
 		const channelIsAvailable = async channel => {
@@ -203,14 +205,9 @@ class InstaPay {
 		await this.addDefaultPaymentProfile();
 		await this.startPoller();
 
-		const restoreNeeded = await AsyncStorage.getItem('@MetaMask:InstaPayRestoreBackUpNeeded');
-		if (restoreNeeded) {
-			hub.emit('backup::restore', null);
-		} else {
-			const InstaPayBackedUp = await AsyncStorage.getItem('@MetaMask:InstaPayBackedUp');
-			if (!InstaPayBackedUp) {
-				hub.emit('backup::requested', null);
-			}
+		const InstaPayBackedUp = await AsyncStorage.getItem('@MetaMask:InstaPayBackedUp');
+		if (!InstaPayBackedUp) {
+			hub.emit('backup::requested', null);
 		}
 	};
 
@@ -674,33 +671,37 @@ instance = {
 	 * specific address, along with all the listeners required
 	 */
 	async init() {
-		Logger.log('InstaPay::Starting client...');
 		const { provider } = Engine.context.NetworkController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
-			initListeners();
-
-			let mnemonic;
-			const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
-			if (encryptedMnemonic) {
-				try {
-					mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
-					Logger.log('recovered mnemonic', mnemonic);
-				} catch (e) {
-					Logger.error('Decrypt mnemonic error', encryptedMnemonic);
+			const restoreNeeded = await AsyncStorage.getItem('@MetaMask:InstaPayRestoreBackUpNeeded');
+			if (restoreNeeded) {
+				hub.emit('backup::restore', null);
+			} else {
+				let mnemonic;
+				const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
+				if (encryptedMnemonic) {
+					try {
+						mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
+						Logger.log('recovered mnemonic', mnemonic);
+					} catch (e) {
+						Logger.error('Decrypt mnemonic error', encryptedMnemonic);
+					}
 				}
-			}
 
-			if (!mnemonic) {
-				mnemonic = eth.Wallet.createRandom().mnemonic;
-				Logger.log('created new mnemonic', mnemonic);
-				await saveMnemonic(encryptor, mnemonic);
-			}
-			try {
-				Logger.log('initializing client with mnemonic', mnemonic);
-				client = new InstaPay(mnemonic, provider.type);
-			} catch (e) {
-				client && client.logCurrentState('InstaPay::init');
-				Logger.error('InstaPay::init', e);
+				if (!mnemonic) {
+					mnemonic = eth.Wallet.createRandom().mnemonic;
+					Logger.log('created new mnemonic', mnemonic);
+					await saveMnemonic(encryptor, mnemonic);
+				}
+				try {
+					initListeners();
+					Logger.log('InstaPay::Starting client...');
+					Logger.log('initializing client with mnemonic', mnemonic);
+					client = new InstaPay(mnemonic, provider.type);
+				} catch (e) {
+					client && client.logCurrentState('InstaPay::init');
+					Logger.error('InstaPay::init', e);
+				}
 			}
 		}
 	},
@@ -811,6 +812,7 @@ instance = {
 		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
 		await AsyncStorage.removeItem('@MetaMask:InstaPayBackedUp');
 		await AsyncStorage.removeItem('@MetaMask:InstaPayRestoreBackUpNeeded');
+		Store.reset();
 		instance.stop();
 	},
 	initBackup: async space => {
@@ -821,16 +823,17 @@ instance = {
 		Logger.log('InstaPay::Backup process completed');
 	},
 	restoreBackup: async space => {
-		client.setState({ restoring: true });
+		restoring = true;
 		Logger.log('InstaPay::Restore backup process initiated');
 		const backedupEncryptedMnemonic = await getMnemonicFromBackup(space);
 		await AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', backedupEncryptedMnemonic);
 		await AsyncStorage.removeItem('@MetaMask:InstaPayRestoreBackUpNeeded');
 		Logger.log('InstaPay::Restore backup process completed');
-		client.setState({ restoring: false });
+		restoring = false;
 		reloadClient();
 	},
 	reloadClient,
+	isRestoring: () => restoring,
 	requireBackup: () => AsyncStorage.setItem('@MetaMask:InstaPayRestoreBackUpNeeded', 'true')
 };
 

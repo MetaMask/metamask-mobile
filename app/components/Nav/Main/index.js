@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
 	},
 	webview3boxWrapper: {
 		width: Dimensions.get('window').width,
-		height: 100
+		height: 0
 	}
 });
 

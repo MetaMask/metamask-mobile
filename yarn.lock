@@ -689,37 +689,37 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@connext/client@0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@connext/client/-/client-0.2.1.tgz#0d63b38feaafc7c4e9e14877bcc5cc796ff1abde"
-  integrity sha512-dDUnGdP/otbA83Ulk3y+K6lWvFspz3CPHlCATPd2/Ve08I+LCKRF3OhHRlG1AVCCPrYrxoyl+UFD3QJcSa7jAg==
+"@connext/client@0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@connext/client/-/client-0.2.3.tgz#71545cb51d07586ef8a462b8f3279baa67348f4a"
+  integrity sha512-T0yPkOi03KIqS8EpH2SYAvZIBZr+x5dU9wqCUp/MHZUZOGxCyBm3N2E5wecmyxMFwSxjsVA3Xl7PK4Vv2Mlltg==
   dependencies:
-    "@connext/messaging" "0.2.1"
-    "@connext/types" "0.2.1"
+    "@connext/messaging" "0.2.3"
+    "@connext/types" "0.2.3"
     "@counterfactual/cf-funding-protocol-contracts" "0.0.12"
     "@counterfactual/node" "0.2.82"
     "@counterfactual/types" "0.0.44"
-    core-js "3.3.1"
+    core-js "3.3.2"
     eth-crypto "1.5.0"
     ethers "4.0.37"
     human-standard-token-abi "2.0.0"
     regenerator-runtime "0.13.3"
     uuid "3.3.3"
 
-"@connext/messaging@0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-0.2.1.tgz#fffec1fe512b01ac06574136306b3c8acda67baa"
-  integrity sha512-aW4Tz6uo5MLUXgt4Xpnh5uesMW3ryi9hLCTZ6qOrV//ddENiYq/fnru6FGwKOePHpcCXdEFzS7xmfBvYRHtdgQ==
+"@connext/messaging@0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-0.2.3.tgz#c8c3def8350a1844df0765e5152bbd313bba46be"
+  integrity sha512-kiTguVy9CWWx7IbfkmF0T51lT0/869Jq7bp07mFiHwCqYZvQryJyrU7zbW/CZIEjnv+Emgl0RPICo+2HOcy92w==
   dependencies:
     ts-nats "1.2.4"
     websocket-nats "0.3.3"
 
-"@connext/types@0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@connext/types/-/types-0.2.1.tgz#4f2f59b6af5622f4467d22f69e2909cd50fcae24"
-  integrity sha512-stxVyA5Wb8GujiWSeewro8JAfZmPnH3kGbnHWlFKNOF5zf3m/hTg8f7EVEWyxSFcPM002iRD5r3Lh2rEPNufFA==
+"@connext/types@0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@connext/types/-/types-0.2.3.tgz#f5a19bc58d5cf636912f75c0554b4c729bf51193"
+  integrity sha512-vBpam8tcMthIA/4deaNWmQQCQjLm6RKnZ+qw+RPSlZ3KZ2+geOZEBMsOy6eIOY+zGtmg2Ru+MD7qpA5KBhnzUA==
   dependencies:
-    "@connext/messaging" "0.2.1"
+    "@connext/messaging" "0.2.3"
     "@counterfactual/types" "0.0.44"
     ethers "4.0.37"
 
@@ -2937,10 +2937,10 @@ core-js@3.0.1:
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.0.1.tgz#1343182634298f7f38622f95e73f54e48ddf4738"
   integrity sha512-sco40rF+2KlE0ROMvydjkrVMMG1vYilP2ALoRXcYR4obqbYIuV3Bg+51GEDW+HF8n7NRA+iaA4qD0nD9lo9mew==
 
-core-js@3.3.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.3.1.tgz#636a3dc323c3f9ba618e74c5900366e19f48e959"
-  integrity sha512-1PGI49Lz5qYo3EBz0kymSfJgTvn2G/c03lBTJ7PO0R1liQ7Yd6E570odu5p4CxG/WB0yUwCmAWummo79yOQUcQ==
+core-js@3.3.2:
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.3.2.tgz#cd42da1d7b0bb33ef11326be3a721934277ceb42"
+  integrity sha512-S1FfZpeBchkhyoY76YAdFzKS4zz9aOK7EeFaNA2aJlyXyA+sgqz6xdxmLPGXEAf0nF44MVN1kSjrA9Kt3ATDQg==
 
 core-js@^1.0.0:
   version "1.2.7"

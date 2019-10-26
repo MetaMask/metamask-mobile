@@ -71,5 +71,6 @@ export default {
 		instance = new Store(data);
 		Object.freeze(instance);
 		return instance;
-	}
+	},
+	reset: () => instance && instance.reset
 };
