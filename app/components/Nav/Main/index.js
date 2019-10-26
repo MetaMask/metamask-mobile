@@ -632,13 +632,19 @@ class Main extends PureComponent {
 				const allKeyrings = Engine.context.KeyringController.state.keyrings;
 				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 				Logger.log('OPENING BOX');
-
-				this.web3BoxRef.current && (await this.web3BoxRef.current.openBox(accountsOrdered[0]));
-				Logger.log('READY TO OPEN THE SPACE!');
-				await this.web3BoxRef.current.openSpace('InstaPay');
-				Logger.log('SPACE OPENED');
-				await InstaPay.initBackup(this.web3BoxRef.current);
-				this.setState({ is3boxEnabled: false });
+				setTimeout(async () => {
+					try {
+						await this.web3BoxRef.current.openBox(accountsOrdered[0]);
+						Logger.log('READY TO OPEN THE SPACE!');
+						await this.web3BoxRef.current.openSpace('InstaPay');
+						Logger.log('SPACE OPENED');
+						await InstaPay.initBackup(this.web3BoxRef.current);
+						this.setState({ is3boxEnabled: false });
+					} catch (e) {
+						Logger.error('InstaPay Backup failed', e);
+						this.setState({ is3boxEnabled: false });
+					}
+				}, 3000);
 			});
 		});
 
@@ -648,13 +654,14 @@ class Main extends PureComponent {
 				const allKeyrings = Engine.context.KeyringController.state.keyrings;
 				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 				Logger.log('OPENING BOX');
-
-				this.web3BoxRef.current && (await this.web3BoxRef.current.openBox(accountsOrdered[0]));
-				Logger.log('READY TO OPEN THE SPACE!');
-				await this.web3BoxRef.current.openSpace('InstaPay');
-				Logger.log('SPACE OPENED');
-				InstaPay.restoreBackup(this.web3BoxRef.current);
-				this.setState({ is3boxEnabled: false });
+				setTimeout(async () => {
+					this.web3BoxRef.current && (await this.web3BoxRef.current.openBox(accountsOrdered[0]));
+					Logger.log('READY TO OPEN THE SPACE!');
+					await this.web3BoxRef.current.openSpace('InstaPay');
+					Logger.log('SPACE OPENED');
+					await InstaPay.restoreBackup(this.web3BoxRef.current);
+					this.setState({ is3boxEnabled: false });
+				}, 3000);
 			});
 		});
 	};

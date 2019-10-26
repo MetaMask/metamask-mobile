@@ -12,6 +12,7 @@ import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
+import InstaPay from '../../../core/InstaPay';
 import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
 
@@ -278,6 +279,9 @@ class SyncWithExtension extends PureComponent {
 			this.props.seedphraseBackedUp();
 			this.done = true;
 			this.dataToSync = null;
+			await InstaPay.cleanUp();
+			await InstaPay.requireBackup();
+			InstaPay.reloadClient();
 			this.props.navigation.push('SyncWithExtensionSuccess');
 		} catch (e) {
 			Logger.error('Sync::disconnect', e);

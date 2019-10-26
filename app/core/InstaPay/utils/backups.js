@@ -19,7 +19,7 @@ export async function backupMnemonic(space, encryptedMnemonic) {
 }
 
 export async function getMnemonicFromBackup(space) {
-	return space.privategetSpace(SPACE_KEY);
+	return space.privateGetSpace(SPACE_KEY);
 }
 
 export async function saveMnemonic(encryptor, mnemonic) {

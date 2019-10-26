@@ -458,7 +458,6 @@ class PaymentChannel extends PureComponent {
 
 	removeListeners() {
 		InstaPay.hub.removeListener('state::change', this.onStateChange);
-		InstaPay.hub.removeListener('state::cs_chainsaw_error', this.handleChainsawError);
 	}
 
 	copyAccountToClipboard = async () => {
@@ -720,6 +719,16 @@ class PaymentChannel extends PureComponent {
 			return (
 				<View style={styles.loader}>
 					<ActivityIndicator size="small" />
+				</View>
+			);
+		}
+
+		if (this.state.restoring) {
+			return (
+				<View style={styles.loader}>
+					<ActivityIndicator size="small" />
+					<Text>Please wait while we restore your account</Text>
+					<Text>(This might take a couple of minutes...)</Text>
 				</View>
 			);
 		}

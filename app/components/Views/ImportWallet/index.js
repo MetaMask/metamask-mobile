@@ -312,7 +312,8 @@ class ImportWallet extends PureComponent {
 	}
 
 	finishSync = async opts => {
-		InstaPay.cleanUp();
+		await InstaPay.cleanUp();
+		await InstaPay.requireBackup();
 		if (opts.biometrics) {
 			const authOptions = {
 				accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE

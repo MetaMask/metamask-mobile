@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import { WebView } from 'react-native-webview';
 import byteArrayToHex from '../../util/bytes';
 import Engine from '../Engine';
+import Logger from '../../util/Logger';
 
 class Web3Box extends PureComponent {
 	state = {
@@ -15,7 +16,6 @@ class Web3Box extends PureComponent {
 
 	componentDidUpdate(prevProps, prevState) {
 		if (prevState.status !== this.state.status && this.state.status !== 'idle') {
-			console.log('WEB3BOX :: STATE UPDATED', this.state);
 			const promiseResolve = this.promises.pop();
 			(this.state.result && promiseResolve(this.state.result)) || promiseResolve();
 			this.resetResults();
@@ -29,7 +29,6 @@ class Web3Box extends PureComponent {
 	};
 
 	onMessage = async ({ nativeEvent: { data } }) => {
-		console.log('WEB3BOX :: GOT MESSAGE', data);
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
 			const { payload, type } = data;
@@ -79,12 +78,11 @@ class Web3Box extends PureComponent {
 				this.setState(payload);
 			}
 		} catch (e) {
-			console.log(e);
+			Logger.log(e);
 		}
 	};
 
 	postMessageToProvider = msg => {
-		console.log('WEB3BOX :: posting message to provider', msg);
 		const current = this.webview.current;
 		current &&
 			current.injectJavaScript(`
@@ -120,7 +118,6 @@ class Web3Box extends PureComponent {
 	};
 
 	publicSetSpace = (key, val) => {
-		console.log('WEB3BOX :: setting key', key, val);
 		const promise = new Promise(res => {
 			const current = this.webview.current;
 			current &&
@@ -136,7 +133,6 @@ class Web3Box extends PureComponent {
 	};
 
 	publicGetSpace = key => {
-		console.log('WEB3BOX :: getting key', key);
 		const promise = new Promise(res => {
 			const current = this.webview.current;
 			current &&
