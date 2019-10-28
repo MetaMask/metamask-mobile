@@ -403,7 +403,13 @@ class AccountInput extends PureComponent {
 							</View>
 						</View>
 					</View>
-					<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
+					<MaterialIcon
+						onPress={this.onFocus}
+						name={'arrow-drop-down'}
+						size={24}
+						style={styles.arrow}
+						testID={'account-drop-down'}
+					/>
 				</View>
 
 				{isOpen && this.renderOptionList()}

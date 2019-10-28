@@ -75,6 +75,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
               "marginTop": 15,
             }
           }
+          testID="collectible-address-warning"
         />
       </View>
       <View
@@ -130,6 +131,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
               "marginTop": 15,
             }
           }
+          testID="collectible-identifier-warning"
         />
       </View>
     </View>
