@@ -32,6 +32,7 @@ import { BNToHex } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../../util/networks';
 import Encryptor from '../Encryptor';
+import PaymentChannelsClient from '../PaymentChannelsClient';
 
 const encryptor = new Encryptor();
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
@@ -116,7 +117,8 @@ class InstaPay {
 			token: null,
 			xpub: '',
 			tokenProfile: null,
-			usernameSynced: false
+			usernameSynced: false,
+			migrated: false
 		};
 
 		this.start(mnemonic, network);
@@ -205,10 +207,54 @@ class InstaPay {
 		await this.addDefaultPaymentProfile();
 		await this.startPoller();
 
+		this.runMigrations();
+		this.backupIfNecessary();
+	};
+
+	backupIfNecessary = async () => {
 		const InstaPayBackedUp = await AsyncStorage.getItem('@MetaMask:InstaPayBackedUp');
 		if (!InstaPayBackedUp) {
 			hub.emit('backup::requested', null);
 		}
+	};
+
+	runMigrations = async () => {
+		const InstaPayVersion = await AsyncStorage.getItem('@MetaMask:InstaPayVersion');
+		if (!InstaPayVersion) {
+			this.migrateToV2();
+		} else {
+			this.setState({ migrated: true });
+		}
+		// Future migrations can go here...
+	};
+
+	migrateToV2 = async () => {
+		// For each account
+		const allKeyrings = Engine.context.KeyringController.state.keyrings;
+		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+		const v1Client = PaymentChannelsClient;
+		Logger.log('InstaPay :: Migration to v2 started...');
+		accountsOrdered.each(async account => {
+			// Init v1 client
+			Logger.log('InstaPay :: Init v1 client for', account);
+			await v1Client.init(account);
+			// Check if it has balance > 0
+			Logger.log('InstaPay :: Checking channel balance for ', account);
+			const { balance } = v1Client.getState();
+			Logger.log(`InstaPay :: Channel balance for ${account} is `, balance);
+			if (parseInt(balance, 10) > 0) {
+				// if true, withdraw to wallet address
+				Logger.log(`InstaPay :: Withdrawing ${balance} to `, this.state.wallet.address);
+				await v1Client.withdrawAll(this.state.wallet.address);
+				Logger.log('InstaPay :: Migration complete for ', account);
+			}
+
+			await v1Client.stop();
+		});
+
+		// End migration
+		await AsyncStorage.setItem('@MetaMask:InstaPayVersion', '2.0.0');
+		this.setState({ migrated: true });
 	};
 
 	setState = data => {

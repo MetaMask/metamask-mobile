@@ -423,7 +423,7 @@ class PaymentChannelsClient {
 		}
 	};
 
-	withdrawAll = async () => {
+	withdrawAll = async (to = null) => {
 		try {
 			const {
 				connext,
@@ -436,7 +436,7 @@ class PaymentChannelsClient {
 				tokensToSell: balanceTokenUser,
 				withdrawalTokenUser: '0',
 				weiToSell: '0',
-				recipient: this.selectedAddress.toLowerCase()
+				recipient: (to && to.toLowerCase()) || this.selectedAddress.toLowerCase()
 			};
 
 			await connext.withdraw(withdrawalVal);
@@ -515,7 +515,7 @@ const instance = {
 	 * Method that requests the hub to withdraw all the funds
 	 * from the channel to the selected address
 	 */
-	withdrawAll: () => client.withdrawAll(),
+	withdrawAll: (to = null) => client.withdrawAll(to),
 	/**
 	 * Method that allows you to send
 	 * a payment of a specific amount,
