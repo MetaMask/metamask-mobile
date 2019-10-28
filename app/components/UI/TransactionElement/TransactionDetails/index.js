@@ -4,11 +4,7 @@ import { Clipboard, TouchableOpacity, StyleSheet, Text, View } from 'react-nativ
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Button from '../../Button';
-import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
-import { renderFromWei } from '../../../../util/number';
-import { CANCEL_RATE } from 'gaba/transaction/TransactionController';
 import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
@@ -85,54 +81,6 @@ const styles = StyleSheet.create({
 	},
 	copyIcon: {
 		paddingRight: 5
-	},
-	cancelButton: {
-		backgroundColor: colors.red,
-		height: 22,
-		paddingHorizontal: 0,
-		paddingVertical: 0,
-		position: 'absolute',
-		right: 15,
-		top: 15,
-		width: 54,
-		zIndex: 1337
-	},
-	cancelText: {
-		color: colors.white,
-		fontSize: 10,
-		textTransform: 'uppercase'
-	},
-	modalView: {
-		alignItems: 'stretch',
-		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'space-between',
-		padding: 20
-	},
-	modalText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		textAlign: 'center'
-	},
-	modalTitle: {
-		...fontStyles.bold,
-		fontSize: 22,
-		textAlign: 'center'
-	},
-	gasTitle: {
-		...fontStyles.bold,
-		fontSize: 16,
-		textAlign: 'center'
-	},
-	cancelFeeWrapper: {
-		backgroundColor: colors.grey000,
-		textAlign: 'center',
-		padding: 15
-	},
-	cancelFee: {
-		...fontStyles.bold,
-		fontSize: 24,
-		textAlign: 'center'
 	}
 });
 
@@ -301,44 +249,11 @@ class TransactionDetails extends PureComponent {
 		this.hideCancelModal();
 	};
 
-	renderCancelButton = () => {
-		const { transactionObject } = this.props;
-		if (transactionObject.status === 'submitted' || transactionObject.status === 'approved') {
-			return (
-				<Button style={styles.cancelButton} onPress={this.showCancelModal}>
-					<Text style={styles.cancelText}>{strings('transaction.cancel')}</Text>
-				</Button>
-			);
-		}
-	};
-
 	render = () => {
 		const { blockExplorer, transactionObject } = this.props;
 		const { rpcBlockExplorer } = this.state;
-		const existingGasPrice = transactionObject.transaction ? transactionObject.transaction.gasPrice : '0x0';
-		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
 		return (
 			<View style={styles.detailRowWrapper}>
-				{this.renderCancelButton()}
-				<ActionModal
-					modalVisible={this.state.cancelIsOpen}
-					confirmText={strings('transaction.lets_try')}
-					cancelText={strings('transaction.nevermind')}
-					onCancelPress={this.hideCancelModal}
-					onRequestClose={this.hideCancelModal}
-					onConfirmPress={this.cancelTransaction}
-				>
-					<View style={styles.modalView}>
-						<Text style={styles.modalTitle}>{strings('transaction.cancel_tx_title')}</Text>
-						<Text style={styles.gasTitle}>{strings('transaction.gasCancelFee')}</Text>
-						<View style={styles.cancelFeeWrapper}>
-							<Text style={styles.cancelFee}>
-								{renderFromWei(Math.floor(existingGasPriceDecimal * CANCEL_RATE))} {strings('unit.eth')}
-							</Text>
-						</View>
-						<Text style={styles.modalText}>{strings('transaction.cancel_tx_message')}</Text>
-					</View>
-				</ActionModal>
 				{this.renderTxHash(this.props.transactionDetails.transactionHash)}
 				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>

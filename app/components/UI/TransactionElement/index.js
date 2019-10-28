@@ -17,6 +17,10 @@ import TransferElement from './TransferElement';
 import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import StyledButton from '../StyledButton';
+import Engine from '../../../core/Engine';
+import ActionModal from '../ActionModal';
+import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba/transaction/TransactionController';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -34,7 +38,7 @@ const styles = StyleSheet.create({
 	},
 	rowOnly: {
 		padding: 15,
-		height: Platform.OS === 'ios' ? 95 : 100
+		minHeight: Platform.OS === 'ios' ? 95 : 100
 	},
 	date: {
 		color: colors.fontSecondary,
@@ -120,6 +124,56 @@ const styles = StyleSheet.create({
 		marginBottom: 2,
 		marginRight: 1,
 		transform: [{ rotate: '180deg' }]
+	},
+	actionContainerStyle: {
+		height: 25,
+		width: 70,
+		padding: 0
+	},
+	speedupActionContainerStyle: {
+		marginRight: 10
+	},
+	actionStyle: {
+		fontSize: 10,
+		padding: 0,
+		paddingHorizontal: 10
+	},
+	transactionActionsContainer: {
+		flexDirection: 'row',
+		paddingTop: 10,
+		paddingLeft: 40
+	},
+	modalView: {
+		alignItems: 'stretch',
+		flex: 1,
+		flexDirection: 'column',
+		justifyContent: 'space-between',
+		padding: 20
+	},
+	modalText: {
+		...fontStyles.normal,
+		fontSize: 14,
+		textAlign: 'center'
+	},
+	modalTitle: {
+		...fontStyles.bold,
+		fontSize: 22,
+		textAlign: 'center'
+	},
+	gasTitle: {
+		...fontStyles.bold,
+		fontSize: 16,
+		textAlign: 'center'
+	},
+	cancelFeeWrapper: {
+		backgroundColor: colors.grey000,
+		textAlign: 'center',
+		padding: 15
+	},
+	cancelFee: {
+		...fontStyles.bold,
+		fontSize: 24,
+		textAlign: 'center'
 	}
 });
 
@@ -191,7 +245,9 @@ class TransactionElement extends PureComponent {
 	};
 
 	state = {
-		actionKey: undefined
+		actionKey: undefined,
+		cancelIsOpen: false,
+		speedUpIsOpen: false
 	};
 
 	mounted = false;
@@ -330,6 +386,7 @@ class TransactionElement extends PureComponent {
 		if (renderTo in contractMap) {
 			symbol = contractMap[renderTo].symbol;
 		}
+		const renderTxActions = status === 'submitted' || status === 'approved';
 		return (
 			<View style={styles.rowOnly}>
 				{this.renderTxTime()}
@@ -346,6 +403,12 @@ class TransactionElement extends PureComponent {
 						<Text style={styles.amountFiat}>{fiatValue}</Text>
 					</View>
 				</View>
+				{!!renderTxActions && (
+					<View style={styles.transactionActionsContainer}>
+						{this.renderSpeedUpButton()}
+						{this.renderCancelButton()}
+					</View>
+				)}
 			</View>
 		);
 	};
@@ -543,6 +606,60 @@ class TransactionElement extends PureComponent {
 		return [transactionElement, transactionDetails];
 	};
 
+	renderCancelButton = () => (
+		<StyledButton
+			type={'danger'}
+			containerStyle={styles.actionContainerStyle}
+			style={styles.actionStyle}
+			onPress={this.showCancelModal}
+		>
+			{strings('transaction.cancel')}
+		</StyledButton>
+	);
+
+	showCancelModal = () => {
+		this.setState({ cancelIsOpen: true });
+	};
+
+	hideCancelModal = () => {
+		this.setState({ cancelIsOpen: false });
+	};
+
+	cancelTransaction = () => {
+		const {
+			tx: { id }
+		} = this.props;
+		Engine.context.TransactionController.stopTransaction(id);
+		this.hideCancelModal();
+	};
+
+	renderSpeedUpButton = () => (
+		<StyledButton
+			type={'normal'}
+			containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
+			style={styles.actionStyle}
+			onPress={this.showSpeedUpModal}
+		>
+			{'Speed up'}
+		</StyledButton>
+	);
+
+	showSpeedUpModal = () => {
+		this.setState({ speedUpIsOpen: true });
+	};
+
+	hideSpeedUpModal = () => {
+		this.setState({ speedUpIsOpen: false });
+	};
+
+	speedUpTransaction = () => {
+		const {
+			tx: { id }
+		} = this.props;
+		Engine.context.TransactionController.speedUpTransaction(id);
+		this.hideSpeedUpModal();
+	};
+
 	render() {
 		const {
 			tx: {
@@ -589,6 +706,9 @@ class TransactionElement extends PureComponent {
 					[transactionElement, transactionDetails] = this.decodeConfirmTx(totalGas);
 			}
 		}
+		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+
 		return (
 			<TouchableHighlight
 				style={styles.row}
@@ -599,6 +719,48 @@ class TransactionElement extends PureComponent {
 				<View style={styles.rowContent}>
 					{this.renderTxElement(transactionElement)}
 					{this.renderTxDetails(selected, tx, transactionDetails)}
+
+					<ActionModal
+						modalVisible={this.state.cancelIsOpen}
+						confirmText={strings('transaction.lets_try')}
+						cancelText={strings('transaction.nevermind')}
+						onCancelPress={this.hideCancelModal}
+						onRequestClose={this.hideCancelModal}
+						onConfirmPress={this.cancelTransaction}
+					>
+						<View style={styles.modalView}>
+							<Text style={styles.modalTitle}>{strings('transaction.cancel_tx_title')}</Text>
+							<Text style={styles.gasTitle}>{strings('transaction.gasCancelFee')}</Text>
+							<View style={styles.cancelFeeWrapper}>
+								<Text style={styles.cancelFee}>
+									{renderFromWei(Math.floor(existingGasPriceDecimal * CANCEL_RATE))}{' '}
+									{strings('unit.eth')}
+								</Text>
+							</View>
+							<Text style={styles.modalText}>{strings('transaction.cancel_tx_message')}</Text>
+						</View>
+					</ActionModal>
+
+					<ActionModal
+						modalVisible={this.state.speedUpIsOpen}
+						confirmText={strings('transaction.lets_try')}
+						cancelText={strings('transaction.nevermind')}
+						onCancelPress={this.hideSpeedUpModal}
+						onRequestClose={this.hideSpeedUpModal}
+						onConfirmPress={this.speedUpTransaction}
+					>
+						<View style={styles.modalView}>
+							<Text style={styles.modalTitle}>{'speedUpIsOpen'}</Text>
+							<Text style={styles.gasTitle}>{'speedUpIsOpen fee'}</Text>
+							<View style={styles.cancelFeeWrapper}>
+								<Text style={styles.cancelFee}>
+									{renderFromWei(Math.floor(existingGasPriceDecimal * SPEED_UP_RATE))}{' '}
+									{strings('unit.eth')}
+								</Text>
+							</View>
+							<Text style={styles.modalText}>{strings('transaction.cancel_tx_message')}</Text>
+						</View>
+					</ActionModal>
 				</View>
 			</TouchableHighlight>
 		);
