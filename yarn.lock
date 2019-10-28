@@ -689,38 +689,39 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@connext/client@0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@connext/client/-/client-0.2.3.tgz#71545cb51d07586ef8a462b8f3279baa67348f4a"
-  integrity sha512-T0yPkOi03KIqS8EpH2SYAvZIBZr+x5dU9wqCUp/MHZUZOGxCyBm3N2E5wecmyxMFwSxjsVA3Xl7PK4Vv2Mlltg==
+"@connext/client@0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@connext/client/-/client-0.2.4.tgz#ce6d15a752d485eba17b0a51f024c366b1006f82"
+  integrity sha512-MgAVepXd3KGLfWoeytvsBEu+5tTH5xdwl7iwA6Vytztkubmwt4pXnCxpnRSt7B0/iwu4tjBCnxfsuJa9nzrgYg==
   dependencies:
-    "@connext/messaging" "0.2.3"
-    "@connext/types" "0.2.3"
+    "@connext/messaging" "0.2.4"
+    "@connext/types" "0.2.4"
     "@counterfactual/cf-funding-protocol-contracts" "0.0.12"
     "@counterfactual/node" "0.2.82"
-    "@counterfactual/types" "0.0.44"
-    core-js "3.3.2"
+    "@counterfactual/types" "0.0.45"
+    core-js "3.3.4"
     eth-crypto "1.5.0"
     ethers "4.0.37"
     human-standard-token-abi "2.0.0"
     regenerator-runtime "0.13.3"
+    rpc-server "0.0.1"
     uuid "3.3.3"
 
-"@connext/messaging@0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-0.2.3.tgz#c8c3def8350a1844df0765e5152bbd313bba46be"
-  integrity sha512-kiTguVy9CWWx7IbfkmF0T51lT0/869Jq7bp07mFiHwCqYZvQryJyrU7zbW/CZIEjnv+Emgl0RPICo+2HOcy92w==
+"@connext/messaging@0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-0.2.4.tgz#0e7090ebe484d16be27741797bcdca7facd5435e"
+  integrity sha512-8EEB2AdUpZjPgq6dU1pmb2qG6IajDQ9h1TnCVpvf09mNTM32MkhgOKuRjWKjUjZ+HVKuIuOSduK1oYUI8sO28A==
   dependencies:
     ts-nats "1.2.4"
     websocket-nats "0.3.3"
 
-"@connext/types@0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@connext/types/-/types-0.2.3.tgz#f5a19bc58d5cf636912f75c0554b4c729bf51193"
-  integrity sha512-vBpam8tcMthIA/4deaNWmQQCQjLm6RKnZ+qw+RPSlZ3KZ2+geOZEBMsOy6eIOY+zGtmg2Ru+MD7qpA5KBhnzUA==
+"@connext/types@0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@connext/types/-/types-0.2.4.tgz#15a4497d089fb1454307f98701c18cd2156841dc"
+  integrity sha512-R1pK/WFoiaJbWNd5Cilr/OgrTHDJcHdMRHfDvm7eJFI5BnOJW/6MW96LEdnz1WGizuuVx7eUUTgjpCHurB0T1Q==
   dependencies:
-    "@connext/messaging" "0.2.3"
-    "@counterfactual/types" "0.0.44"
+    "@connext/messaging" "0.2.4"
+    "@counterfactual/types" "0.0.45"
     ethers "4.0.37"
 
 "@counterfactual/cf-adjudicator-contracts@0.0.7":
@@ -791,10 +792,10 @@
   resolved "https://registry.yarnpkg.com/@counterfactual/types/-/types-0.0.43.tgz#e2beb96c1b90cd1ebbda277691f7a96ce7341a69"
   integrity sha512-NToq3aTQrRk3LKsw0j88SQsxFaI3GXLLPVJvtkKzWmIqk/jTYU4lnKeEojLO8UrBb3IDR0sWGqJ7uiRnm6kErw==
 
-"@counterfactual/types@0.0.44":
-  version "0.0.44"
-  resolved "https://registry.yarnpkg.com/@counterfactual/types/-/types-0.0.44.tgz#16c685549756fb3108bcb7567b10141ae3d5defb"
-  integrity sha512-5Jq+m/soFxa5c47dOjzDjgAitCxahyjdhP8shGe3MdPtk21Hz0PozkEIVCNC8JhcYl1m43CBG0PlXLLM1/TIZA==
+"@counterfactual/types@0.0.45":
+  version "0.0.45"
+  resolved "https://registry.yarnpkg.com/@counterfactual/types/-/types-0.0.45.tgz#e65da94c11e80ec14539db099c13f2924c2c1044"
+  integrity sha512-df2jl4dxhbm6u4mY+VO2p68NDMcF1VS8EubkS+2bqSJ4H2uzUKBV3P4fjbg8cn7DdQxYKOo5FIRZWOCqJtPtSQ==
 
 "@ethersproject/address@^5.0.0-beta.125":
   version "5.0.0-beta.131"
@@ -2937,10 +2938,10 @@ core-js@3.0.1:
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.0.1.tgz#1343182634298f7f38622f95e73f54e48ddf4738"
   integrity sha512-sco40rF+2KlE0ROMvydjkrVMMG1vYilP2ALoRXcYR4obqbYIuV3Bg+51GEDW+HF8n7NRA+iaA4qD0nD9lo9mew==
 
-core-js@3.3.2:
-  version "3.3.2"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.3.2.tgz#cd42da1d7b0bb33ef11326be3a721934277ceb42"
-  integrity sha512-S1FfZpeBchkhyoY76YAdFzKS4zz9aOK7EeFaNA2aJlyXyA+sgqz6xdxmLPGXEAf0nF44MVN1kSjrA9Kt3ATDQg==
+core-js@3.3.4:
+  version "3.3.4"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.3.4.tgz#6b0a23392958317bfb46e40b090529a923add669"
+  integrity sha512-BtibooaAmSOptGLRccsuX/dqgPtXwNgqcvYA6kOTTMzonRxZ+pJS4e+6mvVutESfXMeTnK8m3M+aBu3bkJbR+w==
 
 core-js@^1.0.0:
   version "1.2.7"
