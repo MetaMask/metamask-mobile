@@ -208,7 +208,7 @@ class InstaPay {
 		await this.startPoller();
 
 		this.runMigrations();
-		this.backupIfNecessary();
+		// this.backupIfNecessary();
 	};
 
 	backupIfNecessary = async () => {
@@ -219,6 +219,7 @@ class InstaPay {
 	};
 
 	runMigrations = async () => {
+		await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
 		const InstaPayVersion = await AsyncStorage.getItem('@MetaMask:InstaPayVersion');
 		if (!InstaPayVersion) {
 			this.migrateToV2();
@@ -234,13 +235,28 @@ class InstaPay {
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 		const v1Client = PaymentChannelsClient;
 		Logger.log('InstaPay :: Migration to v2 started...');
-		accountsOrdered.each(async account => {
+		for (const account of accountsOrdered) {
 			// Init v1 client
 			Logger.log('InstaPay :: Init v1 client for', account);
 			await v1Client.init(account);
+			Logger.log('InstaPay :: Init completed', account);
+
+			// Wait for channel to be available
+			const channelIsReady = () => {
+				const { ready } = v1Client.getState();
+				Logger.log('Channel is ready?', ready);
+				return ready;
+			};
+
+			Logger.log('InstaPay :: Wait for channel to be ready for ', account);
+			while (!channelIsReady()) {
+				await new Promise(res => setTimeout(() => res(), 3000));
+			}
+
 			// Check if it has balance > 0
-			Logger.log('InstaPay :: Checking channel balance for ', account);
 			const { balance } = v1Client.getState();
+			Logger.log('InstaPay :: Checking channel balance for ', account);
+
 			Logger.log(`InstaPay :: Channel balance for ${account} is `, balance);
 			if (parseInt(balance, 10) > 0) {
 				// if true, withdraw to wallet address
@@ -250,7 +266,7 @@ class InstaPay {
 			}
 
 			await v1Client.stop();
-		});
+		}
 
 		// End migration
 		await AsyncStorage.setItem('@MetaMask:InstaPayVersion', '2.0.0');
@@ -724,35 +740,35 @@ instance = {
 	async init() {
 		const { provider } = Engine.context.NetworkController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
-			const restoreNeeded = await AsyncStorage.getItem('@MetaMask:InstaPayRestoreBackUpNeeded');
-			if (restoreNeeded) {
-				hub.emit('backup::restore', null);
-			} else {
-				let mnemonic;
-				const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
-				if (encryptedMnemonic) {
-					try {
-						mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
-						Logger.log('recovered mnemonic');
-					} catch (e) {
-						Logger.error('Decrypt mnemonic error', encryptedMnemonic);
-					}
-				}
-
-				if (!mnemonic) {
-					mnemonic = eth.Wallet.createRandom().mnemonic;
-					Logger.log('created new mnemonic');
-					await saveMnemonic(encryptor, mnemonic);
-				}
+			// const restoreNeeded = await AsyncStorage.getItem('@MetaMask:InstaPayRestoreBackUpNeeded');
+			// if (restoreNeeded) {
+			// 	hub.emit('backup::restore', null);
+			// } else {
+			let mnemonic;
+			const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
+			if (encryptedMnemonic) {
 				try {
-					initListeners();
-					Logger.log('InstaPay::Starting client...');
-					client = new InstaPay(mnemonic, provider.type);
+					mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
+					Logger.log('recovered mnemonic');
 				} catch (e) {
-					client && client.logCurrentState('InstaPay::init');
-					Logger.error('InstaPay::init', e);
+					Logger.error('Decrypt mnemonic error', encryptedMnemonic);
 				}
 			}
+
+			if (!mnemonic) {
+				mnemonic = eth.Wallet.createRandom().mnemonic;
+				Logger.log('created new mnemonic');
+				await saveMnemonic(encryptor, mnemonic);
+			}
+			try {
+				initListeners();
+				Logger.log('InstaPay::Starting client...');
+				client = new InstaPay(mnemonic, provider.type);
+			} catch (e) {
+				client && client.logCurrentState('InstaPay::init');
+				Logger.error('InstaPay::init', e);
+			}
+			//	}
 		}
 	},
 	/**

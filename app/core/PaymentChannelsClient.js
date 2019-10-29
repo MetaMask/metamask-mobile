@@ -469,29 +469,34 @@ const instance = {
 	 * specific address, along with all the listeners required
 	 */
 	async init(address) {
-		const { provider } = Engine.context.NetworkController.state;
-		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
-			initListeners();
-			Logger.log('PC::Initialzing payment channels');
-			client = new PaymentChannelsClient(address);
-			try {
-				Logger.log('PC::setConnext', provider);
-				await client.setConnext(provider);
-				Logger.log('PC::pollConnextState');
-				await client.pollConnextState();
-				Logger.log('PC::pollAndSwap');
-				await client.pollAndSwap();
-			} catch (e) {
-				client.logCurrentState('PC::init');
-				Logger.error('PC::init', e);
+		return new Promise(async (resolve, reject) => {
+			const { provider } = Engine.context.NetworkController.state;
+			if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
+				initListeners();
+				Logger.log('PC::Initialzing payment channels');
+				client = new PaymentChannelsClient(address);
+				try {
+					Logger.log('PC::setConnext', provider);
+					await client.setConnext(provider);
+					Logger.log('PC::pollConnextState');
+					await client.pollConnextState();
+					// Logger.log('PC::pollAndSwap');
+					// await client.pollAndSwap();
+					resolve();
+				} catch (e) {
+					client.logCurrentState('PC::init');
+					Logger.error('PC::init', e);
+					reject();
+				}
 			}
-		}
+		});
 	},
 	/**
 	 * Method that returns the state of the client
 	 * specifically the current status and balance
 	 */
 	getState: () => ({
+		ready: client.state.ready,
 		balance: client.getBalance(),
 		status: client.state.status,
 		transactions: client.state.transactions
