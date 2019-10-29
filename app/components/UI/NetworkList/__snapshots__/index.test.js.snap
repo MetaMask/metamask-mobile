@@ -64,6 +64,7 @@ exports[`NetworkList should render correctly 1`] = `
             },
           ]
         }
+        testID="network-name"
       >
         <View
           style={
@@ -171,6 +172,7 @@ exports[`NetworkList should render correctly 1`] = `
             "textAlign": "left",
           }
         }
+        testID="other-network-name"
       >
         Other Networks
       </Text>
