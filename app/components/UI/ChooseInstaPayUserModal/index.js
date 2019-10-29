@@ -62,11 +62,6 @@ export default function ChooseInstaPayUserModal({ children, onConfirmPress, moda
 }
 
 ChooseInstaPayUserModal.defaultProps = {
-	cancelButtonMode: 'neutral',
-	confirmButtonMode: 'warning',
-	confirmTestID: '',
-	cancelTestID: '',
-	cancelText: 'CANCEL',
 	confirmText: 'CONFIRM'
 };
 

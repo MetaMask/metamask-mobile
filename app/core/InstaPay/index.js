@@ -234,6 +234,7 @@ class InstaPay {
 
 	migrateToV2 = async () => {
 		this.setState({ migrating: true });
+		hub.emit('migration::started', null);
 		// For each account
 		const allKeyrings = Engine.context.KeyringController.state.keyrings;
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
@@ -270,6 +271,7 @@ class InstaPay {
 			}
 
 			await v1Client.stop();
+			hub.emit('migration::complete', null);
 		}
 
 		// End migration

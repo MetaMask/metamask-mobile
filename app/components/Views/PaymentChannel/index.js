@@ -38,6 +38,7 @@ import { withNavigationFocus } from 'react-navigation';
 import { showAlert } from '../../../actions/alert';
 import AddressQRCode from '../AddressQRCode';
 import ChooseInstaPayUserModal from '../../UI/ChooseInstaPayUserModal';
+import InstaPayUpgradeModal from '../../UI/InstaPayUpgradeModal';
 
 const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
 
@@ -256,7 +257,8 @@ class PaymentChannel extends PureComponent {
 		wallet: null,
 		username: null,
 		newUsername: null,
-		chooseUserModalVisible: false
+		chooseUserModalVisible: false,
+		upgradeModalVisible: false
 	};
 
 	client = null;
@@ -264,6 +266,19 @@ class PaymentChannel extends PureComponent {
 	depositing = false;
 	withdrawing = false;
 	userSet = false;
+
+	showUpgradeModal = () => {
+		this.setState({ upgradeModalVisible: true });
+	};
+
+	hideUpgradeModal = () => {
+		this.setState({ upgradeModalVisible: false });
+	};
+
+	componentWillUnmount = () => {
+		InstaPay.hub.removeListener('migration::started', this.showUpgradeModal);
+		InstaPay.hub.removeListener('migration::complete', this.hideUpgradeModal);
+	};
 
 	onNewUsernameChange = newUsername => {
 		this.setState({ newUsername });
@@ -315,6 +330,8 @@ class PaymentChannel extends PureComponent {
 	init = () => {
 		setTimeout(() => {
 			InstaPay.hub.on('state::change', this.onStateChange);
+			InstaPay.hub.on('migration::started', this.showUpgradeModal);
+			InstaPay.hub.on('migration::complete', this.hideUpgradeModal);
 		}, 1000);
 		this.checkifEnabled();
 	};
@@ -800,6 +817,7 @@ class PaymentChannel extends PureComponent {
 						/>
 					</View>
 				</ChooseInstaPayUserModal>
+				<InstaPayUpgradeModal modalVisible={this.state.upgradeModalVisible} />
 			</SafeAreaView>
 		);
 	}
