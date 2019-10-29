@@ -129,6 +129,7 @@ class NetworksSettings extends PureComponent {
 				key={`network-${i}`}
 				onPress={() => this.onPress(network)} // eslint-disable-line
 				onLongPress={() => isCustomRPC && this.showRemoveMenu(network)} // eslint-disable-line
+				testID={'select-network'}
 			>
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
