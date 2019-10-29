@@ -3,6 +3,7 @@ import TestHelpers from './helpers';
 
 const RINKEBY = 'Rinkeby Test Network';
 const XDAI_URL = 'https://dai.poa.network/';
+const MAINNET = 'Ethereum Main Network';
 
 describe('Custom RPC Tests', () => {
 	beforeEach(() => {
@@ -87,5 +88,42 @@ describe('Custom RPC Tests', () => {
 		await TestHelpers.tapByText(RINKEBY);
 		// Check that we are on correct network
 		await TestHelpers.checkIfElementHasString('network-name', RINKEBY);
+		// Tap to prompt network list
+		await TestHelpers.tapAtPoint('wallet-screen', { x: 200, y: -5 });
+		// Check that networks list is visible
+		await TestHelpers.checkIfVisible('networks-list');
+		// Swipe down on networks list
+		await TestHelpers.swipe('networks-list', 'up');
+		// Change to back to xDai Network
+		await TestHelpers.tapByText('xDai');
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Check that we are on correct network
+		await TestHelpers.checkIfElementHasString('network-name', 'xDai');
+	});
+
+	it('should go to settings networks and remove xDai network', async () => {
+		// Open Drawer
+		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		// Check that the drawer is visbile
+		await TestHelpers.checkIfVisible('drawer-screen');
+		// Tap on settings
+		await TestHelpers.tap('settings-button');
+		// Tap on the "Networks" option
+		await TestHelpers.tapByText('Networks');
+		// Check that we are on the networks screen
+		await TestHelpers.checkIfVisible('networks-screen');
+		// Tap on xDai to remove network
+		await element(by.text('xDai')).longPress();
+		// Tap remove
+		await TestHelpers.tapByText('Remove');
+		// Relaunch app
+		await TestHelpers.relaunchApp();
+		// Delay
+		await TestHelpers.delay(1000);
+		// Check that we are on the browser screen
+		await TestHelpers.checkIfExists('browser-screen');
+		// Check that we are on Mainnet
+		await TestHelpers.checkIfElementHasString('network-name', MAINNET);
 	});
 });
