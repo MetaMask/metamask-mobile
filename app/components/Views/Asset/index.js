@@ -142,7 +142,7 @@ class Asset extends PureComponent {
 	normalizeTransactions() {
 		if (this.isNormalizing) return;
 		this.isNormalizing = true;
-		const submittedTxs = [];
+		let submittedTxs = [];
 		const newPendingTxs = [];
 		const confirmedTxs = [];
 		const { networkType, transactions } = this.props;
@@ -169,18 +169,19 @@ class Asset extends PureComponent {
 			submittedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 			confirmedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
-			console.log('CANCELING', submittedTxs);
+			const submittedNonces = [];
 			submittedTxs.forEach(transaction => {
-				console.log('ind tx', transaction);
-				const alreadyConfirmed = confirmedTxs.find(tx => {
-					console.log('asd', parseInt(tx.transaction.nonce, 16), parseInt(transaction.transaction.nonce, 16));
-					tx.transaction.nonce === transaction.transaction.nonce && console.log('transactions', tx);
-					return tx.transaction.nonce === transaction.transaction.nonce;
-				});
+				const alreadyConfirmed = confirmedTxs.find(
+					tx => tx.transaction.nonce === transaction.transaction.nonce
+				);
 				if (alreadyConfirmed) {
-					console.log('ALREADY CONFIRMED', transaction);
 					Engine.context.TransactionController.cancelTransaction(transaction.id);
 				}
+			});
+			submittedTxs = submittedTxs.filter(tx => {
+				const alreadySumbmitted = submittedNonces.includes(tx.transaction.nonce);
+				submittedNonces.push(tx.transaction.nonce);
+				return !alreadySumbmitted;
 			});
 
 			// To avoid extra re-renders we want to set the new txs only when
