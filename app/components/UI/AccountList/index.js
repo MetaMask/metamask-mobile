@@ -287,17 +287,26 @@ class AccountList extends PureComponent {
 					renderItem={this.renderItem}
 					ref={this.flatList}
 					style={styles.accountsWrapper}
+					testID={'account-number-button'}
 					getItemLayout={(data, index) => ({ length: 80, offset: 80 * index, index })} // eslint-disable-line
 				/>
 				<View style={styles.footer}>
-					<TouchableOpacity style={styles.footerButton} onPress={this.addAccount}>
+					<TouchableOpacity
+						style={styles.footerButton}
+						testID={'create-account-button'}
+						onPress={this.addAccount}
+					>
 						{this.state.loading ? (
 							<ActivityIndicator size="small" color={colors.blue} />
 						) : (
 							<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
 						)}
 					</TouchableOpacity>
-					<TouchableOpacity onPress={this.importAccount} style={styles.footerButton}>
+					<TouchableOpacity
+						onPress={this.importAccount}
+						style={styles.footerButton}
+						testID={'import-account-button'}
+					>
 						<Text style={styles.btnText}>{strings('accounts.import_account')}</Text>
 					</TouchableOpacity>
 				</View>

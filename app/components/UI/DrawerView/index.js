@@ -903,6 +903,7 @@ class DrawerView extends PureComponent {
 							onPress={this.onReceive}
 							containerStyle={[styles.button, styles.rightButton]}
 							style={styles.buttonContent}
+							testID={'drawer-receive-button'}
 						>
 							<MaterialIcon
 								name={'keyboard-tab'}

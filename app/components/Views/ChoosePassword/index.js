@@ -237,32 +237,32 @@ class ChoosePassword extends PureComponent {
 					await PreferencesController.update({ selectedAddress: hdKeyring[0] });
 				}
 
-				if (this.state.biometryType) {
+				if (this.state.biometryType && this.state.biometryChoice) {
 					const authOptions = {
-						accessControl: this.state.biometryChoice
-							? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-							: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
+						accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
 					};
 
 					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 
-					if (!this.state.biometryChoice) {
-						await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-					} else {
-						// If the user enables biometrics, we're trying to read the password
-						// immediately so we get the permission prompt
-						if (Platform.OS === 'ios') {
-							await SecureKeychain.getGenericPassword();
-						}
-						await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+					// If the user enables biometrics, we're trying to read the password
+					// immediately so we get the permission prompt
+					if (Platform.OS === 'ios') {
+						await SecureKeychain.getGenericPassword();
 					}
+					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+					await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+					await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
 				} else {
 					if (this.state.rememberMe) {
 						await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
 							accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
 						});
+					} else {
+						await SecureKeychain.resetGenericPassword();
 					}
 					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+					await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+					await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
 				}
 
 				// mark the user as existing so it doesn't see the create password screen again
