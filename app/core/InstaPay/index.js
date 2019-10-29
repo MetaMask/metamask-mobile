@@ -208,7 +208,7 @@ class InstaPay {
 		await this.startPoller();
 
 		this.runMigrations();
-		// this.backupIfNecessary();
+		this.backupIfNecessary();
 	};
 
 	backupIfNecessary = async () => {
@@ -740,35 +740,35 @@ instance = {
 	async init() {
 		const { provider } = Engine.context.NetworkController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
-			// const restoreNeeded = await AsyncStorage.getItem('@MetaMask:InstaPayRestoreBackUpNeeded');
-			// if (restoreNeeded) {
-			// 	hub.emit('backup::restore', null);
-			// } else {
-			let mnemonic;
-			const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
-			if (encryptedMnemonic) {
+			const restoreNeeded = await AsyncStorage.getItem('@MetaMask:InstaPayRestoreBackUpNeeded');
+			if (restoreNeeded) {
+				hub.emit('backup::restore', null);
+			} else {
+				let mnemonic;
+				const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
+				if (encryptedMnemonic) {
+					try {
+						mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
+						Logger.log('recovered mnemonic');
+					} catch (e) {
+						Logger.error('Decrypt mnemonic error', encryptedMnemonic);
+					}
+				}
+
+				if (!mnemonic) {
+					mnemonic = eth.Wallet.createRandom().mnemonic;
+					Logger.log('created new mnemonic');
+					await saveMnemonic(encryptor, mnemonic);
+				}
 				try {
-					mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
-					Logger.log('recovered mnemonic');
+					initListeners();
+					Logger.log('InstaPay::Starting client...');
+					client = new InstaPay(mnemonic, provider.type);
 				} catch (e) {
-					Logger.error('Decrypt mnemonic error', encryptedMnemonic);
+					client && client.logCurrentState('InstaPay::init');
+					Logger.error('InstaPay::init', e);
 				}
 			}
-
-			if (!mnemonic) {
-				mnemonic = eth.Wallet.createRandom().mnemonic;
-				Logger.log('created new mnemonic');
-				await saveMnemonic(encryptor, mnemonic);
-			}
-			try {
-				initListeners();
-				Logger.log('InstaPay::Starting client...');
-				client = new InstaPay(mnemonic, provider.type);
-			} catch (e) {
-				client && client.logCurrentState('InstaPay::init');
-				Logger.error('InstaPay::init', e);
-			}
-			//	}
 		}
 	},
 	/**
