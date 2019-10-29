@@ -190,14 +190,19 @@ class NetworksSettings extends PureComponent {
 
 	render() {
 		return (
-			<View style={styles.wrapper}>
+			<View style={styles.wrapper} testID={'networks-screen'}>
 				<ScrollView style={styles.networksWrapper}>
 					{this.renderMainnet()}
 					<Text style={styles.sectionLabel}>{strings('app_settings.network_other_networks')}</Text>
 					{this.renderOtherNetworks()}
 					{this.renderRpcNetworksView()}
 				</ScrollView>
-				<StyledButton type="confirm" onPress={this.onAddNetwork} containerStyle={styles.syncConfirm}>
+				<StyledButton
+					type="confirm"
+					onPress={this.onAddNetwork}
+					containerStyle={styles.syncConfirm}
+					testID={'add-network-button'}
+				>
 					{strings('app_settings.network_add_network')}
 				</StyledButton>
 				<ActionSheet

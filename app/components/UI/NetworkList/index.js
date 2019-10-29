@@ -224,6 +224,7 @@ export class NetworkList extends PureComponent {
 					style={[styles.network, styles.mainnet]}
 					key={`network-mainnet`}
 					onPress={() => this.onNetworkChange('mainnet')} // eslint-disable-line
+					testID={'network-name'}
 				>
 					<View style={styles.networkWrapper}>
 						<View style={[styles.selected, styles.mainnetSelected]}>{isMainnet}</View>
@@ -254,7 +255,9 @@ export class NetworkList extends PureComponent {
 			<ScrollView style={styles.networksWrapper}>
 				{this.renderMainnet()}
 				<View style={styles.otherNetworksHeader}>
-					<Text style={styles.otherNetworksText}>{strings('networks.other_networks')}</Text>
+					<Text style={styles.otherNetworksText} testID={'other-network-name'}>
+						{strings('networks.other_networks')}
+					</Text>
 				</View>
 				{this.renderOtherNetworks()}
 				{this.renderRpcNetworks()}
