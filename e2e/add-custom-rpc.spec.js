@@ -117,12 +117,12 @@ describe('Custom RPC Tests', () => {
 		await element(by.text('xDai')).longPress();
 		// Tap remove
 		await TestHelpers.tapByText('Remove');
-		// Relaunch app
-		await TestHelpers.relaunchApp();
-		// Delay
-		await TestHelpers.delay(1000);
-		// Check that we are on the browser screen
-		await TestHelpers.checkIfExists('browser-screen');
+		// Tap on back arrow
+		await TestHelpers.tapAtPoint('networks-screen', { x: 25, y: -22 });
+		// Tap close
+		await TestHelpers.tapByText('Close');
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfExists('wallet-screen');
 		// Check that we are on Mainnet
 		await TestHelpers.checkIfElementHasString('network-name', MAINNET);
 	});
