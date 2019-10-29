@@ -290,7 +290,7 @@ class TransactionElement extends PureComponent {
 		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
 		return (
 			<Text style={styles.date}>
-				{(!incoming || selfSent) && tx.transaction.nonce && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
+				{(!incoming || selfSent) && tx.transaction.nonce && `#${parseInt(tx.transaction.nonce, 16)}  - `}
 				{`${toLocaleDateTime(tx.time)}`}
 			</Text>
 		);
