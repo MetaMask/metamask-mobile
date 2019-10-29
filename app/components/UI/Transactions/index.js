@@ -71,6 +71,18 @@ class Transactions extends PureComponent {
 		 */
 		transactions: PropTypes.array,
 		/**
+		 * An array of transactions objects that have been submitted
+		 */
+		submittedTransactions: PropTypes.array,
+		/**
+		 * An array of transactions objects that have been confirmed
+		 */
+		confirmedTransactions: PropTypes.array,
+		/**
+		 * An array of transactions objects that are pending
+		 */
+		pendingTransactions: PropTypes.array,
+		/**
 		 * A string that represents the selected address
 		 */
 		selectedAddress: PropTypes.string,
@@ -241,11 +253,13 @@ class Transactions extends PureComponent {
 			return this.renderLoader();
 		}
 
-		const { transactions } = this.props;
+		const { submittedTransactions, confirmedTransactions, pendingTransactions } = this.props;
 
-		if (!transactions.length) {
+		if (!this.props.transactions.length) {
 			return this.renderEmpty();
 		}
+
+		const transactions = pendingTransactions.concat(submittedTransactions.concat(confirmedTransactions));
 
 		return (
 			<FlatList
