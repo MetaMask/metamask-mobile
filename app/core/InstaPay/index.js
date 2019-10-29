@@ -219,7 +219,9 @@ class InstaPay {
 	};
 
 	runMigrations = async () => {
-		await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
+		// Uncomment for testing purposes!
+		// await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
+
 		const InstaPayVersion = await AsyncStorage.getItem('@MetaMask:InstaPayVersion');
 		if (!InstaPayVersion) {
 			this.migrateToV2();

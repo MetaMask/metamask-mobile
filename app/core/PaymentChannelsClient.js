@@ -5,8 +5,6 @@ import AsyncStorage from '@react-native-community/async-storage';
 import * as Connext from 'connext';
 import EthQuery from 'ethjs-query';
 
-import TransactionsNotificationManager from './TransactionsNotificationManager';
-import { hideMessage } from 'react-native-flash-message';
 import { toWei, toBN, renderFromWei, BNToHex } from '../util/number';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
@@ -140,9 +138,6 @@ class PaymentChannelsClient {
 								TransactionController.hub.removeAllListeners(
 									`${signedTx.transactionMeta.id}:confirmed`
 								);
-								setTimeout(() => {
-									TransactionsNotificationManager.showInstantPaymentNotification('pending_deposit');
-								}, 1000);
 								resolve({
 									hash,
 									wait: () => Promise.resolve(1)
@@ -246,10 +241,6 @@ class PaymentChannelsClient {
 			if (lastKnownPaymentIDStr) {
 				lastKnownPaymentID = parseInt(lastKnownPaymentIDStr, 10);
 				if (lastKnownPaymentID < latestPaymentID) {
-					const amountToken = renderFromWei(latestPayment.amount.amountToken);
-					setTimeout(() => {
-						TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
-					}, 300);
 					await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
 				}
 			} else {
@@ -345,21 +336,6 @@ class PaymentChannelsClient {
 					Engine.context.TransactionController.update({ internalTransactions: newInternalTxs });
 					this.setState({ withdrawalPending: false, withdrawalPendingValue: undefined });
 				}
-			}
-		}
-
-		if (newStatus.type !== status.type) {
-			newStatus.reset = true;
-			if (newStatus.type && newStatus.type !== 'DEPOSIT_PENDING') {
-				const notification_type = newStatus.type
-					.toLowerCase()
-					.split('_')
-					.reverse()
-					.join('_');
-				hideMessage();
-				setTimeout(() => {
-					TransactionsNotificationManager.showInstantPaymentNotification(notification_type);
-				}, 300);
 			}
 		}
 		this.setState({ status: newStatus });
