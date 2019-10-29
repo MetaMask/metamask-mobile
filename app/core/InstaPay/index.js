@@ -118,6 +118,7 @@ class InstaPay {
 			xpub: '',
 			tokenProfile: null,
 			usernameSynced: false,
+			migrating: false,
 			migrated: false
 		};
 
@@ -232,6 +233,7 @@ class InstaPay {
 	};
 
 	migrateToV2 = async () => {
+		this.setState({ migrating: true });
 		// For each account
 		const allKeyrings = Engine.context.KeyringController.state.keyrings;
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
@@ -272,7 +274,7 @@ class InstaPay {
 
 		// End migration
 		await AsyncStorage.setItem('@MetaMask:InstaPayVersion', '2.0.0');
-		this.setState({ migrated: true });
+		this.setState({ migrated: true, migrating: false });
 	};
 
 	setState = data => {
@@ -497,7 +499,7 @@ class InstaPay {
 		});
 		await this.refreshBalances();
 		this.setPending({ type: 'swap', complete: true, closed: false });
-		TransactionsNotificationManager.showInstantPaymentNotification('success_deposit');
+		!this.state.migrating && TransactionsNotificationManager.showInstantPaymentNotification('success_deposit');
 	};
 
 	setPending = pending => {
@@ -569,7 +571,8 @@ class InstaPay {
 				TransactionController.hub.on(`${signedTx.transactionMeta.id}:confirmed`, async () => {
 					TransactionController.hub.removeAllListeners(`${signedTx.transactionMeta.id}:confirmed`);
 					setTimeout(() => {
-						TransactionsNotificationManager.showInstantPaymentNotification('pending_deposit');
+						!this.state.migrating &&
+							TransactionsNotificationManager.showInstantPaymentNotification('pending_deposit');
 					}, 1000);
 					resolve({
 						hash,
