@@ -63,13 +63,18 @@ class Asset extends PureComponent {
 	state = {
 		refreshing: false,
 		loading: false,
-		transactionsUpdated: false
+		transactionsUpdated: false,
+		submittedTxs: [],
+		transactions: []
 	};
 
 	txs = [];
 	txsPending = [];
 	isNormalizing = false;
 	networkType = '';
+	filter = undefined;
+	navSymbol = undefined;
+	navAddress = undefined;
 
 	static navigationOptions = ({ navigation }) =>
 		getNetworkNavbarOptions(navigation.getParam('symbol', ''), false, navigation);
@@ -79,6 +84,14 @@ class Asset extends PureComponent {
 			this.normalizeTransactions();
 			this.mounted = true;
 		});
+
+		this.navSymbol = this.props.navigation.getParam('symbol', '').toLowerCase();
+		this.navAddress = this.props.navigation.getParam('address', '').toLowerCase();
+		if (this.navSymbol.toUpperCase() !== 'ETH' && this.navAddress !== '') {
+			this.filter = this.noEthFilter;
+		} else {
+			this.filter = this.ethFilter;
+		}
 	}
 
 	componentDidUpdate(prevProps) {
@@ -104,33 +117,71 @@ class Asset extends PureComponent {
 
 	didTxStatusesChange = newTxsPending => this.txsPending.length !== newTxsPending.length;
 
+	ethFilter = tx => {
+		const { selectedAddress, networkType } = this.props;
+		const networkId = Networks[networkType].networkId;
+		const {
+			transaction: { from, to }
+		} = tx;
+		return (
+			((from && toChecksumAddress(from) === selectedAddress) ||
+				(to && toChecksumAddress(to) === selectedAddress)) &&
+			((networkId && networkId.toString() === tx.networkID) ||
+				(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
+			tx.status !== 'unapproved'
+		);
+	};
+
+	noEthFilter = tx => {
+		const {
+			transaction: { to, from }
+		} = tx;
+		return (from && from.toLowerCase()) === this.navAddress || (to && to.toLowerCase()) === this.navAddress;
+	};
+
 	normalizeTransactions() {
 		if (this.isNormalizing) return;
 		this.isNormalizing = true;
-		const { selectedAddress, networkType, transactions } = this.props;
-		const networkId = Networks[networkType].networkId;
+		const submittedTxs = [];
+		const newPendingTxs = [];
+		const confirmedTxs = [];
+		const { networkType, transactions } = this.props;
+
 		if (transactions.length) {
-			let txs = transactions.filter(
-				tx =>
-					((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
-						(tx.transaction.to && toChecksumAddress(tx.transaction.to) === selectedAddress)) &&
-					((networkId && networkId.toString() === tx.networkID) ||
-						(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
-					tx.status !== 'unapproved'
-			);
+			const txs = transactions.filter(tx => {
+				switch (tx.status) {
+					case 'submitted':
+					case 'signed':
+					case 'unapproved':
+						submittedTxs.push(tx);
+						break;
+					case 'pending':
+						newPendingTxs.push(tx);
+						break;
+					case 'confirmed':
+						confirmedTxs.push(tx);
+						break;
+				}
+				return this.filter(tx);
+			});
 
 			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-			const newPendingTxs = txs.filter(tx => tx.status === 'pending');
+			submittedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
+			confirmedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
-			const symbol = this.props.navigation.getParam('symbol', '');
-			const tokenAddress = this.props.navigation.getParam('address', '');
-			if (symbol.toUpperCase() !== 'ETH' && tokenAddress !== '') {
-				txs = txs.filter(
-					tx =>
-						(tx.transaction.from && tx.transaction.from.toLowerCase()) === tokenAddress.toLowerCase() ||
-						(tx.transaction.to && tx.transaction.to.toLowerCase()) === tokenAddress.toLowerCase()
-				);
-			}
+			console.log('CANCELING', submittedTxs);
+			submittedTxs.forEach(transaction => {
+				console.log('ind tx', transaction);
+				const alreadyConfirmed = confirmedTxs.find(tx => {
+					console.log('asd', parseInt(tx.transaction.nonce, 16), parseInt(transaction.transaction.nonce, 16));
+					tx.transaction.nonce === transaction.transaction.nonce && console.log('transactions', tx);
+					return tx.transaction.nonce === transaction.transaction.nonce;
+				});
+				if (alreadyConfirmed) {
+					console.log('ALREADY CONFIRMED', transaction);
+					Engine.context.TransactionController.cancelTransaction(transaction.id);
+				}
+			});
 
 			// To avoid extra re-renders we want to set the new txs only when
 			// there's a new tx in the history or the status of one of the existing txs changed
@@ -142,7 +193,14 @@ class Asset extends PureComponent {
 			) {
 				this.txs = txs;
 				this.txsPending = newPendingTxs;
-				this.setState({ transactionsUpdated: true, loading: false });
+				this.setState({
+					transactionsUpdated: true,
+					loading: false,
+					transactions: txs,
+					submittedTxs,
+					confirmedTxs,
+					pendingTxs: newPendingTxs
+				});
 			}
 		} else if (!this.state.transactionsUpdated) {
 			this.setState({ transactionsUpdated: true, loading: false });
@@ -188,7 +246,10 @@ class Asset extends PureComponent {
 								</View>
 							}
 							navigation={navigation}
-							transactions={this.txs}
+							transactions={this.state.transactions}
+							submittedTransactions={this.state.submittedTxs}
+							confirmedTransactions={this.state.confirmedTxs}
+							pendingTransactions={this.state.pendingTxs}
 							selectedAddress={selectedAddress}
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
