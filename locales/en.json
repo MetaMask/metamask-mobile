@@ -825,6 +825,7 @@
 		"pending_withdrawal_message": "Waiting for withdrawal to complete",
 		"error_message": "Tap to view this transaction",
 		"success_message": "Tap to view this transaction",
+		"speedup_message": "Trying to speed up the transaction",
 		"success_deposit_message": "Your funds are ready to use",
 		"success_withdrawal_message": "Your funds have been moved to your wallet",
 		"cancelled_message": "Tap to view this transaction",

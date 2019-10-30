@@ -31,6 +31,11 @@ class TransactionsNotificationManager {
 	 */
 	_backgroundMode;
 
+	/**
+	 * Object containing watched transaction ids list by transaction nonce
+	 */
+	_transactionsWatchTable = {};
+
 	_handleAppStateChange = appState => {
 		this._backgroundMode = appState === 'background';
 	};
@@ -72,6 +77,10 @@ class TransactionsNotificationManager {
 				case 'success':
 					title = strings('notifications.success_title', { nonce });
 					message = strings('notifications.success_message');
+					break;
+				case 'speedup':
+					title = `Speed up #${nonce}`;
+					message = `Attempted to speed up`;
 					break;
 				case 'success_withdrawal':
 					title = strings('notifications.success_withdrawal_title');
@@ -200,31 +209,46 @@ class TransactionsNotificationManager {
 		this._transactionToView.push(id);
 	};
 
-	/**
-	 * Listen for events of a submitted transaction
-	 * and generates the corresponding notification
-	 * based on the status of the transaction (failed or confirmed)
-	 */
-	watchSubmittedTransaction(transaction) {
-		if (transaction.silent) return false;
-		const { TransactionController } = Engine.context;
-		// First we show the pending tx notification
-		this._showNotification({
-			type: 'pending',
-			autoHide: false,
-			message: {
-				transaction: {
-					nonce: `${hexToBN(transaction.transaction.nonce).toString()}`,
-					id: transaction.id
-				},
-				callback: () => this._viewTransaction(transaction.id)
-			}
-		});
+	_finishedCallback = transactionMeta => {
+		const nonce = transactionMeta.transaction.nonce;
+		if (this._transactionsWatchTable[nonce]) {
+			this._transactionsWatchTable[nonce] = this._transactionsWatchTable[nonce].filter(
+				id => id === transactionMeta.id
+			);
+		}
 
-		// We wait for confirmation
-		TransactionController.hub.once(`${transaction.id}:confirmed`, transactionMeta => {
-			// Once it's confirmed we hide the pending tx notification
-			hideMessage();
+		// If it fails we hide the pending tx notification
+		hideMessage();
+		this._transactionsWatchTable[nonce].length &&
+			setTimeout(() => {
+				// Then we show the error notification
+				this._showNotification({
+					type: transactionMeta.status === 'cancelled' ? 'cancelled' : 'error',
+					autoHide: true,
+					message: {
+						transaction: transactionMeta,
+						id: transactionMeta.id,
+						callback: () => this._viewTransaction(transactionMeta.id)
+					},
+					duration: 5000
+				});
+				// Clean up
+				this._removeListeners(transactionMeta.id);
+				delete this._transactionsWatchTable[nonce];
+			}, 1500);
+	};
+
+	_confirmedCallback = (transactionMeta, originalTransaction) => {
+		const nonce = transactionMeta.transaction.nonce;
+		if (this._transactionsWatchTable[nonce]) {
+			this._transactionsWatchTable[nonce] = this._transactionsWatchTable[nonce].filter(
+				id => id === transactionMeta.id
+			);
+		}
+
+		// Once it's confirmed we hide the pending tx notification
+		hideMessage();
+		this._transactionsWatchTable[nonce].length &&
 			setTimeout(() => {
 				// Then we show the success notification
 				this._showNotification({
@@ -248,7 +272,7 @@ class TransactionsNotificationManager {
 				// Detect assets for ERC721 txs
 				// right after a transaction was confirmed
 				const pollPromises = [AccountTrackerController.poll()];
-				switch (transaction.assetType) {
+				switch (originalTransaction.assetType) {
 					case 'ERC20': {
 						pollPromises.push(...[TokenBalancesController.poll(), AssetsDetectionController.poll()]);
 						break;
@@ -263,28 +287,61 @@ class TransactionsNotificationManager {
 					setTimeout(() => {
 						this.requestPushNotificationsPermission();
 					}, 7000);
-			}, 500);
-		});
 
-		TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
-			// If it fails we hide the pending tx notification
-			hideMessage();
-			setTimeout(() => {
-				// Then we show the error notification
-				this._showNotification({
-					type: transactionMeta.status === 'cancelled' ? 'cancelled' : 'error',
-					autoHide: true,
-					message: {
-						transaction: transactionMeta,
-						id: transactionMeta.id,
-						callback: () => this._viewTransaction(transactionMeta.id)
-					},
-					duration: 5000
-				});
-				// Clean up
 				this._removeListeners(transactionMeta.id);
-			}, 500);
-		});
+				delete this._transactionsWatchTable[nonce];
+			}, 1500);
+	};
+
+	_speedupCallback = transactionMeta => {
+		this.watchSubmittedTransaction(transactionMeta, true);
+		setTimeout(() => {
+			this._showNotification({
+				autoHide: false,
+				type: 'speedup',
+				message: {
+					transaction: {
+						nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`,
+						id: transactionMeta.id
+					},
+					callback: () => this._viewTransaction(transactionMeta.id)
+				}
+			});
+		}, 1500);
+	};
+
+	/**
+	 * Listen for events of a submitted transaction
+	 * and generates the corresponding notification
+	 * based on the status of the transaction (failed or confirmed)
+	 */
+	watchSubmittedTransaction(transaction, speedUp = false) {
+		if (transaction.silent) return false;
+		const { TransactionController } = Engine.context;
+		const nonce = transaction.transaction.nonce;
+		// First we show the pending tx notification
+		!speedUp &&
+			this._showNotification({
+				type: 'pending',
+				autoHide: false,
+				message: {
+					transaction: {
+						nonce: `${parseInt(nonce, 16)}`,
+						id: transaction.id
+					},
+					callback: () => this._viewTransaction(transaction.id)
+				}
+			});
+
+		this._transactionsWatchTable[nonce]
+			? this._transactionsWatchTable[nonce].push(transaction.id)
+			: (this._transactionsWatchTable[nonce] = [transaction.id]);
+
+		TransactionController.hub.once(`${transaction.id}:confirmed`, transactionMeta =>
+			this._confirmedCallback(transactionMeta, transaction)
+		);
+		TransactionController.hub.once(`${transaction.id}:finished`, this._finishedCallback);
+		TransactionController.hub.once(`${transaction.id}:speedup`, this._speedupCallback);
 	}
 
 	/**
