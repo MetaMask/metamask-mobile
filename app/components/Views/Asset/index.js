@@ -65,6 +65,7 @@ class Asset extends PureComponent {
 		loading: false,
 		transactionsUpdated: false,
 		submittedTxs: [],
+		confirmedTxs: [],
 		transactions: []
 	};
 
