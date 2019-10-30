@@ -25,7 +25,7 @@ exports[`TransactionElement should render correctly 1`] = `
     <View
       style={
         Object {
-          "height": 95,
+          "minHeight": 95,
           "padding": 15,
         }
       }
@@ -126,6 +126,7 @@ exports[`TransactionElement should render correctly 1`] = `
                 "fontFamily": "Roboto",
                 "fontSize": 12,
                 "fontWeight": "400",
+                "textTransform": "uppercase",
               }
             }
           >
@@ -134,6 +135,174 @@ exports[`TransactionElement should render correctly 1`] = `
         </View>
       </View>
     </View>
+    <ActionModal
+      cancelButtonMode="neutral"
+      cancelTestID=""
+      cancelText="Nevermind"
+      confirmButtonMode="warning"
+      confirmTestID=""
+      confirmText="Yes, let's try"
+      modalVisible={false}
+      onCancelPress={[Function]}
+      onConfirmPress={[Function]}
+      onRequestClose={[Function]}
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "stretch",
+            "flex": 1,
+            "flexDirection": "column",
+            "justifyContent": "space-between",
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 22,
+              "fontWeight": "600",
+              "textAlign": "center",
+            }
+          }
+        >
+          Attempt to cancel?
+        </Text>
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "600",
+              "textAlign": "center",
+            }
+          }
+        >
+          Gas Cancellation Fee
+        </Text>
+        <View
+          style={
+            Object {
+              "backgroundColor": "#f2f3f4",
+              "padding": 15,
+              "textAlign": "center",
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "fontFamily": "Roboto",
+                "fontSize": 24,
+                "fontWeight": "600",
+                "textAlign": "center",
+              }
+            }
+          >
+            0
+             
+            ETH
+          </Text>
+        </View>
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "textAlign": "center",
+            }
+          }
+        >
+          Submitting this attempt does not guarantee your original transaction will be cancelled. If the cancellation attempt is successful, you will be charged the transaction fee above.
+        </Text>
+      </View>
+    </ActionModal>
+    <ActionModal
+      cancelButtonMode="neutral"
+      cancelTestID=""
+      cancelText="Nevermind"
+      confirmButtonMode="warning"
+      confirmTestID=""
+      confirmText="Yes, let's try"
+      modalVisible={false}
+      onCancelPress={[Function]}
+      onConfirmPress={[Function]}
+      onRequestClose={[Function]}
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "stretch",
+            "flex": 1,
+            "flexDirection": "column",
+            "justifyContent": "space-between",
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 22,
+              "fontWeight": "600",
+              "textAlign": "center",
+            }
+          }
+        >
+          Attempt to speed up?
+        </Text>
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "600",
+              "textAlign": "center",
+            }
+          }
+        >
+          Gas Speed Up fee
+        </Text>
+        <View
+          style={
+            Object {
+              "backgroundColor": "#f2f3f4",
+              "padding": 15,
+              "textAlign": "center",
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "fontFamily": "Roboto",
+                "fontSize": 24,
+                "fontWeight": "600",
+                "textAlign": "center",
+              }
+            }
+          >
+            0 ETH
+          </Text>
+        </View>
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "textAlign": "center",
+            }
+          }
+        >
+          Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.
+        </Text>
+      </View>
+    </ActionModal>
   </View>
 </TouchableHighlight>
 `;
