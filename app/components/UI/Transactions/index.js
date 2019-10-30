@@ -79,10 +79,6 @@ class Transactions extends PureComponent {
 		 */
 		confirmedTransactions: PropTypes.array,
 		/**
-		 * An array of transactions objects that are pending
-		 */
-		pendingTransactions: PropTypes.array,
-		/**
 		 * A string that represents the selected address
 		 */
 		selectedAddress: PropTypes.string,
@@ -248,41 +244,37 @@ class Transactions extends PureComponent {
 		/>
 	);
 
-	renderContent() {
+	render = () => {
 		if (!this.state.ready || this.props.loading) {
 			return this.renderLoader();
 		}
-
-		const { submittedTransactions, confirmedTransactions, pendingTransactions } = this.props;
-
 		if (!this.props.transactions.length) {
 			return this.renderEmpty();
 		}
 
-		const transactions = pendingTransactions.concat(submittedTransactions.concat(confirmedTransactions));
+		const { submittedTransactions, confirmedTransactions } = this.props;
+		const transactions = submittedTransactions.length
+			? submittedTransactions.concat(confirmedTransactions)
+			: this.props.transactions;
 
 		return (
-			<FlatList
-				ref={this.flatList}
-				getItemLayout={this.getItemLayout}
-				data={transactions}
-				extraData={this.state}
-				keyExtractor={this.keyExtractor}
-				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-				renderItem={this.renderItem}
-				initialNumToRender={20}
-				maxToRenderPerBatch={2}
-				onEndReachedThreshold={0.5}
-				ListHeaderComponent={this.props.header}
-			/>
+			<View style={styles.wrapper} testID={'transactions-screen'}>
+				<FlatList
+					ref={this.flatList}
+					getItemLayout={this.getItemLayout}
+					data={transactions}
+					extraData={this.state}
+					keyExtractor={this.keyExtractor}
+					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+					renderItem={this.renderItem}
+					initialNumToRender={10}
+					maxToRenderPerBatch={2}
+					onEndReachedThreshold={0.5}
+					ListHeaderComponent={this.props.header}
+				/>
+			</View>
 		);
-	}
-
-	render = () => (
-		<View style={styles.wrapper} testID={'transactions-screen'}>
-			{this.renderContent()}
-		</View>
-	);
+	};
 }
 
 const mapStateToProps = state => ({

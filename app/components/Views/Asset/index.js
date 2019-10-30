@@ -194,6 +194,7 @@ class Asset extends PureComponent {
 			) {
 				this.txs = txs;
 				this.txsPending = newPendingTxs;
+				console.log('setting txs ');
 				this.setState({
 					transactionsUpdated: true,
 					loading: false,

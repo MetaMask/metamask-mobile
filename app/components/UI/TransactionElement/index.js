@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, TouchableHighlight, StyleSheet, Text, View, Image } from 'react-native';
+import { Platform, TouchableHighlight, StyleSheet, Text, View, Image, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
@@ -618,19 +618,18 @@ class TransactionElement extends PureComponent {
 	);
 
 	showCancelModal = () => {
-		this.setState({ cancelIsOpen: true });
+		this.mounted && this.setState({ cancelIsOpen: true });
 	};
 
 	hideCancelModal = () => {
-		this.setState({ cancelIsOpen: false });
+		this.mounted && this.setState({ cancelIsOpen: false });
 	};
 
 	cancelTransaction = () => {
-		const {
-			tx: { id }
-		} = this.props;
-		Engine.context.TransactionController.stopTransaction(id);
 		this.hideCancelModal();
+		InteractionManager.runAfterInteractions(() => {
+			Engine.context.TransactionController.stopTransaction(this.props.tx.id);
+		});
 	};
 
 	renderSpeedUpButton = () => (
@@ -645,19 +644,18 @@ class TransactionElement extends PureComponent {
 	);
 
 	showSpeedUpModal = () => {
-		this.setState({ speedUpIsOpen: true });
+		this.mounted && this.setState({ speedUpIsOpen: true });
 	};
 
 	hideSpeedUpModal = () => {
-		this.setState({ speedUpIsOpen: false });
+		this.mounted && this.setState({ speedUpIsOpen: false });
 	};
 
 	speedUpTransaction = () => {
-		const {
-			tx: { id }
-		} = this.props;
-		Engine.context.TransactionController.speedUpTransaction(id);
 		this.hideSpeedUpModal();
+		InteractionManager.runAfterInteractions(() => {
+			Engine.context.TransactionController.speedUpTransaction(this.props.tx.id);
+		});
 	};
 
 	render() {
@@ -754,8 +752,9 @@ class TransactionElement extends PureComponent {
 							<Text style={styles.gasTitle}>{'speedUpIsOpen fee'}</Text>
 							<View style={styles.cancelFeeWrapper}>
 								<Text style={styles.cancelFee}>
-									{renderFromWei(Math.floor(existingGasPriceDecimal * SPEED_UP_RATE))}{' '}
-									{strings('unit.eth')}
+									{`${renderFromWei(Math.floor(existingGasPriceDecimal * SPEED_UP_RATE))} ${strings(
+										'unit.eth'
+									)}`}
 								</Text>
 							</View>
 							<Text style={styles.modalText}>{strings('transaction.cancel_tx_message')}</Text>
