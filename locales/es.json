@@ -480,7 +480,14 @@
 		"rate_not_available": "Conversión no disponible",
 		"optional": "Opcional",
 		"no_address_for_ens": "No existe dirección para nombre ENS",
-		"approve_warning": "Al aprobar esta acción, otorgas permiso para que este contrato gaste hasta"
+		"approve_warning": "Al aprobar esta acción, otorgas permiso para que este contrato gaste hasta",
+		"cancel_tx_title": "¿Intentar cancelar?",
+		"cancel_tx_message": "Enviar este intento no garantiza que su transacción original será cancelada. Si el intento de cancelación es exitoso, se le cobrará la tarifa de transacción anterior.",
+		"speedup_tx_title": "¿Intentar acelerar?",
+		"speedup_tx_message": "nviar este intento no garantiza que su transacción original se acelerará. Si el intento de acelerar es exitoso, se le cobrará la tarifa de transacción anterior.",
+		"nevermind": "No importa",
+		"gas_cancel_fee": "Tarifa de Cancelación",
+		"gas_speedup_fee": "Tarifa de Aceleración "
 	},
 	"custom_gas": {
 		"advanced_options": "Opciones Avanzadas",

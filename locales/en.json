@@ -484,11 +484,14 @@
 		"optional": "Optional",
 		"no_address_for_ens": "No address for ENS name",
 		"lets_try": "Yes, let's try",
+		"approve_warning": "By approving this action, you grant permission for this contract to spend up to",
 		"cancel_tx_title": "Attempt to cancel?",
-		"cancel_tx_message": "Submitting this attempt does not guarantee your original transaction will be cancelled. If the canellation attempt is successful, you will be charged the transaction fee above.",
+		"cancel_tx_message": "Submitting this attempt does not guarantee your original transaction will be cancelled. If the cancellation attempt is successful, you will be charged the transaction fee above.",
+		"speedup_tx_title": "Attempt to speed up?",
+		"speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
 		"nevermind": "Nevermind",
-		"gasCancelFee": "Gas Cancellation Fee",
-		"approve_warning": "By approving this action, you grant permission for this contract to spend up to"
+		"gas_cancel_fee": "Gas Cancellation Fee",
+		"gas_speedup_fee": "Gas Speed Up fee"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",
