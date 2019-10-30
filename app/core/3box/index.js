@@ -9,15 +9,20 @@ class Web3Box extends PureComponent {
 		status: 'opening_box',
 		address: null,
 		ready: false,
-		result: undefined
+		result: undefined,
+		error: false
 	};
 
 	promises = [];
 
 	componentDidUpdate(prevProps, prevState) {
 		if (prevState.status !== this.state.status && this.state.status !== 'idle') {
-			const promiseResolve = this.promises.pop();
-			(this.state.result && promiseResolve(this.state.result)) || promiseResolve();
+			const promise = this.promises.pop();
+			if (this.state.error) {
+				(this.state.result && promise.reject(this.state.result)) || promise.reject();
+			} else {
+				(this.state.result && promise.resolve(this.state.result)) || promise.resolve();
+			}
 			this.resetResults();
 		}
 	}
@@ -25,7 +30,7 @@ class Web3Box extends PureComponent {
 	webview = React.createRef();
 
 	resetResults = () => {
-		this.setState({ result: undefined });
+		this.setState({ result: undefined, error: false });
 	};
 
 	onMessage = async ({ nativeEvent: { data } }) => {
@@ -91,13 +96,13 @@ class Web3Box extends PureComponent {
 	};
 
 	openSpace = async space => {
-		const promise = new Promise(res => {
+		const promise = new Promise((res, rej) => {
 			const current = this.webview.current;
 			current &&
 				current.injectJavaScript(`(function () {
 				window.openSpace('${space}');
 			})()`);
-			this.promises.push(res);
+			this.promises.push({ resolve: res, reject: rej });
 		});
 
 		return promise;
@@ -105,20 +110,20 @@ class Web3Box extends PureComponent {
 
 	openBox = async address => {
 		this.setState({ address });
-		const promise = new Promise(res => {
+		const promise = new Promise((res, rej) => {
 			const current = this.webview.current;
 			current &&
 				current.injectJavaScript(`(function () {
 				window.openBox('${address}');
 			})()`);
-			this.promises.push(res);
+			this.promises.push({ resolve: res, reject: rej });
 		});
 
 		return promise;
 	};
 
 	publicSetSpace = (key, val) => {
-		const promise = new Promise(res => {
+		const promise = new Promise((res, rej) => {
 			const current = this.webview.current;
 			current &&
 				current.injectJavaScript(`
@@ -126,14 +131,14 @@ class Web3Box extends PureComponent {
 					window.spacePublicSet('${key}','${val}');
 				})()
 			`);
-			this.promises.push(res);
+			this.promises.push({ resolve: res, reject: rej });
 		});
 
 		return promise;
 	};
 
 	publicGetSpace = key => {
-		const promise = new Promise(res => {
+		const promise = new Promise((res, rej) => {
 			const current = this.webview.current;
 			current &&
 				current.injectJavaScript(`
@@ -141,14 +146,14 @@ class Web3Box extends PureComponent {
 					window.spacePublicGet('${key}');
 				})()
 			`);
-			this.promises.push(res);
+			this.promises.push({ resolve: res, reject: rej });
 		});
 
 		return promise;
 	};
 
 	privateSetSpace = (key, val) => {
-		const promise = new Promise(res => {
+		const promise = new Promise((res, rej) => {
 			const current = this.webview.current;
 			current &&
 				current.injectJavaScript(`
@@ -156,14 +161,14 @@ class Web3Box extends PureComponent {
 					window.spacePrivateSet('${key}','${val}');
 				})()
 			`);
-			this.promises.push(res);
+			this.promises.push({ resolve: res, reject: rej });
 		});
 
 		return promise;
 	};
 
 	privateGetSpace = key => {
-		const promise = new Promise(res => {
+		const promise = new Promise((res, rej) => {
 			const current = this.webview.current;
 			current &&
 				current.injectJavaScript(`
@@ -171,14 +176,14 @@ class Web3Box extends PureComponent {
 					window.spacePrivateGet('${key}');
 				})()
 			`);
-			this.promises.push(res);
+			this.promises.push({ resolve: res, reject: rej });
 		});
 
 		return promise;
 	};
 
 	privateRemoveSpace = key => {
-		const promise = new Promise(res => {
+		const promise = new Promise((res, rej) => {
 			const current = this.webview.current;
 			current &&
 				current.injectJavaScript(`
@@ -186,14 +191,14 @@ class Web3Box extends PureComponent {
 					window.spacePrivateRemove('${key}');
 				})()
 			`);
-			this.promises.push(res);
+			this.promises.push({ resolve: res, reject: rej });
 		});
 
 		return promise;
 	};
 
 	publicRemoveSpace = key => {
-		const promise = new Promise(res => {
+		const promise = new Promise((res, rej) => {
 			const current = this.webview.current;
 			current &&
 				current.injectJavaScript(`
@@ -201,7 +206,7 @@ class Web3Box extends PureComponent {
 					window.spacePublicRemove('${key}');
 				})()
 			`);
-			this.promises.push(res);
+			this.promises.push({ resolve: res, reject: rej });
 		});
 
 		return promise;

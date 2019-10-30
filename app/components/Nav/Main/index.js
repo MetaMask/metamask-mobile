@@ -639,12 +639,11 @@ class Main extends PureComponent {
 						await this.web3BoxRef.current.openSpace('InstaPay');
 						Logger.log('SPACE OPENED');
 						await InstaPay.initBackup(this.web3BoxRef.current);
-						this.setState({ is3boxEnabled: false });
 					} catch (e) {
 						Logger.error('InstaPay Backup failed', e);
-						this.setState({ is3boxEnabled: false });
 					}
-				}, 5000);
+					this.setState({ is3boxEnabled: false });
+				}, 3000);
 			});
 		});
 
@@ -655,11 +654,16 @@ class Main extends PureComponent {
 				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 				Logger.log('OPENING BOX');
 				setTimeout(async () => {
-					this.web3BoxRef.current && (await this.web3BoxRef.current.openBox(accountsOrdered[0]));
-					Logger.log('READY TO OPEN THE SPACE!');
-					await this.web3BoxRef.current.openSpace('InstaPay');
-					Logger.log('SPACE OPENED');
-					await InstaPay.restoreBackup(this.web3BoxRef.current);
+					try {
+						this.web3BoxRef.current && (await this.web3BoxRef.current.openBox(accountsOrdered[0]));
+						Logger.log('READY TO OPEN THE SPACE!');
+						await this.web3BoxRef.current.openSpace('InstaPay');
+						Logger.log('SPACE OPENED');
+						await InstaPay.restoreBackup(this.web3BoxRef.current);
+					} catch (e) {
+						Logger.error('InstaPay Restore Backup failed', e);
+					}
+
 					this.setState({ is3boxEnabled: false });
 				}, 5000);
 			});
