@@ -238,7 +238,7 @@ class Transactions extends PureComponent {
 			contractExchangeRates={this.props.contractExchangeRates}
 			exchangeRate={this.props.exchangeRate}
 			conversionRate={this.props.conversionRate}
-			currentCurrency={this.props.currentCurrency.toUpperCase()}
+			currentCurrency={this.props.currentCurrency}
 			showAlert={this.props.showAlert}
 			navigation={this.props.navigation}
 		/>

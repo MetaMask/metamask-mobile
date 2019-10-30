@@ -170,18 +170,19 @@ class Asset extends PureComponent {
 			confirmedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
 			const submittedNonces = [];
-			submittedTxs.forEach(transaction => {
+			submittedTxs = submittedTxs.filter(transaction => {
 				const alreadyConfirmed = confirmedTxs.find(
 					tx => tx.transaction.nonce === transaction.transaction.nonce
 				);
 				if (alreadyConfirmed) {
-					Engine.context.TransactionController.cancelTransaction(transaction.id);
+					InteractionManager.runAfterInteractions(() => {
+						Engine.context.TransactionController.cancelTransaction(transaction.id);
+					});
+					return false;
 				}
-			});
-			submittedTxs = submittedTxs.filter(tx => {
-				const alreadySumbmitted = submittedNonces.includes(tx.transaction.nonce);
-				submittedNonces.push(tx.transaction.nonce);
-				return !alreadySumbmitted;
+				const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
+				submittedNonces.push(transaction.transaction.nonce);
+				return !alreadySubmitted;
 			});
 
 			// To avoid extra re-renders we want to set the new txs only when
@@ -194,14 +195,12 @@ class Asset extends PureComponent {
 			) {
 				this.txs = txs;
 				this.txsPending = newPendingTxs;
-				console.log('setting txs ');
 				this.setState({
 					transactionsUpdated: true,
 					loading: false,
 					transactions: txs,
 					submittedTxs,
-					confirmedTxs,
-					pendingTxs: newPendingTxs
+					confirmedTxs
 				});
 			}
 		} else if (!this.state.transactionsUpdated) {
@@ -251,7 +250,6 @@ class Asset extends PureComponent {
 							transactions={this.state.transactions}
 							submittedTransactions={this.state.submittedTxs}
 							confirmedTransactions={this.state.confirmedTxs}
-							pendingTransactions={this.state.pendingTxs}
 							selectedAddress={selectedAddress}
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
