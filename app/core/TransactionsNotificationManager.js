@@ -235,7 +235,7 @@ class TransactionsNotificationManager {
 				// Clean up
 				this._removeListeners(transactionMeta.id);
 				delete this._transactionsWatchTable[nonce];
-			}, 1500);
+			}, 2000);
 	};
 
 	_confirmedCallback = (transactionMeta, originalTransaction) => {
@@ -290,7 +290,7 @@ class TransactionsNotificationManager {
 
 				this._removeListeners(transactionMeta.id);
 				delete this._transactionsWatchTable[nonce];
-			}, 1500);
+			}, 2000);
 	};
 
 	_speedupCallback = transactionMeta => {
@@ -307,7 +307,7 @@ class TransactionsNotificationManager {
 					callback: () => this._viewTransaction(transactionMeta.id)
 				}
 			});
-		}, 1500);
+		}, 2000);
 	};
 
 	/**
