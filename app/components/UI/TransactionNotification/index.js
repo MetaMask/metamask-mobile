@@ -98,7 +98,7 @@ export const TransactionNotification = props => {
 					assetType: transaction.assetType
 				});
 			case 'speedup':
-				return `Speed up #${transaction.nonce}`;
+				return strings('notifications.speedup_title', { nonce: transaction.nonce });
 			case 'received_payment':
 				return strings('notifications.received_payment_title');
 			case 'cancelled':
