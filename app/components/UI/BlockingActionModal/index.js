@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 		padding: 15
 	},
 	loader: {
-		marginTop: 20
+		marginTop: 30
 	}
 });
 
