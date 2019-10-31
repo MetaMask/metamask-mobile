@@ -4,7 +4,6 @@ import { Clipboard, TouchableOpacity, StyleSheet, Text, View } from 'react-nativ
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Engine from '../../../../core/Engine';
 import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
@@ -242,11 +241,6 @@ class TransactionDetails extends PureComponent {
 
 	hideCancelModal = () => {
 		this.setState({ cancelIsOpen: false });
-	};
-
-	cancelTransaction = () => {
-		Engine.context.TransactionController.stopTransaction(this.props.transactionObject.id);
-		this.hideCancelModal();
 	};
 
 	render = () => {

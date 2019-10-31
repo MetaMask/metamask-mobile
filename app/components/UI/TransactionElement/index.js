@@ -629,7 +629,11 @@ class TransactionElement extends PureComponent {
 	cancelTransaction = () => {
 		this.hideCancelModal();
 		InteractionManager.runAfterInteractions(() => {
-			Engine.context.TransactionController.stopTransaction(this.props.tx.id);
+			try {
+				Engine.context.TransactionController.stopTransaction(this.props.tx.id);
+			} catch (e) {
+				// ignore because transaction already went through
+			}
 		});
 	};
 
@@ -655,7 +659,11 @@ class TransactionElement extends PureComponent {
 	speedUpTransaction = () => {
 		this.hideSpeedUpModal();
 		InteractionManager.runAfterInteractions(() => {
-			Engine.context.TransactionController.speedUpTransaction(this.props.tx.id);
+			try {
+				Engine.context.TransactionController.speedUpTransaction(this.props.tx.id);
+			} catch (e) {
+				// ignore because transaction already went through
+			}
 		});
 	};
 
