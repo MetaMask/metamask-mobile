@@ -968,7 +968,11 @@
 		"ask_a_friend": "Or you can also request from a friend",
 		"receive_funds_action": "Receive Funds",
 		"view_address": "View my address",
-		"gas_error": "You don't have enough ETH to pay for gas."
+		"gas_error": "You don't have enough ETH to pay for gas.",
+		"upgrading_account_title": "Upgrading account",
+		"upgrading_account_text": "Please wait while we upgrade your InstaPay account",
+		"restoring_account_title": "Restoring account",
+		"restoring_account_text": "Please wait while we restore your InstaPay account"
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",

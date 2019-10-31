@@ -948,7 +948,11 @@
 		"ask_a_friend": "O también puedes pedirle a un amigo",
 		"receive_funds_action": "Recibir Fondos",
 		"view_address": "Ver mi dirección",
-		"gas_error": "No tienes suficiente ETH para pagar el gas."
+		"gas_error": "No tienes suficiente ETH para pagar el gas.",
+		"upgrading_account_title": "Actualizando tu cuenta",
+		"upgrading_account_text": "Por favor espera mientras actualizamos tu cuenta de InstaPay",
+		"restoring_account_title": "Recuperando cuenta",
+		"restoring_account_text": "Por favor espera mientras recuperamos tu cuenta de InstaPay"
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",

@@ -209,7 +209,7 @@ class InstaPay {
 		await this.startPoller();
 
 		this.runMigrations();
-		this.backupIfNecessary();
+		// this.backupIfNecessary();
 	};
 
 	backupIfNecessary = async () => {
@@ -221,7 +221,7 @@ class InstaPay {
 
 	runMigrations = async () => {
 		// Uncomment for testing purposes!
-		// await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
+		await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
 
 		const InstaPayVersion = await AsyncStorage.getItem('@MetaMask:InstaPayVersion');
 		if (!InstaPayVersion) {
@@ -747,6 +747,9 @@ instance = {
 	async init() {
 		const { provider } = Engine.context.NetworkController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
+			// For testing purposes
+			await AsyncStorage.removeItem('@MetaMask:InstaPayRestoreBackUpNeeded');
+
 			const restoreNeeded = await AsyncStorage.getItem('@MetaMask:InstaPayRestoreBackUpNeeded');
 			if (restoreNeeded) {
 				hub.emit('backup::restore', null);
@@ -897,6 +900,7 @@ instance = {
 	},
 	restoreBackup: async space => {
 		restoring = true;
+		hub.emit('restore:started', null);
 		Logger.log('InstaPay::Restore backup process initiated');
 		const backedupEncryptedMnemonic = await getMnemonicFromBackup(space);
 		await AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', backedupEncryptedMnemonic);
@@ -904,6 +908,7 @@ instance = {
 		await AsyncStorage.removeItem('@MetaMask:InstaPayRestoreBackUpNeeded');
 		Logger.log('InstaPay::Restore backup process completed');
 		restoring = false;
+		hub.emit('restore:complete', null);
 		reloadClient();
 	},
 	reloadClient,

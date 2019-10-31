@@ -38,7 +38,7 @@ import { withNavigationFocus } from 'react-navigation';
 import { showAlert } from '../../../actions/alert';
 import AddressQRCode from '../AddressQRCode';
 import ChooseInstaPayUserModal from '../../UI/ChooseInstaPayUserModal';
-import InstaPayUpgradeModal from '../../UI/InstaPayUpgradeModal';
+import BlockingActionModal from '../../UI/BlockingActionModal';
 
 const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
 
@@ -160,17 +160,23 @@ const styles = StyleSheet.create({
 		marginBottom: 15,
 		textAlign: 'center',
 		...fontStyles.bold
+	},
+	blockingModalText: {
+		alignSelf: 'center',
+		borderRadius: 10,
+		fontSize: 16,
+		textAlign: 'center',
+		marginBottom: 30,
+		color: colors.fontPrimary,
+		...fontStyles.normal
+	},
+	blockingModalTitle: {
+		color: colors.fontPrimary,
+		fontSize: 22,
+		marginBottom: 15,
+		textAlign: 'center',
+		...fontStyles.bold
 	}
-	// usernameWrapper: {
-	// 	flex: 1,
-	// 	alignItems: 'center',
-	// 	justifyContent: 'center',
-	// 	paddingVertical: 15
-	// },
-	// usernameText: {
-	// 	fontSize: 20,
-	// 	textAlign: 'center'
-	// }
 });
 
 /**
@@ -258,7 +264,8 @@ class PaymentChannel extends PureComponent {
 		username: null,
 		newUsername: null,
 		chooseUserModalVisible: false,
-		upgradeModalVisible: false
+		upgradeModalVisible: false,
+		restoreAccountModalVisible: false
 	};
 
 	client = null;
@@ -275,8 +282,18 @@ class PaymentChannel extends PureComponent {
 		this.setState({ upgradeModalVisible: false });
 	};
 
+	showRestoringAccountModal = () => {
+		this.setState({ upgradeModalVisible: true });
+	};
+
+	hideRestoringAccountModal = () => {
+		this.setState({ upgradeModalVisible: false });
+	};
+
 	componentWillUnmount = () => {
+		InstaPay.hub.removeListener('restore::started', this.showRestoringAccountModal);
 		InstaPay.hub.removeListener('migration::started', this.showUpgradeModal);
+		InstaPay.hub.removeListener('restore::complete', this.hideRestoringAccountModal);
 		InstaPay.hub.removeListener('migration::complete', this.hideUpgradeModal);
 	};
 
@@ -332,6 +349,8 @@ class PaymentChannel extends PureComponent {
 			InstaPay.hub.on('state::change', this.onStateChange);
 			InstaPay.hub.on('migration::started', this.showUpgradeModal);
 			InstaPay.hub.on('migration::complete', this.hideUpgradeModal);
+			InstaPay.hub.on('restore::started', this.showRestoringAccountModal);
+			InstaPay.hub.on('restore::complete', this.hideRestoringAccountModal);
 		}, 1000);
 		this.checkifEnabled();
 	};
@@ -765,6 +784,22 @@ class PaymentChannel extends PureComponent {
 		this.setState({ displayWelcomeModal: false });
 	};
 
+	renderBlockingModals = () => {
+		const visible = this.state.upgradeModalVisible || this.state.restoreInProgressModalVisible;
+		const title = this.state.upgradeModalVisible
+			? strings('payment_channel.upgrading_account_title')
+			: strings('payment_channel.restoring_account_title');
+		const text = this.state.upgradeModalVisible
+			? strings('payment_channel.upgrading_account_text')
+			: strings('payment_channel.restoring_account_text');
+		return (
+			<BlockingActionModal modalVisible={visible} isLoadingAction>
+				<Text style={styles.blockingModalTitle}>{title}</Text>
+				<Text style={styles.blockingModalText}>{text}</Text>
+			</BlockingActionModal>
+		);
+	};
+
 	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -817,7 +852,7 @@ class PaymentChannel extends PureComponent {
 						/>
 					</View>
 				</ChooseInstaPayUserModal>
-				<InstaPayUpgradeModal modalVisible={this.state.upgradeModalVisible} />
+				{this.renderBlockingModals()}
 			</SafeAreaView>
 		);
 	}
