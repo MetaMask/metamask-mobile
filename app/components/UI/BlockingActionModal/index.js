@@ -10,24 +10,24 @@ const styles = StyleSheet.create({
 		width: '100%'
 	},
 	modalView: {
-		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
 		alignSelf: 'center',
 		backgroundColor: colors.white,
 		width: '90%',
-		padding: 15,
-		borderRadius: 6
+		borderRadius: 6,
+		minHeight: 200,
+		padding: 15
 	},
 	loader: {
-		marginTop: 30
+		marginTop: 20
 	}
 });
 
 /**
  * View that renders an action modal
  */
-export default function BlockingActionModal({ modalVisible, children, isLoadingAction }) {
+export default function BlockingActionModal({ children, modalVisible, isLoadingAction }) {
 	return (
 		<Modal isVisible={modalVisible} style={styles.modal}>
 			<View style={styles.modalView}>

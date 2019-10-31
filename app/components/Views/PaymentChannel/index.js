@@ -166,8 +166,7 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		fontSize: 16,
 		textAlign: 'center',
-		marginBottom: 30,
-		color: colors.fontPrimary,
+		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
 	blockingModalTitle: {
@@ -794,8 +793,10 @@ class PaymentChannel extends PureComponent {
 			: strings('payment_channel.restoring_account_text');
 		return (
 			<BlockingActionModal modalVisible={visible} isLoadingAction>
-				<Text style={styles.blockingModalTitle}>{title}</Text>
-				<Text style={styles.blockingModalText}>{text}</Text>
+				<React.Fragment>
+					<Text style={styles.blockingModalTitle}>{title}</Text>
+					<Text style={styles.blockingModalText}>{text}</Text>
+				</React.Fragment>
 			</BlockingActionModal>
 		);
 	};
