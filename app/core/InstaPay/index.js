@@ -211,7 +211,7 @@ class InstaPay {
 		await this.startPoller();
 
 		this.runMigrations();
-		// this.backupIfNecessary();
+		this.backupIfNecessary();
 	};
 
 	backupIfNecessary = async () => {
@@ -223,7 +223,7 @@ class InstaPay {
 
 	runMigrations = async () => {
 		// Uncomment for testing purposes!
-		await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
+		// await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
 
 		const InstaPayVersion = await AsyncStorage.getItem('@MetaMask:InstaPayVersion');
 		if (!InstaPayVersion) {
@@ -786,8 +786,8 @@ instance = {
 	async init() {
 		const { provider } = Engine.context.NetworkController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
-			// For testing purposes
-			await AsyncStorage.removeItem('@MetaMask:InstaPayRestoreBackUpNeeded');
+			// Uncomment for testing purposes
+			// await AsyncStorage.removeItem('@MetaMask:InstaPayRestoreBackUpNeeded');
 
 			const restoreNeeded = await AsyncStorage.getItem('@MetaMask:InstaPayRestoreBackUpNeeded');
 			if (restoreNeeded) {
