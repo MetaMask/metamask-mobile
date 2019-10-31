@@ -455,6 +455,7 @@
 		"reject": "Reject",
 		"edit": "Edit",
 		"cancel": "Cancel",
+		"speed_up": "Speed up",
 		"from": "From",
 		"gas_fee": "Transaction Fee",
 		"gas_fee_fast": "FAST",

@@ -644,7 +644,7 @@ class TransactionElement extends PureComponent {
 			style={styles.actionStyle}
 			onPress={this.showSpeedUpModal}
 		>
-			{'Speed up'}
+			{strings('transaction.speed_up')}
 		</StyledButton>
 	);
 
