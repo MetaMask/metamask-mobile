@@ -340,11 +340,15 @@ class TransactionsNotificationManager {
 			? this._transactionsWatchTable[nonce].push(transaction.id)
 			: (this._transactionsWatchTable[nonce] = [transaction.id]);
 
-		TransactionController.hub.once(`${transaction.id}:confirmed`, transactionMeta =>
-			this._confirmedCallback(transactionMeta, transaction)
-		);
-		TransactionController.hub.once(`${transaction.id}:finished`, this._finishedCallback);
-		TransactionController.hub.once(`${transaction.id}:speedup`, this._speedupCallback);
+		TransactionController.hub.once(`${transaction.id}:confirmed`, transactionMeta => {
+			this._confirmedCallback(transactionMeta, transaction);
+		});
+		TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
+			this._finishedCallback(transactionMeta);
+		});
+		TransactionController.hub.once(`${transaction.id}:speedup`, transactionMeta => {
+			this._speedupCallback(transactionMeta);
+		});
 	}
 
 	/**
