@@ -119,7 +119,9 @@ class InstaPay {
 			tokenProfile: null,
 			usernameSynced: false,
 			migrating: false,
-			migrated: false
+			migrated: false,
+			pendingDeposits: 0,
+			balanceToMigrate: 0
 		};
 
 		this.start(mnemonic, network);
@@ -249,34 +251,37 @@ class InstaPay {
 			// Wait for channel to be available
 			const channelIsReady = () => {
 				const { ready } = v1Client.getState();
-				Logger.log('Channel is ready?', ready);
+				Logger.log('InstaPay :: v1 channel is ready?', ready);
 				return ready;
 			};
 
-			Logger.log('InstaPay :: Wait for channel to be ready for ', account);
+			Logger.log('InstaPay :: Wait for v1 channel to be ready for ', account);
 			while (!channelIsReady()) {
 				await new Promise(res => setTimeout(() => res(), 3000));
 			}
 
 			// Check if it has balance > 0
 			const { balance } = v1Client.getState();
-			Logger.log('InstaPay :: Checking channel balance for ', account);
+			Logger.log('InstaPay :: Checking v1 channel balance for ', account);
 
-			Logger.log(`InstaPay :: Channel balance for ${account} is `, balance);
+			Logger.log(`InstaPay :: v1 Channel balance for ${account} is `, balance);
 			if (parseInt(balance, 10) > 0) {
 				// if true, withdraw to wallet address
-				Logger.log(`InstaPay :: Withdrawing ${balance} to `, this.state.wallet.address);
+				Logger.log(`InstaPay :: Withdrawing v1 ${balance} to `, this.state.wallet.address);
 				await v1Client.withdrawAll(this.state.wallet.address);
+				this.setState({
+					pendingDeposits: this.state.pendingDeposits + 1,
+					balanceToMigrate: this.state.balanceToMigrate + parseFloat(balance)
+				});
 				Logger.log('InstaPay :: Migration complete for ', account);
 			}
 
-			await v1Client.stop();
-			hub.emit('migration::complete', null);
+			v1Client.stop();
 		}
 
-		// End migration
-		await AsyncStorage.setItem('@MetaMask:InstaPayVersion', '2.0.0');
-		this.setState({ migrated: true, migrating: false });
+		if (this.state.pendingDeposits === 0) {
+			this.finishMigration();
+		}
 	};
 
 	setState = data => {
@@ -386,6 +391,31 @@ class InstaPay {
 		balance.channel.token = Currency.DEI(freeTokenBalance[freeBalanceAddress], swapRate).toDAI();
 		balance.channel.total = getTotal(balance.channel.ether, balance.channel.token).toETH();
 		this.setState({ balance });
+
+		// Check for migration pending deposits
+		Logger.log('Checking for pending deposits', this.state.pendingDeposits);
+		if (this.state.pendingDeposits > 0) {
+			// If all the balance has been migrated
+			// the migration has been completed succesfully
+			// but we need to account for the GAS (withdraw v1 + deposit v2)
+			// plus potential ETH price changes
+			// That's why we do a 0.06 threshold
+			const BALANCE_THRESHOLD = 0.06;
+
+			const currentBal = parseFloat(
+				this.state.balance.channel.token.toDAI().format({ decimals: 2, symbol: false })
+			);
+			const minCurrentBalance = currentBal - BALANCE_THRESHOLD;
+			const maxCurrentBalance = currentBal + BALANCE_THRESHOLD;
+
+			if (this.state.balanceToMigrate >= minCurrentBalance && this.state.balanceToMigrate <= maxCurrentBalance) {
+				// Delay the completion so the deposit
+				// notification is not shown (which might be confusing)
+				setTimeout(() => {
+					this.finishMigration();
+				}, 1000);
+			}
+		}
 	};
 
 	autoDeposit = async () => {
@@ -501,7 +531,16 @@ class InstaPay {
 		});
 		await this.refreshBalances();
 		this.setPending({ type: 'swap', complete: true, closed: false });
+
 		!this.state.migrating && TransactionsNotificationManager.showInstantPaymentNotification('success_deposit');
+	};
+
+	finishMigration = async () => {
+		Logger.log('MIGRATION COMPLETE!!!');
+		hub.emit('migration::complete', null);
+		this.setState({ migrating: false, migrated: true, pendingDeposits: 0 });
+		// End migration
+		await AsyncStorage.setItem('@MetaMask:InstaPayVersion', '2.0.0');
 	};
 
 	setPending = pending => {
@@ -913,6 +952,7 @@ instance = {
 	},
 	reloadClient,
 	isRestoring: () => restoring,
+	isMigrating: () => client && client.state.migrating,
 	requireBackup: () => AsyncStorage.setItem('@MetaMask:InstaPayRestoreBackUpNeeded', 'true')
 };
 

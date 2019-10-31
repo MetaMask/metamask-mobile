@@ -263,8 +263,8 @@ class PaymentChannel extends PureComponent {
 		username: null,
 		newUsername: null,
 		chooseUserModalVisible: false,
-		upgradeModalVisible: false,
-		restoreAccountModalVisible: false
+		upgradeModalVisible: InstaPay.isMigrating(),
+		restoreAccountModalVisible: InstaPay.isRestoring()
 	};
 
 	client = null;
@@ -282,11 +282,11 @@ class PaymentChannel extends PureComponent {
 	};
 
 	showRestoringAccountModal = () => {
-		this.setState({ upgradeModalVisible: true });
+		this.setState({ restoreAccountModalVisible: true });
 	};
 
 	hideRestoringAccountModal = () => {
-		this.setState({ upgradeModalVisible: false });
+		this.setState({ restoreAccountModalVisible: false });
 	};
 
 	componentWillUnmount = () => {
@@ -784,7 +784,7 @@ class PaymentChannel extends PureComponent {
 	};
 
 	renderBlockingModals = () => {
-		const visible = this.state.upgradeModalVisible || this.state.restoreInProgressModalVisible;
+		const visible = this.state.upgradeModalVisible || this.state.restoreAccountModalVisible;
 		const title = this.state.upgradeModalVisible
 			? strings('payment_channel.upgrading_account_title')
 			: strings('payment_channel.restoring_account_title');

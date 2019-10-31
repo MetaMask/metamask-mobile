@@ -970,9 +970,9 @@
 		"view_address": "View my address",
 		"gas_error": "You don't have enough ETH to pay for gas.",
 		"upgrading_account_title": "Upgrading account",
-		"upgrading_account_text": "Please wait while we upgrade your InstaPay account",
+		"upgrading_account_text": "Please wait while we upgrade your InstaPay account.\n\n This might take a couple of minutes...",
 		"restoring_account_title": "Restoring account",
-		"restoring_account_text": "Please wait while we restore your InstaPay account"
+		"restoring_account_text": "Please wait while we restore your InstaPay account.\n\n This might take a couple of minutes..."
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",

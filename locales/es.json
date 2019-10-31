@@ -950,9 +950,9 @@
 		"view_address": "Ver mi dirección",
 		"gas_error": "No tienes suficiente ETH para pagar el gas.",
 		"upgrading_account_title": "Actualizando tu cuenta",
-		"upgrading_account_text": "Por favor espera mientras actualizamos tu cuenta de InstaPay",
+		"upgrading_account_text": "Por favor espera mientras actualizamos tu cuenta de InstaPay.\n\n Esto puede llevar un par de minutos...",
 		"restoring_account_title": "Recuperando cuenta",
-		"restoring_account_text": "Por favor espera mientras recuperamos tu cuenta de InstaPay"
+		"restoring_account_text": "Por favor espera mientras recuperamos tu cuenta de InstaPay.\n\n Esto puede llevar un par de minutos..."
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",
