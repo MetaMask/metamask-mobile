@@ -488,11 +488,11 @@
 		"approve_warning": "By approving this action, you grant permission for this contract to spend up to",
 		"cancel_tx_title": "Attempt to cancel?",
 		"cancel_tx_message": "Submitting this attempt does not guarantee your original transaction will be cancelled. If the cancellation attempt is successful, you will be charged the transaction fee above.",
-		"speedup_tx_title": "Attempt to speed up?",
-		"speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
+		"speed_up_tx_title": "Attempt to speed up?",
+		"speed_up_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
 		"nevermind": "Nevermind",
 		"gas_cancel_fee": "Gas Cancellation Fee",
-		"gas_speedup_fee": "Gas Speed Up fee"
+		"gas_speed_up_fee": "Gas Speed Up fee"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",
@@ -819,7 +819,7 @@
 		"pending_withdrawal_title": "Withdrawal in progress!",
 		"cancelled_title": "Transaction cancelled!",
 		"success_title": "Transaction #{{nonce}} Complete!",
-		"speedup_title": "Speeding up #{{nonce}}!",
+		"speed_up_title": "Speeding up #{{nonce}}!",
 		"success_deposit_title": "Deposit Complete!",
 		"success_withdrawal_title": "Withdrawal Complete!",
 		"error_title": "Oops, something went wrong :/",
@@ -830,7 +830,7 @@
 		"pending_withdrawal_message": "Waiting for withdrawal to complete",
 		"error_message": "Tap to view this transaction",
 		"success_message": "Tap to view this transaction",
-		"speedup_message": "Trying to speed up the transaction",
+		"speed_up_message": "Trying to speed up the transaction",
 		"success_deposit_message": "Your funds are ready to use",
 		"success_withdrawal_message": "Your funds have been moved to your wallet",
 		"cancelled_message": "Tap to view this transaction",
