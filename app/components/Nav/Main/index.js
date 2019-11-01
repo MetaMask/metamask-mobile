@@ -645,7 +645,7 @@ class Main extends PureComponent {
 				} catch (e) {
 					Logger.error('InstaPay Backup failed', e);
 				}
-				// this.setState({ is3boxEnabled: false });
+				this.setState({ is3boxEnabled: false });
 			});
 		});
 
@@ -670,7 +670,7 @@ class Main extends PureComponent {
 					Logger.error('InstaPay Restore Backup failed', e);
 				}
 
-				// this.setState({ is3boxEnabled: false });
+				this.setState({ is3boxEnabled: false });
 			});
 		});
 	};

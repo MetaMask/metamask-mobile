@@ -286,14 +286,10 @@ class PaymentChannel extends PureComponent {
 	};
 
 	hideRestoringAccountModal = () => {
-		this.setState({ restoreAccountModalVisible: false });
-	};
-
-	componentWillUnmount = () => {
-		InstaPay.hub.removeListener('restore::started', this.showRestoringAccountModal);
-		InstaPay.hub.removeListener('migration::started', this.showUpgradeModal);
-		InstaPay.hub.removeListener('restore::complete', this.hideRestoringAccountModal);
-		InstaPay.hub.removeListener('migration::complete', this.hideUpgradeModal);
+		// Delay it so the modal doesn't flash
+		setTimeout(() => {
+			this.setState({ restoreAccountModalVisible: false });
+		}, 2500);
 	};
 
 	onNewUsernameChange = newUsername => {
@@ -328,6 +324,8 @@ class PaymentChannel extends PureComponent {
 		// 		this.setState({ chooseUserModalVisible: true });
 		// 	}, 100);
 		// }
+		Logger.log('UI STATE UPDATE', state);
+		Logger.log('UI READY?', this.state.ready);
 
 		this.setState({
 			...state,
@@ -345,14 +343,18 @@ class PaymentChannel extends PureComponent {
 
 	init = () => {
 		setTimeout(() => {
-			InstaPay.hub.on('state::change', this.onStateChange);
-			InstaPay.hub.on('migration::started', this.showUpgradeModal);
-			InstaPay.hub.on('migration::complete', this.hideUpgradeModal);
-			InstaPay.hub.on('restore::started', this.showRestoringAccountModal);
-			InstaPay.hub.on('restore::complete', this.hideRestoringAccountModal);
+			this.setListeners();
 		}, 1000);
 		this.checkifEnabled();
-		console.log('is restoring?', this.state.restoreAccountModalVisible, InstaPay.isRestoring());
+	};
+
+	setListeners = () => {
+		InstaPay.hub.on('reload::start', this.reinitialize);
+		InstaPay.hub.on('state::change', this.onStateChange);
+		InstaPay.hub.on('migration::started', this.showUpgradeModal);
+		InstaPay.hub.on('migration::complete', this.hideUpgradeModal);
+		InstaPay.hub.on('restore::started', this.showRestoringAccountModal);
+		InstaPay.hub.on('restore::complete', this.hideRestoringAccountModal);
 	};
 
 	checkifEnabled = async () => {
@@ -411,21 +413,17 @@ class PaymentChannel extends PureComponent {
 		) {
 			this.props.navigation.navigate('BrowserView');
 		}
-		// Reinit on network / account changes
-		if (
-			prevProps.selectedAddress !== this.props.selectedAddress ||
-			prevProps.provider.type !== this.props.provider.type
-		) {
-			//this.reinitialize();
-		}
+
 		this.updateBalanceFiat();
 	}
 
 	reinitialize = () => {
-		Logger.log('InstaPay::reinitialize');
-		this.removeListeners();
-		this.setState({ ready: false });
-		this.init();
+		setTimeout(() => {
+			Logger.log('InstaPay::reinitialize');
+			this.removeListeners();
+			this.setState({ ready: false });
+			this.init();
+		}, 1000);
 	};
 
 	handleTransactions = transactions => {
@@ -493,7 +491,12 @@ class PaymentChannel extends PureComponent {
 	}
 
 	removeListeners() {
+		InstaPay.hub.removeListener('reload::start', this.reinitialize);
 		InstaPay.hub.removeListener('state::change', this.onStateChange);
+		InstaPay.hub.removeListener('restore::started', this.showRestoringAccountModal);
+		InstaPay.hub.removeListener('migration::started', this.showUpgradeModal);
+		InstaPay.hub.removeListener('restore::complete', this.hideRestoringAccountModal);
+		InstaPay.hub.removeListener('migration::complete', this.hideUpgradeModal);
 	}
 
 	copyAccountToClipboard = async () => {
