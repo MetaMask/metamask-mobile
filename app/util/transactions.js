@@ -1,4 +1,4 @@
-import { addHexPrefix, toChecksumAddress, isValidAddress } from 'ethereumjs-util';
+import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
@@ -174,18 +174,15 @@ export async function getMethodData(data) {
  * @returns {boolean} - Wether the given address is a contract
  */
 export async function isSmartContractAddress(address) {
-	if (isValidAddress(address)) {
-		address = toChecksumAddress(address);
-		// If in contract map we don't need to cache it
-		if (contractMap[address]) {
-			return Promise.resolve(true);
-		}
-		const { TransactionController } = Engine.context;
-		const code = address ? await TransactionController.query('getCode', [address]) : undefined;
-		const isSmartContract = isSmartContractCode(code);
-		return isSmartContract;
+	address = toChecksumAddress(address);
+	// If in contract map we already know
+	if (contractMap[address]) {
+		return Promise.resolve(true);
 	}
-	return false;
+	const { TransactionController } = Engine.context;
+	const code = address ? await TransactionController.query('getCode', [address]) : undefined;
+	const isSmartContract = isSmartContractCode(code);
+	return isSmartContract;
 }
 
 /**
