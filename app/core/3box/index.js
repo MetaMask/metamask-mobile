@@ -1,9 +1,9 @@
 import React, { PureComponent } from 'react';
 import { WebView } from 'react-native-webview';
-import byteArrayToHex from '../../util/bytes';
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import { baseStyles } from '../../styles/common';
+import { normalizeMessageData } from 'gaba/util';
 
 class Web3Box extends PureComponent {
 	state = {
@@ -47,19 +47,27 @@ class Web3Box extends PureComponent {
 			if (type === 'PROVIDER') {
 				if (payload && payload.method === 'personal_sign') {
 					const { KeyringController } = Engine.context;
-					const message = payload.params[0];
-					const hexMessage = byteArrayToHex(message);
-					const rawSig = await KeyringController.signPersonalMessage({
-						data: hexMessage,
-						from: this.state.address
-					});
-					delete payload.params;
-					this.postMessageToProvider({
-						...payload,
-						response: {
-							result: rawSig
-						}
-					});
+					try {
+						const params = {
+							data: payload.params[0],
+							from: this.state.address
+						};
+
+						params.data = normalizeMessageData(params.data);
+						const rawSig = await KeyringController.signPersonalMessage(params);
+
+						this.postMessageToProvider({
+							...payload,
+							response: {
+								result: rawSig
+							}
+						});
+					} catch (error) {
+						return (
+							!this.isReloading &&
+							Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+						);
+					}
 				} else if (payload && (payload.method === 'eth_chainId' || payload.method === 'net_version')) {
 					delete payload.params;
 					const { NetworkController } = Engine.context;
