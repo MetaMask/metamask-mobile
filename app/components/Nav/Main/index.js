@@ -474,18 +474,20 @@ class Main extends PureComponent {
 			});
 
 			setTimeout(async () => {
-				TransactionsNotificationManager.init(this.props.navigation);
-				this.pollForIncomingTransactions();
-
-				this.initializeWalletConnect();
-
 				// Only if enabled under settings
 				if (this.props.paymentChannelsEnabled) {
 					this.initializePaymentChannels();
 				}
 
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
-			}, 7000);
+
+				setTimeout(() => {
+					TransactionsNotificationManager.init(this.props.navigation);
+
+					this.pollForIncomingTransactions();
+					this.initializeWalletConnect();
+				}, 1000);
+			}, 2000);
 		});
 	};
 

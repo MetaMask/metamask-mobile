@@ -841,8 +841,8 @@ class PaymentChannel extends PureComponent {
 					loading={this.state.settingUsername}
 				>
 					<View style={styles.modalView}>
-						<Text style={styles.modalTitle}>{'Choose your username'}</Text>
-						<Text style={styles.modalText}>{'This will make it easier for others to pay you'}</Text>
+						<Text style={styles.modalTitle}>{strings('payment_channel.choose_username_modal_title')}</Text>
+						<Text style={styles.modalText}>{strings('payment_channel.choose_username_modal_text')}</Text>
 						<TextInput
 							style={styles.textInput}
 							placeholder={''}

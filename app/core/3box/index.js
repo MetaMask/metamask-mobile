@@ -79,9 +79,6 @@ class Web3Box extends PureComponent {
 								.toString(16)
 								.padStart(2, '0');
 					}
-
-					console.log('RETURNING', result, payload.method);
-
 					this.postMessageToProvider({
 						...payload,
 						response: {
@@ -901,7 +898,6 @@ class Web3Box extends PureComponent {
 		return (
 			<WebView
 				ref={this.webview}
-				// eslint-disable-next-line react-native/no-inline-styles
 				style={baseStyles.flexGrow}
 				source={{ uri: 'https://brunobar79.github.io/metamask-3box/' }}
 				javaScriptEnabled

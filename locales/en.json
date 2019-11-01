@@ -972,7 +972,9 @@
 		"upgrading_account_title": "Upgrading account",
 		"upgrading_account_text": "Please wait while we upgrade your InstaPay account.\n\n This might take a couple of minutes...",
 		"restoring_account_title": "Restoring account",
-		"restoring_account_text": "Please wait while we restore your InstaPay account.\n\n This might take a couple of minutes..."
+		"restoring_account_text": "Please wait while we restore your InstaPay account.\n\n This might take a couple of minutes...",
+		"choose_username_modal_title": "Choose your username",
+		"choose_username_modal_text": "This will make it easier for others to pay you"
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",

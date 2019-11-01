@@ -952,7 +952,9 @@
 		"upgrading_account_title": "Actualizando tu cuenta",
 		"upgrading_account_text": "Por favor espera mientras actualizamos tu cuenta de InstaPay.\n\n Esto puede llevar un par de minutos...",
 		"restoring_account_title": "Recuperando cuenta",
-		"restoring_account_text": "Por favor espera mientras recuperamos tu cuenta de InstaPay.\n\n Esto puede llevar un par de minutos..."
+		"restoring_account_text": "Por favor espera mientras recuperamos tu cuenta de InstaPay.\n\n Esto puede llevar un par de minutos...",
+		"choose_username_modal_title": "Elije tu usuario",
+		"choose_username_modal_text": "Esto te facilitará recibir pagos de otras personas"
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",
