@@ -957,17 +957,17 @@ instance = {
 		Store.reset();
 		instance.stop();
 	},
-	initBackup: async space => {
+	initBackup: async box => {
 		Logger.log('InstaPay::Backup process initiated');
 		const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
-		await backupMnemonic(space, encryptedMnemonic);
+		await backupMnemonic(box, encryptedMnemonic);
 		await AsyncStorage.setItem('@MetaMask:InstaPayBackedUp', 'true');
 		Logger.log('InstaPay::Backup process completed');
 	},
-	restoreBackup: async space => {
+	restoreBackup: async box => {
 		hub.emit('restore::started', null);
 		Logger.log('InstaPay::Restore backup process initiated');
-		const backedupEncryptedMnemonic = await getMnemonicFromBackup(space);
+		const backedupEncryptedMnemonic = await getMnemonicFromBackup(box);
 		if (backedupEncryptedMnemonic) {
 			await AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', backedupEncryptedMnemonic);
 			await AsyncStorage.setItem('@MetaMask:InstaPayBackedUp', 'true');

@@ -148,6 +148,96 @@ class Web3Box extends PureComponent {
 		return promise;
 	};
 
+	publicSetBox = (key, val) => {
+		const promise = new Promise((res, rej) => {
+			const current = this.webview.current;
+			current &&
+				current.injectJavaScript(`
+				(function () {
+					window.boxPublicSet('${key}','${val}');
+				})()
+			`);
+			this.promises.push({ resolve: res, reject: rej });
+		});
+
+		return promise;
+	};
+
+	publicGetBox = key => {
+		const promise = new Promise((res, rej) => {
+			const current = this.webview.current;
+			current &&
+				current.injectJavaScript(`
+				(function () {
+					window.boxPublicGet('${key}');
+				})()
+			`);
+			this.promises.push({ resolve: res, reject: rej });
+		});
+
+		return promise;
+	};
+
+	privateSetBox = (key, val) => {
+		const promise = new Promise((res, rej) => {
+			const current = this.webview.current;
+			current &&
+				current.injectJavaScript(`
+				(function () {
+					window.boxPrivateSet('${key}','${val}');
+				})()
+			`);
+			this.promises.push({ resolve: res, reject: rej });
+		});
+
+		return promise;
+	};
+
+	privateGetBox = key => {
+		const promise = new Promise((res, rej) => {
+			const current = this.webview.current;
+			current &&
+				current.injectJavaScript(`
+				(function () {
+					window.boxPrivateGet('${key}');
+				})()
+			`);
+			this.promises.push({ resolve: res, reject: rej });
+		});
+
+		return promise;
+	};
+
+	privateRemoveBox = key => {
+		const promise = new Promise((res, rej) => {
+			const current = this.webview.current;
+			current &&
+				current.injectJavaScript(`
+				(function () {
+					window.boxPrivateRemove('${key}');
+				})()
+			`);
+			this.promises.push({ resolve: res, reject: rej });
+		});
+
+		return promise;
+	};
+
+	publicRemoveBox = key => {
+		const promise = new Promise((res, rej) => {
+			const current = this.webview.current;
+			current &&
+				current.injectJavaScript(`
+				(function () {
+					window.boxPublicRemove('${key}');
+				})()
+			`);
+			this.promises.push({ resolve: res, reject: rej });
+		});
+
+		return promise;
+	};
+
 	publicSetSpace = (key, val) => {
 		const promise = new Promise((res, rej) => {
 			const current = this.webview.current;
@@ -300,7 +390,10 @@ class Web3Box extends PureComponent {
 				return Promise.resolve("${this.state.address}");
 			}
 		  }
-		  window.openBox = async () => {
+
+		 // Box methods
+
+		 window.openBox = async () => {
 				setStatus('Opening box ' + "${this.state.address}");
 				window.Box.openBox("${this.state.address}", window.ethereum, {}).then(box => {
 					window.box = box;
@@ -331,7 +424,227 @@ class Web3Box extends PureComponent {
 				return true;
 		  }
 
-		  window.openSpace = async (spaceName) => {
+		  window.boxPublicSet = async (key, value) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public box writing " + key + " => " + value);
+
+				await window.box.public.set(key, value);
+
+				window.toNative({
+					payload: {
+						status: 'public_box_write_end'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public box wrote " + key + " => " + value);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'public_box_write_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		}
+
+		window.boxPublicGet = async (key) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public box getting " + key);
+
+				const value = await window.box.public.get(key);
+
+				window.toNative({
+					payload: {
+						status: 'public_box_get_end',
+						result: value
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public box got " + key + " => " + value);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'public_box_get_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		}
+
+		window.boxPrivateSet = async (key, value) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private box writing " + key + " => " + value);
+
+				await window.box.private.set(key, value);
+
+				window.toNative({
+					payload: {
+						status: 'private_box_write_end'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private box wrote " + key + " => "+ value);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'private_box_write_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		}
+
+		window.boxPrivateGet = async (key) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private box getting " + key);
+
+				const value = await window.box.private.get(key);
+
+				window.toNative({
+					payload: {
+						status: 'private_box_get_end',
+						result: value
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private box got " + key + " => " + value);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'private_box_get_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		}
+
+		window.boxPublicRemove = async (key) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public box removing " + key);
+
+				await window.box.public.remove(key);
+
+				window.toNative({
+					payload: {
+						status: 'public_box_remove_end'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public box removed " + key);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'public_box_remove_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		}
+
+		window.boxPrivateRemove = async (key) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private box removing " + key);
+
+				const value = await window.box.private.remove(key);
+
+				window.toNative({
+					payload: {
+						status: 'private_box_remove_end'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private box removed " + key);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'private_box_remove_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		}
+
+		// SPACES START HERE
+
+		window.openSpace = async (spaceName) => {
 			try{
 				setStatus("Opening space " + spaceName);
 				window.space = await window.box.openSpace(spaceName, {

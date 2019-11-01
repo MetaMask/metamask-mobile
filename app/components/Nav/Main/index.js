@@ -640,9 +640,7 @@ class Main extends PureComponent {
 				Logger.log('OPENING BOX');
 				try {
 					await this.web3BoxRef.current.openBox();
-					Logger.log('READY TO OPEN THE SPACE!');
-					await this.web3BoxRef.current.openSpace('InstaPay');
-					Logger.log('SPACE OPENED');
+					Logger.log('BOX OPENED');
 					await InstaPay.initBackup(this.web3BoxRef.current);
 				} catch (e) {
 					Logger.error('InstaPay Backup failed', e);
@@ -666,9 +664,7 @@ class Main extends PureComponent {
 
 				try {
 					this.web3BoxRef.current && (await this.web3BoxRef.current.openBox());
-					Logger.log('READY TO OPEN THE SPACE!');
-					await this.web3BoxRef.current.openSpace('InstaPay');
-					Logger.log('SPACE OPENED');
+					Logger.log('BOX OPENED');
 					await InstaPay.restoreBackup(this.web3BoxRef.current);
 				} catch (e) {
 					Logger.error('InstaPay Restore Backup failed', e);

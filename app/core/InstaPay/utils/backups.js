@@ -2,7 +2,7 @@ import byteArrayToHex from '../../../util/bytes';
 import Engine from '../../Engine';
 import AsyncStorage from '@react-native-community/async-storage';
 const MESSAGE_2_SIGN = 'InstaPayMnemonic';
-const SPACE_KEY = 'instapay_data';
+const DATA_KEY = 'instapay_data';
 
 export async function encryptMnenomic(encryptor, mnemonic) {
 	const password = await signMessageWithAccount0(MESSAGE_2_SIGN);
@@ -14,12 +14,12 @@ export async function decryptMnemonic(encryptor, encryptedMnemonic) {
 	return encryptor.decrypt(password, encryptedMnemonic);
 }
 
-export function backupMnemonic(space, encryptedMnemonic) {
-	return space.privateSetSpace(SPACE_KEY, encryptedMnemonic);
+export function backupMnemonic(instance, encryptedMnemonic) {
+	return instance.privateSetBox(DATA_KEY, encryptedMnemonic);
 }
 
-export function getMnemonicFromBackup(space) {
-	return space.privateGetSpace(SPACE_KEY);
+export function getMnemonicFromBackup(instance) {
+	return instance.privateGetBox(DATA_KEY);
 }
 
 export async function saveMnemonic(encryptor, mnemonic) {
