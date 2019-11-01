@@ -1208,6 +1208,7 @@ export class BrowserTab extends PureComponent {
 				}
 				case 'INPAGE_REQUEST':
 					this.backgroundBridge.onMessage(data);
+
 					break;
 				case 'GET_TITLE_FOR_BOOKMARK':
 					if (data.payload.title) {

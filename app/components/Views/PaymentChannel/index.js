@@ -352,6 +352,7 @@ class PaymentChannel extends PureComponent {
 			InstaPay.hub.on('restore::complete', this.hideRestoringAccountModal);
 		}, 1000);
 		this.checkifEnabled();
+		console.log('is restoring?', this.state.restoreAccountModalVisible, InstaPay.isRestoring());
 	};
 
 	checkifEnabled = async () => {

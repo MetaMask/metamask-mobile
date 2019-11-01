@@ -3,6 +3,7 @@ import { WebView } from 'react-native-webview';
 import byteArrayToHex from '../../util/bytes';
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
+import { baseStyles } from '../../styles/common';
 
 class Web3Box extends PureComponent {
 	state = {
@@ -33,6 +34,12 @@ class Web3Box extends PureComponent {
 		this.setState({ result: undefined, error: false });
 	};
 
+	componentDidMount = () => {
+		const allKeyrings = Engine.context.KeyringController.state.keyrings;
+		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+		this.setState({ address: accountsOrdered[0].toLowerCase() });
+	};
+
 	onMessage = async ({ nativeEvent: { data } }) => {
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
@@ -53,12 +60,24 @@ class Web3Box extends PureComponent {
 							result: rawSig
 						}
 					});
-				} else if (payload && payload.method === 'eth_chainId') {
+				} else if (payload && (payload.method === 'eth_chainId' || payload.method === 'net_version')) {
 					delete payload.params;
+					const { NetworkController } = Engine.context;
+					let result = NetworkController.state.network;
+					if (payload.method === 'eth_chainId') {
+						result =
+							'0x' +
+							Number(NetworkController.state.network)
+								.toString(16)
+								.padStart(2, '0');
+					}
+
+					console.log('RETURNING', result, payload.method);
+
 					this.postMessageToProvider({
 						...payload,
 						response: {
-							result: '0x04'
+							result
 						}
 					});
 				} else if (payload && payload.method === 'eth_getCode') {
@@ -95,7 +114,7 @@ class Web3Box extends PureComponent {
 			`);
 	};
 
-	openSpace = async space => {
+	openSpace = space => {
 		const promise = new Promise((res, rej) => {
 			const current = this.webview.current;
 			current &&
@@ -108,13 +127,12 @@ class Web3Box extends PureComponent {
 		return promise;
 	};
 
-	openBox = async address => {
-		this.setState({ address });
+	openBox = () => {
 		const promise = new Promise((res, rej) => {
 			const current = this.webview.current;
 			current &&
 				current.injectJavaScript(`(function () {
-				window.openBox('${address}');
+				window.openBox();
 			})()`);
 			this.promises.push({ resolve: res, reject: rej });
 		});
@@ -213,6 +231,348 @@ class Web3Box extends PureComponent {
 	};
 
 	onLoadEnd = () => {
+		const current = this.webview.current;
+		current &&
+			current.injectJavaScript(`
+
+		const setStatus = (msg) => {
+			console.log(msg);
+		}
+
+		window.toNative = function(msg){
+			window.ReactNativeWebView.postMessage(
+					JSON.stringify(msg)
+			);
+		  };
+
+		  window.ethereumPendingCallbacks = {};
+		  window.ethereum = {
+			send: (payload, callback) => {
+				alert('Called send!');
+			},
+			sendAsync: (payload, callback) => {
+				if (!window.ReactNativeWebView.postMessage) {
+					alert('Bridge not ready');
+				}
+
+				const random = Math.floor(Math.random() * 100 + 1);
+
+				const fullPayload = {
+					...payload,
+					__mmID: (Date.now() * random).toString(),
+					hostname: window.location.hostname
+				};
+
+				window.ethereumPendingCallbacks[fullPayload.__mmID] = callback;
+				window.toNative({
+					payload: fullPayload,
+					type: 'PROVIDER'
+				});
+			},
+			_onMessage: (data) =>{
+				try {
+					const payload = typeof data === 'string' ? JSON.parse(data) : data;
+					const { __mmID, error, response } = payload;
+					const callback = window.ethereumPendingCallbacks[__mmID];
+					callback && callback(error, response);
+					delete window.ethereumPendingCallbacks[__mmID];
+				} catch (error) {
+					alert(error.toString()); // eslint-disable-line no-console
+				}
+			},
+			isMetaMask: true,
+			selectedAddress: "${this.state.address}",
+			_selectedAddress: "${this.state.address}",
+			_metaMask: {
+				isApproved : () => true,
+				isUnlocked : () => true,
+				isEnabled : () => true,
+			},
+			enable: () => {
+				return Promise.resolve("${this.state.address}");
+			}
+		  }
+		  window.openBox = async () => {
+				setStatus('Opening box ' + "${this.state.address}");
+				window.Box.openBox("${this.state.address}", window.ethereum, {}).then(box => {
+					window.box = box;
+					box.onSyncDone((res) => {
+						console.log('Sync Complete');
+						window.toNative({
+							payload: {
+								status: 'box_open'
+							},
+							type: 'STATE_UPDATE'
+						});
+						setStatus('Box open');
+					})
+				}).catch( e => {
+				  console.log('something broke', e);
+				  window.toNative({
+					  payload: {
+						  status: 'box_open',
+						  error: true,
+						  result: e.toString()
+					  },
+					  type: 'STATE_UPDATE'
+				  });
+				  return false;
+				});
+
+				setStatus('Syncing box...');
+				return true;
+		  }
+
+		  window.openSpace = async (spaceName) => {
+			try{
+				setStatus("Opening space " + spaceName);
+				window.space = await window.box.openSpace(spaceName, {
+					onSyncDone: () => {
+						setStatus('Space synced');
+					}
+				});
+				window.toNative({
+					payload: {
+						status: 'space_open'
+					},
+					type: 'STATE_UPDATE'
+				});
+				setStatus('Space open');
+				return true;
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'space_open',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		  }
+
+		  window.spacePublicSet = async (key, value) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public space writing " + key + " => " + value);
+
+				await window.space.public.set(key, value);
+
+				window.toNative({
+					payload: {
+						status: 'public_write_end'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public space wrote " + key + " => " + value);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'public_write_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		  }
+
+		  window.spacePublicGet = async (key) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public space getting " + key);
+
+				const value = await window.space.public.get(key);
+
+				window.toNative({
+					payload: {
+						status: 'public_get_end',
+						result: value
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public space got " + key + " => " + value);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'public_get_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		  }
+
+		  window.spacePrivateSet = async (key, value) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private space writing " + key + " => " + value);
+
+				await window.space.private.set(key, value);
+
+				window.toNative({
+					payload: {
+						status: 'private_write_end'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private space wrote " + key + " => "+ value);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'private_write_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		  }
+
+		  window.spacePrivateGet = async (key) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private space getting " + key);
+
+				const value = await window.space.private.get(key);
+
+				window.toNative({
+					payload: {
+						status: 'private_get_end',
+						result: value
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private space got " + key + " => " + value);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'private_get_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		  }
+
+		  window.spacePublicRemove = async (key) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public space removing " + key);
+
+				await window.space.public.remove(key);
+
+				window.toNative({
+					payload: {
+						status: 'public_remove_end'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Public space removed " + key);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'public_remove_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		  }
+
+		  window.spacePrivateRemove = async (key) => {
+			try{
+				window.toNative({
+					payload: {
+						status: 'idle'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private space removing " + key);
+
+				const value = await window.space.private.remove(key);
+
+				window.toNative({
+					payload: {
+						status: 'private_remove_end'
+					},
+					type: 'STATE_UPDATE'
+				});
+
+				setStatus("Private space removed " + key);
+
+			} catch(e){
+				console.log('something broke', e);
+				window.toNative({
+					payload: {
+						status: 'private_remove_end',
+						error: true,
+						result: e.toString()
+					},
+					type: 'STATE_UPDATE'
+				});
+				return false;
+			}
+		  }
+		  true;
+		`);
+
 		this.setState({ ready: true });
 	};
 
@@ -221,7 +581,7 @@ class Web3Box extends PureComponent {
 			<WebView
 				ref={this.webview}
 				// eslint-disable-next-line react-native/no-inline-styles
-				style={{ flex: 1 }}
+				style={baseStyles.flexGrow}
 				source={{ uri: 'https://brunobar79.github.io/metamask-3box/' }}
 				javaScriptEnabled
 				bounces={false}

@@ -14,11 +14,11 @@ export async function decryptMnemonic(encryptor, encryptedMnemonic) {
 	return encryptor.decrypt(password, encryptedMnemonic);
 }
 
-export async function backupMnemonic(space, encryptedMnemonic) {
+export function backupMnemonic(space, encryptedMnemonic) {
 	return space.privateSetSpace(SPACE_KEY, encryptedMnemonic);
 }
 
-export async function getMnemonicFromBackup(space) {
+export function getMnemonicFromBackup(space) {
 	return space.privateGetSpace(SPACE_KEY);
 }
 

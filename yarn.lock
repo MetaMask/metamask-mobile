@@ -689,16 +689,16 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@connext/client@0.2.4":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@connext/client/-/client-0.2.4.tgz#ce6d15a752d485eba17b0a51f024c366b1006f82"
-  integrity sha512-MgAVepXd3KGLfWoeytvsBEu+5tTH5xdwl7iwA6Vytztkubmwt4pXnCxpnRSt7B0/iwu4tjBCnxfsuJa9nzrgYg==
+"@connext/client@0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@connext/client/-/client-0.3.1.tgz#cfed4c04aac8e4e18bc8d458714e3b7585267447"
+  integrity sha512-9wexb2jzNQfmWf3ie9EyJRnB8eCAvqlVfwrDn5iEv22jg2oIxNumWYgrIT8JTNX3Zi6u/WupX9peITV2GPlLsQ==
   dependencies:
-    "@connext/messaging" "0.2.4"
-    "@connext/types" "0.2.4"
+    "@connext/messaging" "0.3.1"
+    "@connext/types" "0.3.1"
     "@counterfactual/cf-funding-protocol-contracts" "0.0.12"
     "@counterfactual/node" "0.2.82"
-    "@counterfactual/types" "0.0.45"
+    "@counterfactual/types" "0.0.44"
     core-js "3.3.4"
     eth-crypto "1.5.0"
     ethers "4.0.37"
@@ -707,21 +707,21 @@
     rpc-server "0.0.1"
     uuid "3.3.3"
 
-"@connext/messaging@0.2.4":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-0.2.4.tgz#0e7090ebe484d16be27741797bcdca7facd5435e"
-  integrity sha512-8EEB2AdUpZjPgq6dU1pmb2qG6IajDQ9h1TnCVpvf09mNTM32MkhgOKuRjWKjUjZ+HVKuIuOSduK1oYUI8sO28A==
+"@connext/messaging@0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-0.3.1.tgz#8ccc5a667b173c79eabb6e31e77361b049fbca47"
+  integrity sha512-G9x160hH7rA6/xRqev+UBov9IOdRVAK0evdSQUATkkKe7oOgpsPHPUCY9lR6zugGLdt4SrSumQdQp4/p4LbM6g==
   dependencies:
     ts-nats "1.2.4"
     websocket-nats "0.3.3"
 
-"@connext/types@0.2.4":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@connext/types/-/types-0.2.4.tgz#15a4497d089fb1454307f98701c18cd2156841dc"
-  integrity sha512-R1pK/WFoiaJbWNd5Cilr/OgrTHDJcHdMRHfDvm7eJFI5BnOJW/6MW96LEdnz1WGizuuVx7eUUTgjpCHurB0T1Q==
+"@connext/types@0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@connext/types/-/types-0.3.1.tgz#24a89c756f7d98c445206c08056b0d92c543657c"
+  integrity sha512-gB1kIlLN3Q3RSODPDdi9EGHszRdUV5m1EaOYQIPXfaN/8mX9AKzSE+Zh2+kAl2iZJIsYFNswsDEb3gm4jXoqAg==
   dependencies:
-    "@connext/messaging" "0.2.4"
-    "@counterfactual/types" "0.0.45"
+    "@connext/messaging" "0.3.1"
+    "@counterfactual/types" "0.0.44"
     ethers "4.0.37"
 
 "@counterfactual/cf-adjudicator-contracts@0.0.7":
@@ -792,10 +792,10 @@
   resolved "https://registry.yarnpkg.com/@counterfactual/types/-/types-0.0.43.tgz#e2beb96c1b90cd1ebbda277691f7a96ce7341a69"
   integrity sha512-NToq3aTQrRk3LKsw0j88SQsxFaI3GXLLPVJvtkKzWmIqk/jTYU4lnKeEojLO8UrBb3IDR0sWGqJ7uiRnm6kErw==
 
-"@counterfactual/types@0.0.45":
-  version "0.0.45"
-  resolved "https://registry.yarnpkg.com/@counterfactual/types/-/types-0.0.45.tgz#e65da94c11e80ec14539db099c13f2924c2c1044"
-  integrity sha512-df2jl4dxhbm6u4mY+VO2p68NDMcF1VS8EubkS+2bqSJ4H2uzUKBV3P4fjbg8cn7DdQxYKOo5FIRZWOCqJtPtSQ==
+"@counterfactual/types@0.0.44":
+  version "0.0.44"
+  resolved "https://registry.yarnpkg.com/@counterfactual/types/-/types-0.0.44.tgz#16c685549756fb3108bcb7567b10141ae3d5defb"
+  integrity sha512-5Jq+m/soFxa5c47dOjzDjgAitCxahyjdhP8shGe3MdPtk21Hz0PozkEIVCNC8JhcYl1m43CBG0PlXLLM1/TIZA==
 
 "@ethersproject/address@^5.0.0-beta.125":
   version "5.0.0-beta.131"

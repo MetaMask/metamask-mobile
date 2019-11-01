@@ -142,10 +142,10 @@ class InstaPay {
 			logLevel: 5
 		};
 
-		Logger.log('InstaPay::about to connect with options ', options);
+		Logger.log('InstaPay::about to connect');
 
 		const channel = await connect(options);
-		Logger.log('InstaPay::connect complete ', options);
+		Logger.log('InstaPay::connect complete ');
 
 		// Wait for channel to be available
 		const channelIsAvailable = async channel => {
@@ -207,7 +207,12 @@ class InstaPay {
 			username: savedUsername || null
 		});
 
-		await this.addDefaultPaymentProfile();
+		try {
+			await this.addDefaultPaymentProfile();
+		} catch (e) {
+			Logger.error('InstaPay :: Error adding default payment profile...', e);
+		}
+
 		await this.startPoller();
 
 		this.runMigrations();
@@ -291,20 +296,42 @@ class InstaPay {
 		hub.emit('state::change', this.state);
 	};
 
+	poll = async () => {
+		try {
+			await this.refreshBalances();
+		} catch (e) {
+			Logger.error('InstaPay :: error in refreshBalances', e);
+		}
+		try {
+			await this.autoDeposit();
+		} catch (e) {
+			Logger.error('InstaPay :: error in autoDeposit', e);
+		}
+
+		try {
+			await this.autoSwap();
+		} catch (e) {
+			Logger.error('InstaPay :: error in autoSwap', e);
+		}
+
+		try {
+			await this.checkPaymentHistory();
+		} catch (e) {
+			Logger.error('InstaPay :: error in checkPaymentHistory', e);
+		}
+	};
+
 	startPoller = async () => {
 		running = true;
-		await this.refreshBalances();
-		await this.autoDeposit();
-		await this.autoSwap();
-		await this.checkPaymentHistory();
+		Logger.log('InstaPay :: Starting poller...');
+		Logger.log('InstaPay :: is it ready?...', this.state.ready);
+		this.poll();
+
 		interval(async (iteration, stop) => {
 			if (!running) {
 				stop();
 			}
-			await this.refreshBalances();
-			await this.autoDeposit();
-			await this.autoSwap();
-			await this.checkPaymentHistory();
+			this.poll();
 		}, 3000);
 	};
 
@@ -393,7 +420,6 @@ class InstaPay {
 		this.setState({ balance });
 
 		// Check for migration pending deposits
-		Logger.log('Checking for pending deposits', this.state.pendingDeposits);
 		if (this.state.pendingDeposits > 0) {
 			// If all the balance has been migrated
 			// the migration has been completed succesfully
@@ -791,6 +817,7 @@ instance = {
 
 			const restoreNeeded = await AsyncStorage.getItem('@MetaMask:InstaPayRestoreBackUpNeeded');
 			if (restoreNeeded) {
+				restoring = true;
 				hub.emit('backup::restore', null);
 			} else {
 				let mnemonic;
@@ -938,16 +965,20 @@ instance = {
 		Logger.log('InstaPay::Backup process completed');
 	},
 	restoreBackup: async space => {
-		restoring = true;
-		hub.emit('restore:started', null);
+		hub.emit('restore::started', null);
 		Logger.log('InstaPay::Restore backup process initiated');
 		const backedupEncryptedMnemonic = await getMnemonicFromBackup(space);
-		await AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', backedupEncryptedMnemonic);
-		await AsyncStorage.setItem('@MetaMask:InstaPayBackedUp', 'true');
+		if (backedupEncryptedMnemonic) {
+			await AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', backedupEncryptedMnemonic);
+			await AsyncStorage.setItem('@MetaMask:InstaPayBackedUp', 'true');
+		} else {
+			Logger.log('InstaPay::No backup found!');
+			await AsyncStorage.removeItem('@MetaMask:InstaPayBackedUp');
+		}
 		await AsyncStorage.removeItem('@MetaMask:InstaPayRestoreBackUpNeeded');
 		Logger.log('InstaPay::Restore backup process completed');
 		restoring = false;
-		hub.emit('restore:complete', null);
+		hub.emit('restore::complete', null);
 		reloadClient();
 	},
 	reloadClient,
