@@ -273,13 +273,26 @@ class InstaPay {
 
 			Logger.log(`InstaPay :: v1 Channel balance for ${account} is `, balance);
 			if (parseFloat(balance) > 0) {
+				let addressToWithdraw, newBalanceToMigrate;
+				if (this.state.balanceToMigrate + parseFloat(balance) > MAX_DEPOSIT_TOKEN) {
+					addressToWithdraw = account;
+					newBalanceToMigrate = this.state.balanceToMigrate;
+					Logger.log(
+						`InstaPay :: Withdrawing v1 ${balance} to ETH account (exceeds max deposit)`,
+						addressToWithdraw
+					);
+				} else {
+					addressToWithdraw = this.state.wallet.address;
+					newBalanceToMigrate = this.state.balanceToMigrate + parseFloat(balance);
+					Logger.log(`InstaPay :: Withdrawing v1 ${balance} to InstaPay`, addressToWithdraw);
+				}
 				// if true, withdraw to wallet address
-				Logger.log(`InstaPay :: Withdrawing v1 ${balance} to `, this.state.wallet.address);
-				await v1Client.withdrawAll(this.state.wallet.address);
+				await v1Client.withdrawAll(addressToWithdraw);
 				this.setState({
 					pendingDeposits: this.state.pendingDeposits + 1,
-					balanceToMigrate: this.state.balanceToMigrate + parseFloat(balance)
+					balanceToMigrate: newBalanceToMigrate
 				});
+
 				Logger.log('InstaPay :: Migration complete for ', account);
 			}
 
