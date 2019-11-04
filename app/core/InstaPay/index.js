@@ -272,7 +272,7 @@ class InstaPay {
 			Logger.log('InstaPay :: Checking v1 channel balance for ', account);
 
 			Logger.log(`InstaPay :: v1 Channel balance for ${account} is `, balance);
-			if (parseInt(balance, 10) > 0) {
+			if (parseFloat(balance) > 0) {
 				// if true, withdraw to wallet address
 				Logger.log(`InstaPay :: Withdrawing v1 ${balance} to `, this.state.wallet.address);
 				await v1Client.withdrawAll(this.state.wallet.address);
