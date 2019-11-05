@@ -9409,11 +9409,19 @@ randomatic@^3.0.0:
     kind-of "^6.0.0"
     math-random "^1.0.1"
 
-randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.6:
+randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5, randombytes@^2.0.6:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/randombytes/-/randombytes-2.1.0.tgz#df6f84372f0270dc65cdf6291349ab7a473d4f2a"
   integrity sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==
   dependencies:
+    safe-buffer "^5.1.0"
+
+randomfill@^1.0.3:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/randomfill/-/randomfill-1.0.4.tgz#c92196fc86ab42be983f1bf31778224931d61458"
+  integrity sha512-87lcbR8+MhcWcUiQ+9e+Rwx8MyR2P7qnt15ynUlbm3TU/fjbgz4GsvfSUDTemtCCtVCqb4ZcEFlyPNTh9bBTLw==
+  dependencies:
+    randombytes "^2.0.5"
     safe-buffer "^5.1.0"
 
 randomstring@^1.1.5:
@@ -9553,10 +9561,10 @@ react-native-cli@2.0.1:
     prompt "^0.2.14"
     semver "^5.0.3"
 
-react-native-crypto@2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/react-native-crypto/-/react-native-crypto-2.1.2.tgz#cfe68cad51cd1f73a4202b7ac164f96c1144cb2a"
-  integrity sha1-z+aMrVHNH3OkICt6wWT5bBFEyyo=
+react-native-crypto@2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-crypto/-/react-native-crypto-2.2.0.tgz#c999ed7c96064f830e1f958687f53d0c44025770"
+  integrity sha512-eZu9Y8pa8BN9FU2pIex7MLRAi+Cd1Y6bsxfiufKh7sfraAACJvjQTeW7/zcQAT93WMfM+D0OVk+bubvkrbrUkw==
   dependencies:
     browserify-cipher "^1.0.0"
     browserify-sign "^4.0.4"
@@ -9567,6 +9575,7 @@ react-native-crypto@2.1.2:
     inherits "^2.0.1"
     pbkdf2 "3.0.8"
     public-encrypt "^4.0.0"
+    randomfill "^1.0.3"
 
 react-native-device-info@3.1.4:
   version "3.1.4"
@@ -9770,10 +9779,10 @@ react-native-tab-view@^2.9.0:
   resolved "https://registry.yarnpkg.com/react-native-tab-view/-/react-native-tab-view-2.10.0.tgz#5e249e5650502010013449ffd4e5edc18a95364b"
   integrity sha512-qgexVz5eO4yaFjdkmn/sURXgVvaBo6pZD/q1eoca96SbPVbaH3WzVhF3bRUfeTHwZkXwznFTpS3JURqIFU8vQA==
 
-react-native-tcp@3.3.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/react-native-tcp/-/react-native-tcp-3.3.1.tgz#dfb35ac48356fa8b707dafe69a971feb0845d88b"
-  integrity sha512-kySTh7oUixfoNHCNAuxjSMjGPYXkg06sgCQOzj1bVInrTNMOSQpYvlKVSSqIorHvus2yvMmYOguTgLffMe65TA==
+react-native-tcp@3.3.2:
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/react-native-tcp/-/react-native-tcp-3.3.2.tgz#b38c153039acac89294caa4991689c003ec62dce"
+  integrity sha512-zjFmjAvYOsBkR1MF7htuPlk+uOzTykKaeu/eN+I7fkZ7UqBCW+9u/gJgWCv6Tjfn2tGgku6hsEWril4Oy3zJhg==
   dependencies:
     base64-js "0.0.8"
     buffer "^5.0.0"

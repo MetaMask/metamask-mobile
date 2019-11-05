@@ -11,6 +11,7 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'Setting a timer for a long period of time',
 	'createErrorFromErrorData',
 	'Encountered an error loading page',
 	'Error handling userAuthorizedUpdate',
