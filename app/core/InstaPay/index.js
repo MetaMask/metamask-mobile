@@ -359,7 +359,9 @@ class InstaPay {
 		const lastKnownPaymentIDStr = await AsyncStorage.getItem('@MetaMask:lastKnownInstantPaymentID');
 		let lastKnownPaymentID = 0;
 		const latestPayment = paymentHistory.find(
-			payment => payment.receiverPublicIdentifier.toLowerCase() === this.state.xpub.toLowerCase()
+			payment =>
+				payment.receiverPublicIdentifier &&
+				payment.receiverPublicIdentifier.toLowerCase() === this.state.xpub.toLowerCase()
 		);
 		if (latestPayment) {
 			const latestPaymentID = parseInt(latestPayment.id, 10);
@@ -595,6 +597,9 @@ class InstaPay {
 		Logger.log('MIGRATION COMPLETE!!!');
 		hub.emit('migration::complete', null);
 		this.setState({ migrating: false, migrated: true, pendingDeposits: 0 });
+		setTimeout(() => {
+			reloadClient();
+		}, 1000);
 	};
 
 	setPending = pending => {

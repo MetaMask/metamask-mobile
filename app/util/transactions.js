@@ -174,15 +174,18 @@ export async function getMethodData(data) {
  * @returns {boolean} - Wether the given address is a contract
  */
 export async function isSmartContractAddress(address) {
-	address = toChecksumAddress(address);
-	// If in contract map we already know
-	if (contractMap[address]) {
-		return Promise.resolve(true);
+	if (address && address.startsWith('0x')) {
+		address = toChecksumAddress(address);
+		// If in contract map we already know
+		if (contractMap[address]) {
+			return Promise.resolve(true);
+		}
+		const { TransactionController } = Engine.context;
+		const code = address ? await TransactionController.query('getCode', [address]) : undefined;
+		const isSmartContract = isSmartContractCode(code);
+		return isSmartContract;
 	}
-	const { TransactionController } = Engine.context;
-	const code = address ? await TransactionController.query('getCode', [address]) : undefined;
-	const isSmartContract = isSmartContractCode(code);
-	return isSmartContract;
+	return false;
 }
 
 /**
@@ -215,10 +218,9 @@ export async function isCollectibleAddress(address, tokenId) {
 export async function getTransactionActionKey(transaction) {
 	const { transaction: { data, to } = {} } = transaction;
 
-	if (to.toLowerCase() === InstaPay.getDepositAddress().toLowerCase()) {
+	if (to && to.toLowerCase() === InstaPay.getDepositAddress().toLowerCase()) {
 		return CONNEXT_DEPOSIT_ACTION_KEY;
 	}
-
 	let ret;
 	// if data in transaction try to get method data
 	if (data && data !== '0x') {
@@ -252,25 +254,30 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		ticker = paymentChannelTransaction ? strings('unit.dai') : ticker;
-		const incoming = paymentChannelTransaction
-			? tx.transaction.to.toLowerCase() === selectedAddressToUse.toLowerCase()
-			: toChecksumAddress(tx.transaction.to) === toChecksumAddress(selectedAddress);
-		const selfSent =
-			incoming &&
-			(paymentChannelTransaction
-				? tx.transaction.from.toLowerCase() === selectedAddressToUse.toLowerCase()
-				: toChecksumAddress(tx.transaction.from) === toChecksumAddress(selectedAddress));
-		return incoming
-			? selfSent
-				? ticker
-					? strings('transactions.self_sent_unit', { unit: ticker })
-					: strings('transactions.self_sent_ether')
+		if (tx.transaction.to) {
+			const incoming =
+				tx.transaction.to && paymentChannelTransaction
+					? tx.transaction.to.toLowerCase() === selectedAddressToUse.toLowerCase()
+					: toChecksumAddress(tx.transaction.to) === toChecksumAddress(selectedAddress);
+			const selfSent =
+				incoming &&
+				(paymentChannelTransaction
+					? tx.transaction.from.toLowerCase() === selectedAddressToUse.toLowerCase()
+					: toChecksumAddress(tx.transaction.from) === toChecksumAddress(selectedAddress));
+			return incoming
+				? selfSent
+					? ticker
+						? strings('transactions.self_sent_unit', { unit: ticker })
+						: strings('transactions.self_sent_ether')
+					: ticker
+					? strings('transactions.received_unit', { unit: ticker })
+					: strings('transactions.received_ether')
 				: ticker
-				? strings('transactions.received_unit', { unit: ticker })
-				: strings('transactions.received_ether')
-			: ticker
-			? strings('transactions.sent_unit', { unit: ticker })
-			: strings('transactions.sent_ether');
+				? strings('transactions.sent_unit', { unit: ticker })
+				: strings('transactions.sent_ether');
+		}
+
+		return ticker ? strings('transactions.sent_unit', { unit: ticker }) : strings('transactions.sent_ether');
 	}
 	const transactionActionKey = actionKeys[actionKey];
 	if (transactionActionKey) {
