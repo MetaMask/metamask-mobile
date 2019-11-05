@@ -42,7 +42,7 @@ const API_URL = 'indra.connext.network/api';
 const WITHDRAW_ESTIMATED_GAS = toBN('300000');
 const DEPOSIT_ESTIMATED_GAS = toBN('25000');
 const MAX_CHANNEL_VALUE = Currency.DAI(MAX_DEPOSIT_TOKEN.toString());
-
+const MIGRATION_TIMEOUT_MINUTES = 4;
 // it is important to add a default payment
 // profile on initial load in the case the
 // user is being paid without depositing, or
@@ -52,8 +52,8 @@ const MAX_CHANNEL_VALUE = Currency.DAI(MAX_DEPOSIT_TOKEN.toString());
 // insufficient, then it will be updated. the same thing
 // happens in autodeposit, if the eth deposited > deposit
 // needed for autoswap
-const DEFAULT_COLLATERAL_MINIMUM = Currency.DAI('5');
-const DEFAULT_AMOUNT_TO_COLLATERALIZE = Currency.DAI('10');
+const DEFAULT_COLLATERAL_MINIMUM = Currency.DAI('10');
+const DEFAULT_AMOUNT_TO_COLLATERALIZE = Currency.DAI('20');
 
 const hub = new EventEmitter();
 let client = null;
@@ -234,6 +234,9 @@ class InstaPay {
 
 		const InstaPayVersion = await AsyncStorage.getItem('@MetaMask:InstaPayVersion');
 		if (!InstaPayVersion) {
+			this.migrationTimeout = setTimeout(() => {
+				this.forceFinishMigration();
+			}, MIGRATION_TIMEOUT_MINUTES * 60 * 1000);
 			this.migrateToV2();
 		} else {
 			this.setState({ migrated: true });
@@ -442,8 +445,8 @@ class InstaPay {
 			// the migration has been completed succesfully
 			// but we need to account for the GAS (withdraw v1 + deposit v2)
 			// plus potential ETH price changes
-			// That's why we do a 0.06 threshold
-			const BALANCE_THRESHOLD = 0.06;
+			// That's why we do a 0.50 threshold
+			const BALANCE_THRESHOLD = 0.5;
 
 			const currentBal = parseFloat(
 				this.state.balance.channel.token.toDAI().format({ decimals: 2, symbol: false })
@@ -579,11 +582,19 @@ class InstaPay {
 	};
 
 	finishMigration = async () => {
+		this.clearTimeout(this.migrationTimeout);
 		Logger.log('MIGRATION COMPLETE!!!');
 		hub.emit('migration::complete', null);
 		this.setState({ migrating: false, migrated: true, pendingDeposits: 0 });
 		// End migration
 		await AsyncStorage.setItem('@MetaMask:InstaPayVersion', '2.0.0');
+	};
+
+	// This forces the modal to close it but won't set the flag
+	forceFinishMigration = async () => {
+		Logger.log('MIGRATION COMPLETE!!!');
+		hub.emit('migration::complete', null);
+		this.setState({ migrating: false, migrated: true, pendingDeposits: 0 });
 	};
 
 	setPending = pending => {
