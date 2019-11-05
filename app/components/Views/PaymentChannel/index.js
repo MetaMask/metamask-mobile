@@ -328,7 +328,7 @@ class PaymentChannel extends PureComponent {
 
 		// If loading finished, we can remove the timeout
 		if (!this.state.ready && state.ready) {
-			this.clearTimeout(this.loadingTimer);
+			clearTimeout(this.loadingTimer);
 		}
 
 		this.setState({

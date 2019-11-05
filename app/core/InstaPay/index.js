@@ -582,7 +582,7 @@ class InstaPay {
 	};
 
 	finishMigration = async () => {
-		this.clearTimeout(this.migrationTimeout);
+		clearTimeout(this.migrationTimeout);
 		Logger.log('MIGRATION COMPLETE!!!');
 		hub.emit('migration::complete', null);
 		this.setState({ migrating: false, migrated: true, pendingDeposits: 0 });
