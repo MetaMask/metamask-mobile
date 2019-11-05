@@ -41,6 +41,7 @@ import ChooseInstaPayUserModal from '../../UI/ChooseInstaPayUserModal';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 
 const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
+const MIGRATION_TIMEOUT_MINUTES = 1.5;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -325,6 +326,11 @@ class PaymentChannel extends PureComponent {
 		// 	}, 100);
 		// }
 
+		// If loading finished, we can remove the timeout
+		if (!this.state.ready && state.ready) {
+			this.clearTimeout(this.loadingTimer);
+		}
+
 		this.setState({
 			...state,
 			transactions: this.handleTransactions(state.transactions)
@@ -344,6 +350,15 @@ class PaymentChannel extends PureComponent {
 			this.setListeners();
 		}, 1000);
 		this.checkifEnabled();
+		this.setTimeouts();
+	};
+
+	setTimeouts = () => {
+		this.loadingTimer = setTimeout(() => {
+			if (!this.state.ready) {
+				this.reinitialize();
+			}
+		}, MIGRATION_TIMEOUT_MINUTES * 60 * 1000);
 	};
 
 	setListeners = () => {
