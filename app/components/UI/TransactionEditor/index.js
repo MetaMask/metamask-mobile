@@ -490,8 +490,8 @@ class TransactionEditor extends PureComponent {
 		} = this.props;
 		!to && (error = strings('transaction.required'));
 		!to && this.state.toFocused && (error = strings('transaction.required'));
-		to && !isValidAddress(to) && !paymentChannelTransaction && (error = strings('transaction.invalid_address'));
 		to && paymentChannelTransaction && !isValidXpub(to) && (error = strings('transaction.invalid_address'));
+		to && !isValidAddress(to) && !paymentChannelTransaction && (error = strings('transaction.invalid_address'));
 		return error;
 	};
 

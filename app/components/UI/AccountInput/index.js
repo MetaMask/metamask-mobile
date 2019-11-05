@@ -5,7 +5,14 @@ import PropTypes from 'prop-types';
 import { ScrollView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import { renderShortAddress, renderShortXpubAddress, isENS, isInstaPay, isValidXpub } from '../../../util/address';
+import {
+	renderShortAddress,
+	renderShortXpubAddress,
+	isENS,
+	isInstaPay,
+	isValidXpub,
+	resemblesAddress
+} from '../../../util/address';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ElevatedView from 'react-native-elevated-view';
 import ENS from 'ethjs-ens';
@@ -274,17 +281,19 @@ class AccountInput extends PureComponent {
 	onBlur = async () => {
 		const { value } = this.state;
 		const { onBlur } = this.props;
-		const isEnsName = this.isEnsName(value) && (await this.lookupEnsName(value));
-		if (isEnsName) {
-			onBlur && onBlur(this.state.address, value);
-		} else {
-			const isInstaPayName = this.isInstaPayName(value) && (await this.lookupInstaPayName(value));
-			if (isInstaPayName) {
+		if (!resemblesAddress(value)) {
+			const isEnsName = this.isEnsName(value) && (await this.lookupEnsName(value));
+			if (isEnsName) {
 				onBlur && onBlur(this.state.address, value);
 			} else {
-				this.setState({ address: value, ensRecipient: undefined, instaPayRecipient: undefined });
-				onBlur && onBlur(value, undefined);
+				const isInstaPayName = this.isInstaPayName(value) && (await this.lookupInstaPayName(value));
+				if (isInstaPayName) {
+					onBlur && onBlur(this.state.address, value);
+				}
 			}
+		} else {
+			this.setState({ address: value, ensRecipient: undefined, instaPayRecipient: undefined });
+			onBlur && onBlur(value, undefined);
 		}
 	};
 

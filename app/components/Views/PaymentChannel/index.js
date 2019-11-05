@@ -324,8 +324,6 @@ class PaymentChannel extends PureComponent {
 		// 		this.setState({ chooseUserModalVisible: true });
 		// 	}, 100);
 		// }
-		Logger.log('UI STATE UPDATE', state);
-		Logger.log('UI READY?', this.state.ready);
 
 		this.setState({
 			...state,
