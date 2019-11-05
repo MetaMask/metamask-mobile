@@ -786,7 +786,9 @@ class PaymentChannel extends PureComponent {
 	};
 
 	renderBlockingModals = () => {
-		const visible = this.state.upgradeModalVisible || this.state.restoreAccountModalVisible;
+		const visible =
+			!this.state.displayWelcomeModal &&
+			(this.state.upgradeModalVisible || this.state.restoreAccountModalVisible);
 		const title = this.state.upgradeModalVisible
 			? strings('payment_channel.upgrading_account_title')
 			: strings('payment_channel.restoring_account_title');
