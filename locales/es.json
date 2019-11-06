@@ -485,10 +485,10 @@
 		"cancel_tx_title": "¿Intentar cancelar?",
 		"cancel_tx_message": "Enviar este intento no garantiza que su transacción original será cancelada. Si el intento de cancelación es exitoso, se le cobrará la tarifa de transacción anterior.",
 		"speed_up_tx_title": "¿Intentar acelerar?",
-		"speed_up_tx_message": "nviar este intento no garantiza que su transacción original se acelerará. Si el intento de acelerar es exitoso, se le cobrará la tarifa de transacción anterior.",
-		"nevermind": "No importa",
+		"speed_up_tx_message": "Enviar este intento no garantiza que su transacción original se acelerará. Si el intento de acelerar es exitoso, se le cobrará la tarifa de transacción anterior.",
+		"nevermind": "No, gracias",
 		"gas_cancel_fee": "Tarifa de Cancelación",
-		"gas_speed_up_fee": "Tarifa de Aceleración "
+		"gas_speed_up_fee": "Tarifa de Aceleración"
 	},
 	"custom_gas": {
 		"advanced_options": "Opciones Avanzadas",
