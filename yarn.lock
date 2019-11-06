@@ -689,17 +689,17 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@connext/client@0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@connext/client/-/client-0.3.1.tgz#cfed4c04aac8e4e18bc8d458714e3b7585267447"
-  integrity sha512-9wexb2jzNQfmWf3ie9EyJRnB8eCAvqlVfwrDn5iEv22jg2oIxNumWYgrIT8JTNX3Zi6u/WupX9peITV2GPlLsQ==
+"@connext/client@0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@connext/client/-/client-0.4.0.tgz#a001a45b89f8e67d246245fb5f08a18b81cc0157"
+  integrity sha512-sDXwPe+XPmLFylldNy/akCxSFT6eh8XNojRXMgYLMH9ivf4ZQMWCDauZTs4ragwI0djbYSNFerumLAVO4LCQCg==
   dependencies:
-    "@connext/messaging" "0.3.1"
-    "@connext/types" "0.3.1"
+    "@connext/messaging" "0.4.0"
+    "@connext/types" "0.4.0"
     "@counterfactual/cf-funding-protocol-contracts" "0.0.12"
     "@counterfactual/node" "0.2.82"
     "@counterfactual/types" "0.0.44"
-    core-js "3.3.4"
+    core-js "3.3.6"
     eth-crypto "1.5.0"
     ethers "4.0.37"
     human-standard-token-abi "2.0.0"
@@ -707,20 +707,20 @@
     rpc-server "0.0.1"
     uuid "3.3.3"
 
-"@connext/messaging@0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-0.3.1.tgz#8ccc5a667b173c79eabb6e31e77361b049fbca47"
-  integrity sha512-G9x160hH7rA6/xRqev+UBov9IOdRVAK0evdSQUATkkKe7oOgpsPHPUCY9lR6zugGLdt4SrSumQdQp4/p4LbM6g==
+"@connext/messaging@0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-0.4.0.tgz#163af22f81642a2cb7cb69ecd0ec131a37a85ac1"
+  integrity sha512-F/uDAcfczrrHAm0V4tkBxmYTsAv+QZguroMt5B95CYo1c9PcDrH9Hk1WqHawt05GIkYip/RiijnPpBGzcMGBIQ==
   dependencies:
     ts-nats "1.2.4"
     websocket-nats "0.3.3"
 
-"@connext/types@0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@connext/types/-/types-0.3.1.tgz#24a89c756f7d98c445206c08056b0d92c543657c"
-  integrity sha512-gB1kIlLN3Q3RSODPDdi9EGHszRdUV5m1EaOYQIPXfaN/8mX9AKzSE+Zh2+kAl2iZJIsYFNswsDEb3gm4jXoqAg==
+"@connext/types@0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@connext/types/-/types-0.4.0.tgz#055944756ead4f6c67ea21e4b81adda06e7caead"
+  integrity sha512-dURpZ3Mtn7CHYDu3mo1+beLP2k1Yz++xInK1cHIAhxoyvYXLNhUO1c5i18epttvDT8YJ1wEh+DqkMQcpSUbTKA==
   dependencies:
-    "@connext/messaging" "0.3.1"
+    "@connext/messaging" "0.4.0"
     "@counterfactual/types" "0.0.44"
     ethers "4.0.37"
 
@@ -3017,10 +3017,10 @@ core-js@3.0.1:
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.0.1.tgz#1343182634298f7f38622f95e73f54e48ddf4738"
   integrity sha512-sco40rF+2KlE0ROMvydjkrVMMG1vYilP2ALoRXcYR4obqbYIuV3Bg+51GEDW+HF8n7NRA+iaA4qD0nD9lo9mew==
 
-core-js@3.3.4:
-  version "3.3.4"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.3.4.tgz#6b0a23392958317bfb46e40b090529a923add669"
-  integrity sha512-BtibooaAmSOptGLRccsuX/dqgPtXwNgqcvYA6kOTTMzonRxZ+pJS4e+6mvVutESfXMeTnK8m3M+aBu3bkJbR+w==
+core-js@3.3.6:
+  version "3.3.6"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.3.6.tgz#6ad1650323c441f45379e176ed175c0d021eac92"
+  integrity sha512-u4oM8SHwmDuh5mWZdDg9UwNVq5s1uqq6ZDLLIs07VY+VJU91i3h4f3K/pgFvtUQPGdeStrZ+odKyfyt4EnKHfA==
 
 core-js@^1.0.0:
   version "1.2.7"
@@ -6317,7 +6317,7 @@ isomorphic-fetch@2.2.1, isomorphic-fetch@^2.1.1, isomorphic-fetch@^2.2.1:
     node-fetch "^1.0.1"
     whatwg-fetch ">=0.10.0"
 
-isomorphic-webcrypto@^2.3.2:
+isomorphic-webcrypto@2.3.2:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/isomorphic-webcrypto/-/isomorphic-webcrypto-2.3.2.tgz#fdbe62251894e1a158ce54145c12f70a9d65ba86"
   integrity sha512-XbUC6ZwVvJfts2FYfAuNRU99tt89EzTknZcKZjxx6/6hxNeLgF6sIDbA/RdA3spbcNrXYyPOHa90khbUgZWarw==

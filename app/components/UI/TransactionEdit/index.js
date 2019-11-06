@@ -425,6 +425,7 @@ class TransactionEdit extends PureComponent {
 								navigation={navigation}
 								openAccountSelect={this.openAccountSelect}
 								isOpen={accountSelectIsOpen}
+								isInstaPay={paymentChannelTransaction}
 							/>
 						</View>
 						{!paymentChannelTransaction && (

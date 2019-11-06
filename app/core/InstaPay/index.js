@@ -969,7 +969,7 @@ instance = {
 	 * only used for debugging purposes
 	 */
 	dump: () => (client && client.state) || {},
-	xpub: (client && client.state && client.state.publicIdentifier) || null,
+	getXpub: () => (client && client.state && client.state.xpub.toLowerCase()) || '',
 	getDepositAddress: () =>
 		(client && client.state && client.state.wallet && toChecksumAddress(client.state.wallet.address)) || '',
 	setUsername: username => {

@@ -185,7 +185,11 @@ class AccountInput extends PureComponent {
 		/**
 		 * Callback close all drowpdowns
 		 */
-		closeDropdowns: PropTypes.func
+		closeDropdowns: PropTypes.func,
+		/**
+		 * Decide wheter is for InstaPay or not
+		 */
+		isInstaPay: PropTypes.bool
 	};
 
 	state = {
@@ -420,7 +424,7 @@ class AccountInput extends PureComponent {
 
 	render = () => {
 		const { value, ensRecipient, instaPayRecipient, address } = this.state;
-		const { placeholder, isOpen } = this.props;
+		const { placeholder, isOpen, isInstaPay } = this.props;
 		return (
 			<View style={styles.root}>
 				<View style={styles.accountContainer}>
@@ -454,16 +458,18 @@ class AccountInput extends PureComponent {
 							</View>
 						</View>
 					</View>
-					<MaterialIcon
-						onPress={this.onFocus}
-						name={'arrow-drop-down'}
-						size={24}
-						style={styles.arrow}
-						testID={'account-drop-down'}
-					/>
+					{!isInstaPay && (
+						<MaterialIcon
+							onPress={this.onFocus}
+							name={'arrow-drop-down'}
+							size={24}
+							style={styles.arrow}
+							testID={'account-drop-down'}
+						/>
+					)}
 				</View>
 
-				{isOpen && this.renderOptionList()}
+				{isOpen && !isInstaPay ? this.renderOptionList() : null}
 			</View>
 		);
 	};
