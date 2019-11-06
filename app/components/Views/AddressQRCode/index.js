@@ -122,10 +122,7 @@ class AddressQRCode extends PureComponent {
 						<IonicIcon name={'ios-close'} size={38} color={colors.white} />
 					</TouchableOpacity>
 					<View style={styles.qrCode}>
-						<QRCode
-							value={`ethereum:${this.props.selectedAddress}`}
-							size={Dimensions.get('window').width - 160}
-						/>
+						<QRCode value={this.getAddress()} size={Dimensions.get('window').width - 160} />
 					</View>
 					<View style={styles.addressWrapper}>
 						<Text style={styles.addressTitle}>{strings('receive_request.public_address_qr_code')}</Text>

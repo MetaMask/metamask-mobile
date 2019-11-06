@@ -2,15 +2,19 @@ import './shim.js';
 
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
+// eslint-disable-next-line import/no-commonjs
+const isomorphicCrypto = require('isomorphic-webcrypto');
 import { AppRegistry, YellowBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
 // eslint-disable-next-line import/no-unresolved
 import { useScreens } from 'react-native-screens';
+
 useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'PROPOSE_INSTALL_VIRTUAL',
 	'Setting a timer for a long period of time',
 	'createErrorFromErrorData',
 	'Encountered an error loading page',
@@ -40,7 +44,12 @@ YellowBox.ignoreWarnings([
 	"Can't call setState (or forceUpdate) on an unmounted component"
 ]);
 
-/**
- * Application entry point responsible for registering root component
- */
-AppRegistry.registerComponent(name, () => Root);
+async function secureRandomValuesBeforeInit() {
+	await isomorphicCrypto.ensureSecure();
+	/**
+	 * Application entry point responsible for registering root component
+	 */
+	AppRegistry.registerComponent(name, () => Root);
+}
+
+secureRandomValuesBeforeInit();
