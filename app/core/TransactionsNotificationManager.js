@@ -138,7 +138,7 @@ class TransactionsNotificationManager {
 		}
 	}
 
-	_handleTransactionsWatchTableUpdate = transactionMeta => {
+	_handleTransactionsWatchListUpdate = transactionMeta => {
 		const nonce = transactionMeta.transaction.nonce;
 		if (this._transactionsWatchTable[nonce]) {
 			// Clean up of other txs listeners
@@ -154,7 +154,7 @@ class TransactionsNotificationManager {
 	};
 
 	_finishedCallback = transactionMeta => {
-		this._handleTransactionsWatchTableUpdate(transactionMeta);
+		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// If it fails we hide the pending tx notification
 		hideMessage();
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
@@ -177,7 +177,7 @@ class TransactionsNotificationManager {
 	};
 
 	_confirmedCallback = (transactionMeta, originalTransaction) => {
-		this._handleTransactionsWatchTableUpdate(transactionMeta);
+		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// Once it's confirmed we hide the pending tx notification
 		hideMessage();
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
