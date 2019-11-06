@@ -79,8 +79,8 @@ class TransactionsNotificationManager {
 					message = strings('notifications.success_message');
 					break;
 				case 'speedup':
-					title = strings('notifications.speed_up_title', { nonce });
-					message = strings('notifications.speed_up_message');
+					title = strings('notifications.speedup_title', { nonce });
+					message = strings('notifications.speedup_message');
 					break;
 				case 'success_withdrawal':
 					title = strings('notifications.success_withdrawal_title');

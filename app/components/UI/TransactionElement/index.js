@@ -757,8 +757,8 @@ class TransactionElement extends PureComponent {
 						onConfirmPress={this.speedUpTransaction}
 					>
 						<View style={styles.modalView}>
-							<Text style={styles.modalTitle}>{strings('transaction.speed_up_tx_title')}</Text>
-							<Text style={styles.gasTitle}>{strings('transaction.gas_speed_up_fee')}</Text>
+							<Text style={styles.modalTitle}>{strings('transaction.speedup_tx_title')}</Text>
+							<Text style={styles.gasTitle}>{strings('transaction.gas_speedup_fee')}</Text>
 							<View style={styles.cancelFeeWrapper}>
 								<Text style={styles.cancelFee}>
 									{`${renderFromWei(Math.floor(existingGasPriceDecimal * SPEED_UP_RATE))} ${strings(
@@ -766,7 +766,7 @@ class TransactionElement extends PureComponent {
 									)}`}
 								</Text>
 							</View>
-							<Text style={styles.modalText}>{strings('transaction.speed_up_tx_message')}</Text>
+							<Text style={styles.modalText}>{strings('transaction.speedup_tx_message')}</Text>
 						</View>
 					</ActionModal>
 				</View>
