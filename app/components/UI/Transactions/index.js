@@ -252,7 +252,7 @@ class Transactions extends PureComponent {
 			return this.renderEmpty();
 		}
 
-		const { submittedTransactions, confirmedTransactions } = this.props;
+		const { submittedTransactions, confirmedTransactions, header } = this.props;
 		const transactions = submittedTransactions.length
 			? submittedTransactions.concat(confirmedTransactions)
 			: this.props.transactions;
@@ -270,7 +270,7 @@ class Transactions extends PureComponent {
 					initialNumToRender={10}
 					maxToRenderPerBatch={2}
 					onEndReachedThreshold={0.5}
-					ListHeaderComponent={this.props.header}
+					ListHeaderComponent={header}
 				/>
 			</View>
 		);
