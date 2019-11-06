@@ -220,7 +220,7 @@ class Transactions extends PureComponent {
 		index
 	});
 
-	keyExtractor = item => item.id;
+	keyExtractor = item => item.id.toString();
 
 	blockExplorer = () => hasBlockExplorer(this.props.networkType);
 
