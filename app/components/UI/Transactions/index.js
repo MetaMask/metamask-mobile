@@ -253,9 +253,10 @@ class Transactions extends PureComponent {
 		}
 
 		const { submittedTransactions, confirmedTransactions, header } = this.props;
-		const transactions = submittedTransactions.length
-			? submittedTransactions.concat(confirmedTransactions)
-			: this.props.transactions;
+		const transactions =
+			submittedTransactions && submittedTransactions.length
+				? submittedTransactions.concat(confirmedTransactions)
+				: this.props.transactions;
 
 		return (
 			<View style={styles.wrapper} testID={'transactions-screen'}>
