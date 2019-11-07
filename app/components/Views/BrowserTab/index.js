@@ -432,6 +432,7 @@ export class BrowserTab extends PureComponent {
 
 	async componentDidMount() {
 		if (this.isTabActive()) {
+			console.log('IS DOING INITIAL RELOAD:', true);
 			this.initialReload();
 		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
 			this.go(this.state.url);
@@ -1072,10 +1073,12 @@ export class BrowserTab extends PureComponent {
 
 	initialReload = () => {
 		this.isReloading = true;
-		this.forceReload();
 		setTimeout(() => {
-			this.isReloading = false;
-		}, 1500);
+			this.forceReload();
+			setTimeout(() => {
+				this.isReloading = false;
+			}, 1500);
+		}, 100);
 	};
 
 	addBookmark = () => {
