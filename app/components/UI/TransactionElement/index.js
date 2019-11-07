@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, TouchableHighlight, StyleSheet, Text, View, Image, InteractionManager } from 'react-native';
+import { Platform, TouchableHighlight, StyleSheet, Text, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
@@ -18,9 +18,6 @@ import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import StyledButton from '../StyledButton';
-import Engine from '../../../core/Engine';
-import ActionModal from '../ActionModal';
-import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba/transaction/TransactionController';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -143,38 +140,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		paddingTop: 10,
 		paddingLeft: 40
-	},
-	modalView: {
-		alignItems: 'stretch',
-		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'space-between',
-		padding: 20
-	},
-	modalText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		textAlign: 'center'
-	},
-	modalTitle: {
-		...fontStyles.bold,
-		fontSize: 22,
-		textAlign: 'center'
-	},
-	gasTitle: {
-		...fontStyles.bold,
-		fontSize: 16,
-		textAlign: 'center'
-	},
-	cancelFeeWrapper: {
-		backgroundColor: colors.grey000,
-		textAlign: 'center',
-		padding: 15
-	},
-	cancelFee: {
-		...fontStyles.bold,
-		fontSize: 24,
-		textAlign: 'center'
 	}
 });
 
@@ -242,7 +207,9 @@ class TransactionElement extends PureComponent {
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string,
-		exchangeRate: PropTypes.number
+		exchangeRate: PropTypes.number,
+		onSpeedUpAction: PropTypes.func,
+		onCancelAction: PropTypes.func
 	};
 
 	state = {
@@ -619,22 +586,21 @@ class TransactionElement extends PureComponent {
 	);
 
 	showCancelModal = () => {
-		this.mounted && this.setState({ cancelIsOpen: true });
+		const { tx } = this.props;
+		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+		this.mounted && this.props.onCancelAction(true, existingGasPriceDecimal, this.props.tx.id);
 	};
 
-	hideCancelModal = () => {
-		this.mounted && this.setState({ cancelIsOpen: false });
+	showSpeedUpModal = () => {
+		const { tx } = this.props;
+		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+		this.mounted && this.props.onSpeedUpAction(true, existingGasPriceDecimal, this.props.tx.id);
 	};
 
-	cancelTransaction = () => {
-		this.hideCancelModal();
-		InteractionManager.runAfterInteractions(() => {
-			try {
-				Engine.context.TransactionController.stopTransaction(this.props.tx.id);
-			} catch (e) {
-				// ignore because transaction already went through
-			}
-		});
+	hideSpeedUpModal = () => {
+		this.mounted && this.props.onSpeedUpAction(false);
 	};
 
 	renderSpeedUpButton = () => (
@@ -647,25 +613,6 @@ class TransactionElement extends PureComponent {
 			{strings('transaction.speedup')}
 		</StyledButton>
 	);
-
-	showSpeedUpModal = () => {
-		this.mounted && this.setState({ speedUpIsOpen: true });
-	};
-
-	hideSpeedUpModal = () => {
-		this.mounted && this.setState({ speedUpIsOpen: false });
-	};
-
-	speedUpTransaction = () => {
-		this.hideSpeedUpModal();
-		InteractionManager.runAfterInteractions(() => {
-			try {
-				Engine.context.TransactionController.speedUpTransaction(this.props.tx.id);
-			} catch (e) {
-				// ignore because transaction already went through
-			}
-		});
-	};
 
 	render() {
 		const {
@@ -713,9 +660,6 @@ class TransactionElement extends PureComponent {
 					[transactionElement, transactionDetails] = this.decodeConfirmTx(totalGas);
 			}
 		}
-		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
-		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
-
 		return (
 			<TouchableHighlight
 				style={styles.row}
@@ -726,49 +670,6 @@ class TransactionElement extends PureComponent {
 				<View style={styles.rowContent}>
 					{this.renderTxElement(transactionElement)}
 					{this.renderTxDetails(selected, tx, transactionDetails)}
-
-					<ActionModal
-						modalVisible={this.state.cancelIsOpen}
-						confirmText={strings('transaction.lets_try')}
-						cancelText={strings('transaction.nevermind')}
-						onCancelPress={this.hideCancelModal}
-						onRequestClose={this.hideCancelModal}
-						onConfirmPress={this.cancelTransaction}
-					>
-						<View style={styles.modalView}>
-							<Text style={styles.modalTitle}>{strings('transaction.cancel_tx_title')}</Text>
-							<Text style={styles.gasTitle}>{strings('transaction.gas_cancel_fee')}</Text>
-							<View style={styles.cancelFeeWrapper}>
-								<Text style={styles.cancelFee}>
-									{renderFromWei(Math.floor(existingGasPriceDecimal * CANCEL_RATE))}{' '}
-									{strings('unit.eth')}
-								</Text>
-							</View>
-							<Text style={styles.modalText}>{strings('transaction.cancel_tx_message')}</Text>
-						</View>
-					</ActionModal>
-
-					<ActionModal
-						modalVisible={this.state.speedUpIsOpen}
-						confirmText={strings('transaction.lets_try')}
-						cancelText={strings('transaction.nevermind')}
-						onCancelPress={this.hideSpeedUpModal}
-						onRequestClose={this.hideSpeedUpModal}
-						onConfirmPress={this.speedUpTransaction}
-					>
-						<View style={styles.modalView}>
-							<Text style={styles.modalTitle}>{strings('transaction.speedup_tx_title')}</Text>
-							<Text style={styles.gasTitle}>{strings('transaction.gas_speedup_fee')}</Text>
-							<View style={styles.cancelFeeWrapper}>
-								<Text style={styles.cancelFee}>
-									{`${renderFromWei(Math.floor(existingGasPriceDecimal * SPEED_UP_RATE))} ${strings(
-										'unit.eth'
-									)}`}
-								</Text>
-							</View>
-							<Text style={styles.modalText}>{strings('transaction.speedup_tx_message')}</Text>
-						</View>
-					</ActionModal>
 				</View>
 			</TouchableHighlight>
 		);
