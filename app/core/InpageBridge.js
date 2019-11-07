@@ -127,16 +127,8 @@ class InpageBridge {
 	}
 
 	_subscribe() {
-		console.log('subscribing to messages');
 		window.addEventListener('message', event => {
-			// console.log('RECEIVED EVENT AT ', window.location.href, event);
 			const { data } = event;
-
-			// if(origin !== window.location.href) {
-			// 	console.log('IGNORING BECAUSE ORIGIN');
-			// 	return;
-			// }
-
 			if (data.toString().indexOf('INPAGE_RESPONSE') !== -1 || data.toString().indexOf('STATE_UPDATE') !== -1) {
 				this._onMessage(data);
 			}
