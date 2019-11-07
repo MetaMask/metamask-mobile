@@ -91,7 +91,7 @@ class Asset extends PureComponent {
 		if (this.navSymbol.toUpperCase() !== 'ETH' && this.navAddress !== '') {
 			this.filter = this.noEthFilter;
 		} else {
-			this.filter = this.ethFilter;
+			this.filter = this.noEthFilter;
 		}
 	}
 
@@ -134,10 +134,17 @@ class Asset extends PureComponent {
 	};
 
 	noEthFilter = tx => {
+		const { networkType } = this.props;
+		const networkId = Networks[networkType].networkId;
 		const {
 			transaction: { to, from }
 		} = tx;
-		return (from && from.toLowerCase()) === this.navAddress || (to && to.toLowerCase()) === this.navAddress;
+		return (
+			(from & (from.toLowerCase() === this.navAddress) || (to && to.toLowerCase() === this.navAddress)) &&
+			((networkId && networkId.toString() === tx.networkID) ||
+				(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
+			tx.status !== 'unapproved'
+		);
 	};
 
 	normalizeTransactions() {
@@ -150,20 +157,23 @@ class Asset extends PureComponent {
 
 		if (transactions.length) {
 			const txs = transactions.filter(tx => {
-				switch (tx.status) {
-					case 'submitted':
-					case 'signed':
-					case 'unapproved':
-						submittedTxs.push(tx);
-						break;
-					case 'pending':
-						newPendingTxs.push(tx);
-						break;
-					case 'confirmed':
-						confirmedTxs.push(tx);
-						break;
+				const filerResult = this.filter(tx);
+				if (filerResult) {
+					switch (tx.status) {
+						case 'submitted':
+						case 'signed':
+						case 'unapproved':
+							submittedTxs.push(tx);
+							break;
+						case 'pending':
+							newPendingTxs.push(tx);
+							break;
+						case 'confirmed':
+							confirmedTxs.push(tx);
+							break;
+					}
 				}
-				return this.filter(tx);
+				return filerResult;
 			});
 
 			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
