@@ -149,7 +149,7 @@ class AccountSelect extends PureComponent {
 
 	renderActiveOption() {
 		const { selectedAddress, accounts, identities, value, isOpen, openAccountSelect } = this.props;
-		const targetAddress = toChecksumAddress(value || selectedAddress);
+		const targetAddress = (value && toChecksumAddress(value)) || selectedAddress;
 		const account = { ...identities[targetAddress], ...accounts[targetAddress] };
 		return (
 			<View style={styles.activeOption}>

@@ -262,7 +262,7 @@ class AccountList extends PureComponent {
 				const identity = identities[checksummedAddress];
 				const { name, address } = identity;
 				const identityAddressChecksummed = toChecksumAddress(address);
-				const isSelected = identityAddressChecksummed === toChecksumAddress(selectedAddress);
+				const isSelected = identityAddressChecksummed === selectedAddress;
 				const isImported = this.isImported(allKeyrings, identityAddressChecksummed);
 				let balance = 0x0;
 				if (accounts[identityAddressChecksummed]) {

@@ -3,7 +3,6 @@ import React, { PureComponent } from 'react';
 import { Alert, StyleSheet, Switch, Text, ScrollView, Platform, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
@@ -318,7 +317,7 @@ class Settings extends PureComponent {
 				}
 				Logger.log('SecuritySettings::selecting address');
 				// Finally set the same selected address
-				await PreferencesController.update({ selectedAddress: toChecksumAddress(selectedAddress) });
+				await PreferencesController.update({ selectedAddress });
 				Logger.log('SecuritySettings::restore complete');
 			}
 
@@ -616,7 +615,7 @@ const mapStateToProps = state => ({
 	browserHistory: state.browser.history,
 	lockTime: state.settings.lockTime,
 	privacyMode: state.privacy.privacyMode,
-	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
