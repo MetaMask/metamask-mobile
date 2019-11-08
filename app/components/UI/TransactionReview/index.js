@@ -240,7 +240,7 @@ class TransactionReview extends PureComponent {
 			transaction: { from, to },
 			identities
 		} = this.props;
-		const contract = contractMap[toChecksumAddress(to)];
+		const contract = to && contractMap[toChecksumAddress(to)];
 		return (
 			<View style={styles.graphic}>
 				<View style={[styles.addressGraphic, styles.fromGraphic]}>
