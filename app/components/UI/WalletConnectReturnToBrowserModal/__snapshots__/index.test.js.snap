@@ -1,0 +1,51 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WalletConnectReturnToBrowserModal should render correctly 1`] = `
+<BlockingActionModal
+  modalVisible={true}
+>
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "fontFamily": "Roboto",
+        "fontSize": 22,
+        "fontWeight": "600",
+        "marginBottom": 15,
+        "textAlign": "center",
+      }
+    }
+  >
+    You're all set!
+  </Text>
+  <Text
+    style={
+      Object {
+        "alignSelf": "center",
+        "borderRadius": 10,
+        "color": "#777777",
+        "fontFamily": "Roboto",
+        "fontSize": 16,
+        "fontWeight": "400",
+        "textAlign": "center",
+      }
+    }
+  >
+    [missing "en.walletconnect_return_modal.text" translation]
+  </Text>
+  <Icon
+    allowFontScaling={false}
+    name="md-exit"
+    size={12}
+    style={
+      Object {
+        "color": "#777777",
+        "fontSize": 60,
+        "lineHeight": 60,
+        "marginTop": 15,
+        "textAlign": "center",
+      }
+    }
+  />
+</BlockingActionModal>
+`;

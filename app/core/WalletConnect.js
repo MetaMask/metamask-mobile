@@ -1,6 +1,5 @@
 import RNWalletConnect from '@walletconnect/react-native';
 import Engine from './Engine';
-import { Linking } from 'react-native';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
@@ -8,7 +7,6 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 const hub = new EventEmitter();
 let connectors = [];
-let pendingRedirect = null;
 
 const CLIENT_OPTIONS = {
 	clientMeta: {
@@ -37,7 +35,7 @@ class WalletConnect {
 
 	constructor(options) {
 		if (options.redirect) {
-			pendingRedirect = options.redirect;
+			this.redirectUrl = options.redirect;
 		}
 
 		if (options.autosign) {
@@ -207,6 +205,7 @@ class WalletConnect {
 						});
 					}
 				}
+				this.redirectIfNeeded();
 			}
 		});
 
@@ -290,11 +289,11 @@ class WalletConnect {
 		});
 
 	redirectIfNeeded = () => {
-		if (pendingRedirect) {
+		console.log('redirect if needed', this.redirectUrl);
+		if (this.redirectUrl) {
 			setTimeout(() => {
-				Linking.openURL(pendingRedirect);
-				pendingRedirect = null;
-			}, 500);
+				hub.emit('walletconnect:return');
+			}, 1500);
 		}
 	};
 }
@@ -353,9 +352,6 @@ const instance = {
 	shutdown() {
 		Engine.context.TransactionController.hub.removeAllListeners();
 		Engine.context.PreferencesController.unsubscribe();
-	},
-	setRedirectUri: uri => {
-		pendingRedirect = uri;
 	}
 };
 

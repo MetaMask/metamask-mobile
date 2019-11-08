@@ -986,5 +986,9 @@
 		"amount_error_message": "The amount must be a number",
 		"address_error_message": "The address is invalid",
 		"balance_error_message": "Insufficient balance"
+	},
+	"walletconnect_return_modal": {
+		"title": "You're all set!",
+		"text:": "You can now return to your browser"
 	}
 }
