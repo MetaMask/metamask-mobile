@@ -9,8 +9,8 @@ import AssetActionButtons from '../AssetActionButtons';
 import { setTokensTransaction } from '../../../actions/transaction';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -148,7 +148,7 @@ class AssetOverview extends PureComponent {
 			currentCurrency
 		} = this.props;
 		let mainBalance, secondaryBalance;
-		const itemAddress = (asset.address && toChecksumAddress(asset.address)) || undefined;
+		const itemAddress = safeToChecksumAddress(asset.address) || undefined;
 		let balance, balanceFiat;
 		if (asset.isETH) {
 			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);

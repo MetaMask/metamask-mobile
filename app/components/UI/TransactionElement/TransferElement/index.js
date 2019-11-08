@@ -17,7 +17,7 @@ import {
 } from '../../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { getActionKey, decodeTransferData, isCollectibleAddress } from '../../../../util/transactions';
-import { renderFullAddress } from '../../../../util/address';
+import { renderFullAddress, safeToChecksumAddress } from '../../../../util/address';
 
 const styles = StyleSheet.create({
 	row: {
@@ -136,7 +136,7 @@ export default class TransferElement extends PureComponent {
 		const amount = toBN(encodedAmount);
 
 		const userHasToken = toChecksumAddress(to) in tokens;
-		const token = userHasToken ? tokens[toChecksumAddress(to)] : null;
+		const token = userHasToken ? tokens[safeToChecksumAddress(to)] : null;
 		const renderActionKey = token ? strings('transactions.sent') + ' ' + token.symbol : actionKey;
 		const renderTokenAmount = token
 			? renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol

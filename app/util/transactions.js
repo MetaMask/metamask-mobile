@@ -4,6 +4,7 @@ import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import { isSmartContractCode } from 'gaba/util';
+import { safeToChecksumAddress } from './address';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -244,8 +245,8 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 	const actionKey = await getTransactionActionKey(tx);
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		ticker = paymentChannelTransaction ? strings('unit.dai') : ticker;
-		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
-		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
+		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
+		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return incoming
 			? selfSent
 				? ticker

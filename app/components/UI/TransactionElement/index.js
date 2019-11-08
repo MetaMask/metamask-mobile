@@ -5,11 +5,10 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
 import { renderFromWei, weiToFiat, hexToBN, toBN, isBN, renderToGwei, balanceToFiat } from '../../../util/number';
-import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
 import { getActionKey, decodeTransferData, getTicker } from '../../../util/transactions';
 import TransactionDetails from './TransactionDetails';
-import { renderFullAddress } from '../../../util/address';
+import { renderFullAddress, safeToChecksumAddress } from '../../../util/address';
 import FadeIn from 'react-native-fade-in-image';
 import TokenImage from '../TokenImage';
 import contractMap from 'eth-contract-metadata';
@@ -230,8 +229,8 @@ class TransactionElement extends PureComponent {
 
 	renderTxTime = () => {
 		const { tx, selectedAddress } = this.props;
-		const incoming = tx.transaction.to && toChecksumAddress(tx.transaction.to) === selectedAddress;
-		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
+		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
+		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return (
 			<Text style={styles.date}>
 				{(!incoming || selfSent) && tx.transaction.nonce && `#${hexToBN(tx.transaction.nonce).toString()}  - `}

@@ -82,3 +82,8 @@ export function isENS(name) {
 export function resemblesAddress(address) {
 	return address.length === 2 + 20 * 2;
 }
+
+export function safeToChecksumAddress(address) {
+	if (!address) return undefined;
+	return toChecksumAddress(address);
+}
