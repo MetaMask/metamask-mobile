@@ -289,7 +289,6 @@ class WalletConnect {
 		});
 
 	redirectIfNeeded = () => {
-		console.log('redirect if needed', this.redirectUrl);
 		if (this.redirectUrl) {
 			setTimeout(() => {
 				hub.emit('walletconnect:return');
