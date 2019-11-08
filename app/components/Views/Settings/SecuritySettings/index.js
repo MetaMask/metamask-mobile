@@ -317,7 +317,7 @@ class Settings extends PureComponent {
 				}
 				Logger.log('SecuritySettings::selecting address');
 				// Finally set the same selected address
-				await PreferencesController.update({ selectedAddress });
+				PreferencesController.setSelectedAddress(selectedAddress);
 				Logger.log('SecuritySettings::restore complete');
 			}
 

@@ -304,9 +304,9 @@ class Engine {
 		});
 		await PreferencesController.update(updatedPref);
 		if (accounts.hd.includes(toChecksumAddress(updatedPref.selectedAddress))) {
-			await PreferencesController.update({ selectedAddress: updatedPref.selectedAddress });
+			PreferencesController.setSelectedAddress(updatedPref.selectedAddress);
 		} else {
-			await PreferencesController.update({ selectedAddress: accounts.hd[0] });
+			PreferencesController.setSelectedAddress(accounts.hd[0]);
 		}
 
 		await TransactionController.update({
