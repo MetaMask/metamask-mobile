@@ -8,12 +8,10 @@ describe('InpageBridge', () => {
 			ReactNativeWebView: {
 				postMessage: jest.fn()
 			},
-			addEventListener: jest.fn()
-		};
-
-		global.document = {
-			addEventListener(type, callback) {
-				LISTENER = callback;
+			addEventListener: (type, callback) => {
+				if (type === 'message') {
+					LISTENER = callback;
+				}
 			}
 		};
 
@@ -35,7 +33,8 @@ describe('InpageBridge', () => {
 					selectedAddress: 'foo',
 					network: 'bar'
 				}
-			})
+			}),
+			origin: '*'
 		});
 		expect(INSTANCE.send({ method: 'eth_coinbase' }).result).toBe('foo');
 	});
@@ -48,7 +47,8 @@ describe('InpageBridge', () => {
 					selectedAddress: undefined,
 					network: 'bar'
 				}
-			})
+			}),
+			origin: '*'
 		});
 		expect(INSTANCE.send({ method: 'eth_accounts' }).result).toEqual([]);
 		LISTENER({
@@ -58,7 +58,8 @@ describe('InpageBridge', () => {
 					selectedAddress: 'foo',
 					network: 'bar'
 				}
-			})
+			}),
+			origin: '*'
 		});
 		expect(INSTANCE.send({ method: 'eth_accounts' }).result).toEqual(['foo']);
 	});
@@ -71,7 +72,8 @@ describe('InpageBridge', () => {
 					selectedAddress: 'foo',
 					network: 'bar'
 				}
-			})
+			}),
+			origin: '*'
 		});
 		expect(INSTANCE.send({ method: 'net_version' }).result).toBe('bar');
 	});

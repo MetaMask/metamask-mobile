@@ -127,8 +127,7 @@ class InpageBridge {
 	}
 
 	_subscribe() {
-		window.addEventListener('message', event => {
-			const { data } = event;
+		window.addEventListener('message', ({ data }) => {
 			if (data.toString().indexOf('INPAGE_RESPONSE') !== -1 || data.toString().indexOf('STATE_UPDATE') !== -1) {
 				this._onMessage(data);
 			}

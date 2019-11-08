@@ -9,7 +9,7 @@ export class BackgroundBridge {
 
 	_postMessageToProvider(message, origin) {
 		const current = this._webview.current;
-		// Loop to the iframes first
+		// Loop through the iframes first
 		// If the source doesn't match any
 		// send the message to the main window
 		const js = `(function () {
