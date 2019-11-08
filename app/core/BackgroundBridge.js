@@ -1,3 +1,5 @@
+import { JS_POST_MESSAGE_TO_PROVIDER } from '../util/browserScripts';
+
 /**
  * Module that listens for and responds to messages from an InpageBridge using postMessage
  */
@@ -12,18 +14,7 @@ export class BackgroundBridge {
 		// Loop through the iframes first
 		// If the source doesn't match any
 		// send the message to the main window
-		const js = `(function () {
-			const iframes = document.getElementsByTagName('iframe');
-			let sent = false;
-			for (let frame of iframes){
-				if(frame.src === '${origin}'){
-					frame.contentWindow.postMessage(${JSON.stringify(message)}, '${origin}');
-					sent = true;
-					break;
-				}
-			}
-			!sent && window.postMessage(${JSON.stringify(message)}, '${origin}') }
-		)()`;
+		const js = JS_POST_MESSAGE_TO_PROVIDER(message, origin);
 		current && current.injectJavaScript(js);
 	}
 
