@@ -274,7 +274,8 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
     implementation project(':react-native-branch')
-	implementation "io.branch.sdk.android:library:3.0.4"
+	implementation "io.branch.sdk.android:library:4.1.2"
+
 
     implementation project(':react-native-camera')
     implementation project(':react-native-share')
