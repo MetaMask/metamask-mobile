@@ -31,7 +31,7 @@ exports[`WalletConnectReturnToBrowserModal should render correctly 1`] = `
       }
     }
   >
-    [missing "en.walletconnect_return_modal.text" translation]
+    You can now return to your browser
   </Text>
   <Icon
     allowFontScaling={false}

@@ -989,6 +989,6 @@
 	},
 	"walletconnect_return_modal": {
 		"title": "You're all set!",
-		"text:": "You can now return to your browser"
+		"text": "You can now return to your browser"
 	}
 }

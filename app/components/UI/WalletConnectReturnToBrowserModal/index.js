@@ -4,6 +4,7 @@ import { StyleSheet, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { fontStyles, colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
+import BlockingActionModal from '../BlockingActionModal';
 
 const styles = StyleSheet.create({
 	blockingModalText: {
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders an action modal
  */
-export default function BlockingActionModal({ modalVisible }) {
+export default function WalletConnectReturnToBrowserModal({ modalVisible }) {
 	return (
 		<BlockingActionModal modalVisible={modalVisible}>
 			<React.Fragment>
@@ -45,7 +46,7 @@ export default function BlockingActionModal({ modalVisible }) {
 	);
 }
 
-BlockingActionModal.propTypes = {
+WalletConnectReturnToBrowserModal.propTypes = {
 	/**
 	 * Whether modal is shown
 	 */
