@@ -678,6 +678,7 @@ export class BrowserTab extends PureComponent {
 							onPress: () => {
 								const bookmark = { url: params[0] };
 								this.props.removeBookmark(bookmark);
+								// remove bookmark from homepage
 								this.refreshHomeScripts();
 								resolve({
 									favorites: this.props.bookmarks
@@ -1045,6 +1046,7 @@ export class BrowserTab extends PureComponent {
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 		setTimeout(() => {
 			this.lastUrlBeforeHome = lastUrlBeforeHome;
+			// update bookmarks on homepage
 			this.refreshHomeScripts();
 		}, 1000);
 	};
