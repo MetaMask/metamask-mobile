@@ -678,6 +678,7 @@ export class BrowserTab extends PureComponent {
 							onPress: () => {
 								const bookmark = { url: params[0] };
 								this.props.removeBookmark(bookmark);
+								this.refreshHomeScripts();
 								resolve({
 									favorites: this.props.bookmarks
 								});
@@ -818,6 +819,19 @@ export class BrowserTab extends PureComponent {
 				await this.go(url);
 			}
 		}
+	}
+
+	refreshHomeScripts() {
+		const homepageScripts = `
+			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+			window.__mmSearchEngine="${this.props.searchEngine}";
+		`;
+		this.setState({ homepageScripts }, () => {
+			const { current } = this.webview;
+			if (this.isHomepage() && current) {
+				current.injectJavaScript(homepageScripts);
+			}
+		});
 	}
 
 	setTabActive() {
@@ -1031,6 +1045,7 @@ export class BrowserTab extends PureComponent {
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 		setTimeout(() => {
 			this.lastUrlBeforeHome = lastUrlBeforeHome;
+			this.refreshHomeScripts();
 		}, 1000);
 	};
 
