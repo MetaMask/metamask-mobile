@@ -84,7 +84,7 @@ export class BackgroundBridge {
 		const { network, selectedAddress } = this._engine.datamodel.flatState;
 		const payload = { network };
 		if (this._accounts) {
-			payload.selectedAddress = selectedAddress;
+			payload.selectedAddress = selectedAddress.toLowerCase();
 		}
 		this._postMessageToProvider(
 			JSON.stringify({
@@ -106,8 +106,10 @@ export class BackgroundBridge {
 	 * Called to enable inpage account updates
 	 */
 	enableAccounts() {
-		this._accounts = true;
-		this.sendStateUpdate();
+		if (!this._accounts) {
+			this._accounts = true;
+			this.sendStateUpdate();
+		}
 	}
 }
 

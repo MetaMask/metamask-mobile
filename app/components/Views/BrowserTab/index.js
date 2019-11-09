@@ -354,7 +354,11 @@ export class BrowserTab extends PureComponent {
 		 * redux flag that indicates if the user
 		 * completed the seed phrase backup flow
 		 */
-		seedphraseBackedUp: PropTypes.bool
+		seedphraseBackedUp: PropTypes.bool,
+		/**
+		 * the current version of the app
+		 */
+		app_version: PropTypes.string
 	};
 
 	constructor(props) {
@@ -430,7 +434,7 @@ export class BrowserTab extends PureComponent {
 		});
 	}
 
-	componentDidMount() {
+	async componentDidMount() {
 		this.mounted = true;
 		if (this.isTabActive()) {
 			this.initialReload();
@@ -602,7 +606,10 @@ export class BrowserTab extends PureComponent {
 				});
 				if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
 					this.approvalRequest.resolve([selectedAddress]);
-					this.backgroundBridge.enableAccounts();
+					//if not approved previously
+					if (!this.backgroundBridge._accounts) {
+						this.backgroundBridge.enableAccounts();
+					}
 				} else {
 					// Let the damn website load first!
 					// Otherwise we don't get enough time to load the metadata
@@ -628,9 +635,20 @@ export class BrowserTab extends PureComponent {
 				}
 				return !this.isReloading && promise;
 			},
+			net_version: payload =>
+				!this.isReloading &&
+				Promise.resolve({
+					result: `${Networks[this.props.networkType].networkId}`,
+					jsonrpc: payload.jsonrpc,
+					id: payload.id
+				}),
 			web3_clientVersion: payload =>
 				!this.isReloading &&
-				Promise.resolve({ result: 'MetaMask/0.1.0/Alpha/Mobile', jsonrpc: payload.jsonrpc, id: payload.id }),
+				Promise.resolve({
+					result: `MetaMask/${this.props.app_version}/Beta/Mobile`,
+					jsonrpc: payload.jsonrpc,
+					id: payload.id
+				}),
 			wallet_scanQRCode: payload => {
 				const promise = new Promise((resolve, reject) => {
 					this.props.navigation.navigate('QRScanner', {

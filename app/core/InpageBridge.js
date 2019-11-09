@@ -330,56 +330,58 @@ class InpageBridge {
 		});
 	}
 }
+// Don't start the provider on frames without src!
+if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+	window.ethereum = new InpageBridge();
 
-window.ethereum = new InpageBridge();
+	/**
+	 * Expose nonstandard convenience methods at an application-specific namespace.
+	 * A Proxy is used so developers can be warned about the use of these methods.
+	 */
+	window.ethereum._metamask = new Proxy(
+		{
+			/**
+			 * Determines if user accounts are enabled for this domain
+			 *
+			 * @returns {boolean} - true if accounts are enabled for this domain
+			 */
+			isEnabled: () => !!window.ethereum._selectedAddress,
 
-/**
- * Expose nonstandard convenience methods at an application-specific namespace.
- * A Proxy is used so developers can be warned about the use of these methods.
- */
-window.ethereum._metamask = new Proxy(
-	{
-		/**
-		 * Determines if user accounts are enabled for this domain
-		 *
-		 * @returns {boolean} - true if accounts are enabled for this domain
-		 */
-		isEnabled: () => !!window.ethereum._selectedAddress,
+			/**
+			 * Determines if user accounts have been previously enabled for this
+			 * domain in the past. This is useful for determining if a user has
+			 * previously whitelisted a given dapp.
+			 *
+			 * @returns {Promise<boolean>} - Promise resolving to true if accounts have been previously enabled for this domain
+			 */
+			isApproved: async () => {
+				const response = await window.ethereum.send('metamask_isApproved');
+				return response ? response.isApproved : false;
+			},
 
-		/**
-		 * Determines if user accounts have been previously enabled for this
-		 * domain in the past. This is useful for determining if a user has
-		 * previously whitelisted a given dapp.
-		 *
-		 * @returns {Promise<boolean>} - Promise resolving to true if accounts have been previously enabled for this domain
-		 */
-		isApproved: async () => {
-			const response = await window.ethereum.send('metamask_isApproved');
-			return response ? response.isApproved : false;
+			/**
+			 * Determines if MetaMask is unlocked by the user. The mobile application
+			 * is always unlocked, so this method exists only for symmetry with the
+			 * browser extension.
+			 *
+			 * @returns {Promise<boolean>} - Promise resolving to true
+			 */
+			isUnlocked: () => Promise.resolve(true)
 		},
-
-		/**
-		 * Determines if MetaMask is unlocked by the user. The mobile application
-		 * is always unlocked, so this method exists only for symmetry with the
-		 * browser extension.
-		 *
-		 * @returns {Promise<boolean>} - Promise resolving to true
-		 */
-		isUnlocked: () => Promise.resolve(true)
-	},
-	{
-		get: (obj, prop) => {
-			!window.ethereum._warned &&
-				// eslint-disable-next-line no-console
-				console.warn(
-					'Heads up! ethereum._metamask exposes methods that have ' +
-						'not been standardized yet. This means that these methods may not be implemented ' +
-						'in other dapp browsers and may be removed from MetaMask in the future.'
-				);
-			window.ethereum._warned = true;
-			return obj[prop];
+		{
+			get: (obj, prop) => {
+				!window.ethereum._warned &&
+					// eslint-disable-next-line no-console
+					console.warn(
+						'Heads up! ethereum._metamask exposes methods that have ' +
+							'not been standardized yet. This means that these methods may not be implemented ' +
+							'in other dapp browsers and may be removed from MetaMask in the future.'
+					);
+				window.ethereum._warned = true;
+				return obj[prop];
+			}
 		}
-	}
-);
+	);
 
-window.postMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' }, '*');
+	window.postMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' }, '*');
+}
