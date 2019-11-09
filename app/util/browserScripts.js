@@ -97,14 +97,12 @@ export const JS_DESELECT_TEXT = `if (window.getSelection) {window.getSelection()
 else if (document.selection) {document.selection.empty();}`;
 
 export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
+	window.postMessage(${JSON.stringify(message)}, '${origin}');
 	const iframes = document.getElementsByTagName('iframe');
 	let sent = false;
 	for (let frame of iframes){
 		if(frame.src === '${origin}'){
 			frame.contentWindow.postMessage(${JSON.stringify(message)}, '${origin}');
-			sent = true;
-			break;
 		}
 	}
-	!sent && window.postMessage(${JSON.stringify(message)}, '${origin}') }
-)()`;
+})()`;
