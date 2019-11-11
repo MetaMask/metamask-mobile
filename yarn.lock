@@ -3668,7 +3668,7 @@ eth-json-rpc-middleware@^4.0.0, eth-json-rpc-middleware@^4.1.4, eth-json-rpc-mid
     pify "^3.0.0"
     safe-event-emitter "^1.0.1"
 
-eth-keyring-controller@^5.0.1:
+eth-keyring-controller@^5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/eth-keyring-controller/-/eth-keyring-controller-5.3.0.tgz#8d85a67b894360ab7d601222ca71df8ed5f456c6"
   integrity sha512-aoqYjKUbdOSgS1s63IsTp69QAMtLPTCqR4VAbCULps71o3yuaA9JRx2W+GAxqVNBtIdyZllxoOJlvErkO4iWNw==
@@ -4724,15 +4724,16 @@ g-status@^2.0.2:
     matcher "^1.0.0"
     simple-git "^1.85.0"
 
-"gaba@file:../gaba/dist/gaba-1.7.1.tgz":
-  version "1.7.1"
-  resolved "file:../gaba/dist/gaba-1.7.1.tgz#834dbcef3d824717967dd118aba79ec7278d0571"
+gaba@1.8.1:
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/gaba/-/gaba-1.8.1.tgz#a76b101c30c8fff7917563118a560b6628f9d8bc"
+  integrity sha512-auYsbXaB6GdElCPLNc9UsqWoiMekhNzsZGuCgt+VjkzZ/l2lAO9PdJZxBC32ZHpK9Opny95nU6G22FzmpMvMnQ==
   dependencies:
     await-semaphore "^0.1.3"
     eth-contract-metadata "^1.9.1"
     eth-ens-namehash "^2.0.8"
     eth-json-rpc-infura "^4.0.1"
-    eth-keyring-controller "^5.0.1"
+    eth-keyring-controller "^5.3.0"
     eth-method-registry "1.1.0"
     eth-phishing-detect "^1.1.13"
     eth-query "^2.1.2"
@@ -4748,7 +4749,7 @@ g-status@^2.0.2:
     single-call-balance-checker-abi "^1.0.0"
     uuid "^3.3.2"
     web3 "^0.20.7"
-    web3-provider-engine "^15.0.3"
+    web3-provider-engine "^15.0.4"
 
 gauge@~1.2.5:
   version "1.2.7"
@@ -11168,7 +11169,7 @@ watch@~0.18.0:
     exec-sh "^0.2.0"
     minimist "^1.2.0"
 
-web3-provider-engine@^15.0.3:
+web3-provider-engine@^15.0.4:
   version "15.0.4"
   resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-15.0.4.tgz#5c336bcad2274dff5218bc8db003fa4e9e464c24"
   integrity sha512-Ob9oK0TUZfVC7NXkB7CQSWAiCdCD/Xnlh2zTnV8NdJR8LCrMAy2i6JedU70JHaxw59y7mM4GnsYOTTGkquFnNQ==
