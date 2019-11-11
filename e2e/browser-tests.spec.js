@@ -132,6 +132,8 @@ describe('Browser Tests', () => {
 		await TestHelpers.tapByText('Reload');
 		// Dismiss alert box
 		await TestHelpers.tapAlertWithButton('Ok');
+		// Dismiss alert box
+		await TestHelpers.tapAlertWithButton('Ok');
 	});
 
 	it('should navigate to eth personal sign examples', async () => {
