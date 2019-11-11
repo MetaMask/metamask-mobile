@@ -15,7 +15,6 @@ import {
 	renderToGwei,
 	weiToFiatNumber
 } from '../../../../util/number';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { getActionKey, decodeTransferData, isCollectibleAddress } from '../../../../util/transactions';
 import { renderFullAddress, safeToChecksumAddress } from '../../../../util/address';
 
@@ -135,7 +134,7 @@ export default class TransferElement extends PureComponent {
 
 		const amount = toBN(encodedAmount);
 
-		const userHasToken = toChecksumAddress(to) in tokens;
+		const userHasToken = safeToChecksumAddress(to) in tokens;
 		const token = userHasToken ? tokens[safeToChecksumAddress(to)] : null;
 		const renderActionKey = token ? strings('transactions.sent') + ' ' + token.symbol : actionKey;
 		const renderTokenAmount = token
