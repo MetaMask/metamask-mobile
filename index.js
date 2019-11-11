@@ -11,6 +11,7 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'Error evaluating injectedJavaScript',
 	'createErrorFromErrorData',
 	'Encountered an error loading page',
 	'Error handling userAuthorizedUpdate',
