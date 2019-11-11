@@ -4,34 +4,24 @@ exports[`Transactions should render correctly 1`] = `
 <View
   style={
     Object {
+      "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "flex": 1,
+      "justifyContent": "center",
+      "minHeight": 667,
     }
   }
-  testID="transactions-screen"
 >
-  <View
+  <ActivityIndicator
+    animating={true}
+    color="#999999"
+    hidesWhenStopped={true}
+    size="small"
     style={
       Object {
-        "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
-        "flex": 1,
-        "justifyContent": "center",
-        "minHeight": 667,
+        "alignSelf": "center",
       }
     }
-  >
-    <ActivityIndicator
-      animating={true}
-      color="#999999"
-      hidesWhenStopped={true}
-      size="small"
-      style={
-        Object {
-          "alignSelf": "center",
-        }
-      }
-    />
-  </View>
+  />
 </View>
 `;
