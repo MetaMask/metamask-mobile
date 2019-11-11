@@ -67,7 +67,7 @@ import I18n, { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
+import { BNToHex, hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
 import { setEtherTransaction, setTransactionObject } from '../../../actions/transaction';
 import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
@@ -80,13 +80,12 @@ import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDepo
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
 import Networks from '../../../util/networks';
 import { CONNEXT_DEPOSIT, getMethodData, TOKEN_METHOD_TRANSFER, decodeTransferData } from '../../../util/transactions';
-import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
+import { BN, toChecksumAddress, isValidAddress } from 'ethereumjs-util';
 import { isENS } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
-import { BN } from 'gaba';
-import { BNToHex } from 'gaba/util';
 import MessageSign from '../../UI/MessageSign';
+import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -384,6 +383,7 @@ class Main extends PureComponent {
 		signType: '',
 		walletConnectRequest: false,
 		walletConnectRequestInfo: {},
+		walletConnectReturnModalVisible: false,
 		paymentChannelRequest: false,
 		paymentChannelRequestLoading: false,
 		paymentChannelRequestCompleted: false,
@@ -497,6 +497,9 @@ class Main extends PureComponent {
 	initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
 			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
+		});
+		WalletConnect.hub.on('walletconnect:return', () => {
+			this.setState({ walletConnectReturnModalVisible: true });
 		});
 		WalletConnect.init();
 	};
@@ -739,6 +742,7 @@ class Main extends PureComponent {
 		// If the app is now in background, we need to start
 		// the background timer, which is less intense
 		if (this.backgroundMode) {
+			this.setState({ walletConnectReturnModalVisible: false });
 			BackgroundTimer.runBackgroundTimer(async () => {
 				await Engine.refreshTransactionHistory();
 			}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
@@ -902,6 +906,10 @@ class Main extends PureComponent {
 		);
 	};
 
+	renderWalletConnectReturnModal = () => (
+		<WalletConnectReturnToBrowserModal modalVisible={this.state.walletConnectReturnModalVisible} />
+	);
+
 	renderPaymentChannelRequestApproval = () => {
 		const {
 			paymentChannelRequest,
@@ -952,6 +960,7 @@ class Main extends PureComponent {
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
 				{this.renderPaymentChannelRequestApproval()}
+				{this.renderWalletConnectReturnModal()}
 			</React.Fragment>
 		);
 	}

@@ -3,8 +3,8 @@ import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
-import { isSmartContractCode } from 'gaba/util';
 import { safeToChecksumAddress } from './address';
+import { util } from 'gaba';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -181,7 +181,7 @@ export async function isSmartContractAddress(address) {
 	}
 	const { TransactionController } = Engine.context;
 	const code = address ? await TransactionController.query('getCode', [address]) : undefined;
-	const isSmartContract = isSmartContractCode(code);
+	const isSmartContract = util.isSmartContractCode(code);
 	return isSmartContract;
 }
 

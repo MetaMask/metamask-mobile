@@ -12,10 +12,9 @@ import {
 	convertApiValueToGWEI
 } from '../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
-import { fromWei, renderWei } from '../../../util/number';
+import { fromWei, renderWei, hexToBN } from '../../../util/number';
 import Logger from '../../../util/Logger';
 import { getTicker } from '../../../util/transactions';
-import { hexToBN } from 'gaba/util';
 import DeviceSize from '../../../util/DeviceSize';
 
 const AVERAGE_GAS = 20;

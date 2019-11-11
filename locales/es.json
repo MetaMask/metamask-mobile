@@ -452,6 +452,7 @@
 		"reject": "Rechazar",
 		"edit": "Editar",
 		"cancel": "Cancelar",
+		"speedup": "Acelerar",
 		"from": "De",
 		"gas_fee": "Tarifa de Transacción",
 		"gas_fee_fast": "RAPIDA",
@@ -480,7 +481,14 @@
 		"rate_not_available": "Conversión no disponible",
 		"optional": "Opcional",
 		"no_address_for_ens": "No existe dirección para nombre ENS",
-		"approve_warning": "Al aprobar esta acción, otorgas permiso para que este contrato gaste hasta"
+		"approve_warning": "Al aprobar esta acción, otorgas permiso para que este contrato gaste hasta",
+		"cancel_tx_title": "¿Intentar cancelar?",
+		"cancel_tx_message": "Enviar este intento no garantiza que su transacción original será cancelada. Si el intento de cancelación es exitoso, se le cobrará la tarifa de transacción anterior.",
+		"speedup_tx_title": "¿Intentar acelerar?",
+		"speedup_tx_message": "Enviar este intento no garantiza que su transacción original se acelerará. Si el intento de acelerar es exitoso, se le cobrará la tarifa de transacción anterior.",
+		"nevermind": "No, gracias",
+		"gas_cancel_fee": "Tarifa de Cancelación",
+		"gas_speedup_fee": "Tarifa de Aceleración"
 	},
 	"custom_gas": {
 		"advanced_options": "Opciones Avanzadas",
@@ -797,6 +805,7 @@
 		"pending_deposit_title": "Depósito en progreso!",
 		"pending_withdrawal_title": "Retiro en progreso!",
 		"success_title": "Transacción #{{nonce}} Completa!",
+		"speedup_title": "Acelerando #{{nonce}}!",
 		"success_deposit_title": "Depósito Completo!",
 		"success_withdrawal_title": "Retiro Completo!",
 		"error_title": "Oops, algo ha salido mal :/",
@@ -807,6 +816,7 @@
 		"pending_withdrawal_message": "Esperando que el retiro sea completado",
 		"error_message": "Presiona para ver esta transacción",
 		"success_message": "Presiona para ver esta transacción",
+		"speedup_message": "Intentando acelerar la transacción",
 		"success_deposit_message": "Tus fondos están listos para ser utilizados",
 		"success_withdrawal_message": "Tus fondos han sido transferidos a tu billetera",
 		"received_message": "Presiona para ver esta transacción",
@@ -966,5 +976,9 @@
 		"amount_error_message": "El monto debe ser un número",
 		"address_error_message": "La dirección no es válida",
 		"balance_error_message": "Balance insuficiente"
+	},
+	"walletconnect_return_modal": {
+		"title": "Listo!",
+		"text": "Ahora puedes volver a tu navegador"
 	}
 }
