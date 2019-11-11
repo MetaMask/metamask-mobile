@@ -25,7 +25,7 @@ import Engine from '../../../core/Engine';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { setPaymentChannelTransaction } from '../../../actions/transaction';
 import Transactions from '../../UI/Transactions';
-import { BNToHex } from 'gaba/util';
+import { BNToHex } from 'gaba';
 import Networks from '../../../util/networks';
 import Modal from 'react-native-modal';
 import PaymentChannelWelcome from './PaymentChannelWelcome';

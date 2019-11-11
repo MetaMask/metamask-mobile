@@ -21,7 +21,7 @@ import { hasBlockExplorer } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import ActionModal from '../ActionModal';
-import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba/transaction/TransactionController';
+import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba';
 import { renderFromWei } from '../../../util/number';
 
 const styles = StyleSheet.create({

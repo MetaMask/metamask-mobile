@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import { hexToBN } from 'gaba/util';
+import { hexToBN } from 'gaba';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { weiToFiat, renderFromWei } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';

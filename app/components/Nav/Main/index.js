@@ -84,8 +84,7 @@ import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
 import { isENS } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
-import { BN } from 'gaba';
-import { BNToHex } from 'gaba/util';
+import { BN, BNToHex } from 'gaba';
 import MessageSign from '../../UI/MessageSign';
 import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
 

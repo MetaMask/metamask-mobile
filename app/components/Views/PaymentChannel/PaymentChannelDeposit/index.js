@@ -35,7 +35,7 @@ import Identicon from '../../../UI/Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import contractMap from 'eth-contract-metadata';
 import AssetIcon from '../../../UI/AssetIcon';
-import { hexToBN } from 'gaba/util';
+import { hexToBN } from 'gaba';
 import { getTicker } from '../../../../util/transactions';
 import Modal from 'react-native-modal';
 import AddressQRCode from '../../AddressQRCode';
