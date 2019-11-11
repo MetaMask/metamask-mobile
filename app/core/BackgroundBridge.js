@@ -1,3 +1,5 @@
+import { JS_POST_MESSAGE_TO_PROVIDER } from '../util/browserScripts';
+
 /**
  * Module that listens for and responds to messages from an InpageBridge using postMessage
  */
@@ -7,13 +9,18 @@ export class BackgroundBridge {
 	_webview;
 	_accounts;
 
-	_postMessageToProvider(message) {
+	_postMessageToProvider(message, origin) {
+		console.log('RESPONSE', message);
 		const current = this._webview.current;
-		current &&
-			current.injectJavaScript(`window.ethereum && window.ethereum._onMessage(${JSON.stringify(message)})`);
+		// Loop through the iframes first
+		// If the source doesn't match any
+		// send the message to the main window
+		const js = JS_POST_MESSAGE_TO_PROVIDER(message, origin);
+		current && current.injectJavaScript(js);
 	}
 
-	_onInpageRequest(payload) {
+	_onInpageRequest(payload, origin) {
+		console.log('REQUEST', payload);
 		const { provider } = this._engine.context.NetworkController;
 		const override = this._rpcOverrides && this._rpcOverrides[payload.method];
 		const __mmID = payload.__mmID + '';
@@ -22,7 +29,8 @@ export class BackgroundBridge {
 				JSON.stringify({
 					type: 'INPAGE_RESPONSE',
 					payload: { error, response, __mmID }
-				})
+				}),
+				origin
 			);
 		};
 		if (override) {
@@ -35,6 +43,7 @@ export class BackgroundBridge {
 				});
 		} else {
 			delete payload.__mmID;
+			delete payload.origin;
 			delete payload.beta;
 			delete payload.hostname;
 			provider.sendAsync(payload, done);
@@ -62,10 +71,10 @@ export class BackgroundBridge {
 	 * @param {string} type - Type associated with this message
 	 * @param {object} payload - Data sent with this message
 	 */
-	onMessage({ type, payload }) {
+	onMessage({ type, payload, origin }) {
 		switch (type) {
 			case 'INPAGE_REQUEST':
-				this._onInpageRequest(payload);
+				this._onInpageRequest(payload, origin);
 				break;
 		}
 	}
@@ -77,13 +86,14 @@ export class BackgroundBridge {
 		const { network, selectedAddress } = this._engine.datamodel.flatState;
 		const payload = { network };
 		if (this._accounts) {
-			payload.selectedAddress = selectedAddress;
+			payload.selectedAddress = selectedAddress.toLowerCase();
 		}
 		this._postMessageToProvider(
 			JSON.stringify({
 				type: 'STATE_UPDATE',
 				payload
-			})
+			}),
+			'*'
 		);
 	};
 
@@ -98,8 +108,10 @@ export class BackgroundBridge {
 	 * Called to enable inpage account updates
 	 */
 	enableAccounts() {
-		this._accounts = true;
-		this.sendStateUpdate();
+		if (!this._accounts) {
+			this._accounts = true;
+			this.sendStateUpdate();
+		}
 	}
 }
 

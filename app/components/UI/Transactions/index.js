@@ -20,6 +20,9 @@ import Engine from '../../../core/Engine';
 import { hasBlockExplorer } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import ActionModal from '../ActionModal';
+import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba';
+import { renderFromWei } from '../../../util/number';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -40,6 +43,38 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		color: colors.fontTertiary,
 		...fontStyles.normal
+	},
+	modalView: {
+		alignItems: 'stretch',
+		flex: 1,
+		flexDirection: 'column',
+		justifyContent: 'space-between',
+		padding: 20
+	},
+	modalText: {
+		...fontStyles.normal,
+		fontSize: 14,
+		textAlign: 'center'
+	},
+	modalTitle: {
+		...fontStyles.bold,
+		fontSize: 22,
+		textAlign: 'center'
+	},
+	gasTitle: {
+		...fontStyles.bold,
+		fontSize: 16,
+		textAlign: 'center'
+	},
+	cancelFeeWrapper: {
+		backgroundColor: colors.grey000,
+		textAlign: 'center',
+		padding: 15
+	},
+	cancelFee: {
+		...fontStyles.bold,
+		fontSize: 24,
+		textAlign: 'center'
 	}
 });
 
@@ -70,6 +105,14 @@ class Transactions extends PureComponent {
 		 * An array of transactions objects
 		 */
 		transactions: PropTypes.array,
+		/**
+		 * An array of transactions objects that have been submitted
+		 */
+		submittedTransactions: PropTypes.array,
+		/**
+		 * An array of transactions objects that have been confirmed
+		 */
+		confirmedTransactions: PropTypes.array,
 		/**
 		 * A string that represents the selected address
 		 */
@@ -116,8 +159,14 @@ class Transactions extends PureComponent {
 	state = {
 		selectedTx: (new Map(): Map<string, boolean>),
 		ready: false,
-		refreshing: false
+		refreshing: false,
+		cancelIsOpen: false,
+		speedUpIsOpen: false
 	};
+
+	existingGasPriceDecimal = null;
+	cancelTxId = null;
+	speedUpTxId = null;
 
 	selectedTx = null;
 
@@ -212,14 +261,62 @@ class Transactions extends PureComponent {
 		index
 	});
 
-	keyExtractor = item => item.id;
+	keyExtractor = item => item.id.toString();
 
 	blockExplorer = () => hasBlockExplorer(this.props.networkType);
+
+	onSpeedUpAction = (speedUpAction, existingGasPriceDecimal, speedUpTxId) => {
+		this.setState({ speedUpIsOpen: speedUpAction });
+		this.existingGasPriceDecimal = existingGasPriceDecimal;
+		this.speedUpTxId = speedUpTxId;
+	};
+
+	onSpeedUpCompleted = () => {
+		this.setState({ speedUpIsOpen: false });
+		this.existingGasPriceDecimal = null;
+		this.speedUpTxId = null;
+	};
+
+	onCancelAction = (cancelAction, existingGasPriceDecimal, cancelTxId) => {
+		this.setState({ cancelIsOpen: cancelAction });
+		this.existingGasPriceDecimal = existingGasPriceDecimal;
+		this.cancelTxId = cancelTxId;
+	};
+
+	onCancelCompleted = () => {
+		this.setState({ cancelIsOpen: false });
+		this.existingGasPriceDecimal = null;
+		this.cancelTxId = null;
+	};
+
+	speedUpTransaction = () => {
+		InteractionManager.runAfterInteractions(() => {
+			try {
+				Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId);
+			} catch (e) {
+				// ignore because transaction already went through
+			}
+			this.onSpeedUpCompleted();
+		});
+	};
+
+	cancelTransaction = () => {
+		InteractionManager.runAfterInteractions(() => {
+			try {
+				Engine.context.TransactionController.stopTransaction(this.cancelTxId);
+			} catch (e) {
+				// ignore because transaction already went through
+			}
+			this.onCancelCompleted();
+		});
+	};
 
 	renderItem = ({ item, index }) => (
 		<TransactionElement
 			tx={item}
 			i={index}
+			onSpeedUpAction={this.onSpeedUpAction}
+			onCancelAction={this.onCancelAction}
 			testID={'txn-item'}
 			selectedAddress={this.props.selectedAddress}
 			selected={!!this.state.selectedTx.get(item.id)}
@@ -230,45 +327,87 @@ class Transactions extends PureComponent {
 			contractExchangeRates={this.props.contractExchangeRates}
 			exchangeRate={this.props.exchangeRate}
 			conversionRate={this.props.conversionRate}
-			currentCurrency={this.props.currentCurrency.toUpperCase()}
+			currentCurrency={this.props.currentCurrency}
 			showAlert={this.props.showAlert}
 			navigation={this.props.navigation}
 		/>
 	);
 
-	renderContent() {
+	render = () => {
 		if (!this.state.ready || this.props.loading) {
 			return this.renderLoader();
 		}
-
-		const { transactions } = this.props;
-
-		if (!transactions.length) {
+		if (!this.props.transactions.length) {
 			return this.renderEmpty();
 		}
 
-		return (
-			<FlatList
-				ref={this.flatList}
-				getItemLayout={this.getItemLayout}
-				data={transactions}
-				extraData={this.state}
-				keyExtractor={this.keyExtractor}
-				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-				renderItem={this.renderItem}
-				initialNumToRender={20}
-				maxToRenderPerBatch={2}
-				onEndReachedThreshold={0.5}
-				ListHeaderComponent={this.props.header}
-			/>
-		);
-	}
+		const { submittedTransactions, confirmedTransactions, header } = this.props;
+		const transactions =
+			submittedTransactions && submittedTransactions.length
+				? submittedTransactions.concat(confirmedTransactions)
+				: this.props.transactions;
 
-	render = () => (
-		<View style={styles.wrapper} testID={'transactions-screen'}>
-			{this.renderContent()}
-		</View>
-	);
+		return (
+			<View style={styles.wrapper} testID={'transactions-screen'}>
+				<FlatList
+					ref={this.flatList}
+					getItemLayout={this.getItemLayout}
+					data={transactions}
+					extraData={this.state}
+					keyExtractor={this.keyExtractor}
+					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+					renderItem={this.renderItem}
+					initialNumToRender={10}
+					maxToRenderPerBatch={2}
+					onEndReachedThreshold={0.5}
+					ListHeaderComponent={header}
+				/>
+				<ActionModal
+					modalVisible={this.state.cancelIsOpen}
+					confirmText={strings('transaction.lets_try')}
+					cancelText={strings('transaction.nevermind')}
+					onCancelPress={this.onCancelCompleted}
+					onRequestClose={this.onCancelCompleted}
+					onConfirmPress={this.cancelTransaction}
+				>
+					<View style={styles.modalView}>
+						<Text style={styles.modalTitle}>{strings('transaction.cancel_tx_title')}</Text>
+						<Text style={styles.gasTitle}>{strings('transaction.gas_cancel_fee')}</Text>
+						<View style={styles.cancelFeeWrapper}>
+							<Text style={styles.cancelFee}>
+								{`${renderFromWei(Math.floor(this.existingGasPriceDecimal * CANCEL_RATE))} ${strings(
+									'unit.eth'
+								)}`}
+							</Text>
+						</View>
+						<Text style={styles.modalText}>{strings('transaction.cancel_tx_message')}</Text>
+					</View>
+				</ActionModal>
+
+				<ActionModal
+					modalVisible={this.state.speedUpIsOpen}
+					confirmText={strings('transaction.lets_try')}
+					cancelText={strings('transaction.nevermind')}
+					onCancelPress={this.onSpeedUpCompleted}
+					onRequestClose={this.onSpeedUpCompleted}
+					onConfirmPress={this.speedUpTransaction}
+				>
+					<View style={styles.modalView}>
+						<Text style={styles.modalTitle}>{strings('transaction.speedup_tx_title')}</Text>
+						<Text style={styles.gasTitle}>{strings('transaction.gas_speedup_fee')}</Text>
+						<View style={styles.cancelFeeWrapper}>
+							<Text style={styles.cancelFee}>
+								{`${renderFromWei(Math.floor(this.existingGasPriceDecimal * SPEED_UP_RATE))} ${strings(
+									'unit.eth'
+								)}`}
+							</Text>
+						</View>
+						<Text style={styles.modalText}>{strings('transaction.speedup_tx_message')}</Text>
+					</View>
+				</ActionModal>
+			</View>
+		);
+	};
 }
 
 const mapStateToProps = state => ({

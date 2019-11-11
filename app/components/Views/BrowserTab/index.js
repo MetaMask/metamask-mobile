@@ -354,7 +354,11 @@ export class BrowserTab extends PureComponent {
 		 * redux flag that indicates if the user
 		 * completed the seed phrase backup flow
 		 */
-		seedphraseBackedUp: PropTypes.bool
+		seedphraseBackedUp: PropTypes.bool,
+		/**
+		 * the current version of the app
+		 */
+		app_version: PropTypes.string
 	};
 
 	constructor(props) {
@@ -378,7 +382,7 @@ export class BrowserTab extends PureComponent {
 			showApprovalDialog: false,
 			showPhishingModal: false,
 			timeout: false,
-			url: props.initialUrl || HOMEPAGE_URL,
+			url: null,
 			contentHeight: 0,
 			forwardEnabled: false,
 			forceReload: false,
@@ -431,12 +435,18 @@ export class BrowserTab extends PureComponent {
 	}
 
 	async componentDidMount() {
+		this.mounted = true;
 		if (this.isTabActive()) {
 			this.initialReload();
+			return;
 		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
-			this.go(this.state.url);
+			this.go(this.state.inputValue);
 		}
-		this.mounted = true;
+
+		this.init();
+	}
+
+	initializeBackgroundBridge = () => {
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
 			eth_sign: async payload => {
 				const { MessageManager } = Engine.context;
@@ -596,7 +606,10 @@ export class BrowserTab extends PureComponent {
 				});
 				if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
 					this.approvalRequest.resolve([selectedAddress]);
-					this.backgroundBridge.enableAccounts();
+					//if not approved previously
+					if (!this.backgroundBridge._accounts) {
+						this.backgroundBridge.enableAccounts();
+					}
 				} else {
 					// Let the damn website load first!
 					// Otherwise we don't get enough time to load the metadata
@@ -622,9 +635,20 @@ export class BrowserTab extends PureComponent {
 				}
 				return !this.isReloading && promise;
 			},
+			net_version: payload =>
+				!this.isReloading &&
+				Promise.resolve({
+					result: `${Networks[this.props.networkType].networkId}`,
+					jsonrpc: payload.jsonrpc,
+					id: payload.id
+				}),
 			web3_clientVersion: payload =>
 				!this.isReloading &&
-				Promise.resolve({ result: 'MetaMask/0.1.0/Alpha/Mobile', jsonrpc: payload.jsonrpc, id: payload.id }),
+				Promise.resolve({
+					result: `MetaMask/${this.props.app_version}/Beta/Mobile`,
+					jsonrpc: payload.jsonrpc,
+					id: payload.id
+				}),
 			wallet_scanQRCode: payload => {
 				const promise = new Promise((resolve, reject) => {
 					this.props.navigation.navigate('QRScanner', {
@@ -711,7 +735,9 @@ export class BrowserTab extends PureComponent {
 				return !this.isReloading && Promise.resolve({ result: true });
 			}
 		});
+	};
 
+	init = async () => {
 		const entryScriptWeb3 =
 			Platform.OS === 'ios'
 				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
@@ -766,7 +792,7 @@ export class BrowserTab extends PureComponent {
 		this.props.navigation.addListener('willBlur', () => {
 			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
 		});
-	}
+	};
 
 	drawerOpenHandler = () => {
 		this.dismissTextSelectionIfNeeded();
@@ -1068,6 +1094,8 @@ export class BrowserTab extends PureComponent {
 	};
 
 	forceReload = () => {
+		this.isReloading = true;
+
 		this.toggleOptionsIfNeeded();
 		// As we're reloading to other url we should remove this callback
 		this.approvalRequest = undefined;
@@ -1078,6 +1106,7 @@ export class BrowserTab extends PureComponent {
 			this.webview.current = null;
 			setTimeout(() => {
 				this.setState({ forceReload: false }, () => {
+					this.isReloading = false;
 					this.go(url2Reload);
 				});
 			}, 300);
@@ -1085,11 +1114,11 @@ export class BrowserTab extends PureComponent {
 	};
 
 	initialReload = () => {
-		this.isReloading = true;
+		if (this.webview && this.webview.current) {
+			this.webview.current.stopLoading();
+		}
 		this.forceReload();
-		setTimeout(() => {
-			this.isReloading = false;
-		}, 1500);
+		this.init();
 	};
 
 	addBookmark = () => {
@@ -1320,12 +1349,18 @@ export class BrowserTab extends PureComponent {
 		this.setState({ progress });
 	};
 
+	waitForBridgeAndEnableAccounts = async () => {
+		while (!this.backgroundBridge) {
+			await new Promise(res => setTimeout(() => res(), 1000));
+		}
+		this.backgroundBridge.enableAccounts();
+	};
+
 	onLoadEnd = ({ nativeEvent }) => {
 		console.log('onLoadEnd', nativeEvent);
-
 		const { approvedHosts, privacyMode } = this.props;
 		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
-			this.backgroundBridge.enableAccounts();
+			this.waitForBridgeAndEnableAccounts();
 		}
 
 		// Wait for the title, then store the visit
@@ -1720,14 +1755,14 @@ export class BrowserTab extends PureComponent {
 	}
 
 	onLoadStart = ({ nativeEvent }) => {
+		this.initializeBackgroundBridge();
+		this.backgroundBridge && this.backgroundBridge.disableAccounts();
 		// Handle the scenario when going back
 		// from an ENS name
 		console.log('onLoadStart', nativeEvent);
 		if (nativeEvent.navigationType === 'backforward' && nativeEvent.url === this.state.inputValue) {
 			this.goBack();
 		}
-
-		this.backgroundBridge.disableAccounts();
 	};
 
 	canGoForward = () => this.state.forwardEnabled;
