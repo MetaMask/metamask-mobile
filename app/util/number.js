@@ -3,7 +3,7 @@
  */
 import { BN } from 'ethereumjs-util';
 import convert from 'ethjs-unit';
-import gabaUtils from 'gaba/util';
+import { util } from 'gaba';
 import numberToBN from 'number-to-bn';
 
 /**
@@ -13,7 +13,7 @@ import numberToBN from 'number-to-bn';
  * @returns {string} - '0x'-prefixed hex string
  */
 export function BNToHex(value) {
-	return gabaUtils.BNToHex(value);
+	return util.BNToHex(value);
 }
 
 /**
@@ -184,7 +184,7 @@ export function calcTokenValueToSend(value, decimals) {
  * @returns {Object} - A BN instance
  */
 export function hexToBN(value) {
-	return gabaUtils.hexToBN(value);
+	return util.hexToBN(value);
 }
 
 /**

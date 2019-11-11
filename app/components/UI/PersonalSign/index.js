@@ -5,7 +5,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import { strings } from '../../../../locales/i18n';
-import { hexToText } from 'gaba/util';
+import { util } from 'gaba';
 import DeviceSize from '../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
@@ -114,7 +114,8 @@ export default class PersonalSign extends PureComponent {
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						{hexToText(messageParams.data)
+						{util
+							.hexToText(messageParams.data)
 							.split('\n')
 							.map((line, i) => (
 								<Text key={`txt_${i}`} style={styles.messageText}>
