@@ -11,6 +11,8 @@ describe('InpageBridge', () => {
 			addEventListener: (type, callback) => {
 				if (type === 'message') {
 					LISTENER = callback;
+				} else {
+					console.log('WUT');
 				}
 			}
 		};
@@ -21,6 +23,10 @@ describe('InpageBridge', () => {
 				INSTANCE = instance;
 			},
 			get: () => ({})
+		});
+		Object.defineProperty(window, 'location', {
+			value: { protocol: 'https:' },
+			writable: false
 		});
 		require('./InpageBridge');
 	});

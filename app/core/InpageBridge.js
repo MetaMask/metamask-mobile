@@ -330,6 +330,7 @@ class InpageBridge {
 		});
 	}
 }
+
 // Don't start the provider on frames without src!
 if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
 	window.ethereum = new InpageBridge();
