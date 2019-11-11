@@ -976,5 +976,9 @@
 		"amount_error_message": "El monto debe ser un número",
 		"address_error_message": "La dirección no es válida",
 		"balance_error_message": "Balance insuficiente"
+	},
+	"walletconnect_return_modal": {
+		"title": "Listo!",
+		"text": "Ahora puedes volver a tu navegador"
 	}
 }
