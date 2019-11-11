@@ -903,12 +903,15 @@ export class BrowserTab extends PureComponent {
 	}
 
 	go = async url => {
+		console.log('go', url);
 		const hasProtocol = url.match(/^[a-z]*:\/\//) || this.isHomepage(url);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const { hostname, query, pathname } = new URL(sanitizedURL);
 
 		let contentId, contentUrl, contentType;
 		if (this.isENSUrl(sanitizedURL)) {
+			this.resolvingENSUrl = true;
+			console.log('go::isENSUrl', sanitizedURL);
 			const { url, type, hash } = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
 			contentUrl = url;
 			contentType = type;
@@ -919,21 +922,32 @@ export class BrowserTab extends PureComponent {
 				...this.props.navigation.state.params,
 				currentEnsName: hostname
 			});
+			setTimeout(() => {
+				this.resolvingENSUrl = false;
+			}, 1000);
+		} else {
+			console.log('go::isENSUrl NOT!', sanitizedURL);
 		}
 		const urlToGo = contentUrl || sanitizedURL;
 
 		if (this.isAllowedUrl(hostname)) {
-			this.setState({
-				url: urlToGo,
-				progress: 0,
-				ipfsWebsite: !!contentUrl,
-				inputValue: sanitizedURL,
-				currentEnsName: hostname,
-				contentId,
-				contentType,
-				hostname: this.formatHostname(hostname),
-				fullHostname: hostname
-			});
+			this.setState(
+				{
+					url: urlToGo,
+					progress: 0,
+					ipfsWebsite: !!contentUrl,
+					inputValue: sanitizedURL,
+					currentEnsName: hostname,
+					contentId,
+					contentType,
+					hostname: this.formatHostname(hostname),
+					fullHostname: hostname
+				},
+				() => console.log('AFTER GO: ALLOWED URL THE STATE IS ', this.state)
+			);
+
+			this.props.navigation.setParams({ url: this.state.inputValue, silent: true });
+
 			this.updateTabInfo(sanitizedURL);
 			return sanitizedURL;
 		}
@@ -1226,12 +1240,18 @@ export class BrowserTab extends PureComponent {
 
 	onPageChange = ({ url }) => {
 		if (url === this.state.url) return;
+		console.log('onPageChange', url);
 		const { ipfsGateway } = this.props;
 		const data = {};
 		const urlObj = new URL(url);
 		if (urlObj.protocol.indexOf('http') === -1) {
 			return;
 		}
+
+		if (this.resolvingENSUrl) {
+			return;
+		}
+
 		this.lastUrlBeforeHome = null;
 
 		if (!this.state.showPhishingModal && !this.isAllowedUrl(urlObj.hostname)) {
@@ -1239,15 +1259,10 @@ export class BrowserTab extends PureComponent {
 		}
 
 		data.fullHostname = urlObj.hostname;
-		if (!this.state.ipfsWebsite) {
-			// If we're coming from a link / internal redirect
-			// We need to re-check if it's an ens url,
-			// then act accordingly
-			if (!this.isENSUrl(url)) {
-				data.inputValue = url;
-			} else {
-				this.go(url);
-			}
+
+		if (this.isENSUrl(url)) {
+			this.go(url);
+			return;
 		} else if (url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			if (this.state.contentType === 'ipfs-ns') {
 				data.inputValue = url.replace(
@@ -1260,9 +1275,6 @@ export class BrowserTab extends PureComponent {
 					`https://${this.state.currentEnsName}/`
 				);
 			}
-		} else if (this.isENSUrl(url)) {
-			this.go(url);
-			return;
 		} else {
 			data.inputValue = url;
 			data.hostname = this.formatHostname(urlObj.hostname);
@@ -1277,6 +1289,15 @@ export class BrowserTab extends PureComponent {
 				this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
 			}
 		}
+
+		console.log('SETTING TAB INFO TO ', {
+			fullHostname,
+			inputValue,
+			autocompleteInputValue: inputValue,
+			hostname,
+			forwardEnabled: false
+		});
+
 		this.updateTabInfo(inputValue);
 		this.setState({
 			fullHostname,
@@ -1299,7 +1320,9 @@ export class BrowserTab extends PureComponent {
 		this.setState({ progress });
 	};
 
-	onLoadEnd = () => {
+	onLoadEnd = ({ nativeEvent }) => {
+		console.log('onLoadEnd', nativeEvent);
+
 		const { approvedHosts, privacyMode } = this.props;
 		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
 			this.backgroundBridge.enableAccounts();
@@ -1311,6 +1334,11 @@ export class BrowserTab extends PureComponent {
 				name: this.state.currentPageTitle,
 				url: this.state.inputValue
 			});
+
+			// const urlObj = new URL(url);
+			// const hostname = this.formatHostname(urlObj.hostname);
+			// const fullHostname = urlObj.hostname;
+			// this.setState({ hostname, fullHostname });
 		}, 500);
 
 		// Let's wait for potential redirects that might break things
@@ -1691,7 +1719,14 @@ export class BrowserTab extends PureComponent {
 		);
 	}
 
-	onLoadStart = () => {
+	onLoadStart = ({ nativeEvent }) => {
+		// Handle the scenario when going back
+		// from an ENS name
+		console.log('onLoadStart', nativeEvent);
+		if (nativeEvent.navigationType === 'backforward' && nativeEvent.url === this.state.inputValue) {
+			this.goBack();
+		}
+
 		this.backgroundBridge.disableAccounts();
 	};
 
