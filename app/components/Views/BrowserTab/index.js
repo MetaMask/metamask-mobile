@@ -1012,7 +1012,7 @@ export class BrowserTab extends PureComponent {
 			}
 			Logger.error('Failed to resolve ENS name', err);
 			Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
-			return { url: null };
+			this.goBack();
 		}
 	}
 
