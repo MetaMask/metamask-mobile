@@ -396,6 +396,7 @@ export class BrowserTab extends PureComponent {
 
 	webview = React.createRef();
 	inputRef = React.createRef();
+	sessionENSNames = {};
 	ensIgnoreList = [];
 	snapshotTimer = null;
 	lastUrlBeforeHome = null;
@@ -929,7 +930,6 @@ export class BrowserTab extends PureComponent {
 	}
 
 	go = async url => {
-		console.log('go', url);
 		const hasProtocol = url.match(/^[a-z]*:\/\//) || this.isHomepage(url);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const { hostname, query, pathname } = new URL(sanitizedURL);
@@ -937,7 +937,6 @@ export class BrowserTab extends PureComponent {
 		let contentId, contentUrl, contentType;
 		if (this.isENSUrl(sanitizedURL)) {
 			this.resolvingENSUrl = true;
-			console.log('go::isENSUrl', sanitizedURL);
 			const { url, type, hash } = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
 			contentUrl = url;
 			contentType = type;
@@ -948,29 +947,27 @@ export class BrowserTab extends PureComponent {
 				...this.props.navigation.state.params,
 				currentEnsName: hostname
 			});
+
+			this.setENSHostnameForUrl(contentUrl, hostname);
+
 			setTimeout(() => {
 				this.resolvingENSUrl = false;
 			}, 1000);
-		} else {
-			console.log('go::isENSUrl NOT!', sanitizedURL);
 		}
 		const urlToGo = contentUrl || sanitizedURL;
 
 		if (this.isAllowedUrl(hostname)) {
-			this.setState(
-				{
-					url: urlToGo,
-					progress: 0,
-					ipfsWebsite: !!contentUrl,
-					inputValue: sanitizedURL,
-					currentEnsName: hostname,
-					contentId,
-					contentType,
-					hostname: this.formatHostname(hostname),
-					fullHostname: hostname
-				},
-				() => console.log('AFTER GO: ALLOWED URL THE STATE IS ', this.state)
-			);
+			this.setState({
+				url: urlToGo,
+				progress: 0,
+				ipfsWebsite: !!contentUrl,
+				inputValue: sanitizedURL,
+				currentEnsName: hostname,
+				contentId,
+				contentType,
+				hostname: this.formatHostname(hostname),
+				fullHostname: hostname
+			});
 
 			this.props.navigation.setParams({ url: this.state.inputValue, silent: true });
 
@@ -1269,7 +1266,6 @@ export class BrowserTab extends PureComponent {
 
 	onPageChange = ({ url }) => {
 		if (url === this.state.url) return;
-		console.log('onPageChange', url);
 		const { ipfsGateway } = this.props;
 		const data = {};
 		const urlObj = new URL(url);
@@ -1291,6 +1287,8 @@ export class BrowserTab extends PureComponent {
 
 		if (this.isENSUrl(url)) {
 			this.go(url);
+			const { current } = this.webview;
+			current && current.stopLoading();
 			return;
 		} else if (url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			if (this.state.contentType === 'ipfs-ns') {
@@ -1318,14 +1316,6 @@ export class BrowserTab extends PureComponent {
 				this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
 			}
 		}
-
-		console.log('SETTING TAB INFO TO ', {
-			fullHostname,
-			inputValue,
-			autocompleteInputValue: inputValue,
-			hostname,
-			forwardEnabled: false
-		});
 
 		this.updateTabInfo(inputValue);
 		this.setState({
@@ -1356,8 +1346,7 @@ export class BrowserTab extends PureComponent {
 		this.backgroundBridge.enableAccounts();
 	};
 
-	onLoadEnd = ({ nativeEvent }) => {
-		console.log('onLoadEnd', nativeEvent);
+	onLoadEnd = () => {
 		const { approvedHosts, privacyMode } = this.props;
 		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
 			this.waitForBridgeAndEnableAccounts();
@@ -1369,11 +1358,6 @@ export class BrowserTab extends PureComponent {
 				name: this.state.currentPageTitle,
 				url: this.state.inputValue
 			});
-
-			// const urlObj = new URL(url);
-			// const hostname = this.formatHostname(urlObj.hostname);
-			// const fullHostname = urlObj.hostname;
-			// this.setState({ hostname, fullHostname });
 		}, 500);
 
 		// Let's wait for potential redirects that might break things
@@ -1754,18 +1738,27 @@ export class BrowserTab extends PureComponent {
 		);
 	}
 
+	getENSHostnameForUrl = url => this.sessionENSNames[url];
+
+	setENSHostnameForUrl = (url, host) => {
+		this.sessionENSNames[url] = host;
+	};
+
 	onLoadStart = ({ nativeEvent }) => {
 		this.initializeBackgroundBridge();
 		this.backgroundBridge && this.backgroundBridge.disableAccounts();
 		// Handle the scenario when going back
 		// from an ENS name
-		console.log('onLoadStart', nativeEvent);
 		if (nativeEvent.navigationType === 'backforward' && nativeEvent.url === this.state.inputValue) {
-			this.goBack();
-			console.log('onLoadStart => WE GOING BACK!', nativeEvent);
-		} else {
-			nativeEvent.navigationType === 'backforward' &&
-				console.log(nativeEvent.url, this.state.inputValue, this.state);
+			setTimeout(() => this.goBack(), 500);
+		} else if (nativeEvent.url.indexOf(this.props.ipfsGateway) !== -1) {
+			const currentEnsName = this.getENSHostnameForUrl(nativeEvent.url);
+			if (currentEnsName) {
+				this.props.navigation.setParams({
+					...this.props.navigation.state.params,
+					currentEnsName
+				});
+			}
 		}
 	};
 
