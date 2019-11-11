@@ -10,7 +10,6 @@ export class BackgroundBridge {
 	_accounts;
 
 	_postMessageToProvider(message, origin) {
-		console.log('RESPONSE', message);
 		const current = this._webview.current;
 		// Loop through the iframes first
 		// If the source doesn't match any
@@ -20,7 +19,6 @@ export class BackgroundBridge {
 	}
 
 	_onInpageRequest(payload, origin) {
-		console.log('REQUEST', payload);
 		const { provider } = this._engine.context.NetworkController;
 		const override = this._rpcOverrides && this._rpcOverrides[payload.method];
 		const __mmID = payload.__mmID + '';

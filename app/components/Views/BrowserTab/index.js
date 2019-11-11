@@ -1762,6 +1762,10 @@ export class BrowserTab extends PureComponent {
 		console.log('onLoadStart', nativeEvent);
 		if (nativeEvent.navigationType === 'backforward' && nativeEvent.url === this.state.inputValue) {
 			this.goBack();
+			console.log('onLoadStart => WE GOING BACK!', nativeEvent);
+		} else {
+			nativeEvent.navigationType === 'backforward' &&
+				console.log(nativeEvent.url, this.state.inputValue, this.state);
 		}
 	};
 
