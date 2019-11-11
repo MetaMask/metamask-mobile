@@ -61,6 +61,7 @@ export const TransactionNotification = props => {
 			case 'pending':
 			case 'pending_withdrawal':
 			case 'pending_deposit':
+			case 'speedup':
 				return <AnimatedSpinner size={36} />;
 			case 'success_deposit':
 			case 'success_withdrawal':
@@ -96,6 +97,8 @@ export const TransactionNotification = props => {
 					amount: transaction.amount,
 					assetType: transaction.assetType
 				});
+			case 'speedup':
+				return strings('notifications.speedup_title', { nonce: transaction.nonce });
 			case 'received_payment':
 				return strings('notifications.received_payment_title');
 			case 'cancelled':
