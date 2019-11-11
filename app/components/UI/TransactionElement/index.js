@@ -17,6 +17,7 @@ import TransferElement from './TransferElement';
 import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import StyledButton from '../StyledButton';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
 	},
 	rowOnly: {
 		padding: 15,
-		height: Platform.OS === 'ios' ? 95 : 100
+		minHeight: Platform.OS === 'ios' ? 95 : 100
 	},
 	date: {
 		color: colors.fontSecondary,
@@ -72,6 +73,7 @@ const styles = StyleSheet.create({
 	amountFiat: {
 		fontSize: 12,
 		color: colors.fontSecondary,
+		textTransform: 'uppercase',
 		...fontStyles.normal
 	},
 	amounts: {
@@ -120,6 +122,24 @@ const styles = StyleSheet.create({
 		marginBottom: 2,
 		marginRight: 1,
 		transform: [{ rotate: '180deg' }]
+	},
+	actionContainerStyle: {
+		height: 25,
+		width: 70,
+		padding: 0
+	},
+	speedupActionContainerStyle: {
+		marginRight: 10
+	},
+	actionStyle: {
+		fontSize: 10,
+		padding: 0,
+		paddingHorizontal: 10
+	},
+	transactionActionsContainer: {
+		flexDirection: 'row',
+		paddingTop: 10,
+		paddingLeft: 40
 	}
 });
 
@@ -187,11 +207,15 @@ class TransactionElement extends PureComponent {
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string,
-		exchangeRate: PropTypes.number
+		exchangeRate: PropTypes.number,
+		onSpeedUpAction: PropTypes.func,
+		onCancelAction: PropTypes.func
 	};
 
 	state = {
-		actionKey: undefined
+		actionKey: undefined,
+		cancelIsOpen: false,
+		speedUpIsOpen: false
 	};
 
 	mounted = false;
@@ -234,7 +258,7 @@ class TransactionElement extends PureComponent {
 		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
 		return (
 			<Text style={styles.date}>
-				{(!incoming || selfSent) && tx.transaction.nonce && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
+				{(!incoming || selfSent) && tx.transaction.nonce && `#${parseInt(tx.transaction.nonce, 16)}  - `}
 				{`${toLocaleDateTime(tx.time)}`}
 			</Text>
 		);
@@ -330,6 +354,7 @@ class TransactionElement extends PureComponent {
 		if (renderTo in contractMap) {
 			symbol = contractMap[renderTo].symbol;
 		}
+		const renderTxActions = status === 'submitted' || status === 'approved';
 		return (
 			<View style={styles.rowOnly}>
 				{this.renderTxTime()}
@@ -346,6 +371,12 @@ class TransactionElement extends PureComponent {
 						<Text style={styles.amountFiat}>{fiatValue}</Text>
 					</View>
 				</View>
+				{!!renderTxActions && (
+					<View style={styles.transactionActionsContainer}>
+						{this.renderSpeedUpButton()}
+						{this.renderCancelButton()}
+					</View>
+				)}
 			</View>
 		);
 	};
@@ -542,6 +573,46 @@ class TransactionElement extends PureComponent {
 
 		return [transactionElement, transactionDetails];
 	};
+
+	renderCancelButton = () => (
+		<StyledButton
+			type={'danger'}
+			containerStyle={styles.actionContainerStyle}
+			style={styles.actionStyle}
+			onPress={this.showCancelModal}
+		>
+			{strings('transaction.cancel')}
+		</StyledButton>
+	);
+
+	showCancelModal = () => {
+		const { tx } = this.props;
+		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+		this.mounted && this.props.onCancelAction(true, existingGasPriceDecimal, this.props.tx.id);
+	};
+
+	showSpeedUpModal = () => {
+		const { tx } = this.props;
+		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+		this.mounted && this.props.onSpeedUpAction(true, existingGasPriceDecimal, this.props.tx.id);
+	};
+
+	hideSpeedUpModal = () => {
+		this.mounted && this.props.onSpeedUpAction(false);
+	};
+
+	renderSpeedUpButton = () => (
+		<StyledButton
+			type={'normal'}
+			containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
+			style={styles.actionStyle}
+			onPress={this.showSpeedUpModal}
+		>
+			{strings('transaction.speedup')}
+		</StyledButton>
+	);
 
 	render() {
 		const {
