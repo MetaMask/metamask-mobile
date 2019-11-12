@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import { ActivityIndicator, InteractionManager, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import { toChecksumAddress } from 'ethereumjs-util';
 import Networks, { isKnownNetwork } from '../../../util/networks';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
@@ -9,6 +8,7 @@ import AssetOverview from '../../UI/AssetOverview';
 import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -125,8 +125,7 @@ class Asset extends PureComponent {
 			transaction: { from, to }
 		} = tx;
 		return (
-			((from && toChecksumAddress(from) === selectedAddress) ||
-				(to && toChecksumAddress(to) === selectedAddress)) &&
+			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
 			((networkId && networkId.toString() === tx.networkID) ||
 				(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
 			tx.status !== 'unapproved'

@@ -5,7 +5,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import ReceiveRequestAction from './ReceiveRequestAction';
 import Logger from '../../../util/Logger';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
-import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import { toggleReceiveModal } from '../../../actions/modals';
 import Modal from 'react-native-modal';
@@ -268,7 +267,7 @@ class ReceiveRequest extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	receiveAsset: state.modals.receiveAsset
 });
 
