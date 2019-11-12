@@ -7,6 +7,7 @@ exports[`Settings should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "flex": 1,
       "paddingLeft": 18,
+      "zIndex": 99999999999999,
     }
   }
 >
