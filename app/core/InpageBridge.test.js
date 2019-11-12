@@ -11,8 +11,6 @@ describe('InpageBridge', () => {
 			addEventListener: (type, callback) => {
 				if (type === 'message') {
 					LISTENER = callback;
-				} else {
-					console.log('WUT');
 				}
 			}
 		};
