@@ -148,7 +148,7 @@ class AssetOverview extends PureComponent {
 			currentCurrency
 		} = this.props;
 		let mainBalance, secondaryBalance;
-		const itemAddress = safeToChecksumAddress(asset.address) || undefined;
+		const itemAddress = safeToChecksumAddress(asset.address);
 		let balance, balanceFiat;
 		if (asset.isETH) {
 			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
