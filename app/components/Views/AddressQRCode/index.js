@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, Dimensions, StyleSheet, View, Text, Clipboard } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
@@ -136,7 +135,7 @@ class AddressQRCode extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress)
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 const mapDispatchToProps = dispatch => ({

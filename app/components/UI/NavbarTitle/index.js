@@ -92,7 +92,9 @@ class NavbarTitle extends PureComponent {
 		if (network.provider.nickname) {
 			name = network.provider.nickname;
 		} else {
-			name = Networks[network.provider.type].name || { ...Networks.rpc, color: null }.name;
+			name =
+				(Networks[network.provider.type] && Networks[network.provider.type].name) ||
+				{ ...Networks.rpc, color: null }.name;
 		}
 
 		const realTitle = translate ? strings(title) : title;

@@ -22,7 +22,6 @@ import Logger from '../../../util/Logger';
 import { toBN, balanceToFiatNumber, BNToHex } from '../../../util/number';
 import AssetCard from '../AssetCard';
 import Engine from '../../../core/Engine';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { setPaymentChannelTransaction } from '../../../actions/transaction';
 import Transactions from '../../UI/Transactions';
 import Networks from '../../../util/networks';
@@ -558,8 +557,8 @@ class PaymentChannel extends PureComponent {
 		const { TokenRatesController } = Engine.context;
 		const { nativeCurrency, currentCurrency, contractExchangeRates, conversionRate } = this.props;
 		let exchangeRate;
-		if (Object.keys(contractExchangeRates).includes(toChecksumAddress(DAI_ADDRESS))) {
-			exchangeRate = contractExchangeRates[toChecksumAddress(DAI_ADDRESS)];
+		if (Object.keys(contractExchangeRates).includes(DAI_ADDRESS)) {
+			exchangeRate = contractExchangeRates[DAI_ADDRESS];
 		} else {
 			const res = await TokenRatesController.fetchExchangeRate(
 				`contract_addresses=${DAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
