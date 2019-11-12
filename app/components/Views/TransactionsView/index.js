@@ -2,12 +2,12 @@ import React, { PureComponent } from 'react';
 import { ActivityIndicator, InteractionManager, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { colors } from '../../../styles/common';
 import Transactions from '../../UI/Transactions';
 import getNavbarOptions from '../../UI/Navbar';
 import Networks, { isKnownNetwork } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
+import { safeToChecksumAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
@@ -111,8 +111,7 @@ class TransactionsView extends PureComponent {
 			transaction: { from, to }
 		} = tx;
 		return (
-			((from && toChecksumAddress(from) === selectedAddress) ||
-				(to && toChecksumAddress(to) === selectedAddress)) &&
+			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
 			((networkId && networkId.toString() === tx.networkID) ||
 				(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
 			tx.status !== 'unapproved'

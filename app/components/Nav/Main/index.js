@@ -80,8 +80,8 @@ import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDepo
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
 import Networks from '../../../util/networks';
 import { CONNEXT_DEPOSIT, getMethodData, TOKEN_METHOD_TRANSFER, decodeTransferData } from '../../../util/transactions';
-import { BN, toChecksumAddress, isValidAddress } from 'ethereumjs-util';
-import { isENS } from '../../../util/address';
+import { BN, isValidAddress } from 'ethereumjs-util';
+import { isENS, safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
@@ -662,7 +662,7 @@ class Main extends PureComponent {
 			return;
 		}
 		// Check if it's a payment channel deposit transaction to sign
-		const to = toChecksumAddress(transactionMeta.transaction.to);
+		const to = safeToChecksumAddress(transactionMeta.transaction.to);
 		const networkId = Networks[this.props.providerType].networkId;
 		if (
 			this.props.paymentChannelsEnabled &&

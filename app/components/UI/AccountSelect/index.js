@@ -5,11 +5,11 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { hexToBN, weiToFiat, renderFromWei } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import { strings } from '../../../../locales/i18n';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	root: {
@@ -148,7 +148,7 @@ class AccountSelect extends PureComponent {
 
 	renderActiveOption() {
 		const { selectedAddress, accounts, identities, value, isOpen, openAccountSelect } = this.props;
-		const targetAddress = toChecksumAddress(value || selectedAddress);
+		const targetAddress = safeToChecksumAddress(value) || selectedAddress;
 		const account = { ...identities[targetAddress], ...accounts[targetAddress] };
 		return (
 			<View style={styles.activeOption}>

@@ -29,7 +29,6 @@ import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
-import { toChecksumAddress } from 'ethereumjs-util';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
@@ -1046,7 +1045,7 @@ class DrawerView extends PureComponent {
 
 const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController,
-	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,

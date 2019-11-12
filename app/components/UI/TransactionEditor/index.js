@@ -14,6 +14,7 @@ import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from 'eth-contract-metadata';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -356,7 +357,7 @@ class TransactionEditor extends PureComponent {
 			const {
 				transaction: { value, gas, gasPrice, from }
 			} = this.props;
-			const checksummedFrom = from ? toChecksumAddress(from) : '';
+			const checksummedFrom = safeToChecksumAddress(from) || '';
 			const fromAccount = this.props.accounts[checksummedFrom];
 			if (!value || !gas || !gasPrice || !from) return strings('transaction.invalid_amount');
 			if (value && !isBN(value)) return strings('transaction.invalid_amount');
@@ -386,7 +387,7 @@ class TransactionEditor extends PureComponent {
 				transaction: { value, gas, gasPrice, from, selectedAsset },
 				contractBalances
 			} = this.props;
-			const checksummedFrom = from ? toChecksumAddress(from) : '';
+			const checksummedFrom = safeToChecksumAddress(from) || '';
 			const fromAccount = this.props.accounts[checksummedFrom];
 			if (!value || !gas || !gasPrice || !from) {
 				return strings('transaction.invalid_amount');
@@ -464,7 +465,7 @@ class TransactionEditor extends PureComponent {
 		if (gasPrice && !isBN(gasPrice)) return strings('transaction.invalid_gas_price');
 		if (gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) return strings('custom_gas.warning_gas_limit');
 
-		const checksummedFrom = from ? toChecksumAddress(from) : '';
+		const checksummedFrom = safeToChecksumAddress(from) || '';
 		const fromAccount = this.props.accounts[checksummedFrom];
 		if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice)))
 			return strings('transaction.insufficient');
