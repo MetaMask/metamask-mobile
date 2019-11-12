@@ -153,7 +153,7 @@ class AccountList extends PureComponent {
 					keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 
-				await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
+				PreferencesController.setSelectedAddress(accountsOrdered[newIndex]);
 
 				this.props.onAccountChange();
 
@@ -190,7 +190,7 @@ class AccountList extends PureComponent {
 				await KeyringController.addNewAccount();
 				const { PreferencesController } = Engine.context;
 				const newIndex = Object.keys(this.props.identities).length - 1;
-				await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
+				PreferencesController.setSelectedAddress(Object.keys(this.props.identities)[newIndex]);
 				this.setState({ selectedAccountIndex: newIndex });
 				setTimeout(() => {
 					this.flatList && this.flatList.current && this.flatList.current.scrollToEnd();
@@ -262,7 +262,7 @@ class AccountList extends PureComponent {
 				const identity = identities[checksummedAddress];
 				const { name, address } = identity;
 				const identityAddressChecksummed = toChecksumAddress(address);
-				const isSelected = identityAddressChecksummed === toChecksumAddress(selectedAddress);
+				const isSelected = identityAddressChecksummed === selectedAddress;
 				const isImported = this.isImported(allKeyrings, identityAddressChecksummed);
 				let balance = 0x0;
 				if (accounts[identityAddressChecksummed]) {
