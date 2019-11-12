@@ -396,6 +396,7 @@ export class BrowserTab extends PureComponent {
 
 	webview = React.createRef();
 	inputRef = React.createRef();
+	sessionENSNames = {};
 	ensIgnoreList = [];
 	snapshotTimer = null;
 	lastUrlBeforeHome = null;
@@ -950,6 +951,7 @@ export class BrowserTab extends PureComponent {
 
 		let contentId, contentUrl, contentType;
 		if (this.isENSUrl(sanitizedURL)) {
+			this.resolvingENSUrl = true;
 			const { url, type, hash } = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
 			contentUrl = url;
 			contentType = type;
@@ -960,6 +962,12 @@ export class BrowserTab extends PureComponent {
 				...this.props.navigation.state.params,
 				currentEnsName: hostname
 			});
+
+			this.setENSHostnameForUrl(contentUrl, hostname);
+
+			setTimeout(() => {
+				this.resolvingENSUrl = false;
+			}, 1000);
 		}
 		const urlToGo = contentUrl || sanitizedURL;
 
@@ -975,6 +983,9 @@ export class BrowserTab extends PureComponent {
 				hostname: this.formatHostname(hostname),
 				fullHostname: hostname
 			});
+
+			this.props.navigation.setParams({ url: this.state.inputValue, silent: true });
+
 			this.updateTabInfo(sanitizedURL);
 			return sanitizedURL;
 		}
@@ -1016,7 +1027,7 @@ export class BrowserTab extends PureComponent {
 			}
 			Logger.error('Failed to resolve ENS name', err);
 			Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
-			return { url: null };
+			this.goBack();
 		}
 	}
 
@@ -1270,6 +1281,17 @@ export class BrowserTab extends PureComponent {
 		}
 	};
 
+	onShouldStartLoadWithRequest = ({ url, navigationType }) => {
+		if (Platform.OS === 'ios') {
+			return true;
+		}
+		if (this.isENSUrl(url) && navigationType === 'other') {
+			this.go(url.replace('http://', 'https://'));
+			return false;
+		}
+		return true;
+	};
+
 	onPageChange = ({ url }) => {
 		if (url === this.state.url) return;
 		const { ipfsGateway } = this.props;
@@ -1278,6 +1300,11 @@ export class BrowserTab extends PureComponent {
 		if (urlObj.protocol.indexOf('http') === -1) {
 			return;
 		}
+
+		if (this.resolvingENSUrl) {
+			return;
+		}
+
 		this.lastUrlBeforeHome = null;
 
 		if (!this.state.showPhishingModal && !this.isAllowedUrl(urlObj.hostname)) {
@@ -1285,15 +1312,12 @@ export class BrowserTab extends PureComponent {
 		}
 
 		data.fullHostname = urlObj.hostname;
-		if (!this.state.ipfsWebsite) {
-			// If we're coming from a link / internal redirect
-			// We need to re-check if it's an ens url,
-			// then act accordingly
-			if (!this.isENSUrl(url)) {
-				data.inputValue = url;
-			} else {
-				this.go(url);
-			}
+
+		if (this.isENSUrl(url)) {
+			this.go(url.replace('http://', 'https://'));
+			const { current } = this.webview;
+			current && current.stopLoading();
+			return;
 		} else if (url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			if (this.state.contentType === 'ipfs-ns') {
 				data.inputValue = url.replace(
@@ -1306,9 +1330,6 @@ export class BrowserTab extends PureComponent {
 					`https://${this.state.currentEnsName}/`
 				);
 			}
-		} else if (this.isENSUrl(url)) {
-			this.go(url);
-			return;
 		} else {
 			data.inputValue = url;
 			data.hostname = this.formatHostname(urlObj.hostname);
@@ -1323,6 +1344,7 @@ export class BrowserTab extends PureComponent {
 				this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
 			}
 		}
+
 		this.updateTabInfo(inputValue);
 		this.setState({
 			fullHostname,
@@ -1744,9 +1766,28 @@ export class BrowserTab extends PureComponent {
 		);
 	}
 
-	onLoadStart = () => {
+	getENSHostnameForUrl = url => this.sessionENSNames[url];
+
+	setENSHostnameForUrl = (url, host) => {
+		this.sessionENSNames[url] = host;
+	};
+
+	onLoadStart = ({ nativeEvent }) => {
 		this.initializeBackgroundBridge();
 		this.backgroundBridge && this.backgroundBridge.disableAccounts();
+		// Handle the scenario when going back
+		// from an ENS name
+		if (nativeEvent.navigationType === 'backforward' && nativeEvent.url === this.state.inputValue) {
+			setTimeout(() => this.goBack(), 500);
+		} else if (nativeEvent.url.indexOf(this.props.ipfsGateway) !== -1) {
+			const currentEnsName = this.getENSHostnameForUrl(nativeEvent.url);
+			if (currentEnsName) {
+				this.props.navigation.setParams({
+					...this.props.navigation.state.params,
+					currentEnsName
+				});
+			}
+		}
 	};
 
 	canGoForward = () => this.state.forwardEnabled;
@@ -1811,6 +1852,7 @@ export class BrowserTab extends PureComponent {
 							javascriptEnabled
 							allowsInlineMediaPlayback
 							useWebkit
+							onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
 						/>
 					)}
 				</View>
