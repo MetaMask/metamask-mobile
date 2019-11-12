@@ -189,7 +189,6 @@ export function getNavigationOptionsTitle(title, navigation) {
 		},
 		headerTintColor: colors.blue,
 		headerLeft: (
-			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
 				<IonicIcon
 					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -486,12 +485,10 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 		},
 		headerLeft:
 			Platform.OS === 'ios' ? (
-				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
 					<Text style={styles.closeButtonText}>{backButtonText}</Text>
 				</TouchableOpacity>
 			) : (
-				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
