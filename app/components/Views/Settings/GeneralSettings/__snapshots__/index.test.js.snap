@@ -7,6 +7,7 @@ exports[`GeneralSettings should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "flex": 1,
       "padding": 24,
+      "zIndex": 99999999999999,
     }
   }
 >
