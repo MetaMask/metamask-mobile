@@ -12,7 +12,8 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		paddingLeft: 18
+		paddingLeft: 18,
+		zIndex: 99999999999999
 	}
 });
 

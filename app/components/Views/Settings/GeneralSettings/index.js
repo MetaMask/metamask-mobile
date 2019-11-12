@@ -26,7 +26,8 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		padding: 24
+		padding: 24,
+		zIndex: 99999999999999
 	},
 	title: {
 		...fontStyles.normal,

@@ -183,7 +183,6 @@ export function getNavigationOptionsTitle(title, navigation) {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			zIndex: 99999999999999,
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
@@ -480,7 +479,6 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			zIndex: 99999999999999,
 			...fontStyles.normal
 		},
 		headerLeft:
