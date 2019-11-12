@@ -1281,6 +1281,17 @@ export class BrowserTab extends PureComponent {
 		}
 	};
 
+	onShouldStartLoadWithRequest = ({ url, navigationType }) => {
+		if (Platform.OS === 'ios') {
+			return true;
+		}
+		if (this.isENSUrl(url) && navigationType === 'other') {
+			this.go(url.replace('http://', 'https://'));
+			return false;
+		}
+		return true;
+	};
+
 	onPageChange = ({ url }) => {
 		if (url === this.state.url) return;
 		const { ipfsGateway } = this.props;
@@ -1303,7 +1314,7 @@ export class BrowserTab extends PureComponent {
 		data.fullHostname = urlObj.hostname;
 
 		if (this.isENSUrl(url)) {
-			this.go(url);
+			this.go(url.replace('http://', 'https://'));
 			const { current } = this.webview;
 			current && current.stopLoading();
 			return;
@@ -1841,6 +1852,7 @@ export class BrowserTab extends PureComponent {
 							javascriptEnabled
 							allowsInlineMediaPlayback
 							useWebkit
+							onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
 						/>
 					)}
 				</View>
