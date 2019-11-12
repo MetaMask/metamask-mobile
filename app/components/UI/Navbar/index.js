@@ -176,6 +176,9 @@ export default function getNavbarOptions(title, navigation, disableNetwork = fal
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
 export function getNavigationOptionsTitle(title, navigation) {
+	function navigationPop() {
+		navigation.pop();
+	}
 	return {
 		title,
 		headerTitleStyle: {
@@ -185,8 +188,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 		},
 		headerTintColor: colors.blue,
 		headerLeft: (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+			<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
 				<IonicIcon
 					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Platform.OS === 'android' ? 24 : 28}
@@ -470,6 +472,9 @@ export function getOptinMetricsNavbarOptions() {
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
 export function getClosableNavigationOptions(title, backButtonText, navigation) {
+	function navigationPop() {
+		navigation.pop();
+	}
 	return {
 		title,
 		headerTitleStyle: {
@@ -478,13 +483,11 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 		},
 		headerLeft:
 			Platform.OS === 'ios' ? (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
 					<Text style={styles.closeButtonText}>{backButtonText}</Text>
 				</TouchableOpacity>
 			) : (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			)

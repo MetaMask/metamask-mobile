@@ -26,7 +26,8 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		padding: 24
+		padding: 24,
+		zIndex: 99999999999999
 	},
 	title: {
 		...fontStyles.normal,
@@ -106,6 +107,7 @@ class Settings extends PureComponent {
 	};
 
 	selectLanguage = language => {
+		if (language === this.state.currentLanguage) return;
 		setLocale(language);
 		this.setState({ currentLanguage: language });
 		setTimeout(() => this.props.navigation.navigate('Home'), 100);
