@@ -853,10 +853,11 @@ export class BrowserTab extends PureComponent {
 		const homepageScripts = `
 			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
 			window.__mmSearchEngine="${this.props.searchEngine}";
+			window.postMessage('updateFavorites', '*');
 		`;
 		this.setState({ homepageScripts }, () => {
 			const { current } = this.webview;
-			if (this.isHomepage() && current) {
+			if (current) {
 				current.injectJavaScript(homepageScripts);
 			}
 		});
@@ -1083,8 +1084,6 @@ export class BrowserTab extends PureComponent {
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 		setTimeout(() => {
 			this.lastUrlBeforeHome = lastUrlBeforeHome;
-			// update bookmarks on homepage
-			this.refreshHomeScripts();
 		}, 1000);
 	};
 
@@ -1293,6 +1292,9 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onPageChange = ({ url }) => {
+		if (this.isHomepage(url)) {
+			this.refreshHomeScripts();
+		}
 		if (url === this.state.url) return;
 		const { ipfsGateway } = this.props;
 		const data = {};
