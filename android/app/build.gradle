@@ -216,8 +216,11 @@ android {
     }
 
 	packagingOptions {
-		pickFirst 'lib/x86_64/libjsc.so'
- 		pickFirst 'lib/arm64-v8a/libjsc.so'
+		pickFirst '**/armeabi-v7a/libc++_shared.so'
+		pickFirst '**/x86/libc++_shared.so'
+		pickFirst '**/x86_64/libc++_shared.so'
+		pickFirst '**/arm64-v8a/libc++_shared.so'
+		pickFirst '**/libjsc.so'
 	}
 
     buildTypes {
@@ -235,10 +238,8 @@ android {
     	it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
 
 	}
-	packagingOptions {
-		pickFirst 'lib/x86_64/libjsc.so'
-		pickFirst 'lib/arm64-v8a/libjsc.so'
-	}
+
+
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
@@ -255,6 +256,7 @@ android {
 }
 
 dependencies {
+	implementation 'org.webkit:android-jsc:+'
     implementation project(':react-native-reanimated')
     implementation project(':react-native-webview')
     implementation project(':react-native-fabric')

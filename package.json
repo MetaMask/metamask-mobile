@@ -82,7 +82,7 @@
     "fuse.js": "3.4.4",
     "gaba": "1.8.2",
     "https-browserify": "0.0.1",
-    "jsc-android": "236355.1.1",
+    "jsc-android": "241213.1.0",
     "lottie-react-native": "git+ssh://git@github.com/brunobar79/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
