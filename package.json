@@ -67,7 +67,7 @@
     "buffer": "5.2.1",
     "connext": "4.2.5",
     "content-hash": "2.3.2",
-    "eth-contract-metadata": "1.9.2",
+    "eth-contract-metadata": "1.10.0",
     "eth-ens-namehash": "2.0.8",
     "eth-json-rpc-infura": "4.0.0",
     "eth-url-parser": "1.0.2",

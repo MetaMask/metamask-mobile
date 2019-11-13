@@ -3591,10 +3591,10 @@ eth-block-tracker@^4.4.2:
     pify "^3.0.0"
     safe-event-emitter "^1.0.1"
 
-eth-contract-metadata@1.9.2:
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/eth-contract-metadata/-/eth-contract-metadata-1.9.2.tgz#6c23383e35de1014c1c00f2c8c787cd48d54ae20"
-  integrity sha512-2ycmqRQ9u4Tbpir7hwEKZ8Qjy1bc3KaiRBd/jkL8Xye9wqnYMpgaUK4UHPm1uTnCZZ+KoN0Mxg6kL9JILrYdhA==
+eth-contract-metadata@1.10.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/eth-contract-metadata/-/eth-contract-metadata-1.10.0.tgz#a3a0c5e4afae7a3522269cac48ed65f82bae3370"
+  integrity sha512-HbSwC2IRjjWHkWZ8Ibfql6OjTihuoZknigF6nYmDNgTw+lWEau4mnSTO+0lU7VCn3+bxRYmdtNTWIwl3INzaUw==
 
 eth-contract-metadata@^1.9.1:
   version "1.9.3"
