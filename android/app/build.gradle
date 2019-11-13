@@ -215,11 +215,6 @@ android {
         }
     }
 
-	packagingOptions {
-		pickFirst 'lib/x86_64/libjsc.so'
- 		pickFirst 'lib/arm64-v8a/libjsc.so'
-	}
-
     buildTypes {
          debug {
             manifestPlaceholders = [isDebug:true]
@@ -236,8 +231,8 @@ android {
 
 	}
 	packagingOptions {
-		pickFirst 'lib/x86_64/libjsc.so'
-		pickFirst 'lib/arm64-v8a/libjsc.so'
+		// Make sure libjsc.so does not packed in APK
+		exclude "**/libjsc.so"
 	}
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
@@ -272,6 +267,7 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation "com.facebook.react:react-native:+"  // From node_modules
+	implementation 'org.chromium:v8-android:7.8.+'
 
     implementation project(':react-native-branch')
 	implementation "io.branch.sdk.android:library:4.1.2"
