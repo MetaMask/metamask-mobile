@@ -14,7 +14,7 @@ exports[`CollectibleImage should render correctly 1`] = `
     ]
   }
 >
-  <Image
+  <RemoteImage
     fadeIn={true}
     onError={[Function]}
     placeholderStyle={
