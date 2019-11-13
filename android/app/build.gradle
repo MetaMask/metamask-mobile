@@ -256,7 +256,7 @@ android {
 }
 
 dependencies {
-    implementation 'org.webkit:android-jsc:245459'
+    implementation 'org.webkit:android-jsc:r245459'
     implementation project(':react-native-reanimated')
     implementation project(':react-native-webview')
     implementation project(':react-native-fabric')
