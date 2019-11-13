@@ -11,7 +11,6 @@ import {
 	ScrollView,
 	InteractionManager
 } from 'react-native';
-import SvgImage from 'react-native-remote-svg';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -725,8 +724,8 @@ class DrawerView extends PureComponent {
 				},
 				paymentChannelsEnabled && {
 					name: strings('drawer.insta_pay'),
-					icon: <SvgImage source={instapay_logo} style={styles.instapayLogo} />,
-					selectedIcon: <SvgImage source={instapay_logo_selected} style={styles.instapayLogo} />,
+					icon: <Image source={instapay_logo} style={styles.instapayLogo} />,
+					selectedIcon: <Image source={instapay_logo_selected} style={styles.instapayLogo} />,
 					action: this.goToPaymentChannel
 				},
 				{

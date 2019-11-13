@@ -119,12 +119,13 @@ class AccountList extends PureComponent {
 		const { identities, selectedAddress } = this.props;
 		Object.keys(identities).forEach((address, i) => {
 			if (selectedAddress === address) {
-				this.setState({ selectedAccountIndex: i });
+				this.mounted && this.setState({ selectedAccountIndex: i });
 			}
 		});
 	};
 
 	componentDidMount() {
+		this.mounted = true;
 		this.getInitialSelectedAccountIndex();
 		const orderedAccounts = this.getAccounts();
 		InteractionManager.runAfterInteractions(() => {
@@ -132,8 +133,12 @@ class AccountList extends PureComponent {
 				this.scrollToCurrentAccount();
 			}
 		});
-		this.setState({ orderedAccounts });
+		this.mounted && this.setState({ orderedAccounts });
 	}
+
+	componentWillUnmount = () => {
+		this.mounted = false;
+	};
 
 	scrollToCurrentAccount() {
 		this.flatList &&
@@ -147,7 +152,7 @@ class AccountList extends PureComponent {
 		const { keyrings } = this.props;
 		requestAnimationFrame(async () => {
 			try {
-				this.setState({ selectedAccountIndex: newIndex });
+				this.mounted && this.setState({ selectedAccountIndex: newIndex });
 
 				const allKeyrings =
 					keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
@@ -164,7 +169,7 @@ class AccountList extends PureComponent {
 				});
 			} catch (e) {
 				// Restore to the previous index in case anything goes wrong
-				this.setState({ selectedAccountIndex: previousIndex });
+				this.mounted && this.setState({ selectedAccountIndex: previousIndex });
 				Logger.error('error while trying change the selected account', e); // eslint-disable-line
 			}
 			InteractionManager.runAfterInteractions(() => {
@@ -173,7 +178,7 @@ class AccountList extends PureComponent {
 				}, 1000);
 			});
 			const orderedAccounts = this.getAccounts();
-			await this.setState({ orderedAccounts });
+			this.mounted && this.setState({ orderedAccounts });
 		});
 	};
 
@@ -183,7 +188,7 @@ class AccountList extends PureComponent {
 
 	addAccount = async () => {
 		if (this.state.loading) return;
-		this.setState({ loading: true });
+		this.mounted && this.setState({ loading: true });
 		const { KeyringController } = Engine.context;
 		requestAnimationFrame(async () => {
 			try {
@@ -191,17 +196,17 @@ class AccountList extends PureComponent {
 				const { PreferencesController } = Engine.context;
 				const newIndex = Object.keys(this.props.identities).length - 1;
 				PreferencesController.setSelectedAddress(Object.keys(this.props.identities)[newIndex]);
-				this.setState({ selectedAccountIndex: newIndex });
+				this.mounted && this.setState({ selectedAccountIndex: newIndex });
 				setTimeout(() => {
 					this.flatList && this.flatList.current && this.flatList.current.scrollToEnd();
-					this.setState({ loading: false });
+					this.mounted && this.setState({ loading: false });
 				}, 500);
 				const orderedAccounts = this.getAccounts();
-				await this.setState({ orderedAccounts });
+				this.mounted && this.setState({ orderedAccounts });
 			} catch (e) {
 				// Restore to the previous index in case anything goes wrong
 				Logger.error('error while trying to add a new account', e); // eslint-disable-line
-				this.setState({ loading: false });
+				this.mounted && this.setState({ loading: false });
 			}
 		});
 	};
