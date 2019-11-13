@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Image, ViewPropTypes } from 'react-native';
+import { View, Image, ViewPropTypes } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
@@ -18,7 +18,11 @@ const RemoteImage = props => {
 				style.height = source.height;
 			}
 		}
-		return <SvgCssUri {...props} uri={source.uri} style={style} />;
+		return (
+			<View style={style}>
+				<SvgCssUri {...props} uri={source.uri} width={'100%'} height={'100%'} />
+			</View>
+		);
 	}
 
 	if (props.fadeIn) {
