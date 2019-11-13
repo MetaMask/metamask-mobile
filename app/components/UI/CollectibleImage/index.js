@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Image } from 'react-native';
-import SvgImage from 'react-native-remote-svg';
+import { StyleSheet, View } from 'react-native';
+import RemoteImage from '../../Base/RemoteImage';
 import Identicon from '../Identicon';
 import { colors } from '../../../styles/common';
 
@@ -66,13 +66,10 @@ export default class CollectibleImage extends PureComponent {
 			iconStyle
 		} = this.props;
 
-		const isSVG = image && image.substr(-3) === 'svg';
-		const ImageComponent = isSVG ? SvgImage : Image;
-
 		return (
 			<View style={renderFull ? styles.fullWrapper : [styles.listWrapper, containerStyle]}>
 				{image && image.length !== 0 ? (
-					<ImageComponent
+					<RemoteImage
 						fadeIn
 						resizeMode={'contain'}
 						placeholderStyle={{ backgroundColor: colors.white }}
