@@ -155,7 +155,7 @@
     "babel-eslint": "10.0.3",
     "babel-jest": "24.5.0",
     "concat-cli": "4.0.0",
-    "detox": "14.3.4",
+    "detox": "14.7.0",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
