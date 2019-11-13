@@ -36,9 +36,21 @@ const RemoteImage = props => {
 };
 
 RemoteImage.propTypes = {
+	/**
+	 * Flag that determines the fade in behavior
+	 */
 	fadeIn: PropTypes.bool,
+	/**
+	 * Source of the image
+	 */
 	source: PropTypes.any,
+	/**
+	 * Style for the image
+	 */
 	style: ViewPropTypes.style,
+	/**
+	 * Style for the placeholder (used for fadeIn)
+	 */
 	placeholderStyle: ViewPropTypes.style
 };
 

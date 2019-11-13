@@ -267,7 +267,7 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation "com.facebook.react:react-native:+"  // From node_modules
-	implementation 'org.chromium:v8-android:7.8.+'
+    implementation 'org.chromium:v8-android:7.8.+'
 
     implementation project(':react-native-branch')
 	implementation "io.branch.sdk.android:library:4.1.2"
