@@ -244,7 +244,7 @@ export async function getTransactionActionKey(transaction) {
 export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction) {
 	const actionKey = await getTransactionActionKey(tx);
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
-		ticker = paymentChannelTransaction ? strings('unit.dai') : ticker;
+		ticker = paymentChannelTransaction ? strings('unit.sai') : ticker;
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return incoming
