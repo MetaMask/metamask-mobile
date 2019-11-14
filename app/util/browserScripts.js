@@ -101,7 +101,6 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
 	try {
 		window.postMessage(${JSON.stringify(message)}, '${origin}');
 		const msg = ${message};
-		console.log('SENDING MSG TO PROVIDER', msg);
 		const __mmID = msg && msg.payload.__mmID;
 		if(window.ethereum._pending[__mmID]){
 			found = true;
@@ -110,14 +109,11 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
 		//Nothing to do
 	}
 	if(!found){
-		console.log('Checking on iframes');
 		const iframes = document.getElementsByTagName('iframe');
 		let sent = false;
 		for (let frame of iframes){
 			if(frame.src === '${origin}'){
-				console.log('FOUND IN IFRAME WITH ORIGIN', frame.src);
 				try {
-					console.log('SENDING TO IFRAME');
 					frame.contentWindow.postMessage(${JSON.stringify(message)}, '${origin}');
 				} catch (e) {
 					//Nothing to do
