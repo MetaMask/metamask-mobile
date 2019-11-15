@@ -507,7 +507,7 @@ class Main extends PureComponent {
 
 		if (hasSAI) {
 			const previousReminder = await AsyncStorage.getItem('@MetaMask:nextMakerReminder');
-			if (!previousReminder || parseInt(previousReminder, 10) > Date.now()) {
+			if (!previousReminder || parseInt(previousReminder, 10) < Date.now()) {
 				Alert.alert(
 					strings('sai_migration.title'),
 					strings('sai_migration.message'),
@@ -518,17 +518,24 @@ class Main extends PureComponent {
 								this.props.navigation.navigate('BrowserView', {
 									newTabUrl: 'https://migrate.makerdao.com'
 								});
-								const tsToRemind =
-									Date.now() + 1000 * 60 * 60 * 24 * AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
+								const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
 								AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
 							},
 							style: 'cancel'
 						},
 						{
+							text: strings('sai_migration.learn_more'),
+							onPress: () => {
+								this.props.navigation.navigate('BrowserView', {
+									newTabUrl:
+										'https://blog.makerdao.com/what-to-expect-with-the-launch-of-multi-collateral-dai/'
+								});
+							}
+						},
+						{
 							text: strings('sai_migration.remind_me_later'),
 							onPress: () => {
-								const tsToRemind =
-									Date.now() + 1000 * 60 * 60 * 24 * AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
+								const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
 								AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
 							}
 						}

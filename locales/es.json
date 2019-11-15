@@ -982,9 +982,10 @@
 		"text": "Ahora puedes volver a tu navegador"
 	},
 	"sai_migration": {
-		"title": "Atención!",
-		"message": "Parece que tienes DAI en una de tus cuentas. DAI ha sido abandonado (y renombrado a SAI). Debes migrarlo a la ultima versión cuanto antes. Deseas hacerlo ahora?",
-		"remind_me_later": "Remind me later",
-		"lets_do_it": "Let's do it!"
+		"title": "Un mensaje de MakerDAO",
+		"message": "Parece que tienes Dai en una de tus cuentas. Necesitas migrarlo a su nueva version o será abandonado.",
+		"learn_more": "Mas información",
+		"remind_me_later": "Recordarme luego",
+		"lets_do_it": "Continuar"
 	}
 }
