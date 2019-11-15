@@ -207,8 +207,17 @@ class TransactionElement extends PureComponent {
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string,
+		/**
+		 * Current exchange rate
+		 */
 		exchangeRate: PropTypes.number,
+		/**
+		 * Callback to speed up tx
+		 */
 		onSpeedUpAction: PropTypes.func,
+		/**
+		 * Callback to cancel tx
+		 */
 		onCancelAction: PropTypes.func,
 		/**
 		 * A string representing the network name
