@@ -997,5 +997,11 @@
 	"walletconnect_return_modal": {
 		"title": "You're all set!",
 		"text": "You can now return to your browser"
+	},
+	"sai_migration": {
+		"title": "Heads up!",
+		"message": "Looks like you have some DAI in one of your accounts. It has been is deprecated (and renamed to SAI). You need to migrate it to it's new version ASAP. Do you want to do it now?",
+		"remind_me_later": "Remind me later",
+		"lets_do_it": "Let's do it!"
 	}
 }

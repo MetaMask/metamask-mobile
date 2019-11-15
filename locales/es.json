@@ -980,5 +980,11 @@
 	"walletconnect_return_modal": {
 		"title": "Listo!",
 		"text": "Ahora puedes volver a tu navegador"
+	},
+	"sai_migration": {
+		"title": "Atención!",
+		"message": "Parece que tienes DAI en una de tus cuentas. DAI ha sido abandonado (y renombrado a SAI). Debes migrarlo a la ultima versión cuanto antes. Deseas hacerlo ahora?",
+		"remind_me_later": "Remind me later",
+		"lets_do_it": "Let's do it!"
 	}
 }

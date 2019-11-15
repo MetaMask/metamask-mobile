@@ -86,6 +86,7 @@ import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
+import AsyncStorage from '@react-native-community/async-storage';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -366,6 +367,10 @@ class Main extends PureComponent {
 		 */
 		tokens: PropTypes.array,
 		/**
+		 * Array of ERC20 assets
+		 */
+		allTokens: PropTypes.array,
+		/**
 		 * List of transactions
 		 */
 		transactions: PropTypes.array,
@@ -480,9 +485,53 @@ class Main extends PureComponent {
 					this.initializePaymentChannels();
 				}
 
+				this.checkForSai();
+
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 			}, 1000);
 		});
+	};
+
+	checkForSai = () => {
+		let hasSAI = false;
+		Object.keys(this.props.allTokens).forEach(account => {
+			const tokens = this.props.allTokens[account].mainnet;
+			tokens.forEach(token => {
+				if (token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
+					hasSAI = true;
+				}
+			});
+		});
+
+		if (hasSAI) {
+			const previousReminder = AsyncStorage.getItem('@MetaMask:nextMakerReminder');
+			if (!previousReminder || parseInt(previousReminder, 10) > Date.now()) {
+				Alert.alert(
+					strings('sai_migration.title'),
+					strings('sai_migration.message'),
+					[
+						{
+							text: strings('sai_migration.remind_me_later'),
+							onPress: () => {
+								const tsToRemind =
+									Date.now() + 1000 * 60 * 60 * 24 * AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
+								AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
+							},
+							style: 'cancel'
+						},
+						{
+							text: strings('sai_migration.lets_do_it'),
+							onPress: async () => {
+								this.props.navigation.navigate('BrowserView', {
+									newTabUrl: 'https://migrate.makerdao.com'
+								});
+							}
+						}
+					],
+					{ cancelable: false }
+				);
+			}
+		}
 	};
 
 	connectionChangeHandler = state => {
@@ -973,7 +1022,8 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	allTokens: state.engine.backgroundState.AssetsController.allTokens
 });
 
 const mapDispatchToProps = dispatch => ({
