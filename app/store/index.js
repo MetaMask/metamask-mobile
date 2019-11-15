@@ -40,7 +40,7 @@ const persistConfig = {
 	version: 0,
 	storage: AsyncStorage,
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-	migrate: createMigrate(migrations, { debug: true })
+	migrate: createMigrate(migrations, { debug: false })
 };
 
 const pReducer = persistReducer(persistConfig, rootReducer);
