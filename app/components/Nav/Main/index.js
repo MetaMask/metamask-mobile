@@ -369,7 +369,7 @@ class Main extends PureComponent {
 		/**
 		 * Array of ERC20 assets
 		 */
-		allTokens: PropTypes.array,
+		allTokens: PropTypes.object,
 		/**
 		 * List of transactions
 		 */
@@ -485,14 +485,16 @@ class Main extends PureComponent {
 					this.initializePaymentChannels();
 				}
 
-				this.checkForSai();
+				setTimeout(() => {
+					this.checkForSai();
+				}, 3500);
 
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 			}, 1000);
 		});
 	};
 
-	checkForSai = () => {
+	checkForSai = async () => {
 		let hasSAI = false;
 		Object.keys(this.props.allTokens).forEach(account => {
 			const tokens = this.props.allTokens[account].mainnet;
@@ -504,15 +506,18 @@ class Main extends PureComponent {
 		});
 
 		if (hasSAI) {
-			const previousReminder = AsyncStorage.getItem('@MetaMask:nextMakerReminder');
+			const previousReminder = await AsyncStorage.getItem('@MetaMask:nextMakerReminder');
 			if (!previousReminder || parseInt(previousReminder, 10) > Date.now()) {
 				Alert.alert(
 					strings('sai_migration.title'),
 					strings('sai_migration.message'),
 					[
 						{
-							text: strings('sai_migration.remind_me_later'),
-							onPress: () => {
+							text: strings('sai_migration.lets_do_it'),
+							onPress: async () => {
+								this.props.navigation.navigate('BrowserView', {
+									newTabUrl: 'https://migrate.makerdao.com'
+								});
 								const tsToRemind =
 									Date.now() + 1000 * 60 * 60 * 24 * AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
 								AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
@@ -520,11 +525,11 @@ class Main extends PureComponent {
 							style: 'cancel'
 						},
 						{
-							text: strings('sai_migration.lets_do_it'),
-							onPress: async () => {
-								this.props.navigation.navigate('BrowserView', {
-									newTabUrl: 'https://migrate.makerdao.com'
-								});
+							text: strings('sai_migration.remind_me_later'),
+							onPress: () => {
+								const tsToRemind =
+									Date.now() + 1000 * 60 * 60 * 24 * AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
+								AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
 							}
 						}
 					],
