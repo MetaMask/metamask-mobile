@@ -17,6 +17,7 @@ import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import StyledButton from '../StyledButton';
+import Networks from '../../../util/networks';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -208,7 +209,11 @@ class TransactionElement extends PureComponent {
 		ticker: PropTypes.string,
 		exchangeRate: PropTypes.number,
 		onSpeedUpAction: PropTypes.func,
-		onCancelAction: PropTypes.func
+		onCancelAction: PropTypes.func,
+		/**
+		 * A string representing the network name
+		 */
+		providerType: PropTypes.string
 	};
 
 	state = {
@@ -346,14 +351,20 @@ class TransactionElement extends PureComponent {
 	 */
 	renderTxElement = transactionElement => {
 		const {
-			tx: { status }
+			tx: {
+				status,
+				transaction: { to }
+			},
+			providerType
 		} = this.props;
 		const { renderTo, actionKey, value, fiatValue = false } = transactionElement;
 		let symbol;
 		if (renderTo in contractMap) {
 			symbol = contractMap[renderTo].symbol;
 		}
+		const networkId = Networks[providerType].networkId;
 		const renderTxActions = status === 'submitted' || status === 'approved';
+		const renderSpeedUpAction = safeToChecksumAddress(to) !== AppConstants.CONNEXT.CONTRACTS[networkId];
 		return (
 			<View style={styles.rowOnly}>
 				{this.renderTxTime()}
@@ -372,7 +383,7 @@ class TransactionElement extends PureComponent {
 				</View>
 				{!!renderTxActions && (
 					<View style={styles.transactionActionsContainer}>
-						{this.renderSpeedUpButton()}
+						{renderSpeedUpAction && this.renderSpeedUpButton()}
 						{this.renderCancelButton()}
 					</View>
 				)}
@@ -676,6 +687,7 @@ class TransactionElement extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 export default connect(mapStateToProps)(TransactionElement);
