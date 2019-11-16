@@ -505,11 +505,9 @@ class Main extends PureComponent {
 			const tokens = this.props.allTokens[account].mainnet;
 			tokens.forEach(token => {
 				if (token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
-					console.log('SAI FOUND IN allTokens');
 					if (this.props.contractBalances[AppConstants.SAI_ADDRESS]) {
 						const balance = this.props.contractBalances[AppConstants.SAI_ADDRESS];
-						if (balance.isZero()) {
-							console.log('SAI HAS A BALANCE!');
+						if (!balance.isZero()) {
 							hasSAI = true;
 						}
 					}
