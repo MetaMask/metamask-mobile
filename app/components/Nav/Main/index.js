@@ -515,23 +515,33 @@ class Main extends PureComponent {
 						{
 							text: strings('sai_migration.lets_do_it'),
 							onPress: async () => {
-								this.props.navigation.navigate('BrowserView', {
-									newTabUrl: 'https://migrate.makerdao.com'
+								this.props.navigation.navigate('BrowserTabHome');
+								InteractionManager.runAfterInteractions(() => {
+									setTimeout(() => {
+										this.props.navigation.navigate('BrowserView', {
+											newTabUrl: 'https://migrate.makerdao.com'
+										});
+										const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
+										AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
+									}, 300);
 								});
-								const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
-								AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
 							},
 							style: 'cancel'
 						},
 						{
 							text: strings('sai_migration.learn_more'),
 							onPress: () => {
-								this.props.navigation.navigate('BrowserView', {
-									newTabUrl:
-										'https://blog.makerdao.com/what-to-expect-with-the-launch-of-multi-collateral-dai/'
+								this.props.navigation.navigate('BrowserTabHome');
+								InteractionManager.runAfterInteractions(() => {
+									setTimeout(() => {
+										this.props.navigation.navigate('BrowserView', {
+											newTabUrl:
+												'https://blog.makerdao.com/what-to-expect-with-the-launch-of-multi-collateral-dai/'
+										});
+										const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
+										AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
+									}, 300);
 								});
-								const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
-								AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
 							}
 						}
 					],
