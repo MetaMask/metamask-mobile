@@ -701,7 +701,7 @@
 		"or_scan_a_qr_code": "or Scan a QR Code"
 	},
 	"import_private_key_success": {
-		"title": "Account succesfully imported!",
+		"title": "Account successfully imported!",
 		"description_one": "You'll now be able to view your account in MetaMask."
 	},
 	"first_incoming_transaction": {
