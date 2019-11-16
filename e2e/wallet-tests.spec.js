@@ -194,8 +194,8 @@ describe('Wallet Tests', () => {
 		await TestHelpers.tapByText('TOKENS');
 		// Tap on Add Tokens
 		await TestHelpers.tap('add-token-button');
-		// Search for DAI
-		await TestHelpers.typeTextAndHideKeyboard('input-search-asset', 'DAI');
+		// Search for SAI
+		await TestHelpers.typeTextAndHideKeyboard('input-search-asset', 'SAI');
 		// Wait for results to load
 		await TestHelpers.delay(2000);
 		// Tap on DAI
@@ -204,8 +204,8 @@ describe('Wallet Tests', () => {
 		await TestHelpers.tapByText('ADD TOKEN');
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
-		// Check that DAI is added to wallet
-		await TestHelpers.checkIfElementWithTextIsVisible('0 DAI');
+		// Check that SAI is added to wallet
+		await TestHelpers.checkIfElementWithTextIsVisible('0 SAI');
 	});
 
 	it('should add a custom token', async () => {
