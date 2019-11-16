@@ -530,11 +530,6 @@ class Main extends PureComponent {
 									newTabUrl:
 										'https://blog.makerdao.com/what-to-expect-with-the-launch-of-multi-collateral-dai/'
 								});
-							}
-						},
-						{
-							text: strings('sai_migration.remind_me_later'),
-							onPress: () => {
 								const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
 								AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
 							}

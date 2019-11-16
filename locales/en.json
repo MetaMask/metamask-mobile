@@ -999,9 +999,8 @@
 		"text": "You can now return to your browser"
 	},
 	"sai_migration": {
-		"title": "A message from the MakerDAO team",
+		"title": "A message from MakerDAO",
 		"message": "It looks like you have some Dai in your account. You need to migrate this Dai to its new version or it will be deprecated.",
-		"remind_me_later": "Remind me later",
 		"learn_more": "Learn More",
 		"lets_do_it": "Let's do it!"
 	}
