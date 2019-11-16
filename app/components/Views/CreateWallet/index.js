@@ -114,10 +114,11 @@ class CreateWallet extends PureComponent {
 
 		InteractionManager.runAfterInteractions(async () => {
 			const { KeyringController } = Engine.context;
-
+			await Engine.resetState();
 			await KeyringController.createNewVaultAndKeychain('');
 			await SecureKeychain.setGenericPassword('metamask-user', '');
 			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			// Get onboarding wizard state
 			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');

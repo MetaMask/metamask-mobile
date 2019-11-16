@@ -562,7 +562,7 @@ class TransactionElement extends PureComponent {
 		const totalEth = hexToBN(value);
 		const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 		const readableTotalEth = renderFromWei(totalEth);
-		const renderTotalEth = readableTotalEth + ' ' + (isDeposit ? strings('unit.eth') : strings('unit.dai'));
+		const renderTotalEth = readableTotalEth + ' ' + (isDeposit ? strings('unit.eth') : strings('unit.sai'));
 		const renderTotalEthFiat = isDeposit
 			? totalEthFiat
 			: balanceToFiat(parseFloat(readableTotalEth), conversionRate, exchangeRate, currentCurrency);
