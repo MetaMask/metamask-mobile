@@ -367,9 +367,14 @@ class Main extends PureComponent {
 		 */
 		tokens: PropTypes.array,
 		/**
-		 * Array of ERC20 assets
+		 * List of all tracked tokens
 		 */
 		allTokens: PropTypes.object,
+		/**
+		/**
+		 * List of all the balances of each contract tracked
+		 */
+		contractBalances: PropTypes.object,
 		/**
 		 * List of transactions
 		 */
@@ -500,7 +505,14 @@ class Main extends PureComponent {
 			const tokens = this.props.allTokens[account].mainnet;
 			tokens.forEach(token => {
 				if (token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
-					hasSAI = true;
+					console.log('SAI FOUND IN allTokens');
+					if (this.props.contractBalances[AppConstants.SAI_ADDRESS]) {
+						const balance = this.props.contractBalances[AppConstants.SAI_ADDRESS];
+						if (balance.isZero()) {
+							console.log('SAI HAS A BALANCE!');
+							hasSAI = true;
+						}
+					}
 				}
 			});
 		});
@@ -1040,7 +1052,8 @@ const mapStateToProps = state => ({
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	allTokens: state.engine.backgroundState.AssetsController.allTokens
+	allTokens: state.engine.backgroundState.AssetsController.allTokens,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
 });
 
 const mapDispatchToProps = dispatch => ({

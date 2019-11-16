@@ -259,7 +259,12 @@ class Engine {
 		// Whenever we are gonna start a new wallet
 		// either imported or created, we need to
 		// get rid of the old data from state
-		const { TransactionController, AssetsController } = this.datamodel.context;
+		const {
+			TransactionController,
+			AssetsController,
+			TokenBalancesController,
+			TokenRatesController
+		} = this.datamodel.context;
 
 		//Clear assets info
 		AssetsController.update({
@@ -273,6 +278,9 @@ class Engine {
 			suggestedAssets: [],
 			tokens: []
 		});
+
+		TokenBalancesController.update({ contractBalances: {} });
+		TokenRatesController.update({ contractExchangeRates: {} });
 
 		TransactionController.update({
 			internalTransactions: [],
