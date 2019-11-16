@@ -8,7 +8,8 @@ buildscript {
 		compileSdkVersion = 28
 		targetSdkVersion = 28
 		supportLibVersion = "28.0.0"
-		kotlinVersion = '1.3.0'
+		kotlin_version = "1.3.50"
+		kotlinVersion = "$kotlin_version"
 	}
     repositories {
         google()
@@ -38,6 +39,10 @@ allprojects {
 		maven {
 			url "https://jitpack.io"
 		}
+		maven {
+            // All of Detox' artifacts are provided via the npm module
+            url "$rootDir/../node_modules/detox/Detox-android"
+        }
     }
 
 	subprojects {
