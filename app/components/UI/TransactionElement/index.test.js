@@ -16,7 +16,8 @@ describe('TransactionElement', () => {
 					},
 					NetworkController: {
 						provider: {
-							ticker: 'ETH'
+							ticker: 'ETH',
+							type: 'mainnet'
 						}
 					}
 				}

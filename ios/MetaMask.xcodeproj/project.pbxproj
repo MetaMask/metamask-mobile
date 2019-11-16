@@ -2510,7 +2510,6 @@
 					"$(SRCROOT)/../node_modules/react-native-camera/ios/**",
 					"$(SRCROOT)/../node_modules/react-native-i18n/ios",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
-					"$(SRCROOT)/../node_modules/react-native-web3-webview/ios",
 					"$(SRCROOT)/../node_modules/react-native-branch/ios/**",
 					"$(SRCROOT)/../node_modules/react-native-screens/ios",
 					"$(SRCROOT)/../node_modules/react-native-gesture-handler/ios/**",
@@ -2537,7 +2536,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 					"\"$(SRCROOT)/MetaMask\"",
 				);
-				MARKETING_VERSION = 0.2.9;
+				MARKETING_VERSION = 0.2.10;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -2578,7 +2577,6 @@
 					"$(SRCROOT)/../node_modules/react-native-camera/ios/**",
 					"$(SRCROOT)/../node_modules/react-native-i18n/ios",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
-					"$(SRCROOT)/../node_modules/react-native-web3-webview/ios",
 					"$(SRCROOT)/../node_modules/react-native-branch/ios/**",
 					"$(SRCROOT)/../node_modules/react-native-screens/ios",
 					"$(SRCROOT)/../node_modules/react-native-gesture-handler/ios/**",
@@ -2605,7 +2603,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 					"\"$(SRCROOT)/MetaMask\"",
 				);
-				MARKETING_VERSION = 0.2.9;
+				MARKETING_VERSION = 0.2.10;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

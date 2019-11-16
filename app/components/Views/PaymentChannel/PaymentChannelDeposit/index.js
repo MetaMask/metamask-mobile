@@ -40,7 +40,7 @@ import { getTicker } from '../../../../util/transactions';
 import Modal from 'react-native-modal';
 import AddressQRCode from '../../AddressQRCode';
 
-const DAI_LOGO = contractMap[AppConstants.DAI_ADDRESS].logo;
+const DAI_LOGO = contractMap[AppConstants.SAI_ADDRESS].logo;
 
 const TOO_LOW = 'too_low';
 const TOO_HIGH = 'too_high';

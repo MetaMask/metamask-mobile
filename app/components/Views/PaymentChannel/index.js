@@ -35,7 +35,7 @@ import { withNavigationFocus } from 'react-navigation';
 import { showAlert } from '../../../actions/alert';
 import AddressQRCode from '../AddressQRCode';
 
-const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
+const SAI_ADDRESS = AppConstants.SAI_ADDRESS;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -472,7 +472,7 @@ class PaymentChannel extends PureComponent {
 			address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
 			decimals: 18,
 			logo: 'dai.svg',
-			symbol: 'DAI'
+			symbol: 'SAI'
 		});
 		this.props.navigation.navigate('PaymentChannelSend');
 	};
@@ -488,11 +488,11 @@ class PaymentChannel extends PureComponent {
 		const noFunds = this.state.balance === '0.00';
 		let mainBalance, secondaryBalance;
 		if (this.props.primaryCurrency === 'ETH') {
-			mainBalance = balance + ' ' + strings('unit.dai');
+			mainBalance = balance + ' ' + strings('unit.sai');
 			secondaryBalance = balanceFiat;
 		} else {
 			mainBalance = balanceFiat;
-			secondaryBalance = balance + ' ' + strings('unit.dai');
+			secondaryBalance = balance + ' ' + strings('unit.sai');
 		}
 		return (
 			<View style={styles.data}>
@@ -557,14 +557,14 @@ class PaymentChannel extends PureComponent {
 		const { TokenRatesController } = Engine.context;
 		const { nativeCurrency, currentCurrency, contractExchangeRates, conversionRate } = this.props;
 		let exchangeRate;
-		if (Object.keys(contractExchangeRates).includes(DAI_ADDRESS)) {
-			exchangeRate = contractExchangeRates[DAI_ADDRESS];
+		if (Object.keys(contractExchangeRates).includes(SAI_ADDRESS)) {
+			exchangeRate = contractExchangeRates[SAI_ADDRESS];
 		} else {
 			const res = await TokenRatesController.fetchExchangeRate(
-				`contract_addresses=${DAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
+				`contract_addresses=${SAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
 			);
-			if (!!res && Object.keys(res).includes(DAI_ADDRESS)) {
-				exchangeRate = res[DAI_ADDRESS][nativeCurrency.toLowerCase()];
+			if (!!res && Object.keys(res).includes(SAI_ADDRESS)) {
+				exchangeRate = res[SAI_ADDRESS][nativeCurrency.toLowerCase()];
 			}
 		}
 

@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "private": true,
   "scripts": {
     "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && yarn start -- --reset-cache",
@@ -67,7 +67,7 @@
     "buffer": "5.2.1",
     "connext": "4.2.5",
     "content-hash": "2.3.2",
-    "eth-contract-metadata": "1.9.2",
+    "eth-contract-metadata": "1.11.0",
     "eth-ens-namehash": "2.0.8",
     "eth-json-rpc-infura": "4.0.0",
     "eth-url-parser": "1.0.2",
@@ -80,7 +80,7 @@
     "ethjs-unit": "0.1.6",
     "events": "3.0.0",
     "fuse.js": "3.4.4",
-    "gaba": "1.8.2",
+    "gaba": "1.9.0",
     "https-browserify": "0.0.1",
     "lottie-react-native": "git+ssh://git@github.com/brunobar79/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
     "multihashes": "0.4.14",
@@ -130,7 +130,7 @@
     "react-native-v8": "0.59.10-patch.4",
     "react-native-vector-icons": "6.4.2",
     "react-native-view-shot": "git+ssh://git@github.com/brunobar79/react-native-view-shot.git#androidx",
-    "react-native-webview": "git+ssh://git@github.com/brunobar79/react-native-webview.git#1ba21595a484e2713319a54e01aa78743fe92f56",
+    "react-native-webview": "git+ssh://git@github.com/brunobar79/react-native-webview.git#c756513b1f5a635cb49d0cfd01e25ca5c0887678",
     "react-navigation": "4.0.10",
     "react-navigation-drawer": "1.4.0",
     "react-navigation-stack": "1.7.3",
@@ -221,13 +221,17 @@
         "binaryPath": "ios/build/MetaMask/Build/Products/Debug-iphonesimulator/MetaMask.app",
         "build": "yarn start:ios",
         "type": "ios.simulator",
-        "name": "iPhone 11 Pro"
+        "device": {
+          "type": "iPhone 11 Pro"
+        }
       },
       "ios.sim.release": {
         "binaryPath": "ios/build/MetaMask/Build/Products/Release-iphonesimulator/MetaMask.app",
         "build": "yarn build:ios:release",
         "type": "ios.simulator",
-        "name": "iPhone 11 Pro"
+        "device": {
+          "type": "iPhone 11 Pro"
+        }
       },
       "android.emu.debug": {
           "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",

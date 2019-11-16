@@ -313,7 +313,9 @@ class PaymentChannelApproval extends PureComponent {
 						</View>
 						<Text style={styles.intro}>{strings('paymentRequest.is_requesting_you_to_pay')}</Text>
 						<View style={styles.total}>
-							<Text style={styles.totalPrice}>{formattedAmount} DAI</Text>
+							<Text style={styles.totalPrice}>
+								{formattedAmount} {strings(`unit.sai`)}
+							</Text>
 						</View>
 						{detail && (
 							<View style={styles.permissions}>

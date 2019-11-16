@@ -302,8 +302,8 @@
 		"search_engine": "Motor de Búsqueda",
 		"auto_lock": "Bloqueo automático",
 		"auto_lock_desc": "Elige la cantidad de tiempo para que la aplicación se bloquee automáticamente.",
-		"state_logs_desc": "Esto nos ayudará a investigar cualquier problema con la app. Envíalo a mobile@metamask.io",
-		"instapay_state_logs_desc": "Esto nos ayudará a investigar problemas con InstaPay. Envíalo a mobile@metamask.io",
+		"state_logs_desc": "Esto nos ayudará a investigar cualquier problema con la app. Envíalo a support@metamask.io",
+		"instapay_state_logs_desc": "Esto nos ayudará a investigar problemas con InstaPay. Envíalo a support@metamask.io",
 		"autolock_immediately": "Inmediatamente",
 		"autolock_never": "Nunca",
 		"autolock_after": "Luego de {{time}} segundos",
@@ -980,5 +980,11 @@
 	"walletconnect_return_modal": {
 		"title": "Listo!",
 		"text": "Ahora puedes volver a tu navegador"
+	},
+	"sai_migration": {
+		"title": "Un mensaje de MakerDAO",
+		"message": "Parece que tienes Dai en una de tus cuentas. Necesitas migrarlo a su nueva version o será abandonado.",
+		"learn_more": "Mas información",
+		"lets_do_it": "Continuar"
 	}
 }
