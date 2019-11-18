@@ -73,26 +73,6 @@ export const JS_WINDOW_INFORMATION = `
     })();
 `;
 
-export const JS_WINDOW_INFORMATION_HEIGHT = os => `
-	(function () {
-		${getWindowInformation}
-		${
-			os === 'ios'
-				? `setTimeout(() => {
-                    const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
-                    window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(
-                    {
-                        type: 'GET_HEIGHT',
-                        payload: {
-                            height: height
-                        }
-                    }))
-                    }, 500)`
-				: ''
-		}
-	})();
-`;
-
 export const JS_DESELECT_TEXT = `if (window.getSelection) {window.getSelection().removeAllRanges();}
 else if (document.selection) {document.selection.empty();}`;
 
