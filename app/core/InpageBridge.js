@@ -41,6 +41,12 @@ class InpageBridge {
 		const oldNetwork = this._network;
 		this._selectedAddress = state.selectedAddress && state.selectedAddress.toLowerCase();
 		this._network = state.network;
+		this.selectedAddress = this._selectedAddress;
+		this.networkVersion = this._network;
+		if (!isNaN(this._network)) {
+			this.chainId = 'Ox' + parseInt(this._network, 10).toString(16);
+		}
+
 		oldAddress !== undefined &&
 			this._selectedAddress !== oldAddress &&
 			this.emit('accountsChanged', [this._selectedAddress]);
@@ -146,6 +152,9 @@ class InpageBridge {
 		this._connected = false;
 		this.events = {};
 		this.isMetaMask = true;
+		this.networkVersion = undefined;
+		this.chainId = undefined;
+		this.selectedAddress = undefined;
 		this._network = undefined; // INITIAL_NETWORK
 		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
 		this._subscribe();
