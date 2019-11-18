@@ -1,8 +1,8 @@
 export default class TestHelpers {
-	static async waitAndTap(elementId) {
+	static async waitAndTap(elementId, timeout) {
 		await waitFor(element(by.id(elementId)))
 			.toBeVisible()
-			.withTimeout(8000);
+			.withTimeout(timeout || 8000);
 
 		return element(by.id(elementId)).tap();
 	}
@@ -22,18 +22,18 @@ export default class TestHelpers {
 	}
 
 	static async typeText(elementId, text) {
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.waitAndTap(elementId);
-		} else {
-			await TestHelpers.tap(elementId);
-		}
+		// if (device.getPlatform() === 'android') {
+		// 	await TestHelpers.waitAndTap(elementId);
+		// } else {
+		await TestHelpers.tap(elementId);
+		//}
 		return element(by.id(elementId)).typeText(text);
 	}
 
 	static async typeNumbers(elementId, text, submitLabel) {
-		if (device.getPlatform() === 'android') {
-			return TestHelpers.typeText(elementId, text);
-		}
+		// if (device.getPlatform() === 'android') {
+		// 	return TestHelpers.typeText(elementId, text);
+		// }
 
 		await element(by.id(elementId)).replaceText(text.replace('\n', ''));
 		return element(by.label(submitLabel))
@@ -42,10 +42,13 @@ export default class TestHelpers {
 	}
 
 	static async typeTextAndHideKeyboard(elementId, text) {
-		await TestHelpers.typeText(elementId, text + '\n');
 		if (device.getPlatform() === 'android') {
-			device.pressBack();
+			await TestHelpers.clearField(elementId);
 		}
+		await TestHelpers.typeText(elementId, text + '\n');
+		// if (device.getPlatform() === 'android') {
+		// 	device.pressBack();
+		// }
 	}
 
 	static async clearField(elementId) {
