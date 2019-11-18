@@ -3,7 +3,8 @@
 ## Current Develop Branch
 
 ## v0.2.11 - Nov 18 2019
-- [#1207](https://github.com/MetaMask/metamask-mobile/pull/1207): FIx typo on Import Account screen (#1207)
+- [#1212](https://github.com/MetaMask/metamask-mobile/pull/1212): Provider missing properties (#1212)
+- [#1207](https://github.com/MetaMask/metamask-mobile/pull/1207): Fix typo on Import Account screen (#1207)
 - [#1198](https://github.com/MetaMask/metamask-mobile/pull/1198): Migrate to SAI (#1198)
 
 ## v0.2.10 - Nov 16 2019
