@@ -100,7 +100,11 @@ class Step4 extends PureComponent {
 			<View style={[styles.main, { top: this.state.viewTop }]}>
 				<View style={styles.coachmarkContainer}>
 					<View style={styles.hamburgerContainer}>
-						<TouchableWithoutFeedback style={styles.hamburger} onPress={this.onNext}>
+						<TouchableWithoutFeedback
+							style={styles.hamburger}
+							onPress={this.onNext}
+							testID={'hamburger-menu-button-wallet-fake-af'}
+						>
 							<View style={styles.hamburger} />
 						</TouchableWithoutFeedback>
 					</View>

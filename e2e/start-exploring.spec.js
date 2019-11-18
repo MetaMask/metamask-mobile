@@ -42,7 +42,10 @@ describe('Start Exploring', () => {
 		// Check that I Agree CTA is visible and tap it
 		await TestHelpers.waitAndTap('agree-button');
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
+		if (!device.getPlatform() === 'android') {
+			// Check that we are on the wallet screen
+			await TestHelpers.checkIfExists('wallet-screen');
+		}
 		// Check that the onboarding wizard is present
 		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
 	});
@@ -63,15 +66,18 @@ describe('Start Exploring', () => {
 		// Change account name
 		await TestHelpers.typeTextAndHideKeyboard('account-label-text-input', Account);
 		// Tap outside to implement name change
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 350, y: 37 });
+		await TestHelpers.waitAndTap('wallet-account-identicon');
 		// Check that the account name edit stuck
 		await TestHelpers.checkIfElementHasString('account-label-text-input', Account);
 		// Check that Got it! CTA is visible and tap it
+		if (!device.getPlatform() === 'android') {
+			await TestHelpers.tapByText('Got it!');
+		}
 		await TestHelpers.tapByText('Got it!');
 		// Ensure step 4 is shown correctly
 		await TestHelpers.checkIfVisible('step4-title');
 		// Tap on the menu navigation
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		await TestHelpers.waitAndTap('hamburger-menu-button-wallet-fake-af');
 		// Ensure step 5 is shown correctly
 		await TestHelpers.checkIfVisible('step5-title');
 		// Tap on Back

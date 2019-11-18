@@ -213,6 +213,7 @@ class AccountOverview extends PureComponent {
 							style={styles.identiconBorder}
 							disabled={onboardingWizard}
 							onPress={this.toggleAccountsModal}
+							testID={'wallet-account-identicon'}
 						>
 							<Identicon address={address} size="38" noFadeIn={onboardingWizard} />
 						</TouchableOpacity>
