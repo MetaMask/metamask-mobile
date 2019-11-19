@@ -25,7 +25,10 @@ describe('Browser Tests', () => {
 		// Check that I Agree CTA is visible and tap it
 		await TestHelpers.waitAndTap('agree-button');
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
+		if (!device.getPlatform() === 'android') {
+			// Check that we are on the wallet screen
+			await TestHelpers.checkIfExists('wallet-screen');
+		}
 		// Check that the onboarding wizard is present
 		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
 		// Check that No thanks CTA is visible and tap it
@@ -36,7 +39,7 @@ describe('Browser Tests', () => {
 
 	it('should navigate to browser', async () => {
 		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Browser

@@ -91,7 +91,7 @@ export default class TestHelpers {
 	static checkIfVisible(elementId) {
 		return waitFor(element(by.id(elementId)))
 			.toBeVisible()
-			.withTimeout(10000);
+			.withTimeout(15000);
 	}
 
 	static checkIfNotVisible(elementId) {

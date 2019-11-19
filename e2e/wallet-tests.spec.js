@@ -39,9 +39,14 @@ describe('Wallet Tests', () => {
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
-		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
+		await TestHelpers.waitAndTap('agree-button', 15000);
+		// Should be on wallet screen
+		if (!device.getPlatform() === 'android') {
+			// Check that we are on the wallet screen
+			await TestHelpers.checkIfExists('wallet-screen');
+		}
+		// Check that the onboarding wizard is present
+		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
 		// Check that No thanks CTA is visible and tap it
 		await TestHelpers.waitAndTap('onboarding-wizard-back-button');
 		// Check that the onboarding wizard is gone
@@ -52,23 +57,20 @@ describe('Wallet Tests', () => {
 
 	it('should be able to add new accounts', async () => {
 		// Tap on account icon to prompt modal
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 190, y: 50 });
+		await TestHelpers.tap('wallet-account-identicon');
+		//await TestHelpers.tapAtPoint('wallet-screen', { x: 190, y: 50 });
 		// Check that the account list view is visible
 		await TestHelpers.checkIfVisible('account-list');
 		// Tap on Create New Account
 		await TestHelpers.waitAndTap('create-account-button');
 		// Check if account was added
 		await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
-		// Tap outside modal
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 50, y: 50 });
 	});
 
 	it('should be able to import account', async () => {
-		// Tap on account icon to prompt modal
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 190, y: 50 });
 		// Check that the account list view is visible
 		await TestHelpers.checkIfVisible('account-list');
-		// Tap on Create New Account
+		// Tap to import an account
 		await TestHelpers.waitAndTap('import-account-button');
 		// Check that we are on the import screen
 		await TestHelpers.checkIfVisible('import-account-screen');
@@ -96,7 +98,7 @@ describe('Wallet Tests', () => {
 
 	it('should be able to switch accounts', async () => {
 		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on account button to expand modal
@@ -106,7 +108,7 @@ describe('Wallet Tests', () => {
 		// Switch to account 1
 		await TestHelpers.tapByText('Account 1');
 		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Receive button

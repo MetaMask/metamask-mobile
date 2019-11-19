@@ -1,8 +1,8 @@
 'use strict';
 import TestHelpers from './helpers';
 
-const Correct_Seed_Words = 'fold media south add since false relax immense pause cloth just raven';
-const Correct_Password = `12345678`;
+const CORRECT_SEED_WORDS = 'fold media south add since false relax immense pause cloth just raven';
+const CORRECT_PASSWORD = `12345678`;
 const Ropsten = 'Ropsten Test Network';
 const Ropsten_Faucet = 'https://faucet.metamask.io';
 const CryptoKitties_url = 'https://cryptokitties.co';
@@ -29,17 +29,22 @@ describe('Import seedphrase flow', () => {
 		// Check that we are on the import from seed screen
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input seed phrase
-		await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Correct_Seed_Words);
+		await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, CORRECT_SEED_WORDS);
 		// Input password
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, CORRECT_PASSWORD);
 		// Input password confirm
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, CORRECT_PASSWORD);
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
-		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
+		await TestHelpers.waitAndTap('agree-button', 15000);
+		// Should be on wallet screen
+		if (!device.getPlatform() === 'android') {
+			// Check that we are on the wallet screen
+			await TestHelpers.checkIfExists('wallet-screen');
+		}
+		// Check that the onboarding wizard is present
+		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
 		// Check that No thanks CTA is visible and tap it
 		await TestHelpers.waitAndTap('onboarding-wizard-back-button');
 		// Check that the onboarding wizard is gone
@@ -50,7 +55,7 @@ describe('Import seedphrase flow', () => {
 
 	it('should switch to ropsten network and validate ETH value', async () => {
 		// Tap on Ethereum Main Network to prompt modal
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 200, y: -5 });
+		await TestHelpers.waitAndTap('open-networks-button');
 		// Check that the Networks modal pops up
 		await TestHelpers.checkIfVisible('networks-list');
 		// Tap on Ropsten Test Nework
@@ -63,7 +68,7 @@ describe('Import seedphrase flow', () => {
 
 	it('should go to browser and navigate to MM Ropsten faucet', async () => {
 		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Browser
@@ -126,7 +131,7 @@ describe('Import seedphrase flow', () => {
 		// Dismiss alert
 		await TestHelpers.tapAlertWithButton('No, thanks');
 		// Open Drawer
-		await TestHelpers.tapAtPoint('browser-screen', { x: 30, y: -5 });
+		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Wallet
@@ -139,7 +144,7 @@ describe('Import seedphrase flow', () => {
 
 	it('should log out', async () => {
 		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Log Out

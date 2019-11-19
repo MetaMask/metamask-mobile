@@ -49,8 +49,8 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.clearField('input-seed-phrase');
 		// Input correct seed phrase
 		await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Correct_Seed_Words);
-		// Tap outside of box
 
+		// Input Correct password and Submit
 		if (device.getPlatform() === 'android') {
 			// Input password
 			await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
@@ -66,8 +66,8 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
 		await TestHelpers.waitAndTap('agree-button', 15000);
+		// Should be on wallet screen
 		if (!device.getPlatform() === 'android') {
-			// Check that we are on the wallet screen
 			await TestHelpers.checkIfExists('wallet-screen');
 		}
 		// Check that No thanks CTA is visible and tap it
@@ -76,14 +76,13 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
 		// Open Drawer
 		await TestHelpers.tap('hamburger-menu-button-wallet');
-		//await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
-
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on settings
 		await TestHelpers.tap('settings-button');
 		// Tap on the "Security & Privacy" option
 		await TestHelpers.tapByText('Security & Privacy');
+
 		// Scroll to the bottom
 		if (device.getPlatform() === 'android') {
 			await TestHelpers.swipe('clear-privacy-section', 'up');
