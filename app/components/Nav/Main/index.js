@@ -38,6 +38,7 @@ import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import CollectibleView from '../../Views/CollectibleView';
 import Send from '../../Views/Send';
+import SendFlow from '../../Views/SendFlow';
 import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -239,6 +240,13 @@ const MainNavigator = createStackNavigator(
 			screen: createStackNavigator({
 				Send: {
 					screen: Send
+				}
+			})
+		},
+		SendFlowView: {
+			screen: createStackNavigator({
+				SendFlow: {
+					screen: SendFlow
 				}
 			})
 		},

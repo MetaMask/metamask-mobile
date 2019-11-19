@@ -484,7 +484,7 @@ class DrawerView extends PureComponent {
 	onSend = async () => {
 		const { ticker } = this.props;
 		this.props.setTokensTransaction({ symbol: ticker, isETH: true });
-		this.props.navigation.navigate('SendView');
+		this.props.navigation.navigate('SendFlowView');
 		this.hideDrawer();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
 	};
