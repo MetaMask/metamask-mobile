@@ -1,12 +1,11 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
 import { connect } from 'react-redux';
 import { renderShortAddress } from '../../../../util/address';
 import Networks from '../../../../util/networks';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	root: {
@@ -40,10 +39,25 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		fontSize: 16
 	},
-	myAccountsWrapper: {
-		padding: 16,
+	myAccountsWrapper: {},
+	myAccountsTouchable: {
+		borderBottomWidth: 1,
+		borderBottomColor: colors.grey050,
+		padding: 16
+	},
+	labelElementWrapper: {
+		backgroundColor: colors.grey000,
+		flexDirection: 'row',
 		alignItems: 'center',
-		borderBottomWidth: 1
+		borderBottomWidth: 1,
+		borderBottomColor: colors.grey050,
+		padding: 8
+	},
+	labelElementText: {
+		...fontStyles.normal,
+		fontSize: 12,
+		marginHorizontal: 8,
+		color: colors.grey600
 	}
 });
 
@@ -60,6 +74,12 @@ const AddressElement = (address, nickname) => (
 				{renderShortAddress(address)}
 			</Text>
 		</View>
+	</View>
+);
+
+const LabelElement = label => (
+	<View style={styles.labelElementWrapper}>
+		<Text style={styles.labelElementText}>{label}</Text>
 	</View>
 );
 
@@ -98,14 +118,14 @@ class AddressList extends PureComponent {
 			<View style={styles.root}>
 				<View style={styles.myAccountsWrapper}>
 					{!myAccountsOpened ? (
-						<TouchableOpacity onPress={this.openMyAccounts}>
+						<TouchableOpacity style={styles.myAccountsTouchable} onPress={this.openMyAccounts}>
 							<Text style={styles.myAccountsText}>Transfer between my accounts</Text>
 						</TouchableOpacity>
 					) : (
-						Object.keys(identities).map(address => AddressElement(address, address))
+						Object.keys(identities).map(address => AddressElement(address, identities[address].name))
 					)}
 				</View>
-				<Text>List</Text>
+				{LabelElement('Recents')}
 				{Object.keys(networkAddressBook).map(address =>
 					AddressElement(address, networkAddressBook[address].name)
 				)}

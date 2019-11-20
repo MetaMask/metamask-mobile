@@ -46,7 +46,12 @@ const styles = StyleSheet.create({
 	},
 	label: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
+		width: '12%'
+	},
+	labelText: {
+		...fontStyles.normal,
+		fontSize: 16
 	},
 	textInput: {
 		backgroundColor: colors.white,
@@ -68,7 +73,7 @@ const styles = StyleSheet.create({
 const AddressTo = () => (
 	<View style={styles.wrapper}>
 		<View style={styles.label}>
-			<Text>To:</Text>
+			<Text style={styles.labelText}>To:</Text>
 		</View>
 		<View style={styles.highlightedArea}>
 			<View style={styles.input}>
