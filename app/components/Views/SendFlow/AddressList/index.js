@@ -6,6 +6,7 @@ import Identicon from '../../../UI/Identicon';
 import { connect } from 'react-redux';
 import { renderShortAddress } from '../../../../util/address';
 import Networks from '../../../../util/networks';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	root: {
@@ -33,6 +34,16 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.grey500
+	},
+	myAccountsText: {
+		...fontStyles.normal,
+		color: colors.blue,
+		fontSize: 16
+	},
+	myAccountsWrapper: {
+		padding: 16,
+		alignItems: 'center',
+		borderBottomWidth: 1
 	}
 });
 
@@ -71,12 +82,29 @@ class AddressList extends PureComponent {
 		providerType: PropTypes.string
 	};
 
+	state = {
+		myAccountsOpened: false
+	};
+
+	openMyAccounts = () => {
+		this.setState({ myAccountsOpened: true });
+	};
+
 	render = () => {
 		const { identities, addressBook, providerType } = this.props;
+		const { myAccountsOpened } = this.state;
 		const networkAddressBook = addressBook[Networks[providerType].networkId] || {};
 		return (
 			<View style={styles.root}>
-				{Object.keys(identities).map(address => AddressElement(address, address))}
+				<View style={styles.myAccountsWrapper}>
+					{!myAccountsOpened ? (
+						<TouchableOpacity onPress={this.openMyAccounts}>
+							<Text style={styles.myAccountsText}>Transfer between my accounts</Text>
+						</TouchableOpacity>
+					) : (
+						Object.keys(identities).map(address => AddressElement(address, address))
+					)}
+				</View>
 				<Text>List</Text>
 				{Object.keys(networkAddressBook).map(address =>
 					AddressElement(address, networkAddressBook[address].name)
