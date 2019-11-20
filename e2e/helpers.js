@@ -11,14 +11,20 @@ export default class TestHelpers {
 		return element(by.id(elementId)).tap();
 	}
 
-	static tapByText(text) {
+	static tapByText(text, index) {
 		return element(by.text(text))
-			.atIndex(0)
+			.atIndex(index || 0)
 			.tap();
 	}
 
 	static tapAtPoint(elementId, point) {
 		return element(by.id(elementId)).tapAtPoint(point);
+	}
+
+	static tapFirstItem(elementID) {
+		return element(by.id(elementID))
+			.atIndex(0)
+			.tap();
 	}
 
 	static async typeText(elementId, text) {
