@@ -3,6 +3,8 @@ import { SafeAreaView, StyleSheet } from 'react-native';
 import { colors } from '../../../styles/common';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import AddressInput from './AddressInput';
+import AddressList from './AddressList';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -16,12 +18,23 @@ const styles = StyleSheet.create({
 export default class SendFlow extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', navigation);
 
-	static propTypes = {};
+	static propTypes = {
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object
+	};
+
+	componentDidMount = () => {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode: 'edit' });
+	};
 
 	render = () => (
 		<SafeAreaView style={styles.wrapper}>
 			<AddressInput addressTo />
 			<AddressInput />
+			<AddressList />
 		</SafeAreaView>
 	);
 }

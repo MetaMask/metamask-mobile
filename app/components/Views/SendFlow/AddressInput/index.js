@@ -11,12 +11,17 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flexDirection: 'row',
+		margin: 8
+	},
+	highlightedArea: {
+		flex: 1,
+		marginLeft: 8,
+		padding: 10,
+		height: 52,
+		flexDirection: 'row',
 		borderColor: colors.grey100,
 		borderWidth: 1,
-		margin: 8,
-		borderRadius: 8,
-		padding: 10,
-		height: 52
+		borderRadius: 8
 	},
 	input: {
 		flex: 1,
@@ -65,26 +70,27 @@ const AddressTo = () => (
 		<View style={styles.label}>
 			<Text>To:</Text>
 		</View>
+		<View style={styles.highlightedArea}>
+			<View style={styles.input}>
+				<TextInput
+					autoCapitalize="none"
+					autoCorrect={false}
+					onChangeText={this.onChange}
+					placeholder={'Search, public address (0x), or ENS'}
+					placeholderTextColor={colors.grey100}
+					spellCheck={false}
+					style={styles.textInput}
+					numberOfLines={1}
+					onBlur={this.onBlur}
+					onFocus={this.onInputFocus}
+					onSubmitEditing={this.onFocus}
+				/>
+			</View>
 
-		<View style={styles.input}>
-			<TextInput
-				autoCapitalize="none"
-				autoCorrect={false}
-				onChangeText={this.onChange}
-				placeholder={'Search, public address (0x), or ENS'}
-				placeholderTextColor={colors.grey100}
-				spellCheck={false}
-				style={styles.textInput}
-				numberOfLines={1}
-				onBlur={this.onBlur}
-				onFocus={this.onInputFocus}
-				onSubmitEditing={this.onFocus}
-			/>
+			<TouchableOpacity onPress={this.scan} style={styles.scanIconWrapper}>
+				<AntIcon name="scan1" size={20} style={styles.scanIcon} />
+			</TouchableOpacity>
 		</View>
-
-		<TouchableOpacity onPress={this.scan} style={styles.scanIconWrapper}>
-			<AntIcon name="scan1" size={20} style={styles.scanIcon} />
-		</TouchableOpacity>
 	</View>
 );
 
@@ -93,15 +99,16 @@ const AddressFrom = () => (
 		<View style={styles.label}>
 			<Text>From:</Text>
 		</View>
+		<View style={styles.highlightedArea}>
+			<View style={styles.address}>
+				<Text style={styles.textAddress}>0x123...321</Text>
+				<Text style={styles.textBalance}>Balance: 1234</Text>
+			</View>
 
-		<View style={styles.address}>
-			<Text style={styles.textAddress}>0x123...321</Text>
-			<Text style={styles.textBalance}>Balance: 1234</Text>
+			<TouchableOpacity onPress={this.scan} style={styles.scanIcon}>
+				<IonicIcon name={'ios-arrow-down'} size={20} style={styles.backIcon} />
+			</TouchableOpacity>
 		</View>
-
-		<TouchableOpacity onPress={this.scan} style={styles.scanIcon}>
-			<IonicIcon name={'ios-arrow-down'} size={20} style={styles.backIcon} />
-		</TouchableOpacity>
 	</View>
 );
 
