@@ -208,16 +208,22 @@ class TransactionReview extends PureComponent {
 					</Text>
 				</View>
 			);
-		} else {
+		} else if (to) {
 			child = (
 				<Text style={[styles.addressText, styles.addressWrapper]} numberOfLines={1}>
 					{renderAccountName(to, identities)}
 				</Text>
 			);
+		} else {
+			child = (
+				<Text style={[styles.addressText, styles.addressWrapper]} numberOfLines={1}>
+					{strings('transactions.to_contract')}
+				</Text>
+			);
 		}
 		return (
 			<View style={[styles.addressGraphic, styles.toGraphic]}>
-				<Identicon address={to} diameter={18} />
+				{to && <Identicon address={to} diameter={18} />}
 				{child}
 			</View>
 		);
