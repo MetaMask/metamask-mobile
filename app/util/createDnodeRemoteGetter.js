@@ -1,17 +1,16 @@
+export default function createDnodeRemoteGetter(dnode) {
+	let remote;
 
-export default function createDnodeRemoteGetter (dnode) {
-  let remote
+	dnode.once('remote', _remote => {
+		remote = _remote;
+	});
 
-  dnode.once('remote', (_remote) => {
-    remote = _remote
-  })
+	async function getRemote() {
+		if (remote) {
+			return remote;
+		}
+		return await new Promise(resolve => dnode.once('remote', resolve));
+	}
 
-  async function getRemote () {
-    if (remote) {
-      return remote
-    }
-    return await new Promise(resolve => dnode.once('remote', resolve))
-  }
-
-  return getRemote
+	return getRemote;
 }

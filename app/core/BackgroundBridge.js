@@ -22,7 +22,7 @@ const EventEmitter = require('events').EventEmitter;
  */
 
 class Port extends EventEmitter {
-	constructor(window){
+	constructor(window) {
 		super();
 		this._window = window;
 	}
@@ -34,15 +34,14 @@ class Port extends EventEmitter {
 		// send the message to the main window
 		const js = JS_POST_MESSAGE_TO_PROVIDER(msg, origin);
 		this._window && this._window.injectJavaScript(js);
-	}
+	};
 }
 
- export class BackgroundBridge {
-
-
-	constructor(webview){
+export class BackgroundBridge {
+	constructor(webview, middlewares) {
 		this._webviewRef = webview && webview.current;
-		this.provider =  Engine.context.NetworkController.provider;
+		this.middlewares = middlewares;
+		this.provider = Engine.context.NetworkController.provider;
 		this.blockTracker = Engine.context.NetworkController.blockTracker;
 		this.port = new Port(this._webviewRef);
 
@@ -50,46 +49,40 @@ class Port extends EventEmitter {
 
 		const portStream = new MobilePortStream(this.port);
 		// setup multiplexing
-		const mux = setupMultiplex(portStream)
+		const mux = setupMultiplex(portStream);
 		// connect features
-		const publicApi = this.setupPublicApi(mux.createStream('publicApi'))
-		this.setupProviderConnection(mux.createStream('provider'), senderUrl, publicApi)
-
+		const publicApi = this.setupPublicApi(mux.createStream('publicApi'));
+		this.setupProviderConnection(mux.createStream('provider'), senderUrl, publicApi);
 	}
 
-	onMessage = (msg) => {
+	onMessage = msg => {
 		console.log('BGBridge::onMessage', msg);
-		this.port.emit('message', {name: msg.name, data: msg.data })
-	}
+		this.port.emit('message', { name: msg.name, data: msg.data });
+	};
 
 	onDisconnect = () => {
-		this.port.emit('disconnect', {name: this.port.name, data: null });
-	}
+		this.port.emit('disconnect', { name: this.port.name, data: null });
+	};
 
-	setupPublicApi (outStream) {
-		const dnode = Dnode()
+	setupPublicApi(outStream) {
+		const dnode = Dnode();
 		// connect dnode api to remote connection
-		pump(
-			outStream,
-			dnode,
-			outStream,
-			(err) => {
-				// report any error
-				if (err) console.warn(err)
-			}
-		)
+		pump(outStream, dnode, outStream, err => {
+			// report any error
+			if (err) console.warn(err);
+		});
 
-		const getRemote = createDnodeRemoteGetter(dnode)
+		const getRemote = createDnodeRemoteGetter(dnode);
 
 		const publicApi = {
 			// wrap with an await remote
 			getSiteMetadata: async () => {
-				const remote = await getRemote()
-				return await pify(remote.getSiteMetadata)()
-			},
-		}
+				const remote = await getRemote();
+				return await pify(remote.getSiteMetadata)();
+			}
+		};
 
-		return publicApi
+		return publicApi;
 	}
 
 	/**
@@ -100,93 +93,60 @@ class Port extends EventEmitter {
 	 * resource is an extension.
 	 * @param {object} publicApi - The public API
 	 */
-	setupProviderConnection (outStream, senderUrl, publicApi) {
-		const getSiteMetadata = publicApi && publicApi.getSiteMetadata
-		const engine = this.setupProviderEngine(senderUrl, getSiteMetadata)
+	setupProviderConnection(outStream, senderUrl, publicApi) {
+		const getSiteMetadata = publicApi && publicApi.getSiteMetadata;
+		const engine = this.setupProviderEngine(senderUrl, getSiteMetadata);
 
 		// setup connection
-		const providerStream = createEngineStream({ engine })
+		const providerStream = createEngineStream({ engine });
 
-		pump(
-			outStream,
-			providerStream,
-			outStream,
-			(err) => {
-				// handle any middleware cleanup
-				engine._middleware.forEach((mid) => {
+		pump(outStream, providerStream, outStream, err => {
+			// handle any middleware cleanup
+			engine._middleware.forEach(mid => {
 				if (mid.destroy && typeof mid.destroy === 'function') {
-					mid.destroy()
+					mid.destroy();
 				}
-				})
-				if (err) console.warn(err)
-			}
-		)
+			});
+			if (err) console.warn(err);
+		});
 	}
 
 	/**
 	 * A method for creating a provider that is safely restricted for the requesting domain.
 	 **/
-	setupProviderEngine (senderUrl, getSiteMetadata) {
-		const origin = senderUrl.hostname
+	setupProviderEngine(senderUrl, getSiteMetadata) {
+		const origin = senderUrl.hostname;
 		// setup json rpc engine stack
-		const engine = new RpcEngine()
-		const provider = this.provider
+		const engine = new RpcEngine();
+		const provider = this.provider;
 
-		const blockTracker = this.blockTracker
+		const blockTracker = this.blockTracker;
 
 		// create filter polyfill middleware
-		const filterMiddleware = createFilterMiddleware({ provider, blockTracker })
+		const filterMiddleware = createFilterMiddleware({ provider, blockTracker });
 
 		// create subscription polyfill middleware
-		const subscriptionManager = createSubscriptionManager({ provider, blockTracker })
-		subscriptionManager.events.on('notification', (message) => engine.emit('notification', message))
+		const subscriptionManager = createSubscriptionManager({ provider, blockTracker });
+		subscriptionManager.events.on('notification', message => engine.emit('notification', message));
 
 		// metadata
-		engine.push(createOriginMiddleware({ origin }))
-		engine.push(createLoggerMiddleware({ origin }))
+		engine.push(createOriginMiddleware({ origin }));
+		engine.push(createLoggerMiddleware({ origin }));
 		// filter and subscription polyfills
-		engine.push(filterMiddleware)
-		engine.push(subscriptionManager.middleware)
+		engine.push(filterMiddleware);
+		engine.push(subscriptionManager.middleware);
 		// watch asset
 
 		// MISSING
 		//engine.push(this.preferencesController.requestWatchAsset.bind(this.preferencesController))
 
 		// requestAccounts
-		// MISSING
-		// engine.push(this.providerApprovalController.createMiddleware({
-		// 	senderUrl,
-		// 	extensionId,
-		// 	getSiteMetadata,
-		// }))
-
+		engine.push(this.middlewares.eth_requestAccounts(senderUrl));
 
 		// forward to metamask primary provider
-		engine.push(providerAsMiddleware(provider))
-		return engine
+		engine.push(providerAsMiddleware(provider));
+		return engine;
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	// _engine;
 	// _rpcOverrides;

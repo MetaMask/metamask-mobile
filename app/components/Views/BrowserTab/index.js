@@ -53,13 +53,15 @@ import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
-import { resemblesAddress } from '../../../util/address';
+//import { resemblesAddress } from '../../../util/address';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
+const createAsyncMiddleware = require('json-rpc-engine/src/createAsyncMiddleware')
+const { errors: rpcErrors } = require('eth-json-rpc-errors')
 const { HOMEPAGE_URL, USER_AGENT } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 
@@ -448,7 +450,31 @@ export class BrowserTab extends PureComponent {
 	}
 
 	initializeBackgroundBridge = () => {
-		this.backgroundBridge = new BackgroundBridge(this.webview);
+		this.backgroundBridge = new BackgroundBridge(this.webview, {
+			eth_requestAccounts: (senderUrl) => createAsyncMiddleware(async (req, res, next) => {
+				if (req.method !== 'eth_requestAccounts') return next()
+				const { hostname } = senderUrl;
+				const { params } = req;
+				const { approvedHosts, privacyMode, selectedAddress } = this.props;
+				if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
+					res.result = [selectedAddress];
+				} else {
+					setTimeout(async () => {
+						await this.getPageMeta();
+						this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
+					}, 1000);
+					const approved =  await new Promise((resolve, reject) => {
+						this.approvalRequest = { resolve, reject };
+					});
+					if (approved) {
+						res.result = [selectedAddress];
+					} else {
+						throw rpcErrors.eth.userRejectedRequest('User denied account authorization')
+					}
+				}
+			}),
+			// OTHER MIDDLEWARES HERE
+		});
 
 		// this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
 		// 	eth_sign: async payload => {
@@ -1246,14 +1272,13 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
-
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
 			if (!data || (!data.type && !data.name)) {
 				return;
 			}
 			console.log('BrowserTab::onMessage: ', data);
-			if(data.name){
+			if (data.name) {
 				this.backgroundBridge.onMessage(data);
 				return;
 			}
