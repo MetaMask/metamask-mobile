@@ -448,296 +448,298 @@ export class BrowserTab extends PureComponent {
 	}
 
 	initializeBackgroundBridge = () => {
-		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
-			eth_sign: async payload => {
-				const { MessageManager } = Engine.context;
-				try {
-					const pageMeta = await this.getPageMeta();
-					const rawSig = await MessageManager.addUnapprovedMessageAsync({
-						data: payload.params[1],
-						from: payload.params[0],
-						...pageMeta
-					});
+		this.backgroundBridge = new BackgroundBridge(this.webview);
 
-					return (
-						!this.isReloading &&
-						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				} catch (error) {
-					return (
-						!this.isReloading &&
-						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				}
-			},
-			personal_sign: async payload => {
-				const { PersonalMessageManager } = Engine.context;
-				try {
-					const firstParam = payload.params[0];
-					const secondParam = payload.params[1];
-					const params = {
-						data: firstParam,
-						from: secondParam
-					};
-					if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
-						params.data = secondParam;
-						params.from = firstParam;
-					}
-					const pageMeta = await this.getPageMeta();
-					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-						...params,
-						...pageMeta
-					});
-					return (
-						!this.isReloading &&
-						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				} catch (error) {
-					return (
-						!this.isReloading &&
-						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				}
-			},
-			eth_signTypedData: async payload => {
-				const { TypedMessageManager } = Engine.context;
-				try {
-					const pageMeta = await this.getPageMeta();
-					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-						{
-							data: payload.params[0],
-							from: payload.params[1],
-							...pageMeta
-						},
-						'V1'
-					);
-					return (
-						!this.isReloading &&
-						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				} catch (error) {
-					return (
-						!this.isReloading &&
-						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				}
-			},
-			eth_signTypedData_v3: async payload => {
-				const { TypedMessageManager } = Engine.context;
+		// this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
+		// 	eth_sign: async payload => {
+		// 		const { MessageManager } = Engine.context;
+		// 		try {
+		// 			const pageMeta = await this.getPageMeta();
+		// 			const rawSig = await MessageManager.addUnapprovedMessageAsync({
+		// 				data: payload.params[1],
+		// 				from: payload.params[0],
+		// 				...pageMeta
+		// 			});
 
-				let data;
-				try {
-					data = JSON.parse(payload.params[1]);
-				} catch (e) {
-					throw new Error('Data must be passed as a valid JSON string.');
-				}
-				const chainId = data.domain.chainId;
-				const activeChainId =
-					this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
+		// 			return (
+		// 				!this.isReloading &&
+		// 				Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+		// 			);
+		// 		} catch (error) {
+		// 			return (
+		// 				!this.isReloading &&
+		// 				Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+		// 			);
+		// 		}
+		// 	},
+		// 	personal_sign: async payload => {
+		// 		const { PersonalMessageManager } = Engine.context;
+		// 		try {
+		// 			const firstParam = payload.params[0];
+		// 			const secondParam = payload.params[1];
+		// 			const params = {
+		// 				data: firstParam,
+		// 				from: secondParam
+		// 			};
+		// 			if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
+		// 				params.data = secondParam;
+		// 				params.from = firstParam;
+		// 			}
+		// 			const pageMeta = await this.getPageMeta();
+		// 			const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+		// 				...params,
+		// 				...pageMeta
+		// 			});
+		// 			return (
+		// 				!this.isReloading &&
+		// 				Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+		// 			);
+		// 		} catch (error) {
+		// 			return (
+		// 				!this.isReloading &&
+		// 				Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+		// 			);
+		// 		}
+		// 	},
+		// 	eth_signTypedData: async payload => {
+		// 		const { TypedMessageManager } = Engine.context;
+		// 		try {
+		// 			const pageMeta = await this.getPageMeta();
+		// 			const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+		// 				{
+		// 					data: payload.params[0],
+		// 					from: payload.params[1],
+		// 					...pageMeta
+		// 				},
+		// 				'V1'
+		// 			);
+		// 			return (
+		// 				!this.isReloading &&
+		// 				Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+		// 			);
+		// 		} catch (error) {
+		// 			return (
+		// 				!this.isReloading &&
+		// 				Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+		// 			);
+		// 		}
+		// 	},
+		// 	eth_signTypedData_v3: async payload => {
+		// 		const { TypedMessageManager } = Engine.context;
 
-				// eslint-disable-next-line eqeqeq
-				if (chainId && chainId != activeChainId) {
-					throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
-				}
+		// 		let data;
+		// 		try {
+		// 			data = JSON.parse(payload.params[1]);
+		// 		} catch (e) {
+		// 			throw new Error('Data must be passed as a valid JSON string.');
+		// 		}
+		// 		const chainId = data.domain.chainId;
+		// 		const activeChainId =
+		// 			this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
 
-				try {
-					const pageMeta = await this.getPageMeta();
-					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-						{
-							data: payload.params[1],
-							from: payload.params[0],
-							...pageMeta
-						},
-						'V3'
-					);
-					return (
-						!this.isReloading &&
-						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				} catch (error) {
-					return (
-						!this.isReloading &&
-						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				}
-			},
-			eth_signTypedData_v4: async payload => {
-				const { TypedMessageManager } = Engine.context;
+		// 		// eslint-disable-next-line eqeqeq
+		// 		if (chainId && chainId != activeChainId) {
+		// 			throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
+		// 		}
 
-				let data;
-				try {
-					data = JSON.parse(payload.params[1]);
-				} catch (e) {
-					throw new Error('Data must be passed as a valid JSON string.');
-				}
+		// 		try {
+		// 			const pageMeta = await this.getPageMeta();
+		// 			const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+		// 				{
+		// 					data: payload.params[1],
+		// 					from: payload.params[0],
+		// 					...pageMeta
+		// 				},
+		// 				'V3'
+		// 			);
+		// 			return (
+		// 				!this.isReloading &&
+		// 				Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+		// 			);
+		// 		} catch (error) {
+		// 			return (
+		// 				!this.isReloading &&
+		// 				Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+		// 			);
+		// 		}
+		// 	},
+		// 	eth_signTypedData_v4: async payload => {
+		// 		const { TypedMessageManager } = Engine.context;
 
-				const chainId = data.domain.chainId;
-				const activeChainId =
-					this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
+		// 		let data;
+		// 		try {
+		// 			data = JSON.parse(payload.params[1]);
+		// 		} catch (e) {
+		// 			throw new Error('Data must be passed as a valid JSON string.');
+		// 		}
 
-				if (chainId && chainId !== activeChainId) {
-					throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
-				}
+		// 		const chainId = data.domain.chainId;
+		// 		const activeChainId =
+		// 			this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
 
-				try {
-					const pageMeta = await this.getPageMeta();
-					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-						{
-							data: payload.params[1],
-							from: payload.params[0],
-							...pageMeta
-						},
-						'V4'
-					);
-					return (
-						!this.isReloading &&
-						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				} catch (error) {
-					return (
-						!this.isReloading &&
-						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				}
-			},
-			eth_requestAccounts: ({ hostname, params }) => {
-				const { approvedHosts, privacyMode, selectedAddress } = this.props;
-				const promise = new Promise((resolve, reject) => {
-					this.approvalRequest = { resolve, reject };
-				});
-				if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
-					this.approvalRequest.resolve([selectedAddress]);
-					//if not approved previously
-					if (!this.backgroundBridge._accounts) {
-						this.backgroundBridge.enableAccounts();
-					}
-				} else {
-					// Let the damn website load first!
-					// Otherwise we don't get enough time to load the metadata
-					// (title, icon, etc)
+		// 		if (chainId && chainId !== activeChainId) {
+		// 			throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
+		// 		}
 
-					setTimeout(async () => {
-						await this.getPageMeta();
-						this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
-					}, 1000);
-				}
-				return !this.isReloading && promise;
-			},
-			eth_accounts: ({ id, jsonrpc, hostname }) => {
-				const { approvedHosts, privacyMode, selectedAddress } = this.props;
-				const isEnabled = !privacyMode || approvedHosts[hostname];
-				const promise = new Promise((resolve, reject) => {
-					this.accountsRequest = { resolve, reject };
-				});
-				if (isEnabled) {
-					this.accountsRequest.resolve({ id, jsonrpc, result: [selectedAddress] });
-				} else {
-					this.accountsRequest.resolve({ id, jsonrpc, result: [] });
-				}
-				return !this.isReloading && promise;
-			},
-			net_version: payload =>
-				!this.isReloading &&
-				Promise.resolve({
-					result: `${Networks[this.props.networkType].networkId}`,
-					jsonrpc: payload.jsonrpc,
-					id: payload.id
-				}),
-			web3_clientVersion: payload =>
-				!this.isReloading &&
-				Promise.resolve({
-					result: `MetaMask/${this.props.app_version}/Beta/Mobile`,
-					jsonrpc: payload.jsonrpc,
-					id: payload.id
-				}),
-			wallet_scanQRCode: payload => {
-				const promise = new Promise((resolve, reject) => {
-					this.props.navigation.navigate('QRScanner', {
-						onScanSuccess: data => {
-							let result = data;
-							if (data.target_address) {
-								result = data.target_address;
-							} else if (data.scheme) {
-								result = JSON.stringify(data);
-							}
-							resolve({ result, jsonrpc: payload.jsonrpc, id: payload.id });
-						},
-						onScanError: e => {
-							reject({ errir: e.toString(), jsonrpc: payload.jsonrpc, id: payload.id });
-						}
-					});
-				});
-				return !this.isReloading && promise;
-			},
-			wallet_watchAsset: async ({ params }) => {
-				const {
-					options: { address, decimals, image, symbol },
-					type
-				} = params;
-				const { AssetsController } = Engine.context;
-				const suggestionResult = await AssetsController.watchAsset({ address, symbol, decimals, image }, type);
-				return !this.isReloading && suggestionResult.result;
-			},
-			metamask_isApproved: async ({ hostname }) =>
-				!this.isReloading && {
-					isApproved: !!this.props.approvedHosts[hostname]
-				},
-			metamask_removeFavorite: ({ params }) => {
-				const promise = new Promise((resolve, reject) => {
-					if (!this.isHomepage()) {
-						reject({ error: 'unauthorized' });
-					}
+		// 		try {
+		// 			const pageMeta = await this.getPageMeta();
+		// 			const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+		// 				{
+		// 					data: payload.params[1],
+		// 					from: payload.params[0],
+		// 					...pageMeta
+		// 				},
+		// 				'V4'
+		// 			);
+		// 			return (
+		// 				!this.isReloading &&
+		// 				Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+		// 			);
+		// 		} catch (error) {
+		// 			return (
+		// 				!this.isReloading &&
+		// 				Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+		// 			);
+		// 		}
+		// 	},
+		// 	eth_requestAccounts: ({ hostname, params }) => {
+		// 		const { approvedHosts, privacyMode, selectedAddress } = this.props;
+		// 		const promise = new Promise((resolve, reject) => {
+		// 			this.approvalRequest = { resolve, reject };
+		// 		});
+		// 		if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
+		// 			this.approvalRequest.resolve([selectedAddress]);
+		// 			//if not approved previously
+		// 			if (!this.backgroundBridge._accounts) {
+		// 				this.backgroundBridge.enableAccounts();
+		// 			}
+		// 		} else {
+		// 			// Let the damn website load first!
+		// 			// Otherwise we don't get enough time to load the metadata
+		// 			// (title, icon, etc)
 
-					Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
-						{
-							text: strings('browser.cancel'),
-							onPress: () => {
-								resolve({
-									favorites: this.props.bookmarks
-								});
-							},
-							style: 'cancel'
-						},
-						{
-							text: strings('browser.yes'),
-							onPress: () => {
-								const bookmark = { url: params[0] };
-								this.props.removeBookmark(bookmark);
-								// remove bookmark from homepage
-								this.refreshHomeScripts();
-								resolve({
-									favorites: this.props.bookmarks
-								});
-							}
-						}
-					]);
-				});
-				return !this.isReloading && promise;
-			},
-			metamask_showTutorial: () => {
-				this.wizardScrollAdjusted = false;
-				this.props.setOnboardingWizardStep(1);
-				this.props.navigation.navigate('WalletView');
+		// 			setTimeout(async () => {
+		// 				await this.getPageMeta();
+		// 				this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
+		// 			}, 1000);
+		// 		}
+		// 		return !this.isReloading && promise;
+		// 	},
+		// 	eth_accounts: ({ id, jsonrpc, hostname }) => {
+		// 		const { approvedHosts, privacyMode, selectedAddress } = this.props;
+		// 		const isEnabled = !privacyMode || approvedHosts[hostname];
+		// 		const promise = new Promise((resolve, reject) => {
+		// 			this.accountsRequest = { resolve, reject };
+		// 		});
+		// 		if (isEnabled) {
+		// 			this.accountsRequest.resolve({ id, jsonrpc, result: [selectedAddress] });
+		// 		} else {
+		// 			this.accountsRequest.resolve({ id, jsonrpc, result: [] });
+		// 		}
+		// 		return !this.isReloading && promise;
+		// 	},
+		// 	net_version: payload =>
+		// 		!this.isReloading &&
+		// 		Promise.resolve({
+		// 			result: `${Networks[this.props.networkType].networkId}`,
+		// 			jsonrpc: payload.jsonrpc,
+		// 			id: payload.id
+		// 		}),
+		// 	web3_clientVersion: payload =>
+		// 		!this.isReloading &&
+		// 		Promise.resolve({
+		// 			result: `MetaMask/${this.props.app_version}/Beta/Mobile`,
+		// 			jsonrpc: payload.jsonrpc,
+		// 			id: payload.id
+		// 		}),
+		// 	wallet_scanQRCode: payload => {
+		// 		const promise = new Promise((resolve, reject) => {
+		// 			this.props.navigation.navigate('QRScanner', {
+		// 				onScanSuccess: data => {
+		// 					let result = data;
+		// 					if (data.target_address) {
+		// 						result = data.target_address;
+		// 					} else if (data.scheme) {
+		// 						result = JSON.stringify(data);
+		// 					}
+		// 					resolve({ result, jsonrpc: payload.jsonrpc, id: payload.id });
+		// 				},
+		// 				onScanError: e => {
+		// 					reject({ errir: e.toString(), jsonrpc: payload.jsonrpc, id: payload.id });
+		// 				}
+		// 			});
+		// 		});
+		// 		return !this.isReloading && promise;
+		// 	},
+		// 	wallet_watchAsset: async ({ params }) => {
+		// 		const {
+		// 			options: { address, decimals, image, symbol },
+		// 			type
+		// 		} = params;
+		// 		const { AssetsController } = Engine.context;
+		// 		const suggestionResult = await AssetsController.watchAsset({ address, symbol, decimals, image }, type);
+		// 		return !this.isReloading && suggestionResult.result;
+		// 	},
+		// 	metamask_isApproved: async ({ hostname }) =>
+		// 		!this.isReloading && {
+		// 			isApproved: !!this.props.approvedHosts[hostname]
+		// 		},
+		// 	metamask_removeFavorite: ({ params }) => {
+		// 		const promise = new Promise((resolve, reject) => {
+		// 			if (!this.isHomepage()) {
+		// 				reject({ error: 'unauthorized' });
+		// 			}
 
-				return !this.isReloading && Promise.resolve({ result: true });
-			},
-			metamask_showAutocomplete: () => {
-				this.fromHomepage = true;
-				this.setState(
-					{
-						autocompleteInputValue: ''
-					},
-					() => {
-						this.showUrlModal(true);
-						setTimeout(() => {
-							this.fromHomepage = false;
-						}, 1500);
-					}
-				);
+		// 			Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
+		// 				{
+		// 					text: strings('browser.cancel'),
+		// 					onPress: () => {
+		// 						resolve({
+		// 							favorites: this.props.bookmarks
+		// 						});
+		// 					},
+		// 					style: 'cancel'
+		// 				},
+		// 				{
+		// 					text: strings('browser.yes'),
+		// 					onPress: () => {
+		// 						const bookmark = { url: params[0] };
+		// 						this.props.removeBookmark(bookmark);
+		// 						// remove bookmark from homepage
+		// 						this.refreshHomeScripts();
+		// 						resolve({
+		// 							favorites: this.props.bookmarks
+		// 						});
+		// 					}
+		// 				}
+		// 			]);
+		// 		});
+		// 		return !this.isReloading && promise;
+		// 	},
+		// 	metamask_showTutorial: () => {
+		// 		this.wizardScrollAdjusted = false;
+		// 		this.props.setOnboardingWizardStep(1);
+		// 		this.props.navigation.navigate('WalletView');
 
-				return !this.isReloading && Promise.resolve({ result: true });
-			}
-		});
+		// 		return !this.isReloading && Promise.resolve({ result: true });
+		// 	},
+		// 	metamask_showAutocomplete: () => {
+		// 		this.fromHomepage = true;
+		// 		this.setState(
+		// 			{
+		// 				autocompleteInputValue: ''
+		// 			},
+		// 			() => {
+		// 				this.showUrlModal(true);
+		// 				setTimeout(() => {
+		// 					this.fromHomepage = false;
+		// 				}, 1500);
+		// 			}
+		// 		);
+
+		// 		return !this.isReloading && Promise.resolve({ result: true });
+		// 	}
+		// });
 	};
 
 	init = async () => {
@@ -891,6 +893,7 @@ export class BrowserTab extends PureComponent {
 
 	componentWillUnmount() {
 		this.mounted = false;
+		this.backgroundBridge.onDisconnect();
 		// Remove all Engine listeners
 		Engine.context.AssetsController.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('networkChange', this.reload);
@@ -1243,11 +1246,18 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
+
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
-			if (!data || !data.type) {
+			if (!data || (!data.type && !data.name)) {
 				return;
 			}
+			console.log('BrowserTab::onMessage: ', data);
+			if(data.name){
+				this.backgroundBridge.onMessage(data);
+				return;
+			}
+
 			switch (data.type) {
 				case 'NAV_CHANGE': {
 					const { url, title } = data.payload;
@@ -1262,9 +1272,6 @@ export class BrowserTab extends PureComponent {
 					this.updateTabInfo(data.payload.url);
 					break;
 				}
-				case 'INPAGE_REQUEST':
-					this.backgroundBridge.onMessage(data);
-					break;
 				case 'GET_TITLE_FOR_BOOKMARK':
 					if (data.payload.title) {
 						this.setState({
@@ -1370,10 +1377,10 @@ export class BrowserTab extends PureComponent {
 	};
 
 	waitForBridgeAndEnableAccounts = async () => {
-		while (!this.backgroundBridge) {
-			await new Promise(res => setTimeout(() => res(), 1000));
-		}
-		this.backgroundBridge.enableAccounts();
+		// while (!this.backgroundBridge) {
+		// 	await new Promise(res => setTimeout(() => res(), 1000));
+		// }
+		// this.backgroundBridge.enableAccounts();
 	};
 
 	onLoadEnd = () => {
@@ -1776,7 +1783,6 @@ export class BrowserTab extends PureComponent {
 
 	onLoadStart = ({ nativeEvent }) => {
 		this.initializeBackgroundBridge();
-		this.backgroundBridge && this.backgroundBridge.disableAccounts();
 		// Handle the scenario when going back
 		// from an ENS name
 		if (nativeEvent.navigationType === 'backforward' && nativeEvent.url === this.state.inputValue) {

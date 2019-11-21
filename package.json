@@ -67,9 +67,12 @@
     "buffer": "5.2.1",
     "connext": "4.2.5",
     "content-hash": "2.3.2",
+    "dnode": "^1.2.2",
     "eth-contract-metadata": "1.11.0",
     "eth-ens-namehash": "2.0.8",
+    "eth-json-rpc-filters": "^4.1.1",
     "eth-json-rpc-infura": "4.0.0",
+    "eth-json-rpc-middleware": "^4.3.0",
     "eth-url-parser": "1.0.2",
     "ethereumjs-abi": "0.6.6",
     "ethereumjs-util": "6.1.0",
@@ -82,12 +85,17 @@
     "fuse.js": "3.4.4",
     "gaba": "1.9.0",
     "https-browserify": "0.0.1",
+    "json-rpc-engine": "^5.1.5",
+    "json-rpc-middleware-stream": "^2.1.1",
     "lottie-react-native": "git+ssh://git@github.com/brunobar79/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
+    "obj-multiplex": "^1.0.0",
     "path": "0.12.7",
+    "pify": "^4.0.1",
     "prop-types": "15.7.2",
     "pubnub": "4.24.4",
+    "pump": "^3.0.0",
     "qs": "6.7.0",
     "react": "16.8.3",
     "react-native": "0.59.10",
@@ -141,6 +149,7 @@
     "redux-mock-store": "1.5.3",
     "redux-persist": "5.10.0",
     "stream-browserify": "1.0.0",
+    "through2": "^3.0.1",
     "url": "0.11.0",
     "url-parse": "1.4.4",
     "valid-url": "1.0.9",
@@ -234,21 +243,20 @@
         }
       },
       "android.emu.debug": {
-          "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
-          "build":
-          "source .android.env && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..",
-          "type": "android.emulator",
-          "device": {
-            "avdName": "Pixel_3_API_29"
-          }
+        "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
+        "build": "source .android.env && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..",
+        "type": "android.emulator",
+        "device": {
+          "avdName": "Pixel_3_API_29"
+        }
       },
       "android.emu.release": {
-          "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
-          "build": "source .android.env && cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..",
-          "type": "android.emulator",
-          "device": {
-            "avdName": "Pixel_3_API_29"
-          }
+        "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
+        "build": "source .android.env && cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..",
+        "type": "android.emulator",
+        "device": {
+          "avdName": "Pixel_3_API_29"
+        }
       }
     },
     "runner-config": "e2e/config.json",

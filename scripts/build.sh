@@ -93,8 +93,12 @@ checkParameters(){
 
 
 prebuild(){
-	# Concat InpageBridge + Web3 + setProvider
+	# Import provider
+	cp ../metamask-mobile-provider/dist/index.js app/core/InpageBridge.js
+
+	# Append web3
 	./node_modules/.bin/concat-cli -f app/core/InpageBridge.js node_modules/web3/dist/web3.min.js app/util/setProvider.js -o app/core/InpageBridgeWeb3.js
+
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e .js.env ]
