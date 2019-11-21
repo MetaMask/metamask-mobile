@@ -18,6 +18,7 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import contractMap from 'eth-contract-metadata';
 import AssetIcon from '../AssetIcon';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const FONT_SIZE = PixelRatio.get() < 2 ? 12 : 16;
 const styles = StyleSheet.create({
@@ -223,7 +224,7 @@ class TransactionReview extends PureComponent {
 		}
 		return (
 			<View style={[styles.addressGraphic, styles.toGraphic]}>
-				{to && <Identicon address={to} diameter={18} />}
+				{to ? <Identicon address={to} diameter={18} /> : <FontAwesome name="file-text-o" size={18} />}
 				{child}
 			</View>
 		);
