@@ -1,11 +1,10 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
 import { connect } from 'react-redux';
 import { renderShortAddress } from '../../../../util/address';
-import Networks from '../../../../util/networks';
 
 const styles = StyleSheet.create({
 	root: {
@@ -39,7 +38,9 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		fontSize: 16
 	},
-	myAccountsWrapper: {},
+	myAccountsWrapper: {
+		flexGrow: 1
+	},
 	myAccountsTouchable: {
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050,
@@ -78,7 +79,7 @@ const AddressElement = (address, nickname) => (
 );
 
 const LabelElement = label => (
-	<View style={styles.labelElementWrapper}>
+	<View key={label} style={styles.labelElementWrapper}>
 		<Text style={styles.labelElementText}>{label}</Text>
 	</View>
 );
@@ -97,9 +98,9 @@ class AddressList extends PureComponent {
 		 */
 		addressBook: PropTypes.object,
 		/**
-		 * A string representing the network name
+		 * Network id
 		 */
-		providerType: PropTypes.string
+		network: PropTypes.string
 	};
 
 	state = {
@@ -110,13 +111,28 @@ class AddressList extends PureComponent {
 		this.setState({ myAccountsOpened: true });
 	};
 
+	parseAddressBook = () => {
+		const { addressBook, network } = this.props;
+		const networkAddressBook = addressBook[network] || {};
+		let lastInitial = undefined;
+		const list = [];
+		Object.keys(networkAddressBook).forEach(address => {
+			const name = networkAddressBook[address].name;
+			if (name && name[0] !== lastInitial) {
+				lastInitial = name[0];
+				list.push(LabelElement(name[0]));
+			}
+			list.push(AddressElement(address, networkAddressBook[address].name));
+		});
+		return list;
+	};
+
 	render = () => {
-		const { identities, addressBook, providerType } = this.props;
+		const { identities } = this.props;
 		const { myAccountsOpened } = this.state;
-		const networkAddressBook = addressBook[Networks[providerType].networkId] || {};
 		return (
 			<View style={styles.root}>
-				<View style={styles.myAccountsWrapper}>
+				<ScrollView style={styles.myAccountsWrapper}>
 					{!myAccountsOpened ? (
 						<TouchableOpacity style={styles.myAccountsTouchable} onPress={this.openMyAccounts}>
 							<Text style={styles.myAccountsText}>Transfer between my accounts</Text>
@@ -124,11 +140,9 @@ class AddressList extends PureComponent {
 					) : (
 						Object.keys(identities).map(address => AddressElement(address, identities[address].name))
 					)}
-				</View>
-				{LabelElement('Recents')}
-				{Object.keys(networkAddressBook).map(address =>
-					AddressElement(address, networkAddressBook[address].name)
-				)}
+					{LabelElement('Recents')}
+					{this.parseAddressBook()}
+				</ScrollView>
 			</View>
 		);
 	};
@@ -137,7 +151,7 @@ class AddressList extends PureComponent {
 const mapStateToProps = state => ({
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	network: state.engine.backgroundState.NetworkController.network
 });
 
 export default connect(mapStateToProps)(AddressList);

@@ -1,18 +1,23 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import AddressInput from './AddressInput';
 import AddressList from './AddressList';
 import PropTypes from 'prop-types';
+import { View } from 'react-native';
 
 const styles = StyleSheet.create({
 	wrapper: {
+		flex: 1,
 		backgroundColor: colors.white
 	},
-	addressesWrapper: {
+	imputWrapper: {
+		flex: 0,
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050
+	},
+	addressListWrapper: {
+		flex: 1
 	}
 });
 
@@ -35,12 +40,14 @@ export default class SendFlow extends PureComponent {
 	};
 
 	render = () => (
-		<SafeAreaView style={styles.wrapper}>
-			<View style={styles.addressesWrapper}>
-				<AddressInput addressTo />
+		<View style={styles.wrapper}>
+			<View style={styles.imputWrapper}>
 				<AddressInput />
+				<AddressInput addressTo />
 			</View>
-			<AddressList />
-		</SafeAreaView>
+			<View style={styles.addressListWrapper}>
+				<AddressList />
+			</View>
+		</View>
 	);
 }
