@@ -30,6 +30,7 @@ import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import AppInformation from '../../Views/Settings/AppInformation';
+import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import TransactionsView from '../../Views/TransactionsView';
 import SyncWithExtension from '../../Views/SyncWithExtension';
@@ -203,6 +204,9 @@ const MainNavigator = createStackNavigator(
 				},
 				CompanySettings: {
 					screen: AppInformation
+				},
+				Contacts: {
+					screen: Contacts
 				},
 				SyncWithExtensionView: {
 					screen: SyncWithExtension
