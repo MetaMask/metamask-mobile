@@ -380,7 +380,7 @@ class TransactionEdit extends PureComponent {
 					onTouchablePress={this.closeDropdowns}
 					keyboardShouldPersistTaps={'handled'}
 				>
-					<View style={[styles.form, Platform.OS === 'android' && !showHexData ? styles.androidForm : {}]}>
+					<View style={[styles.form, Platform.OS === 'android' ? styles.androidForm : {}]}>
 						<View style={[styles.formRow, styles.fromRow]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.from')}:</Text>
