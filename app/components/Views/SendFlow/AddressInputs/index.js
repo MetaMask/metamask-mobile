@@ -4,6 +4,7 @@ import { colors, fontStyles } from '../../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
+import Identicon from '../../../UI/Identicon';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'column',
 		alignItems: 'flex-start',
-		marginHorizontal: 6
+		marginHorizontal: 8
 	},
 	textAddress: {
 		...fontStyles.normal,
@@ -125,13 +126,14 @@ AddressTo.propTypes = {
 };
 
 export const AddressFrom = props => {
-	const { highlighted, onPressIcon, fromAccountName, fromAccountBalance } = props;
+	const { highlighted, onPressIcon, fromAccountName, fromAccountBalance, fromAccountAddress } = props;
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
 				<Text>From:</Text>
 			</View>
 			<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
+				<Identicon address={fromAccountAddress} diameter={30} />
 				<View style={styles.address}>
 					<Text style={styles.textAddress}>{fromAccountName}</Text>
 					<Text style={styles.textBalance}>{`Balance: ${fromAccountBalance}`}</Text>
@@ -158,6 +160,10 @@ AddressFrom.propTypes = {
 	 * Callback to execute when icon is pressed
 	 */
 	onPressIcon: PropTypes.func,
+	/**
+	 * Address of selected address as string
+	 */
+	fromAccountAddress: PropTypes.string,
 	/**
 	 * Name of selected address as string
 	 */

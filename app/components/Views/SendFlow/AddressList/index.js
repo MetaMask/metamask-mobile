@@ -120,7 +120,7 @@ class AddressList extends PureComponent {
 			const name = networkAddressBook[address].name;
 			if (name && name[0] !== lastInitial) {
 				lastInitial = name[0];
-				list.push(LabelElement(name[0]));
+				list.push(LabelElement(name[0].toUpperCase()));
 			}
 			list.push(AddressElement(address, networkAddressBook[address].name));
 		});

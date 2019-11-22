@@ -97,6 +97,7 @@ class SendFlow extends PureComponent {
 				<View style={styles.imputWrapper}>
 					<AddressFrom
 						onPressIcon={this.toggleFromAccountModal}
+						fromAccountAddress={fromSelectedAddress}
 						fromAccountName={fromAccountName}
 						fromAccountBalance={fromAccountBalance}
 					/>
