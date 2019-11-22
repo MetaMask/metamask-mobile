@@ -1,10 +1,10 @@
 import React, { PureComponent } from 'react';
 import { colors } from '../../../styles/common';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
-import AddressInput from './AddressInput';
 import AddressList from './AddressList';
 import PropTypes from 'prop-types';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { AddressFrom, AddressTo } from './AddressInputs';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -42,8 +42,8 @@ export default class SendFlow extends PureComponent {
 	render = () => (
 		<View style={styles.wrapper}>
 			<View style={styles.imputWrapper}>
-				<AddressInput />
-				<AddressInput addressTo />
+				<AddressFrom />
+				<AddressTo highlighted />
 			</View>
 			<View style={styles.addressListWrapper}>
 				<AddressList />
