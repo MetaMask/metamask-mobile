@@ -145,7 +145,7 @@ class AddressList extends PureComponent {
 	};
 
 	render = () => {
-		const { identities } = this.props;
+		const { identities, onAccountPress } = this.props;
 		const { myAccountsOpened } = this.state;
 		return (
 			<View style={styles.root}>
@@ -155,7 +155,9 @@ class AddressList extends PureComponent {
 							<Text style={styles.myAccountsText}>Transfer between my accounts</Text>
 						</TouchableOpacity>
 					) : (
-						Object.keys(identities).map(address => AddressElement(address, identities[address].name))
+						Object.keys(identities).map(address =>
+							AddressElement(address, identities[address].name, onAccountPress)
+						)
 					)}
 					{LabelElement('Recents')}
 					{this.parseAddressBook()}

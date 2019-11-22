@@ -165,11 +165,11 @@ class SendFlow extends PureComponent {
 	};
 
 	onToSelectedAddressChange = toSelectedAddress => {
-		const { addressBook, network } = this.props;
+		const { addressBook, network, identities } = this.props;
 		const networkAddressBook = addressBook[network] || {};
 
 		if (isValidAddress(toSelectedAddress)) {
-			if (networkAddressBook[toSelectedAddress]) {
+			if (networkAddressBook[toSelectedAddress] || identities[toSelectedAddress]) {
 				// In address book, pass to send
 				this.setState({ addToAddressToAddressBook: false });
 			} else {
