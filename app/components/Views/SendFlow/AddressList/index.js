@@ -62,8 +62,12 @@ const styles = StyleSheet.create({
 	}
 });
 
-const AddressElement = (address, nickname) => (
-	<View key={address} style={styles.addressElementWrapper}>
+const AddressElement = (address, nickname, onAccountPress) => (
+	<TouchableOpacity
+		onPress={() => onAccountPress(address)} /* eslint-disable-line */
+		key={address}
+		style={styles.addressElementWrapper}
+	>
 		<View style={styles.addressIdenticon}>
 			<Identicon address={address} diameter={28} />
 		</View>
@@ -75,7 +79,7 @@ const AddressElement = (address, nickname) => (
 				{renderShortAddress(address)}
 			</Text>
 		</View>
-	</View>
+	</TouchableOpacity>
 );
 
 const LabelElement = label => (
@@ -100,7 +104,11 @@ class AddressList extends PureComponent {
 		/**
 		 * Network id
 		 */
-		network: PropTypes.string
+		network: PropTypes.string,
+		/**
+		 * Callback called when account in address book is pressed
+		 */
+		onAccountPress: PropTypes.func
 	};
 
 	state = {
@@ -112,7 +120,7 @@ class AddressList extends PureComponent {
 	};
 
 	parseAddressBook = () => {
-		const { addressBook, network } = this.props;
+		const { addressBook, network, onAccountPress } = this.props;
 		const networkAddressBook = addressBook[network] || {};
 		let lastInitial = undefined;
 		const list = [];
@@ -122,7 +130,7 @@ class AddressList extends PureComponent {
 				lastInitial = name[0];
 				list.push(LabelElement(name[0].toUpperCase()));
 			}
-			list.push(AddressElement(address, networkAddressBook[address].name));
+			list.push(AddressElement(address, networkAddressBook[address].name, onAccountPress));
 		});
 		return list;
 	};

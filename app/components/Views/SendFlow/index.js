@@ -63,7 +63,11 @@ class SendFlow extends PureComponent {
 	};
 
 	state = {
-		fromAccountModalVisible: false
+		fromAccountModalVisible: false,
+		fromSelectedAddress: undefined,
+		fromAccountName: undefined,
+		fromAccountBalance: undefined,
+		toSelectedAddress: undefined
 	};
 
 	componentDidMount = () => {
@@ -89,9 +93,19 @@ class SendFlow extends PureComponent {
 		this.toggleFromAccountModal();
 	};
 
+	onToSelectedAddressChange = toSelectedAddress => {
+		this.setState({ toSelectedAddress });
+	};
+
 	render = () => {
 		const { identities, keyrings, ticker } = this.props;
-		const { fromAccountModalVisible, fromSelectedAddress, fromAccountName, fromAccountBalance } = this.state;
+		const {
+			fromAccountModalVisible,
+			fromSelectedAddress,
+			fromAccountName,
+			fromAccountBalance,
+			toSelectedAddress
+		} = this.state;
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.imputWrapper}>
@@ -101,10 +115,14 @@ class SendFlow extends PureComponent {
 						fromAccountName={fromAccountName}
 						fromAccountBalance={fromAccountBalance}
 					/>
-					<AddressTo highlighted />
+					<AddressTo
+						highlighted
+						toSelectedAddress={toSelectedAddress}
+						onToSelectedAddressChange={this.onToSelectedAddressChange}
+					/>
 				</View>
 				<View style={styles.addressListWrapper}>
-					<AddressList />
+					<AddressList onAccountPress={this.onToSelectedAddressChange} />
 				</View>
 				<Modal
 					isVisible={fromAccountModalVisible}

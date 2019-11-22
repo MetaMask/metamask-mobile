@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
 });
 
 export const AddressTo = props => {
-	const { highlighted, onPressIcon } = props;
+	const { highlighted, onPressIcon, toSelectedAddress, onToSelectedAddressChange } = props;
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
@@ -90,7 +90,7 @@ export const AddressTo = props => {
 					<TextInput
 						autoCapitalize="none"
 						autoCorrect={false}
-						onChangeText={this.onChange}
+						onChangeText={onToSelectedAddressChange}
 						placeholder={'Search, public address (0x), or ENS'}
 						placeholderTextColor={colors.grey100}
 						spellCheck={false}
@@ -99,6 +99,7 @@ export const AddressTo = props => {
 						onBlur={this.onBlur}
 						onFocus={this.onInputFocus}
 						onSubmitEditing={this.onFocus}
+						value={toSelectedAddress}
 					/>
 				</View>
 
@@ -122,7 +123,15 @@ AddressTo.propTypes = {
 	/**
 	 * Callback to execute when icon is pressed
 	 */
-	onPressIcon: PropTypes.func
+	onPressIcon: PropTypes.func,
+	/**
+	 * Address of selected address as string
+	 */
+	toSelectedAddress: PropTypes.string,
+	/**
+	 * Callback called when to selected address changes
+	 */
+	onToSelectedAddressChange: PropTypes.func
 };
 
 export const AddressFrom = props => {
