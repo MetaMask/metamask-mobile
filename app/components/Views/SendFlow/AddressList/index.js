@@ -25,8 +25,7 @@ const styles = StyleSheet.create({
 	},
 	addressTextNickname: {
 		...fontStyles.normal,
-		fontSize: 14,
-		width: '90%'
+		fontSize: 14
 	},
 	addressTextAddress: {
 		...fontStyles.normal,
@@ -122,15 +121,25 @@ class AddressList extends PureComponent {
 	parseAddressBook = () => {
 		const { addressBook, network, onAccountPress } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		let lastInitial = undefined;
 		const list = [];
-		Object.keys(networkAddressBook).forEach(address => {
-			const name = networkAddressBook[address].name;
-			if (name && name[0] !== lastInitial) {
-				lastInitial = name[0];
-				list.push(LabelElement(name[0].toUpperCase()));
+
+		const addressBookTree = {};
+		const addressBookList = Object.keys(networkAddressBook).map(address => networkAddressBook[address]);
+
+		addressBookList.forEach(contact => {
+			const initial = contact.name[0] && contact.name[0].toUpperCase();
+			if (Object.keys(addressBookTree).includes(initial)) {
+				addressBookTree[initial].push(contact);
+			} else {
+				addressBookTree[initial] = [contact];
 			}
-			list.push(AddressElement(address, networkAddressBook[address].name, onAccountPress));
+		});
+
+		Object.keys(addressBookTree).forEach(initial => {
+			list.push(LabelElement(initial));
+			addressBookTree[initial].forEach(({ address, name }) => {
+				list.push(AddressElement(address, name, onAccountPress));
+			});
 		});
 		return list;
 	};

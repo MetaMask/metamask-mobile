@@ -10,6 +10,8 @@ import AccountList from '../../UI/AccountList';
 import { connect } from 'react-redux';
 import { renderFromWei } from '../../../util/number';
 import ActionModal from '../../UI/ActionModal';
+import Engine from '../../../core/Engine';
+import { isValidAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -166,11 +168,16 @@ class SendFlow extends PureComponent {
 		const { addressBook, network } = this.props;
 		const networkAddressBook = addressBook[network] || {};
 
-		if (networkAddressBook[toSelectedAddress]) {
-			// In address book, pass to send
-			this.setState({ addToAddressToAddressBook: true });
+		if (isValidAddress(toSelectedAddress)) {
+			if (networkAddressBook[toSelectedAddress]) {
+				// In address book, pass to send
+				this.setState({ addToAddressToAddressBook: false });
+			} else {
+				this.setState({ addToAddressToAddressBook: true });
+				// Add to address book
+			}
 		} else {
-			// Add to address book
+			this.setState({ addToAddressToAddressBook: false });
 		}
 		this.setState({ toSelectedAddress });
 	};
@@ -180,7 +187,10 @@ class SendFlow extends PureComponent {
 	};
 
 	onSaveToAddressBook = () => {
-		// Call address book to set
+		const { network } = this.props;
+		const { toSelectedAddress, alias } = this.state;
+		const { AddressBookController } = Engine.context;
+		AddressBookController.set(toSelectedAddress, alias, network);
 		this.toggleAddToAddressBookModal();
 		// Go to send flow
 	};
