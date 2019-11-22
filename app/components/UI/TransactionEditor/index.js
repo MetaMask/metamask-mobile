@@ -86,7 +86,11 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
-		setTransactionObject: PropTypes.func.isRequired
+		setTransactionObject: PropTypes.func.isRequired,
+		/**
+		 * Whether was prompted from approval
+		 */
+		promptedFromApproval: PropTypes.bool
 	};
 
 	state = {
@@ -480,8 +484,11 @@ class TransactionEditor extends PureComponent {
 	validateToAddress = () => {
 		let error;
 		const {
-			transaction: { to }
+			transaction: { to },
+			promptedFromApproval
 		} = this.props;
+		// If it comes from a dapp it could be a contract deployment
+		if (promptedFromApproval && !to) return error;
 		!to && (error = strings('transaction.required'));
 		!to && this.state.toFocused && (error = strings('transaction.required'));
 		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
