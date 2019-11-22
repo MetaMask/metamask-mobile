@@ -281,7 +281,7 @@ export function getTransactionOptionsTitle(title, navigation) {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerLeft: (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+			<TouchableOpacity onPress={leftAction} style={styles.closeButton} testID={'confirm-txn-edit-button'}>
 				<Text style={styles.closeButtonText}>{leftText}</Text>
 			</TouchableOpacity>
 		),

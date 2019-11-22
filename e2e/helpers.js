@@ -21,9 +21,9 @@ export default class TestHelpers {
 		return element(by.id(elementId)).tapAtPoint(point);
 	}
 
-	static tapFirstItem(elementID) {
+	static tapFirstItem(elementID, index) {
 		return element(by.id(elementID))
-			.atIndex(0)
+			.atIndex(index || 0)
 			.tap();
 	}
 

@@ -84,13 +84,17 @@ describe('Import seedphrase flow', () => {
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
 		// Tap on header URL
-		await TestHelpers.tapAtPoint('browser-screen', { x: 200, y: -5 });
+		await TestHelpers.tap('navbar-title-network');
 		// Clear text
 		await TestHelpers.replaceTextInField('url-input', CryptoKitties_url);
 		// Tap on an autocomplete option
-		await element(by.text('CryptoKitties'))
-			.atIndex(1)
-			.tap();
+		if (device.getPlatform() === 'android') {
+			await element(by.id('url-input')).tapReturnKey();
+		} else {
+			await element(by.text('CryptoKitties'))
+				.atIndex(1)
+				.tap();
+		}
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
 		// Tap on options
@@ -100,7 +104,11 @@ describe('Import seedphrase flow', () => {
 		// Tap on tabs on bottom navbar
 		await TestHelpers.tap('show-tabs-button');
 		// Tap on faucet tab
-		await TestHelpers.tapAtPoint('browser-screen', { x: 220, y: 120 });
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.tapAtPoint('browser-screen', { x: 160, y: 60 });
+		} else {
+			await TestHelpers.tapAtPoint('browser-screen', { x: 220, y: 120 });
+		}
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
 		// Tap back button
@@ -109,7 +117,12 @@ describe('Import seedphrase flow', () => {
 
 	it('should donate ETH on MM Ropsten', async () => {
 		// Tap to donate 1 ETH
-		await TestHelpers.tapAtPoint('browser-screen', { x: 76, y: 189 });
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.tapAtPoint('browser-screen', { x: 65, y: 176 });
+			await TestHelpers.delay(2000);
+		} else {
+			await TestHelpers.tapAtPoint('browser-screen', { x: 76, y: 189 });
+		}
 		// Check that account approval is displayed with correct dapp name
 		await TestHelpers.checkIfHasText('dapp-name-title', ETH_Faucet);
 		// Tap on CONNECT button
@@ -117,21 +130,22 @@ describe('Import seedphrase flow', () => {
 		// Check that we are on the confirm transaction screen
 		await TestHelpers.checkIfVisible('confirm-transaction-screen');
 		// Tap Edit
-		await TestHelpers.tapAtPoint('confirm-transaction-screen', { x: 30, y: -20 });
+		await TestHelpers.tap('confirm-txn-edit-button');
 		// Input Amount
 		await TestHelpers.replaceTextInField('amount-input', '0.000001');
 		// Tap on NEXT button
 		await TestHelpers.tapByText('NEXT');
 		// Tap on CONFIRM button
 		await TestHelpers.tapByText('CONFIRM');
-		// Check that we are on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
 		// Wait for enable notifications alert to show up
-		await TestHelpers.delay(10000);
-		// Dismiss alert
-		await TestHelpers.tapAlertWithButton('No, thanks');
+		if (device.getPlatform() === 'ios') {
+			await TestHelpers.checkIfVisible('browser-screen');
+			await TestHelpers.delay(10000);
+			// Dismiss alert
+			await TestHelpers.tapAlertWithButton('No, thanks');
+		}
 		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-wallet');
+		await TestHelpers.tap('hamburger-menu-button-browser');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Wallet
