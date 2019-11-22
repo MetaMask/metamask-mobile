@@ -6,9 +6,6 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white
-	},
 	wrapper: {
 		flexDirection: 'row',
 		margin: 8
@@ -81,7 +78,7 @@ const styles = StyleSheet.create({
 });
 
 export const AddressTo = props => {
-	const { highlighted } = props;
+	const { highlighted, onPressIcon } = props;
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
@@ -104,7 +101,7 @@ export const AddressTo = props => {
 					/>
 				</View>
 
-				<TouchableOpacity onPress={this.scan} style={styles.scanIconWrapper}>
+				<TouchableOpacity onPress={onPressIcon} style={styles.scanIconWrapper}>
 					<AntIcon
 						name="scan1"
 						size={20}
@@ -120,11 +117,15 @@ AddressTo.propTypes = {
 	/**
 	 * Whether the input is highlighted
 	 */
-	highlighted: PropTypes.bool
+	highlighted: PropTypes.bool,
+	/**
+	 * Callback to execute when icon is pressed
+	 */
+	onPressIcon: PropTypes.func
 };
 
 export const AddressFrom = props => {
-	const { highlighted } = props;
+	const { highlighted, onPressIcon, fromAccountName, fromAccountBalance } = props;
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
@@ -132,11 +133,11 @@ export const AddressFrom = props => {
 			</View>
 			<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 				<View style={styles.address}>
-					<Text style={styles.textAddress}>0x123...321</Text>
-					<Text style={styles.textBalance}>Balance: 1234</Text>
+					<Text style={styles.textAddress}>{fromAccountName}</Text>
+					<Text style={styles.textBalance}>{`Balance: ${fromAccountBalance}`}</Text>
 				</View>
 
-				<TouchableOpacity onPress={this.scan} style={styles.scanIconWrapper}>
+				<TouchableOpacity onPress={onPressIcon} style={styles.scanIconWrapper}>
 					<FontAwesome
 						name={'caret-down'}
 						size={20}
@@ -152,5 +153,17 @@ AddressFrom.propTypes = {
 	/**
 	 * Whether the input is highlighted
 	 */
-	highlighted: PropTypes.bool
+	highlighted: PropTypes.bool,
+	/**
+	 * Callback to execute when icon is pressed
+	 */
+	onPressIcon: PropTypes.func,
+	/**
+	 * Name of selected address as string
+	 */
+	fromAccountName: PropTypes.string,
+	/**
+	 * Account balance of selected address as string
+	 */
+	fromAccountBalance: PropTypes.string
 };
