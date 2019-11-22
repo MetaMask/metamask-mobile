@@ -29,27 +29,37 @@ describe('Onboarding wizard opt-out', () => {
 	it('should check that wizard is gone after reloading app then take tour and skip tutorial', async () => {
 		// Relaunch the app
 		await device.reloadReactNative();
-		// Check that we are on the Browser page
-		await TestHelpers.checkIfVisible('browser-screen', 20000);
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.delay(20000);
+			await TestHelpers.checkIfExists('browser-screen');
+		} else {
+			await TestHelpers.checkIfVisible('browser-screen');
+		}
 		// Check that the wizard is not visible anymore
 		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
-
-		// Scoll on browser to show tutorial box and tap to skip
-		if (!device.getPlatform() === 'ios') {
-			// Scroll to bottom of browser view
+		// Scroll on browser to show tutorial box and tap to skip
+		if (device.getPlatform() === 'ios') {
 			await TestHelpers.swipe('browser-screen', 'up');
-			// Tap on the Take a tour box
-			await TestHelpers.tapAtPoint('browser-screen', { x: 215, y: 555 });
-			// Check that we are on the wallet screen
-			await TestHelpers.checkIfExists('wallet-screen');
-			// Check that the onboarding wizard is present
-			await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
-			// Check that Take the tour CTA is visible and tap it
-			await TestHelpers.waitAndTap('onboarding-wizard-next-button');
-			// Tap on Skip Tutorial
-			await TestHelpers.tapByText('Skip Tutorial');
-			// Check that the wizard is not visible anymore
-			await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
+		} else {
+			await TestHelpers.checkIfExists('browser-webview');
+			await TestHelpers.swipe('browser-webview', 'up');
+			await TestHelpers.delay(1000);
 		}
+		// Tap on the Take a tour box
+		if (device.getPlatform() === 'ios') {
+			await TestHelpers.tapAtPoint('browser-screen', { x: 215, y: 555 });
+		} else {
+			await TestHelpers.tapAtPoint('browser-screen', { x: 175, y: 480 });
+		}
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfNotVisible('browser-screen');
+		// Check that the onboarding wizard is present
+		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
+		// Check that Take the tour CTA is visible and tap it
+		await TestHelpers.waitAndTap('onboarding-wizard-next-button');
+		// Tap on Skip Tutorial
+		await TestHelpers.tapByText('Skip Tutorial');
+		// Check that the wizard is not visible anymore
+		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
 	});
 });

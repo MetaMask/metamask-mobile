@@ -90,6 +90,10 @@ export default class TestHelpers {
 		await element(by.id(scrollviewId)).scrollTo(edge);
 	}
 
+	static async scrollUpTo(elementId, distance, direction) {
+		await element(by.id(elementId)).scroll(distance, direction);
+	}
+
 	static async goToURL(inputURL) {
 		await device.openURL({ url: inputURL, sourceApp: 'io.metamask' });
 	}

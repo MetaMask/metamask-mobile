@@ -8,7 +8,7 @@ const Ropsten_Faucet = 'https://faucet.metamask.io';
 const CryptoKitties_url = 'https://cryptokitties.co';
 const ETH_Faucet = 'Test Ether Faucet';
 
-describe('Import seedphrase flow', () => {
+describe('MM Faucet Dapp Initiated Txn', () => {
 	beforeEach(() => {
 		jest.setTimeout(150000);
 	});

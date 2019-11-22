@@ -1864,6 +1864,7 @@ export class BrowserTab extends PureComponent {
 							allowsInlineMediaPlayback
 							useWebkit
 							onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
+							testID={'browser-webview'}
 						/>
 					)}
 				</View>
