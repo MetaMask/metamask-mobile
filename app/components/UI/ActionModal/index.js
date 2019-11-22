@@ -75,7 +75,7 @@ export default function ActionModal({
 							onPress={onCancelPress}
 							containerStyle={[styles.button, styles.cancel]}
 						>
-							{cancelText.toUpperCase()}
+							{cancelText}
 						</StyledButton>
 						<StyledButton
 							testID={confirmTestID}
@@ -83,7 +83,7 @@ export default function ActionModal({
 							onPress={onConfirmPress}
 							containerStyle={[styles.button, styles.confirm]}
 						>
-							{confirmText.toUpperCase()}
+							{confirmText}
 						</StyledButton>
 					</View>
 				</View>
@@ -121,7 +121,7 @@ ActionModal.propTypes = {
 	/**
 	 * Type of button to show as the cancel button
 	 */
-	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'confirm']),
+	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'confirm', 'normal']),
 	/**
 	 * Type of button to show as the confirm button
 	 */
