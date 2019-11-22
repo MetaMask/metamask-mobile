@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
 });
 
 export const AddressTo = props => {
-	const { highlighted, onPressIcon, toSelectedAddress, onToSelectedAddressChange } = props;
+	const { highlighted, toSelectedAddress, onToSelectedAddressChange, onScan } = props;
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
@@ -103,7 +103,7 @@ export const AddressTo = props => {
 					/>
 				</View>
 
-				<TouchableOpacity onPress={onPressIcon} style={styles.scanIconWrapper}>
+				<TouchableOpacity onPress={onScan} style={styles.scanIconWrapper}>
 					<AntIcon
 						name="scan1"
 						size={20}
@@ -121,17 +121,17 @@ AddressTo.propTypes = {
 	 */
 	highlighted: PropTypes.bool,
 	/**
-	 * Callback to execute when icon is pressed
-	 */
-	onPressIcon: PropTypes.func,
-	/**
 	 * Address of selected address as string
 	 */
 	toSelectedAddress: PropTypes.string,
 	/**
 	 * Callback called when to selected address changes
 	 */
-	onToSelectedAddressChange: PropTypes.func
+	onToSelectedAddressChange: PropTypes.func,
+	/**
+	 * Callback called when scan icon is pressed
+	 */
+	onScan: PropTypes.func
 };
 
 export const AddressFrom = props => {

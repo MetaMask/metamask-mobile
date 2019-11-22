@@ -195,6 +195,16 @@ class SendFlow extends PureComponent {
 		// Go to send flow
 	};
 
+	onScan = () => {
+		this.props.navigation.navigate('QRScanner', {
+			onScanSuccess: meta => {
+				if (meta.target_address) {
+					this.onToSelectedAddressChange(meta.target_address);
+				}
+			}
+		});
+	};
+
 	render = () => {
 		const { identities, keyrings, ticker } = this.props;
 		const {
@@ -221,6 +231,7 @@ class SendFlow extends PureComponent {
 						highlighted
 						toSelectedAddress={toSelectedAddress}
 						onToSelectedAddressChange={this.onToSelectedAddressChange}
+						onScan={this.onScan}
 					/>
 				</View>
 
