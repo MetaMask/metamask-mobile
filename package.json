@@ -92,6 +92,7 @@
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
     "obj-multiplex": "^1.0.0",
+    "obs-store": "^4.0.3",
     "path": "0.12.7",
     "pify": "^4.0.1",
     "prop-types": "15.7.2",

@@ -6,6 +6,8 @@ import { setupMultiplex } from '../util/streams';
 import createDnodeRemoteGetter from '../util/createDnodeRemoteGetter';
 import { createOriginMiddleware, createLoggerMiddleware } from '../util/middlewares';
 import Engine from './Engine';
+import NetworkList from '../util/networks';
+const ObservableStore = require('obs-store')
 const RpcEngine = require('json-rpc-engine');
 const createEngineStream = require('json-rpc-middleware-stream/engineStream');
 const createFilterMiddleware = require('eth-json-rpc-filters');
@@ -14,6 +16,7 @@ const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddlewa
 const pump = require('pump');
 const Dnode = require('dnode');
 const pify = require('pify');
+const asStream = require('obs-store/lib/asStream')
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 
@@ -28,7 +31,6 @@ class Port extends EventEmitter {
 	}
 
 	postMessage = (msg, origin = '*') => {
-		console.log('BGBridge::postMessage via port', msg);
 		// Loop through the iframes first
 		// If the source doesn't match any
 		// send the message to the main window
@@ -37,10 +39,12 @@ class Port extends EventEmitter {
 	};
 }
 
-export class BackgroundBridge {
-	constructor(webview, middlewares) {
+export class BackgroundBridge extends EventEmitter {
+	constructor(webview, middlewares, shouldExposeAccounts) {
+		super();
 		this._webviewRef = webview && webview.current;
 		this.middlewares = middlewares;
+		this.shouldExposeAccounts = shouldExposeAccounts;
 		this.provider = Engine.context.NetworkController.provider;
 		this.blockTracker = Engine.context.NetworkController.blockTracker;
 		this.port = new Port(this._webviewRef);
@@ -53,10 +57,10 @@ export class BackgroundBridge {
 		// connect features
 		const publicApi = this.setupPublicApi(mux.createStream('publicApi'));
 		this.setupProviderConnection(mux.createStream('provider'), senderUrl, publicApi);
+		this.setupPublicConfig(mux.createStream('publicConfig'), senderUrl)
 	}
 
 	onMessage = msg => {
-		console.log('BGBridge::onMessage', msg);
 		this.port.emit('message', { name: msg.name, data: msg.data });
 	};
 
@@ -137,7 +141,7 @@ export class BackgroundBridge {
 		engine.push(subscriptionManager.middleware);
 		// watch asset
 
-		// MISSING
+		// @TODO
 		//engine.push(this.preferencesController.requestWatchAsset.bind(this.preferencesController))
 
 		// requestAccounts
@@ -147,6 +151,95 @@ export class BackgroundBridge {
 		engine.push(providerAsMiddleware(provider));
 		return engine;
 	}
+
+	/**
+	* A method for providing our public config info over a stream.
+	* This includes info we like to be synchronous if possible, like
+	* the current selected account, and network ID.
+	*
+	* Since synchronous methods have been deprecated in web3,
+	* this is a good candidate for deprecation.
+	*
+	* @param {*} outStream - The stream to provide public config over.
+	* @param {URL} senderUrl - The URL of requesting resource
+	*/
+	setupPublicConfig (outStream, senderUrl) {
+		const configStore = this.createPublicConfigStore({
+			// check the providerApprovalController's approvedOrigins
+			checkIsEnabled: () => this.shouldExposeAccounts(senderUrl.hostname),
+		})
+
+		const configStream = asStream(configStore)
+
+		pump(
+			configStream,
+			outStream,
+			(err) => {
+				configStore.destroy()
+				configStream.destroy()
+				if (err) {
+					console.warn(err)
+				}
+			}
+		)
+	}
+
+	/**
+	* Constructor helper: initialize a public config store.
+	* This store is used to make some config info available to Dapps synchronously.
+	*/
+	createPublicConfigStore ({ checkIsEnabled }) {
+		// subset of state for metamask inpage provider
+		const publicConfigStore = new ObservableStore()
+
+		// setup memStore subscription hooks
+		this.on('update', updatePublicConfigStore)
+		updatePublicConfigStore(this.getState())
+
+		publicConfigStore.destroy = () => {
+			this.removeEventListener && this.removeEventListener('update', updatePublicConfigStore)
+		}
+
+		function updatePublicConfigStore (memState) {
+			const publicState = selectPublicState(memState)
+			publicConfigStore.putState(publicState)
+		}
+
+		function selectPublicState ({ isUnlocked, selectedAddress, network }) {
+			const isEnabled = checkIsEnabled()
+			const isReady = isUnlocked && isEnabled
+			const networkType = Engine.context.NetworkController.state.provider.type;
+			const chainId = Object.keys(NetworkList).indexOf(networkType) > -1 && NetworkList[networkType].chainId;
+			const result = {
+				isUnlocked,
+				isEnabled,
+				selectedAddress: isReady ? selectedAddress : null,
+				networkVersion: network,
+				chainId: `0x${parseInt(chainId, 10).toString(16)}`
+			}
+			return result
+		}
+
+		return publicConfigStore
+	}
+
+	/**
+	 * The metamask-state of the various controllers, made available to the UI
+	 *
+	 * @returns {Object} status
+	 */
+	getState () {
+		const vault = Engine.context.KeyringController.state.vault
+		const isInitialized = !!vault;
+		const { network, selectedAddress } = Engine.datamodel.flatState;
+		return {
+			...{ isInitialized },
+			isUnlocked: true,
+			network,
+			selectedAddress
+		}
+	}
+
 
 	// _engine;
 	// _rpcOverrides;
@@ -193,12 +286,12 @@ export class BackgroundBridge {
 	// }
 
 	// /**
-	//  * Creates a new BackgroundBridge instance
-	//  *
-	//  * @param {Engine} engine - An Engine instance
-	//  * @param {object} webview - React ref pointing to a WebView
-	//  * @param {object} rpcOverrides - Map of rpc method overrides
-	//  */
+	//	* Creates a new BackgroundBridge instance
+	//	*
+	//	* @param {Engine} engine - An Engine instance
+	//	* @param {object} webview - React ref pointing to a WebView
+	//	* @param {object} rpcOverrides - Map of rpc method overrides
+	//	*/
 	// constructor(engine, webview, rpcOverrides) {
 	// 	this._engine = engine;
 	// 	this._rpcOverrides = rpcOverrides;
@@ -208,11 +301,11 @@ export class BackgroundBridge {
 	// }
 
 	// /**
-	//  * Called when a new message is received from the InpageBridge
-	//  *
-	//  * @param {string} type - Type associated with this message
-	//  * @param {object} payload - Data sent with this message
-	//  */
+	//	* Called when a new message is received from the InpageBridge
+	//	*
+	//	* @param {string} type - Type associated with this message
+	//	* @param {object} payload - Data sent with this message
+	//	*/
 	// onMessage({ type, payload, origin }) {
 	// 	switch (type) {
 	// 		case 'INPAGE_REQUEST':
@@ -222,8 +315,8 @@ export class BackgroundBridge {
 	// }
 
 	// /**
-	//  * Sends updated state to the InpageBridge provider
-	//  */
+	//	* Sends updated state to the InpageBridge provider
+	//	*/
 	// sendStateUpdate = () => {
 	// 	const { network, selectedAddress } = this._engine.datamodel.flatState;
 	// 	const payload = { network };
@@ -240,15 +333,15 @@ export class BackgroundBridge {
 	// };
 
 	// /**
-	//  * Called to disable inpage account updates
-	//  */
+	//	* Called to disable inpage account updates
+	//	*/
 	// disableAccounts() {
 	// 	this._accounts = false;
 	// }
 
 	// /**
-	//  * Called to enable inpage account updates
-	//  */
+	//	* Called to enable inpage account updates
+	//	*/
 	// enableAccounts() {
 	// 	if (!this._accounts) {
 	// 		this._accounts = true;
