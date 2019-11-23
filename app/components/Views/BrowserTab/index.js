@@ -726,9 +726,12 @@ export class BrowserTab extends PureComponent {
 				: `'${Networks[this.props.networkType].networkId}'`
 		);
 
+		const analyticsEnabled = Analytics.getEnabled();
+
 		const homepageScripts = `
 			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
-			window.__mmSearchEngine="${this.props.searchEngine}";
+			window.__mmSearchEngine = "${this.props.searchEngine}";
+			window.__mmMetametrics = ${analyticsEnabled};
 		`;
 
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener, homepageScripts });
@@ -823,9 +826,12 @@ export class BrowserTab extends PureComponent {
 	}
 
 	refreshHomeScripts() {
+		const analyticsEnabled = Analytics.getEnabled();
+
 		const homepageScripts = `
 			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
 			window.__mmSearchEngine="${this.props.searchEngine}";
+			window.__mmMetametrics = ${analyticsEnabled};
 			window.postMessage('updateFavorites', '*');
 		`;
 		this.setState({ homepageScripts }, () => {
@@ -1138,9 +1144,12 @@ export class BrowserTab extends PureComponent {
 							Logger.error('Error adding to spotlight', e);
 						}
 					}
+					const analyticsEnabled = Analytics.getEnabled();
+
 					const homepageScripts = `
 						window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
 						window.__mmSearchEngine="${this.props.searchEngine}";
+						window.__mmMetametrics = ${analyticsEnabled};
 					`;
 					this.setState({ homepageScripts });
 				}
@@ -1820,6 +1829,7 @@ export class BrowserTab extends PureComponent {
 							allowsInlineMediaPlayback
 							useWebkit
 							onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
+							testID={'browser-webview'}
 						/>
 					)}
 				</View>

@@ -24,7 +24,10 @@ describe('Custom RPC Tests', () => {
 		// Check that I Agree CTA is visible and tap it
 		await TestHelpers.waitAndTap('agree-button');
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
+		if (!device.getPlatform() === 'android') {
+			// Check that we are on the wallet screen
+			await TestHelpers.checkIfExists('wallet-screen');
+		}
 		// Check that the onboarding wizard is present
 		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
 		// Check that No thanks CTA is visible and tap it
@@ -35,7 +38,7 @@ describe('Custom RPC Tests', () => {
 
 	it('should go to settings then networks', async () => {
 		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on settings
@@ -62,11 +65,12 @@ describe('Custom RPC Tests', () => {
 		// Input correct RPC URL for Ganache network
 		await TestHelpers.typeTextAndHideKeyboard('input-rpc-url', XDAI_URL);
 		// Focus outside of text input field
-		await TestHelpers.tapAtPoint('new-rpc-screen', { x: 280, y: 30 });
+		await TestHelpers.tap('rpc-screen-title');
 		// Input Symbol
 		await TestHelpers.typeTextAndHideKeyboard('input-network-symbol', 'xDAI');
+		await TestHelpers.delay(1000);
 		// Focus outside of text input field
-		await TestHelpers.tapAtPoint('new-rpc-screen', { x: 280, y: 30 });
+		await TestHelpers.tap('rpc-screen-title');
 		// Tap on Add button
 		await TestHelpers.waitAndTap('network-add-button');
 		// Check that we are on the wallet screen
@@ -77,25 +81,33 @@ describe('Custom RPC Tests', () => {
 
 	it('should validate that xDai is added to network list then switch networks', async () => {
 		// Tap to prompt network list
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 200, y: -5 });
+		await TestHelpers.tap('open-networks-button');
 		// Check that networks list is visible
 		await TestHelpers.checkIfVisible('networks-list');
 		// Swipe down on networks list
 		await TestHelpers.swipe('networks-list', 'up');
 		// Check that our network is added
 		await TestHelpers.checkIfElementHasString('other-network-name', 'xDai');
-		// Change to Rinkeby Network
-		await TestHelpers.tapByText(RINKEBY);
-		// Check that we are on correct network
-		await TestHelpers.checkIfElementHasString('network-name', RINKEBY);
-		// Tap to prompt network list
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 200, y: -5 });
-		// Check that networks list is visible
-		await TestHelpers.checkIfVisible('networks-list');
-		// Swipe down on networks list
-		await TestHelpers.swipe('networks-list', 'up');
-		// Change to back to xDai Network
-		await TestHelpers.tapByText('xDai');
+
+		// iOS change networks tests
+		if (device.getPlatform() === 'ios') {
+			// Change to Rinkeby Network
+			await TestHelpers.tapByText(RINKEBY);
+			// Check that we are on correct network
+			await TestHelpers.checkIfElementHasString('network-name', RINKEBY);
+			// Tap to prompt network list
+			await TestHelpers.tap('open-networks-button');
+			// Check that networks list is visible
+			await TestHelpers.checkIfVisible('networks-list');
+			// Swipe down on networks list
+			await TestHelpers.swipe('networks-list', 'up');
+			// Change to back to xDai Network
+			await TestHelpers.tapByText('xDai');
+		} else {
+			// Close list
+			await TestHelpers.tapByText('Close');
+		}
+
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Check that we are on correct network
@@ -104,7 +116,7 @@ describe('Custom RPC Tests', () => {
 
 	it('should go to settings networks and remove xDai network', async () => {
 		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on settings
@@ -117,10 +129,19 @@ describe('Custom RPC Tests', () => {
 		await element(by.text('xDai')).longPress();
 		// Tap remove
 		await TestHelpers.tapByText('Remove');
-		// Tap on back arrow
-		await TestHelpers.tapAtPoint('networks-screen', { x: 25, y: -22 });
-		// Tap close
-		await TestHelpers.tapByText('Close');
+
+		// Go back to wallet screen
+		if (device.getPlatform() === 'ios') {
+			// Tap on back arrow
+			await TestHelpers.tapAtPoint('networks-screen', { x: 25, y: -22 });
+			// Tap close
+			await TestHelpers.tapByText('Close');
+		} else {
+			// Go Back for android
+			await device.pressBack();
+			await device.pressBack();
+		}
+
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfExists('wallet-screen');
 		// Check that we are on Mainnet
