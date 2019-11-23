@@ -449,57 +449,63 @@ export class BrowserTab extends PureComponent {
 	}
 
 	initializeBackgroundBridge = () => {
-		this.backgroundBridge = new BackgroundBridge(this.webview, {
-			eth_requestAccounts: senderUrl => createAsyncMiddleware(async (req, res, next) => {
-					if (req.method !== 'eth_requestAccounts') return next();
-					const { hostname } = senderUrl;
-					const { params } = req;
-					const { approvedHosts, privacyMode, selectedAddress } = this.props;
-					if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
-						res.result = [selectedAddress];
-					} else {
-						setTimeout(async () => {
-							await this.getPageMeta();
-							this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
-						}, 1000);
-						const approved = await new Promise((resolve, reject) => {
-							this.approvalRequest = { resolve, reject };
-						});
-						if (approved) {
+		this.backgroundBridge = new BackgroundBridge(
+			this.webview,
+			{
+				eth_requestAccounts: senderUrl =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_requestAccounts') return next();
+						const { hostname } = senderUrl;
+						const { params } = req;
+						const { approvedHosts, privacyMode, selectedAddress } = this.props;
+						if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
 							res.result = [selectedAddress];
 						} else {
-							throw rpcErrors.eth.userRejectedRequest('User denied account authorization');
+							setTimeout(async () => {
+								await this.getPageMeta();
+								this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
+							}, 1000);
+							const approved = await new Promise((resolve, reject) => {
+								this.approvalRequest = { resolve, reject };
+							});
+							if (approved) {
+								res.result = [selectedAddress];
+							} else {
+								throw rpcErrors.eth.userRejectedRequest('User denied account authorization');
+							}
 						}
-					}
-			}),
-			eth_accounts: senderUrl => createAsyncMiddleware(async (req, res, next) => {
-				if (req.method !== 'eth_accounts') return next();
-				const { hostname } = senderUrl;
-				const { approvedHosts, privacyMode, selectedAddress } = this.props;
-				const isEnabled = !privacyMode || approvedHosts[hostname];
-				if (isEnabled) {
-					res.result = [selectedAddress];
-				} else {
-					res.result = [];
-				}
-			}),
-			// OTHER MIDDLEWARES HERE
-			eth_sign: () => createAsyncMiddleware(async (req, res, next) => {
-				if (req.method !== 'eth_sign') return next();
-				const { MessageManager } = Engine.context;
-				const pageMeta = await this.getPageMeta();
-				const rawSig = await MessageManager.addUnapprovedMessageAsync({
-					data: req.params[1],
-					from: req.params[0],
-					...pageMeta
-				});
-				res.result = rawSig;
-			})
-		},
-		(hostname) => {
-			const { approvedHosts, privacyMode } = this.props;
-			return !privacyMode || approvedHosts[hostname];
-		});
+					}),
+				eth_accounts: senderUrl =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_accounts') return next();
+						const { hostname } = senderUrl;
+						const { approvedHosts, privacyMode, selectedAddress } = this.props;
+						const isEnabled = !privacyMode || approvedHosts[hostname];
+						if (isEnabled) {
+							res.result = [selectedAddress];
+						} else {
+							res.result = [];
+						}
+					}),
+				// OTHER MIDDLEWARES HERE
+				eth_sign: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_sign') return next();
+						const { MessageManager } = Engine.context;
+						const pageMeta = await this.getPageMeta();
+						const rawSig = await MessageManager.addUnapprovedMessageAsync({
+							data: req.params[1],
+							from: req.params[0],
+							...pageMeta
+						});
+						res.result = rawSig;
+					})
+			},
+			hostname => {
+				const { approvedHosts, privacyMode } = this.props;
+				return !privacyMode || approvedHosts[hostname];
+			}
+		);
 
 		// this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
 		// 	eth_sign: async payload => {

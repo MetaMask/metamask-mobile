@@ -3,7 +3,6 @@ import URL from 'url-parse';
 import { JS_POST_MESSAGE_TO_PROVIDER } from '../util/browserScripts';
 import MobilePortStream from './MobilePortStream';
 import { setupMultiplex } from '../util/streams';
-import createDnodeRemoteGetter from '../util/createDnodeRemoteGetter';
 import { createOriginMiddleware, createLoggerMiddleware } from '../util/middlewares';
 import Engine from './Engine';
 import NetworkList from '../util/networks';
@@ -14,8 +13,6 @@ const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
 const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
 const pump = require('pump');
-const Dnode = require('dnode');
-const pify = require('pify');
 const asStream = require('obs-store/lib/asStream')
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
@@ -55,8 +52,7 @@ export class BackgroundBridge extends EventEmitter {
 		// setup multiplexing
 		const mux = setupMultiplex(portStream);
 		// connect features
-		const publicApi = this.setupPublicApi(mux.createStream('publicApi'));
-		this.setupProviderConnection(mux.createStream('provider'), senderUrl, publicApi);
+		this.setupProviderConnection(mux.createStream('provider'), senderUrl);
 		this.setupPublicConfig(mux.createStream('publicConfig'), senderUrl)
 	}
 
@@ -67,27 +63,6 @@ export class BackgroundBridge extends EventEmitter {
 	onDisconnect = () => {
 		this.port.emit('disconnect', { name: this.port.name, data: null });
 	};
-
-	setupPublicApi(outStream) {
-		const dnode = Dnode();
-		// connect dnode api to remote connection
-		pump(outStream, dnode, outStream, err => {
-			// report any error
-			if (err) console.warn(err);
-		});
-
-		const getRemote = createDnodeRemoteGetter(dnode);
-
-		const publicApi = {
-			// wrap with an await remote
-			getSiteMetadata: async () => {
-				const remote = await getRemote();
-				return await pify(remote.getSiteMetadata)();
-			}
-		};
-
-		return publicApi;
-	}
 
 	/**
 	 * A method for serving our ethereum provider over a given stream.
@@ -118,7 +93,7 @@ export class BackgroundBridge extends EventEmitter {
 	/**
 	 * A method for creating a provider that is safely restricted for the requesting domain.
 	 **/
-	setupProviderEngine(senderUrl, getSiteMetadata) {
+	setupProviderEngine(senderUrl) {
 		const origin = senderUrl.hostname;
 		// setup json rpc engine stack
 		const engine = new RpcEngine();
@@ -202,6 +177,7 @@ export class BackgroundBridge extends EventEmitter {
 
 		function updatePublicConfigStore (memState) {
 			const publicState = selectPublicState(memState)
+			console.log('Updating publicState', publicState);
 			publicConfigStore.putState(publicState)
 		}
 
@@ -217,7 +193,7 @@ export class BackgroundBridge extends EventEmitter {
 				networkVersion: network,
 				chainId: `0x${parseInt(chainId, 10).toString(16)}`
 			}
-			return result
+			return result;
 		}
 
 		return publicConfigStore

@@ -25,7 +25,7 @@ function setupDappAutoReload(web3, observable) {
 		}
 	});
 
-	observable.subscribe((state) => {
+	observable.subscribe(state => {
 		// if the auto refresh on network change is false do not
 		// do anything
 		if (!window.ethereum.autoRefreshOnNetworkChange) return;
