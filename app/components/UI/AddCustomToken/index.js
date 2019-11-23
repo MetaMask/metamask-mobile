@@ -174,6 +174,7 @@ export default class AddCustomToken extends PureComponent {
 					cancelText={strings('add_asset.tokens.cancel_add_token')}
 					confirmText={strings('add_asset.tokens.add_token')}
 					onCancelPress={this.cancelAddToken}
+					testID={'add-asset-cancel-button'}
 					onConfirmPress={this.addToken}
 					confirmDisabled={!(address && symbol && decimals)}
 				>

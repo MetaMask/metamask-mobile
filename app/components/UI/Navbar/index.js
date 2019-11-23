@@ -281,7 +281,7 @@ export function getTransactionOptionsTitle(title, navigation) {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerLeft: (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+			<TouchableOpacity onPress={leftAction} style={styles.closeButton} testID={'confirm-txn-edit-button'}>
 				<Text style={styles.closeButtonText}>{leftText}</Text>
 			</TouchableOpacity>
 		),
@@ -348,7 +348,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 
 	return {
 		headerLeft: (
-			<TouchableOpacity onPress={onPress} style={styles.backButton}>
+			<TouchableOpacity onPress={onPress} style={styles.backButton} testID={'hamburger-menu-button-browser'}>
 				<IonicIcon
 					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
 					size={Platform.OS === 'android' ? 24 : 28}
@@ -594,7 +594,7 @@ export function getWalletNavbarOptions(title, navigation) {
 	return {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
-			<TouchableOpacity onPress={openDrawer} style={styles.backButton}>
+			<TouchableOpacity onPress={openDrawer} style={styles.backButton} testID={'hamburger-menu-button-wallet'}>
 				<IonicIcon
 					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
 					size={Platform.OS === 'android' ? 24 : 28}

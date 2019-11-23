@@ -299,7 +299,11 @@ class NetworkSettings extends PureComponent {
 			<SafeAreaView style={styles.wrapper} testID={'new-rpc-screen'}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
 					<View style={styles.scrollWrapper}>
-						{addMode && <Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>}
+						{addMode && (
+							<Text style={styles.title} testID={'rpc-screen-title'}>
+								{strings('app_settings.new_RPC_URL')}
+							</Text>
+						)}
 						{addMode && <Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>}
 
 						<Text style={styles.label}>{strings('app_settings.network_name_label')}</Text>

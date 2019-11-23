@@ -1,8 +1,8 @@
 export default class TestHelpers {
-	static async waitAndTap(elementId) {
+	static async waitAndTap(elementId, timeout) {
 		await waitFor(element(by.id(elementId)))
 			.toBeVisible()
-			.withTimeout(8000);
+			.withTimeout(timeout || 8000);
 
 		return element(by.id(elementId)).tap();
 	}
@@ -11,9 +11,9 @@ export default class TestHelpers {
 		return element(by.id(elementId)).tap();
 	}
 
-	static tapByText(text) {
+	static tapByText(text, index) {
 		return element(by.text(text))
-			.atIndex(0)
+			.atIndex(index || 0)
 			.tap();
 	}
 
@@ -21,20 +21,18 @@ export default class TestHelpers {
 		return element(by.id(elementId)).tapAtPoint(point);
 	}
 
+	static tapItemAtIndex(elementID, index) {
+		return element(by.id(elementID))
+			.atIndex(index || 0)
+			.tap();
+	}
+
 	static async typeText(elementId, text) {
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.waitAndTap(elementId);
-		} else {
-			await TestHelpers.tap(elementId);
-		}
+		await TestHelpers.tap(elementId);
 		return element(by.id(elementId)).typeText(text);
 	}
 
 	static async typeNumbers(elementId, text, submitLabel) {
-		if (device.getPlatform() === 'android') {
-			return TestHelpers.typeText(elementId, text);
-		}
-
 		await element(by.id(elementId)).replaceText(text.replace('\n', ''));
 		return element(by.label(submitLabel))
 			.atIndex(0)
@@ -42,10 +40,10 @@ export default class TestHelpers {
 	}
 
 	static async typeTextAndHideKeyboard(elementId, text) {
-		await TestHelpers.typeText(elementId, text + '\n');
 		if (device.getPlatform() === 'android') {
-			device.pressBack();
+			await TestHelpers.clearField(elementId);
 		}
+		await TestHelpers.typeText(elementId, text + '\n');
 	}
 
 	static async clearField(elementId) {
@@ -61,10 +59,10 @@ export default class TestHelpers {
 		return element(by.id(elementId)).replaceText(text);
 	}
 
-	static tapAlertWithButton(text) {
+	static tapAlertWithButton(text, index) {
 		if (device.getPlatform() === 'android') {
 			return element(by.text(text))
-				.atIndex(0)
+				.atIndex(index || 0)
 				.tap();
 		}
 
@@ -81,6 +79,10 @@ export default class TestHelpers {
 		await element(by.id(scrollviewId)).scrollTo(edge);
 	}
 
+	static async scrollUpTo(elementId, distance, direction) {
+		await element(by.id(elementId)).scroll(distance, direction);
+	}
+
 	static async goToURL(inputURL) {
 		await device.openURL({ url: inputURL, sourceApp: 'io.metamask' });
 	}
@@ -88,7 +90,7 @@ export default class TestHelpers {
 	static checkIfVisible(elementId) {
 		return waitFor(element(by.id(elementId)))
 			.toBeVisible()
-			.withTimeout(10000);
+			.withTimeout(15000);
 	}
 
 	static checkIfNotVisible(elementId) {
