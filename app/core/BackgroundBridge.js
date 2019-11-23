@@ -156,7 +156,7 @@ export class BackgroundBridge extends EventEmitter {
 
 		pump(configStream, outStream, err => {
 			configStore.destroy();
-			configStream.destroy();
+			configStream && configStream.destroy && configStream.destroy();
 			if (err) {
 				console.warn(err);
 			}
