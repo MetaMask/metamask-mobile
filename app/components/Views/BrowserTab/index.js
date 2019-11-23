@@ -61,8 +61,9 @@ import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import { resemblesAddress } from '../../../util/address';
 
-const createAsyncMiddleware = require('json-rpc-engine/src/createAsyncMiddleware');
-const { errors: rpcErrors } = require('eth-json-rpc-errors');
+import createAsyncMiddleware from 'json-rpc-engine/src/createAsyncMiddleware';
+import { errors as rpcErrors } from 'eth-json-rpc-errors';
+
 const { HOMEPAGE_URL, USER_AGENT } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 
@@ -558,13 +559,15 @@ export class BrowserTab extends PureComponent {
 						const data = JSON.parse(req.params[1]);
 						const chainId = data.domain.chainId;
 						const activeChainId =
-							this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
-
-
+							this.props.networkType === 'rpc'
+								? this.props.network
+								: Networks[this.props.networkType].networkId;
 
 						// eslint-disable-next-line eqeqeq
 						if (chainId && chainId != activeChainId) {
-							throw rpcErrors.eth.userRejectedRequest(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
+							throw rpcErrors.eth.userRejectedRequest(
+								`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
+							);
 						}
 
 						const pageMeta = await this.getPageMeta();
@@ -586,13 +589,15 @@ export class BrowserTab extends PureComponent {
 						const data = JSON.parse(req.params[1]);
 						const chainId = data.domain.chainId;
 						const activeChainId =
-							this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
-
-
+							this.props.networkType === 'rpc'
+								? this.props.network
+								: Networks[this.props.networkType].networkId;
 
 						// eslint-disable-next-line eqeqeq
 						if (chainId && chainId != activeChainId) {
-							throw rpcErrors.eth.userRejectedRequest(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
+							throw rpcErrors.eth.userRejectedRequest(
+								`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
+							);
 						}
 
 						const pageMeta = await this.getPageMeta();
@@ -607,304 +612,105 @@ export class BrowserTab extends PureComponent {
 
 						res.result = rawSig;
 					}),
+				web3_clientVersion: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'web3_clientVersion') return next();
+						res.result = `MetaMask/${this.props.app_version}/Beta/Mobile`;
+					}),
+				wallet_scanQRCode: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'wallet_scanQRCode') return next();
+						this.props.navigation.navigate('QRScanner', {
+							onScanSuccess: data => {
+								let result = data;
+								if (data.target_address) {
+									result = data.target_address;
+								} else if (data.scheme) {
+									result = JSON.stringify(data);
+								}
+								res.result = result;
+							},
+							onScanError: e => {
+								throw rpcErrors.eth.userRejectedRequest(e.toString());
+							}
+						});
+					}),
+				wallet_watchAsset: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'wallet_watchAsset') return next();
+						const {
+							options: { address, decimals, image, symbol },
+							type
+						} = req;
+						const { AssetsController } = Engine.context;
+						const suggestionResult = await AssetsController.watchAsset(
+							{ address, symbol, decimals, image },
+							type
+						);
+						res.result = suggestionResult.result;
+					}),
+				metamask_removeFavorite: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'metamask_removeFavorite') return next();
+						if (!this.isHomepage()) {
+							throw rpcErrors.eth.userRejectedRequest('unauthorized');
+						}
 
+						Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
+							{
+								text: strings('browser.cancel'),
+								onPress: () => {
+									res.result = {
+										favorites: this.props.bookmarks
+									};
+								},
+								style: 'cancel'
+							},
+							{
+								text: strings('browser.yes'),
+								onPress: () => {
+									const bookmark = { url: req[0] };
+									this.props.removeBookmark(bookmark);
+									// remove bookmark from homepage
+									this.refreshHomeScripts();
+									res.result = {
+										favorites: this.props.bookmarks
+									};
+								}
+							}
+						]);
+					}),
+				metamask_showTutorial: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'metamask_showTutorial') return next();
+						this.wizardScrollAdjusted = false;
+						this.props.setOnboardingWizardStep(1);
+						this.props.navigation.navigate('WalletView');
+						res.result = true;
+					}),
+				metamask_showAutocomplete: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'metamask_showAutocomplete') return next();
+						this.fromHomepage = true;
+						this.setState(
+							{
+								autocompleteInputValue: ''
+							},
+							() => {
+								this.showUrlModal(true);
+								setTimeout(() => {
+									this.fromHomepage = false;
+								}, 1500);
+							}
+						);
+						res.result = true;
+					})
 			},
 			hostname => {
 				const { approvedHosts, privacyMode } = this.props;
 				return !privacyMode || approvedHosts[hostname];
 			}
 		);
-
-		// this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
-		// 	eth_sign: async payload => {
-		// 		const { MessageManager } = Engine.context;
-		// 		try {
-		// 			const pageMeta = await this.getPageMeta();
-		// 			const rawSig = await MessageManager.addUnapprovedMessageAsync({
-		// 				data: payload.params[1],
-		// 				from: payload.params[0],
-		// 				...pageMeta
-		// 			});
-
-		// 			return (
-		// 				!this.isReloading &&
-		// 				Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-		// 			);
-		// 		} catch (error) {
-		// 			return (
-		// 				!this.isReloading &&
-		// 				Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-		// 			);
-		// 		}
-		// 	},
-		// 	personal_sign: async payload => {
-		// 		const { PersonalMessageManager } = Engine.context;
-		// 		try {
-		// 			const firstParam = payload.params[0];
-		// 			const secondParam = payload.params[1];
-		// 			const params = {
-		// 				data: firstParam,
-		// 				from: secondParam
-		// 			};
-		// 			if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
-		// 				params.data = secondParam;
-		// 				params.from = firstParam;
-		// 			}
-		// 			const pageMeta = await this.getPageMeta();
-		// 			const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-		// 				...params,
-		// 				...pageMeta
-		// 			});
-		// 			return (
-		// 				!this.isReloading &&
-		// 				Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-		// 			);
-		// 		} catch (error) {
-		// 			return (
-		// 				!this.isReloading &&
-		// 				Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-		// 			);
-		// 		}
-		// 	},
-		// 	eth_signTypedData: async payload => {
-		// 		const { TypedMessageManager } = Engine.context;
-		// 		try {
-		// 			const pageMeta = await this.getPageMeta();
-		// 			const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-		// 				{
-		// 					data: payload.params[0],
-		// 					from: payload.params[1],
-		// 					...pageMeta
-		// 				},
-		// 				'V1'
-		// 			);
-		// 			return (
-		// 				!this.isReloading &&
-		// 				Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-		// 			);
-		// 		} catch (error) {
-		// 			return (
-		// 				!this.isReloading &&
-		// 				Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-		// 			);
-		// 		}
-		// 	},
-		// 	eth_signTypedData_v3: async payload => {
-		// 		const { TypedMessageManager } = Engine.context;
-
-		// 		let data;
-		// 		try {
-		// 			data = JSON.parse(payload.params[1]);
-		// 		} catch (e) {
-		// 			throw new Error('Data must be passed as a valid JSON string.');
-		// 		}
-		// 		const chainId = data.domain.chainId;
-		// 		const activeChainId =
-		// 			this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
-
-		// 		// eslint-disable-next-line eqeqeq
-		// 		if (chainId && chainId != activeChainId) {
-		// 			throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
-		// 		}
-
-		// 		try {
-		// 			const pageMeta = await this.getPageMeta();
-		// 			const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-		// 				{
-		// 					data: payload.params[1],
-		// 					from: payload.params[0],
-		// 					...pageMeta
-		// 				},
-		// 				'V3'
-		// 			);
-		// 			return (
-		// 				!this.isReloading &&
-		// 				Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-		// 			);
-		// 		} catch (error) {
-		// 			return (
-		// 				!this.isReloading &&
-		// 				Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-		// 			);
-		// 		}
-		// 	},
-		// 	eth_signTypedData_v4: async payload => {
-		// 		const { TypedMessageManager } = Engine.context;
-
-		// 		let data;
-		// 		try {
-		// 			data = JSON.parse(payload.params[1]);
-		// 		} catch (e) {
-		// 			throw new Error('Data must be passed as a valid JSON string.');
-		// 		}
-
-		// 		const chainId = data.domain.chainId;
-		// 		const activeChainId =
-		// 			this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
-
-		// 		if (chainId && chainId !== activeChainId) {
-		// 			throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
-		// 		}
-
-		// 		try {
-		// 			const pageMeta = await this.getPageMeta();
-		// 			const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-		// 				{
-		// 					data: payload.params[1],
-		// 					from: payload.params[0],
-		// 					...pageMeta
-		// 				},
-		// 				'V4'
-		// 			);
-		// 			return (
-		// 				!this.isReloading &&
-		// 				Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-		// 			);
-		// 		} catch (error) {
-		// 			return (
-		// 				!this.isReloading &&
-		// 				Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-		// 			);
-		// 		}
-		// 	},
-		// 	eth_requestAccounts: ({ hostname, params }) => {
-		// 		const { approvedHosts, privacyMode, selectedAddress } = this.props;
-		// 		const promise = new Promise((resolve, reject) => {
-		// 			this.approvalRequest = { resolve, reject };
-		// 		});
-		// 		if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
-		// 			this.approvalRequest.resolve([selectedAddress]);
-		// 			//if not approved previously
-		// 			if (!this.backgroundBridge._accounts) {
-		// 				this.backgroundBridge.enableAccounts();
-		// 			}
-		// 		} else {
-		// 			// Let the damn website load first!
-		// 			// Otherwise we don't get enough time to load the metadata
-		// 			// (title, icon, etc)
-
-		// 			setTimeout(async () => {
-		// 				await this.getPageMeta();
-		// 				this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
-		// 			}, 1000);
-		// 		}
-		// 		return !this.isReloading && promise;
-		// 	},
-		// 	eth_accounts: ({ id, jsonrpc, hostname }) => {
-		// 		const { approvedHosts, privacyMode, selectedAddress } = this.props;
-		// 		const isEnabled = !privacyMode || approvedHosts[hostname];
-		// 		const promise = new Promise((resolve, reject) => {
-		// 			this.accountsRequest = { resolve, reject };
-		// 		});
-		// 		if (isEnabled) {
-		// 			this.accountsRequest.resolve({ id, jsonrpc, result: [selectedAddress] });
-		// 		} else {
-		// 			this.accountsRequest.resolve({ id, jsonrpc, result: [] });
-		// 		}
-		// 		return !this.isReloading && promise;
-		// 	},
-		// 	net_version: payload =>
-		// 		!this.isReloading &&
-		// 		Promise.resolve({
-		// 			result: `${Networks[this.props.networkType].networkId}`,
-		// 			jsonrpc: payload.jsonrpc,
-		// 			id: payload.id
-		// 		}),
-		// 	web3_clientVersion: payload =>
-		// 		!this.isReloading &&
-		// 		Promise.resolve({
-		// 			result: `MetaMask/${this.props.app_version}/Beta/Mobile`,
-		// 			jsonrpc: payload.jsonrpc,
-		// 			id: payload.id
-		// 		}),
-		// 	wallet_scanQRCode: payload => {
-		// 		const promise = new Promise((resolve, reject) => {
-		// 			this.props.navigation.navigate('QRScanner', {
-		// 				onScanSuccess: data => {
-		// 					let result = data;
-		// 					if (data.target_address) {
-		// 						result = data.target_address;
-		// 					} else if (data.scheme) {
-		// 						result = JSON.stringify(data);
-		// 					}
-		// 					resolve({ result, jsonrpc: payload.jsonrpc, id: payload.id });
-		// 				},
-		// 				onScanError: e => {
-		// 					reject({ errir: e.toString(), jsonrpc: payload.jsonrpc, id: payload.id });
-		// 				}
-		// 			});
-		// 		});
-		// 		return !this.isReloading && promise;
-		// 	},
-		// 	wallet_watchAsset: async ({ params }) => {
-		// 		const {
-		// 			options: { address, decimals, image, symbol },
-		// 			type
-		// 		} = params;
-		// 		const { AssetsController } = Engine.context;
-		// 		const suggestionResult = await AssetsController.watchAsset({ address, symbol, decimals, image }, type);
-		// 		return !this.isReloading && suggestionResult.result;
-		// 	},
-		// 	metamask_isApproved: async ({ hostname }) =>
-		// 		!this.isReloading && {
-		// 			isApproved: !!this.props.approvedHosts[hostname]
-		// 		},
-		// 	metamask_removeFavorite: ({ params }) => {
-		// 		const promise = new Promise((resolve, reject) => {
-		// 			if (!this.isHomepage()) {
-		// 				reject({ error: 'unauthorized' });
-		// 			}
-
-		// 			Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
-		// 				{
-		// 					text: strings('browser.cancel'),
-		// 					onPress: () => {
-		// 						resolve({
-		// 							favorites: this.props.bookmarks
-		// 						});
-		// 					},
-		// 					style: 'cancel'
-		// 				},
-		// 				{
-		// 					text: strings('browser.yes'),
-		// 					onPress: () => {
-		// 						const bookmark = { url: params[0] };
-		// 						this.props.removeBookmark(bookmark);
-		// 						// remove bookmark from homepage
-		// 						this.refreshHomeScripts();
-		// 						resolve({
-		// 							favorites: this.props.bookmarks
-		// 						});
-		// 					}
-		// 				}
-		// 			]);
-		// 		});
-		// 		return !this.isReloading && promise;
-		// 	},
-		// 	metamask_showTutorial: () => {
-		// 		this.wizardScrollAdjusted = false;
-		// 		this.props.setOnboardingWizardStep(1);
-		// 		this.props.navigation.navigate('WalletView');
-
-		// 		return !this.isReloading && Promise.resolve({ result: true });
-		// 	},
-		// 	metamask_showAutocomplete: () => {
-		// 		this.fromHomepage = true;
-		// 		this.setState(
-		// 			{
-		// 				autocompleteInputValue: ''
-		// 			},
-		// 			() => {
-		// 				this.showUrlModal(true);
-		// 				setTimeout(() => {
-		// 					this.fromHomepage = false;
-		// 				}, 1500);
-		// 			}
-		// 		);
-
-		// 		return !this.isReloading && Promise.resolve({ result: true });
-		// 	}
-		// });
 	};
 
 	init = async () => {
@@ -1230,8 +1036,11 @@ export class BrowserTab extends PureComponent {
 		}, 100);
 		// Need to wait for nav_change & onPageChanged
 		setTimeout(() => {
-			this.setState({ forwardEnabled: true });
-		}, 1000);
+			this.setState({
+				forwardEnabled: true,
+				currentPageTitle: null
+			});
+		}, 500);
 	};
 
 	goBackToHomepage = async () => {
