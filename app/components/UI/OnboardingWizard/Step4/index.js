@@ -103,7 +103,7 @@ class Step4 extends PureComponent {
 						<TouchableWithoutFeedback
 							style={styles.hamburger}
 							onPress={this.onNext}
-							testID={'hamburger-menu-button-wallet-fake-af'}
+							testID={'hamburger-menu-button-wallet-fake'}
 						>
 							<View style={styles.hamburger} />
 						</TouchableWithoutFeedback>

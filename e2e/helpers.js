@@ -21,26 +21,18 @@ export default class TestHelpers {
 		return element(by.id(elementId)).tapAtPoint(point);
 	}
 
-	static tapFirstItem(elementID, index) {
+	static tapItemAtIndex(elementID, index) {
 		return element(by.id(elementID))
 			.atIndex(index || 0)
 			.tap();
 	}
 
 	static async typeText(elementId, text) {
-		// if (device.getPlatform() === 'android') {
-		// 	await TestHelpers.waitAndTap(elementId);
-		// } else {
 		await TestHelpers.tap(elementId);
-		//}
 		return element(by.id(elementId)).typeText(text);
 	}
 
 	static async typeNumbers(elementId, text, submitLabel) {
-		// if (device.getPlatform() === 'android') {
-		// 	return TestHelpers.typeText(elementId, text);
-		// }
-
 		await element(by.id(elementId)).replaceText(text.replace('\n', ''));
 		return element(by.label(submitLabel))
 			.atIndex(0)
@@ -52,9 +44,6 @@ export default class TestHelpers {
 			await TestHelpers.clearField(elementId);
 		}
 		await TestHelpers.typeText(elementId, text + '\n');
-		// if (device.getPlatform() === 'android') {
-		// 	device.pressBack();
-		// }
 	}
 
 	static async clearField(elementId) {
@@ -70,10 +59,10 @@ export default class TestHelpers {
 		return element(by.id(elementId)).replaceText(text);
 	}
 
-	static tapAlertWithButton(text) {
+	static tapAlertWithButton(text, index) {
 		if (device.getPlatform() === 'android') {
 			return element(by.text(text))
-				.atIndex(0)
+				.atIndex(index || 0)
 				.tap();
 		}
 

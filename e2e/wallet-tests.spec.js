@@ -227,7 +227,7 @@ describe('Wallet Tests', () => {
 		await TestHelpers.delay(2000);
 		// Select SAI
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapFirstItem('searched-token-result');
+			await TestHelpers.tapItemAtIndex('searched-token-result');
 			await TestHelpers.delay(500);
 		} else {
 			await TestHelpers.tapAtPoint('search-token-screen', { x: 115, y: 160 });
