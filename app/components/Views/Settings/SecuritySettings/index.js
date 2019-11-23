@@ -439,7 +439,7 @@ class Settings extends PureComponent {
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		return (
-			<ScrollView style={styles.wrapper}>
+			<ScrollView style={styles.wrapper} testID={'security-settings-scrollview'}>
 				<View style={styles.inner}>
 					<View style={[styles.setting, styles.firstSetting]}>
 						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
@@ -465,7 +465,7 @@ class Settings extends PureComponent {
 							/>
 						</View>
 					</View>
-					<View style={styles.setting} testID={'clear-privacy'}>
+					<View style={styles.setting} testID={'clear-privacy-section'}>
 						<Text style={styles.title}>{strings('app_settings.clear_privacy_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.clear_privacy_desc')}</Text>
 						<StyledButton
@@ -489,7 +489,7 @@ class Settings extends PureComponent {
 							{strings('app_settings.clear_browser_history_desc').toUpperCase()}
 						</StyledButton>
 					</View>
-					<View style={styles.setting}>
+					<View style={styles.setting} testID={'auto-lock-section'}>
 						<Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.auto_lock_desc')}</Text>
 						<View style={styles.picker}>

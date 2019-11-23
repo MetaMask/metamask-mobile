@@ -44,6 +44,7 @@ exports[`NetworkSettings should render correctly 1`] = `
             "paddingVertical": 12,
           }
         }
+        testID="rpc-screen-title"
       >
         New RPC Network
       </Text>
