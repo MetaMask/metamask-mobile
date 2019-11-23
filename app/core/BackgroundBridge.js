@@ -37,7 +37,8 @@ class Port extends EventEmitter {
 }
 
 export class BackgroundBridge extends EventEmitter {
-	constructor(webview, middlewares, shouldExposeAccounts) {
+	constructor(webview, url, middlewares, shouldExposeAccounts) {
+		console.log('initializing bridge for ', url);
 		super();
 		this._webviewRef = webview && webview.current;
 		this.middlewares = middlewares;
@@ -46,7 +47,7 @@ export class BackgroundBridge extends EventEmitter {
 		this.blockTracker = Engine.context.NetworkController.blockTracker;
 		this.port = new Port(this._webviewRef);
 
-		const senderUrl = new URL(this._webviewRef.props.source.uri);
+		const senderUrl = new URL(url);
 
 		const portStream = new MobilePortStream(this.port);
 		// setup multiplexing
@@ -121,6 +122,8 @@ export class BackgroundBridge extends EventEmitter {
 
 		// requestAccounts
 		engine.push(this.middlewares.eth_requestAccounts(senderUrl));
+		engine.push(this.middlewares.eth_accounts(senderUrl));
+		engine.push(this.middlewares.eth_sign());
 
 		// forward to metamask primary provider
 		engine.push(providerAsMiddleware(provider));
@@ -176,6 +179,9 @@ export class BackgroundBridge extends EventEmitter {
 		}
 
 		function updatePublicConfigStore (memState) {
+			if(!memState){
+				memState = this.getState();
+			}
 			const publicState = selectPublicState(memState)
 			console.log('Updating publicState', publicState);
 			publicConfigStore.putState(publicState)

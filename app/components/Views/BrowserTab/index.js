@@ -448,10 +448,12 @@ export class BrowserTab extends PureComponent {
 		this.init();
 	}
 
-	initializeBackgroundBridge = () => {
+	initializeBackgroundBridge = (url) => {
 		this.backgroundBridge = new BackgroundBridge(
 			this.webview,
+			url,
 			{
+				// ALL USER FACING RPC CALLS HERE
 				eth_requestAccounts: senderUrl =>
 					createAsyncMiddleware(async (req, res, next) => {
 						if (req.method !== 'eth_requestAccounts') return next();
@@ -461,15 +463,19 @@ export class BrowserTab extends PureComponent {
 						if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
 							res.result = [selectedAddress];
 						} else {
-							setTimeout(async () => {
-								await this.getPageMeta();
-								this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
-							}, 1000);
+							if(!this.state.showApprovalDialog){
+								setTimeout(async () => {
+									if(!this.state.showApprovalDialog){
+										this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
+									}
+								}, 1000);
+							}
 							const approved = await new Promise((resolve, reject) => {
 								this.approvalRequest = { resolve, reject };
 							});
 							if (approved) {
 								res.result = [selectedAddress];
+								this.backgroundBridge.emit('update');
 							} else {
 								throw rpcErrors.eth.userRejectedRequest('User denied account authorization');
 							}
@@ -487,7 +493,7 @@ export class BrowserTab extends PureComponent {
 							res.result = [];
 						}
 					}),
-				// OTHER MIDDLEWARES HERE
+
 				eth_sign: () =>
 					createAsyncMiddleware(async (req, res, next) => {
 						if (req.method !== 'eth_sign') return next();
@@ -1431,19 +1437,7 @@ export class BrowserTab extends PureComponent {
 		this.setState({ progress });
 	};
 
-	waitForBridgeAndEnableAccounts = async () => {
-		// while (!this.backgroundBridge) {
-		// 	await new Promise(res => setTimeout(() => res(), 1000));
-		// }
-		// this.backgroundBridge.enableAccounts();
-	};
-
 	onLoadEnd = () => {
-		const { approvedHosts, privacyMode } = this.props;
-		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
-			this.waitForBridgeAndEnableAccounts();
-		}
-
 		// Wait for the title, then store the visit
 		setTimeout(() => {
 			this.props.addToBrowserHistory({
@@ -1836,7 +1830,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onLoadStart = ({ nativeEvent }) => {
-		this.initializeBackgroundBridge();
+		this.initializeBackgroundBridge(nativeEvent.url);
 		// Handle the scenario when going back
 		// from an ENS name
 		if (nativeEvent.navigationType === 'backforward' && nativeEvent.url === this.state.inputValue) {
