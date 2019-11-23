@@ -59,6 +59,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
+import { resemblesAddress } from '../../../util/address';
 
 const createAsyncMiddleware = require('json-rpc-engine/src/createAsyncMiddleware');
 const { errors: rpcErrors } = require('eth-json-rpc-errors');
@@ -448,7 +449,7 @@ export class BrowserTab extends PureComponent {
 		this.init();
 	}
 
-	initializeBackgroundBridge = (url) => {
+	initializeBackgroundBridge = url => {
 		this.backgroundBridge = new BackgroundBridge(
 			this.webview,
 			url,
@@ -463,10 +464,14 @@ export class BrowserTab extends PureComponent {
 						if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
 							res.result = [selectedAddress];
 						} else {
-							if(!this.state.showApprovalDialog){
+							if (!this.state.showApprovalDialog) {
 								setTimeout(async () => {
-									if(!this.state.showApprovalDialog){
-										this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
+									if (!this.state.showApprovalDialog) {
+										await this.getPageMeta();
+										this.setState({
+											showApprovalDialog: true,
+											showApprovalDialogHostname: hostname
+										});
 									}
 								}, 1000);
 							}
@@ -481,6 +486,7 @@ export class BrowserTab extends PureComponent {
 							}
 						}
 					}),
+
 				eth_accounts: senderUrl =>
 					createAsyncMiddleware(async (req, res, next) => {
 						if (req.method !== 'eth_accounts') return next();
@@ -505,7 +511,103 @@ export class BrowserTab extends PureComponent {
 							...pageMeta
 						});
 						res.result = rawSig;
-					})
+					}),
+
+				personal_sign: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'personal_sign') return next();
+						const { PersonalMessageManager } = Engine.context;
+						const firstParam = req.params[0];
+						const secondParam = req.params[1];
+						const params = {
+							data: firstParam,
+							from: secondParam
+						};
+						if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
+							params.data = secondParam;
+							params.from = firstParam;
+						}
+						const pageMeta = await this.getPageMeta();
+						const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+							...params,
+							...pageMeta
+						});
+
+						res.result = rawSig;
+					}),
+				eth_signTypedData: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_signTypedData') return next();
+						const { TypedMessageManager } = Engine.context;
+						const pageMeta = await this.getPageMeta();
+						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+							{
+								data: req.params[0],
+								from: req.params[1],
+								...pageMeta
+							},
+							'V1'
+						);
+
+						res.result = rawSig;
+					}),
+				eth_signTypedData_v3: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_signTypedData_v3') return next();
+						const { TypedMessageManager } = Engine.context;
+						const data = JSON.parse(req.params[1]);
+						const chainId = data.domain.chainId;
+						const activeChainId =
+							this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
+
+
+
+						// eslint-disable-next-line eqeqeq
+						if (chainId && chainId != activeChainId) {
+							throw rpcErrors.eth.userRejectedRequest(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
+						}
+
+						const pageMeta = await this.getPageMeta();
+						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+							{
+								data: req.params[1],
+								from: req.params[0],
+								...pageMeta
+							},
+							'V3'
+						);
+
+						res.result = rawSig;
+					}),
+				eth_signTypedData_v4: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_signTypedData_v4') return next();
+						const { TypedMessageManager } = Engine.context;
+						const data = JSON.parse(req.params[1]);
+						const chainId = data.domain.chainId;
+						const activeChainId =
+							this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
+
+
+
+						// eslint-disable-next-line eqeqeq
+						if (chainId && chainId != activeChainId) {
+							throw rpcErrors.eth.userRejectedRequest(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
+						}
+
+						const pageMeta = await this.getPageMeta();
+						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+							{
+								data: req.params[1],
+								from: req.params[0],
+								...pageMeta
+							},
+							'V4'
+						);
+
+						res.result = rawSig;
+					}),
+
 			},
 			hostname => {
 				const { approvedHosts, privacyMode } = this.props;

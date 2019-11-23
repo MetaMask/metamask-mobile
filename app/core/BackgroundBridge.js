@@ -6,14 +6,14 @@ import { setupMultiplex } from '../util/streams';
 import { createOriginMiddleware, createLoggerMiddleware } from '../util/middlewares';
 import Engine from './Engine';
 import NetworkList from '../util/networks';
-const ObservableStore = require('obs-store')
+const ObservableStore = require('obs-store');
 const RpcEngine = require('json-rpc-engine');
 const createEngineStream = require('json-rpc-middleware-stream/engineStream');
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
 const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
 const pump = require('pump');
-const asStream = require('obs-store/lib/asStream')
+const asStream = require('obs-store/lib/asStream');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 
@@ -54,7 +54,7 @@ export class BackgroundBridge extends EventEmitter {
 		const mux = setupMultiplex(portStream);
 		// connect features
 		this.setupProviderConnection(mux.createStream('provider'), senderUrl);
-		this.setupPublicConfig(mux.createStream('publicConfig'), senderUrl)
+		this.setupPublicConfig(mux.createStream('publicConfig'), senderUrl);
 	}
 
 	onMessage = msg => {
@@ -123,7 +123,12 @@ export class BackgroundBridge extends EventEmitter {
 		// requestAccounts
 		engine.push(this.middlewares.eth_requestAccounts(senderUrl));
 		engine.push(this.middlewares.eth_accounts(senderUrl));
+		// Signing methods
 		engine.push(this.middlewares.eth_sign());
+		engine.push(this.middlewares.personal_sign());
+		engine.push(this.middlewares.eth_signTypedData());
+		engine.push(this.middlewares.eth_signTypedData_v3());
+		engine.push(this.middlewares.eth_signTypedData_v4());
 
 		// forward to metamask primary provider
 		engine.push(providerAsMiddleware(provider));
@@ -131,65 +136,61 @@ export class BackgroundBridge extends EventEmitter {
 	}
 
 	/**
-	* A method for providing our public config info over a stream.
-	* This includes info we like to be synchronous if possible, like
-	* the current selected account, and network ID.
-	*
-	* Since synchronous methods have been deprecated in web3,
-	* this is a good candidate for deprecation.
-	*
-	* @param {*} outStream - The stream to provide public config over.
-	* @param {URL} senderUrl - The URL of requesting resource
-	*/
-	setupPublicConfig (outStream, senderUrl) {
+	 * A method for providing our public config info over a stream.
+	 * This includes info we like to be synchronous if possible, like
+	 * the current selected account, and network ID.
+	 *
+	 * Since synchronous methods have been deprecated in web3,
+	 * this is a good candidate for deprecation.
+	 *
+	 * @param {*} outStream - The stream to provide public config over.
+	 * @param {URL} senderUrl - The URL of requesting resource
+	 */
+	setupPublicConfig(outStream, senderUrl) {
 		const configStore = this.createPublicConfigStore({
 			// check the providerApprovalController's approvedOrigins
-			checkIsEnabled: () => this.shouldExposeAccounts(senderUrl.hostname),
-		})
+			checkIsEnabled: () => this.shouldExposeAccounts(senderUrl.hostname)
+		});
 
-		const configStream = asStream(configStore)
+		const configStream = asStream(configStore);
 
-		pump(
-			configStream,
-			outStream,
-			(err) => {
-				configStore.destroy()
-				configStream.destroy()
-				if (err) {
-					console.warn(err)
-				}
+		pump(configStream, outStream, err => {
+			configStore.destroy();
+			configStream.destroy();
+			if (err) {
+				console.warn(err);
 			}
-		)
+		});
 	}
 
 	/**
-	* Constructor helper: initialize a public config store.
-	* This store is used to make some config info available to Dapps synchronously.
-	*/
-	createPublicConfigStore ({ checkIsEnabled }) {
+	 * Constructor helper: initialize a public config store.
+	 * This store is used to make some config info available to Dapps synchronously.
+	 */
+	createPublicConfigStore({ checkIsEnabled }) {
 		// subset of state for metamask inpage provider
-		const publicConfigStore = new ObservableStore()
+		const publicConfigStore = new ObservableStore();
 
 		// setup memStore subscription hooks
-		this.on('update', updatePublicConfigStore)
-		updatePublicConfigStore(this.getState())
+		this.on('update', updatePublicConfigStore);
+		updatePublicConfigStore(this.getState());
 
 		publicConfigStore.destroy = () => {
-			this.removeEventListener && this.removeEventListener('update', updatePublicConfigStore)
-		}
+			this.removeEventListener && this.removeEventListener('update', updatePublicConfigStore);
+		};
 
-		function updatePublicConfigStore (memState) {
-			if(!memState){
+		function updatePublicConfigStore(memState) {
+			if (!memState) {
 				memState = this.getState();
 			}
-			const publicState = selectPublicState(memState)
+			const publicState = selectPublicState(memState);
 			console.log('Updating publicState', publicState);
-			publicConfigStore.putState(publicState)
+			publicConfigStore.putState(publicState);
 		}
 
-		function selectPublicState ({ isUnlocked, selectedAddress, network }) {
-			const isEnabled = checkIsEnabled()
-			const isReady = isUnlocked && isEnabled
+		function selectPublicState({ isUnlocked, selectedAddress, network }) {
+			const isEnabled = checkIsEnabled();
+			const isReady = isUnlocked && isEnabled;
 			const networkType = Engine.context.NetworkController.state.provider.type;
 			const chainId = Object.keys(NetworkList).indexOf(networkType) > -1 && NetworkList[networkType].chainId;
 			const result = {
@@ -198,11 +199,11 @@ export class BackgroundBridge extends EventEmitter {
 				selectedAddress: isReady ? selectedAddress : null,
 				networkVersion: network,
 				chainId: `0x${parseInt(chainId, 10).toString(16)}`
-			}
+			};
 			return result;
 		}
 
-		return publicConfigStore
+		return publicConfigStore;
 	}
 
 	/**
@@ -210,8 +211,8 @@ export class BackgroundBridge extends EventEmitter {
 	 *
 	 * @returns {Object} status
 	 */
-	getState () {
-		const vault = Engine.context.KeyringController.state.vault
+	getState() {
+		const vault = Engine.context.KeyringController.state.vault;
 		const isInitialized = !!vault;
 		const { network, selectedAddress } = Engine.datamodel.flatState;
 		return {
@@ -219,9 +220,8 @@ export class BackgroundBridge extends EventEmitter {
 			isUnlocked: true,
 			network,
 			selectedAddress
-		}
+		};
 	}
-
 
 	// _engine;
 	// _rpcOverrides;
