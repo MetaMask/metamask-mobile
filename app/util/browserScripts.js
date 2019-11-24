@@ -84,13 +84,13 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
 	}
 	const iframes = document.getElementsByTagName('iframe');
 	for (let frame of iframes){
-		if(frame.src === '${origin}'){
+
 			try {
 				frame.contentWindow.postMessage(${JSON.stringify(message)}, '${origin}');
 			} catch (e) {
 				//Nothing to do
 			}
-		}
+
 	}
 })()`;
 

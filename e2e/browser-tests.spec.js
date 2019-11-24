@@ -246,6 +246,9 @@ describe('Browser Tests', () => {
 			await TestHelpers.replaceTextInField('url-input', ETHEREUM_ENABLE);
 			await element(by.id('url-input')).tapReturnKey();
 		}
+
+		await TestHelpers.checkIfHasText('dapp-name-title', 'brunobar79.github.io');
+
 		// Tap on CONNECT button
 		if (!device.getPlatform() === 'android') {
 			await TestHelpers.delay(2000);
