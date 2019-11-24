@@ -44,7 +44,7 @@ export class BackgroundBridge extends EventEmitter {
 		this.middlewares = middlewares;
 		this.shouldExposeAccounts = shouldExposeAccounts;
 		this.provider = Engine.context.NetworkController.provider;
-		this.blockTracker = Engine.context.NetworkController.blockTracker;
+		this.blockTracker = this.provider._blockTracker;
 		this.port = new Port(this._webviewRef);
 
 		const senderUrl = new URL(url);
@@ -207,7 +207,7 @@ export class BackgroundBridge extends EventEmitter {
 			const result = {
 				isUnlocked,
 				isEnabled,
-				selectedAddress: isReady ? selectedAddress : null,
+				selectedAddress: isReady ? selectedAddress.toLowerCase() : null,
 				networkVersion: network,
 				chainId: `0x${parseInt(chainId, 10).toString(16)}`
 			};

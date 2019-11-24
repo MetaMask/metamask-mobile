@@ -49,7 +49,7 @@ PortDuplexStream.prototype._onMessage = function(msg) {
  * @private
  */
 PortDuplexStream.prototype._onDisconnect = function() {
-	this.destroy();
+	this.destroy && this.destroy();
 };
 
 /**
