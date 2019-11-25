@@ -2,6 +2,14 @@
 
 ## Current Develop Branch
 
+## v0.2.12 - Nov 25 2019
+- [#1224](https://github.com/MetaMask/metamask-mobile/pull/1224): Bugfix: asset ens tx (#1224)
+- [#1225](https://github.com/MetaMask/metamask-mobile/pull/1225): update bug report link (#1225)
+- [#1215](https://github.com/MetaMask/metamask-mobile/pull/1215): Detox: Fix Android e2e Tests (#1215)
+- [#1223](https://github.com/MetaMask/metamask-mobile/pull/1223): Bugfix: contract deployments (#1223)
+- [#1222](https://github.com/MetaMask/metamask-mobile/pull/1222): bugfix: android show hex input instapay send (#1222)
+- [#1214](https://github.com/MetaMask/metamask-mobile/pull/1214): pass  metametrics context to homepage (#1214)
+
 ## v0.2.11 - Nov 18 2019
 - [#1212](https://github.com/MetaMask/metamask-mobile/pull/1212): Provider missing properties (#1212)
 - [#1207](https://github.com/MetaMask/metamask-mobile/pull/1207): Fix typo on Import Account screen (#1207)
