@@ -11,7 +11,7 @@ import { connect } from 'react-redux';
 import { renderFromWei } from '../../../util/number';
 import ActionModal from '../../UI/ActionModal';
 import Engine from '../../../core/Engine';
-import { isValidAddress } from 'ethereumjs-util';
+import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import doENSReverseLookup from '../../../util/ENSUtils';
 
 const styles = StyleSheet.create({
@@ -176,15 +176,18 @@ class SendFlow extends PureComponent {
 		const networkAddressBook = addressBook[network] || {};
 		let [addToAddressToAddressBook, toSelectedAddressReady, toAddressName] = [false, false, undefined];
 		if (isValidAddress(toSelectedAddress)) {
+			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
 			toSelectedAddressReady = true;
 			const ens = await doENSReverseLookup(toSelectedAddress);
 			if (ens) {
 				toAddressName = ens;
+			} else if (networkAddressBook[checksummedToSelectedAddress] || identities[checksummedToSelectedAddress]) {
+				toAddressName =
+					(networkAddressBook[checksummedToSelectedAddress] &&
+						networkAddressBook[checksummedToSelectedAddress].name) ||
+					(identities[checksummedToSelectedAddress] && identities[checksummedToSelectedAddress].name);
 			} else {
-				toAddressName = networkAddressBook[toSelectedAddress] && networkAddressBook[toSelectedAddress].name;
-			}
-			// If not in address book nor user accounts
-			if (!networkAddressBook[toSelectedAddress] && !identities[toSelectedAddress]) {
+				// If not in address book nor user accounts
 				addToAddressToAddressBook = true;
 			}
 		}
