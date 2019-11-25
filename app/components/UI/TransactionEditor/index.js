@@ -216,9 +216,11 @@ class TransactionEditor extends PureComponent {
 			this.props.setTransactionObject({ to, gas: hexToBN(gas), ensRecipient });
 		}
 		// If selectedAsset defined, generates data
-		else {
+		else if (to && isValidAddress(to)) {
 			const { data, gas } = await this.handleDataGeneration({ to });
 			this.props.setTransactionObject({ to, gas: hexToBN(gas), data, ensRecipient });
+		} else {
+			this.props.setTransactionObject({ to, data: undefined, ensRecipient });
 		}
 	};
 
@@ -485,6 +487,7 @@ class TransactionEditor extends PureComponent {
 		!to && (error = strings('transaction.required'));
 		!to && this.state.toFocused && (error = strings('transaction.required'));
 		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
+		to && to.length !== 42 && (error = strings('transaction.invalid_address'));
 		return error;
 	};
 
