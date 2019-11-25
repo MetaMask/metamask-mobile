@@ -284,7 +284,7 @@ class AccountList extends PureComponent {
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
 				<View style={styles.titleWrapper}>
-					<View style={styles.dragger} />
+					<View style={styles.dragger} testID={'account-list-dragger'} />
 				</View>
 				<FlatList
 					data={orderedAccounts}
