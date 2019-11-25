@@ -133,6 +133,7 @@ class SendFlow extends PureComponent {
 		fromAccountName: undefined,
 		fromAccountBalance: undefined,
 		toSelectedAddress: undefined,
+		toSelectedAddressName: undefined,
 		toSelectedAddressReady: false,
 		addToAddressToAddressBook: false,
 		alias: undefined
@@ -170,18 +171,33 @@ class SendFlow extends PureComponent {
 		this.toggleFromAccountModal();
 	};
 
-	onToSelectedAddressChange = toSelectedAddress => {
+	onToSelectedAddressChange = async toSelectedAddress => {
 		const { addressBook, network, identities } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
+		let [addToAddressToAddressBook, toSelectedAddressReady, toAddressName] = [false, false, undefined];
 		if (isValidAddress(toSelectedAddress)) {
 			toSelectedAddressReady = true;
+			const ens = await doENSReverseLookup(toSelectedAddress);
+			if (ens) {
+				toAddressName = ens;
+			} else {
+				console.log(
+					'networkAddressBook[toSelectedAddress]',
+					networkAddressBook[toSelectedAddress] && networkAddressBook[toSelectedAddress].name
+				);
+				toAddressName = networkAddressBook[toSelectedAddress] && networkAddressBook[toSelectedAddress].name;
+			}
 			// If not in address book nor user accounts
 			if (!networkAddressBook[toSelectedAddress] && !identities[toSelectedAddress]) {
 				addToAddressToAddressBook = true;
 			}
 		}
-		this.setState({ toSelectedAddress, addToAddressToAddressBook, toSelectedAddressReady });
+		this.setState({
+			toSelectedAddress,
+			addToAddressToAddressBook,
+			toSelectedAddressReady,
+			toSelectedAddressName: toAddressName
+		});
 	};
 
 	onChangeAlias = alias => {
@@ -217,6 +233,7 @@ class SendFlow extends PureComponent {
 			fromAccountBalance,
 			toSelectedAddress,
 			toSelectedAddressReady,
+			toSelectedAddressName,
 			addToAddressToAddressBook,
 			alias
 		} = this.state;
@@ -234,6 +251,7 @@ class SendFlow extends PureComponent {
 						highlighted
 						addressToReady={toSelectedAddressReady}
 						toSelectedAddress={toSelectedAddress}
+						toAddressName={toSelectedAddressName}
 						onToSelectedAddressChange={this.onToSelectedAddressChange}
 						onScan={this.onScan}
 					/>

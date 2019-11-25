@@ -5,6 +5,7 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
+import { renderShortAddress } from '../../../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -25,6 +26,11 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		marginHorizontal: 6
+	},
+	addressToInformation: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center'
 	},
 	address: {
 		flex: 1,
@@ -79,47 +85,60 @@ const styles = StyleSheet.create({
 });
 
 export const AddressTo = props => {
-	const { addressToReady, highlighted, toSelectedAddress, onToSelectedAddressChange, onScan } = props;
+	const { addressToReady, highlighted, toSelectedAddress, onToSelectedAddressChange, onScan, toAddressName } = props;
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
 				<Text style={styles.labelText}>To:</Text>
 			</View>
-			<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
-				<View style={styles.input}>
-					<TextInput
-						autoCapitalize="none"
-						autoCorrect={false}
-						onChangeText={onToSelectedAddressChange}
-						placeholder={'Search, public address (0x), or ENS'}
-						placeholderTextColor={colors.grey100}
-						spellCheck={false}
-						style={styles.textInput}
-						numberOfLines={1}
-						onBlur={this.onBlur}
-						onFocus={this.onInputFocus}
-						onSubmitEditing={this.onFocus}
-						value={toSelectedAddress}
-					/>
+			{!addressToReady ? (
+				<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
+					<View style={styles.input}>
+						<TextInput
+							autoCapitalize="none"
+							autoCorrect={false}
+							onChangeText={onToSelectedAddressChange}
+							placeholder={'Search, public address (0x), or ENS'}
+							placeholderTextColor={colors.grey100}
+							spellCheck={false}
+							style={styles.textInput}
+							numberOfLines={1}
+							onBlur={this.onBlur}
+							onFocus={this.onInputFocus}
+							onSubmitEditing={this.onFocus}
+							value={toSelectedAddress}
+						/>
+					</View>
+					<TouchableOpacity onPress={onScan} style={styles.scanIconWrapper}>
+						<AntIcon
+							name="scan1"
+							size={20}
+							style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
+						/>
+					</TouchableOpacity>
 				</View>
-				{addressToReady ? (
+			) : (
+				<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
+					<View style={styles.addressToInformation}>
+						<Identicon address={toSelectedAddress} diameter={30} />
+						<View style={styles.address}>
+							<Text style={styles.textAddress} numberOfLines={1}>
+								{toAddressName}
+							</Text>
+							<Text style={styles.textBalance} numberOfLines={1}>
+								{renderShortAddress(toSelectedAddress)}
+							</Text>
+						</View>
+					</View>
 					<TouchableOpacity onPress={onScan} style={styles.scanIconWrapper}>
 						<AntIcon
-							name="scan1"
+							name="close"
 							size={20}
 							style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
 						/>
 					</TouchableOpacity>
-				) : (
-					<TouchableOpacity onPress={onScan} style={styles.scanIconWrapper}>
-						<AntIcon
-							name="scan1"
-							size={20}
-							style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
-						/>
-					</TouchableOpacity>
-				)}
-			</View>
+				</View>
+			)}
 		</View>
 	);
 };
@@ -144,7 +163,11 @@ AddressTo.propTypes = {
 	/**
 	 * Callback called when scan icon is pressed
 	 */
-	onScan: PropTypes.func
+	onScan: PropTypes.func,
+	/**
+	 * Name of selected address as string
+	 */
+	toAddressName: PropTypes.string
 };
 
 export const AddressFrom = props => {
