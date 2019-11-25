@@ -12,6 +12,7 @@ import { renderFromWei } from '../../../util/number';
 import ActionModal from '../../UI/ActionModal';
 import Engine from '../../../core/Engine';
 import { isValidAddress } from 'ethereumjs-util';
+import doENSReverseLookup from '../../../util/ENSUtils';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -132,16 +133,19 @@ class SendFlow extends PureComponent {
 		fromAccountName: undefined,
 		fromAccountBalance: undefined,
 		toSelectedAddress: undefined,
+		toSelectedAddressReady: false,
 		addToAddressToAddressBook: false,
 		alias: undefined
 	};
 
-	componentDidMount = () => {
+	componentDidMount = async () => {
 		const { navigation, selectedAddress, identities, accounts, ticker } = this.props;
 		navigation && navigation.setParams({ mode: 'edit' });
+		const ens = await doENSReverseLookup(selectedAddress);
+		const fromAccountName = ens || identities[selectedAddress].name;
 		this.setState({
 			fromSelectedAddress: selectedAddress,
-			fromAccountName: identities[selectedAddress].name,
+			fromAccountName,
 			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${ticker}`
 		});
 	};
@@ -156,10 +160,12 @@ class SendFlow extends PureComponent {
 		this.setState({ addToAddressBookModalVisible: !addToAddressBookModalVisible });
 	};
 
-	onAccountChange = accountAddress => {
+	onAccountChange = async accountAddress => {
 		const { identities, ticker, accounts } = this.props;
-		const { name: fromAccountName } = identities[accountAddress];
+		const { name } = identities[accountAddress];
 		const fromAccountBalance = `${renderFromWei(accounts[accountAddress].balance)} ${ticker}`;
+		const ens = await doENSReverseLookup(accountAddress);
+		const fromAccountName = ens || name;
 		this.setState({ fromAccountName, fromAccountBalance, fromSelectedAddress: accountAddress });
 		this.toggleFromAccountModal();
 	};
@@ -167,19 +173,15 @@ class SendFlow extends PureComponent {
 	onToSelectedAddressChange = toSelectedAddress => {
 		const { addressBook, network, identities } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-
+		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
 		if (isValidAddress(toSelectedAddress)) {
-			if (networkAddressBook[toSelectedAddress] || identities[toSelectedAddress]) {
-				// In address book, pass to send
-				this.setState({ addToAddressToAddressBook: false });
-			} else {
-				this.setState({ addToAddressToAddressBook: true });
-				// Add to address book
+			toSelectedAddressReady = true;
+			// If not in address book nor user accounts
+			if (!networkAddressBook[toSelectedAddress] && !identities[toSelectedAddress]) {
+				addToAddressToAddressBook = true;
 			}
-		} else {
-			this.setState({ addToAddressToAddressBook: false });
 		}
-		this.setState({ toSelectedAddress });
+		this.setState({ toSelectedAddress, addToAddressToAddressBook, toSelectedAddressReady });
 	};
 
 	onChangeAlias = alias => {
@@ -214,6 +216,7 @@ class SendFlow extends PureComponent {
 			fromAccountName,
 			fromAccountBalance,
 			toSelectedAddress,
+			toSelectedAddressReady,
 			addToAddressToAddressBook,
 			alias
 		} = this.state;
@@ -229,6 +232,7 @@ class SendFlow extends PureComponent {
 					/>
 					<AddressTo
 						highlighted
+						addressToReady={toSelectedAddressReady}
 						toSelectedAddress={toSelectedAddress}
 						onToSelectedAddressChange={this.onToSelectedAddressChange}
 						onScan={this.onScan}

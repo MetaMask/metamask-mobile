@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
 });
 
 export const AddressTo = props => {
-	const { highlighted, toSelectedAddress, onToSelectedAddressChange, onScan } = props;
+	const { addressToReady, highlighted, toSelectedAddress, onToSelectedAddressChange, onScan } = props;
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
@@ -102,20 +102,33 @@ export const AddressTo = props => {
 						value={toSelectedAddress}
 					/>
 				</View>
-
-				<TouchableOpacity onPress={onScan} style={styles.scanIconWrapper}>
-					<AntIcon
-						name="scan1"
-						size={20}
-						style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
-					/>
-				</TouchableOpacity>
+				{addressToReady ? (
+					<TouchableOpacity onPress={onScan} style={styles.scanIconWrapper}>
+						<AntIcon
+							name="scan1"
+							size={20}
+							style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
+						/>
+					</TouchableOpacity>
+				) : (
+					<TouchableOpacity onPress={onScan} style={styles.scanIconWrapper}>
+						<AntIcon
+							name="scan1"
+							size={20}
+							style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
+						/>
+					</TouchableOpacity>
+				)}
 			</View>
 		</View>
 	);
 };
 
 AddressTo.propTypes = {
+	/**
+	 * Whether is a valid Ethereum address to send to
+	 */
+	addressToReady: PropTypes.bool,
 	/**
 	 * Whether the input is highlighted
 	 */
