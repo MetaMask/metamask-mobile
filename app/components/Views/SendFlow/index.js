@@ -12,8 +12,10 @@ import { renderFromWei } from '../../../util/number';
 import ActionModal from '../../UI/ActionModal';
 import Engine from '../../../core/Engine';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
-import doENSReverseLookup from '../../../util/ENSUtils';
+import { doENSLookup, doENSReverseLookup } from '../../../util/ENSUtils';
 import StyledButton from '../../UI/StyledButton';
+import { setRecipient, newTransaction } from '../../../actions/newTransaction';
+import { isENS } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -136,7 +138,15 @@ class SendFlow extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Action that sets transaction to and ensRecipient in case is available
+		 */
+		setRecipient: PropTypes.func,
+		/**
+		 * Action that start a new empty transaction
+		 */
+		newTransaction: PropTypes.fun
 	};
 
 	state = {
@@ -152,16 +162,19 @@ class SendFlow extends PureComponent {
 		alias: undefined
 	};
 
+	ensResolver;
+
 	componentDidMount = async () => {
-		const { navigation, selectedAddress, identities, accounts, ticker } = this.props;
+		const { navigation, selectedAddress, identities, accounts, ticker, newTransaction, network } = this.props;
 		navigation && navigation.setParams({ mode: 'edit' });
-		const ens = await doENSReverseLookup(selectedAddress);
+		const ens = await doENSReverseLookup(selectedAddress, network);
 		const fromAccountName = ens || identities[selectedAddress].name;
 		this.setState({
 			fromSelectedAddress: selectedAddress,
 			fromAccountName,
 			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${ticker}`
 		});
+		newTransaction();
 	};
 
 	toggleFromAccountModal = () => {
@@ -203,6 +216,17 @@ class SendFlow extends PureComponent {
 				// If not in address book nor user accounts
 				addToAddressToAddressBook = true;
 			}
+		} else if (isENS(toSelectedAddress)) {
+			const resolvedAddress = await doENSLookup(toSelectedAddress, network);
+			if (resolvedAddress) {
+				const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
+				toAddressName = toSelectedAddress;
+				toSelectedAddress = resolvedAddress;
+				toSelectedAddressReady = true;
+				if (!networkAddressBook[checksummedResolvedAddress] && !identities[checksummedResolvedAddress]) {
+					addToAddressToAddressBook = true;
+				}
+			}
 		}
 		this.setState({
 			toSelectedAddress,
@@ -239,19 +263,89 @@ class SendFlow extends PureComponent {
 		});
 	};
 
-	render = () => {
+	onTransactionDirectionSet = () => {
+		const { setRecipient } = this.props;
+		const { fromAccountAddress, toSelectedAddress } = this.state;
+		setRecipient(fromAccountAddress, toSelectedAddress, undefined);
+	};
+
+	renderAddToAddressBookModal = () => {
+		const { addToAddressBookModalVisible, alias } = this.state;
+		return (
+			<ActionModal
+				modalVisible={addToAddressBookModalVisible}
+				confirmText={'Save'}
+				cancelText={'Cancel'}
+				onCancelPress={this.toggleAddToAddressBookModal}
+				onRequestClose={this.toggleAddToAddressBookModal}
+				onConfirmPress={this.onSaveToAddressBook}
+				cancelButtonMode={'normal'}
+				confirmButtonMode={'confirm'}
+			>
+				<View style={styles.addToAddressBookRoot}>
+					<View style={styles.addToAddressBookWrapper}>
+						<View style={baseStyles.flexGrow}>
+							<Text style={styles.addTextTitle}>Add to address book</Text>
+							<Text style={styles.addTextSubtitle}>Enter an alias</Text>
+							<View style={styles.addInputWrapper}>
+								<View style={styles.input}>
+									<TextInput
+										autoCapitalize="none"
+										autoCorrect={false}
+										onChangeText={this.onChangeAlias}
+										placeholder={'e.g. Vitalik B.'}
+										placeholderTextColor={colors.grey100}
+										spellCheck={false}
+										style={styles.addTextInput}
+										numberOfLines={1}
+										onBlur={this.onBlur}
+										onFocus={this.onInputFocus}
+										onSubmitEditing={this.onFocus}
+										value={alias}
+									/>
+								</View>
+							</View>
+						</View>
+					</View>
+				</View>
+			</ActionModal>
+		);
+	};
+
+	renderFromAccountModal = () => {
 		const { identities, keyrings, ticker } = this.props;
+		const { fromAccountModalVisible, fromSelectedAddress } = this.state;
+		return (
+			<Modal
+				isVisible={fromAccountModalVisible}
+				style={styles.bottomModal}
+				onBackdropPress={this.toggleFromAccountModal}
+				onBackButtonPress={this.toggleFromAccountModal}
+				onSwipeComplete={this.toggleFromAccountModal}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<AccountList
+					enableAccountsAddition={false}
+					identities={identities}
+					selectedAddress={fromSelectedAddress}
+					keyrings={keyrings}
+					onAccountChange={this.onAccountChange}
+					ticker={ticker}
+				/>
+			</Modal>
+		);
+	};
+
+	render = () => {
 		const {
-			fromAccountModalVisible,
-			addToAddressBookModalVisible,
 			fromSelectedAddress,
 			fromAccountName,
 			fromAccountBalance,
 			toSelectedAddress,
 			toSelectedAddressReady,
 			toSelectedAddressName,
-			addToAddressToAddressBook,
-			alias
+			addToAddressToAddressBook
 		} = this.state;
 
 		return (
@@ -288,7 +382,11 @@ class SendFlow extends PureComponent {
 								</TouchableOpacity>
 							)}
 							<View style={styles.buttonNextWrapper}>
-								<StyledButton type={'confirm'} containerStyle={styles.buttonNext}>
+								<StyledButton
+									type={'confirm'}
+									containerStyle={styles.buttonNext}
+									onPress={this.onTransactionDirectionSet}
+								>
 									Next
 								</StyledButton>
 							</View>
@@ -296,62 +394,8 @@ class SendFlow extends PureComponent {
 					)}
 				</View>
 
-				<Modal
-					isVisible={fromAccountModalVisible}
-					style={styles.bottomModal}
-					onBackdropPress={this.toggleFromAccountModal}
-					onBackButtonPress={this.toggleFromAccountModal}
-					onSwipeComplete={this.toggleFromAccountModal}
-					swipeDirection={'down'}
-					propagateSwipe
-				>
-					<AccountList
-						enableAccountsAddition={false}
-						identities={identities}
-						selectedAddress={fromSelectedAddress}
-						keyrings={keyrings}
-						onAccountChange={this.onAccountChange}
-						ticker={ticker}
-					/>
-				</Modal>
-
-				<ActionModal
-					modalVisible={addToAddressBookModalVisible}
-					confirmText={'Save'}
-					cancelText={'Cancel'}
-					onCancelPress={this.toggleAddToAddressBookModal}
-					onRequestClose={this.toggleAddToAddressBookModal}
-					onConfirmPress={this.onSaveToAddressBook}
-					cancelButtonMode={'normal'}
-					confirmButtonMode={'confirm'}
-				>
-					<View style={styles.addToAddressBookRoot}>
-						<View style={styles.addToAddressBookWrapper}>
-							<View style={baseStyles.flexGrow}>
-								<Text style={styles.addTextTitle}>Add to address book</Text>
-								<Text style={styles.addTextSubtitle}>Enter an alias</Text>
-								<View style={styles.addInputWrapper}>
-									<View style={styles.input}>
-										<TextInput
-											autoCapitalize="none"
-											autoCorrect={false}
-											onChangeText={this.onChangeAlias}
-											placeholder={'e.g. Vitalik B.'}
-											placeholderTextColor={colors.grey100}
-											spellCheck={false}
-											style={styles.addTextInput}
-											numberOfLines={1}
-											onBlur={this.onBlur}
-											onFocus={this.onInputFocus}
-											onSubmitEditing={this.onFocus}
-											value={alias}
-										/>
-									</View>
-								</View>
-							</View>
-						</View>
-					</View>
-				</ActionModal>
+				{this.renderFromAccountModal()}
+				{this.renderAddToAddressBookModal()}
 			</SafeAreaView>
 		);
 	};
@@ -367,4 +411,12 @@ const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController.network
 });
 
-export default connect(mapStateToProps)(SendFlow);
+const mapDispatchToProps = dispatch => ({
+	newTransaction: () => dispatch(newTransaction()),
+	setRecipient: (from, to, ensRecipient) => dispatch(setRecipient(from, to, ensRecipient))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(SendFlow);

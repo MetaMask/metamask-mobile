@@ -26,6 +26,17 @@ const transactionReducer = (state = initialState, action) => {
 			return {
 				...initialState
 			};
+		case 'NEW_TRANSACTION':
+			return {
+				...state,
+				...initialState
+			};
+		case 'SET_RECIPIENT':
+			return {
+				transaction: { from: action.from, to: action.to, ...state.transaction },
+				ensRecipient: action.ensRecipient,
+				...state
+			};
 		default:
 			return state;
 	}
