@@ -3,7 +3,7 @@ import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import AddressList from './AddressList';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity, Text, TextInput } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, TextInput, SafeAreaView } from 'react-native';
 import { AddressFrom, AddressTo } from './AddressInputs';
 import Modal from 'react-native-modal';
 import AccountList from '../../UI/AccountList';
@@ -13,6 +13,7 @@ import ActionModal from '../../UI/ActionModal';
 import Engine from '../../../core/Engine';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import doENSReverseLookup from '../../../util/ENSUtils';
+import StyledButton from '../../UI/StyledButton';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -82,6 +83,18 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginHorizontal: 6,
 		width: '100%'
+	},
+	nextActionWrapper: {
+		flex: 1
+	},
+	buttonNextWrapper: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'flex-end'
+	},
+	buttonNext: {
+		flex: 1,
+		marginHorizontal: 24
 	}
 });
 
@@ -242,7 +255,7 @@ class SendFlow extends PureComponent {
 		} = this.state;
 
 		return (
-			<View style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.imputWrapper}>
 					<AddressFrom
 						onPressIcon={this.toggleFromAccountModal}
@@ -262,12 +275,24 @@ class SendFlow extends PureComponent {
 				</View>
 
 				<View style={styles.addressListWrapper}>
-					{!addToAddressToAddressBook ? (
+					{!toSelectedAddressReady ? (
 						<AddressList onAccountPress={this.onToSelectedAddressChange} />
 					) : (
-						<TouchableOpacity style={styles.myAccountsTouchable} onPress={this.toggleAddToAddressBookModal}>
-							<Text style={styles.myAccountsText}>Add this address to your address book</Text>
-						</TouchableOpacity>
+						<View style={styles.nextActionWrapper}>
+							{addToAddressToAddressBook && (
+								<TouchableOpacity
+									style={styles.myAccountsTouchable}
+									onPress={this.toggleAddToAddressBookModal}
+								>
+									<Text style={styles.myAccountsText}>Add this address to your address book</Text>
+								</TouchableOpacity>
+							)}
+							<View style={styles.buttonNextWrapper}>
+								<StyledButton type={'confirm'} containerStyle={styles.buttonNext}>
+									Next
+								</StyledButton>
+							</View>
+						</View>
 					)}
 				</View>
 
@@ -327,7 +352,7 @@ class SendFlow extends PureComponent {
 						</View>
 					</View>
 				</ActionModal>
-			</View>
+			</SafeAreaView>
 		);
 	};
 }
