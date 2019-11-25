@@ -85,7 +85,15 @@ const styles = StyleSheet.create({
 });
 
 export const AddressTo = props => {
-	const { addressToReady, highlighted, toSelectedAddress, onToSelectedAddressChange, onScan, toAddressName } = props;
+	const {
+		addressToReady,
+		highlighted,
+		toSelectedAddress,
+		onToSelectedAddressChange,
+		onScan,
+		onClear,
+		toAddressName
+	} = props;
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
@@ -122,15 +130,17 @@ export const AddressTo = props => {
 					<View style={styles.addressToInformation}>
 						<Identicon address={toSelectedAddress} diameter={30} />
 						<View style={styles.address}>
-							<Text style={styles.textAddress} numberOfLines={1}>
-								{toAddressName}
-							</Text>
-							<Text style={styles.textBalance} numberOfLines={1}>
+							{toAddressName && (
+								<Text style={styles.textAddress} numberOfLines={1}>
+									{toAddressName}
+								</Text>
+							)}
+							<Text style={toAddressName ? styles.textBalance : styles.textAddress} numberOfLines={1}>
 								{renderShortAddress(toSelectedAddress)}
 							</Text>
 						</View>
 					</View>
-					<TouchableOpacity onPress={onScan} style={styles.scanIconWrapper}>
+					<TouchableOpacity onPress={onClear} style={styles.scanIconWrapper}>
 						<AntIcon
 							name="close"
 							size={20}
@@ -164,6 +174,10 @@ AddressTo.propTypes = {
 	 * Callback called when scan icon is pressed
 	 */
 	onScan: PropTypes.func,
+	/**
+	 * Callback called when close icon is pressed
+	 */
+	onClear: PropTypes.func,
 	/**
 	 * Name of selected address as string
 	 */

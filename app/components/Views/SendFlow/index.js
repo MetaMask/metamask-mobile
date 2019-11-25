@@ -181,10 +181,6 @@ class SendFlow extends PureComponent {
 			if (ens) {
 				toAddressName = ens;
 			} else {
-				console.log(
-					'networkAddressBook[toSelectedAddress]',
-					networkAddressBook[toSelectedAddress] && networkAddressBook[toSelectedAddress].name
-				);
 				toAddressName = networkAddressBook[toSelectedAddress] && networkAddressBook[toSelectedAddress].name;
 			}
 			// If not in address book nor user accounts
@@ -198,6 +194,10 @@ class SendFlow extends PureComponent {
 			toSelectedAddressReady,
 			toSelectedAddressName: toAddressName
 		});
+	};
+
+	onToClear = () => {
+		this.onToSelectedAddressChange();
 	};
 
 	onChangeAlias = alias => {
@@ -254,6 +254,7 @@ class SendFlow extends PureComponent {
 						toAddressName={toSelectedAddressName}
 						onToSelectedAddressChange={this.onToSelectedAddressChange}
 						onScan={this.onScan}
+						onClear={this.onToClear}
 					/>
 				</View>
 
