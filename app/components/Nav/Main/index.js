@@ -39,7 +39,7 @@ import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import CollectibleView from '../../Views/CollectibleView';
 import Send from '../../Views/Send';
-import SendFlow from '../../Views/SendFlow';
+import SendTo from '../../Views/SendFlow/SendTo';
 import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -89,6 +89,8 @@ import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
 import AsyncStorage from '@react-native-community/async-storage';
+import Amount from '../../Views/SendFlow/Amount';
+import Confirm from '../../Views/SendFlow/Confirm';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -249,8 +251,14 @@ const MainNavigator = createStackNavigator(
 		},
 		SendFlowView: {
 			screen: createStackNavigator({
-				SendFlow: {
-					screen: SendFlow
+				SendTo: {
+					screen: SendTo
+				},
+				Amount: {
+					screen: Amount
+				},
+				Confirm: {
+					screen: Confirm
 				}
 			})
 		},

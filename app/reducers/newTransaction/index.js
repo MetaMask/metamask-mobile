@@ -17,6 +17,7 @@ const initialState = {
 		to: undefined,
 		value: undefined
 	},
+	transactionTo: undefined,
 	type: undefined
 };
 
@@ -33,8 +34,9 @@ const transactionReducer = (state = initialState, action) => {
 			};
 		case 'SET_RECIPIENT':
 			return {
-				transaction: { from: action.from, to: action.to, ...state.transaction },
+				transaction: { from: action.from, ...state.transaction },
 				ensRecipient: action.ensRecipient,
+				transactionTo: action.to,
 				...state
 			};
 		default:

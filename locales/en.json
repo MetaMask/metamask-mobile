@@ -166,7 +166,10 @@
 	"send": {
 		"title": "Send",
 		"deeplink_failure": "Ooops! Something went wrong! Please try again",
-		"warn_network_change": "Network changed to "
+		"warn_network_change": "Network changed to ",
+		"send_to": "Send to",
+		"amount": "Amount",
+		"confirm": "Confirm"
 	},
 	"deposit": {
 		"title": "Deposit"
