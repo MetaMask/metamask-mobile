@@ -8,6 +8,7 @@ import { renderShortAddress } from '../../../../util/address';
 
 const styles = StyleSheet.create({
 	root: {
+		flex: 1,
 		backgroundColor: colors.white
 	},
 	addressElementWrapper: {
@@ -111,7 +112,13 @@ class AddressList extends PureComponent {
 	};
 
 	state = {
-		myAccountsOpened: false
+		myAccountsOpened: false,
+		addressBookList: undefined
+	};
+
+	componentDidMount = () => {
+		const addressBookList = this.parseAddressBook();
+		this.setState({ addressBookList });
 	};
 
 	openMyAccounts = () => {
@@ -146,7 +153,7 @@ class AddressList extends PureComponent {
 
 	render = () => {
 		const { identities, onAccountPress } = this.props;
-		const { myAccountsOpened } = this.state;
+		const { myAccountsOpened, addressBookList } = this.state;
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
@@ -160,7 +167,7 @@ class AddressList extends PureComponent {
 						)
 					)}
 					{LabelElement('Recents')}
-					{this.parseAddressBook()}
+					{addressBookList}
 				</ScrollView>
 			</View>
 		);

@@ -146,7 +146,7 @@ class SendFlow extends PureComponent {
 		/**
 		 * Action that start a new empty transaction
 		 */
-		newTransaction: PropTypes.fun
+		newTransaction: PropTypes.func
 	};
 
 	state = {
@@ -174,6 +174,7 @@ class SendFlow extends PureComponent {
 			fromAccountName,
 			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${ticker}`
 		});
+		// Reset transaction
 		newTransaction();
 	};
 
