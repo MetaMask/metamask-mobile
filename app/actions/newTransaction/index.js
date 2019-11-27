@@ -18,3 +18,10 @@ export function setRecipient(from, to, ensRecipient) {
 		ensRecipient
 	};
 }
+
+export function setSelectedAsset(selectedAsset) {
+	return {
+		type: 'SET_SELECTED_ASSET',
+		selectedAsset
+	};
+}

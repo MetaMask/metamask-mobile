@@ -13,7 +13,7 @@ import {
 	Image
 } from 'react-native';
 import { connect } from 'react-redux';
-import { setRecipient, newTransaction } from '../../../../actions/newTransaction';
+import { setRecipient, newTransaction, setSelectedAsset } from '../../../../actions/newTransaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -228,20 +228,24 @@ class Amount extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Set selected in transaction state
+		 */
+		setSelectedAsset: PropTypes.func,
+		selectedAsset: PropTypes.object
 	};
 
 	state = {
 		inputValue: undefined,
-		assetsModalVisible: false,
-		selectedAsset: {}
+		assetsModalVisible: false
 	};
 
 	amountInput = React.createRef();
 	tokens = [];
 
 	componentDidMount = () => {
-		const { tokens, ticker } = this.props;
+		const { tokens, ticker, setSelectedAsset } = this.props;
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		const ether = {
 			name: 'Ether',
@@ -251,7 +255,7 @@ class Amount extends PureComponent {
 			isEth: true
 		};
 		this.tokens = [ether, ...tokens];
-		this.setState({ selectedAsset: ether });
+		setSelectedAsset(ether);
 	};
 
 	onNext = () => {
@@ -269,7 +273,7 @@ class Amount extends PureComponent {
 	};
 
 	pickSelectedAsset = selectedAsset => {
-		this.setState({ selectedAsset });
+		this.props.setSelectedAsset(selectedAsset);
 		this.toggleAssetsModal();
 	};
 
@@ -299,6 +303,7 @@ class Amount extends PureComponent {
 			<TouchableOpacity
 				key={address}
 				style={styles.assetElementWrapper}
+				// eslint-disable-next-line react/jsx-no-bind
 				onPress={() => this.pickSelectedAsset(asset)}
 			>
 				<View style={styles.assetElement}>
@@ -344,7 +349,8 @@ class Amount extends PureComponent {
 	};
 
 	render = () => {
-		const { inputValue, selectedAsset } = this.state;
+		const { inputValue } = this.state;
+		const { selectedAsset } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.inputWrapper}>
@@ -428,12 +434,14 @@ const mapStateToProps = state => ({
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	network: state.engine.backgroundState.NetworkController.network,
-	tokens: state.engine.backgroundState.AssetsController.tokens
+	tokens: state.engine.backgroundState.AssetsController.tokens,
+	selectedAsset: state.newTransaction.selectedAsset
 });
 
 const mapDispatchToProps = dispatch => ({
 	newTransaction: () => dispatch(newTransaction()),
-	setRecipient: (from, to, ensRecipient) => dispatch(setRecipient(from, to, ensRecipient))
+	setRecipient: (from, to, ensRecipient) => dispatch(setRecipient(from, to, ensRecipient)),
+	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
 });
 
 export default connect(

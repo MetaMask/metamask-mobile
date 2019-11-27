@@ -7,7 +7,7 @@ const initialState = {
 	id: undefined,
 	paymentChannelTransaction: false,
 	readableValue: undefined,
-	selectedAsset: undefined,
+	selectedAsset: {},
 	transaction: {
 		data: undefined,
 		from: undefined,
@@ -34,10 +34,15 @@ const transactionReducer = (state = initialState, action) => {
 			};
 		case 'SET_RECIPIENT':
 			return {
+				...state,
 				transaction: { from: action.from, ...state.transaction },
 				ensRecipient: action.ensRecipient,
-				transactionTo: action.to,
-				...state
+				transactionTo: action.to
+			};
+		case 'SET_SELECTED_ASSET':
+			return {
+				...state,
+				selectedAsset: action.selectedAsset
 			};
 		default:
 			return state;
