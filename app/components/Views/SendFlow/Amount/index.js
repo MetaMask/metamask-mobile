@@ -8,7 +8,9 @@ import {
 	TouchableOpacity,
 	TextInput,
 	Platform,
-	KeyboardAvoidingView
+	KeyboardAvoidingView,
+	FlatList,
+	Image
 } from 'react-native';
 import { connect } from 'react-redux';
 import { setRecipient, newTransaction } from '../../../../actions/newTransaction';
@@ -16,7 +18,13 @@ import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Modal from 'react-native-modal';
+import TokenImage from '../../../UI/TokenImage';
+import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat } from '../../../../util/number';
+import { getTicker } from '../../../../util/transactions';
+import { hexToBN } from 'gaba/dist/util';
+import FadeIn from 'react-native-fade-in-image';
 
 const KEYBOARD_OFFSET = 120;
 
@@ -82,8 +90,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	switch: {
-		flex: 1,
-		transform: [{ rotate: '90deg' }]
+		flex: 1
 	},
 	actionSwitch: {
 		paddingHorizontal: 8,
@@ -101,8 +108,83 @@ const styles = StyleSheet.create({
 	switchWrapper: {
 		flexDirection: 'row',
 		alignItems: 'center'
+	},
+	bottomModal: {
+		justifyContent: 'flex-end',
+		margin: 0
+	},
+	tokenImage: {
+		width: 36,
+		height: 36,
+		overflow: 'hidden'
+	},
+	assetElementWrapper: {
+		height: 70,
+		backgroundColor: colors.white,
+		borderWidth: 1,
+		borderColor: colors.grey000,
+		flexDirection: 'row',
+		alignItems: 'center',
+		paddingHorizontal: 24
+	},
+	assetElement: {
+		flexDirection: 'row',
+		flex: 1
+	},
+	assetsModalWrapper: {
+		backgroundColor: colors.white,
+		borderTopLeftRadius: 10,
+		borderTopRightRadius: 10,
+		height: 450
+	},
+	titleWrapper: {
+		width: '100%',
+		height: 33,
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.grey100
+	},
+	dragger: {
+		width: 48,
+		height: 5,
+		borderRadius: 4,
+		backgroundColor: colors.grey400,
+		opacity: Platform.OS === 'android' ? 0.6 : 0.5
+	},
+	textAssetTitle: {
+		...fontStyles.normal,
+		fontSize: 18
+	},
+	assetInformationWrapper: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		marginLeft: 16
+	},
+	assetBalanceWrapper: {
+		flexDirection: 'column'
+	},
+	textAssetBalance: {
+		...fontStyles.normal,
+		fontSize: 18,
+		textAlign: 'right'
+	},
+	textAssetFiat: {
+		...fontStyles.normal,
+		fontSize: 12,
+		color: colors.grey500,
+		textAlign: 'right',
+		textTransform: 'uppercase'
+	},
+	ethLogo: {
+		width: 36,
+		height: 36
 	}
 });
+
+const ethLogo = require('../../../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -112,19 +194,63 @@ class Amount extends PureComponent {
 
 	static propTypes = {
 		/**
+		 * Map of accounts to information objects including balances
+		 */
+		accounts: PropTypes.object,
+		/**
+		 * Object containing token balances in the format address => balance
+		 */
+		contractBalances: PropTypes.object,
+		/**
+		 * ETH to current currency conversion rate
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
+		contractExchangeRates: PropTypes.object,
+		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
+		/**
+		 * An array that represents the user tokens
+		 */
+		tokens: PropTypes.array,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
-		inputValue: undefined
+		inputValue: undefined,
+		assetsModalVisible: false
 	};
 
 	amountInput = React.createRef();
+	tokens = [];
 
 	componentDidMount = () => {
+		const { tokens, ticker } = this.props;
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
+		this.tokens = [
+			{
+				name: 'Ether',
+				address: '',
+				symbol: getTicker(ticker),
+				logo: '../images/eth-logo.png'
+			},
+			...tokens
+		];
 	};
 
 	onNext = () => {
@@ -134,6 +260,78 @@ class Amount extends PureComponent {
 
 	onInputChange = inputValue => {
 		this.setState({ inputValue });
+	};
+
+	toggleAssetsModal = () => {
+		const { assetsModalVisible } = this.state;
+		this.setState({ assetsModalVisible: !assetsModalVisible });
+	};
+
+	assetKeyExtractor = token => token.address;
+
+	renderAsset = ({ item: asset }) => {
+		const {
+			accounts,
+			selectedAddress,
+			conversionRate,
+			currentCurrency,
+			contractBalances,
+			contractExchangeRates
+		} = this.props;
+		const { address, decimals, symbol } = asset;
+		let [balance, exchangeRate, balanceFiat] = [undefined, undefined, undefined];
+		const isEth = symbol === 'ETH';
+		if (isEth) {
+			balance = renderFromWei(accounts[selectedAddress].balance);
+			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
+		} else {
+			balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
+			exchangeRate = address in contractExchangeRates ? contractExchangeRates[address] : undefined;
+			balanceFiat = exchangeRate && balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+		}
+
+		return (
+			<TouchableOpacity key={address} style={styles.assetElementWrapper}>
+				<View style={styles.assetElement}>
+					{isEth ? (
+						<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
+							<Image source={ethLogo} style={styles.ethLogo} testID={'eth-logo'} />
+						</FadeIn>
+					) : (
+						<TokenImage asset={asset} iconStyle={styles.tokenImage} containerStyle={styles.tokenImage} />
+					)}
+					<View style={styles.assetInformationWrapper}>
+						<Text style={styles.textAssetTitle}>{symbol}</Text>
+						<View style={styles.assetBalanceWrapper}>
+							<Text style={styles.textAssetBalance}>{balance}</Text>
+							{!!balanceFiat && <Text style={styles.textAssetFiat}>{balanceFiat}</Text>}
+						</View>
+					</View>
+				</View>
+			</TouchableOpacity>
+		);
+	};
+
+	renderAssetsModal = () => {
+		const { assetsModalVisible } = this.state;
+		return (
+			<Modal
+				isVisible={assetsModalVisible}
+				style={styles.bottomModal}
+				onBackdropPress={this.toggleAssetsModal}
+				onBackButtonPress={this.toggleAssetsModal}
+				onSwipeComplete={this.toggleAssetsModal}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<SafeAreaView style={styles.assetsModalWrapper}>
+					<View style={styles.titleWrapper}>
+						<View style={styles.dragger} />
+					</View>
+					<FlatList data={this.tokens} keyExtractor={this.assetKeyExtractor} renderItem={this.renderAsset} />
+				</SafeAreaView>
+			</Modal>
+		);
 	};
 
 	render = () => {
@@ -152,6 +350,7 @@ class Amount extends PureComponent {
 										size={16}
 										color={colors.white}
 										style={styles.iconDropdown}
+										onPress={this.toggleAssetsModal}
 									/>
 								</View>
 							</TouchableOpacity>
@@ -179,7 +378,12 @@ class Amount extends PureComponent {
 									{inputValue} USD
 								</Text>
 								<View styles={styles.switchWrapper}>
-									<FontAwesome name="exchange" size={12} color={colors.blue} style={styles.switch} />
+									<MaterialCommunityIcons
+										name="swap-vertical"
+										size={16}
+										color={colors.blue}
+										style={styles.switch}
+									/>
 								</View>
 							</TouchableOpacity>
 						</View>
@@ -197,6 +401,7 @@ class Amount extends PureComponent {
 						</StyledButton>
 					</View>
 				</KeyboardAvoidingView>
+				{this.renderAssetsModal()}
 			</SafeAreaView>
 		);
 	};
@@ -204,12 +409,18 @@ class Amount extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	primaryCurrency: state.settings.primaryCurrency,
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
+	tokens: state.engine.backgroundState.AssetsController.tokens
 });
 
 const mapDispatchToProps = dispatch => ({
