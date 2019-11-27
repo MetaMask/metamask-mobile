@@ -28,6 +28,8 @@ import FadeIn from 'react-native-fade-in-image';
 
 const KEYBOARD_OFFSET = 120;
 
+const ethLogo = require('../../../../images/eth-logo.png'); // eslint-disable-line
+
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -184,8 +186,6 @@ const styles = StyleSheet.create({
 	}
 });
 
-const ethLogo = require('../../../../images/eth-logo.png'); // eslint-disable-line
-
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -233,7 +233,8 @@ class Amount extends PureComponent {
 
 	state = {
 		inputValue: undefined,
-		assetsModalVisible: false
+		assetsModalVisible: false,
+		selectedAsset: {}
 	};
 
 	amountInput = React.createRef();
@@ -242,15 +243,15 @@ class Amount extends PureComponent {
 	componentDidMount = () => {
 		const { tokens, ticker } = this.props;
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
-		this.tokens = [
-			{
-				name: 'Ether',
-				address: '',
-				symbol: getTicker(ticker),
-				logo: '../images/eth-logo.png'
-			},
-			...tokens
-		];
+		const ether = {
+			name: 'Ether',
+			address: '',
+			symbol: getTicker(ticker),
+			logo: '../images/eth-logo.png',
+			isEth: true
+		};
+		this.tokens = [ether, ...tokens];
+		this.setState({ selectedAsset: ether });
 	};
 
 	onNext = () => {
@@ -267,6 +268,11 @@ class Amount extends PureComponent {
 		this.setState({ assetsModalVisible: !assetsModalVisible });
 	};
 
+	pickSelectedAsset = selectedAsset => {
+		this.setState({ selectedAsset });
+		this.toggleAssetsModal();
+	};
+
 	assetKeyExtractor = token => token.address;
 
 	renderAsset = ({ item: asset }) => {
@@ -280,8 +286,7 @@ class Amount extends PureComponent {
 		} = this.props;
 		const { address, decimals, symbol } = asset;
 		let [balance, exchangeRate, balanceFiat] = [undefined, undefined, undefined];
-		const isEth = symbol === 'ETH';
-		if (isEth) {
+		if (asset.isEth) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
 			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 		} else {
@@ -291,9 +296,13 @@ class Amount extends PureComponent {
 		}
 
 		return (
-			<TouchableOpacity key={address} style={styles.assetElementWrapper}>
+			<TouchableOpacity
+				key={address}
+				style={styles.assetElementWrapper}
+				onPress={() => this.pickSelectedAsset(asset)}
+			>
 				<View style={styles.assetElement}>
-					{isEth ? (
+					{asset.isEth ? (
 						<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
 							<Image source={ethLogo} style={styles.ethLogo} testID={'eth-logo'} />
 						</FadeIn>
@@ -335,22 +344,21 @@ class Amount extends PureComponent {
 	};
 
 	render = () => {
-		const { inputValue } = this.state;
+		const { inputValue, selectedAsset } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.inputWrapper}>
 					<View style={styles.actionsWrapper}>
 						<View style={styles.action} />
 						<View style={[styles.action]}>
-							<TouchableOpacity style={styles.actionDropdown}>
-								<Text style={styles.textDropdown}>ETH</Text>
+							<TouchableOpacity style={styles.actionDropdown} onPress={this.toggleAssetsModal}>
+								<Text style={styles.textDropdown}>{selectedAsset.symbol}</Text>
 								<View styles={styles.arrow}>
 									<Ionicons
 										name="ios-arrow-down"
 										size={16}
 										color={colors.white}
 										style={styles.iconDropdown}
-										onPress={this.toggleAssetsModal}
 									/>
 								</View>
 							</TouchableOpacity>
