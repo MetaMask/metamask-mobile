@@ -21,7 +21,14 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Modal from 'react-native-modal';
 import TokenImage from '../../../UI/TokenImage';
-import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat } from '../../../../util/number';
+import {
+	renderFromTokenMinimalUnit,
+	balanceToFiat,
+	renderFromWei,
+	weiToFiat,
+	fromWei,
+	fromTokenMinimalUnit
+} from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import { hexToBN } from 'gaba/dist/util';
 import FadeIn from 'react-native-fade-in-image';
@@ -263,6 +270,18 @@ class Amount extends PureComponent {
 		navigation.navigate('Confirm');
 	};
 
+	useMax = () => {
+		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
+		let balance;
+		if (selectedAsset.isEth) {
+			// take care of gas
+			balance = fromWei(accounts[selectedAddress].balance);
+		} else {
+			balance = fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals);
+		}
+		this.onInputChange(balance);
+	};
+
 	onInputChange = inputValue => {
 		this.setState({ inputValue });
 	};
@@ -370,7 +389,7 @@ class Amount extends PureComponent {
 							</TouchableOpacity>
 						</View>
 						<View style={[styles.action, styles.actionMax]}>
-							<TouchableOpacity style={styles.actionMaxTouchable}>
+							<TouchableOpacity style={styles.actionMaxTouchable} onPress={this.useMax}>
 								<Text style={styles.maxText}>USE MAX</Text>
 							</TouchableOpacity>
 						</View>
