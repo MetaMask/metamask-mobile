@@ -5,9 +5,10 @@ import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import PropTypes from 'prop-types';
-import { renderFromWei, renderFromTokenMinimalUnit, weiToFiat, balanceToFiat, toWei } from '../../../../util/number';
+import { renderFromWei, renderFromTokenMinimalUnit, weiToFiat, balanceToFiat } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
+import { hexToBN } from 'gaba/dist/util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -57,6 +58,9 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.black,
 		fontSize: 12
+	},
+	textSummaryAmount: {
+		textTransform: 'uppercase'
 	},
 	textCrypto: {
 		...fontStyles.normal,
@@ -138,45 +142,72 @@ class Confirm extends PureComponent {
 	state = {
 		fromAccountBalance: undefined,
 		transactionValue: undefined,
-		transactionValueFiat: undefined
+		transactionValueFiat: undefined,
+		transactionFee: undefined,
+		transactionTotalAmount: undefined,
+		transactionTotalAmountFiat: undefined
 	};
 
 	componentDidMount = () => {
 		const {
 			accounts,
-			ticker,
 			contractBalances,
-			transactionState,
 			contractExchangeRates,
 			conversionRate,
-			currentCurrency
+			currentCurrency,
+			transactionState: {
+				selectedAsset,
+				transaction: { from, value, gas, gasPrice },
+				transactionValue
+			},
+			ticker
 		} = this.props;
-		const {
-			selectedAsset,
-			transaction: { from },
-			transactionValue
-		} = transactionState;
-		let fromAccountBalance;
-		let parsedTransactionValue;
-		let transactionValueFiat;
+		let [fromAccountBalance, parsedTransactionValue, transactionValueFiat] = [undefined, undefined, undefined];
+		let [transactionFeeFiat, transactionTotalAmount, transactionTotalAmountFiat] = [
+			undefined,
+			undefined,
+			undefined
+		];
+
+		const weiTransactionFee = gas.mul(gasPrice);
+		transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
+
 		if (selectedAsset.isEth) {
 			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${getTicker(ticker)}`;
-			parsedTransactionValue = `${transactionValue} ${getTicker(ticker)}`;
-			transactionValueFiat = weiToFiat(toWei(transactionValue.toString(16)), conversionRate, currentCurrency);
+
+			parsedTransactionValue = `${renderFromWei(value)} ${getTicker(ticker)}`;
+			transactionValueFiat = weiToFiat(hexToBN(value), conversionRate, currentCurrency);
+
+			transactionTotalAmount = `${renderFromWei(weiTransactionFee.add(hexToBN(value)))} ${getTicker(ticker)}`;
+			transactionTotalAmountFiat = weiToFiat(
+				weiTransactionFee.add(hexToBN(value)),
+				conversionRate,
+				currentCurrency
+			);
 		} else {
 			fromAccountBalance = `${renderFromTokenMinimalUnit(
 				contractBalances[selectedAsset.address],
 				selectedAsset.decimals
 			)} ${selectedAsset.symbol}`;
+
 			parsedTransactionValue = `${transactionValue} ${selectedAsset.symbol}`;
-			const exchangeRate =
-				selectedAsset.address in contractExchangeRates
-					? contractExchangeRates[selectedAsset.address]
-					: undefined;
-			transactionValueFiat =
-				exchangeRate && balanceToFiat(transactionValue, conversionRate, exchangeRate, currentCurrency);
+			const exchangeRate = contractExchangeRates[selectedAsset.address];
+			transactionValueFiat = balanceToFiat(transactionValue, conversionRate, exchangeRate, currentCurrency);
+
+			transactionTotalAmount = `${parsedTransactionValue} + ${renderFromWei(weiTransactionFee)} ${getTicker(
+				ticker
+			)}`;
+			// transactionTotalAmountFiat = weiToFiat(weiTransactionFee.add(hexToBN(value)), conversionRate, currentCurrency);
 		}
-		this.setState({ fromAccountBalance, transactionValue: parsedTransactionValue, transactionValueFiat });
+
+		this.setState({
+			fromAccountBalance,
+			transactionValue: parsedTransactionValue,
+			transactionValueFiat,
+			transactionFeeFiat,
+			transactionTotalAmount,
+			transactionTotalAmountFiat
+		});
 	};
 
 	render = () => {
@@ -186,7 +217,14 @@ class Confirm extends PureComponent {
 			transactionToName,
 			transactionFromName
 		} = this.props.transactionState;
-		const { fromAccountBalance, transactionValue, transactionValueFiat } = this.state;
+		const {
+			fromAccountBalance,
+			transactionValue,
+			transactionValueFiat,
+			transactionFeeFiat,
+			transactionTotalAmount,
+			transactionTotalAmountFiat
+		} = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.inputWrapper}>
@@ -213,19 +251,21 @@ class Confirm extends PureComponent {
 					<View style={styles.summaryWrapper}>
 						<View style={styles.summaryRow}>
 							<Text style={styles.textSummary}>Amount</Text>
-							<Text style={styles.textSummary}>$$Amount</Text>
+							<Text style={[styles.textSummary, styles.textSummaryAmount]}>{transactionValueFiat}</Text>
 						</View>
 						<View style={styles.summaryRow}>
 							<Text style={styles.textSummary}>Transaction fee</Text>
-							<Text style={styles.textSummary}>$$fee</Text>
+							<Text style={[styles.textSummary, styles.textSummaryAmount]}>{transactionFeeFiat}</Text>
 						</View>
 						<View style={styles.separator} />
 						<View style={styles.summaryRow}>
 							<Text style={[styles.textSummary, styles.textBold]}>Total amount</Text>
-							<Text style={[styles.textSummary, styles.textBold]}>$$amount</Text>
+							<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>
+								{transactionTotalAmountFiat}
+							</Text>
 						</View>
 						<View style={styles.totalCryptoRow}>
-							<Text style={[styles.textSummary, styles.textCrypto]}>0.1 eth</Text>
+							<Text style={[styles.textSummary, styles.textCrypto]}>{transactionTotalAmount}</Text>
 						</View>
 					</View>
 					<View style={styles.actionsWrapper}>

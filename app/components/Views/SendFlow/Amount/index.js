@@ -13,7 +13,7 @@ import {
 	Image
 } from 'react-native';
 import { connect } from 'react-redux';
-import { setSelectedAsset, setValue } from '../../../../actions/newTransaction';
+import { setSelectedAsset, setValue, prepareTransaction } from '../../../../actions/newTransaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -32,8 +32,11 @@ import {
 	isDecimal
 } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
-import { hexToBN } from 'gaba/dist/util';
+import { hexToBN, BNToHex } from 'gaba/dist/util';
 import FadeIn from 'react-native-fade-in-image';
+import Engine from '../../../../core/Engine';
+import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
+import Logger from '../../../../util/Logger';
 
 const KEYBOARD_OFFSET = 120;
 
@@ -196,6 +199,10 @@ const styles = StyleSheet.create({
 	}
 });
 
+const AVERAGE_GAS = 20;
+const LOW_GAS = 10;
+const FAST_GAS = 40;
+
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -243,11 +250,15 @@ class Amount extends PureComponent {
 		 * Set selected in transaction state
 		 */
 		setSelectedAsset: PropTypes.func,
-		setValue: PropTypes.func,
+		prepareTransaction: PropTypes.func,
 		/**
 		 * Selected asset from current transaction state
 		 */
-		selectedAsset: PropTypes.object
+		selectedAsset: PropTypes.object,
+		/**
+		 * Current transaction state
+		 */
+		transactionState: PropTypes.object
 	};
 
 	state = {
@@ -273,11 +284,49 @@ class Amount extends PureComponent {
 		Object.keys(selectedAsset).length === 0 && setSelectedAsset(ether);
 	};
 
-	onNext = () => {
-		const { navigation, setValue } = this.props;
+	onNext = async () => {
+		const { navigation } = this.props;
 		const { inputValue } = this.state;
-		setValue(inputValue);
+		// setValue(inputValue);
+		await this.prepareTransaction(inputValue);
 		navigation.navigate('Confirm');
+	};
+
+	estimateGas = async transaction => {
+		const { TransactionController } = Engine.context;
+		const { value, data, to, from } = transaction;
+		let estimation;
+		try {
+			estimation = await TransactionController.estimateGas({
+				value,
+				from,
+				data,
+				to
+			});
+		} catch (e) {
+			estimation = { gas: '0x5208' };
+		}
+		let basicGasEstimates;
+		try {
+			basicGasEstimates = await fetchBasicGasEstimates();
+		} catch (error) {
+			Logger.log('Error while trying to get gas limit estimates', error);
+			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
+		}
+		return { gas: hexToBN(estimation.gas), gasPrice: apiEstimateModifiedToWEI(basicGasEstimates.average) };
+	};
+
+	prepareTransaction = async value => {
+		const { prepareTransaction, selectedAsset, transactionState } = this.props;
+		let transaction = transactionState.transaction;
+		if (selectedAsset.isEth) {
+			transaction.data = '0x';
+			transaction.to = transactionState.transactionTo;
+			transaction.value = BNToHex(toWei(value));
+		}
+		const estimation = await this.estimateGas(transaction);
+		transaction = { ...transaction, ...estimation };
+		prepareTransaction(transaction);
 	};
 
 	useMax = () => {
@@ -299,12 +348,8 @@ class Amount extends PureComponent {
 			if (selectedAsset.isEth) {
 				inputValueFiat = weiToFiat(toWei(inputValue.toString(16)), conversionRate, currentCurrency);
 			} else {
-				const exchangeRate =
-					selectedAsset.address in contractExchangeRates
-						? contractExchangeRates[selectedAsset.address]
-						: undefined;
-				inputValueFiat =
-					exchangeRate && balanceToFiat(inputValue, conversionRate, exchangeRate, currentCurrency);
+				const exchangeRate = contractExchangeRates[selectedAsset.address];
+				inputValueFiat = balanceToFiat(inputValue, conversionRate, exchangeRate, currentCurrency);
 			}
 		}
 
@@ -334,14 +379,14 @@ class Amount extends PureComponent {
 			contractExchangeRates
 		} = this.props;
 		const { address, decimals, symbol } = asset;
-		let [balance, exchangeRate, balanceFiat] = [undefined, undefined, undefined];
+		let [balance, balanceFiat] = [undefined, undefined];
 		if (asset.isEth) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
 			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 		} else {
 			balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
-			exchangeRate = address in contractExchangeRates ? contractExchangeRates[address] : undefined;
-			balanceFiat = exchangeRate && balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+			const exchangeRate = contractExchangeRates[address];
+			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		}
 
 		return (
@@ -475,10 +520,12 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	selectedAsset: state.newTransaction.selectedAsset
+	selectedAsset: state.newTransaction.selectedAsset,
+	transactionState: state.newTransaction
 });
 
 const mapDispatchToProps = dispatch => ({
+	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
 	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset)),
 	setValue: value => dispatch(setValue(value))
 });

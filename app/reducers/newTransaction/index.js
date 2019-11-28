@@ -54,6 +54,11 @@ const transactionReducer = (state = initialState, action) => {
 				...state,
 				transactionValue: action.value
 			};
+		case 'PREPARE_TRANSACTION':
+			return {
+				...state,
+				transaction: action.transaction
+			};
 		default:
 			return state;
 	}

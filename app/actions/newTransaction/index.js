@@ -34,3 +34,10 @@ export function setValue(value) {
 		value
 	};
 }
+
+export function prepareTransaction(transaction) {
+	return {
+		type: 'PREPARE_TRANSACTION',
+		transaction
+	};
+}
