@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react';
 import { colors, baseStyles, fontStyles } from '../../../../styles/common';
-import { StyleSheet, SafeAreaView, View, Text } from 'react-native';
+import { StyleSheet, SafeAreaView, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import PropTypes from 'prop-types';
 import { renderFromWei, renderFromTokenMinimalUnit } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
+import StyledButton from '../../../UI/StyledButton';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -72,6 +73,28 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050,
 		marginVertical: 6
+	},
+	buttonNext: {
+		flex: 1,
+		marginHorizontal: 24,
+		alignSelf: 'flex-end'
+	},
+	buttonNextWrapper: {
+		flex: 0.1,
+		flexDirection: 'row',
+		alignItems: 'flex-end'
+	},
+	actionTouchable: {
+		padding: 16
+	},
+	actionText: {
+		...fontStyles.normal,
+		color: colors.blue,
+		fontSize: 16,
+		alignSelf: 'center'
+	},
+	actionsWrapper: {
+		margin: 24
 	}
 });
 
@@ -147,7 +170,7 @@ class Confirm extends PureComponent {
 						onToSelectedAddressChange={this.onToSelectedAddressChange}
 					/>
 				</View>
-				<View style={baseStyles.flexGrow}>
+				<ScrollView style={baseStyles.flexGrow}>
 					<View style={styles.amountWrapper}>
 						<Text style={styles.textAmountLabel}>Amount</Text>
 						<Text style={styles.textAmount}>{transactionValue}</Text>
@@ -172,6 +195,20 @@ class Confirm extends PureComponent {
 							<Text style={[styles.textSummary, styles.textCrypto]}>0.1 eth</Text>
 						</View>
 					</View>
+					<View style={styles.actionsWrapper}>
+						<TouchableOpacity style={styles.actionTouchable}>
+							<Text style={styles.actionText}>Adjust transaction fee</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.actionTouchable}>
+							<Text style={styles.actionText}>Hex data</Text>
+						</TouchableOpacity>
+					</View>
+				</ScrollView>
+
+				<View style={styles.buttonNextWrapper}>
+					<StyledButton type={'confirm'} containerStyle={styles.buttonNext} onPress={this.onNext}>
+						Send
+					</StyledButton>
 				</View>
 			</SafeAreaView>
 		);
