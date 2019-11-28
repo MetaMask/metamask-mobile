@@ -29,9 +29,10 @@ import {
 	fromWei,
 	fromTokenMinimalUnit,
 	toWei,
-	isDecimal
+	isDecimal,
+	toTokenMinimalUnit
 } from '../../../../util/number';
-import { getTicker } from '../../../../util/transactions';
+import { getTicker, generateTransferData } from '../../../../util/transactions';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
 import FadeIn from 'react-native-fade-in-image';
 import Engine from '../../../../core/Engine';
@@ -323,6 +324,14 @@ class Amount extends PureComponent {
 			transaction.data = '0x';
 			transaction.to = transactionState.transactionTo;
 			transaction.value = BNToHex(toWei(value));
+		} else {
+			const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
+			transaction.data = generateTransferData('transfer', {
+				toAddress: transactionState.transactionTo,
+				amount: BNToHex(tokenAmount)
+			});
+			transaction.to = selectedAsset.address;
+			transaction.value = '0x0';
 		}
 		const estimation = await this.estimateGas(transaction);
 		transaction = { ...transaction, ...estimation };

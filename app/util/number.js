@@ -127,6 +127,28 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
 }
 
 /**
+ * Converts two fiat amounts into one with their respective currency, showing up to 5 decimals
+ *
+ * @param {number} transferFiat - Number representing fiat value of a transfer
+ * @param {number} feeFiat - Number representing fiat value of transaction fee
+ * @param {string} currentCurrency - Currency
+ * @param {number} decimalsToShow - Defaults to 5
+ * @returns {String} - Formatted fiat value of the addition, in render format
+ * If value is less than 5 precision decimals will show '< 0.00001'
+ */
+export function renderFiatAddition(transferFiat, feeFiat, currentCurrency, decimalsToShow = 5) {
+	const addition = transferFiat + feeFiat;
+	let renderMinimalUnit;
+	if (addition < 0.00001 && addition > 0) {
+		renderMinimalUnit = '< 0.00001';
+	} else {
+		const base = Math.pow(10, decimalsToShow);
+		renderMinimalUnit = (Math.round(addition * base) / base).toString();
+	}
+	return `${renderMinimalUnit} ${currentCurrency}`;
+}
+
+/**
  * Converts fiat number as human-readable fiat string to token miniml unit expressed as a BN
  *
  * @param {number|string} fiat - Fiat number

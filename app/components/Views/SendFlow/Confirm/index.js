@@ -5,10 +5,18 @@ import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import PropTypes from 'prop-types';
-import { renderFromWei, renderFromTokenMinimalUnit, weiToFiat, balanceToFiat } from '../../../../util/number';
-import { getTicker } from '../../../../util/transactions';
+import {
+	renderFromWei,
+	renderFromTokenMinimalUnit,
+	weiToFiat,
+	balanceToFiat,
+	weiToFiatNumber,
+	balanceToFiatNumber,
+	renderFiatAddition
+} from '../../../../util/number';
+import { getTicker, decodeTransferData } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { hexToBN } from 'gaba/dist/util';
+import { hexToBN, BNToHex } from 'gaba/dist/util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -157,8 +165,7 @@ class Confirm extends PureComponent {
 			currentCurrency,
 			transactionState: {
 				selectedAsset,
-				transaction: { from, value, gas, gasPrice },
-				transactionValue
+				transaction: { from, value, gas, gasPrice, data }
 			},
 			ticker
 		} = this.props;
@@ -190,14 +197,22 @@ class Confirm extends PureComponent {
 				selectedAsset.decimals
 			)} ${selectedAsset.symbol}`;
 
-			parsedTransactionValue = `${transactionValue} ${selectedAsset.symbol}`;
+			const amount = decodeTransferData('transfer', data)[2];
+			const transferValue = renderFromTokenMinimalUnit(BNToHex(amount), selectedAsset.decimals);
+			parsedTransactionValue = `${transferValue} ${selectedAsset.symbol}`;
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
-			transactionValueFiat = balanceToFiat(transactionValue, conversionRate, exchangeRate, currentCurrency);
+			transactionValueFiat = balanceToFiat(transferValue, conversionRate, exchangeRate, currentCurrency);
 
 			transactionTotalAmount = `${parsedTransactionValue} + ${renderFromWei(weiTransactionFee)} ${getTicker(
 				ticker
 			)}`;
-			// transactionTotalAmountFiat = weiToFiat(weiTransactionFee.add(hexToBN(value)), conversionRate, currentCurrency);
+			const transactionFeeFiatNumber = weiToFiatNumber(weiTransactionFee, conversionRate);
+			const transactionValueFiatNumber = balanceToFiatNumber(transferValue, conversionRate, exchangeRate);
+			transactionTotalAmountFiat = renderFiatAddition(
+				transactionValueFiatNumber,
+				transactionFeeFiatNumber,
+				currentCurrency
+			);
 		}
 
 		this.setState({
