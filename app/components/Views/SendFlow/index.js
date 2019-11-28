@@ -158,6 +158,7 @@ class SendFlow extends PureComponent {
 		toSelectedAddress: undefined,
 		toSelectedAddressName: undefined,
 		toSelectedAddressReady: false,
+		toEnsName: undefined,
 		addToAddressToAddressBook: false,
 		alias: undefined
 	};
@@ -201,7 +202,12 @@ class SendFlow extends PureComponent {
 	onToSelectedAddressChange = async toSelectedAddress => {
 		const { addressBook, network, identities } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		let [addToAddressToAddressBook, toSelectedAddressReady, toAddressName] = [false, false, undefined];
+		let [addToAddressToAddressBook, toSelectedAddressReady, toAddressName, toEnsName] = [
+			false,
+			false,
+			undefined,
+			undefined
+		];
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
 			toSelectedAddressReady = true;
@@ -218,6 +224,7 @@ class SendFlow extends PureComponent {
 				addToAddressToAddressBook = true;
 			}
 		} else if (isENS(toSelectedAddress)) {
+			toEnsName = toSelectedAddress;
 			const resolvedAddress = await doENSLookup(toSelectedAddress, network);
 			if (resolvedAddress) {
 				const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
@@ -233,7 +240,8 @@ class SendFlow extends PureComponent {
 			toSelectedAddress,
 			addToAddressToAddressBook,
 			toSelectedAddressReady,
-			toSelectedAddressName: toAddressName
+			toSelectedAddressName: toAddressName,
+			toEnsName
 		});
 	};
 
@@ -266,8 +274,8 @@ class SendFlow extends PureComponent {
 
 	onTransactionDirectionSet = () => {
 		const { setRecipient } = this.props;
-		const { fromAccountAddress, toSelectedAddress } = this.state;
-		setRecipient(fromAccountAddress, toSelectedAddress, undefined);
+		const { fromAccountAddress, toSelectedAddress, toEnsName } = this.state;
+		setRecipient(fromAccountAddress, toSelectedAddress, toEnsName);
 	};
 
 	renderAddToAddressBookModal = () => {

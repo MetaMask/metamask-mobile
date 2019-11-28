@@ -117,13 +117,15 @@ export const AddressTo = props => {
 							value={toSelectedAddress}
 						/>
 					</View>
-					<TouchableOpacity onPress={onScan} style={styles.scanIconWrapper}>
-						<AntIcon
-							name="scan1"
-							size={20}
-							style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
-						/>
-					</TouchableOpacity>
+					{!!onScan && (
+						<TouchableOpacity onPress={onScan} style={styles.scanIconWrapper}>
+							<AntIcon
+								name="scan1"
+								size={20}
+								style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
+							/>
+						</TouchableOpacity>
+					)}
 				</View>
 			) : (
 				<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
@@ -140,13 +142,15 @@ export const AddressTo = props => {
 							</Text>
 						</View>
 					</View>
-					<TouchableOpacity onPress={onClear} style={styles.scanIconWrapper}>
-						<AntIcon
-							name="close"
-							size={20}
-							style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
-						/>
-					</TouchableOpacity>
+					{!!onClear && (
+						<TouchableOpacity onPress={onClear} style={styles.scanIconWrapper}>
+							<AntIcon
+								name="close"
+								size={20}
+								style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
+							/>
+						</TouchableOpacity>
+					)}
 				</View>
 			)}
 		</View>
@@ -198,13 +202,15 @@ export const AddressFrom = props => {
 					<Text style={styles.textBalance}>{`Balance: ${fromAccountBalance}`}</Text>
 				</View>
 
-				<TouchableOpacity onPress={onPressIcon} style={styles.scanIconWrapper}>
-					<FontAwesome
-						name={'caret-down'}
-						size={20}
-						style={[styles.backIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
-					/>
-				</TouchableOpacity>
+				{!!onPressIcon && (
+					<TouchableOpacity onPress={onPressIcon} style={styles.scanIconWrapper}>
+						<FontAwesome
+							name={'caret-down'}
+							size={20}
+							style={[styles.backIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
+						/>
+					</TouchableOpacity>
+				)}
 			</View>
 		</View>
 	);

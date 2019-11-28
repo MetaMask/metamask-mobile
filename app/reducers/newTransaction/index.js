@@ -18,6 +18,8 @@ const initialState = {
 		value: undefined
 	},
 	transactionTo: undefined,
+	transactionToName: undefined,
+	transactionFromName: undefined,
 	type: undefined
 };
 
@@ -35,9 +37,11 @@ const transactionReducer = (state = initialState, action) => {
 		case 'SET_RECIPIENT':
 			return {
 				...state,
-				transaction: { from: action.from, ...state.transaction },
+				transaction: { ...state.transaction, from: action.from },
 				ensRecipient: action.ensRecipient,
-				transactionTo: action.to
+				transactionTo: action.to,
+				transactionToName: action.transactionToName,
+				transactionFromName: action.transactionFromName
 			};
 		case 'SET_SELECTED_ASSET':
 			return {

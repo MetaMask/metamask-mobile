@@ -10,12 +10,14 @@ export function newTransaction() {
 /**
  * Sets transaction to address and ensRecipient in case is available
  */
-export function setRecipient(from, to, ensRecipient) {
+export function setRecipient(from, to, ensRecipient, transactionToName, transactionFromName) {
 	return {
 		type: 'SET_RECIPIENT',
 		from,
 		to,
-		ensRecipient
+		ensRecipient,
+		transactionToName,
+		transactionFromName
 	};
 }
 

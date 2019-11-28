@@ -28,7 +28,8 @@ import {
 	weiToFiat,
 	fromWei,
 	fromTokenMinimalUnit,
-	toWei
+	toWei,
+	isDecimal
 } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import { hexToBN } from 'gaba/dist/util';
@@ -288,7 +289,7 @@ class Amount extends PureComponent {
 	onInputChange = inputValue => {
 		const { selectedAsset, contractExchangeRates, conversionRate, currentCurrency } = this.props;
 		let inputValueFiat;
-		if (inputValue) {
+		if (isDecimal(inputValue)) {
 			if (selectedAsset.isEth) {
 				inputValueFiat = weiToFiat(toWei(inputValue.toString(16)), conversionRate, currentCurrency);
 			} else {
