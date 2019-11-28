@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import PropTypes from 'prop-types';
-import { renderFromWei, renderFromTokenMinimalUnit } from '../../../../util/number';
+import { renderFromWei, renderFromTokenMinimalUnit, weiToFiat, balanceToFiat, toWei } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 
@@ -120,29 +120,63 @@ class Confirm extends PureComponent {
 		/**
 		 * Current transaction state
 		 */
-		transactionState: PropTypes.object
+		transactionState: PropTypes.object,
+		/**
+		 * ETH to current currency conversion rate
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
+		contractExchangeRates: PropTypes.object
 	};
 
 	state = {
-		fromAccountBalance: undefined
+		fromAccountBalance: undefined,
+		transactionValue: undefined,
+		transactionValueFiat: undefined
 	};
 
 	componentDidMount = () => {
-		const { accounts, ticker, contractBalances, transactionState } = this.props;
+		const {
+			accounts,
+			ticker,
+			contractBalances,
+			transactionState,
+			contractExchangeRates,
+			conversionRate,
+			currentCurrency
+		} = this.props;
 		const {
 			selectedAsset,
-			transaction: { from }
+			transaction: { from },
+			transactionValue
 		} = transactionState;
 		let fromAccountBalance;
+		let parsedTransactionValue;
+		let transactionValueFiat;
 		if (selectedAsset.isEth) {
 			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${getTicker(ticker)}`;
+			parsedTransactionValue = `${transactionValue} ${getTicker(ticker)}`;
+			transactionValueFiat = weiToFiat(toWei(transactionValue.toString(16)), conversionRate, currentCurrency);
 		} else {
 			fromAccountBalance = `${renderFromTokenMinimalUnit(
 				contractBalances[selectedAsset.address],
 				selectedAsset.decimals
 			)} ${selectedAsset.symbol}`;
+			parsedTransactionValue = `${transactionValue} ${selectedAsset.symbol}`;
+			const exchangeRate =
+				selectedAsset.address in contractExchangeRates
+					? contractExchangeRates[selectedAsset.address]
+					: undefined;
+			transactionValueFiat =
+				exchangeRate && balanceToFiat(transactionValue, conversionRate, exchangeRate, currentCurrency);
 		}
-		this.setState({ fromAccountBalance });
+		this.setState({ fromAccountBalance, transactionValue: parsedTransactionValue, transactionValueFiat });
 	};
 
 	render = () => {
@@ -150,10 +184,9 @@ class Confirm extends PureComponent {
 			transaction: { from },
 			transactionTo,
 			transactionToName,
-			transactionFromName,
-			transactionValue
+			transactionFromName
 		} = this.props.transactionState;
-		const { fromAccountBalance } = this.state;
+		const { fromAccountBalance, transactionValue, transactionValueFiat } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.inputWrapper}>
@@ -174,7 +207,7 @@ class Confirm extends PureComponent {
 					<View style={styles.amountWrapper}>
 						<Text style={styles.textAmountLabel}>Amount</Text>
 						<Text style={styles.textAmount}>{transactionValue}</Text>
-						<Text style={styles.textAmountLabel}>fiat</Text>
+						<Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>
 					</View>
 
 					<View style={styles.summaryWrapper}>
@@ -218,6 +251,9 @@ class Confirm extends PureComponent {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transactionState: state.newTransaction
 });

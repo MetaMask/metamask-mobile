@@ -260,7 +260,7 @@ class Amount extends PureComponent {
 	tokens = [];
 
 	componentDidMount = () => {
-		const { tokens, ticker, setSelectedAsset } = this.props;
+		const { tokens, ticker, setSelectedAsset, selectedAsset } = this.props;
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		const ether = {
 			name: 'Ether',
@@ -270,7 +270,7 @@ class Amount extends PureComponent {
 			isEth: true
 		};
 		this.tokens = [ether, ...tokens];
-		setSelectedAsset(ether);
+		Object.keys(selectedAsset).length === 0 && setSelectedAsset(ether);
 	};
 
 	onNext = () => {
