@@ -27,7 +27,8 @@ import {
 	renderFromWei,
 	weiToFiat,
 	fromWei,
-	fromTokenMinimalUnit
+	fromTokenMinimalUnit,
+	toWei
 } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import { hexToBN } from 'gaba/dist/util';
@@ -112,7 +113,8 @@ const styles = StyleSheet.create({
 	textSwitch: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.grey500
+		color: colors.grey500,
+		textTransform: 'uppercase'
 	},
 	switchWrapper: {
 		flexDirection: 'row',
@@ -245,6 +247,7 @@ class Amount extends PureComponent {
 
 	state = {
 		inputValue: undefined,
+		inputValueFiat: undefined,
 		assetsModalVisible: false
 	};
 
@@ -283,7 +286,22 @@ class Amount extends PureComponent {
 	};
 
 	onInputChange = inputValue => {
-		this.setState({ inputValue });
+		const { selectedAsset, contractExchangeRates, conversionRate, currentCurrency } = this.props;
+		let inputValueFiat;
+		if (inputValue) {
+			if (selectedAsset.isEth) {
+				inputValueFiat = weiToFiat(toWei(inputValue.toString(16)), conversionRate, currentCurrency);
+			} else {
+				const exchangeRate =
+					selectedAsset.address in contractExchangeRates
+						? contractExchangeRates[selectedAsset.address]
+						: undefined;
+				inputValueFiat =
+					exchangeRate && balanceToFiat(inputValue, conversionRate, exchangeRate, currentCurrency);
+			}
+		}
+
+		this.setState({ inputValue, inputValueFiat });
 	};
 
 	toggleAssetsModal = () => {
@@ -294,6 +312,7 @@ class Amount extends PureComponent {
 	pickSelectedAsset = selectedAsset => {
 		this.props.setSelectedAsset(selectedAsset);
 		this.toggleAssetsModal();
+		this.onInputChange();
 	};
 
 	assetKeyExtractor = token => token.address;
@@ -368,8 +387,8 @@ class Amount extends PureComponent {
 	};
 
 	render = () => {
-		const { inputValue } = this.state;
-		const { selectedAsset } = this.props;
+		const { inputValue, inputValueFiat } = this.state;
+		const { selectedAsset, currentCurrency } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.inputWrapper}>
@@ -408,7 +427,7 @@ class Amount extends PureComponent {
 						<View style={[styles.action]}>
 							<TouchableOpacity style={styles.actionSwitch}>
 								<Text style={styles.textSwitch} numberOfLines={1}>
-									{inputValue} USD
+									{inputValueFiat || `0 ${currentCurrency}`}
 								</Text>
 								<View styles={styles.switchWrapper}>
 									<MaterialCommunityIcons
