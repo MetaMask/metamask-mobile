@@ -13,7 +13,7 @@ import {
 	Image
 } from 'react-native';
 import { connect } from 'react-redux';
-import { setRecipient, newTransaction, setSelectedAsset } from '../../../../actions/newTransaction';
+import { setSelectedAsset } from '../../../../actions/newTransaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -243,6 +243,9 @@ class Amount extends PureComponent {
 		 * Set selected in transaction state
 		 */
 		setSelectedAsset: PropTypes.func,
+		/**
+		 * Selected asset from current transaction state
+		 */
 		selectedAsset: PropTypes.object
 	};
 
@@ -466,20 +469,13 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	primaryCurrency: state.settings.primaryCurrency,
-	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities,
-	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	network: state.engine.backgroundState.NetworkController.network,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	selectedAsset: state.newTransaction.selectedAsset
 });
 
 const mapDispatchToProps = dispatch => ({
-	newTransaction: () => dispatch(newTransaction()),
-	setRecipient: (from, to, ensRecipient) => dispatch(setRecipient(from, to, ensRecipient)),
 	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
 });
 

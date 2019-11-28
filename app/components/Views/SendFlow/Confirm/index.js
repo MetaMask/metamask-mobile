@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import { colors } from '../../../../styles/common';
 import { StyleSheet, SafeAreaView, View } from 'react-native';
 import { connect } from 'react-redux';
-import { setRecipient, newTransaction } from '../../../../actions/newTransaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import PropTypes from 'prop-types';
@@ -28,19 +27,22 @@ class Confirm extends PureComponent {
 	static navigationOptions = ({ navigation }) => getSendFlowTitle('send.confirm', navigation);
 
 	static propTypes = {
+		/**
+		 * Map of accounts to information objects including balances
+		 */
 		accounts: PropTypes.object,
 		/**
+		 * Object containing token balances in the format address => balance
 		 */
 		contractBalances: PropTypes.object,
-		transactionTo: PropTypes.string,
-		transactionFrom: PropTypes.string,
-		selectedAsset: PropTypes.object,
-		transactionToName: PropTypes.string,
-		transactionFromName: PropTypes.string,
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Current transaction state
+		 */
+		transactionState: PropTypes.object
 	};
 
 	state = {
@@ -48,10 +50,14 @@ class Confirm extends PureComponent {
 	};
 
 	componentDidMount = () => {
-		const { transactionFrom, selectedAsset, accounts, ticker, contractBalances } = this.props;
+		const { accounts, ticker, contractBalances, transactionState } = this.props;
+		const {
+			selectedAsset,
+			transaction: { from }
+		} = transactionState;
 		let fromAccountBalance;
 		if (selectedAsset.isEth) {
-			fromAccountBalance = `${renderFromWei(accounts[transactionFrom].balance)} ${getTicker(ticker)}`;
+			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${getTicker(ticker)}`;
 		} else {
 			fromAccountBalance = `${renderFromTokenMinimalUnit(
 				contractBalances[selectedAsset.address],
@@ -62,14 +68,19 @@ class Confirm extends PureComponent {
 	};
 
 	render = () => {
-		const { transactionFrom, transactionTo, transactionToName, transactionFromName } = this.props;
+		const {
+			transaction: { from },
+			transactionTo,
+			transactionToName,
+			transactionFromName
+		} = this.props.transactionState;
 		const { fromAccountBalance } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.imputWrapper}>
 					<AddressFrom
 						onPressIcon={this.toggleFromAccountModal}
-						fromAccountAddress={transactionFrom}
+						fromAccountAddress={from}
 						fromAccountName={transactionFromName}
 						fromAccountBalance={fromAccountBalance}
 					/>
@@ -87,27 +98,9 @@ class Confirm extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities,
-	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	network: state.engine.backgroundState.NetworkController.network,
-	transactionTo: state.newTransaction.transactionTo,
-	transactionToName: state.newTransaction.transactionToName,
-	transactionFrom: state.newTransaction.transaction.from,
-	transactionFromName: state.newTransaction.transactionFromName,
-	transaction: state.newTransaction.transaction,
-	selectedAsset: state.newTransaction.selectedAsset
+	transactionState: state.newTransaction
 });
 
-const mapDispatchToProps = dispatch => ({
-	newTransaction: () => dispatch(newTransaction()),
-	setRecipient: (from, to, ensRecipient) => dispatch(setRecipient(from, to, ensRecipient))
-});
-
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Confirm);
+export default connect(mapStateToProps)(Confirm);
