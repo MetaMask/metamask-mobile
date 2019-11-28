@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
-import { colors } from '../../../../styles/common';
-import { StyleSheet, SafeAreaView, View } from 'react-native';
+import { colors, baseStyles, fontStyles } from '../../../../styles/common';
+import { StyleSheet, SafeAreaView, View, Text } from 'react-native';
 import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
@@ -13,10 +13,65 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: colors.white
 	},
-	imputWrapper: {
+	inputWrapper: {
 		flex: 0,
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050
+	},
+	amountWrapper: {
+		flexDirection: 'column',
+		margin: 24
+	},
+	textAmountLabel: {
+		...fontStyles.normal,
+		fontSize: 14,
+		textAlign: 'center',
+		color: colors.grey500,
+		textTransform: 'uppercase',
+		marginVertical: 3
+	},
+	textAmount: {
+		...fontStyles.light,
+		fontSize: 44,
+		textAlign: 'center'
+	},
+	summaryWrapper: {
+		flexDirection: 'column',
+		borderWidth: 1,
+		borderColor: colors.grey050,
+		borderRadius: 8,
+		padding: 16,
+		marginHorizontal: 24
+	},
+	summaryRow: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		marginVertical: 6
+	},
+	totalCryptoRow: {
+		alignItems: 'flex-end',
+		marginTop: 8
+	},
+	textSummary: {
+		...fontStyles.normal,
+		color: colors.black,
+		fontSize: 12
+	},
+	textCrypto: {
+		...fontStyles.normal,
+		textAlign: 'right',
+		fontSize: 12,
+		textTransform: 'uppercase',
+		color: colors.grey500
+	},
+	textBold: {
+		...fontStyles.bold,
+		alignSelf: 'flex-end'
+	},
+	separator: {
+		borderBottomWidth: 1,
+		borderBottomColor: colors.grey050,
+		marginVertical: 6
 	}
 });
 
@@ -72,12 +127,13 @@ class Confirm extends PureComponent {
 			transaction: { from },
 			transactionTo,
 			transactionToName,
-			transactionFromName
+			transactionFromName,
+			transactionValue
 		} = this.props.transactionState;
 		const { fromAccountBalance } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
-				<View style={styles.imputWrapper}>
+				<View style={styles.inputWrapper}>
 					<AddressFrom
 						onPressIcon={this.toggleFromAccountModal}
 						fromAccountAddress={from}
@@ -90,6 +146,32 @@ class Confirm extends PureComponent {
 						toAddressName={transactionToName}
 						onToSelectedAddressChange={this.onToSelectedAddressChange}
 					/>
+				</View>
+				<View style={baseStyles.flexGrow}>
+					<View style={styles.amountWrapper}>
+						<Text style={styles.textAmountLabel}>Amount</Text>
+						<Text style={styles.textAmount}>{transactionValue}</Text>
+						<Text style={styles.textAmountLabel}>fiat</Text>
+					</View>
+
+					<View style={styles.summaryWrapper}>
+						<View style={styles.summaryRow}>
+							<Text style={styles.textSummary}>Amount</Text>
+							<Text style={styles.textSummary}>$$Amount</Text>
+						</View>
+						<View style={styles.summaryRow}>
+							<Text style={styles.textSummary}>Transaction fee</Text>
+							<Text style={styles.textSummary}>$$fee</Text>
+						</View>
+						<View style={styles.separator} />
+						<View style={styles.summaryRow}>
+							<Text style={[styles.textSummary, styles.textBold]}>Total amount</Text>
+							<Text style={[styles.textSummary, styles.textBold]}>$$amount</Text>
+						</View>
+						<View style={styles.totalCryptoRow}>
+							<Text style={[styles.textSummary, styles.textCrypto]}>0.1 eth</Text>
+						</View>
+					</View>
 				</View>
 			</SafeAreaView>
 		);

@@ -27,3 +27,10 @@ export function setSelectedAsset(selectedAsset) {
 		selectedAsset
 	};
 }
+
+export function setValue(value) {
+	return {
+		type: 'SET_VALUE',
+		value
+	};
+}

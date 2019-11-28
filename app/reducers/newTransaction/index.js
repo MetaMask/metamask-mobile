@@ -20,6 +20,7 @@ const initialState = {
 	transactionTo: undefined,
 	transactionToName: undefined,
 	transactionFromName: undefined,
+	transactionValue: undefined,
 	type: undefined
 };
 
@@ -47,6 +48,11 @@ const transactionReducer = (state = initialState, action) => {
 			return {
 				...state,
 				selectedAsset: action.selectedAsset
+			};
+		case 'SET_VALUE':
+			return {
+				...state,
+				transactionValue: action.value
 			};
 		default:
 			return state;

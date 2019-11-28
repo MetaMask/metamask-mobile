@@ -28,9 +28,6 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050
 	},
-	addressListWrapper: {
-		flex: 1
-	},
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
@@ -385,7 +382,7 @@ class SendFlow extends PureComponent {
 					/>
 				</View>
 
-				<View style={styles.addressListWrapper}>
+				<View style={baseStyles.flexGrow}>
 					{!toSelectedAddressReady ? (
 						<AddressList onAccountPress={this.onToSelectedAddressChange} />
 					) : (

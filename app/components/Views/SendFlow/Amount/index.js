@@ -13,7 +13,7 @@ import {
 	Image
 } from 'react-native';
 import { connect } from 'react-redux';
-import { setSelectedAsset } from '../../../../actions/newTransaction';
+import { setSelectedAsset, setValue } from '../../../../actions/newTransaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -243,6 +243,7 @@ class Amount extends PureComponent {
 		 * Set selected in transaction state
 		 */
 		setSelectedAsset: PropTypes.func,
+		setValue: PropTypes.func,
 		/**
 		 * Selected asset from current transaction state
 		 */
@@ -273,7 +274,9 @@ class Amount extends PureComponent {
 	};
 
 	onNext = () => {
-		const { navigation } = this.props;
+		const { navigation, setValue } = this.props;
+		const { inputValue } = this.state;
+		setValue(inputValue);
 		navigation.navigate('Confirm');
 	};
 
@@ -476,7 +479,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
+	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset)),
+	setValue: value => dispatch(setValue(value))
 });
 
 export default connect(
