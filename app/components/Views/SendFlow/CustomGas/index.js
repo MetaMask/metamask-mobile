@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { colors, fontStyles, baseStyles } from '../../../../styles/common';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import {
 	getRenderableEthGasFee,
@@ -22,42 +22,36 @@ const LOW_GAS = 10;
 const FAST_GAS = 40;
 
 const styles = StyleSheet.create({
-	root: { flex: 1, margin: 16 },
+	root: {
+		margin: 16
+	},
 	selectors: {
 		backgroundColor: colors.white,
 		flexDirection: 'row',
 		justifyContent: 'space-between'
 	},
 	selector: {
+		flex: 1,
 		textAlign: 'center',
 		alignItems: 'flex-start',
 		padding: 12,
 		borderWidth: 1,
 		borderRadius: 6,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
+		marginVertical: 16
+	},
+	selectorCenter: {
+		marginHorizontal: 8
 	},
 	advancedOptions: {
 		textAlign: 'right',
-		alignItems: 'flex-end',
-		marginTop: 10
-	},
-	average: {
-		borderColor: colors.grey100,
-		borderRightWidth: 1,
-		borderLeftWidth: 1
-	},
-	slow: {
-		borderBottomStartRadius: 4,
-		borderTopStartRadius: 4
-	},
-	fast: {
-		borderBottomEndRadius: 4,
-		borderTopEndRadius: 4
+		alignItems: 'center'
 	},
 	text: {
 		...fontStyles.light,
 		marginVertical: 4,
-		fontSize: DeviceSize.isSmallDevice() ? 8 : 10
+		fontSize: DeviceSize.isSmallDevice() ? 8 : 10,
+		textTransform: 'uppercase'
 	},
 	textTime: {
 		...fontStyles.bold,
@@ -92,6 +86,12 @@ const styles = StyleSheet.create({
 	warningText: {
 		color: colors.red,
 		...fontStyles.normal
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center'
 	}
 });
 
@@ -121,10 +121,6 @@ class CustomGas extends PureComponent {
 		 */
 		gas: PropTypes.object,
 		/**
-		 * Callback to modify state in parent state
-		 */
-		onPress: PropTypes.func,
-		/**
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string
@@ -149,8 +145,7 @@ class CustomGas extends PureComponent {
 
 	onPressGasFast = () => {
 		const { fastGwei } = this.state;
-		const { gas, onPress } = this.props;
-		onPress && onPress();
+		const { gas } = this.props;
 		this.setState({
 			gasFastSelected: true,
 			gasAverageSelected: false,
@@ -163,8 +158,7 @@ class CustomGas extends PureComponent {
 
 	onPressGasAverage = () => {
 		const { averageGwei } = this.state;
-		const { gas, onPress } = this.props;
-		onPress && onPress();
+		const { gas } = this.props;
 		this.setState({
 			gasFastSelected: false,
 			gasAverageSelected: true,
@@ -177,8 +171,7 @@ class CustomGas extends PureComponent {
 
 	onPressGasSlow = () => {
 		const { safeLowGwei } = this.state;
-		const { gas, onPress } = this.props;
-		onPress && onPress();
+		const { gas } = this.props;
 		this.setState({
 			gasFastSelected: false,
 			gasAverageSelected: false,
@@ -191,8 +184,7 @@ class CustomGas extends PureComponent {
 
 	onAdvancedOptions = () => {
 		const { advancedCustomGas, selected, fastGwei, averageGwei, safeLowGwei, customGasPrice } = this.state;
-		const { gas, onPress } = this.props;
-		onPress && onPress();
+		const { gas } = this.props;
 		if (advancedCustomGas) {
 			switch (selected) {
 				case 'slow':
@@ -283,7 +275,6 @@ class CustomGas extends PureComponent {
 					onPress={this.onPressGasSlow}
 					style={[
 						styles.selector,
-						styles.slow,
 						{
 							backgroundColor: this.state.gasSlowSelected ? colors.blue000 : colors.white,
 							borderColor: this.state.gasSlowSelected ? colors.blue : colors.grey500
@@ -304,7 +295,7 @@ class CustomGas extends PureComponent {
 					onPress={this.onPressGasAverage}
 					style={[
 						styles.selector,
-						styles.average,
+						styles.selectorCenter,
 						{
 							backgroundColor: this.state.gasAverageSelected ? colors.blue000 : colors.white,
 							borderColor: this.state.gasAverageSelected ? colors.blue : colors.grey500
@@ -325,7 +316,6 @@ class CustomGas extends PureComponent {
 					onPress={this.onPressGasFast}
 					style={[
 						styles.selector,
-						styles.fast,
 						{
 							backgroundColor: this.state.gasFastSelected ? colors.blue000 : colors.white,
 							borderColor: this.state.gasFastSelected ? colors.blue : colors.grey500
@@ -394,8 +384,8 @@ class CustomGas extends PureComponent {
 			);
 		}
 		return (
-			<View style={baseStyles.flexGrow}>
-				<Text>{strings('transaction.loading')}</Text>
+			<View style={styles.loader}>
+				<ActivityIndicator style={styles.loader} size="small" />
 			</View>
 		);
 	};

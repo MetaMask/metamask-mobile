@@ -173,8 +173,10 @@ class Confirm extends PureComponent {
 	};
 
 	state = {
-		customGasModalVisible: true,
+		customGasModalVisible: false,
 		gasEstimationReady: false,
+		customGas: undefined,
+		customGasPrice: undefined,
 		fromAccountBalance: undefined,
 		transactionValue: undefined,
 		transactionValueFiat: undefined,
@@ -261,8 +263,8 @@ class Confirm extends PureComponent {
 		const estimation = await this.estimateGas(transaction);
 		transaction = { ...transaction, ...estimation };
 		prepareTransaction(transaction);
-		this.setState({ gasEstimationReady: true });
 		this.parseTransactionData();
+		this.setState({ gasEstimationReady: true });
 	};
 
 	estimateGas = async transaction => {
@@ -289,6 +291,26 @@ class Confirm extends PureComponent {
 		return { gas: hexToBN(estimation.gas), gasPrice: apiEstimateModifiedToWEI(basicGasEstimates.average) };
 	};
 
+	handleGasFeeSelection = (gas, gasPrice) => {
+		this.setState({ customGas: gas, customGasPrice: gasPrice });
+	};
+
+	handleSetGasFee = () => {
+		this.setState({ gasEstimationReady: false });
+		const { customGas, customGasPrice } = this.state;
+		if (!customGas || !customGasPrice) return;
+		const { prepareTransaction, transactionState } = this.props;
+		let transaction = transactionState.transaction;
+		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
+
+		prepareTransaction(transaction);
+		setTimeout(() => {
+			this.parseTransactionData();
+			this.setState({ customGas: undefined, customGasPrice: undefined, gasEstimationReady: true });
+		}, 100);
+		this.toggleCustomGasModalVisible();
+	};
+
 	toggleCustomGasModalVisible = () => {
 		const { customGasModalVisible } = this.state;
 		this.setState({ customGasModalVisible: !customGasModalVisible });
@@ -304,7 +326,7 @@ class Confirm extends PureComponent {
 				cancelText={'Cancel'}
 				onCancelPress={this.toggleCustomGasModalVisible}
 				onRequestClose={this.toggleCustomGasModalVisible}
-				onConfirmPress={this.toggleCustomGasModalVisible}
+				onConfirmPress={this.handleSetGasFee}
 				cancelButtonMode={'neutral'}
 				confirmButtonMode={'confirm'}
 			>
@@ -313,14 +335,24 @@ class Confirm extends PureComponent {
 						<Text style={styles.customGasModalTitleText}>Transaction Fee</Text>
 					</View>
 					<CustomGas
-						handleGasFeeSelection={() => console.log('ss')}
+						handleGasFeeSelection={this.handleGasFeeSelection}
 						totalGas={gas && gas.mul(gasPrice)}
 						gas={gas}
 						gasPrice={gasPrice}
-						onPress={this.toggleCustomGasModalVisible}
 					/>
 				</View>
 			</ActionModal>
+		);
+	};
+
+	renderIfGastEstimationReady = children => {
+		const { gasEstimationReady } = this.state;
+		return !gasEstimationReady ? (
+			<View style={styles.loader}>
+				<ActivityIndicator size="small" />
+			</View>
+		) : (
+			children
 		);
 	};
 
@@ -370,29 +402,23 @@ class Confirm extends PureComponent {
 						</View>
 						<View style={styles.summaryRow}>
 							<Text style={styles.textSummary}>Transaction fee</Text>
-							{!gasEstimationReady ? (
-								<View style={styles.loader}>
-									<ActivityIndicator size="small" />
-								</View>
-							) : (
+							{this.renderIfGastEstimationReady(
 								<Text style={[styles.textSummary, styles.textSummaryAmount]}>{transactionFeeFiat}</Text>
 							)}
 						</View>
 						<View style={styles.separator} />
 						<View style={styles.summaryRow}>
 							<Text style={[styles.textSummary, styles.textBold]}>Total amount</Text>
-							{!gasEstimationReady ? (
-								<View style={styles.loader}>
-									<ActivityIndicator size="small" />
-								</View>
-							) : (
+							{this.renderIfGastEstimationReady(
 								<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>
 									{transactionTotalAmountFiat}
 								</Text>
 							)}
 						</View>
 						<View style={styles.totalCryptoRow}>
-							<Text style={[styles.textSummary, styles.textCrypto]}>{transactionTotalAmount}</Text>
+							{this.renderIfGastEstimationReady(
+								<Text style={[styles.textSummary, styles.textCrypto]}>{transactionTotalAmount}</Text>
+							)}
 						</View>
 					</View>
 					<View style={styles.actionsWrapper}>
