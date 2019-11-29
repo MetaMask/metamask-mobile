@@ -35,9 +35,6 @@ import {
 import { getTicker, generateTransferData } from '../../../../util/transactions';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
 import FadeIn from 'react-native-fade-in-image';
-import Engine from '../../../../core/Engine';
-import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
-import Logger from '../../../../util/Logger';
 
 const KEYBOARD_OFFSET = 120;
 
@@ -200,10 +197,6 @@ const styles = StyleSheet.create({
 	}
 });
 
-const AVERAGE_GAS = 20;
-const LOW_GAS = 10;
-const FAST_GAS = 40;
-
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -293,48 +286,25 @@ class Amount extends PureComponent {
 		navigation.navigate('Confirm');
 	};
 
-	estimateGas = async transaction => {
-		const { TransactionController } = Engine.context;
-		const { value, data, to, from } = transaction;
-		let estimation;
-		try {
-			estimation = await TransactionController.estimateGas({
-				value,
-				from,
-				data,
-				to
-			});
-		} catch (e) {
-			estimation = { gas: '0x5208' };
-		}
-		let basicGasEstimates;
-		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
-		} catch (error) {
-			Logger.log('Error while trying to get gas limit estimates', error);
-			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
-		}
-		return { gas: hexToBN(estimation.gas), gasPrice: apiEstimateModifiedToWEI(basicGasEstimates.average) };
-	};
-
 	prepareTransaction = async value => {
-		const { prepareTransaction, selectedAsset, transactionState } = this.props;
-		let transaction = transactionState.transaction;
+		const {
+			prepareTransaction,
+			selectedAsset,
+			transactionState: { transaction, transactionTo }
+		} = this.props;
 		if (selectedAsset.isEth) {
 			transaction.data = '0x';
-			transaction.to = transactionState.transactionTo;
+			transaction.to = transactionTo;
 			transaction.value = BNToHex(toWei(value));
 		} else {
 			const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
 			transaction.data = generateTransferData('transfer', {
-				toAddress: transactionState.transactionTo,
+				toAddress: transactionTo,
 				amount: BNToHex(tokenAmount)
 			});
 			transaction.to = selectedAsset.address;
 			transaction.value = '0x0';
 		}
-		const estimation = await this.estimateGas(transaction);
-		transaction = { ...transaction, ...estimation };
 		prepareTransaction(transaction);
 	};
 

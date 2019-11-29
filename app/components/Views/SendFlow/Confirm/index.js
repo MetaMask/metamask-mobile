@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { colors, baseStyles, fontStyles } from '../../../../styles/common';
-import { StyleSheet, SafeAreaView, View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, SafeAreaView, View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
@@ -17,6 +17,14 @@ import {
 import { getTicker, decodeTransferData } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { hexToBN } from 'gaba/dist/util';
+import { prepareTransaction } from '../../../../actions/newTransaction';
+import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+
+const AVERAGE_GAS = 20;
+const LOW_GAS = 10;
+const FAST_GAS = 40;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -107,6 +115,10 @@ const styles = StyleSheet.create({
 	},
 	actionsWrapper: {
 		margin: 24
+	},
+	loader: {
+		backgroundColor: colors.white,
+		height: 10
 	}
 });
 
@@ -144,10 +156,12 @@ class Confirm extends PureComponent {
 		/**
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
-		contractExchangeRates: PropTypes.object
+		contractExchangeRates: PropTypes.object,
+		prepareTransaction: PropTypes.func
 	};
 
 	state = {
+		gasEstimationReady: false,
 		fromAccountBalance: undefined,
 		transactionValue: undefined,
 		transactionValueFiat: undefined,
@@ -156,8 +170,9 @@ class Confirm extends PureComponent {
 		transactionTotalAmountFiat: undefined
 	};
 
-	componentDidMount = () => {
+	componentDidMount = async () => {
 		this.parseTransactionData();
+		this.prepareTransaction();
 	};
 
 	parseTransactionData = () => {
@@ -169,12 +184,13 @@ class Confirm extends PureComponent {
 			currentCurrency,
 			transactionState: {
 				selectedAsset,
+				transactionTo: to,
 				transaction: { from, value, gas, gasPrice, data }
 			},
 			ticker
 		} = this.props;
 
-		const weiTransactionFee = gas.mul(gasPrice);
+		const weiTransactionFee = gas && gas.mul(gasPrice);
 		const valueBN = hexToBN(value);
 		const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
 		const parsedTicker = getTicker(ticker);
@@ -183,7 +199,7 @@ class Confirm extends PureComponent {
 			const fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${parsedTicker}`;
 			const transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
 			const transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
-			const transactionTotalAmountBN = weiTransactionFee.add(valueBN);
+			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 			const transactionTotalAmount = `${renderFromWei(transactionTotalAmountBN)} ${parsedTicker}`;
 			const transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
 
@@ -192,6 +208,7 @@ class Confirm extends PureComponent {
 				transactionValue,
 				transactionValueFiat,
 				transactionFeeFiat,
+				transactionTo: to,
 				transactionTotalAmount,
 				transactionTotalAmountFiat
 			});
@@ -199,7 +216,7 @@ class Confirm extends PureComponent {
 			// TODO check if user has token in case of confirm
 			const { address, symbol = 'ERC20', decimals } = selectedAsset;
 			const fromAccountBalance = `${renderFromTokenMinimalUnit(contractBalances[address], decimals)} ${symbol}`;
-			const amount = decodeTransferData('transfer', data)[1];
+			const [transactionTo, , amount] = decodeTransferData('transfer', data);
 			const transferValue = renderFromTokenMinimalUnit(amount, decimals);
 			const transactionValue = `${transferValue} ${symbol}`;
 			const exchangeRate = contractExchangeRates[address];
@@ -218,24 +235,60 @@ class Confirm extends PureComponent {
 				transactionValue,
 				transactionValueFiat,
 				transactionFeeFiat,
+				transactionTo,
 				transactionTotalAmount,
 				transactionTotalAmountFiat
 			});
 		}
 	};
 
+	prepareTransaction = async () => {
+		const { prepareTransaction, transactionState } = this.props;
+		let transaction = transactionState.transaction;
+		const estimation = await this.estimateGas(transaction);
+		transaction = { ...transaction, ...estimation };
+		prepareTransaction(transaction);
+		this.setState({ gasEstimationReady: true });
+		this.parseTransactionData();
+	};
+
+	estimateGas = async transaction => {
+		const { TransactionController } = Engine.context;
+		const { value, data, to, from } = transaction;
+		let estimation;
+		try {
+			estimation = await TransactionController.estimateGas({
+				value,
+				from,
+				data,
+				to
+			});
+		} catch (e) {
+			estimation = { gas: '0x5208' };
+		}
+		let basicGasEstimates;
+		try {
+			basicGasEstimates = await fetchBasicGasEstimates();
+		} catch (error) {
+			Logger.log('Error while trying to get gas limit estimates', error);
+			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
+		}
+		return { gas: hexToBN(estimation.gas), gasPrice: apiEstimateModifiedToWEI(basicGasEstimates.average) };
+	};
+
 	render = () => {
 		const {
 			transaction: { from },
-			transactionTo,
 			transactionToName,
 			transactionFromName
 		} = this.props.transactionState;
 		const {
+			gasEstimationReady,
 			fromAccountBalance,
 			transactionValue,
 			transactionValueFiat,
 			transactionFeeFiat,
+			transactionTo,
 			transactionTotalAmount,
 			transactionTotalAmountFiat
 		} = this.state;
@@ -269,14 +322,26 @@ class Confirm extends PureComponent {
 						</View>
 						<View style={styles.summaryRow}>
 							<Text style={styles.textSummary}>Transaction fee</Text>
-							<Text style={[styles.textSummary, styles.textSummaryAmount]}>{transactionFeeFiat}</Text>
+							{!gasEstimationReady ? (
+								<View style={styles.loader}>
+									<ActivityIndicator size="small" />
+								</View>
+							) : (
+								<Text style={[styles.textSummary, styles.textSummaryAmount]}>{transactionFeeFiat}</Text>
+							)}
 						</View>
 						<View style={styles.separator} />
 						<View style={styles.summaryRow}>
 							<Text style={[styles.textSummary, styles.textBold]}>Total amount</Text>
-							<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>
-								{transactionTotalAmountFiat}
-							</Text>
+							{!gasEstimationReady ? (
+								<View style={styles.loader}>
+									<ActivityIndicator size="small" />
+								</View>
+							) : (
+								<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>
+									{transactionTotalAmountFiat}
+								</Text>
+							)}
 						</View>
 						<View style={styles.totalCryptoRow}>
 							<Text style={[styles.textSummary, styles.textCrypto]}>{transactionTotalAmount}</Text>
@@ -293,7 +358,12 @@ class Confirm extends PureComponent {
 				</ScrollView>
 
 				<View style={styles.buttonNextWrapper}>
-					<StyledButton type={'confirm'} containerStyle={styles.buttonNext} onPress={this.onNext}>
+					<StyledButton
+						type={'confirm'}
+						disabled={!gasEstimationReady}
+						containerStyle={styles.buttonNext}
+						onPress={this.onNext}
+					>
 						Send
 					</StyledButton>
 				</View>
@@ -312,4 +382,11 @@ const mapStateToProps = state => ({
 	transactionState: state.newTransaction
 });
 
-export default connect(mapStateToProps)(Confirm);
+const mapDispatchToProps = dispatch => ({
+	prepareTransaction: transaction => dispatch(prepareTransaction(transaction))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Confirm);
