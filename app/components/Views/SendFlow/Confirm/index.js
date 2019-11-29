@@ -21,6 +21,8 @@ import { prepareTransaction } from '../../../../actions/newTransaction';
 import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import ActionModal from '../../../UI/ActionModal';
+import CustomGas from '../CustomGas';
 
 const AVERAGE_GAS = 20;
 const LOW_GAS = 10;
@@ -119,6 +121,16 @@ const styles = StyleSheet.create({
 	loader: {
 		backgroundColor: colors.white,
 		height: 10
+	},
+	customGasModalTitle: {
+		borderBottomColor: colors.grey100,
+		borderBottomWidth: 1
+	},
+	customGasModalTitleText: {
+		...fontStyles.bold,
+		fontSize: 18,
+		alignSelf: 'center',
+		margin: 16
 	}
 });
 
@@ -161,6 +173,7 @@ class Confirm extends PureComponent {
 	};
 
 	state = {
+		customGasModalVisible: true,
 		gasEstimationReady: false,
 		fromAccountBalance: undefined,
 		transactionValue: undefined,
@@ -276,6 +289,41 @@ class Confirm extends PureComponent {
 		return { gas: hexToBN(estimation.gas), gasPrice: apiEstimateModifiedToWEI(basicGasEstimates.average) };
 	};
 
+	toggleCustomGasModalVisible = () => {
+		const { customGasModalVisible } = this.state;
+		this.setState({ customGasModalVisible: !customGasModalVisible });
+	};
+
+	renderCustomGasModal = () => {
+		const { customGasModalVisible } = this.state;
+		const { gas, gasPrice } = this.props.transactionState.transaction;
+		return (
+			<ActionModal
+				modalVisible={customGasModalVisible}
+				confirmText={'Set'}
+				cancelText={'Cancel'}
+				onCancelPress={this.toggleCustomGasModalVisible}
+				onRequestClose={this.toggleCustomGasModalVisible}
+				onConfirmPress={this.toggleCustomGasModalVisible}
+				cancelButtonMode={'neutral'}
+				confirmButtonMode={'confirm'}
+			>
+				<View style={baseStyles.flexGrow}>
+					<View style={styles.customGasModalTitle}>
+						<Text style={styles.customGasModalTitleText}>Transaction Fee</Text>
+					</View>
+					<CustomGas
+						handleGasFeeSelection={() => console.log('ss')}
+						totalGas={gas && gas.mul(gasPrice)}
+						gas={gas}
+						gasPrice={gasPrice}
+						onPress={this.toggleCustomGasModalVisible}
+					/>
+				</View>
+			</ActionModal>
+		);
+	};
+
 	render = () => {
 		const {
 			transaction: { from },
@@ -348,7 +396,7 @@ class Confirm extends PureComponent {
 						</View>
 					</View>
 					<View style={styles.actionsWrapper}>
-						<TouchableOpacity style={styles.actionTouchable}>
+						<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleCustomGasModalVisible}>
 							<Text style={styles.actionText}>Adjust transaction fee</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.actionTouchable}>
@@ -356,7 +404,6 @@ class Confirm extends PureComponent {
 						</TouchableOpacity>
 					</View>
 				</ScrollView>
-
 				<View style={styles.buttonNextWrapper}>
 					<StyledButton
 						type={'confirm'}
@@ -367,6 +414,7 @@ class Confirm extends PureComponent {
 						Send
 					</StyledButton>
 				</View>
+				{this.renderCustomGasModal()}
 			</SafeAreaView>
 		);
 	};

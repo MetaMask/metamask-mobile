@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import Modal from 'react-native-modal';
-import { colors, baseStyles } from '../../../styles/common';
+import { colors } from '../../../styles/common';
 import StyledButton from '../StyledButton';
 
 const styles = StyleSheet.create({
@@ -15,19 +15,21 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
-	modalText: {
-		alignSelf: 'center',
+	modalContainer: {
 		width: '90%',
-		height: 300,
 		backgroundColor: colors.white,
 		borderRadius: 10
 	},
 	actionContainer: {
 		borderTopColor: colors.grey200,
 		borderTopWidth: 1,
-		flex: 0,
 		flexDirection: 'row',
 		padding: 16
+	},
+	childrenContainer: {
+		minHeight: 250,
+		flexDirection: 'row',
+		alignItems: 'center'
 	},
 	button: {
 		flex: 1
@@ -66,8 +68,8 @@ export default function ActionModal({
 			swipeDirection={'down'}
 		>
 			<View style={styles.modalView}>
-				<View style={styles.modalText}>
-					<View style={baseStyles.flexGrow}>{children}</View>
+				<View style={styles.modalContainer}>
+					<View style={styles.childrenContainer}>{children}</View>
 					<View style={styles.actionContainer}>
 						<StyledButton
 							testID={cancelTestID}
