@@ -92,7 +92,7 @@ export async function fetchBasicGasEstimates() {
 			}) => {
 				const basicEstimates = {
 					average,
-					avgWait,
+					averageWait: avgWait,
 					blockTime,
 					blockNum,
 					fast,
@@ -103,6 +103,7 @@ export async function fetchBasicGasEstimates() {
 					safeLowWait,
 					speed
 				};
+				console.log('basicEstimates', basicEstimates);
 				return basicEstimates;
 			}
 		);

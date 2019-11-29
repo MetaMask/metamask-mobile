@@ -146,8 +146,11 @@ class CustomGas extends PureComponent {
 		gasAverageSelected: this.props.selected === 'average',
 		gasSlowSelected: this.props.selected === 'slow',
 		averageGwei: 0,
+		averageWait: undefined,
 		fastGwei: 0,
+		fastWait: undefined,
 		safeLowGwei: 0,
+		safeLowWait: undefined,
 		selected: this.props.selected,
 		ready: false,
 		advancedCustomGas: false,
@@ -248,11 +251,20 @@ class CustomGas extends PureComponent {
 			basicGasEstimates = await fetchBasicGasEstimates();
 		} catch (error) {
 			Logger.log('Error while trying to get gas limit estimates', error);
-			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
+			basicGasEstimates = {
+				average: AVERAGE_GAS,
+				averageWait: 2,
+				safeLow: LOW_GAS,
+				safeLowWait: 4,
+				fast: FAST_GAS,
+				fastWait: 1
+			};
 		}
 
 		// Handle api failure returning same gas prices
 		let { average, fast, safeLow } = basicGasEstimates;
+		const { averageWait, fastWait, safeLowWait } = basicGasEstimates;
+
 		if (average === fast && average === safeLow) {
 			average = AVERAGE_GAS;
 			safeLow = LOW_GAS;
@@ -263,6 +275,9 @@ class CustomGas extends PureComponent {
 			averageGwei: convertApiValueToGWEI(average),
 			fastGwei: convertApiValueToGWEI(fast),
 			safeLowGwei: convertApiValueToGWEI(safeLow),
+			averageWait,
+			fastWait,
+			safeLowWait,
 			ready: true
 		});
 	};
@@ -281,7 +296,17 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasSelector = () => {
-		const { averageGwei, fastGwei, safeLowGwei, gasSlowSelected, gasAverageSelected, gasFastSelected } = this.state;
+		const {
+			averageGwei,
+			fastGwei,
+			safeLowGwei,
+			gasSlowSelected,
+			gasAverageSelected,
+			gasFastSelected,
+			averageWait,
+			fastWait,
+			safeLowWait
+		} = this.state;
 		const { conversionRate, currentCurrency, gas } = this.props;
 		const ticker = getTicker(this.props.ticker);
 		return (
@@ -292,7 +317,7 @@ class CustomGas extends PureComponent {
 					style={[styles.selector, gasSlowSelected ? styles.selectorSelected : styles.selectorNotSelected]}
 				>
 					<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
-					<Text style={[styles.text, styles.textTime]}>10 min</Text>
+					<Text style={[styles.text, styles.textTime]}>{safeLowWait} min</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 					</Text>
@@ -310,7 +335,7 @@ class CustomGas extends PureComponent {
 					]}
 				>
 					<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
-					<Text style={[styles.text, styles.textTime]}>5 min</Text>
+					<Text style={[styles.text, styles.textTime]}>{averageWait} min</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 					</Text>
@@ -324,7 +349,7 @@ class CustomGas extends PureComponent {
 					style={[styles.selector, gasFastSelected ? styles.selectorSelected : styles.selectorNotSelected]}
 				>
 					<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
-					<Text style={[styles.text, styles.textTime]}>1 min</Text>
+					<Text style={[styles.text, styles.textTime]}>{fastWait} min</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 					</Text>

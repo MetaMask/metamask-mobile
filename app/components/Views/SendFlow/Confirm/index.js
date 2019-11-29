@@ -294,7 +294,6 @@ class Confirm extends PureComponent {
 	};
 
 	handleGasFeeSelection = (gas, gasPrice, customGasSelected) => {
-		console.log('handleGasFeeSelection', customGasSelected);
 		this.setState({ customGas: gas, customGasPrice: gasPrice, customGasSelected });
 	};
 
