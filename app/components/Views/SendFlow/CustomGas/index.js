@@ -92,6 +92,14 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignItems: 'center',
 		justifyContent: 'center'
+	},
+	selectorSelected: {
+		backgroundColor: colors.blue000,
+		borderColor: colors.blue
+	},
+	selectorNotSelected: {
+		backgroundColor: colors.white,
+		borderColor: colors.grey500
 	}
 });
 
@@ -267,7 +275,7 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasSelector = () => {
-		const { averageGwei, fastGwei, safeLowGwei } = this.state;
+		const { averageGwei, fastGwei, safeLowGwei, gasSlowSelected, gasAverageSelected, gasFastSelected } = this.state;
 		const { conversionRate, currentCurrency, gas } = this.props;
 		const ticker = getTicker(this.props.ticker);
 		return (
@@ -275,20 +283,14 @@ class CustomGas extends PureComponent {
 				<TouchableOpacity
 					key={'safeLow'}
 					onPress={this.onPressGasSlow}
-					style={[
-						styles.selector,
-						{
-							backgroundColor: this.state.gasSlowSelected ? colors.blue000 : colors.white,
-							borderColor: this.state.gasSlowSelected ? colors.blue : colors.grey500
-						}
-					]}
+					style={[styles.selector, gasSlowSelected ? styles.selectorSelected : styles.selectorNotSelected]}
 				>
-					<Text style={[styles.textTitle]}>{strings('transaction.gas_fee_slow')}</Text>
+					<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
 					<Text style={[styles.text, styles.textTime]}>10 min</Text>
-					<Text style={[styles.text]}>
+					<Text style={styles.text}>
 						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text]}>
+					<Text style={styles.text}>
 						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
@@ -298,38 +300,29 @@ class CustomGas extends PureComponent {
 					style={[
 						styles.selector,
 						styles.selectorCenter,
-						{
-							backgroundColor: this.state.gasAverageSelected ? colors.blue000 : colors.white,
-							borderColor: this.state.gasAverageSelected ? colors.blue : colors.grey500
-						}
+						gasAverageSelected ? styles.selectorSelected : styles.selectorNotSelected
 					]}
 				>
-					<Text style={[styles.textTitle]}>{strings('transaction.gas_fee_average')}</Text>
+					<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
 					<Text style={[styles.text, styles.textTime]}>5 min</Text>
-					<Text style={[styles.text]}>
+					<Text style={styles.text}>
 						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text]}>
+					<Text style={styles.text}>
 						{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
 					key={'fast'}
 					onPress={this.onPressGasFast}
-					style={[
-						styles.selector,
-						{
-							backgroundColor: this.state.gasFastSelected ? colors.blue000 : colors.white,
-							borderColor: this.state.gasFastSelected ? colors.blue : colors.grey500
-						}
-					]}
+					style={[styles.selector, gasFastSelected ? styles.selectorSelected : styles.selectorNotSelected]}
 				>
-					<Text style={[styles.textTitle]}>{strings('transaction.gas_fee_fast')}</Text>
+					<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
 					<Text style={[styles.text, styles.textTime]}>1 min</Text>
-					<Text style={[styles.text]}>
+					<Text style={styles.text}>
 						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text]}>
+					<Text style={styles.text}>
 						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>

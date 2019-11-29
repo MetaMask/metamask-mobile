@@ -417,7 +417,11 @@ class Confirm extends PureComponent {
 						</View>
 					</View>
 					<View style={styles.actionsWrapper}>
-						<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleCustomGasModalVisible}>
+						<TouchableOpacity
+							style={styles.actionTouchable}
+							disabled={!gasEstimationReady}
+							onPress={this.toggleCustomGasModalVisible}
+						>
 							<Text style={styles.actionText}>Adjust transaction fee</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.actionTouchable}>
