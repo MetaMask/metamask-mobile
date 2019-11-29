@@ -113,13 +113,13 @@ class CustomGas extends PureComponent {
 		 */
 		handleGasFeeSelection: PropTypes.func,
 		/**
-		 * Object BN containing total gas fee
-		 */
-		totalGas: PropTypes.object,
-		/**
 		 * Object BN containing estimated gas limit
 		 */
 		gas: PropTypes.object,
+		/**
+		 * Object BN containing estimated gas price
+		 */
+		gasPrice: PropTypes.object,
 		/**
 		 * Current provider ticker
 		 */
@@ -137,8 +137,10 @@ class CustomGas extends PureComponent {
 		selected: 'average',
 		ready: false,
 		advancedCustomGas: false,
-		customGasPrice: '10',
-		customGasLimit: fromWei(this.props.gas, 'wei'),
+		customGasPrice: fromWei(this.props.gasPrice, 'gwei'),
+		customGasLimit: fromWei(this.props.gas),
+		customGasPriceBN: this.props.gasPrice,
+		customGasLimitBN: this.props.gas,
 		warningGasLimit: '',
 		warningGasPrice: ''
 	};
@@ -254,13 +256,13 @@ class CustomGas extends PureComponent {
 	onGasLimitChange = value => {
 		const { customGasPrice } = this.state;
 		const bnValue = new BN(value);
-		this.setState({ customGasLimit: value });
+		this.setState({ customGasLimit: value, customGasLimitBN: bnValue });
 		this.props.handleGasFeeSelection(bnValue, apiEstimateModifiedToWEI(customGasPrice));
 	};
 
 	onGasPriceChange = value => {
 		const { customGasLimit } = this.state;
-		this.setState({ customGasPrice: value });
+		this.setState({ customGasPrice: value, customGasPriceBN: apiEstimateModifiedToWEI(value) });
 		this.props.handleGasFeeSelection(new BN(customGasLimit, 10), apiEstimateModifiedToWEI(value));
 	};
 
@@ -336,9 +338,16 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasInput = () => {
-		const { customGasLimit, customGasPrice, warningGasLimit, warningGasPrice } = this.state;
-		const { totalGas } = this.props;
+		const {
+			customGasLimit,
+			customGasPrice,
+			warningGasLimit,
+			warningGasPrice,
+			customGasLimitBN,
+			customGasPriceBN
+		} = this.state;
 		const ticker = getTicker(this.props.ticker);
+		const totalGas = customGasLimitBN.mul(customGasPriceBN);
 		return (
 			<View>
 				<Text style={styles.textTotalGas}>
@@ -357,7 +366,7 @@ class CustomGas extends PureComponent {
 					keyboardType="numeric"
 					style={styles.gasInput}
 					onChangeText={this.onGasPriceChange}
-					value={customGasPrice.toString()}
+					value={customGasPrice}
 				/>
 				<Text style={styles.text}>{warningGasPrice}</Text>
 			</View>

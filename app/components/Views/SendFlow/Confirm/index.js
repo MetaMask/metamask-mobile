@@ -334,12 +334,7 @@ class Confirm extends PureComponent {
 					<View style={styles.customGasModalTitle}>
 						<Text style={styles.customGasModalTitleText}>Transaction Fee</Text>
 					</View>
-					<CustomGas
-						handleGasFeeSelection={this.handleGasFeeSelection}
-						totalGas={gas && gas.mul(gasPrice)}
-						gas={gas}
-						gasPrice={gasPrice}
-					/>
+					<CustomGas handleGasFeeSelection={this.handleGasFeeSelection} gas={gas} gasPrice={gasPrice} />
 				</View>
 			</ActionModal>
 		);
