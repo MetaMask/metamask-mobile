@@ -49,7 +49,6 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		...fontStyles.light,
-		marginVertical: 4,
 		fontSize: DeviceSize.isSmallDevice() ? 8 : 10,
 		textTransform: 'uppercase'
 	},
@@ -64,7 +63,9 @@ const styles = StyleSheet.create({
 		textTransform: 'uppercase'
 	},
 	textTotalGas: {
-		...fontStyles.bold
+		...fontStyles.bold,
+		marginBottom: 8,
+		marginTop: 4
 	},
 	textAdvancedOptions: {
 		color: colors.blue
@@ -76,12 +77,10 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		borderWidth: 1,
 		fontSize: 16,
-		paddingBottom: 8,
-		paddingLeft: 10,
-		paddingRight: 52,
-		paddingTop: 8,
+		paddingHorizontal: 10,
+		paddingVertical: 8,
 		position: 'relative',
-		marginTop: 5
+		marginTop: 4
 	},
 	warningText: {
 		color: colors.red,
@@ -100,6 +99,9 @@ const styles = StyleSheet.create({
 	selectorNotSelected: {
 		backgroundColor: colors.white,
 		borderColor: colors.grey500
+	},
+	advancedOptionsContainer: {
+		marginTop: 16
 	}
 });
 
@@ -131,18 +133,22 @@ class CustomGas extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Current selector selected
+		 */
+		selected: PropTypes.string
 	};
 
 	state = {
 		basicGasEstimates: {},
-		gasFastSelected: false,
-		gasAverageSelected: true,
-		gasSlowSelected: false,
+		gasFastSelected: this.props.selected === 'fast',
+		gasAverageSelected: this.props.selected === 'average',
+		gasSlowSelected: this.props.selected === 'slow',
 		averageGwei: 0,
 		fastGwei: 0,
 		safeLowGwei: 0,
-		selected: 'average',
+		selected: this.props.selected,
 		ready: false,
 		advancedCustomGas: false,
 		customGasPrice: fromWei(this.props.gasPrice, 'gwei'),
@@ -163,7 +169,7 @@ class CustomGas extends PureComponent {
 			selected: 'fast',
 			customGasPrice: fastGwei
 		});
-		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei));
+		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), 'fast');
 	};
 
 	onPressGasAverage = () => {
@@ -176,7 +182,7 @@ class CustomGas extends PureComponent {
 			selected: 'average',
 			customGasPrice: averageGwei
 		});
-		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
+		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei), 'average');
 	};
 
 	onPressGasSlow = () => {
@@ -189,7 +195,7 @@ class CustomGas extends PureComponent {
 			selected: 'slow',
 			customGasPrice: safeLowGwei
 		});
-		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
+		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei), 'slow');
 	};
 
 	onAdvancedOptions = () => {
@@ -342,7 +348,8 @@ class CustomGas extends PureComponent {
 		const ticker = getTicker(this.props.ticker);
 		const totalGas = customGasLimitBN.mul(customGasPriceBN);
 		return (
-			<View>
+			<View style={styles.advancedOptionsContainer}>
+				<Text style={styles.text}>Total</Text>
 				<Text style={styles.textTotalGas}>
 					{fromWei(totalGas)} {ticker}
 				</Text>

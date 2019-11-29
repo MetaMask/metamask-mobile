@@ -178,6 +178,7 @@ class Confirm extends PureComponent {
 		customGas: undefined,
 		customGasPrice: undefined,
 		fromAccountBalance: undefined,
+		customGasSelected: 'average',
 		transactionValue: undefined,
 		transactionValueFiat: undefined,
 		transactionFee: undefined,
@@ -291,14 +292,18 @@ class Confirm extends PureComponent {
 		return { gas: hexToBN(estimation.gas), gasPrice: apiEstimateModifiedToWEI(basicGasEstimates.average) };
 	};
 
-	handleGasFeeSelection = (gas, gasPrice) => {
-		this.setState({ customGas: gas, customGasPrice: gasPrice });
+	handleGasFeeSelection = (gas, gasPrice, customGasSelected) => {
+		console.log('handleGasFeeSelection', customGasSelected);
+		this.setState({ customGas: gas, customGasPrice: gasPrice, customGasSelected });
 	};
 
 	handleSetGasFee = () => {
-		this.setState({ gasEstimationReady: false });
 		const { customGas, customGasPrice } = this.state;
-		if (!customGas || !customGasPrice) return;
+		if (!customGas || !customGasPrice) {
+			this.toggleCustomGasModalVisible();
+			return;
+		}
+		this.setState({ gasEstimationReady: false });
 		const { prepareTransaction, transactionState } = this.props;
 		let transaction = transactionState.transaction;
 		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
@@ -317,7 +322,7 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomGasModal = () => {
-		const { customGasModalVisible } = this.state;
+		const { customGasModalVisible, customGasSelected } = this.state;
 		const { gas, gasPrice } = this.props.transactionState.transaction;
 		return (
 			<ActionModal
@@ -334,7 +339,12 @@ class Confirm extends PureComponent {
 					<View style={styles.customGasModalTitle}>
 						<Text style={styles.customGasModalTitleText}>Transaction Fee</Text>
 					</View>
-					<CustomGas handleGasFeeSelection={this.handleGasFeeSelection} gas={gas} gasPrice={gasPrice} />
+					<CustomGas
+						selected={customGasSelected}
+						handleGasFeeSelection={this.handleGasFeeSelection}
+						gas={gas}
+						gasPrice={gasPrice}
+					/>
 				</View>
 			</ActionModal>
 		);
