@@ -174,11 +174,12 @@ class Confirm extends PureComponent {
 
 	state = {
 		customGasModalVisible: false,
+		currentCustomGasSelected: 'average',
+		customGasSelected: 'average',
 		gasEstimationReady: false,
 		customGas: undefined,
 		customGasPrice: undefined,
 		fromAccountBalance: undefined,
-		customGasSelected: 'average',
 		transactionValue: undefined,
 		transactionValueFiat: undefined,
 		transactionFee: undefined,
@@ -298,7 +299,7 @@ class Confirm extends PureComponent {
 	};
 
 	handleSetGasFee = () => {
-		const { customGas, customGasPrice } = this.state;
+		const { customGas, customGasPrice, customGasSelected } = this.state;
 		if (!customGas || !customGasPrice) {
 			this.toggleCustomGasModalVisible();
 			return;
@@ -311,7 +312,12 @@ class Confirm extends PureComponent {
 		prepareTransaction(transaction);
 		setTimeout(() => {
 			this.parseTransactionData();
-			this.setState({ customGas: undefined, customGasPrice: undefined, gasEstimationReady: true });
+			this.setState({
+				customGas: undefined,
+				customGasPrice: undefined,
+				gasEstimationReady: true,
+				currentCustomGasSelected: customGasSelected
+			});
 		}, 100);
 		this.toggleCustomGasModalVisible();
 	};
@@ -322,7 +328,7 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomGasModal = () => {
-		const { customGasModalVisible, customGasSelected } = this.state;
+		const { customGasModalVisible, currentCustomGasSelected } = this.state;
 		const { gas, gasPrice } = this.props.transactionState.transaction;
 		return (
 			<ActionModal
@@ -340,7 +346,7 @@ class Confirm extends PureComponent {
 						<Text style={styles.customGasModalTitleText}>Transaction Fee</Text>
 					</View>
 					<CustomGas
-						selected={customGasSelected}
+						selected={currentCustomGasSelected}
 						handleGasFeeSelection={this.handleGasFeeSelection}
 						gas={gas}
 						gasPrice={gasPrice}
