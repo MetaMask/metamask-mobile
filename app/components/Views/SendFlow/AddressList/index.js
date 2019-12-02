@@ -116,7 +116,7 @@ class AddressList extends PureComponent {
 	state = {
 		myAccountsOpened: false,
 		addressBookList: undefined,
-		newtworkAddressBookList: undefined
+		networkAddressBookList: undefined
 	};
 
 	list;
@@ -124,13 +124,13 @@ class AddressList extends PureComponent {
 	componentDidMount = () => {
 		const { addressBook, network } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		const newtworkAddressBookList = Object.keys(networkAddressBook).map(address => networkAddressBook[address]);
+		const networkAddressBookList = Object.keys(networkAddressBook).map(address => networkAddressBook[address]);
 
-		this.parseAddressBook(newtworkAddressBookList);
+		this.parseAddressBook(networkAddressBookList);
 
-		this.setState({ newtworkAddressBookList });
+		this.setState({ networkAddressBookList });
 
-		this.fuse = new Fuse(newtworkAddressBookList, {
+		this.fuse = new Fuse(networkAddressBookList, {
 			shouldSort: true,
 			threshold: 0.45,
 			location: 0,
@@ -143,18 +143,15 @@ class AddressList extends PureComponent {
 
 	componentDidUpdate = prevProps => {
 		if (prevProps.inputSearch !== this.props.inputSearch) {
-			console.log('bbbbbb', !!this.props.inputSearch);
+			let networkAddressBookList;
 			if (this.props.inputSearch) {
-				const newtworkAddressBookList = this.fuse.search(this.props.inputSearch);
-				this.parseAddressBook(newtworkAddressBookList);
+				networkAddressBookList = this.fuse.search(this.props.inputSearch);
 			} else {
 				const { addressBook, network } = this.props;
 				const networkAddressBook = addressBook[network] || {};
-				const newtworkAddressBookList = Object.keys(networkAddressBook).map(
-					address => networkAddressBook[address]
-				);
-				this.parseAddressBook(newtworkAddressBookList);
+				networkAddressBookList = Object.keys(networkAddressBook).map(address => networkAddressBook[address]);
 			}
+			this.parseAddressBook(networkAddressBookList);
 		}
 	};
 
@@ -162,16 +159,12 @@ class AddressList extends PureComponent {
 		this.setState({ myAccountsOpened: true });
 	};
 
-	parseAddressBook = newtworkAddressBookList => {
+	parseAddressBook = networkAddressBookList => {
 		const { onAccountPress } = this.props;
 		const list = [];
-
 		const addressBookTree = {};
-		console.log('newtworkAddressBookList', newtworkAddressBookList);
-
-		newtworkAddressBookList = newtworkAddressBookList.sort((a, b) => a.name - b.name);
-
-		newtworkAddressBookList.forEach(contact => {
+		networkAddressBookList = networkAddressBookList.sort((a, b) => a.name - b.name);
+		networkAddressBookList.forEach(contact => {
 			const initial = contact.name[0] && contact.name[0].toUpperCase();
 			if (Object.keys(addressBookTree).includes(initial)) {
 				addressBookTree[initial].push(contact);
