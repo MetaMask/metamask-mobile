@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
 import { connect } from 'react-redux';
 import { renderShortAddress } from '../../../../util/address';
+import Fuse from 'fuse.js';
 
 const styles = StyleSheet.create({
 	root: {
@@ -101,6 +102,7 @@ class AddressList extends PureComponent {
 		 * Map representing the address book
 		 */
 		addressBook: PropTypes.object,
+		inputSearch: PropTypes.string,
 		/**
 		 * Network id
 		 */
@@ -113,27 +115,63 @@ class AddressList extends PureComponent {
 
 	state = {
 		myAccountsOpened: false,
-		addressBookList: undefined
+		addressBookList: undefined,
+		newtworkAddressBookList: undefined
 	};
 
+	list;
+
 	componentDidMount = () => {
-		const addressBookList = this.parseAddressBook();
-		this.setState({ addressBookList });
+		const { addressBook, network } = this.props;
+		const networkAddressBook = addressBook[network] || {};
+		const newtworkAddressBookList = Object.keys(networkAddressBook).map(address => networkAddressBook[address]);
+
+		this.parseAddressBook(newtworkAddressBookList);
+
+		this.setState({ newtworkAddressBookList });
+
+		this.fuse = new Fuse(newtworkAddressBookList, {
+			shouldSort: true,
+			threshold: 0.45,
+			location: 0,
+			distance: 10,
+			maxPatternLength: 32,
+			minMatchCharLength: 1,
+			keys: [{ name: 'name', weight: 0.5 }, { name: 'address', weight: 0.5 }]
+		});
+	};
+
+	componentDidUpdate = prevProps => {
+		if (prevProps.inputSearch !== this.props.inputSearch) {
+			console.log('bbbbbb', !!this.props.inputSearch);
+			if (this.props.inputSearch) {
+				const newtworkAddressBookList = this.fuse.search(this.props.inputSearch);
+				this.parseAddressBook(newtworkAddressBookList);
+			} else {
+				const { addressBook, network } = this.props;
+				const networkAddressBook = addressBook[network] || {};
+				const newtworkAddressBookList = Object.keys(networkAddressBook).map(
+					address => networkAddressBook[address]
+				);
+				this.parseAddressBook(newtworkAddressBookList);
+			}
+		}
 	};
 
 	openMyAccounts = () => {
 		this.setState({ myAccountsOpened: true });
 	};
 
-	parseAddressBook = () => {
-		const { addressBook, network, onAccountPress } = this.props;
-		const networkAddressBook = addressBook[network] || {};
+	parseAddressBook = newtworkAddressBookList => {
+		const { onAccountPress } = this.props;
 		const list = [];
 
 		const addressBookTree = {};
-		const addressBookList = Object.keys(networkAddressBook).map(address => networkAddressBook[address]);
+		console.log('newtworkAddressBookList', newtworkAddressBookList);
 
-		addressBookList.forEach(contact => {
+		newtworkAddressBookList = newtworkAddressBookList.sort((a, b) => a.name - b.name);
+
+		newtworkAddressBookList.forEach(contact => {
 			const initial = contact.name[0] && contact.name[0].toUpperCase();
 			if (Object.keys(addressBookTree).includes(initial)) {
 				addressBookTree[initial].push(contact);
@@ -141,14 +179,15 @@ class AddressList extends PureComponent {
 				addressBookTree[initial] = [contact];
 			}
 		});
-
-		Object.keys(addressBookTree).forEach(initial => {
-			list.push(LabelElement(initial));
-			addressBookTree[initial].forEach(({ address, name }) => {
-				list.push(AddressElement(address, name, onAccountPress));
+		Object.keys(addressBookTree)
+			.sort()
+			.forEach(initial => {
+				list.push(LabelElement(initial));
+				addressBookTree[initial].forEach(({ address, name }) => {
+					list.push(AddressElement(address, name, onAccountPress));
+				});
 			});
-		});
-		return list;
+		this.setState({ addressBookList: list });
 	};
 
 	render = () => {

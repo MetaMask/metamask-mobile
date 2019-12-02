@@ -384,7 +384,7 @@ class SendFlow extends PureComponent {
 
 				<View style={baseStyles.flexGrow}>
 					{!toSelectedAddressReady ? (
-						<AddressList onAccountPress={this.onToSelectedAddressChange} />
+						<AddressList inputSearch={toSelectedAddress} onAccountPress={this.onToSelectedAddressChange} />
 					) : (
 						<View style={styles.nextActionWrapper}>
 							{addToAddressToAddressBook && (
