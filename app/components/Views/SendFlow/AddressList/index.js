@@ -125,8 +125,8 @@ class AddressList extends PureComponent {
 
 	state = {
 		myAccountsOpened: false,
-		addressBookList: undefined,
-		parsedRecents: undefined
+		processedAddressBookList: undefined,
+		processedRecentsList: undefined
 	};
 
 	networkAddressBook;
@@ -160,6 +160,7 @@ class AddressList extends PureComponent {
 				const networkAddressBook = addressBook[network] || {};
 				networkAddressBookList = Object.keys(networkAddressBook).map(address => networkAddressBook[address]);
 			}
+			this.getRecentAddresses(this.props.inputSearch);
 			this.parseAddressBook(networkAddressBookList);
 		}
 	};
@@ -168,26 +169,28 @@ class AddressList extends PureComponent {
 		this.setState({ myAccountsOpened: true });
 	};
 
-	getRecentAddresses = () => {
+	getRecentAddresses = inputSearch => {
 		const { transactions, network, identities, onAccountPress } = this.props;
-		const ttransactions = transactions.filter(tx => tx.networkID === network);
 		const recents = [];
 		const parsedRecents = [];
-		ttransactions.forEach(({ transaction: { to } }) => {
-			const checksummedTo = safeToChecksumAddress(to);
-			if (Object.keys(recents).length > 2) return;
-			if (!Object.keys(recents).includes(checksummedTo) && !Object.keys(identities).includes(checksummedTo)) {
-				if (this.networkAddressBook[checksummedTo]) {
-					recents[checksummedTo] = this.networkAddressBook[checksummedTo];
-				} else {
-					recents[checksummedTo] = { address: checksummedTo };
+		if (!inputSearch) {
+			const networkTransactions = transactions.filter(tx => tx.networkID === network);
+			networkTransactions.forEach(({ transaction: { to } }) => {
+				const checksummedTo = safeToChecksumAddress(to);
+				if (recents.length > 2) return;
+				if (!recents.includes(checksummedTo) && !Object.keys(identities).includes(checksummedTo)) {
+					recents.push(checksummedTo);
+					if (this.networkAddressBook[checksummedTo]) {
+						parsedRecents.push(
+							AddressElement(checksummedTo, this.networkAddressBook[checksummedTo].name, onAccountPress)
+						);
+					} else {
+						parsedRecents.push(AddressElement(checksummedTo, undefined, onAccountPress));
+					}
 				}
-			}
-		});
-		Object.keys(recents).forEach(address =>
-			parsedRecents.push(AddressElement(address, recents[address].name, onAccountPress))
-		);
-		this.setState({ parsedRecents });
+			});
+		}
+		this.setState({ processedRecentsList: parsedRecents });
 	};
 
 	parseAddressBook = networkAddressBookList => {
@@ -210,27 +213,30 @@ class AddressList extends PureComponent {
 					list.push(AddressElement(address, name, onAccountPress));
 				});
 			});
-		this.setState({ addressBookList: list });
+		this.setState({ processedAddressBookList: list });
+	};
+
+	renderMyAccounts = () => {
+		const { identities, onAccountPress, inputSearch } = this.props;
+		const { myAccountsOpened } = this.state;
+		if (inputSearch) return;
+		return !myAccountsOpened ? (
+			<TouchableOpacity style={styles.myAccountsTouchable} onPress={this.openMyAccounts}>
+				<Text style={styles.myAccountsText}>Transfer between my accounts</Text>
+			</TouchableOpacity>
+		) : (
+			Object.keys(identities).map(address => AddressElement(address, identities[address].name, onAccountPress))
+		);
 	};
 
 	render = () => {
-		const { identities, onAccountPress } = this.props;
-		const { myAccountsOpened, addressBookList, parsedRecents } = this.state;
+		const { processedAddressBookList, processedRecentsList } = this.state;
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
-					{!myAccountsOpened ? (
-						<TouchableOpacity style={styles.myAccountsTouchable} onPress={this.openMyAccounts}>
-							<Text style={styles.myAccountsText}>Transfer between my accounts</Text>
-						</TouchableOpacity>
-					) : (
-						Object.keys(identities).map(address =>
-							AddressElement(address, identities[address].name, onAccountPress)
-						)
-					)}
-					{LabelElement('Recents')}
-					{parsedRecents}
-					{addressBookList}
+					{this.renderMyAccounts()}
+					{processedRecentsList}
+					{processedAddressBookList}
 				</ScrollView>
 			</View>
 		);
