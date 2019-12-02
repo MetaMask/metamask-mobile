@@ -35,6 +35,7 @@ import {
 import { getTicker, generateTransferData } from '../../../../util/transactions';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
 import FadeIn from 'react-native-fade-in-image';
+import ErrorMessage from '../ErrorMessage';
 
 const KEYBOARD_OFFSET = 120;
 
@@ -194,6 +195,9 @@ const styles = StyleSheet.create({
 	ethLogo: {
 		width: 36,
 		height: 36
+	},
+	errorMessageWrapper: {
+		marginVertical: 16
 	}
 });
 
@@ -256,6 +260,7 @@ class Amount extends PureComponent {
 	};
 
 	state = {
+		amountError: undefined,
 		inputValue: undefined,
 		inputValueFiat: undefined,
 		assetsModalVisible: false
@@ -282,6 +287,7 @@ class Amount extends PureComponent {
 		const { navigation } = this.props;
 		const { inputValue } = this.state;
 		// setValue(inputValue);
+		if (this.validateAmount(inputValue)) return;
 		await this.prepareTransaction(inputValue);
 		navigation.navigate('Confirm');
 	};
@@ -306,6 +312,26 @@ class Amount extends PureComponent {
 			transaction.value = '0x0';
 		}
 		prepareTransaction(transaction);
+	};
+
+	validateAmount = inputValue => {
+		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
+		let [weiBalance, weiInput, amountError] = [undefined, undefined, undefined];
+		if (isDecimal(inputValue)) {
+			if (selectedAsset.isEth) {
+				// take care of gas
+				weiBalance = hexToBN(accounts[selectedAddress].balance);
+				weiInput = toWei(inputValue);
+			} else {
+				weiBalance = contractBalances[selectedAsset.address];
+				weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
+			}
+			amountError = weiBalance.gt(weiInput) ? undefined : 'Insufficient funds';
+		} else {
+			amountError = 'Invalid amount';
+		}
+		this.setState({ amountError });
+		return !!amountError;
 	};
 
 	useMax = () => {
@@ -470,6 +496,9 @@ class Amount extends PureComponent {
 								</View>
 							</TouchableOpacity>
 						</View>
+					</View>
+					<View style={styles.errorMessageWrapper}>
+						{this.state.amountError && <ErrorMessage errorMessage={this.state.amountError} />}
 					</View>
 				</View>
 				<KeyboardAvoidingView
