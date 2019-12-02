@@ -126,10 +126,9 @@ class AddressList extends PureComponent {
 	state = {
 		myAccountsOpened: false,
 		addressBookList: undefined,
-		recents: []
+		parsedRecents: undefined
 	};
 
-	list;
 	networkAddressBook;
 
 	componentDidMount = () => {
@@ -138,7 +137,6 @@ class AddressList extends PureComponent {
 		const networkAddressBookList = Object.keys(this.networkAddressBook).map(
 			address => this.networkAddressBook[address]
 		);
-		this.getRecentAddresses();
 		this.fuse = new Fuse(networkAddressBookList, {
 			shouldSort: true,
 			threshold: 0.45,
@@ -148,6 +146,7 @@ class AddressList extends PureComponent {
 			minMatchCharLength: 1,
 			keys: [{ name: 'name', weight: 0.5 }, { name: 'address', weight: 0.5 }]
 		});
+		this.getRecentAddresses();
 		this.parseAddressBook(networkAddressBookList);
 	};
 
@@ -170,9 +169,10 @@ class AddressList extends PureComponent {
 	};
 
 	getRecentAddresses = () => {
-		const { transactions, network, identities } = this.props;
+		const { transactions, network, identities, onAccountPress } = this.props;
 		const ttransactions = transactions.filter(tx => tx.networkID === network);
 		const recents = [];
+		const parsedRecents = [];
 		ttransactions.forEach(({ transaction: { to } }) => {
 			const checksummedTo = safeToChecksumAddress(to);
 			if (Object.keys(recents).length > 2) return;
@@ -184,7 +184,10 @@ class AddressList extends PureComponent {
 				}
 			}
 		});
-		this.setState({ recents });
+		Object.keys(recents).forEach(address =>
+			parsedRecents.push(AddressElement(address, recents[address].name, onAccountPress))
+		);
+		this.setState({ parsedRecents });
 	};
 
 	parseAddressBook = networkAddressBookList => {
@@ -212,7 +215,7 @@ class AddressList extends PureComponent {
 
 	render = () => {
 		const { identities, onAccountPress } = this.props;
-		const { myAccountsOpened, addressBookList, recents } = this.state;
+		const { myAccountsOpened, addressBookList, parsedRecents } = this.state;
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
@@ -226,9 +229,7 @@ class AddressList extends PureComponent {
 						)
 					)}
 					{LabelElement('Recents')}
-					{Object.keys(recents).map(address =>
-						AddressElement(address, recents[address].name, onAccountPress)
-					)}
+					{parsedRecents}
 					{addressBookList}
 				</ScrollView>
 			</View>
