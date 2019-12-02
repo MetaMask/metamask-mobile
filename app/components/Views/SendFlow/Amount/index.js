@@ -326,7 +326,7 @@ class Amount extends PureComponent {
 				weiBalance = contractBalances[selectedAsset.address];
 				weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
 			}
-			amountError = weiBalance.gt(weiInput) ? undefined : 'Insufficient funds';
+			amountError = weiBalance.gte(weiInput) ? undefined : 'Insufficient funds';
 		} else {
 			amountError = 'Invalid amount';
 		}
