@@ -303,7 +303,7 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
 export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
 	const base = Math.pow(10, decimalsToShow);
 	const eth = fromWei(wei).toString();
-	let value = parseFloat(Math.round(eth * conversionRate * base) / base);
+	let value = parseFloat(Math.floor(eth * conversionRate * base) / base);
 	value = isNaN(value) ? 0.0 : value;
 	return value;
 }
@@ -351,7 +351,7 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
  */
 export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decimalsToShow = 5) {
 	const base = Math.pow(10, decimalsToShow);
-	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * base) / base);
+	let fiatFixed = parseFloat(Math.floor(balance * conversionRate * exchangeRate * base) / base);
 	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
 	return fiatFixed;
 }

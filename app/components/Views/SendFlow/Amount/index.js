@@ -323,16 +323,38 @@ class Amount extends PureComponent {
 	};
 
 	validateAmount = inputValue => {
-		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
+		const {
+			accounts,
+			selectedAddress,
+			contractBalances,
+			contractExchangeRates,
+			conversionRate,
+			selectedAsset,
+			primaryCurrency
+		} = this.props;
 		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
 			if (selectedAsset.isEth) {
 				// take care of gas
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
-				weiInput = toWei(inputValue);
+				if (primaryCurrency === 'ETH') {
+					weiInput = toWei(inputValue);
+				} else {
+					weiInput = fiatNumberToWei(inputValue, conversionRate);
+				}
 			} else {
+				const exchangeRate = contractExchangeRates[selectedAsset.address];
 				weiBalance = contractBalances[selectedAsset.address];
-				weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
+				if (primaryCurrency === 'ETH') {
+					weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
+				} else {
+					weiInput = fiatNumberToTokenMinimalUnit(
+						inputValue,
+						conversionRate,
+						exchangeRate,
+						selectedAsset.decimals
+					);
+				}
 			}
 			amountError = weiBalance.gte(weiInput) ? undefined : 'Insufficient funds';
 		} else {
