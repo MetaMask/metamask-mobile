@@ -17,6 +17,7 @@ import StyledButton from '../../../UI/StyledButton';
 import { setRecipient, newTransaction } from '../../../../actions/newTransaction';
 import { isENS } from '../../../../util/address';
 import { getTicker } from '../../../../util/transactions';
+import ErrorMessage from '../ErrorMessage';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -95,6 +96,9 @@ const styles = StyleSheet.create({
 	buttonNext: {
 		flex: 1,
 		marginHorizontal: 24
+	},
+	addressErrorWrapper: {
+		margin: 16
 	}
 });
 
@@ -148,6 +152,7 @@ class SendFlow extends PureComponent {
 	};
 
 	state = {
+		addressError: undefined,
 		fromAccountModalVisible: false,
 		addToAddressBookModalVisible: false,
 		fromSelectedAddress: undefined,
@@ -200,12 +205,9 @@ class SendFlow extends PureComponent {
 	onToSelectedAddressChange = async toSelectedAddress => {
 		const { addressBook, network, identities } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		let [addToAddressToAddressBook, toSelectedAddressReady, toAddressName, toEnsName] = [
-			false,
-			false,
-			undefined,
-			undefined
-		];
+		let addressError, toAddressName, toEnsName;
+		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
+
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
 			toSelectedAddressReady = true;
@@ -232,9 +234,16 @@ class SendFlow extends PureComponent {
 				if (!networkAddressBook[checksummedResolvedAddress] && !identities[checksummedResolvedAddress]) {
 					addToAddressToAddressBook = true;
 				}
+			} else {
+				// todo
+				addressError = `Couldn't resolve ENS`;
 			}
+		} else if (toSelectedAddress.length === 42) {
+			// todo
+			addressError = `Invalid address`;
 		}
 		this.setState({
+			addressError,
 			toSelectedAddress,
 			addToAddressToAddressBook,
 			toSelectedAddressReady,
@@ -359,7 +368,8 @@ class SendFlow extends PureComponent {
 			toSelectedAddress,
 			toSelectedAddressReady,
 			toSelectedAddressName,
-			addToAddressToAddressBook
+			addToAddressToAddressBook,
+			addressError
 		} = this.state;
 
 		return (
@@ -381,6 +391,11 @@ class SendFlow extends PureComponent {
 						onClear={this.onToClear}
 					/>
 				</View>
+				{addressError && (
+					<View style={styles.addressErrorWrapper}>
+						<ErrorMessage errorMessage={addressError} />
+					</View>
+				)}
 
 				<View style={baseStyles.flexGrow}>
 					{!toSelectedAddressReady ? (
