@@ -271,7 +271,9 @@ class Amount extends PureComponent {
 		amountError: undefined,
 		inputValue: undefined,
 		inputValueConversion: undefined,
-		assetsModalVisible: false
+		renderableInputValueConversion: undefined,
+		assetsModalVisible: false,
+		internalPrimaryCurrencyIsCrypto: this.props.primaryCurrency === 'ETH'
 	};
 
 	amountInput = React.createRef();
@@ -329,15 +331,15 @@ class Amount extends PureComponent {
 			contractBalances,
 			contractExchangeRates,
 			conversionRate,
-			selectedAsset,
-			primaryCurrency
+			selectedAsset
 		} = this.props;
+		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
 			if (selectedAsset.isEth) {
 				// take care of gas
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
-				if (primaryCurrency === 'ETH') {
+				if (internalPrimaryCurrencyIsCrypto) {
 					weiInput = toWei(inputValue);
 				} else {
 					weiInput = fiatNumberToWei(inputValue, conversionRate);
@@ -345,7 +347,7 @@ class Amount extends PureComponent {
 			} else {
 				const exchangeRate = contractExchangeRates[selectedAsset.address];
 				weiBalance = contractBalances[selectedAsset.address];
-				if (primaryCurrency === 'ETH') {
+				if (internalPrimaryCurrencyIsCrypto) {
 					weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
 				} else {
 					weiInput = fiatNumberToTokenMinimalUnit(
@@ -370,13 +372,13 @@ class Amount extends PureComponent {
 			selectedAddress,
 			contractBalances,
 			selectedAsset,
-			primaryCurrency,
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
+		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let input;
 		if (selectedAsset.isEth) {
-			if (primaryCurrency === 'ETH') {
+			if (internalPrimaryCurrencyIsCrypto) {
 				// take care of gas
 				input = fromWei(accounts[selectedAddress].balance);
 			} else {
@@ -384,7 +386,7 @@ class Amount extends PureComponent {
 			}
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
-			if (primaryCurrency === 'ETH') {
+			if (internalPrimaryCurrencyIsCrypto) {
 				input = fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals);
 			} else {
 				input = `${balanceToFiatNumber(
@@ -398,37 +400,43 @@ class Amount extends PureComponent {
 	};
 
 	onInputChange = inputValue => {
-		const {
-			selectedAsset,
-			contractExchangeRates,
-			conversionRate,
-			currentCurrency,
-			primaryCurrency,
-			ticker
-		} = this.props;
-		let inputValueConversion;
+		const { selectedAsset, contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
+		const { internalPrimaryCurrencyIsCrypto } = this.state;
+		let inputValueConversion, renderableInputValueConversion;
 		if (isDecimal(inputValue)) {
 			if (selectedAsset.isEth) {
-				if (primaryCurrency === 'ETH') {
-					inputValueConversion = weiToFiat(toWei(inputValue.toString(16)), conversionRate, currentCurrency);
+				if (internalPrimaryCurrencyIsCrypto) {
+					inputValueConversion = `${weiToFiatNumber(toWei(inputValue.toString(16)), conversionRate)}`;
+					renderableInputValueConversion = `${inputValueConversion} ${getTicker(ticker)}`;
 				} else {
-					inputValueConversion = `${renderFromWei(fiatNumberToWei(inputValue, conversionRate))} ${getTicker(
-						ticker
-					)}`;
+					inputValueConversion = `${renderFromWei(fiatNumberToWei(inputValue, conversionRate))}`;
+					renderableInputValueConversion = `${inputValueConversion} ${currentCurrency}`;
 				}
 			} else {
 				const exchangeRate = contractExchangeRates[selectedAsset.address];
-				if (primaryCurrency === 'ETH') {
-					inputValueConversion = balanceToFiat(inputValue, conversionRate, exchangeRate, currentCurrency);
+				if (internalPrimaryCurrencyIsCrypto) {
+					inputValueConversion = `${balanceToFiatNumber(inputValue, conversionRate, exchangeRate)}`;
+					renderableInputValueConversion = `${inputValueConversion} ${selectedAsset.symbol}`;
 				} else {
 					inputValueConversion = `${renderFromTokenMinimalUnit(
 						fiatNumberToTokenMinimalUnit(inputValue, conversionRate, exchangeRate, selectedAsset.decimals),
 						selectedAsset.decimals
-					)} ${selectedAsset.symbol}`;
+					)}`;
+					renderableInputValueConversion = `${inputValueConversion} ${currentCurrency}`;
 				}
 			}
+		} else if (selectedAsset.isEth) {
+			if (internalPrimaryCurrencyIsCrypto) {
+				renderableInputValueConversion = `0 ${getTicker(ticker)}`;
+			} else {
+				renderableInputValueConversion = `0 ${currentCurrency}`;
+			}
+		} else if (internalPrimaryCurrencyIsCrypto) {
+			renderableInputValueConversion = `0 ${selectedAsset.symbol}`;
+		} else {
+			renderableInputValueConversion = `0 ${currentCurrency}`;
 		}
-		this.setState({ inputValue, inputValueConversion, amountError: undefined });
+		this.setState({ inputValue, inputValueConversion, renderableInputValueConversion, amountError: undefined });
 	};
 
 	toggleAssetsModal = () => {
@@ -513,9 +521,15 @@ class Amount extends PureComponent {
 		);
 	};
 
+	switchCurrency = async () => {
+		const { internalPrimaryCurrencyIsCrypto, inputValueConversion } = this.state;
+		await this.setState({ internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto });
+		this.onInputChange(inputValueConversion);
+	};
+
 	render = () => {
-		const { inputValue, inputValueConversion, amountError } = this.state;
-		const { selectedAsset, currentCurrency } = this.props;
+		const { inputValue, renderableInputValueConversion, amountError } = this.state;
+		const { selectedAsset } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.inputWrapper}>
@@ -552,9 +566,9 @@ class Amount extends PureComponent {
 					</View>
 					<View style={styles.actionsWrapper}>
 						<View style={[styles.action]}>
-							<TouchableOpacity style={styles.actionSwitch}>
+							<TouchableOpacity style={styles.actionSwitch} onPress={this.switchCurrency}>
 								<Text style={styles.textSwitch} numberOfLines={1}>
-									{inputValueConversion || `0 ${currentCurrency}`}
+									{renderableInputValueConversion}
 								</Text>
 								<View styles={styles.switchWrapper}>
 									<MaterialCommunityIcons
