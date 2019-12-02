@@ -30,7 +30,11 @@ import {
 	fromTokenMinimalUnit,
 	toWei,
 	isDecimal,
-	toTokenMinimalUnit
+	toTokenMinimalUnit,
+	fiatNumberToWei,
+	fiatNumberToTokenMinimalUnit,
+	weiToFiatNumber,
+	balanceToFiatNumber
 } from '../../../../util/number';
 import { getTicker, generateTransferData } from '../../../../util/transactions';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
@@ -250,6 +254,10 @@ class Amount extends PureComponent {
 		setSelectedAsset: PropTypes.func,
 		prepareTransaction: PropTypes.func,
 		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string,
+		/**
 		 * Selected asset from current transaction state
 		 */
 		selectedAsset: PropTypes.object,
@@ -262,7 +270,7 @@ class Amount extends PureComponent {
 	state = {
 		amountError: undefined,
 		inputValue: undefined,
-		inputValueFiat: undefined,
+		inputValueConversion: undefined,
 		assetsModalVisible: false
 	};
 
@@ -335,29 +343,70 @@ class Amount extends PureComponent {
 	};
 
 	useMax = () => {
-		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
-		let balance;
+		const {
+			accounts,
+			selectedAddress,
+			contractBalances,
+			selectedAsset,
+			primaryCurrency,
+			conversionRate,
+			contractExchangeRates
+		} = this.props;
+		let input;
 		if (selectedAsset.isEth) {
-			// take care of gas
-			balance = fromWei(accounts[selectedAddress].balance);
+			if (primaryCurrency === 'ETH') {
+				// take care of gas
+				input = fromWei(accounts[selectedAddress].balance);
+			} else {
+				input = `${weiToFiatNumber(accounts[selectedAddress].balance, conversionRate)}`;
+			}
 		} else {
-			balance = fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals);
+			const exchangeRate = contractExchangeRates[selectedAsset.address];
+			if (primaryCurrency === 'ETH') {
+				input = fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals);
+			} else {
+				input = `${balanceToFiatNumber(
+					fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals),
+					conversionRate,
+					exchangeRate
+				)}`;
+			}
 		}
-		this.onInputChange(balance);
+		this.onInputChange(input);
 	};
 
 	onInputChange = inputValue => {
-		const { selectedAsset, contractExchangeRates, conversionRate, currentCurrency } = this.props;
-		let inputValueFiat;
+		const {
+			selectedAsset,
+			contractExchangeRates,
+			conversionRate,
+			currentCurrency,
+			primaryCurrency,
+			ticker
+		} = this.props;
+		let inputValueConversion;
 		if (isDecimal(inputValue)) {
 			if (selectedAsset.isEth) {
-				inputValueFiat = weiToFiat(toWei(inputValue.toString(16)), conversionRate, currentCurrency);
+				if (primaryCurrency === 'ETH') {
+					inputValueConversion = weiToFiat(toWei(inputValue.toString(16)), conversionRate, currentCurrency);
+				} else {
+					inputValueConversion = `${renderFromWei(fiatNumberToWei(inputValue, conversionRate))} ${getTicker(
+						ticker
+					)}`;
+				}
 			} else {
 				const exchangeRate = contractExchangeRates[selectedAsset.address];
-				inputValueFiat = balanceToFiat(inputValue, conversionRate, exchangeRate, currentCurrency);
+				if (primaryCurrency === 'ETH') {
+					inputValueConversion = balanceToFiat(inputValue, conversionRate, exchangeRate, currentCurrency);
+				} else {
+					inputValueConversion = `${renderFromTokenMinimalUnit(
+						fiatNumberToTokenMinimalUnit(inputValue, conversionRate, exchangeRate, selectedAsset.decimals),
+						selectedAsset.decimals
+					)} ${selectedAsset.symbol}`;
+				}
 			}
 		}
-		this.setState({ inputValue, inputValueFiat, amountError: undefined });
+		this.setState({ inputValue, inputValueConversion, amountError: undefined });
 	};
 
 	toggleAssetsModal = () => {
@@ -443,7 +492,7 @@ class Amount extends PureComponent {
 	};
 
 	render = () => {
-		const { inputValue, inputValueFiat, amountError } = this.state;
+		const { inputValue, inputValueConversion, amountError } = this.state;
 		const { selectedAsset, currentCurrency } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -483,7 +532,7 @@ class Amount extends PureComponent {
 						<View style={[styles.action]}>
 							<TouchableOpacity style={styles.actionSwitch}>
 								<Text style={styles.textSwitch} numberOfLines={1}>
-									{inputValueFiat || `0 ${currentCurrency}`}
+									{inputValueConversion || `0 ${currentCurrency}`}
 								</Text>
 								<View styles={styles.switchWrapper}>
 									<MaterialCommunityIcons
@@ -526,6 +575,7 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
