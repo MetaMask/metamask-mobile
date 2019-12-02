@@ -4,7 +4,7 @@ import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
 import { connect } from 'react-redux';
-import { renderShortAddress } from '../../../../util/address';
+import { renderShortAddress, safeToChecksumAddress } from '../../../../util/address';
 import Fuse from 'fuse.js';
 
 const styles = StyleSheet.create({
@@ -63,25 +63,31 @@ const styles = StyleSheet.create({
 	}
 });
 
-const AddressElement = (address, nickname, onAccountPress) => (
-	<TouchableOpacity
-		onPress={() => onAccountPress(address)} /* eslint-disable-line */
-		key={address}
-		style={styles.addressElementWrapper}
-	>
-		<View style={styles.addressIdenticon}>
-			<Identicon address={address} diameter={28} />
-		</View>
-		<View style={styles.addressElementInformation}>
-			<Text style={styles.addressTextNickname} numberOfLines={1}>
-				{nickname}
-			</Text>
-			<Text style={styles.addressTextAddress} numberOfLines={1}>
-				{renderShortAddress(address)}
-			</Text>
-		</View>
-	</TouchableOpacity>
-);
+const AddressElement = (address, nickname, onAccountPress) => {
+	const primaryLabel = nickname || renderShortAddress(address);
+	const secondaryLabel = nickname && renderShortAddress(address);
+	return (
+		<TouchableOpacity
+			onPress={() => onAccountPress(address)} /* eslint-disable-line */
+			key={address}
+			style={styles.addressElementWrapper}
+		>
+			<View style={styles.addressIdenticon}>
+				<Identicon address={address} diameter={28} />
+			</View>
+			<View style={styles.addressElementInformation}>
+				<Text style={styles.addressTextNickname} numberOfLines={1}>
+					{primaryLabel}
+				</Text>
+				{!!secondaryLabel && (
+					<Text style={styles.addressTextAddress} numberOfLines={1}>
+						{secondaryLabel}
+					</Text>
+				)}
+			</View>
+		</TouchableOpacity>
+	);
+};
 
 const LabelElement = label => (
 	<View key={label} style={styles.labelElementWrapper}>
@@ -110,26 +116,29 @@ class AddressList extends PureComponent {
 		/**
 		 * Callback called when account in address book is pressed
 		 */
-		onAccountPress: PropTypes.func
+		onAccountPress: PropTypes.func,
+		/**
+		 * An array that represents the user transactions
+		 */
+		transactions: PropTypes.array
 	};
 
 	state = {
 		myAccountsOpened: false,
 		addressBookList: undefined,
-		networkAddressBookList: undefined
+		recents: []
 	};
 
 	list;
+	networkAddressBook;
 
 	componentDidMount = () => {
 		const { addressBook, network } = this.props;
-		const networkAddressBook = addressBook[network] || {};
-		const networkAddressBookList = Object.keys(networkAddressBook).map(address => networkAddressBook[address]);
-
-		this.parseAddressBook(networkAddressBookList);
-
-		this.setState({ networkAddressBookList });
-
+		this.networkAddressBook = addressBook[network] || {};
+		const networkAddressBookList = Object.keys(this.networkAddressBook).map(
+			address => this.networkAddressBook[address]
+		);
+		this.getRecentAddresses();
 		this.fuse = new Fuse(networkAddressBookList, {
 			shouldSort: true,
 			threshold: 0.45,
@@ -139,6 +148,7 @@ class AddressList extends PureComponent {
 			minMatchCharLength: 1,
 			keys: [{ name: 'name', weight: 0.5 }, { name: 'address', weight: 0.5 }]
 		});
+		this.parseAddressBook(networkAddressBookList);
 	};
 
 	componentDidUpdate = prevProps => {
@@ -159,11 +169,28 @@ class AddressList extends PureComponent {
 		this.setState({ myAccountsOpened: true });
 	};
 
+	getRecentAddresses = () => {
+		const { transactions, network, identities } = this.props;
+		const ttransactions = transactions.filter(tx => tx.networkID === network);
+		const recents = [];
+		ttransactions.forEach(({ transaction: { to } }) => {
+			const checksummedTo = safeToChecksumAddress(to);
+			if (Object.keys(recents).length > 2) return;
+			if (!Object.keys(recents).includes(checksummedTo) && !Object.keys(identities).includes(checksummedTo)) {
+				if (this.networkAddressBook[checksummedTo]) {
+					recents[checksummedTo] = this.networkAddressBook[checksummedTo];
+				} else {
+					recents[checksummedTo] = { address: checksummedTo };
+				}
+			}
+		});
+		this.setState({ recents });
+	};
+
 	parseAddressBook = networkAddressBookList => {
 		const { onAccountPress } = this.props;
 		const list = [];
 		const addressBookTree = {};
-		networkAddressBookList = networkAddressBookList.sort((a, b) => a.name - b.name);
 		networkAddressBookList.forEach(contact => {
 			const initial = contact.name[0] && contact.name[0].toUpperCase();
 			if (Object.keys(addressBookTree).includes(initial)) {
@@ -185,7 +212,7 @@ class AddressList extends PureComponent {
 
 	render = () => {
 		const { identities, onAccountPress } = this.props;
-		const { myAccountsOpened, addressBookList } = this.state;
+		const { myAccountsOpened, addressBookList, recents } = this.state;
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
@@ -199,6 +226,9 @@ class AddressList extends PureComponent {
 						)
 					)}
 					{LabelElement('Recents')}
+					{Object.keys(recents).map(address =>
+						AddressElement(address, recents[address].name, onAccountPress)
+					)}
 					{addressBookList}
 				</ScrollView>
 			</View>
@@ -209,7 +239,8 @@ class AddressList extends PureComponent {
 const mapStateToProps = state => ({
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
+	transactions: state.engine.backgroundState.TransactionController.transactions
 });
 
 export default connect(mapStateToProps)(AddressList);
