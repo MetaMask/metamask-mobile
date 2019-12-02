@@ -172,7 +172,7 @@ class AddressList extends PureComponent {
 	getRecentAddresses = inputSearch => {
 		const { transactions, network, identities, onAccountPress } = this.props;
 		const recents = [];
-		const parsedRecents = [];
+		const parsedRecents = [LabelElement('Recents')];
 		if (!inputSearch) {
 			const networkTransactions = transactions.filter(tx => tx.networkID === network);
 			networkTransactions.forEach(({ transaction: { to } }) => {
@@ -225,7 +225,11 @@ class AddressList extends PureComponent {
 				<Text style={styles.myAccountsText}>Transfer between my accounts</Text>
 			</TouchableOpacity>
 		) : (
-			Object.keys(identities).map(address => AddressElement(address, identities[address].name, onAccountPress))
+			<View>
+				{Object.keys(identities).map(address =>
+					AddressElement(address, identities[address].name, onAccountPress)
+				)}
+			</View>
 		);
 	};
 

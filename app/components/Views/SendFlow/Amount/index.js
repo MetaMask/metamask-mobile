@@ -316,7 +316,7 @@ class Amount extends PureComponent {
 
 	validateAmount = inputValue => {
 		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
-		let [weiBalance, weiInput, amountError] = [undefined, undefined, undefined];
+		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
 			if (selectedAsset.isEth) {
 				// take care of gas
@@ -357,8 +357,7 @@ class Amount extends PureComponent {
 				inputValueFiat = balanceToFiat(inputValue, conversionRate, exchangeRate, currentCurrency);
 			}
 		}
-
-		this.setState({ inputValue, inputValueFiat });
+		this.setState({ inputValue, inputValueFiat, amountError: undefined });
 	};
 
 	toggleAssetsModal = () => {
@@ -444,7 +443,7 @@ class Amount extends PureComponent {
 	};
 
 	render = () => {
-		const { inputValue, inputValueFiat } = this.state;
+		const { inputValue, inputValueFiat, amountError } = this.state;
 		const { selectedAsset, currentCurrency } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -497,9 +496,11 @@ class Amount extends PureComponent {
 							</TouchableOpacity>
 						</View>
 					</View>
-					<View style={styles.errorMessageWrapper}>
-						{this.state.amountError && <ErrorMessage errorMessage={this.state.amountError} />}
-					</View>
+					{amountError && (
+						<View style={styles.errorMessageWrapper}>
+							<ErrorMessage errorMessage={amountError} />
+						</View>
+					)}
 				</View>
 				<KeyboardAvoidingView
 					style={styles.buttonsWrapper}

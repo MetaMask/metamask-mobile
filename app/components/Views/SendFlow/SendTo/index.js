@@ -238,7 +238,7 @@ class SendFlow extends PureComponent {
 				// todo
 				addressError = `Couldn't resolve ENS`;
 			}
-		} else if (toSelectedAddress.length === 42) {
+		} else if (toSelectedAddress && toSelectedAddress.length === 42) {
 			// todo
 			addressError = `Invalid address`;
 		}
