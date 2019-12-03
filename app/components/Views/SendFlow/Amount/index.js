@@ -391,10 +391,11 @@ class Amount extends PureComponent {
 		this.onInputChange(input);
 	};
 
-	onInputChange = inputValue => {
-		const { selectedAsset, contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
+	onInputChange = (inputValue, selectedAsset) => {
+		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let inputValueConversion, renderableInputValueConversion;
+		selectedAsset = selectedAsset || this.props.selectedAsset;
 		const processedTicker = getTicker(ticker);
 		if (isDecimal(inputValue)) {
 			if (selectedAsset.isEth) {
@@ -439,8 +440,8 @@ class Amount extends PureComponent {
 
 	pickSelectedAsset = selectedAsset => {
 		this.props.setSelectedAsset(selectedAsset);
+		this.onInputChange(undefined, selectedAsset);
 		this.toggleAssetsModal();
-		this.onInputChange();
 	};
 
 	assetKeyExtractor = token => token.address;

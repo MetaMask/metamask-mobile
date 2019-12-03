@@ -138,7 +138,6 @@ export async function fetchBasicGasEstimates() {
 					safeLowWait,
 					speed
 				};
-				console.log('basicEstimates', basicEstimates);
 				return basicEstimates;
 			}
 		);
