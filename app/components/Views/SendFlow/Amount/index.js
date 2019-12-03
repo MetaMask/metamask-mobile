@@ -290,9 +290,10 @@ class Amount extends PureComponent {
 
 	onNext = async () => {
 		const { navigation } = this.props;
-		const { inputValue } = this.state;
-		if (this.validateAmount(inputValue)) return;
-		await this.prepareTransaction(inputValue);
+		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto } = this.state;
+		const value = internalPrimaryCurrencyIsCrypto ? inputValue : inputValueConversion;
+		if (this.validateAmount(value)) return;
+		await this.prepareTransaction(value);
 		navigation.navigate('Confirm');
 	};
 
@@ -318,39 +319,25 @@ class Amount extends PureComponent {
 		prepareTransaction(transaction);
 	};
 
-	validateAmount = inputValue => {
-		const {
-			accounts,
-			selectedAddress,
-			contractBalances,
-			contractExchangeRates,
-			conversionRate,
-			selectedAsset
-		} = this.props;
-		const { internalPrimaryCurrencyIsCrypto } = this.state;
+	/**
+	 * Validates crypto value only
+	 * Independent of current internalPrimaryCurrencyIsCrypto
+	 *
+	 * @param {string} - Crypto value
+	 * @returns - Whether there is an error with the amount
+	 */
+	validateAmount = async inputValue => {
+		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
 		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
 			if (selectedAsset.isEth) {
 				// take care of gas
+				const totalGas = await this.estimateTransactionTotalGas();
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
-				if (internalPrimaryCurrencyIsCrypto) {
-					weiInput = toWei(inputValue);
-				} else {
-					weiInput = fiatNumberToWei(inputValue, conversionRate);
-				}
+				weiInput = toWei(inputValue).add(totalGas);
 			} else {
-				const exchangeRate = contractExchangeRates[selectedAsset.address];
 				weiBalance = contractBalances[selectedAsset.address];
-				if (internalPrimaryCurrencyIsCrypto) {
-					weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
-				} else {
-					weiInput = fiatNumberToTokenMinimalUnit(
-						inputValue,
-						conversionRate,
-						exchangeRate,
-						selectedAsset.decimals
-					);
-				}
+				weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
 			}
 			amountError = weiBalance.gte(weiInput) ? undefined : 'Insufficient funds';
 		} else {
@@ -358,6 +345,34 @@ class Amount extends PureComponent {
 		}
 		this.setState({ amountError });
 		return !!amountError;
+	};
+
+	/**
+	 * Estimate transaction gas with information available
+	 */
+	estimateTransactionTotalGas = async () => {
+		const { TransactionController } = Engine.context;
+		const {
+			transaction: { from },
+			transactionTo
+		} = this.props.transactionState;
+		let estimation, basicGasEstimates;
+		try {
+			estimation = await TransactionController.estimateGas({
+				from,
+				to: transactionTo
+			});
+		} catch (e) {
+			estimation = { gas: '0x5208' };
+		}
+		try {
+			basicGasEstimates = await fetchBasicGasEstimates();
+		} catch (error) {
+			basicGasEstimates = { average: 20 };
+		}
+		const gas = hexToBN(estimation.gas);
+		const gasPrice = apiEstimateModifiedToWEI(basicGasEstimates.average);
+		return gas.mul(gasPrice);
 	};
 
 	useMax = async () => {
@@ -369,31 +384,10 @@ class Amount extends PureComponent {
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
-		const {
-			transaction: { from },
-			transactionTo
-		} = this.props.transactionState;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
-		const { TransactionController } = Engine.context;
 		let input;
 		if (selectedAsset.isEth) {
-			let estimation, basicGasEstimates;
-			try {
-				estimation = await TransactionController.estimateGas({
-					from,
-					to: transactionTo
-				});
-			} catch (e) {
-				estimation = { gas: '0x5208' };
-			}
-			try {
-				basicGasEstimates = await fetchBasicGasEstimates();
-			} catch (error) {
-				basicGasEstimates = { average: 20 };
-			}
-			const gas = hexToBN(estimation.gas);
-			const gasPrice = apiEstimateModifiedToWEI(basicGasEstimates.average);
-			const totalGas = gas.mul(gasPrice);
+			const totalGas = await this.estimateTransactionTotalGas();
 			const maxValue = hexToBN(accounts[selectedAddress].balance).sub(totalGas);
 			if (internalPrimaryCurrencyIsCrypto) {
 				input = fromWei(maxValue);
