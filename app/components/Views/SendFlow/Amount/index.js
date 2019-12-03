@@ -395,41 +395,38 @@ class Amount extends PureComponent {
 		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let inputValueConversion, renderableInputValueConversion;
-		selectedAsset = selectedAsset || this.props.selectedAsset;
 		const processedTicker = getTicker(ticker);
-		if (isDecimal(inputValue)) {
-			if (selectedAsset.isEth) {
-				if (internalPrimaryCurrencyIsCrypto) {
-					inputValueConversion = `${weiToFiatNumber(toWei(inputValue.toString(16)), conversionRate)}`;
-					renderableInputValueConversion = `${inputValueConversion} ${currentCurrency}`;
-				} else {
-					inputValueConversion = `${renderFromWei(fiatNumberToWei(inputValue, conversionRate))}`;
-					renderableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
-				}
-			} else {
-				const exchangeRate = contractExchangeRates[selectedAsset.address];
-				if (internalPrimaryCurrencyIsCrypto) {
-					inputValueConversion = `${balanceToFiatNumber(inputValue, conversionRate, exchangeRate)}`;
-					renderableInputValueConversion = `${inputValueConversion} ${currentCurrency}`;
-				} else {
-					inputValueConversion = `${renderFromTokenMinimalUnit(
-						fiatNumberToTokenMinimalUnit(inputValue, conversionRate, exchangeRate, selectedAsset.decimals),
-						selectedAsset.decimals
-					)}`;
-					renderableInputValueConversion = `${inputValueConversion} ${selectedAsset.symbol}`;
-				}
-			}
-		} else if (selectedAsset.isEth) {
+		const processedInputValue = isDecimal(inputValue) ? inputValue : '0';
+		selectedAsset = selectedAsset || this.props.selectedAsset;
+
+		if (selectedAsset.isEth) {
 			if (internalPrimaryCurrencyIsCrypto) {
-				renderableInputValueConversion = `0 ${currentCurrency}`;
+				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue.toString(16)), conversionRate)}`;
+				renderableInputValueConversion = `${inputValueConversion} ${currentCurrency}`;
 			} else {
-				renderableInputValueConversion = `0 ${processedTicker}`;
+				inputValueConversion = `${renderFromWei(fiatNumberToWei(processedInputValue, conversionRate))}`;
+				renderableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
 			}
-		} else if (internalPrimaryCurrencyIsCrypto) {
-			renderableInputValueConversion = `0 ${currentCurrency}`;
 		} else {
-			renderableInputValueConversion = `0 ${selectedAsset.symbol}`;
+			const exchangeRate = contractExchangeRates[selectedAsset.address];
+			if (internalPrimaryCurrencyIsCrypto) {
+				inputValueConversion = `${balanceToFiatNumber(processedInputValue, conversionRate, exchangeRate)}`;
+				renderableInputValueConversion = `${inputValueConversion} ${currentCurrency}`;
+			} else {
+				inputValueConversion = `${renderFromTokenMinimalUnit(
+					fiatNumberToTokenMinimalUnit(
+						processedInputValue,
+						conversionRate,
+						exchangeRate,
+						selectedAsset.decimals
+					),
+					selectedAsset.decimals
+				)}`;
+				renderableInputValueConversion = `${inputValueConversion} ${selectedAsset.symbol}`;
+			}
 		}
+
+		inputValueConversion = inputValueConversion === '0' ? undefined : inputValueConversion;
 		this.setState({ inputValue, inputValueConversion, renderableInputValueConversion, amountError: undefined });
 	};
 
