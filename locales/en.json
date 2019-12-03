@@ -663,7 +663,10 @@
 		"divisor": "/",
 		"token_id": "#",
 		"colon": ":",
-		"point": "."
+		"point": ".",
+		"hour": "hr",
+		"minute": "min",
+		"second": "sec"
 	},
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",

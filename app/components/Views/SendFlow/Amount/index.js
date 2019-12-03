@@ -289,7 +289,6 @@ class Amount extends PureComponent {
 	onNext = async () => {
 		const { navigation } = this.props;
 		const { inputValue } = this.state;
-		// setValue(inputValue);
 		if (this.validateAmount(inputValue)) return;
 		await this.prepareTransaction(inputValue);
 		navigation.navigate('Confirm');

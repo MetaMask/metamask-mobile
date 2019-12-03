@@ -62,6 +62,33 @@ export function getRenderableFiatGasFee(estimate, conversionRate, currencyCode, 
 }
 
 /**
+ * Parse minutes number to readable wait time
+ *
+ * @param {number} min - Minutes
+ * @returns {string} - Readable wait time
+ */
+export function parseWaitTime(min, strHour, strMin, strSec) {
+	let parsed = '';
+	let hourRendered = false;
+	if (Math.floor(min / 60)) {
+		parsed += `${Math.floor(min / 60)}${strHour}`;
+		hourRendered = true;
+	}
+	min %= 60;
+	if (Math.floor(min) >= 1) {
+		if (parsed !== '') parsed += ' ';
+		parsed += `${Math.floor(min)}${strMin}`;
+	}
+	min %= 1;
+	const seconds = (Math.round(min * 100) * 3) / 5;
+	if (!hourRendered && seconds > 1) {
+		if (parsed !== '') parsed += ' ';
+		parsed += `${Math.ceil(seconds)}${strSec}`;
+	}
+	return parsed;
+}
+
+/**
  * Fetches gas estimated from gas station
  *
  * @returns {Object} - Object containing basic estimates

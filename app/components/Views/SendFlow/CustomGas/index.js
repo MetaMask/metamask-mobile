@@ -9,7 +9,8 @@ import {
 	getRenderableFiatGasFee,
 	apiEstimateModifiedToWEI,
 	fetchBasicGasEstimates,
-	convertApiValueToGWEI
+	convertApiValueToGWEI,
+	parseWaitTime
 } from '../../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN } from '../../../../util/number';
@@ -55,7 +56,8 @@ const styles = StyleSheet.create({
 	textTime: {
 		...fontStyles.bold,
 		marginVertical: 8,
-		fontSize: DeviceSize.isSmallDevice() ? 8 : 10
+		fontSize: DeviceSize.isSmallDevice() ? 8 : 10,
+		textTransform: 'none'
 	},
 	textTitle: {
 		...fontStyles.light,
@@ -275,9 +277,19 @@ class CustomGas extends PureComponent {
 			averageGwei: convertApiValueToGWEI(average),
 			fastGwei: convertApiValueToGWEI(fast),
 			safeLowGwei: convertApiValueToGWEI(safeLow),
-			averageWait,
-			fastWait,
-			safeLowWait,
+			averageWait: parseWaitTime(
+				averageWait,
+				strings('unit.hour'),
+				strings('unit.minute'),
+				strings('unit.second')
+			),
+			fastWait: parseWaitTime(fastWait, strings('unit.hour'), strings('unit.minute'), strings('unit.second')),
+			safeLowWait: parseWaitTime(
+				safeLowWait,
+				strings('unit.hour'),
+				strings('unit.minute'),
+				strings('unit.second')
+			),
 			ready: true
 		});
 	};
@@ -317,7 +329,7 @@ class CustomGas extends PureComponent {
 					style={[styles.selector, gasSlowSelected ? styles.selectorSelected : styles.selectorNotSelected]}
 				>
 					<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
-					<Text style={[styles.text, styles.textTime]}>{safeLowWait} min</Text>
+					<Text style={[styles.text, styles.textTime]}>{safeLowWait}</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 					</Text>
@@ -335,7 +347,7 @@ class CustomGas extends PureComponent {
 					]}
 				>
 					<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
-					<Text style={[styles.text, styles.textTime]}>{averageWait} min</Text>
+					<Text style={[styles.text, styles.textTime]}>{averageWait}</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 					</Text>
@@ -349,7 +361,7 @@ class CustomGas extends PureComponent {
 					style={[styles.selector, gasFastSelected ? styles.selectorSelected : styles.selectorNotSelected]}
 				>
 					<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
-					<Text style={[styles.text, styles.textTime]}>{fastWait} min</Text>
+					<Text style={[styles.text, styles.textTime]}>{fastWait}</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 					</Text>
