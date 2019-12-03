@@ -206,57 +206,53 @@ class Confirm extends PureComponent {
 			},
 			ticker
 		} = this.props;
-
+		let fromAccountBalance,
+			transactionValue,
+			transactionValueFiat,
+			transactionTo,
+			transactionTotalAmount,
+			transactionTotalAmountFiat;
 		const weiTransactionFee = gas && gas.mul(gasPrice);
 		const valueBN = hexToBN(value);
 		const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
 		const parsedTicker = getTicker(ticker);
 
 		if (selectedAsset.isEth) {
-			const fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${parsedTicker}`;
-			const transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
-			const transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
+			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${parsedTicker}`;
+			transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
+			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
-			const transactionTotalAmount = `${renderFromWei(transactionTotalAmountBN)} ${parsedTicker}`;
-			const transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
-
-			this.setState({
-				fromAccountBalance,
-				transactionValue,
-				transactionValueFiat,
-				transactionFeeFiat,
-				transactionTo: to,
-				transactionTotalAmount,
-				transactionTotalAmountFiat
-			});
+			transactionTotalAmount = `${renderFromWei(transactionTotalAmountBN)} ${parsedTicker}`;
+			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
+			transactionTo = to;
 		} else {
 			// TODO check if user has token in case of confirm
+			let amount;
 			const { address, symbol = 'ERC20', decimals } = selectedAsset;
-			const fromAccountBalance = `${renderFromTokenMinimalUnit(contractBalances[address], decimals)} ${symbol}`;
-			const [transactionTo, , amount] = decodeTransferData('transfer', data);
+			fromAccountBalance = `${renderFromTokenMinimalUnit(contractBalances[address], decimals)} ${symbol}`;
+			[transactionTo, , amount] = decodeTransferData('transfer', data);
 			const transferValue = renderFromTokenMinimalUnit(amount, decimals);
-			const transactionValue = `${transferValue} ${symbol}`;
+			transactionValue = `${transferValue} ${symbol}`;
 			const exchangeRate = contractExchangeRates[address];
 			const transactionFeeFiatNumber = weiToFiatNumber(weiTransactionFee, conversionRate);
-			const transactionValueFiat = balanceToFiat(transferValue, conversionRate, exchangeRate, currentCurrency);
+			transactionValueFiat = balanceToFiat(transferValue, conversionRate, exchangeRate, currentCurrency);
 			const transactionValueFiatNumber = balanceToFiatNumber(transferValue, conversionRate, exchangeRate);
-			const transactionTotalAmount = `${transactionValue} + ${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
-			const transactionTotalAmountFiat = renderFiatAddition(
+			transactionTotalAmount = `${transactionValue} + ${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+			transactionTotalAmountFiat = renderFiatAddition(
 				transactionValueFiatNumber,
 				transactionFeeFiatNumber,
 				currentCurrency
 			);
-
-			this.setState({
-				fromAccountBalance,
-				transactionValue,
-				transactionValueFiat,
-				transactionFeeFiat,
-				transactionTo,
-				transactionTotalAmount,
-				transactionTotalAmountFiat
-			});
 		}
+		this.setState({
+			fromAccountBalance,
+			transactionValue,
+			transactionValueFiat,
+			transactionFeeFiat,
+			transactionTo,
+			transactionTotalAmount,
+			transactionTotalAmountFiat
+		});
 	};
 
 	prepareTransaction = async () => {
