@@ -40,6 +40,8 @@ import { getTicker, generateTransferData, getEther } from '../../../../util/tran
 import { hexToBN, BNToHex } from 'gaba/dist/util';
 import FadeIn from 'react-native-fade-in-image';
 import ErrorMessage from '../ErrorMessage';
+import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
+import Engine from '../../../../core/Engine';
 
 const KEYBOARD_OFFSET = 120;
 
@@ -358,7 +360,7 @@ class Amount extends PureComponent {
 		return !!amountError;
 	};
 
-	useMax = () => {
+	useMax = async () => {
 		const {
 			accounts,
 			selectedAddress,
@@ -367,14 +369,36 @@ class Amount extends PureComponent {
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
+		const {
+			transaction: { from },
+			transactionTo
+		} = this.props.transactionState;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
+		const { TransactionController } = Engine.context;
 		let input;
 		if (selectedAsset.isEth) {
+			let estimation, basicGasEstimates;
+			try {
+				estimation = await TransactionController.estimateGas({
+					from,
+					to: transactionTo
+				});
+			} catch (e) {
+				estimation = { gas: '0x5208' };
+			}
+			try {
+				basicGasEstimates = await fetchBasicGasEstimates();
+			} catch (error) {
+				basicGasEstimates = { average: 20 };
+			}
+			const gas = hexToBN(estimation.gas);
+			const gasPrice = apiEstimateModifiedToWEI(basicGasEstimates.average);
+			const totalGas = gas.mul(gasPrice);
+			const maxValue = hexToBN(accounts[selectedAddress].balance).sub(totalGas);
 			if (internalPrimaryCurrencyIsCrypto) {
-				// take care of gas
-				input = fromWei(accounts[selectedAddress].balance);
+				input = fromWei(maxValue);
 			} else {
-				input = `${weiToFiatNumber(accounts[selectedAddress].balance, conversionRate)}`;
+				input = `${weiToFiatNumber(maxValue, conversionRate)}`;
 			}
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
