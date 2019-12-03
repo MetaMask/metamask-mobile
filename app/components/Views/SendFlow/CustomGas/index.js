@@ -17,6 +17,7 @@ import { fromWei, renderWei, hexToBN } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
 import { getTicker } from '../../../../util/transactions';
 import DeviceSize from '../../../../util/DeviceSize';
+import Ionicon from 'react-native-vector-icons/Ionicons';
 
 const AVERAGE_GAS = 20;
 const LOW_GAS = 10;
@@ -34,7 +35,6 @@ const styles = StyleSheet.create({
 	selector: {
 		flex: 1,
 		textAlign: 'center',
-		alignItems: 'flex-start',
 		padding: 12,
 		borderWidth: 1,
 		borderRadius: 6,
@@ -104,6 +104,12 @@ const styles = StyleSheet.create({
 	},
 	advancedOptionsContainer: {
 		marginTop: 16
+	},
+	selectorTitle: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		height: 16
 	}
 });
 
@@ -307,68 +313,55 @@ class CustomGas extends PureComponent {
 		this.props.handleGasFeeSelection(new BN(customGasLimit, 10), apiEstimateModifiedToWEI(value));
 	};
 
+	renderGasSelector = (name, wei, selected, wait, onPress) => {
+		const { conversionRate, currentCurrency, gas } = this.props;
+		const ticker = getTicker(this.props.ticker);
+		return (
+			<TouchableOpacity
+				key={name}
+				onPress={onPress}
+				style={[
+					styles.selector,
+					selected ? styles.selectorSelected : styles.selectorNotSelected,
+					name === 'average' && styles.selectorCenter
+				]}
+			>
+				<View style={styles.selectorTitle}>
+					<Text style={styles.textTitle}>{strings(`transaction.gas_fee_${name}`)}</Text>
+					{selected && <Ionicon name={'ios-checkmark-circle-outline'} size={14} color={colors.blue} />}
+				</View>
+				<Text style={[styles.text, styles.textTime]}>{wait}</Text>
+				<Text style={styles.text}>
+					{getRenderableEthGasFee(wei, gas)} {ticker}
+				</Text>
+				<Text style={styles.text}>{getRenderableFiatGasFee(wei, conversionRate, currentCurrency, gas)}</Text>
+			</TouchableOpacity>
+		);
+	};
+
 	renderCustomGasSelector = () => {
 		const {
 			averageGwei,
-			fastGwei,
 			safeLowGwei,
+			fastGwei,
 			gasSlowSelected,
 			gasAverageSelected,
 			gasFastSelected,
 			averageWait,
-			fastWait,
-			safeLowWait
+			safeLowWait,
+			fastWait
 		} = this.state;
-		const { conversionRate, currentCurrency, gas } = this.props;
-		const ticker = getTicker(this.props.ticker);
 		return (
 			<View style={styles.selectors}>
-				<TouchableOpacity
-					key={'safeLow'}
-					onPress={this.onPressGasSlow}
-					style={[styles.selector, gasSlowSelected ? styles.selectorSelected : styles.selectorNotSelected]}
-				>
-					<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
-					<Text style={[styles.text, styles.textTime]}>{safeLowWait}</Text>
-					<Text style={styles.text}>
-						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
-					</Text>
-					<Text style={styles.text}>
-						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
-					</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					key={'average'}
-					onPress={this.onPressGasAverage}
-					style={[
-						styles.selector,
-						styles.selectorCenter,
-						gasAverageSelected ? styles.selectorSelected : styles.selectorNotSelected
-					]}
-				>
-					<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
-					<Text style={[styles.text, styles.textTime]}>{averageWait}</Text>
-					<Text style={styles.text}>
-						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
-					</Text>
-					<Text style={styles.text}>
-						{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
-					</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					key={'fast'}
-					onPress={this.onPressGasFast}
-					style={[styles.selector, gasFastSelected ? styles.selectorSelected : styles.selectorNotSelected]}
-				>
-					<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
-					<Text style={[styles.text, styles.textTime]}>{fastWait}</Text>
-					<Text style={styles.text}>
-						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
-					</Text>
-					<Text style={styles.text}>
-						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
-					</Text>
-				</TouchableOpacity>
+				{this.renderGasSelector('slow', safeLowGwei, gasSlowSelected, safeLowWait, this.onPressGasSlow)}
+				{this.renderGasSelector(
+					'average',
+					averageGwei,
+					gasAverageSelected,
+					averageWait,
+					this.onPressGasAverage
+				)}
+				{this.renderGasSelector('fast', fastGwei, gasFastSelected, fastWait, this.onPressGasFast)}
 			</View>
 		);
 	};
