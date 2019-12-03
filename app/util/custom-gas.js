@@ -69,22 +69,48 @@ export function getRenderableFiatGasFee(estimate, conversionRate, currencyCode, 
  */
 export function parseWaitTime(min, strHour, strMin, strSec) {
 	let parsed = '';
-	let hourRendered = false;
-	if (Math.floor(min / 60)) {
-		parsed += `${Math.floor(min / 60)}${strHour}`;
-		hourRendered = true;
+	let weekRendered, dayRendered, hourRendered, minRendered, tempMin;
+
+	const weeks = Math.floor(min / 10080);
+	if (weeks) {
+		parsed += `${weeks}${'week'}`;
+		weekRendered = true;
 	}
-	min %= 60;
-	if (Math.floor(min) >= 1) {
+	tempMin = min % 10080;
+
+	const days = Math.floor(tempMin / 1440);
+	if (days) {
 		if (parsed !== '') parsed += ' ';
-		parsed += `${Math.floor(min)}${strMin}`;
+		parsed += `${days}${'day'}`;
+		dayRendered = true;
+		min = tempMin;
+	}
+	tempMin = min % 1440;
+
+	const hours = Math.floor(tempMin / 60);
+	if (!weekRendered && hours) {
+		if (parsed !== '') parsed += ' ';
+		parsed += `${hours}${strHour}`;
+		hourRendered = true;
+		min = tempMin;
+	}
+	tempMin = min % 60;
+
+	const minutes = Math.floor(tempMin);
+	if (!weekRendered && !dayRendered && minutes >= 1) {
+		if (parsed !== '') parsed += ' ';
+		minRendered = true;
+		parsed += `${minutes}${strMin}`;
+		min = tempMin;
 	}
 	min %= 1;
+
 	const seconds = (Math.round(min * 100) * 3) / 5;
-	if (!hourRendered && seconds > 1) {
+	if (!weekRendered && !dayRendered && !hourRendered && !minRendered && seconds > 1) {
 		if (parsed !== '') parsed += ' ';
 		parsed += `${Math.ceil(seconds)}${strSec}`;
 	}
+
 	return parsed;
 }
 
