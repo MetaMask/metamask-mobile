@@ -664,6 +664,8 @@
 		"token_id": "#",
 		"colon": ":",
 		"point": ".",
+		"week": "week",
+		"day": "day",
 		"hour": "hr",
 		"minute": "min",
 		"second": "sec"

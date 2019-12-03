@@ -1,5 +1,6 @@
 import { BN } from 'ethereumjs-util';
 import { renderFromWei, weiToFiat } from './number';
+import { strings } from '../../locales/i18n';
 
 /**
  * Calculates wei value of estimate gas price in gwei
@@ -67,50 +68,31 @@ export function getRenderableFiatGasFee(estimate, conversionRate, currencyCode, 
  * @param {number} min - Minutes
  * @returns {string} - Readable wait time
  */
-export function parseWaitTime(min, strHour, strMin, strSec) {
-	let parsed = '';
-	let weekRendered, dayRendered, hourRendered, minRendered, tempMin;
-
-	const weeks = Math.floor(min / 10080);
-	if (weeks) {
-		parsed += `${weeks}${'week'}`;
-		weekRendered = true;
+export function parseWaitTime(min) {
+	let tempMin = min,
+		parsed = '',
+		val;
+	const timeUnits = [
+		[strings('unit.week'), 10080],
+		[strings('unit.day'), 1440],
+		[strings('unit.hour'), 60],
+		[strings('unit.minute'), 1]
+	];
+	timeUnits.forEach(unit => {
+		if (parsed.includes(' ')) return;
+		val = Math.floor(tempMin / unit[1]);
+		if (val) {
+			if (parsed !== '') parsed += ' ';
+			parsed += `${val}${unit[0]}`;
+		}
+		tempMin = min % unit[1];
+	});
+	if (parsed === '') {
+		val = (Math.round(tempMin * 100) * 3) / 5;
+		if (val) {
+			parsed += ` ${Math.ceil(val)}${strings('unit.second')}`;
+		}
 	}
-	tempMin = min % 10080;
-
-	const days = Math.floor(tempMin / 1440);
-	if (days) {
-		if (parsed !== '') parsed += ' ';
-		parsed += `${days}${'day'}`;
-		dayRendered = true;
-		min = tempMin;
-	}
-	tempMin = min % 1440;
-
-	const hours = Math.floor(tempMin / 60);
-	if (!weekRendered && hours) {
-		if (parsed !== '') parsed += ' ';
-		parsed += `${hours}${strHour}`;
-		hourRendered = true;
-		min = tempMin;
-	}
-	tempMin = min % 60;
-
-	const minutes = Math.floor(tempMin);
-	if (!weekRendered && !dayRendered && minutes >= 1) {
-		if (parsed !== '') parsed += ' ';
-		minRendered = true;
-		parsed += `${minutes}${strMin}`;
-		min = tempMin;
-	}
-	min %= 1;
-
-	const seconds = (Math.round(min * 100) * 3) / 5;
-	if (!weekRendered && !dayRendered && !hourRendered && !minRendered && seconds > 1) {
-		if (parsed !== '') parsed += ' ';
-		parsed += `${Math.ceil(seconds)}${strSec}`;
-	}
-
 	return parsed;
 }
 

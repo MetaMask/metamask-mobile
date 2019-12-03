@@ -283,19 +283,9 @@ class CustomGas extends PureComponent {
 			averageGwei: convertApiValueToGWEI(average),
 			fastGwei: convertApiValueToGWEI(fast),
 			safeLowGwei: convertApiValueToGWEI(safeLow),
-			averageWait: parseWaitTime(
-				averageWait,
-				strings('unit.hour'),
-				strings('unit.minute'),
-				strings('unit.second')
-			),
-			fastWait: parseWaitTime(fastWait, strings('unit.hour'), strings('unit.minute'), strings('unit.second')),
-			safeLowWait: parseWaitTime(
-				safeLowWait,
-				strings('unit.hour'),
-				strings('unit.minute'),
-				strings('unit.second')
-			),
+			averageWait: parseWaitTime(averageWait),
+			fastWait: parseWaitTime(fastWait),
+			safeLowWait: parseWaitTime(safeLowWait),
 			ready: true
 		});
 	};
