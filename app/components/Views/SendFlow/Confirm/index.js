@@ -23,6 +23,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import ActionModal from '../../../UI/ActionModal';
 import CustomGas from '../CustomGas';
+import ErrorMessage from '../ErrorMessage';
 
 const AVERAGE_GAS = 20;
 const LOW_GAS = 10;
@@ -131,6 +132,10 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		alignSelf: 'center',
 		margin: 16
+	},
+	errorMessageWrapper: {
+		marginTop: 16,
+		marginHorizontal: 24
 	}
 });
 
@@ -184,7 +189,8 @@ class Confirm extends PureComponent {
 		transactionValueFiat: undefined,
 		transactionFee: undefined,
 		transactionTotalAmount: undefined,
-		transactionTotalAmountFiat: undefined
+		transactionTotalAmountFiat: undefined,
+		errorMessage: undefined
 	};
 
 	componentDidMount = async () => {
@@ -311,7 +317,8 @@ class Confirm extends PureComponent {
 				customGas: undefined,
 				customGasPrice: undefined,
 				gasEstimationReady: true,
-				currentCustomGasSelected: customGasSelected
+				currentCustomGasSelected: customGasSelected,
+				errorMessage: undefined
 			});
 		}, 100);
 		this.toggleCustomGasModalVisible();
@@ -351,6 +358,21 @@ class Confirm extends PureComponent {
 		);
 	};
 
+	validateGas = () => {
+		const { accounts } = this.props;
+		const { gas, gasPrice, value, from } = this.props.transactionState.transaction;
+		const totalGas = gas.mul(gasPrice);
+		const valueBN = hexToBN(value);
+		const balanceBN = hexToBN(accounts[from].balance);
+		if (valueBN.add(totalGas).gt(balanceBN)) {
+			this.setState({ errorMessage: 'Insufficient funds' });
+		}
+	};
+
+	onNext = () => {
+		this.validateGas();
+	};
+
 	renderIfGastEstimationReady = children => {
 		const { gasEstimationReady } = this.state;
 		return !gasEstimationReady ? (
@@ -376,7 +398,8 @@ class Confirm extends PureComponent {
 			transactionFeeFiat,
 			transactionTo,
 			transactionTotalAmount,
-			transactionTotalAmountFiat
+			transactionTotalAmountFiat,
+			errorMessage
 		} = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -394,6 +417,7 @@ class Confirm extends PureComponent {
 						onToSelectedAddressChange={this.onToSelectedAddressChange}
 					/>
 				</View>
+
 				<ScrollView style={baseStyles.flexGrow}>
 					<View style={styles.amountWrapper}>
 						<Text style={styles.textAmountLabel}>Amount</Text>
@@ -427,6 +451,11 @@ class Confirm extends PureComponent {
 							)}
 						</View>
 					</View>
+					{errorMessage && (
+						<View style={styles.errorMessageWrapper}>
+							<ErrorMessage errorMessage={errorMessage} />
+						</View>
+					)}
 					<View style={styles.actionsWrapper}>
 						<TouchableOpacity
 							style={styles.actionTouchable}
