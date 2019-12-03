@@ -275,17 +275,20 @@ class Amount extends PureComponent {
 		inputValueConversion: undefined,
 		renderableInputValueConversion: undefined,
 		assetsModalVisible: false,
-		internalPrimaryCurrencyIsCrypto: this.props.primaryCurrency === 'ETH'
+		internalPrimaryCurrencyIsCrypto: this.props.primaryCurrency === 'ETH',
+		estimatedTotalGas: undefined
 	};
 
 	amountInput = React.createRef();
 	tokens = [];
 
-	componentDidMount = () => {
+	componentDidMount = async () => {
 		const { tokens, ticker } = this.props;
 		this.tokens = [getEther(ticker), ...tokens];
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		this.onInputChange();
+		const estimatedTotalGas = await this.estimateTransactionTotalGas();
+		this.setState({ estimatedTotalGas });
 	};
 
 	onNext = async () => {
@@ -326,15 +329,14 @@ class Amount extends PureComponent {
 	 * @param {string} - Crypto value
 	 * @returns - Whether there is an error with the amount
 	 */
-	validateAmount = async inputValue => {
+	validateAmount = inputValue => {
 		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
+		const { estimatedTotalGas } = this.state;
 		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
 			if (selectedAsset.isEth) {
-				// take care of gas
-				const totalGas = await this.estimateTransactionTotalGas();
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
-				weiInput = toWei(inputValue).add(totalGas);
+				weiInput = toWei(inputValue).add(estimatedTotalGas);
 			} else {
 				weiBalance = contractBalances[selectedAsset.address];
 				weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
@@ -375,7 +377,7 @@ class Amount extends PureComponent {
 		return gas.mul(gasPrice);
 	};
 
-	useMax = async () => {
+	useMax = () => {
 		const {
 			accounts,
 			selectedAddress,
@@ -384,11 +386,10 @@ class Amount extends PureComponent {
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
-		const { internalPrimaryCurrencyIsCrypto } = this.state;
+		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
 		let input;
 		if (selectedAsset.isEth) {
-			const totalGas = await this.estimateTransactionTotalGas();
-			const maxValue = hexToBN(accounts[selectedAddress].balance).sub(totalGas);
+			const maxValue = hexToBN(accounts[selectedAddress].balance).sub(estimatedTotalGas);
 			if (internalPrimaryCurrencyIsCrypto) {
 				input = fromWei(maxValue);
 			} else {
@@ -537,7 +538,7 @@ class Amount extends PureComponent {
 	};
 
 	render = () => {
-		const { inputValue, renderableInputValueConversion, amountError } = this.state;
+		const { inputValue, renderableInputValueConversion, amountError, estimatedTotalGas } = this.state;
 		const { selectedAsset } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -558,7 +559,11 @@ class Amount extends PureComponent {
 							</TouchableOpacity>
 						</View>
 						<View style={[styles.action, styles.actionMax]}>
-							<TouchableOpacity style={styles.actionMaxTouchable} onPress={this.useMax}>
+							<TouchableOpacity
+								style={styles.actionMaxTouchable}
+								disabled={!estimatedTotalGas}
+								onPress={this.useMax}
+							>
 								<Text style={styles.maxText}>USE MAX</Text>
 							</TouchableOpacity>
 						</View>
@@ -603,7 +608,12 @@ class Amount extends PureComponent {
 					enabled={Platform.OS === 'ios'}
 				>
 					<View style={styles.buttonNextWrapper}>
-						<StyledButton type={'confirm'} containerStyle={styles.buttonNext} onPress={this.onNext}>
+						<StyledButton
+							type={'confirm'}
+							containerStyle={styles.buttonNext}
+							disabled={!estimatedTotalGas}
+							onPress={this.onNext}
+						>
 							Next
 						</StyledButton>
 					</View>
