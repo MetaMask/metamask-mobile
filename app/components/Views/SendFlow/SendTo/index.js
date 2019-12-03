@@ -14,9 +14,9 @@ import Engine from '../../../../core/Engine';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
 import StyledButton from '../../../UI/StyledButton';
-import { setRecipient, newTransaction } from '../../../../actions/newTransaction';
+import { setRecipient, newTransaction, setSelectedAsset } from '../../../../actions/newTransaction';
 import { isENS } from '../../../../util/address';
-import { getTicker } from '../../../../util/transactions';
+import { getTicker, getEther } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 
 const styles = StyleSheet.create({
@@ -148,7 +148,8 @@ class SendFlow extends PureComponent {
 		/**
 		 * Action that start a new empty transaction
 		 */
-		newTransaction: PropTypes.func
+		newTransaction: PropTypes.func,
+		setSelectedAsset: PropTypes.func
 	};
 
 	state = {
@@ -169,7 +170,16 @@ class SendFlow extends PureComponent {
 	ensResolver;
 
 	componentDidMount = async () => {
-		const { navigation, selectedAddress, identities, accounts, ticker, newTransaction, network } = this.props;
+		const {
+			navigation,
+			selectedAddress,
+			identities,
+			accounts,
+			ticker,
+			newTransaction,
+			network,
+			setSelectedAsset
+		} = this.props;
 		navigation && navigation.setParams({ mode: 'edit' });
 		const ens = await doENSReverseLookup(selectedAddress, network);
 		const fromAccountName = ens || identities[selectedAddress].name;
@@ -180,6 +190,8 @@ class SendFlow extends PureComponent {
 		});
 		// Reset transaction
 		newTransaction();
+		// TODO fix this when starting from asset
+		setSelectedAsset(getEther(ticker));
 	};
 
 	toggleFromAccountModal = () => {
@@ -443,7 +455,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	newTransaction: () => dispatch(newTransaction()),
 	setRecipient: (from, to, ensRecipient, transactionToName, transactionFromName) =>
-		dispatch(setRecipient(from, to, ensRecipient, transactionToName, transactionFromName))
+		dispatch(setRecipient(from, to, ensRecipient, transactionToName, transactionFromName)),
+	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
 });
 
 export default connect(
