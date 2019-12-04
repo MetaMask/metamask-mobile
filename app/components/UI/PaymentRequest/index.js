@@ -320,6 +320,10 @@ class PaymentRequest extends PureComponent {
 	 * @param {string} searchInputValue - String containing assets query
 	 */
 	handleSearch = searchInputValue => {
+		if (typeof searchInputValue !== 'string') {
+			searchInputValue = this.state.searchInputValue;
+		}
+
 		const fuseSearchResult = fuse.search(searchInputValue);
 		const addressSearchResult = contractList.filter(
 			token => token.address.toLowerCase() === searchInputValue.toLowerCase()
