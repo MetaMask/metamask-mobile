@@ -506,7 +506,7 @@ export class BrowserTab extends PureComponent {
 							const { approvedHosts, privacyMode, selectedAddress } = this.props;
 							const isEnabled = !privacyMode || approvedHosts[hostname];
 							if (isEnabled) {
-								res.result = [selectedAddress.toLoweCase()];
+								res.result = [selectedAddress.toLowerCase()];
 							} else {
 								res.result = [];
 							}
