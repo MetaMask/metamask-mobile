@@ -37,6 +37,8 @@ import CustomGas from '../CustomGas';
 import ErrorMessage from '../ErrorMessage';
 import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
 import { strings } from '../../../../../locales/i18n';
+import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
+import CollectibleImage from '../../../UI/CollectibleImage';
 
 const AVERAGE_GAS = 20;
 const LOW_GAS = 10;
@@ -149,6 +151,27 @@ const styles = StyleSheet.create({
 	errorMessageWrapper: {
 		marginTop: 16,
 		marginHorizontal: 24
+	},
+	collectibleImageWrapper: {
+		flexDirection: 'column',
+		alignItems: 'center',
+		margin: 8
+	},
+	collectibleName: {
+		...fontStyles.normal,
+		fontSize: 18,
+		color: colors.black,
+		textAlign: 'center'
+	},
+	collectibleTokenId: {
+		...fontStyles.normal,
+		fontSize: 12,
+		color: colors.grey500,
+		textAlign: 'center'
+	},
+	collectibleImage: {
+		height: 120,
+		width: 120
 	}
 });
 
@@ -244,6 +267,26 @@ class Confirm extends PureComponent {
 			transactionTotalAmount = `${renderFromWei(transactionTotalAmountBN)} ${parsedTicker}`;
 			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
 			transactionTo = to;
+		} else if (selectedAsset.tokenId) {
+			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${parsedTicker}`;
+			const collectibleTransferInformation =
+				selectedAsset.address in collectiblesTransferInformation &&
+				collectiblesTransferInformation[selectedAsset.address];
+			if (
+				!collectibleTransferInformation ||
+				(collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transferFrom')
+			) {
+				[, transactionTo] = decodeTransferData('transferFrom', data);
+			} else if (
+				collectibleTransferInformation.tradable &&
+				collectibleTransferInformation.method === 'transfer'
+			) {
+				[transactionTo, ,] = decodeTransferData('transfer', data);
+			}
+			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
+			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
+			transactionTotalAmount = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
 		} else {
 			// TODO check if user has token in case of confirm
 			let amount;
@@ -438,7 +481,8 @@ class Confirm extends PureComponent {
 		const {
 			transaction: { from },
 			transactionToName,
-			transactionFromName
+			transactionFromName,
+			selectedAsset
 		} = this.props.transactionState;
 		const {
 			gasEstimationReady,
@@ -469,11 +513,28 @@ class Confirm extends PureComponent {
 				</View>
 
 				<ScrollView style={baseStyles.flexGrow}>
-					<View style={styles.amountWrapper}>
-						<Text style={styles.textAmountLabel}>Amount</Text>
-						<Text style={styles.textAmount}>{transactionValue}</Text>
-						<Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>
-					</View>
+					{!selectedAsset.tokenId ? (
+						<View style={styles.amountWrapper}>
+							<Text style={styles.textAmountLabel}>Amount</Text>
+							<Text style={styles.textAmount}>{transactionValue}</Text>
+							<Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>
+						</View>
+					) : (
+						<View style={styles.amountWrapper}>
+							<Text style={styles.textAmountLabel}>Asset</Text>
+							<View style={styles.collectibleImageWrapper}>
+								<CollectibleImage
+									iconStyle={styles.collectibleImage}
+									containerStyle={styles.collectibleImage}
+									collectible={selectedAsset}
+								/>
+							</View>
+							<View>
+								<Text style={styles.collectibleName}>{selectedAsset.name}</Text>
+								<Text style={styles.collectibleTokenId}>{`#${selectedAsset.tokenId}`}</Text>
+							</View>
+						</View>
+					)}
 
 					<View style={styles.summaryWrapper}>
 						<View style={styles.summaryRow}>

@@ -514,7 +514,10 @@ class Amount extends PureComponent {
 
 	pickSelectedAsset = selectedAsset => {
 		this.props.setSelectedAsset(selectedAsset);
-		this.onInputChange(undefined, selectedAsset);
+		if (!selectedAsset.tokenId) {
+			this.amountInput && this.amountInput.current && this.amountInput.current.focus();
+			this.onInputChange(undefined, selectedAsset);
+		}
 		this.toggleAssetsModal();
 	};
 
@@ -602,6 +605,7 @@ class Amount extends PureComponent {
 		const { assetsModalVisible } = this.state;
 		const { collectibleContracts } = this.props;
 
+		// TODO exclude non transferable collectibles
 		const collectibles = this.props.collectibles.map(processedCollectible => {
 			const collectibleContract = collectibleContracts.find(
 				contract => contract.address.toLowerCase() === processedCollectible.address.toLowerCase()
