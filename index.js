@@ -11,6 +11,7 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'{}',
 	"Can't perform a React state update",
 	'Error evaluating injectedJavaScript',
 	'createErrorFromErrorData',
