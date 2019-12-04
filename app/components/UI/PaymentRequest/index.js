@@ -347,7 +347,7 @@ class PaymentRequest extends PureComponent {
 			return token;
 		});
 		return (
-			<View style={baseStyles.flexGrow}>
+			<View style={baseStyles.flexGrow} testID={'request-screen'}>
 				<View>
 					<Text style={styles.title}>{strings('payment_request.choose_asset')}</Text>
 				</View>
@@ -375,7 +375,7 @@ class PaymentRequest extends PureComponent {
 						/>
 					</View>
 				)}
-				<View style={styles.assetsWrapper}>
+				<View style={styles.assetsWrapper} testID={'top-pick-asset-results'}>
 					<Text style={styles.assetsTitle}>
 						{this.state.searchInputValue
 							? strings('payment_request.search_results')
@@ -544,7 +544,7 @@ class PaymentRequest extends PureComponent {
 			switchable = false;
 		}
 		return (
-			<View style={styles.enterAmountWrapper}>
+			<View style={styles.enterAmountWrapper} testID={'request-amount-screen'}>
 				<View>
 					<Text style={styles.title}>{strings('payment_request.enter_amount')}</Text>
 				</View>
@@ -566,6 +566,7 @@ class PaymentRequest extends PureComponent {
 										value={amount}
 										onSubmitEditing={this.onNext}
 										ref={this.amountInput}
+										testID={'request-amount-input'}
 									/>
 									<Text style={styles.eth} numberOfLines={1}>
 										{symbol}

@@ -256,7 +256,11 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 		headerLeft: <View />,
 		headerRight: (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+			<TouchableOpacity
+				onPress={() => navigation.pop()}
+				style={styles.closeButton}
+				testID={'send-link-close-button'}
+			>
 				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
 			</TouchableOpacity>
 		)
