@@ -43,6 +43,7 @@ import ErrorMessage from '../ErrorMessage';
 import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import CollectibleImage from '../../../UI/CollectibleImage';
+import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 
 const KEYBOARD_OFFSET = 120;
 
@@ -205,6 +206,30 @@ const styles = StyleSheet.create({
 	},
 	errorMessageWrapper: {
 		marginVertical: 16
+	},
+	collectibleImage: {
+		width: 120,
+		height: 120
+	},
+	collectibleName: {
+		...fontStyles.normal,
+		fontSize: 32,
+		textAlign: 'center'
+	},
+	collectibleId: {
+		...fontStyles.normal,
+		fontSize: 14,
+		textAlign: 'center'
+	},
+	collectibleInputWrapper: {
+		margin: 24
+	},
+	collectibleInputImageWrapper: {
+		flexDirection: 'column',
+		alignItems: 'center'
+	},
+	collectibleInputInformationWrapper: {
+		marginTop: 12
 	}
 });
 
@@ -301,10 +326,10 @@ class Amount extends PureComponent {
 	};
 
 	onNext = async () => {
-		const { navigation } = this.props;
+		const { navigation, selectedAsset } = this.props;
 		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto } = this.state;
 		const value = internalPrimaryCurrencyIsCrypto ? inputValue : inputValueConversion;
-		if (this.validateAmount(value)) return;
+		if (!selectedAsset.tokenId && this.validateAmount(value)) return;
 		await this.prepareTransaction(value);
 		navigation.navigate('Confirm');
 	};
@@ -319,6 +344,30 @@ class Amount extends PureComponent {
 			transaction.data = undefined;
 			transaction.to = transactionTo;
 			transaction.value = BNToHex(toWei(value));
+		} else if (selectedAsset.tokenId) {
+			const collectibleTransferInformation =
+				selectedAsset.address in collectiblesTransferInformation &&
+				collectiblesTransferInformation[selectedAsset.address];
+			if (
+				!collectibleTransferInformation ||
+				(collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transferFrom')
+			) {
+				transaction.data = generateTransferData('transferFrom', {
+					fromAddress: transaction.from,
+					toAddress: transactionTo,
+					tokenId: selectedAsset.tokenId
+				});
+			} else if (
+				collectibleTransferInformation.tradable &&
+				collectibleTransferInformation.method === 'transfer'
+			) {
+				transaction.data = generateTransferData('transfer', {
+					toAddress: transactionTo,
+					amount: selectedAsset.tokenId.toString(16)
+				});
+			}
+			transaction.to = selectedAsset.address;
+			transaction.value = '0x0';
 		} else {
 			const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
 			transaction.data = generateTransferData('transfer', {
@@ -505,7 +554,7 @@ class Amount extends PureComponent {
 				<View style={styles.assetElement}>
 					{token.isEth ? (
 						<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
-							<Image source={ethLogo} style={styles.ethLogo} testID={'eth-logo'} />
+							<Image source={ethLogo} style={styles.ethLogo} />
 						</FadeIn>
 					) : (
 						<TokenImage asset={token} iconStyle={styles.tokenImage} containerStyle={styles.tokenImage} />
@@ -562,7 +611,6 @@ class Amount extends PureComponent {
 			return processedCollectible;
 		});
 
-		console.log('collectibles', collectibles);
 		return (
 			<Modal
 				isVisible={assetsModalVisible}
@@ -593,8 +641,67 @@ class Amount extends PureComponent {
 		this.onInputChange(inputValueConversion);
 	};
 
+	renderTokenInput = () => {
+		const { inputValue, renderableInputValueConversion, amountError } = this.state;
+		return (
+			<View>
+				<View style={styles.inputContainer}>
+					<TextInput
+						ref={this.amountInput}
+						style={styles.textInput}
+						value={inputValue}
+						onChangeText={this.onInputChange}
+						keyboardType={'numeric'}
+						placeholder={'0'}
+					/>
+				</View>
+				<View style={styles.actionsWrapper}>
+					<View style={[styles.action]}>
+						<TouchableOpacity style={styles.actionSwitch} onPress={this.switchCurrency}>
+							<Text style={styles.textSwitch} numberOfLines={1}>
+								{renderableInputValueConversion}
+							</Text>
+							<View styles={styles.switchWrapper}>
+								<MaterialCommunityIcons
+									name="swap-vertical"
+									size={16}
+									color={colors.blue}
+									style={styles.switch}
+								/>
+							</View>
+						</TouchableOpacity>
+					</View>
+				</View>
+				{amountError && (
+					<View style={styles.errorMessageWrapper}>
+						<ErrorMessage errorMessage={amountError} />
+					</View>
+				)}
+			</View>
+		);
+	};
+
+	renderCollectibleInput = () => {
+		const { selectedAsset } = this.props;
+		return (
+			<View style={styles.collectibleInputWrapper}>
+				<View style={styles.collectibleInputImageWrapper}>
+					<CollectibleImage
+						containerStyle={styles.collectibleImage}
+						iconStyle={styles.collectibleImage}
+						collectible={selectedAsset}
+					/>
+				</View>
+				<View style={styles.collectibleInputInformationWrapper}>
+					<Text style={styles.collectibleName}>{selectedAsset.name}</Text>
+					<Text style={styles.collectibleId}>{`#${selectedAsset.tokenId}`}</Text>
+				</View>
+			</View>
+		);
+	};
+
 	render = () => {
-		const { inputValue, renderableInputValueConversion, amountError, estimatedTotalGas } = this.state;
+		const { estimatedTotalGas } = this.state;
 		const { selectedAsset } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -603,7 +710,7 @@ class Amount extends PureComponent {
 						<View style={styles.action} />
 						<View style={[styles.action]}>
 							<TouchableOpacity style={styles.actionDropdown} onPress={this.toggleAssetsModal}>
-								<Text style={styles.textDropdown}>{selectedAsset.symbol}</Text>
+								<Text style={styles.textDropdown}>{selectedAsset.symbol || 'Collectible'}</Text>
 								<View styles={styles.arrow}>
 									<Ionicons
 										name="ios-arrow-down"
@@ -615,48 +722,20 @@ class Amount extends PureComponent {
 							</TouchableOpacity>
 						</View>
 						<View style={[styles.action, styles.actionMax]}>
-							<TouchableOpacity
-								style={styles.actionMaxTouchable}
-								disabled={!estimatedTotalGas}
-								onPress={this.useMax}
-							>
-								<Text style={styles.maxText}>USE MAX</Text>
-							</TouchableOpacity>
+							{!selectedAsset.tokenId && (
+								<TouchableOpacity
+									style={styles.actionMaxTouchable}
+									disabled={!estimatedTotalGas}
+									onPress={this.useMax}
+								>
+									<Text style={styles.maxText}>USE MAX</Text>
+								</TouchableOpacity>
+							)}
 						</View>
 					</View>
-					<View style={styles.inputContainer}>
-						<TextInput
-							ref={this.amountInput}
-							style={styles.textInput}
-							value={inputValue}
-							onChangeText={this.onInputChange}
-							keyboardType={'numeric'}
-							placeholder={'0'}
-						/>
-					</View>
-					<View style={styles.actionsWrapper}>
-						<View style={[styles.action]}>
-							<TouchableOpacity style={styles.actionSwitch} onPress={this.switchCurrency}>
-								<Text style={styles.textSwitch} numberOfLines={1}>
-									{renderableInputValueConversion}
-								</Text>
-								<View styles={styles.switchWrapper}>
-									<MaterialCommunityIcons
-										name="swap-vertical"
-										size={16}
-										color={colors.blue}
-										style={styles.switch}
-									/>
-								</View>
-							</TouchableOpacity>
-						</View>
-					</View>
-					{amountError && (
-						<View style={styles.errorMessageWrapper}>
-							<ErrorMessage errorMessage={amountError} />
-						</View>
-					)}
+					{selectedAsset.tokenId ? this.renderCollectibleInput() : this.renderTokenInput()}
 				</View>
+
 				<KeyboardAvoidingView
 					style={styles.buttonsWrapper}
 					behavior={'padding'}
