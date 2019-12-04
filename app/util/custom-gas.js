@@ -1,5 +1,5 @@
 import { BN } from 'ethereumjs-util';
-import { renderFromWei, weiToFiat } from './number';
+import { renderFromWei, weiToFiat, toWei } from './number';
 import { strings } from '../../locales/i18n';
 
 /**
@@ -9,8 +9,7 @@ import { strings } from '../../locales/i18n';
  * @returns {Object} - BN instance containing gas price in wei
  */
 export function apiEstimateModifiedToWEI(estimate) {
-	const GWEIRate = 1000000000;
-	return new BN((estimate * GWEIRate).toString(), 10);
+	return toWei(estimate, 'gwei');
 }
 
 /**

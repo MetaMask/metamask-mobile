@@ -307,7 +307,7 @@ class Amount extends PureComponent {
 			transactionState: { transaction, transactionTo }
 		} = this.props;
 		if (selectedAsset.isEth) {
-			transaction.data = '0x';
+			transaction.data = undefined;
 			transaction.to = transactionTo;
 			transaction.value = BNToHex(toWei(value));
 		} else {

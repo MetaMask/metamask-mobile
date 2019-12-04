@@ -22,13 +22,14 @@ import {
 	balanceToFiat,
 	weiToFiatNumber,
 	balanceToFiatNumber,
-	renderFiatAddition
+	renderFiatAddition,
+	toWei
 } from '../../../../util/number';
 import { getTicker, decodeTransferData } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
 import { prepareTransaction } from '../../../../actions/newTransaction';
-import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
+import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import ActionModal from '../../../UI/ActionModal';
@@ -274,11 +275,12 @@ class Confirm extends PureComponent {
 	};
 
 	prepareTransaction = async () => {
-		const { prepareTransaction, transactionState } = this.props;
-		let transaction = transactionState.transaction;
+		const {
+			prepareTransaction,
+			transactionState: { transaction }
+		} = this.props;
 		const estimation = await this.estimateGas(transaction);
-		transaction = { ...transaction, ...estimation };
-		prepareTransaction(transaction);
+		prepareTransaction({ ...transaction, ...estimation });
 		this.parseTransactionData();
 		this.setState({ gasEstimationReady: true });
 	};
@@ -304,7 +306,10 @@ class Confirm extends PureComponent {
 			Logger.log('Error while trying to get gas limit estimates', error);
 			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
 		}
-		return { gas: hexToBN(estimation.gas), gasPrice: apiEstimateModifiedToWEI(basicGasEstimates.average) };
+		return {
+			gas: hexToBN(estimation.gas),
+			gasPrice: toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei')
+		};
 	};
 
 	handleGasFeeSelection = (gas, gasPrice, customGasSelected) => {
@@ -344,6 +349,7 @@ class Confirm extends PureComponent {
 	renderCustomGasModal = () => {
 		const { customGasModalVisible, currentCustomGasSelected } = this.state;
 		const { gas, gasPrice } = this.props.transactionState.transaction;
+		console.log('trabsaction gas', gas, gasPrice);
 		return (
 			<ActionModal
 				modalVisible={customGasModalVisible}
@@ -402,8 +408,8 @@ class Confirm extends PureComponent {
 		try {
 			const transaction = this.prepareTransactionToSend();
 			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
-			await TransactionController.approveTransaction(transactionMeta.id);
 
+			await TransactionController.approveTransaction(transactionMeta.id);
 			await new Promise(resolve => resolve(result));
 
 			InteractionManager.runAfterInteractions(() => {
