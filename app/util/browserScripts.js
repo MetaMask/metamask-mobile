@@ -81,7 +81,6 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
 		window.postMessage(${JSON.stringify(message)}, '${origin}');
 	} catch (e) {
 		//Nothing to do
-		console.log('POSTING MESSAGE FROM NATIVE TO MAINFRAME ERROR', e);
 	}
 })()`;
 
@@ -93,15 +92,13 @@ export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(functio
 				frame.contentWindow.postMessage(${JSON.stringify(message)}, '${origin}');
 			} catch (e) {
 				//Nothing to do
-				console.log('POSTING MESSAGE FROM NATIVE TO IFRAME ERROR', e);
 			}
 
 	}
 })()`;
 
 export const JS_CONTENT_SCRIPT = entryScriptWeb3 => `
-	//const inpageBundle = ${JSON.stringify(entryScriptWeb3)};
-	${entryScriptWeb3}
+	const inpageBundle = ${JSON.stringify(entryScriptWeb3)};
 
 	/**
 	 * Injects a script tag into the current document
@@ -109,7 +106,6 @@ export const JS_CONTENT_SCRIPT = entryScriptWeb3 => `
 	 * @param {string} content - Code to be executed in the current document
 	 */
 	function injectScript (content) {
-		return true;
 		try {
 			const container = document.head || document.documentElement
 			const scriptTag = document.createElement('script')
@@ -128,9 +124,8 @@ export const JS_CONTENT_SCRIPT = entryScriptWeb3 => `
 	 * @returns {boolean} {@code true} if Web3 should be injected
 	 */
 	function shouldInjectWeb3 () {
-	return true;
-	return doctypeCheck() && suffixCheck() &&
-		documentElementCheck() && !blacklistedDomainCheck()
+		return doctypeCheck() && suffixCheck() &&
+			documentElementCheck() && !blacklistedDomainCheck()
 	}
 
 	/**
@@ -248,7 +243,6 @@ export const JS_CONTENT_SCRIPT = entryScriptWeb3 => `
 			));
 
 			window.addEventListener('message', message => {
-				console.log("IFRAME DUMMY LISTENER GOT MSG", message);
 				if(message.data.name === "publicConfig"){
 					// Manual update for Iframes
 					const { data } = message.data;

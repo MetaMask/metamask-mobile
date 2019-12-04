@@ -6,6 +6,7 @@ import { setupMultiplex } from '../util/streams';
 import { createOriginMiddleware, createLoggerMiddleware } from '../util/middlewares';
 import Engine from './Engine';
 import NetworkList from '../util/networks';
+import Logger from '../util/Logger';
 const ObservableStore = require('obs-store');
 const RpcEngine = require('json-rpc-engine');
 const createEngineStream = require('json-rpc-middleware-stream/engineStream');
@@ -29,10 +30,6 @@ class Port extends EventEmitter {
 	}
 
 	postMessage = (msg, origin = '*') => {
-		// Loop through the iframes first
-		// If the source doesn't match any
-		// send the message to the main window
-		console.log('POSTING MSG TO PROVIDER', msg, origin, this._isMainFrame);
 		const js = this._isMainFrame
 			? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
 			: JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
@@ -42,7 +39,6 @@ class Port extends EventEmitter {
 
 export class BackgroundBridge extends EventEmitter {
 	constructor(webview, url, middlewares, shouldExposeAccounts, isMainFrame) {
-		console.log('initializing bridge for ', url);
 		super();
 		this.url = url;
 		this.isMainFrame = isMainFrame;
@@ -64,7 +60,6 @@ export class BackgroundBridge extends EventEmitter {
 	}
 
 	onMessage = msg => {
-		console.log('BRIDGE FOR ', this.url, 'got msg', msg);
 		this.port.emit('message', { name: msg.name, data: msg.data });
 	};
 
@@ -76,8 +71,6 @@ export class BackgroundBridge extends EventEmitter {
 	 * A method for serving our ethereum provider over a given stream.
 	 * @param {*} outStream - The stream to provide over.
 	 * @param {URL} senderUrl - The URI of the requesting resource.
-	 * @param {string} extensionId - The id of the extension, if the requesting
-	 * resource is an extension.
 	 */
 	setupProviderConnection(outStream, senderUrl) {
 		const engine = this.setupProviderEngine(senderUrl);
@@ -92,7 +85,7 @@ export class BackgroundBridge extends EventEmitter {
 					mid.destroy();
 				}
 			});
-			if (err) console.warn(err);
+			if (err) Logger.log('Error with provider stream conn', err);
 		});
 	}
 
@@ -200,7 +193,6 @@ export class BackgroundBridge extends EventEmitter {
 				memState = this.getState();
 			}
 			const publicState = selectPublicState(memState);
-			console.log('Updating publicState', publicState);
 			publicConfigStore.putState(publicState);
 		}
 

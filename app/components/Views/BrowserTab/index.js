@@ -489,7 +489,6 @@ export class BrowserTab extends PureComponent {
 									res.result = [selectedAddress.toLowerCase()];
 									this.backgroundBridges.forEach(bridge => {
 										if (bridge.url === senderUrl.href) {
-											console.log('bridge found, sending update', bridge.url);
 											bridge.emit('update');
 										}
 									});

@@ -1,3 +1,5 @@
+import Logger from './Logger';
+
 /**
  * Returns a middleware that appends the DApp origin to request
  * @param {{ origin: string }} opts - The middleware options
@@ -19,12 +21,12 @@ export function createLoggerMiddleware(opts) {
 	return function loggerMiddleware(/** @type {any} */ req, /** @type {any} */ res, /** @type {Function} */ next) {
 		next((/** @type {Function} */ cb) => {
 			if (res.error) {
-				console.warn('Error in RPC response:\n', res);
+				Logger.error('Error in RPC response:\n', res);
 			}
 			if (req.isMetamaskInternal) {
 				return;
 			}
-			console.info(`RPC (${opts.origin}):`, req, '->', res);
+			Logger.log(`RPC (${opts.origin}):`, req, '->', res);
 			cb();
 		});
 	};
