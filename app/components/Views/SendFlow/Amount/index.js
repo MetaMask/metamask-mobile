@@ -42,6 +42,7 @@ import FadeIn from 'react-native-fade-in-image';
 import ErrorMessage from '../ErrorMessage';
 import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
+import CollectibleImage from '../../../UI/CollectibleImage';
 
 const KEYBOARD_OFFSET = 120;
 
@@ -218,6 +219,14 @@ class Amount extends PureComponent {
 		 * Map of accounts to information objects including balances
 		 */
 		accounts: PropTypes.object,
+		/**
+		 * Array of collectible objects
+		 */
+		collectibles: PropTypes.array,
+		/**
+		 * An array that represents the user collectible contracts
+		 */
+		collectibleContracts: PropTypes.array,
 		/**
 		 * Object containing token balances in the format address => balance
 		 */
@@ -460,9 +469,14 @@ class Amount extends PureComponent {
 		this.toggleAssetsModal();
 	};
 
-	assetKeyExtractor = token => token.address;
+	assetKeyExtractor = asset => {
+		if (asset.tokenId) {
+			return asset.address + asset.tokenId;
+		}
+		return asset.address;
+	};
 
-	renderAsset = ({ item: asset }) => {
+	renderToken = (token, index) => {
 		const {
 			accounts,
 			selectedAddress,
@@ -471,9 +485,9 @@ class Amount extends PureComponent {
 			contractBalances,
 			contractExchangeRates
 		} = this.props;
-		const { address, decimals, symbol } = asset;
-		let [balance, balanceFiat] = [undefined, undefined];
-		if (asset.isEth) {
+		let balance, balanceFiat;
+		const { address, decimals, symbol } = token;
+		if (token.isEth) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
 			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 		} else {
@@ -481,21 +495,20 @@ class Amount extends PureComponent {
 			const exchangeRate = contractExchangeRates[address];
 			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		}
-
 		return (
 			<TouchableOpacity
-				key={address}
+				key={index}
 				style={styles.assetElementWrapper}
 				// eslint-disable-next-line react/jsx-no-bind
-				onPress={() => this.pickSelectedAsset(asset)}
+				onPress={() => this.pickSelectedAsset(token)}
 			>
 				<View style={styles.assetElement}>
-					{asset.isEth ? (
+					{token.isEth ? (
 						<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
 							<Image source={ethLogo} style={styles.ethLogo} testID={'eth-logo'} />
 						</FadeIn>
 					) : (
-						<TokenImage asset={asset} iconStyle={styles.tokenImage} containerStyle={styles.tokenImage} />
+						<TokenImage asset={token} iconStyle={styles.tokenImage} containerStyle={styles.tokenImage} />
 					)}
 					<View style={styles.assetInformationWrapper}>
 						<Text style={styles.textAssetTitle}>{symbol}</Text>
@@ -509,8 +522,47 @@ class Amount extends PureComponent {
 		);
 	};
 
+	renderCollectible = (collectible, index) => {
+		const { name } = collectible;
+		return (
+			<TouchableOpacity
+				key={index}
+				style={styles.assetElementWrapper}
+				// eslint-disable-next-line react/jsx-no-bind
+				onPress={() => this.pickSelectedAsset(collectible)}
+			>
+				<View style={styles.assetElement}>
+					<CollectibleImage collectible={collectible} />
+					<View style={styles.assetInformationWrapper}>
+						<Text style={styles.textAssetTitle}>{name}</Text>
+					</View>
+				</View>
+			</TouchableOpacity>
+		);
+	};
+
+	renderAsset = props => {
+		const { item: asset, index } = props;
+		if (!asset.tokenId) {
+			return this.renderToken(asset, index);
+		}
+		return this.renderCollectible(asset, index);
+	};
+
 	renderAssetsModal = () => {
 		const { assetsModalVisible } = this.state;
+		const { collectibleContracts } = this.props;
+
+		const collectibles = this.props.collectibles.map(processedCollectible => {
+			const collectibleContract = collectibleContracts.find(
+				contract => contract.address.toLowerCase() === processedCollectible.address.toLowerCase()
+			);
+			if (!processedCollectible.name) processedCollectible.name = collectibleContract.name;
+			if (!processedCollectible.image) processedCollectible.image = collectibleContract.logo;
+			return processedCollectible;
+		});
+
+		console.log('collectibles', collectibles);
 		return (
 			<Modal
 				isVisible={assetsModalVisible}
@@ -525,7 +577,11 @@ class Amount extends PureComponent {
 					<View style={styles.titleWrapper}>
 						<View style={styles.dragger} />
 					</View>
-					<FlatList data={this.tokens} keyExtractor={this.assetKeyExtractor} renderItem={this.renderAsset} />
+					<FlatList
+						data={[...this.tokens, ...collectibles]}
+						keyExtractor={this.assetKeyExtractor}
+						renderItem={this.renderAsset}
+					/>
 				</SafeAreaView>
 			</Modal>
 		);
@@ -628,6 +684,8 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	primaryCurrency: state.settings.primaryCurrency,
