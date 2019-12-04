@@ -81,7 +81,11 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
 		window.postMessage(${JSON.stringify(message)}, '${origin}');
 	} catch (e) {
 		//Nothing to do
+		console.log('POSTING MESSAGE FROM NATIVE TO MAINFRAME ERROR', e);
 	}
+})()`;
+
+export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
 	const iframes = document.getElementsByTagName('iframe');
 	for (let frame of iframes){
 
@@ -89,13 +93,15 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
 				frame.contentWindow.postMessage(${JSON.stringify(message)}, '${origin}');
 			} catch (e) {
 				//Nothing to do
+				console.log('POSTING MESSAGE FROM NATIVE TO IFRAME ERROR', e);
 			}
 
 	}
 })()`;
 
 export const JS_CONTENT_SCRIPT = entryScriptWeb3 => `
-	const inpageBundle = ${JSON.stringify(entryScriptWeb3)};
+	//const inpageBundle = ${JSON.stringify(entryScriptWeb3)};
+	${entryScriptWeb3}
 
 	/**
 	 * Injects a script tag into the current document
@@ -103,6 +109,7 @@ export const JS_CONTENT_SCRIPT = entryScriptWeb3 => `
 	 * @param {string} content - Code to be executed in the current document
 	 */
 	function injectScript (content) {
+		return true;
 		try {
 			const container = document.head || document.documentElement
 			const scriptTag = document.createElement('script')
@@ -121,6 +128,7 @@ export const JS_CONTENT_SCRIPT = entryScriptWeb3 => `
 	 * @returns {boolean} {@code true} if Web3 should be injected
 	 */
 	function shouldInjectWeb3 () {
+	return true;
 	return doctypeCheck() && suffixCheck() &&
 		documentElementCheck() && !blacklistedDomainCheck()
 	}
@@ -227,7 +235,33 @@ export const JS_CONTENT_SCRIPT = entryScriptWeb3 => `
 	}
 
 	if (shouldInjectWeb3()) {
-		injectScript(inpageBundle)
+		//injectScript(inpageBundle)
 		start()
+		if(window !== top) {
+			window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(
+				{
+					type: 'FRAME_READY',
+					payload: {
+						url: window.location.href,
+					}
+				}
+			));
+
+			window.addEventListener('message', message => {
+				console.log("IFRAME DUMMY LISTENER GOT MSG", message);
+				if(message.data.name === "publicConfig"){
+					// Manual update for Iframes
+					const { data } = message.data;
+					if(data.isUnlocked !== window.ethereum.isUnlocked ||
+					data.isEnabled !== window.ethereum.isEnabled ||
+					data.selectedAddress !== window.ethereum.selectedAddress ||
+					data.networkVersion !== window.ethereum.networkVersion ||
+					data.networkVersion !== window.ethereum.networkVersion ||
+					data.chainId !== window.ethereum.chainId){
+						window.ethereum.publicConfigStore.emit('update', message.data.data);
+					}
+				}
+			});
+		}
 	}
 `;

@@ -16,11 +16,12 @@ inherits(PortDuplexStream, Duplex);
  * @class
  * @param {Object} port Remote Port object
  */
-function PortDuplexStream(port) {
+function PortDuplexStream(port, url) {
 	Duplex.call(this, {
 		objectMode: true
 	});
 	this._port = port;
+	this._url = url;
 	port.addListener('message', this._onMessage.bind(this));
 	port.addListener('disconnect', this._onDisconnect.bind(this));
 }
@@ -71,9 +72,9 @@ PortDuplexStream.prototype._write = function(msg, encoding, cb) {
 		if (Buffer.isBuffer(msg)) {
 			const data = msg.toJSON();
 			data._isBuffer = true;
-			this._port.postMessage(data);
+			this._port.postMessage(data, this._url);
 		} else {
-			this._port.postMessage(msg);
+			this._port.postMessage(msg, this._url);
 		}
 	} catch (err) {
 		return cb(new Error('PortDuplexStream - disconnected'));

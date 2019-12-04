@@ -1,6 +1,6 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
-import { JS_POST_MESSAGE_TO_PROVIDER } from '../util/browserScripts';
+import { JS_POST_MESSAGE_TO_PROVIDER, JS_IFRAME_POST_MESSAGE_TO_PROVIDER } from '../util/browserScripts';
 import MobilePortStream from './MobilePortStream';
 import { setupMultiplex } from '../util/streams';
 import { createOriginMiddleware, createLoggerMiddleware } from '../util/middlewares';
@@ -22,34 +22,40 @@ const EventEmitter = require('events').EventEmitter;
  */
 
 class Port extends EventEmitter {
-	constructor(window) {
+	constructor(window, isMainFrame) {
 		super();
 		this._window = window;
+		this._isMainFrame = isMainFrame;
 	}
 
 	postMessage = (msg, origin = '*') => {
 		// Loop through the iframes first
 		// If the source doesn't match any
 		// send the message to the main window
-		const js = JS_POST_MESSAGE_TO_PROVIDER(msg, origin);
+		console.log('POSTING MSG TO PROVIDER', msg, origin, this._isMainFrame);
+		const js = this._isMainFrame
+			? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
+			: JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
 		this._window && this._window.injectJavaScript(js);
 	};
 }
 
 export class BackgroundBridge extends EventEmitter {
-	constructor(webview, url, middlewares, shouldExposeAccounts) {
+	constructor(webview, url, middlewares, shouldExposeAccounts, isMainFrame) {
 		console.log('initializing bridge for ', url);
 		super();
+		this.url = url;
+		this.isMainFrame = isMainFrame;
 		this._webviewRef = webview && webview.current;
 		this.middlewares = middlewares;
 		this.shouldExposeAccounts = shouldExposeAccounts;
 		this.provider = Engine.context.NetworkController.provider;
 		this.blockTracker = this.provider._blockTracker;
-		this.port = new Port(this._webviewRef);
+		this.port = new Port(this._webviewRef, isMainFrame);
 
 		const senderUrl = new URL(url);
 
-		const portStream = new MobilePortStream(this.port);
+		const portStream = new MobilePortStream(this.port, url);
 		// setup multiplexing
 		const mux = setupMultiplex(portStream);
 		// connect features
@@ -58,6 +64,7 @@ export class BackgroundBridge extends EventEmitter {
 	}
 
 	onMessage = msg => {
+		console.log('BRIDGE FOR ', this.url, 'got msg', msg);
 		this.port.emit('message', { name: msg.name, data: msg.data });
 	};
 
@@ -71,11 +78,9 @@ export class BackgroundBridge extends EventEmitter {
 	 * @param {URL} senderUrl - The URI of the requesting resource.
 	 * @param {string} extensionId - The id of the extension, if the requesting
 	 * resource is an extension.
-	 * @param {object} publicApi - The public API
 	 */
-	setupProviderConnection(outStream, senderUrl, publicApi) {
-		const getSiteMetadata = publicApi && publicApi.getSiteMetadata;
-		const engine = this.setupProviderEngine(senderUrl, getSiteMetadata);
+	setupProviderConnection(outStream, senderUrl) {
+		const engine = this.setupProviderEngine(senderUrl);
 
 		// setup connection
 		const providerStream = createEngineStream({ engine });
