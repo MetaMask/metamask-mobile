@@ -1,6 +1,16 @@
 import React, { PureComponent } from 'react';
 import { colors, baseStyles, fontStyles } from '../../../../styles/common';
-import { StyleSheet, SafeAreaView, View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+	InteractionManager,
+	StyleSheet,
+	SafeAreaView,
+	View,
+	Alert,
+	Text,
+	ScrollView,
+	TouchableOpacity,
+	ActivityIndicator
+} from 'react-native';
 import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
@@ -16,7 +26,7 @@ import {
 } from '../../../../util/number';
 import { getTicker, decodeTransferData } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { hexToBN } from 'gaba/dist/util';
+import { hexToBN, BNToHex } from 'gaba/dist/util';
 import { prepareTransaction } from '../../../../actions/newTransaction';
 import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -24,6 +34,8 @@ import Logger from '../../../../util/Logger';
 import ActionModal from '../../../UI/ActionModal';
 import CustomGas from '../CustomGas';
 import ErrorMessage from '../ErrorMessage';
+import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
+import { strings } from '../../../../../locales/i18n';
 
 const AVERAGE_GAS = 20;
 const LOW_GAS = 10;
@@ -361,16 +373,48 @@ class Confirm extends PureComponent {
 	validateGas = () => {
 		const { accounts } = this.props;
 		const { gas, gasPrice, value, from } = this.props.transactionState.transaction;
+		let errorMessage;
 		const totalGas = gas.mul(gasPrice);
 		const valueBN = hexToBN(value);
 		const balanceBN = hexToBN(accounts[from].balance);
 		if (valueBN.add(totalGas).gt(balanceBN)) {
-			this.setState({ errorMessage: 'Insufficient funds' });
+			errorMessage = 'Insufficient funds';
+			this.setState({ errorMessage });
 		}
+		return errorMessage;
 	};
 
-	onNext = () => {
-		this.validateGas();
+	prepareTransactionToSend = () => {
+		const {
+			transactionState: { transaction }
+		} = this.props;
+		transaction.gas = BNToHex(transaction.gas);
+		transaction.gasPrice = BNToHex(transaction.gasPrice);
+		return transaction;
+	};
+
+	onNext = async () => {
+		const { TransactionController } = Engine.context;
+		const {
+			transactionState: { assetType }
+		} = this.props;
+		if (this.validateGas()) return;
+		try {
+			const transaction = this.prepareTransactionToSend();
+			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
+			await TransactionController.approveTransaction(transactionMeta.id);
+
+			await new Promise(resolve => resolve(result));
+
+			InteractionManager.runAfterInteractions(() => {
+				TransactionsNotificationManager.watchSubmittedTransaction({
+					...transactionMeta,
+					assetType
+				});
+			});
+		} catch (error) {
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+		}
 	};
 
 	renderIfGastEstimationReady = children => {

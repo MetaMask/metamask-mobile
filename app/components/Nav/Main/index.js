@@ -461,7 +461,8 @@ class Main extends PureComponent {
 				}
 			});
 
-			Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
+			// TODO handle this
+			// Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
 
 			Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams => {
 				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;

@@ -24,7 +24,8 @@ export function setRecipient(from, to, ensRecipient, transactionToName, transact
 export function setSelectedAsset(selectedAsset) {
 	return {
 		type: 'SET_SELECTED_ASSET',
-		selectedAsset
+		selectedAsset,
+		assetType: selectedAsset.isEth ? 'ETH' : 'ERC20'
 	};
 }
 
