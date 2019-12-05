@@ -189,8 +189,7 @@
     "regenerator-runtime": "0.13.1",
     "request-promise": "4.2.4",
     "rn-nodeify": "10.0.1",
-    "stack-beautifier": "1.0.2",
-    "web3": "0.20.7"
+    "stack-beautifier": "1.0.2"
   },
   "eslintConfig": {
     "parser": "babel-eslint",

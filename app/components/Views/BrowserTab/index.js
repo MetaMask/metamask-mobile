@@ -33,12 +33,7 @@ import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
-import {
-	SPA_urlChangeListener,
-	JS_WINDOW_INFORMATION,
-	JS_DESELECT_TEXT,
-	JS_CONTENT_SCRIPT
-} from '../../../util/browserScripts';
+import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
@@ -735,8 +730,6 @@ export class BrowserTab extends PureComponent {
 				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
 				: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
 
-		const updatedentryScriptWeb3 = JS_CONTENT_SCRIPT(entryScriptWeb3);
-
 		const analyticsEnabled = Analytics.getEnabled();
 
 		const homepageScripts = `
@@ -745,7 +738,7 @@ export class BrowserTab extends PureComponent {
 			window.__mmMetametrics = ${analyticsEnabled};
 		`;
 
-		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener, homepageScripts });
+		await this.setState({ entryScriptWeb3: entryScriptWeb3 + SPA_urlChangeListener, homepageScripts });
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
 			if (!this.isTabActive()) return false;
 			this.setState({ watchAsset: true, suggestedAssetMeta });
