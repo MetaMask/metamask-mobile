@@ -337,7 +337,7 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
 		return undefined;
 	}
 	const fiatFixed = balanceToFiatNumber(balance, conversionRate, exchangeRate);
-	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
+	return `${fiatFixed} ${currencyCode}`;
 }
 
 /**

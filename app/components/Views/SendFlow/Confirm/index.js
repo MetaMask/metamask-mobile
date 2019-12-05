@@ -301,7 +301,8 @@ class Confirm extends PureComponent {
 			transactionValue = `${transferValue} ${symbol}`;
 			const exchangeRate = contractExchangeRates[address];
 			const transactionFeeFiatNumber = weiToFiatNumber(weiTransactionFee, conversionRate);
-			transactionValueFiat = balanceToFiat(transferValue, conversionRate, exchangeRate, currentCurrency);
+			transactionValueFiat =
+				balanceToFiat(transferValue, conversionRate, exchangeRate, currentCurrency) || `0 ${currentCurrency}`;
 			const transactionValueFiatNumber = balanceToFiatNumber(transferValue, conversionRate, exchangeRate);
 			transactionTotalAmount = `${transactionValue} + ${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 			transactionTotalAmountFiat = renderFiatAddition(
@@ -396,7 +397,6 @@ class Confirm extends PureComponent {
 	renderCustomGasModal = () => {
 		const { customGasModalVisible, currentCustomGasSelected } = this.state;
 		const { gas, gasPrice } = this.props.transactionState.transaction;
-		console.log('trabsaction gas', gas, gasPrice);
 		return (
 			<ActionModal
 				modalVisible={customGasModalVisible}

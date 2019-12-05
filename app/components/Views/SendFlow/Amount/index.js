@@ -310,7 +310,8 @@ class Amount extends PureComponent {
 		renderableInputValueConversion: undefined,
 		assetsModalVisible: false,
 		internalPrimaryCurrencyIsCrypto: this.props.primaryCurrency === 'ETH',
-		estimatedTotalGas: undefined
+		estimatedTotalGas: undefined,
+		hasExchangeRate: false
 	};
 
 	amountInput = React.createRef();
@@ -329,8 +330,8 @@ class Amount extends PureComponent {
 
 	onNext = async () => {
 		const { navigation, selectedAsset } = this.props;
-		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto } = this.state;
-		const value = internalPrimaryCurrencyIsCrypto ? inputValue : inputValueConversion;
+		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto, hasExchangeRate } = this.state;
+		const value = internalPrimaryCurrencyIsCrypto || !hasExchangeRate ? inputValue : inputValueConversion;
 		if (!selectedAsset.tokenId && this.validateAmount(value)) return;
 		await this.prepareTransaction(value);
 		navigation.navigate('Confirm');
@@ -347,9 +348,7 @@ class Amount extends PureComponent {
 			transaction.to = transactionTo;
 			transaction.value = BNToHex(toWei(value));
 		} else if (selectedAsset.tokenId) {
-			const collectibleTransferInformation =
-				selectedAsset.address in collectiblesTransferInformation &&
-				collectiblesTransferInformation[selectedAsset.address];
+			const collectibleTransferInformation = collectiblesTransferInformation[selectedAsset.address];
 			if (
 				!collectibleTransferInformation ||
 				(collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transferFrom')
@@ -393,6 +392,7 @@ class Amount extends PureComponent {
 		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
 		const { estimatedTotalGas } = this.state;
 		let weiBalance, weiInput, amountError;
+		console.log('inputValue', inputValue);
 		if (isDecimal(inputValue)) {
 			if (selectedAsset.isEth) {
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
@@ -457,7 +457,7 @@ class Amount extends PureComponent {
 			}
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
-			if (internalPrimaryCurrencyIsCrypto) {
+			if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
 				input = fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals);
 			} else {
 				input = `${balanceToFiatNumber(
@@ -473,12 +473,13 @@ class Amount extends PureComponent {
 	onInputChange = (inputValue, selectedAsset) => {
 		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
-		let inputValueConversion, renderableInputValueConversion;
+		let inputValueConversion, renderableInputValueConversion, hasExchangeRate;
 		const processedTicker = getTicker(ticker);
 		const processedInputValue = isDecimal(inputValue) ? inputValue : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
 
 		if (selectedAsset.isEth) {
+			hasExchangeRate = true;
 			if (internalPrimaryCurrencyIsCrypto) {
 				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue.toString(16)), conversionRate)}`;
 				renderableInputValueConversion = `${inputValueConversion} ${currentCurrency}`;
@@ -488,7 +489,9 @@ class Amount extends PureComponent {
 			}
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
-			if (internalPrimaryCurrencyIsCrypto) {
+			hasExchangeRate = !!exchangeRate;
+			// If !hasExchangeRate we have to handle crypto amount
+			if (internalPrimaryCurrencyIsCrypto || !hasExchangeRate) {
 				inputValueConversion = `${balanceToFiatNumber(processedInputValue, conversionRate, exchangeRate)}`;
 				renderableInputValueConversion = `${inputValueConversion} ${currentCurrency}`;
 			} else {
@@ -506,7 +509,13 @@ class Amount extends PureComponent {
 		}
 
 		inputValueConversion = inputValueConversion === '0' ? undefined : inputValueConversion;
-		this.setState({ inputValue, inputValueConversion, renderableInputValueConversion, amountError: undefined });
+		this.setState({
+			inputValue,
+			inputValueConversion,
+			renderableInputValueConversion,
+			amountError: undefined,
+			hasExchangeRate
+		});
 	};
 
 	toggleAssetsModal = () => {
@@ -658,7 +667,7 @@ class Amount extends PureComponent {
 	};
 
 	renderTokenInput = () => {
-		const { inputValue, renderableInputValueConversion, amountError } = this.state;
+		const { inputValue, renderableInputValueConversion, amountError, hasExchangeRate } = this.state;
 		return (
 			<View>
 				<View style={styles.inputContainer}>
@@ -671,23 +680,25 @@ class Amount extends PureComponent {
 						placeholder={'0'}
 					/>
 				</View>
-				<View style={styles.actionsWrapper}>
-					<View style={[styles.action]}>
-						<TouchableOpacity style={styles.actionSwitch} onPress={this.switchCurrency}>
-							<Text style={styles.textSwitch} numberOfLines={1}>
-								{renderableInputValueConversion}
-							</Text>
-							<View styles={styles.switchWrapper}>
-								<MaterialCommunityIcons
-									name="swap-vertical"
-									size={16}
-									color={colors.blue}
-									style={styles.switch}
-								/>
-							</View>
-						</TouchableOpacity>
+				{hasExchangeRate && (
+					<View style={styles.actionsWrapper}>
+						<View style={[styles.action]}>
+							<TouchableOpacity style={styles.actionSwitch} onPress={this.switchCurrency}>
+								<Text style={styles.textSwitch} numberOfLines={1}>
+									{renderableInputValueConversion}
+								</Text>
+								<View styles={styles.switchWrapper}>
+									<MaterialCommunityIcons
+										name="swap-vertical"
+										size={16}
+										color={colors.blue}
+										style={styles.switch}
+									/>
+								</View>
+							</TouchableOpacity>
+						</View>
 					</View>
-				</View>
+				)}
 				{amountError && (
 					<View style={styles.errorMessageWrapper}>
 						<ErrorMessage errorMessage={amountError} />
