@@ -11,8 +11,8 @@ import { renderFromTokenMinimalUnit, balanceToFiat } from '../../../util/number'
 import Engine from '../../../core/Engine';
 import AssetElement from '../AssetElement';
 import FadeIn from 'react-native-fade-in-image';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -135,7 +135,7 @@ class Tokens extends PureComponent {
 
 	renderItem = asset => {
 		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency } = this.props;
-		const itemAddress = (asset.address && toChecksumAddress(asset.address)) || undefined;
+		const itemAddress = safeToChecksumAddress(asset.address);
 		const logo = asset.logo || ((contractMap[itemAddress] && contractMap[itemAddress].logo) || undefined);
 		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 		const balance =

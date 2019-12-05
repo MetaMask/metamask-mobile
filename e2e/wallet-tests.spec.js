@@ -39,9 +39,14 @@ describe('Wallet Tests', () => {
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
-		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
+		await TestHelpers.waitAndTap('agree-button', 15000);
+		// Should be on wallet screen
+		if (!device.getPlatform() === 'android') {
+			// Check that we are on the wallet screen
+			await TestHelpers.checkIfExists('wallet-screen');
+		}
+		// Check that the onboarding wizard is present
+		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
 		// Check that No thanks CTA is visible and tap it
 		await TestHelpers.waitAndTap('onboarding-wizard-back-button');
 		// Check that the onboarding wizard is gone
@@ -52,23 +57,19 @@ describe('Wallet Tests', () => {
 
 	it('should be able to add new accounts', async () => {
 		// Tap on account icon to prompt modal
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 190, y: 50 });
+		await TestHelpers.tap('wallet-account-identicon');
 		// Check that the account list view is visible
 		await TestHelpers.checkIfVisible('account-list');
 		// Tap on Create New Account
 		await TestHelpers.waitAndTap('create-account-button');
 		// Check if account was added
 		await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
-		// Tap outside modal
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 50, y: 50 });
 	});
 
 	it('should be able to import account', async () => {
-		// Tap on account icon to prompt modal
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 190, y: 50 });
 		// Check that the account list view is visible
 		await TestHelpers.checkIfVisible('account-list');
-		// Tap on Create New Account
+		// Tap to import an account
 		await TestHelpers.waitAndTap('import-account-button');
 		// Check that we are on the import screen
 		await TestHelpers.checkIfVisible('import-account-screen');
@@ -96,7 +97,7 @@ describe('Wallet Tests', () => {
 
 	it('should be able to switch accounts', async () => {
 		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on account button to expand modal
@@ -106,7 +107,7 @@ describe('Wallet Tests', () => {
 		// Switch to account 1
 		await TestHelpers.tapByText('Account 1');
 		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Receive button
@@ -121,21 +122,35 @@ describe('Wallet Tests', () => {
 		await TestHelpers.checkIfElementHasString('public-address-input', TEST_PUBLIC_ADDRESS);
 		// Close modal
 		await TestHelpers.tap('close-qr-modal');
-		// Check that we are on the reveive screen
+		// Check that we are on the receive screen
 		await TestHelpers.checkIfVisible('receive-request-screen');
-		// Close Receive screen
-		await TestHelpers.swipe('receive-request-screen', 'down');
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Close drawer screen
-		await TestHelpers.swipe('drawer-screen', 'left');
+
+		// Close Receive screen and go back to wallet screen
+		if (device.getPlatform() === 'android') {
+			// Close modal
+			await device.pressBack();
+			await TestHelpers.delay(1000);
+			// Check that you are on the drawer screen
+			await TestHelpers.checkIfVisible('drawer-screen');
+			// Close drawer
+			await device.pressBack();
+			await TestHelpers.delay(1000);
+		} else {
+			// Close modal
+			await TestHelpers.swipe('receive-request-screen', 'down');
+			// Check that you are on the drawer screen
+			await TestHelpers.checkIfVisible('drawer-screen');
+			// Close drawer
+			await TestHelpers.swipe('drawer-screen', 'left');
+		}
+
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
+		await TestHelpers.checkIfVisible('wallet-screen');
 	});
 
 	it('should switch to Rinkeby network', async () => {
 		// Tap on Ethereum Main Network to prompt modal
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 200, y: -5 });
+		await TestHelpers.waitAndTap('open-networks-button');
 		// Check that the Networks modal pops up
 		await TestHelpers.checkIfVisible('networks-list');
 		// Tap on Rinkeby Test Nework
@@ -161,8 +176,15 @@ describe('Wallet Tests', () => {
 		await TestHelpers.tapByText('ADD');
 		// Check that identifier warning appears
 		await TestHelpers.checkIfVisible('collectible-identifier-warning');
-		// Tap on back arrow
-		await TestHelpers.tapAtPoint('add-custom-token-screen', { x: 25, y: -22 });
+
+		// Go Back one view
+		if (device.getPlatform() === 'android') {
+			await device.pressBack();
+			await TestHelpers.delay(1000);
+		} else {
+			await TestHelpers.tapAtPoint('add-custom-token-screen', { x: 25, y: -22 });
+		}
+
 		// Tap on the add collectibles button
 		await TestHelpers.waitAndTap('add-collectible-button');
 		// Check that we are on the add collectible asset screen
@@ -184,7 +206,12 @@ describe('Wallet Tests', () => {
 		// Check that the asset is correct
 		await TestHelpers.checkIfElementHasString('collectible-name', '1 CryptoKitties');
 		// Tap on back arrow
-		await TestHelpers.tapAtPoint('collectible-overview-screen', { x: 25, y: -22 });
+		if (device.getPlatform() === 'android') {
+			await device.pressBack();
+			await TestHelpers.delay(1000);
+		} else {
+			await TestHelpers.tapAtPoint('collectible-overview-screen', { x: 25, y: -22 });
+		}
 	});
 
 	it('should add a token', async () => {
@@ -194,18 +221,29 @@ describe('Wallet Tests', () => {
 		await TestHelpers.tapByText('TOKENS');
 		// Tap on Add Tokens
 		await TestHelpers.tap('add-token-button');
-		// Search for DAI
-		await TestHelpers.typeTextAndHideKeyboard('input-search-asset', 'DAI');
+		// Search for SAI
+		await TestHelpers.typeTextAndHideKeyboard('input-search-asset', 'SAI');
 		// Wait for results to load
 		await TestHelpers.delay(2000);
-		// Tap on DAI
-		await TestHelpers.tapAtPoint('search-token-screen', { x: 115, y: 160 });
+		// Select SAI
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.tapItemAtIndex('searched-token-result');
+			await TestHelpers.delay(500);
+		} else {
+			await TestHelpers.tapAtPoint('search-token-screen', { x: 115, y: 160 });
+		}
 		// Tap on Add Token button
 		await TestHelpers.tapByText('ADD TOKEN');
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
-		// Check that DAI is added to wallet
-		await TestHelpers.checkIfElementWithTextIsVisible('0 DAI');
+		// Check that SAI is added to wallet
+		await TestHelpers.checkIfElementWithTextIsVisible('0 SAI');
+		// Tap on SAI to remove network
+		await element(by.text('0 SAI')).longPress();
+		// Tap remove
+		await TestHelpers.tapByText('Remove');
+		// Tap OK in alert box
+		await TestHelpers.tapAlertWithButton('OK');
 	});
 
 	it('should add a custom token', async () => {
@@ -222,23 +260,34 @@ describe('Wallet Tests', () => {
 		// Type incorrect token symbol
 		await TestHelpers.typeTextAndHideKeyboard('input-token-symbol', 'ROCK');
 		// Tap to focus outside of text input field
-		await TestHelpers.tapAtPoint('add-custom-token-screen', { x: 180, y: 15 });
+		await TestHelpers.delay(700);
+		await TestHelpers.tapByText('Token Address');
+		await TestHelpers.delay(700);
 		// Check that token decimals warning is displayed
 		await TestHelpers.checkIfVisible('token-decimals-warning');
 		// Tap on cancel button
-		await TestHelpers.tapByText('CANCEL');
+		if (device.getPlatform() === 'android') {
+			await device.pressBack();
+		} else {
+			await TestHelpers.tapByText('CANCEL');
+		}
 		// Tap on Add Tokens
 		await TestHelpers.tap('add-token-button');
 		// Tap on CUSTOM TOKEN
 		await TestHelpers.tapByText('CUSTOM TOKEN');
 		// Check that we are on the custom token screen
 		await TestHelpers.checkIfVisible('add-custom-token-screen');
-		// Type incorrect token address
+		// Type correct token address
 		await TestHelpers.typeText('input-token-address', TOKEN_ADDRESS);
-		// Tap to focus outside of text input field
-		await TestHelpers.tapAtPoint('add-custom-token-screen', { x: 180, y: 15 });
-		// Tap on Add Token button
-		await TestHelpers.tapByText('ADD TOKEN');
+		// Add token
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.tapByText('Token Address');
+			await TestHelpers.tap('input-token-decimals');
+			await element(by.id('input-token-decimals')).tapReturnKey();
+		} else {
+			await TestHelpers.tapByText('Token Address');
+			await TestHelpers.tapByText('ADD TOKEN');
+		}
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Check that TENX is added to wallet
@@ -250,7 +299,6 @@ describe('Wallet Tests', () => {
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Tap on ETH asset
 		await TestHelpers.waitAndTap('eth-logo');
-		//await TestHelpers.tapAtPoint('wallet-screen', { x: 190, y: 250 });
 		// Check that we are on the token overview screen
 		await TestHelpers.checkIfVisible('token-asset-overview');
 		// Check that the token amount is correct
@@ -269,11 +317,5 @@ describe('Wallet Tests', () => {
 		await TestHelpers.tapByText('CONFIRM');
 		// Check that we are on the token overview screen
 		await TestHelpers.checkIfVisible('token-asset-overview');
-		// Wait for enable notifications alert to show up
-		await TestHelpers.delay(10000);
-		// Dismiss alert
-		await TestHelpers.tapAlertWithButton('No, thanks');
-		// Check that the token amount is correct
-		await TestHelpers.checkIfElementHasString('token-asset-overview', '3 ETH');
 	});
 });

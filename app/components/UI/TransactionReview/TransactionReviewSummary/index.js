@@ -13,8 +13,8 @@ import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { APPROVE_FUNCTION_SIGNATURE, decodeTransferData, getTicker } from '../../../../util/transactions';
 import contractMap from 'eth-contract-metadata';
-import { toChecksumAddress } from 'ethereumjs-util';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import { safeToChecksumAddress } from '../../../../util/address';
 
 const styles = StyleSheet.create({
 	confirmBadge: {
@@ -113,9 +113,9 @@ class TransactionReviewSummary extends PureComponent {
 		let assetAmount, conversionRate, fiatValue;
 		const approveTransaction = data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
 		if (approveTransaction) {
-			let contract = contractMap[toChecksumAddress(to)];
+			let contract = contractMap[safeToChecksumAddress(to)];
 			if (!contract) {
-				contract = tokens.find(({ address }) => address === toChecksumAddress(to));
+				contract = tokens.find(({ address }) => address === safeToChecksumAddress(to));
 			}
 			const symbol = (contract && contract.symbol) || 'ERC20';
 			assetAmount = `${decodeTransferData('transfer', data)[1]} ${symbol}`;

@@ -110,12 +110,7 @@ class DeeplinkManager {
 				const redirect = params && params.redirect;
 				// eslint-disable-next-line no-case-declarations
 				const autosign = params && params.autosign;
-
-				if (urlObj.hostname === 'sign' || urlObj.hostname === 'send') {
-					WalletConnect.setRedirectUri(redirect);
-				} else {
-					WalletConnect.newSession(url, redirect, autosign);
-				}
+				WalletConnect.newSession(url, redirect, autosign);
 				break;
 			case 'ethereum':
 				this.handleEthereumUrl(url);

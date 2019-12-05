@@ -202,8 +202,8 @@ const defaultAssets = [
 		decimals: 18,
 		erc20: true,
 		logo: 'dai.svg',
-		name: 'Dai Stablecoin v1.0',
-		symbol: 'DAI'
+		name: 'Sai Stablecoin v1.0',
+		symbol: 'SAI'
 	}
 ];
 

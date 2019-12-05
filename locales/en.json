@@ -293,8 +293,8 @@
 		"instapay_state_logs": "InstaPay Logs",
 		"auto_lock": "Auto-lock",
 		"auto_lock_desc": "Choose the amount of time before the application automatically locks.",
-		"state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it via email to mobile@metamask.io",
-		"instapay_state_logs_desc": "This will help MetaMask debug issues with InstaPay. Please send it via email to mobile@metamask.io",
+		"state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it via email to support@metamask.io",
+		"instapay_state_logs_desc": "This will help MetaMask debug issues with InstaPay. Please send it via email to support@metamask.io",
 		"autolock_immediately": "Immediately",
 		"autolock_never": "Never",
 		"autolock_after": "After {{time}} seconds",
@@ -455,6 +455,7 @@
 		"reject": "Reject",
 		"edit": "Edit",
 		"cancel": "Cancel",
+		"speedup": "Speed up",
 		"from": "From",
 		"gas_fee": "Transaction Fee",
 		"gas_fee_fast": "FAST",
@@ -485,11 +486,14 @@
 		"no_address_for_ens": "No address for this ENS name",
 		"no_address_for_instapay": "No address for this InstaPay name",
 		"lets_try": "Yes, let's try",
+		"approve_warning": "By approving this action, you grant permission for this contract to spend up to",
 		"cancel_tx_title": "Attempt to cancel?",
-		"cancel_tx_message": "Submitting this attempt does not guarantee your original transaction will be cancelled. If the canellation attempt is successful, you will be charged the transaction fee above.",
+		"cancel_tx_message": "Submitting this attempt does not guarantee your original transaction will be cancelled. If the cancellation attempt is successful, you will be charged the transaction fee above.",
+		"speedup_tx_title": "Attempt to speed up?",
+		"speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
 		"nevermind": "Nevermind",
-		"gasCancelFee": "Gas Cancellation Fee",
-		"approve_warning": "By approving this action, you grant permission for this contract to spend up to"
+		"gas_cancel_fee": "Gas Cancellation Fee",
+		"gas_speedup_fee": "Gas Speed Up fee"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",
@@ -651,6 +655,7 @@
 	},
 	"unit": {
 		"eth": "ETH",
+		"sai": "SAI",
 		"dai": "DAI",
 		"negative": "-",
 		"divisor": "/",
@@ -697,7 +702,7 @@
 		"or_scan_a_qr_code": "or Scan a QR Code"
 	},
 	"import_private_key_success": {
-		"title": "Account succesfully imported!",
+		"title": "Account successfully imported!",
 		"description_one": "You'll now be able to view your account in MetaMask."
 	},
 	"first_incoming_transaction": {
@@ -816,6 +821,7 @@
 		"pending_withdrawal_title": "Withdrawal in progress!",
 		"cancelled_title": "Transaction cancelled!",
 		"success_title": "Transaction #{{nonce}} Complete!",
+		"speedup_title": "Speeding up #{{nonce}}!",
 		"success_deposit_title": "Deposit Complete!",
 		"success_withdrawal_title": "Withdrawal Complete!",
 		"error_title": "Oops, something went wrong :/",
@@ -826,6 +832,7 @@
 		"pending_withdrawal_message": "Waiting for withdrawal to complete",
 		"error_message": "Tap to view this transaction",
 		"success_message": "Tap to view this transaction",
+		"speedup_message": "Trying to speed up the transaction",
 		"success_deposit_message": "Your funds are ready to use",
 		"success_withdrawal_message": "Your funds have been moved to your wallet",
 		"cancelled_message": "Tap to view this transaction",
@@ -993,5 +1000,15 @@
 		"amount_error_message": "The amount must be a number",
 		"address_error_message": "The address is invalid",
 		"balance_error_message": "Insufficient balance"
+	},
+	"walletconnect_return_modal": {
+		"title": "You're all set!",
+		"text": "You can now return to your browser"
+	},
+	"sai_migration": {
+		"title": "A message from MakerDAO",
+		"message": "It looks like you have some Dai in your account. You need to migrate this Dai to its new version or it will be deprecated.",
+		"learn_more": "Learn More",
+		"lets_do_it": "Let's do it!"
 	}
 }

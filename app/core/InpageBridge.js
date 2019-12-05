@@ -41,6 +41,12 @@ class InpageBridge {
 		const oldNetwork = this._network;
 		this._selectedAddress = state.selectedAddress && state.selectedAddress.toLowerCase();
 		this._network = state.network;
+		this.selectedAddress = this._selectedAddress;
+		this.networkVersion = this._network;
+		if (!isNaN(this._network)) {
+			this.chainId = 'Ox' + parseInt(this._network, 10).toString(16);
+		}
+
 		oldAddress !== undefined &&
 			this._selectedAddress !== oldAddress &&
 			this.emit('accountsChanged', [this._selectedAddress]);
@@ -127,7 +133,7 @@ class InpageBridge {
 	}
 
 	_subscribe() {
-		document.addEventListener('message', ({ data }) => {
+		window.addEventListener('message', ({ data }) => {
 			if (data.toString().indexOf('INPAGE_RESPONSE') !== -1 || data.toString().indexOf('STATE_UPDATE') !== -1) {
 				this._onMessage(data);
 			}
@@ -146,6 +152,9 @@ class InpageBridge {
 		this._connected = false;
 		this.events = {};
 		this.isMetaMask = true;
+		this.networkVersion = undefined;
+		this.chainId = undefined;
+		this.selectedAddress = undefined;
 		this._network = undefined; // INITIAL_NETWORK
 		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
 		this._subscribe();
@@ -248,7 +257,8 @@ class InpageBridge {
 		window.ReactNativeWebView.postMessage(
 			JSON.stringify({
 				payload,
-				type: 'INPAGE_REQUEST'
+				type: 'INPAGE_REQUEST',
+				origin: window.location.href
 			})
 		);
 	}
@@ -330,55 +340,58 @@ class InpageBridge {
 	}
 }
 
-window.ethereum = new InpageBridge();
+// Don't start the provider on frames without src!
+if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+	window.ethereum = new InpageBridge();
 
-/**
- * Expose nonstandard convenience methods at an application-specific namespace.
- * A Proxy is used so developers can be warned about the use of these methods.
- */
-window.ethereum._metamask = new Proxy(
-	{
-		/**
-		 * Determines if user accounts are enabled for this domain
-		 *
-		 * @returns {boolean} - true if accounts are enabled for this domain
-		 */
-		isEnabled: () => !!window.ethereum._selectedAddress,
+	/**
+	 * Expose nonstandard convenience methods at an application-specific namespace.
+	 * A Proxy is used so developers can be warned about the use of these methods.
+	 */
+	window.ethereum._metamask = new Proxy(
+		{
+			/**
+			 * Determines if user accounts are enabled for this domain
+			 *
+			 * @returns {boolean} - true if accounts are enabled for this domain
+			 */
+			isEnabled: () => !!window.ethereum._selectedAddress,
 
-		/**
-		 * Determines if user accounts have been previously enabled for this
-		 * domain in the past. This is useful for determining if a user has
-		 * previously whitelisted a given dapp.
-		 *
-		 * @returns {Promise<boolean>} - Promise resolving to true if accounts have been previously enabled for this domain
-		 */
-		isApproved: async () => {
-			const response = await window.ethereum.send('metamask_isApproved');
-			return response ? response.isApproved : false;
+			/**
+			 * Determines if user accounts have been previously enabled for this
+			 * domain in the past. This is useful for determining if a user has
+			 * previously whitelisted a given dapp.
+			 *
+			 * @returns {Promise<boolean>} - Promise resolving to true if accounts have been previously enabled for this domain
+			 */
+			isApproved: async () => {
+				const response = await window.ethereum.send('metamask_isApproved');
+				return response ? response.isApproved : false;
+			},
+
+			/**
+			 * Determines if MetaMask is unlocked by the user. The mobile application
+			 * is always unlocked, so this method exists only for symmetry with the
+			 * browser extension.
+			 *
+			 * @returns {Promise<boolean>} - Promise resolving to true
+			 */
+			isUnlocked: () => Promise.resolve(true)
 		},
-
-		/**
-		 * Determines if MetaMask is unlocked by the user. The mobile application
-		 * is always unlocked, so this method exists only for symmetry with the
-		 * browser extension.
-		 *
-		 * @returns {Promise<boolean>} - Promise resolving to true
-		 */
-		isUnlocked: () => Promise.resolve(true)
-	},
-	{
-		get: (obj, prop) => {
-			!window.ethereum._warned &&
-				// eslint-disable-next-line no-console
-				console.warn(
-					'Heads up! ethereum._metamask exposes methods that have ' +
-						'not been standardized yet. This means that these methods may not be implemented ' +
-						'in other dapp browsers and may be removed from MetaMask in the future.'
-				);
-			window.ethereum._warned = true;
-			return obj[prop];
+		{
+			get: (obj, prop) => {
+				!window.ethereum._warned &&
+					// eslint-disable-next-line no-console
+					console.warn(
+						'Heads up! ethereum._metamask exposes methods that have ' +
+							'not been standardized yet. This means that these methods may not be implemented ' +
+							'in other dapp browsers and may be removed from MetaMask in the future.'
+					);
+				window.ethereum._warned = true;
+				return obj[prop];
+			}
 		}
-	}
-);
+	);
 
-window.postMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' }, '*');
+	window.postMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' }, '*');
+}

@@ -22,6 +22,7 @@ exports[`AddCustomToken should render correctly 1`] = `
     onConfirmPress={[Function]}
     showCancelButton={true}
     showConfirmButton={true}
+    testID="add-asset-cancel-button"
   >
     <View>
       <View

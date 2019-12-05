@@ -48,8 +48,8 @@ export function renderShortXpubAddress(address, chars = 4) {
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
-	address = toChecksumAddress(address);
 	if (identities && address && address in identities) {
+		address = toChecksumAddress(address);
 		return identities[address].name;
 	}
 	return renderShortAddress(address);
@@ -107,6 +107,11 @@ export function isInstaPay(name) {
  */
 export function resemblesAddress(address) {
 	return address.length === 2 + 20 * 2;
+}
+
+export function safeToChecksumAddress(address) {
+	if (!address) return undefined;
+	return toChecksumAddress(address);
 }
 
 /**

@@ -272,6 +272,8 @@ class SyncWithExtension extends PureComponent {
 		}
 
 		try {
+			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
+			await Engine.resetState();
 			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.props.passwordHasBeenSet();

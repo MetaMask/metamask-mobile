@@ -20,13 +20,11 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
-import { toBN, balanceToFiatNumber } from '../../../util/number';
+import { toBN, balanceToFiatNumber, BNToHex } from '../../../util/number';
 import AssetCard from '../AssetCard';
 import Engine from '../../../core/Engine';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { setPaymentChannelTransaction } from '../../../actions/transaction';
 import Transactions from '../../UI/Transactions';
-import { BNToHex } from 'gaba/util';
 import Networks from '../../../util/networks';
 import Modal from 'react-native-modal';
 import PaymentChannelWelcome from './PaymentChannelWelcome';
@@ -40,7 +38,7 @@ import AddressQRCode from '../AddressQRCode';
 import ChooseInstaPayUserModal from '../../UI/ChooseInstaPayUserModal';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 
-const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
+const SAI_ADDRESS = AppConstants.SAI_ADDRESS;
 const MIGRATION_TIMEOUT_MINUTES = 1.5;
 
 const styles = StyleSheet.create({
@@ -563,7 +561,7 @@ class PaymentChannel extends PureComponent {
 			address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
 			decimals: 18,
 			logo: 'dai.svg',
-			symbol: 'DAI'
+			symbol: 'SAI'
 		});
 		this.props.navigation.navigate('PaymentChannelSend');
 	};
@@ -663,14 +661,14 @@ class PaymentChannel extends PureComponent {
 		const { TokenRatesController } = Engine.context;
 		const { nativeCurrency, currentCurrency, contractExchangeRates, conversionRate } = this.props;
 		let exchangeRate;
-		if (Object.keys(contractExchangeRates).includes(toChecksumAddress(DAI_ADDRESS))) {
-			exchangeRate = contractExchangeRates[toChecksumAddress(DAI_ADDRESS)];
+		if (Object.keys(contractExchangeRates).includes(SAI_ADDRESS)) {
+			exchangeRate = contractExchangeRates[SAI_ADDRESS];
 		} else {
 			const res = await TokenRatesController.fetchExchangeRate(
-				`contract_addresses=${DAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
+				`contract_addresses=${SAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
 			);
-			if (!!res && Object.keys(res).includes(DAI_ADDRESS.toLowerCase())) {
-				exchangeRate = res[DAI_ADDRESS.toLowerCase()][nativeCurrency.toLowerCase()];
+			if (!!res && Object.keys(res).includes(SAI_ADDRESS.toLowerCase())) {
+				exchangeRate = res[SAI_ADDRESS.toLowerCase()][nativeCurrency.toLowerCase()];
 			}
 		}
 

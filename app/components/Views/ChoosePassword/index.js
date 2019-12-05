@@ -232,9 +232,9 @@ class ChoosePassword extends PureComponent {
 
 				// Reselect previous selected account if still available
 				if (hdKeyring.accounts.includes(selectedAddress)) {
-					await PreferencesController.update({ selectedAddress });
+					PreferencesController.setSelectedAddress(selectedAddress);
 				} else {
-					await PreferencesController.update({ selectedAddress: hdKeyring[0] });
+					PreferencesController.setSelectedAddress(hdKeyring[0]);
 				}
 
 				if (this.state.biometryType && this.state.biometryChoice) {

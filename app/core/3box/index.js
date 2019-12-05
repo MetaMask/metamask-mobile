@@ -3,7 +3,7 @@ import { WebView } from 'react-native-webview';
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import { baseStyles } from '../../styles/common';
-import { normalizeMessageData } from 'gaba/util';
+import { util } from 'gaba';
 
 class Web3Box extends PureComponent {
 	state = {
@@ -53,7 +53,7 @@ class Web3Box extends PureComponent {
 							from: this.state.address
 						};
 
-						params.data = normalizeMessageData(params.data);
+						params.data = util.normalizeMessageData(params.data);
 						const rawSig = await KeyringController.signPersonalMessage(params);
 
 						this.postMessageToProvider({

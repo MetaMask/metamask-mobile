@@ -5,7 +5,7 @@ import { colors } from '../../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
 import { isBN, hexToBN, toBN, isDecimal } from '../../../util/number';
-import { isValidXpub } from '../../../util/address';
+import { safeToChecksumAddress, isValidXpub } from '../../../util/address';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -87,7 +87,11 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
-		setTransactionObject: PropTypes.func.isRequired
+		setTransactionObject: PropTypes.func.isRequired,
+		/**
+		 * Whether was prompted from approval
+		 */
+		promptedFromApproval: PropTypes.bool
 	};
 
 	state = {
@@ -221,9 +225,16 @@ class TransactionEditor extends PureComponent {
 			this.props.setTransactionObject({ to, gas: hexToBN(gas), ensRecipient, instaPayRecipient });
 		}
 		// If selectedAsset defined, generates data
-		else {
+		else if (to && isValidAddress(to)) {
 			const { data, gas } = await this.handleDataGeneration({ to });
-			this.props.setTransactionObject({ to, gas: hexToBN(gas), data, ensRecipient, instaPayRecipient });
+			this.props.setTransactionObject({ to, gas: hexToBN(gas), data, ensRecipient });
+		} else {
+			this.props.setTransactionObject({
+				to,
+				data: undefined,
+				ensRecipient,
+				instaPayRecipient
+			});
 		}
 	};
 
@@ -362,7 +373,7 @@ class TransactionEditor extends PureComponent {
 			const {
 				transaction: { value, gas, gasPrice, from }
 			} = this.props;
-			const checksummedFrom = from ? toChecksumAddress(from) : '';
+			const checksummedFrom = safeToChecksumAddress(from) || '';
 			const fromAccount = this.props.accounts[checksummedFrom];
 			if (!value || !gas || !gasPrice || !from) return strings('transaction.invalid_amount');
 			if (value && !isBN(value)) return strings('transaction.invalid_amount');
@@ -392,7 +403,7 @@ class TransactionEditor extends PureComponent {
 				transaction: { value, gas, gasPrice, from, selectedAsset },
 				contractBalances
 			} = this.props;
-			const checksummedFrom = from ? toChecksumAddress(from) : '';
+			const checksummedFrom = safeToChecksumAddress(from) || '';
 			const fromAccount = this.props.accounts[checksummedFrom];
 			if (!value || !gas || !gasPrice || !from) {
 				return strings('transaction.invalid_amount');
@@ -471,7 +482,7 @@ class TransactionEditor extends PureComponent {
 		if (gasPrice && !isBN(gasPrice)) return strings('transaction.invalid_gas_price');
 		if (gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) return strings('custom_gas.warning_gas_limit');
 
-		const checksummedFrom = from ? toChecksumAddress(from) : '';
+		const checksummedFrom = safeToChecksumAddress(from) || '';
 		const fromAccount = this.props.accounts[checksummedFrom];
 		if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice)))
 			return strings('transaction.insufficient');
@@ -486,8 +497,11 @@ class TransactionEditor extends PureComponent {
 	validateToAddress = () => {
 		let error;
 		const {
+			promptedFromApproval,
 			transaction: { to, paymentChannelTransaction }
 		} = this.props;
+		// If it comes from a dapp it could be a contract deployment
+		if (promptedFromApproval && !to) return error;
 		!to && (error = strings('transaction.required'));
 		!to && this.state.toFocused && (error = strings('transaction.required'));
 		to && paymentChannelTransaction && !isValidXpub(to) && (error = strings('transaction.invalid_address'));
@@ -497,6 +511,7 @@ class TransactionEditor extends PureComponent {
 			to.toLowerCase() === InstaPay.getXpub() &&
 			(error = strings('transaction.invalid_address'));
 		to && !isValidAddress(to) && !paymentChannelTransaction && (error = strings('transaction.invalid_address'));
+		to && to.length !== 42 && !paymentChannelTransaction && (error = strings('transaction.invalid_address'));
 		return error;
 	};
 

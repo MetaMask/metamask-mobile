@@ -5,12 +5,11 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import { hexToBN } from 'gaba/util';
-import { toChecksumAddress } from 'ethereumjs-util';
-import { weiToFiat, renderFromWei } from '../../../util/number';
+import { hexToBN, weiToFiat, renderFromWei } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
 import InstaPay from '../../../core/InstaPay';
 import { strings } from '../../../../locales/i18n';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	root: {
@@ -149,7 +148,7 @@ class AccountSelect extends PureComponent {
 
 	renderActiveOption() {
 		const { selectedAddress, accounts, identities, value, isOpen, openAccountSelect } = this.props;
-		const targetAddress = toChecksumAddress(value || selectedAddress);
+		const targetAddress = safeToChecksumAddress(value) || selectedAddress;
 		const account = { ...identities[targetAddress], ...accounts[targetAddress] };
 		return (
 			<View style={styles.activeOption}>
@@ -175,7 +174,7 @@ class AccountSelect extends PureComponent {
 		let mainBalance, secondaryBalance;
 		if (paymentChannelTransaction) {
 			const state = InstaPay.getState();
-			mainBalance = `${state.balance} ${strings('unit.dai')}`;
+			mainBalance = `${state.balance} ${strings('unit.sai')}`;
 		} else if (primaryCurrency === 'ETH') {
 			mainBalance = renderFromWei(balance) + ' ' + getTicker(ticker);
 			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency.toUpperCase());

@@ -119,12 +119,13 @@ class AccountList extends PureComponent {
 		const { identities, selectedAddress } = this.props;
 		Object.keys(identities).forEach((address, i) => {
 			if (selectedAddress === address) {
-				this.setState({ selectedAccountIndex: i });
+				this.mounted && this.setState({ selectedAccountIndex: i });
 			}
 		});
 	};
 
 	componentDidMount() {
+		this.mounted = true;
 		this.getInitialSelectedAccountIndex();
 		const orderedAccounts = this.getAccounts();
 		InteractionManager.runAfterInteractions(() => {
@@ -132,8 +133,12 @@ class AccountList extends PureComponent {
 				this.scrollToCurrentAccount();
 			}
 		});
-		this.setState({ orderedAccounts });
+		this.mounted && this.setState({ orderedAccounts });
 	}
+
+	componentWillUnmount = () => {
+		this.mounted = false;
+	};
 
 	scrollToCurrentAccount() {
 		this.flatList &&
@@ -147,13 +152,13 @@ class AccountList extends PureComponent {
 		const { keyrings } = this.props;
 		requestAnimationFrame(async () => {
 			try {
-				this.setState({ selectedAccountIndex: newIndex });
+				this.mounted && this.setState({ selectedAccountIndex: newIndex });
 
 				const allKeyrings =
 					keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 
-				await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
+				PreferencesController.setSelectedAddress(accountsOrdered[newIndex]);
 
 				this.props.onAccountChange();
 
@@ -164,7 +169,7 @@ class AccountList extends PureComponent {
 				});
 			} catch (e) {
 				// Restore to the previous index in case anything goes wrong
-				this.setState({ selectedAccountIndex: previousIndex });
+				this.mounted && this.setState({ selectedAccountIndex: previousIndex });
 				Logger.error('error while trying change the selected account', e); // eslint-disable-line
 			}
 			InteractionManager.runAfterInteractions(() => {
@@ -173,7 +178,7 @@ class AccountList extends PureComponent {
 				}, 1000);
 			});
 			const orderedAccounts = this.getAccounts();
-			await this.setState({ orderedAccounts });
+			this.mounted && this.setState({ orderedAccounts });
 		});
 	};
 
@@ -183,25 +188,25 @@ class AccountList extends PureComponent {
 
 	addAccount = async () => {
 		if (this.state.loading) return;
-		this.setState({ loading: true });
+		this.mounted && this.setState({ loading: true });
 		const { KeyringController } = Engine.context;
 		requestAnimationFrame(async () => {
 			try {
 				await KeyringController.addNewAccount();
 				const { PreferencesController } = Engine.context;
 				const newIndex = Object.keys(this.props.identities).length - 1;
-				await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
-				this.setState({ selectedAccountIndex: newIndex });
+				PreferencesController.setSelectedAddress(Object.keys(this.props.identities)[newIndex]);
+				this.mounted && this.setState({ selectedAccountIndex: newIndex });
 				setTimeout(() => {
 					this.flatList && this.flatList.current && this.flatList.current.scrollToEnd();
-					this.setState({ loading: false });
+					this.mounted && this.setState({ loading: false });
 				}, 500);
 				const orderedAccounts = this.getAccounts();
-				await this.setState({ orderedAccounts });
+				this.mounted && this.setState({ orderedAccounts });
 			} catch (e) {
 				// Restore to the previous index in case anything goes wrong
 				Logger.error('error while trying to add a new account', e); // eslint-disable-line
-				this.setState({ loading: false });
+				this.mounted && this.setState({ loading: false });
 			}
 		});
 	};
@@ -262,7 +267,7 @@ class AccountList extends PureComponent {
 				const identity = identities[checksummedAddress];
 				const { name, address } = identity;
 				const identityAddressChecksummed = toChecksumAddress(address);
-				const isSelected = identityAddressChecksummed === toChecksumAddress(selectedAddress);
+				const isSelected = identityAddressChecksummed === selectedAddress;
 				const isImported = this.isImported(allKeyrings, identityAddressChecksummed);
 				let balance = 0x0;
 				if (accounts[identityAddressChecksummed]) {
@@ -279,7 +284,7 @@ class AccountList extends PureComponent {
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
 				<View style={styles.titleWrapper}>
-					<View style={styles.dragger} />
+					<View style={styles.dragger} testID={'account-list-dragger'} />
 				</View>
 				<FlatList
 					data={orderedAccounts}

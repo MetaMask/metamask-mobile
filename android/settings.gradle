@@ -50,7 +50,5 @@ include ':react-native-randombytes'
 project(':react-native-randombytes').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-randombytes/android')
 include ':react-native-vector-icons'
 project(':react-native-vector-icons').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-vector-icons/android')
-include ':react-native-web3-webview'
-project(':react-native-web3-webview').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-web3-webview/android')
 
 include ':app'

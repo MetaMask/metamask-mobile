@@ -534,7 +534,7 @@ const instance = {
 		return undefined;
 	},
 	/**
-	 *	Returns the current exchange rate for DAI / ETH
+	 *	Returns the current exchange rate for SAI / ETH
 	 */
 	getExchangeRate: () => (client && client.state && client.state.exchangeRate) || 0,
 	/**

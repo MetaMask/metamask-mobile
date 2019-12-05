@@ -13,12 +13,12 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewSummary from './TransactionReviewSummary';
-import { renderAccountName } from '../../../util/address';
+import { renderAccountName, safeToChecksumAddress } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import contractMap from 'eth-contract-metadata';
-import { toChecksumAddress } from 'ethereumjs-util';
 import AssetIcon from '../AssetIcon';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const FONT_SIZE = PixelRatio.get() < 2 ? 12 : 16;
 const styles = StyleSheet.create({
@@ -209,16 +209,22 @@ class TransactionReview extends PureComponent {
 					</Text>
 				</View>
 			);
-		} else {
+		} else if (to) {
 			child = (
 				<Text style={[styles.addressText, styles.addressWrapper]} numberOfLines={1}>
 					{renderAccountName(to, identities)}
 				</Text>
 			);
+		} else {
+			child = (
+				<Text style={[styles.addressText, styles.addressWrapper]} numberOfLines={1}>
+					{strings('transactions.to_contract')}
+				</Text>
+			);
 		}
 		return (
 			<View style={[styles.addressGraphic, styles.toGraphic]}>
-				<Identicon address={to} diameter={18} />
+				{to ? <Identicon address={to} diameter={18} /> : <FontAwesome name="file-text-o" size={18} />}
 				{child}
 			</View>
 		);
@@ -240,7 +246,7 @@ class TransactionReview extends PureComponent {
 			transaction: { from, to },
 			identities
 		} = this.props;
-		const contract = contractMap[toChecksumAddress(to)];
+		const contract = contractMap[safeToChecksumAddress(to)];
 		return (
 			<View style={styles.graphic}>
 				<View style={[styles.addressGraphic, styles.fromGraphic]}>

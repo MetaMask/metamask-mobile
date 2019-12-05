@@ -254,7 +254,8 @@ class ImportFromSeed extends PureComponent {
 				this.setState({ loading: true });
 
 				const { KeyringController } = Engine.context;
-
+				await Engine.resetState();
+				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
 
 				await InstaPay.cleanUp();
