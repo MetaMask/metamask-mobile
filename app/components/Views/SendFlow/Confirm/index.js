@@ -183,6 +183,10 @@ class Confirm extends PureComponent {
 
 	static propTypes = {
 		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
 		 * Map of accounts to information objects including balances
 		 */
 		accounts: PropTypes.object,
@@ -445,7 +449,8 @@ class Confirm extends PureComponent {
 	onNext = async () => {
 		const { TransactionController } = Engine.context;
 		const {
-			transactionState: { assetType }
+			transactionState: { assetType },
+			navigation
 		} = this.props;
 		if (this.validateGas()) return;
 		try {
@@ -461,6 +466,7 @@ class Confirm extends PureComponent {
 					assetType
 				});
 			});
+			navigation && navigation.dismiss();
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 		}

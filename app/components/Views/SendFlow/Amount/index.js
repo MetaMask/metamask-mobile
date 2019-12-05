@@ -315,10 +315,12 @@ class Amount extends PureComponent {
 
 	amountInput = React.createRef();
 	tokens = [];
+	collectibles = [];
 
 	componentDidMount = async () => {
 		const { tokens, ticker } = this.props;
 		this.tokens = [getEther(ticker), ...tokens];
+		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		this.onInputChange();
 		const estimatedTotalGas = await this.estimateTransactionTotalGas();
@@ -602,19 +604,28 @@ class Amount extends PureComponent {
 		return this.renderCollectible(asset, index);
 	};
 
+	processCollectibles = () => {
+		const { collectibleContracts } = this.props;
+		const collectibles = [];
+		this.props.collectibles
+			.sort((a, b) => a.address < b.address)
+			.forEach(collectible => {
+				const address = collectible.address.toLowerCase();
+				const isTradable =
+					!collectiblesTransferInformation[address] || collectiblesTransferInformation[address].tradable;
+				if (!isTradable) return;
+				const collectibleContract = collectibleContracts.find(
+					contract => contract.address.toLowerCase() === address
+				);
+				if (!collectible.name) collectible.name = collectibleContract.name;
+				if (!collectible.image) collectible.image = collectibleContract.logo;
+				collectibles.push(collectible);
+			});
+		return collectibles;
+	};
+
 	renderAssetsModal = () => {
 		const { assetsModalVisible } = this.state;
-		const { collectibleContracts } = this.props;
-
-		// TODO exclude non transferable collectibles
-		const collectibles = this.props.collectibles.map(processedCollectible => {
-			const collectibleContract = collectibleContracts.find(
-				contract => contract.address.toLowerCase() === processedCollectible.address.toLowerCase()
-			);
-			if (!processedCollectible.name) processedCollectible.name = collectibleContract.name;
-			if (!processedCollectible.image) processedCollectible.image = collectibleContract.logo;
-			return processedCollectible;
-		});
 
 		return (
 			<Modal
@@ -631,7 +642,7 @@ class Amount extends PureComponent {
 						<View style={styles.dragger} />
 					</View>
 					<FlatList
-						data={[...this.tokens, ...collectibles]}
+						data={[...this.tokens, ...this.collectibles]}
 						keyExtractor={this.assetKeyExtractor}
 						renderItem={this.renderAsset}
 					/>
