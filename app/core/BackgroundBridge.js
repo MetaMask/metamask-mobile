@@ -225,10 +225,9 @@ export class BackgroundBridge extends EventEmitter {
 	 */
 	getState() {
 		const vault = Engine.context.KeyringController.state.vault;
-		const isInitialized = !!vault;
 		const { network, selectedAddress } = Engine.datamodel.flatState;
 		return {
-			...{ isInitialized },
+			isInitialized: !!vault,
 			isUnlocked: true,
 			network,
 			selectedAddress
