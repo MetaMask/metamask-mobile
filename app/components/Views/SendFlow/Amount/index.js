@@ -13,7 +13,7 @@ import {
 	Image
 } from 'react-native';
 import { connect } from 'react-redux';
-import { setSelectedAsset, setValue, prepareTransaction, resetTransaction } from '../../../../actions/newTransaction';
+import { setSelectedAsset, setValue, prepareTransaction } from '../../../../actions/newTransaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -273,10 +273,6 @@ class Amount extends PureComponent {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * Action that start a new empty transaction
-		 */
-		resetTransaction: PropTypes.func,
-		/**
 		 * A string that represents the selected address
 		 */
 		selectedAddress: PropTypes.string,
@@ -330,11 +326,6 @@ class Amount extends PureComponent {
 		this.onInputChange();
 		const estimatedTotalGas = await this.estimateTransactionTotalGas();
 		this.setState({ estimatedTotalGas });
-	};
-
-	componentWillUnmount = () => {
-		// Reset transaction
-		this.props.resetTransaction();
 	};
 
 	onNext = async () => {
@@ -401,7 +392,6 @@ class Amount extends PureComponent {
 		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
 		const { estimatedTotalGas } = this.state;
 		let weiBalance, weiInput, amountError;
-		console.log('inputValue', inputValue);
 		if (isDecimal(inputValue)) {
 			if (selectedAsset.isEth) {
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
@@ -813,7 +803,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	resetTransaction: () => dispatch(resetTransaction()),
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
 	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset)),
 	setValue: value => dispatch(setValue(value))

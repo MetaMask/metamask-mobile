@@ -8,7 +8,7 @@ import AssetActionButtons from '../AssetActionButtons';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-import { setSelectedAsset } from '../../../actions/newTransaction';
+import { newAssetTransaction } from '../../../actions/newTransaction';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -65,9 +65,9 @@ class CollectibleContractOverview extends PureComponent {
 		 */
 		toggleCollectibleContractModal: PropTypes.func.isRequired,
 		/**
-		 * Set selected in transaction state
+		 * Start transaction with asset
 		 */
-		setSelectedAsset: PropTypes.func
+		newAssetTransaction: PropTypes.func
 	};
 
 	onAdd = () => {
@@ -80,7 +80,7 @@ class CollectibleContractOverview extends PureComponent {
 		const collectible = collectibles.find(
 			collectible => collectible.address.toLowerCase() === collectibleContract.address.toLowerCase()
 		);
-		this.props.setSelectedAsset(collectible);
+		this.props.newAssetTransaction(collectible);
 		this.props.navigation.navigate('SendFlowView');
 	};
 
@@ -133,7 +133,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal()),
-	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
+	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
 });
 
 export default connect(

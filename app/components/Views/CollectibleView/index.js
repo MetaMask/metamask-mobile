@@ -8,7 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-import { setSelectedAsset } from '../../../actions/newTransaction';
+import { newAssetTransaction } from '../../../actions/newTransaction';
 
 const styles = StyleSheet.create({
 	root: {
@@ -46,9 +46,9 @@ class CollectibleView extends PureComponent {
 		*/
 		navigation: PropTypes.object,
 		/**
-		 * Set selected in transaction state
+		 * Start transaction with asset
 		 */
-		setSelectedAsset: PropTypes.func
+		newAssetTransaction: PropTypes.func
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -60,7 +60,7 @@ class CollectibleView extends PureComponent {
 				state: { params }
 			}
 		} = this.props;
-		this.props.setSelectedAsset(params);
+		this.props.newAssetTransaction(params);
 		this.props.navigation.navigate('SendFlowView');
 	};
 
@@ -104,7 +104,7 @@ class CollectibleView extends PureComponent {
 }
 
 const mapDispatchToProps = dispatch => ({
-	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
+	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
 });
 
 export default connect(

@@ -35,6 +35,13 @@ const transactionReducer = (state = initialState, action) => {
 				...state,
 				...initialState
 			};
+		case 'NEW_ASSET_TRANSACTION':
+			return {
+				...state,
+				...initialState,
+				selectedAsset: action.selectedAsset,
+				assetType: action.assetType
+			};
 		case 'SET_RECIPIENT':
 			return {
 				...state,

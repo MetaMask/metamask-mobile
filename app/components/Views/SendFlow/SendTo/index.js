@@ -14,7 +14,7 @@ import Engine from '../../../../core/Engine';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
 import StyledButton from '../../../UI/StyledButton';
-import { setRecipient, resetTransaction, setSelectedAsset } from '../../../../actions/newTransaction';
+import { setRecipient, newAssetTransaction } from '../../../../actions/newTransaction';
 import { isENS } from '../../../../util/address';
 import { getTicker } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
@@ -144,11 +144,7 @@ class SendFlow extends PureComponent {
 		/**
 		 * Action that sets transaction to and ensRecipient in case is available
 		 */
-		setRecipient: PropTypes.func,
-		/**
-		 * Action that start a new empty transaction
-		 */
-		resetTransaction: PropTypes.func
+		setRecipient: PropTypes.func
 	};
 
 	state = {
@@ -178,11 +174,6 @@ class SendFlow extends PureComponent {
 			fromAccountName,
 			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`
 		});
-	};
-
-	componentWillUnmount = () => {
-		// Reset transaction
-		this.props.resetTransaction();
 	};
 
 	toggleFromAccountModal = () => {
@@ -445,10 +436,9 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	resetTransaction: () => dispatch(resetTransaction()),
 	setRecipient: (from, to, ensRecipient, transactionToName, transactionFromName) =>
 		dispatch(setRecipient(from, to, ensRecipient, transactionToName, transactionFromName)),
-	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
+	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
 });
 
 export default connect(

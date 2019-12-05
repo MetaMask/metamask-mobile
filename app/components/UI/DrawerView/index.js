@@ -49,7 +49,7 @@ import EthereumAddress from '../EthereumAddress';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
-import { setSelectedAsset } from '../../../actions/newTransaction';
+import { newAssetTransaction } from '../../../actions/newTransaction';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -344,9 +344,9 @@ class DrawerView extends PureComponent {
 		 */
 		receiveModalVisible: PropTypes.bool.isRequired,
 		/**
-		 * Set selected in transaction state
+		 * Start transaction with asset
 		 */
-		setSelectedAsset: PropTypes.func.isRequired,
+		newAssetTransaction: PropTypes.func.isRequired,
 		/**
 		 * Boolean that determines the status of the networks modal
 		 */
@@ -483,7 +483,7 @@ class DrawerView extends PureComponent {
 	};
 
 	onSend = async () => {
-		this.props.setSelectedAsset(getEther());
+		this.props.newAssetTransaction(getEther());
 		this.props.navigation.navigate('SendFlowView');
 		this.hideDrawer();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
@@ -1066,7 +1066,7 @@ const mapDispatchToProps = dispatch => ({
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
 	showAlert: config => dispatch(showAlert(config)),
-	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
+	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
 });
 
 export default connect(

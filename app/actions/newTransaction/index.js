@@ -7,6 +7,14 @@ export function resetTransaction() {
 	};
 }
 
+export function newAssetTransaction(selectedAsset) {
+	return {
+		type: 'NEW_ASSET_TRANSACTION',
+		selectedAsset,
+		assetType: selectedAsset.isEth ? 'ETH' : selectedAsset.tokenId ? 'ERC721' : 'ERC20'
+	};
+}
+
 /**
  * Sets transaction to address and ensRecipient in case is available
  */
