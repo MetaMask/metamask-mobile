@@ -6,7 +6,6 @@ import Identicon from '../Identicon';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AssetActionButtons from '../AssetActionButtons';
-import { setTokensTransaction } from '../../../actions/transaction';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
@@ -86,10 +85,6 @@ class AssetOverview extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
-		 * Action that sets a tokens type transaction
-		 */
-		setTokensTransaction: PropTypes.func.isRequired,
-		/**
 		 * Set selected in transaction state
 		 */
 		setSelectedAsset: PropTypes.func,
@@ -119,11 +114,9 @@ class AssetOverview extends PureComponent {
 	onSend = async () => {
 		const { asset } = this.props;
 		if (asset.isEth) {
-			this.props.setTokensTransaction({ symbol: 'ETH' });
 			this.props.setSelectedAsset(getEther());
 			this.props.navigation.navigate('SendFlowView');
 		} else {
-			this.props.setTokensTransaction(asset);
 			this.props.setSelectedAsset(asset);
 			this.props.navigation.navigate('SendFlowView');
 		}
@@ -216,7 +209,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	setTokensTransaction: asset => dispatch(setTokensTransaction(asset)),
 	toggleReceiveModal: asset => dispatch(toggleReceiveModal(asset)),
 	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
 });
