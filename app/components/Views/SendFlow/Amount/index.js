@@ -730,6 +730,7 @@ class Amount extends PureComponent {
 	render = () => {
 		const { estimatedTotalGas } = this.state;
 		const { selectedAsset } = this.props;
+		console.log('renderrrr', selectedAsset, selectedAsset.symbol);
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.inputWrapper}>

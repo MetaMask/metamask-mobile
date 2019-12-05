@@ -149,7 +149,11 @@ class SendFlow extends PureComponent {
 		 * Action that start a new empty transaction
 		 */
 		newTransaction: PropTypes.func,
-		setSelectedAsset: PropTypes.func
+		setSelectedAsset: PropTypes.func,
+		/**
+		 * Selected asset from current transaction state
+		 */
+		selectedAsset: PropTypes.object
 	};
 
 	state = {
@@ -178,7 +182,8 @@ class SendFlow extends PureComponent {
 			ticker,
 			newTransaction,
 			network,
-			setSelectedAsset
+			setSelectedAsset,
+			selectedAsset
 		} = this.props;
 		navigation && navigation.setParams({ mode: 'edit' });
 		const ens = await doENSReverseLookup(selectedAddress, network);
@@ -190,8 +195,7 @@ class SendFlow extends PureComponent {
 		});
 		// Reset transaction
 		newTransaction();
-		// TODO fix this when starting from asset
-		setSelectedAsset(getEther(ticker));
+		!Object.keys(selectedAsset).length > 0 ? setSelectedAsset(getEther(ticker)) : setSelectedAsset(selectedAsset);
 	};
 
 	toggleFromAccountModal = () => {
@@ -446,6 +450,7 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	selectedAsset: state.newTransaction.selectedAsset,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,

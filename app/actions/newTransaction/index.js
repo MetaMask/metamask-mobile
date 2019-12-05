@@ -22,6 +22,7 @@ export function setRecipient(from, to, ensRecipient, transactionToName, transact
 }
 
 export function setSelectedAsset(selectedAsset) {
+	console.log('setSelectedAsset', selectedAsset);
 	return {
 		type: 'SET_SELECTED_ASSET',
 		selectedAsset,

@@ -11,6 +11,8 @@ import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
+import { getEther } from '../../../util/transactions';
+import { setSelectedAsset } from '../../../actions/newTransaction';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -88,6 +90,10 @@ class AssetOverview extends PureComponent {
 		 */
 		setTokensTransaction: PropTypes.func.isRequired,
 		/**
+		 * Set selected in transaction state
+		 */
+		setSelectedAsset: PropTypes.func,
+		/**
 		 * An object containing token balances for current account and network in the format address => balance
 		 */
 		tokenBalances: PropTypes.object,
@@ -114,10 +120,12 @@ class AssetOverview extends PureComponent {
 		const { asset } = this.props;
 		if (asset.isEth) {
 			this.props.setTokensTransaction({ symbol: 'ETH' });
-			this.props.navigation.navigate('SendView');
+			this.props.setSelectedAsset(getEther());
+			this.props.navigation.navigate('SendFlowView');
 		} else {
 			this.props.setTokensTransaction(asset);
-			this.props.navigation.navigate('SendView');
+			this.props.setSelectedAsset(asset);
+			this.props.navigation.navigate('SendFlowView');
 		}
 	};
 
@@ -209,7 +217,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	setTokensTransaction: asset => dispatch(setTokensTransaction(asset)),
-	toggleReceiveModal: asset => dispatch(toggleReceiveModal(asset))
+	toggleReceiveModal: asset => dispatch(toggleReceiveModal(asset)),
+	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
 });
 
 export default connect(
