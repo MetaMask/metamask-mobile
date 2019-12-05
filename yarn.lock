@@ -6938,6 +6938,10 @@ merkle-patricia-tree@^2.1.2, merkle-patricia-tree@^2.3.2:
     rlp "^2.0.0"
     semaphore ">=1.0.1"
 
+"metamask-mobile-provider@git+ssh://git@github.com/metamask/metamask-mobile-provider.git#262e636b4d4e61a448b30920d089a64d51845534":
+  version "1.0.0"
+  resolved "git+ssh://git@github.com/metamask/metamask-mobile-provider.git#262e636b4d4e61a448b30920d089a64d51845534"
+
 methods@^1.1.1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
