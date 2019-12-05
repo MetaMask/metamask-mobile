@@ -122,9 +122,6 @@ export class BackgroundBridge extends EventEmitter {
 		engine.push(subscriptionManager.middleware);
 		// watch asset
 
-		// @TODO
-		//engine.push(this.preferencesController.requestWatchAsset.bind(this.preferencesController))
-
 		// requestAccounts
 		engine.push(this.middlewares.eth_requestAccounts(senderUrl));
 		engine.push(this.middlewares.eth_accounts(senderUrl));
@@ -213,7 +210,7 @@ export class BackgroundBridge extends EventEmitter {
 				isEnabled,
 				selectedAddress: isReady ? selectedAddress.toLowerCase() : null,
 				networkVersion: network,
-				chainId: `0x${parseInt(chainId, 10).toString(16)}`
+				chainId: chainId ? `0x${parseInt(chainId, 10).toString(16)}` : null
 			};
 			return result;
 		}
