@@ -25,7 +25,7 @@ export function setSelectedAsset(selectedAsset) {
 	return {
 		type: 'SET_SELECTED_ASSET',
 		selectedAsset,
-		assetType: selectedAsset.isEth ? 'ETH' : 'ERC20'
+		assetType: selectedAsset.isEth ? 'ETH' : selectedAsset.tokenId ? 'ERC721' : 'ERC20'
 	};
 }
 

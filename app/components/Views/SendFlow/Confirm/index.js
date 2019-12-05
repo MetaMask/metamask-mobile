@@ -214,7 +214,11 @@ class Confirm extends PureComponent {
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
 		contractExchangeRates: PropTypes.object,
-		prepareTransaction: PropTypes.func
+		prepareTransaction: PropTypes.func,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string
 	};
 
 	state = {
@@ -446,6 +450,20 @@ class Confirm extends PureComponent {
 		return transaction;
 	};
 
+	/**
+	 * Removes collectible in case an ERC721 asset is being sent, when not in mainnet
+	 */
+	checkRemoveCollectible = () => {
+		const {
+			transactionState: { selectedAsset, assetType },
+			network
+		} = this.props;
+		if (assetType === 'ERC721' && network !== 1) {
+			const { AssetsController } = Engine.context;
+			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
+		}
+	};
+
 	onNext = async () => {
 		const { TransactionController } = Engine.context;
 		const {
@@ -466,6 +484,7 @@ class Confirm extends PureComponent {
 					assetType
 				});
 			});
+			this.checkRemoveCollectible();
 			navigation && navigation.dismiss();
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
@@ -608,6 +627,7 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	network: state.engine.backgroundState.NetworkController.network,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transactionState: state.newTransaction
 });
