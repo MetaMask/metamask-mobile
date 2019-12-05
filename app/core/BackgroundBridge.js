@@ -57,7 +57,14 @@ export class BackgroundBridge extends EventEmitter {
 		// connect features
 		this.setupProviderConnection(mux.createStream('provider'), senderUrl);
 		this.setupPublicConfig(mux.createStream('publicConfig'), senderUrl);
+
+		Engine.context.NetworkController.subscribe(this.sendStateUpdate);
+		Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
 	}
+
+	sendStateUpdate = () => {
+		this.emit('update');
+	};
 
 	onMessage = msg => {
 		this.port.emit('message', { name: msg.name, data: msg.data });
