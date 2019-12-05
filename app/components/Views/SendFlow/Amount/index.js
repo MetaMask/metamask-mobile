@@ -513,12 +513,13 @@ class Amount extends PureComponent {
 	};
 
 	pickSelectedAsset = selectedAsset => {
+		this.toggleAssetsModal();
 		this.props.setSelectedAsset(selectedAsset);
 		if (!selectedAsset.tokenId) {
-			this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 			this.onInputChange(undefined, selectedAsset);
+			// Wait for input to mount first
+			setTimeout(() => this.amountInput && this.amountInput.current && this.amountInput.current.focus(), 500);
 		}
-		this.toggleAssetsModal();
 	};
 
 	assetKeyExtractor = asset => {
