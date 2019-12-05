@@ -219,7 +219,11 @@ export function getPaymentRequestOptionsTitle(title, navigation) {
 		headerTintColor: colors.blue,
 		headerLeft: goBack ? (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => goBack()} style={styles.backButton}>
+			<TouchableOpacity
+				onPress={() => goBack()}
+				style={styles.backButton}
+				testID={'request-search-asset-back-button'}
+			>
 				<IonicIcon
 					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Platform.OS === 'android' ? 24 : 28}

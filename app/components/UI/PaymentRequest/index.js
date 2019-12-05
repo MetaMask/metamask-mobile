@@ -369,6 +369,7 @@ class PaymentRequest extends PureComponent {
 							returnKeyType="go"
 							value={this.state.searchInputValue}
 							blurOnSubmit
+							testID={'request-search-asset-input'}
 						/>
 						<FeatherIcon
 							onPress={this.focusInput}
@@ -379,7 +380,7 @@ class PaymentRequest extends PureComponent {
 						/>
 					</View>
 				)}
-				<View style={styles.assetsWrapper} testID={'top-pick-asset-results'}>
+				<View style={styles.assetsWrapper} testID={'searched-asset-results'}>
 					<Text style={styles.assetsTitle}>
 						{this.state.searchInputValue
 							? strings('payment_request.search_results')

@@ -1,6 +1,8 @@
 'use strict';
 import TestHelpers from './helpers';
 
+const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
+
 describe('Request Token Flow', () => {
 	beforeEach(() => {
 		jest.setTimeout(150000);
@@ -49,11 +51,27 @@ describe('Request Token Flow', () => {
 		// Make sure we're on the right screen
 		await TestHelpers.checkIfVisible('request-screen');
 		// Tap on ETH
-		await TestHelpers.tapItemAtIndex('top-pick-asset-results');
+		await TestHelpers.tapItemAtIndex('searched-asset-results');
 		// Make sure we're on the right screen
 		await TestHelpers.checkIfVisible('request-amount-screen');
-		// Request 0.03 ETH
-		await TestHelpers.typeTextAndHideKeyboard('request-amount-input', 0.03);
+		// Go back
+		await TestHelpers.tap('request-search-asset-back-button');
+		// Make sure we're on the right screen
+		await TestHelpers.checkIfVisible('request-screen');
+		// Search by SAI contract address
+		await TestHelpers.typeTextAndHideKeyboard('request-search-asset-input', SAI_CONTRACT_ADDRESS);
+		// Make sure SAI shows up in the results
+		await TestHelpers.checkIfElementHasString('searched-asset-results', 'SAI');
+		// Search DAI
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.typeTextAndHideKeyboard('request-search-asset-input', 'DAI');
+		} else {
+			await TestHelpers.replaceTextInField('request-search-asset-input', 'DAI');
+		}
+		// Select DAI from search results
+		await TestHelpers.tapByText('DAI', 1);
+		// Request 5.50 DAI
+		await TestHelpers.typeTextAndHideKeyboard('request-amount-input', 5.5);
 		// Make sure we're on the right screen
 		await TestHelpers.checkIfVisible('send-link-screen');
 		// Tap on QR Code Button
