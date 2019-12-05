@@ -16,7 +16,7 @@ import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
 import StyledButton from '../../../UI/StyledButton';
 import { setRecipient, newTransaction, setSelectedAsset } from '../../../../actions/newTransaction';
 import { isENS } from '../../../../util/address';
-import { getTicker, getEther } from '../../../../util/transactions';
+import { getTicker } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 
 const styles = StyleSheet.create({
@@ -148,12 +148,7 @@ class SendFlow extends PureComponent {
 		/**
 		 * Action that start a new empty transaction
 		 */
-		newTransaction: PropTypes.func,
-		setSelectedAsset: PropTypes.func,
-		/**
-		 * Selected asset from current transaction state
-		 */
-		selectedAsset: PropTypes.object
+		newTransaction: PropTypes.func
 	};
 
 	state = {
@@ -174,17 +169,7 @@ class SendFlow extends PureComponent {
 	ensResolver;
 
 	componentDidMount = async () => {
-		const {
-			navigation,
-			selectedAddress,
-			identities,
-			accounts,
-			ticker,
-			newTransaction,
-			network,
-			setSelectedAsset,
-			selectedAsset
-		} = this.props;
+		const { navigation, selectedAddress, identities, accounts, ticker, network } = this.props;
 		navigation && navigation.setParams({ mode: 'edit' });
 		const ens = await doENSReverseLookup(selectedAddress, network);
 		const fromAccountName = ens || identities[selectedAddress].name;
@@ -193,9 +178,11 @@ class SendFlow extends PureComponent {
 			fromAccountName,
 			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`
 		});
+	};
+
+	componentWillUnmount = () => {
 		// Reset transaction
-		newTransaction();
-		!Object.keys(selectedAsset).length > 0 ? setSelectedAsset(getEther(ticker)) : setSelectedAsset(selectedAsset);
+		this.props.newTransaction();
 	};
 
 	toggleFromAccountModal = () => {

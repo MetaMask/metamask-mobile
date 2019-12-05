@@ -28,7 +28,7 @@ import {
 import { getTicker, decodeTransferData } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
-import { prepareTransaction } from '../../../../actions/newTransaction';
+import { prepareTransaction, newTransaction } from '../../../../actions/newTransaction';
 import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -255,7 +255,11 @@ class Confirm extends PureComponent {
 		/**
 		 * Indicates whether hex data should be shown in transaction editor
 		 */
-		showHexData: PropTypes.bool
+		showHexData: PropTypes.bool,
+		/**
+		 * Action that start a new empty transaction
+		 */
+		newTransaction: PropTypes.func
 	};
 
 	state = {
@@ -278,6 +282,11 @@ class Confirm extends PureComponent {
 	componentDidMount = async () => {
 		this.parseTransactionData();
 		this.prepareTransaction();
+	};
+
+	componentWillUnmount = () => {
+		// Reset transaction
+		this.props.newTransaction();
 	};
 
 	parseTransactionData = () => {
@@ -706,6 +715,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+	newTransaction: () => dispatch(newTransaction()),
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction))
 });
 

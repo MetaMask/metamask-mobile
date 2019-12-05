@@ -13,7 +13,7 @@ import {
 	Image
 } from 'react-native';
 import { connect } from 'react-redux';
-import { setSelectedAsset, setValue, prepareTransaction } from '../../../../actions/newTransaction';
+import { setSelectedAsset, setValue, prepareTransaction, newTransaction } from '../../../../actions/newTransaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -273,6 +273,10 @@ class Amount extends PureComponent {
 		 */
 		navigation: PropTypes.object,
 		/**
+		 * Action that start a new empty transaction
+		 */
+		newTransaction: PropTypes.func,
+		/**
 		 * A string that represents the selected address
 		 */
 		selectedAddress: PropTypes.string,
@@ -326,6 +330,11 @@ class Amount extends PureComponent {
 		this.onInputChange();
 		const estimatedTotalGas = await this.estimateTransactionTotalGas();
 		this.setState({ estimatedTotalGas });
+	};
+
+	componentWillUnmount = () => {
+		// Reset transaction
+		this.props.newTransaction();
 	};
 
 	onNext = async () => {
@@ -804,6 +813,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+	newTransaction: () => dispatch(newTransaction()),
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
 	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset)),
 	setValue: value => dispatch(setValue(value))
