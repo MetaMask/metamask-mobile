@@ -30,7 +30,7 @@ const transactionReducer = (state = initialState, action) => {
 			return {
 				...initialState
 			};
-		case 'NEW_TRANSACTION':
+		case 'RESET_TRANSACTION':
 			return {
 				...state,
 				...initialState

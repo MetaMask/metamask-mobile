@@ -1,9 +1,9 @@
 /**
  * Clears transaction object completely
  */
-export function newTransaction() {
+export function resetTransaction() {
 	return {
-		type: 'NEW_TRANSACTION'
+		type: 'RESET_TRANSACTION'
 	};
 }
 

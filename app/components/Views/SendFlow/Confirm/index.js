@@ -28,7 +28,7 @@ import {
 import { getTicker, decodeTransferData } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
-import { prepareTransaction, newTransaction } from '../../../../actions/newTransaction';
+import { prepareTransaction, resetTransaction } from '../../../../actions/newTransaction';
 import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -259,7 +259,7 @@ class Confirm extends PureComponent {
 		/**
 		 * Action that start a new empty transaction
 		 */
-		newTransaction: PropTypes.func
+		resetTransaction: PropTypes.func
 	};
 
 	state = {
@@ -286,7 +286,7 @@ class Confirm extends PureComponent {
 
 	componentWillUnmount = () => {
 		// Reset transaction
-		this.props.newTransaction();
+		this.props.resetTransaction();
 	};
 
 	parseTransactionData = () => {
@@ -715,7 +715,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	newTransaction: () => dispatch(newTransaction()),
+	resetTransaction: () => dispatch(resetTransaction()),
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction))
 });
 
