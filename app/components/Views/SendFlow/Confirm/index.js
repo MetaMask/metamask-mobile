@@ -39,6 +39,8 @@ import TransactionsNotificationManager from '../../../../core/TransactionsNotifi
 import { strings } from '../../../../../locales/i18n';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import CollectibleImage from '../../../UI/CollectibleImage';
+import Modal from 'react-native-modal';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 const AVERAGE_GAS = 20;
 const LOW_GAS = 10;
@@ -172,6 +174,37 @@ const styles = StyleSheet.create({
 	collectibleImage: {
 		height: 120,
 		width: 120
+	},
+
+	qrCode: {
+		marginBottom: 16,
+		paddingHorizontal: 36,
+		paddingBottom: 24,
+		paddingTop: 16,
+		backgroundColor: colors.grey000,
+		borderRadius: 8
+	},
+
+	hexDataWrapper: {
+		padding: 10,
+		alignItems: 'center'
+	},
+	addressTitle: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		textAlign: 'center',
+		fontSize: 16,
+		marginBottom: 16,
+		...fontStyles.normal
+	},
+	hexDataClose: {
+		zIndex: 999,
+		position: 'absolute',
+		top: 12,
+		right: 20
+	},
+	hexDataText: {
+		textAlign: 'justify'
 	}
 });
 
@@ -218,7 +251,11 @@ class Confirm extends PureComponent {
 		/**
 		 * Network id
 		 */
-		network: PropTypes.string
+		network: PropTypes.string,
+		/**
+		 * Indicates whether hex data should be shown in transaction editor
+		 */
+		showHexData: PropTypes.bool
 	};
 
 	state = {
@@ -229,6 +266,7 @@ class Confirm extends PureComponent {
 		customGas: undefined,
 		customGasPrice: undefined,
 		fromAccountBalance: undefined,
+		hexDataModalVisible: false,
 		transactionValue: undefined,
 		transactionValueFiat: undefined,
 		transactionFee: undefined,
@@ -371,7 +409,7 @@ class Confirm extends PureComponent {
 	handleSetGasFee = () => {
 		const { customGas, customGasPrice, customGasSelected } = this.state;
 		if (!customGas || !customGasPrice) {
-			this.toggleCustomGasModalVisible();
+			this.toggleCustomGasModal();
 			return;
 		}
 		this.setState({ gasEstimationReady: false });
@@ -390,12 +428,17 @@ class Confirm extends PureComponent {
 				errorMessage: undefined
 			});
 		}, 100);
-		this.toggleCustomGasModalVisible();
+		this.toggleCustomGasModal();
 	};
 
-	toggleCustomGasModalVisible = () => {
+	toggleCustomGasModal = () => {
 		const { customGasModalVisible } = this.state;
 		this.setState({ customGasModalVisible: !customGasModalVisible });
+	};
+
+	toggleHexDataModal = () => {
+		const { hexDataModalVisible } = this.state;
+		this.setState({ hexDataModalVisible: !hexDataModalVisible });
 	};
 
 	renderCustomGasModal = () => {
@@ -406,8 +449,8 @@ class Confirm extends PureComponent {
 				modalVisible={customGasModalVisible}
 				confirmText={'Set'}
 				cancelText={'Cancel'}
-				onCancelPress={this.toggleCustomGasModalVisible}
-				onRequestClose={this.toggleCustomGasModalVisible}
+				onCancelPress={this.toggleCustomGasModal}
+				onRequestClose={this.toggleCustomGasModal}
 				onConfirmPress={this.handleSetGasFee}
 				cancelButtonMode={'neutral'}
 				confirmButtonMode={'confirm'}
@@ -424,6 +467,31 @@ class Confirm extends PureComponent {
 					/>
 				</View>
 			</ActionModal>
+		);
+	};
+
+	renderHexDataModal = () => {
+		const { hexDataModalVisible } = this.state;
+		const { data } = this.props.transactionState.transaction;
+		return (
+			<Modal
+				isVisible={hexDataModalVisible}
+				onBackdropPress={this.toggleHexDataModal}
+				onBackButtonPress={this.toggleHexDataModal}
+				onSwipeComplete={this.toggleHexDataModal}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<View style={styles.hexDataWrapper}>
+					<TouchableOpacity style={styles.hexDataClose} onPress={this.toggleHexDataModal}>
+						<IonicIcon name={'ios-close'} size={28} color={colors.black} />
+					</TouchableOpacity>
+					<View style={styles.qrCode}>
+						<Text style={styles.addressTitle}>Hex data</Text>
+						<Text style={styles.hexDataText}>{data}</Text>
+					</View>
+				</View>
+			</Modal>
 		);
 	};
 
@@ -509,6 +577,7 @@ class Confirm extends PureComponent {
 			transactionFromName,
 			selectedAsset
 		} = this.props.transactionState;
+		const { showHexData } = this.props;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -596,13 +665,15 @@ class Confirm extends PureComponent {
 						<TouchableOpacity
 							style={styles.actionTouchable}
 							disabled={!gasEstimationReady}
-							onPress={this.toggleCustomGasModalVisible}
+							onPress={this.toggleCustomGasModal}
 						>
 							<Text style={styles.actionText}>Adjust transaction fee</Text>
 						</TouchableOpacity>
-						<TouchableOpacity style={styles.actionTouchable}>
-							<Text style={styles.actionText}>Hex data</Text>
-						</TouchableOpacity>
+						{showHexData && (
+							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleHexDataModal}>
+								<Text style={styles.actionText}>Hex data</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 				</ScrollView>
 				<View style={styles.buttonNextWrapper}>
@@ -616,6 +687,7 @@ class Confirm extends PureComponent {
 					</StyledButton>
 				</View>
 				{this.renderCustomGasModal()}
+				{this.renderHexDataModal()}
 			</SafeAreaView>
 		);
 	};
@@ -628,6 +700,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	network: state.engine.backgroundState.NetworkController.network,
+	showHexData: state.settings.showHexData,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transactionState: state.newTransaction
 });
