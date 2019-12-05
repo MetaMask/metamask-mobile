@@ -179,7 +179,7 @@
     "jest": "24.5.0",
     "jest-serializer": "24.4.0",
     "lint-staged": "8.1.5",
-    "metamask-mobile-provider": "git+ssh://git@github.com/metamask/metamask-mobile-provider.git#36e6d1e796627ca09fbc1bee3420c2bbda6f7e7c",
+    "metamask-mobile-provider": "git+ssh://git@github.com/metamask/metamask-mobile-provider.git#ed038a21d4301ece822f3926e504a1081ae65456",
     "metro": "0.55.0",
     "metro-react-native-babel-preset": "0.53.0",
     "octonode": "0.9.5",
