@@ -10,7 +10,7 @@ import { renderShortAddress } from '../../../../util/address';
 const styles = StyleSheet.create({
 	wrapper: {
 		flexDirection: 'row',
-		margin: 8
+		marginVertical: 8
 	},
 	inputWrapper: {
 		flex: 1,
@@ -24,8 +24,7 @@ const styles = StyleSheet.create({
 	input: {
 		flex: 1,
 		flexDirection: 'row',
-		alignItems: 'center',
-		marginHorizontal: 6
+		alignItems: 'center'
 	},
 	addressToInformation: {
 		flex: 1,
@@ -50,15 +49,17 @@ const styles = StyleSheet.create({
 	label: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		width: '12%'
+		width: '15%'
 	},
 	labelText: {
 		...fontStyles.normal,
-		fontSize: 16
+		fontSize: 16,
+		marginLeft: 10
 	},
 	textInput: {
 		backgroundColor: colors.white,
 		paddingLeft: 0,
+		paddingRight: 8,
 		width: '100%'
 	},
 	scanIcon: {
@@ -77,10 +78,16 @@ const styles = StyleSheet.create({
 	borderHighlighted: {
 		borderColor: colors.blue
 	},
-	scanIconWrapper: {
-		marginTop: 1,
+	iconWrapper: {
 		flexDirection: 'row',
 		alignItems: 'center'
+	},
+	dropdownIconWrapper: {
+		height: 23,
+		width: 23
+	},
+	dropdownIcon: {
+		alignSelf: 'center'
 	}
 });
 
@@ -123,7 +130,7 @@ export const AddressTo = props => {
 						/>
 					</View>
 					{!!onScan && (
-						<TouchableOpacity onPress={onScan} style={styles.scanIconWrapper}>
+						<TouchableOpacity onPress={onScan} style={styles.iconWrapper}>
 							<AntIcon
 								name="scan1"
 								size={20}
@@ -148,7 +155,7 @@ export const AddressTo = props => {
 						</View>
 					</View>
 					{!!onClear && (
-						<TouchableOpacity onPress={onClear} style={styles.scanIconWrapper}>
+						<TouchableOpacity onPress={onClear} style={styles.iconWrapper}>
 							<AntIcon
 								name="close"
 								size={20}
@@ -214,7 +221,7 @@ export const AddressFrom = props => {
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
-				<Text>From:</Text>
+				<Text style={styles.labelText}>From:</Text>
 			</View>
 			<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 				<Identicon address={fromAccountAddress} diameter={30} />
@@ -224,12 +231,14 @@ export const AddressFrom = props => {
 				</View>
 
 				{!!onPressIcon && (
-					<TouchableOpacity onPress={onPressIcon} style={styles.scanIconWrapper}>
-						<FontAwesome
-							name={'caret-down'}
-							size={20}
-							style={[styles.backIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
-						/>
+					<TouchableOpacity onPress={onPressIcon} style={styles.iconWrapper}>
+						<View style={styles.dropdownIconWrapper}>
+							<FontAwesome
+								name={'caret-down'}
+								size={20}
+								style={[styles.dropdownIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
+							/>
+						</View>
 					</TouchableOpacity>
 				)}
 			</View>

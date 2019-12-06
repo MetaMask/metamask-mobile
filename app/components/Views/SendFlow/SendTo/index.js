@@ -27,7 +27,8 @@ const styles = StyleSheet.create({
 	imputWrapper: {
 		flex: 0,
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050
+		borderBottomColor: colors.grey050,
+		marginHorizontal: 8
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
 	myAccountsText: {
 		...fontStyles.normal,
 		color: colors.blue,
-		fontSize: 16,
+		fontSize: 14,
 		alignSelf: 'center'
 	},
 	myAccountsTouchable: {
@@ -235,7 +236,7 @@ class SendFlow extends PureComponent {
 				// todo
 				addressError = `Couldn't resolve ENS`;
 			}
-		} else if (toSelectedAddress && toSelectedAddress.length === 42) {
+		} else if (toSelectedAddress && toSelectedAddress.length >= 42) {
 			// todo
 			addressError = `Invalid address`;
 		}

@@ -172,8 +172,9 @@ class AddressList extends PureComponent {
 	getRecentAddresses = inputSearch => {
 		const { transactions, network, identities, onAccountPress } = this.props;
 		const recents = [];
-		const parsedRecents = [LabelElement('Recents')];
+		const parsedRecents = [];
 		if (!inputSearch) {
+			parsedRecents.push(LabelElement('Recents'));
 			const networkTransactions = transactions.filter(tx => tx.networkID === network);
 			networkTransactions.forEach(({ transaction: { to } }) => {
 				const checksummedTo = safeToChecksumAddress(to);
