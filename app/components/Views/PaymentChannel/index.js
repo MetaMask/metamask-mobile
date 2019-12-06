@@ -314,6 +314,7 @@ class PaymentChannel extends PureComponent {
 
 		// If loading finished, we can remove the timeout
 		if (!this.state.ready && state.ready) {
+			console.log('THIS IS INSTAPAY', InstaPay);
 			clearTimeout(this.loadingTimer);
 		}
 

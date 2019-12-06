@@ -12,6 +12,7 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TermsAndConditions from '../TermsAndConditions';
+import InstaPay from '../../../core/InstaPay';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
@@ -110,6 +111,7 @@ class Onboarding extends PureComponent {
 			// Restore vault with empty password
 			await KeyringController.submitPassword('');
 			await SecureKeychain.resetGenericPassword();
+			InstaPay.config('');
 			this.props.navigation.navigate('HomeNav');
 		} else {
 			this.props.navigation.navigate('Login');

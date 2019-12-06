@@ -12,6 +12,7 @@ import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import DeeplinkManager from '../../../core/DeeplinkManager';
+import InstaPay from '../../../core/InstaPay';
 import Logger from '../../../util/Logger';
 
 /**
@@ -169,6 +170,7 @@ class Entry extends PureComponent {
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;
 				await KeyringController.submitPassword(credentials.password);
+				InstaPay.config(credentials.password);
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
 				// Check if user passed through metrics opt-in screen

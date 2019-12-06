@@ -38,6 +38,14 @@ class SecureKeychain {
 	decryptPassword(str) {
 		return encryptor.decrypt(privates.get(this).code, str);
 	}
+
+	encrypt(obj) {
+		return encryptor.encrypt(privates.get(this).code, obj);
+	}
+
+	decrypt(str) {
+		return encryptor.decrypt(privates.get(this).code, str);
+	}
 }
 let instance;
 

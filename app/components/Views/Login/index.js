@@ -26,6 +26,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
+import InstaPay from '../../../core/InstaPay';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
@@ -171,6 +172,8 @@ class Login extends PureComponent {
 
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
+			InstaPay.config(this.state.password);
+			InstaPay.reloadClient();
 			if (this.state.biometryType) {
 				const authOptions = {
 					accessControl: this.state.biometryChoice

@@ -313,7 +313,6 @@ class ImportWallet extends PureComponent {
 
 	finishSync = async opts => {
 		await InstaPay.cleanUp();
-		await InstaPay.requireBackup();
 		if (opts.biometrics) {
 			const authOptions = {
 				accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
@@ -350,6 +349,9 @@ class ImportWallet extends PureComponent {
 			this.done = true;
 			this.dataToSync = null;
 			this.props.navigation.push('SyncWithExtensionSuccess');
+			await InstaPay.cleanUp();
+			InstaPay.config(opts.password);
+			InstaPay.reloadClient();
 		} catch (e) {
 			Logger.error('Sync::disconnect', e);
 			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));

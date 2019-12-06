@@ -6,7 +6,7 @@ import interval from 'interval-promise';
 import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse, decryptMnemonic, saveMnemonic } from './utils';
+import { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } from './utils';
 import Store from './utils/store';
 import AppConstants from '../AppConstants';
 import { Contract, ethers as eth } from 'ethers';
@@ -18,10 +18,8 @@ import TransactionsNotificationManager from '../TransactionsNotificationManager'
 import { renderFromWei, toWei, fromWei, BNToHex } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../../util/networks';
-import Encryptor from '../Encryptor';
 import PaymentChannelsClient from '../PaymentChannelsClient';
 
-const encryptor = new Encryptor();
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 const API_URL = 'indra.connext.network/api';
 
@@ -66,16 +64,13 @@ const reloadClient = () => {
 	}
 };
 
-// THIS TWO MNEMONICS ARE IN A BROKEN STATE
-// const mnemonic = 'token face horse fame you love envelope velvet comfort section mask street';
-// const mnemonic = 'avocado holiday swamp balcony good clap culture assume erode mask grape observe';
-// const mnemonic = 'frequent answer slender job feed spell follow loyal real blade exchange kit';
 /**
  * Class that wraps the connext client for
  * payment channels
  */
 class InstaPay {
-	constructor(mnemonic, network) {
+	constructor(magic, network) {
+		console.log('initializing with magic', magic);
 		const swapRate = '100.00';
 		this.state = {
 			username: '',
@@ -112,18 +107,22 @@ class InstaPay {
 			balanceToMigrate: 0
 		};
 
-		this.start(mnemonic, network);
+		this.start(magic, network);
 	}
 
-	start = async (mnemonic, network) => {
+	start = async (magic, network) => {
+		console.log('start with magic', magic);
 		const cfPath = "m/44'/60'/0'/25446";
 		const subdomain = network !== 'mainnet' ? `${network}.` : '';
 		const ethProviderUrl = `https://${subdomain}${API_URL}/ethprovider`;
 		const ethProvider = new eth.providers.JsonRpcProvider(ethProviderUrl);
 		const store = await Store.init();
-
+		const { KeyringController } = Engine.context;
+		const data = await KeyringController.exportSeedPhrase(magic);
+		const mnemonic = JSON.stringify(data).replace(/"/g, '');
+		console.log('mnemonic yo!', mnemonic);
 		const wallet = eth.Wallet.fromMnemonic(mnemonic, cfPath + '/0').connect(ethProvider);
-		this.setState({ network, wallet });
+		this.setState({ network, walletAddress: wallet.address });
 
 		const hdNode = fromExtendedKey(fromMnemonic(mnemonic).extendedKey).derivePath(cfPath);
 		const xpub = hdNode.neuter().extendedKey;
@@ -145,13 +144,7 @@ class InstaPay {
 
 		const channel = await connect(options);
 
-		Logger.log(`mnemonic address: ${wallet.address} (path: ${wallet.path})`);
 		Logger.log(`xpub address: ${eth.utils.computeAddress(fromExtendedKey(xpub).publicKey)}`);
-		Logger.log(
-			`keygen address: ${new eth.Wallet(await keyGen('1')).address} (path ${
-				new eth.Wallet(await keyGen('1')).path
-			})`
-		);
 
 		Logger.log('InstaPay :: connect complete ');
 
@@ -200,8 +193,6 @@ class InstaPay {
 			this.setState({ receivingTransferFailed: true });
 		});
 
-		const savedUsername = await AsyncStorage.getItem('@MetaMask:InstaPayUsername');
-
 		this.setState({
 			address: channel.signerAddress,
 			channel,
@@ -209,10 +200,9 @@ class InstaPay {
 			freeBalanceAddress: channel.freeBalanceAddress,
 			swapRate,
 			token,
-			wallet,
 			xpub: channel.publicIdentifier,
 			ready: true,
-			username: savedUsername || null
+			username: null
 		});
 
 		try {
@@ -283,7 +273,7 @@ class InstaPay {
 						addressToWithdraw
 					);
 				} else {
-					addressToWithdraw = this.state.wallet.address;
+					addressToWithdraw = this.state.walletAddress;
 					newBalanceToMigrate = this.state.balanceToMigrate + parseFloat(balance);
 					Logger.log(`InstaPay :: Withdrawing v1 ${balance} to InstaPay`, addressToWithdraw);
 				}
@@ -400,43 +390,13 @@ class InstaPay {
 	};
 
 	refreshBalances = async () => {
-		const { address, balance, channel, ethProvider, freeBalanceAddress, swapRate, token } = this.state;
-		const gasPrice = await ethProvider.getGasPrice();
-		const totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(toBN(2)).mul(gasPrice);
-		const totalWithdrawalGasWei = WITHDRAW_ESTIMATED_GAS.mul(gasPrice);
-		const minDeposit = Currency.WEI(totalDepositGasWei.add(totalWithdrawalGasWei), swapRate).toETH();
-		const maxDeposit = MAX_CHANNEL_VALUE.toETH(swapRate); // Or get based on payment profile?
+		const { channel, swapRate } = this.state;
+		const { maxDeposit, minDeposit } = await this.getDepositLimits();
 		this.setState({ maxDeposit, minDeposit });
 		if (!channel || !swapRate) {
 			return;
 		}
-		const getTotal = (ether, token) => Currency.WEI(ether.wad.add(token.toETH().wad), swapRate);
-		let freeEtherBalance, freeTokenBalance;
-		try {
-			freeEtherBalance = await channel.getFreeBalance();
-			freeTokenBalance = await channel.getFreeBalance(token.address);
-		} catch (e) {
-			if (e.message.includes(`This probably means that the StateChannel does not exist yet`)) {
-				// channel.connext was already called, meaning there should be
-				// an existing channel
-				const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
-				if (encryptedMnemonic) {
-					const mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
-					await channel.restoreState(mnemonic);
-					Logger.log('InstaPay :: Reloading client due to missing state');
-					reloadClient();
-				}
-				return;
-			}
-			Logger.warn(e);
-			return;
-		}
-		balance.onChain.ether = Currency.WEI(await ethProvider.getBalance(address), swapRate).toETH();
-		balance.onChain.token = Currency.DEI(await token.balanceOf(address), swapRate).toDAI();
-		balance.onChain.total = getTotal(balance.onChain.ether, balance.onChain.token).toETH();
-		balance.channel.ether = Currency.WEI(freeEtherBalance[freeBalanceAddress], swapRate).toETH();
-		balance.channel.token = Currency.DEI(freeTokenBalance[freeBalanceAddress], swapRate).toDAI();
-		balance.channel.total = getTotal(balance.channel.ether, balance.channel.token).toETH();
+		const balance = await this.getChannelBalances();
 		this.setState({ balance });
 
 		// Check for migration pending deposits
@@ -462,6 +422,41 @@ class InstaPay {
 				}, 1000);
 			}
 		}
+	};
+
+	getDepositLimits = async () => {
+		const { swapRate, ethProvider } = this.state;
+		const gasPrice = await ethProvider.getGasPrice();
+		const totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(toBN(2)).mul(gasPrice);
+		const totalWithdrawalGasWei = WITHDRAW_ESTIMATED_GAS.mul(gasPrice);
+		const minDeposit = Currency.WEI(totalDepositGasWei.add(totalWithdrawalGasWei), swapRate).toETH();
+		const maxDeposit = MAX_CHANNEL_VALUE.toETH(swapRate); // Or get based on payment profile?
+		return { maxDeposit, minDeposit };
+	};
+
+	getChannelBalances = async () => {
+		const { balance, channel, swapRate, token, ethProvider } = this.state;
+		const getTotal = (ether, token) => Currency.WEI(ether.wad.add(token.toETH().wad), swapRate);
+		const freeEtherBalance = await channel.getFreeBalance();
+		const freeTokenBalance = await channel.getFreeBalance(token.address);
+		balance.onChain.ether = Currency.WEI(await ethProvider.getBalance(channel.signerAddress), swapRate).toETH();
+		balance.onChain.token = Currency.DEI(await token.balanceOf(channel.signerAddress), swapRate).toDAI();
+		balance.onChain.total = getTotal(balance.onChain.ether, balance.onChain.token).toETH();
+		balance.channel.ether = Currency.WEI(freeEtherBalance[channel.freeBalanceAddress], swapRate).toETH();
+		balance.channel.token = Currency.DEI(freeTokenBalance[channel.freeBalanceAddress], swapRate).toDAI();
+		balance.channel.total = getTotal(balance.channel.ether, balance.channel.token).toETH();
+		const logIfNotZero = (wad, prefix) => {
+			if (wad.isZero()) {
+				return;
+			}
+			Logger.debug(`${prefix}: ${wad.toString()}`);
+		};
+
+		logIfNotZero(balance.onChain.token.wad, `chain token balance`);
+		logIfNotZero(balance.onChain.ether.wad, `chain ether balance`);
+		logIfNotZero(balance.channel.token.wad, `channel token balance`);
+		logIfNotZero(balance.channel.ether.wad, `channel ether balance`);
+		return balance;
 	};
 
 	autoDeposit = async () => {
@@ -670,7 +665,7 @@ class InstaPay {
 		const normalizedTxMeta = {
 			from: Engine.context.PreferencesController.state.selectedAddress,
 			value: BNToHex(depositAmount),
-			to: this.state.wallet.address,
+			to: this.state.walletAddress,
 			silent: true
 		};
 
@@ -847,7 +842,13 @@ class InstaPay {
 	};
 }
 
+const privates = new WeakMap();
+
 instance = {
+	async config(magic) {
+		console.log('MAGIC SET!', magic);
+		privates.set(this, { magic });
+	},
 	/**
 	 * Method that initializes the connext client for a
 	 * specific address, along with all the listeners required
@@ -856,26 +857,10 @@ instance = {
 		Logger.log('InstaPay :: Init');
 		const { provider } = Engine.context.NetworkController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
-			let mnemonic;
-			const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
-			if (encryptedMnemonic) {
-				try {
-					mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
-					Logger.log('InstaPay :: recovered mnemonic');
-				} catch (e) {
-					Logger.error('Decrypt mnemonic error', encryptedMnemonic);
-				}
-			}
-
-			if (!mnemonic) {
-				mnemonic = eth.Wallet.createRandom().mnemonic;
-				Logger.log('InstaPay :: created new mnemonic');
-				await saveMnemonic(encryptor, mnemonic);
-			}
 			try {
 				initListeners();
 				Logger.log('InstaPay :: Starting client...');
-				client = new InstaPay(mnemonic, provider.type);
+				client = new InstaPay(privates.get(this).magic, provider.type);
 			} catch (e) {
 				client && client.logCurrentState('InstaPay :: init');
 				Logger.error('InstaPay :: init', e);
@@ -972,7 +957,7 @@ instance = {
 	dump: () => (client && client.state) || {},
 	getXpub: () => (client && client.state && client.state.xpub.toLowerCase()) || '',
 	getDepositAddress: () =>
-		(client && client.state && client.state.wallet && toChecksumAddress(client.state.wallet.address)) || '',
+		(client && client.state && client.state.walletAddress && toChecksumAddress(client.state.walletAddress)) || '',
 	setUsername: username => {
 		client && client.setUsername(username);
 	},

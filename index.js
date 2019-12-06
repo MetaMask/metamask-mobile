@@ -14,7 +14,12 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'Sending acceptance message',
+	'waiting for proposal acceptance',
+	'Not subscribed to',
+	'subscribing to indra',
 	"Can't perform a React state update",
+	'Install rejected',
 	'Error evaluating injectedJavaScript',
 	'PROPOSE_INSTALL_VIRTUAL',
 	'Setting a timer for a long period of time',

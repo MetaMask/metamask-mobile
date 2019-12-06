@@ -257,9 +257,9 @@ class ImportFromSeed extends PureComponent {
 				await Engine.resetState();
 				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
-
 				await InstaPay.cleanUp();
-				await InstaPay.requireBackup();
+				InstaPay.config(this.state.password);
+				await InstaPay.reloadClient();
 
 				if (this.state.biometryType && this.state.biometryChoice) {
 					const authOptions = {

@@ -282,7 +282,7 @@ class SyncWithExtension extends PureComponent {
 			this.done = true;
 			this.dataToSync = null;
 			await InstaPay.cleanUp();
-			await InstaPay.requireBackup();
+			InstaPay.config(password);
 			InstaPay.reloadClient();
 			this.props.navigation.push('SyncWithExtensionSuccess');
 		} catch (e) {

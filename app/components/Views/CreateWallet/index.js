@@ -120,7 +120,9 @@ class CreateWallet extends PureComponent {
 			await SecureKeychain.setGenericPassword('metamask-user', '');
 			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
-			InstaPay.cleanUp();
+			await InstaPay.cleanUp();
+			InstaPay.config('');
+			await InstaPay.reloadClient();
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			// Get onboarding wizard state
 			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
