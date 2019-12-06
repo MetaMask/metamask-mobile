@@ -436,13 +436,12 @@ class PaymentChannel extends PureComponent {
 		// Deposits
 		const { transactions: onChainTransactions, provider, internalTransactions, selectedAddress } = this.props;
 
-		this.state.wallet &&
-			this.state.wallet.address &&
+		this.state.walletAddress &&
 			onChainTransactions.forEach(tx => {
 				if (
 					tx.transaction.from.toLowerCase() === selectedAddress.toLowerCase() &&
 					Networks[provider.type].networkId.toString() === tx.networkID &&
-					tx.transaction.to.toLowerCase() === this.state.wallet.address.toLowerCase() &&
+					tx.transaction.to.toLowerCase() === this.state.walletAddress.toLowerCase() &&
 					tx.status === 'confirmed'
 				) {
 					parsedTransactions.push({
