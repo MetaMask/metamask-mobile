@@ -49,35 +49,35 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 
 		@Override
 		protected List<ReactPackage> getPackages() {
-		return Arrays.<ReactPackage>asList(
-				new MainReactPackage(),
-            new RNSecureRandomPackage(),
-            new TcpSocketsModule(),
-            	new ReanimatedPackage(),
-				new RNCWebViewPackage(),
-            	new FabricPackage(),
-				new NetInfoPackage(),
-            	new RNViewShotPackage(),
-            	new LottiePackage(),
-           		new AsyncStoragePackage(),
-            	new ReactNativePushNotificationPackage(),
-            	new BackgroundTimerPackage(),
-				new RNDeviceInfo(),
-				new SvgPackage(),
-				new RNGestureHandlerPackage(),
-				new RNScreensPackage(),
-				new RNBranchPackage(),
-				new KeychainPackage(),
-				new RandomBytesPackage(),
-				new RCTAesPackage(),
-				new RNCameraPackage(),
-				new RNFSPackage(),
-				new RNI18nPackage(),
-				new RNOSModule(),
-				new RNSharePackage(),
-				new VectorIconsPackage(),
-				new RCTAnalyticsPackage()
-		);
+			return Arrays.<ReactPackage>asList(
+					new MainReactPackage(),
+					new RNSecureRandomPackage(),
+					new TcpSocketsModule(),
+					new ReanimatedPackage(),
+					new RNCWebViewPackage(),
+					new FabricPackage(),
+					new NetInfoPackage(),
+					new RNViewShotPackage(),
+					new LottiePackage(),
+					new AsyncStoragePackage(),
+					new ReactNativePushNotificationPackage(),
+					new BackgroundTimerPackage(),
+					new RNDeviceInfo(),
+					new SvgPackage(),
+					new RNGestureHandlerPackage(),
+					new RNScreensPackage(),
+					new RNBranchPackage(),
+					new KeychainPackage(),
+					new RandomBytesPackage(),
+					new RCTAesPackage(),
+					new RNCameraPackage(),
+					new RNFSPackage(),
+					new RNI18nPackage(),
+					new RNOSModule(),
+					new RNSharePackage(),
+					new VectorIconsPackage(),
+					new RCTAnalyticsPackage()
+			);
 		}
 
 		@Override
