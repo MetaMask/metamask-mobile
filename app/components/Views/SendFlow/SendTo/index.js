@@ -162,8 +162,6 @@ class SendFlow extends PureComponent {
 		alias: undefined
 	};
 
-	ensResolver;
-
 	componentDidMount = async () => {
 		const { navigation, selectedAddress, identities, accounts, ticker, network } = this.props;
 		navigation && navigation.setParams({ mode: 'edit' });

@@ -343,7 +343,7 @@ class Amount extends PureComponent {
 			selectedAsset,
 			transactionState: { transaction, transactionTo }
 		} = this.props;
-		if (selectedAsset.isEth) {
+		if (selectedAsset.isETH) {
 			transaction.data = undefined;
 			transaction.to = transactionTo;
 			transaction.value = BNToHex(toWei(value));
@@ -393,7 +393,7 @@ class Amount extends PureComponent {
 		const { estimatedTotalGas } = this.state;
 		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
-			if (selectedAsset.isEth) {
+			if (selectedAsset.isETH) {
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
 				weiInput = toWei(inputValue).add(estimatedTotalGas);
 			} else {
@@ -447,7 +447,7 @@ class Amount extends PureComponent {
 		} = this.props;
 		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
 		let input;
-		if (selectedAsset.isEth) {
+		if (selectedAsset.isETH) {
 			const maxValue = hexToBN(accounts[selectedAddress].balance).sub(estimatedTotalGas);
 			if (internalPrimaryCurrencyIsCrypto) {
 				input = fromWei(maxValue);
@@ -476,9 +476,9 @@ class Amount extends PureComponent {
 		const processedTicker = getTicker(ticker);
 		const processedInputValue = isDecimal(inputValue) ? inputValue : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
-
-		if (selectedAsset.isEth) {
+		if (selectedAsset.isETH) {
 			hasExchangeRate = true;
+			console.log('hasExchangeRate = true;');
 			if (internalPrimaryCurrencyIsCrypto) {
 				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue.toString(16)), conversionRate)}`;
 				renderableInputValueConversion = `${inputValueConversion} ${currentCurrency}`;
@@ -487,6 +487,7 @@ class Amount extends PureComponent {
 				renderableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
 			}
 		} else {
+			console.log('else');
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
 			hasExchangeRate = !!exchangeRate;
 			// If !hasExchangeRate we have to handle crypto amount
@@ -550,7 +551,7 @@ class Amount extends PureComponent {
 		} = this.props;
 		let balance, balanceFiat;
 		const { address, decimals, symbol } = token;
-		if (token.isEth) {
+		if (token.isETH) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
 			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 		} else {
@@ -566,7 +567,7 @@ class Amount extends PureComponent {
 				onPress={() => this.pickSelectedAsset(token)}
 			>
 				<View style={styles.assetElement}>
-					{token.isEth ? (
+					{token.isETH ? (
 						<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
 							<Image source={ethLogo} style={styles.ethLogo} />
 						</FadeIn>

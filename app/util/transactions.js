@@ -303,6 +303,6 @@ export function getEther(ticker) {
 		address: '',
 		symbol: ticker || strings('unit.eth'),
 		logo: '../images/eth-logo.png',
-		isEth: true
+		isETH: true
 	};
 }

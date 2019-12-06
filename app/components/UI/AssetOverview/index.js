@@ -113,7 +113,7 @@ class AssetOverview extends PureComponent {
 
 	onSend = async () => {
 		const { asset } = this.props;
-		if (asset.isEth) {
+		if (asset.isETH) {
 			this.props.newAssetTransaction(getEther());
 			this.props.navigation.navigate('SendFlowView');
 		} else {
