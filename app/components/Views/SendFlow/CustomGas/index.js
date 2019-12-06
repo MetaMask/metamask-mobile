@@ -13,7 +13,7 @@ import {
 	parseWaitTime
 } from '../../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
-import { fromWei, renderWei, hexToBN } from '../../../../util/number';
+import { fromWei, renderWei, hexToBN, renderFromWei } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
 import { getTicker } from '../../../../util/transactions';
 import Ionicon from 'react-native-vector-icons/Ionicons';
@@ -49,23 +49,27 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		...fontStyles.light,
+		color: colors.black,
 		fontSize: 10,
 		textTransform: 'uppercase'
 	},
 	textTime: {
 		...fontStyles.bold,
+		color: colors.black,
 		marginVertical: 8,
 		fontSize: 14,
 		textTransform: 'none'
 	},
 	textTitle: {
 		...fontStyles.light,
+		color: colors.black,
 		letterSpacing: 1,
 		fontSize: 10,
 		textTransform: 'uppercase'
 	},
 	textTotalGas: {
 		...fontStyles.bold,
+		color: colors.black,
 		marginBottom: 8,
 		marginTop: 4
 	},
@@ -112,6 +116,11 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'space-between',
 		height: 16
+	},
+	message: {
+		...fontStyles.normal,
+		color: colors.black,
+		fontSize: 14
 	}
 });
 
@@ -373,7 +382,7 @@ class CustomGas extends PureComponent {
 			<View style={styles.advancedOptionsContainer}>
 				<Text style={styles.text}>Total</Text>
 				<Text style={styles.textTotalGas}>
-					{fromWei(totalGas)} {ticker}
+					{renderFromWei(totalGas)} {ticker}
 				</Text>
 				<Text style={styles.text}>{strings('custom_gas.gas_limit')}</Text>
 				<TextInput
@@ -400,7 +409,7 @@ class CustomGas extends PureComponent {
 			const { advancedCustomGas } = this.state;
 			return (
 				<View style={styles.root}>
-					<Text>This is the cost for processing this payment on the blockchain.</Text>
+					<Text style={styles.message}>This is the cost for processing this payment on the blockchain.</Text>
 					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
 					<View style={styles.advancedOptions}>
 						<TouchableOpacity onPress={this.onAdvancedOptions}>

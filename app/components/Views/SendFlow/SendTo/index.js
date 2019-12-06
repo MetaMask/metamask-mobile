@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 		flex: 0,
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050,
-		marginHorizontal: 8
+		paddingHorizontal: 8
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',

@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
 	},
 	textAddress: {
 		...fontStyles.normal,
+		color: colors.black,
 		fontSize: 14
 	},
 	textBalance: {
@@ -66,6 +67,7 @@ const styles = StyleSheet.create({
 	},
 	labelText: {
 		...fontStyles.normal,
+		color: colors.black,
 		fontSize: 16,
 		marginLeft: 10
 	},

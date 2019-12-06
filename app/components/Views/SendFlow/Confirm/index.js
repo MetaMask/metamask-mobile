@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
 		flex: 0,
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050,
-		marginHorizontal: 8
+		paddingHorizontal: 8
 	},
 	amountWrapper: {
 		flexDirection: 'column',
@@ -70,7 +70,9 @@ const styles = StyleSheet.create({
 		marginVertical: 3
 	},
 	textAmount: {
-		...fontStyles.light,
+		fontFamily: 'Roboto-Light',
+		fontWeight: fontStyles.light.fontWeight,
+		color: colors.black,
 		fontSize: 44,
 		textAlign: 'center'
 	},
@@ -147,6 +149,7 @@ const styles = StyleSheet.create({
 	},
 	customGasModalTitleText: {
 		...fontStyles.bold,
+		color: colors.black,
 		fontSize: 18,
 		alignSelf: 'center',
 		margin: 16

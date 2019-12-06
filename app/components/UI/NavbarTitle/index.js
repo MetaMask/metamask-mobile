@@ -29,7 +29,8 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 18,
-		...fontStyles.normal
+		...fontStyles.normal,
+		color: colors.black
 	},
 	otherNetworkIcon: {
 		backgroundColor: colors.transparent,
