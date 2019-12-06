@@ -174,7 +174,7 @@ class AccountSelect extends PureComponent {
 		let mainBalance, secondaryBalance;
 		if (paymentChannelTransaction) {
 			const state = InstaPay.getState();
-			mainBalance = `${state.balance} ${strings('unit.sai')}`;
+			mainBalance = `${state.balance} ${strings('unit.dai')}`;
 		} else if (primaryCurrency === 'ETH') {
 			mainBalance = renderFromWei(balance) + ' ' + getTicker(ticker);
 			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency.toUpperCase());

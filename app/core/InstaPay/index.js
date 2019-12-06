@@ -3,22 +3,10 @@ import Logger from '../../util/Logger';
 import { connect, utils } from '@connext/client';
 import tokenArtifacts from './contracts/ERC20Mintable.json';
 import interval from 'interval-promise';
-
+import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import {
-	Currency,
-	minBN,
-	toBN,
-	tokenToWei,
-	weiToToken,
-	delay,
-	inverse,
-	decryptMnemonic,
-	saveMnemonic,
-	backupMnemonic,
-	getMnemonicFromBackup
-} from './utils';
+import { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse, decryptMnemonic, saveMnemonic } from './utils';
 import Store from './utils/store';
 import AppConstants from '../AppConstants';
 import { Contract, ethers as eth } from 'ethers';
@@ -58,7 +46,6 @@ const hub = new EventEmitter();
 let client = null;
 let running = false;
 let reloading = false;
-let restoring = false;
 // eslint-disable-next-line import/no-mutable-exports
 let instance = null;
 
@@ -105,7 +92,7 @@ class InstaPay {
 					total: Currency.ETH('0', swapRate)
 				}
 			},
-			ethprovider: null,
+			ethProvider: null,
 			freeBalanceAddress: null,
 			maxDeposit: null,
 			minDeposit: null,
@@ -132,11 +119,22 @@ class InstaPay {
 		const cfPath = "m/44'/60'/0'/25446";
 		const subdomain = network !== 'mainnet' ? `${network}.` : '';
 		const ethProviderUrl = `https://${subdomain}${API_URL}/ethprovider`;
-		const ethprovider = new eth.providers.JsonRpcProvider(ethProviderUrl);
-		const cfWallet = eth.Wallet.fromMnemonic(mnemonic, cfPath).connect(ethprovider);
+		const ethProvider = new eth.providers.JsonRpcProvider(ethProviderUrl);
 		const store = await Store.init();
+
+		const wallet = eth.Wallet.fromMnemonic(mnemonic, cfPath + '/0').connect(ethProvider);
+		this.setState({ network, wallet });
+
+		const hdNode = fromExtendedKey(fromMnemonic(mnemonic).extendedKey).derivePath(cfPath);
+		const xpub = hdNode.neuter().extendedKey;
+		const keyGen = index => {
+			const res = hdNode.derivePath(index);
+			return Promise.resolve(res.privateKey);
+		};
+
 		const options = {
-			mnemonic,
+			keyGen,
+			xpub,
 			nodeUrl: `wss://${subdomain}indra.connext.network/api/messaging`,
 			ethProviderUrl,
 			store,
@@ -146,6 +144,15 @@ class InstaPay {
 		Logger.log('InstaPay :: about to connect');
 
 		const channel = await connect(options);
+
+		Logger.log(`mnemonic address: ${wallet.address} (path: ${wallet.path})`);
+		Logger.log(`xpub address: ${eth.utils.computeAddress(fromExtendedKey(xpub).publicKey)}`);
+		Logger.log(
+			`keygen address: ${new eth.Wallet(await keyGen('1')).address} (path ${
+				new eth.Wallet(await keyGen('1')).path
+			})`
+		);
+
 		Logger.log('InstaPay :: connect complete ');
 
 		// Wait for channel to be available
@@ -160,15 +167,15 @@ class InstaPay {
 
 		Logger.log('PC:Channel is available!');
 
-		const freeBalanceAddress = channel.freeBalanceAddress || channel.myFreeBalanceAddress;
-		const token = new Contract(channel.config.contractAddresses.Token, tokenArtifacts.abi, cfWallet);
+		const token = new Contract(channel.config.contractAddresses.Token, tokenArtifacts.abi, ethProvider);
+
 		const swapRate = await channel.getLatestSwapRate(AddressZero, token.address);
 
 		Logger.log(`Client created successfully!`);
 		Logger.log(` - Public Identifier: ${channel.publicIdentifier}`);
 		Logger.log(` - Account multisig address: ${channel.opts.multisigAddress}`);
-		Logger.log(` - CF Account address: ${cfWallet.address}`);
-		Logger.log(` - Free balance address: ${freeBalanceAddress}`);
+		Logger.log(` - CF Account address: ${channel.signerAddress}`);
+		Logger.log(` - Free balance address: ${channel.freeBalanceAddress}`);
 		Logger.log(` - Token address: ${token.address}`);
 		Logger.log(` - Swap rate: ${swapRate}`);
 
@@ -196,13 +203,13 @@ class InstaPay {
 		const savedUsername = await AsyncStorage.getItem('@MetaMask:InstaPayUsername');
 
 		this.setState({
-			address: cfWallet.address,
+			address: channel.signerAddress,
 			channel,
-			ethprovider,
-			freeBalanceAddress,
+			ethProvider,
+			freeBalanceAddress: channel.freeBalanceAddress,
 			swapRate,
 			token,
-			wallet: cfWallet,
+			wallet,
 			xpub: channel.publicIdentifier,
 			ready: true,
 			username: savedUsername || null
@@ -216,15 +223,7 @@ class InstaPay {
 
 		await this.startPoller();
 
-		this.runMigrations();
-		this.backupIfNecessary();
-	};
-
-	backupIfNecessary = async () => {
-		const InstaPayBackedUp = await AsyncStorage.getItem('@MetaMask:InstaPayBackedUp');
-		if (!InstaPayBackedUp) {
-			hub.emit('backup::requested', null);
-		}
+		// this.runMigrations();
 	};
 
 	runMigrations = async () => {
@@ -401,8 +400,8 @@ class InstaPay {
 	};
 
 	refreshBalances = async () => {
-		const { address, balance, channel, ethprovider, freeBalanceAddress, swapRate, token } = this.state;
-		const gasPrice = await ethprovider.getGasPrice();
+		const { address, balance, channel, ethProvider, freeBalanceAddress, swapRate, token } = this.state;
+		const gasPrice = await ethProvider.getGasPrice();
 		const totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(toBN(2)).mul(gasPrice);
 		const totalWithdrawalGasWei = WITHDRAW_ESTIMATED_GAS.mul(gasPrice);
 		const minDeposit = Currency.WEI(totalDepositGasWei.add(totalWithdrawalGasWei), swapRate).toETH();
@@ -432,7 +431,7 @@ class InstaPay {
 			Logger.warn(e);
 			return;
 		}
-		balance.onChain.ether = Currency.WEI(await ethprovider.getBalance(address), swapRate).toETH();
+		balance.onChain.ether = Currency.WEI(await ethProvider.getBalance(address), swapRate).toETH();
 		balance.onChain.token = Currency.DEI(await token.balanceOf(address), swapRate).toDAI();
 		balance.onChain.total = getTotal(balance.onChain.ether, balance.onChain.token).toETH();
 		balance.channel.ether = Currency.WEI(freeEtherBalance[freeBalanceAddress], swapRate).toETH();
@@ -471,10 +470,12 @@ class InstaPay {
 			Logger.warn(`Channel not available yet.`);
 			return;
 		}
+
 		if (balance.onChain.ether.wad.eq(Zero)) {
 			Logger.debug(`No on-chain eth to deposit`);
 			return;
 		}
+
 		if (!pending.complete) {
 			Logger.log(`An operation of type ${pending.type} is pending, waiting to deposit`);
 			return;
@@ -489,43 +490,45 @@ class InstaPay {
 			return;
 		}
 
-		if (balance.onChain.token.wad.gt(Zero)) {
+		if (balance.onChain.token.wad.gt(Zero) || balance.onChain.ether.wad.gt(minDeposit.wad)) {
 			this.setPending({ type: 'deposit', complete: false, closed: false });
-			const amount = minBN([Currency.WEI(nowMaxDeposit, swapRate).toDAI().wad, balance.onChain.token.wad]);
-			const depositParams = {
-				amount: amount.toString(),
-				assetId: token.address.toLowerCase()
-			};
-			Logger.log(`Depositing ${depositParams.amount} tokens into channel: ${channel.opts.multisigAddress}`);
-			const result = await channel.deposit(depositParams);
+			if (balance.onChain.token.wad.gt(Zero)) {
+				const amount = minBN([Currency.WEI(nowMaxDeposit, swapRate).toDAI().wad, balance.onChain.token.wad]);
+				const depositParams = {
+					amount: amount.toString(),
+					assetId: token.address.toLowerCase()
+				};
+				Logger.log(`Depositing ${depositParams.amount} tokens into channel: ${channel.opts.multisigAddress}`);
+				const result = await channel.deposit(depositParams);
+				await this.refreshBalances();
+				Logger.log(`Successfully deposited tokens! Result: ${JSON.stringify(result, null, 2)}`);
+				this.setPending({ type: 'deposit', complete: true, closed: false });
+			} else {
+				Logger.debug(`No tokens to deposit`);
+			}
+
+			nowMaxDeposit = maxDeposit.wad.sub(this.state.balance.channel.total.wad);
+			if (nowMaxDeposit.lte(Zero)) {
+				Logger.debug(
+					`Channel balance (${balance.channel.total.toDAI().format()}) is at or above ` +
+						`cap of ${maxDeposit.toDAI(swapRate).format()}`
+				);
+				return;
+			}
+			if (balance.onChain.ether.wad.lt(minDeposit.wad)) {
+				Logger.debug(`Not enough on-chain eth to deposit: ${balance.onChain.ether.toETH().format()}`);
+				return;
+			}
+
+			this.setPending({ type: 'deposit', complete: false, closed: false });
+			const amount = minBN([balance.onChain.ether.wad.sub(minDeposit.wad), nowMaxDeposit]);
+			Logger.log(`Depositing ${amount} wei into channel: ${channel.opts.multisigAddress}`);
+			const result = await channel.deposit({ amount: amount.toString() });
 			await this.refreshBalances();
-			Logger.log(`Successfully deposited tokens! Result: ${JSON.stringify(result, null, 2)}`);
+			Logger.log(`Successfully deposited ether! Result: ${JSON.stringify(result, null, 2)}`);
 			this.setPending({ type: 'deposit', complete: true, closed: false });
-		} else {
-			Logger.debug(`No tokens to deposit`);
+			this.autoSwap();
 		}
-
-		nowMaxDeposit = maxDeposit.wad.sub(this.state.balance.channel.total.wad);
-		if (nowMaxDeposit.lte(Zero)) {
-			Logger.debug(
-				`Channel balance (${balance.channel.total.toDAI().format()}) is at or above ` +
-					`cap of ${maxDeposit.toDAI(swapRate).format()}`
-			);
-			return;
-		}
-		if (balance.onChain.ether.wad.lt(minDeposit.wad)) {
-			Logger.debug(`Not enough on-chain eth to deposit: ${balance.onChain.ether.toETH().format()}`);
-			return;
-		}
-
-		this.setPending({ type: 'deposit', complete: false, closed: false });
-		const amount = minBN([balance.onChain.ether.wad.sub(minDeposit.wad), nowMaxDeposit]);
-		Logger.log(`Depositing ${amount} wei into channel: ${channel.opts.multisigAddress}`);
-		const result = await channel.deposit({ amount: amount.toString() });
-		await this.refreshBalances();
-		Logger.log(`Successfully deposited ether! Result: ${JSON.stringify(result, null, 2)}`);
-		this.setPending({ type: 'deposit', complete: true, closed: false });
-		this.autoSwap();
 	};
 
 	autoSwap = async () => {
@@ -539,8 +542,10 @@ class InstaPay {
 			return;
 		}
 		if (balance.channel.token.wad.gte(maxDeposit.toDAI(swapRate).wad)) {
-			return; // swap ceiling has been reached, no need to swap more
+			Logger.debug(`Swap ceiling has been reached, no need to swap more`);
+			return;
 		}
+
 		if (!pending.complete) {
 			Logger.log(`An operation of type ${pending.type} is pending, waiting to swap`);
 			return;
@@ -549,14 +554,21 @@ class InstaPay {
 		const maxSwap = tokenToWei(maxDeposit.toDAI().wad.sub(balance.channel.token.wad), swapRate);
 		const weiToSwap = minBN([balance.channel.ether.wad, maxSwap]);
 
-		Logger.log(`Attempting to swap ${formatEther(weiToSwap)} eth for dai at rate: ${swapRate}`);
-		this.setPending({ type: 'swap', complete: false, closed: false });
+		if (weiToSwap.isZero()) {
+			// can happen if the balance.channel.ether.wad is 1 due to rounding
+			Logger.debug(`Will not exchange 0 wei. This is still weird, so here are some logs:`);
+			Logger.debug(`   - maxSwap: ${maxSwap.toString()}`);
+			Logger.debug(`   - swapRate: ${swapRate.toString()}`);
+			Logger.debug(`   - balance.channel.ether.wad: ${balance.channel.ether.wad.toString()}`);
+			return;
+		}
 
-		const hubFBAddress = utils.freeBalanceAddressFromXpub(channel.nodePublicIdentifier);
+		const hubFBAddress = utils.xpubToAddress(channel.nodePublicIdentifier);
 		const collateralNeeded = balance.channel.token.wad.add(weiToToken(weiToSwap, swapRate));
 		let collateral = formatEther((await channel.getFreeBalance(token.address))[hubFBAddress]);
 
 		Logger.log(`Collateral: ${collateral} tokens, need: ${formatEther(collateralNeeded)}`);
+
 		if (collateralNeeded.gt(parseEther(collateral))) {
 			Logger.log(`Requesting more collateral...`);
 			const tokenProfile = await channel.addPaymentProfile({
@@ -569,7 +581,12 @@ class InstaPay {
 			await channel.requestCollateral(token.address);
 			collateral = formatEther((await channel.getFreeBalance(token.address))[hubFBAddress]);
 			Logger.log(`Collateral: ${collateral} tokens, need: ${formatEther(collateralNeeded)}`);
+			return;
 		}
+
+		Logger.log(`Attempting to swap ${formatEther(weiToSwap)} eth for dai at rate: ${swapRate}`);
+		this.setPending({ type: 'swap', complete: false, closed: false });
+
 		await channel.swap({
 			amount: weiToSwap.toString(),
 			fromAssetId: AddressZero,
@@ -795,16 +812,11 @@ class InstaPay {
 
 	setUsername = async username => {
 		this.setState({ username });
-		AsyncStorage.setItem('@MetaMask:InstaPayUsername', username);
-		// TBD since there's no nameserver yet
-		// await this.state.instaPay3boxSpace.publicSetSpace(`address_${this.state.xpub}`, username);
-		// await this.state.instaPay3boxSpace.publicSetSpace(`username_${username}`, this.state.xpub);
 		Logger.log('username set to ', username);
 	};
 
 	checkForExistingUsername = async xpub => {
 		// TBD where to check since there's no nameserver yet
-		// const username = await this.state.instaPay3boxSpace.publicGetSpace(`address_${xpub}`);
 		const username = null;
 		Logger.log(`Instapay check username ${xpub} resolved to `, username);
 		if (!this.state.username) {
@@ -817,7 +829,6 @@ class InstaPay {
 
 	getXpubFromUsername = async username => {
 		// TBD where to check since there's no nameserver yet
-		// const xpub = await this.state.instaPay3boxSpace.publicGetSpace(`username_${username}`);
 		const xpub = null;
 		Logger.log(`Instapay check username ${username} resolved to `, xpub);
 		return xpub;
@@ -845,38 +856,29 @@ instance = {
 		Logger.log('InstaPay :: Init');
 		const { provider } = Engine.context.NetworkController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
-			// Uncomment for testing purposes
-			// await AsyncStorage.removeItem('@MetaMask:InstaPayRestoreBackUpNeeded');
-
-			const restoreNeeded = await AsyncStorage.getItem('@MetaMask:InstaPayRestoreBackUpNeeded');
-			if (restoreNeeded) {
-				restoring = true;
-				hub.emit('backup::restore', null);
-			} else {
-				let mnemonic;
-				const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
-				if (encryptedMnemonic) {
-					try {
-						mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
-						Logger.log('InstaPay :: recovered mnemonic');
-					} catch (e) {
-						Logger.error('Decrypt mnemonic error', encryptedMnemonic);
-					}
-				}
-
-				if (!mnemonic) {
-					mnemonic = eth.Wallet.createRandom().mnemonic;
-					Logger.log('InstaPay :: created new mnemonic');
-					await saveMnemonic(encryptor, mnemonic);
-				}
+			let mnemonic;
+			const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
+			if (encryptedMnemonic) {
 				try {
-					initListeners();
-					Logger.log('InstaPay :: Starting client...');
-					client = new InstaPay(mnemonic, provider.type);
+					mnemonic = await decryptMnemonic(encryptor, encryptedMnemonic);
+					Logger.log('InstaPay :: recovered mnemonic');
 				} catch (e) {
-					client && client.logCurrentState('InstaPay :: init');
-					Logger.error('InstaPay :: init', e);
+					Logger.error('Decrypt mnemonic error', encryptedMnemonic);
 				}
+			}
+
+			if (!mnemonic) {
+				mnemonic = eth.Wallet.createRandom().mnemonic;
+				Logger.log('InstaPay :: created new mnemonic');
+				await saveMnemonic(encryptor, mnemonic);
+			}
+			try {
+				initListeners();
+				Logger.log('InstaPay :: Starting client...');
+				client = new InstaPay(mnemonic, provider.type);
+			} catch (e) {
+				client && client.logCurrentState('InstaPay :: init');
+				Logger.error('InstaPay :: init', e);
 			}
 		}
 	},
@@ -985,40 +987,12 @@ instance = {
 		await AsyncStorage.removeItem('@MetaMask:InstaPayMnemonic');
 		await AsyncStorage.removeItem('@MetaMask:InstaPay');
 		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
-		await AsyncStorage.removeItem('@MetaMask:InstaPayBackedUp');
-		await AsyncStorage.removeItem('@MetaMask:InstaPayRestoreBackUpNeeded');
 		await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
 		Store.reset();
 		instance.stop();
 	},
-	initBackup: async box => {
-		Logger.log('InstaPay :: Backup process initiated');
-		const encryptedMnemonic = await AsyncStorage.getItem('@MetaMask:InstaPayMnemonic');
-		await backupMnemonic(box, encryptedMnemonic);
-		await AsyncStorage.setItem('@MetaMask:InstaPayBackedUp', 'true');
-		Logger.log('InstaPay :: Backup process completed');
-	},
-	restoreBackup: async box => {
-		hub.emit('restore::started', null);
-		Logger.log('InstaPay :: Restore backup process initiated');
-		const backedupEncryptedMnemonic = await getMnemonicFromBackup(box);
-		if (backedupEncryptedMnemonic) {
-			await AsyncStorage.setItem('@MetaMask:InstaPayMnemonic', backedupEncryptedMnemonic);
-			await AsyncStorage.setItem('@MetaMask:InstaPayBackedUp', 'true');
-		} else {
-			Logger.log('InstaPay :: No backup found!');
-			await AsyncStorage.removeItem('@MetaMask:InstaPayBackedUp');
-		}
-		await AsyncStorage.removeItem('@MetaMask:InstaPayRestoreBackUpNeeded');
-		Logger.log('InstaPay :: Restore backup process completed');
-		restoring = false;
-		hub.emit('restore::complete', null);
-		reloadClient();
-	},
 	reloadClient,
-	isRestoring: () => restoring,
-	isMigrating: () => client && client.state.migrating,
-	requireBackup: () => AsyncStorage.setItem('@MetaMask:InstaPayRestoreBackUpNeeded', 'true')
+	isMigrating: () => client && client.state.migrating
 };
 
 const onPaymentConfirm = async request => {

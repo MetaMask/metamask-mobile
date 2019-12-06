@@ -219,6 +219,8 @@ export async function isCollectibleAddress(address, tokenId) {
 export async function getTransactionActionKey(transaction) {
 	const { transaction: { data, to } = {} } = transaction;
 
+	console.log(transaction);
+
 	if (!to) return CONTRACT_METHOD_DEPLOY;
 
 	if (to && to.toLowerCase() === InstaPay.getDepositAddress().toLowerCase()) {
@@ -278,7 +280,9 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 					: ticker
 					? strings('transactions.received_unit', { unit: ticker })
 					: strings('transactions.received_ether')
-				: ticker;
+				: ticker
+				? strings('transactions.sent_unit', { unit: ticker })
+				: strings('transactions.sent_ether');
 		}
 
 		return ticker ? strings('transactions.sent_unit', { unit: ticker }) : strings('transactions.sent_ether');

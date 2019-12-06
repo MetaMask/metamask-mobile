@@ -7,8 +7,7 @@ import {
 	View,
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 	Platform,
-	Alert,
-	Dimensions
+	Alert
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -87,7 +86,6 @@ import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
 import AsyncStorage from '@react-native-community/async-storage';
-import Web3Box from '../../../core/3box';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -102,10 +100,6 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
-	},
-	webview3boxWrapper: {
-		width: Dimensions.get('window').width,
-		height: 0
 	}
 });
 
@@ -398,11 +392,8 @@ class Main extends PureComponent {
 		paymentChannelRequest: false,
 		paymentChannelRequestLoading: false,
 		paymentChannelRequestCompleted: false,
-		paymentChannelRequestInfo: {},
-		is3boxEnabled: false
+		paymentChannelRequestInfo: {}
 	};
-
-	web3BoxRef = React.createRef();
 
 	backgroundMode = false;
 	locale = I18n.locale;
@@ -705,54 +696,6 @@ class Main extends PureComponent {
 					});
 				}, 800);
 			}, 800);
-		});
-
-		InstaPay.hub.on('backup::requested', () => {
-			Logger.log('InstaPay BACKUP STARTED...');
-			this.setState({ is3boxEnabled: true }, async () => {
-				// Wait for 3box to be ready
-				const is3boxReady = () =>
-					this.web3BoxRef.current && this.web3BoxRef.current.state && this.web3BoxRef.current.state.ready;
-
-				while (!is3boxReady()) {
-					await new Promise(res => setTimeout(() => res(), 1000));
-				}
-				Logger.log('3BOX IS READY!');
-				Logger.log('OPENING BOX');
-				try {
-					await this.web3BoxRef.current.openBox();
-					Logger.log('BOX OPENED');
-					await InstaPay.initBackup(this.web3BoxRef.current);
-				} catch (e) {
-					Logger.error('InstaPay Backup failed', e);
-				}
-				this.setState({ is3boxEnabled: false });
-			});
-		});
-
-		InstaPay.hub.on('backup::restore', () => {
-			Logger.log('InstaPay RESTORE BACKUP STARTED...');
-			this.setState({ is3boxEnabled: true }, async () => {
-				// Wait for 3box to be ready
-				const is3boxReady = () =>
-					this.web3BoxRef.current && this.web3BoxRef.current.state && this.web3BoxRef.current.state.ready;
-
-				while (!is3boxReady()) {
-					await new Promise(res => setTimeout(() => res(), 1000));
-				}
-				Logger.log('3BOX IS READY!');
-				Logger.log('OPENING BOX');
-
-				try {
-					this.web3BoxRef.current && (await this.web3BoxRef.current.openBox());
-					Logger.log('BOX OPENED');
-					await InstaPay.restoreBackup(this.web3BoxRef.current);
-				} catch (e) {
-					Logger.error('InstaPay Restore Backup failed', e);
-				}
-
-				this.setState({ is3boxEnabled: false });
-			});
 		});
 	};
 
@@ -1089,12 +1032,6 @@ class Main extends PureComponent {
 				{this.renderWalletConnectSessionRequestModal()}
 				{this.renderPaymentChannelRequestApproval()}
 				{this.renderWalletConnectReturnModal()}
-
-				{this.state.is3boxEnabled && (
-					<View style={styles.webview3boxWrapper}>
-						<Web3Box ref={this.web3BoxRef} style={styles.flex} />
-					</View>
-				)}
 			</React.Fragment>
 		);
 	}

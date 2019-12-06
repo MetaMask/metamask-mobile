@@ -198,12 +198,12 @@ const defaultEth = [
 const defaultAssets = [
 	...defaultEth,
 	{
-		address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
+		address: '0x6b175474e89094c44da98b954eedeac495271d0f',
 		decimals: 18,
 		erc20: true,
-		logo: 'dai.svg',
-		name: 'Sai Stablecoin v1.0',
-		symbol: 'SAI'
+		logo: 'new-dai.svg',
+		name: 'Dai Stablecoin',
+		symbol: 'DAI'
 	}
 ];
 

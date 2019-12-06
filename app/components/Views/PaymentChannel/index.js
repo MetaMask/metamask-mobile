@@ -38,7 +38,7 @@ import AddressQRCode from '../AddressQRCode';
 import ChooseInstaPayUserModal from '../../UI/ChooseInstaPayUserModal';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 
-const SAI_ADDRESS = AppConstants.SAI_ADDRESS;
+const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
 const MIGRATION_TIMEOUT_MINUTES = 1.5;
 
 const styles = StyleSheet.create({
@@ -262,8 +262,7 @@ class PaymentChannel extends PureComponent {
 		username: null,
 		newUsername: null,
 		chooseUserModalVisible: false,
-		upgradeModalVisible: InstaPay.isMigrating(),
-		restoreAccountModalVisible: InstaPay.isRestoring()
+		upgradeModalVisible: InstaPay.isMigrating()
 	};
 
 	client = null;
@@ -278,17 +277,6 @@ class PaymentChannel extends PureComponent {
 
 	hideUpgradeModal = () => {
 		this.setState({ upgradeModalVisible: false });
-	};
-
-	showRestoringAccountModal = () => {
-		this.setState({ restoreAccountModalVisible: true });
-	};
-
-	hideRestoringAccountModal = () => {
-		// Delay it so the modal doesn't flash
-		setTimeout(() => {
-			this.setState({ restoreAccountModalVisible: false });
-		}, 2500);
 	};
 
 	onNewUsernameChange = newUsername => {
@@ -364,8 +352,6 @@ class PaymentChannel extends PureComponent {
 		InstaPay.hub.on('state::change', this.onStateChange);
 		InstaPay.hub.on('migration::started', this.showUpgradeModal);
 		InstaPay.hub.on('migration::complete', this.hideUpgradeModal);
-		InstaPay.hub.on('restore::started', this.showRestoringAccountModal);
-		InstaPay.hub.on('restore::complete', this.hideRestoringAccountModal);
 	};
 
 	checkifEnabled = async () => {
@@ -442,7 +428,7 @@ class PaymentChannel extends PureComponent {
 		// Send and Receive
 		if (transactions && transactions.length && this.state.xpub) {
 			parsedTransactions = transactions.map(tx => ({
-				time: Date.parse(tx.createdOn),
+				time: Date.parse(tx.createdAt),
 				status: 'confirmed',
 				id: tx.id.toString(),
 				paymentChannelTransaction: true,
@@ -504,9 +490,7 @@ class PaymentChannel extends PureComponent {
 	removeListeners() {
 		InstaPay.hub.removeListener('reload::start', this.reinitialize);
 		InstaPay.hub.removeListener('state::change', this.onStateChange);
-		InstaPay.hub.removeListener('restore::started', this.showRestoringAccountModal);
 		InstaPay.hub.removeListener('migration::started', this.showUpgradeModal);
-		InstaPay.hub.removeListener('restore::complete', this.hideRestoringAccountModal);
 		InstaPay.hub.removeListener('migration::complete', this.hideUpgradeModal);
 	}
 
@@ -560,8 +544,8 @@ class PaymentChannel extends PureComponent {
 		this.props.setPaymentChannelTransaction({
 			address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
 			decimals: 18,
-			logo: 'dai.svg',
-			symbol: 'SAI'
+			logo: 'new-dai.svg',
+			symbol: 'DAI'
 		});
 		this.props.navigation.navigate('PaymentChannelSend');
 	};
@@ -661,14 +645,14 @@ class PaymentChannel extends PureComponent {
 		const { TokenRatesController } = Engine.context;
 		const { nativeCurrency, currentCurrency, contractExchangeRates, conversionRate } = this.props;
 		let exchangeRate;
-		if (Object.keys(contractExchangeRates).includes(SAI_ADDRESS)) {
-			exchangeRate = contractExchangeRates[SAI_ADDRESS];
+		if (Object.keys(contractExchangeRates).includes(DAI_ADDRESS)) {
+			exchangeRate = contractExchangeRates[DAI_ADDRESS];
 		} else {
 			const res = await TokenRatesController.fetchExchangeRate(
-				`contract_addresses=${SAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
+				`contract_addresses=${DAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
 			);
-			if (!!res && Object.keys(res).includes(SAI_ADDRESS.toLowerCase())) {
-				exchangeRate = res[SAI_ADDRESS.toLowerCase()][nativeCurrency.toLowerCase()];
+			if (!!res && Object.keys(res).includes(DAI_ADDRESS.toLowerCase())) {
+				exchangeRate = res[DAI_ADDRESS.toLowerCase()][nativeCurrency.toLowerCase()];
 			}
 		}
 
@@ -765,16 +749,6 @@ class PaymentChannel extends PureComponent {
 	}
 
 	renderContent() {
-		// if (InstaPay.isRestoring()) {
-		// 	return (
-		// 		<View style={styles.loader}>
-		// 			<ActivityIndicator size="small" />
-		// 			<Text>Please wait while we restore your account</Text>
-		// 			<Text>(This might take a couple of minutes...)</Text>
-		// 		</View>
-		// 	);
-		// }
-
 		if (!this.state.ready) {
 			return (
 				<View style={styles.loader}>
@@ -799,15 +773,9 @@ class PaymentChannel extends PureComponent {
 	};
 
 	renderBlockingModals = () => {
-		const visible =
-			!this.state.displayWelcomeModal &&
-			(this.state.upgradeModalVisible || this.state.restoreAccountModalVisible);
-		const title = this.state.upgradeModalVisible
-			? strings('payment_channel.upgrading_account_title')
-			: strings('payment_channel.restoring_account_title');
-		const text = this.state.upgradeModalVisible
-			? strings('payment_channel.upgrading_account_text')
-			: strings('payment_channel.restoring_account_text');
+		const visible = !this.state.displayWelcomeModal && this.state.upgradeModalVisible;
+		const title = strings('payment_channel.upgrading_account_title');
+		const text = strings('payment_channel.upgrading_account_text');
 		return (
 			<BlockingActionModal modalVisible={visible} isLoadingAction>
 				<React.Fragment>

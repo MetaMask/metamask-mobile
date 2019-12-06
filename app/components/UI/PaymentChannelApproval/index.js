@@ -314,7 +314,7 @@ class PaymentChannelApproval extends PureComponent {
 						<Text style={styles.intro}>{strings('paymentRequest.is_requesting_you_to_pay')}</Text>
 						<View style={styles.total}>
 							<Text style={styles.totalPrice}>
-								{formattedAmount} {strings(`unit.sai`)}
+								{formattedAmount} {strings(`unit.dai`)}
 							</Text>
 						</View>
 						{detail && (
