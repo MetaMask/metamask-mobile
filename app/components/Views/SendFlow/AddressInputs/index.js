@@ -88,11 +88,15 @@ export const AddressTo = props => {
 	const {
 		addressToReady,
 		highlighted,
+		inputRef,
 		toSelectedAddress,
 		onToSelectedAddressChange,
 		onScan,
 		onClear,
-		toAddressName
+		toAddressName,
+		onInputFocus,
+		onSubmit,
+		onInputBlur
 	} = props;
 	return (
 		<View style={styles.wrapper}>
@@ -103,6 +107,7 @@ export const AddressTo = props => {
 				<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 					<View style={styles.input}>
 						<TextInput
+							ref={inputRef}
 							autoCapitalize="none"
 							autoCorrect={false}
 							onChangeText={onToSelectedAddressChange}
@@ -111,9 +116,9 @@ export const AddressTo = props => {
 							spellCheck={false}
 							style={styles.textInput}
 							numberOfLines={1}
-							onBlur={this.onBlur}
-							onFocus={this.onInputFocus}
-							onSubmitEditing={this.onFocus}
+							onFocus={onInputFocus}
+							onBlur={onInputBlur}
+							onSubmitEditing={onSubmit}
 							value={toSelectedAddress}
 						/>
 					</View>
@@ -185,7 +190,14 @@ AddressTo.propTypes = {
 	/**
 	 * Name of selected address as string
 	 */
-	toAddressName: PropTypes.string
+	toAddressName: PropTypes.string,
+	/**
+	 * Callback called when input is focused
+	 */
+	onInputFocus: PropTypes.func,
+	onSubmit: PropTypes.func,
+	onInputBlur: PropTypes.func,
+	inputRef: PropTypes.object
 };
 
 export const AddressFrom = props => {

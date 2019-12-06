@@ -147,6 +147,8 @@ class SendFlow extends PureComponent {
 		setRecipient: PropTypes.func
 	};
 
+	addressToInputRef = React.createRef();
+
 	state = {
 		addressError: undefined,
 		fromAccountModalVisible: false,
@@ -163,8 +165,8 @@ class SendFlow extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { navigation, selectedAddress, identities, accounts, ticker, network } = this.props;
-		navigation && navigation.setParams({ mode: 'edit' });
+		const { addressBook, selectedAddress, identities, accounts, ticker, network } = this.props;
+		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
 		const fromAccountName = ens || identities[selectedAddress].name;
 		this.setState({
@@ -172,6 +174,9 @@ class SendFlow extends PureComponent {
 			fromAccountName,
 			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`
 		});
+		if (!Object.keys(networkAddressBook).length) {
+			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
+		}
 	};
 
 	toggleFromAccountModal = () => {
@@ -352,6 +357,11 @@ class SendFlow extends PureComponent {
 		);
 	};
 
+	onToInputFocus = () => {
+		const { toInputHighlighted } = this.state;
+		this.setState({ toInputHighlighted: !toInputHighlighted });
+	};
+
 	render = () => {
 		const {
 			fromSelectedAddress,
@@ -361,7 +371,8 @@ class SendFlow extends PureComponent {
 			toSelectedAddressReady,
 			toSelectedAddressName,
 			addToAddressToAddressBook,
-			addressError
+			addressError,
+			toInputHighlighted
 		} = this.state;
 
 		return (
@@ -374,13 +385,17 @@ class SendFlow extends PureComponent {
 						fromAccountBalance={fromAccountBalance}
 					/>
 					<AddressTo
-						highlighted
+						inputRef={this.addressToInputRef}
+						highlighted={toInputHighlighted}
 						addressToReady={toSelectedAddressReady}
 						toSelectedAddress={toSelectedAddress}
 						toAddressName={toSelectedAddressName}
 						onToSelectedAddressChange={this.onToSelectedAddressChange}
 						onScan={this.onScan}
 						onClear={this.onToClear}
+						onInputFocus={this.onToInputFocus}
+						onInputBlur={this.onToInputFocus}
+						onSubmit={this.onTransactionDirectionSet}
 					/>
 				</View>
 				{addressError && (
