@@ -551,8 +551,8 @@ class Confirm extends PureComponent {
 					...transactionMeta,
 					assetType
 				});
+				this.checkRemoveCollectible();
 			});
-			this.checkRemoveCollectible();
 			navigation && navigation.dismiss();
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);

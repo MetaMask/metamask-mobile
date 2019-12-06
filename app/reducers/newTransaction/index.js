@@ -57,11 +57,6 @@ const transactionReducer = (state = initialState, action) => {
 				selectedAsset: action.selectedAsset,
 				assetType: action.assetType
 			};
-		case 'SET_VALUE':
-			return {
-				...state,
-				transactionValue: action.value
-			};
 		case 'PREPARE_TRANSACTION':
 			return {
 				...state,

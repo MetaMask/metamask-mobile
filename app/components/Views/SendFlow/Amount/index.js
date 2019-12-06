@@ -13,7 +13,7 @@ import {
 	Image
 } from 'react-native';
 import { connect } from 'react-redux';
-import { setSelectedAsset, setValue, prepareTransaction } from '../../../../actions/newTransaction';
+import { setSelectedAsset, prepareTransaction } from '../../../../actions/newTransaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -804,8 +804,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
-	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset)),
-	setValue: value => dispatch(setValue(value))
+	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
 });
 
 export default connect(

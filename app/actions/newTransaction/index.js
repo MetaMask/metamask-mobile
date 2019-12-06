@@ -7,6 +7,11 @@ export function resetTransaction() {
 	};
 }
 
+/**
+ * Starts a new transaction state with an asset
+ *
+ * @param {object} selectedAsset - Asset to start the transaction with
+ */
 export function newAssetTransaction(selectedAsset) {
 	return {
 		type: 'NEW_ASSET_TRANSACTION',
@@ -17,6 +22,12 @@ export function newAssetTransaction(selectedAsset) {
 
 /**
  * Sets transaction to address and ensRecipient in case is available
+ *
+ * @param {string} from - Address to send the transaction from
+ * @param {string} to - Address to send the transaction to
+ * @param {string} ensRecipient - Resolved ens name to send the transaction to
+ * @param {string} transactionToName - Resolved address book name for to address
+ * @param {string} transactionFromName - Resolved address book name for from address
  */
 export function setRecipient(from, to, ensRecipient, transactionToName, transactionFromName) {
 	return {
@@ -29,6 +40,11 @@ export function setRecipient(from, to, ensRecipient, transactionToName, transact
 	};
 }
 
+/**
+ * Sets asset as selectedAsset
+ *
+ * @param {object} selectedAsset - Asset to start the transaction with
+ */
 export function setSelectedAsset(selectedAsset) {
 	return {
 		type: 'SET_SELECTED_ASSET',
@@ -37,13 +53,11 @@ export function setSelectedAsset(selectedAsset) {
 	};
 }
 
-export function setValue(value) {
-	return {
-		type: 'SET_VALUE',
-		value
-	};
-}
-
+/**
+ * Sets transaction object to be sent
+ *
+ * @param {object} transaction - Transaction object with from, to, data, gas, gasPrice, value
+ */
 export function prepareTransaction(transaction) {
 	return {
 		type: 'PREPARE_TRANSACTION',
