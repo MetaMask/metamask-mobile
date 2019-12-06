@@ -363,6 +363,13 @@ export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decim
 	return fiatFixed;
 }
 
+export function getCurrencySymbol(currencyCode) {
+	if (currencySymbols[currencyCode]) {
+		return `${currencySymbols[currencyCode]}`;
+	}
+	return currencyCode;
+}
+
 /**
  * Formats a fiat value into a string ready to be rendered
  *

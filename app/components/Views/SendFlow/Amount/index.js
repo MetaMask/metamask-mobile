@@ -34,7 +34,8 @@ import {
 	fiatNumberToWei,
 	fiatNumberToTokenMinimalUnit,
 	weiToFiatNumber,
-	balanceToFiatNumber
+	balanceToFiatNumber,
+	getCurrencySymbol
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
@@ -102,8 +103,18 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end'
 	},
 	actionMaxTouchable: {},
+	inputContainerWrapper: {
+		marginVertical: 8,
+		alignItems: 'center'
+	},
 	inputContainer: {
-		marginVertical: 8
+		flexDirection: 'row'
+	},
+	inputCurrencyText: {
+		...fontStyles.light,
+		fontSize: 44,
+		textAlign: 'right',
+		marginRight: 8
 	},
 	textInput: {
 		...fontStyles.light,
@@ -478,22 +489,29 @@ class Amount extends PureComponent {
 		selectedAsset = selectedAsset || this.props.selectedAsset;
 		if (selectedAsset.isETH) {
 			hasExchangeRate = true;
-			console.log('hasExchangeRate = true;');
 			if (internalPrimaryCurrencyIsCrypto) {
 				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue.toString(16)), conversionRate)}`;
-				renderableInputValueConversion = `${inputValueConversion} ${currentCurrency}`;
+				renderableInputValueConversion = `${weiToFiat(
+					toWei(processedInputValue.toString(16)),
+					conversionRate,
+					currentCurrency
+				)}`;
 			} else {
 				inputValueConversion = `${renderFromWei(fiatNumberToWei(processedInputValue, conversionRate))}`;
 				renderableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
 			}
 		} else {
-			console.log('else');
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
 			hasExchangeRate = !!exchangeRate;
 			// If !hasExchangeRate we have to handle crypto amount
 			if (internalPrimaryCurrencyIsCrypto || !hasExchangeRate) {
 				inputValueConversion = `${balanceToFiatNumber(processedInputValue, conversionRate, exchangeRate)}`;
-				renderableInputValueConversion = `${inputValueConversion} ${currentCurrency}`;
+				renderableInputValueConversion = `${balanceToFiat(
+					processedInputValue,
+					conversionRate,
+					exchangeRate,
+					currentCurrency
+				)}`;
 			} else {
 				inputValueConversion = `${renderFromTokenMinimalUnit(
 					fiatNumberToTokenMinimalUnit(
@@ -667,18 +685,30 @@ class Amount extends PureComponent {
 	};
 
 	renderTokenInput = () => {
-		const { inputValue, renderableInputValueConversion, amountError, hasExchangeRate } = this.state;
+		const {
+			inputValue,
+			renderableInputValueConversion,
+			amountError,
+			hasExchangeRate,
+			internalPrimaryCurrencyIsCrypto
+		} = this.state;
+		const { currentCurrency } = this.props;
 		return (
 			<View>
-				<View style={styles.inputContainer}>
-					<TextInput
-						ref={this.amountInput}
-						style={styles.textInput}
-						value={inputValue}
-						onChangeText={this.onInputChange}
-						keyboardType={'numeric'}
-						placeholder={'0'}
-					/>
+				<View style={styles.inputContainerWrapper}>
+					<View style={styles.inputContainer}>
+						{!internalPrimaryCurrencyIsCrypto && !!inputValue && (
+							<Text style={styles.inputCurrencyText}>{`${getCurrencySymbol(currentCurrency)} `}</Text>
+						)}
+						<TextInput
+							ref={this.amountInput}
+							style={styles.textInput}
+							value={inputValue}
+							onChangeText={this.onInputChange}
+							keyboardType={'numeric'}
+							placeholder={'0'}
+						/>
+					</View>
 				</View>
 				{hasExchangeRate && (
 					<View style={styles.actionsWrapper}>
@@ -730,7 +760,6 @@ class Amount extends PureComponent {
 	render = () => {
 		const { estimatedTotalGas } = this.state;
 		const { selectedAsset } = this.props;
-		console.log('renderrrr', selectedAsset, selectedAsset.symbol);
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.inputWrapper}>
