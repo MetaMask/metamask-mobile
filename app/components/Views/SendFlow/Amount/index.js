@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 	},
 	inputWrapper: {
 		flex: 1,
-		marginTop: 45,
+		marginTop: 30,
 		marginHorizontal: 24
 	},
 	actionsWrapper: {
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
 	},
 	actionMaxTouchable: {},
 	inputContainerWrapper: {
-		marginVertical: 8,
+		marginVertical: 16,
 		alignItems: 'center'
 	},
 	inputContainer: {
@@ -130,7 +130,8 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		flexDirection: 'row',
 		borderColor: colors.grey500,
-		borderWidth: 1
+		borderWidth: 1,
+		right: -2
 	},
 	textSwitch: {
 		...fontStyles.normal,
@@ -225,11 +226,14 @@ const styles = StyleSheet.create({
 	collectibleName: {
 		...fontStyles.normal,
 		fontSize: 32,
+		color: colors.grey500,
 		textAlign: 'center'
 	},
 	collectibleId: {
 		...fontStyles.normal,
 		fontSize: 14,
+		color: colors.grey500,
+		marginTop: 8,
 		textAlign: 'center'
 	},
 	collectibleInputWrapper: {
