@@ -10,7 +10,7 @@ import { renderShortAddress } from '../../../../util/address';
 const styles = StyleSheet.create({
 	wrapper: {
 		flexDirection: 'row',
-		marginVertical: 8
+		margin: 8
 	},
 	selectWrapper: {
 		flex: 1,
@@ -68,8 +68,7 @@ const styles = StyleSheet.create({
 	labelText: {
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 16,
-		marginLeft: 10
+		fontSize: 16
 	},
 	textInput: {
 		...fontStyles.normal,

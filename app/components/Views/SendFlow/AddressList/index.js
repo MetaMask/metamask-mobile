@@ -27,6 +27,7 @@ const styles = StyleSheet.create({
 	},
 	addressTextNickname: {
 		...fontStyles.normal,
+		color: colors.black,
 		fontSize: 14
 	},
 	addressTextAddress: {

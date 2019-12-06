@@ -195,12 +195,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	addressTitle: {
+		...fontStyles.bold,
+		color: colors.black,
 		alignItems: 'center',
 		justifyContent: 'center',
 		textAlign: 'center',
 		fontSize: 16,
-		marginBottom: 16,
-		...fontStyles.normal
+		marginBottom: 16
 	},
 	hexDataClose: {
 		zIndex: 999,
