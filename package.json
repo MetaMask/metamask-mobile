@@ -125,12 +125,13 @@
     "react-native-screens": "1.0.0-alpha.23",
     "react-native-scrollable-tab-view": "git+ssh://git@github.com/estebanmino/react-native-scrollable-tab-view.git#f954274c6260a07c956e2185c611aed24b2f1526",
     "react-native-search-api": "1.2.0",
+    "react-native-securerandom": "^1.0.0-rc.0",
     "react-native-sensors": "5.3.0",
     "react-native-share": "git+ssh://git@github.com/brunobar79/react-native-share.git#androidx",
     "react-native-svg": "9.13.3",
     "react-native-swipe-gestures": "1.0.3",
-    "react-native-v8": "0.59.10-patch.4",
     "react-native-tcp": "3.3.2",
+    "react-native-v8": "0.59.10-patch.4",
     "react-native-vector-icons": "6.4.2",
     "react-native-view-shot": "git+ssh://git@github.com/brunobar79/react-native-view-shot.git#androidx",
     "react-native-webview": "git+ssh://git@github.com/brunobar79/react-native-webview.git#c756513b1f5a635cb49d0cfd01e25ca5c0887678",
@@ -239,21 +240,20 @@
         }
       },
       "android.emu.debug": {
-          "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
-          "build":
-          "source .android.env && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..",
-          "type": "android.emulator",
-          "device": {
-            "avdName": "Pixel_3_API_29"
-          }
+        "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
+        "build": "source .android.env && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..",
+        "type": "android.emulator",
+        "device": {
+          "avdName": "Pixel_3_API_29"
+        }
       },
       "android.emu.release": {
-          "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
-          "build": "source .android.env && cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..",
-          "type": "android.emulator",
-          "device": {
-            "avdName": "Pixel_3_API_29"
-          }
+        "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
+        "build": "source .android.env && cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..",
+        "type": "android.emulator",
+        "device": {
+          "avdName": "Pixel_3_API_29"
+        }
       }
     },
     "runner-config": "e2e/config.json",

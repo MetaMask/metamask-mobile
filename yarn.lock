@@ -9582,6 +9582,13 @@ react-native-securerandom@^0.1.1:
   dependencies:
     base64-js "*"
 
+react-native-securerandom@^1.0.0-rc.0:
+  version "1.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/react-native-securerandom/-/react-native-securerandom-1.0.0-rc.0.tgz#fbbf682dd59fd1651f65e689c9f4fe1a911503f5"
+  integrity sha512-Q0YbjeeCYIc2irtc85RuZB3KkwsIBSqOm58HfNa0UHFtok4h1uCErcdJPid+DwrFQHtSkTBkLcpPibI6S78Wpg==
+  dependencies:
+    base64-js "*"
+
 react-native-sensors@5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/react-native-sensors/-/react-native-sensors-5.3.0.tgz#8c89541f80a68c185ff2f7059c3078f4975c730c"
