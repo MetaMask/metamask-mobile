@@ -1,27 +1,21 @@
 import { REHYDRATE } from 'redux-persist';
 
 const initialState = {
-	asset: undefined,
-	assetType: undefined,
 	ensRecipient: undefined,
-	id: undefined,
-	paymentChannelTransaction: false,
-	readableValue: undefined,
+	assetType: undefined,
 	selectedAsset: {},
 	transaction: {
 		data: undefined,
 		from: undefined,
 		gas: undefined,
 		gasPrice: undefined,
-		nonce: undefined,
 		to: undefined,
 		value: undefined
 	},
 	transactionTo: undefined,
 	transactionToName: undefined,
 	transactionFromName: undefined,
-	transactionValue: undefined,
-	type: undefined
+	transactionValue: undefined
 };
 
 const transactionReducer = (state = initialState, action) => {
