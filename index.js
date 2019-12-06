@@ -52,7 +52,11 @@ YellowBox.ignoreWarnings([
 ]);
 
 async function secureRandomValuesBeforeInit() {
-	await isomorphicCrypto.ensureSecure();
+	if (!__DEV__) {
+		await isomorphicCrypto.ensureSecure();
+		const array = new Uint8Array(1);
+		isomorphicCrypto.getRandomValues(array);
+	}
 	/**
 	 * Application entry point responsible for registering root component
 	 */

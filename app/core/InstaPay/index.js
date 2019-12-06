@@ -843,7 +843,6 @@ const privates = new WeakMap();
 
 instance = {
 	async config(magic) {
-		console.log('MAGIC SET!', magic);
 		privates.set(this, { magic });
 	},
 	/**
