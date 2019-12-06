@@ -129,7 +129,8 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	switch: {
-		flex: 1
+		flex: 1,
+		marginTop: Platform.OS === 'ios' ? 0 : 2
 	},
 	actionSwitch: {
 		paddingHorizontal: 8,

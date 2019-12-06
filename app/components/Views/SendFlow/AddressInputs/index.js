@@ -118,7 +118,8 @@ export const AddressTo = props => {
 		toAddressName,
 		onInputFocus,
 		onSubmit,
-		onInputBlur
+		onInputBlur,
+		inputWidth
 	} = props;
 	return (
 		<View style={styles.wrapper}>
@@ -136,7 +137,7 @@ export const AddressTo = props => {
 							placeholder={'Search, public address (0x), or ENS'}
 							placeholderTextColor={colors.grey100}
 							spellCheck={false}
-							style={styles.textInput}
+							style={[styles.textInput, inputWidth]}
 							numberOfLines={1}
 							onFocus={onInputFocus}
 							onBlur={onInputBlur}
@@ -228,7 +229,12 @@ AddressTo.propTypes = {
 	/**
 	 * Name of selected address as string
 	 */
-	toAddressName: PropTypes.string
+	toAddressName: PropTypes.string,
+	/**
+	 * Input width to solve android paste bug
+	 * https://github.com/facebook/react-native/issues/9958
+	 */
+	inputWidth: PropTypes.object
 };
 
 export const AddressFrom = props => {

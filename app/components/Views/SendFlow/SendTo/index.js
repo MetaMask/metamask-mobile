@@ -163,7 +163,8 @@ class SendFlow extends PureComponent {
 		toSelectedAddressReady: false,
 		toEnsName: undefined,
 		addToAddressToAddressBook: false,
-		alias: undefined
+		alias: undefined,
+		inputWidth: { width: '99%' }
 	};
 
 	componentDidMount = async () => {
@@ -174,7 +175,8 @@ class SendFlow extends PureComponent {
 		this.setState({
 			fromSelectedAddress: selectedAddress,
 			fromAccountName,
-			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`
+			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
+			inputWidth: { width: '100%' }
 		});
 		if (!Object.keys(networkAddressBook).length) {
 			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
@@ -374,7 +376,8 @@ class SendFlow extends PureComponent {
 			toSelectedAddressName,
 			addToAddressToAddressBook,
 			addressError,
-			toInputHighlighted
+			toInputHighlighted,
+			inputWidth
 		} = this.state;
 
 		return (
@@ -398,6 +401,7 @@ class SendFlow extends PureComponent {
 						onInputFocus={this.onToInputFocus}
 						onInputBlur={this.onToInputFocus}
 						onSubmit={this.onTransactionDirectionSet}
+						inputWidth={inputWidth}
 					/>
 				</View>
 				{addressError && (
