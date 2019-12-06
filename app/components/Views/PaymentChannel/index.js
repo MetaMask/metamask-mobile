@@ -304,17 +304,8 @@ class PaymentChannel extends PureComponent {
 	};
 
 	onStateChange = state => {
-		// TBD
-		// if (!this.userSet && this.state.ready && !this.state.username && this.state.usernameSynced) {
-		// 	this.userSet = true;
-		// 	setTimeout(() => {
-		// 		this.setState({ chooseUserModalVisible: true });
-		// 	}, 100);
-		// }
-
 		// If loading finished, we can remove the timeout
 		if (!this.state.ready && state.ready) {
-			console.log('THIS IS INSTAPAY', InstaPay);
 			clearTimeout(this.loadingTimer);
 		}
 

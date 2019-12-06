@@ -70,7 +70,6 @@ const reloadClient = () => {
  */
 class InstaPay {
 	constructor(magic, network) {
-		console.log('initializing with magic', magic);
 		const swapRate = '100.00';
 		this.state = {
 			username: '',
@@ -111,7 +110,6 @@ class InstaPay {
 	}
 
 	start = async (magic, network) => {
-		console.log('start with magic', magic);
 		const cfPath = "m/44'/60'/0'/25446";
 		const subdomain = network !== 'mainnet' ? `${network}.` : '';
 		const ethProviderUrl = `https://${subdomain}${API_URL}/ethprovider`;
@@ -120,7 +118,6 @@ class InstaPay {
 		const { KeyringController } = Engine.context;
 		const data = await KeyringController.exportSeedPhrase(magic);
 		const mnemonic = JSON.stringify(data).replace(/"/g, '');
-		console.log('mnemonic yo!', mnemonic);
 		const wallet = eth.Wallet.fromMnemonic(mnemonic, cfPath + '/0').connect(ethProvider);
 		this.setState({ network, walletAddress: wallet.address });
 
