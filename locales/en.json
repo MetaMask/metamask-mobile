@@ -498,8 +498,8 @@
 		"gas_speedup_fee": "Gas Speed Up fee"
 	},
 	"custom_gas": {
-		"advanced_options": "Advanced Options",
-		"hide_advanced_options": "Hide Advanced Options",
+		"advanced_options": "Show advanced options",
+		"hide_advanced_options": "Hide advanced options",
 		"gas_limit": "Gas Limit:",
 		"gas_price": "Gas Price: (GWEI)",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027"

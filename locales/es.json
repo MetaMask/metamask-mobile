@@ -491,8 +491,8 @@
 		"gas_speedup_fee": "Tarifa de Aceleración"
 	},
 	"custom_gas": {
-		"advanced_options": "Opciones Avanzadas",
-		"hide_advanced_options": "Ocultar Opciones Avanzadas",
+		"advanced_options": "Mostrar opciones avanzadas",
+		"hide_advanced_options": "Ocultar opciones avanzadas",
 		"gas_limit": "Límite de Gas:",
 		"gas_price": "Precio de Gas: (GWEI)",
 		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027"

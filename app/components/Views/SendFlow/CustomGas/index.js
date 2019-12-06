@@ -16,7 +16,6 @@ import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
 import { getTicker } from '../../../../util/transactions';
-import DeviceSize from '../../../../util/DeviceSize';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 
 const AVERAGE_GAS = 20;
@@ -50,18 +49,19 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		...fontStyles.light,
-		fontSize: DeviceSize.isSmallDevice() ? 8 : 10,
+		fontSize: 10,
 		textTransform: 'uppercase'
 	},
 	textTime: {
 		...fontStyles.bold,
 		marginVertical: 8,
-		fontSize: DeviceSize.isSmallDevice() ? 8 : 10,
+		fontSize: 14,
 		textTransform: 'none'
 	},
 	textTitle: {
 		...fontStyles.light,
-		fontSize: DeviceSize.isSmallDevice() ? 8 : 10,
+		letterSpacing: 1,
+		fontSize: 10,
 		textTransform: 'uppercase'
 	},
 	textTotalGas: {
@@ -70,6 +70,8 @@ const styles = StyleSheet.create({
 		marginTop: 4
 	},
 	textAdvancedOptions: {
+		...fontStyles.normal,
+		fontSize: 14,
 		color: colors.blue
 	},
 	gasInput: {

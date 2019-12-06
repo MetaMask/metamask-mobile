@@ -54,7 +54,8 @@ const styles = StyleSheet.create({
 	inputWrapper: {
 		flex: 0,
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050
+		borderBottomColor: colors.grey050,
+		marginHorizontal: 8
 	},
 	amountWrapper: {
 		flexDirection: 'column',
@@ -125,12 +126,12 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end'
 	},
 	actionTouchable: {
-		padding: 16
+		padding: 12
 	},
 	actionText: {
 		...fontStyles.normal,
 		color: colors.blue,
-		fontSize: 16,
+		fontSize: 14,
 		alignSelf: 'center'
 	},
 	actionsWrapper: {
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
 	collectibleImageWrapper: {
 		flexDirection: 'column',
 		alignItems: 'center',
-		margin: 8
+		margin: 16
 	},
 	collectibleName: {
 		...fontStyles.normal,
@@ -169,6 +170,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.grey500,
+		marginTop: 8,
 		textAlign: 'center'
 	},
 	collectibleImage: {
