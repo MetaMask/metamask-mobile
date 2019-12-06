@@ -245,6 +245,10 @@ const styles = StyleSheet.create({
 	},
 	collectibleInputInformationWrapper: {
 		marginTop: 12
+	},
+	nextActionWrapper: {
+		flex: 1,
+		marginBottom: 16
 	}
 });
 
@@ -798,7 +802,7 @@ class Amount extends PureComponent {
 				</View>
 
 				<KeyboardAvoidingView
-					style={styles.buttonsWrapper}
+					style={styles.nextActionWrapper}
 					behavior={'padding'}
 					keyboardVerticalOffset={KEYBOARD_OFFSET}
 					enabled={Platform.OS === 'ios'}

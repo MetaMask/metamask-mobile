@@ -121,9 +121,9 @@ const styles = StyleSheet.create({
 		alignSelf: 'flex-end'
 	},
 	buttonNextWrapper: {
-		flex: 0.1,
 		flexDirection: 'row',
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
+		marginBottom: 16
 	},
 	actionTouchable: {
 		padding: 12

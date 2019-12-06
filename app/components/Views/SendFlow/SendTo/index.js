@@ -87,7 +87,8 @@ const styles = StyleSheet.create({
 		width: '100%'
 	},
 	nextActionWrapper: {
-		flex: 1
+		flex: 1,
+		marginBottom: 16
 	},
 	buttonNextWrapper: {
 		flex: 1,
