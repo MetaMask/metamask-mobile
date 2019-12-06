@@ -81,12 +81,14 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 		paddingVertical: 2,
 		borderRadius: 100,
-		flexDirection: 'row'
+		flexDirection: 'row',
+		alignItems: 'center'
 	},
 	textDropdown: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.white
+		color: colors.white,
+		paddingVertical: 2
 	},
 	iconDropdown: {
 		paddingLeft: 10
@@ -111,13 +113,18 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	inputCurrencyText: {
-		...fontStyles.light,
+		fontFamily: 'Roboto-Light',
+		fontWeight: fontStyles.light.fontWeight,
+		color: colors.black,
 		fontSize: 44,
-		textAlign: 'right',
-		marginRight: 8
+		marginRight: 8,
+		paddingVertical: Platform.OS === 'ios' ? 0 : 8,
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 	textInput: {
-		...fontStyles.light,
+		fontFamily: 'Roboto-Light',
+		fontWeight: fontStyles.light.fontWeight,
 		fontSize: 44,
 		textAlign: 'center'
 	},
