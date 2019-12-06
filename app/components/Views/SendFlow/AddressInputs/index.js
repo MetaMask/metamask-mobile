@@ -172,6 +172,10 @@ AddressTo.propTypes = {
 	 */
 	highlighted: PropTypes.bool,
 	/**
+	 * Object to use as reference for input
+	 */
+	inputRef: PropTypes.object,
+	/**
 	 * Address of selected address as string
 	 */
 	toSelectedAddress: PropTypes.string,
@@ -188,16 +192,21 @@ AddressTo.propTypes = {
 	 */
 	onClear: PropTypes.func,
 	/**
-	 * Name of selected address as string
-	 */
-	toAddressName: PropTypes.string,
-	/**
-	 * Callback called when input is focused
+	 * Callback called when input onFocus
 	 */
 	onInputFocus: PropTypes.func,
+	/**
+	 * Callback called when input is submitted
+	 */
 	onSubmit: PropTypes.func,
+	/**
+	 * Callback called when input onBlur
+	 */
 	onInputBlur: PropTypes.func,
-	inputRef: PropTypes.object
+	/**
+	 * Name of selected address as string
+	 */
+	toAddressName: PropTypes.string
 };
 
 export const AddressFrom = props => {

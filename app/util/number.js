@@ -5,6 +5,7 @@ import { BN } from 'ethereumjs-util';
 import convert from 'ethjs-unit';
 import { util } from 'gaba';
 import numberToBN from 'number-to-bn';
+import currencySymbols from '../util/currency-symbols.json';
 
 /**
  * Converts a BN object to a hex string with a '0x' prefix
@@ -289,6 +290,9 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
 		return `0.00 ${currencyCode}`;
 	}
 	const value = weiToFiatNumber(wei, conversionRate);
+	if (currencySymbols[currencyCode]) {
+		return `${currencySymbols[currencyCode]}${value}`;
+	}
 	return `${value} ${currencyCode}`;
 }
 
@@ -337,6 +341,9 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
 		return undefined;
 	}
 	const fiatFixed = balanceToFiatNumber(balance, conversionRate, exchangeRate);
+	if (currencySymbols[currencyCode]) {
+		return `${currencySymbols[currencyCode]}${fiatFixed}`;
+	}
 	return `${fiatFixed} ${currencyCode}`;
 }
 
@@ -368,6 +375,9 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
 	const base = Math.pow(10, decimalsToShow);
 	let fiatFixed = parseFloat(Math.round(value * base) / base);
 	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
+	if (currencySymbols[currencyCode]) {
+		return `${currencySymbols[currencyCode]}${fiatFixed}`;
+	}
 	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
 

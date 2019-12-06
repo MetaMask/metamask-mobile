@@ -153,11 +153,7 @@ class AssetOverview extends PureComponent {
 		let balance, balanceFiat;
 		if (asset.isETH) {
 			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
-			balanceFiat = weiToFiat(
-				hexToBN(accounts[selectedAddress].balance),
-				conversionRate,
-				currentCurrency.toUpperCase()
-			);
+			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 		} else {
 			const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 			balance =
@@ -168,11 +164,11 @@ class AssetOverview extends PureComponent {
 		}
 		// choose balances depending on 'primaryCurrency'
 		if (primaryCurrency === 'ETH') {
-			mainBalance = balance + ' ' + asset.symbol;
+			mainBalance = `${balance} ${asset.symbol}`;
 			secondaryBalance = balanceFiat;
 		} else {
-			mainBalance = !balanceFiat ? balance + ' ' + asset.symbol : balanceFiat;
-			secondaryBalance = !balanceFiat ? balanceFiat : balance + ' ' + asset.symbol;
+			mainBalance = !balanceFiat ? `${balance} ${asset.symbol}` : balanceFiat;
+			secondaryBalance = !balanceFiat ? balanceFiat : `${balance} ${asset.symbol}`;
 		}
 
 		return (
