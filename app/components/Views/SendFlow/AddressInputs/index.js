@@ -12,17 +12,30 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		marginVertical: 8
 	},
+	selectWrapper: {
+		flex: 1,
+		marginLeft: 8,
+		paddingHorizontal: 10,
+		minHeight: 52,
+		flexDirection: 'row',
+		borderWidth: 1,
+		borderRadius: 8
+	},
 	inputWrapper: {
 		flex: 1,
 		marginLeft: 8,
 		padding: 10,
-		height: 52,
+		minHeight: 52,
 		flexDirection: 'row',
 		borderWidth: 1,
 		borderRadius: 8
 	},
 	input: {
 		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	identiconWrapper: {
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
@@ -57,7 +70,7 @@ const styles = StyleSheet.create({
 		marginLeft: 10
 	},
 	textInput: {
-		backgroundColor: colors.white,
+		...fontStyles.normal,
 		paddingLeft: 0,
 		paddingRight: 8,
 		width: '100%'
@@ -111,7 +124,7 @@ export const AddressTo = props => {
 				<Text style={styles.labelText}>To:</Text>
 			</View>
 			{!addressToReady ? (
-				<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
+				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 					<View style={styles.input}>
 						<TextInput
 							ref={inputRef}
@@ -140,7 +153,7 @@ export const AddressTo = props => {
 					)}
 				</View>
 			) : (
-				<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
+				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 					<View style={styles.addressToInformation}>
 						<Identicon address={toSelectedAddress} diameter={30} />
 						<View style={styles.address}>
@@ -224,7 +237,9 @@ export const AddressFrom = props => {
 				<Text style={styles.labelText}>From:</Text>
 			</View>
 			<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
-				<Identicon address={fromAccountAddress} diameter={30} />
+				<View style={styles.identiconWrapper}>
+					<Identicon address={fromAccountAddress} diameter={30} />
+				</View>
 				<View style={styles.address}>
 					<Text style={styles.textAddress}>{fromAccountName}</Text>
 					<Text style={styles.textBalance}>{`Balance: ${fromAccountBalance}`}</Text>
