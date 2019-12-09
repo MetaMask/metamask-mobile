@@ -544,13 +544,21 @@ class Confirm extends PureComponent {
 			transactionState: { assetType },
 			navigation
 		} = this.props;
-		if (this.validateGas()) return;
+		this.setState({ transactionConfirmed: true });
+		if (this.validateGas()) {
+			this.setState({ transactionConfirmed: false });
+			return;
+		}
 		try {
 			const transaction = this.prepareTransactionToSend();
-			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
+			const { result, transactionMeta } = await TransactionController.addTransaction(transaction, 'MMM');
 
 			await TransactionController.approveTransaction(transactionMeta.id);
 			await new Promise(resolve => resolve(result));
+
+			if (transactionMeta.error) {
+				throw transactionMeta.error;
+			}
 
 			InteractionManager.runAfterInteractions(() => {
 				TransactionsNotificationManager.watchSubmittedTransaction({
@@ -558,11 +566,12 @@ class Confirm extends PureComponent {
 					assetType
 				});
 				this.checkRemoveCollectible();
+				navigation && navigation.dismiss();
 			});
-			navigation && navigation.dismiss();
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 		}
+		this.setState({ transactionConfirmed: false });
 	};
 
 	renderIfGastEstimationReady = children => {
@@ -593,7 +602,8 @@ class Confirm extends PureComponent {
 			transactionTo,
 			transactionTotalAmount,
 			transactionTotalAmountFiat,
-			errorMessage
+			errorMessage,
+			transactionConfirmed
 		} = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -689,7 +699,7 @@ class Confirm extends PureComponent {
 						containerStyle={styles.buttonNext}
 						onPress={this.onNext}
 					>
-						Send
+						{transactionConfirmed ? <ActivityIndicator size="small" color="white" /> : 'Send'}
 					</StyledButton>
 				</View>
 				{this.renderCustomGasModal()}

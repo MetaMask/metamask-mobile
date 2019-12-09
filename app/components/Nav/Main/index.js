@@ -461,8 +461,7 @@ class Main extends PureComponent {
 				}
 			});
 
-			// TODO handle this
-			// Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
+			Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
 
 			Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams => {
 				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
@@ -755,7 +754,7 @@ class Main extends PureComponent {
 	};
 
 	onUnapprovedTransaction = async transactionMeta => {
-		if (this.props.transaction.value || this.props.transaction.to) {
+		if (this.props.transaction.value || this.props.transaction.to || transactionMeta.origin === 'MMM') {
 			return;
 		}
 		// Check if it's a payment channel deposit transaction to sign
