@@ -253,6 +253,9 @@ class Confirm extends PureComponent {
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
 		contractExchangeRates: PropTypes.object,
+		/**
+		 * Set transaction object to be sent
+		 */
 		prepareTransaction: PropTypes.func,
 		/**
 		 * Network id
@@ -453,8 +456,8 @@ class Confirm extends PureComponent {
 		return (
 			<ActionModal
 				modalVisible={customGasModalVisible}
-				confirmText={'Set'}
-				cancelText={'Cancel'}
+				confirmText={strings('transaction.set_gas')}
+				cancelText={strings('transaction.cancel_gas')}
 				onCancelPress={this.toggleCustomGasModal}
 				onRequestClose={this.toggleCustomGasModal}
 				onConfirmPress={this.handleSetGasFee}
@@ -463,7 +466,7 @@ class Confirm extends PureComponent {
 			>
 				<View style={baseStyles.flexGrow}>
 					<View style={styles.customGasModalTitle}>
-						<Text style={styles.customGasModalTitleText}>Transaction Fee</Text>
+						<Text style={styles.customGasModalTitleText}>{strings('transaction.transaction_fee')}</Text>
 					</View>
 					<CustomGas
 						selected={currentCustomGasSelected}
@@ -493,7 +496,7 @@ class Confirm extends PureComponent {
 						<IonicIcon name={'ios-close'} size={28} color={colors.black} />
 					</TouchableOpacity>
 					<View style={styles.qrCode}>
-						<Text style={styles.addressTitle}>Hex data</Text>
+						<Text style={styles.addressTitle}>{strings('transaction.hex_data')}</Text>
 						<Text style={styles.hexDataText}>{data}</Text>
 					</View>
 				</View>
@@ -509,7 +512,7 @@ class Confirm extends PureComponent {
 		const valueBN = hexToBN(value);
 		const balanceBN = hexToBN(accounts[from].balance);
 		if (valueBN.add(totalGas).gt(balanceBN)) {
-			errorMessage = 'Insufficient funds';
+			errorMessage = strings('transaction.insufficient');
 			this.setState({ errorMessage });
 		}
 		return errorMessage;
@@ -625,7 +628,7 @@ class Confirm extends PureComponent {
 				<ScrollView style={baseStyles.flexGrow}>
 					{!selectedAsset.tokenId ? (
 						<View style={styles.amountWrapper}>
-							<Text style={styles.textAmountLabel}>Amount</Text>
+							<Text style={styles.textAmountLabel}>{strings('transaction.amount')}</Text>
 							<Text style={styles.textAmount}>{transactionValue}</Text>
 							<Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>
 						</View>
@@ -648,18 +651,20 @@ class Confirm extends PureComponent {
 
 					<View style={styles.summaryWrapper}>
 						<View style={styles.summaryRow}>
-							<Text style={styles.textSummary}>Amount</Text>
+							<Text style={styles.textSummary}>{strings('transaction.amount')}</Text>
 							<Text style={[styles.textSummary, styles.textSummaryAmount]}>{transactionValueFiat}</Text>
 						</View>
 						<View style={styles.summaryRow}>
-							<Text style={styles.textSummary}>Transaction fee</Text>
+							<Text style={styles.textSummary}>{strings('transaction.transaction_fee')}</Text>
 							{this.renderIfGastEstimationReady(
 								<Text style={[styles.textSummary, styles.textSummaryAmount]}>{transactionFeeFiat}</Text>
 							)}
 						</View>
 						<View style={styles.separator} />
 						<View style={styles.summaryRow}>
-							<Text style={[styles.textSummary, styles.textBold]}>Total amount</Text>
+							<Text style={[styles.textSummary, styles.textBold]}>
+								{strings('transaction.total_amount')}
+							</Text>
 							{this.renderIfGastEstimationReady(
 								<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>
 									{transactionTotalAmountFiat}
@@ -683,11 +688,11 @@ class Confirm extends PureComponent {
 							disabled={!gasEstimationReady}
 							onPress={this.toggleCustomGasModal}
 						>
-							<Text style={styles.actionText}>Adjust transaction fee</Text>
+							<Text style={styles.actionText}>{strings('transaction.adjust_transaction_fee')}</Text>
 						</TouchableOpacity>
 						{showHexData && (
 							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleHexDataModal}>
-								<Text style={styles.actionText}>Hex data</Text>
+								<Text style={styles.actionText}>{strings('transaction.hex_data')}</Text>
 							</TouchableOpacity>
 						)}
 					</View>

@@ -6,6 +6,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
 import { renderShortAddress } from '../../../../util/address';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -133,7 +134,7 @@ export const AddressTo = props => {
 							autoCapitalize="none"
 							autoCorrect={false}
 							onChangeText={onToSelectedAddressChange}
-							placeholder={'Search, public address (0x), or ENS'}
+							placeholder={strings('transactions.address_to_placeholder')}
 							placeholderTextColor={colors.grey100}
 							spellCheck={false}
 							style={[styles.textInput, inputWidth]}
@@ -249,7 +250,9 @@ export const AddressFrom = props => {
 				</View>
 				<View style={styles.address}>
 					<Text style={styles.textAddress}>{fromAccountName}</Text>
-					<Text style={styles.textBalance}>{`Balance: ${fromAccountBalance}`}</Text>
+					<Text style={styles.textBalance}>{`${strings(
+						'transactions.address_from_balance'
+					)} ${fromAccountBalance}`}</Text>
 				</View>
 
 				{!!onPressIcon && (

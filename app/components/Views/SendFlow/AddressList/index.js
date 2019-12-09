@@ -6,6 +6,7 @@ import Identicon from '../../../UI/Identicon';
 import { connect } from 'react-redux';
 import { renderShortAddress, safeToChecksumAddress } from '../../../../util/address';
 import Fuse from 'fuse.js';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	root: {
@@ -109,6 +110,9 @@ class AddressList extends PureComponent {
 		 * Map representing the address book
 		 */
 		addressBook: PropTypes.object,
+		/**
+		 * Search input from parent component
+		 */
 		inputSearch: PropTypes.string,
 		/**
 		 * Network id
@@ -175,7 +179,7 @@ class AddressList extends PureComponent {
 		const recents = [];
 		const parsedRecents = [];
 		if (!inputSearch) {
-			parsedRecents.push(LabelElement('Recents'));
+			parsedRecents.push(LabelElement(strings('address_book.recents')));
 			const networkTransactions = transactions.filter(tx => tx.networkID === network);
 			networkTransactions.forEach(({ transaction: { to } }) => {
 				const checksummedTo = safeToChecksumAddress(to);

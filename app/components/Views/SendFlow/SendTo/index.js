@@ -18,6 +18,7 @@ import { setRecipient, newAssetTransaction } from '../../../../actions/newTransa
 import { isENS } from '../../../../util/address';
 import { getTicker } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -235,12 +236,10 @@ class SendFlow extends PureComponent {
 					addToAddressToAddressBook = true;
 				}
 			} else {
-				// todo
-				addressError = `Couldn't resolve ENS`;
+				addressError = strings('transaction.could_not_resolve_ens');
 			}
 		} else if (toSelectedAddress && toSelectedAddress.length >= 42) {
-			// todo
-			addressError = `Invalid address`;
+			addressError = strings('transaction.invalid_address');
 		}
 		this.setState({
 			addressError,
@@ -297,8 +296,8 @@ class SendFlow extends PureComponent {
 		return (
 			<ActionModal
 				modalVisible={addToAddressBookModalVisible}
-				confirmText={'Save'}
-				cancelText={'Cancel'}
+				confirmText={strings('address_book.save')}
+				cancelText={strings('address_book.cancel')}
 				onCancelPress={this.toggleAddToAddressBookModal}
 				onRequestClose={this.toggleAddToAddressBookModal}
 				onConfirmPress={this.onSaveToAddressBook}
@@ -308,15 +307,15 @@ class SendFlow extends PureComponent {
 				<View style={styles.addToAddressBookRoot}>
 					<View style={styles.addToAddressBookWrapper}>
 						<View style={baseStyles.flexGrow}>
-							<Text style={styles.addTextTitle}>Add to address book</Text>
-							<Text style={styles.addTextSubtitle}>Enter an alias</Text>
+							<Text style={styles.addTextTitle}>{strings('address_book.add_to_address_book')}</Text>
+							<Text style={styles.addTextSubtitle}>{strings('address_book.enter_an_alias')}</Text>
 							<View style={styles.addInputWrapper}>
 								<View style={styles.input}>
 									<TextInput
 										autoCapitalize="none"
 										autoCorrect={false}
 										onChangeText={this.onChangeAlias}
-										placeholder={'e.g. Vitalik B.'}
+										placeholder={strings('address_book.enter_an_alias_placeholder')}
 										placeholderTextColor={colors.grey100}
 										spellCheck={false}
 										style={styles.addTextInput}
@@ -419,7 +418,9 @@ class SendFlow extends PureComponent {
 									style={styles.myAccountsTouchable}
 									onPress={this.toggleAddToAddressBookModal}
 								>
-									<Text style={styles.myAccountsText}>Add this address to your address book</Text>
+									<Text style={styles.myAccountsText}>
+										{strings('address_book.add_this_address')}
+									</Text>
 								</TouchableOpacity>
 							)}
 							<View style={styles.buttonNextWrapper}>
@@ -428,7 +429,7 @@ class SendFlow extends PureComponent {
 									containerStyle={styles.buttonNext}
 									onPress={this.onTransactionDirectionSet}
 								>
-									Next
+									{strings('address_book.next')}
 								</StyledButton>
 							</View>
 						</View>

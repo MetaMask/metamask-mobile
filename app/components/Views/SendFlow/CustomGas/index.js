@@ -409,7 +409,7 @@ class CustomGas extends PureComponent {
 			const { advancedCustomGas } = this.state;
 			return (
 				<View style={styles.root}>
-					<Text style={styles.message}>This is the cost for processing this payment on the blockchain.</Text>
+					<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
 					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
 					<View style={styles.advancedOptions}>
 						<TouchableOpacity onPress={this.onAdvancedOptions}>

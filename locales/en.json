@@ -495,14 +495,22 @@
 		"speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
 		"nevermind": "Nevermind",
 		"gas_cancel_fee": "Gas Cancellation Fee",
-		"gas_speedup_fee": "Gas Speed Up fee"
+		"gas_speedup_fee": "Gas Speed Up fee",
+		"use_max": "Use max",
+		"set_gas": "Set",
+		"cancel_gas": "Cancel",
+		"transaction_fee": "Transaction fee",
+		"total_amount": "Total amount",
+		"adjust_transaction_fee": "Adjust transaction fee",
+		"could_not_resolve_ens": "Couldn't resolve ENS"
 	},
 	"custom_gas": {
 		"advanced_options": "Show advanced options",
 		"hide_advanced_options": "Hide advanced options",
 		"gas_limit": "Gas Limit:",
 		"gas_price": "Gas Price: (GWEI)",
-		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027"
+		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
+		"cost_explanation": "This is the cost for processing this payment on the blockchain."
 	},
 	"browser": {
 		"title": "Browser",
@@ -591,7 +599,19 @@
 		"view_on_etherscan": "VIEW ON ETHERSCAN",
 		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
 		"address_copied_to_clipboard": "Address copied to clipboard",
-		"transaction_error": "Transaction error"
+		"transaction_error": "Transaction error",
+		"address_to_placeholder": "Search, public address (0x), or ENS",
+		"address_from_balance": "Balance:"
+	},
+	"address_book": {
+		"recents": "Recents",
+		"save": "Save",
+		"cancel": "Cancel",
+		"add_to_address_book": "Add to address book",
+		"enter_an_alias": "Enter an alias",
+		"add_this_address": "Add this address to your address book",
+		"next": "Next",
+		"enter_an_alias_placeholder": "e.g. Vitalik B."
 	},
 	"transaction_submitted": {
 		"title": "Transaction Submitted",

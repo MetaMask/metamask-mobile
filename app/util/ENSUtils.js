@@ -39,10 +39,8 @@ export async function doENSLookup(ensName, network) {
 
 	const networkHasEnsSupport = Boolean(networkMap[network]);
 
-	console.log('networkHasEnsSupport', networkHasEnsSupport, network, networkMap);
 	if (networkHasEnsSupport) {
 		this.ens = new ENS({ provider, network });
-		console.log('networkHasEnsSupport', this.ens);
 		try {
 			const resolvedAddress = await this.ens.lookup(ensName);
 			return resolvedAddress;

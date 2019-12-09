@@ -564,7 +564,7 @@ export function getOfflineModalNavbar(navigation) {
 export function getWalletNavbarOptions(title, navigation) {
 	const onScanSuccess = data => {
 		if (data.target_address) {
-			navigation.navigate('SendFlow', { txMeta: data });
+			navigation.navigate('SendFlowView', { txMeta: data });
 		} else if (data.private_key) {
 			Alert.alert(
 				strings('wallet.private_key_detected'),

@@ -45,6 +45,7 @@ import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../ut
 import Engine from '../../../../core/Engine';
 import CollectibleImage from '../../../UI/CollectibleImage';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
+import { strings } from '../../../../../locales/i18n';
 
 const KEYBOARD_OFFSET = 120;
 
@@ -97,7 +98,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.blue,
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
+		textTransform: 'uppercase'
 	},
 	actionMax: {
 		flexDirection: 'row',
@@ -315,6 +317,9 @@ class Amount extends PureComponent {
 		 * Set selected in transaction state
 		 */
 		setSelectedAsset: PropTypes.func,
+		/**
+		 * Set transaction object to be sent
+		 */
 		prepareTransaction: PropTypes.func,
 		/**
 		 * Primary currency, either ETH or Fiat
@@ -427,9 +432,9 @@ class Amount extends PureComponent {
 				weiBalance = contractBalances[selectedAsset.address];
 				weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
 			}
-			amountError = weiBalance.gte(weiInput) ? undefined : 'Insufficient funds';
+			amountError = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');
 		} else {
-			amountError = 'Invalid amount';
+			amountError = strings('transaction.invalid_amount');
 		}
 		this.setState({ amountError });
 		return !!amountError;
@@ -783,7 +788,9 @@ class Amount extends PureComponent {
 						<View style={styles.action} />
 						<View style={[styles.action]}>
 							<TouchableOpacity style={styles.actionDropdown} onPress={this.toggleAssetsModal}>
-								<Text style={styles.textDropdown}>{selectedAsset.symbol || 'Collectible'}</Text>
+								<Text style={styles.textDropdown}>
+									{selectedAsset.symbol || strings('wallet.collectible')}
+								</Text>
 								<View styles={styles.arrow}>
 									<Ionicons
 										name="ios-arrow-down"
@@ -801,7 +808,7 @@ class Amount extends PureComponent {
 									disabled={!estimatedTotalGas}
 									onPress={this.useMax}
 								>
-									<Text style={styles.maxText}>USE MAX</Text>
+									<Text style={styles.maxText}>{strings('transaction.use_max')}</Text>
 								</TouchableOpacity>
 							)}
 						</View>
