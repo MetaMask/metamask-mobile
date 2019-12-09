@@ -335,6 +335,8 @@
 		"general_desc": "Currency conversion, primary currency, language and search engine",
 		"advanced_title": "Advanced",
 		"advanced_desc": "Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC",
+		"contacts_title": "Contacts",
+		"contacts_desc": "Add, edit, remove, and manage your accounts",
 		"security_title": "Security & Privacy",
 		"security_desc": "Privacy settings, MetaMetrics, private key and wallet seed phrase",
 		"networks_title": "Networks",

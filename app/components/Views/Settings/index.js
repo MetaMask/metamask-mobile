@@ -63,12 +63,11 @@ class Settings extends PureComponent {
 	};
 
 	onPressContacts = () => {
-		this.props.navigation.push('Contacts');
+		this.props.navigation.push('ContactsSettings');
 	};
 
 	render = () => (
 		<ScrollView style={styles.wrapper}>
-			<SettingsDrawer description={'contacts'} onPress={this.onPressContacts} title={'contacts'} />
 			<SettingsDrawer
 				description={strings('app_settings.general_desc')}
 				onPress={this.onPressGeneral}
@@ -78,6 +77,11 @@ class Settings extends PureComponent {
 				description={strings('app_settings.advanced_desc')}
 				onPress={this.onPressAdvanced}
 				title={strings('app_settings.advanced_title')}
+			/>
+			<SettingsDrawer
+				description={strings('app_settings.contacts_desc')}
+				onPress={this.onPressContacts}
+				title={strings('app_settings.contacts_title')}
 			/>
 			<SettingsDrawer
 				description={strings('app_settings.security_desc')}

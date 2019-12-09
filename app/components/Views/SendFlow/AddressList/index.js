@@ -39,7 +39,8 @@ const styles = StyleSheet.create({
 	myAccountsText: {
 		...fontStyles.normal,
 		color: colors.blue,
-		fontSize: 16
+		fontSize: 16,
+		textAlign: 'center'
 	},
 	myAccountsWrapper: {
 		flexGrow: 1
@@ -62,6 +63,9 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		marginHorizontal: 8,
 		color: colors.grey600
+	},
+	message: {
+		padding: 16
 	}
 });
 
@@ -125,7 +129,11 @@ class AddressList extends PureComponent {
 		/**
 		 * An array that represents the user transactions
 		 */
-		transactions: PropTypes.array
+		transactions: PropTypes.array,
+		/**
+		 * Whether it only has to render address book
+		 */
+		onlyRenderAddressBook: PropTypes.bool
 	};
 
 	state = {
@@ -239,14 +247,27 @@ class AddressList extends PureComponent {
 		);
 	};
 
+	renderAddressBook = () => {
+		const { processedAddressBookList } = this.state;
+
+		return !processedAddressBookList || !processedAddressBookList.length ? (
+			<View style={styles.message}>
+				<Text style={styles.myAccountsText}>No contacts on address book</Text>
+			</View>
+		) : (
+			<View>{processedAddressBookList}</View>
+		);
+	};
+
 	render = () => {
-		const { processedAddressBookList, processedRecentsList } = this.state;
+		const { processedRecentsList } = this.state;
+		const { onlyRenderAddressBook } = this.props;
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
-					{this.renderMyAccounts()}
-					{processedRecentsList}
-					{processedAddressBookList}
+					{!onlyRenderAddressBook && this.renderMyAccounts()}
+					{!onlyRenderAddressBook && processedRecentsList}
+					{this.renderAddressBook()}
 				</ScrollView>
 			</View>
 		);
