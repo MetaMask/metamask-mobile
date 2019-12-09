@@ -155,8 +155,8 @@ class SendFlow extends PureComponent {
 		addressError: undefined,
 		fromAccountModalVisible: false,
 		addToAddressBookModalVisible: false,
-		fromSelectedAddress: undefined,
-		fromAccountName: undefined,
+		fromSelectedAddress: this.props.selectedAddress,
+		fromAccountName: this.props.identities[this.props.selectedAddress].name,
 		fromAccountBalance: undefined,
 		toSelectedAddress: undefined,
 		toSelectedAddressName: undefined,
@@ -168,13 +168,12 @@ class SendFlow extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { addressBook, selectedAddress, identities, accounts, ticker, network } = this.props;
+		const { addressBook, selectedAddress, accounts, ticker, network } = this.props;
+		const { fromAccountName } = this.state;
 		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
-		const fromAccountName = ens || identities[selectedAddress].name;
 		this.setState({
-			fromSelectedAddress: selectedAddress,
-			fromAccountName,
+			fromAccountName: ens || fromAccountName,
 			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
 			inputWidth: { width: '100%' }
 		});
