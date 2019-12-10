@@ -620,10 +620,10 @@
 		"add_contact": "Add contact",
 		"edit_contact_title": "Edit Contact",
 		"edit_contact": "Edit contact",
-		"address_already_saved": "Address already saved",
+		"address_already_saved": "Contact already saved",
 		"address": "Address",
 		"name": "Name",
-		"nickname": "Nickname",
+		"nickname": "Name",
 		"add_input_placeholder": "Public address (0x), or ENS"
 	},
 	"transaction_submitted": {

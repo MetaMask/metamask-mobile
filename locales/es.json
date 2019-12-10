@@ -598,12 +598,23 @@
 	"address_book": {
 		"recents": "Recientes",
 		"save": "Guardar",
+		"delete_contact": "Eliminar contacto",
+		"delete": "Eliminar",
 		"cancel": "Cancelar",
 		"add_to_address_book": "Agregar a libreta de direcciones",
 		"enter_an_alias": "Introduce un alias",
 		"add_this_address": "Agrega esta dirección a tu libreta de direcciones",
 		"next": "Siguient",
-		"enter_an_alias_placeholder": "ej. Vitalik B."
+		"enter_an_alias_placeholder": "ej. Vitalik B.",
+		"add_contact_title": "Agregar Contacto",
+		"add_contact": "Agregar contacto",
+		"edit_contact_title": "Editar Contacto",
+		"edit_contact": "Editar contacto",
+		"address_already_saved": "Este contacto ya está guardado",
+		"address": "Dirección",
+		"name": "Nombre",
+		"nickname": "Nombre",
+		"add_input_placeholder": "Dirección pública (0x), o ENS"
 	},
 	"transaction_submitted": {
 		"title": "Transacción Enviada",
