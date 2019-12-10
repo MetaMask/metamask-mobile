@@ -1,11 +1,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import PaymentChannelWelcome from './';
+import InstaPayWelcome from './';
 import configureMockStore from 'redux-mock-store';
 
 const mockStore = configureMockStore();
 
-describe('PaymentChannelWelcome', () => {
+describe('InstaPayWelcome', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			engine: {
@@ -13,7 +13,7 @@ describe('PaymentChannelWelcome', () => {
 			}
 		};
 
-		const wrapper = shallow(<PaymentChannelWelcome />, {
+		const wrapper = shallow(<InstaPayWelcome />, {
 			context: { store: mockStore(initialState) }
 		});
 		expect(wrapper).toMatchSnapshot();

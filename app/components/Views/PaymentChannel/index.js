@@ -9,8 +9,7 @@ import {
 	SafeAreaView,
 	StyleSheet,
 	ActivityIndicator,
-	Clipboard,
-	TextInput
+	Clipboard
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -27,7 +26,6 @@ import { setPaymentChannelTransaction } from '../../../actions/transaction';
 import Transactions from '../../UI/Transactions';
 import Networks from '../../../util/networks';
 import Modal from 'react-native-modal';
-import PaymentChannelWelcome from './PaymentChannelWelcome';
 import AsyncStorage from '@react-native-community/async-storage';
 import AppConstants from '../../../core/AppConstants';
 import Analytics from '../../../core/Analytics';
@@ -35,8 +33,6 @@ import Analytics from '../../../core/Analytics';
 import { withNavigationFocus } from 'react-navigation';
 import { showAlert } from '../../../actions/alert';
 import AddressQRCode from '../AddressQRCode';
-import ChooseInstaPayUserModal from '../../UI/ChooseInstaPayUserModal';
-import BlockingActionModal from '../../UI/BlockingActionModal';
 
 const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
 const MIGRATION_TIMEOUT_MINUTES = 1.5;
@@ -128,52 +124,6 @@ const styles = StyleSheet.create({
 		margin: 20,
 		textAlign: 'center',
 		width: 250
-	},
-	bottomModal: {
-		margin: 0
-	},
-	textInput: {
-		width: '100%',
-		marginTop: 30,
-		borderWidth: 1,
-		borderRadius: 4,
-		borderColor: colors.grey100,
-		padding: 16,
-		fontSize: 18,
-		...fontStyles.normal
-	},
-	modalView: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		padding: 20,
-		flexDirection: 'column'
-	},
-	modalText: {
-		fontSize: 18,
-		textAlign: 'center',
-		...fontStyles.normal
-	},
-	modalTitle: {
-		fontSize: 22,
-		marginBottom: 15,
-		textAlign: 'center',
-		...fontStyles.bold
-	},
-	blockingModalText: {
-		alignSelf: 'center',
-		borderRadius: 10,
-		fontSize: 16,
-		textAlign: 'center',
-		color: colors.fontSecondary,
-		...fontStyles.normal
-	},
-	blockingModalTitle: {
-		color: colors.fontPrimary,
-		fontSize: 22,
-		marginBottom: 15,
-		textAlign: 'center',
-		...fontStyles.bold
 	}
 });
 
@@ -254,7 +204,7 @@ class PaymentChannel extends PureComponent {
 		sendRecipient: '',
 		depositAmount: '',
 		exchangeRate: undefined,
-		displayWelcomeModal: false,
+		displayWelcomeModal: true,
 		connextStateDisabled: false,
 		transactions: [],
 		xpub: null,
@@ -279,30 +229,6 @@ class PaymentChannel extends PureComponent {
 		this.setState({ upgradeModalVisible: false });
 	};
 
-	onNewUsernameChange = newUsername => {
-		this.setState({ newUsername });
-	};
-
-	setUsername = async () => {
-		if (this.state.settingUsername) return;
-		try {
-			this.setState({ settingUsername: true });
-			const taken = await InstaPay.getXpubFromUsername(this.state.newUsername);
-			if (taken) {
-				Alert.alert('Username not available', 'Try with a different one');
-				this.setState({ settingUsername: false });
-			} else {
-				await InstaPay.setUsername(this.state.newUsername);
-				this.setState({
-					settingUsername: false,
-					chooseUserModalVisible: false
-				});
-			}
-		} catch (e) {
-			Alert.alert('Error', 'Please try again');
-		}
-	};
-
 	onStateChange = state => {
 		// If loading finished, we can remove the timeout
 		if (!this.state.ready && state.ready) {
@@ -318,6 +244,7 @@ class PaymentChannel extends PureComponent {
 	componentDidMount() {
 		InteractionManager.runAfterInteractions(() => {
 			this.init();
+			this.props.navigation.navigate('InstaPayWelcomeFlow');
 		});
 
 		this.mounted = true;
@@ -758,25 +685,6 @@ class PaymentChannel extends PureComponent {
 		);
 	}
 
-	closeWelcomeModal = async () => {
-		await AsyncStorage.setItem('@MetaMask:paymentChannelFirstTime', '1');
-		this.setState({ displayWelcomeModal: false });
-	};
-
-	renderBlockingModals = () => {
-		const visible = !this.state.displayWelcomeModal && this.state.upgradeModalVisible;
-		const title = strings('payment_channel.upgrading_account_title');
-		const text = strings('payment_channel.upgrading_account_text');
-		return (
-			<BlockingActionModal modalVisible={visible} isLoadingAction>
-				<React.Fragment>
-					<Text style={styles.blockingModalTitle}>{title}</Text>
-					<Text style={styles.blockingModalText}>{text}</Text>
-				</React.Fragment>
-			</BlockingActionModal>
-		);
-	};
-
 	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -788,15 +696,6 @@ class PaymentChannel extends PureComponent {
 					<View style={styles.wrapper}>{this.renderContent()}</View>
 				</ScrollView>
 				<Modal
-					isVisible={this.state.displayWelcomeModal}
-					onBackdropPress={this.closeWelcomeModal}
-					onSwipeComplete={this.closeWelcomeModal}
-					swipeDirection={'down'}
-					style={styles.bottomModal}
-				>
-					<PaymentChannelWelcome close={this.closeWelcomeModal} />
-				</Modal>
-				<Modal
 					isVisible={this.state.qrModalVisible}
 					onBackdropPress={this.closeQrModal}
 					onBackButtonPress={this.closeQrModal}
@@ -806,30 +705,6 @@ class PaymentChannel extends PureComponent {
 				>
 					<AddressQRCode closeQrModal={this.closeQrModal} address={this.state.xpub} />
 				</Modal>
-				<ChooseInstaPayUserModal
-					modalVisible={this.state.chooseUserModalVisible}
-					confirmText={'Confirm'}
-					onConfirmPress={this.setUsername}
-					loading={this.state.settingUsername}
-				>
-					<View style={styles.modalView}>
-						<Text style={styles.modalTitle}>{strings('payment_channel.choose_username_modal_title')}</Text>
-						<Text style={styles.modalText}>{strings('payment_channel.choose_username_modal_text')}</Text>
-						<TextInput
-							style={styles.textInput}
-							placeholder={''}
-							autoCapitalize={'none'}
-							autoCorrect={false}
-							spellCheck={false}
-							placeholderTextColor={colors.grey100}
-							value={this.state.newUsername}
-							onChangeText={this.onNewUsernameChange}
-							onSubmitEditing={this.setUsername}
-							returnKeyType={'done'}
-						/>
-					</View>
-				</ChooseInstaPayUserModal>
-				{this.renderBlockingModals()}
 			</SafeAreaView>
 		);
 	}

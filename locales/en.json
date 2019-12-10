@@ -959,10 +959,28 @@
 		"load_funds": "Load Funds",
 		"insta_pay": "InstaPay",
 		"welcome": {
-			"title": "Welcome to InstaPay!",
-			"desc_1": "This is an experimental Layer 2 feature to let you send assets to friends without transaction fees.",
-			"desc_2": "Made possible by Connext Payment Channels.",
-			"close": "Close"
+			"title": "Welcome to InstaPay 2.0",
+			"desc_1": "Now deposit up to 100 DAI, with no minimum required. Simplified account management and improved user experience.",
+			"desc_2": "Always non-custodial and built to the latest standards of state channel technology.",
+			"next": "Next",
+			"close": "Got it"
+		},
+		"update": {
+			"title": "Update to InstaPay 2.0",
+			"desc_1": "Start using InstaPay 2.0 by simply transferring your funds",
+			"or": "or",
+			"desc_2": "Withdraw your funds from InstaPayy back to their original accounts.",
+			"learn_more": "Learn more.",
+			"transfer": "Transfer my funds to InstaPay 2.0",
+			"withdraw": "No thanks, withdraw my funds"
+		},
+		"migrating": {
+			"title": "Transfer in progress...",
+			"subtitle": "Please wait while we transfer your funds."
+		},
+		"withdrawing": {
+			"title": "Withdrawal in progress...",
+			"subtitle": "Please wait while your funds are withdrawn."
 		},
 		"disabled_withdraw_title": "Feature disabled",
 		"disabled_withdraw_message": "We had to temporarily disable this feature due to technical reasons. All your funds will be withdrawn automatically and returned to your ethereum account",

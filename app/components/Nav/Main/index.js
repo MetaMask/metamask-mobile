@@ -78,6 +78,11 @@ import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval'
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDeposit';
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
+import InstaPayWelcome from '../../Views/PaymentChannel/InstaPayWelcome';
+import InstaPayUpdate from '../../Views/PaymentChannel/InstaPayUpdate';
+import InstaPayMigrating from '../../Views/PaymentChannel/InstaPayMigrating';
+import InstaPayWithdrawing from '../../Views/PaymentChannel/InstaPayWithdrawing';
+
 import { getMethodData, TOKEN_METHOD_TRANSFER, decodeTransferData } from '../../../util/transactions';
 import { BN, isValidAddress } from 'ethereumjs-util';
 import { isENS, safeToChecksumAddress } from '../../../util/address';
@@ -282,6 +287,27 @@ const MainNavigator = createStackNavigator(
 				},
 				{
 					mode: 'modal'
+				}
+			)
+		},
+		InstaPayWelcomeFlow: {
+			screen: createStackNavigator(
+				{
+					InstaPayWelcome: {
+						screen: InstaPayWelcome
+					},
+					InstaPayUpdate: {
+						screen: InstaPayUpdate
+					},
+					InstaPayMigrating: {
+						screen: InstaPayMigrating
+					},
+					InstaPayWithdrawing: {
+						screen: InstaPayWithdrawing
+					}
+				},
+				{
+					headerMode: 'none'
 				}
 			)
 		},
