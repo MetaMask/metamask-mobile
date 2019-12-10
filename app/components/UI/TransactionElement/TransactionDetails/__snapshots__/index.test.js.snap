@@ -58,6 +58,7 @@ exports[`TransactionDetails should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",
+              "textTransform": "uppercase",
             },
             Object {
               "fontSize": 12,
@@ -130,6 +131,7 @@ exports[`TransactionDetails should render correctly 1`] = `
           "fontFamily": "Roboto",
           "fontSize": 12,
           "fontWeight": "400",
+          "textTransform": "uppercase",
         }
       }
     />
@@ -195,6 +197,7 @@ exports[`TransactionDetails should render correctly 1`] = `
           "fontFamily": "Roboto",
           "fontSize": 12,
           "fontWeight": "400",
+          "textTransform": "uppercase",
         }
       }
     />
@@ -267,6 +270,7 @@ exports[`TransactionDetails should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",
+              "textTransform": "uppercase",
             },
             Object {
               "textAlign": "left",
@@ -286,6 +290,7 @@ exports[`TransactionDetails should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",
+              "textTransform": "uppercase",
             },
             Object {
               "textAlign": "right",
@@ -318,6 +323,7 @@ exports[`TransactionDetails should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",
+              "textTransform": "uppercase",
             },
             Object {
               "textAlign": "left",
@@ -337,6 +343,7 @@ exports[`TransactionDetails should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",
+              "textTransform": "uppercase",
             },
             Object {
               "textAlign": "right",
@@ -369,6 +376,7 @@ exports[`TransactionDetails should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",
+              "textTransform": "uppercase",
             },
             Object {
               "textAlign": "left",
@@ -388,6 +396,7 @@ exports[`TransactionDetails should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",
+              "textTransform": "uppercase",
             },
             Object {
               "textAlign": "right",
@@ -420,6 +429,7 @@ exports[`TransactionDetails should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",
+              "textTransform": "uppercase",
             },
             Object {
               "textAlign": "left",
@@ -439,6 +449,7 @@ exports[`TransactionDetails should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",
+              "textTransform": "uppercase",
             },
             Object {
               "textAlign": "right",
