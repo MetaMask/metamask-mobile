@@ -229,7 +229,7 @@ class PaymentRequestSuccess extends PureComponent {
 	render() {
 		const { link, amount, symbol, qrModalVisible } = this.state;
 		return (
-			<SafeAreaView style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper} testID={'send-link-screen'}>
 				<ScrollView style={styles.contentWrapper} contentContainerStyle={styles.scrollViewContainer}>
 					<View style={styles.iconWrapper}>
 						<EvilIcons name="share-apple" size={54} style={styles.icon} />
@@ -264,7 +264,12 @@ class PaymentRequestSuccess extends PureComponent {
 									</View>
 								</View>
 							</StyledButton>
-							<StyledButton type={'normal'} onPress={this.showQRModal} containerStyle={styles.button}>
+							<StyledButton
+								type={'normal'}
+								onPress={this.showQRModal}
+								containerStyle={styles.button}
+								testID={'request-qrcode-button'}
+							>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
 										<FontAwesome name={'qrcode'} size={18} color={colors.blue} />
@@ -298,11 +303,15 @@ class PaymentRequestSuccess extends PureComponent {
 					propagateSwipe
 				>
 					<View style={styles.detailsWrapper}>
-						<View style={styles.qrCode}>
+						<View style={styles.qrCode} testID={'payment-request-qrcode'}>
 							<View style={styles.titleQr}>
 								<Text style={styles.addressTitle}>{strings('payment_request.request_qr_code')}</Text>
 
-								<TouchableOpacity style={styles.closeIcon} onPress={this.closeQRModal}>
+								<TouchableOpacity
+									style={styles.closeIcon}
+									onPress={this.closeQRModal}
+									testID={'payment-request-qrcode-close-button'}
+								>
 									<IonicIcon name={'ios-close'} size={28} color={colors.black} />
 								</TouchableOpacity>
 							</View>
