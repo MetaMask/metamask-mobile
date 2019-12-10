@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.grey500
 	},
-	myAccountsText: {
+	messageText: {
 		...fontStyles.normal,
 		color: colors.blue,
 		fontSize: 16,
@@ -248,7 +248,7 @@ class AddressList extends PureComponent {
 		if (inputSearch) return;
 		return !myAccountsOpened ? (
 			<TouchableOpacity style={styles.myAccountsTouchable} onPress={this.openMyAccounts}>
-				<Text style={styles.myAccountsText}>Transfer between my accounts</Text>
+				<Text style={styles.messageText}>{strings('address_book.between_account')}</Text>
 			</TouchableOpacity>
 		) : (
 			<View>
@@ -264,7 +264,7 @@ class AddressList extends PureComponent {
 
 		return !processedAddressBookList || !processedAddressBookList.length ? (
 			<View style={styles.message}>
-				<Text style={styles.myAccountsText}>No contacts on address book</Text>
+				<Text style={styles.messageText}>{strings('address_book.no_contacts')}</Text>
 			</View>
 		) : (
 			<View>{processedAddressBookList}</View>
