@@ -16,7 +16,8 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	addContact: {
-		marginHorizontal: 24
+		marginHorizontal: 24,
+		marginBottom: 16
 	}
 });
 

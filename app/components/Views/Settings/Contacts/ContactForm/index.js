@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, TextInput, View, Text } from 'react-native';
+import { SafeAreaView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
@@ -12,6 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { doENSLookup } from '../../../../../util/ENSUtils';
 import { isENS, renderShortAddress } from '../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
+import AntIcon from 'react-native-vector-icons/AntDesign';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -25,11 +26,14 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		...fontStyles.normal,
+		flex: 1,
 		fontSize: 12,
 		borderColor: colors.grey200,
 		borderRadius: 5,
 		borderWidth: 2,
-		padding: 10
+		padding: 10,
+		flexDirection: 'row',
+		alignItems: 'center'
 	},
 	resolvedInput: {
 		...fontStyles.normal,
@@ -54,6 +58,22 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'column',
 		alignSelf: 'flex-end'
+	},
+	scanIcon: {
+		flexDirection: 'column',
+		alignItems: 'center'
+	},
+	iconWrapper: {
+		alignItems: 'flex-end'
+	},
+	textInput: {
+		...fontStyles.normal,
+		padding: 0,
+		paddingRight: 8
+	},
+	inputWrapper: {
+		flex: 1,
+		flexDirection: 'column'
 	}
 });
 
@@ -160,6 +180,16 @@ class ContactForm extends PureComponent {
 		navigation.pop();
 	};
 
+	onScan = () => {
+		this.props.navigation.navigate('QRScanner', {
+			onScanSuccess: meta => {
+				if (meta.target_address) {
+					this.onChangeAddress(meta.target_address);
+				}
+			}
+		});
+	};
+
 	render = () => {
 		const { address, addressError, toEnsName, name, mode, addressReady } = this.state;
 		return (
@@ -184,21 +214,27 @@ class ContactForm extends PureComponent {
 
 						<Text style={styles.label}>{strings('address_book.address')}</Text>
 						<View style={styles.input}>
-							<TextInput
-								autoCapitalize={'none'}
-								autoCorrect={false}
-								onChangeText={this.onChangeAddress}
-								placeholder={strings('address_book.add_input_placeholder')}
-								placeholderTextColor={colors.grey100}
-								spellCheck={false}
-								numberOfLines={1}
-								onBlur={this.onBlur}
-								onFocus={this.onInputFocus}
-								onSubmitEditing={this.onFocus}
-								style={[this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
-								value={toEnsName || address}
-							/>
-							{toEnsName && <Text style={styles.resolvedInput}>{renderShortAddress(address)}</Text>}
+							<View style={styles.inputWrapper}>
+								<TextInput
+									autoCapitalize={'none'}
+									autoCorrect={false}
+									onChangeText={this.onChangeAddress}
+									placeholder={strings('address_book.add_input_placeholder')}
+									placeholderTextColor={colors.grey100}
+									spellCheck={false}
+									numberOfLines={1}
+									onBlur={this.onBlur}
+									onFocus={this.onInputFocus}
+									onSubmitEditing={this.onFocus}
+									style={[styles.textInput]}
+									value={toEnsName || address}
+								/>
+								{toEnsName && <Text style={styles.resolvedInput}>{renderShortAddress(address)}</Text>}
+							</View>
+
+							<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
+								<AntIcon name="scan1" size={20} color={colors.grey500} style={styles.scanIcon} />
+							</TouchableOpacity>
 						</View>
 					</View>
 
