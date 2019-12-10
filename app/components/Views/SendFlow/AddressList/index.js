@@ -69,12 +69,13 @@ const styles = StyleSheet.create({
 	}
 });
 
-const AddressElement = (address, nickname, onAccountPress) => {
+const AddressElement = (address, nickname, onAccountPress, onAccountLongPress) => {
 	const primaryLabel = nickname || renderShortAddress(address);
 	const secondaryLabel = nickname && renderShortAddress(address);
 	return (
 		<TouchableOpacity
 			onPress={() => onAccountPress(address)} /* eslint-disable-line */
+			onLongPress={() => onAccountLongPress(address)} /* eslint-disable-line */
 			key={address}
 			style={styles.addressElementWrapper}
 		>

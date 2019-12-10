@@ -91,7 +91,7 @@ class AddContact extends PureComponent {
 		address: undefined,
 		addressError: undefined,
 		toEnsName: undefined,
-		validAddress: false,
+		addressReady: false,
 		mode: this.props.navigation.getParam('mode', ADD)
 	};
 
@@ -114,51 +114,38 @@ class AddContact extends PureComponent {
 		const { addressBook, network, identities } = this.props;
 		const { mode } = this.state;
 		const networkAddressBook = addressBook[network] || {};
-		let addressError;
-		let validAddress = false;
 		const checksummedResolvedAddress = toChecksumAddress(address);
 		if (
 			mode === ADD &&
 			(networkAddressBook[checksummedResolvedAddress] || identities[checksummedResolvedAddress])
 		) {
-			addressError = 'Address already saved';
-		} else {
-			validAddress = true;
+			return 'Address already saved';
 		}
-		return { addressError, validAddress };
+		return;
 	};
 
 	onChangeAddress = async address => {
 		const { network } = this.props;
 		let addressError, toEnsName;
-		let validAddress = false;
-
-		if (isValidAddress(address)) {
-			const { addressError: checkAddressError, validAddress: checkValidAddress } = this.checkIfAlreadySaved(
-				address
-			);
-			addressError = checkAddressError;
-			validAddress = checkValidAddress;
-		}
-		if (isENS(address)) {
-			toEnsName = address;
+		let addressReady = false;
+		if (isValidAddress(address) && address.length === 42) {
+			addressError = this.checkIfAlreadySaved(address);
+			addressReady = true;
+		} else if (isENS(address)) {
 			const resolvedAddress = await doENSLookup(address, network);
 			if (resolvedAddress) {
 				const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
+				toEnsName = address;
 				address = resolvedAddress;
-				const { addressError: checkAddressError, validAddress: checkValidAddress } = this.checkIfAlreadySaved(
-					checksummedResolvedAddress
-				);
-				addressError = checkAddressError;
-				validAddress = checkValidAddress;
+				addressError = this.checkIfAlreadySaved(checksummedResolvedAddress);
+				addressReady = true;
 			} else {
 				addressError = strings('transaction.could_not_resolve_ens');
 			}
-		} else if (!isValidAddress(address) && address && address.length >= 42) {
+		} else if (address.length >= 42) {
 			addressError = strings('transaction.invalid_address');
 		}
-
-		this.setState({ address, addressError, toEnsName, validAddress });
+		this.setState({ address, addressError, toEnsName, addressReady });
 	};
 
 	addContact = () => {
@@ -171,7 +158,7 @@ class AddContact extends PureComponent {
 	};
 
 	render = () => {
-		const { address, addressError, toEnsName, validAddress, name, mode } = this.state;
+		const { address, addressError, toEnsName, name, mode, addressReady } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
@@ -218,7 +205,7 @@ class AddContact extends PureComponent {
 						<View style={styles.buttonsContainer}>
 							<StyledButton
 								type={'confirm'}
-								disabled={!!addressError || !validAddress || !name}
+								disabled={!addressReady || !name || !!addressError}
 								onPress={this.addContact}
 							>
 								{`${mode} contact`}
