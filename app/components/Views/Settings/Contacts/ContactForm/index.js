@@ -125,7 +125,7 @@ class ContactForm extends PureComponent {
 			const networkAddressBook = addressBook[network] || {};
 			const address = this.props.navigation.getParam('address', '');
 			const contact = networkAddressBook[address] || identities[address];
-			this.setState({ address, name: contact.name });
+			this.setState({ address, name: contact.name, addressReady: true });
 		}
 	};
 
