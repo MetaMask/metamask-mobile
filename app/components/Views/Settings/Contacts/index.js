@@ -18,6 +18,8 @@ const styles = StyleSheet.create({
 	}
 });
 
+const EDIT = 'edit';
+
 /**
  * View that contains app information
  */
@@ -33,7 +35,7 @@ class Contacts extends PureComponent {
 	};
 
 	onAddressPress = address => {
-		this.props.navigation.navigate('ContactsAdd', { mode: 'edit', address });
+		this.props.navigation.navigate('ContactsAdd', { mode: EDIT, address });
 	};
 
 	goToAddContact = () => {
@@ -48,7 +50,7 @@ class Contacts extends PureComponent {
 		<SafeAreaView style={styles.wrapper}>
 			<AddressList onlyRenderAddressBook onAccountPress={this.onAddressPress} />
 			<StyledButton type={'confirm'} containerStyle={styles.addContact} onPress={this.goToAddContact}>
-				{'Add contact'}
+				{strings('address_book.add_contact')}
 			</StyledButton>
 		</SafeAreaView>
 	);

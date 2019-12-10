@@ -613,7 +613,16 @@
 		"enter_an_alias": "Enter an alias",
 		"add_this_address": "Add this address to your address book",
 		"next": "Next",
-		"enter_an_alias_placeholder": "e.g. Vitalik B."
+		"enter_an_alias_placeholder": "e.g. Vitalik B.",
+		"add_contact_title": "Add Contact",
+		"add_contact": "Add contact",
+		"edit_contact_title": "Edit Contact",
+		"edit_contact": "Edit contact",
+		"address_already_saved": "Address already saved",
+		"address": "Address",
+		"name": "Name",
+		"nickname": "Nickname",
+		"add_input_placeholder": "Public address (0x), or ENS"
 	},
 	"transaction_submitted": {
 		"title": "Transaction Submitted",

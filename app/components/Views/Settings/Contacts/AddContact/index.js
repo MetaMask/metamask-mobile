@@ -65,7 +65,10 @@ const EDIT = 'edit';
  */
 class AddContact extends PureComponent {
 	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(`${navigation.getParam('mode', ADD)} Contact`, navigation);
+		getNavigationOptionsTitle(
+			strings(`address_book.${navigation.getParam('mode', ADD)}_contact_title`),
+			navigation
+		);
 
 	static propTypes = {
 		/**
@@ -119,7 +122,7 @@ class AddContact extends PureComponent {
 			mode === ADD &&
 			(networkAddressBook[checksummedResolvedAddress] || identities[checksummedResolvedAddress])
 		) {
-			return 'Address already saved';
+			return strings('address_book.address_already_saved');
 		}
 		return;
 	};
@@ -163,12 +166,12 @@ class AddContact extends PureComponent {
 			<SafeAreaView style={styles.wrapper}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
 					<View style={styles.scrollWrapper}>
-						<Text style={styles.label}>{'Name'}</Text>
+						<Text style={styles.label}>{strings('address_book.name')}</Text>
 						<TextInput
 							autoCapitalize={'none'}
 							autoCorrect={false}
 							onChangeText={this.onChangeName}
-							placeholder={'Nickname'}
+							placeholder={strings('address_book.nickname')}
 							placeholderTextColor={colors.grey100}
 							spellCheck={false}
 							numberOfLines={1}
@@ -179,13 +182,13 @@ class AddContact extends PureComponent {
 							value={name}
 						/>
 
-						<Text style={styles.label}>{'Address'}</Text>
+						<Text style={styles.label}>{strings('address_book.address')}</Text>
 						<View style={styles.input}>
 							<TextInput
 								autoCapitalize={'none'}
 								autoCorrect={false}
 								onChangeText={this.onChangeAddress}
-								placeholder={'Public address (0x), or ENS'}
+								placeholder={strings('address_book.add_input_placeholder')}
 								placeholderTextColor={colors.grey100}
 								spellCheck={false}
 								numberOfLines={1}
@@ -208,7 +211,7 @@ class AddContact extends PureComponent {
 								disabled={!addressReady || !name || !!addressError}
 								onPress={this.addContact}
 							>
-								{`${mode} contact`}
+								{strings(`address_book.${mode}_contact`)}
 							</StyledButton>
 						</View>
 					</View>
