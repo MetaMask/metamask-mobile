@@ -321,6 +321,10 @@ class PaymentRequest extends PureComponent {
 	 * @param {string} searchInputValue - String containing assets query
 	 */
 	handleSearch = searchInputValue => {
+		if (typeof searchInputValue !== 'string') {
+			searchInputValue = this.state.searchInputValue;
+		}
+
 		const fuseSearchResult = fuse.search(searchInputValue);
 		const addressSearchResult = contractList.filter(
 			token => token.address.toLowerCase() === searchInputValue.toLowerCase()
@@ -348,7 +352,7 @@ class PaymentRequest extends PureComponent {
 			return token;
 		});
 		return (
-			<View style={baseStyles.flexGrow}>
+			<View style={baseStyles.flexGrow} testID={'request-screen'}>
 				<View>
 					<Text style={styles.title}>{strings('payment_request.choose_asset')}</Text>
 				</View>
@@ -366,6 +370,7 @@ class PaymentRequest extends PureComponent {
 							returnKeyType="go"
 							value={this.state.searchInputValue}
 							blurOnSubmit
+							testID={'request-search-asset-input'}
 						/>
 						<FeatherIcon
 							onPress={this.focusInput}
@@ -376,7 +381,7 @@ class PaymentRequest extends PureComponent {
 						/>
 					</View>
 				)}
-				<View style={styles.assetsWrapper}>
+				<View style={styles.assetsWrapper} testID={'searched-asset-results'}>
 					<Text style={styles.assetsTitle}>
 						{this.state.searchInputValue
 							? strings('payment_request.search_results')
@@ -545,7 +550,7 @@ class PaymentRequest extends PureComponent {
 			switchable = false;
 		}
 		return (
-			<View style={styles.enterAmountWrapper}>
+			<View style={styles.enterAmountWrapper} testID={'request-amount-screen'}>
 				<View>
 					<Text style={styles.title}>{strings('payment_request.enter_amount')}</Text>
 				</View>
@@ -567,6 +572,7 @@ class PaymentRequest extends PureComponent {
 										value={amount}
 										onSubmitEditing={this.onNext}
 										ref={this.amountInput}
+										testID={'request-amount-input'}
 									/>
 									<Text style={styles.eth} numberOfLines={1}>
 										{symbol}

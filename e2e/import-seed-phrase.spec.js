@@ -38,9 +38,7 @@ describe('Import seedphrase flow', () => {
 		// ensure alert box is displayed with correct text
 		await TestHelpers.checkIfElementByTextIsVisible(Incorrect_Password_Length);
 		// dismiss alert by tapping ok
-		await element(by.label('OK'))
-			.atIndex(0)
-			.tap();
+		await TestHelpers.tapAlertWithButton('OK');
 		// Input password
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
 		// Input password confirm
@@ -51,30 +49,54 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.clearField('input-seed-phrase');
 		// Input correct seed phrase
 		await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Correct_Seed_Words);
-		// Tap outside of box
-		await TestHelpers.tapAtPoint('import-from-seed-screen', { x: 40, y: 20 });
-		// Tap import to continue
-		await TestHelpers.waitAndTap('submit');
+
+		// Input Correct password and Submit
+		if (device.getPlatform() === 'android') {
+			// Input password
+			await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
+			// Input password confirm
+			await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
+		} else {
+			await TestHelpers.tapAtPoint('import-from-seed-screen', { x: 40, y: 20 });
+			// Tap import to continue
+			await TestHelpers.waitAndTap('submit');
+		}
+
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
-		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
+		await TestHelpers.waitAndTap('agree-button', 15000);
+		// Should be on wallet screen
+		if (!device.getPlatform() === 'android') {
+			await TestHelpers.checkIfExists('wallet-screen');
+		}
 		// Check that No thanks CTA is visible and tap it
 		await TestHelpers.waitAndTap('onboarding-wizard-back-button');
 		// Check that the onboarding wizard is gone
 		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
 		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
+		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on settings
 		await TestHelpers.tap('settings-button');
 		// Tap on the "Security & Privacy" option
 		await TestHelpers.tapByText('Security & Privacy');
-		// Swipe up the screen
-		await TestHelpers.swipe('clear-privacy', 'up');
+
+		// Scroll to the bottom
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.swipe('clear-privacy-section', 'up');
+			TestHelpers.delay(1000);
+			await TestHelpers.swipe('clear-privacy-section', 'up');
+			TestHelpers.delay(1000);
+			await TestHelpers.swipe('clear-privacy-section', 'up');
+			TestHelpers.delay(1000);
+			await TestHelpers.swipe('auto-lock-section', 'up');
+			TestHelpers.delay(1000);
+		} else {
+			await TestHelpers.swipe('clear-privacy-section', 'up');
+		}
+
 		// Check that you are on bottom of screen
 		await TestHelpers.checkIfVisible('reveal-seed-title');
 		// Tap on Reveal Seed Phrase Button
@@ -93,6 +115,9 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.checkIfVisible('private-credential-touchable');
 		// Check that the seed phrase displayed matches what we inputted in the beginning
 		await TestHelpers.checkIfHasText('private-credential-text', Correct_Seed_Words);
+	});
+
+	it('should be able to log in', async () => {
 		// Relaunch app
 		await TestHelpers.relaunchApp();
 		// Check that we are on login screen

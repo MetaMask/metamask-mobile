@@ -589,8 +589,8 @@ class DrawerView extends PureComponent {
 	};
 
 	goToBugFeedback = () => {
-		const formId = '1FAIpQLSdjImKlZCFP2U5GifkNHEmbBrKHxDKl2DpU7rvLxyMdvZ4QLg';
-		this.goToFeedback(formId);
+		this.goToBrowserUrl(`https://metamask.zendesk.com/hc/en-us/requests/new`, strings('drawer.submit_bug'));
+		this.setState({ submitFeedback: false });
 	};
 
 	goToGeneralFeedback = () => {

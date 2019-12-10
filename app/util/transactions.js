@@ -171,9 +171,10 @@ export async function getMethodData(data) {
  * Returns wether the given address is a contract
  *
  * @param {string} address - Ethereum address
- * @returns {boolean} - Wether the given address is a contract
+ * @returns {boolean} - Whether the given address is a contract
  */
 export async function isSmartContractAddress(address) {
+	if (!address) return false;
 	address = toChecksumAddress(address);
 	// If in contract map we don't need to cache it
 	if (contractMap[address]) {
@@ -214,6 +215,7 @@ export async function isCollectibleAddress(address, tokenId) {
  */
 export async function getTransactionActionKey(transaction) {
 	const { transaction: { data, to } = {} } = transaction;
+	if (!to) return CONTRACT_METHOD_DEPLOY;
 	let ret;
 	// if data in transaction try to get method data
 	if (data && data !== '0x') {

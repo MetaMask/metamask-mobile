@@ -86,7 +86,11 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
-		setTransactionObject: PropTypes.func.isRequired
+		setTransactionObject: PropTypes.func.isRequired,
+		/**
+		 * Whether was prompted from approval
+		 */
+		promptedFromApproval: PropTypes.bool
 	};
 
 	state = {
@@ -216,9 +220,11 @@ class TransactionEditor extends PureComponent {
 			this.props.setTransactionObject({ to, gas: hexToBN(gas), ensRecipient });
 		}
 		// If selectedAsset defined, generates data
-		else {
+		else if (to && isValidAddress(to)) {
 			const { data, gas } = await this.handleDataGeneration({ to });
 			this.props.setTransactionObject({ to, gas: hexToBN(gas), data, ensRecipient });
+		} else {
+			this.props.setTransactionObject({ to, data: undefined, ensRecipient });
 		}
 	};
 
@@ -480,11 +486,15 @@ class TransactionEditor extends PureComponent {
 	validateToAddress = () => {
 		let error;
 		const {
-			transaction: { to }
+			transaction: { to },
+			promptedFromApproval
 		} = this.props;
+		// If it comes from a dapp it could be a contract deployment
+		if (promptedFromApproval && !to) return error;
 		!to && (error = strings('transaction.required'));
 		!to && this.state.toFocused && (error = strings('transaction.required'));
 		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
+		to && to.length !== 42 && (error = strings('transaction.invalid_address'));
 		return error;
 	};
 

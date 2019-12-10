@@ -2536,7 +2536,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 					"\"$(SRCROOT)/MetaMask\"",
 				);
-				MARKETING_VERSION = 0.2.11;
+				MARKETING_VERSION = 0.2.12;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -2603,7 +2603,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 					"\"$(SRCROOT)/MetaMask\"",
 				);
-				MARKETING_VERSION = 0.2.11;
+				MARKETING_VERSION = 0.2.12;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
