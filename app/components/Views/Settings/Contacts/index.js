@@ -32,8 +32,8 @@ class Contacts extends PureComponent {
 		navigation: PropTypes.object
 	};
 
-	onAddressPress = () => {
-		//
+	onAddressPress = address => {
+		this.props.navigation.navigate('ContactsAdd', { mode: 'edit', address });
 	};
 
 	goToAddContact = () => {

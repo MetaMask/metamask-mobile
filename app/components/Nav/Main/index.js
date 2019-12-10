@@ -92,7 +92,6 @@ import AsyncStorage from '@react-native-community/async-storage';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import AddContact from '../../Views/Settings/Contacts/AddContact';
-import EditContact from '../../Views/Settings/Contacts/EditContact';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -214,9 +213,6 @@ const MainNavigator = createStackNavigator(
 				},
 				ContactsAdd: {
 					screen: AddContact
-				},
-				ContactsEdit: {
-					screen: EditContact
 				},
 				SyncWithExtensionView: {
 					screen: SyncWithExtension

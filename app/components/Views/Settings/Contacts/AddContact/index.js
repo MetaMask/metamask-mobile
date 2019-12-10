@@ -57,11 +57,15 @@ const styles = StyleSheet.create({
 	}
 });
 
+const ADD = 'add';
+const EDIT = 'edit';
+
 /**
  * View that contains app information
  */
 class AddContact extends PureComponent {
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle('Add Contact', navigation);
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(`${navigation.getParam('mode', ADD)} Contact`, navigation);
 
 	static propTypes = {
 		/**
@@ -87,21 +91,54 @@ class AddContact extends PureComponent {
 		address: undefined,
 		addressError: undefined,
 		toEnsName: undefined,
-		validAddress: false
+		validAddress: false,
+		mode: this.props.navigation.getParam('mode', ADD)
+	};
+
+	componentDidMount = () => {
+		const { mode } = this.state;
+		if (mode === EDIT) {
+			const { addressBook, network, identities } = this.props;
+			const networkAddressBook = addressBook[network] || {};
+			const address = this.props.navigation.getParam('address', '');
+			const contact = networkAddressBook[address] || identities[address];
+			this.setState({ address, name: contact.name });
+		}
 	};
 
 	onChangeName = name => {
 		this.setState({ name });
 	};
 
-	onChangeAddress = async address => {
+	checkIfAlreadySaved = address => {
 		const { addressBook, network, identities } = this.props;
+		const { mode } = this.state;
 		const networkAddressBook = addressBook[network] || {};
+		let addressError;
+		let validAddress = false;
+		const checksummedResolvedAddress = toChecksumAddress(address);
+		if (
+			mode === ADD &&
+			(networkAddressBook[checksummedResolvedAddress] || identities[checksummedResolvedAddress])
+		) {
+			addressError = 'Address already saved';
+		} else {
+			validAddress = true;
+		}
+		return { addressError, validAddress };
+	};
+
+	onChangeAddress = async address => {
+		const { network } = this.props;
 		let addressError, toEnsName;
 		let validAddress = false;
 
 		if (isValidAddress(address)) {
-			validAddress = true;
+			const { addressError: checkAddressError, validAddress: checkValidAddress } = this.checkIfAlreadySaved(
+				address
+			);
+			addressError = checkAddressError;
+			validAddress = checkValidAddress;
 		}
 		if (isENS(address)) {
 			toEnsName = address;
@@ -109,11 +146,11 @@ class AddContact extends PureComponent {
 			if (resolvedAddress) {
 				const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
 				address = resolvedAddress;
-				if (networkAddressBook[checksummedResolvedAddress] || identities[checksummedResolvedAddress]) {
-					addressError = 'Address already saved';
-				} else {
-					validAddress = true;
-				}
+				const { addressError: checkAddressError, validAddress: checkValidAddress } = this.checkIfAlreadySaved(
+					checksummedResolvedAddress
+				);
+				addressError = checkAddressError;
+				validAddress = checkValidAddress;
 			} else {
 				addressError = strings('transaction.could_not_resolve_ens');
 			}
@@ -134,7 +171,7 @@ class AddContact extends PureComponent {
 	};
 
 	render = () => {
-		const { address, addressError, toEnsName, validAddress, name } = this.state;
+		const { address, addressError, toEnsName, validAddress, name, mode } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
@@ -152,6 +189,7 @@ class AddContact extends PureComponent {
 							onFocus={this.onInputFocus}
 							onSubmitEditing={this.onFocus}
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							value={name}
 						/>
 
 						<Text style={styles.label}>{'Address'}</Text>
@@ -168,6 +206,7 @@ class AddContact extends PureComponent {
 								onFocus={this.onInputFocus}
 								onSubmitEditing={this.onFocus}
 								style={[this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+								value={toEnsName || address}
 							/>
 							{toEnsName && <Text style={styles.resolvedInput}>{renderShortAddress(address)}</Text>}
 						</View>
@@ -182,7 +221,7 @@ class AddContact extends PureComponent {
 								disabled={!!addressError || !validAddress || !name}
 								onPress={this.addContact}
 							>
-								{'Add contact'}
+								{`${mode} contact`}
 							</StyledButton>
 						</View>
 					</View>
