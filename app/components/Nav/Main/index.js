@@ -91,7 +91,7 @@ import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBro
 import AsyncStorage from '@react-native-community/async-storage';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
-import AddContact from '../../Views/Settings/Contacts/AddContact';
+import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -211,8 +211,8 @@ const MainNavigator = createStackNavigator(
 				ContactsSettings: {
 					screen: Contacts
 				},
-				ContactsAdd: {
-					screen: AddContact
+				ContactForm: {
+					screen: ContactForm
 				},
 				SyncWithExtensionView: {
 					screen: SyncWithExtension

@@ -63,7 +63,7 @@ const EDIT = 'edit';
 /**
  * View that contains app information
  */
-class AddContact extends PureComponent {
+class ContactForm extends PureComponent {
 	static navigationOptions = ({ navigation }) =>
 		getNavigationOptionsTitle(
 			strings(`address_book.${navigation.getParam('mode', ADD)}_contact_title`),
@@ -227,4 +227,4 @@ const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController.network
 });
 
-export default connect(mapStateToProps)(AddContact);
+export default connect(mapStateToProps)(ContactForm);

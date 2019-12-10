@@ -35,11 +35,11 @@ class Contacts extends PureComponent {
 	};
 
 	onAddressPress = address => {
-		this.props.navigation.navigate('ContactsAdd', { mode: EDIT, address });
+		this.props.navigation.navigate('ContactForm', { mode: EDIT, address });
 	};
 
 	goToAddContact = () => {
-		this.props.navigation.navigate('ContactsAdd');
+		this.props.navigation.navigate('ContactForm');
 	};
 
 	goToEditContact = () => {
