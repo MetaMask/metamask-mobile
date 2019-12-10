@@ -105,6 +105,8 @@ const styles = StyleSheet.create({
 	}
 });
 
+const dummy = () => true;
+
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -410,7 +412,11 @@ class SendFlow extends PureComponent {
 
 				<View style={baseStyles.flexGrow}>
 					{!toSelectedAddressReady ? (
-						<AddressList inputSearch={toSelectedAddress} onAccountPress={this.onToSelectedAddressChange} />
+						<AddressList
+							inputSearch={toSelectedAddress}
+							onAccountPress={this.onToSelectedAddressChange}
+							onAccountLongPress={dummy}
+						/>
 					) : (
 						<View style={styles.nextActionWrapper}>
 							{addToAddressToAddressBook && (

@@ -128,6 +128,10 @@ class AddressList extends PureComponent {
 		 */
 		onAccountPress: PropTypes.func,
 		/**
+		 * Callback called when account in address book is long pressed
+		 */
+		onAccountLongPress: PropTypes.func,
+		/**
 		 * An array that represents the user transactions
 		 */
 		transactions: PropTypes.array,
@@ -165,7 +169,7 @@ class AddressList extends PureComponent {
 	};
 
 	componentDidUpdate = prevProps => {
-		if (prevProps.inputSearch !== this.props.inputSearch) {
+		if (prevProps.inputSearch !== this.props.inputSearch || prevProps.addressBook !== this.props.addressBook) {
 			let networkAddressBookList;
 			if (this.props.inputSearch) {
 				networkAddressBookList = this.fuse.search(this.props.inputSearch);
@@ -184,7 +188,7 @@ class AddressList extends PureComponent {
 	};
 
 	getRecentAddresses = inputSearch => {
-		const { transactions, network, identities, onAccountPress } = this.props;
+		const { transactions, network, identities, onAccountPress, onAccountLongPress } = this.props;
 		const recents = [];
 		const parsedRecents = [];
 		if (!inputSearch) {
@@ -197,10 +201,17 @@ class AddressList extends PureComponent {
 					recents.push(checksummedTo);
 					if (this.networkAddressBook[checksummedTo]) {
 						parsedRecents.push(
-							AddressElement(checksummedTo, this.networkAddressBook[checksummedTo].name, onAccountPress)
+							AddressElement(
+								checksummedTo,
+								this.networkAddressBook[checksummedTo].name,
+								onAccountPress,
+								onAccountLongPress
+							)
 						);
 					} else {
-						parsedRecents.push(AddressElement(checksummedTo, undefined, onAccountPress));
+						parsedRecents.push(
+							AddressElement(checksummedTo, undefined, onAccountPress, onAccountLongPress)
+						);
 					}
 				}
 			});
@@ -209,7 +220,7 @@ class AddressList extends PureComponent {
 	};
 
 	parseAddressBook = networkAddressBookList => {
-		const { onAccountPress } = this.props;
+		const { onAccountPress, onAccountLongPress } = this.props;
 		const list = [];
 		const addressBookTree = {};
 		networkAddressBookList.forEach(contact => {
@@ -225,14 +236,14 @@ class AddressList extends PureComponent {
 			.forEach(initial => {
 				list.push(LabelElement(initial));
 				addressBookTree[initial].forEach(({ address, name }) => {
-					list.push(AddressElement(address, name, onAccountPress));
+					list.push(AddressElement(address, name, onAccountPress, onAccountLongPress));
 				});
 			});
 		this.setState({ processedAddressBookList: list });
 	};
 
 	renderMyAccounts = () => {
-		const { identities, onAccountPress, inputSearch } = this.props;
+		const { identities, onAccountPress, inputSearch, onAccountLongPress } = this.props;
 		const { myAccountsOpened } = this.state;
 		if (inputSearch) return;
 		return !myAccountsOpened ? (
@@ -242,7 +253,7 @@ class AddressList extends PureComponent {
 		) : (
 			<View>
 				{Object.keys(identities).map(address =>
-					AddressElement(address, identities[address].name, onAccountPress)
+					AddressElement(address, identities[address].name, onAccountPress, onAccountLongPress)
 				)}
 			</View>
 		);

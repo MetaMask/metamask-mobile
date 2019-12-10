@@ -151,7 +151,7 @@ class ContactForm extends PureComponent {
 		this.setState({ address, addressError, toEnsName, addressReady });
 	};
 
-	addContact = () => {
+	saveContact = () => {
 		const { name, address } = this.state;
 		const { network, navigation } = this.props;
 		const { AddressBookController } = Engine.context;
@@ -209,7 +209,7 @@ class ContactForm extends PureComponent {
 							<StyledButton
 								type={'confirm'}
 								disabled={!addressReady || !name || !!addressError}
-								onPress={this.addContact}
+								onPress={this.saveContact}
 							>
 								{strings(`address_book.${mode}_contact`)}
 							</StyledButton>

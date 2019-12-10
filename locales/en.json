@@ -608,6 +608,8 @@
 	"address_book": {
 		"recents": "Recents",
 		"save": "Save",
+		"delete_contact": "Delete contact",
+		"delete": "Delete",
 		"cancel": "Cancel",
 		"add_to_address_book": "Add to address book",
 		"enter_an_alias": "Enter an alias",

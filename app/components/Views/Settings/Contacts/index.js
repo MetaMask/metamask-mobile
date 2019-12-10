@@ -7,6 +7,8 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
 import AddressList from '../../SendFlow/AddressList';
 import StyledButton from '../../../UI/StyledButton';
+import Engine from '../../../../core/Engine';
+import ActionSheet from 'react-native-actionsheet';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -31,7 +33,25 @@ class Contacts extends PureComponent {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string
+	};
+
+	actionSheet;
+	contactAddressToRemove;
+
+	onAddressLongPress = address => {
+		this.contactAddressToRemove = address;
+		this.actionSheet && this.actionSheet.show();
+	};
+
+	deleteContact = () => {
+		const { AddressBookController } = Engine.context;
+		const { network } = this.props;
+		AddressBookController.delete(network, this.contactAddressToRemove);
 	};
 
 	onAddressPress = address => {
@@ -46,12 +66,29 @@ class Contacts extends PureComponent {
 		this.props.navigation.navigate('ContactsEdit');
 	};
 
+	createActionSheetRef = ref => {
+		this.actionSheet = ref;
+	};
+
 	render = () => (
 		<SafeAreaView style={styles.wrapper}>
-			<AddressList onlyRenderAddressBook onAccountPress={this.onAddressPress} />
+			<AddressList
+				onlyRenderAddressBook
+				onAccountPress={this.onAddressPress}
+				onAccountLongPress={this.onAddressLongPress}
+			/>
 			<StyledButton type={'confirm'} containerStyle={styles.addContact} onPress={this.goToAddContact}>
 				{strings('address_book.add_contact')}
 			</StyledButton>
+			<ActionSheet
+				ref={this.createActionSheetRef}
+				title={strings('address_book.delete_contact')}
+				options={[strings('address_book.delete'), strings('address_book.cancel')]}
+				cancelButtonIndex={1}
+				destructiveButtonIndex={0}
+				// eslint-disable-next-line react/jsx-no-bind
+				onPress={index => (index === 0 ? this.deleteContact() : null)}
+			/>
 		</SafeAreaView>
 	);
 }
