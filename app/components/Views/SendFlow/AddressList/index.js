@@ -2,39 +2,16 @@ import React, { PureComponent } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
-import Identicon from '../../../UI/Identicon';
 import { connect } from 'react-redux';
-import { renderShortAddress, safeToChecksumAddress } from '../../../../util/address';
+import { safeToChecksumAddress } from '../../../../util/address';
 import Fuse from 'fuse.js';
 import { strings } from '../../../../../locales/i18n';
+import AddressElement from '../AddressElement';
 
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
 		backgroundColor: colors.white
-	},
-	addressElementWrapper: {
-		padding: 16,
-		flexDirection: 'row',
-		alignItems: 'center',
-		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050
-	},
-	addressElementInformation: {
-		flexDirection: 'column'
-	},
-	addressIdenticon: {
-		paddingRight: 16
-	},
-	addressTextNickname: {
-		...fontStyles.normal,
-		color: colors.black,
-		fontSize: 14
-	},
-	addressTextAddress: {
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.grey500
 	},
 	messageText: {
 		...fontStyles.normal,
@@ -71,33 +48,6 @@ const styles = StyleSheet.create({
 		padding: 16
 	}
 });
-
-const AddressElement = (address, nickname, onAccountPress, onAccountLongPress) => {
-	const primaryLabel = nickname || renderShortAddress(address);
-	const secondaryLabel = nickname && renderShortAddress(address);
-	return (
-		<TouchableOpacity
-			onPress={() => onAccountPress(address)} /* eslint-disable-line */
-			onLongPress={() => onAccountLongPress(address)} /* eslint-disable-line */
-			key={address}
-			style={styles.addressElementWrapper}
-		>
-			<View style={styles.addressIdenticon}>
-				<Identicon address={address} diameter={28} />
-			</View>
-			<View style={styles.addressElementInformation}>
-				<Text style={styles.addressTextNickname} numberOfLines={1}>
-					{primaryLabel}
-				</Text>
-				{!!secondaryLabel && (
-					<Text style={styles.addressTextAddress} numberOfLines={1}>
-						{secondaryLabel}
-					</Text>
-				)}
-			</View>
-		</TouchableOpacity>
-	);
-};
 
 const LabelElement = label => (
 	<View key={label} style={styles.labelElementWrapper}>
@@ -195,29 +145,33 @@ class AddressList extends PureComponent {
 		const recents = [];
 		const parsedRecents = [];
 		if (!inputSearch) {
-			parsedRecents.push(LabelElement(strings('address_book.recents')));
 			const networkTransactions = transactions.filter(tx => tx.networkID === network);
-			networkTransactions.forEach(({ transaction: { to } }) => {
+			networkTransactions.forEach(async ({ transaction: { to } }) => {
 				const checksummedTo = safeToChecksumAddress(to);
 				if (recents.length > 2) return;
 				if (!recents.includes(checksummedTo) && !Object.keys(identities).includes(checksummedTo)) {
 					recents.push(checksummedTo);
 					if (this.networkAddressBook[checksummedTo]) {
 						parsedRecents.push(
-							AddressElement(
-								checksummedTo,
-								this.networkAddressBook[checksummedTo].name,
-								onAccountPress,
-								onAccountLongPress
-							)
+							<AddressElement
+								address={checksummedTo}
+								name={this.networkAddressBook[checksummedTo].name}
+								onAccountPress={onAccountPress}
+								onAccountLongPress={onAccountLongPress}
+							/>
 						);
 					} else {
 						parsedRecents.push(
-							AddressElement(checksummedTo, undefined, onAccountPress, onAccountLongPress)
+							<AddressElement
+								address={checksummedTo}
+								onAccountPress={onAccountPress}
+								onAccountLongPress={onAccountLongPress}
+							/>
 						);
 					}
 				}
 			});
+			parsedRecents.length && parsedRecents.unshift(LabelElement(strings('address_book.recents')));
 		}
 		this.setState({ processedRecentsList: parsedRecents });
 	};
@@ -230,17 +184,33 @@ class AddressList extends PureComponent {
 			const initial = contact.name[0] && contact.name[0].toUpperCase();
 			if (Object.keys(addressBookTree).includes(initial)) {
 				addressBookTree[initial].push(contact);
+			} else if (!initial) {
+				!list.length && list.push(LabelElement('Others'));
+				list.push(
+					<AddressElement
+						address={contact.address}
+						name={contact.name}
+						onAccountPress={onAccountPress}
+						onAccountLongPress={onAccountLongPress}
+					/>
+				);
 			} else {
-				if (!initial) list.push(LabelElement('Others'));
 				addressBookTree[initial] = [contact];
 			}
 		});
 		Object.keys(addressBookTree)
 			.sort()
 			.forEach(initial => {
-				if (initial) list.push(LabelElement(initial));
+				list.push(LabelElement(initial));
 				addressBookTree[initial].forEach(({ address, name }) => {
-					list.push(AddressElement(address, name, onAccountPress, onAccountLongPress));
+					list.push(
+						<AddressElement
+							address={address}
+							name={name}
+							onAccountPress={onAccountPress}
+							onAccountLongPress={onAccountLongPress}
+						/>
+					);
 				});
 			});
 		this.setState({ processedAddressBookList: list });
@@ -256,9 +226,15 @@ class AddressList extends PureComponent {
 			</TouchableOpacity>
 		) : (
 			<View>
-				{Object.keys(identities).map(address =>
-					AddressElement(address, identities[address].name, onAccountPress, onAccountLongPress)
-				)}
+				{Object.keys(identities).map(address => (
+					<AddressElement
+						key={address}
+						address={address}
+						name={identities[address].name}
+						onAccountPress={onAccountPress}
+						onAccountLongPress={onAccountLongPress}
+					/>
+				))}
 			</View>
 		);
 	};

@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 	myAccountsText: {
 		...fontStyles.normal,
 		color: colors.blue,
-		fontSize: 14,
+		fontSize: 16,
 		alignSelf: 'center'
 	},
 	myAccountsTouchable: {
