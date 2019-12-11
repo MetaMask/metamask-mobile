@@ -136,6 +136,21 @@ exports[`Main should render correctly 1`] = `
               "getScreenOptions": [Function],
               "getStateForAction": [Function],
             },
+            "InstaPayWelcomeFlow": Object {
+              "childRouters": Object {
+                "InstaPayMigrating": null,
+                "InstaPayUpdate": null,
+                "InstaPayWelcome": null,
+                "InstaPayWithdrawing": null,
+              },
+              "getActionCreators": [Function],
+              "getActionForPathAndParams": [Function],
+              "getComponentForRouteName": [Function],
+              "getComponentForState": [Function],
+              "getPathAndParamsForState": [Function],
+              "getScreenOptions": [Function],
+              "getStateForAction": [Function],
+            },
             "LockScreen": null,
             "OfflineModeView": Object {
               "childRouters": Object {
@@ -433,6 +448,21 @@ exports[`Main should render correctly 1`] = `
                 "childRouters": Object {
                   "ImportPrivateKey": null,
                   "ImportPrivateKeySuccess": null,
+                },
+                "getActionCreators": [Function],
+                "getActionForPathAndParams": [Function],
+                "getComponentForRouteName": [Function],
+                "getComponentForState": [Function],
+                "getPathAndParamsForState": [Function],
+                "getScreenOptions": [Function],
+                "getStateForAction": [Function],
+              },
+              "InstaPayWelcomeFlow": Object {
+                "childRouters": Object {
+                  "InstaPayMigrating": null,
+                  "InstaPayUpdate": null,
+                  "InstaPayWelcome": null,
+                  "InstaPayWithdrawing": null,
                 },
                 "getActionCreators": [Function],
                 "getActionForPathAndParams": [Function],

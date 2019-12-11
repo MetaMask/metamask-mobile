@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PaymentChannelWelcome should render correctly 1`] = `
+exports[`InstaPayWelcome should render correctly 1`] = `
 <SafeAreaView
   style={
     Object {
@@ -14,27 +14,19 @@ exports[`PaymentChannelWelcome should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
-        "marginHorizontal": 30,
+        "marginHorizontal": 25,
         "marginVertical": 10,
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={0.2}
+    <View
       style={
         Object {
-          "alignSelf": "flex-end",
+          "height": 50,
           "marginTop": 24,
         }
       }
-    >
-      <Icon
-        allowFontScaling={false}
-        color="black"
-        name="ios-close"
-        size={50}
-      />
-    </TouchableOpacity>
+    />
     <Text
       style={
         Object {
@@ -42,37 +34,45 @@ exports[`PaymentChannelWelcome should render correctly 1`] = `
           "fontFamily": "Roboto",
           "fontSize": 24,
           "fontWeight": "600",
-          "marginBottom": 10,
-          "textAlign": "left",
+          "marginBottom": 20,
+          "textAlign": "center",
         }
       }
     >
-      Welcome to InstaPay!
+      Welcome to InstaPay 2.0
     </Text>
     <Text
       style={
         Object {
           "color": "#000000",
           "fontFamily": "Roboto",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
+          "lineHeight": 24,
+          "textAlign": "center",
         }
       }
     >
-      This is an experimental Layer 2 feature to let you send assets to friends without transaction fees.
+      Now deposit up to 100 DAI, with no minimum required. Simplified account management and improved user experience.
     </Text>
-    <Text />
     <Text
       style={
-        Object {
-          "color": "#000000",
-          "fontFamily": "Roboto",
-          "fontSize": 14,
-          "fontWeight": "400",
-        }
+        Array [
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "lineHeight": 24,
+            "textAlign": "center",
+          },
+          Object {
+            "marginTop": 30,
+          },
+        ]
       }
     >
-      Made possible by Connext Payment Channels.
+      Always non-custodial and built to the latest standards of state channel technology.
     </Text>
     <Image
       resizeMode="contain"
@@ -97,6 +97,7 @@ exports[`PaymentChannelWelcome should render correctly 1`] = `
     style={
       Object {
         "margin": 30,
+        "marginBottom": 30,
       }
     }
   >
@@ -113,6 +114,7 @@ exports[`PaymentChannelWelcome should render correctly 1`] = `
           "opacity": 0.6,
         }
       }
+      onPress={[Function]}
       styleDisabled={
         Object {
           "opacity": 0.6,
@@ -120,7 +122,7 @@ exports[`PaymentChannelWelcome should render correctly 1`] = `
       }
       type="normal"
     >
-      Close
+      Next
     </StyledButton>
   </View>
 </SafeAreaView>

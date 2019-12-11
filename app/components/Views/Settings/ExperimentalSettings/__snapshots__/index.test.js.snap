@@ -111,6 +111,43 @@ exports[`ExperimentalSettings should render correctly 1`] = `
       >
         VIEW WALLET
       </StyledButton>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Restore the state of your State Channel
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabled={true}
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        loading={false}
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        RESTORE STATE
+      </StyledButton>
     </View>
     <View
       style={
