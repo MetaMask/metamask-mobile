@@ -43,7 +43,13 @@ class AddressElement extends PureComponent {
 		 * Ethereum address
 		 */
 		address: PropTypes.string,
+		/**
+		 * Callback on account press
+		 */
 		onAccountPress: PropTypes.func,
+		/**
+		 * Callback on account long press
+		 */
 		onAccountLongPress: PropTypes.func,
 		/**
 		 * Network id
@@ -59,11 +65,8 @@ class AddressElement extends PureComponent {
 	componentDidMount = async () => {
 		const { name, address } = this.state;
 		const { network } = this.props;
-		console.log('didmount', name, address);
 		if (!name) {
-			console.log('no name');
 			const ensName = await doENSReverseLookup(address, network);
-			console.log('ensName', ensName);
 			this.setState({ name: ensName });
 		}
 	};
