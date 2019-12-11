@@ -244,7 +244,7 @@ class PaymentChannel extends PureComponent {
 	componentDidMount() {
 		InteractionManager.runAfterInteractions(() => {
 			this.init();
-			this.props.navigation.navigate('InstaPayWelcomeFlow');
+			//this.props.navigation.navigate('InstaPayWelcomeFlow');
 		});
 
 		this.mounted = true;

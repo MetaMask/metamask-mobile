@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
+	Alert,
 	SafeAreaView,
 	Platform,
 	Image,
@@ -14,6 +15,7 @@ import {
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import AnimatedFox from 'react-native-animated-fox';
 import { strings } from '../../../../../locales/i18n';
+import InstaPay from '../../../../core/InstaPay';
 // eslint-disable-next-line import/named
 
 const styles = StyleSheet.create({
@@ -93,13 +95,16 @@ export default class InstaPayWithdrawing extends PureComponent {
 		this.props.navigation.goBack(null);
 	};
 
-	componentDidMount() {
+	componentDidMount = async () => {
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
-		// setTimeout(() => {
-		// 	this.dismiss();
-		// }, 5000);
-	}
+		await InstaPay.withdrawFromV1();
+
+		Alert.alert('Withdrawal complete', 'Your funds have beend moved to your ethereum account', {
+			text: 'OK',
+			onPress: () => this.dismiss()
+		});
+	};
 
 	componentWillUnmount() {
 		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);

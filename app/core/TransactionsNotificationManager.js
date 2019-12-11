@@ -181,6 +181,7 @@ class TransactionsNotificationManager {
 		// Once it's confirmed we hide the pending tx notification
 		hideMessage();
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
+			!transactionMeta.silent &&
 			setTimeout(() => {
 				// Then we show the success notification
 				this._showNotification({

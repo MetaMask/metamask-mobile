@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
+	Alert,
 	SafeAreaView,
 	Platform,
 	Image,
@@ -14,6 +15,7 @@ import {
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import AnimatedFox from 'react-native-animated-fox';
 import { strings } from '../../../../../locales/i18n';
+import InstaPay from '../../../../core/InstaPay';
 // eslint-disable-next-line import/named
 
 const styles = StyleSheet.create({
@@ -93,13 +95,35 @@ export default class InstaPayMigrating extends PureComponent {
 		this.props.navigation.goBack(null);
 	};
 
-	componentDidMount() {
+	componentDidMount = async () => {
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+		let result;
+		try {
+			result = await InstaPay.migrateToV2();
+		} catch (e) {
+			result = false;
+		}
 
-		// setTimeout(() => {
-		// 	this.dismiss();
-		// }, 5000);
-	}
+		if (result) {
+			Alert.alert('Migration complete', 'Your funds have beend moved to InstaPay v2', {
+				text: 'OK',
+				onPress: () => {
+					setTimeout(() => {
+						this.dismiss();
+					}, 1000);
+				}
+			});
+		} else {
+			Alert.alert('Migration failed', 'Something went wrong. Please try again later...', {
+				text: 'OK',
+				onPress: () => {
+					setTimeout(() => {
+						this.dismiss();
+					}, 1000);
+				}
+			});
+		}
+	};
 
 	componentWillUnmount() {
 		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);

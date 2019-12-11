@@ -209,87 +209,84 @@ class InstaPay {
 		}
 
 		await this.startPoller();
-
-		// this.runMigrations();
-	};
-
-	runMigrations = async () => {
-		// Uncomment for testing purposes!
-		// await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
-
-		const InstaPayVersion = await AsyncStorage.getItem('@MetaMask:InstaPayVersion');
-		if (!InstaPayVersion) {
-			this.migrationTimeout = setTimeout(() => {
-				this.forceFinishMigration();
-			}, MIGRATION_TIMEOUT_MINUTES * 60 * 1000);
-			this.migrateToV2();
-		} else {
-			this.setState({ migrated: true });
-		}
-		// Future migrations can go here...
 	};
 
 	migrateToV2 = async () => {
-		this.setState({ migrating: true });
-		hub.emit('migration::started', null);
-		// For each account
-		const allKeyrings = Engine.context.KeyringController.state.keyrings;
-		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
-		const v1Client = PaymentChannelsClient;
-		Logger.log('InstaPay :: Migration to v2 started...');
-		for (const account of accountsOrdered) {
-			// Init v1 client
-			Logger.log('InstaPay :: Init v1 client for', account);
-			await v1Client.init(account);
-			Logger.log('InstaPay :: Init completed', account);
+		this.migrationPromise = new Promise(async (resolve, reject) => {
+			try {
+				this.migrationTimeout = setTimeout(() => {
+					Logger.error('InstaPay Migration Timeout', this.state);
+					reject('timeout');
+				}, 1000 * 60 * MIGRATION_TIMEOUT_MINUTES);
 
-			// Wait for channel to be available
-			const channelIsReady = () => {
-				const { ready } = v1Client.getState();
-				Logger.log('InstaPay :: v1 channel is ready?', ready);
-				return ready;
-			};
+				this.setState({ migrating: true });
+				hub.emit('migration::started', null);
+				// For each account
+				const allKeyrings = Engine.context.KeyringController.state.keyrings;
+				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+				const v1Client = PaymentChannelsClient;
+				Logger.log('InstaPay :: Migration to v2 started...');
+				for (const account of accountsOrdered) {
+					// Init v1 client
+					Logger.log('InstaPay :: Init v1 client for', account);
+					await v1Client.init(account);
+					Logger.log('InstaPay :: Init completed', account);
 
-			Logger.log('InstaPay :: Wait for v1 channel to be ready for ', account);
-			while (!channelIsReady()) {
-				await new Promise(res => setTimeout(() => res(), 3000));
-			}
+					// Wait for channel to be available
+					const channelIsReady = () => {
+						const { ready } = v1Client.getState();
+						Logger.log('InstaPay :: v1 channel is ready?', ready);
+						return ready;
+					};
 
-			// Check if it has balance > 0
-			const { balance } = v1Client.getState();
-			Logger.log('InstaPay :: Checking v1 channel balance for ', account);
+					Logger.log('InstaPay :: Wait for v1 channel to be ready for ', account);
+					while (!channelIsReady()) {
+						await new Promise(res => setTimeout(() => res(), 3000));
+					}
 
-			Logger.log(`InstaPay :: v1 Channel balance for ${account} is `, balance);
-			if (parseFloat(balance) > 0) {
-				let addressToWithdraw, newBalanceToMigrate;
-				if (this.state.balanceToMigrate + parseFloat(balance) > MAX_DEPOSIT_TOKEN) {
-					addressToWithdraw = account;
-					newBalanceToMigrate = this.state.balanceToMigrate;
-					Logger.log(
-						`InstaPay :: Withdrawing v1 ${balance} to ETH account (exceeds max deposit)`,
-						addressToWithdraw
-					);
-				} else {
-					addressToWithdraw = this.state.walletAddress;
-					newBalanceToMigrate = this.state.balanceToMigrate + parseFloat(balance);
-					Logger.log(`InstaPay :: Withdrawing v1 ${balance} to InstaPay`, addressToWithdraw);
+					// Check if it has balance > 0
+					const { balance } = v1Client.getState();
+					Logger.log('InstaPay :: Checking v1 channel balance for ', account);
+
+					Logger.log(`InstaPay :: v1 Channel balance for ${account} is `, balance);
+					if (parseFloat(balance) > 0) {
+						let addressToWithdraw, newBalanceToMigrate;
+						if (this.state.balanceToMigrate + parseFloat(balance) > MAX_DEPOSIT_TOKEN) {
+							addressToWithdraw = account;
+							newBalanceToMigrate = this.state.balanceToMigrate;
+							Logger.log(
+								`InstaPay :: Withdrawing v1 ${balance} to ETH account (exceeds max deposit)`,
+								addressToWithdraw
+							);
+						} else {
+							addressToWithdraw = this.state.walletAddress;
+							newBalanceToMigrate = this.state.balanceToMigrate + parseFloat(balance);
+							Logger.log(`InstaPay :: Withdrawing v1 ${balance} to InstaPay`, addressToWithdraw);
+						}
+						// if true, withdraw to wallet address
+						await v1Client.withdrawAll(addressToWithdraw);
+						this.setState({
+							pendingDeposits: this.state.pendingDeposits + 1,
+							balanceToMigrate: newBalanceToMigrate
+						});
+
+						Logger.log('InstaPay :: Migration complete for ', account);
+					}
+
+					v1Client.stop();
 				}
-				// if true, withdraw to wallet address
-				await v1Client.withdrawAll(addressToWithdraw);
-				this.setState({
-					pendingDeposits: this.state.pendingDeposits + 1,
-					balanceToMigrate: newBalanceToMigrate
-				});
 
-				Logger.log('InstaPay :: Migration complete for ', account);
+				if (this.state.pendingDeposits === 0) {
+					this.finishMigration();
+				}
+			} catch (e) {
+				Logger.log('Exception caught while migrating', e);
+				Logger.error('InstaPay Migration Exception', this.state);
+				reject(e);
 			}
+		});
 
-			v1Client.stop();
-		}
-
-		if (this.state.pendingDeposits === 0) {
-			this.finishMigration();
-		}
+		return this.migrationPromise;
 	};
 
 	setState = data => {
@@ -592,22 +589,16 @@ class InstaPay {
 	};
 
 	finishMigration = async () => {
-		clearTimeout(this.migrationTimeout);
-		Logger.log('MIGRATION COMPLETE!!!');
-		hub.emit('migration::complete', null);
-		this.setState({ migrating: false, migrated: true, pendingDeposits: 0 });
-		// End migration
-		await AsyncStorage.setItem('@MetaMask:InstaPayVersion', '2.0.0');
-	};
-
-	// This forces the modal to close it but won't set the flag
-	forceFinishMigration = async () => {
-		Logger.log('MIGRATION COMPLETE!!!');
-		hub.emit('migration::complete', null);
-		this.setState({ migrating: false, migrated: true, pendingDeposits: 0 });
-		setTimeout(() => {
-			reloadClient();
-		}, 1000);
+		if (this.migrationPromise) {
+			clearTimeout(this.migrationTimeout);
+			Logger.log('MIGRATION COMPLETE!!!');
+			hub.emit('migration::complete', null);
+			this.setState({ migrating: false, migrated: true, pendingDeposits: 0 });
+			// End migration
+			await AsyncStorage.setItem('@MetaMask:InstaPayVersion', '2.0.0');
+			this.migrationPromise.resolve(true);
+			this.migrationPromise = null;
+		}
 	};
 
 	setPending = pending => {
@@ -973,6 +964,8 @@ instance = {
 		instance.stop();
 	},
 	reloadClient,
+	migrateToV2: () => client && client.migrateToV2(),
+	withdrawFromV1: () => client && client.withdrawFromV1(),
 	isMigrating: () => client && client.state.migrating
 };
 
