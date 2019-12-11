@@ -42,6 +42,9 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		textAlign: 'center'
 	},
+	messageLeft: {
+		textAlign: 'left'
+	},
 	myAccountsWrapper: {
 		flexGrow: 1
 	},
@@ -249,7 +252,7 @@ class AddressList extends PureComponent {
 		if (inputSearch) return;
 		return !myAccountsOpened ? (
 			<TouchableOpacity style={styles.myAccountsTouchable} onPress={this.openMyAccounts}>
-				<Text style={styles.messageText}>{strings('address_book.between_account')}</Text>
+				<Text style={[styles.messageText, styles.messageLeft]}>{strings('address_book.between_account')}</Text>
 			</TouchableOpacity>
 		) : (
 			<View>
