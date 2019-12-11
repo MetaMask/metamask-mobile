@@ -51,6 +51,7 @@ export default function ActionModal({
 	cancelText,
 	children,
 	confirmText,
+	confirmDisabled,
 	cancelButtonMode,
 	confirmButtonMode,
 	onCancelPress,
@@ -84,6 +85,7 @@ export default function ActionModal({
 							type={confirmButtonMode}
 							onPress={onConfirmPress}
 							containerStyle={[styles.button, styles.confirm]}
+							disabled={confirmDisabled}
 						>
 							{confirmText}
 						</StyledButton>
@@ -100,7 +102,8 @@ ActionModal.defaultProps = {
 	confirmTestID: '',
 	cancelTestID: '',
 	cancelText: 'CANCEL',
-	confirmText: 'CONFIRM'
+	confirmText: 'CONFIRM',
+	confirmDisabled: false
 };
 
 ActionModal.propTypes = {
@@ -128,6 +131,10 @@ ActionModal.propTypes = {
 	 * Type of button to show as the confirm button
 	 */
 	confirmButtonMode: PropTypes.oneOf(['normal', 'confirm', 'warning']),
+	/**
+	 * Whether confirm button is disabled
+	 */
+	confirmDisabled: PropTypes.bool,
 	/**
 	 * Text to show in the confirm button
 	 */

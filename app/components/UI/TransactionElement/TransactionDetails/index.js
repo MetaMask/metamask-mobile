@@ -54,8 +54,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontSize: 12,
 		color: colors.fontSecondary,
-		...fontStyles.normal,
-		textTransform: 'uppercase'
+		...fontStyles.normal
 	},
 	alignLeft: {
 		textAlign: 'left',

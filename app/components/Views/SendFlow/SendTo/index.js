@@ -305,6 +305,7 @@ class SendFlow extends PureComponent {
 				onConfirmPress={this.onSaveToAddressBook}
 				cancelButtonMode={'normal'}
 				confirmButtonMode={'confirm'}
+				confirmDisabled={!alias}
 			>
 				<View style={styles.addToAddressBookRoot}>
 					<View style={styles.addToAddressBookWrapper}>
