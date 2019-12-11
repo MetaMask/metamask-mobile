@@ -340,6 +340,7 @@ exports[`Confirm should render correctly 1`] = `
     cancelTestID=""
     cancelText="Cancel"
     confirmButtonMode="confirm"
+    confirmDisabled={false}
     confirmTestID=""
     confirmText="Set"
     modalVisible={false}

@@ -29,45 +29,23 @@ exports[`AddressList should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
-            "color": "#037dd6",
-            "fontFamily": "Roboto",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "textAlign": "center",
-          }
+          Array [
+            Object {
+              "color": "#037dd6",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "textAlign": "center",
+            },
+            Object {
+              "textAlign": "left",
+            },
+          ]
         }
       >
         Transfer between my accounts
       </Text>
     </TouchableOpacity>
-    <View
-      key="Recents"
-      style={
-        Object {
-          "alignItems": "center",
-          "backgroundColor": "#f2f3f4",
-          "borderBottomColor": "#D8D8D8",
-          "borderBottomWidth": 1,
-          "flexDirection": "row",
-          "padding": 8,
-        }
-      }
-    >
-      <Text
-        style={
-          Object {
-            "color": "#5B5D67",
-            "fontFamily": "Roboto",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "marginHorizontal": 8,
-          }
-        }
-      >
-        Recents
-      </Text>
-    </View>
     <View
       style={
         Object {
