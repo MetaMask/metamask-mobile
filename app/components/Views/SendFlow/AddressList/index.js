@@ -228,13 +228,14 @@ class AddressList extends PureComponent {
 			if (Object.keys(addressBookTree).includes(initial)) {
 				addressBookTree[initial].push(contact);
 			} else {
+				if (!initial) list.push(LabelElement('Others'));
 				addressBookTree[initial] = [contact];
 			}
 		});
 		Object.keys(addressBookTree)
 			.sort()
 			.forEach(initial => {
-				list.push(LabelElement(initial));
+				if (initial) list.push(LabelElement(initial));
 				addressBookTree[initial].forEach(({ address, name }) => {
 					list.push(AddressElement(address, name, onAccountPress, onAccountLongPress));
 				});

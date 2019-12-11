@@ -69,7 +69,8 @@ const styles = StyleSheet.create({
 	},
 	secondaryCurrency: {
 		...fontStyles.normal,
-		fontSize: 12
+		fontSize: 12,
+		textTransform: 'uppercase'
 	},
 	secondaryValues: {
 		flexDirection: 'row',
@@ -539,8 +540,7 @@ class EthInput extends PureComponent {
 								{secondaryAmount}
 							</Text>
 							<Text style={styles.secondaryCurrency} numberOfLines={1}>
-								{' '}
-								{secondaryCurrency}
+								{` ${secondaryCurrency}`}
 							</Text>
 						</View>
 					)}
