@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-community/async-storage';
-const ConnextClientStorePrefix = 'INDRA_CLIENT_CF_CORE';
+import { ConnextClientStorePrefix } from '@connext/client';
 /**
  * Class that manages the persistance of the InstaPay Store
  * initializing with previous data if available and persist
@@ -11,7 +11,7 @@ class Store {
 	}
 
 	get = path => {
-		const raw = this.data[`CF_NODE:${path}`];
+		const raw = this.data[`${path}`];
 		let ret;
 		if (raw) {
 			try {
@@ -29,9 +29,9 @@ class Store {
 			for (const k of Object.keys(this.data)) {
 				if (k.includes(`${path}/`)) {
 					try {
-						partialMatches[k.replace('CF_NODE:', '').replace(`${path}/`, '')] = JSON.parse(this.data[k]);
+						partialMatches[k.replace(`${path}/`, '')] = JSON.parse(this.data[k]);
 					} catch {
-						partialMatches[k.replace('CF_NODE:', '').replace(`${path}/`, '')] = this.data[k];
+						partialMatches[k.replace(`${path}/`, '')] = this.data[k];
 					}
 				}
 			}
@@ -43,8 +43,7 @@ class Store {
 
 	set = pairs => {
 		for (const pair of pairs) {
-			this.data[`CF_NODE:${pair.path}`] =
-				typeof pair.value === 'string' ? pair.value : JSON.stringify(pair.value);
+			this.data[`${pair.path}`] = typeof pair.value === 'string' ? pair.value : JSON.stringify(pair.value);
 			this.persist();
 		}
 	};
@@ -61,6 +60,8 @@ class Store {
 	persist = async () => {
 		await AsyncStorage.setItem(`@MetaMask:InstaPay`, JSON.stringify(this.data));
 	};
+
+	clear = () => AsyncStorage.removeItem(`@MetaMask:InstaPay`);
 }
 
 let instance;
