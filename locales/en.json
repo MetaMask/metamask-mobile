@@ -892,11 +892,15 @@
 		"enable_payment_channels_desc": "This option will run the Connext Payment Channels client in the app",
 		"payment_channels_desc": "View your payment channels wallet",
 		"payment_channels_cta": "VIEW WALLET",
+		"payment_channels_restore_state": "RESTORE STATE",
+		"payment_channels_restore_state_desc": "Restore the state of your State Channel",
 		"wallet_connect_dapps": "WalletConnect Sessions",
 		"wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
 		"wallet_connect_dapps_cta": "VIEW SESSIONS",
 		"network_not_supported": "Current network not supported",
-		"switch_network": "Please switch to mainnet or rinkeby"
+		"switch_network": "Please switch to mainnet or rinkeby",
+		"restore_successful": "Success!",
+		"restore_successful_desc": "The state of your State Channel has been restored from the node"
 	},
 	"walletconnect_sessions": {
 		"no_active_sessions": "You have no active sessions",

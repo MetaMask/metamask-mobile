@@ -99,7 +99,7 @@ export default class InstaPayMigrating extends PureComponent {
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 		let result;
 		try {
-			result = await InstaPay.migrateToV2();
+			result = await InstaPay.moveFundsFromV1('migrate');
 		} catch (e) {
 			result = false;
 		}

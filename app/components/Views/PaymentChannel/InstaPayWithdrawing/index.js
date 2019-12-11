@@ -106,6 +106,36 @@ export default class InstaPayWithdrawing extends PureComponent {
 		});
 	};
 
+	componentDidMount = async () => {
+		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+		let result;
+		try {
+			result = await InstaPay.moveFundsFromV1('withdraw');
+		} catch (e) {
+			result = false;
+		}
+
+		if (result) {
+			Alert.alert('Withdrawal complete', 'Your funds have beend moved to your ethereum account', {
+				text: 'OK',
+				onPress: () => {
+					setTimeout(() => {
+						this.dismiss();
+					}, 1000);
+				}
+			});
+		} else {
+			Alert.alert('Withdrawal failed', 'Something went wrong. Please try again later...', {
+				text: 'OK',
+				onPress: () => {
+					setTimeout(() => {
+						this.dismiss();
+					}, 1000);
+				}
+			});
+		}
+	};
+
 	componentWillUnmount() {
 		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
 	}

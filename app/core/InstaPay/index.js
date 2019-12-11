@@ -69,7 +69,7 @@ const reloadClient = () => {
  * payment channels
  */
 class InstaPay {
-	constructor(magic, network) {
+	constructor(pwd, network) {
 		const swapRate = '100.00';
 		this.state = {
 			username: '',
@@ -106,17 +106,17 @@ class InstaPay {
 			balanceToMigrate: 0
 		};
 
-		this.start(magic, network);
+		this.start(pwd, network);
 	}
 
-	start = async (magic, network) => {
+	start = async (pwd, network) => {
 		const cfPath = "m/44'/60'/0'/25446";
 		const subdomain = network !== 'mainnet' ? `${network}.` : '';
 		const ethProviderUrl = `https://${subdomain}${API_URL}/ethprovider`;
 		const ethProvider = new eth.providers.JsonRpcProvider(ethProviderUrl);
 		const store = await Store.init();
 		const { KeyringController } = Engine.context;
-		const data = await KeyringController.exportSeedPhrase(magic);
+		const data = await KeyringController.exportSeedPhrase(pwd);
 		const mnemonic = JSON.stringify(data).replace(/"/g, '');
 		const wallet = eth.Wallet.fromMnemonic(mnemonic, cfPath + '/0').connect(ethProvider);
 		this.setState({ network, walletAddress: wallet.address });
@@ -211,7 +211,13 @@ class InstaPay {
 		await this.startPoller();
 	};
 
-	migrateToV2 = async () => {
+	restoreState = async () => {
+		if (this.state.channel) {
+			return this.state.channel.restoreState();
+		}
+	};
+
+	moveFundsFromV1 = async action => {
 		this.migrationPromise = new Promise(async (resolve, reject) => {
 			try {
 				this.migrationTimeout = setTimeout(() => {
@@ -251,13 +257,20 @@ class InstaPay {
 					Logger.log(`InstaPay :: v1 Channel balance for ${account} is `, balance);
 					if (parseFloat(balance) > 0) {
 						let addressToWithdraw, newBalanceToMigrate;
-						if (this.state.balanceToMigrate + parseFloat(balance) > MAX_DEPOSIT_TOKEN) {
+						if (
+							action === 'withdraw' ||
+							this.state.balanceToMigrate + parseFloat(balance) > MAX_DEPOSIT_TOKEN
+						) {
 							addressToWithdraw = account;
 							newBalanceToMigrate = this.state.balanceToMigrate;
-							Logger.log(
-								`InstaPay :: Withdrawing v1 ${balance} to ETH account (exceeds max deposit)`,
-								addressToWithdraw
-							);
+							if (this.state.balanceToMigrate + parseFloat(balance) > MAX_DEPOSIT_TOKEN) {
+								Logger.log(
+									`InstaPay :: Withdrawing v1 ${balance} to ETH account (exceeds max deposit)`,
+									addressToWithdraw
+								);
+							} else {
+								Logger.log(`InstaPay :: Withdrawing v1 ${balance} to ETH account`, addressToWithdraw);
+							}
 						} else {
 							addressToWithdraw = this.state.walletAddress;
 							newBalanceToMigrate = this.state.balanceToMigrate + parseFloat(balance);
@@ -833,8 +846,8 @@ class InstaPay {
 const privates = new WeakMap();
 
 instance = {
-	async config(magic) {
-		privates.set(this, { magic });
+	async config(pwd) {
+		privates.set(this, { pwd });
 	},
 	/**
 	 * Method that initializes the connext client for a
@@ -847,7 +860,7 @@ instance = {
 			try {
 				initListeners();
 				Logger.log('InstaPay :: Starting client...');
-				client = new InstaPay(privates.get(this).magic, provider.type);
+				client = new InstaPay(privates.get(this).pwd, provider.type);
 			} catch (e) {
 				client && client.logCurrentState('InstaPay :: init');
 				Logger.error('InstaPay :: init', e);
@@ -964,8 +977,8 @@ instance = {
 		instance.stop();
 	},
 	reloadClient,
-	migrateToV2: () => client && client.migrateToV2(),
-	withdrawFromV1: () => client && client.withdrawFromV1(),
+	moveFundsFromV1: action => client && client.moveFundsFromV1(action),
+	restoreState: () => client && client.restoreState(),
 	isMigrating: () => client && client.state.migrating
 };
 
