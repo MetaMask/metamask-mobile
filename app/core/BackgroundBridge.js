@@ -41,9 +41,10 @@ export class BackgroundBridge {
 				});
 		} else {
 			delete payload.__mmID;
-			delete payload.origin;
+			payload.origin = origin;
 			delete payload.beta;
 			delete payload.hostname;
+
 			provider.sendAsync(payload, done);
 		}
 	}

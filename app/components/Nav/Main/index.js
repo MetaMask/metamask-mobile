@@ -79,7 +79,13 @@ import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDeposit';
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
 import Networks from '../../../util/networks';
-import { CONNEXT_DEPOSIT, getMethodData, TOKEN_METHOD_TRANSFER, decodeTransferData } from '../../../util/transactions';
+import {
+	CONNEXT_DEPOSIT,
+	getMethodData,
+	TOKEN_METHOD_TRANSFER,
+	decodeTransferData,
+	APPROVE_FUNCTION_SIGNATURE
+} from '../../../util/transactions';
 import { BN, isValidAddress } from 'ethereumjs-util';
 import { isENS, safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
@@ -87,6 +93,7 @@ import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
 import AsyncStorage from '@react-native-community/async-storage';
+import Approve from '../../Views/Approve';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -246,6 +253,13 @@ const MainNavigator = createStackNavigator(
 			screen: createStackNavigator({
 				Approval: {
 					screen: Approval
+				}
+			})
+		},
+		ApproveView: {
+			screen: createStackNavigator({
+				Approval: {
+					screen: Approve
 				}
 			})
 		},
@@ -789,6 +803,7 @@ class Main extends PureComponent {
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
 					selectedAsset: asset,
 					id: transactionMeta.id,
+					origin: transactionMeta.origin,
 					...transactionMeta.transaction
 				});
 			} else {
@@ -797,10 +812,16 @@ class Main extends PureComponent {
 
 				this.props.setEtherTransaction({
 					id: transactionMeta.id,
+					origin: transactionMeta.origin,
 					...transactionMeta.transaction
 				});
 			}
-			this.props.navigation.push('ApprovalView');
+
+			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
+				this.props.navigation.push('ApproveView');
+			} else {
+				this.props.navigation.push('ApprovalView');
+			}
 		}
 	};
 

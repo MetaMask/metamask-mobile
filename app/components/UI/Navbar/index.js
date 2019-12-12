@@ -297,6 +297,14 @@ export function getTransactionOptionsTitle(title, navigation) {
 	};
 }
 
+export function getApproveNavbar(title) {
+	return {
+		headerTitle: <NavbarTitle title={title} disableNetwork />,
+		headerLeft: <View />,
+		headerRight: <View />
+	};
+}
+
 /**
  * Function that returns the navigation options for InstaPay screend
  *

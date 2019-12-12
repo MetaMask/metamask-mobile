@@ -541,6 +541,9 @@
 	"approval": {
 		"title": "Confirmar Transacción"
 	},
+	"approve": {
+		"title": "Aprobar"
+	},
 	"transactions": {
 		"tx_review_confirm": "CONFIRMAR",
 		"tx_review_transfer": "TRANSFERIR",
