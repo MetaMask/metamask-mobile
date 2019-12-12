@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
@@ -7,6 +7,9 @@ import { connect } from 'react-redux';
 import WebsiteIcon from '../../UI/WebsiteIcon';
 import { getHost } from '../../../util/browser';
 import TransactionDirection from '../TransactionDirection';
+import contractMap from 'eth-contract-metadata';
+import { safeToChecksumAddress } from '../../../util/address';
+import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -18,27 +21,44 @@ const styles = StyleSheet.create({
 		height: 64,
 		width: 64
 	},
-	basicInformation: {
+	basicInformationSection: {
 		flexDirection: 'column',
-		marginHorizontal: 20
+		paddingHorizontal: 24,
+		marginVertical: 16,
+		borderBottomWidth: 1,
+		borderBottomColor: colors.grey200
 	},
 	title: {
 		...fontStyles.normal,
 		fontSize: 24,
 		textAlign: 'center',
 		marginBottom: 16,
-		color: colors.black
+		color: colors.black,
+		lineHeight: 34
 	},
 	explanation: {
 		...fontStyles.normal,
 		fontSize: 14,
 		textAlign: 'center',
-		color: colors.grey500
+		color: colors.grey500,
+		lineHeight: 20
+	},
+	editPermissionText: {
+		...fontStyles.bold,
+		color: colors.blue,
+		fontSize: 14,
+		lineHeight: 20,
+		textAlign: 'center'
+	},
+	editPermissionTouchable: {
+		flexDirection: 'column',
+		alignItems: 'center',
+		marginVertical: 22
 	},
 	websiteIconWrapper: {
 		flexDirection: 'column',
 		alignItems: 'center',
-		marginVertical: 16
+		marginBottom: 16
 	}
 });
 
@@ -56,30 +76,45 @@ class Approve extends PureComponent {
 	};
 
 	state = {
-		host: undefined
+		host: undefined,
+		tokenSymbol: undefined
 	};
 
-	componentDidMount = () => {
-		const { transaction } = this.props;
-		const host = getHost(transaction.origin);
-		this.setState({ host });
+	componentDidMount = async () => {
+		const {
+			transaction: { origin, to }
+		} = this.props;
+		const { AssetsContractController } = Engine.context;
+		const host = getHost(origin);
+		let tokenSymbol;
+		const contract = contractMap[safeToChecksumAddress(to)];
+		if (!contract) {
+			tokenSymbol = await AssetsContractController.getAssetSymbol(to);
+		} else {
+			tokenSymbol = contract.symbol;
+		}
+		this.setState({ host, tokenSymbol });
 	};
 
 	render = () => {
 		const { transaction } = this.props;
-		const { host } = this.state;
+		const { host, tokenSymbol } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionDirection />
-				<View style={styles.basicInformation}>
+				<View style={styles.basicInformationSection}>
 					<View style={styles.websiteIconWrapper}>
-						<WebsiteIcon style={styles.icon} url={transaction.origin} title={getHost(transaction.origin)} />
+						<WebsiteIcon style={styles.icon} url={transaction.origin} title={host} />
 					</View>
-					<Text style={styles.title}>{`Allow ${host} to access your WHATEVER?`}</Text>
+					<Text style={styles.title}>{`Allow ${host} to access your ${tokenSymbol}?`}</Text>
 					<Text
 						style={styles.explanation}
-					>{`Do you trust this site? By granting this permission, you're allowing ${host} to withdraw you WHATEVER and automate transactions for you.`}</Text>
+					>{`Do you trust this site? By granting this permission, you're allowing ${host} to withdraw you ${tokenSymbol} and automate transactions for you.`}</Text>
+					<TouchableOpacity style={styles.editPermissionTouchable}>
+						<Text style={styles.editPermissionText}>Edit permission</Text>
+					</TouchableOpacity>
 				</View>
+				<View style={styles.transactionFeeSection} />
 			</SafeAreaView>
 		);
 	};

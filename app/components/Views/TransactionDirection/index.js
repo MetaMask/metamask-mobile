@@ -49,7 +49,8 @@ const styles = StyleSheet.create({
 		paddingLeft: 20
 	},
 	addressText: {
-		...fontStyles.normal
+		...fontStyles.normal,
+		marginHorizontal: 8
 	},
 	addressGraphic: {
 		alignItems: 'center',
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * PureComponent that manages transaction approval from the dapp browser
+ * PureComponent that manages transaction approve requests from the dapp browser
  */
 class Approve extends PureComponent {
 	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
