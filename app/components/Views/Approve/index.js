@@ -11,6 +11,7 @@ import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import ActionView from '../../UI/ActionView';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -69,7 +70,8 @@ const styles = StyleSheet.create({
 	sectionTitleText: {
 		...fontStyles.bold,
 		fontSize: 14,
-		marginVertical: 6
+		marginVertical: 6,
+		marginLeft: 8
 	},
 	sectionExplanationText: {
 		...fontStyles.normal,
@@ -184,6 +186,7 @@ class Approve extends PureComponent {
 						</View>
 						<View style={styles.section}>
 							<View style={styles.row}>
+								<FontAwesome5 name={'tag'} size={20} color={colors.grey500} />
 								<Text style={[styles.sectionTitleText, styles.sectionLeft]}>Transaction fee</Text>
 								<TouchableOpacity style={styles.sectionRight}>
 									<Text style={styles.editText}>Edit</Text>
@@ -208,6 +211,7 @@ class Approve extends PureComponent {
 						{viewDetails && (
 							<View style={styles.section}>
 								<View style={styles.row}>
+									<FontAwesome5 name={'user-check'} size={20} color={colors.grey500} />
 									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
 										Permission request
 									</Text>
@@ -234,6 +238,7 @@ class Approve extends PureComponent {
 						{viewDetails && (
 							<View style={styles.section}>
 								<View style={styles.row}>
+									<FontAwesome5 solid name={'file-alt'} size={20} color={colors.grey500} />
 									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>Data</Text>
 								</View>
 								<View style={styles.row}>
