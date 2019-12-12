@@ -26,17 +26,17 @@ const styles = StyleSheet.create({
 	section: {
 		flexDirection: 'column',
 		paddingHorizontal: 24,
-		paddingVertical: 16,
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey200
+		borderBottomColor: colors.grey200,
+		paddingVertical: 20
 	},
 	title: {
 		...fontStyles.normal,
 		fontSize: 24,
 		textAlign: 'center',
-		marginBottom: 16,
 		color: colors.black,
-		lineHeight: 34
+		lineHeight: 34,
+		marginVertical: 16
 	},
 	explanation: {
 		...fontStyles.normal,
@@ -50,13 +50,15 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		fontSize: 14,
 		lineHeight: 20,
-		textAlign: 'center'
+		textAlign: 'center',
+		marginVertical: 20
 	},
 	viewDetailsText: {
 		...fontStyles.normal,
 		color: colors.blue,
 		fontSize: 12,
-		textAlign: 'center'
+		textAlign: 'center',
+		marginTop: 20
 	},
 	actionTouchable: {
 		flexDirection: 'column',
@@ -64,20 +66,23 @@ const styles = StyleSheet.create({
 	},
 	websiteIconWrapper: {
 		flexDirection: 'column',
-		alignItems: 'center',
-		marginBottom: 16
+		alignItems: 'center'
 	},
 	sectionTitleText: {
 		...fontStyles.bold,
 		fontSize: 14,
-		marginVertical: 6,
 		marginLeft: 8
+	},
+	sectionTitleRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: 12
 	},
 	sectionExplanationText: {
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.grey500,
-		marginVertical: 6
+		marginBottom: 8
 	},
 	editText: {
 		...fontStyles.normal,
@@ -103,11 +108,11 @@ const styles = StyleSheet.create({
 	},
 	sectionLeft: {
 		flex: 0.7,
-		marginVertical: 6
+		flexDirection: 'row',
+		alignItems: 'center'
 	},
 	sectionRight: {
 		flex: 0.3,
-		marginVertical: 6,
 		alignItems: 'flex-end'
 	},
 	permissionDetails: {
@@ -185,7 +190,7 @@ class Approve extends PureComponent {
 							</TouchableOpacity>
 						</View>
 						<View style={styles.section}>
-							<View style={styles.row}>
+							<View style={styles.sectionTitleRow}>
 								<FontAwesome5 name={'tag'} size={20} color={colors.grey500} />
 								<Text style={[styles.sectionTitleText, styles.sectionLeft]}>Transaction fee</Text>
 								<TouchableOpacity style={styles.sectionRight}>
@@ -210,7 +215,7 @@ class Approve extends PureComponent {
 
 						{viewDetails && (
 							<View style={styles.section}>
-								<View style={styles.row}>
+								<View style={styles.sectionTitleRow}>
 									<FontAwesome5 name={'user-check'} size={20} color={colors.grey500} />
 									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
 										Permission request
@@ -237,7 +242,7 @@ class Approve extends PureComponent {
 
 						{viewDetails && (
 							<View style={styles.section}>
-								<View style={styles.row}>
+								<View style={styles.sectionTitleRow}>
 									<FontAwesome5 solid name={'file-alt'} size={20} color={colors.grey500} />
 									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>Data</Text>
 								</View>
