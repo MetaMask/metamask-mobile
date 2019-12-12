@@ -8,8 +8,9 @@ import WebsiteIcon from '../../UI/WebsiteIcon';
 import { getHost } from '../../../util/browser';
 import TransactionDirection from '../TransactionDirection';
 import contractMap from 'eth-contract-metadata';
-import { safeToChecksumAddress } from '../../../util/address';
+import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
+import ActionView from '../../UI/ActionView';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -106,6 +107,12 @@ const styles = StyleSheet.create({
 		flex: 0.3,
 		marginVertical: 6,
 		alignItems: 'flex-end'
+	},
+	permissionDetails: {
+		...fontStyles.normal,
+		fontSize: 14,
+		color: colors.black,
+		marginVertical: 8
 	}
 });
 
@@ -124,7 +131,8 @@ class Approve extends PureComponent {
 
 	state = {
 		host: undefined,
-		tokenSymbol: undefined
+		tokenSymbol: undefined,
+		viewDetails: false
 	};
 
 	componentDidMount = async () => {
@@ -143,46 +151,99 @@ class Approve extends PureComponent {
 		this.setState({ host, tokenSymbol });
 	};
 
+	onViewDetails = () => {
+		const { viewDetails } = this.state;
+		this.setState({ viewDetails: !viewDetails });
+	};
+
 	render = () => {
 		const { transaction } = this.props;
-		const { host, tokenSymbol } = this.state;
+		const { host, tokenSymbol, viewDetails } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionDirection />
-				<View style={styles.section}>
-					<View style={styles.websiteIconWrapper}>
-						<WebsiteIcon style={styles.icon} url={transaction.origin} title={host} />
-					</View>
-					<Text style={styles.title}>{`Allow ${host} to access your ${tokenSymbol}?`}</Text>
-					<Text
-						style={styles.explanation}
-					>{`Do you trust this site? By granting this permission, you're allowing ${host} to withdraw you ${tokenSymbol} and automate transactions for you.`}</Text>
-					<TouchableOpacity style={styles.actionTouchable}>
-						<Text style={styles.editPermissionText}>Edit permission</Text>
-					</TouchableOpacity>
-				</View>
-				<View style={styles.section}>
-					<View style={styles.row}>
-						<Text style={[styles.sectionTitleText, styles.sectionLeft]}>Transaction fee</Text>
-						<TouchableOpacity style={styles.sectionRight}>
-							<Text style={styles.editText}>Edit</Text>
-						</TouchableOpacity>
-					</View>
-					<View style={styles.row}>
-						<View style={[styles.sectionLeft, styles.row]}>
-							<Text style={[styles.sectionExplanationText]}>
-								A transaction fee is associated ith this permission. Learn why
-							</Text>
+				<ActionView
+					cancelText={'Cancel'}
+					confirmText={'Approve'}
+					onCancelPress={this.onCancel}
+					onConfirmPress={this.onConfirm}
+					confirmButtonMode={'confirm'}
+				>
+					<View>
+						<View style={styles.section}>
+							<View style={styles.websiteIconWrapper}>
+								<WebsiteIcon style={styles.icon} url={transaction.origin} title={host} />
+							</View>
+							<Text style={styles.title}>{`Allow ${host} to access your ${tokenSymbol}?`}</Text>
+							<Text
+								style={styles.explanation}
+							>{`Do you trust this site? By granting this permission, you're allowing ${host} to withdraw you ${tokenSymbol} and automate transactions for you.`}</Text>
+							<TouchableOpacity style={styles.actionTouchable}>
+								<Text style={styles.editPermissionText}>Edit permission</Text>
+							</TouchableOpacity>
 						</View>
-						<View style={[styles.column, styles.sectionRight]}>
-							<Text style={styles.fiatFeeText}>$fiat</Text>
-							<Text style={styles.feeText}>fee</Text>
+						<View style={styles.section}>
+							<View style={styles.row}>
+								<Text style={[styles.sectionTitleText, styles.sectionLeft]}>Transaction fee</Text>
+								<TouchableOpacity style={styles.sectionRight}>
+									<Text style={styles.editText}>Edit</Text>
+								</TouchableOpacity>
+							</View>
+							<View style={styles.row}>
+								<View style={[styles.sectionLeft, styles.row]}>
+									<Text style={[styles.sectionExplanationText]}>
+										A transaction fee is associated ith this permission. Learn why
+									</Text>
+								</View>
+								<View style={[styles.column, styles.sectionRight]}>
+									<Text style={styles.fiatFeeText}>$fiat</Text>
+									<Text style={styles.feeText}>fee</Text>
+								</View>
+							</View>
+							<TouchableOpacity style={styles.actionTouchable} onPress={this.onViewDetails}>
+								<Text style={styles.viewDetailsText}>View details</Text>
+							</TouchableOpacity>
 						</View>
+
+						{viewDetails && (
+							<View style={styles.section}>
+								<View style={styles.row}>
+									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
+										Permission request
+									</Text>
+									<TouchableOpacity style={styles.sectionRight}>
+										<Text style={styles.editText}>Edit</Text>
+									</TouchableOpacity>
+								</View>
+								<View style={styles.row}>
+									<Text
+										style={[styles.sectionExplanationText]}
+									>{`${host} may access and spend p to this max amount from this account.`}</Text>
+								</View>
+								<Text style={styles.permissionDetails}>
+									<Text style={fontStyles.bold}>Amount: </Text>
+									{`100 ${tokenSymbol}`}
+								</Text>
+								<Text style={styles.permissionDetails}>
+									<Text style={fontStyles.bold}>To: </Text>
+									{`Contract (${renderShortAddress(transaction.to)})`}
+								</Text>
+							</View>
+						)}
+
+						{viewDetails && (
+							<View style={styles.section}>
+								<View style={styles.row}>
+									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>Data</Text>
+								</View>
+								<View style={styles.row}>
+									<Text style={[styles.sectionExplanationText]}>{`Function: Approve`}</Text>
+								</View>
+								<Text style={styles.sectionExplanationText}>{transaction.data}</Text>
+							</View>
+						)}
 					</View>
-					<TouchableOpacity style={styles.actionTouchable}>
-						<Text style={styles.viewDetailsText}>View details</Text>
-					</TouchableOpacity>
-				</View>
+				</ActionView>
 			</SafeAreaView>
 		);
 	};
