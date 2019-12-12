@@ -12,6 +12,8 @@ import { safeToChecksumAddress, renderShortAddress } from '../../../util/address
 import Engine from '../../../core/Engine';
 import ActionView from '../../UI/ActionView';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -57,8 +59,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.blue,
 		fontSize: 12,
-		textAlign: 'center',
-		marginTop: 20
+		lineHeight: 16,
+		textAlign: 'center'
 	},
 	actionTouchable: {
 		flexDirection: 'column',
@@ -120,6 +122,13 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: colors.black,
 		marginVertical: 8
+	},
+	viewDetailsWrapper: {
+		flexDirection: 'row',
+		marginTop: 20
+	},
+	copyIcon: {
+		marginLeft: 8
 	}
 });
 
@@ -209,7 +218,15 @@ class Approve extends PureComponent {
 								</View>
 							</View>
 							<TouchableOpacity style={styles.actionTouchable} onPress={this.onViewDetails}>
-								<Text style={styles.viewDetailsText}>View details</Text>
+								<View style={styles.viewDetailsWrapper}>
+									<Text style={styles.viewDetailsText}>View details</Text>
+									<IonicIcon
+										name={`ios-arrow-${viewDetails ? 'up' : 'down'}`}
+										size={16}
+										color={colors.blue}
+										style={styles.copyIcon}
+									/>
+								</View>
 							</TouchableOpacity>
 						</View>
 
@@ -233,10 +250,13 @@ class Approve extends PureComponent {
 									<Text style={fontStyles.bold}>Amount: </Text>
 									{`100 ${tokenSymbol}`}
 								</Text>
-								<Text style={styles.permissionDetails}>
-									<Text style={fontStyles.bold}>To: </Text>
-									{`Contract (${renderShortAddress(transaction.to)})`}
-								</Text>
+								<View style={styles.row}>
+									<Text style={styles.permissionDetails}>
+										<Text style={fontStyles.bold}>To: </Text>
+										{`Contract (${renderShortAddress(transaction.to)})`}
+									</Text>
+									<FontAwesome name="copy" size={16} color={colors.blue} style={styles.copyIcon} />
+								</View>
 							</View>
 						)}
 
