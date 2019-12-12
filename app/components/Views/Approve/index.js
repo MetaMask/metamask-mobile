@@ -21,10 +21,10 @@ const styles = StyleSheet.create({
 		height: 64,
 		width: 64
 	},
-	basicInformationSection: {
+	section: {
 		flexDirection: 'column',
 		paddingHorizontal: 24,
-		marginVertical: 16,
+		paddingVertical: 16,
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey200
 	},
@@ -50,15 +50,62 @@ const styles = StyleSheet.create({
 		lineHeight: 20,
 		textAlign: 'center'
 	},
-	editPermissionTouchable: {
+	viewDetailsText: {
+		...fontStyles.normal,
+		color: colors.blue,
+		fontSize: 12,
+		textAlign: 'center'
+	},
+	actionTouchable: {
 		flexDirection: 'column',
-		alignItems: 'center',
-		marginVertical: 22
+		alignItems: 'center'
 	},
 	websiteIconWrapper: {
 		flexDirection: 'column',
 		alignItems: 'center',
 		marginBottom: 16
+	},
+	sectionTitleText: {
+		...fontStyles.bold,
+		fontSize: 14,
+		marginVertical: 6
+	},
+	sectionExplanationText: {
+		...fontStyles.normal,
+		fontSize: 12,
+		color: colors.grey500,
+		marginVertical: 6
+	},
+	editText: {
+		...fontStyles.normal,
+		color: colors.blue,
+		fontSize: 12
+	},
+	fiatFeeText: {
+		...fontStyles.bold,
+		fontSize: 18,
+		color: colors.black
+	},
+	feeText: {
+		...fontStyles.normal,
+		fontSize: 14,
+		color: colors.grey500
+	},
+	row: {
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	column: {
+		flexDirection: 'column'
+	},
+	sectionLeft: {
+		flex: 0.7,
+		marginVertical: 6
+	},
+	sectionRight: {
+		flex: 0.3,
+		marginVertical: 6,
+		alignItems: 'flex-end'
 	}
 });
 
@@ -102,7 +149,7 @@ class Approve extends PureComponent {
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionDirection />
-				<View style={styles.basicInformationSection}>
+				<View style={styles.section}>
 					<View style={styles.websiteIconWrapper}>
 						<WebsiteIcon style={styles.icon} url={transaction.origin} title={host} />
 					</View>
@@ -110,11 +157,32 @@ class Approve extends PureComponent {
 					<Text
 						style={styles.explanation}
 					>{`Do you trust this site? By granting this permission, you're allowing ${host} to withdraw you ${tokenSymbol} and automate transactions for you.`}</Text>
-					<TouchableOpacity style={styles.editPermissionTouchable}>
+					<TouchableOpacity style={styles.actionTouchable}>
 						<Text style={styles.editPermissionText}>Edit permission</Text>
 					</TouchableOpacity>
 				</View>
-				<View style={styles.transactionFeeSection} />
+				<View style={styles.section}>
+					<View style={styles.row}>
+						<Text style={[styles.sectionTitleText, styles.sectionLeft]}>Transaction fee</Text>
+						<TouchableOpacity style={styles.sectionRight}>
+							<Text style={styles.editText}>Edit</Text>
+						</TouchableOpacity>
+					</View>
+					<View style={styles.row}>
+						<View style={[styles.sectionLeft, styles.row]}>
+							<Text style={[styles.sectionExplanationText]}>
+								A transaction fee is associated ith this permission. Learn why
+							</Text>
+						</View>
+						<View style={[styles.column, styles.sectionRight]}>
+							<Text style={styles.fiatFeeText}>$fiat</Text>
+							<Text style={styles.feeText}>fee</Text>
+						</View>
+					</View>
+					<TouchableOpacity style={styles.actionTouchable}>
+						<Text style={styles.viewDetailsText}>View details</Text>
+					</TouchableOpacity>
+				</View>
 			</SafeAreaView>
 		);
 	};
