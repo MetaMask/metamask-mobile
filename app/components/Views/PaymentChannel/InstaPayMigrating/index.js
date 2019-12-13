@@ -91,19 +91,13 @@ export default class InstaPayMigrating extends PureComponent {
 	};
 
 	dismiss = () => {
-		this.props.navigation.pop();
+		this.props.navigation.popToTop();
+		this.props.navigation.goBack(null);
 	};
 
 	componentDidMount = async () => {
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
-		let result;
-		try {
-			result = await InstaPay.moveFundsFromV1('migrate');
-		} catch (e) {
-			result = false;
-		}
-
-		if (result) {
+		InstaPay.hub.once('migration::complete', () => {
 			Alert.alert('Migration complete', 'Your funds have beend moved to InstaPay v2', [
 				{
 					text: 'OK',
@@ -112,7 +106,11 @@ export default class InstaPayMigrating extends PureComponent {
 					}
 				}
 			]);
-		} else {
+		});
+
+		try {
+			await InstaPay.moveFundsFromV1('migrate');
+		} catch (e) {
 			Alert.alert('Migration failed', 'Something went wrong. Please try again later...', [
 				{
 					text: 'OK',

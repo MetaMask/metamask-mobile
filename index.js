@@ -49,7 +49,9 @@ YellowBox.ignoreWarnings([
 	'RCTBridge required dispatch_sync',
 	'Remote debugger is in a background tab',
 	"Can't call setState (or forceUpdate) on an unmounted component",
-	'asmCrypto seems to be load'
+	'asmCrypto seems to be load',
+	'Successfully proposed',
+	'Attempting to resolve promise'
 ]);
 
 async function secureRandomValuesBeforeInit() {

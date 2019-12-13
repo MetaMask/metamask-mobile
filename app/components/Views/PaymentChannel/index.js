@@ -244,8 +244,10 @@ class PaymentChannel extends PureComponent {
 	componentDidMount() {
 		InteractionManager.runAfterInteractions(async () => {
 			this.init();
-			await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
-			this.props.navigation.navigate('InstaPayWelcomeFlow');
+			const version = await AsyncStorage.getItem('@MetaMask:InstaPayVersion');
+			if (!version) {
+				this.props.navigation.navigate('InstaPayWelcomeFlow');
+			}
 		});
 
 		this.mounted = true;
