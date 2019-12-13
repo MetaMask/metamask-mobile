@@ -19,6 +19,7 @@ import { renderFromWei, toWei, fromWei, BNToHex } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../../util/networks';
 import PaymentChannelsClient from '../PaymentChannelsClient';
+// eslint-disable-next-line import/no-commonjs
 const isomorphicCrypto = require('isomorphic-webcrypto');
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
@@ -666,9 +667,10 @@ class InstaPay {
 						amount: amount.wad.toString(),
 						recipient: sendRecipient
 					};
-					Logger.log('DATA', data);
+					Logger.log('INSTAPAY ::  SEND :: DATA', data);
 
 					transferRes = await this.state.channel.transfer(data);
+					Logger.log('INSTAPAY ::  SEND :: transferRes', transferRes);
 					this.setState({ pendingPayment: true });
 					break;
 				} catch (e) {

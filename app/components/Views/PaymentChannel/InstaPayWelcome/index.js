@@ -8,7 +8,6 @@ import { strings } from '../../../../../locales/i18n';
 import AsyncStorage from '@react-native-community/async-storage';
 import { delay } from '../../../../core/InstaPay/utils';
 
-
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
@@ -76,7 +75,7 @@ export default class InstaPayWelcome extends PureComponent {
 	constructor(props) {
 		super(props);
 		this.state = {
-			migrated: false,
+			migrated: true,
 			needsMigration: 'checking',
 			loading: false
 		};
@@ -89,7 +88,7 @@ export default class InstaPayWelcome extends PureComponent {
 	checkMigrationStatus = async () => {
 		const instapayVersion = await AsyncStorage.getItem('@MetaMask:InstaPayVersion');
 		if (instapayVersion) {
-			this.setState({migrated: true});
+			this.setState({ migrated: true });
 		} else {
 			this.checkIfMigrationNeeded();
 		}
@@ -97,30 +96,28 @@ export default class InstaPayWelcome extends PureComponent {
 
 	checkIfMigrationNeeded = () => {
 		// TODO CHECK IF ANY ACCOUNT ON V1 HAS A BALANCE
-
-	}
+	};
 
 	next = async () => {
-		if(this.state.migrated){
-			this.close()
+		if (this.state.migrated) {
+			this.close();
 		} else {
-			if(this.state.needsMigration  === 'checking'){
-				this.setState({loading: true});
+			if (this.state.needsMigration === 'checking') {
+				this.setState({ loading: true });
 			}
 			// Wait until we figure out the balances
-			while(this.state.needsMigration  === 'checking'){
+			while (this.state.needsMigration === 'checking') {
 				await delay(500);
 			}
 
-			this.setState({loading: false});
+			this.setState({ loading: false });
 
-			if(this.state.needsMigration === 'needed'){
+			if (this.state.needsMigration === 'needed') {
 				this.props.navigation.navigate('InstaPayUpdate');
 			} else {
 				this.close();
 			}
 		}
-
 	};
 
 	close = () => {
@@ -139,15 +136,13 @@ export default class InstaPayWelcome extends PureComponent {
 					<Image source={welcomeImage} style={styles.frame} resizeMode={'contain'} />
 				</View>
 				<View style={styles.buttonWrapper}>
-
-						<StyledButton type={'normal'} onPress={this.next} containerStyle={styles.button}>
-							{this.state.loading ? (
-								<ActivityIndicator size="small" color="white" />
-								) : (
-									strings('payment_channel.welcome.next')
-								)}
-						</StyledButton>
-
+					<StyledButton type={'normal'} onPress={this.next} containerStyle={styles.button}>
+						{this.state.loading ? (
+							<ActivityIndicator size="small" color="white" />
+						) : (
+							strings('payment_channel.welcome.next')
+						)}
+					</StyledButton>
 				</View>
 			</SafeAreaView>
 		);
