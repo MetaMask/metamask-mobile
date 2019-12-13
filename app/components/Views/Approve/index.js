@@ -260,7 +260,8 @@ class Approve extends PureComponent {
 		customGasModalVisible: false,
 		editPermissionModalVisible: false,
 		ticker: getTicker(this.props.ticker),
-		spendLimitUnlimitedSelected: true
+		spendLimitUnlimitedSelected: true,
+		spendLimitCustomValue: undefined
 	};
 
 	customSpendLimitInput = React.createRef();
@@ -379,8 +380,18 @@ class Approve extends PureComponent {
 		);
 	};
 
+	onSpendLimitCustomValueChange = value => {
+		this.setState({ spendLimitCustomValue: value });
+	};
+
 	renderEditPermissionModal = () => {
-		const { editPermissionModalVisible, host, spendLimitUnlimitedSelected, tokenSymbol } = this.state;
+		const {
+			editPermissionModalVisible,
+			host,
+			spendLimitUnlimitedSelected,
+			tokenSymbol,
+			spendLimitCustomValue
+		} = this.state;
 		return (
 			<ActionModal
 				modalVisible={editPermissionModalVisible}
@@ -459,14 +470,15 @@ class Approve extends PureComponent {
 								<TextInput
 									ref={this.customSpendLimitInput}
 									autoCapitalize="none"
+									keyboardType="numeric"
 									autoCorrect={false}
-									onChangeText={this.onChange}
+									onChangeText={this.onSpendLimitCustomValueChange}
 									placeholder={`100 ${tokenSymbol}`}
 									placeholderTextColor={colors.grey100}
 									spellCheck={false}
 									editable={!spendLimitUnlimitedSelected}
 									style={styles.input}
-									// value={value}
+									value={spendLimitCustomValue}
 									numberOfLines={1}
 									// onBlur={this.onBlur}
 									// onFocus={this.onInputFocus}
