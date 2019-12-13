@@ -345,7 +345,7 @@ class PaymentChannel extends PureComponent {
 	handleTransactions = transactions => {
 		let parsedTransactions = [];
 		// Send and Receive
-		const fiveMinutesAgo = Date.now() - 1000 * 60 * 5;
+		const fiveMinutesAgo = Date.now() - 1000 * 60 * 1;
 		if (transactions && transactions.length && this.state.xpub) {
 			parsedTransactions = transactions
 				.map(tx => ({

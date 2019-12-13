@@ -19,6 +19,7 @@ import { renderFromWei, toWei, fromWei, BNToHex } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../../util/networks';
 import PaymentChannelsClient from '../PaymentChannelsClient';
+import isomorphicCrypto from 'isomorphic-webcrypto';
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 const API_URL = 'indra.connext.network/api';
@@ -210,6 +211,7 @@ class InstaPay {
 			Logger.error('InstaPay :: Error adding default payment profile...', e);
 		}
 
+		await channel.restoreState();
 		await this.startPoller();
 	};
 
@@ -656,6 +658,7 @@ class InstaPay {
 			const amount = Currency.DAI(sendAmount);
 			const endingTs = Date.now() + 60 * 1000;
 			let transferRes = undefined;
+			await isomorphicCrypto.ensureSecure();
 			while (Date.now() < endingTs) {
 				try {
 					const data = {
@@ -674,6 +677,7 @@ class InstaPay {
 				}
 			}
 			if (!transferRes) {
+				this.setState({ pendingPayment: null });
 				reject('ERROR');
 				return;
 			}

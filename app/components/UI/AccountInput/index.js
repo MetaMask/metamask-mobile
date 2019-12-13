@@ -285,7 +285,7 @@ class AccountInput extends PureComponent {
 	onBlur = async () => {
 		const { value } = this.state;
 		const { onBlur } = this.props;
-		if (!resemblesAddress(value)) {
+		if (value && !resemblesAddress(value)) {
 			const isEnsName = this.isEnsName(value) && (await this.lookupEnsName(value));
 			if (isEnsName) {
 				onBlur && onBlur(this.state.address, value);
