@@ -212,13 +212,55 @@ class InstaPay {
 			Logger.error('InstaPay :: Error adding default payment profile...', e);
 		}
 
-		await channel.restoreState();
+		// await channel.restoreState();
 		await this.startPoller();
 	};
 
 	restoreState = async () => {
 		if (this.state.channel) {
 			return this.state.channel.restoreState();
+		}
+	};
+
+	isMigrationNeeded = async () => {
+		const allKeyrings = Engine.context.KeyringController.state.keyrings;
+		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+		const v1Client = PaymentChannelsClient;
+		try {
+			for (const account of accountsOrdered) {
+				// Init v1 client
+				Logger.log('InstaPay :: Init v1 client for', account);
+				await v1Client.init(account);
+				Logger.log('InstaPay :: Init completed', account);
+
+				// Wait for channel to be available
+				const channelIsReady = () => {
+					const { ready } = v1Client.getState();
+					Logger.log('InstaPay :: v1 channel is ready?', ready);
+					return ready;
+				};
+
+				Logger.log('InstaPay :: Wait for v1 channel to be ready for ', account);
+				while (!channelIsReady()) {
+					await new Promise(res => setTimeout(() => res(), 3000));
+				}
+
+				// Check if it has balance > 0
+				const { balance } = v1Client.getState();
+				Logger.log('InstaPay :: Checking v1 channel balance for ', account);
+
+				Logger.log(`InstaPay :: v1 Channel balance for ${account} is `, balance);
+				if (parseFloat(balance) > 0) {
+					Logger.log(`InstaPay :: v1 Needs migrating!`, account, balance);
+					v1Client.stop();
+					return true;
+				}
+				v1Client.stop();
+			}
+			Logger.log(`InstaPay :: v1 no need to migrate`);
+			return false;
+		} catch (e) {
+			return e;
 		}
 	};
 
@@ -283,19 +325,23 @@ class InstaPay {
 						}
 						// if true, withdraw to wallet address
 						await v1Client.withdrawAll(addressToWithdraw);
-						this.setState({
-							pendingDeposits: this.state.pendingDeposits + 1,
-							balanceToMigrate: newBalanceToMigrate
-						});
-
+						if (action !== 'withdraw') {
+							this.setState({
+								pendingDeposits: this.state.pendingDeposits + 1,
+								balanceToMigrate: newBalanceToMigrate
+							});
+						}
 						Logger.log('InstaPay :: Migration complete for ', account);
 					}
 
 					v1Client.stop();
 				}
 
-				if (this.state.pendingDeposits === 0) {
-					this.finishMigration();
+				if (this.state.pendingDeposits === 0 || action === 'withdraw') {
+					setTimeout(() => {
+						this.finishMigration();
+					}, 1000);
+					resolve(true);
 				}
 			} catch (e) {
 				Logger.log('Exception caught while migrating', e);
@@ -625,16 +671,12 @@ class InstaPay {
 	};
 
 	finishMigration = async () => {
-		if (this.migrationPromise) {
-			clearTimeout(this.migrationTimeout);
-			Logger.log('MIGRATION COMPLETE!!!');
-			hub.emit('migration::complete', null);
-			this.setState({ migrating: false, migrated: true, pendingDeposits: 0 });
-			// End migration
-			await AsyncStorage.setItem('@MetaMask:InstaPayVersion', '2.0.0');
-			this.migrationPromise.resolve(true);
-			this.migrationPromise = null;
-		}
+		clearTimeout(this.migrationTimeout);
+		Logger.log('MIGRATION COMPLETE!!!');
+		hub.emit('migration::complete', null);
+		this.setState({ migrating: false, migrated: true, pendingDeposits: 0 });
+		// End migration
+		await AsyncStorage.setItem('@MetaMask:InstaPayVersion', '2.0.0');
 	};
 
 	setPending = pending => {
@@ -1003,6 +1045,7 @@ instance = {
 	},
 	reloadClient,
 	moveFundsFromV1: action => client && client.moveFundsFromV1(action),
+	isMigrationNeeded: () => client && client.isMigrationNeeded(),
 	restoreState: () => client && client.restoreState(),
 	isMigrating: () => client && client.state.migrating,
 	isPaymentPending: () => client && client.state.pendingPayment,

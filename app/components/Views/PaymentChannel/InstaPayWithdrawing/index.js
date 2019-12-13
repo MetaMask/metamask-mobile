@@ -10,7 +10,8 @@ import {
 	View,
 	ScrollView,
 	StyleSheet,
-	BackHandler
+	BackHandler,
+	InteractionManager
 } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import AnimatedFox from 'react-native-animated-fox';
@@ -97,17 +98,6 @@ export default class InstaPayWithdrawing extends PureComponent {
 
 	componentDidMount = async () => {
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
-
-		await InstaPay.withdrawFromV1();
-
-		Alert.alert('Withdrawal complete', 'Your funds have beend moved to your ethereum account', {
-			text: 'OK',
-			onPress: () => this.dismiss()
-		});
-	};
-
-	componentDidMount = async () => {
-		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 		let result;
 		try {
 			result = await InstaPay.moveFundsFromV1('withdraw');
@@ -116,23 +106,25 @@ export default class InstaPayWithdrawing extends PureComponent {
 		}
 
 		if (result) {
-			Alert.alert('Withdrawal complete', 'Your funds have beend moved to your ethereum account', {
-				text: 'OK',
-				onPress: () => {
-					setTimeout(() => {
-						this.dismiss();
-					}, 1000);
+			Alert.alert('Withdrawal complete', 'Your funds have beend moved to your ethereum account', [
+				{
+					text: 'OK',
+					onPress: () => {
+						InteractionManager.runAfterInteractions(() => {
+							this.dismiss();
+						});
+					}
 				}
-			});
+			]);
 		} else {
-			Alert.alert('Withdrawal failed', 'Something went wrong. Please try again later...', {
-				text: 'OK',
-				onPress: () => {
-					setTimeout(() => {
+			Alert.alert('Withdrawal failed', 'Something went wrong. Please try again later...', [
+				{
+					text: 'OK',
+					onPress: () => {
 						this.dismiss();
-					}, 1000);
+					}
 				}
-			});
+			]);
 		}
 	};
 
