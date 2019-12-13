@@ -21,6 +21,7 @@ import { setTransactionObject } from '../../../actions/transaction';
 import { BNToHex } from 'gaba/dist/util';
 import { renderFromWei, weiToFiatNumber } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -262,6 +263,8 @@ class Approve extends PureComponent {
 		spendLimitUnlimitedSelected: true
 	};
 
+	customSpendLimitInput = React.createRef();
+
 	componentDidMount = async () => {
 		const {
 			transaction: { origin, to, gas, gasPrice },
@@ -367,6 +370,13 @@ class Approve extends PureComponent {
 
 	onPressSpendLimitCustomSelected = () => {
 		this.setState({ spendLimitUnlimitedSelected: false });
+		setTimeout(
+			() =>
+				this.customSpendLimitInput &&
+				this.customSpendLimitInput.current &&
+				this.customSpendLimitInput.current.focus(),
+			100
+		);
 	};
 
 	renderEditPermissionModal = () => {
@@ -376,9 +386,9 @@ class Approve extends PureComponent {
 				modalVisible={editPermissionModalVisible}
 				confirmText={'Save'}
 				cancelText={strings('transaction.cancel_gas')}
-				onCancelPress={this.toggleCustomGasModal}
-				onRequestClose={this.toggleCustomGasModal}
-				onConfirmPress={this.handleSetGasFee}
+				onCancelPress={this.toggleEditPermissionModal}
+				onRequestClose={this.toggleEditPermissionModal}
+				onConfirmPress={this.handleSetSpendLimit}
 				cancelButtonMode={'neutral'}
 				confirmButtonMode={'confirm'}
 				displayCancelButton={false}
@@ -387,7 +397,7 @@ class Approve extends PureComponent {
 					<View style={styles.customGasModalTitle}>
 						<Text style={styles.customGasModalTitleText}>Edit Permission</Text>
 					</View>
-					<View style={styles.spendLimitWrapper}>
+					<KeyboardAwareScrollView style={styles.spendLimitWrapper} extraScrollHeight={-100}>
 						<Text style={styles.spendLimitTitle}>Spend limit permission</Text>
 						<Text
 							style={styles.spendLimitSubtitle}
@@ -447,6 +457,7 @@ class Approve extends PureComponent {
 								</Text>
 								<Text style={styles.sectionExplanationText}>{`Enter a max spend limit`}</Text>
 								<TextInput
+									ref={this.customSpendLimitInput}
 									autoCapitalize="none"
 									autoCorrect={false}
 									onChangeText={this.onChange}
@@ -464,7 +475,7 @@ class Approve extends PureComponent {
 								<Text style={styles.sectionExplanationText}>{`1.00 ${tokenSymbol} minimum`}</Text>
 							</View>
 						</View>
-					</View>
+					</KeyboardAwareScrollView>
 				</View>
 			</ActionModal>
 		);
@@ -543,7 +554,12 @@ class Approve extends PureComponent {
 						{viewDetails && (
 							<View style={styles.section}>
 								<View style={styles.sectionTitleRow}>
-									<FontAwesome5 name={'user-check'} size={20} color={colors.grey500} />
+									<FontAwesome5
+										name={'user-check'}
+										size={20}
+										color={colors.grey500}
+										onPress={this.toggleEditPermissionModal}
+									/>
 									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
 										Permission request
 									</Text>
