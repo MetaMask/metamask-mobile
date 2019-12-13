@@ -18,6 +18,9 @@ import CustomGas from '../SendFlow/CustomGas';
 import ActionModal from '../../UI/ActionModal';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
+import { BNToHex } from 'gaba/dist/util';
+import { renderFromWei, weiToFiatNumber } from '../../../util/number';
+import { getTicker } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -87,8 +90,7 @@ const styles = StyleSheet.create({
 	sectionExplanationText: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey500,
-		marginBottom: 8
+		color: colors.grey500
 	},
 	editText: {
 		...fontStyles.normal,
@@ -98,7 +100,8 @@ const styles = StyleSheet.create({
 	fiatFeeText: {
 		...fontStyles.bold,
 		fontSize: 18,
-		color: colors.black
+		color: colors.black,
+		textTransform: 'uppercase'
 	},
 	feeText: {
 		...fontStyles.normal,
@@ -113,12 +116,12 @@ const styles = StyleSheet.create({
 		flexDirection: 'column'
 	},
 	sectionLeft: {
-		flex: 0.7,
+		flex: 0.6,
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
 	sectionRight: {
-		flex: 0.3,
+		flex: 0.4,
 		alignItems: 'flex-end'
 	},
 	permissionDetails: {
@@ -155,13 +158,25 @@ class Approve extends PureComponent {
 
 	static propTypes = {
 		/**
+		 * ETH to current currency conversion rate
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
 		 * Transaction state
 		 */
 		transaction: PropTypes.object.isRequired,
 		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
-		setTransactionObject: PropTypes.func.isRequired
+		setTransactionObject: PropTypes.func.isRequired,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -169,15 +184,19 @@ class Approve extends PureComponent {
 		customGasSelected: 'average',
 		customGas: undefined,
 		customGasPrice: undefined,
+		totalGas: undefined,
+		totalGasFiat: undefined,
 		host: undefined,
 		tokenSymbol: undefined,
 		viewDetails: false,
-		customGasModalVisible: false
+		customGasModalVisible: false,
+		ticker: getTicker(this.props.ticker)
 	};
 
 	componentDidMount = async () => {
 		const {
-			transaction: { origin, to }
+			transaction: { origin, to, gas, gasPrice },
+			conversionRate
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
 		const host = getHost(origin);
@@ -188,7 +207,13 @@ class Approve extends PureComponent {
 		} else {
 			tokenSymbol = contract.symbol;
 		}
-		this.setState({ host, tokenSymbol });
+		const totalGas = gas.mul(gasPrice);
+		this.setState({
+			host,
+			tokenSymbol,
+			totalGas: renderFromWei(totalGas),
+			totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
+		});
 	};
 
 	onViewDetails = () => {
@@ -203,7 +228,7 @@ class Approve extends PureComponent {
 
 	handleSetGasFee = () => {
 		const { customGas, customGasPrice, customGasSelected } = this.state;
-		const { setTransactionObject } = this.props;
+		const { setTransactionObject, conversionRate } = this.props;
 
 		if (!customGas || !customGasPrice) {
 			this.toggleCustomGasModal();
@@ -213,13 +238,16 @@ class Approve extends PureComponent {
 
 		setTransactionObject({ gas: customGas, gasPrice: customGasPrice });
 		// TODO enough balance for gas
+		const totalGas = customGas.mul(customGasPrice);
 		setTimeout(() => {
 			this.setState({
 				customGas: undefined,
 				customGasPrice: undefined,
 				gasEstimationReady: true,
 				currentCustomGasSelected: customGasSelected,
-				errorMessage: undefined
+				errorMessage: undefined,
+				totalGas: renderFromWei(totalGas),
+				totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
 			});
 		}, 100);
 		this.toggleCustomGasModal();
@@ -258,9 +286,21 @@ class Approve extends PureComponent {
 		);
 	};
 
+	prepareTransaction = transaction => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: BNToHex(transaction.value),
+		to: safeToChecksumAddress(transaction.to)
+	});
+
+	onConfirm = () => {
+		console.log('prepared', this.prepareTransaction(this.props.transaction));
+	};
+
 	render = () => {
-		const { transaction } = this.props;
-		const { host, tokenSymbol, viewDetails } = this.state;
+		const { transaction, currentCurrency } = this.props;
+		const { host, tokenSymbol, viewDetails, totalGas, totalGasFiat, ticker } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionDirection />
@@ -293,14 +333,14 @@ class Approve extends PureComponent {
 								</TouchableOpacity>
 							</View>
 							<View style={styles.row}>
-								<View style={[styles.sectionLeft, styles.row]}>
+								<View style={[styles.sectionLeft]}>
 									<Text style={[styles.sectionExplanationText]}>
-										A transaction fee is associated ith this permission. Learn why
+										A transaction fee is associated with this permission. Learn why
 									</Text>
 								</View>
 								<View style={[styles.column, styles.sectionRight]}>
-									<Text style={styles.fiatFeeText}>$fiat</Text>
-									<Text style={styles.feeText}>fee</Text>
+									<Text style={styles.fiatFeeText}>{`${totalGasFiat} ${currentCurrency}`}</Text>
+									<Text style={styles.feeText}>{`${totalGas} ${ticker}`}</Text>
 								</View>
 							</View>
 							<TouchableOpacity style={styles.actionTouchable} onPress={this.onViewDetails}>
@@ -367,6 +407,9 @@ class Approve extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: state.transaction
 });
 
