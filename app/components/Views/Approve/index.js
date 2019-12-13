@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import WebsiteIcon from '../../UI/WebsiteIcon';
 import { getHost } from '../../../util/browser';
@@ -14,6 +14,10 @@ import ActionView from '../../UI/ActionView';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import CustomGas from '../SendFlow/CustomGas';
+import ActionModal from '../../UI/ActionModal';
+import { strings } from '../../../../locales/i18n';
+import { setTransactionObject } from '../../../actions/transaction';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -129,6 +133,17 @@ const styles = StyleSheet.create({
 	},
 	copyIcon: {
 		marginLeft: 8
+	},
+	customGasModalTitle: {
+		borderBottomColor: colors.grey100,
+		borderBottomWidth: 1
+	},
+	customGasModalTitleText: {
+		...fontStyles.bold,
+		color: colors.black,
+		fontSize: 18,
+		alignSelf: 'center',
+		margin: 16
 	}
 });
 
@@ -142,13 +157,22 @@ class Approve extends PureComponent {
 		/**
 		 * Transaction state
 		 */
-		transaction: PropTypes.object.isRequired
+		transaction: PropTypes.object.isRequired,
+		/**
+		 * Action that sets transaction attributes from object to a transaction
+		 */
+		setTransactionObject: PropTypes.func.isRequired
 	};
 
 	state = {
+		currentCustomGasSelected: 'average',
+		customGasSelected: 'average',
+		customGas: undefined,
+		customGasPrice: undefined,
 		host: undefined,
 		tokenSymbol: undefined,
-		viewDetails: false
+		viewDetails: false,
+		customGasModalVisible: false
 	};
 
 	componentDidMount = async () => {
@@ -170,6 +194,68 @@ class Approve extends PureComponent {
 	onViewDetails = () => {
 		const { viewDetails } = this.state;
 		this.setState({ viewDetails: !viewDetails });
+	};
+
+	toggleCustomGasModal = () => {
+		const { customGasModalVisible } = this.state;
+		this.setState({ customGasModalVisible: !customGasModalVisible });
+	};
+
+	handleSetGasFee = () => {
+		const { customGas, customGasPrice, customGasSelected } = this.state;
+		const { setTransactionObject } = this.props;
+
+		if (!customGas || !customGasPrice) {
+			this.toggleCustomGasModal();
+			return;
+		}
+		this.setState({ gasEstimationReady: false });
+
+		setTransactionObject({ gas: customGas, gasPrice: customGasPrice });
+		// TODO enough balance for gas
+		setTimeout(() => {
+			this.setState({
+				customGas: undefined,
+				customGasPrice: undefined,
+				gasEstimationReady: true,
+				currentCustomGasSelected: customGasSelected,
+				errorMessage: undefined
+			});
+		}, 100);
+		this.toggleCustomGasModal();
+	};
+
+	handleGasFeeSelection = (gas, gasPrice, customGasSelected) => {
+		this.setState({ customGas: gas, customGasPrice: gasPrice, customGasSelected });
+	};
+
+	renderCustomGasModal = () => {
+		const { customGasModalVisible, currentCustomGasSelected } = this.state;
+		const { gas, gasPrice } = this.props.transaction;
+		return (
+			<ActionModal
+				modalVisible={customGasModalVisible}
+				confirmText={strings('transaction.set_gas')}
+				cancelText={strings('transaction.cancel_gas')}
+				onCancelPress={this.toggleCustomGasModal}
+				onRequestClose={this.toggleCustomGasModal}
+				onConfirmPress={this.handleSetGasFee}
+				cancelButtonMode={'neutral'}
+				confirmButtonMode={'confirm'}
+			>
+				<View style={baseStyles.flexGrow}>
+					<View style={styles.customGasModalTitle}>
+						<Text style={styles.customGasModalTitleText}>{strings('transaction.transaction_fee')}</Text>
+					</View>
+					<CustomGas
+						selected={currentCustomGasSelected}
+						handleGasFeeSelection={this.handleGasFeeSelection}
+						gas={gas}
+						gasPrice={gasPrice}
+					/>
+				</View>
+			</ActionModal>
+		);
 	};
 
 	render = () => {
@@ -202,7 +288,7 @@ class Approve extends PureComponent {
 							<View style={styles.sectionTitleRow}>
 								<FontAwesome5 name={'tag'} size={20} color={colors.grey500} />
 								<Text style={[styles.sectionTitleText, styles.sectionLeft]}>Transaction fee</Text>
-								<TouchableOpacity style={styles.sectionRight}>
+								<TouchableOpacity style={styles.sectionRight} onPress={this.toggleCustomGasModal}>
 									<Text style={styles.editText}>Edit</Text>
 								</TouchableOpacity>
 							</View>
@@ -272,6 +358,7 @@ class Approve extends PureComponent {
 								<Text style={styles.sectionExplanationText}>{transaction.data}</Text>
 							</View>
 						)}
+						{this.renderCustomGasModal()}
 					</View>
 				</ActionView>
 			</SafeAreaView>
@@ -283,4 +370,11 @@ const mapStateToProps = state => ({
 	transaction: state.transaction
 });
 
-export default connect(mapStateToProps)(Approve);
+const mapDispatchToProps = dispatch => ({
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Approve);

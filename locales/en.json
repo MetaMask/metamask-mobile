@@ -492,14 +492,22 @@
 		"speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
 		"nevermind": "Nevermind",
 		"gas_cancel_fee": "Gas Cancellation Fee",
-		"gas_speedup_fee": "Gas Speed Up fee"
+		"gas_speedup_fee": "Gas Speed Up fee",
+		"use_max": "Use max",
+		"set_gas": "Set",
+		"cancel_gas": "Cancel",
+		"transaction_fee": "Transaction fee",
+		"total_amount": "Total amount",
+		"adjust_transaction_fee": "Adjust transaction fee",
+		"could_not_resolve_ens": "Couldn't resolve ENS"
 	},
 	"custom_gas": {
-		"advanced_options": "Advanced Options",
-		"hide_advanced_options": "Hide Advanced Options",
+		"advanced_options": "Show advanced options",
+		"hide_advanced_options": "Hide advanced options",
 		"gas_limit": "Gas Limit:",
 		"gas_price": "Gas Price: (GWEI)",
-		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027"
+		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
+		"cost_explanation": "This is the cost for processing this payment on the blockchain."
 	},
 	"browser": {
 		"title": "Browser",
@@ -663,7 +671,12 @@
 		"divisor": "/",
 		"token_id": "#",
 		"colon": ":",
-		"point": "."
+		"point": ".",
+		"week": "week",
+		"day": "day",
+		"hour": "hr",
+		"minute": "min",
+		"second": "sec"
 	},
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",
