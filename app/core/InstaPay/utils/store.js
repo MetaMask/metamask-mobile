@@ -49,20 +49,11 @@ class Store {
 	};
 
 	reset = () => {
-		for (const k of Object.keys(this.data)) {
-			if (k.startsWith(ConnextClientStorePrefix)) {
-				delete this.data[k];
-				this.persist();
-			}
-		}
-
 		// TODO: Should we also scrub legacy channel prefixes?
 		const channelPrefix = `${ConnextClientStorePrefix}/`;
 		// get all keys in local storage that match prefix
 		Object.entries(this.data).forEach(([key]) => {
 			if (key.includes(channelPrefix)) {
-				console.log(`removing item: ${key}`);
-				localStorage.removeItem(key);
 				delete this.data[key];
 				this.persist();
 			}

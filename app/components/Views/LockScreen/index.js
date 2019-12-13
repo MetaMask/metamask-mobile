@@ -150,7 +150,6 @@ class LockScreen extends PureComponent {
 			if (this.unlockAttempts <= 3) {
 				this.attemptUnlock();
 			} else {
-				Logger.error('Lockscreen:maxAttemptsReached', { attemptNumber: this.unlockAttempts, error });
 				this.props.navigation.navigate('Login');
 			}
 		}
