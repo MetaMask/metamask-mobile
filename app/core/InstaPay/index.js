@@ -11,7 +11,7 @@ import Store from './utils/store';
 import AppConstants from '../AppConstants';
 import { Contract, ethers as eth } from 'ethers';
 import { AddressZero, Zero } from 'ethers/constants';
-import { formatEther, parseEther, hexlify, randomBytes } from 'ethers/utils';
+import { formatEther, parseEther } from 'ethers/utils';
 import Engine from '../Engine';
 import AsyncStorage from '@react-native-community/async-storage';
 import TransactionsNotificationManager from '../TransactionsNotificationManager';
@@ -103,7 +103,9 @@ class InstaPay {
 			migrating: false,
 			migrated: false,
 			pendingDeposits: 0,
-			balanceToMigrate: 0
+			balanceToMigrate: 0,
+			pendingPayment: null,
+			latestPaymentId: null
 		};
 
 		this.start(pwd, network);
@@ -351,27 +353,45 @@ class InstaPay {
 
 	checkPaymentHistory = async () => {
 		const paymentHistory = await this.state.channel.getTransferHistory();
+		if (paymentHistory.length) {
+			const lastPayment = paymentHistory.reverse()[0];
+			const latestPaymentId = parseInt(lastPayment.id, 10);
+			if (latestPaymentId !== this.state.latestPaymentId) {
+				if (
+					lastPayment.receiverPublicIdentifier &&
+					lastPayment.receiverPublicIdentifier.toLowerCase() !== this.state.xpub.toLowerCase()
+				) {
+					this.setState({ pendingPayment: null, latestPaymentId });
+				}
+			}
+		}
+
 		const lastKnownPaymentIDStr = await AsyncStorage.getItem('@MetaMask:lastKnownInstantPaymentID');
 		let lastKnownPaymentID = 0;
-		const latestPayment = paymentHistory.find(
+
+		const latestReceivedPayment = paymentHistory.find(
 			payment =>
 				payment.receiverPublicIdentifier &&
 				payment.receiverPublicIdentifier.toLowerCase() === this.state.xpub.toLowerCase()
 		);
-		if (latestPayment) {
-			const latestPaymentID = parseInt(latestPayment.id, 10);
+
+		if (latestReceivedPayment) {
+			const latestReceivedPaymentID = parseInt(latestReceivedPayment.id, 10);
 			if (lastKnownPaymentIDStr) {
 				lastKnownPaymentID = parseInt(lastKnownPaymentIDStr, 10);
-				if (lastKnownPaymentID < latestPaymentID) {
-					const amountToken = renderFromWei(latestPayment.amount);
+				if (lastKnownPaymentID < latestReceivedPaymentID) {
+					const amountToken = renderFromWei(latestReceivedPayment.amount);
 					setTimeout(() => {
 						TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
 					}, 300);
-					await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
+					await AsyncStorage.setItem(
+						'@MetaMask:lastKnownInstantPaymentID',
+						latestReceivedPaymentID.toString()
+					);
 				}
 			} else {
 				// For first time flow
-				await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
+				await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestReceivedPaymentID.toString());
 			}
 		}
 		this.setState({ transactions: paymentHistory.reverse() });
@@ -641,14 +661,12 @@ class InstaPay {
 					const data = {
 						assetId: this.getAssetId(),
 						amount: amount.wad.toString(),
-						conditionType: 'LINKED_TRANSFER_TO_RECIPIENT',
-						paymentId: hexlify(randomBytes(32)),
-						preImage: hexlify(randomBytes(32)),
 						recipient: sendRecipient
 					};
 					Logger.log('DATA', data);
 
-					transferRes = await this.state.channel.conditionalTransfer(data);
+					transferRes = await this.state.channel.transfer(data);
+					this.setState({ pendingPayment: true });
 					break;
 				} catch (e) {
 					Logger.error('ERROR SENDING INSTAPAY', e);
@@ -659,6 +677,7 @@ class InstaPay {
 				reject('ERROR');
 				return;
 			}
+			this.checkPaymentHistory();
 			resolve();
 		});
 
@@ -979,7 +998,9 @@ instance = {
 	reloadClient,
 	moveFundsFromV1: action => client && client.moveFundsFromV1(action),
 	restoreState: () => client && client.restoreState(),
-	isMigrating: () => client && client.state.migrating
+	isMigrating: () => client && client.state.migrating,
+	isPaymentPending: () => client && client.state.pendingPayment,
+	setPaymentPending: val => client && client.setState({ pendingPayment: val })
 };
 
 const onPaymentConfirm = async request => {

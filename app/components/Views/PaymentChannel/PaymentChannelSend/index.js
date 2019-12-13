@@ -108,6 +108,7 @@ class PaymentChannelSend extends PureComponent {
 
 		this.sending = false;
 		Logger.log('Send succesful');
+		InstaPay.setPaymentPending(true);
 		navigation.pop();
 	};
 

@@ -219,7 +219,12 @@ export async function isCollectibleAddress(address, tokenId) {
 export async function getTransactionActionKey(transaction) {
 	const { transaction: { data, to } = {} } = transaction;
 
-	if (!to) return CONTRACT_METHOD_DEPLOY;
+	if (!to) {
+		if (!transaction.paymentChannelTransaction) {
+			return CONTRACT_METHOD_DEPLOY;
+		}
+		return SEND_ETHER_ACTION_KEY;
+	}
 
 	if (to && to.toLowerCase() === InstaPay.getDepositAddress().toLowerCase()) {
 		return CONNEXT_DEPOSIT_ACTION_KEY;

@@ -345,19 +345,22 @@ class PaymentChannel extends PureComponent {
 	handleTransactions = transactions => {
 		let parsedTransactions = [];
 		// Send and Receive
+		const fiveMinutesAgo = Date.now() - 1000 * 60 * 5;
 		if (transactions && transactions.length && this.state.xpub) {
-			parsedTransactions = transactions.map(tx => ({
-				time: Date.parse(tx.createdAt),
-				status: 'confirmed',
-				id: tx.id.toString(),
-				paymentChannelTransaction: true,
-				transaction: {
-					from: tx.senderPublicIdentifier,
-					to: tx.receiverPublicIdentifier,
-					value: BNToHex(toBN(tx.amount)),
-					paymentChannelAddress: this.state.xpub
-				}
-			}));
+			parsedTransactions = transactions
+				.map(tx => ({
+					time: Date.parse(tx.createdAt),
+					status: tx.receiverPublicIdentifier ? 'confirmed' : 'submitted',
+					id: tx.id.toString(),
+					paymentChannelTransaction: true,
+					transaction: {
+						from: tx.senderPublicIdentifier,
+						to: tx.receiverPublicIdentifier,
+						value: BNToHex(toBN(tx.amount)),
+						paymentChannelAddress: this.state.xpub
+					}
+				}))
+				.filter(tx => !(!tx.transaction.to && tx.time < fiveMinutesAgo));
 		}
 
 		// Deposits
@@ -489,7 +492,7 @@ class PaymentChannel extends PureComponent {
 
 		const noFunds = balance.channel.token.toDAI().format({ decimals: 2, symbol: false }) === '0.00';
 		const noFundsAndNoHistory = noFunds && !this.state.transactions.length;
-
+		const isPaymentPending = InstaPay.isPaymentPending();
 		return (
 			<View style={styles.data}>
 				<View style={styles.assetCardWrapper}>
@@ -508,9 +511,13 @@ class PaymentChannel extends PureComponent {
 								style={styles.buttonText}
 								type={'confirm'}
 								onPress={this.onSend}
-								disabled={isDisabled || noFunds}
+								disabled={isDisabled || noFunds || isPaymentPending}
 							>
-								{strings('payment_channel.send_buttton')}
+								{isPaymentPending ? (
+									<ActivityIndicator size="small" color="white" />
+								) : (
+									strings('payment_channel.send_buttton')
+								)}
 							</StyledButton>
 							<View style={styles.secondActionsWrapper}>
 								<StyledButton

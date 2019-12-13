@@ -355,7 +355,8 @@ class TransactionElement extends PureComponent {
 		const {
 			tx: {
 				status,
-				transaction: { to }
+				transaction: { to },
+				paymentChannelTransaction
 			},
 			providerType
 		} = this.props;
@@ -365,7 +366,7 @@ class TransactionElement extends PureComponent {
 			symbol = contractMap[renderTo].symbol;
 		}
 		const networkId = Networks[providerType].networkId;
-		const renderTxActions = status === 'submitted' || status === 'approved';
+		const renderTxActions = (status === 'submitted' || status === 'approved') && !paymentChannelTransaction;
 		const renderSpeedUpAction = safeToChecksumAddress(to) !== AppConstants.CONNEXT.CONTRACTS[networkId];
 		return (
 			<View style={styles.rowOnly}>
