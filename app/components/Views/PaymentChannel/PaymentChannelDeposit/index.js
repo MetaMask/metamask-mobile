@@ -268,7 +268,7 @@ class Deposit extends PureComponent {
 		} catch (e) {
 			if (e.message === 'still_blocked') {
 				Alert.alert(strings('payment_channel.not_ready'), strings('payment_channel.please_wait'));
-			} else if (e.message.includes('Insufficient funds')) {
+			} else if (e.message.includes('insufficient funds')) {
 				Alert.alert(
 					strings('payment_channel.heads_up'),
 					`${strings('payment_channel.gas_error')} ${strings('payment_channel.security_reasons')}`
