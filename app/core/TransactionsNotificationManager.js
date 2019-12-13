@@ -3,7 +3,6 @@
 import { showMessage, hideMessage } from 'react-native-flash-message';
 import PushNotification from 'react-native-push-notification';
 import Engine from './Engine';
-import InstaPay from './InstaPay';
 import Networks, { isKnownNetwork } from '../util/networks';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { hexToBN, renderFromWei } from '../util/number';
@@ -180,7 +179,7 @@ class TransactionsNotificationManager {
 	_confirmedCallback = (transactionMeta, originalTransaction) => {
 		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// Once it's confirmed we hide the pending tx notification
-		const isInstaPayDeposit = toChecksumAddress(transactionMeta.transaction.to) === InstaPay.getDepositAddress();
+		const isInstaPayDeposit = false;
 
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
 			!isInstaPayDeposit &&

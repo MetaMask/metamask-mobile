@@ -4,6 +4,21 @@ import Engine from '../core/Engine';
 import TransactionsNotificationManager from '../core/TransactionsNotificationManager';
 import { NativeModules, View } from 'react-native';
 
+// Include additional mocks not included in the react-native preset
+global.window = {
+	Uint8Array,
+	Promise,
+	navigator: {
+		userAgent: ''
+	}
+};
+
+// eslint-disable-next-line no-empty-function
+function XMLHttpRequest() {}
+// eslint-disable-next-line no-empty-function
+XMLHttpRequest.prototype.getResponseHeader = function() {};
+global.XMLHttpRequest = XMLHttpRequest;
+
 Enzyme.configure({ adapter: new Adapter() });
 
 jest.mock('react-native-fs', () => ({
@@ -118,8 +133,15 @@ NativeModules.RCTAnalytics = {
 	getRemoteVariables: jest.fn()
 };
 
+NativeModules.RNSecureRandom = {
+	generateSecureRandomAsBase64: jest.fn()
+};
+
 NativeModules.PlatformConstants = {
 	forceTouchAvailable: false
 };
 
 jest.mock('NativeAnimatedHelper');
+
+jest.mock('expo-random', () => ({ getRandomBytesAsync: jest.fn() }));
+jest.mock('react-native-securerandom', () => ({ generateSecureRandom: () => Promise.resolve(1) }));
