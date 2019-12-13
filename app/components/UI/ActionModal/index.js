@@ -54,6 +54,8 @@ export default function ActionModal({
 	confirmDisabled,
 	cancelButtonMode,
 	confirmButtonMode,
+	displayCancelButton,
+	displayConfirmButton,
 	onCancelPress,
 	onConfirmPress,
 	onRequestClose,
@@ -72,23 +74,27 @@ export default function ActionModal({
 				<View style={styles.modalContainer}>
 					<View style={styles.childrenContainer}>{children}</View>
 					<View style={styles.actionContainer}>
-						<StyledButton
-							testID={cancelTestID}
-							type={cancelButtonMode}
-							onPress={onCancelPress}
-							containerStyle={[styles.button, styles.cancel]}
-						>
-							{cancelText}
-						</StyledButton>
-						<StyledButton
-							testID={confirmTestID}
-							type={confirmButtonMode}
-							onPress={onConfirmPress}
-							containerStyle={[styles.button, styles.confirm]}
-							disabled={confirmDisabled}
-						>
-							{confirmText}
-						</StyledButton>
+						{displayCancelButton && (
+							<StyledButton
+								testID={cancelTestID}
+								type={cancelButtonMode}
+								onPress={onCancelPress}
+								containerStyle={[styles.button, styles.cancel]}
+							>
+								{cancelText}
+							</StyledButton>
+						)}
+						{displayConfirmButton && (
+							<StyledButton
+								testID={confirmTestID}
+								type={confirmButtonMode}
+								onPress={onConfirmPress}
+								containerStyle={[styles.button, styles.confirm]}
+								disabled={confirmDisabled}
+							>
+								{confirmText}
+							</StyledButton>
+						)}
 					</View>
 				</View>
 			</View>
@@ -103,7 +109,9 @@ ActionModal.defaultProps = {
 	cancelTestID: '',
 	cancelText: 'CANCEL',
 	confirmText: 'CONFIRM',
-	confirmDisabled: false
+	confirmDisabled: false,
+	displayCancelButton: true,
+	displayConfirmButton: true
 };
 
 ActionModal.propTypes = {
@@ -139,6 +147,8 @@ ActionModal.propTypes = {
 	 * Text to show in the confirm button
 	 */
 	confirmText: PropTypes.string,
+	displayCancelButton: PropTypes.bool,
+	displayConfirmButton: PropTypes.bool,
 	/**
 	 * Called when the cancel button is clicked
 	 */
