@@ -501,6 +501,8 @@ class Main extends PureComponent {
 			});
 
 			setTimeout(async () => {
+				TransactionsNotificationManager.init(this.props.navigation);
+
 				// Only if enabled under settings
 				if (this.props.paymentChannelsEnabled) {
 					this.initializePaymentChannels();
@@ -513,8 +515,6 @@ class Main extends PureComponent {
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 
 				setTimeout(() => {
-					TransactionsNotificationManager.init(this.props.navigation);
-
 					this.pollForIncomingTransactions();
 					this.initializeWalletConnect();
 				}, 1000);

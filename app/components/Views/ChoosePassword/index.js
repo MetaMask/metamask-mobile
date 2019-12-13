@@ -20,6 +20,7 @@ import { passwordSet } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
+import InstaPay from '../../../core/InstaPay';
 
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -226,6 +227,8 @@ class ChoosePassword extends PureComponent {
 				for (let i = 0; i < existingAccountCount - 1; i++) {
 					await KeyringController.addNewAccount();
 				}
+				InstaPay.config(this.state.password);
+				await InstaPay.reloadClient();
 
 				// Set prefs again
 				await PreferencesController.update(prefs);
