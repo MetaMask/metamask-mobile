@@ -239,6 +239,7 @@ class Approve extends PureComponent {
 		setTransactionObject({ gas: customGas, gasPrice: customGasPrice });
 		// TODO enough balance for gas
 		const totalGas = customGas.mul(customGasPrice);
+
 		setTimeout(() => {
 			this.setState({
 				customGas: undefined,
