@@ -125,8 +125,6 @@ class InstaPay {
 		const wallet = eth.Wallet.fromMnemonic(mnemonic, cfPath + '/0').connect(ethProvider);
 		this.setState({ network, walletAddress: wallet.address });
 
-		TransactionsNotificationManager.setInstaPayWalletAddress(wallet.address);
-
 		const hdNode = fromExtendedKey(fromMnemonic(mnemonic).extendedKey).derivePath(cfPath);
 		const xpub = hdNode.neuter().extendedKey;
 		const keyGen = index => {
@@ -162,6 +160,8 @@ class InstaPay {
 		}
 
 		Logger.log('PC:Channel is available!');
+
+		TransactionsNotificationManager.setInstaPayWalletAddress(wallet.address);
 
 		const token = new Contract(channel.config.contractAddresses.Token, tokenArtifacts.abi, ethProvider);
 
@@ -403,9 +403,10 @@ class InstaPay {
 	};
 
 	checkPaymentHistory = async () => {
-		const paymentHistory = await this.state.channel.getTransferHistory();
+		let paymentHistory = await this.state.channel.getTransferHistory();
 		if (paymentHistory.length) {
-			const lastPayment = paymentHistory.reverse()[0];
+			paymentHistory = paymentHistory.sort((a, b) => b.id - a.id);
+			const lastPayment = paymentHistory[0];
 			const latestPaymentId = parseInt(lastPayment.id, 10);
 			if (latestPaymentId !== this.state.latestPaymentId) {
 				if (
@@ -415,37 +416,40 @@ class InstaPay {
 					this.setState({ pendingPayment: null, latestPaymentId });
 				}
 			}
-		}
 
-		const lastKnownPaymentIDStr = await AsyncStorage.getItem('@MetaMask:lastKnownInstantPaymentID');
-		let lastKnownPaymentID = 0;
+			const lastKnownPaymentIDStr = await AsyncStorage.getItem('@MetaMask:lastKnownInstantPaymentID');
+			let lastKnownPaymentID = 0;
 
-		const latestReceivedPayment = paymentHistory.find(
-			payment =>
-				payment.receiverPublicIdentifier &&
-				payment.receiverPublicIdentifier.toLowerCase() === this.state.xpub.toLowerCase()
-		);
+			const latestReceivedPayment = paymentHistory.find(
+				payment =>
+					payment.receiverPublicIdentifier &&
+					payment.receiverPublicIdentifier.toLowerCase() === this.state.xpub.toLowerCase()
+			);
 
-		if (latestReceivedPayment) {
-			const latestReceivedPaymentID = parseInt(latestReceivedPayment.id, 10);
-			if (lastKnownPaymentIDStr) {
-				lastKnownPaymentID = parseInt(lastKnownPaymentIDStr, 10);
-				if (lastKnownPaymentID < latestReceivedPaymentID) {
-					const amountToken = renderFromWei(latestReceivedPayment.amount);
-					setTimeout(() => {
-						TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
-					}, 300);
+			if (latestReceivedPayment) {
+				const latestReceivedPaymentID = parseInt(latestReceivedPayment.id, 10);
+				if (lastKnownPaymentIDStr) {
+					lastKnownPaymentID = parseInt(lastKnownPaymentIDStr, 10);
+					if (lastKnownPaymentID < latestReceivedPaymentID) {
+						const amountToken = renderFromWei(latestReceivedPayment.amount);
+						setTimeout(() => {
+							TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
+						}, 300);
+						await AsyncStorage.setItem(
+							'@MetaMask:lastKnownInstantPaymentID',
+							latestReceivedPaymentID.toString()
+						);
+					}
+				} else {
+					// For first time flow
 					await AsyncStorage.setItem(
 						'@MetaMask:lastKnownInstantPaymentID',
 						latestReceivedPaymentID.toString()
 					);
 				}
-			} else {
-				// For first time flow
-				await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestReceivedPaymentID.toString());
 			}
+			this.setState({ transactions: paymentHistory.reverse() });
 		}
-		this.setState({ transactions: paymentHistory.reverse() });
 	};
 
 	addDefaultPaymentProfile = async () => {
