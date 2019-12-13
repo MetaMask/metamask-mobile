@@ -30,6 +30,10 @@ class TransactionsNotificationManager {
 	 * Boolean based on the current state of the app
 	 */
 	_backgroundMode;
+	/**
+	 * Current address of the instapay wallet
+	 */
+	_instapayWalletAddress;
 
 	/**
 	 * Object containing watched transaction ids list by transaction nonce
@@ -178,8 +182,7 @@ class TransactionsNotificationManager {
 
 	_confirmedCallback = (transactionMeta, originalTransaction) => {
 		this._handleTransactionsWatchListUpdate(transactionMeta);
-		// Once it's confirmed we hide the pending tx notification
-		const isInstaPayDeposit = false;
+		const isInstaPayDeposit = toChecksumAddress(transactionMeta.transaction.to) === this._instapayWalletAddress;
 
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
 			!isInstaPayDeposit &&
@@ -317,6 +320,13 @@ class TransactionsNotificationManager {
 	};
 
 	/**
+	 * Sets the address of the instapay wallet
+	 */
+	setInstaPayWalletAddress = address => {
+		this._instapayWalletAddress = address;
+	};
+
+	/**
 	 * Listen for events of a submitted transaction
 	 * and generates the corresponding notification
 	 * based on the status of the transaction (failed or confirmed)
@@ -414,6 +424,9 @@ export default {
 	init(_navigation) {
 		instance = new TransactionsNotificationManager(_navigation);
 		return instance;
+	},
+	setInstaPayWalletAddress(address) {
+		return instance.setInstaPayWalletAddress(address);
 	},
 	watchSubmittedTransaction(transaction) {
 		return instance.watchSubmittedTransaction(transaction);

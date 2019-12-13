@@ -125,6 +125,8 @@ class InstaPay {
 		const wallet = eth.Wallet.fromMnemonic(mnemonic, cfPath + '/0').connect(ethProvider);
 		this.setState({ network, walletAddress: wallet.address });
 
+		TransactionsNotificationManager.setInstaPayWalletAddress(wallet.address);
+
 		const hdNode = fromExtendedKey(fromMnemonic(mnemonic).extendedKey).derivePath(cfPath);
 		const xpub = hdNode.neuter().extendedKey;
 		const keyGen = index => {
