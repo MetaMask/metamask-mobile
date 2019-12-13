@@ -19,7 +19,7 @@ import { renderFromWei, toWei, fromWei, BNToHex } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../../util/networks';
 import PaymentChannelsClient from '../PaymentChannelsClient';
-import isomorphicCrypto from 'isomorphic-webcrypto';
+const isomorphicCrypto = require('isomorphic-webcrypto');
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 const API_URL = 'indra.connext.network/api';

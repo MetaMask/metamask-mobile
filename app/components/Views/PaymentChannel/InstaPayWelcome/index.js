@@ -1,11 +1,13 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, Image, Text, View, StyleSheet, Platform } from 'react-native';
+import { ActivityIndicator, SafeAreaView, Image, Text, View, StyleSheet, Platform } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import StyledButton from '../../../UI/StyledButton';
 import DeviceSize from '../../../../util/DeviceSize';
 import { strings } from '../../../../../locales/i18n';
 import AsyncStorage from '@react-native-community/async-storage';
+import { delay } from '../../../../core/InstaPay/utils';
+
 
 const styles = StyleSheet.create({
 	container: {
@@ -73,7 +75,11 @@ export default class InstaPayWelcome extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		this.state = { migrated: false };
+		this.state = {
+			migrated: false,
+			needsMigration: 'checking',
+			loading: false
+		};
 	}
 
 	componentDidMount() {
@@ -82,13 +88,39 @@ export default class InstaPayWelcome extends PureComponent {
 
 	checkMigrationStatus = async () => {
 		const instapayVersion = await AsyncStorage.getItem('@MetaMask:InstaPayVersion');
-		if (!instapayVersion) {
-			//this.setState({migrated: true});
+		if (instapayVersion) {
+			this.setState({migrated: true});
+		} else {
+			this.checkIfMigrationNeeded();
 		}
 	};
 
-	next = () => {
-		this.props.navigation.navigate('InstaPayUpdate');
+	checkIfMigrationNeeded = () => {
+		// TODO CHECK IF ANY ACCOUNT ON V1 HAS A BALANCE
+
+	}
+
+	next = async () => {
+		if(this.state.migrated){
+			this.close()
+		} else {
+			if(this.state.needsMigration  === 'checking'){
+				this.setState({loading: true});
+			}
+			// Wait until we figure out the balances
+			while(this.state.needsMigration  === 'checking'){
+				await delay(500);
+			}
+
+			this.setState({loading: false});
+
+			if(this.state.needsMigration === 'needed'){
+				this.props.navigation.navigate('InstaPayUpdate');
+			} else {
+				this.close();
+			}
+		}
+
 	};
 
 	close = () => {
@@ -107,15 +139,15 @@ export default class InstaPayWelcome extends PureComponent {
 					<Image source={welcomeImage} style={styles.frame} resizeMode={'contain'} />
 				</View>
 				<View style={styles.buttonWrapper}>
-					{this.state.migrated ? (
-						<StyledButton type={'normal'} onPress={this.close} containerStyle={styles.button}>
-							{strings('payment_channel.welcome.close')}
-						</StyledButton>
-					) : (
+
 						<StyledButton type={'normal'} onPress={this.next} containerStyle={styles.button}>
-							{strings('payment_channel.welcome.next')}
+							{this.state.loading ? (
+								<ActivityIndicator size="small" color="white" />
+								) : (
+									strings('payment_channel.welcome.next')
+								)}
 						</StyledButton>
-					)}
+
 				</View>
 			</SafeAreaView>
 		);
