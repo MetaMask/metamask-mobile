@@ -13,7 +13,7 @@ import {
 	parseWaitTime
 } from '../../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
-import { fromWei, renderWei, hexToBN, renderFromWei } from '../../../../util/number';
+import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
 import { getTicker } from '../../../../util/transactions';
 import Ionicon from 'react-native-vector-icons/Ionicons';
@@ -92,6 +92,7 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		color: colors.red,
+		marginVertical: 4,
 		...fontStyles.normal
 	},
 	loader: {
@@ -191,7 +192,11 @@ class CustomGas extends PureComponent {
 			selected: 'fast',
 			customGasPrice: fastGwei
 		});
-		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), 'fast');
+		this.props.handleGasFeeSelection({
+			gas,
+			gasPrice: apiEstimateModifiedToWEI(fastGwei),
+			customGasSelected: 'fast'
+		});
 	};
 
 	onPressGasAverage = () => {
@@ -204,7 +209,11 @@ class CustomGas extends PureComponent {
 			selected: 'average',
 			customGasPrice: averageGwei
 		});
-		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei), 'average');
+		this.props.handleGasFeeSelection({
+			gas,
+			gasPrice: apiEstimateModifiedToWEI(averageGwei),
+			customGasSelected: 'average'
+		});
 	};
 
 	onPressGasSlow = () => {
@@ -217,7 +226,11 @@ class CustomGas extends PureComponent {
 			selected: 'slow',
 			customGasPrice: safeLowGwei
 		});
-		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei), 'slow');
+		this.props.handleGasFeeSelection({
+			gas,
+			gasPrice: apiEstimateModifiedToWEI(safeLowGwei),
+			customGasSelected: 'slow'
+		});
 	};
 
 	onAdvancedOptions = () => {
@@ -226,18 +239,30 @@ class CustomGas extends PureComponent {
 		if (advancedCustomGas) {
 			switch (selected) {
 				case 'slow':
-					this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
+					this.props.handleGasFeeSelection({
+						gas,
+						gasPrice: apiEstimateModifiedToWEI(safeLowGwei),
+						customGasSelected: 'slow'
+					});
 					break;
 				case 'average':
-					this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
+					this.props.handleGasFeeSelection({
+						gas,
+						gasPrice: apiEstimateModifiedToWEI(averageGwei),
+						customGasSelected: 'average'
+					});
 					break;
 				case 'fast':
-					this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei));
+					this.props.handleGasFeeSelection({
+						gas,
+						gasPrice: apiEstimateModifiedToWEI(fastGwei),
+						customGasSelected: 'fast'
+					});
 					break;
 			}
 		} else {
 			this.setState({ customGasLimit: fromWei(gas, 'wei') });
-			this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(customGasPrice));
+			this.props.handleGasFeeSelection({ gas, gasPrice: apiEstimateModifiedToWEI(customGasPrice) });
 		}
 		this.setState({ advancedCustomGas: !advancedCustomGas });
 	};
@@ -302,16 +327,38 @@ class CustomGas extends PureComponent {
 	};
 
 	onGasLimitChange = value => {
+		let warningGasLimit;
 		const { customGasPrice } = this.state;
 		const bnValue = new BN(value);
-		this.setState({ customGasLimit: value, customGasLimitBN: bnValue });
-		this.props.handleGasFeeSelection(bnValue, apiEstimateModifiedToWEI(customGasPrice));
+		if (!value || value === '' || !isDecimal(value)) warningGasLimit = strings('transaction.invalid_gas');
+		else if (bnValue && !isBN(bnValue)) warningGasLimit = strings('transaction.invalid_gas');
+		else if (bnValue.lt(new BN(21000)) || bnValue.gt(new BN(7920028)))
+			warningGasLimit = strings('custom_gas.warning_gas_limit');
+		this.setState({ customGasLimit: value, customGasLimitBN: bnValue, warningGasLimit });
+		this.props.handleGasFeeSelection({
+			gas: bnValue,
+			gasPrice: apiEstimateModifiedToWEI(customGasPrice),
+			error: warningGasLimit
+		});
 	};
 
 	onGasPriceChange = value => {
+		let warningGasPrice;
 		const { customGasLimit } = this.state;
-		this.setState({ customGasPrice: value, customGasPriceBN: apiEstimateModifiedToWEI(value) });
-		this.props.handleGasFeeSelection(new BN(customGasLimit, 10), apiEstimateModifiedToWEI(value));
+		if (!value || value === '' || !isDecimal(value)) {
+			warningGasPrice = strings('transaction.invalid_gas_price');
+			this.setState({ customGasPrice: value, warningGasPrice });
+			this.props.handleGasFeeSelection({ error: warningGasPrice });
+		} else {
+			const gasPriceBN = apiEstimateModifiedToWEI(value);
+			if (gasPriceBN && !isBN(gasPriceBN)) warningGasPrice = strings('transaction.invalid_gas_price');
+			this.setState({
+				customGasPrice: value,
+				customGasPriceBN: apiEstimateModifiedToWEI(value),
+				warningGasPrice
+			});
+			this.props.handleGasFeeSelection({ gas: new BN(customGasLimit, 10), gasPrice: gasPriceBN });
+		}
 	};
 
 	renderGasSelector = (name, wei, selected, wait, onPress) => {
@@ -399,7 +446,7 @@ class CustomGas extends PureComponent {
 					onChangeText={this.onGasPriceChange}
 					value={customGasPrice}
 				/>
-				<Text style={styles.text}>{warningGasPrice}</Text>
+				<Text style={styles.warningText}>{warningGasPrice}</Text>
 			</View>
 		);
 	};

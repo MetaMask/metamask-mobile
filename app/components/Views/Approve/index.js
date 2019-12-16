@@ -258,6 +258,7 @@ class Approve extends PureComponent {
 		customGasPrice: undefined,
 		customGasModalVisible: false,
 		editPermissionModalVisible: false,
+		gasError: undefined,
 		host: undefined,
 		originalApproveAmount: undefined,
 		originalTransactionData: this.props.transaction.data,
@@ -340,18 +341,19 @@ class Approve extends PureComponent {
 		this.toggleCustomGasModal();
 	};
 
-	handleGasFeeSelection = (gas, gasPrice, customGasSelected) => {
-		this.setState({ customGas: gas, customGasPrice: gasPrice, customGasSelected });
+	handleGasFeeSelection = ({ gas, gasPrice, customGasSelected, error }) => {
+		this.setState({ customGas: gas, customGasPrice: gasPrice, customGasSelected, gasError: error });
 	};
 
 	renderCustomGasModal = () => {
-		const { customGasModalVisible, currentCustomGasSelected } = this.state;
+		const { customGasModalVisible, currentCustomGasSelected, gasError } = this.state;
 		const { gas, gasPrice } = this.props.transaction;
 		return (
 			<ActionModal
 				modalVisible={customGasModalVisible}
 				confirmText={strings('transaction.set_gas')}
 				cancelText={strings('transaction.cancel_gas')}
+				confirmDisabled={!!gasError}
 				onCancelPress={this.toggleCustomGasModal}
 				onRequestClose={this.toggleCustomGasModal}
 				onConfirmPress={this.handleSetGasFee}
