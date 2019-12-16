@@ -422,8 +422,7 @@ class Approve extends PureComponent {
 		return (
 			<ActionModal
 				modalVisible={editPermissionModalVisible}
-				confirmText={'Save'}
-				cancelText={strings('transaction.cancel_gas')}
+				confirmText={strings('spend_limit_edition.save')}
 				onCancelPress={this.toggleEditPermissionModal}
 				onRequestClose={this.toggleEditPermissionModal}
 				onConfirmPress={this.handleSetSpendLimit}
@@ -433,13 +432,15 @@ class Approve extends PureComponent {
 			>
 				<View style={baseStyles.flexGrow}>
 					<View style={styles.customGasModalTitle}>
-						<Text style={styles.customGasModalTitleText}>Edit Permission</Text>
+						<Text style={styles.customGasModalTitleText}>{strings('spend_limit_edition.title')}</Text>
 					</View>
 					<KeyboardAwareScrollView style={styles.spendLimitWrapper} extraScrollHeight={-140}>
-						<Text style={styles.spendLimitTitle}>Spend limit permission</Text>
-						<Text
-							style={styles.spendLimitSubtitle}
-						>{`Allow ${host} to withdraw and spend up to the following amount:`}</Text>
+						<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
+						<Text style={styles.spendLimitSubtitle}>
+							{strings('spend_limit_edition.allow')}
+							<Text style={fontStyles.bold}>{` ${host} `}</Text>
+							{strings('spend_limit_edition.allow_explanation')}
+						</Text>
 
 						<View style={styles.option}>
 							<TouchableOpacity
@@ -461,10 +462,10 @@ class Approve extends PureComponent {
 										spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
 									]}
 								>
-									{'Unlimited'}
+									{strings('spend_limit_edition.unlimited')}
 								</Text>
 								<Text style={styles.sectionExplanationText}>
-									{`Spend limit requested by`}
+									{strings('spend_limit_edition.requested_by')}
 									<Text style={fontStyles.bold}>{` ${host}`}</Text>
 								</Text>
 								<Text style={styles.optionText}>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
@@ -491,9 +492,11 @@ class Approve extends PureComponent {
 										!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
 									]}
 								>
-									{'Custom spend limit'}
+									{strings('spend_limit_edition.custom_spend_limit')}
 								</Text>
-								<Text style={styles.sectionExplanationText}>{`Enter a max spend limit`}</Text>
+								<Text style={styles.sectionExplanationText}>
+									{strings('spend_limit_edition.max_spend_limit')}
+								</Text>
 								<TextInput
 									ref={this.customSpendLimitInput}
 									autoCapitalize="none"
@@ -509,7 +512,9 @@ class Approve extends PureComponent {
 									onFocus={this.onPressSpendLimitCustomSelected}
 									returnKeyType={'done'}
 								/>
-								<Text style={styles.sectionExplanationText}>{`1.00 ${tokenSymbol} minimum`}</Text>
+								<Text style={styles.sectionExplanationText}>
+									{strings('spend_limit_edition.minimum', { tokenSymbol })}
+								</Text>
 							</View>
 						</View>
 					</KeyboardAwareScrollView>
@@ -548,8 +553,8 @@ class Approve extends PureComponent {
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionDirection />
 				<ActionView
-					cancelText={'Cancel'}
-					confirmText={'Approve'}
+					cancelText={strings('spend_limit_edition.cancel')}
+					confirmText={strings('spend_limit_edition.approve')}
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
 					confirmButtonMode={'confirm'}
@@ -559,26 +564,32 @@ class Approve extends PureComponent {
 							<View style={styles.websiteIconWrapper}>
 								<WebsiteIcon style={styles.icon} url={transaction.origin} title={host} />
 							</View>
-							<Text style={styles.title}>{`Allow ${host} to access your ${tokenSymbol}?`}</Text>
-							<Text
-								style={styles.explanation}
-							>{`Do you trust this site? By granting this permission, you're allowing ${host} to withdraw you ${tokenSymbol} and automate transactions for you.`}</Text>
+							<Text style={styles.title}>
+								{strings('spend_limit_edition.allow_to_access', { host, tokenSymbol })}
+							</Text>
+							<Text style={styles.explanation}>
+								{strings('spend_limit_edition.you_trust_this_site', { host, tokenSymbol })}
+							</Text>
 							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermissionModal}>
-								<Text style={styles.editPermissionText}>Edit permission</Text>
+								<Text style={styles.editPermissionText}>
+									{strings('spend_limit_edition.edit_permission')}
+								</Text>
 							</TouchableOpacity>
 						</View>
 						<View style={styles.section}>
 							<View style={styles.sectionTitleRow}>
 								<FontAwesome5 name={'tag'} size={20} color={colors.grey500} />
-								<Text style={[styles.sectionTitleText, styles.sectionLeft]}>Transaction fee</Text>
+								<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
+									{strings('transaction.transaction_fee')}
+								</Text>
 								<TouchableOpacity style={styles.sectionRight} onPress={this.toggleCustomGasModal}>
-									<Text style={styles.editText}>Edit</Text>
+									<Text style={styles.editText}>{strings('transaction.transaction_fee')}</Text>
 								</TouchableOpacity>
 							</View>
 							<View style={styles.row}>
 								<View style={[styles.sectionLeft]}>
 									<Text style={[styles.sectionExplanationText]}>
-										A transaction fee is associated with this permission. Learn why
+										{strings('spend_limit_edition.transaction_fee_explanation')}
 									</Text>
 								</View>
 								<View style={[styles.column, styles.sectionRight]}>
@@ -588,7 +599,9 @@ class Approve extends PureComponent {
 							</View>
 							<TouchableOpacity style={styles.actionTouchable} onPress={this.onViewDetails}>
 								<View style={styles.viewDetailsWrapper}>
-									<Text style={styles.viewDetailsText}>View details</Text>
+									<Text style={styles.viewDetailsText}>
+										{strings('spend_limit_edition.view_details')}
+									</Text>
 									<IonicIcon
 										name={`ios-arrow-${viewDetails ? 'up' : 'down'}`}
 										size={16}
@@ -609,28 +622,30 @@ class Approve extends PureComponent {
 										onPress={this.toggleEditPermissionModal}
 									/>
 									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-										Permission request
+										{strings('spend_limit_edition.permission_request')}
 									</Text>
 									<TouchableOpacity
 										style={styles.sectionRight}
 										onPress={this.toggleEditPermissionModal}
 									>
-										<Text style={styles.editText}>Edit</Text>
+										<Text style={styles.editText}>{strings('spend_limit_edition.edit')}</Text>
 									</TouchableOpacity>
 								</View>
 								<View style={styles.row}>
-									<Text
-										style={[styles.sectionExplanationText]}
-									>{`${host} may access and spend p to this max amount from this account.`}</Text>
+									<Text style={[styles.sectionExplanationText]}>
+										{strings('spend_limit_edition.details_explanation', { host })}
+									</Text>
 								</View>
 								<Text style={styles.permissionDetails}>
-									<Text style={fontStyles.bold}>Amount: </Text>
+									<Text style={fontStyles.bold}>{strings('spend_limit_edition.amount')}</Text>{' '}
 									{`${amount} ${tokenSymbol}`}
 								</Text>
 								<View style={styles.row}>
 									<Text style={styles.permissionDetails}>
-										<Text style={fontStyles.bold}>To: </Text>
-										{`Contract (${renderShortAddress(transaction.to)})`}
+										<Text style={fontStyles.bold}>{strings('spend_limit_edition.to')}</Text>{' '}
+										{strings('spend_limit_edition.contract', {
+											address: renderShortAddress(transaction.to)
+										})}
 									</Text>
 									<FontAwesome name="copy" size={16} color={colors.blue} style={styles.copyIcon} />
 								</View>
@@ -641,10 +656,14 @@ class Approve extends PureComponent {
 							<View style={styles.section}>
 								<View style={styles.sectionTitleRow}>
 									<FontAwesome5 solid name={'file-alt'} size={20} color={colors.grey500} />
-									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>Data</Text>
+									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
+										{strings('spend_limit_edition.data')}
+									</Text>
 								</View>
 								<View style={styles.row}>
-									<Text style={[styles.sectionExplanationText]}>{`Function: Approve`}</Text>
+									<Text style={[styles.sectionExplanationText]}>
+										{strings('spend_limit_edition.function_approve')}
+									</Text>
 								</View>
 								<Text style={styles.sectionExplanationText}>{transaction.data}</Text>
 							</View>
