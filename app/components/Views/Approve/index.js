@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * PureComponent that manages transaction approval from the dapp browser
+ * PureComponent that manages erc20 approve from the dapp browser
  */
 class Approve extends PureComponent {
 	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
@@ -265,6 +265,7 @@ class Approve extends PureComponent {
 	};
 
 	state = {
+		approved: false,
 		currentCustomGasSelected: 'average',
 		customGasSelected: 'average',
 		customGas: undefined,
@@ -309,6 +310,12 @@ class Approve extends PureComponent {
 			totalGas: renderFromWei(totalGas),
 			totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
 		});
+	};
+
+	componentWillUnmount = () => {
+		const { approved } = this.state;
+		const { transaction } = this.props;
+		if (!approved) Engine.context.TransactionController.cancelTransaction(transaction.id);
 	};
 
 	onViewDetails = () => {
@@ -442,6 +449,7 @@ class Approve extends PureComponent {
 				onConfirmPress={this.handleSetSpendLimit}
 				cancelButtonMode={'neutral'}
 				confirmButtonMode={'confirm'}
+				confirmDisabled={!spendLimitCustomValue}
 				displayCancelButton={false}
 			>
 				<View style={baseStyles.flexGrow}>
@@ -551,6 +559,7 @@ class Approve extends PureComponent {
 			error = strings('transaction.insufficient');
 		}
 		this.setState({ gasError: error });
+		return error;
 	};
 
 	prepareTransaction = transaction => ({
@@ -562,13 +571,12 @@ class Approve extends PureComponent {
 	});
 
 	onConfirm = () => {
-		this.validateGas();
+		if (this.validateGas()) return;
 		console.log('prepared', this.prepareTransaction(this.props.transaction));
+		this.setState({ approved: true });
 	};
 
 	onCancel = () => {
-		const { transaction } = this.props;
-		Engine.context.TransactionController.cancelTransaction(transaction.id);
 		this.props.navigation.pop();
 	};
 
