@@ -18,10 +18,11 @@ import CustomGas from '../SendFlow/CustomGas';
 import ActionModal from '../../UI/ActionModal';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
-import { BNToHex } from 'gaba/dist/util';
-import { renderFromWei, weiToFiatNumber } from '../../../util/number';
+import { BNToHex, hexToBN } from 'gaba/dist/util';
+import { renderFromWei, weiToFiatNumber, isBN } from '../../../util/number';
 import { getTicker, decodeTransferData, generateApproveData } from '../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import ErrorMessage from '../SendFlow/ErrorMessage';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -215,6 +216,9 @@ const styles = StyleSheet.create({
 	},
 	textBlack: {
 		color: colors.black
+	},
+	errorMessageWrapper: {
+		marginTop: 16
 	}
 });
 
@@ -225,6 +229,10 @@ class Approve extends PureComponent {
 	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
 
 	static propTypes = {
+		/**
+		 * List of accounts from the AccountTrackerController
+		 */
+		accounts: PropTypes.object,
 		/**
 		 * Object that represents the navigator
 		 */
@@ -305,7 +313,7 @@ class Approve extends PureComponent {
 
 	toggleCustomGasModal = () => {
 		const { customGasModalVisible } = this.state;
-		this.setState({ customGasModalVisible: !customGasModalVisible });
+		this.setState({ customGasModalVisible: !customGasModalVisible, gasError: undefined });
 	};
 
 	toggleEditPermissionModal = () => {
@@ -525,6 +533,22 @@ class Approve extends PureComponent {
 		);
 	};
 
+	validateGas = () => {
+		let error;
+		const {
+			transaction: { gas, gasPrice, from },
+			accounts
+		} = this.props;
+		if (!gas) return strings('transaction.invalid_gas');
+		if (!gasPrice) return strings('transaction.invalid_gas_price');
+		const checksummedFrom = safeToChecksumAddress(from) || '';
+		const fromAccount = accounts[checksummedFrom];
+		if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice))) {
+			error = strings('transaction.insufficient');
+		}
+		this.setState({ gasError: error });
+	};
+
 	prepareTransaction = transaction => ({
 		...transaction,
 		gas: BNToHex(transaction.gas),
@@ -534,6 +558,7 @@ class Approve extends PureComponent {
 	});
 
 	onConfirm = () => {
+		this.validateGas();
 		console.log('prepared', this.prepareTransaction(this.props.transaction));
 	};
 
@@ -549,7 +574,7 @@ class Approve extends PureComponent {
 			transaction: { data },
 			currentCurrency
 		} = this.props;
-		const { host, tokenSymbol, viewDetails, totalGas, totalGasFiat, ticker } = this.state;
+		const { host, tokenSymbol, viewDetails, totalGas, totalGasFiat, ticker, gasError } = this.state;
 		const amount = decodeTransferData('transfer', data)[1];
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -612,6 +637,11 @@ class Approve extends PureComponent {
 									/>
 								</View>
 							</TouchableOpacity>
+							{gasError && (
+								<View style={styles.errorMessageWrapper}>
+									<ErrorMessage errorMessage={gasError} />
+								</View>
+							)}
 						</View>
 
 						{viewDetails && (
@@ -680,6 +710,7 @@ class Approve extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
