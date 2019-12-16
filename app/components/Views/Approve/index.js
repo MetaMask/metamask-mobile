@@ -20,7 +20,7 @@ import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { BNToHex } from 'gaba/dist/util';
 import { renderFromWei, weiToFiatNumber } from '../../../util/number';
-import { getTicker } from '../../../util/transactions';
+import { getTicker, decodeTransferData, generateApproveData } from '../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const styles = StyleSheet.create({
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	spendLimitWrapper: {
-		margin: 24
+		margin: 16
 	},
 	spendLimitTitle: {
 		...fontStyles.bold,
@@ -252,23 +252,25 @@ class Approve extends PureComponent {
 		customGasSelected: 'average',
 		customGas: undefined,
 		customGasPrice: undefined,
-		totalGas: undefined,
-		totalGasFiat: undefined,
-		host: undefined,
-		tokenSymbol: undefined,
-		viewDetails: false,
 		customGasModalVisible: false,
 		editPermissionModalVisible: false,
-		ticker: getTicker(this.props.ticker),
+		host: undefined,
+		originalApproveAmount: undefined,
+		originalTransactionData: this.props.transaction.data,
+		totalGas: undefined,
+		totalGasFiat: undefined,
+		tokenSymbol: undefined,
 		spendLimitUnlimitedSelected: true,
-		spendLimitCustomValue: undefined
+		spendLimitCustomValue: undefined,
+		ticker: getTicker(this.props.ticker),
+		viewDetails: false
 	};
 
 	customSpendLimitInput = React.createRef();
 
 	componentDidMount = async () => {
 		const {
-			transaction: { origin, to, gas, gasPrice },
+			transaction: { origin, to, gas, gasPrice, data },
 			conversionRate
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
@@ -280,9 +282,11 @@ class Approve extends PureComponent {
 		} else {
 			tokenSymbol = contract.symbol;
 		}
+		const originalApproveAmount = decodeTransferData('transfer', data)[1];
 		const totalGas = gas.mul(gasPrice);
 		this.setState({
 			host,
+			originalApproveAmount,
 			tokenSymbol,
 			totalGas: renderFromWei(totalGas),
 			totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
@@ -366,7 +370,7 @@ class Approve extends PureComponent {
 	};
 
 	onPressSpendLimitUnlimitedSelected = () => {
-		this.setState({ spendLimitUnlimitedSelected: true });
+		this.setState({ spendLimitUnlimitedSelected: true, spendLimitCustomValue: undefined });
 	};
 
 	onPressSpendLimitCustomSelected = () => {
@@ -384,13 +388,32 @@ class Approve extends PureComponent {
 		this.setState({ spendLimitCustomValue: value });
 	};
 
+	handleSetSpendLimit = () => {
+		const {
+			transaction: { data },
+			setTransactionObject
+		} = this.props;
+		const { spendLimitCustomValue, originalTransactionData, spendLimitUnlimitedSelected } = this.state;
+		let newData;
+		if (spendLimitUnlimitedSelected) {
+			newData = originalTransactionData;
+		} else {
+			const spender = decodeTransferData('transfer', data)[0];
+			newData = generateApproveData({ spender, value: parseFloat(spendLimitCustomValue).toString(16) });
+		}
+
+		setTransactionObject({ data: newData });
+		this.toggleEditPermissionModal();
+	};
+
 	renderEditPermissionModal = () => {
 		const {
 			editPermissionModalVisible,
 			host,
 			spendLimitUnlimitedSelected,
 			tokenSymbol,
-			spendLimitCustomValue
+			spendLimitCustomValue,
+			originalApproveAmount
 		} = this.state;
 		return (
 			<ActionModal
@@ -440,7 +463,7 @@ class Approve extends PureComponent {
 									{`Spend limit requested by`}
 									<Text style={fontStyles.bold}>{` ${host}`}</Text>
 								</Text>
-								<Text style={styles.optionText}>{`100 ${tokenSymbol}`}</Text>
+								<Text style={styles.optionText}>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
 							</View>
 						</View>
 
@@ -476,12 +499,10 @@ class Approve extends PureComponent {
 									placeholder={`100 ${tokenSymbol}`}
 									placeholderTextColor={colors.grey100}
 									spellCheck={false}
-									editable={!spendLimitUnlimitedSelected}
 									style={styles.input}
 									value={spendLimitCustomValue}
 									numberOfLines={1}
-									// onBlur={this.onBlur}
-									// onFocus={this.onInputFocus}
+									onFocus={this.onPressSpendLimitCustomSelected}
 									// onSubmitEditing={this.onFocus}
 								/>
 								<Text style={styles.sectionExplanationText}>{`1.00 ${tokenSymbol} minimum`}</Text>
@@ -506,8 +527,13 @@ class Approve extends PureComponent {
 	};
 
 	render = () => {
-		const { transaction, currentCurrency } = this.props;
+		const {
+			transaction,
+			transaction: { data },
+			currentCurrency
+		} = this.props;
 		const { host, tokenSymbol, viewDetails, totalGas, totalGasFiat, ticker } = this.state;
+		const amount = decodeTransferData('transfer', data)[1];
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionDirection />
@@ -589,7 +615,7 @@ class Approve extends PureComponent {
 								</View>
 								<Text style={styles.permissionDetails}>
 									<Text style={fontStyles.bold}>Amount: </Text>
-									{`100 ${tokenSymbol}`}
+									{`${amount} ${tokenSymbol}`}
 								</Text>
 								<View style={styles.row}>
 									<Text style={styles.permissionDetails}>

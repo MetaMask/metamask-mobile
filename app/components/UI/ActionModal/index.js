@@ -79,7 +79,7 @@ export default function ActionModal({
 								testID={cancelTestID}
 								type={cancelButtonMode}
 								onPress={onCancelPress}
-								containerStyle={[styles.button, styles.cancel]}
+								containerStyle={[styles.button, displayConfirmButton ? styles.cancel : {}]}
 							>
 								{cancelText}
 							</StyledButton>
@@ -89,7 +89,7 @@ export default function ActionModal({
 								testID={confirmTestID}
 								type={confirmButtonMode}
 								onPress={onConfirmPress}
-								containerStyle={[styles.button, styles.confirm]}
+								containerStyle={[styles.button, displayCancelButton ? styles.confirm : {}]}
 								disabled={confirmDisabled}
 							>
 								{confirmText}

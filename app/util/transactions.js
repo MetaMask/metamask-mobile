@@ -101,6 +101,26 @@ export function generateTransferData(type, opts) {
 }
 
 /**
+ * Generates ERC20 approve data
+ *
+ * @param {object} opts - Object containing spender address and value
+ * @returns {String} - String containing the generated approce data
+ */
+export function generateApproveData(opts) {
+	if (!opts.spender || !opts.value) {
+		throw new Error(`[transactions] 'spender' and 'value' must be defined for 'type' approve`);
+	}
+	return (
+		APPROVE_FUNCTION_SIGNATURE +
+		Array.prototype.map
+			.call(rawEncode(['address', 'uint256'], [opts.spender, addHexPrefix(opts.value)]), x =>
+				('00' + x.toString(16)).slice(-2)
+			)
+			.join('')
+	);
+}
+
+/**
  * Decode transfer data for specified method data
  *
  * @param {String} type - Method to use to generate data
