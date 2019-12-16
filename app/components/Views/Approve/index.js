@@ -332,7 +332,6 @@ class Approve extends PureComponent {
 		this.setState({ gasEstimationReady: false });
 
 		setTransactionObject({ gas: customGas, gasPrice: customGasPrice });
-		// TODO enough balance for gas
 		const totalGas = customGas.mul(customGasPrice);
 
 		setTimeout(() => {
@@ -595,7 +594,9 @@ class Approve extends PureComponent {
 								{strings('spend_limit_edition.allow_to_access', { host, tokenSymbol })}
 							</Text>
 							<Text style={styles.explanation}>
-								{strings('spend_limit_edition.you_trust_this_site', { host, tokenSymbol })}
+								{strings('spend_limit_edition.you_trust_this_site_1')}
+								<Text style={fontStyles.bold}> {host} </Text>
+								{strings('spend_limit_edition.you_trust_this_site_2', { tokenSymbol })}
 							</Text>
 							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermissionModal}>
 								<Text style={styles.editPermissionText}>
@@ -614,8 +615,8 @@ class Approve extends PureComponent {
 								</TouchableOpacity>
 							</View>
 							<View style={styles.row}>
-								<View style={[styles.sectionLeft]}>
-									<Text style={[styles.sectionExplanationText]}>
+								<View style={styles.sectionLeft}>
+									<Text style={styles.sectionExplanationText}>
 										{strings('spend_limit_edition.transaction_fee_explanation')}
 									</Text>
 								</View>
@@ -664,7 +665,7 @@ class Approve extends PureComponent {
 									</TouchableOpacity>
 								</View>
 								<View style={styles.row}>
-									<Text style={[styles.sectionExplanationText]}>
+									<Text style={styles.sectionExplanationText}>
 										{strings('spend_limit_edition.details_explanation', { host })}
 									</Text>
 								</View>
@@ -693,7 +694,7 @@ class Approve extends PureComponent {
 									</Text>
 								</View>
 								<View style={styles.row}>
-									<Text style={[styles.sectionExplanationText]}>
+									<Text style={styles.sectionExplanationText}>
 										{strings('spend_limit_edition.function_approve')}
 									</Text>
 								</View>
