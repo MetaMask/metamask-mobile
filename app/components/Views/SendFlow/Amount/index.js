@@ -829,7 +829,7 @@ class Amount extends PureComponent {
 							disabled={!estimatedTotalGas}
 							onPress={this.onNext}
 						>
-							Next
+							{strings('transaction.next')}
 						</StyledButton>
 					</View>
 				</KeyboardAvoidingView>
