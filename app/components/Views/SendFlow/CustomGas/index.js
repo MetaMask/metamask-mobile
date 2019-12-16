@@ -13,7 +13,7 @@ import {
 	parseWaitTime
 } from '../../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
-import { fromWei, renderWei, hexToBN, renderFromWei, isBN } from '../../../../util/number';
+import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
 import { getTicker } from '../../../../util/transactions';
 import Ionicon from 'react-native-vector-icons/Ionicons';
@@ -330,7 +330,7 @@ class CustomGas extends PureComponent {
 		let warningGasLimit;
 		const { customGasPrice } = this.state;
 		const bnValue = new BN(value);
-		if (!value || value === '') warningGasLimit = strings('transaction.invalid_gas');
+		if (!value || value === '' || !isDecimal(value)) warningGasLimit = strings('transaction.invalid_gas');
 		else if (bnValue && !isBN(bnValue)) warningGasLimit = strings('transaction.invalid_gas');
 		else if (bnValue.lt(new BN(21000)) || bnValue.gt(new BN(7920028)))
 			warningGasLimit = strings('custom_gas.warning_gas_limit');
@@ -345,7 +345,7 @@ class CustomGas extends PureComponent {
 	onGasPriceChange = value => {
 		let warningGasPrice;
 		const { customGasLimit } = this.state;
-		if (!value || value === '') {
+		if (!value || value === '' || !isDecimal(value)) {
 			warningGasPrice = strings('transaction.invalid_gas_price');
 			this.setState({ customGasPrice: value, warningGasPrice });
 			this.props.handleGasFeeSelection({ error: warningGasPrice });
