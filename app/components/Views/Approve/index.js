@@ -226,6 +226,10 @@ class Approve extends PureComponent {
 
 	static propTypes = {
 		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
@@ -524,6 +528,12 @@ class Approve extends PureComponent {
 
 	onConfirm = () => {
 		console.log('prepared', this.prepareTransaction(this.props.transaction));
+	};
+
+	onCancel = () => {
+		const { transaction } = this.props;
+		Engine.context.TransactionController.cancelTransaction(transaction.id);
+		this.props.navigation.pop();
 	};
 
 	render = () => {
