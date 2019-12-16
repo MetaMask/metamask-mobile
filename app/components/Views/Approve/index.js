@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, TextInput } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, TextInput, Clipboard } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -13,7 +13,6 @@ import Engine from '../../../core/Engine';
 import ActionView from '../../UI/ActionView';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import CustomGas from '../SendFlow/CustomGas';
 import ActionModal from '../../UI/ActionModal';
 import { strings } from '../../../../locales/i18n';
@@ -23,6 +22,8 @@ import { renderFromWei, weiToFiatNumber, isBN } from '../../../util/number';
 import { getTicker, decodeTransferData, generateApproveData } from '../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ErrorMessage from '../SendFlow/ErrorMessage';
+import { showAlert } from '../../../actions/alert';
+import Feather from 'react-native-vector-icons/Feather';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -253,6 +254,10 @@ class Approve extends PureComponent {
 		 * Action that sets transaction attributes from object to a transaction
 		 */
 		setTransactionObject: PropTypes.func.isRequired,
+		/**
+		 * Action that shows the global alert
+		 */
+		showAlert: PropTypes.func,
 		/**
 		 * Current provider ticker
 		 */
@@ -567,6 +572,17 @@ class Approve extends PureComponent {
 		this.props.navigation.pop();
 	};
 
+	copyContractAddress = async () => {
+		const { transaction } = this.props;
+		await Clipboard.setString(transaction.to);
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings('transactions.address_copied_to_clipboard') }
+		});
+	};
+
 	render = () => {
 		const {
 			transaction,
@@ -680,7 +696,13 @@ class Approve extends PureComponent {
 											address: renderShortAddress(transaction.to)
 										})}
 									</Text>
-									<FontAwesome name="copy" size={16} color={colors.blue} style={styles.copyIcon} />
+									<Feather
+										name="copy"
+										size={16}
+										color={colors.blue}
+										style={styles.copyIcon}
+										onPress={this.copyContractAddress}
+									/>
 								</View>
 							</View>
 						)}
@@ -719,7 +741,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
+	showAlert: config => dispatch(showAlert(config))
 });
 
 export default connect(
