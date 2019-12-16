@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	spendLimitWrapper: {
-		margin: 16
+		padding: 16
 	},
 	spendLimitTitle: {
 		...fontStyles.bold,
@@ -435,7 +435,7 @@ class Approve extends PureComponent {
 					<View style={styles.customGasModalTitle}>
 						<Text style={styles.customGasModalTitleText}>Edit Permission</Text>
 					</View>
-					<KeyboardAwareScrollView style={styles.spendLimitWrapper} extraScrollHeight={-100}>
+					<KeyboardAwareScrollView style={styles.spendLimitWrapper} extraScrollHeight={-140}>
 						<Text style={styles.spendLimitTitle}>Spend limit permission</Text>
 						<Text
 							style={styles.spendLimitSubtitle}
@@ -507,7 +507,7 @@ class Approve extends PureComponent {
 									value={spendLimitCustomValue}
 									numberOfLines={1}
 									onFocus={this.onPressSpendLimitCustomSelected}
-									// onSubmitEditing={this.onFocus}
+									returnKeyType={'done'}
 								/>
 								<Text style={styles.sectionExplanationText}>{`1.00 ${tokenSymbol} minimum`}</Text>
 							</View>
