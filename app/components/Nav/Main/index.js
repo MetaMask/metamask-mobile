@@ -93,7 +93,8 @@ import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
 import AsyncStorage from '@react-native-community/async-storage';
-import Approve from '../../Views/Approve';
+import Approve from '../../Views/ApproveView/Approve';
+import ApproveSuccess from '../../Views/ApproveView/Success';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -258,10 +259,22 @@ const MainNavigator = createStackNavigator(
 		},
 		ApproveView: {
 			screen: createStackNavigator({
-				Approval: {
+				Approve: {
 					screen: Approve
 				}
 			})
+		},
+		ApproveSuccessView: {
+			screen: createStackNavigator(
+				{
+					ApproveSuccess: {
+						screen: ApproveSuccess
+					}
+				},
+				{
+					headerMode: 'none'
+				}
+			)
 		},
 		AddBookmarkView: {
 			screen: createStackNavigator({

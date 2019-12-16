@@ -535,7 +535,10 @@
 		"to": "To:",
 		"contract": "Contract ({{address}})",
 		"data": "Data",
-		"function_approve": "Function: Approve"
+		"function_approve": "Function: Approve",
+		"close": "Close",
+		"all_set": "All set!",
+		"all_set_desc": "You’ve successfully set permissions for this site."
 	},
 	"browser": {
 		"title": "Browser",

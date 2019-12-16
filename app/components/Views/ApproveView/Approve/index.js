@@ -1,28 +1,28 @@
 import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, TextInput, Clipboard } from 'react-native';
 import PropTypes from 'prop-types';
-import { getApproveNavbar } from '../../UI/Navbar';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { getApproveNavbar } from '../../../UI/Navbar';
+import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
-import WebsiteIcon from '../../UI/WebsiteIcon';
-import { getHost } from '../../../util/browser';
-import TransactionDirection from '../TransactionDirection';
+import WebsiteIcon from '../../../UI/WebsiteIcon';
+import { getHost } from '../../../../util/browser';
+import TransactionDirection from '../../TransactionDirection';
 import contractMap from 'eth-contract-metadata';
-import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
-import Engine from '../../../core/Engine';
-import ActionView from '../../UI/ActionView';
+import { safeToChecksumAddress, renderShortAddress } from '../../../../util/address';
+import Engine from '../../../../core/Engine';
+import ActionView from '../../../UI/ActionView';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import CustomGas from '../SendFlow/CustomGas';
-import ActionModal from '../../UI/ActionModal';
-import { strings } from '../../../../locales/i18n';
-import { setTransactionObject } from '../../../actions/transaction';
+import CustomGas from '../../SendFlow/CustomGas';
+import ActionModal from '../../../UI/ActionModal';
+import { strings } from '../../../../../locales/i18n';
+import { setTransactionObject } from '../../../../actions/transaction';
 import { BNToHex, hexToBN } from 'gaba/dist/util';
-import { renderFromWei, weiToFiatNumber, isBN } from '../../../util/number';
-import { getTicker, decodeTransferData, generateApproveData } from '../../../util/transactions';
+import { renderFromWei, weiToFiatNumber, isBN } from '../../../../util/number';
+import { getTicker, decodeTransferData, generateApproveData } from '../../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import ErrorMessage from '../SendFlow/ErrorMessage';
-import { showAlert } from '../../../actions/alert';
+import ErrorMessage from '../../SendFlow/ErrorMessage';
+import { showAlert } from '../../../../actions/alert';
 import Feather from 'react-native-vector-icons/Feather';
 
 const styles = StyleSheet.create({
@@ -574,6 +574,8 @@ class Approve extends PureComponent {
 		if (this.validateGas()) return;
 		console.log('prepared', this.prepareTransaction(this.props.transaction));
 		this.setState({ approved: true });
+		this.props.navigation.pop();
+		this.props.navigation.navigate('ApproveSuccessView');
 	};
 
 	onCancel = () => {
