@@ -585,7 +585,7 @@ class Approve extends PureComponent {
 									{strings('transaction.transaction_fee')}
 								</Text>
 								<TouchableOpacity style={styles.sectionRight} onPress={this.toggleCustomGasModal}>
-									<Text style={styles.editText}>{strings('transaction.transaction_fee')}</Text>
+									<Text style={styles.editText}>{strings('transaction.edit')}</Text>
 								</TouchableOpacity>
 							</View>
 							<View style={styles.row}>
