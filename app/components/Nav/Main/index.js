@@ -92,6 +92,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
+import TransactionTypes from '../../../core/TransactionTypes';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -752,13 +753,19 @@ class Main extends PureComponent {
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transactionMeta.id);
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+				{ text: strings('navigation.ok') }
+			]);
 			this.setState({ transactionHandled: false });
 		}
 	};
 
 	onUnapprovedTransaction = async transactionMeta => {
-		if (this.props.transaction.value || this.props.transaction.to || transactionMeta.origin === 'MMM') {
+		if (
+			this.props.transaction.value ||
+			this.props.transaction.to ||
+			transactionMeta.origin === TransactionTypes.MMM
+		) {
 			return;
 		}
 		// Check if it's a payment channel deposit transaction to sign

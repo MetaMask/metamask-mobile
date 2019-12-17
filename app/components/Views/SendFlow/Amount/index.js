@@ -46,6 +46,7 @@ import Engine from '../../../../core/Engine';
 import CollectibleImage from '../../../UI/CollectibleImage';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
+import TransactionTypes from '../../../../core/TransactionTypes';
 
 const KEYBOARD_OFFSET = 120;
 
@@ -456,7 +457,7 @@ class Amount extends PureComponent {
 				to: transactionTo
 			});
 		} catch (e) {
-			estimation = { gas: '0x5208' };
+			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
 		}
 		try {
 			basicGasEstimates = await fetchBasicGasEstimates();

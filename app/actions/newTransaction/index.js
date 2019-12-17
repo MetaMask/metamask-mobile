@@ -1,3 +1,9 @@
+import TransactionTypes from '../../core/TransactionTypes';
+
+const {
+	ASSET: { ETH, ERC20, ERC721 }
+} = TransactionTypes;
+
 /**
  * Clears transaction object completely
  */
@@ -16,7 +22,7 @@ export function newAssetTransaction(selectedAsset) {
 	return {
 		type: 'NEW_ASSET_TRANSACTION',
 		selectedAsset,
-		assetType: selectedAsset.isETH ? 'ETH' : selectedAsset.tokenId ? 'ERC721' : 'ERC20'
+		assetType: selectedAsset.isETH ? ETH : selectedAsset.tokenId ? ERC721 : ERC20
 	};
 }
 
@@ -49,7 +55,7 @@ export function setSelectedAsset(selectedAsset) {
 	return {
 		type: 'SET_SELECTED_ASSET',
 		selectedAsset,
-		assetType: selectedAsset.isETH ? 'ETH' : selectedAsset.tokenId ? 'ERC721' : 'ERC20'
+		assetType: selectedAsset.isETH ? ETH : selectedAsset.tokenId ? ERC721 : ERC20
 	};
 }
 

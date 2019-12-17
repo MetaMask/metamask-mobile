@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import Modal from 'react-native-modal';
 import { colors } from '../../../styles/common';
 import StyledButton from '../StyledButton';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -101,8 +102,8 @@ ActionModal.defaultProps = {
 	confirmButtonMode: 'warning',
 	confirmTestID: '',
 	cancelTestID: '',
-	cancelText: 'CANCEL',
-	confirmText: 'CONFIRM',
+	cancelText: strings('action_view.cancel'),
+	confirmText: strings('action_view.confirm'),
 	confirmDisabled: false
 };
 

@@ -41,10 +41,11 @@ import collectiblesTransferInformation from '../../../../util/collectibles-trans
 import CollectibleImage from '../../../UI/CollectibleImage';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import TransactionTypes from '../../../../core/TransactionTypes';
 
-const AVERAGE_GAS = 20;
-const LOW_GAS = 10;
-const FAST_GAS = 40;
+const {
+	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
+} = TransactionTypes;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -344,7 +345,6 @@ class Confirm extends PureComponent {
 			transactionTotalAmount = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
 		} else {
-			// TODO check if user has token in case of confirm
 			let amount;
 			const { address, symbol = 'ERC20', decimals } = selectedAsset;
 			fromAccountBalance = `${renderFromTokenMinimalUnit(contractBalances[address], decimals)} ${symbol}`;
@@ -397,7 +397,7 @@ class Confirm extends PureComponent {
 				to
 			});
 		} catch (e) {
-			estimation = { gas: '0x5208' };
+			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
 		}
 		let basicGasEstimates;
 		try {
@@ -556,7 +556,10 @@ class Confirm extends PureComponent {
 		}
 		try {
 			const transaction = this.prepareTransactionToSend();
-			const { result, transactionMeta } = await TransactionController.addTransaction(transaction, 'MMM');
+			const { result, transactionMeta } = await TransactionController.addTransaction(
+				transaction,
+				TransactionTypes.MMM
+			);
 
 			await TransactionController.approveTransaction(transactionMeta.id);
 			await new Promise(resolve => resolve(result));
@@ -574,7 +577,9 @@ class Confirm extends PureComponent {
 				navigation && navigation.dismiss();
 			});
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+				{ text: strings('navigation.ok') }
+			]);
 		}
 		this.setState({ transactionConfirmed: false });
 	};

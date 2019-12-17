@@ -6,7 +6,8 @@
 		"back": "Back",
 		"close": "Close",
 		"cancel": "Cancel",
-		"info": "Info"
+		"info": "Info",
+		"ok": "OK"
 	},
 	"onboarding": {
 		"title": "Get started!",

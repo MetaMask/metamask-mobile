@@ -16,10 +16,11 @@ import { fromWei, renderWei, hexToBN } from '../../../util/number';
 import Logger from '../../../util/Logger';
 import { getTicker } from '../../../util/transactions';
 import DeviceSize from '../../../util/DeviceSize';
+import TransactionTypes from '../../../core/TransactionTypes';
 
-const AVERAGE_GAS = 20;
-const LOW_GAS = 10;
-const FAST_GAS = 40;
+const {
+	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
+} = TransactionTypes;
 
 const styles = StyleSheet.create({
 	selectors: {

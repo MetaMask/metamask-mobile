@@ -151,7 +151,7 @@ class ContactForm extends PureComponent {
 		const { network } = this.props;
 		let addressError, toEnsName;
 		let addressReady = false;
-		if (isValidAddress(address) && address.length === 42) {
+		if (isValidAddress(address)) {
 			addressError = this.checkIfAlreadySaved(address);
 			addressReady = true;
 		} else if (isENS(address)) {
