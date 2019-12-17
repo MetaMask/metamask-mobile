@@ -74,14 +74,11 @@ export default class InstaPayWelcome extends PureComponent {
 		navigation: PropTypes.object
 	};
 
-	constructor(props) {
-		super(props);
-		this.state = {
-			migrated: false,
-			needsMigration: null,
-			loading: false
-		};
-	}
+	state = {
+		migrated: false,
+		needsMigration: null,
+		loading: false
+	};
 
 	componentDidMount() {
 		this.checkMigrationStatus();

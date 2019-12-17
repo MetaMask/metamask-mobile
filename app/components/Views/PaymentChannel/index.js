@@ -209,9 +209,6 @@ class PaymentChannel extends PureComponent {
 		transactions: [],
 		xpub: null,
 		wallet: null,
-		username: null,
-		newUsername: null,
-		chooseUserModalVisible: false,
 		upgradeModalVisible: InstaPay.isMigrating()
 	};
 
@@ -348,7 +345,7 @@ class PaymentChannel extends PureComponent {
 	handleTransactions = transactions => {
 		let parsedTransactions = [];
 		// Send and Receive
-		const fiveMinutesAgo = Date.now() - 1000 * 60 * 1;
+		const aMinuteAgo = Date.now() - 1000 * 60 * 1;
 		if (transactions && transactions.length && this.state.xpub) {
 			parsedTransactions = transactions
 				.map(tx => ({
@@ -363,7 +360,7 @@ class PaymentChannel extends PureComponent {
 						paymentChannelAddress: this.state.xpub
 					}
 				}))
-				.filter(tx => !(!tx.transaction.to && tx.time < fiveMinutesAgo));
+				.filter(tx => !(!tx.transaction.to && tx.time < aMinuteAgo));
 		}
 
 		// Deposits
@@ -545,13 +542,6 @@ class PaymentChannel extends PureComponent {
 						</View>
 					)}
 				</View>
-				{/* <View style={styles.usernameWrapper}>
-					{!this.state.username ? (
-						<ActivityIndicator size="small" />
-					) : (
-						<Text style={styles.usernameText}>{this.state.username && `@${this.state.username}`}</Text>
-					)}
-				</View> */}
 			</View>
 		);
 	}

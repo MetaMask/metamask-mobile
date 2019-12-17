@@ -101,7 +101,7 @@ class PaymentChannelSend extends PureComponent {
 		} catch (e) {
 			const msg = strings('payment_channel.unknown_error');
 			Alert.alert(strings('payment_channel.error'), msg);
-			Logger.log('buy error error');
+			Logger.error('buy error error', e);
 			this.sending = false;
 			return;
 		}

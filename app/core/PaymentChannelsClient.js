@@ -456,8 +456,6 @@ const instance = {
 					await client.setConnext(provider);
 					Logger.log('PC::pollConnextState');
 					await client.pollConnextState();
-					// Logger.log('PC::pollAndSwap');
-					// await client.pollAndSwap();
 					resolve();
 				} catch (e) {
 					client.logCurrentState('PC::init');

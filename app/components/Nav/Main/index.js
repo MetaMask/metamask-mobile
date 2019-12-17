@@ -500,7 +500,7 @@ class Main extends PureComponent {
 				});
 			});
 
-			setTimeout(async () => {
+			setTimeout(() => {
 				TransactionsNotificationManager.init(this.props.navigation);
 
 				// Only if enabled under settings

@@ -98,27 +98,35 @@ export default class InstaPayMigrating extends PureComponent {
 	componentDidMount = async () => {
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 		InstaPay.hub.once('migration::complete', () => {
-			Alert.alert('Migration complete', 'Your funds have beend moved to InstaPay v2', [
-				{
-					text: 'OK',
-					onPress: () => {
-						this.dismiss();
+			Alert.alert(
+				strings('payment_channel.migrating.success_title'),
+				strings('payment_channel.migrating.success_message'),
+				[
+					{
+						text: strings('payment_channel.migrating.ok_button'),
+						onPress: () => {
+							this.dismiss();
+						}
 					}
-				}
-			]);
+				]
+			);
 		});
 
 		try {
 			await InstaPay.moveFundsFromV1('migrate');
 		} catch (e) {
-			Alert.alert('Migration failed', 'Something went wrong. Please try again later...', [
-				{
-					text: 'OK',
-					onPress: () => {
-						this.dismiss();
+			Alert.alert(
+				strings('payment_channel.migrating.error_title'),
+				strings('payment_channel.migrating.error_message'),
+				[
+					{
+						text: strings('payment_channel.migrating.ok_button'),
+						onPress: () => {
+							this.dismiss();
+						}
 					}
-				}
-			]);
+				]
+			);
 		}
 	};
 

@@ -10,8 +10,7 @@ import {
 	View,
 	ScrollView,
 	StyleSheet,
-	BackHandler,
-	InteractionManager
+	BackHandler
 } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import AnimatedFox from 'react-native-animated-fox';
@@ -106,25 +105,31 @@ export default class InstaPayWithdrawing extends PureComponent {
 		}
 
 		if (result) {
-			Alert.alert('Withdrawal complete', 'Your funds have beend moved to your ethereum account', [
-				{
-					text: 'OK',
-					onPress: () => {
-						InteractionManager.runAfterInteractions(() => {
+			Alert.alert(
+				strings('payment_channel.withdrawing.success_title'),
+				strings('payment_channel.withdrawing.success_message'),
+				[
+					{
+						text: strings('payment_channel.withdrawing.ok_button'),
+						onPress: () => {
 							this.dismiss();
-						});
+						}
 					}
-				}
-			]);
+				]
+			);
 		} else {
-			Alert.alert('Withdrawal failed', 'Something went wrong. Please try again later...', [
-				{
-					text: 'OK',
-					onPress: () => {
-						this.dismiss();
+			Alert.alert(
+				strings('payment_channel.withdrawing.error_title'),
+				strings('payment_channel.withdrawing.error_message'),
+				[
+					{
+						text: strings('payment_channel.withdrawing.ok_button'),
+						onPress: () => {
+							this.dismiss();
+						}
 					}
-				}
-			]);
+				]
+			);
 		}
 	};
 

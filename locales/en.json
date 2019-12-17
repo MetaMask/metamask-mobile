@@ -973,18 +973,28 @@
 			"title": "Update to InstaPay 2.0",
 			"desc_1": "Start using InstaPay 2.0 by simply transferring your funds",
 			"or": "or",
-			"desc_2": "Withdraw your funds from InstaPayy back to their original accounts.",
+			"desc_2": "Withdraw your funds from InstaPay back to their original accounts.",
 			"learn_more": "Learn more.",
 			"transfer": "Transfer my funds to InstaPay 2.0",
 			"withdraw": "No thanks, withdraw my funds"
 		},
 		"migrating": {
 			"title": "Transfer in progress...",
-			"subtitle": "Please wait while we transfer your funds."
+			"subtitle": "Please wait while we transfer your funds.",
+			"success_title": "Migration complete",
+			"success_message": "Your funds have beend moved to InstaPay v2",
+			"error_title": "Migration failed",
+			"error_message": "Something went wrong. Please try again later...",
+			"ok_button": "OK"
 		},
 		"withdrawing": {
 			"title": "Withdrawal in progress...",
-			"subtitle": "Please wait while your funds are withdrawn."
+			"subtitle": "Please wait while your funds are withdrawn.",
+			"success_title": "Withdrawal complete",
+			"success_message": "Your funds have beend moved to your ethereum account(s)",
+			"error_title": "Withdrawal failed",
+			"error_message": "Something went wrong. Please try again later...",
+			"ok_button": "OK"
 		},
 		"disabled_withdraw_title": "Feature disabled",
 		"disabled_withdraw_message": "We had to temporarily disable this feature due to technical reasons. All your funds will be withdrawn automatically and returned to your ethereum account",
@@ -1001,9 +1011,7 @@
 		"upgrading_account_title": "Upgrading account",
 		"upgrading_account_text": "Please wait while we upgrade your InstaPay account.\n\n This might take a couple of minutes...",
 		"restoring_account_title": "Restoring account",
-		"restoring_account_text": "Please wait while we restore your InstaPay account.\n\n This might take a couple of minutes...",
-		"choose_username_modal_title": "Choose your username",
-		"choose_username_modal_text": "This will make it easier for others to pay you"
+		"restoring_account_text": "Please wait while we restore your InstaPay account.\n\n This might take a couple of minutes..."
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",

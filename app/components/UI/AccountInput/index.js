@@ -283,16 +283,16 @@ class AccountInput extends PureComponent {
 	};
 
 	onBlur = async () => {
-		const { value } = this.state;
+		const { value, address } = this.state;
 		const { onBlur } = this.props;
 		if (value && !resemblesAddress(value)) {
 			const isEnsName = this.isEnsName(value) && (await this.lookupEnsName(value));
 			if (isEnsName) {
-				onBlur && onBlur(this.state.address, value);
+				onBlur && onBlur(address, value);
 			} else {
 				const isInstaPayName = this.isInstaPayName(value) && (await this.lookupInstaPayName(value));
 				if (isInstaPayName) {
-					onBlur && onBlur(this.state.address, value);
+					onBlur && onBlur(address, value);
 				}
 			}
 		} else {

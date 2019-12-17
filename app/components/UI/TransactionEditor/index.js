@@ -15,7 +15,6 @@ import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from 'eth-contract-metadata';
 import InstaPay from '../../../core/InstaPay';
-import Logger from '../../../util/Logger';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -451,7 +450,6 @@ class TransactionEditor extends PureComponent {
 			const {
 				transaction: { value, readableValue, from }
 			} = this.props;
-			Logger.log('TRANSACTION VALUE', value, readableValue);
 			if (!value || !from || !readableValue) {
 				return strings('transaction.invalid_amount');
 			}

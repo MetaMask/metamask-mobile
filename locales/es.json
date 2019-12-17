@@ -947,6 +947,33 @@
 			"desc_2": "Posible gracias a Connext Payment Channels.",
 			"close": "Cerrar"
 		},
+		"update": {
+			"title": "Actualiza a InstaPay 2.0",
+			"desc_1": "Comienza a usar InstaPay 2.0 simplemente transfiriendo tus fondos",
+			"or": "ó",
+			"desc_2": "Retira tus fonds de InstaPay hacia sus cuentas originales.",
+			"learn_more": "Leer más.",
+			"transfer": "Transferir mis fondos a InstaPay 2.0",
+			"withdraw": "No gracias, retirar mis fondos"
+		},
+		"migrating": {
+			"title": "Transferencia en progreso...",
+			"subtitle": "Por favor espera mientras transferimos tus fondos.",
+			"success_title": "Migración Completa",
+			"success_message": "Tus fondos han sido transferidos a InstaPay 2.0",
+			"error_title": "Migración fallida",
+			"error_message": "Algo salió mal. Inténtalo luego nuevamente...",
+			"ok_button": "OK"
+		},
+		"withdrawing": {
+			"title": "Retiro en progreso...",
+			"subtitle": "Por favor espera mientras retiramos tus fondos.",
+			"success_title": "Retiro Finalizado",
+			"success_message": "Tus fonds han sido regresados a tu(s) cuenta(s) de ethereum",
+			"error_title": "Retiro fallido",
+			"error_message": "Algo salió mal. Inténtalo luego nuevamente...",
+			"ok_button": "OK"
+		},
 		"disabled_withdraw_title": "Funcionalidad deshabilitada",
 		"disabled_withdraw_message": "Hemos deshabilitado esta funcionalidad por razones técnicas. Todos tus fondos sera transferidos a tu cuenta de ethereum",
 		"disabled_withdraw_btn": "Entendido",
@@ -962,9 +989,7 @@
 		"upgrading_account_title": "Actualizando tu cuenta",
 		"upgrading_account_text": "Por favor espera mientras actualizamos tu cuenta de InstaPay.\n\n Esto puede llevar un par de minutos...",
 		"restoring_account_title": "Recuperando cuenta",
-		"restoring_account_text": "Por favor espera mientras recuperamos tu cuenta de InstaPay.\n\n Esto puede llevar un par de minutos...",
-		"choose_username_modal_title": "Elije tu usuario",
-		"choose_username_modal_text": "Esto te facilitará recibir pagos de otras personas"
+		"restoring_account_text": "Por favor espera mientras recuperamos tu cuenta de InstaPay.\n\n Esto puede llevar un par de minutos..."
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",
