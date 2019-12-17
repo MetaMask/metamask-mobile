@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * PureComponent that manages erc20 approve from the dapp browser
+ * PureComponent that manages ERC20 approve from the dapp browser
  */
 class Approve extends PureComponent {
 	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
@@ -551,11 +551,11 @@ class Approve extends PureComponent {
 			transaction: { gas, gasPrice, from },
 			accounts
 		} = this.props;
-		if (!gas) return strings('transaction.invalid_gas');
-		if (!gasPrice) return strings('transaction.invalid_gas_price');
 		const checksummedFrom = safeToChecksumAddress(from) || '';
 		const fromAccount = accounts[checksummedFrom];
-		if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice))) {
+		if (!gas) error = strings('transaction.invalid_gas');
+		else if (!gasPrice) error = strings('transaction.invalid_gas_price');
+		else if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice))) {
 			error = strings('transaction.insufficient');
 		}
 		this.setState({ gasError: error });

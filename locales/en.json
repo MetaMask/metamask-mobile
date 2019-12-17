@@ -511,7 +511,7 @@
 	},
 	"spend_limit_edition": {
 		"save": "Save",
-		"title": "Edit Permission",
+		"title": "Edit permission",
 		"spend_limit": "Spend limit edition",
 		"allow": "Allow",
 		"allow_explanation": "to withdraw and spend up to the following amount:",

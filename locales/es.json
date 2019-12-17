@@ -499,7 +499,7 @@
 	},
 	"spend_limit_edition": {
 		"save": "Guardar",
-		"title": "Editar Permiso",
+		"title": "Editar permiso",
 		"spend_limit": "Editar límite de gasto",
 		"allow": "Permitir",
 		"allow_explanation": "para retirar y gastar hasta la siguiente cantidad:",
