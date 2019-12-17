@@ -139,7 +139,7 @@ buildAndroid(){
 
 buildIosSimulator(){
 	prebuild_ios
-	react-native run-ios --simulator "iPhone 11 Pro (13.2)"
+	react-native run-ios --simulator "iPhone 11 Pro (13.3)"
 }
 
 buildIosDevice(){

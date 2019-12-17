@@ -321,7 +321,6 @@ class Transactions extends PureComponent {
 			this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled: false });
 		}
 	};
-
 	onCancelCompleted = () => {
 		this.setState({ cancelIsOpen: false });
 		this.existingGasPriceDecimal = null;
