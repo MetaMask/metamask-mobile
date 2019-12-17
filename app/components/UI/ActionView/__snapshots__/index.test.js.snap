@@ -74,7 +74,7 @@ exports[`ActionView should render correctly 1`] = `
       testID=""
       type="cancel"
     >
-      CANCEL
+      Cancel
     </StyledButton>
     <StyledButton
       containerStyle={
@@ -100,7 +100,7 @@ exports[`ActionView should render correctly 1`] = `
       testID=""
       type="normal"
     >
-      CONFIRM
+      Confirm
     </StyledButton>
   </View>
 </View>
