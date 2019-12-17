@@ -449,7 +449,7 @@ class Approve extends PureComponent {
 				onConfirmPress={this.handleSetSpendLimit}
 				cancelButtonMode={'neutral'}
 				confirmButtonMode={'confirm'}
-				confirmDisabled={!spendLimitCustomValue}
+				confirmDisabled={!spendLimitUnlimitedSelected && !spendLimitCustomValue}
 				displayCancelButton={false}
 			>
 				<View style={baseStyles.flexGrow}>
