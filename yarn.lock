@@ -694,14 +694,14 @@
   resolved "https://registry.yarnpkg.com/@connext/cf-adjudicator-contracts/-/cf-adjudicator-contracts-0.4.1.tgz#55153cbfef690733e9cf528f9721cfd29d7ab7d0"
   integrity sha512-KSWdLY5Tfob89ZVyfuXIt+O+dri7aCdIYOf6HkxW8o//ohEFmbS21DeySOSGLhrQctPEGa49lCAKxVU9YR0MPQ==
 
-"@connext/cf-core@1.3.12":
-  version "1.3.12"
-  resolved "https://registry.yarnpkg.com/@connext/cf-core/-/cf-core-1.3.12.tgz#48f79e70296a17edf04a036070db627c6cc5ba1d"
-  integrity sha512-CEHMpg6zykWbn/zdnYMuyOESARRs5CzN3UcgHYryo+/ddhQQe6Qj2JPA+ozg0o8urH42HZnuAQT7fQMv0dM4Jw==
+"@connext/cf-core@1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@connext/cf-core/-/cf-core-1.4.0.tgz#437fbe78eb36caf3ac82682b1bda02002aaa8385"
+  integrity sha512-b5eDx7M2GcvduEYJHkzAmtNw6rHhGXbf4fBlp4QDwCi9I/PBLiRhUJVJhWzHJ6+bZMmCKGTmokcQVBr1C4puMQ==
   dependencies:
     "@connext/cf-adjudicator-contracts" "0.4.1"
     "@connext/cf-funding-protocol-contracts" "0.4.1"
-    "@connext/types" "1.3.12"
+    "@connext/types" "1.4.0"
     ethers "4.0.40"
     eventemitter3 "4.0.0"
     loglevel "1.6.6"
@@ -716,20 +716,15 @@
   resolved "https://registry.yarnpkg.com/@connext/cf-funding-protocol-contracts/-/cf-funding-protocol-contracts-0.4.1.tgz#5c12afc2607be4bb60876490569c01a63e6ea246"
   integrity sha512-Wq0/U01gM/OSGp5sAG3WHltKSdpukdSUI45mG0VxZWqHGunZPVcwXrrf8K+eE8vja1DEnmKhyVx3+T7PE1/Pjw==
 
-"@connext/cf-types@1.3.12":
-  version "1.3.12"
-  resolved "https://registry.yarnpkg.com/@connext/cf-types/-/cf-types-1.3.12.tgz#22f3f41de334a9038052f6acf9726368452643b8"
-  integrity sha512-WmpVMq7mum6FiYwYtwEm398iryLwtNXnWFhURvuo7ry2ud7Z/nXK49B0trsf65M5Ge0RHlfeNhzD2OvN+EE18g==
-
-"@connext/client@1.3.12":
-  version "1.3.12"
-  resolved "https://registry.yarnpkg.com/@connext/client/-/client-1.3.12.tgz#9cdcfe20fd02f46eb6fe5a27cdd14e1dddfbcad9"
-  integrity sha512-3aoC6Shl0NGDUO7918Kc+hSbkX/XAU4P4w9GVtNoePdTf9M/xLgDOMMr9VvWn/a8mCuxpUL0nm2wlrk6sSLvZw==
+"@connext/client@1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@connext/client/-/client-1.4.0.tgz#122aa8edecc39bcff8709bfd9f4867e43c3a1e8c"
+  integrity sha512-KK420o63rfd54lg2T1h2BwJQgnHwHokKjMIX8g2TIUD2yDlRiSC4R0S0qlePRCXc6o1zYgJbcAGhwwEwImf6qA==
   dependencies:
-    "@connext/cf-core" "1.3.12"
+    "@connext/cf-core" "1.4.0"
     "@connext/cf-funding-protocol-contracts" "0.4.1"
-    "@connext/messaging" "1.3.12"
-    "@connext/types" "1.3.12"
+    "@connext/messaging" "1.4.0"
+    "@connext/types" "1.4.0"
     core-js "3.4.7"
     eth-crypto "1.5.0"
     ethers "4.0.40"
@@ -738,21 +733,20 @@
     rpc-server "0.0.1"
     uuid "3.3.3"
 
-"@connext/messaging@1.3.12":
-  version "1.3.12"
-  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-1.3.12.tgz#3157d2397c593de3cbefd8cc4bd9ba8f4bc846f4"
-  integrity sha512-SzFodDlHANxioNpxct/Pri2BB7mg7r2vAMbmRkAVkuRp68g1IQrB0XaP2tdZElDDXOov4n0KLrW60G8nm/mGsA==
+"@connext/messaging@1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-1.4.0.tgz#c021644e9abc21d46cfb792469ebfbc6b1f25c9f"
+  integrity sha512-LwY2iNU0W7GJUHdLIRTTC1YxcqAbIB2dhMC4nFpi6i2QXvvP2nK/pzNLiD8CIUt5f59Gq04pPNGX//4DeuVxbA==
   dependencies:
-    "@connext/types" "1.3.12"
+    "@connext/types" "1.4.0"
     ts-nats "1.2.4"
     websocket-nats "0.3.3"
 
-"@connext/types@1.3.12":
-  version "1.3.12"
-  resolved "https://registry.yarnpkg.com/@connext/types/-/types-1.3.12.tgz#1cb1f3bf1c21b347c2e8530ccf89c07abfc158bb"
-  integrity sha512-Y5mrcfAEml0TbZ7vEsVPp1g3wW0i20zm0xdNpd0INtzCVaRfrfn4yUB1wIj7Nia8NO06lG5zfMiEY62jx0npdQ==
+"@connext/types@1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@connext/types/-/types-1.4.0.tgz#aafe94e25ee42603d612f61e9d7cf3a29c70b28d"
+  integrity sha512-8w3QImRQtPUsf4QaDf7gbeR4Y3K1Wm/6HDsvMzHbcApVaGbAdfbOYBgY56Xx+By2DjXBeKmVBkT5abx8+5Bg2Q==
   dependencies:
-    "@connext/cf-types" "1.3.12"
     ethers "4.0.40"
 
 "@ethersproject/address@^5.0.0-beta.125":
