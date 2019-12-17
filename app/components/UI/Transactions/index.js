@@ -68,7 +68,8 @@ const styles = StyleSheet.create({
 	gasTitle: {
 		...fontStyles.bold,
 		fontSize: 16,
-		textAlign: 'center'
+		textAlign: 'center',
+		marginVertical: 8
 	},
 	cancelFeeWrapper: {
 		backgroundColor: colors.grey000,
@@ -314,7 +315,7 @@ class Transactions extends PureComponent {
 
 	onCancelAction = (cancelAction, existingGasPriceDecimal, tx) => {
 		this.existingGasPriceDecimal = existingGasPriceDecimal;
-		this.cancelTxId = tx.cancelTxId;
+		this.cancelTxId = tx.id;
 		if (this.validateBalance(tx, SPEED_UP_RATE)) {
 			this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled: true });
 		} else {
