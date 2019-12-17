@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, TextInput, Clipboard } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, TextInput, Clipboard, Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
@@ -24,6 +24,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import ErrorMessage from '../../SendFlow/ErrorMessage';
 import { showAlert } from '../../../../actions/alert';
 import Feather from 'react-native-vector-icons/Feather';
+import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -261,7 +262,11 @@ class Approve extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * List of transactions
+		 */
+		transactions: PropTypes.array
 	};
 
 	state = {
@@ -551,8 +556,7 @@ class Approve extends PureComponent {
 			transaction: { gas, gasPrice, from },
 			accounts
 		} = this.props;
-		const checksummedFrom = safeToChecksumAddress(from) || '';
-		const fromAccount = accounts[checksummedFrom];
+		const fromAccount = accounts[safeToChecksumAddress(from)];
 		if (!gas) error = strings('transaction.invalid_gas');
 		else if (!gasPrice) error = strings('transaction.invalid_gas_price');
 		else if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice))) {
@@ -567,15 +571,40 @@ class Approve extends PureComponent {
 		gas: BNToHex(transaction.gas),
 		gasPrice: BNToHex(transaction.gasPrice),
 		value: BNToHex(transaction.value),
-		to: safeToChecksumAddress(transaction.to)
+		to: safeToChecksumAddress(transaction.to),
+		from: safeToChecksumAddress(transaction.from)
 	});
 
-	onConfirm = () => {
+	onConfirm = async () => {
 		if (this.validateGas()) return;
-		console.log('prepared', this.prepareTransaction(this.props.transaction));
-		this.setState({ approved: true });
-		this.props.navigation.pop();
-		this.props.navigation.navigate('ApproveSuccessView');
+		const { TransactionController } = Engine.context;
+		const { transactions } = this.props;
+		try {
+			const transaction = this.prepareTransaction(this.props.transaction);
+
+			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
+				if (transactionMeta.status === 'submitted') {
+					this.setState({ approved: true });
+					this.props.navigation.pop();
+					this.props.navigation.navigate('ApproveSuccessView');
+					TransactionsNotificationManager.watchSubmittedTransaction({
+						...transactionMeta,
+						assetType: 'ETH'
+					});
+				} else {
+					throw transactionMeta.error;
+				}
+			});
+
+			const fullTx = transactions.find(({ id }) => id === transaction.id);
+			const updatedTx = { ...fullTx, transaction };
+			console.log('fullTx', fullTx, transaction, updatedTx);
+			await TransactionController.updateTransaction(updatedTx);
+			await TransactionController.approveTransaction(transaction.id);
+		} catch (error) {
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+			this.setState({ transactionHandled: false });
+		}
 	};
 
 	onCancel = () => {
@@ -747,7 +776,8 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: state.transaction
+	transaction: state.transaction,
+	transactions: state.engine.backgroundState.TransactionController.transactions
 });
 
 const mapDispatchToProps = dispatch => ({
