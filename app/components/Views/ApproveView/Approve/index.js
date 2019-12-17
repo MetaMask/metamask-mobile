@@ -83,6 +83,7 @@ const styles = StyleSheet.create({
 	},
 	sectionTitleText: {
 		...fontStyles.bold,
+		color: colors.black,
 		fontSize: 14,
 		marginLeft: 8
 	},
@@ -203,6 +204,7 @@ const styles = StyleSheet.create({
 	},
 	spendLimitTitle: {
 		...fontStyles.bold,
+		color: colors.black,
 		fontSize: 14,
 		lineHeight: 20,
 		marginBottom: 8
@@ -495,7 +497,9 @@ class Approve extends PureComponent {
 									{strings('spend_limit_edition.requested_by')}
 									<Text style={fontStyles.bold}>{` ${host}`}</Text>
 								</Text>
-								<Text style={styles.optionText}>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
+								<Text
+									style={[styles.optionText, styles.textBlack]}
+								>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
 							</View>
 						</View>
 
@@ -598,7 +602,6 @@ class Approve extends PureComponent {
 
 			const fullTx = transactions.find(({ id }) => id === transaction.id);
 			const updatedTx = { ...fullTx, transaction };
-			console.log('fullTx', fullTx, transaction, updatedTx);
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
 		} catch (error) {
