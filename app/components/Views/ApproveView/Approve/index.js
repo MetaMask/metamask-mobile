@@ -8,7 +8,7 @@ import WebsiteIcon from '../../../UI/WebsiteIcon';
 import { getHost } from '../../../../util/browser';
 import TransactionDirection from '../../TransactionDirection';
 import contractMap from 'eth-contract-metadata';
-import { safeToChecksumAddress, renderShortAddress } from '../../../../util/address';
+import { safeToChecksumAddress, renderShortAddress, renderAccountName } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
 import ActionView from '../../../UI/ActionView';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
@@ -18,13 +18,14 @@ import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { BNToHex, hexToBN } from 'gaba/dist/util';
-import { renderFromWei, weiToFiatNumber, isBN } from '../../../../util/number';
+import { renderFromWei, weiToFiatNumber, isBN, renderFromTokenMinimalUnit } from '../../../../util/number';
 import { getTicker, decodeTransferData, generateApproveData } from '../../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ErrorMessage from '../../SendFlow/ErrorMessage';
 import { showAlert } from '../../../../actions/alert';
 import Feather from 'react-native-vector-icons/Feather';
 import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
+import Identicon from '../../../UI/Identicon';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -223,6 +224,30 @@ const styles = StyleSheet.create({
 	},
 	errorMessageWrapper: {
 		marginTop: 16
+	},
+	fromGraphic: {
+		flex: 1,
+		borderColor: colors.grey100,
+		borderBottomWidth: 1,
+		alignItems: 'center',
+		flexDirection: 'row',
+		minHeight: 42,
+		paddingHorizontal: 16
+	},
+	addressText: {
+		...fontStyles.normal,
+		color: colors.black,
+		marginLeft: 8
+	},
+	tokenBalanceWrapper: {
+		flex: 1,
+		alignItems: 'flex-end'
+	},
+	tokenBalanceText: {
+		...fontStyles.normal,
+		color: colors.grey500,
+		fontSize: 14,
+		lineHeight: 20
 	}
 });
 
@@ -246,9 +271,17 @@ class Approve extends PureComponent {
 		 */
 		conversionRate: PropTypes.number,
 		/**
+		 * An object containing token balances for current account and network in the format address => balance
+		 */
+		contractBalances: PropTypes.object,
+		/**
 		 * Currency code of the currently-active currency
 		 */
 		currentCurrency: PropTypes.string,
+		/**
+		/* Identities object required to get account name
+		*/
+		identities: PropTypes.object,
 		/**
 		 * Transaction state
 		 */
@@ -286,6 +319,7 @@ class Approve extends PureComponent {
 		totalGas: undefined,
 		totalGasFiat: undefined,
 		tokenSymbol: undefined,
+		tokenDecimals: undefined,
 		spendLimitUnlimitedSelected: true,
 		spendLimitCustomValue: undefined,
 		ticker: getTicker(this.props.ticker),
@@ -301,18 +335,21 @@ class Approve extends PureComponent {
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
 		const host = getHost(origin);
-		let tokenSymbol;
+		let tokenSymbol, tokenDecimals;
 		const contract = contractMap[safeToChecksumAddress(to)];
 		if (!contract) {
 			tokenSymbol = await AssetsContractController.getAssetSymbol(to);
+			tokenDecimals = await AssetsContractController.getTokenDecimals(to);
 		} else {
 			tokenSymbol = contract.symbol;
+			tokenDecimals = contract.decimals;
 		}
 		const originalApproveAmount = decodeTransferData('transfer', data)[1];
 		const totalGas = gas.mul(gasPrice);
 		this.setState({
 			host,
 			originalApproveAmount,
+			tokenDecimals,
 			tokenSymbol,
 			totalGas: renderFromWei(totalGas),
 			totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
@@ -443,10 +480,22 @@ class Approve extends PureComponent {
 			editPermissionModalVisible,
 			host,
 			spendLimitUnlimitedSelected,
+			tokenDecimals,
 			tokenSymbol,
 			spendLimitCustomValue,
 			originalApproveAmount
 		} = this.state;
+		const {
+			identities,
+			transaction: { from, to },
+			contractBalances
+		} = this.props;
+		console.log('shsuhduwhd', to, contractBalances);
+		const checksummedTo = safeToChecksumAddress(to);
+		const tokenBalance =
+			checksummedTo in contractBalances
+				? renderFromTokenMinimalUnit(contractBalances[checksummedTo], tokenDecimals)
+				: 0;
 		return (
 			<ActionModal
 				modalVisible={editPermissionModalVisible}
@@ -463,89 +512,105 @@ class Approve extends PureComponent {
 					<View style={styles.customGasModalTitle}>
 						<Text style={styles.customGasModalTitleText}>{strings('spend_limit_edition.title')}</Text>
 					</View>
-					<KeyboardAwareScrollView style={styles.spendLimitWrapper} extraScrollHeight={-140}>
-						<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
-						<Text style={styles.spendLimitSubtitle}>
-							{strings('spend_limit_edition.allow')}
-							<Text style={fontStyles.bold}>{` ${host} `}</Text>
-							{strings('spend_limit_edition.allow_explanation')}
-						</Text>
 
-						<View style={styles.option}>
-							<TouchableOpacity
-								onPress={this.onPressSpendLimitUnlimitedSelected}
-								style={styles.touchableOption}
-							>
-								{spendLimitUnlimitedSelected ? (
-									<View style={styles.outSelectedCircle}>
-										<View style={styles.selectedCircle} />
-									</View>
-								) : (
-									<View style={styles.circle} />
-								)}
-							</TouchableOpacity>
-							<View style={styles.spendLimitContent}>
+					<KeyboardAwareScrollView extraScrollHeight={-140}>
+						<View style={styles.fromGraphic}>
+							<Identicon address={from} diameter={18} />
+							<Text style={styles.addressText} numberOfLines={1}>
+								{renderAccountName(from, identities)}
+							</Text>
+							<View style={styles.tokenBalanceWrapper}>
 								<Text
-									style={[
-										styles.optionText,
-										spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
-									]}
-								>
-									{strings('spend_limit_edition.unlimited')}
-								</Text>
-								<Text style={styles.sectionExplanationText}>
-									{strings('spend_limit_edition.requested_by')}
-									<Text style={fontStyles.bold}>{` ${host}`}</Text>
-								</Text>
-								<Text
-									style={[styles.optionText, styles.textBlack]}
-								>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
+									style={styles.tokenBalanceText}
+									numberOfLines={1}
+								>{`${tokenBalance} ${tokenSymbol}`}</Text>
 							</View>
 						</View>
 
-						<View style={styles.option}>
-							<TouchableOpacity
-								onPress={this.onPressSpendLimitCustomSelected}
-								style={styles.touchableOption}
-							>
-								{spendLimitUnlimitedSelected ? (
-									<View style={styles.circle} />
-								) : (
-									<View style={styles.outSelectedCircle}>
-										<View style={styles.selectedCircle} />
-									</View>
-								)}
-							</TouchableOpacity>
-							<View style={styles.spendLimitContent}>
-								<Text
-									style={[
-										styles.optionText,
-										!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
-									]}
+						<View style={styles.spendLimitWrapper}>
+							<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
+							<Text style={styles.spendLimitSubtitle}>
+								{strings('spend_limit_edition.allow')}
+								<Text style={fontStyles.bold}>{` ${host} `}</Text>
+								{strings('spend_limit_edition.allow_explanation')}
+							</Text>
+
+							<View style={styles.option}>
+								<TouchableOpacity
+									onPress={this.onPressSpendLimitUnlimitedSelected}
+									style={styles.touchableOption}
 								>
-									{strings('spend_limit_edition.custom_spend_limit')}
-								</Text>
-								<Text style={styles.sectionExplanationText}>
-									{strings('spend_limit_edition.max_spend_limit')}
-								</Text>
-								<TextInput
-									ref={this.customSpendLimitInput}
-									autoCapitalize="none"
-									keyboardType="numeric"
-									autoCorrect={false}
-									onChangeText={this.onSpendLimitCustomValueChange}
-									placeholder={`100 ${tokenSymbol}`}
-									placeholderTextColor={colors.grey100}
-									spellCheck={false}
-									style={styles.input}
-									value={spendLimitCustomValue}
-									numberOfLines={1}
-									onFocus={this.onPressSpendLimitCustomSelected}
-									returnKeyType={'done'}
-								/>
-								<Text style={styles.sectionExplanationText}>
-									{strings('spend_limit_edition.minimum', { tokenSymbol })}
-								</Text>
+									{spendLimitUnlimitedSelected ? (
+										<View style={styles.outSelectedCircle}>
+											<View style={styles.selectedCircle} />
+										</View>
+									) : (
+										<View style={styles.circle} />
+									)}
+								</TouchableOpacity>
+								<View style={styles.spendLimitContent}>
+									<Text
+										style={[
+											styles.optionText,
+											spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
+										]}
+									>
+										{strings('spend_limit_edition.unlimited')}
+									</Text>
+									<Text style={styles.sectionExplanationText}>
+										{strings('spend_limit_edition.requested_by')}
+										<Text style={fontStyles.bold}>{` ${host}`}</Text>
+									</Text>
+									<Text
+										style={[styles.optionText, styles.textBlack]}
+									>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
+								</View>
+							</View>
+
+							<View style={styles.option}>
+								<TouchableOpacity
+									onPress={this.onPressSpendLimitCustomSelected}
+									style={styles.touchableOption}
+								>
+									{spendLimitUnlimitedSelected ? (
+										<View style={styles.circle} />
+									) : (
+										<View style={styles.outSelectedCircle}>
+											<View style={styles.selectedCircle} />
+										</View>
+									)}
+								</TouchableOpacity>
+								<View style={styles.spendLimitContent}>
+									<Text
+										style={[
+											styles.optionText,
+											!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
+										]}
+									>
+										{strings('spend_limit_edition.custom_spend_limit')}
+									</Text>
+									<Text style={styles.sectionExplanationText}>
+										{strings('spend_limit_edition.max_spend_limit')}
+									</Text>
+									<TextInput
+										ref={this.customSpendLimitInput}
+										autoCapitalize="none"
+										keyboardType="numeric"
+										autoCorrect={false}
+										onChangeText={this.onSpendLimitCustomValueChange}
+										placeholder={`100 ${tokenSymbol}`}
+										placeholderTextColor={colors.grey100}
+										spellCheck={false}
+										style={styles.input}
+										value={spendLimitCustomValue}
+										numberOfLines={1}
+										onFocus={this.onPressSpendLimitCustomSelected}
+										returnKeyType={'done'}
+									/>
+									<Text style={styles.sectionExplanationText}>
+										{strings('spend_limit_edition.minimum', { tokenSymbol })}
+									</Text>
+								</View>
 							</View>
 						</View>
 					</KeyboardAwareScrollView>
@@ -777,7 +842,9 @@ class Approve extends PureComponent {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	identities: state.engine.backgroundState.PreferencesController.identities,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: state.transaction,
 	transactions: state.engine.backgroundState.TransactionController.transactions

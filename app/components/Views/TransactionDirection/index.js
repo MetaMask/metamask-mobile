@@ -50,6 +50,7 @@ const styles = StyleSheet.create({
 	},
 	addressText: {
 		...fontStyles.normal,
+		color: colors.black,
 		marginHorizontal: 8
 	},
 	addressGraphic: {
@@ -67,8 +68,16 @@ const styles = StyleSheet.create({
 		flex: 1,
 		marginLeft: 9
 	},
-	ensRecipient: { ...fontStyles.bold, fontSize: FONT_SIZE },
-	ensAddress: { ...fontStyles.normal, fontSize: 10 },
+	ensRecipient: {
+		...fontStyles.bold,
+		color: colors.black,
+		fontSize: FONT_SIZE
+	},
+	ensAddress: {
+		...fontStyles.normal,
+		color: colors.black,
+		fontSize: 10
+	},
 	addressWrapper: { flex: 1 },
 	contractLogo: {
 		height: 24,
@@ -82,9 +91,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * PureComponent that manages transaction approve requests from the dapp browser
+ * PureComponent that renders transaction to and from
  */
-class Approve extends PureComponent {
+class TransactionDirection extends PureComponent {
 	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
 
 	static propTypes = {
@@ -177,4 +186,4 @@ const mapStateToProps = state => ({
 	transaction: state.transaction
 });
 
-export default connect(mapStateToProps)(Approve);
+export default connect(mapStateToProps)(TransactionDirection);
