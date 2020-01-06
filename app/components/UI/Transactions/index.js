@@ -285,15 +285,19 @@ class Transactions extends PureComponent {
 
 	validateBalance = (tx, rate) => {
 		const { accounts } = this.props;
-		const checksummedFrom = safeToChecksumAddress(tx.transaction.from);
-		const balance = accounts[checksummedFrom].balance;
-		return hexToBN(balance).lt(
-			hexToBN(tx.transaction.gasPrice)
-				.mul(new BN(rate * 10))
-				.mul(new BN(10))
-				.mul(hexToBN(tx.transaction.gas))
-				.add(hexToBN(tx.transaction.value))
-		);
+		try {
+			const checksummedFrom = safeToChecksumAddress(tx.transaction.from);
+			const balance = accounts[checksummedFrom].balance;
+			return hexToBN(balance).lt(
+				hexToBN(tx.transaction.gasPrice)
+					.mul(new BN(rate * 10))
+					.mul(new BN(10))
+					.mul(hexToBN(tx.transaction.gas))
+					.add(hexToBN(tx.transaction.value))
+			);
+		} catch (e) {
+			return false;
+		}
 	};
 
 	onSpeedUpAction = (speedUpAction, existingGasPriceDecimal, tx) => {
