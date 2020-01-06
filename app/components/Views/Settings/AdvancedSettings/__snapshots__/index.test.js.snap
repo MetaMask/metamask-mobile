@@ -43,6 +43,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
         cancelTestID=""
         cancelText="NEVERMIND"
         confirmButtonMode="warning"
+        confirmDisabled={false}
         confirmTestID=""
         confirmText="RESET"
         modalVisible={false}
