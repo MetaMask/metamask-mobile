@@ -122,6 +122,7 @@ jobs:
           command:
             |
               yarn build:android:pre-release:bundle
+          no_output_timeout: 30m
       - store_artifacts:
           path: android/app/build/outputs/bundle/release
           destination: bundle
@@ -148,6 +149,7 @@ jobs:
       - run:
           name: pre-release
           command: yarn build:ios:pre-release
+          no_output_timeout: 30m
       - store_artifacts:
           path: sourcemaps/ios
           destination: sourcemaps-ios
