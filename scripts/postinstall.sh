@@ -162,7 +162,7 @@ TARGET="node_modules/react-native-tcp/TcpSocket.js"
 sed -i'' -e 's/console.log.apply(console, args);//' $TARGET;
 # Fix crypto libs
 TARGET="node_modules/eccrypto/browser.js"
-sed -i'' -e 's/global.crypto || global.msCrypto || {};/require("isomorphic-webcrypto");/' $TARGET;
+sed -i'' -e "s/typeof window === 'undefined'/typeof browserCrypto === 'undefined' || typeof browserCrypto.getRandomValues === 'undefined'/" $TARGET;
 
 echo "17. react-native-tcp androidx support"
 TARGET="node_modules/react-native-tcp/android/src/main/java/com/peel/react/TcpSocketManager.java"
@@ -170,3 +170,6 @@ sed -i'' -e 's/android.support/androidx/' $TARGET;
 
 TARGET="node_modules/react-native-tcp/android/src/main/java/com/peel/react/TcpSockets.java"
 sed -i'' -e 's/android.support/androidx/' $TARGET;
+
+echo "18. Init Git Submodules"
+git submodule update --init
