@@ -501,8 +501,6 @@ class Main extends PureComponent {
 			});
 
 			setTimeout(() => {
-				TransactionsNotificationManager.init(this.props.navigation);
-
 				// Only if enabled under settings
 				if (this.props.paymentChannelsEnabled) {
 					this.initializePaymentChannels();

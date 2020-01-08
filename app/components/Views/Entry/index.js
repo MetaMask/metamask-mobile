@@ -14,6 +14,7 @@ import { colors } from '../../../styles/common';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import InstaPay from '../../../core/InstaPay';
 import Logger from '../../../util/Logger';
+import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
 /**
  * Entry Screen that decides which screen to show
@@ -89,6 +90,7 @@ class Entry extends PureComponent {
 
 	componentDidMount() {
 		DeeplinkManager.init(this.props.navigation);
+		TransactionsNotificationManager.init(this.props.navigation);
 		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
 
 		setTimeout(async () => {
