@@ -481,7 +481,8 @@ class Amount extends PureComponent {
 		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
 		let input;
 		if (selectedAsset.isETH) {
-			const maxValue = hexToBN(accounts[selectedAddress].balance).sub(estimatedTotalGas);
+			const balanceBN = hexToBN(accounts[selectedAddress].balance);
+			const maxValue = balanceBN.isZero() ? balanceBN : balanceBN.sub(estimatedTotalGas);
 			if (internalPrimaryCurrencyIsCrypto) {
 				input = fromWei(maxValue);
 			} else {
