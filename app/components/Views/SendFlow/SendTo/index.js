@@ -198,9 +198,11 @@ class SendFlow extends PureComponent {
 	onAccountChange = async accountAddress => {
 		const { identities, ticker, accounts } = this.props;
 		const { name } = identities[accountAddress];
+		const { PreferencesController } = Engine.context;
 		const fromAccountBalance = `${renderFromWei(accounts[accountAddress].balance)} ${getTicker(ticker)}`;
 		const ens = await doENSReverseLookup(accountAddress);
 		const fromAccountName = ens || name;
+		PreferencesController.setSelectedAddress(accountAddress);
 		this.setState({ fromAccountName, fromAccountBalance, fromSelectedAddress: accountAddress });
 		this.toggleFromAccountModal();
 	};
