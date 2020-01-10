@@ -146,6 +146,9 @@ export function renderFiatAddition(transferFiat, feeFiat, currentCurrency, decim
 		const base = Math.pow(10, decimalsToShow);
 		renderMinimalUnit = (Math.round(addition * base) / base).toString();
 	}
+	if (currencySymbols[currentCurrency]) {
+		return `${currencySymbols[currentCurrency]}${renderMinimalUnit}`;
+	}
 	return `${renderMinimalUnit} ${currentCurrency}`;
 }
 
