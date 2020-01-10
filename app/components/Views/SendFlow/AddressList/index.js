@@ -154,6 +154,7 @@ class AddressList extends PureComponent {
 					if (this.networkAddressBook[checksummedTo]) {
 						parsedRecents.push(
 							<AddressElement
+								key={checksummedTo}
 								address={checksummedTo}
 								name={this.networkAddressBook[checksummedTo].name}
 								onAccountPress={onAccountPress}
@@ -163,6 +164,7 @@ class AddressList extends PureComponent {
 					} else {
 						parsedRecents.push(
 							<AddressElement
+								key={checksummedTo}
 								address={checksummedTo}
 								onAccountPress={onAccountPress}
 								onAccountLongPress={onAccountLongPress}
