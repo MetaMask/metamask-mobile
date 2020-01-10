@@ -192,8 +192,6 @@ class ContactForm extends PureComponent {
 
 	render = () => {
 		const { address, addressError, toEnsName, name, mode, addressReady } = this.state;
-		console.log('dgdgdg', this.props.addressBook);
-		console.log('dgdgdg', this.props.identities);
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>

@@ -76,7 +76,6 @@ class AddressElement extends PureComponent {
 		const { name, address } = this.state;
 		const primaryLabel = name || renderShortAddress(address);
 		const secondaryLabel = name && renderShortAddress(address);
-		console.log('address', address);
 		return (
 			<TouchableOpacity
 				onPress={() => onAccountPress(address)} /* eslint-disable-line */
