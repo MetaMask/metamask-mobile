@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "private": true,
   "scripts": {
     "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && yarn start -- --reset-cache",
@@ -84,7 +84,7 @@
     "ethjs-unit": "0.1.6",
     "events": "3.0.0",
     "fuse.js": "3.4.4",
-    "gaba": "1.9.0",
+    "gaba": "1.9.2",
     "https-browserify": "0.0.1",
     "json-rpc-engine": "5.1.5",
     "json-rpc-middleware-stream": "2.1.1",

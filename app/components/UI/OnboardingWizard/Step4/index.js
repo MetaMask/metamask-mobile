@@ -59,9 +59,10 @@ class Step4 extends PureComponent {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
-				this.setState({
-					viewTop: py - 50
-				});
+				py &&
+					this.setState({
+						viewTop: py - 50
+					});
 			});
 	};
 
