@@ -381,7 +381,7 @@ class Amount extends PureComponent {
 			transaction.to = transactionTo;
 			transaction.value = BNToHex(toWei(value));
 		} else if (selectedAsset.tokenId) {
-			const collectibleTransferInformation = collectiblesTransferInformation[selectedAsset.address];
+			const collectibleTransferInformation = collectiblesTransferInformation[selectedAsset.address.toLowerCase()];
 			if (
 				!collectibleTransferInformation ||
 				(collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transferFrom')
