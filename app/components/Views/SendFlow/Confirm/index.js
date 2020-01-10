@@ -188,7 +188,8 @@ const styles = StyleSheet.create({
 		paddingBottom: 24,
 		paddingTop: 16,
 		backgroundColor: colors.grey000,
-		borderRadius: 8
+		borderRadius: 8,
+		width: '100%'
 	},
 
 	hexDataWrapper: {
@@ -499,7 +500,7 @@ class Confirm extends PureComponent {
 					</TouchableOpacity>
 					<View style={styles.qrCode}>
 						<Text style={styles.addressTitle}>{strings('transaction.hex_data')}</Text>
-						<Text style={styles.hexDataText}>{data}</Text>
+						<Text style={styles.hexDataText}>{data || strings('unit.empty_data')}</Text>
 					</View>
 				</View>
 			</Modal>

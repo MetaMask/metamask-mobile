@@ -705,7 +705,8 @@
 		"day": "day",
 		"hour": "hr",
 		"minute": "min",
-		"second": "sec"
+		"second": "sec",
+		"empty_data": "0x"
 	},
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",
