@@ -255,6 +255,22 @@ class SendFlow extends PureComponent {
 		});
 	};
 
+	validateToAddress = async () => {
+		const { toSelectedAddress } = this.state;
+		const { network } = this.props;
+		let addressError;
+		if (isENS(toSelectedAddress)) {
+			const resolvedAddress = await doENSLookup(toSelectedAddress, network);
+			if (!resolvedAddress) {
+				addressError = strings('transaction.could_not_resolve_ens');
+			}
+		} else if (!isValidAddress(toSelectedAddress)) {
+			addressError = strings('transaction.invalid_address');
+		}
+		this.setState({ addressError });
+		return addressError;
+	};
+
 	onToClear = () => {
 		this.onToSelectedAddressChange();
 	};
@@ -282,7 +298,7 @@ class SendFlow extends PureComponent {
 		});
 	};
 
-	onTransactionDirectionSet = () => {
+	onTransactionDirectionSet = async () => {
 		const { setRecipient, navigation } = this.props;
 		const {
 			fromSelectedAddress,
@@ -291,6 +307,8 @@ class SendFlow extends PureComponent {
 			toSelectedAddressName,
 			fromAccountName
 		} = this.state;
+		const addressError = await this.validateToAddress();
+		if (addressError) return;
 		setRecipient(fromSelectedAddress, toSelectedAddress, toEnsName, toSelectedAddressName, fromAccountName);
 		navigation.navigate('Amount');
 	};
