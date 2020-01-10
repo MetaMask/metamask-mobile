@@ -456,6 +456,7 @@ exports[`Confirm should render correctly 1`] = `
             "paddingBottom": 24,
             "paddingHorizontal": 36,
             "paddingTop": 16,
+            "width": "100%",
           }
         }
       >
@@ -481,7 +482,9 @@ exports[`Confirm should render correctly 1`] = `
               "textAlign": "justify",
             }
           }
-        />
+        >
+          0x
+        </Text>
       </View>
     </View>
   </ReactNativeModal>
