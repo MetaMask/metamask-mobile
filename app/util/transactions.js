@@ -3,7 +3,8 @@ import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
-import { isSmartContractCode } from 'gaba/util';
+import { safeToChecksumAddress } from './address';
+import { util } from 'gaba';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -170,9 +171,10 @@ export async function getMethodData(data) {
  * Returns wether the given address is a contract
  *
  * @param {string} address - Ethereum address
- * @returns {boolean} - Wether the given address is a contract
+ * @returns {boolean} - Whether the given address is a contract
  */
 export async function isSmartContractAddress(address) {
+	if (!address) return false;
 	address = toChecksumAddress(address);
 	// If in contract map we don't need to cache it
 	if (contractMap[address]) {
@@ -180,7 +182,7 @@ export async function isSmartContractAddress(address) {
 	}
 	const { TransactionController } = Engine.context;
 	const code = address ? await TransactionController.query('getCode', [address]) : undefined;
-	const isSmartContract = isSmartContractCode(code);
+	const isSmartContract = util.isSmartContractCode(code);
 	return isSmartContract;
 }
 
@@ -213,6 +215,7 @@ export async function isCollectibleAddress(address, tokenId) {
  */
 export async function getTransactionActionKey(transaction) {
 	const { transaction: { data, to } = {} } = transaction;
+	if (!to) return CONTRACT_METHOD_DEPLOY;
 	let ret;
 	// if data in transaction try to get method data
 	if (data && data !== '0x') {
@@ -243,9 +246,9 @@ export async function getTransactionActionKey(transaction) {
 export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction) {
 	const actionKey = await getTransactionActionKey(tx);
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
-		ticker = paymentChannelTransaction ? strings('unit.dai') : ticker;
-		const incoming = toChecksumAddress(tx.transaction.to) === toChecksumAddress(selectedAddress);
-		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === toChecksumAddress(selectedAddress);
+		ticker = paymentChannelTransaction ? strings('unit.sai') : ticker;
+		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
+		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return incoming
 			? selfSent
 				? ticker

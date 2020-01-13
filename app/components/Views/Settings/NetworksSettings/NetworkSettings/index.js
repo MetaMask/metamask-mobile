@@ -296,10 +296,14 @@ class NetworkSettings extends PureComponent {
 			enableAction
 		} = this.state;
 		return (
-			<SafeAreaView style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper} testID={'new-rpc-screen'}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
 					<View style={styles.scrollWrapper}>
-						{addMode && <Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>}
+						{addMode && (
+							<Text style={styles.title} testID={'rpc-screen-title'}>
+								{strings('app_settings.new_RPC_URL')}
+							</Text>
+						)}
 						{addMode && <Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>}
 
 						<Text style={styles.label}>{strings('app_settings.network_name_label')}</Text>
@@ -313,6 +317,7 @@ class NetworkSettings extends PureComponent {
 							placeholder={strings('app_settings.network_name_placeholder')}
 							placeholderTextColor={colors.grey100}
 							onSubmitEditing={this.jumpToRpcURL}
+							testID={'input-network-name'}
 						/>
 
 						<Text style={styles.label}>{strings('app_settings.network_rpc_url_label')}</Text>
@@ -328,9 +333,10 @@ class NetworkSettings extends PureComponent {
 							placeholder={strings('app_settings.network_rpc_placeholder')}
 							placeholderTextColor={colors.grey100}
 							onSubmitEditing={this.jumpToChainId}
+							testID={'input-rpc-url'}
 						/>
 						{warningRpcUrl && (
-							<View style={styles.warningContainer}>
+							<View style={styles.warningContainer} testID={'rpc-url-warning'}>
 								<Text style={styles.warningText}>{warningRpcUrl}</Text>
 							</View>
 						)}
@@ -368,6 +374,7 @@ class NetworkSettings extends PureComponent {
 							placeholder={strings('app_settings.network_symbol_placeholder')}
 							placeholderTextColor={colors.grey100}
 							onSubmitEditing={this.jumpBlockExplorerURL}
+							testID={'input-network-symbol'}
 						/>
 
 						<Text style={styles.label}>{strings('app_settings.network_block_explorer_label')}</Text>
@@ -390,6 +397,7 @@ class NetworkSettings extends PureComponent {
 								<StyledButton
 									type="confirm"
 									onPress={this.addRpcUrl}
+									testID={'network-add-button'}
 									containerStyle={styles.syncConfirm}
 									disabled={!enableAction || this.disabledByRpcUrl() || this.disabledByChainId()}
 								>

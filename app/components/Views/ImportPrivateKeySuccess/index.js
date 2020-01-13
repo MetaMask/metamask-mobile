@@ -85,7 +85,7 @@ class ImportPrivateKeySuccess extends PureComponent {
 			const allKeyrings =
 				keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
-			await PreferencesController.update({ selectedAddress: accountsOrdered[accountsOrdered.length - 1] });
+			PreferencesController.setSelectedAddress(accountsOrdered[accountsOrdered.length - 1]);
 		} catch (e) {
 			Logger.error('Error while refreshing imported pkey', e);
 		}
@@ -117,8 +117,12 @@ class ImportPrivateKeySuccess extends PureComponent {
 					style={styles.mainWrapper}
 					testID={'first-incoming-transaction-screen'}
 				>
-					<View style={styles.content}>
-						<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
+					<View style={styles.content} testID={'import-success-screen'}>
+						<TouchableOpacity
+							onPress={this.dismiss}
+							style={styles.navbarRightButton}
+							testID={'import-close-button'}
+						>
 							<MaterialIcon name="close" size={15} style={styles.closeIcon} />
 						</TouchableOpacity>
 						<View style={styles.top}>

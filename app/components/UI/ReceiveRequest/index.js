@@ -5,7 +5,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import ReceiveRequestAction from './ReceiveRequestAction';
 import Logger from '../../../util/Logger';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
-import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import { toggleReceiveModal } from '../../../actions/modals';
 import Modal from 'react-native-modal';
@@ -195,7 +194,9 @@ class ReceiveRequest extends PureComponent {
 					<View style={styles.dragger} />
 				</View>
 				<View style={styles.titleWrapper}>
-					<Text style={styles.title}>{strings('receive_request.title')}</Text>
+					<Text style={styles.title} testID={'receive-request-screen'}>
+						{strings('receive_request.title')}
+					</Text>
 				</View>
 
 				<View style={styles.actionsWrapper}>
@@ -239,6 +240,7 @@ class ReceiveRequest extends PureComponent {
 					onSwipeComplete={this.closeQrModal}
 					swipeDirection={'down'}
 					propagateSwipe
+					testID={'qr-modal'}
 				>
 					<AddressQRCode closeQrModal={this.closeQrModal} />
 				</Modal>
@@ -265,7 +267,7 @@ class ReceiveRequest extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	receiveAsset: state.modals.receiveAsset
 });
 

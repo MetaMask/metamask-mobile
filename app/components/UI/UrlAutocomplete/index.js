@@ -164,7 +164,7 @@ class UrlAutocomplete extends PureComponent {
 	};
 
 	render() {
-		if (this.props.input.length < 2) return <View style={styles.wrapper} />;
+		if (!this.props.input || this.props.input.length < 2) return <View style={styles.wrapper} />;
 		if (this.state.results.length === 0) {
 			return (
 				<View style={styles.wrapper}>

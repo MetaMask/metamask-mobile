@@ -92,7 +92,9 @@ class NavbarTitle extends PureComponent {
 		if (network.provider.nickname) {
 			name = network.provider.nickname;
 		} else {
-			name = Networks[network.provider.type].name || { ...Networks.rpc, color: null }.name;
+			name =
+				(Networks[network.provider.type] && Networks[network.provider.type].name) ||
+				{ ...Networks.rpc, color: null }.name;
 		}
 
 		const realTitle = translate ? strings(title) : title;
@@ -102,6 +104,7 @@ class NavbarTitle extends PureComponent {
 				onPress={this.openNetworkList}
 				style={styles.wrapper}
 				activeOpacity={this.props.disableNetwork ? 1 : 0.2}
+				testID={'open-networks-button'}
 			>
 				{title ? (
 					<Text numberOfLines={1} style={styles.title}>

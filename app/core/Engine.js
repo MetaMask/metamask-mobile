@@ -8,6 +8,7 @@ import {
 	CurrencyRateController,
 	KeyringController,
 	PersonalMessageManager,
+	MessageManager,
 	NetworkController,
 	NetworkStatusController,
 	PhishingController,
@@ -71,6 +72,7 @@ class Engine {
 						currentCurrency
 					}),
 					new PersonalMessageManager(),
+					new MessageManager(),
 					new NetworkController(
 						{
 							providerConfig: {
@@ -253,6 +255,40 @@ class Engine {
 		return total;
 	};
 
+	resetState = async () => {
+		// Whenever we are gonna start a new wallet
+		// either imported or created, we need to
+		// get rid of the old data from state
+		const {
+			TransactionController,
+			AssetsController,
+			TokenBalancesController,
+			TokenRatesController
+		} = this.datamodel.context;
+
+		//Clear assets info
+		AssetsController.update({
+			allCollectibleContracts: {},
+			allCollectibles: {},
+			allTokens: {},
+			collectibleContracts: [],
+			collectibles: [],
+			ignoredCollectibles: [],
+			ignoredTokens: [],
+			suggestedAssets: [],
+			tokens: []
+		});
+
+		TokenBalancesController.update({ contractBalances: {} });
+		TokenRatesController.update({ contractExchangeRates: {} });
+
+		TransactionController.update({
+			internalTransactions: [],
+			methodData: {},
+			transactions: []
+		});
+	};
+
 	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
 		const {
 			KeyringController,
@@ -302,9 +338,9 @@ class Engine {
 		});
 		await PreferencesController.update(updatedPref);
 		if (accounts.hd.includes(toChecksumAddress(updatedPref.selectedAddress))) {
-			await PreferencesController.update({ selectedAddress: toChecksumAddress(updatedPref.selectedAddress) });
+			PreferencesController.setSelectedAddress(updatedPref.selectedAddress);
 		} else {
-			await PreferencesController.update({ selectedAddress: toChecksumAddress(accounts.hd[0]) });
+			PreferencesController.setSelectedAddress(accounts.hd[0]);
 		}
 
 		await TransactionController.update({
@@ -381,6 +417,9 @@ export default {
 	},
 	getTotalFiatAccountBalance() {
 		return instance.getTotalFiatAccountBalance();
+	},
+	resetState() {
+		return instance.resetState();
 	},
 	sync(data) {
 		return instance.sync(data);

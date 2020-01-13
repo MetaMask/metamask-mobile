@@ -67,7 +67,7 @@ import I18n, { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
+import { BNToHex, hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
 import { setEtherTransaction, setTransactionObject } from '../../../actions/transaction';
 import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
@@ -80,12 +80,13 @@ import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDepo
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
 import Networks from '../../../util/networks';
 import { CONNEXT_DEPOSIT, getMethodData, TOKEN_METHOD_TRANSFER, decodeTransferData } from '../../../util/transactions';
-import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
-import { isENS } from '../../../util/address';
+import { BN, isValidAddress } from 'ethereumjs-util';
+import { isENS, safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
-import { BN } from 'gaba';
-import { BNToHex } from 'gaba/util';
+import MessageSign from '../../UI/MessageSign';
+import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
+import AsyncStorage from '@react-native-community/async-storage';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -366,6 +367,15 @@ class Main extends PureComponent {
 		 */
 		tokens: PropTypes.array,
 		/**
+		 * List of all tracked tokens
+		 */
+		allTokens: PropTypes.object,
+		/**
+		/**
+		 * List of all the balances of each contract tracked
+		 */
+		contractBalances: PropTypes.object,
+		/**
 		 * List of transactions
 		 */
 		transactions: PropTypes.array,
@@ -383,6 +393,7 @@ class Main extends PureComponent {
 		signType: '',
 		walletConnectRequest: false,
 		walletConnectRequestInfo: {},
+		walletConnectReturnModalVisible: false,
 		paymentChannelRequest: false,
 		paymentChannelRequestLoading: false,
 		paymentChannelRequestCompleted: false,
@@ -432,6 +443,18 @@ class Main extends PureComponent {
 
 			Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
 
+			Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams => {
+				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+				delete messageParams.meta;
+				this.setState({
+					signMessage: true,
+					signMessageParams: messageParams,
+					signType: 'eth',
+					currentPageTitle,
+					currentPageUrl
+				});
+			});
+
 			Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
 				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
 				delete messageParams.meta;
@@ -467,9 +490,75 @@ class Main extends PureComponent {
 					this.initializePaymentChannels();
 				}
 
+				setTimeout(() => {
+					this.checkForSai();
+				}, 3500);
+
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 			}, 1000);
 		});
+	};
+
+	checkForSai = async () => {
+		let hasSAI = false;
+		Object.keys(this.props.allTokens).forEach(account => {
+			const tokens = this.props.allTokens[account].mainnet;
+			tokens.forEach(token => {
+				if (token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
+					if (this.props.contractBalances[AppConstants.SAI_ADDRESS]) {
+						const balance = this.props.contractBalances[AppConstants.SAI_ADDRESS];
+						if (!balance.isZero()) {
+							hasSAI = true;
+						}
+					}
+				}
+			});
+		});
+
+		if (hasSAI) {
+			const previousReminder = await AsyncStorage.getItem('@MetaMask:nextMakerReminder');
+			if (!previousReminder || parseInt(previousReminder, 10) < Date.now()) {
+				Alert.alert(
+					strings('sai_migration.title'),
+					strings('sai_migration.message'),
+					[
+						{
+							text: strings('sai_migration.lets_do_it'),
+							onPress: async () => {
+								this.props.navigation.navigate('BrowserTabHome');
+								InteractionManager.runAfterInteractions(() => {
+									setTimeout(() => {
+										this.props.navigation.navigate('BrowserView', {
+											newTabUrl: 'https://migrate.makerdao.com'
+										});
+										const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
+										AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
+									}, 300);
+								});
+							},
+							style: 'cancel'
+						},
+						{
+							text: strings('sai_migration.learn_more'),
+							onPress: () => {
+								this.props.navigation.navigate('BrowserTabHome');
+								InteractionManager.runAfterInteractions(() => {
+									setTimeout(() => {
+										this.props.navigation.navigate('BrowserView', {
+											newTabUrl:
+												'https://blog.makerdao.com/what-to-expect-with-the-launch-of-multi-collateral-dai/'
+										});
+										const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
+										AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
+									}, 300);
+								});
+							}
+						}
+					],
+					{ cancelable: false }
+				);
+			}
+		}
 	};
 
 	connectionChangeHandler = state => {
@@ -484,6 +573,9 @@ class Main extends PureComponent {
 	initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
 			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
+		});
+		WalletConnect.hub.on('walletconnect:return', () => {
+			this.setState({ walletConnectReturnModalVisible: true });
 		});
 		WalletConnect.init();
 	};
@@ -646,7 +738,7 @@ class Main extends PureComponent {
 			return;
 		}
 		// Check if it's a payment channel deposit transaction to sign
-		const to = toChecksumAddress(transactionMeta.transaction.to);
+		const to = safeToChecksumAddress(transactionMeta.transaction.to);
 		const networkId = Networks[this.props.providerType].networkId;
 		if (
 			this.props.paymentChannelsEnabled &&
@@ -726,6 +818,7 @@ class Main extends PureComponent {
 		// If the app is now in background, we need to start
 		// the background timer, which is less intense
 		if (this.backgroundMode) {
+			this.setState({ walletConnectReturnModalVisible: false });
 			BackgroundTimer.runBackgroundTimer(async () => {
 				await Engine.refreshTransactionHistory();
 			}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
@@ -814,6 +907,15 @@ class Main extends PureComponent {
 						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
 					/>
 				)}
+				{signType === 'eth' && (
+					<MessageSign
+						navigation={this.props.navigation}
+						messageParams={signMessageParams}
+						onCancel={this.onSignAction}
+						onConfirm={this.onSignAction}
+						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					/>
+				)}
 			</Modal>
 		);
 	};
@@ -880,6 +982,10 @@ class Main extends PureComponent {
 		);
 	};
 
+	renderWalletConnectReturnModal = () => (
+		<WalletConnectReturnToBrowserModal modalVisible={this.state.walletConnectReturnModalVisible} />
+	);
+
 	renderPaymentChannelRequestApproval = () => {
 		const {
 			paymentChannelRequest,
@@ -930,6 +1036,7 @@ class Main extends PureComponent {
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
 				{this.renderPaymentChannelRequestApproval()}
+				{this.renderWalletConnectReturnModal()}
 			</React.Fragment>
 		);
 	}
@@ -942,7 +1049,9 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	allTokens: state.engine.backgroundState.AssetsController.allTokens,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
 });
 
 const mapDispatchToProps = dispatch => ({

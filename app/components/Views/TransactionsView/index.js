@@ -2,12 +2,13 @@ import React, { PureComponent } from 'react';
 import { ActivityIndicator, InteractionManager, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { colors } from '../../../styles/common';
 import Transactions from '../../UI/Transactions';
 import getNavbarOptions from '../../UI/Navbar';
 import Networks, { isKnownNetwork } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
+import { safeToChecksumAddress } from '../../../util/address';
+import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -57,6 +58,8 @@ class TransactionsView extends PureComponent {
 
 	state = {
 		transactionsUpdated: false,
+		submittedTxs: [],
+		confirmedTxs: [],
 		loading: false
 	};
 
@@ -101,44 +104,89 @@ class TransactionsView extends PureComponent {
 
 	didTxStatusesChange = newTxsPending => this.txsPending.length !== newTxsPending.length;
 
+	ethFilter = tx => {
+		const { selectedAddress, networkType } = this.props;
+		const networkId = Networks[networkType].networkId;
+		const {
+			transaction: { from, to }
+		} = tx;
+		return (
+			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
+			((networkId && networkId.toString() === tx.networkID) ||
+				(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
+			tx.status !== 'unapproved'
+		);
+	};
+
 	normalizeTransactions() {
 		if (this.isNormalizing) return;
 		this.isNormalizing = true;
-		const { selectedAddress, networkType, transactions } = this.props;
-		const networkId = Networks[networkType].networkId;
+		let submittedTxs = [];
+		const newPendingTxs = [];
+		const confirmedTxs = [];
+		const { networkType, transactions } = this.props;
+
 		if (transactions.length) {
-			const txs = transactions.filter(
-				tx =>
-					((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
-						(tx.transaction.to && toChecksumAddress(tx.transaction.to) === selectedAddress)) &&
-					((networkId && networkId.toString() === tx.networkID) ||
-						(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
-					tx.status !== 'unapproved'
-			);
+			const txs = transactions.filter(tx => {
+				switch (tx.status) {
+					case 'submitted':
+					case 'signed':
+					case 'unapproved':
+						submittedTxs.push(tx);
+						break;
+					case 'pending':
+						newPendingTxs.push(tx);
+						break;
+					case 'confirmed':
+						confirmedTxs.push(tx);
+						break;
+				}
+				return this.ethFilter(tx);
+			});
 
 			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-			const newPendingTxs = txs.filter(tx => tx.status === 'pending');
+			submittedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
+			confirmedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
+
+			const submittedNonces = [];
+			submittedTxs = submittedTxs.filter(transaction => {
+				const alreadyConfirmed = confirmedTxs.find(
+					tx => tx.transaction.nonce === transaction.transaction.nonce
+				);
+				if (alreadyConfirmed) {
+					InteractionManager.runAfterInteractions(() => {
+						Engine.context.TransactionController.cancelTransaction(transaction.id);
+					});
+					return false;
+				}
+				const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
+				submittedNonces.push(transaction.transaction.nonce);
+				return !alreadySubmitted;
+			});
+
 			// To avoid extra re-renders we want to set the new txs only when
 			// there's a new tx in the history or the status of one of the existing txs changed
 			if (
 				(this.txs.length === 0 && !this.state.transactionsUpdated) ||
 				this.txs.length !== txs.length ||
+				this.networkType !== networkType ||
 				this.didTxStatusesChange(newPendingTxs)
 			) {
 				this.txs = txs;
 				this.txsPending = newPendingTxs;
-				this.setState({ transactionsUpdated: true, loading: false });
-				// Attempt to scroll to the top when the TX statuses change
-				setTimeout(() => {
-					if (this.flatlistRef && this.flatlistRef.current) {
-						this.flatlistRef.current.scrollToIndex({ index: 0, animated: true });
-					}
-				}, 1000);
+				this.setState({
+					transactionsUpdated: true,
+					loading: false,
+					transactions: txs,
+					submittedTxs,
+					confirmedTxs
+				});
 			}
 		} else if (!this.state.transactionsUpdated) {
 			this.setState({ transactionsUpdated: true, loading: false });
 		}
 		this.isNormalizing = false;
+		this.networkType = networkType;
 	}
 
 	renderLoader = () => (
@@ -162,6 +210,8 @@ class TransactionsView extends PureComponent {
 					<Transactions
 						navigation={navigation}
 						transactions={this.txs}
+						submittedTransactions={this.state.submittedTxs}
+						confirmedTransactions={this.state.confirmedTxs}
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
 						selectedAddress={selectedAddress}

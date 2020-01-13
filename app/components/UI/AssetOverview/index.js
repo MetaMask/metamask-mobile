@@ -9,8 +9,8 @@ import AssetActionButtons from '../AssetActionButtons';
 import { setTokensTransaction } from '../../../actions/transaction';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -148,7 +148,7 @@ class AssetOverview extends PureComponent {
 			currentCurrency
 		} = this.props;
 		let mainBalance, secondaryBalance;
-		const itemAddress = (asset.address && toChecksumAddress(asset.address)) || undefined;
+		const itemAddress = safeToChecksumAddress(asset.address);
 		let balance, balanceFiat;
 		if (asset.isETH) {
 			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
@@ -175,15 +175,18 @@ class AssetOverview extends PureComponent {
 		}
 
 		return (
-			<View style={styles.wrapper}>
+			<View style={styles.wrapper} testID={'token-asset-overview'}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.balance}>
-					<Text style={styles.amount}>{mainBalance}</Text>
+					<Text style={styles.amount} testID={'token-amount'}>
+						{mainBalance}
+					</Text>
 					<Text style={styles.amountFiat}>{secondaryBalance}</Text>
 				</View>
 
 				<AssetActionButtons
 					leftText={strings('asset_overview.send_button').toUpperCase()}
+					testID={'token-send-button'}
 					middleText={strings('asset_overview.receive_button').toUpperCase()}
 					onLeftPress={this.onSend}
 					onMiddlePress={this.onReceive}

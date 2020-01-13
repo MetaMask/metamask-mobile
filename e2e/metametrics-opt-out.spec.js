@@ -14,9 +14,12 @@ describe('MetaMetrics opt-out', () => {
 		// Check that we are on the MetaMetrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that "No thanks" CTA is visible and tap it
-		await TestHelpers.waitAndTap('cancel-button');
+		await TestHelpers.waitAndTap('cancel-button', 15000);
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
+		if (!device.getPlatform() === 'android') {
+			// Check that we are on the wallet screen
+			await TestHelpers.checkIfExists('wallet-screen');
+		}
 		// Check that the onboarding wizard is present
 		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
 	});

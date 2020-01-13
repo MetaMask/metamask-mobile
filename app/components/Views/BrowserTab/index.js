@@ -354,7 +354,11 @@ export class BrowserTab extends PureComponent {
 		 * redux flag that indicates if the user
 		 * completed the seed phrase backup flow
 		 */
-		seedphraseBackedUp: PropTypes.bool
+		seedphraseBackedUp: PropTypes.bool,
+		/**
+		 * the current version of the app
+		 */
+		app_version: PropTypes.string
 	};
 
 	constructor(props) {
@@ -378,7 +382,7 @@ export class BrowserTab extends PureComponent {
 			showApprovalDialog: false,
 			showPhishingModal: false,
 			timeout: false,
-			url: props.initialUrl || HOMEPAGE_URL,
+			url: null,
 			contentHeight: 0,
 			forwardEnabled: false,
 			forceReload: false,
@@ -392,6 +396,7 @@ export class BrowserTab extends PureComponent {
 
 	webview = React.createRef();
 	inputRef = React.createRef();
+	sessionENSNames = {};
 	ensIgnoreList = [];
 	snapshotTimer = null;
 	lastUrlBeforeHome = null;
@@ -431,18 +436,24 @@ export class BrowserTab extends PureComponent {
 	}
 
 	async componentDidMount() {
+		this.mounted = true;
 		if (this.isTabActive()) {
 			this.initialReload();
+			return;
 		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
-			this.go(this.state.url);
+			this.go(this.state.inputValue);
 		}
-		this.mounted = true;
+
+		this.init();
+	}
+
+	initializeBackgroundBridge = () => {
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
 			eth_sign: async payload => {
-				const { PersonalMessageManager } = Engine.context;
+				const { MessageManager } = Engine.context;
 				try {
 					const pageMeta = await this.getPageMeta();
-					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+					const rawSig = await MessageManager.addUnapprovedMessageAsync({
 						data: payload.params[1],
 						from: payload.params[0],
 						...pageMeta
@@ -550,6 +561,45 @@ export class BrowserTab extends PureComponent {
 					);
 				}
 			},
+			eth_signTypedData_v4: async payload => {
+				const { TypedMessageManager } = Engine.context;
+
+				let data;
+				try {
+					data = JSON.parse(payload.params[1]);
+				} catch (e) {
+					throw new Error('Data must be passed as a valid JSON string.');
+				}
+
+				const chainId = data.domain.chainId;
+				const activeChainId =
+					this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
+
+				if (chainId && chainId !== activeChainId) {
+					throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
+				}
+
+				try {
+					const pageMeta = await this.getPageMeta();
+					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+						{
+							data: payload.params[1],
+							from: payload.params[0],
+							...pageMeta
+						},
+						'V4'
+					);
+					return (
+						!this.isReloading &&
+						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
+				} catch (error) {
+					return (
+						!this.isReloading &&
+						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
+				}
+			},
 			eth_requestAccounts: ({ hostname, params }) => {
 				const { approvedHosts, privacyMode, selectedAddress } = this.props;
 				const promise = new Promise((resolve, reject) => {
@@ -557,7 +607,10 @@ export class BrowserTab extends PureComponent {
 				});
 				if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
 					this.approvalRequest.resolve([selectedAddress]);
-					this.backgroundBridge.enableAccounts();
+					//if not approved previously
+					if (!this.backgroundBridge._accounts) {
+						this.backgroundBridge.enableAccounts();
+					}
 				} else {
 					// Let the damn website load first!
 					// Otherwise we don't get enough time to load the metadata
@@ -583,9 +636,20 @@ export class BrowserTab extends PureComponent {
 				}
 				return !this.isReloading && promise;
 			},
+			net_version: payload =>
+				!this.isReloading &&
+				Promise.resolve({
+					result: `${Networks[this.props.networkType].networkId}`,
+					jsonrpc: payload.jsonrpc,
+					id: payload.id
+				}),
 			web3_clientVersion: payload =>
 				!this.isReloading &&
-				Promise.resolve({ result: 'MetaMask/0.1.0/Alpha/Mobile', jsonrpc: payload.jsonrpc, id: payload.id }),
+				Promise.resolve({
+					result: `MetaMask/${this.props.app_version}/Beta/Mobile`,
+					jsonrpc: payload.jsonrpc,
+					id: payload.id
+				}),
 			wallet_scanQRCode: payload => {
 				const promise = new Promise((resolve, reject) => {
 					this.props.navigation.navigate('QRScanner', {
@@ -639,6 +703,8 @@ export class BrowserTab extends PureComponent {
 							onPress: () => {
 								const bookmark = { url: params[0] };
 								this.props.removeBookmark(bookmark);
+								// remove bookmark from homepage
+								this.refreshHomeScripts();
 								resolve({
 									favorites: this.props.bookmarks
 								});
@@ -672,7 +738,9 @@ export class BrowserTab extends PureComponent {
 				return !this.isReloading && Promise.resolve({ result: true });
 			}
 		});
+	};
 
+	init = async () => {
 		const entryScriptWeb3 =
 			Platform.OS === 'ios'
 				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
@@ -685,9 +753,12 @@ export class BrowserTab extends PureComponent {
 				: `'${Networks[this.props.networkType].networkId}'`
 		);
 
+		const analyticsEnabled = Analytics.getEnabled();
+
 		const homepageScripts = `
 			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
-			window.__mmSearchEngine="${this.props.searchEngine}";
+			window.__mmSearchEngine = "${this.props.searchEngine}";
+			window.__mmMetametrics = ${analyticsEnabled};
 		`;
 
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener, homepageScripts });
@@ -727,7 +798,7 @@ export class BrowserTab extends PureComponent {
 		this.props.navigation.addListener('willBlur', () => {
 			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
 		});
-	}
+	};
 
 	drawerOpenHandler = () => {
 		this.dismissTextSelectionIfNeeded();
@@ -779,6 +850,23 @@ export class BrowserTab extends PureComponent {
 				await this.go(url);
 			}
 		}
+	}
+
+	refreshHomeScripts() {
+		const analyticsEnabled = Analytics.getEnabled();
+
+		const homepageScripts = `
+			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+			window.__mmSearchEngine="${this.props.searchEngine}";
+			window.__mmMetametrics = ${analyticsEnabled};
+			window.postMessage('updateFavorites', '*');
+		`;
+		this.setState({ homepageScripts }, () => {
+			const { current } = this.webview;
+			if (current) {
+				current.injectJavaScript(homepageScripts);
+			}
+		});
 	}
 
 	setTabActive() {
@@ -870,6 +958,7 @@ export class BrowserTab extends PureComponent {
 
 		let contentId, contentUrl, contentType;
 		if (this.isENSUrl(sanitizedURL)) {
+			this.resolvingENSUrl = true;
 			const { url, type, hash } = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
 			contentUrl = url;
 			contentType = type;
@@ -880,6 +969,12 @@ export class BrowserTab extends PureComponent {
 				...this.props.navigation.state.params,
 				currentEnsName: hostname
 			});
+
+			this.setENSHostnameForUrl(contentUrl, hostname);
+
+			setTimeout(() => {
+				this.resolvingENSUrl = false;
+			}, 1000);
 		}
 		const urlToGo = contentUrl || sanitizedURL;
 
@@ -895,6 +990,9 @@ export class BrowserTab extends PureComponent {
 				hostname: this.formatHostname(hostname),
 				fullHostname: hostname
 			});
+
+			this.props.navigation.setParams({ url: this.state.inputValue, silent: true });
+
 			this.updateTabInfo(sanitizedURL);
 			return sanitizedURL;
 		}
@@ -936,7 +1034,7 @@ export class BrowserTab extends PureComponent {
 			}
 			Logger.error('Failed to resolve ENS name', err);
 			Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
-			return { url: null };
+			this.goBack();
 		}
 	}
 
@@ -1015,6 +1113,8 @@ export class BrowserTab extends PureComponent {
 	};
 
 	forceReload = () => {
+		this.isReloading = true;
+
 		this.toggleOptionsIfNeeded();
 		// As we're reloading to other url we should remove this callback
 		this.approvalRequest = undefined;
@@ -1025,6 +1125,7 @@ export class BrowserTab extends PureComponent {
 			this.webview.current = null;
 			setTimeout(() => {
 				this.setState({ forceReload: false }, () => {
+					this.isReloading = false;
 					this.go(url2Reload);
 				});
 			}, 300);
@@ -1032,11 +1133,11 @@ export class BrowserTab extends PureComponent {
 	};
 
 	initialReload = () => {
-		this.isReloading = true;
+		if (this.webview && this.webview.current) {
+			this.webview.current.stopLoading();
+		}
 		this.forceReload();
-		setTimeout(() => {
-			this.isReloading = false;
-		}, 1500);
+		this.init();
 	};
 
 	addBookmark = () => {
@@ -1066,9 +1167,12 @@ export class BrowserTab extends PureComponent {
 							Logger.error('Error adding to spotlight', e);
 						}
 					}
+					const analyticsEnabled = Analytics.getEnabled();
+
 					const homepageScripts = `
 						window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
 						window.__mmSearchEngine="${this.props.searchEngine}";
+						window.__mmMetametrics = ${analyticsEnabled};
 					`;
 					this.setState({ homepageScripts });
 				}
@@ -1185,7 +1289,21 @@ export class BrowserTab extends PureComponent {
 		}
 	};
 
+	onShouldStartLoadWithRequest = ({ url, navigationType }) => {
+		if (Platform.OS === 'ios') {
+			return true;
+		}
+		if (this.isENSUrl(url) && navigationType === 'other') {
+			this.go(url.replace('http://', 'https://'));
+			return false;
+		}
+		return true;
+	};
+
 	onPageChange = ({ url }) => {
+		if (this.isHomepage(url)) {
+			this.refreshHomeScripts();
+		}
 		if (url === this.state.url) return;
 		const { ipfsGateway } = this.props;
 		const data = {};
@@ -1193,6 +1311,11 @@ export class BrowserTab extends PureComponent {
 		if (urlObj.protocol.indexOf('http') === -1) {
 			return;
 		}
+
+		if (this.resolvingENSUrl) {
+			return;
+		}
+
 		this.lastUrlBeforeHome = null;
 
 		if (!this.state.showPhishingModal && !this.isAllowedUrl(urlObj.hostname)) {
@@ -1200,15 +1323,12 @@ export class BrowserTab extends PureComponent {
 		}
 
 		data.fullHostname = urlObj.hostname;
-		if (!this.state.ipfsWebsite) {
-			// If we're coming from a link / internal redirect
-			// We need to re-check if it's an ens url,
-			// then act accordingly
-			if (!this.isENSUrl(url)) {
-				data.inputValue = url;
-			} else {
-				this.go(url);
-			}
+
+		if (this.isENSUrl(url)) {
+			this.go(url.replace('http://', 'https://'));
+			const { current } = this.webview;
+			current && current.stopLoading();
+			return;
 		} else if (url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			if (this.state.contentType === 'ipfs-ns') {
 				data.inputValue = url.replace(
@@ -1221,9 +1341,6 @@ export class BrowserTab extends PureComponent {
 					`https://${this.state.currentEnsName}/`
 				);
 			}
-		} else if (this.isENSUrl(url)) {
-			this.go(url);
-			return;
 		} else {
 			data.inputValue = url;
 			data.hostname = this.formatHostname(urlObj.hostname);
@@ -1238,6 +1355,7 @@ export class BrowserTab extends PureComponent {
 				this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
 			}
 		}
+
 		this.updateTabInfo(inputValue);
 		this.setState({
 			fullHostname,
@@ -1260,10 +1378,17 @@ export class BrowserTab extends PureComponent {
 		this.setState({ progress });
 	};
 
+	waitForBridgeAndEnableAccounts = async () => {
+		while (!this.backgroundBridge) {
+			await new Promise(res => setTimeout(() => res(), 1000));
+		}
+		this.backgroundBridge.enableAccounts();
+	};
+
 	onLoadEnd = () => {
 		const { approvedHosts, privacyMode } = this.props;
 		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
-			this.backgroundBridge.enableAccounts();
+			this.waitForBridgeAndEnableAccounts();
 		}
 
 		// Wait for the title, then store the visit
@@ -1652,8 +1777,28 @@ export class BrowserTab extends PureComponent {
 		);
 	}
 
-	onLoadStart = () => {
-		this.backgroundBridge.disableAccounts();
+	getENSHostnameForUrl = url => this.sessionENSNames[url];
+
+	setENSHostnameForUrl = (url, host) => {
+		this.sessionENSNames[url] = host;
+	};
+
+	onLoadStart = ({ nativeEvent }) => {
+		this.initializeBackgroundBridge();
+		this.backgroundBridge && this.backgroundBridge.disableAccounts();
+		// Handle the scenario when going back
+		// from an ENS name
+		if (nativeEvent.navigationType === 'backforward' && nativeEvent.url === this.state.inputValue) {
+			setTimeout(() => this.goBack(), 500);
+		} else if (nativeEvent.url.indexOf(this.props.ipfsGateway) !== -1) {
+			const currentEnsName = this.getENSHostnameForUrl(nativeEvent.url);
+			if (currentEnsName) {
+				this.props.navigation.setParams({
+					...this.props.navigation.state.params,
+					currentEnsName
+				});
+			}
+		}
 	};
 
 	canGoForward = () => this.state.forwardEnabled;
@@ -1718,6 +1863,8 @@ export class BrowserTab extends PureComponent {
 							javascriptEnabled
 							allowsInlineMediaPlayback
 							useWebkit
+							onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
+							testID={'browser-webview'}
 						/>
 					)}
 				</View>

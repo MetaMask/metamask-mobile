@@ -48,13 +48,10 @@ describe('BackgroundBridge', () => {
 		new Promise(resolve => {
 			const bridge = new BackgroundBridge(MOCK_ENGINE, MOCK_WEBVIEW);
 			const stub = spyOn(MOCK_WEBVIEW.current, 'injectJavaScript');
-			bridge.onMessage({ type: 'INPAGE_REQUEST', payload: { method: 'net_version' } });
+			const origin = 'localhost';
+			bridge.onMessage({ type: 'INPAGE_REQUEST', payload: { method: 'net_version' }, origin });
 			setTimeout(() => {
-				const msg = JSON.stringify({
-					type: 'INPAGE_RESPONSE',
-					payload: { response: true, __mmID: 'undefined' }
-				});
-				expect(stub).toBeCalledWith(`window.ethereum && window.ethereum._onMessage(${JSON.stringify(msg)})`);
+				expect(stub).toBeCalled();
 				resolve();
 			}, 250);
 		}));
@@ -62,13 +59,6 @@ describe('BackgroundBridge', () => {
 	it('should emit state update', () => {
 		const stub = spyOn(MOCK_WEBVIEW.current, 'injectJavaScript');
 		new BackgroundBridge(MOCK_ENGINE, MOCK_WEBVIEW);
-		const msg = JSON.stringify({
-			type: 'STATE_UPDATE',
-			payload: {
-				network: 'bar'
-			}
-		});
-
-		expect(stub).toBeCalledWith(`window.ethereum && window.ethereum._onMessage(${JSON.stringify(msg)})`);
+		expect(stub).toBeCalled();
 	});
 });

@@ -162,7 +162,11 @@ class ChoosePassword extends PureComponent {
 		 * The action to update the lock time
 		 * in the redux store
 		 */
-		setLockTime: PropTypes.func
+		setLockTime: PropTypes.func,
+		/**
+		 * A string representing the selected address => account
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -206,37 +210,58 @@ class ChoosePassword extends PureComponent {
 		} else {
 			try {
 				this.setState({ loading: true });
-				const { KeyringController } = Engine.context;
+				const { KeyringController, PreferencesController } = Engine.context;
 				const mnemonic = await KeyringController.exportSeedPhrase('');
 				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
+				// Preserve the selected address
+				const selectedAddress = this.props.selectedAddress;
+				// Preserve the keyring before restoring
+				const hdKeyring = KeyringController.state.keyrings[0];
+				// Preserve all the prefs
+				const prefs = PreferencesController.state;
+				const existingAccountCount = hdKeyring.accounts.length;
+				// Recreate keyring
 				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
+				for (let i = 0; i < existingAccountCount - 1; i++) {
+					await KeyringController.addNewAccount();
+				}
 
-				if (this.state.biometryType) {
+				// Set prefs again
+				await PreferencesController.update(prefs);
+
+				// Reselect previous selected account if still available
+				if (hdKeyring.accounts.includes(selectedAddress)) {
+					PreferencesController.setSelectedAddress(selectedAddress);
+				} else {
+					PreferencesController.setSelectedAddress(hdKeyring[0]);
+				}
+
+				if (this.state.biometryType && this.state.biometryChoice) {
 					const authOptions = {
-						accessControl: this.state.biometryChoice
-							? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-							: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
+						accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
 					};
 
 					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 
-					if (!this.state.biometryChoice) {
-						await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-					} else {
-						// If the user enables biometrics, we're trying to read the password
-						// immediately so we get the permission prompt
-						if (Platform.OS === 'ios') {
-							await SecureKeychain.getGenericPassword();
-						}
-						await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+					// If the user enables biometrics, we're trying to read the password
+					// immediately so we get the permission prompt
+					if (Platform.OS === 'ios') {
+						await SecureKeychain.getGenericPassword();
 					}
+					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+					await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+					await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
 				} else {
 					if (this.state.rememberMe) {
 						await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
 							accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
 						});
+					} else {
+						await SecureKeychain.resetGenericPassword();
 					}
 					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+					await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+					await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
 				}
 
 				// mark the user as existing so it doesn't see the create password screen again
@@ -518,12 +543,16 @@ class ChoosePassword extends PureComponent {
 	}
 }
 
+const mapStateToProps = state => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+});
+
 const mapDispatchToProps = dispatch => ({
 	passwordSet: () => dispatch(passwordSet()),
 	setLockTime: time => dispatch(setLockTime(time))
 });
 
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(ChoosePassword);

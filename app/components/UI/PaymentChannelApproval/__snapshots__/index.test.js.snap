@@ -219,7 +219,8 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
           }
         >
           1.00
-           DAI
+           
+          SAI
         </Text>
       </View>
     </View>

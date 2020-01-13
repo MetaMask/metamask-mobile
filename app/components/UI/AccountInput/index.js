@@ -292,8 +292,8 @@ class AccountInput extends PureComponent {
 	}
 
 	getVisibleOptions = value => {
-		const { accounts, addressBook } = this.props;
-		const allAddresses = { ...addressBook, ...accounts };
+		const { accounts, addressBook, network } = this.props;
+		const allAddresses = { ...addressBook[network], ...accounts };
 
 		if (typeof value !== 'undefined' && value.toString().length > 0) {
 			// If it's a valid address we don't show any suggestion
@@ -403,7 +403,13 @@ class AccountInput extends PureComponent {
 							</View>
 						</View>
 					</View>
-					<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
+					<MaterialIcon
+						onPress={this.onFocus}
+						name={'arrow-drop-down'}
+						size={24}
+						style={styles.arrow}
+						testID={'account-drop-down'}
+					/>
 				</View>
 
 				{isOpen && this.renderOptionList()}

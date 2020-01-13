@@ -70,7 +70,7 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: 11.1.0
+      xcode: 11.2.1
     steps:
       - checkout
       - attach_workspace:
@@ -86,7 +86,7 @@ jobs:
               yarn global add detox-cli
       - run: echo $IOS_ENV | tr "|" "\n" > .ios.env
       - run: detox clean-framework-cache && detox build-framework-cache
-      - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
+      - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup --workers 2
   upload-coverage:
     <<: *defaults
     docker:
@@ -136,7 +136,7 @@ jobs:
           command: yarn build:announce
   publish-pre-release-ios:
     macos:
-      xcode: 11.1.0
+      xcode: 11.2.1
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
@@ -173,15 +173,15 @@ workflows:
       - test-unit:
           requires:
             - prep-node-deps
-      - test-e2e-ios:
-          requires:
-            - prep-node-deps
-            - test-unit
+    #   - test-e2e-ios:
+    #       requires:
+    #         - prep-node-deps
+    #         - test-unit
       - all-tests-pass:
           requires:
             - lint
             - test-unit
-            - test-e2e-ios
+    #       - test-e2e-ios
     #   - upload-coverage:
     #       requires:
     #         - test-unit

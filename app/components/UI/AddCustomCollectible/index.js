@@ -187,7 +187,9 @@ class AddCustomCollectible extends PureComponent {
 								testID={'input-collectible-address'}
 								onSubmitEditing={this.jumpToAssetTokenId}
 							/>
-							<Text style={styles.warningText}>{this.state.warningAddress}</Text>
+							<Text style={styles.warningText} testID={'collectible-address-warning'}>
+								{this.state.warningAddress}
+							</Text>
 						</View>
 						<View style={styles.rowWrapper}>
 							<Text style={fontStyles.normal}>{strings('collectible.collectible_token_id')}</Text>
@@ -207,7 +209,9 @@ class AddCustomCollectible extends PureComponent {
 								placeholder={strings('collectible.id_placeholder')}
 								placeholderTextColor={colors.grey100}
 							/>
-							<Text style={styles.warningText}>{this.state.warningTokenId}</Text>
+							<Text style={styles.warningText} testID={'collectible-identifier-warning'}>
+								{this.state.warningTokenId}
+							</Text>
 						</View>
 					</View>
 				</ActionView>

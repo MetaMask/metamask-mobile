@@ -174,6 +174,7 @@ export default class AddCustomToken extends PureComponent {
 					cancelText={strings('add_asset.tokens.cancel_add_token')}
 					confirmText={strings('add_asset.tokens.add_token')}
 					onCancelPress={this.cancelAddToken}
+					testID={'add-asset-cancel-button'}
 					onConfirmPress={this.addToken}
 					confirmDisabled={!(address && symbol && decimals)}
 				>
@@ -191,7 +192,9 @@ export default class AddCustomToken extends PureComponent {
 								onSubmitEditing={this.jumpToAssetSymbol}
 								returnKeyType={'next'}
 							/>
-							<Text style={styles.warningText}>{this.state.warningAddress}</Text>
+							<Text style={styles.warningText} testID={'token-address-warning'}>
+								{this.state.warningAddress}
+							</Text>
 						</View>
 						<View style={styles.rowWrapper}>
 							<Text style={fontStyles.normal}>{strings('token.token_symbol')}</Text>
@@ -225,7 +228,9 @@ export default class AddCustomToken extends PureComponent {
 								onSubmitEditing={this.addToken}
 								returnKeyType={'done'}
 							/>
-							<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
+							<Text style={styles.warningText} testID={'token-decimals-warning'}>
+								{this.state.warningDecimals}
+							</Text>
 						</View>
 					</View>
 				</ActionView>

@@ -10,6 +10,7 @@ import Logger from '../../../util/Logger';
 import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
+import { getVersion } from 'react-native-device-info';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -59,9 +60,11 @@ class Browser extends PureComponent {
 
 	constructor(props) {
 		super(props);
+
 		if (!props.tabs.length) {
 			this.newTab();
 		}
+
 		this.createBrowserTabs(props.tabs);
 	}
 
@@ -74,7 +77,9 @@ class Browser extends PureComponent {
 		}
 	}
 
-	createBrowserTabs(tabs) {
+	async createBrowserTabs(tabs) {
+		const APP_VERSION = await getVersion();
+
 		// Delete closed tabs
 		Object.keys(this.tabs).forEach(tabID => {
 			const existingTab = tabs.find(tab => tab.id === tabID);
@@ -92,15 +97,32 @@ class Browser extends PureComponent {
 					initialUrl: tab.url || AppConstants.HOMEPAGE_URL,
 					updateTabInfo: (url, tabID) => this.updateTabInfo(url, tabID),
 					showTabs: () => this.showTabs(),
-					newTab: url => this.newTab(url)
+					newTab: url => this.newTab(url),
+					app_version: APP_VERSION
 				});
 			}
 		});
 	}
 
-	componentDidUpdate() {
+	componentDidUpdate(prevProps) {
 		if (this.props.tabs.length !== Object.keys(this.tabs).length) {
 			this.createBrowserTabs(this.props.tabs);
+		}
+
+		const prevNavigation = prevProps.navigation;
+		const { navigation } = this.props;
+
+		if (prevNavigation && navigation) {
+			const prevUrl = prevNavigation.getParam('newTabUrl', null);
+			const currentUrl = navigation.getParam('newTabUrl', null);
+
+			if (currentUrl && prevUrl !== currentUrl) {
+				this.newTab(currentUrl);
+				this.props.navigation.setParams({
+					...this.props.navigation.state.params,
+					newTabUrl: null
+				});
+			}
 		}
 	}
 

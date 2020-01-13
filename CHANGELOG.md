@@ -2,6 +2,65 @@
 
 ## Current Develop Branch
 
+## v0.2.13 - Dic 30 2019
+- [#1250](https://github.com/MetaMask/metamask-mobile/pull/1250): Bump excon from 0.64.0 to 0.71.0 in /ios (#1250)
+- [#1246](https://github.com/MetaMask/metamask-mobile/pull/1246): bugfix: wizard back (#1246)
+- [#1235](https://github.com/MetaMask/metamask-mobile/pull/1235): Detox: Request token flow (#1235)
+- [#1234](https://github.com/MetaMask/metamask-mobile/pull/1234): bump migration version (#1234)
+
+## v0.2.12 - Nov 25 2019
+- [#1224](https://github.com/MetaMask/metamask-mobile/pull/1224): Bugfix: asset ens tx (#1224)
+- [#1225](https://github.com/MetaMask/metamask-mobile/pull/1225): update bug report link (#1225)
+- [#1215](https://github.com/MetaMask/metamask-mobile/pull/1215): Detox: Fix Android e2e Tests (#1215)
+- [#1223](https://github.com/MetaMask/metamask-mobile/pull/1223): Bugfix: contract deployments (#1223)
+- [#1222](https://github.com/MetaMask/metamask-mobile/pull/1222): bugfix: android show hex input instapay send (#1222)
+- [#1214](https://github.com/MetaMask/metamask-mobile/pull/1214): pass  metametrics context to homepage (#1214)
+
+## v0.2.11 - Nov 18 2019
+- [#1212](https://github.com/MetaMask/metamask-mobile/pull/1212): Provider missing properties (#1212)
+- [#1207](https://github.com/MetaMask/metamask-mobile/pull/1207): Fix typo on Import Account screen (#1207)
+- [#1198](https://github.com/MetaMask/metamask-mobile/pull/1198): Migrate to SAI (#1198)
+
+## v0.2.10 - Nov 16 2019
+- [#1205](https://github.com/MetaMask/metamask-mobile/pull/1205): Disable speedup instapay (#1205)
+- [#1204](https://github.com/MetaMask/metamask-mobile/pull/1204): Fix injection on Android (#1204)
+- [#1203](https://github.com/MetaMask/metamask-mobile/pull/1203): Update support email (#1203)
+- [#1199](https://github.com/MetaMask/metamask-mobile/pull/1199): Optimize injection on Iframes (#1199)
+- [#1197](https://github.com/MetaMask/metamask-mobile/pull/1197): bump version of detox e2e (#1197)
+- [#1196](https://github.com/MetaMask/metamask-mobile/pull/1196): Use v8 instead of JSC + native SVG support (#1196)
+- [#1194](https://github.com/MetaMask/metamask-mobile/pull/1194): bump to xcode 11.2.1 (#1194)
+- [#1189](https://github.com/MetaMask/metamask-mobile/pull/1189): version bump (#1189)
+- [#1192](https://github.com/MetaMask/metamask-mobile/pull/1192): Bugfix: android general settings (#1192)
+- [#1191](https://github.com/MetaMask/metamask-mobile/pull/1191): xcode bumps (#1191)
+- [#1190](https://github.com/MetaMask/metamask-mobile/pull/1190): Revert "Add ruby version (#1165)" (#1190)
+- [#1182](https://github.com/MetaMask/metamask-mobile/pull/1182): Bugfix: android exception manager crashes (#1182)
+- [#1188](https://github.com/MetaMask/metamask-mobile/pull/1188): fix go back homepage and refresh favorites (#1188)
+- [#1187](https://github.com/MetaMask/metamask-mobile/pull/1187): Bugfix: ENS links (#1187)
+- [#1183](https://github.com/MetaMask/metamask-mobile/pull/1183): Fix bookmark updates (#1183)
+- [#1176](https://github.com/MetaMask/metamask-mobile/pull/1176): Feature: speed up transaction (#1176)
+- [#1179](https://github.com/MetaMask/metamask-mobile/pull/1179): Allow injection on iframes (#1179)
+- [#1181](https://github.com/MetaMask/metamask-mobile/pull/1181): walletconnect deeplink support v2 (#1181)
+- [#1173](https://github.com/MetaMask/metamask-mobile/pull/1173): Detox: update RPC Network flow (#1173)
+- [#1172](https://github.com/MetaMask/metamask-mobile/pull/1172): added tests for custom rpc (#1172)
+- [#1168](https://github.com/MetaMask/metamask-mobile/pull/1168): bugfix: login and password issues (#1168)
+- [#1170](https://github.com/MetaMask/metamask-mobile/pull/1170): Detox: Wallet Tests (#1170)
+- [#1165](https://github.com/MetaMask/metamask-mobile/pull/1165): Add ruby version (#1165)
+- [#1155](https://github.com/MetaMask/metamask-mobile/pull/1155): Feature: sign typed v4 (#1155)
+- [#1164](https://github.com/MetaMask/metamask-mobile/pull/1164): Add CircleCI Badge (#1164)
+- [#1151](https://github.com/MetaMask/metamask-mobile/pull/1151): Feature: message eth sign + Address Book Migration (#1151)
+- [#1148](https://github.com/MetaMask/metamask-mobile/pull/1148): added more assertions and beefed up onboarding wizard tests (#1148)
+- [#1147](https://github.com/MetaMask/metamask-mobile/pull/1147): Detox: Browser Tests (#1147)
+- [#1163](https://github.com/MetaMask/metamask-mobile/pull/1163): update eslint to the latest version (#1163)
+- [#1162](https://github.com/MetaMask/metamask-mobile/pull/1162): disabled e2e tests (#1162)
+- [#1156](https://github.com/MetaMask/metamask-mobile/pull/1156): Fix linter on CI (#1156)
+- [#1146](https://github.com/MetaMask/metamask-mobile/pull/1146): fix instapay logs app version (#1146)
+
+## v0.2.8 - Oct 9 2019
+- [#1145](https://github.com/MetaMask/metamask-mobile/pull/1145): Support URLs on QR code scanner (#1145)
+
+## v0.2.7 - Oct 7 2019
+- [#1143](https://github.com/MetaMask/metamask-mobile/pull/1143): Minor bugfixes (#1143)
+
 ## v0.2.6 - Oct 4 2019
 - [#1139](https://github.com/MetaMask/metamask-mobile/pull/1139): Fix onboarding carousel dimensions (#1139)
 

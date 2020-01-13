@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetIcon should render correctly 1`] = `
-<MyImage
+<RemoteImage
   fadeIn={true}
   placeholderStyle={
     Object {
@@ -10,7 +10,7 @@ exports[`AssetIcon should render correctly 1`] = `
   }
   source={
     Object {
-      "uri": "https://raw.githubusercontent.com/metamask/eth-contract-metadata/master/images/metamark.svg",
+      "uri": "https://raw.githubusercontent.com/metamask/eth-contract-metadata/v1.11.0/images/metamark.svg",
     }
   }
   style={

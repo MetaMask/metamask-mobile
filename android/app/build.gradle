@@ -174,8 +174,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 19
-        versionName "0.2.6"
+        versionCode 26
+        versionName "0.2.13"
         multiDexEnabled true
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy "minReactNative", "minReactNative46"
@@ -215,11 +215,6 @@ android {
         }
     }
 
-	packagingOptions {
-		pickFirst 'lib/x86_64/libjsc.so'
- 		pickFirst 'lib/arm64-v8a/libjsc.so'
-	}
-
     buildTypes {
          debug {
             manifestPlaceholders = [isDebug:true]
@@ -236,8 +231,8 @@ android {
 
 	}
 	packagingOptions {
-		pickFirst 'lib/x86_64/libjsc.so'
-		pickFirst 'lib/arm64-v8a/libjsc.so'
+		// Make sure libjsc.so does not packed in APK
+		exclude "**/libjsc.so"
 	}
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
@@ -255,6 +250,7 @@ android {
 }
 
 dependencies {
+
     implementation project(':react-native-reanimated')
     implementation project(':react-native-webview')
     implementation project(':react-native-fabric')
@@ -269,12 +265,14 @@ dependencies {
     implementation project(':react-native-gesture-handler')
     implementation project(':react-native-screens')
     implementation 'androidx.multidex:multidex:2.0.0'
-    implementation 'androidx.annotation:annotation:1.0.0'
+    implementation 'androidx.annotation:annotation:1.1.0'
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation "com.facebook.react:react-native:+"  // From node_modules
+    implementation 'org.chromium:v8-android:7.8.+'
 
     implementation project(':react-native-branch')
-	implementation "io.branch.sdk.android:library:3.0.4"
+	implementation "io.branch.sdk.android:library:4.1.2"
+
 
     implementation project(':react-native-camera')
     implementation project(':react-native-share')
@@ -290,11 +288,8 @@ dependencies {
     implementation('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true;
     }
-
-    // androidTestImplementation(project(path: ":detox"))
-    // androidTestImplementation 'junit:junit:4.12'
-    // androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    // androidTestImplementation 'com.android.support.test:rules:1.0.1'
+    androidTestImplementation('com.wix:detox:+') { transitive = true }
+    androidTestImplementation 'junit:junit:4.12'
 }
 
 // Run this once to be able to run the application with BUCK

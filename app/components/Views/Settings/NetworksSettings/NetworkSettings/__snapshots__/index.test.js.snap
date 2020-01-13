@@ -9,6 +9,7 @@ exports[`NetworkSettings should render correctly 1`] = `
       "flexDirection": "column",
     }
   }
+  testID="new-rpc-screen"
 >
   <KeyboardAwareScrollViewMock
     enableAutomaticScroll={true}
@@ -43,6 +44,7 @@ exports[`NetworkSettings should render correctly 1`] = `
             "paddingVertical": 12,
           }
         }
+        testID="rpc-screen-title"
       >
         New RPC Network
       </Text>
@@ -93,6 +95,7 @@ exports[`NetworkSettings should render correctly 1`] = `
             Object {},
           ]
         }
+        testID="input-network-name"
         underlineColorAndroid="transparent"
       />
       <Text
@@ -131,6 +134,7 @@ exports[`NetworkSettings should render correctly 1`] = `
             Object {},
           ]
         }
+        testID="input-rpc-url"
         underlineColorAndroid="transparent"
       />
       <Text
@@ -207,6 +211,7 @@ exports[`NetworkSettings should render correctly 1`] = `
             Object {},
           ]
         }
+        testID="input-network-symbol"
         underlineColorAndroid="transparent"
       />
       <Text
@@ -278,6 +283,7 @@ exports[`NetworkSettings should render correctly 1`] = `
               "opacity": 0.6,
             }
           }
+          testID="network-add-button"
           type="confirm"
         >
           Add

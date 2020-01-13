@@ -25,7 +25,7 @@ exports[`TransactionElement should render correctly 1`] = `
     <View
       style={
         Object {
-          "height": 95,
+          "minHeight": 95,
           "padding": 15,
         }
       }
@@ -126,6 +126,7 @@ exports[`TransactionElement should render correctly 1`] = `
                 "fontFamily": "Roboto",
                 "fontSize": 12,
                 "fontWeight": "400",
+                "textTransform": "uppercase",
               }
             }
           >

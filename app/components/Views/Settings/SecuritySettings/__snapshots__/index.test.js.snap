@@ -10,6 +10,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       "paddingBottom": 48,
     }
   }
+  testID="security-settings-scrollview"
 >
   <View
     style={
@@ -137,7 +138,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
-      testID="clear-privacy"
+      testID="clear-privacy-section"
     >
       <Text
         style={
@@ -252,6 +253,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
+      testID="auto-lock-section"
     >
       <Text
         style={
@@ -470,6 +472,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       cancelTestID=""
       cancelText="NEVERMIND"
       confirmButtonMode="warning"
+      confirmDisabled={false}
       confirmTestID=""
       confirmText="CLEAR"
       modalVisible={false}
@@ -520,6 +523,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       cancelTestID=""
       cancelText="NEVERMIND"
       confirmButtonMode="warning"
+      confirmDisabled={false}
       confirmTestID=""
       confirmText="CLEAR"
       modalVisible={false}

@@ -8,12 +8,12 @@ import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
 import { newTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getTransactionReviewActionKey } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -212,7 +212,7 @@ class Approval extends PureComponent {
 		gas: BNToHex(transaction.gas),
 		gasPrice: BNToHex(transaction.gasPrice),
 		value: BNToHex(transaction.value),
-		to: toChecksumAddress(transaction.to)
+		to: safeToChecksumAddress(transaction.to)
 	});
 
 	/**
@@ -243,6 +243,7 @@ class Approval extends PureComponent {
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'confirm-transaction-screen'}>
 				<TransactionEditor
+					promptedFromApproval
 					mode={mode}
 					onCancel={this.onCancel}
 					onConfirm={this.onConfirm}
@@ -258,7 +259,6 @@ class Approval extends PureComponent {
 const mapStateToProps = state => ({
 	transaction: state.transaction,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 

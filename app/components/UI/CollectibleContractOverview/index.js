@@ -104,10 +104,10 @@ class CollectibleContractOverview extends PureComponent {
 				? collectiblesTransferInformation[lowerAddress].tradable && strings('asset_overview.send_button')
 				: strings('asset_overview.send_button');
 		return (
-			<View style={styles.wrapper}>
+			<View style={styles.wrapper} testID={'collectible-overview-screen'}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.information}>
-					<Text style={styles.name}>
+					<Text style={styles.name} testID={'collectible-name'}>
 						{ownerOf} {name}
 					</Text>
 				</View>
@@ -118,6 +118,7 @@ class CollectibleContractOverview extends PureComponent {
 					rightText={strings('asset_overview.info')}
 					onLeftPress={this.onSend}
 					onMiddlePress={this.onAdd}
+					testID={'collectible-info-button'}
 					onRightPress={this.onInfo}
 					middleType={'add'}
 				/>

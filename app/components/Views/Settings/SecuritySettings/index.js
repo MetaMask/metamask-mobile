@@ -3,7 +3,6 @@ import React, { PureComponent } from 'react';
 import { Alert, StyleSheet, Switch, Text, ScrollView, Platform, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
@@ -318,7 +317,7 @@ class Settings extends PureComponent {
 				}
 				Logger.log('SecuritySettings::selecting address');
 				// Finally set the same selected address
-				await PreferencesController.update({ selectedAddress: toChecksumAddress(selectedAddress) });
+				PreferencesController.setSelectedAddress(selectedAddress);
 				Logger.log('SecuritySettings::restore complete');
 			}
 
@@ -440,7 +439,7 @@ class Settings extends PureComponent {
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		return (
-			<ScrollView style={styles.wrapper}>
+			<ScrollView style={styles.wrapper} testID={'security-settings-scrollview'}>
 				<View style={styles.inner}>
 					<View style={[styles.setting, styles.firstSetting]}>
 						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
@@ -466,7 +465,7 @@ class Settings extends PureComponent {
 							/>
 						</View>
 					</View>
-					<View style={styles.setting} testID={'clear-privacy'}>
+					<View style={styles.setting} testID={'clear-privacy-section'}>
 						<Text style={styles.title}>{strings('app_settings.clear_privacy_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.clear_privacy_desc')}</Text>
 						<StyledButton
@@ -490,7 +489,7 @@ class Settings extends PureComponent {
 							{strings('app_settings.clear_browser_history_desc').toUpperCase()}
 						</StyledButton>
 					</View>
-					<View style={styles.setting}>
+					<View style={styles.setting} testID={'auto-lock-section'}>
 						<Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.auto_lock_desc')}</Text>
 						<View style={styles.picker}>
@@ -616,7 +615,7 @@ const mapStateToProps = state => ({
 	browserHistory: state.browser.history,
 	lockTime: state.settings.lockTime,
 	privacyMode: state.privacy.privacyMode,
-	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,

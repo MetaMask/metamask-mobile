@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, Dimensions, StyleSheet, View, Text, Clipboard } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
@@ -111,7 +110,7 @@ class AddressQRCode extends PureComponent {
 		return (
 			<View style={styles.root}>
 				<View style={styles.wrapper}>
-					<TouchableOpacity style={styles.closeIcon} onPress={this.closeQrModal}>
+					<TouchableOpacity style={styles.closeIcon} onPress={this.closeQrModal} testID={'close-qr-modal'}>
 						<IonicIcon name={'ios-close'} size={38} color={colors.white} />
 					</TouchableOpacity>
 					<View style={styles.qrCode}>
@@ -123,7 +122,9 @@ class AddressQRCode extends PureComponent {
 					<View style={styles.addressWrapper}>
 						<Text style={styles.addressTitle}>{strings('receive_request.public_address_qr_code')}</Text>
 						<TouchableOpacity onPress={this.copyAccountToClipboard}>
-							<Text style={styles.address}>{this.processAddress()}</Text>
+							<Text style={styles.address} testID={'public-address-input'}>
+								{this.processAddress()}
+							</Text>
 						</TouchableOpacity>
 					</View>
 				</View>
@@ -134,7 +135,7 @@ class AddressQRCode extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress)
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 const mapDispatchToProps = dispatch => ({

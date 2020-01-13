@@ -59,9 +59,10 @@ class Step4 extends PureComponent {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
-				this.setState({
-					viewTop: py - 50
-				});
+				py &&
+					this.setState({
+						viewTop: py - 50
+					});
 			});
 	};
 
@@ -87,7 +88,7 @@ class Step4 extends PureComponent {
 	 */
 	content = () => (
 		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content}>
+			<Text style={onboardingStyles.content} testID={'step4-title'}>
 				<Text style={fontStyles.bold}>{strings('onboarding_wizard.step4.content1')} </Text>
 				{strings('onboarding_wizard.step4.content2')}
 			</Text>
@@ -100,7 +101,11 @@ class Step4 extends PureComponent {
 			<View style={[styles.main, { top: this.state.viewTop }]}>
 				<View style={styles.coachmarkContainer}>
 					<View style={styles.hamburgerContainer}>
-						<TouchableWithoutFeedback style={styles.hamburger} onPress={this.onNext}>
+						<TouchableWithoutFeedback
+							style={styles.hamburger}
+							onPress={this.onNext}
+							testID={'hamburger-menu-button-wallet-fake'}
+						>
 							<View style={styles.hamburger} />
 						</TouchableWithoutFeedback>
 					</View>

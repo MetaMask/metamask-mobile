@@ -15,6 +15,7 @@ exports[`Approval should render correctly 1`] = `
     onCancel={[Function]}
     onConfirm={[Function]}
     onModeChange={[Function]}
+    promptedFromApproval={true}
     transaction={
       Object {
         "assetType": undefined,

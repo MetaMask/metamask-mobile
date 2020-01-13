@@ -22,6 +22,7 @@ exports[`AddCustomToken should render correctly 1`] = `
     onConfirmPress={[Function]}
     showCancelButton={true}
     showConfirmButton={true}
+    testID="add-asset-cancel-button"
   >
     <View>
       <View
@@ -73,6 +74,7 @@ exports[`AddCustomToken should render correctly 1`] = `
               "marginTop": 15,
             }
           }
+          testID="token-address-warning"
         />
       </View>
       <View
@@ -177,6 +179,7 @@ exports[`AddCustomToken should render correctly 1`] = `
               "marginTop": 15,
             }
           }
+          testID="token-decimals-warning"
         />
       </View>
     </View>

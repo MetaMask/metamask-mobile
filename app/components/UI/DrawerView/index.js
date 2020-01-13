@@ -11,7 +11,6 @@ import {
 	ScrollView,
 	InteractionManager
 } from 'react-native';
-import SvgImage from 'react-native-remote-svg';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -29,7 +28,6 @@ import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
-import { toChecksumAddress } from 'ethereumjs-util';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
@@ -591,8 +589,8 @@ class DrawerView extends PureComponent {
 	};
 
 	goToBugFeedback = () => {
-		const formId = '1FAIpQLSdjImKlZCFP2U5GifkNHEmbBrKHxDKl2DpU7rvLxyMdvZ4QLg';
-		this.goToFeedback(formId);
+		this.goToBrowserUrl(`https://metamask.zendesk.com/hc/en-us/requests/new`, strings('drawer.submit_bug'));
+		this.setState({ submitFeedback: false });
 	};
 
 	goToGeneralFeedback = () => {
@@ -726,8 +724,8 @@ class DrawerView extends PureComponent {
 				},
 				paymentChannelsEnabled && {
 					name: strings('drawer.insta_pay'),
-					icon: <SvgImage source={instapay_logo} style={styles.instapayLogo} />,
-					selectedIcon: <SvgImage source={instapay_logo_selected} style={styles.instapayLogo} />,
+					icon: <Image source={instapay_logo} style={styles.instapayLogo} />,
+					selectedIcon: <Image source={instapay_logo_selected} style={styles.instapayLogo} />,
 					action: this.goToPaymentChannel
 				},
 				{
@@ -903,6 +901,7 @@ class DrawerView extends PureComponent {
 							onPress={this.onReceive}
 							containerStyle={[styles.button, styles.rightButton]}
 							style={styles.buttonContent}
+							testID={'drawer-receive-button'}
 						>
 							<MaterialIcon
 								name={'keyboard-tab'}
@@ -1045,7 +1044,7 @@ class DrawerView extends PureComponent {
 
 const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController,
-	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,

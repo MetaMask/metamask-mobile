@@ -1,6 +1,5 @@
 import RNWalletConnect from '@walletconnect/react-native';
 import Engine from './Engine';
-import { Linking } from 'react-native';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
@@ -8,7 +7,6 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 const hub = new EventEmitter();
 let connectors = [];
-let pendingRedirect = null;
 
 const CLIENT_OPTIONS = {
 	clientMeta: {
@@ -37,7 +35,7 @@ class WalletConnect {
 
 	constructor(options) {
 		if (options.redirect) {
-			pendingRedirect = options.redirect;
+			this.redirectUrl = options.redirect;
 		}
 
 		if (options.autosign) {
@@ -108,7 +106,43 @@ class WalletConnect {
 							error
 						});
 					}
-				} else if (payload.method === 'eth_sign' || payload.method === 'personal_sign') {
+				} else if (payload.method === 'eth_sign') {
+					const { MessageManager } = Engine.context;
+					let rawSig = null;
+					try {
+						if (payload.params[2]) {
+							throw new Error('Autosign is not currently supported');
+							// Leaving this in case we want to enable it in the future
+							// once WCIP-4 is defined: https://github.com/WalletConnect/WCIPs/issues/4
+							// rawSig = await KeyringController.signPersonalMessage({
+							// 	data: payload.params[1],
+							// 	from: payload.params[0]
+							// });
+						} else {
+							const data = payload.params[1];
+							const from = payload.params[0];
+
+							rawSig = await MessageManager.addUnapprovedMessageAsync({
+								data,
+								from,
+								meta: {
+									title: meta && meta.name,
+									url: meta && meta.url,
+									icon: meta && meta.icons && meta.icons[0]
+								}
+							});
+						}
+						this.walletConnector.approveRequest({
+							id: payload.id,
+							result: rawSig
+						});
+					} catch (error) {
+						this.walletConnector.rejectRequest({
+							id: payload.id,
+							error
+						});
+					}
+				} else if (payload.method === 'personal_sign') {
 					const { PersonalMessageManager } = Engine.context;
 					let rawSig = null;
 					try {
@@ -121,13 +155,8 @@ class WalletConnect {
 							// 	from: payload.params[0]
 							// });
 						} else {
-							let data = payload.params[1];
-							let from = payload.params[0];
-
-							if (payload.method === 'personal_sign') {
-								data = payload.params[0];
-								from = payload.params[1];
-							}
+							const data = payload.params[0];
+							const from = payload.params[1];
 
 							rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 								data,
@@ -176,6 +205,7 @@ class WalletConnect {
 						});
 					}
 				}
+				this.redirectIfNeeded();
 			}
 		});
 
@@ -259,11 +289,10 @@ class WalletConnect {
 		});
 
 	redirectIfNeeded = () => {
-		if (pendingRedirect) {
+		if (this.redirectUrl) {
 			setTimeout(() => {
-				Linking.openURL(pendingRedirect);
-				pendingRedirect = null;
-			}, 500);
+				hub.emit('walletconnect:return');
+			}, 1500);
 		}
 	};
 }
@@ -322,9 +351,6 @@ const instance = {
 	shutdown() {
 		Engine.context.TransactionController.hub.removeAllListeners();
 		Engine.context.PreferencesController.unsubscribe();
-	},
-	setRedirectUri: uri => {
-		pendingRedirect = uri;
 	}
 };
 

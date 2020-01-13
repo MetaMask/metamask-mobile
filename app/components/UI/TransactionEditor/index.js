@@ -14,6 +14,7 @@ import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from 'eth-contract-metadata';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -85,7 +86,11 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
-		setTransactionObject: PropTypes.func.isRequired
+		setTransactionObject: PropTypes.func.isRequired,
+		/**
+		 * Whether was prompted from approval
+		 */
+		promptedFromApproval: PropTypes.bool
 	};
 
 	state = {
@@ -215,9 +220,11 @@ class TransactionEditor extends PureComponent {
 			this.props.setTransactionObject({ to, gas: hexToBN(gas), ensRecipient });
 		}
 		// If selectedAsset defined, generates data
-		else {
+		else if (to && isValidAddress(to)) {
 			const { data, gas } = await this.handleDataGeneration({ to });
 			this.props.setTransactionObject({ to, gas: hexToBN(gas), data, ensRecipient });
+		} else {
+			this.props.setTransactionObject({ to, data: undefined, ensRecipient });
 		}
 	};
 
@@ -356,7 +363,7 @@ class TransactionEditor extends PureComponent {
 			const {
 				transaction: { value, gas, gasPrice, from }
 			} = this.props;
-			const checksummedFrom = from ? toChecksumAddress(from) : '';
+			const checksummedFrom = safeToChecksumAddress(from) || '';
 			const fromAccount = this.props.accounts[checksummedFrom];
 			if (!value || !gas || !gasPrice || !from) return strings('transaction.invalid_amount');
 			if (value && !isBN(value)) return strings('transaction.invalid_amount');
@@ -386,7 +393,7 @@ class TransactionEditor extends PureComponent {
 				transaction: { value, gas, gasPrice, from, selectedAsset },
 				contractBalances
 			} = this.props;
-			const checksummedFrom = from ? toChecksumAddress(from) : '';
+			const checksummedFrom = safeToChecksumAddress(from) || '';
 			const fromAccount = this.props.accounts[checksummedFrom];
 			if (!value || !gas || !gasPrice || !from) {
 				return strings('transaction.invalid_amount');
@@ -464,7 +471,7 @@ class TransactionEditor extends PureComponent {
 		if (gasPrice && !isBN(gasPrice)) return strings('transaction.invalid_gas_price');
 		if (gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) return strings('custom_gas.warning_gas_limit');
 
-		const checksummedFrom = from ? toChecksumAddress(from) : '';
+		const checksummedFrom = safeToChecksumAddress(from) || '';
 		const fromAccount = this.props.accounts[checksummedFrom];
 		if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice)))
 			return strings('transaction.insufficient');
@@ -479,11 +486,15 @@ class TransactionEditor extends PureComponent {
 	validateToAddress = () => {
 		let error;
 		const {
-			transaction: { to }
+			transaction: { to },
+			promptedFromApproval
 		} = this.props;
+		// If it comes from a dapp it could be a contract deployment
+		if (promptedFromApproval && !to) return error;
 		!to && (error = strings('transaction.required'));
 		!to && this.state.toFocused && (error = strings('transaction.required'));
 		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
+		to && to.length !== 42 && (error = strings('transaction.invalid_address'));
 		return error;
 	};
 
