@@ -44,7 +44,7 @@ class InpageBridge {
 		this.selectedAddress = this._selectedAddress;
 		this.networkVersion = this._network;
 		if (!isNaN(this._network)) {
-			this.chainId = 'Ox' + parseInt(this._network, 10).toString(16);
+			this.chainId = '0x' + parseInt(this._network, 10).toString(16);
 		}
 
 		oldAddress !== undefined &&
