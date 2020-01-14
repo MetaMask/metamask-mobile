@@ -14,9 +14,9 @@ import Engine from '../../../../core/Engine';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
 import StyledButton from '../../../UI/StyledButton';
-import { setRecipient, newAssetTransaction } from '../../../../actions/newTransaction';
+import { setSelectedAsset, setRecipient, newAssetTransaction } from '../../../../actions/newTransaction';
 import { isENS } from '../../../../util/address';
-import { getTicker } from '../../../../util/transactions';
+import { getTicker, getEther } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
 
@@ -149,7 +149,11 @@ class SendFlow extends PureComponent {
 		/**
 		 * Action that sets transaction to and ensRecipient in case is available
 		 */
-		setRecipient: PropTypes.func
+		setRecipient: PropTypes.func,
+		/**
+		 * Set selected in transaction state
+		 */
+		setSelectedAsset: PropTypes.func
 	};
 
 	addressToInputRef = React.createRef();
@@ -203,6 +207,8 @@ class SendFlow extends PureComponent {
 		const ens = await doENSReverseLookup(accountAddress);
 		const fromAccountName = ens || name;
 		PreferencesController.setSelectedAddress(accountAddress);
+		// If new account doesn't have the asset
+		this.props.setSelectedAsset(getEther());
 		this.setState({ fromAccountName, fromAccountBalance, fromSelectedAddress: accountAddress });
 		this.toggleFromAccountModal();
 	};
@@ -484,7 +490,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	setRecipient: (from, to, ensRecipient, transactionToName, transactionFromName) =>
 		dispatch(setRecipient(from, to, ensRecipient, transactionToName, transactionFromName)),
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
+	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset)),
+	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
 });
 
 export default connect(
