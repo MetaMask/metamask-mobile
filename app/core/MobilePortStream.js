@@ -24,6 +24,12 @@ function PortDuplexStream(port, url) {
 	this._url = url;
 	port.addListener('message', this._onMessage.bind(this));
 	port.addListener('disconnect', this._onDisconnect.bind(this));
+
+	if (!this._port._window.webViewRef) {
+		console.warn('NO WEBVIEW REF ON CONSTRUCTOR of MobilePortStream', this._port._window);
+	} else {
+		console.log('Port created ok on MobilePortStream', this._port._window);
+	}
 }
 
 /**

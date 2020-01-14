@@ -1763,8 +1763,9 @@ export class BrowserTab extends PureComponent {
 		url && this.initializeBackgroundBridge(url, false);
 	};
 
-	onLoadStart = ({ nativeEvent }) => {
-		this.initializeBackgroundBridge(nativeEvent.url, true);
+	webviewRefIsReady = () => this.webview && this.webview.current && this.webview.current.webViewRef;
+
+	onLoadStart = async ({ nativeEvent }) => {
 		// Handle the scenario when going back
 		// from an ENS name
 		if (nativeEvent.navigationType === 'backforward' && nativeEvent.url === this.state.inputValue) {
@@ -1777,6 +1778,28 @@ export class BrowserTab extends PureComponent {
 					currentEnsName
 				});
 			}
+		}
+
+		console.log(
+			'LOAD START = READY?',
+			this.webview && this.webview.current && this.webview.current.webViewRef,
+			this.webview.current.webViewRef
+		);
+		let i = 0;
+		while (!this.webviewRefIsReady() && i < 10) {
+			await new Promise(res =>
+				setTimeout(() => {
+					console.log('Waiting for webview ref');
+					res();
+				}, 500)
+			);
+			i++;
+		}
+
+		if (this.webviewRefIsReady()) {
+			// Reset the previous bridges
+			this.backgroundBridges.length && this.backgroundBridges.forEach(bridge => bridge.onDisconnect());
+			this.initializeBackgroundBridge(nativeEvent.url, true);
 		}
 	};
 
