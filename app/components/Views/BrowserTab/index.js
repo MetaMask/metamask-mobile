@@ -1763,7 +1763,11 @@ export class BrowserTab extends PureComponent {
 		url && this.initializeBackgroundBridge(url, false);
 	};
 
-	webviewRefIsReady = () => this.webview && this.webview.current && this.webview.current.webViewRef;
+	webviewRefIsReady = () =>
+		this.webview &&
+		this.webview.current &&
+		this.webview.current.webViewRef &&
+		this.webview.current.webViewRef.current;
 
 	onLoadStart = async ({ nativeEvent }) => {
 		// Handle the scenario when going back
@@ -1799,6 +1803,7 @@ export class BrowserTab extends PureComponent {
 		if (this.webviewRefIsReady()) {
 			// Reset the previous bridges
 			this.backgroundBridges.length && this.backgroundBridges.forEach(bridge => bridge.onDisconnect());
+			this.backgroundBridges = [];
 			this.initializeBackgroundBridge(nativeEvent.url, true);
 		}
 	};
