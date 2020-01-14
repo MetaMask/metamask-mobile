@@ -14,12 +14,6 @@ export default class PortDuplexStream extends Duplex {
 		this._url = url;
 		this._port.addListener('message', this._onMessage.bind(this));
 		this._port.addListener('disconnect', this._onDisconnect.bind(this));
-
-		if (!this._port._window.webViewRef || !this._port._window.webViewRef.current) {
-			console.warn('NO WEBVIEW REF ON CONSTRUCTOR of MobilePortStream', this._port._window);
-		} else {
-			console.log('Port created ok on MobilePortStream', this._port._window.webViewRef);
-		}
 	}
 
 	/**

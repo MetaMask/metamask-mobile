@@ -34,10 +34,7 @@ class Port extends EventEmitter {
 			? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
 			: JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
 		if (this._window.webViewRef && this._window.webViewRef.current) {
-			console.log('ABOUT TO CALL POST MESSAGE. WE GOOD?', this._window.webViewRef.current);
 			this._window && this._window.injectJavaScript(js);
-		} else {
-			console.warn('NO WEBVIEW REF!', this._window.webViewRef);
 		}
 	};
 }
@@ -54,11 +51,6 @@ export class BackgroundBridge extends EventEmitter {
 		this.provider = Engine.context.NetworkController.provider;
 		this.blockTracker = this.provider._blockTracker;
 		this.port = new Port(this._webviewRef, isMainFrame);
-		if (!this._webviewRef.webViewRef || this._webviewRef.webViewRef.current) {
-			console.warn('NO WEBVIEW REF ON CONSTRUCTOR', this._webviewRef.webViewRef.current);
-		} else {
-			console.log('Port created ok', this.port._window);
-		}
 
 		const senderUrl = new URL(url);
 

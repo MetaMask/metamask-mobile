@@ -1784,16 +1784,10 @@ export class BrowserTab extends PureComponent {
 			}
 		}
 
-		console.log(
-			'LOAD START = READY?',
-			this.webview && this.webview.current && this.webview.current.webViewRef,
-			this.webview.current.webViewRef
-		);
 		let i = 0;
 		while (!this.webviewRefIsReady() && i < 10) {
 			await new Promise(res =>
 				setTimeout(() => {
-					console.log('Waiting for webview ref');
 					res();
 				}, 500)
 			);
