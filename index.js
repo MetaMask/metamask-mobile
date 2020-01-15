@@ -39,7 +39,8 @@ YellowBox.ignoreWarnings([
 	'startLoadWithResult invoked with invalid',
 	'RCTBridge required dispatch_sync',
 	'Remote debugger is in a background tab',
-	"Can't call setState (or forceUpdate) on an unmounted component"
+	"Can't call setState (or forceUpdate) on an unmounted component",
+	"Cannot read property 'hash' of null"
 ]);
 
 /**
