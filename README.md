@@ -28,6 +28,8 @@ yarn install
 
 - Running the app on Android:
 
+You'll need the `secret-tool` (a part of [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distros) and `watchman` binaries on your machine. You'll also want to have the android SDK; the easiest way to do that is by installing [Android Studio](https://developer.android.com/studio). Additionally, you'll need to install the Google Play Liciencing Libray via the SDK Manager in Android Studio.
+
 ```bash
 yarn start:android
 ```
