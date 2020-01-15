@@ -7,6 +7,9 @@ MODE=$2
 TARGET=$3
 RUN_DEVICE=false
 PRE_RELEASE=false
+JS_ENV_FILE=".js.env"
+ANDROID_ENV_FILE=".android.env"
+IOS_ENV_FILE=".ios.env"
 
 displayHelp() {
     echo ''
@@ -97,9 +100,9 @@ prebuild(){
 	./node_modules/.bin/concat-cli -f app/core/InpageBridge.js node_modules/web3/dist/web3.min.js app/util/setProvider.js -o app/core/InpageBridgeWeb3.js
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then
-		if [ -e .js.env ]
+		if [ -e $JS_ENV_FILE ]
 		then
-			source .js.env
+			source $JS_ENV_FILE
 		fi
 	fi
 }
@@ -124,9 +127,9 @@ prebuild_android(){
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
 	if [ "$PRE_RELEASE" = false ] ; then
-		if [ -e .android.env ]
+		if [ -e $ANDROID_ENV_FILE ]
 		then
-			source .android.env
+			source $ANDROID_ENV_FILE
 		fi
 	fi
 }
@@ -153,7 +156,7 @@ buildIosRelease(){
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";
-		echo $IOS_ENV | tr "|" "\n" > .ios.env
+		echo $IOS_ENV | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
 		cd ios && bundle install && bundle exec fastlane prerelease
