@@ -218,7 +218,7 @@ if [ "$PLATFORM" == "ios" ]; then
 			fi
 		fi
 	else
-		echo "'$IOS_ENV_FILE' does not exist, you'll need to add it."
+		echo "'$IOS_ENV_FILE' is missing, you'll need to add it to the root of the project."
 	fi
 
 
@@ -231,6 +231,6 @@ else
 			buildAndroid
 		fi
 	else
-		echo "'$ANDROID_ENV_FILE' does not exist, you'll need to add it."
+		echo "'$ANDROID_ENV_FILE' is missing, you'll need to add it to the root of the project."
 	fi
 fi
