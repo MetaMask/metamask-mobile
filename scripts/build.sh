@@ -162,7 +162,7 @@ buildIosRelease(){
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";
-		echo $IOS_ENV | tr "|" "\n" > $IOS_ENV_FILE
+		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
 		cd ios && bundle install && bundle exec fastlane prerelease
@@ -170,7 +170,7 @@ buildIosRelease(){
 		yarn sourcemaps:ios
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo $IOS_ENV | tr "|" "\n" > ios/release.xcconfig
+			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
 		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone 11 Pro (13.2)"
 	fi
@@ -186,7 +186,7 @@ buildAndroidRelease(){
 		TARGET="android/app/build.gradle"
 		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
 		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
-		echo $ANDROID_KEYSTORE | base64 --decode > android/keystores/release.keystore
+		echo "$ANDROID_KEYSTORE" | base64 --decode > android/keystores/release.keystore
 	fi
 
 	# GENERATE APK
