@@ -206,25 +206,31 @@ checkParameters "$@"
 
 printTitle
 
-if [ "$PLATFORM" == "ios" ]
-  	then
-
-	if [ "$MODE" == "release" ] ; then
-		buildIosRelease
-    else
-		if [ "$RUN_DEVICE" = true ] ; then
-			buildIosDevice
-		else
-			buildIosSimulator
+if [ "$PLATFORM" == "ios" ]; then
+	if [ -f "$IOS_ENV_FILE" ]; then
+		if [ "$MODE" == "release" ] ; then
+			buildIosRelease
+			else
+			if [ "$RUN_DEVICE" = true ] ; then
+				buildIosDevice
+			else
+				buildIosSimulator
+			fi
 		fi
+	else
+		echo "'$IOS_ENV_FILE' does not exist, you'll need to add it."
 	fi
 
 
 
 else
-	if [ "$MODE" == "release" ] ; then
-		buildAndroidRelease
-    else
-		buildAndroid
+	if [ -f "$ANDROID_ENV_FILE" ]; then
+		if [ "$MODE" == "release" ] ; then
+			buildAndroidRelease
+		else
+			buildAndroid
+		fi
+	else
+		echo "'$ANDROID_ENV_FILE' does not exist, you'll need to add it."
 	fi
 fi
