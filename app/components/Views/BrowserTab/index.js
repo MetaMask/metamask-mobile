@@ -450,277 +450,272 @@ export class BrowserTab extends PureComponent {
 	}
 
 	initializeBackgroundBridge = (url, isMainFrame) => {
-		this.backgroundBridges.push(
-			new BackgroundBridge(
-				this.webview,
-				url,
-				{
-					// ALL USER FACING RPC CALLS HERE
-					eth_requestAccounts: senderUrl =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'eth_requestAccounts') return next();
-							const { hostname } = senderUrl;
-							const { params } = req;
-							const { approvedHosts, privacyMode, selectedAddress } = this.props;
-							if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
-								res.result = [selectedAddress];
-							} else {
-								if (!this.state.showApprovalDialog) {
-									setTimeout(async () => {
-										if (!this.state.showApprovalDialog) {
-											await this.getPageMeta();
-											this.setState({
-												showApprovalDialog: true,
-												showApprovalDialogHostname: hostname
-											});
-										}
-									}, 1000);
-								}
-								const approved = await new Promise((resolve, reject) => {
-									this.approvalRequest = { resolve, reject };
-								});
-								if (approved) {
-									res.result = [selectedAddress.toLowerCase()];
-									this.backgroundBridges.forEach(bridge => {
-										if (bridge.url === senderUrl.href) {
-											bridge.emit('update');
-										}
-									});
-								} else {
-									throw rpcErrors.eth.userRejectedRequest('User denied account authorization');
-								}
+		const newBridge = new BackgroundBridge(
+			this.webview,
+			url,
+			{
+				// ALL USER FACING RPC CALLS HERE
+				eth_requestAccounts: senderUrl =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_requestAccounts') return next();
+						const { hostname } = senderUrl;
+						const { params } = req;
+						const { approvedHosts, privacyMode, selectedAddress } = this.props;
+						if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
+							res.result = [selectedAddress];
+						} else {
+							if (!this.state.showApprovalDialog) {
+								setTimeout(async () => {
+									if (!this.state.showApprovalDialog) {
+										await this.getPageMeta();
+										this.setState({
+											showApprovalDialog: true,
+											showApprovalDialogHostname: hostname
+										});
+									}
+								}, 1000);
 							}
-						}),
-
-					eth_accounts: senderUrl =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'eth_accounts') return next();
-							const { hostname } = senderUrl;
-							const { approvedHosts, privacyMode, selectedAddress } = this.props;
-							const isEnabled = !privacyMode || approvedHosts[hostname];
-							if (isEnabled) {
+							const approved = await new Promise((resolve, reject) => {
+								this.approvalRequest = { resolve, reject };
+							});
+							if (approved) {
 								res.result = [selectedAddress.toLowerCase()];
+								this.backgroundBridges.forEach(bridge => {
+									if (bridge.hostname === senderUrl.hostname) {
+										bridge.emit('update');
+									}
+								});
 							} else {
-								res.result = [];
+								throw rpcErrors.eth.userRejectedRequest('User denied account authorization');
 							}
-						}),
+						}
+					}),
 
-					eth_sign: () =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'eth_sign') return next();
-							const { MessageManager } = Engine.context;
-							const pageMeta = await this.getPageMeta();
-							const rawSig = await MessageManager.addUnapprovedMessageAsync({
+				eth_accounts: senderUrl =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_accounts') return next();
+						const { hostname } = senderUrl;
+						const { approvedHosts, privacyMode, selectedAddress } = this.props;
+						const isEnabled = !privacyMode || approvedHosts[hostname];
+						if (isEnabled) {
+							res.result = [selectedAddress.toLowerCase()];
+						} else {
+							res.result = [];
+						}
+					}),
+
+				eth_sign: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_sign') return next();
+						const { MessageManager } = Engine.context;
+						const pageMeta = await this.getPageMeta();
+						const rawSig = await MessageManager.addUnapprovedMessageAsync({
+							data: req.params[1],
+							from: req.params[0],
+							...pageMeta
+						});
+						res.result = rawSig;
+					}),
+
+				personal_sign: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'personal_sign') return next();
+						const { PersonalMessageManager } = Engine.context;
+						const firstParam = req.params[0];
+						const secondParam = req.params[1];
+						const params = {
+							data: firstParam,
+							from: secondParam
+						};
+						if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
+							params.data = secondParam;
+							params.from = firstParam;
+						}
+						const pageMeta = await this.getPageMeta();
+						const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+							...params,
+							...pageMeta
+						});
+
+						res.result = rawSig;
+					}),
+				eth_signTypedData: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_signTypedData') return next();
+						const { TypedMessageManager } = Engine.context;
+						const pageMeta = await this.getPageMeta();
+						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+							{
+								data: req.params[0],
+								from: req.params[1],
+								...pageMeta
+							},
+							'V1'
+						);
+
+						res.result = rawSig;
+					}),
+				eth_signTypedData_v3: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_signTypedData_v3') return next();
+						const { TypedMessageManager } = Engine.context;
+						const data = JSON.parse(req.params[1]);
+						const chainId = data.domain.chainId;
+						const activeChainId =
+							this.props.networkType === 'rpc'
+								? this.props.network
+								: Networks[this.props.networkType].networkId;
+
+						// eslint-disable-next-line eqeqeq
+						if (chainId && chainId != activeChainId) {
+							throw rpcErrors.eth.userRejectedRequest(
+								`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
+							);
+						}
+
+						const pageMeta = await this.getPageMeta();
+						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+							{
 								data: req.params[1],
 								from: req.params[0],
 								...pageMeta
-							});
-							res.result = rawSig;
-						}),
+							},
+							'V3'
+						);
 
-					personal_sign: () =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'personal_sign') return next();
-							const { PersonalMessageManager } = Engine.context;
-							const firstParam = req.params[0];
-							const secondParam = req.params[1];
-							const params = {
-								data: firstParam,
-								from: secondParam
-							};
-							if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
-								params.data = secondParam;
-								params.from = firstParam;
-							}
-							const pageMeta = await this.getPageMeta();
-							const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-								...params,
+						res.result = rawSig;
+					}),
+				eth_signTypedData_v4: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'eth_signTypedData_v4') return next();
+						const { TypedMessageManager } = Engine.context;
+						const data = JSON.parse(req.params[1]);
+						const chainId = data.domain.chainId;
+						const activeChainId =
+							this.props.networkType === 'rpc'
+								? this.props.network
+								: Networks[this.props.networkType].networkId;
+
+						// eslint-disable-next-line eqeqeq
+						if (chainId && chainId != activeChainId) {
+							throw rpcErrors.eth.userRejectedRequest(
+								`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
+							);
+						}
+
+						const pageMeta = await this.getPageMeta();
+						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+							{
+								data: req.params[1],
+								from: req.params[0],
 								...pageMeta
-							});
+							},
+							'V4'
+						);
 
-							res.result = rawSig;
-						}),
-					eth_signTypedData: () =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'eth_signTypedData') return next();
-							const { TypedMessageManager } = Engine.context;
-							const pageMeta = await this.getPageMeta();
-							const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-								{
-									data: req.params[0],
-									from: req.params[1],
-									...pageMeta
-								},
-								'V1'
-							);
-
-							res.result = rawSig;
-						}),
-					eth_signTypedData_v3: () =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'eth_signTypedData_v3') return next();
-							const { TypedMessageManager } = Engine.context;
-							const data = JSON.parse(req.params[1]);
-							const chainId = data.domain.chainId;
-							const activeChainId =
-								this.props.networkType === 'rpc'
-									? this.props.network
-									: Networks[this.props.networkType].networkId;
-
-							// eslint-disable-next-line eqeqeq
-							if (chainId && chainId != activeChainId) {
-								throw rpcErrors.eth.userRejectedRequest(
-									`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
-								);
-							}
-
-							const pageMeta = await this.getPageMeta();
-							const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-								{
-									data: req.params[1],
-									from: req.params[0],
-									...pageMeta
-								},
-								'V3'
-							);
-
-							res.result = rawSig;
-						}),
-					eth_signTypedData_v4: () =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'eth_signTypedData_v4') return next();
-							const { TypedMessageManager } = Engine.context;
-							const data = JSON.parse(req.params[1]);
-							const chainId = data.domain.chainId;
-							const activeChainId =
-								this.props.networkType === 'rpc'
-									? this.props.network
-									: Networks[this.props.networkType].networkId;
-
-							// eslint-disable-next-line eqeqeq
-							if (chainId && chainId != activeChainId) {
-								throw rpcErrors.eth.userRejectedRequest(
-									`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
-								);
-							}
-
-							const pageMeta = await this.getPageMeta();
-							const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-								{
-									data: req.params[1],
-									from: req.params[0],
-									...pageMeta
-								},
-								'V4'
-							);
-
-							res.result = rawSig;
-						}),
-					web3_clientVersion: () =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'web3_clientVersion') return next();
-							res.result = `MetaMask/${this.props.app_version}/Beta/Mobile`;
-						}),
-					wallet_scanQRCode: () =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'wallet_scanQRCode') return next();
-							this.props.navigation.navigate('QRScanner', {
-								onScanSuccess: data => {
-									let result = data;
-									if (data.target_address) {
-										result = data.target_address;
-									} else if (data.scheme) {
-										result = JSON.stringify(data);
-									}
-									res.result = result;
-								},
-								onScanError: e => {
-									throw rpcErrors.eth.userRejectedRequest(e.toString());
+						res.result = rawSig;
+					}),
+				web3_clientVersion: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'web3_clientVersion') return next();
+						res.result = `MetaMask/${this.props.app_version}/Beta/Mobile`;
+					}),
+				wallet_scanQRCode: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'wallet_scanQRCode') return next();
+						this.props.navigation.navigate('QRScanner', {
+							onScanSuccess: data => {
+								let result = data;
+								if (data.target_address) {
+									result = data.target_address;
+								} else if (data.scheme) {
+									result = JSON.stringify(data);
 								}
-							});
-						}),
-					wallet_watchAsset: () =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'wallet_watchAsset') return next();
-							const {
-								options: { address, decimals, image, symbol },
-								type
-							} = req;
-							const { AssetsController } = Engine.context;
-							const suggestionResult = await AssetsController.watchAsset(
-								{ address, symbol, decimals, image },
-								type
-							);
-							res.result = suggestionResult.result;
-						}),
-					metamask_removeFavorite: () =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'metamask_removeFavorite') return next();
-							if (!this.isHomepage()) {
-								throw rpcErrors.eth.userRejectedRequest('unauthorized');
+								res.result = result;
+							},
+							onScanError: e => {
+								throw rpcErrors.eth.userRejectedRequest(e.toString());
 							}
+						});
+					}),
+				wallet_watchAsset: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'wallet_watchAsset') return next();
+						const {
+							options: { address, decimals, image, symbol },
+							type
+						} = req;
+						const { AssetsController } = Engine.context;
+						const suggestionResult = await AssetsController.watchAsset(
+							{ address, symbol, decimals, image },
+							type
+						);
+						res.result = suggestionResult.result;
+					}),
+				metamask_removeFavorite: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'metamask_removeFavorite') return next();
+						if (!this.isHomepage()) {
+							throw rpcErrors.eth.userRejectedRequest('unauthorized');
+						}
 
-							Alert.alert(
-								strings('browser.remove_bookmark_title'),
-								strings('browser.remove_bookmark_msg'),
-								[
-									{
-										text: strings('browser.cancel'),
-										onPress: () => {
-											res.result = {
-												favorites: this.props.bookmarks
-											};
-										},
-										style: 'cancel'
-									},
-									{
-										text: strings('browser.yes'),
-										onPress: () => {
-											const bookmark = { url: req[0] };
-											this.props.removeBookmark(bookmark);
-											// remove bookmark from homepage
-											this.refreshHomeScripts();
-											res.result = {
-												favorites: this.props.bookmarks
-											};
-										}
-									}
-								]
-							);
-						}),
-					metamask_showTutorial: () =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'metamask_showTutorial') return next();
-							this.wizardScrollAdjusted = false;
-							this.props.setOnboardingWizardStep(1);
-							this.props.navigation.navigate('WalletView');
-							res.result = true;
-						}),
-					metamask_showAutocomplete: () =>
-						createAsyncMiddleware(async (req, res, next) => {
-							if (req.method !== 'metamask_showAutocomplete') return next();
-							this.fromHomepage = true;
-							this.setState(
-								{
-									autocompleteInputValue: ''
+						Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
+							{
+								text: strings('browser.cancel'),
+								onPress: () => {
+									res.result = {
+										favorites: this.props.bookmarks
+									};
 								},
-								() => {
-									this.showUrlModal(true);
-									setTimeout(() => {
-										this.fromHomepage = false;
-									}, 1500);
+								style: 'cancel'
+							},
+							{
+								text: strings('browser.yes'),
+								onPress: () => {
+									const bookmark = { url: req[0] };
+									this.props.removeBookmark(bookmark);
+									// remove bookmark from homepage
+									this.refreshHomeScripts();
+									res.result = {
+										favorites: this.props.bookmarks
+									};
 								}
-							);
-							res.result = true;
-						})
-				},
-				hostname => {
-					const { approvedHosts, privacyMode } = this.props;
-					return !privacyMode || approvedHosts[hostname];
-				},
-				isMainFrame
-			)
+							}
+						]);
+					}),
+				metamask_showTutorial: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'metamask_showTutorial') return next();
+						this.wizardScrollAdjusted = false;
+						this.props.setOnboardingWizardStep(1);
+						this.props.navigation.navigate('WalletView');
+						res.result = true;
+					}),
+				metamask_showAutocomplete: () =>
+					createAsyncMiddleware(async (req, res, next) => {
+						if (req.method !== 'metamask_showAutocomplete') return next();
+						this.fromHomepage = true;
+						this.setState(
+							{
+								autocompleteInputValue: ''
+							},
+							() => {
+								this.showUrlModal(true);
+								setTimeout(() => {
+									this.fromHomepage = false;
+								}, 1500);
+							}
+						);
+						res.result = true;
+					})
+			},
+			hostname => {
+				const { approvedHosts, privacyMode } = this.props;
+				return !privacyMode || approvedHosts[hostname];
+			},
+			isMainFrame
 		);
+		this.backgroundBridges.push(newBridge);
 	};
 
 	init = async () => {
@@ -1239,7 +1234,8 @@ export class BrowserTab extends PureComponent {
 			}
 			if (data.name) {
 				this.backgroundBridges.forEach(bridge => {
-					bridge.url === data.origin && bridge.onMessage(data);
+					const { origin } = data && data.origin && new URL(data.origin);
+					bridge.url === origin && bridge.onMessage(data);
 				});
 				return;
 			}
@@ -1798,7 +1794,8 @@ export class BrowserTab extends PureComponent {
 			// Reset the previous bridges
 			this.backgroundBridges.length && this.backgroundBridges.forEach(bridge => bridge.onDisconnect());
 			this.backgroundBridges = [];
-			this.initializeBackgroundBridge(nativeEvent.url, true);
+			const origin = new URL(nativeEvent.url).origin;
+			this.initializeBackgroundBridge(origin, true);
 		}
 	};
 

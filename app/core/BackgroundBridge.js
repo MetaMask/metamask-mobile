@@ -42,7 +42,9 @@ class Port extends EventEmitter {
 export class BackgroundBridge extends EventEmitter {
 	constructor(webview, url, middlewares, shouldExposeAccounts, isMainFrame) {
 		super();
+		const senderUrl = new URL(url);
 		this.url = url;
+		this.hostname = senderUrl.hostname;
 		this.isMainFrame = isMainFrame;
 		this._webviewRef = webview && webview.current;
 
@@ -51,8 +53,6 @@ export class BackgroundBridge extends EventEmitter {
 		this.provider = Engine.context.NetworkController.provider;
 		this.blockTracker = this.provider._blockTracker;
 		this.port = new Port(this._webviewRef, isMainFrame);
-
-		const senderUrl = new URL(url);
 
 		const portStream = new MobilePortStream(this.port, url);
 		// setup multiplexing
@@ -187,23 +187,7 @@ export class BackgroundBridge extends EventEmitter {
 		// subset of state for metamask inpage provider
 		const publicConfigStore = new ObservableStore();
 
-		// setup memStore subscription hooks
-		this.on('update', updatePublicConfigStore);
-		updatePublicConfigStore(this.getState());
-
-		publicConfigStore.destroy = () => {
-			this.removeEventListener && this.removeEventListener('update', updatePublicConfigStore);
-		};
-
-		function updatePublicConfigStore(memState) {
-			if (!memState) {
-				memState = this.getState();
-			}
-			const publicState = selectPublicState(memState);
-			publicConfigStore.putState(publicState);
-		}
-
-		function selectPublicState({ isUnlocked, selectedAddress, network }) {
+		const selectPublicState = ({ isUnlocked, selectedAddress, network }) => {
 			const isEnabled = checkIsEnabled();
 			const isReady = isUnlocked && isEnabled;
 			const networkType = Engine.context.NetworkController.state.provider.type;
@@ -216,7 +200,23 @@ export class BackgroundBridge extends EventEmitter {
 				chainId: chainId ? `0x${parseInt(chainId, 10).toString(16)}` : null
 			};
 			return result;
-		}
+		};
+
+		const updatePublicConfigStore = memState => {
+			if (!memState) {
+				memState = this.getState();
+			}
+			const publicState = selectPublicState(memState);
+			publicConfigStore.putState(publicState);
+		};
+
+		// setup memStore subscription hooks
+		this.on('update', updatePublicConfigStore);
+		updatePublicConfigStore(this.getState());
+
+		publicConfigStore.destroy = () => {
+			this.removeEventListener && this.removeEventListener('update', updatePublicConfigStore);
+		};
 
 		return publicConfigStore;
 	}
