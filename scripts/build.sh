@@ -11,6 +11,12 @@ JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 
+envFileMissing() {
+	FILE="$1"
+	echo "'$FILE' is missing, you'll need to add it to the root of the project."
+	echo "For convenience you can rename '$FILE.example' and fill in the parameters."
+}
+
 displayHelp() {
     echo ''
     echo "Usage: $0 {platform} ${--device}" >&2
@@ -218,7 +224,7 @@ if [ "$PLATFORM" == "ios" ]; then
 			fi
 		fi
 	else
-		echo "'$IOS_ENV_FILE' is missing, you'll need to add it to the root of the project."
+		envFileMissing $IOS_ENV_FILE
 	fi
 
 
@@ -231,6 +237,6 @@ else
 			buildAndroid
 		fi
 	else
-		echo "'$ANDROID_ENV_FILE' is missing, you'll need to add it to the root of the project."
+		envFileMissing $ANDROID_ENV_FILE
 	fi
 fi
