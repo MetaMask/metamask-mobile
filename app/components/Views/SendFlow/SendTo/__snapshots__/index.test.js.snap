@@ -194,7 +194,7 @@ exports[`SendTo should render correctly 1`] = `
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 50,
-                "padding": 10,
+                "margin": 10,
                 "width": "100%",
               }
             }

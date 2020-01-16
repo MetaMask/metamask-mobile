@@ -13,6 +13,7 @@ exports[`Contacts should render correctly 1`] = `
     onAccountLongPress={[Function]}
     onAccountPress={[Function]}
     onlyRenderAddressBook={true}
+    reloadAddressList={false}
   />
   <StyledButton
     containerStyle={

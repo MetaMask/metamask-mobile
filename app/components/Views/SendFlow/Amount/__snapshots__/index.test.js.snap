@@ -28,19 +28,16 @@ exports[`Amount should render correctly 1`] = `
       <View
         style={
           Object {
-            "alignItems": "center",
-            "flex": 1,
+            "flex": 0.8,
           }
         }
       />
       <View
         style={
-          Array [
-            Object {
-              "alignItems": "center",
-              "flex": 1,
-            },
-          ]
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+          }
         }
       >
         <TouchableOpacity
@@ -89,8 +86,7 @@ exports[`Amount should render correctly 1`] = `
         style={
           Array [
             Object {
-              "alignItems": "center",
-              "flex": 1,
+              "flex": 0.8,
             },
             Object {
               "alignItems": "center",
