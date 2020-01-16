@@ -79,6 +79,9 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignItems: 'center'
 	},
+	actionBorder: {
+		flex: 0.8
+	},
 	actionDropdown: {
 		backgroundColor: colors.blue,
 		paddingHorizontal: 16,
@@ -788,8 +791,8 @@ class Amount extends PureComponent {
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.inputWrapper}>
 					<View style={styles.actionsWrapper}>
-						<View style={styles.action} />
-						<View style={[styles.action]}>
+						<View style={styles.actionBorder} />
+						<View style={styles.action}>
 							<TouchableOpacity style={styles.actionDropdown} onPress={this.toggleAssetsModal}>
 								<Text style={styles.textDropdown}>
 									{selectedAsset.symbol || strings('wallet.collectible')}
@@ -804,7 +807,7 @@ class Amount extends PureComponent {
 								</View>
 							</TouchableOpacity>
 						</View>
-						<View style={[styles.action, styles.actionMax]}>
+						<View style={[styles.actionBorder, styles.actionMax]}>
 							{!selectedAsset.tokenId && (
 								<TouchableOpacity
 									style={styles.actionMaxTouchable}
