@@ -235,28 +235,20 @@ checkParameters "$@"
 printTitle
 
 if [ "$PLATFORM" == "ios" ]; then
-	if [ -f "$IOS_ENV_FILE" ]; then
+	# we don't care about env file in CI
+	if [ -f "$IOS_ENV_FILE" ] || [ "$CI" = true ]; then
 		buildIos
 	else
-		# we don't care about env file in CI
-		if [ "$CI" = "true" ]; then
-			buildIos
-		else
-			envFileMissing $IOS_ENV_FILE
-		fi
+		envFileMissing $IOS_ENV_FILE
 	fi
 
 
 
 else
-	if [ -f "$ANDROID_ENV_FILE" ]; then
+	# we don't care about env file in CI
+	if [ -f "$ANDROID_ENV_FILE" ] || [ "$CI" = true ]; then
 		buildAndroid
 	else
-		# we don't care about env file in CI
-		if [ "$CI" = "true" ]; then
-			buildAndroid
-		else
-			envFileMissing $ANDROID_ENV_FILE
-		fi
+		envFileMissing $ANDROID_ENV_FILE
 	fi
 fi
