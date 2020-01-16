@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey050,
 		height: 50,
 		width: '100%',
-		padding: 10
+		margin: 10
 	},
 	input: {
 		flex: 1,
