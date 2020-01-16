@@ -15,6 +15,8 @@ envFileMissing() {
 	FILE="$1"
 	echo "'$FILE' is missing, you'll need to add it to the root of the project."
 	echo "For convenience you can rename '$FILE.example' and fill in the parameters."
+	echo ""
+	exit 1
 }
 
 displayHelp() {
@@ -140,7 +142,7 @@ prebuild_android(){
 	fi
 }
 
-buildAndroid(){
+buildAndroidRun(){
 	prebuild_android
 	react-native run-android
 	git checkout android/app/fabric.properties
@@ -153,7 +155,7 @@ buildIosSimulator(){
 
 buildIosDevice(){
 	prebuild_ios
-	react-native run-ios  --device
+	react-native run-ios --device
 }
 
 buildIosRelease(){
@@ -207,6 +209,25 @@ buildAndroidRelease(){
 	fi
 }
 
+buildAndroid() {
+	if [ "$MODE" == "release" ] ; then
+		buildAndroidRelease
+	else
+		buildAndroidRun
+	fi
+}
+
+buildIos() {
+	if [ "$MODE" == "release" ] ; then
+		buildIosRelease
+		else
+		if [ "$RUN_DEVICE" = true ] ; then
+			buildIosDevice
+		else
+			buildIosSimulator
+		fi
+	fi
+}
 
 checkParameters "$@"
 
@@ -214,29 +235,27 @@ printTitle
 
 if [ "$PLATFORM" == "ios" ]; then
 	if [ -f "$IOS_ENV_FILE" ]; then
-		if [ "$MODE" == "release" ] ; then
-			buildIosRelease
-			else
-			if [ "$RUN_DEVICE" = true ] ; then
-				buildIosDevice
-			else
-				buildIosSimulator
-			fi
-		fi
+		buildIos
 	else
-		envFileMissing $IOS_ENV_FILE
+		# we don't care about env file in CI
+		if [ "$CI" = "true" ]; then
+			buildIos
+		else
+			envFileMissing $IOS_ENV_FILE
+		fi
 	fi
 
 
 
 else
 	if [ -f "$ANDROID_ENV_FILE" ]; then
-		if [ "$MODE" == "release" ] ; then
-			buildAndroidRelease
-		else
-			buildAndroid
-		fi
+		buildAndroid
 	else
-		envFileMissing $ANDROID_ENV_FILE
+		# we don't care about env file in CI
+		if [ "$CI" = "true" ]; then
+			buildAndroid
+		else
+			envFileMissing $ANDROID_ENV_FILE
+		fi
 	fi
 fi
