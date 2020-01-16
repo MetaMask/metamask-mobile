@@ -5,7 +5,6 @@ const CORRECT_SEED_WORDS = 'fold media south add since false relax immense pause
 const CORRECT_PASSWORD = `12345678`;
 const ROPSTEN = 'Ropsten Test Network';
 const ROPSTEN_FAUCET = 'https://faucet.metamask.io';
-const CRYPTOKITTIES_URL = 'https://cryptokitties.co';
 const TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/';
 const TEST_DAPP_TITLE = 'E2E Test Dapp';
 const ETH_FAUCET = 'Test Ether Faucet';
@@ -91,36 +90,6 @@ describe('Test Dapp Initiated Transactions', () => {
 		}
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap on header URL
-		await TestHelpers.tap('navbar-title-network');
-		// Clear text
-		await TestHelpers.replaceTextInField('url-input', CRYPTOKITTIES_URL);
-		// Tap on an autocomplete option
-		if (device.getPlatform() === 'android') {
-			await element(by.id('url-input')).tapReturnKey();
-		} else {
-			await element(by.text('CryptoKitties'))
-				.atIndex(1)
-				.tap();
-		}
-		// Check that we are still on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap on options
-		await TestHelpers.waitAndTap('options-button');
-		// Tap on New tab
-		await TestHelpers.tapByText('New tab');
-		// Tap on tabs on bottom navbar
-		await TestHelpers.tap('show-tabs-button');
-		// Tap on faucet tab
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 160, y: 60 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 220, y: 120 });
-		}
-		// Check that we are still on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap back button
-		await TestHelpers.waitAndTap('go-back-button');
 	});
 
 	it('should donate ETH on MM Ropsten', async () => {
