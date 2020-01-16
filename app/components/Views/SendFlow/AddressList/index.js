@@ -98,8 +98,7 @@ class AddressList extends PureComponent {
 		myAccountsOpened: false,
 		processedAddressBookList: undefined,
 		processedRecentsList: undefined,
-		elements: [],
-		updateAddressBook: false
+		elements: []
 	};
 
 	networkAddressBook;
@@ -185,8 +184,6 @@ class AddressList extends PureComponent {
 	};
 
 	parseAddressBook = networkAddressBookList => {
-		const { onAccountPress, onAccountLongPress } = this.props;
-		const list = [];
 		const elements = [];
 		const addressBookTree = {};
 		networkAddressBookList.forEach(contact => {
@@ -194,15 +191,7 @@ class AddressList extends PureComponent {
 			if (Object.keys(addressBookTree).includes(initial)) {
 				addressBookTree[initial].push(contact);
 			} else if (!initial) {
-				!list.length && list.push(LabelElement('Others'));
-				list.push(
-					<AddressElement
-						address={contact.address}
-						name={contact.name}
-						onAccountPress={onAccountPress}
-						onAccountLongPress={onAccountLongPress}
-					/>
-				);
+				elements.length && elements.push('Others');
 			} else {
 				addressBookTree[initial] = [contact];
 			}
@@ -210,21 +199,10 @@ class AddressList extends PureComponent {
 		Object.keys(addressBookTree)
 			.sort()
 			.forEach(initial => {
-				list.push(LabelElement(initial));
 				elements.push(initial);
-				addressBookTree[initial].forEach(contact => {
-					elements.push(contact);
-					list.push(
-						<AddressElement
-							address={contact.address}
-							name={contact.name}
-							onAccountPress={onAccountPress}
-							onAccountLongPress={onAccountLongPress}
-						/>
-					);
-				});
+				addressBookTree[initial].forEach(contact => elements.push(contact));
 			});
-		this.setState({ processedAddressBookList: list, elements, updateAddressBook: false });
+		this.setState({ elements });
 	};
 
 	renderMyAccounts = () => {
@@ -247,18 +225,6 @@ class AddressList extends PureComponent {
 					/>
 				))}
 			</View>
-		);
-	};
-
-	renderAddressBook = () => {
-		const { processedAddressBookList } = this.state;
-
-		return !processedAddressBookList || !processedAddressBookList.length ? (
-			<View style={styles.message}>
-				<Text style={styles.messageText}>{strings('address_book.no_contacts')}</Text>
-			</View>
-		) : (
-			<View>{processedAddressBookList}</View>
 		);
 	};
 
@@ -290,8 +256,13 @@ class AddressList extends PureComponent {
 				<ScrollView style={styles.myAccountsWrapper}>
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
 					{!onlyRenderAddressBook && processedRecentsList}
-					{/* {this.renderAddressBook()} */}
-					<FlatList data={elements} keyExtractor={this.elementKey} renderItem={this.renderElement} />
+					{elements.length ? (
+						<FlatList data={elements} keyExtractor={this.elementKey} renderItem={this.renderElement} />
+					) : (
+						<View style={styles.message}>
+							<Text style={styles.messageText}>{strings('address_book.no_contacts')}</Text>
+						</View>
+					)}
 				</ScrollView>
 			</View>
 		);
