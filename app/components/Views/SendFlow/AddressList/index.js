@@ -91,7 +91,8 @@ class AddressList extends PureComponent {
 		/**
 		 * Whether it only has to render address book
 		 */
-		onlyRenderAddressBook: PropTypes.bool
+		onlyRenderAddressBook: PropTypes.bool,
+		reloadAddressList: PropTypes.bool
 	};
 
 	state = {
@@ -123,8 +124,9 @@ class AddressList extends PureComponent {
 	};
 
 	componentDidUpdate = prevProps => {
-		const { network, addressBook } = this.props;
+		const { network, addressBook, reloadAddressList } = this.props;
 		if (
+			(prevProps.reloadAddressList && reloadAddressList !== prevProps.reloadAddressList) ||
 			prevProps.inputSearch !== this.props.inputSearch ||
 			Object.keys(prevProps.addressBook[network]).length !== Object.keys(addressBook[network]).length
 		) {

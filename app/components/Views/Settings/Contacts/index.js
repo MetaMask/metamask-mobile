@@ -41,6 +41,10 @@ class Contacts extends PureComponent {
 		network: PropTypes.string
 	};
 
+	state = {
+		reloadAddressList: false
+	};
+
 	actionSheet;
 	contactAddressToRemove;
 
@@ -50,9 +54,11 @@ class Contacts extends PureComponent {
 	};
 
 	deleteContact = () => {
+		this.setState({ reloadAddressList: true });
 		const { AddressBookController } = Engine.context;
 		const { network } = this.props;
 		AddressBookController.delete(network, this.contactAddressToRemove);
+		this.setState({ reloadAddressList: false });
 	};
 
 	onAddressPress = address => {
@@ -71,27 +77,31 @@ class Contacts extends PureComponent {
 		this.actionSheet = ref;
 	};
 
-	render = () => (
-		<SafeAreaView style={styles.wrapper}>
-			<AddressList
-				onlyRenderAddressBook
-				onAccountPress={this.onAddressPress}
-				onAccountLongPress={this.onAddressLongPress}
-			/>
-			<StyledButton type={'confirm'} containerStyle={styles.addContact} onPress={this.goToAddContact}>
-				{strings('address_book.add_contact')}
-			</StyledButton>
-			<ActionSheet
-				ref={this.createActionSheetRef}
-				title={strings('address_book.delete_contact')}
-				options={[strings('address_book.delete'), strings('address_book.cancel')]}
-				cancelButtonIndex={1}
-				destructiveButtonIndex={0}
-				// eslint-disable-next-line react/jsx-no-bind
-				onPress={index => (index === 0 ? this.deleteContact() : null)}
-			/>
-		</SafeAreaView>
-	);
+	render = () => {
+		const { reloadAddressList } = this.state;
+		return (
+			<SafeAreaView style={styles.wrapper}>
+				<AddressList
+					onlyRenderAddressBook
+					reloadAddressList={reloadAddressList}
+					onAccountPress={this.onAddressPress}
+					onAccountLongPress={this.onAddressLongPress}
+				/>
+				<StyledButton type={'confirm'} containerStyle={styles.addContact} onPress={this.goToAddContact}>
+					{strings('address_book.add_contact')}
+				</StyledButton>
+				<ActionSheet
+					ref={this.createActionSheetRef}
+					title={strings('address_book.delete_contact')}
+					options={[strings('address_book.delete'), strings('address_book.cancel')]}
+					cancelButtonIndex={1}
+					destructiveButtonIndex={0}
+					// eslint-disable-next-line react/jsx-no-bind
+					onPress={index => (index === 0 ? this.deleteContact() : null)}
+				/>
+			</SafeAreaView>
+		);
+	};
 }
 
 const mapStateToProps = state => ({
