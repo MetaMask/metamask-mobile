@@ -56,7 +56,7 @@ yarn test:e2e:android
 ```
 
 ### Architecture
-To get a better understanding of the interal architecture of this app take a look at 
+To get a better understanding of the interal architecture of this app take a look at [this diagram](https://github.com/MetaMask/metamask-mobile/blob/develop/architecture.svg)
 
 ### Troubleshooting
 
