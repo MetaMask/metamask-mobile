@@ -102,7 +102,7 @@ class AddressList extends PureComponent {
 		contactElements: []
 	};
 
-	networkAddressBook;
+	networkAddressBook = {};
 
 	componentDidMount = () => {
 		const { addressBook, network } = this.props;
@@ -128,7 +128,8 @@ class AddressList extends PureComponent {
 		if (
 			(prevProps.reloadAddressList && reloadAddressList !== prevProps.reloadAddressList) ||
 			prevProps.inputSearch !== this.props.inputSearch ||
-			Object.keys(prevProps.addressBook[network]).length !== Object.keys(addressBook[network]).length
+			(prevProps.addressBook[network] &&
+				Object.keys(prevProps.addressBook[network]).length !== Object.keys(addressBook[network]).length)
 		) {
 			let networkAddressBookList;
 			if (this.props.inputSearch) {
