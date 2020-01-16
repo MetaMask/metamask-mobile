@@ -98,7 +98,7 @@ class AddressList extends PureComponent {
 		myAccountsOpened: false,
 		processedAddressBookList: undefined,
 		processedRecentsList: undefined,
-		elements: []
+		contactElements: []
 	};
 
 	networkAddressBook;
@@ -184,14 +184,14 @@ class AddressList extends PureComponent {
 	};
 
 	parseAddressBook = networkAddressBookList => {
-		const elements = [];
+		const contactElements = [];
 		const addressBookTree = {};
 		networkAddressBookList.forEach(contact => {
 			const initial = contact.name[0] && contact.name[0].toUpperCase();
 			if (Object.keys(addressBookTree).includes(initial)) {
 				addressBookTree[initial].push(contact);
 			} else if (!initial) {
-				elements.length && elements.push('Others');
+				contactElements.length && contactElements.push('Others');
 			} else {
 				addressBookTree[initial] = [contact];
 			}
@@ -199,10 +199,10 @@ class AddressList extends PureComponent {
 		Object.keys(addressBookTree)
 			.sort()
 			.forEach(initial => {
-				elements.push(initial);
-				addressBookTree[initial].forEach(contact => elements.push(contact));
+				contactElements.push(initial);
+				addressBookTree[initial].forEach(contact => contactElements.push(contact));
 			});
-		this.setState({ elements });
+		this.setState({ contactElements });
 	};
 
 	renderMyAccounts = () => {
@@ -249,15 +249,19 @@ class AddressList extends PureComponent {
 	};
 
 	render = () => {
-		const { processedRecentsList, elements } = this.state;
+		const { processedRecentsList, contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
 					{!onlyRenderAddressBook && processedRecentsList}
-					{elements.length ? (
-						<FlatList data={elements} keyExtractor={this.elementKey} renderItem={this.renderElement} />
+					{contactElements.length ? (
+						<FlatList
+							data={contactElements}
+							keyExtractor={this.elementKey}
+							renderItem={this.renderElement}
+						/>
 					) : (
 						<View style={styles.message}>
 							<Text style={styles.messageText}>{strings('address_book.no_contacts')}</Text>
