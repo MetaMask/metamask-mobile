@@ -1234,8 +1234,8 @@ export class BrowserTab extends PureComponent {
 			}
 			if (data.name) {
 				this.backgroundBridges.forEach(bridge => {
-					const { origin } = data && data.origin && new URL(data.origin);
 					if (bridge.isMainFrame) {
+						const { origin } = data && data.origin && new URL(data.origin);
 						bridge.url === origin && bridge.onMessage(data);
 					} else {
 						bridge.url === data.origin && bridge.onMessage(data);
