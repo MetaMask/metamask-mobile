@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -97,7 +97,9 @@ class AddressList extends PureComponent {
 	state = {
 		myAccountsOpened: false,
 		processedAddressBookList: undefined,
-		processedRecentsList: undefined
+		processedRecentsList: undefined,
+		elements: [],
+		updateAddressBook: false
 	};
 
 	networkAddressBook;
@@ -122,12 +124,16 @@ class AddressList extends PureComponent {
 	};
 
 	componentDidUpdate = prevProps => {
-		if (prevProps.inputSearch !== this.props.inputSearch || prevProps.addressBook !== this.props.addressBook) {
+		const { network, addressBook } = this.props;
+		if (
+			prevProps.inputSearch !== this.props.inputSearch ||
+			Object.keys(prevProps.addressBook[network]).length !== Object.keys(addressBook[network]).length
+		) {
 			let networkAddressBookList;
 			if (this.props.inputSearch) {
 				networkAddressBookList = this.fuse.search(this.props.inputSearch);
 			} else {
-				const { addressBook, network } = this.props;
+				const { addressBook } = this.props;
 				const networkAddressBook = addressBook[network] || {};
 				networkAddressBookList = Object.keys(networkAddressBook).map(address => networkAddressBook[address]);
 			}
@@ -181,6 +187,7 @@ class AddressList extends PureComponent {
 	parseAddressBook = networkAddressBookList => {
 		const { onAccountPress, onAccountLongPress } = this.props;
 		const list = [];
+		const elements = [];
 		const addressBookTree = {};
 		networkAddressBookList.forEach(contact => {
 			const initial = contact.name[0] && contact.name[0].toUpperCase();
@@ -204,18 +211,20 @@ class AddressList extends PureComponent {
 			.sort()
 			.forEach(initial => {
 				list.push(LabelElement(initial));
-				addressBookTree[initial].forEach(({ address, name }) => {
+				elements.push(initial);
+				addressBookTree[initial].forEach(contact => {
+					elements.push(contact);
 					list.push(
 						<AddressElement
-							address={address}
-							name={name}
+							address={contact.address}
+							name={contact.name}
 							onAccountPress={onAccountPress}
 							onAccountLongPress={onAccountLongPress}
 						/>
 					);
 				});
 			});
-		this.setState({ processedAddressBookList: list });
+		this.setState({ processedAddressBookList: list, elements, updateAddressBook: false });
 	};
 
 	renderMyAccounts = () => {
@@ -253,15 +262,36 @@ class AddressList extends PureComponent {
 		);
 	};
 
+	elementKey = element => {
+		if (typeof element === 'string') return element;
+		return element.address;
+	};
+
+	renderElement = ({ item: element }) => {
+		const { onAccountPress, onAccountLongPress } = this.props;
+		if (typeof element === 'string') {
+			return LabelElement(element);
+		}
+		return (
+			<AddressElement
+				address={element.address}
+				name={element.name}
+				onAccountPress={onAccountPress}
+				onAccountLongPress={onAccountLongPress}
+			/>
+		);
+	};
+
 	render = () => {
-		const { processedRecentsList } = this.state;
+		const { processedRecentsList, elements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
 					{!onlyRenderAddressBook && processedRecentsList}
-					{this.renderAddressBook()}
+					{/* {this.renderAddressBook()} */}
+					<FlatList data={elements} keyExtractor={this.elementKey} renderItem={this.renderElement} />
 				</ScrollView>
 			</View>
 		);
