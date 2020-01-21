@@ -48,7 +48,7 @@ import collectiblesTransferInformation from '../../../../util/collectibles-trans
 import { strings } from '../../../../../locales/i18n';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import DeviceSize from '../../../../util/DeviceSize';
-import { Zero } from 'ethers/constants';
+import { BN } from 'ethereumjs-util';
 
 const KEYBOARD_OFFSET = DeviceSize.isSmallDevice() ? 80 : 120;
 
@@ -488,7 +488,7 @@ class Amount extends PureComponent {
 		if (selectedAsset.isETH) {
 			const balanceBN = hexToBN(accounts[selectedAddress].balance);
 			const realMaxValue = balanceBN.sub(estimatedTotalGas);
-			const maxValue = !realMaxValue.lte(Zero) && balanceBN.isZero() ? balanceBN : realMaxValue;
+			const maxValue = realMaxValue.lte(new BN(0)) && balanceBN.isZero() ? balanceBN : realMaxValue;
 			if (internalPrimaryCurrencyIsCrypto) {
 				input = fromWei(maxValue);
 			} else {
