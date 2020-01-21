@@ -48,6 +48,7 @@ import collectiblesTransferInformation from '../../../../util/collectibles-trans
 import { strings } from '../../../../../locales/i18n';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import DeviceSize from '../../../../util/DeviceSize';
+import { Zero } from 'ethers/constants';
 
 const KEYBOARD_OFFSET = DeviceSize.isSmallDevice() ? 80 : 120;
 
@@ -486,7 +487,8 @@ class Amount extends PureComponent {
 		let input;
 		if (selectedAsset.isETH) {
 			const balanceBN = hexToBN(accounts[selectedAddress].balance);
-			const maxValue = balanceBN.isZero() ? balanceBN : balanceBN.sub(estimatedTotalGas);
+			const realMaxValue = balanceBN.sub(estimatedTotalGas);
+			const maxValue = realMaxValue.gte(Zero) && balanceBN.isZero() ? balanceBN : realMaxValue;
 			if (internalPrimaryCurrencyIsCrypto) {
 				input = fromWei(maxValue);
 			} else {
