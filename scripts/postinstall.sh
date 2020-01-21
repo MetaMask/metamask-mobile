@@ -160,9 +160,6 @@ sed -i'' -e 's/require("core-js\/stable");//' $TARGET;
 # remove TCPSocket logs
 TARGET="node_modules/react-native-tcp/TcpSocket.js"
 sed -i'' -e 's/console.log.apply(console, args);//' $TARGET;
-# Fix crypto libs
-TARGET="node_modules/eccrypto/browser.js"
-sed -i'' -e "s/typeof window === 'undefined'/typeof browserCrypto === 'undefined' || typeof browserCrypto.getRandomValues === 'undefined'/" $TARGET;
 
 echo "17. react-native-tcp androidx support"
 TARGET="node_modules/react-native-tcp/android/src/main/java/com/peel/react/TcpSocketManager.java"
