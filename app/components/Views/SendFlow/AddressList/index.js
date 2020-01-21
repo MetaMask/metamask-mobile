@@ -129,7 +129,7 @@ class AddressList extends PureComponent {
 			(prevProps.reloadAddressList && reloadAddressList !== prevProps.reloadAddressList) ||
 			prevProps.inputSearch !== this.props.inputSearch ||
 			(prevProps.addressBook[network] &&
-				Object.keys(prevProps.addressBook[network]).length !== Object.keys(addressBook[network]).length)
+				JSON.stringify(prevProps.addressBook[network]) !== JSON.stringify(addressBook[network]))
 		) {
 			let networkAddressBookList;
 			if (this.props.inputSearch) {
@@ -201,7 +201,9 @@ class AddressList extends PureComponent {
 			.sort()
 			.forEach(initial => {
 				contactElements.push(initial);
-				addressBookTree[initial].forEach(contact => contactElements.push(contact));
+				addressBookTree[initial].forEach(contact => {
+					contactElements.push(contact);
+				});
 			});
 		this.setState({ contactElements });
 	};
@@ -229,9 +231,9 @@ class AddressList extends PureComponent {
 		);
 	};
 
-	elementKey = element => {
+	elementKeyExtractor = element => {
 		if (typeof element === 'string') return element;
-		return element.address;
+		return element.address + element.name;
 	};
 
 	renderElement = ({ item: element }) => {
@@ -260,7 +262,7 @@ class AddressList extends PureComponent {
 					{contactElements.length ? (
 						<FlatList
 							data={contactElements}
-							keyExtractor={this.elementKey}
+							keyExtractor={this.elementKeyExtractor}
 							renderItem={this.renderElement}
 						/>
 					) : (
