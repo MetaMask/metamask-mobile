@@ -118,6 +118,8 @@ class ContactForm extends PureComponent {
 		mode: this.props.navigation.getParam('mode', ADD)
 	};
 
+	addressInput = React.createRef();
+
 	componentDidMount = () => {
 		const { mode } = this.state;
 		if (mode === EDIT) {
@@ -171,6 +173,11 @@ class ContactForm extends PureComponent {
 		this.setState({ address, addressError, toEnsName, addressReady });
 	};
 
+	jumpToAddressInput = () => {
+		const { current } = this.addressInput;
+		current && current.focus();
+	};
+
 	saveContact = () => {
 		const { name, address } = this.state;
 		const { network, navigation } = this.props;
@@ -206,10 +213,9 @@ class ContactForm extends PureComponent {
 							spellCheck={false}
 							numberOfLines={1}
 							onBlur={this.onBlur}
-							onFocus={this.onInputFocus}
-							onSubmitEditing={this.onFocus}
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							value={name}
+							onSubmitEditing={this.jumpToAddressInput}
 						/>
 
 						<Text style={styles.label}>{strings('address_book.address')}</Text>
@@ -224,10 +230,10 @@ class ContactForm extends PureComponent {
 									spellCheck={false}
 									numberOfLines={1}
 									onBlur={this.onBlur}
-									onFocus={this.onInputFocus}
-									onSubmitEditing={this.onFocus}
 									style={[styles.textInput]}
 									value={toEnsName || address}
+									ref={this.addressInput}
+									onSubmitEditing={this.saveContact}
 								/>
 								{toEnsName && <Text style={styles.resolvedInput}>{renderShortAddress(address)}</Text>}
 							</View>
