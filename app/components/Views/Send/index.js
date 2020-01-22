@@ -446,7 +446,9 @@ class Send extends PureComponent {
 				this.removeCollectible();
 			});
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+				{ text: strings('navigation.ok') }
+			]);
 			this.setState({ transactionConfirmed: false });
 			await this.reset();
 		}

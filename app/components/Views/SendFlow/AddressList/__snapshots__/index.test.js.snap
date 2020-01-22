@@ -1,0 +1,72 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddressList should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <ScrollViewMock
+    style={
+      Object {
+        "flexGrow": 1,
+      }
+    }
+  >
+    <TouchableOpacity
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        Object {
+          "borderBottomColor": "#D8D8D8",
+          "borderBottomWidth": 1,
+          "padding": 16,
+        }
+      }
+    >
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#037dd6",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "textAlign": "center",
+            },
+            Object {
+              "textAlign": "left",
+            },
+          ]
+        }
+      >
+        Transfer between my accounts
+      </Text>
+    </TouchableOpacity>
+    <View
+      style={
+        Object {
+          "padding": 16,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#037dd6",
+            "fontFamily": "Roboto",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "textAlign": "center",
+          }
+        }
+      >
+        No contacts in your address book
+      </Text>
+    </View>
+  </ScrollViewMock>
+</View>
+`;

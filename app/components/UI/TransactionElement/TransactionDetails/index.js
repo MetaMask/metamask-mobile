@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textAlign: 'center',
 		marginTop: 15,
-		marginBottom: 10
+		marginBottom: 10,
+		textTransform: 'uppercase'
 	},
 	hash: {
 		fontSize: 12
@@ -308,9 +309,7 @@ class TransactionDetails extends PureComponent {
 						>
 							<Text style={styles.viewOnEtherscan}>
 								{(rpcBlockExplorer &&
-									`${strings('transactions.view_on')} ${getBlockExplorerName(
-										rpcBlockExplorer
-									).toUpperCase()}`) ||
+									`${strings('transactions.view_on')} ${getBlockExplorerName(rpcBlockExplorer)}`) ||
 									strings('transactions.view_on_etherscan')}
 							</Text>
 						</TouchableOpacity>

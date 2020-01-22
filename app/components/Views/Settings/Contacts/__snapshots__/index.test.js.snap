@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Contacts should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <Connect(AddressList)
+    onAccountLongPress={[Function]}
+    onAccountPress={[Function]}
+    onlyRenderAddressBook={true}
+    reloadAddressList={false}
+  />
+  <StyledButton
+    containerStyle={
+      Object {
+        "marginBottom": 16,
+        "marginHorizontal": 24,
+      }
+    }
+    disabledContainerStyle={
+      Object {
+        "opacity": 0.6,
+      }
+    }
+    onPress={[Function]}
+    styleDisabled={
+      Object {
+        "opacity": 0.6,
+      }
+    }
+    type="confirm"
+  >
+    Add contact
+  </StyledButton>
+  <ActionSheet
+    cancelButtonIndex={1}
+    destructiveButtonIndex={0}
+    onPress={[Function]}
+    options={
+      Array [
+        "Delete",
+        "Cancel",
+      ]
+    }
+    title="Delete contact"
+  />
+</SafeAreaView>
+`;
