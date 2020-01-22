@@ -298,6 +298,36 @@ export function getTransactionOptionsTitle(title, navigation) {
 }
 
 /**
+ * Function that returns the navigation options
+ * This is used by views in send flow
+ *
+ * @param {string} title - Title in string format
+ * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
+ */
+export function getSendFlowTitle(title, navigation) {
+	const rightAction = () => navigation.dismiss();
+	const leftAction = () => navigation.pop();
+	const canGoBack = title !== 'send.send_to';
+	return {
+		headerTitle: <NavbarTitle title={title} disableNetwork />,
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{'Cancel'}</Text>
+			</TouchableOpacity>
+		),
+		headerLeft: canGoBack ? (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{'Back'}</Text>
+			</TouchableOpacity>
+		) : (
+			<View />
+		)
+	};
+}
+
+/**
  * Function that returns the navigation options for InstaPay screend
  *
  * @param {string} title - Title name to use with strings

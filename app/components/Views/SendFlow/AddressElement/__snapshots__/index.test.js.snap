@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddressElement should render correctly 1`] = `
+<TouchableOpacity
+  activeOpacity={0.2}
+  onLongPress={[Function]}
+  onPress={[Function]}
+  style={
+    Object {
+      "alignItems": "center",
+      "borderBottomColor": "#D8D8D8",
+      "borderBottomWidth": 1,
+      "flexDirection": "row",
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "paddingRight": 16,
+      }
+    }
+  >
+    <Component
+      diameter={28}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flexDirection": "column",
+      }
+    }
+  >
+    <Text
+      numberOfLines={1}
+      style={
+        Object {
+          "color": "#000000",
+          "fontFamily": "Roboto",
+          "fontSize": 14,
+          "fontWeight": "400",
+        }
+      }
+    />
+  </View>
+</TouchableOpacity>
+`;
