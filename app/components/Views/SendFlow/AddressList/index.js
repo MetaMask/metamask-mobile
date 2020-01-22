@@ -128,8 +128,7 @@ class AddressList extends PureComponent {
 		if (
 			(prevProps.reloadAddressList && reloadAddressList !== prevProps.reloadAddressList) ||
 			prevProps.inputSearch !== this.props.inputSearch ||
-			(prevProps.addressBook[network] &&
-				JSON.stringify(prevProps.addressBook[network]) !== JSON.stringify(addressBook[network]))
+			JSON.stringify(prevProps.addressBook[network]) !== JSON.stringify(addressBook[network])
 		) {
 			let networkAddressBookList;
 			if (this.props.inputSearch) {
