@@ -393,7 +393,8 @@ export class BrowserTab extends PureComponent {
 			watchAsset: false,
 			activated: props.id === props.activeTab,
 			lastError: null,
-			showApprovalDialogHostname: undefined
+			showApprovalDialogHostname: undefined,
+			showOptions: false
 		};
 	}
 	backgroundBridges = [];
@@ -1202,11 +1203,7 @@ export class BrowserTab extends PureComponent {
 	}
 
 	toggleOptionsIfNeeded() {
-		if (
-			this.props.navigation &&
-			this.props.navigation.state.params &&
-			this.props.navigation.state.params.showOptions
-		) {
+		if (this.state.showOptions) {
 			this.toggleOptions();
 		}
 	}
@@ -1214,16 +1211,13 @@ export class BrowserTab extends PureComponent {
 	toggleOptions = () => {
 		this.dismissTextSelectionIfNeeded();
 
-		this.props.navigation &&
-			this.props.navigation.setParams({
-				...this.props.navigation.state.params,
-				showOptions: !this.props.navigation.state.params.showOptions
-			});
-
-		!this.props.navigation.state.params.showOptions &&
-			InteractionManager.runAfterInteractions(() => {
-				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_BROWSER_OPTIONS);
-			});
+		this.setState({ showOptions: !this.state.showOptions }, () => {
+			if (this.state.showOptions) {
+				InteractionManager.runAfterInteractions(() => {
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_BROWSER_OPTIONS);
+				});
+			}
+		});
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
@@ -1403,7 +1397,7 @@ export class BrowserTab extends PureComponent {
 	);
 
 	renderOptions = () => {
-		const showOptions = (this.props.navigation && this.props.navigation.getParam('showOptions', false)) || false;
+		const { showOptions } = this.state;
 		if (showOptions) {
 			return (
 				<TouchableWithoutFeedback onPress={this.toggleOptions}>
