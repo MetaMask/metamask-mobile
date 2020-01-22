@@ -11,6 +11,7 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'{}',
 	"Can't perform a React state update",
 	'Error evaluating injectedJavaScript',
 	'createErrorFromErrorData',
@@ -38,7 +39,9 @@ YellowBox.ignoreWarnings([
 	'startLoadWithResult invoked with invalid',
 	'RCTBridge required dispatch_sync',
 	'Remote debugger is in a background tab',
-	"Can't call setState (or forceUpdate) on an unmounted component"
+	"Can't call setState (or forceUpdate) on an unmounted component",
+	'No stops in gradient',
+	"Cannot read property 'hash' of null"
 ]);
 
 /**

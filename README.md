@@ -19,14 +19,17 @@ The code is built using React-Native and running code locally requires a Mac or 
 - Before starting, you need to install React Native dependencies:
     - [MacOs](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1)
     - [Linux](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-2)
- -  Now clone this repo and then install all our dependencies
+- Now clone this repo and then install all our dependencies.
 
 ```bash
 cd metamask-mobile
 yarn install
 ```
+- Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key.
 
 - Running the app on Android:
+
+You will need the `secret-tool` (a part of [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions) binary on your machine. You'll also want to have the android SDK; the easiest way to do that is by installing [Android Studio](https://developer.android.com/studio). Additionally, you'll need to install the Google Play Licencing Library via the SDK Manager in Android Studio.
 
 ```bash
 yarn start:android
@@ -51,6 +54,9 @@ yarn test:e2e:ios
 ```
 yarn test:e2e:android
 ```
+
+### Architecture
+To get a better understanding of the internal architecture of this app take a look at [this diagram](https://github.com/MetaMask/metamask-mobile/blob/develop/architecture.svg)
 
 ### Troubleshooting
 

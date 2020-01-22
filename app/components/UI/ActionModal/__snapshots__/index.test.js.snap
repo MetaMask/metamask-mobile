@@ -102,7 +102,7 @@ exports[`ActionModal should render correctly 1`] = `
           testID=""
           type="neutral"
         >
-          CANCEL
+          Cancel
         </StyledButton>
         <StyledButton
           containerStyle={
@@ -129,7 +129,7 @@ exports[`ActionModal should render correctly 1`] = `
           testID=""
           type="warning"
         >
-          CONFIRM
+          Confirm
         </StyledButton>
       </View>
     </View>

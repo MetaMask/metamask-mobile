@@ -73,11 +73,6 @@ exports[`GeneralSettings should render correctly 1`] = `
           options={
             Array [
               Object {
-                "key": "1st",
-                "label": "1ST - FirstBlood",
-                "value": "1st",
-              },
-              Object {
                 "key": "adt",
                 "label": "ADT - adToken",
                 "value": "adt",
@@ -331,11 +326,6 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "key": "trst",
                 "label": "TRST - WeTrust",
                 "value": "trst",
-              },
-              Object {
-                "key": "uah",
-                "label": "UAH - Ukrainian Hryvnia",
-                "value": "uah",
               },
               Object {
                 "key": "usd",

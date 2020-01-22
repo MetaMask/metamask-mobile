@@ -1,0 +1,297 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Amount should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "marginHorizontal": 24,
+        "marginTop": 30,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "flex": 0.8,
+          }
+        }
+      />
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+          }
+        }
+      >
+        <TouchableOpacity
+          activeOpacity={0.2}
+          onPress={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#037dd6",
+              "borderRadius": 100,
+              "flexDirection": "row",
+              "paddingHorizontal": 16,
+              "paddingVertical": 2,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#FFFFFF",
+                "fontFamily": "Roboto",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "paddingVertical": 2,
+              }
+            }
+          >
+            Collectible
+          </Text>
+          <View>
+            <Icon
+              allowFontScaling={false}
+              color="#FFFFFF"
+              name="ios-arrow-down"
+              size={16}
+              style={
+                Object {
+                  "paddingLeft": 10,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          Array [
+            Object {
+              "flex": 0.8,
+            },
+            Object {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "flex-end",
+            },
+          ]
+        }
+      >
+        <TouchableOpacity
+          activeOpacity={0.2}
+          disabled={true}
+          onPress={[Function]}
+          style={Object {}}
+        >
+          <Text
+            style={
+              Object {
+                "alignSelf": "flex-end",
+                "color": "#037dd6",
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "textTransform": "uppercase",
+              }
+            }
+          >
+            Use max
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+    <View>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "marginVertical": 16,
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "flexDirection": "row",
+            }
+          }
+        >
+          <TextInput
+            allowFontScaling={true}
+            keyboardType="numeric"
+            onChangeText={[Function]}
+            placeholder="0"
+            rejectResponderTermination={true}
+            style={
+              Object {
+                "fontFamily": "Roboto-Light",
+                "fontSize": 44,
+                "fontWeight": "300",
+                "textAlign": "center",
+              }
+            }
+            underlineColorAndroid="transparent"
+          />
+        </View>
+      </View>
+    </View>
+  </View>
+  <KeyboardAvoidingView
+    behavior="padding"
+    enabled={true}
+    keyboardVerticalOffset={120}
+    style={
+      Object {
+        "flex": 1,
+        "marginBottom": 16,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "flex-end",
+          "flex": 1,
+          "flexDirection": "row",
+        }
+      }
+    >
+      <StyledButton
+        containerStyle={
+          Object {
+            "flex": 1,
+            "marginHorizontal": 24,
+          }
+        }
+        disabled={true}
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="confirm"
+      >
+        Next
+      </StyledButton>
+    </View>
+  </KeyboardAvoidingView>
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={300}
+    animationOut="slideOutDown"
+    animationOutTiming={300}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0.7}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    deviceHeight={null}
+    deviceWidth={null}
+    hasBackdrop={true}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onSwipeComplete={[Function]}
+    propagateSwipe={true}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "justifyContent": "flex-end",
+        "margin": 0,
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    useNativeDriver={false}
+  >
+    <SafeAreaView
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderTopLeftRadius": 10,
+          "borderTopRightRadius": 10,
+          "height": 450,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "borderBottomWidth": 0.5,
+            "borderColor": "#d6d9dc",
+            "height": 33,
+            "justifyContent": "center",
+            "width": "100%",
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "backgroundColor": "#848c96",
+              "borderRadius": 4,
+              "height": 5,
+              "opacity": 0.5,
+              "width": 48,
+            }
+          }
+        />
+      </View>
+      <FlatList
+        data={Array []}
+        disableVirtualization={false}
+        horizontal={false}
+        initialNumToRender={10}
+        keyExtractor={[Function]}
+        maxToRenderPerBatch={10}
+        numColumns={1}
+        onEndReachedThreshold={2}
+        removeClippedSubviews={false}
+        renderItem={[Function]}
+        scrollEventThrottle={50}
+        updateCellsBatchingPeriod={50}
+        windowSize={21}
+      />
+    </SafeAreaView>
+  </ReactNativeModal>
+</SafeAreaView>
+`;
