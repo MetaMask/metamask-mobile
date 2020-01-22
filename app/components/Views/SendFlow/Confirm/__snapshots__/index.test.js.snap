@@ -1,0 +1,492 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Confirm should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "borderBottomColor": "#D8D8D8",
+        "borderBottomWidth": 1,
+        "flex": 0,
+        "paddingHorizontal": 8,
+      }
+    }
+  >
+    <AddressFrom
+      fromAccountAddress="0x1"
+    />
+    <AddressTo
+      addressToReady={true}
+    />
+  </View>
+  <ScrollViewMock
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "flexDirection": "column",
+          "margin": 24,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "marginVertical": 3,
+            "textAlign": "center",
+            "textTransform": "uppercase",
+          }
+        }
+      >
+        Amount
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto-Light",
+            "fontSize": 44,
+            "fontWeight": "300",
+            "textAlign": "center",
+          }
+        }
+      />
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "marginVertical": 3,
+            "textAlign": "center",
+            "textTransform": "uppercase",
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "borderColor": "#D8D8D8",
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "flexDirection": "column",
+          "marginHorizontal": 24,
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginVertical": 6,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Amount
+        </Text>
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "400",
+              },
+              Object {
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        />
+      </View>
+      <View
+        style={
+          Object {
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginVertical": 6,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Transaction fee
+        </Text>
+        <View
+          style={
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "height": 10,
+            }
+          }
+        >
+          <ActivityIndicator
+            animating={true}
+            color="#999999"
+            hidesWhenStopped={true}
+            size="small"
+          />
+        </View>
+      </View>
+      <View
+        style={
+          Object {
+            "borderBottomColor": "#D8D8D8",
+            "borderBottomWidth": 1,
+            "marginVertical": 6,
+          }
+        }
+      />
+      <View
+        style={
+          Object {
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginVertical": 6,
+          }
+        }
+      >
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "400",
+              },
+              Object {
+                "alignSelf": "flex-end",
+                "fontFamily": "Roboto",
+                "fontWeight": "600",
+              },
+            ]
+          }
+        >
+          Total amount
+        </Text>
+        <View
+          style={
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "height": 10,
+            }
+          }
+        >
+          <ActivityIndicator
+            animating={true}
+            color="#999999"
+            hidesWhenStopped={true}
+            size="small"
+          />
+        </View>
+      </View>
+      <View
+        style={
+          Object {
+            "alignItems": "flex-end",
+            "marginTop": 8,
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "height": 10,
+            }
+          }
+        >
+          <ActivityIndicator
+            animating={true}
+            color="#999999"
+            hidesWhenStopped={true}
+            size="small"
+          />
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "margin": 24,
+        }
+      }
+    >
+      <TouchableOpacity
+        activeOpacity={0.2}
+        disabled={true}
+        onPress={[Function]}
+        style={
+          Object {
+            "padding": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "alignSelf": "center",
+              "color": "#037dd6",
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Adjust transaction fee
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          Object {
+            "padding": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "alignSelf": "center",
+              "color": "#037dd6",
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Hex Data
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </ScrollViewMock>
+  <View
+    style={
+      Object {
+        "alignItems": "flex-end",
+        "flexDirection": "row",
+        "marginBottom": 16,
+      }
+    }
+  >
+    <StyledButton
+      containerStyle={
+        Object {
+          "alignSelf": "flex-end",
+          "flex": 1,
+          "marginHorizontal": 24,
+        }
+      }
+      disabled={true}
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      type="confirm"
+    >
+      Send
+    </StyledButton>
+  </View>
+  <ActionModal
+    cancelButtonMode="neutral"
+    cancelTestID=""
+    cancelText="Cancel"
+    confirmButtonMode="confirm"
+    confirmDisabled={false}
+    confirmTestID=""
+    confirmText="Set"
+    modalVisible={false}
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+    onRequestClose={[Function]}
+  >
+    <View
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "borderBottomColor": "#d6d9dc",
+            "borderBottomWidth": 1,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "alignSelf": "center",
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 18,
+              "fontWeight": "600",
+              "margin": 16,
+            }
+          }
+        >
+          Transaction fee
+        </Text>
+      </View>
+      <Connect(CustomGas)
+        handleGasFeeSelection={[Function]}
+        selected="average"
+      />
+    </View>
+  </ActionModal>
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={300}
+    animationOut="slideOutDown"
+    animationOutTiming={300}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0.7}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    deviceHeight={null}
+    deviceWidth={null}
+    hasBackdrop={true}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onSwipeComplete={[Function]}
+    propagateSwipe={true}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    useNativeDriver={false}
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "padding": 10,
+        }
+      }
+    >
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          Object {
+            "position": "absolute",
+            "right": 20,
+            "top": 12,
+            "zIndex": 999,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#000000"
+          name="ios-close"
+          size={28}
+        />
+      </TouchableOpacity>
+      <View
+        style={
+          Object {
+            "backgroundColor": "#f2f3f4",
+            "borderRadius": 8,
+            "marginBottom": 16,
+            "paddingBottom": 24,
+            "paddingHorizontal": 36,
+            "paddingTop": 16,
+            "width": "100%",
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "alignItems": "center",
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "600",
+              "justifyContent": "center",
+              "marginBottom": 16,
+              "textAlign": "center",
+            }
+          }
+        >
+          Hex Data
+        </Text>
+        <Text
+          style={
+            Object {
+              "textAlign": "justify",
+            }
+          }
+        >
+          0x
+        </Text>
+      </View>
+    </View>
+  </ReactNativeModal>
+</SafeAreaView>
+`;

@@ -56,17 +56,6 @@
 			}
 		},
 		{
-			"symbol": "eth1st",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
-			"quote": {
-				"code": "1st",
-				"name": "FirstBlood"
-			}
-		},
-		{
 			"symbol": "ethadt",
 			"base": {
 				"code": "eth",
@@ -559,17 +548,6 @@
 			"quote": {
 				"code": "trst",
 				"name": "WeTrust"
-			}
-		},
-		{
-			"symbol": "ethuah",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
-			"quote": {
-				"code": "uah",
-				"name": "Ukrainian Hryvnia"
 			}
 		},
 		{

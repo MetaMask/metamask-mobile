@@ -24,7 +24,6 @@ const styles = StyleSheet.create({
 	actionContainer: {
 		borderTopColor: colors.grey200,
 		borderTopWidth: 1,
-		flex: 0,
 		flexDirection: 'row',
 		padding: 16
 	},
