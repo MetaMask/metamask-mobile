@@ -246,6 +246,9 @@ describe('Browser Tests', () => {
 			await TestHelpers.replaceTextInField('url-input', ETHEREUM_ENABLE);
 			await element(by.id('url-input')).tapReturnKey();
 		}
+
+		await TestHelpers.checkIfHasText('dapp-name-title', 'brunobar79.github.io');
+
 		// Tap on CONNECT button
 		if (!device.getPlatform() === 'android') {
 			await TestHelpers.delay(2000);
@@ -307,6 +310,13 @@ describe('Browser Tests', () => {
 		await TestHelpers.checkIfHasText('dapp-name-title', 'Uniswap Exchange');
 		// Tap on CANCEL button
 		await TestHelpers.tapByText('CANCEL');
+
+		// THIS SUCKS BUT UNISWAP IS ASKING TO CONNECT TWICE
+		// Tap on CANCEL button
+		// Wait for page to load
+		await TestHelpers.delay(1000);
+		await TestHelpers.tapByText('CANCEL');
+
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
 	});

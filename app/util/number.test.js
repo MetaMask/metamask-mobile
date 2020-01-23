@@ -167,9 +167,9 @@ describe('Number utils :: isDecimal', () => {
 describe('Number utils :: weiToFiat', () => {
 	it('weiToFiat', () => {
 		const wei = toWei('1');
-		expect(weiToFiat(wei, 1, 'USD')).toEqual('1 USD');
-		expect(weiToFiat(wei, 0.5, 'USD')).toEqual('0.5 USD');
-		expect(weiToFiat(wei, 0.1, 'USD')).toEqual('0.1 USD');
+		expect(weiToFiat(wei, 1, 'usd')).toEqual('$1');
+		expect(weiToFiat(wei, 0.5, 'usd')).toEqual('$0.5');
+		expect(weiToFiat(wei, 0.1, 'usd')).toEqual('$0.1');
 	});
 });
 
@@ -239,8 +239,8 @@ describe('Number utils :: fiatNumberToTokenMinimalUnit', () => {
 
 describe('Number utils :: balanceToFiat', () => {
 	it('balanceToFiat', () => {
-		expect(balanceToFiat(0.1, 0.1, 0.1, 'USD')).toEqual('0.001 USD');
-		expect(balanceToFiat(0.0001, 0.1, 0.1, 'USD')).toEqual('0 USD');
+		expect(balanceToFiat(0.1, 0.1, 0.1, 'usd')).toEqual('$0.001');
+		expect(balanceToFiat(0.0001, 0.1, 0.1, 'usd')).toEqual('$0');
 	});
 });
 
@@ -253,7 +253,7 @@ describe('Number utils :: balanceToFiatNumber', () => {
 
 describe('Number utils :: renderFiat', () => {
 	it('renderFiat', () => {
-		expect(renderFiat(0.1, 'usd')).toEqual('0.1 USD');
-		expect(renderFiat(0.0010000001, 'usd')).toEqual('0.001 USD');
+		expect(renderFiat(0.1, 'usd')).toEqual('$0.1');
+		expect(renderFiat(0.0010000001, 'usd')).toEqual('$0.001');
 	});
 });

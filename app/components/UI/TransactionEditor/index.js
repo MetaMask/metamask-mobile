@@ -14,6 +14,7 @@ import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from 'eth-contract-metadata';
+import TransactionTypes from '../../../core/TransactionTypes';
 import InstaPay from '../../../core/InstaPay';
 
 const EDIT = 'edit';
@@ -137,7 +138,7 @@ class TransactionEditor extends PureComponent {
 				to: selectedAsset && selectedAsset.address ? selectedAsset.address : to
 			});
 		} catch (e) {
-			estimation = { gas: '0x5208' };
+			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
 		}
 		return estimation;
 	};

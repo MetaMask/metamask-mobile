@@ -170,6 +170,20 @@ exports[`App should render correctly 1`] = `
                       "getStateForAction": [Function],
                     },
                     "QRScanner": null,
+                    "SendFlowView": Object {
+                      "childRouters": Object {
+                        "Amount": null,
+                        "Confirm": null,
+                        "SendTo": null,
+                      },
+                      "getActionCreators": [Function],
+                      "getActionForPathAndParams": [Function],
+                      "getComponentForRouteName": [Function],
+                      "getComponentForState": [Function],
+                      "getPathAndParamsForState": [Function],
+                      "getScreenOptions": [Function],
+                      "getStateForAction": [Function],
+                    },
                     "SendView": Object {
                       "childRouters": Object {
                         "Send": null,
@@ -206,6 +220,8 @@ exports[`App should render correctly 1`] = `
                         "AdvancedSettings": null,
                         "ChoosePasswordSimple": null,
                         "CompanySettings": null,
+                        "ContactForm": null,
+                        "ContactsSettings": null,
                         "EnterPasswordSimple": null,
                         "ExperimentalSettings": null,
                         "GeneralSettings": null,
@@ -611,6 +627,20 @@ exports[`App should render correctly 1`] = `
                         "getStateForAction": [Function],
                       },
                       "QRScanner": null,
+                      "SendFlowView": Object {
+                        "childRouters": Object {
+                          "Amount": null,
+                          "Confirm": null,
+                          "SendTo": null,
+                        },
+                        "getActionCreators": [Function],
+                        "getActionForPathAndParams": [Function],
+                        "getComponentForRouteName": [Function],
+                        "getComponentForState": [Function],
+                        "getPathAndParamsForState": [Function],
+                        "getScreenOptions": [Function],
+                        "getStateForAction": [Function],
+                      },
                       "SendView": Object {
                         "childRouters": Object {
                           "Send": null,
@@ -647,6 +677,8 @@ exports[`App should render correctly 1`] = `
                           "AdvancedSettings": null,
                           "ChoosePasswordSimple": null,
                           "CompanySettings": null,
+                          "ContactForm": null,
+                          "ContactsSettings": null,
                           "EnterPasswordSimple": null,
                           "ExperimentalSettings": null,
                           "GeneralSettings": null,

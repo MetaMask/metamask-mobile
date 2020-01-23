@@ -2,6 +2,12 @@
 
 ## Current Develop Branch
 
+## v0.2.13 - Dic 30 2019
+- [#1250](https://github.com/MetaMask/metamask-mobile/pull/1250): Bump excon from 0.64.0 to 0.71.0 in /ios (#1250)
+- [#1246](https://github.com/MetaMask/metamask-mobile/pull/1246): bugfix: wizard back (#1246)
+- [#1235](https://github.com/MetaMask/metamask-mobile/pull/1235): Detox: Request token flow (#1235)
+- [#1234](https://github.com/MetaMask/metamask-mobile/pull/1234): bump migration version (#1234)
+
 ## v0.2.12 - Nov 25 2019
 - [#1224](https://github.com/MetaMask/metamask-mobile/pull/1224): Bugfix: asset ens tx (#1224)
 - [#1225](https://github.com/MetaMask/metamask-mobile/pull/1225): update bug report link (#1225)

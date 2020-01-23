@@ -6,7 +6,8 @@
 		"back": "Back",
 		"close": "Close",
 		"cancel": "Cancel",
-		"info": "Info"
+		"info": "Info",
+		"ok": "OK"
 	},
 	"onboarding": {
 		"title": "Get started!",
@@ -166,7 +167,10 @@
 	"send": {
 		"title": "Send",
 		"deeplink_failure": "Ooops! Something went wrong! Please try again",
-		"warn_network_change": "Network changed to "
+		"warn_network_change": "Network changed to ",
+		"send_to": "Send to",
+		"amount": "Amount",
+		"confirm": "Confirm"
 	},
 	"deposit": {
 		"title": "Deposit"
@@ -332,6 +336,8 @@
 		"general_desc": "Currency conversion, primary currency, language and search engine",
 		"advanced_title": "Advanced",
 		"advanced_desc": "Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC",
+		"contacts_title": "Contacts",
+		"contacts_desc": "Add, edit, remove, and manage your accounts",
 		"security_title": "Security & Privacy",
 		"security_desc": "Privacy settings, MetaMetrics, private key and wallet seed phrase",
 		"networks_title": "Networks",
@@ -493,14 +499,23 @@
 		"speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
 		"nevermind": "Nevermind",
 		"gas_cancel_fee": "Gas Cancellation Fee",
-		"gas_speedup_fee": "Gas Speed Up fee"
+		"gas_speedup_fee": "Gas Speed Up fee",
+		"use_max": "Use max",
+		"set_gas": "Set",
+		"cancel_gas": "Cancel",
+		"transaction_fee": "Transaction fee",
+		"total_amount": "Total amount",
+		"adjust_transaction_fee": "Adjust transaction fee",
+		"could_not_resolve_ens": "Couldn't resolve ENS",
+		"asset": "Asset"
 	},
 	"custom_gas": {
-		"advanced_options": "Advanced Options",
-		"hide_advanced_options": "Hide Advanced Options",
+		"advanced_options": "Show advanced options",
+		"hide_advanced_options": "Hide advanced options",
 		"gas_limit": "Gas Limit:",
 		"gas_price": "Gas Price: (GWEI)",
-		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027"
+		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
+		"cost_explanation": "This is the cost for processing this payment on the blockchain."
 	},
 	"browser": {
 		"title": "Browser",
@@ -589,7 +604,33 @@
 		"view_on_etherscan": "VIEW ON ETHERSCAN",
 		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
 		"address_copied_to_clipboard": "Address copied to clipboard",
-		"transaction_error": "Transaction error"
+		"transaction_error": "Transaction error",
+		"address_to_placeholder": "Search, public address (0x), or ENS",
+		"address_from_balance": "Balance:"
+	},
+	"address_book": {
+		"recents": "Recents",
+		"save": "Save",
+		"delete_contact": "Delete contact",
+		"delete": "Delete",
+		"cancel": "Cancel",
+		"add_to_address_book": "Add to address book",
+		"enter_an_alias": "Enter an alias",
+		"add_this_address": "Add this address to your address book",
+		"next": "Next",
+		"enter_an_alias_placeholder": "e.g. Vitalik B.",
+		"add_contact_title": "Add Contact",
+		"add_contact": "Add contact",
+		"edit_contact_title": "Edit Contact",
+		"edit_contact": "Edit contact",
+		"address_already_saved": "Contact already saved",
+		"address": "Address",
+		"name": "Name",
+		"nickname": "Name",
+		"add_input_placeholder": "Public address (0x), or ENS",
+		"between_account": "Transfer between my accounts",
+		"no_contacts": "No contacts in your address book",
+		"others": "Others"
 	},
 	"transaction_submitted": {
 		"title": "Transaction Submitted",
@@ -661,7 +702,13 @@
 		"divisor": "/",
 		"token_id": "#",
 		"colon": ":",
-		"point": "."
+		"point": ".",
+		"week": "week",
+		"day": "day",
+		"hour": "hr",
+		"minute": "min",
+		"second": "sec",
+		"empty_data": "0x"
 	},
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",

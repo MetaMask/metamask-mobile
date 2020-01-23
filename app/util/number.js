@@ -5,6 +5,7 @@ import { BN } from 'ethereumjs-util';
 import convert from 'ethjs-unit';
 import { util } from 'gaba';
 import numberToBN from 'number-to-bn';
+import currencySymbols from '../util/currency-symbols.json';
 
 /**
  * Converts a BN object to a hex string with a '0x' prefix
@@ -124,6 +125,31 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
 		renderMinimalUnit = (Math.round(minimalUnitNumber * base) / base).toString();
 	}
 	return renderMinimalUnit;
+}
+
+/**
+ * Converts two fiat amounts into one with their respective currency, showing up to 5 decimals
+ *
+ * @param {number} transferFiat - Number representing fiat value of a transfer
+ * @param {number} feeFiat - Number representing fiat value of transaction fee
+ * @param {string} currentCurrency - Currency
+ * @param {number} decimalsToShow - Defaults to 5
+ * @returns {String} - Formatted fiat value of the addition, in render format
+ * If value is less than 5 precision decimals will show '< 0.00001'
+ */
+export function renderFiatAddition(transferFiat, feeFiat, currentCurrency, decimalsToShow = 5) {
+	const addition = transferFiat + feeFiat;
+	let renderMinimalUnit;
+	if (addition < 0.00001 && addition > 0) {
+		renderMinimalUnit = '< 0.00001';
+	} else {
+		const base = Math.pow(10, decimalsToShow);
+		renderMinimalUnit = (Math.round(addition * base) / base).toString();
+	}
+	if (currencySymbols[currentCurrency]) {
+		return `${currencySymbols[currentCurrency]}${renderMinimalUnit}`;
+	}
+	return `${renderMinimalUnit} ${currentCurrency}`;
 }
 
 /**
@@ -267,6 +293,9 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
 		return `0.00 ${currencyCode}`;
 	}
 	const value = weiToFiatNumber(wei, conversionRate);
+	if (currencySymbols[currencyCode]) {
+		return `${currencySymbols[currencyCode]}${value}`;
+	}
 	return `${value} ${currencyCode}`;
 }
 
@@ -281,7 +310,7 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
 export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
 	const base = Math.pow(10, decimalsToShow);
 	const eth = fromWei(wei).toString();
-	let value = parseFloat(Math.round(eth * conversionRate * base) / base);
+	let value = parseFloat(Math.floor(eth * conversionRate * base) / base);
 	value = isNaN(value) ? 0.0 : value;
 	return value;
 }
@@ -315,7 +344,10 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
 		return undefined;
 	}
 	const fiatFixed = balanceToFiatNumber(balance, conversionRate, exchangeRate);
-	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
+	if (currencySymbols[currencyCode]) {
+		return `${currencySymbols[currencyCode]}${fiatFixed}`;
+	}
+	return `${fiatFixed} ${currencyCode}`;
 }
 
 /**
@@ -329,9 +361,16 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
  */
 export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decimalsToShow = 5) {
 	const base = Math.pow(10, decimalsToShow);
-	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * base) / base);
+	let fiatFixed = parseFloat(Math.floor(balance * conversionRate * exchangeRate * base) / base);
 	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
 	return fiatFixed;
+}
+
+export function getCurrencySymbol(currencyCode) {
+	if (currencySymbols[currencyCode]) {
+		return `${currencySymbols[currencyCode]}`;
+	}
+	return currencyCode;
 }
 
 /**
@@ -346,6 +385,9 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
 	const base = Math.pow(10, decimalsToShow);
 	let fiatFixed = parseFloat(Math.round(value * base) / base);
 	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
+	if (currencySymbols[currencyCode]) {
+		return `${currencySymbols[currencyCode]}${fiatFixed}`;
+	}
 	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
 

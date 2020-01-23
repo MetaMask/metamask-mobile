@@ -983,24 +983,24 @@
     asn1js "^2.0.22"
     tslib "^1.9.3"
 
-"@peculiar/json-schema@^1.1.5":
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/@peculiar/json-schema/-/json-schema-1.1.6.tgz#134096ede59cf502e9acbdb24cbe55eb97ad2fe9"
-  integrity sha512-A8DM0ueA+LUqD/HuNPHDd8yMkhbRmnV0iosxyB/uOV1cfiKlCKXDeqkzHTOZpveRI05iCjZxqkPZ2+Nnw1wB4A==
+"@peculiar/json-schema@^1.1.6":
+  version "1.1.9"
+  resolved "https://registry.yarnpkg.com/@peculiar/json-schema/-/json-schema-1.1.9.tgz#b746e046b787607a1b2804f64437fda2527b3e62"
+  integrity sha512-F2ST2y/IQPgY+1QMw1Q33sqJbGDCeO3lGqI69SL3Hgo0++7iHqprUB1QyxB/A7bN3tuM65MBxoM2JLbwh42lsQ==
   dependencies:
     tslib "^1.10.0"
 
 "@peculiar/webcrypto@^1.0.19":
-  version "1.0.21"
-  resolved "https://registry.yarnpkg.com/@peculiar/webcrypto/-/webcrypto-1.0.21.tgz#d38eb883bf966b247954afc259054c3fa2a10c98"
-  integrity sha512-dMQe+vTKSKDpiizQj5q7lFqU56zBgavrjcST4d8RMxEbmgoUOuAUOXlkI5DoqVy3ktcfAhk6CRV4YkaSUEXdAg==
+  version "1.0.22"
+  resolved "https://registry.yarnpkg.com/@peculiar/webcrypto/-/webcrypto-1.0.22.tgz#9dae652fce6bacd9df15bc91965797cee33adf67"
+  integrity sha512-NP6H6ZGXUvJnQJCWzUgnRcQv+9nMCNwLUDhTwOxRUwPFvtHauMOl0oPTKUjbhInCMaE55gJqB4yc0YKbde6Exw==
   dependencies:
     "@peculiar/asn1-schema" "^1.0.3"
-    "@peculiar/json-schema" "^1.1.5"
+    "@peculiar/json-schema" "^1.1.6"
     asn1js "^2.0.26"
-    pvtsutils "^1.0.6"
+    pvtsutils "^1.0.9"
     tslib "^1.10.0"
-    webcrypto-core "^1.0.14"
+    webcrypto-core "^1.0.17"
 
 "@react-native-community/async-storage@1.2.0":
   version "1.2.0"
@@ -1151,11 +1151,6 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.3.tgz#ebfe83507ac506bc3486314a8aa395be66af8d23"
   integrity sha512-opgSsy+cEF9N8MgaVPnWVtdJ3o4mV2aMHvDq7thkQUFt0EuOHJon4rQpJfhjmNHB+ikl0Cd6WhWIErOyQ+f7tw==
 
-"@types/node@^10.14.17":
-  version "10.17.6"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.17.6.tgz#1aaabd6f6470a6ac3824ab1e94d731ca1326d93d"
-  integrity sha512-0a2X6cgN3RdPBL2MIlR6Lt0KlM7fOFsutuXcdglcOq6WvLnYXgPQSh0Mx6tO1KCAE8MxbHSOSTWDoUxRq+l3DA==
-
 "@types/node@^10.3.2":
   version "10.17.2"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.17.2.tgz#41b5afbcde1a5a805302a4da3cf399499f1bbf64"
@@ -1179,16 +1174,16 @@
     "@types/yargs-parser" "*"
 
 "@unimodules/core@*":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@unimodules/core/-/core-4.0.0.tgz#898dafa5a121e7d6d7d4acd9c0c38d12f7da5b19"
-  integrity sha512-lHxRmCG9DK3/aA2lnBKPS32K95NpYE10mZQRp5dycSptgN0DIeWWHuE01SndcSUACGyEP+tDO+DnGo8mhLlt4Q==
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@unimodules/core/-/core-5.0.0.tgz#e1e3ca3f91f3d27dbc93c6eebc03a40c711da755"
+  integrity sha512-PswccfzFIviX61Lm8h6/QyC94bWe+6cARwhzgzTCKa6aR6azmi4732ExhX4VxfQjJNHB0szYVXGXVEDsFkj+tQ==
   dependencies:
     compare-versions "^3.4.0"
 
 "@unimodules/react-native-adapter@*":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@unimodules/react-native-adapter/-/react-native-adapter-4.0.0.tgz#2e02246f6450201d6cb0720f849c7059e8a9bc6d"
-  integrity sha512-zGAyDhqAEWvshdSxc523srP6OAZaSr95Cv5EuxLJbFGcJENHhK8o/qxhwS7/LYTF3LqtOlnSlwQta3v3y6kF4A==
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@unimodules/react-native-adapter/-/react-native-adapter-5.0.0.tgz#af9835821a2bf38390b9f09f3231c0b7546ee510"
+  integrity sha512-qb5p5wUQoi3TRa/33aLLHSnS7sewV99oBxIo9gnzNI3VFzbOm3rsbTjOJNcR2hx0raUolTtnQT75VbgagVQx4w==
   dependencies:
     invariant "^2.2.4"
     lodash "^4.5.0"
@@ -3174,6 +3169,24 @@ discontinuous-range@1.0.0:
   resolved "https://registry.yarnpkg.com/discontinuous-range/-/discontinuous-range-1.0.0.tgz#e38331f0844bba49b9a9cb71c771585aab1bc65a"
   integrity sha1-44Mx8IRLukm5qctxx3FYWqsbxlo=
 
+dnode-protocol@~0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/dnode-protocol/-/dnode-protocol-0.2.2.tgz#51151d16fc3b5f84815ee0b9497a1061d0d1949d"
+  integrity sha1-URUdFvw7X4SBXuC5SXoQYdDRlJ0=
+  dependencies:
+    jsonify "~0.0.0"
+    traverse "~0.6.3"
+
+dnode@1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/dnode/-/dnode-1.2.2.tgz#4ac3cfe26e292b3b39b8258ae7d94edc58132efa"
+  integrity sha1-SsPP4m4pKzs5uCWK59lO3FgTLvo=
+  dependencies:
+    dnode-protocol "~0.2.2"
+    jsonify "~0.0.0"
+  optionalDependencies:
+    weak "^1.0.0"
+
 doctrine@1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/doctrine/-/doctrine-1.5.0.tgz#379dce730f6166f76cefa4e6707a159b02c5a6fa"
@@ -3356,7 +3369,7 @@ encoding@^0.1.11:
   dependencies:
     iconv-lite "~0.4.13"
 
-end-of-stream@^1.1.0:
+end-of-stream@^1.1.0, end-of-stream@^1.4.0:
   version "1.4.4"
   resolved "https://registry.yarnpkg.com/end-of-stream/-/end-of-stream-1.4.4.tgz#5ae64a5f45057baf3626ec14da0ca5e4b2431eb0"
   integrity sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q==
@@ -3883,6 +3896,13 @@ eth-hd-keyring@^3.4.0:
     events "^1.1.1"
     xtend "^4.0.1"
 
+eth-json-rpc-errors@2.0.0, eth-json-rpc-errors@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/eth-json-rpc-errors/-/eth-json-rpc-errors-2.0.0.tgz#bdc19df8b80a820844709193372f0d75fb74fed8"
+  integrity sha512-casdSTVOxbC3ptfUdclJRvU0Sgmdm/QtezLku8l4iVR5wNFe+KF+tfnlm2I84xxpx7mkyyHeeUxmRkcB5Os6mw==
+  dependencies:
+    fast-safe-stringify "^2.0.6"
+
 eth-json-rpc-errors@^1.0.1, eth-json-rpc-errors@^1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/eth-json-rpc-errors/-/eth-json-rpc-errors-1.1.1.tgz#148377ef55155585981c21ff574a8937f9d6991f"
@@ -3890,7 +3910,7 @@ eth-json-rpc-errors@^1.0.1, eth-json-rpc-errors@^1.1.0:
   dependencies:
     fast-safe-stringify "^2.0.6"
 
-eth-json-rpc-filters@^4.1.1:
+eth-json-rpc-filters@4.1.1, eth-json-rpc-filters@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/eth-json-rpc-filters/-/eth-json-rpc-filters-4.1.1.tgz#15277c66790236d85f798f4d7dc6bab99a798cd2"
   integrity sha512-GkXb2h6STznD+AmMzblwXgm1JMvjdK9PTIXG7BvIkTlXQ9g0QOxuU1iQRYHoslF9S30BYBSoLSisAYPdLggW+A==
@@ -3923,7 +3943,7 @@ eth-json-rpc-infura@^4.0.1:
     eth-json-rpc-middleware "^4.1.4"
     json-rpc-engine "^5.1.3"
 
-eth-json-rpc-middleware@^4.0.0, eth-json-rpc-middleware@^4.1.4, eth-json-rpc-middleware@^4.1.5:
+eth-json-rpc-middleware@4.3.0, eth-json-rpc-middleware@^4.0.0, eth-json-rpc-middleware@^4.1.4, eth-json-rpc-middleware@^4.1.5:
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/eth-json-rpc-middleware/-/eth-json-rpc-middleware-4.3.0.tgz#d3e72efb60b6f601f022ce01384481eaed552b6b"
   integrity sha512-Acr+FaIHB0oIV0nWrCvepQghgA3FzYFvnMDXdTUeHQvAX/G6ioMbw1exGJs+6HirRjJ+MmkZqaArphx+PTrRNQ==
@@ -4104,9 +4124,9 @@ ethereumjs-common@^1.1.0:
   integrity sha512-GkltYRIqBLzaZLmF/K3E+g9lZ4O4FL+TtpisAlD3N+UVlR+mrtoG+TvxavqVa6PwOY4nKIEMe5pl6MrTio3Lww==
 
 ethereumjs-common@^1.3.1:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/ethereumjs-common/-/ethereumjs-common-1.4.0.tgz#a940685f88f3c2587e4061630fe720b089c965b8"
-  integrity sha512-ser2SAplX/YI5W2AnzU8wmSjKRy4KQd4uxInJ36BzjS3m18E/B9QedPUIresZN1CSEQb/RgNQ2gN7C/XbpTafA==
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/ethereumjs-common/-/ethereumjs-common-1.5.0.tgz#d3e82fc7c47c0cef95047f431a99485abc9bb1cd"
+  integrity sha512-SZOjgK1356hIY7MRj3/ma5qtfr/4B5BL+G4rP/XSMYr2z1H5el4RX5GReYCKmQmYI/nSBmRnwrZ17IfHuG0viQ==
 
 ethereumjs-tx@2.1.1:
   version "2.1.1"
@@ -4589,9 +4609,9 @@ expect@^24.9.0:
     jest-regex-util "^24.9.0"
 
 expo-random@*:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/expo-random/-/expo-random-7.0.0.tgz#fc8f53ae63ff92729b90c41a205814bac012e8ca"
-  integrity sha512-+Ajxz4ZwTl2xGIGOg24xaIAw/RvGfKbkDlpsnwKc1FQr7Eka3ZvdQ3q6XKCXtqMG99jXmk9w6YVcbSUMyakpag==
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/expo-random/-/expo-random-8.0.0.tgz#bbcc7a189d29ae9b709b36a6cf84256c22cc16f6"
+  integrity sha512-ukDC3eGSEliBsnobX1bQRAwti9GE8ZEW53AHFf1fVy+JuAhhZm+M5HW7T0ptdbLjm46VpTDGIO4vq+qxeXAl7g==
   dependencies:
     base64-js "^1.3.0"
 
@@ -5079,10 +5099,10 @@ g-status@^2.0.2:
     matcher "^1.0.0"
     simple-git "^1.85.0"
 
-gaba@1.9.1:
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/gaba/-/gaba-1.9.1.tgz#2e096889aca74eb5946b55a3922427314b5dca22"
-  integrity sha512-YsKG4+Ql3D6v4cnMgH7P8c9JqQb74y6gkIhySLd1BYwFZQTXn27u16cYfoxPtqeGfTFhus9h4CpxAr8s8bsvCA==
+gaba@1.9.2:
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/gaba/-/gaba-1.9.2.tgz#546b3733f686561032004f589ff9da6b11d02000"
+  integrity sha512-qVcSkRBErmYkiAxy/VGqetTF2zNrc2+dsv7SBcHVt5jYikhw2EMdfsEwEyWsjAM/YGry7mxmozlIS7nvdJXnYQ==
   dependencies:
     await-semaphore "^0.1.3"
     eth-contract-metadata "^1.11.0"
@@ -6609,6 +6629,16 @@ json-parse-better-errors@^1.0.1:
   resolved "https://registry.yarnpkg.com/json-parse-better-errors/-/json-parse-better-errors-1.0.2.tgz#bb867cfb3450e69107c131d1c514bab3dc8bcaa9"
   integrity sha512-mrqyZKfX5EhL7hvqcV6WG1yYjnjeuYDzDhhcAAUrq8Po85NBQBJP+ZDUT75qZQ98IkUoBqdkExkukOU7Ts2wrw==
 
+json-rpc-engine@5.1.5:
+  version "5.1.5"
+  resolved "https://registry.yarnpkg.com/json-rpc-engine/-/json-rpc-engine-5.1.5.tgz#a5f9915356ea916d5305716354080723c63dede7"
+  integrity sha512-HTT9HixG4j8vHYrmJIckgbISW9Q8tCkySv7x7Q8zjMpcw10wSe/dZSQ0w08VkDm3y195K4074UlvD3hxaznvlw==
+  dependencies:
+    async "^2.0.1"
+    eth-json-rpc-errors "^2.0.0"
+    promise-to-callback "^1.0.0"
+    safe-event-emitter "^1.0.1"
+
 json-rpc-engine@^5.0.0, json-rpc-engine@^5.1.3:
   version "5.1.4"
   resolved "https://registry.yarnpkg.com/json-rpc-engine/-/json-rpc-engine-5.1.4.tgz#c18d1959eb175049fa7301d4866931ae2f879e47"
@@ -6625,6 +6655,14 @@ json-rpc-error@^2.0.0:
   integrity sha1-p6+cICg4tekFxyUOVH8a/3cligI=
   dependencies:
     inherits "^2.0.1"
+
+json-rpc-middleware-stream@2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/json-rpc-middleware-stream/-/json-rpc-middleware-stream-2.1.1.tgz#06e5409e201e7ddeae47bef29f7059eafd4d5325"
+  integrity sha512-WZheufPN+/RKkjXQP3lK5tFYblqG0n+oYv5qpammwwY2vsJRB7mM4Txhr4ajzvYEZi1UkENnplrmaYiqaqafaA==
+  dependencies:
+    readable-stream "^2.3.3"
+    safe-event-emitter "^1.0.1"
 
 json-rpc-random-id@^1.0.0, json-rpc-random-id@^1.0.1:
   version "1.0.1"
@@ -7135,9 +7173,9 @@ lottie-ios@2.5.0:
   resolved "https://registry.yarnpkg.com/lottie-ios/-/lottie-ios-2.5.0.tgz#55c808e785d4a6933b0c10b395530b17098b05de"
   integrity sha1-VcgI54XUppM7DBCzlVMLFwmLBd4=
 
-"lottie-react-native@git+ssh://git@github.com/brunobar79/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106":
+"lottie-react-native@git+ssh://git@github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106":
   version "3.1.0"
-  resolved "git+ssh://git@github.com/brunobar79/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106"
+  resolved "git+ssh://git@github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106"
   dependencies:
     invariant "^2.2.2"
     lottie-ios "2.5.0"
@@ -7280,6 +7318,10 @@ merkle-patricia-tree@^2.1.2, merkle-patricia-tree@^2.3.2:
     readable-stream "^2.0.0"
     rlp "^2.0.0"
     semaphore ">=1.0.1"
+
+"metamask-mobile-provider@git+ssh://git@github.com/metamask/metamask-mobile-provider.git#ed038a21d4301ece822f3926e504a1081ae65456":
+  version "1.0.0"
+  resolved "git+ssh://git@github.com/metamask/metamask-mobile-provider.git#ed038a21d4301ece822f3926e504a1081ae65456"
 
 methods@^1.1.1:
   version "1.1.2"
@@ -8057,7 +8099,7 @@ nan@2.13.2:
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.13.2.tgz#f51dc7ae66ba7d5d55e1e6d4d8092e802c9aefe7"
   integrity sha512-TghvYc72wlMGMVMluVo9WRJc0mB8KxxF/gZ4YYFy7V2ZQX9l7rgbPg7vjS9mt6U5HXODVFVI2bOduCzwOMv/lw==
 
-nan@2.14.0, nan@^2.0.8, nan@^2.12.1, nan@^2.14.0, nan@^2.2.1:
+nan@2.14.0, nan@^2.0.5, nan@^2.0.8, nan@^2.12.1, nan@^2.14.0, nan@^2.2.1:
   version "2.14.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
   integrity sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==
@@ -8336,6 +8378,15 @@ ob1@0.55.0:
   resolved "https://registry.yarnpkg.com/ob1/-/ob1-0.55.0.tgz#e393b4ae786ef442b3ef2a298ab70d6ec353dbdd"
   integrity sha512-pfyiMVsUItl8WiRKMT15eCi662pCRAuYTq2+V3UpE+PpFErJI/TvRh/M/l/9TaLlbFr7krJ7gdl+FXJNcybmvw==
 
+obj-multiplex@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/obj-multiplex/-/obj-multiplex-1.0.0.tgz#2f2ae6bfd4ae11befe742ea9ea5b36636eabffc1"
+  integrity sha1-Lyrmv9SuEb7+dC6p6ls2Y26r/8E=
+  dependencies:
+    end-of-stream "^1.4.0"
+    once "^1.4.0"
+    readable-stream "^2.3.3"
+
 object-assign@^4.0.1, object-assign@^4.1.0, object-assign@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/object-assign/-/object-assign-4.1.1.tgz#2109adc7965887cfc05cbbd442cac8bfbb360863"
@@ -8449,7 +8500,7 @@ object.values@^1.0.4, object.values@^1.1.0:
     function-bind "^1.1.1"
     has "^1.0.3"
 
-obs-store@^4.0.3:
+obs-store@4.0.3, obs-store@^4.0.3:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/obs-store/-/obs-store-4.0.3.tgz#b632ec7814baa604fae084a4c97e87c0b7a6d14c"
   integrity sha512-+mm13kCRDv6IcvUDKTw0LIy5+dQhIktYaR/RwwZUFzOTi/fjMaNBnk42Adb94qZqJ00qWkjhQSZH7MXlKnTi8A==
@@ -8824,6 +8875,11 @@ performance-now@^2.1.0:
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
   integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
 
+pify@4.0.1, pify@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/pify/-/pify-4.0.1.tgz#4b2cd25c50d598735c50292224fd8c6df41e3231"
+  integrity sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==
+
 pify@^2.0.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/pify/-/pify-2.3.0.tgz#ed141a6ac043a849ea588498e7dca8b15330e90c"
@@ -8833,11 +8889,6 @@ pify@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/pify/-/pify-3.0.0.tgz#e5a4acd2c101fdf3d9a4d07f0dbc4db49dd28176"
   integrity sha1-5aSs0sEB/fPZpNB/DbxNtJ3SgXY=
-
-pify@^4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/pify/-/pify-4.0.1.tgz#4b2cd25c50d598735c50292224fd8c6df41e3231"
-  integrity sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==
 
 pinkie-promise@^2.0.0:
   version "2.0.1"
@@ -9119,7 +9170,7 @@ pubnub@4.24.4:
     superagent "^3.8.1"
     superagent-proxy "^1.0.3"
 
-pump@^3.0.0:
+pump@3.0.0, pump@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/pump/-/pump-3.0.0.tgz#b4a2116815bde2f4e1ea602354e8c75565107a64"
   integrity sha512-LwZy+p3SFs1Pytd/jYct4wpv49HiYCqd9Rlc5ZVdk0V+8Yzv6jR5Blk3TRmPL1ft69TxP0IMZGJ+WPFU2BFhww==
@@ -9147,12 +9198,11 @@ punycode@^2.1.0, punycode@^2.1.1:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
-pvtsutils@^1.0.4, pvtsutils@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/pvtsutils/-/pvtsutils-1.0.6.tgz#e3883fd77abdd4c124131f6a49f3914cd9f21290"
-  integrity sha512-0yNrOdJyLE7FZzmeEHTKanwBr5XbmDAd020cKa4ZiTYuGMBYBZmq7vHOhcOqhVllh6gghDBbaz1lnVdOqiB7cw==
+pvtsutils@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/pvtsutils/-/pvtsutils-1.0.9.tgz#0eb6106f27878ccaa55e7dfbf6bd2c75af461dee"
+  integrity sha512-/kDsuCKPqJuIzn37w6+iN+TiSrN+zrwPEd7FjT61oNbRvceGdsS94fMEWZ4/h6QZU5EZhBMiV+79IYedroP/Yw==
   dependencies:
-    "@types/node" "^10.14.17"
     tslib "^1.10.0"
 
 pvutils@latest:
@@ -9340,9 +9390,9 @@ react-native-actionsheet@2.4.2:
   resolved "https://registry.yarnpkg.com/react-native-actionsheet/-/react-native-actionsheet-2.4.2.tgz#6a00dd51a75ef2c8974312130e405af73191500f"
   integrity sha512-DBoWIvVwuWXuptF4t46pBqkFxaUxS+rsIdHiA05t0n4BdTIDV2R4s9bLEUVOGzb94D7VxIamsXZPA/3mmw+SXg==
 
-"react-native-aes-crypto@git+ssh://git@github.com/brunobar79/react-native-aes.git#6256794f4cc6d9892f6bebcb82cbf37f06649620":
+"react-native-aes-crypto@git+ssh://git@github.com/MetaMask/react-native-aes.git#6256794f4cc6d9892f6bebcb82cbf37f06649620":
   version "1.2.1"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-aes.git#6256794f4cc6d9892f6bebcb82cbf37f06649620"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-aes.git#6256794f4cc6d9892f6bebcb82cbf37f06649620"
 
 react-native-animatable@^1.2.4:
   version "1.3.3"
@@ -9351,9 +9401,9 @@ react-native-animatable@^1.2.4:
   dependencies:
     prop-types "^15.7.2"
 
-"react-native-animated-fox@git+ssh://git@github.com/brunobar79/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9":
+"react-native-animated-fox@git+ssh://git@github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9":
   version "2.0.1"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9"
   dependencies:
     prop-types "^15.5.10"
 
@@ -9362,18 +9412,18 @@ react-native-background-timer@2.1.1:
   resolved "https://registry.yarnpkg.com/react-native-background-timer/-/react-native-background-timer-2.1.1.tgz#9a2489681ab2f8033c213c73272e9d4c47572cd5"
   integrity sha512-cuXIIv+dcG8a8qkTD8pMzeqOEZCO+UGKglZWIe1osve+yJslmCowYQff+bI9xa7NOt2w+Vtd4L3d9JonlSqODg==
 
-"react-native-branch@git+ssh://git@github.com/brunobar79/react-native-branch-deep-linking-attribution.git#6abb7e34a8f77f624013bb148aed87f50e72bf8f":
+"react-native-branch@git+ssh://git@github.com/MetaMask/react-native-branch-deep-linking-attribution.git#6abb7e34a8f77f624013bb148aed87f50e72bf8f":
   version "3.1.1"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-branch-deep-linking-attribution.git#6abb7e34a8f77f624013bb148aed87f50e72bf8f"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-branch-deep-linking-attribution.git#6abb7e34a8f77f624013bb148aed87f50e72bf8f"
 
 react-native-browser-polyfill@0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/react-native-browser-polyfill/-/react-native-browser-polyfill-0.1.2.tgz#d2c4e816e7a1d91bc314400a1b0a9795a91b8bcd"
   integrity sha1-0sToFueh2RvDFEAKGwqXlakbi80=
 
-"react-native-button@git+ssh://git@github.com/brunobar79/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7":
+"react-native-button@git+ssh://git@github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7":
   version "2.3.0"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7"
   dependencies:
     prop-types "^15.5.10"
 
@@ -9449,16 +9499,16 @@ react-native-flash-message@0.1.11:
     prop-types "^15.7.2"
     react-native-iphone-x-helper "^1.2.0"
 
-"react-native-fs@git+ssh://git@github.com/brunobar79/react-native-fs.git#androidx":
+"react-native-fs@git+ssh://git@github.com/MetaMask/react-native-fs.git#androidx":
   version "2.13.3"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-fs.git#5554842c3ef66a067930059a7d388c94892035fb"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-fs.git#5554842c3ef66a067930059a7d388c94892035fb"
   dependencies:
     base-64 "^0.1.0"
     utf8 "^2.1.1"
 
-"react-native-gesture-handler@git+ssh://git@github.com/brunobar79/react-native-gesture-handler.git#android-x-updated":
+"react-native-gesture-handler@git+ssh://git@github.com/MetaMask/react-native-gesture-handler.git#android-x-updated":
   version "1.3.0"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-gesture-handler.git#83248fc33ae3733f0df1d4f6f2f0648dd49b48ef"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-gesture-handler.git#83248fc33ae3733f0df1d4f6f2f0648dd49b48ef"
   dependencies:
     hoist-non-react-statics "^2.3.1"
     invariant "^2.2.2"
@@ -9484,9 +9534,9 @@ react-native-keyboard-aware-scroll-view@0.8.0:
     prop-types "^15.6.2"
     react-native-iphone-x-helper "^1.0.3"
 
-"react-native-keychain@git+ssh://git@github.com/brunobar79/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f":
+"react-native-keychain@git+ssh://git@github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f":
   version "3.0.0"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f"
 
 react-native-level-fs@3.0.1:
   version "3.0.1"
@@ -9516,9 +9566,9 @@ react-native-progress@3.5.0:
   dependencies:
     prop-types "^15.5.8"
 
-"react-native-push-notification@git+ssh://git@github.com/brunobar79/react-native-push-notification.git#androidx":
+"react-native-push-notification@git+ssh://git@github.com/MetaMask/react-native-push-notification.git#androidx":
   version "3.1.3"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c"
 
 react-native-qrcode-svg@5.1.2:
   version "5.1.2"
@@ -9596,9 +9646,9 @@ react-native-sensors@5.3.0:
   dependencies:
     rxjs ">= 6"
 
-"react-native-share@git+ssh://git@github.com/brunobar79/react-native-share.git#androidx":
+"react-native-share@git+ssh://git@github.com/MetaMask/react-native-share.git#androidx":
   version "1.2.1"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-share.git#f6186e0c41d99674de2633d5e4d079f61fb9237c"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-share.git#f6186e0c41d99674de2633d5e4d079f61fb9237c"
 
 react-native-svg@9.13.3:
   version "9.13.3"
@@ -9653,13 +9703,13 @@ react-native-vector-icons@6.4.2:
     prop-types "^15.6.2"
     yargs "^13.2.2"
 
-"react-native-view-shot@git+ssh://git@github.com/brunobar79/react-native-view-shot.git#androidx":
+"react-native-view-shot@git+ssh://git@github.com/MetaMask/react-native-view-shot.git#androidx":
   version "2.6.0"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-view-shot.git#17a65dc27222a78ad8942de3d536d7171bb2eb76"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-view-shot.git#17a65dc27222a78ad8942de3d536d7171bb2eb76"
 
-"react-native-webview@git+ssh://git@github.com/brunobar79/react-native-webview.git#c756513b1f5a635cb49d0cfd01e25ca5c0887678":
+"react-native-webview@git+ssh://git@github.com/MetaMask/react-native-webview.git#c756513b1f5a635cb49d0cfd01e25ca5c0887678":
   version "7.0.5"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-webview.git#c756513b1f5a635cb49d0cfd01e25ca5c0887678"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-webview.git#c756513b1f5a635cb49d0cfd01e25ca5c0887678"
   dependencies:
     escape-string-regexp "1.0.5"
     invariant "2.2.4"
@@ -9891,7 +9941,7 @@ readable-stream@1.1.x, readable-stream@^1.0.26-4, readable-stream@^1.0.27-1, rea
     isarray "0.0.1"
     string_decoder "~0.10.x"
 
-readable-stream@2, readable-stream@^2.0.0, readable-stream@^2.0.1, readable-stream@^2.0.6, readable-stream@^2.2.2, readable-stream@^2.2.9, readable-stream@^2.3.5, readable-stream@~2.3.6:
+readable-stream@2, readable-stream@^2.0.0, readable-stream@^2.0.1, readable-stream@^2.0.6, readable-stream@^2.2.2, readable-stream@^2.2.9, readable-stream@^2.3.3, readable-stream@^2.3.5, readable-stream@~2.3.6:
   version "2.3.6"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.3.6.tgz#b11c27d88b8ff1fbe070643cf94b0c79ae1b0aaf"
   integrity sha512-tQtKA9WIAhBF3+VLAseyMqZeBjW0AHJoxOtYqSUZNJxauErmLbVm2FW1y+J/YA9dUrAC39ITejlZWhVIwawkKw==
@@ -9904,7 +9954,7 @@ readable-stream@2, readable-stream@^2.0.0, readable-stream@^2.0.1, readable-stre
     string_decoder "~1.1.1"
     util-deprecate "~1.0.1"
 
-readable-stream@^3.1.1:
+"readable-stream@2 || 3", readable-stream@^3.1.1:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.4.0.tgz#a51c26754658e0a3c21dbf59163bd45ba6f447fc"
   integrity sha512-jItXPLmrSR8jmTRmRWJXCnGJsfy85mB3Wd/uINMXA65yrnFo0cPClFIUWzo2najVNSl+mx7/4W8ttlLWJe99pQ==
@@ -11256,6 +11306,13 @@ throat@^4.0.0, throat@^4.1.0:
   resolved "https://registry.yarnpkg.com/throat/-/throat-4.1.0.tgz#89037cbc92c56ab18926e6ba4cbb200e15672a6a"
   integrity sha1-iQN8vJLFarGJJua6TLsgDhVnKmo=
 
+through2@3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/through2/-/through2-3.0.1.tgz#39276e713c3302edf9e388dd9c812dd3b825bd5a"
+  integrity sha512-M96dvTalPT3YbYLaKaCuwu+j06D/8Jfib0o/PxbVt6Amhv3dUAtW6rTV1jPgJSBG83I/e04Y6xkVdVhSRhi0ww==
+  dependencies:
+    readable-stream "2 || 3"
+
 through2@^2.0.0, through2@^2.0.1, through2@^2.0.3:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.5.tgz#01c1e39eb31d07cb7d03a96a70823260b23132cd"
@@ -11377,6 +11434,11 @@ tr46@^1.0.1:
   dependencies:
     punycode "^2.1.0"
 
+traverse@~0.6.3:
+  version "0.6.6"
+  resolved "https://registry.yarnpkg.com/traverse/-/traverse-0.6.6.tgz#cbdf560fd7b9af632502fed40f918c157ea97137"
+  integrity sha1-y99WD9e5r2MlAv7UD5GMFX6pcTc=
+
 truncate-utf8-bytes@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/truncate-utf8-bytes/-/truncate-utf8-bytes-1.0.2.tgz#405923909592d56f78a5818434b0b78489ca5f2b"
@@ -11421,10 +11483,15 @@ tweetnacl@^0.14.3, tweetnacl@~0.14.0:
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-0.14.5.tgz#5ae68177f192d4456269d108afa93ff8743f4f64"
   integrity sha1-WuaBd/GS1EViadEIr6k/+HQ/T2Q=
 
-tweetnacl@^1.0.0, tweetnacl@^1.0.1:
+tweetnacl@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-1.0.1.tgz#2594d42da73cd036bd0d2a54683dd35a6b55ca17"
   integrity sha512-kcoMoKTPYnoeS50tzoqjPY3Uv9axeuuFAZY9M/9zFnhoVvRfxz9K29IMPD7jGmt2c8SW7i3gT9WqDl2+nV7p4A==
+
+tweetnacl@^1.0.1:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-1.0.2.tgz#39fba8d1f7a34706a3fc1fd8c04afcad7bb9e689"
+  integrity sha512-+8aPRjmXgf1VqvyxSlBUzKzeYqVS9Ai8vZ28g+mL7dNQl1jlUTCMDZnvNQdAS1xTywMkIXwJsfipsR/6s2+syw==
 
 type-check@~0.3.2:
   version "0.3.2"
@@ -11745,6 +11812,14 @@ watch@~0.18.0:
     exec-sh "^0.2.0"
     minimist "^1.2.0"
 
+weak@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/weak/-/weak-1.0.1.tgz#ab99aab30706959aa0200cb8cf545bb9cb33b99e"
+  integrity sha1-q5mqswcGlZqgIAy4z1RbucszuZ4=
+  dependencies:
+    bindings "^1.2.1"
+    nan "^2.0.5"
+
 web3-provider-engine@^15.0.4:
   version "15.0.4"
   resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-15.0.4.tgz#5c336bcad2274dff5218bc8db003fa4e9e464c24"
@@ -11773,7 +11848,7 @@ web3-provider-engine@^15.0.4:
     xhr "^2.2.0"
     xtend "^4.0.1"
 
-web3@0.20.7, web3@^0.20.7:
+web3@^0.20.7:
   version "0.20.7"
   resolved "https://registry.yarnpkg.com/web3/-/web3-0.20.7.tgz#1605e6d81399ed6f85a471a4f3da0c8be57df2f7"
   integrity sha512-VU6/DSUX93d1fCzBz7WP/SGCQizO1rKZi4Px9j/3yRyfssHyFcZamMw2/sj4E8TlfMXONvZLoforR8B4bRoyTQ==
@@ -11784,12 +11859,12 @@ web3@0.20.7, web3@^0.20.7:
     xhr2-cookies "^1.1.0"
     xmlhttprequest "*"
 
-webcrypto-core@^1.0.14:
-  version "1.0.14"
-  resolved "https://registry.yarnpkg.com/webcrypto-core/-/webcrypto-core-1.0.14.tgz#c015088fbc9c235ebd8b35047a131c5ff58f7152"
-  integrity sha512-iGZQcH/o3Jv6mpvCbzan6uAcUcLTTnUCil6RVYakcNh5/QXIKRRC06EFxHru9lHgVKucZy3gG4OBiup0IsOr0g==
+webcrypto-core@^1.0.17:
+  version "1.0.17"
+  resolved "https://registry.yarnpkg.com/webcrypto-core/-/webcrypto-core-1.0.17.tgz#a9354bc0b1ba6735e882f4137ede2c4366e6ad9b"
+  integrity sha512-7jxTLgtM+TahBPErx/Dd2XvxFDfWJrHxjVeTSvIa4LSgiYrmCPlC2INiAMAfb8MbtHiwJKKqF5sPS0AWNjBbXw==
   dependencies:
-    pvtsutils "^1.0.4"
+    pvtsutils "^1.0.9"
     tslib "^1.10.0"
 
 webcrypto-shim@^0.1.4:

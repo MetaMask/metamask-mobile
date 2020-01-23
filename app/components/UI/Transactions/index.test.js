@@ -12,6 +12,9 @@ describe('Transactions', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
+					AccountTrackerController: {
+						accounts: {}
+					},
 					AssetsController: {
 						tokens: []
 					},

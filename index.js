@@ -14,6 +14,7 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'{}',
 	'Sending acceptance message',
 	'waiting for proposal acceptance',
 	'Not subscribed to',
@@ -49,6 +50,8 @@ YellowBox.ignoreWarnings([
 	'RCTBridge required dispatch_sync',
 	'Remote debugger is in a background tab',
 	"Can't call setState (or forceUpdate) on an unmounted component",
+	'No stops in gradient',
+	"Cannot read property 'hash' of null",
 	'asmCrypto seems to be load',
 	'Successfully proposed',
 	'Attempting to resolve promise'
