@@ -265,6 +265,15 @@ const styles = StyleSheet.create({
 	nextActionWrapper: {
 		flex: 1,
 		marginBottom: 16
+	},
+	balanceWrapper: {
+		marginVertical: 16
+	},
+	balanceText: {
+		...fontStyles.normal,
+		alignSelf: 'center',
+		fontSize: 12,
+		lineHeight: 16
 	}
 });
 
@@ -357,11 +366,12 @@ class Amount extends PureComponent {
 	collectibles = [];
 
 	componentDidMount = async () => {
-		const { tokens, ticker } = this.props;
+		const { tokens, ticker, selectedAsset } = this.props;
 		this.tokens = [getEther(ticker), ...tokens];
 		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		this.onInputChange();
+		this.handleSelectedAssetBalance(selectedAsset);
 		const estimatedTotalGas = await this.estimateTransactionTotalGas();
 		this.setState({ estimatedTotalGas });
 	};
@@ -570,11 +580,24 @@ class Amount extends PureComponent {
 		this.setState({ assetsModalVisible: !assetsModalVisible });
 	};
 
+	handleSelectedAssetBalance = selectedAsset => {
+		const { accounts, selectedAddress, contractBalances } = this.props;
+		let currentBalance;
+		const { address, decimals, symbol, isETH } = selectedAsset;
+		if (isETH) {
+			currentBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${symbol}`;
+		} else {
+			currentBalance = `${renderFromTokenMinimalUnit(contractBalances[address], decimals)} ${symbol}`;
+		}
+		this.setState({ currentBalance });
+	};
+
 	pickSelectedAsset = selectedAsset => {
 		this.toggleAssetsModal();
 		this.props.setSelectedAsset(selectedAsset);
 		if (!selectedAsset.tokenId) {
 			this.onInputChange(undefined, selectedAsset);
+			this.handleSelectedAssetBalance(selectedAsset);
 			// Wait for input to mount first
 			setTimeout(() => this.amountInput && this.amountInput.current && this.amountInput.current.focus(), 500);
 		}
@@ -719,7 +742,8 @@ class Amount extends PureComponent {
 			renderableInputValueConversion,
 			amountError,
 			hasExchangeRate,
-			internalPrimaryCurrencyIsCrypto
+			internalPrimaryCurrencyIsCrypto,
+			currentBalance
 		} = this.state;
 		const { currentCurrency } = this.props;
 		return (
@@ -741,7 +765,7 @@ class Amount extends PureComponent {
 				</View>
 				{hasExchangeRate && (
 					<View style={styles.actionsWrapper}>
-						<View style={[styles.action]}>
+						<View style={styles.action}>
 							<TouchableOpacity style={styles.actionSwitch} onPress={this.switchCurrency}>
 								<Text style={styles.textSwitch} numberOfLines={1}>
 									{renderableInputValueConversion}
@@ -758,6 +782,9 @@ class Amount extends PureComponent {
 						</View>
 					</View>
 				)}
+				<View style={styles.balanceWrapper}>
+					<Text style={styles.balanceText}>{`${strings('transaction.balance')}: ${currentBalance}`}</Text>
+				</View>
 				{amountError && (
 					<View style={styles.errorMessageWrapper}>
 						<ErrorMessage errorMessage={amountError} />
