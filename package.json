@@ -55,8 +55,8 @@
     ]
   },
   "dependencies": {
-    "@connext/client": "3.0.1",
-    "@connext/types": "3.0.1",
+    "@connext/client": "4.0.5",
+    "@connext/types": "4.0.5",
     "@react-native-community/async-storage": "1.2.0",
     "@react-native-community/netinfo": "4.1.5",
     "@tradle/react-native-http": "2.0.1",

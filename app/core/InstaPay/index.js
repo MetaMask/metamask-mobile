@@ -1,24 +1,27 @@
-import Logger from '../../util/Logger';
-// eslint-disable-next-line
-import { CF_PATH } from '@connext/types';
-import { connect, utils } from '@connext/client';
-import tokenArtifacts from './contracts/ERC20Mintable.json';
-import interval from 'interval-promise';
-import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } from './utils';
-import AppConstants from '../AppConstants';
+import AsyncStorage from '@react-native-community/async-storage';
+
+import { CF_PATH } from '@connext/types';
+import { connect, utils } from '@connext/client';
+
+import interval from 'interval-promise';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { Contract, ethers as eth } from 'ethers';
 import { AddressZero, Zero } from 'ethers/constants';
 import { formatEther, parseEther } from 'ethers/utils';
+import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
+
 import Engine from '../Engine';
-import AsyncStorage from '@react-native-community/async-storage';
-import TransactionsNotificationManager from '../TransactionsNotificationManager';
-import { renderFromWei, toWei, fromWei, BNToHex } from '../../util/number';
-import { toChecksumAddress } from 'ethereumjs-util';
-import Networks from '../../util/networks';
+import AppConstants from '../AppConstants';
 import PaymentChannelsClient from '../PaymentChannelsClient';
+import TransactionsNotificationManager from '../TransactionsNotificationManager';
+
+import { renderFromWei, toWei, fromWei, BNToHex } from '../../util/number';
+import Logger from '../../util/Logger';
+import Networks from '../../util/networks';
+
+const { ERC20TokenArtifacts: tokenArtifacts, Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } = utils;
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 
