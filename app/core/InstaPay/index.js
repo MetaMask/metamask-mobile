@@ -2,7 +2,13 @@
 import { EventEmitter } from 'events';
 import AsyncStorage from '@react-native-community/async-storage';
 
-import { ERC20TokenArtifacts, CF_PATH } from '@connext/types';
+import {
+	ERC20TokenArtifacts,
+	CF_PATH,
+	RECEIVE_TRANSFER_FINISHED_EVENT,
+	RECEIVE_TRANSFER_STARTED_EVENT,
+	RECEIVE_TRANSFER_FAILED_EVENT
+} from '@connext/types';
 import { connect, utils } from '@connext/client';
 
 import interval from 'interval-promise';
@@ -153,18 +159,18 @@ class InstaPay {
 			this.setState({ swapRate: res.swapRate });
 		});
 
-		channel.on('RECIEVE_TRANSFER_STARTED', data => {
-			Logger.log('Received RECIEVE_TRANSFER_STARTED event: ', data);
+		channel.on(RECEIVE_TRANSFER_FINISHED_EVENT, data => {
+			Logger.log(`Received ${RECEIVE_TRANSFER_FINISHED_EVENT} event: `, data);
 			this.setState({ receivingTransferStarted: true });
 		});
 
-		channel.on('RECIEVE_TRANSFER_FINISHED', data => {
-			Logger.log('Received RECIEVE_TRANSFER_FINISHED event: ', data);
+		channel.on(RECEIVE_TRANSFER_STARTED_EVENT, data => {
+			Logger.log(`Received ${RECEIVE_TRANSFER_STARTED_EVENT} event: `, data);
 			this.setState({ receivingTransferCompleted: true });
 		});
 
-		channel.on('RECIEVE_TRANSFER_FAILED', data => {
-			Logger.log('Received RECIEVE_TRANSFER_FAILED event: ', data);
+		channel.on(RECEIVE_TRANSFER_FAILED_EVENT, data => {
+			Logger.log(`Received ${RECEIVE_TRANSFER_FAILED_EVENT} event: `, data);
 			this.setState({ receivingTransferFailed: true });
 		});
 
