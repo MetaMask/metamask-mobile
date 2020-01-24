@@ -2,7 +2,7 @@
 import { EventEmitter } from 'events';
 import AsyncStorage from '@react-native-community/async-storage';
 
-import { CF_PATH } from '@connext/types';
+import { ERC20TokenArtifacts, CF_PATH } from '@connext/types';
 import { connect, utils } from '@connext/client';
 
 import interval from 'interval-promise';
@@ -21,7 +21,7 @@ import { renderFromWei, toWei, fromWei, BNToHex } from '../../util/number';
 import Logger from '../../util/Logger';
 import Networks from '../../util/networks';
 
-const { ERC20TokenArtifacts, Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } = utils;
+const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } = utils;
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 
