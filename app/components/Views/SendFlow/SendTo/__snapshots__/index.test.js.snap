@@ -1,0 +1,241 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SendTo should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "borderBottomColor": "#D8D8D8",
+        "borderBottomWidth": 1,
+        "flex": 0,
+        "paddingHorizontal": 8,
+      }
+    }
+  >
+    <AddressFrom
+      fromAccountAddress="0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b"
+      fromAccountName="Account 1"
+      onPressIcon={[Function]}
+    />
+    <AddressTo
+      addressToReady={false}
+      inputRef={
+        Object {
+          "current": null,
+        }
+      }
+      inputWidth={
+        Object {
+          "width": "99%",
+        }
+      }
+      onClear={[Function]}
+      onInputBlur={[Function]}
+      onInputFocus={[Function]}
+      onScan={[Function]}
+      onSubmit={[Function]}
+      onToSelectedAddressChange={[Function]}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Connect(AddressList)
+      onAccountLongPress={[Function]}
+      onAccountPress={[Function]}
+    />
+  </View>
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={300}
+    animationOut="slideOutDown"
+    animationOutTiming={300}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0.7}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    deviceHeight={null}
+    deviceWidth={null}
+    hasBackdrop={true}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onSwipeComplete={[Function]}
+    propagateSwipe={true}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "justifyContent": "flex-end",
+        "margin": 0,
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    useNativeDriver={false}
+  >
+    <Connect(AccountList)
+      enableAccountsAddition={false}
+      identities={
+        Object {
+          "0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b": Object {
+            "address": "0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b",
+            "name": "Account 1",
+          },
+        }
+      }
+      keyrings={
+        Array [
+          Object {
+            "accounts": Array [
+              "0x",
+            ],
+            "type": "HD Key Tree",
+          },
+        ]
+      }
+      onAccountChange={[Function]}
+      selectedAddress="0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b"
+      ticker="ETH"
+    />
+  </ReactNativeModal>
+  <ActionModal
+    cancelButtonMode="normal"
+    cancelTestID=""
+    cancelText="Cancel"
+    confirmButtonMode="confirm"
+    confirmDisabled={true}
+    confirmTestID=""
+    confirmText="Save"
+    modalVisible={false}
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+    onRequestClose={[Function]}
+  >
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "paddingHorizontal": 24,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 24,
+                "fontWeight": "400",
+                "marginBottom": 24,
+              }
+            }
+          >
+            Add to address book
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#5B5D67",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "marginBottom": 24,
+              }
+            }
+          >
+            Enter an alias
+          </Text>
+          <View
+            style={
+              Object {
+                "borderColor": "#D8D8D8",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 50,
+                "margin": 10,
+                "width": "100%",
+              }
+            }
+          >
+            <View
+              style={
+                Object {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "marginHorizontal": 6,
+                  "width": "100%",
+                }
+              }
+            >
+              <TextInput
+                allowFontScaling={true}
+                autoCapitalize="none"
+                autoCorrect={false}
+                numberOfLines={1}
+                onChangeText={[Function]}
+                placeholder="e.g. Vitalik B."
+                placeholderTextColor="#d6d9dc"
+                rejectResponderTermination={true}
+                spellCheck={false}
+                style={
+                  Object {
+                    "color": "#000000",
+                    "fontFamily": "Roboto",
+                    "fontSize": 20,
+                    "fontWeight": "400",
+                    "width": "100%",
+                  }
+                }
+                underlineColorAndroid="transparent"
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </ActionModal>
+</SafeAreaView>
+`;

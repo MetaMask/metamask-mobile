@@ -167,9 +167,10 @@ export default class TransferElement extends PureComponent {
 
 		const transactionDetails = {
 			renderValue: renderToken,
-			renderTotalValue:
-				renderToken + ' ' + strings('unit.divisor') + ' ' + renderFromWei(totalGas) + ' ' + strings('unit.eth'),
-			renderTotalValueFiat: totalFiatNumber ? totalFiatNumber + ' ' + currentCurrency.toUpperCase() : undefined
+			renderTotalValue: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${strings(
+				'unit.eth'
+			)}`,
+			renderTotalValueFiat: totalFiatNumber ? `${totalFiatNumber} ${currentCurrency}` : undefined
 		};
 
 		const transactionElement = {

@@ -1,0 +1,203 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ContactForm should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "flexDirection": "column",
+    }
+  }
+>
+  <KeyboardAwareScrollViewMock
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
+    style={
+      Object {
+        "flex": 1,
+        "paddingHorizontal": 24,
+      }
+    }
+    viewIsInsideTabBar={false}
+  >
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "paddingVertical": 12,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        Name
+      </Text>
+      <TextInput
+        allowFontScaling={true}
+        autoCapitalize="none"
+        autoCorrect={false}
+        numberOfLines={1}
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Name"
+        placeholderTextColor="#d6d9dc"
+        rejectResponderTermination={true}
+        spellCheck={false}
+        style={
+          Array [
+            Object {
+              "alignItems": "center",
+              "borderColor": "#bbc0c5",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "flex": 1,
+              "flexDirection": "row",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "padding": 10,
+            },
+            Object {},
+          ]
+        }
+        underlineColorAndroid="transparent"
+      />
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        Address
+      </Text>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "#bbc0c5",
+            "borderRadius": 5,
+            "borderWidth": 2,
+            "flex": 1,
+            "flexDirection": "row",
+            "fontFamily": "Roboto",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "padding": 10,
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "flex": 1,
+              "flexDirection": "column",
+            }
+          }
+        >
+          <TextInput
+            allowFontScaling={true}
+            autoCapitalize="none"
+            autoCorrect={false}
+            numberOfLines={1}
+            onChangeText={[Function]}
+            onSubmitEditing={[Function]}
+            placeholder="Public address (0x), or ENS"
+            placeholderTextColor="#d6d9dc"
+            rejectResponderTermination={true}
+            spellCheck={false}
+            style={
+              Array [
+                Object {
+                  "fontFamily": "Roboto",
+                  "fontWeight": "400",
+                  "padding": 0,
+                  "paddingRight": 8,
+                },
+              ]
+            }
+            underlineColorAndroid="transparent"
+          />
+        </View>
+        <TouchableOpacity
+          activeOpacity={0.2}
+          onPress={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-end",
+            }
+          }
+        >
+          <Icon
+            allowFontScaling={false}
+            color="#6a737d"
+            name="scan1"
+            size={20}
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+              }
+            }
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "alignSelf": "flex-end",
+          "flexDirection": "row",
+          "marginVertical": 12,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignSelf": "flex-end",
+            "flex": 1,
+            "flexDirection": "column",
+          }
+        }
+      >
+        <StyledButton
+          disabled={true}
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          type="confirm"
+        >
+          Add contact
+        </StyledButton>
+      </View>
+    </View>
+  </KeyboardAwareScrollViewMock>
+</SafeAreaView>
+`;

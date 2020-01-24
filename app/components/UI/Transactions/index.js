@@ -23,6 +23,9 @@ import TransactionsNotificationManager from '../../../core/TransactionsNotificat
 import ActionModal from '../ActionModal';
 import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba';
 import { renderFromWei } from '../../../util/number';
+import { safeToChecksumAddress } from '../../../util/address';
+import { hexToBN } from 'gaba/dist/util';
+import { BN } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -54,7 +57,8 @@ const styles = StyleSheet.create({
 	modalText: {
 		...fontStyles.normal,
 		fontSize: 14,
-		textAlign: 'center'
+		textAlign: 'center',
+		paddingVertical: 8
 	},
 	modalTitle: {
 		...fontStyles.bold,
@@ -64,7 +68,8 @@ const styles = StyleSheet.create({
 	gasTitle: {
 		...fontStyles.bold,
 		fontSize: 16,
-		textAlign: 'center'
+		textAlign: 'center',
+		marginVertical: 8
 	},
 	cancelFeeWrapper: {
 		backgroundColor: colors.grey000,
@@ -74,6 +79,13 @@ const styles = StyleSheet.create({
 	cancelFee: {
 		...fontStyles.bold,
 		fontSize: 24,
+		textAlign: 'center'
+	},
+	warningText: {
+		...fontStyles.normal,
+		fontSize: 12,
+		color: colors.red,
+		paddingVertical: 8,
 		textAlign: 'center'
 	}
 });
@@ -85,6 +97,10 @@ const ROW_HEIGHT = (Platform.OS === 'ios' ? 95 : 100) + StyleSheet.hairlineWidth
  */
 class Transactions extends PureComponent {
 	static propTypes = {
+		/**
+		 * Map of accounts to information objects including balances
+		 */
+		accounts: PropTypes.object,
 		/**
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
@@ -161,7 +177,9 @@ class Transactions extends PureComponent {
 		ready: false,
 		refreshing: false,
 		cancelIsOpen: false,
-		speedUpIsOpen: false
+		cancelConfirmDisabled: false,
+		speedUpIsOpen: false,
+		speedUpConfirmDisabled: false
 	};
 
 	existingGasPriceDecimal = null;
@@ -265,10 +283,32 @@ class Transactions extends PureComponent {
 
 	blockExplorer = () => hasBlockExplorer(this.props.networkType);
 
-	onSpeedUpAction = (speedUpAction, existingGasPriceDecimal, speedUpTxId) => {
+	validateBalance = (tx, rate) => {
+		const { accounts } = this.props;
+		try {
+			const checksummedFrom = safeToChecksumAddress(tx.transaction.from);
+			const balance = accounts[checksummedFrom].balance;
+			return hexToBN(balance).lt(
+				hexToBN(tx.transaction.gasPrice)
+					.mul(new BN(rate * 10))
+					.mul(new BN(10))
+					.mul(hexToBN(tx.transaction.gas))
+					.add(hexToBN(tx.transaction.value))
+			);
+		} catch (e) {
+			return false;
+		}
+	};
+
+	onSpeedUpAction = (speedUpAction, existingGasPriceDecimal, tx) => {
 		this.setState({ speedUpIsOpen: speedUpAction });
 		this.existingGasPriceDecimal = existingGasPriceDecimal;
-		this.speedUpTxId = speedUpTxId;
+		this.speedUpTxId = tx.id;
+		if (this.validateBalance(tx, SPEED_UP_RATE)) {
+			this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled: true });
+		} else {
+			this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled: false });
+		}
 	};
 
 	onSpeedUpCompleted = () => {
@@ -277,12 +317,15 @@ class Transactions extends PureComponent {
 		this.speedUpTxId = null;
 	};
 
-	onCancelAction = (cancelAction, existingGasPriceDecimal, cancelTxId) => {
-		this.setState({ cancelIsOpen: cancelAction });
+	onCancelAction = (cancelAction, existingGasPriceDecimal, tx) => {
 		this.existingGasPriceDecimal = existingGasPriceDecimal;
-		this.cancelTxId = cancelTxId;
+		this.cancelTxId = tx.id;
+		if (this.validateBalance(tx, SPEED_UP_RATE)) {
+			this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled: true });
+		} else {
+			this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled: false });
+		}
 	};
-
 	onCancelCompleted = () => {
 		this.setState({ cancelIsOpen: false });
 		this.existingGasPriceDecimal = null;
@@ -342,6 +385,7 @@ class Transactions extends PureComponent {
 		}
 
 		const { submittedTransactions, confirmedTransactions, header } = this.props;
+		const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
 		const transactions =
 			submittedTransactions && submittedTransactions.length
 				? submittedTransactions.concat(confirmedTransactions)
@@ -369,6 +413,7 @@ class Transactions extends PureComponent {
 					onCancelPress={this.onCancelCompleted}
 					onRequestClose={this.onCancelCompleted}
 					onConfirmPress={this.cancelTransaction}
+					confirmDisabled={cancelConfirmDisabled}
 				>
 					<View style={styles.modalView}>
 						<Text style={styles.modalTitle}>{strings('transaction.cancel_tx_title')}</Text>
@@ -381,6 +426,9 @@ class Transactions extends PureComponent {
 							</Text>
 						</View>
 						<Text style={styles.modalText}>{strings('transaction.cancel_tx_message')}</Text>
+						{cancelConfirmDisabled && (
+							<Text style={styles.warningText}>{strings('transaction.insufficient')}</Text>
+						)}
 					</View>
 				</ActionModal>
 
@@ -391,6 +439,7 @@ class Transactions extends PureComponent {
 					onCancelPress={this.onSpeedUpCompleted}
 					onRequestClose={this.onSpeedUpCompleted}
 					onConfirmPress={this.speedUpTransaction}
+					confirmDisabled={speedUpConfirmDisabled}
 				>
 					<View style={styles.modalView}>
 						<Text style={styles.modalTitle}>{strings('transaction.speedup_tx_title')}</Text>
@@ -403,6 +452,9 @@ class Transactions extends PureComponent {
 							</Text>
 						</View>
 						<Text style={styles.modalText}>{strings('transaction.speedup_tx_message')}</Text>
+						{speedUpConfirmDisabled && (
+							<Text style={styles.warningText}>{strings('transaction.insufficient')}</Text>
+						)}
 					</View>
 				</ActionModal>
 			</View>
@@ -411,6 +463,7 @@ class Transactions extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
 		tokens[token.address] = token;
 		return tokens;

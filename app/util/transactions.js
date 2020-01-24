@@ -321,3 +321,19 @@ export async function getTransactionReviewActionKey(transaction) {
 export function getTicker(ticker) {
 	return ticker || strings('unit.eth');
 }
+
+/**
+ * Construct ETH asset object
+ *
+ * @param {string} ticker - Ticker
+ * @returns {object} - ETH object
+ */
+export function getEther(ticker) {
+	return {
+		name: 'Ether',
+		address: '',
+		symbol: ticker || strings('unit.eth'),
+		logo: '../images/eth-logo.png',
+		isETH: true
+	};
+}
