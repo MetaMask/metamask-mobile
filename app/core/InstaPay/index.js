@@ -147,7 +147,7 @@ class InstaPay {
 
 		Logger.log(`Client created successfully!`);
 		Logger.log(` - Public Identifier: ${channel.publicIdentifier}`);
-		Logger.log(` - Account multisig address: ${channel.opts.multisigAddress}`);
+		Logger.log(` - Account multisig address: ${channel.multisigAddress}`);
 		Logger.log(` - CF Account address: ${channel.signerAddress}`);
 		Logger.log(` - Free balance address: ${channel.freeBalanceAddress}`);
 		Logger.log(` - Token address: ${token.address}`);
@@ -528,7 +528,7 @@ class InstaPay {
 					amount: amount.toString(),
 					assetId: token.address.toLowerCase()
 				};
-				Logger.log(`Depositing ${depositParams.amount} tokens into channel: ${channel.opts.multisigAddress}`);
+				Logger.log(`Depositing ${depositParams.amount} tokens into channel: ${channel.multisigAddress}`);
 				const result = await channel.deposit(depositParams);
 				await this.refreshBalances();
 				Logger.log(`Successfully deposited tokens! Result: ${JSON.stringify(result, null, 2)}`);
@@ -552,7 +552,7 @@ class InstaPay {
 
 			this.setPending({ type: 'deposit', complete: false, closed: false });
 			const amount = minBN([balance.onChain.ether.wad.sub(minDeposit.wad), nowMaxDeposit]);
-			Logger.log(`Depositing ${amount} wei into channel: ${channel.opts.multisigAddress}`);
+			Logger.log(`Depositing ${amount} wei into channel: ${channel.multisigAddress}`);
 			const result = await channel.deposit({ amount: amount.toString() });
 			await this.refreshBalances();
 			Logger.log(`Successfully deposited ether! Result: ${JSON.stringify(result, null, 2)}`);
@@ -790,7 +790,7 @@ class InstaPay {
 			paymentChannelTransaction: true,
 			networkID,
 			transaction: {
-				from: this.state.channel.opts.multisigAddress,
+				from: this.state.channel.multisigAddress,
 				to: Engine.context.PreferencesController.state.selectedAddress,
 				value: BNToHex(toWei(withdrawalPendingValueInDAI))
 			},
