@@ -689,13 +689,13 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@connext/cf-core@4.0.5":
-  version "4.0.5"
-  resolved "https://registry.yarnpkg.com/@connext/cf-core/-/cf-core-4.0.5.tgz#9c2b2eb1f56db7ae1a734ac1f0f1ebd8809620e9"
-  integrity sha512-j2e4bdly8TovB+Abkhe8RBxgzYTR0XLCMYaMeE5mDdzyhzRHonoeCQo/J2g6p4vtFa0O4Oo/dC3W6ofiEVT9jA==
+"@connext/cf-core@4.0.6":
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/@connext/cf-core/-/cf-core-4.0.6.tgz#b0d86a325b4ae42410d067ac71b3df3e3663801c"
+  integrity sha512-YCoaqpOIyZwF6Xi3TxMSn0bH4e+Nu9gJ606BdT1Xzzxx2Mm94rSIjdqjRIty+AEuh7bzyx0Z1qQlXlVGNYmFwQ==
   dependencies:
     "@connext/contracts" "1.0.4"
-    "@connext/types" "4.0.5"
+    "@connext/types" "4.0.6"
     ethers "4.0.41"
     eventemitter3 "4.0.0"
     loglevel "1.6.6"
@@ -705,15 +705,23 @@
     typescript-memoize "1.0.0-alpha.3"
     uuid "3.3.3"
 
-"@connext/client@4.0.5":
-  version "4.0.5"
-  resolved "https://registry.yarnpkg.com/@connext/client/-/client-4.0.5.tgz#042edb8ba00a298cd495f35a472dd8d8cda2b324"
-  integrity sha512-P0Gz3g37STK1jwjAksFIgEEo3sbcUQfkuD/CzzPR3YUSMGuFQ1jfHgXOuiKN6XUWhQSLGRbVLu7/LAMN+FVLIA==
+"@connext/channel-provider@4.0.6":
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/@connext/channel-provider/-/channel-provider-4.0.6.tgz#54179f3e3aace5d1adb3abc4753cb9dbc8137985"
+  integrity sha512-aAU9w0ty+VA4tidorRpB08npKmgyjcgpCgPM0bb7Nxroh5SiWj7QCIWgxMycMq96i2bvkPjmYGIHyzVj52Fwfw==
   dependencies:
-    "@connext/cf-core" "4.0.5"
-    "@connext/messaging" "4.0.5"
-    "@connext/store" "4.0.5"
-    "@connext/types" "4.0.5"
+    "@connext/types" "4.0.6"
+
+"@connext/client@4.0.6":
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/@connext/client/-/client-4.0.6.tgz#fee91ce1e72198e73f940e99194a2f69490b955c"
+  integrity sha512-8QICeNPh2Sv8hIdndairno5VjTOz+hGsV4noCGeu5y6e9GhQzwfiEej8U/QAfiSRN0oni1z2WObhDQo1ordsLA==
+  dependencies:
+    "@connext/cf-core" "4.0.6"
+    "@connext/channel-provider" "4.0.6"
+    "@connext/messaging" "4.0.6"
+    "@connext/store" "4.0.6"
+    "@connext/types" "4.0.6"
     core-js "3.6.1"
     eccrypto "1.1.3"
     ethers "4.0.41"
@@ -733,21 +741,21 @@
     ganache-cli "6.7.0"
     openzeppelin-solidity "2.3.0"
 
-"@connext/messaging@4.0.5":
-  version "4.0.5"
-  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-4.0.5.tgz#caafb826679a73a6c8593cfe3bc28cb202d7ffb7"
-  integrity sha512-Z83o2+rdc3xft6m4O6WXLriFu5o8ffTOVZ4eE2zXraA+RfaQ2V2Jd0BA0gA8wQbYcSsfUAjbsh+2tmwDDpUHCA==
+"@connext/messaging@4.0.6":
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/@connext/messaging/-/messaging-4.0.6.tgz#d80539c6c6c4ec09a90dc5b0d0a127dd49434893"
+  integrity sha512-Wpbf9dHhogpHpbjZQCmmuU9R/MGDUYtM4HI3yByqpTd8jmpg/FbHrKB6VlzGWgj0Fga3ySwe4neRRFHWatk8IQ==
   dependencies:
-    "@connext/types" "4.0.5"
+    "@connext/types" "4.0.6"
     ts-nats "1.2.4"
     websocket-nats "0.3.3"
 
-"@connext/store@4.0.5":
-  version "4.0.5"
-  resolved "https://registry.yarnpkg.com/@connext/store/-/store-4.0.5.tgz#0819f2aff99422f16c7b25f2a61b187c35630c5c"
-  integrity sha512-Zv3SX1l67zE9aYX8pyM3m1EbB7PfHG6Ys/nOCEekg88/xEvUfovWrqDZdtrRbLcIyT0TJtcieEb/KcmDwWP7nQ==
+"@connext/store@4.0.6":
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/@connext/store/-/store-4.0.6.tgz#b64f2282306f6eef7c574f7ae44f77bb75d2c96a"
+  integrity sha512-o4VF4poaWzync2ozwILG/OZ9cSU7IONEFI88sku+lVqE9xrBZUvlbepoGxBIYQUWTt7NaLrQ4nkziJf4AuEfZg==
   dependencies:
-    "@connext/types" "4.0.5"
+    "@connext/types" "4.0.6"
     ethers "4.0.41"
     pisa-client "0.1.4-connext-beta.1"
     uuid "3.3.3"
@@ -759,10 +767,10 @@
   dependencies:
     ethers "4.0.41"
 
-"@connext/types@4.0.5":
-  version "4.0.5"
-  resolved "https://registry.yarnpkg.com/@connext/types/-/types-4.0.5.tgz#3b258d1370c2c6422be28aed160d015bda471a7a"
-  integrity sha512-X2bMEYdZw1jA979XGsT6hJW5lRHQ8ZiWOcfGH3P4auJoY1vnH1J8Y9vLQVDSOmq4cMpFzxocbJJgoGPvSEh8rw==
+"@connext/types@4.0.6":
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/@connext/types/-/types-4.0.6.tgz#8ed7df8ca18801c65c2a258eb1e6a6a756d8900f"
+  integrity sha512-HaCxcKrYK+I3oFs8yb4Tp+ktKaXy8+czT+XKBMKW634QIKuONl7DawJZhQ/FZJtrNWESpYViPBQrYTwdpfXHqg==
   dependencies:
     ethers "4.0.41"
 
@@ -4190,15 +4198,14 @@ ethereumjs-wallet@^0.6.0:
     utf8 "^3.0.0"
     uuid "^3.3.2"
 
-ethers@4.0.27:
-  version "4.0.27"
-  resolved "https://registry.yarnpkg.com/ethers/-/ethers-4.0.27.tgz#e570b0da9d805ad65c83d81919abe02b2264c6bf"
-  integrity sha512-+DXZLP/tyFnXWxqr2fXLT67KlGUfLuvDkHSOtSC9TUVG9OIj6yrG5JPeXRMYo15xkOYwnjgdMKrXp5V94rtjJA==
+ethers@4.0.41:
+  version "4.0.41"
+  resolved "https://registry.yarnpkg.com/ethers/-/ethers-4.0.41.tgz#a0cff526f08c2e08c525cf82ef4483f6333b8000"
+  integrity sha512-QpW2CPZajquwiA7rVDozMksOuvdUBKIruamAakt0++EKBB/VWtLB9zSRZDInLDpp9fZYgOT/0trPD38r6CzLIg==
   dependencies:
-    "@types/node" "^10.3.2"
     aes-js "3.0.0"
     bn.js "^4.4.0"
-    elliptic "6.3.3"
+    elliptic "6.5.2"
     hash.js "1.1.3"
     js-sha3 "0.5.7"
     scrypt-js "2.0.4"
@@ -4206,10 +4213,10 @@ ethers@4.0.27:
     uuid "2.0.1"
     xmlhttprequest "1.8.0"
 
-ethers@4.0.41:
-  version "4.0.41"
-  resolved "https://registry.yarnpkg.com/ethers/-/ethers-4.0.41.tgz#a0cff526f08c2e08c525cf82ef4483f6333b8000"
-  integrity sha512-QpW2CPZajquwiA7rVDozMksOuvdUBKIruamAakt0++EKBB/VWtLB9zSRZDInLDpp9fZYgOT/0trPD38r6CzLIg==
+ethers@4.0.43, ethers@^4.0.37:
+  version "4.0.43"
+  resolved "https://registry.yarnpkg.com/ethers/-/ethers-4.0.43.tgz#d669b5d5a9a16dbcd3ae12935ad70297048f52b4"
+  integrity sha512-VjQRVgPrlU12jSMvypdE1yEqYQccdVbH8bbiz67dLF7raHlRV4+zW70GlxHcZYqgsnz0XYWrn6C06gqTQRb5tw==
   dependencies:
     aes-js "3.0.0"
     bn.js "^4.4.0"
@@ -4230,21 +4237,6 @@ ethers@^4.0.27:
     aes-js "3.0.0"
     bn.js "^4.4.0"
     elliptic "6.3.3"
-    hash.js "1.1.3"
-    js-sha3 "0.5.7"
-    scrypt-js "2.0.4"
-    setimmediate "1.0.4"
-    uuid "2.0.1"
-    xmlhttprequest "1.8.0"
-
-ethers@^4.0.37:
-  version "4.0.43"
-  resolved "https://registry.yarnpkg.com/ethers/-/ethers-4.0.43.tgz#d669b5d5a9a16dbcd3ae12935ad70297048f52b4"
-  integrity sha512-VjQRVgPrlU12jSMvypdE1yEqYQccdVbH8bbiz67dLF7raHlRV4+zW70GlxHcZYqgsnz0XYWrn6C06gqTQRb5tw==
-  dependencies:
-    aes-js "3.0.0"
-    bn.js "^4.4.0"
-    elliptic "6.5.2"
     hash.js "1.1.3"
     js-sha3 "0.5.7"
     scrypt-js "2.0.4"

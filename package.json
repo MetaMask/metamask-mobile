@@ -55,7 +55,7 @@
     ]
   },
   "dependencies": {
-    "@connext/client": "4.0.5",
+    "@connext/client": "4.0.6",
     "@react-native-community/async-storage": "1.2.0",
     "@react-native-community/netinfo": "4.1.5",
     "@tradle/react-native-http": "2.0.1",
@@ -78,7 +78,7 @@
     "eth-url-parser": "1.0.2",
     "ethereumjs-abi": "0.6.6",
     "ethereumjs-util": "6.1.0",
-    "ethers": "4.0.27",
+    "ethers": "4.0.43",
     "ethjs-contract": "0.2.3",
     "ethjs-ens": "2.0.1",
     "ethjs-query": "0.3.8",
