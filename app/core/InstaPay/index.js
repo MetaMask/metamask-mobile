@@ -21,7 +21,7 @@ import { renderFromWei, toWei, fromWei, BNToHex } from '../../util/number';
 import Logger from '../../util/Logger';
 import Networks from '../../util/networks';
 
-const { ERC20TokenArtifacts: tokenArtifacts, Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } = utils;
+const { ERC20TokenArtifacts, Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } = utils;
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 
@@ -147,7 +147,7 @@ class InstaPay {
 
 		TransactionsNotificationManager.setInstaPayWalletAddress(wallet.address);
 
-		const token = new Contract(channel.config.contractAddresses.Token, tokenArtifacts.abi, ethProvider);
+		const token = new Contract(channel.config.contractAddresses.Token, ERC20TokenArtifacts.abi, ethProvider);
 
 		const swapRate = await channel.getLatestSwapRate(AddressZero, token.address);
 
