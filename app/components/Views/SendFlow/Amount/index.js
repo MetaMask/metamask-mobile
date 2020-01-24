@@ -371,7 +371,8 @@ class Amount extends PureComponent {
 		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		this.onInputChange();
-		this.handleSelectedAssetBalance(selectedAsset);
+		// if collectible don't do this
+		if (!selectedAsset.tokenId) this.handleSelectedAssetBalance(selectedAsset);
 		const estimatedTotalGas = await this.estimateTransactionTotalGas();
 		this.setState({ estimatedTotalGas });
 	};
