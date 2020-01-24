@@ -2,8 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import Modal from 'react-native-modal';
-import { colors, baseStyles } from '../../../styles/common';
+import { colors } from '../../../styles/common';
 import StyledButton from '../StyledButton';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -15,19 +16,21 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
-	modalText: {
-		alignSelf: 'center',
+	modalContainer: {
 		width: '90%',
-		height: 300,
 		backgroundColor: colors.white,
 		borderRadius: 10
 	},
 	actionContainer: {
 		borderTopColor: colors.grey200,
 		borderTopWidth: 1,
-		flex: 0,
 		flexDirection: 'row',
 		padding: 16
+	},
+	childrenContainer: {
+		minHeight: 250,
+		flexDirection: 'row',
+		alignItems: 'center'
 	},
 	button: {
 		flex: 1
@@ -49,6 +52,7 @@ export default function ActionModal({
 	cancelText,
 	children,
 	confirmText,
+	confirmDisabled,
 	cancelButtonMode,
 	confirmButtonMode,
 	onCancelPress,
@@ -66,8 +70,8 @@ export default function ActionModal({
 			swipeDirection={'down'}
 		>
 			<View style={styles.modalView}>
-				<View style={styles.modalText}>
-					<View style={baseStyles.flexGrow}>{children}</View>
+				<View style={styles.modalContainer}>
+					<View style={styles.childrenContainer}>{children}</View>
 					<View style={styles.actionContainer}>
 						<StyledButton
 							testID={cancelTestID}
@@ -75,15 +79,16 @@ export default function ActionModal({
 							onPress={onCancelPress}
 							containerStyle={[styles.button, styles.cancel]}
 						>
-							{cancelText.toUpperCase()}
+							{cancelText}
 						</StyledButton>
 						<StyledButton
 							testID={confirmTestID}
 							type={confirmButtonMode}
 							onPress={onConfirmPress}
 							containerStyle={[styles.button, styles.confirm]}
+							disabled={confirmDisabled}
 						>
-							{confirmText.toUpperCase()}
+							{confirmText}
 						</StyledButton>
 					</View>
 				</View>
@@ -97,8 +102,9 @@ ActionModal.defaultProps = {
 	confirmButtonMode: 'warning',
 	confirmTestID: '',
 	cancelTestID: '',
-	cancelText: 'CANCEL',
-	confirmText: 'CONFIRM'
+	cancelText: strings('action_view.cancel'),
+	confirmText: strings('action_view.confirm'),
+	confirmDisabled: false
 };
 
 ActionModal.propTypes = {
@@ -121,11 +127,15 @@ ActionModal.propTypes = {
 	/**
 	 * Type of button to show as the cancel button
 	 */
-	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'confirm']),
+	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'confirm', 'normal']),
 	/**
 	 * Type of button to show as the confirm button
 	 */
 	confirmButtonMode: PropTypes.oneOf(['normal', 'confirm', 'warning']),
+	/**
+	 * Whether confirm button is disabled
+	 */
+	confirmDisabled: PropTypes.bool,
 	/**
 	 * Text to show in the confirm button
 	 */

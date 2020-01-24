@@ -176,11 +176,11 @@ class AccountSelect extends PureComponent {
 			const state = InstaPay.getState();
 			mainBalance = `${state.balance} ${strings('unit.dai')}`;
 		} else if (primaryCurrency === 'ETH') {
-			mainBalance = renderFromWei(balance) + ' ' + getTicker(ticker);
-			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency.toUpperCase());
+			mainBalance = `${renderFromWei(balance)} ${getTicker(ticker)}`;
+			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency);
 		} else {
-			mainBalance = weiToFiat(balance, conversionRate, currentCurrency.toUpperCase());
-			secondaryBalance = renderFromWei(balance) + ' ' + getTicker(ticker);
+			mainBalance = weiToFiat(balance, conversionRate, currentCurrency);
+			secondaryBalance = `${renderFromWei(balance)} ${getTicker(ticker)}`;
 		}
 
 		return (

@@ -603,14 +603,14 @@ class TransactionElement extends PureComponent {
 		const { tx } = this.props;
 		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
 		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
-		this.mounted && this.props.onCancelAction(true, existingGasPriceDecimal, this.props.tx.id);
+		this.mounted && this.props.onCancelAction(true, existingGasPriceDecimal, this.props.tx);
 	};
 
 	showSpeedUpModal = () => {
 		const { tx } = this.props;
 		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
 		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
-		this.mounted && this.props.onSpeedUpAction(true, existingGasPriceDecimal, this.props.tx.id);
+		this.mounted && this.props.onSpeedUpAction(true, existingGasPriceDecimal, this.props.tx);
 	};
 
 	hideSpeedUpModal = () => {
