@@ -10,8 +10,6 @@ import { utils } from '@connext/client';
 import InstaPay from '../../../../core/InstaPay';
 import Logger from '../../../../util/Logger';
 
-const { delay } = utils;
-
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
@@ -114,7 +112,7 @@ export default class InstaPayWelcome extends PureComponent {
 			}
 			// Wait until we figure out the balances
 			while (this.state.needsMigration === null) {
-				await delay(500);
+				await utils.delay(500);
 			}
 
 			this.setState({ loading: false });
