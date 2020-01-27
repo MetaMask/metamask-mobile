@@ -1,5 +1,6 @@
 import Logger from './../util/Logger';
-import { connect, utils } from '@connext/client';
+// eslint-disable-next-line import/no-namespace
+import * as connext from '@connext/client';
 import {
 	CF_PATH,
 	ERC20TokenArtifacts,
@@ -23,7 +24,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from './../util/networks';
 import PaymentChannelsClient from './PaymentChannelsClient';
 
-const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } = utils;
+const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse, xpubToAddress } = connext.utils;
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 
@@ -120,15 +121,12 @@ class InstaPay {
 
 		Logger.log('InstaPay :: about to connect');
 
-		const channel = await connect(
-			network,
-			{
-				keyGen,
-				xpub,
-				asyncStorage: AsyncStorage,
-				logLevel: 5
-			}
-		);
+		const channel = await connext.connect(network, {
+			keyGen,
+			xpub,
+			asyncStorage: AsyncStorage,
+			logLevel: 5
+		});
 
 		Logger.log(`xpub address: ${eth.utils.computeAddress(fromExtendedKey(xpub).publicKey)}`);
 
@@ -591,7 +589,7 @@ class InstaPay {
 			return;
 		}
 
-		const hubFBAddress = utils.xpubToAddress(channel.nodePublicIdentifier);
+		const hubFBAddress = xpubToAddress(channel.nodePublicIdentifier);
 		const collateralNeeded = balance.channel.token.wad.add(weiToToken(weiToSwap, swapRate));
 		let collateral = formatEther((await channel.getFreeBalance(token.address))[hubFBAddress]);
 
