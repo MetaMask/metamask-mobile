@@ -5,7 +5,6 @@ import interval from 'interval-promise';
 import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } from './utils';
 import AppConstants from '../AppConstants';
 import { Contract, ethers as eth } from 'ethers';
 import { AddressZero, Zero } from 'ethers/constants';
@@ -17,6 +16,8 @@ import { renderFromWei, toWei, fromWei, BNToHex } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../../util/networks';
 import PaymentChannelsClient from '../PaymentChannelsClient';
+
+const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } = utils;
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 const API_URL = 'indra.connext.network/api';
