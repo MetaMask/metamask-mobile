@@ -1,8 +1,8 @@
 'use strict';
 // eslint-disable-next-line import/default
-import Fabric from 'react-native-fabric';
-import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+//import Fabric from 'react-native-fabric';
+// import { Platform } from 'react-native';
+// import AsyncStorage from '@react-native-community/async-storage';
 
 /**
  * Wrapper class that allows us to override
@@ -19,13 +19,13 @@ export default class Logger {
 	 */
 	static async log(...args) {
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-		if (__DEV__) {
-			args.unshift('[MetaMask DEBUG]:');
-			console.log.apply(null, args); // eslint-disable-line no-console
-		} else if (metricsOptIn === 'agreed') {
-			Fabric.Crashlytics.log(JSON.stringify(args));
-		}
+		// const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		// if (__DEV__) {
+		args.unshift('[MetaMask DEBUG]:');
+		console.log.apply(null, args); // eslint-disable-line no-console
+		// } else if (metricsOptIn === 'agreed') {
+		// 	Fabric.Crashlytics.log(JSON.stringify(args));
+		// }
 	}
 
 	/**
@@ -36,13 +36,14 @@ export default class Logger {
 	 */
 	static async warn(...args) {
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		// const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
 			console.warn.apply(null, args); // eslint-disable-line no-console
-		} else if (metricsOptIn === 'agreed') {
-			Fabric.Crashlytics.log(JSON.stringify(args));
 		}
+		// else if (metricsOptIn === 'agreed') {
+		// 	Fabric.Crashlytics.log(JSON.stringify(args));
+		// }
 	}
 
 	/**
@@ -53,13 +54,14 @@ export default class Logger {
 	 */
 	static async debug(...args) {
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		// const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
 			console.debug.apply(null, args); // eslint-disable-line no-console
-		} else if (metricsOptIn === 'agreed') {
-			Fabric.Crashlytics.log(JSON.stringify(args));
 		}
+		// else if (metricsOptIn === 'agreed') {
+		// 	Fabric.Crashlytics.log(JSON.stringify(args));
+		// }
 	}
 
 	/**
@@ -70,16 +72,17 @@ export default class Logger {
 	 */
 	static async error(...args) {
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		// const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
 			console.warn(args); // eslint-disable-line no-console
-		} else if (metricsOptIn === 'agreed') {
-			if (Platform.OS === 'android') {
-				Fabric.Crashlytics.logException(JSON.stringify(args));
-			} else {
-				Fabric.Crashlytics.recordError(JSON.stringify(args));
-			}
 		}
+		//  else if (metricsOptIn === 'agreed') {
+		// 	if (Platform.OS === 'android') {
+		// 		Fabric.Crashlytics.logException(JSON.stringify(args));
+		// 	} else {
+		// 		Fabric.Crashlytics.recordError(JSON.stringify(args));
+		// 	}
+		// }
 	}
 }

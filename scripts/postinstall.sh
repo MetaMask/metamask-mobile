@@ -170,3 +170,8 @@ sed -i'' -e 's/android.support/androidx/' $TARGET;
 
 TARGET="node_modules/react-native-tcp/android/src/main/java/com/peel/react/TcpSockets.java"
 sed -i'' -e 's/android.support/androidx/' $TARGET;
+
+
+echo "18. Fix aes-js"
+TARGET="node_modules/gaba/node_modules/aes-js/index.js"
+sed -i'' -e 's/var previous_mymodule/\/\/var previous_mymodule/' $TARGET;

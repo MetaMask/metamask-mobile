@@ -15,6 +15,9 @@ useScreens();
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
 	'{}',
+	'Module RCTSearchApiManager',
+	'Unable to symbolicate stack trace',
+	'socketDidDisconnect',
 	'Sending acceptance message',
 	'waiting for proposal acceptance',
 	'Not subscribed to',
