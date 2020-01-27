@@ -25,7 +25,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from './../util/networks';
 import PaymentChannelsClient from './PaymentChannelsClient';
 
-const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse, xpubToAddress } = connext.utils;
+const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, xpubToAddress } = connext.utils;
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 
@@ -602,13 +602,6 @@ class InstaPay {
 
 		if (collateralNeeded.gt(parseEther(collateral))) {
 			Logger.log(`Requesting more collateral...`);
-			const tokenProfile = await channel.addPaymentProfile({
-				amountToCollateralize: collateralNeeded.add(parseEther('10')), // add a buffer of $10 so you dont collateralize on every payment
-				minimumMaintainedCollateral: collateralNeeded,
-				assetId: token.address
-			});
-			Logger.log(`Got a new token profile: ${JSON.stringify(tokenProfile)}`);
-			this.setState({ tokenProfile });
 			await channel.requestCollateral(token.address);
 			collateral = formatEther((await channel.getFreeBalance(token.address))[hubFBAddress]);
 			Logger.log(`Collateral: ${collateral} tokens, need: ${formatEther(collateralNeeded)}`);
@@ -728,7 +721,7 @@ class InstaPay {
 		let txHash = null;
 
 		try {
-			const { balance, channel, swapRate, token } = this.state;
+			const { balance, channel, swapRate } = this.state;
 			const total = balance.channel.total;
 			if (total.wad.lte(Zero)) return;
 			Logger.log(balance);
@@ -737,21 +730,6 @@ class InstaPay {
 			const selectedAddress = Engine.context.PreferencesController.state.selectedAddress;
 			Logger.log(`Withdrawing ${total.toETH().format()} to: ${selectedAddress}`);
 
-			if (balance.channel.token.wad.gt(Zero)) {
-				await channel.addPaymentProfile({
-					amountToCollateralize: total.toETH().wad.toString(),
-					minimumMaintainedCollateral: total.toETH().wad.toString(),
-					assetId: AddressZero
-				});
-				await channel.requestCollateral(AddressZero);
-				await channel.swap({
-					amount: balance.channel.token.wad.toString(),
-					fromAssetId: token.address,
-					swapRate: inverse(swapRate),
-					toAssetId: AddressZero
-				});
-				await this.refreshBalances();
-			}
 			const totalInWei = balance.channel.ether.wad.toString();
 			const totalInDAI = Currency.WEI(totalInWei, swapRate)
 				.toDAI()
