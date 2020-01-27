@@ -323,6 +323,7 @@ class Approve extends PureComponent {
 		spendLimitUnlimitedSelected: true,
 		spendLimitCustomValue: undefined,
 		ticker: getTicker(this.props.ticker),
+		validSpendLimitCustomValue: true,
 		viewDetails: false
 	};
 
@@ -454,7 +455,14 @@ class Approve extends PureComponent {
 	};
 
 	onSpendLimitCustomValueChange = value => {
-		this.setState({ spendLimitCustomValue: value });
+		let validSpendLimitCustomValue = true;
+		if (value) {
+			const floatValue = parseFloat(value);
+			if (floatValue < 1) validSpendLimitCustomValue = false;
+		} else {
+			validSpendLimitCustomValue = false;
+		}
+		this.setState({ spendLimitCustomValue: value, validSpendLimitCustomValue });
 	};
 
 	handleSetSpendLimit = () => {
@@ -483,6 +491,7 @@ class Approve extends PureComponent {
 			tokenDecimals,
 			tokenSymbol,
 			spendLimitCustomValue,
+			validSpendLimitCustomValue,
 			originalApproveAmount
 		} = this.state;
 		const {
@@ -504,7 +513,7 @@ class Approve extends PureComponent {
 				onConfirmPress={this.handleSetSpendLimit}
 				cancelButtonMode={'neutral'}
 				confirmButtonMode={'confirm'}
-				confirmDisabled={!spendLimitUnlimitedSelected && !spendLimitCustomValue}
+				confirmDisabled={!spendLimitUnlimitedSelected && !validSpendLimitCustomValue}
 				displayCancelButton={false}
 			>
 				<View style={baseStyles.flexGrow}>
