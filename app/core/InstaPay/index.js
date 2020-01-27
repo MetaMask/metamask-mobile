@@ -1,6 +1,7 @@
 import Logger from '../../util/Logger';
-// eslint-disable-next-line
 import { connect, utils } from '@connext/client';
+// eslint-disable-next-line
+// import { ERC20TokenArtifacts } from '@connext/types';
 import tokenArtifacts from './contracts/ERC20Mintable.json';
 import interval from 'interval-promise';
 import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
@@ -30,17 +31,6 @@ const WITHDRAW_ESTIMATED_GAS = toBN('300000');
 const DEPOSIT_ESTIMATED_GAS = toBN('25000');
 const MAX_CHANNEL_VALUE = Currency.DAI(MAX_DEPOSIT_TOKEN.toString());
 const MIGRATION_TIMEOUT_MINUTES = 4;
-// it is important to add a default payment
-// profile on initial load in the case the
-// user is being paid without depositing, or
-// in the case where the user is redeeming a link
-
-// NOTE: in the redeem controller, if the default payment is
-// insufficient, then it will be updated. the same thing
-// happens in autodeposit, if the eth deposited > deposit
-// needed for autoswap
-const DEFAULT_COLLATERAL_MINIMUM = Currency.DAI('10');
-const DEFAULT_AMOUNT_TO_COLLATERALIZE = Currency.DAI('20');
 
 const hub = new EventEmitter();
 let client = null;
@@ -443,25 +433,6 @@ class InstaPay {
 			}
 			this.setState({ transactions: paymentHistory.reverse() });
 		}
-	};
-
-	addDefaultPaymentProfile = async () => {
-		// add the payment profile for tokens only
-		// then request collateral of this type
-		const { token, channel } = this.state;
-
-		if (!token) {
-			Logger.log('No token found, not setting default token payment profile');
-			return;
-		}
-		const tokenProfile = await channel.addPaymentProfile({
-			amountToCollateralize: DEFAULT_AMOUNT_TO_COLLATERALIZE.wad.toString(),
-			minimumMaintainedCollateral: DEFAULT_COLLATERAL_MINIMUM.wad.toString(),
-			assetId: token.address
-		});
-		this.setState({ tokenProfile });
-		Logger.log(`Got a default token profile: ${JSON.stringify(this.state.tokenProfile)}`);
-		return tokenProfile;
 	};
 
 	refreshBalances = async () => {
