@@ -490,7 +490,6 @@ class Approve extends PureComponent {
 			transaction: { from, to },
 			contractBalances
 		} = this.props;
-		console.log('shsuhduwhd', to, contractBalances);
 		const checksummedTo = safeToChecksumAddress(to);
 		const tokenBalance =
 			checksummedTo in contractBalances
