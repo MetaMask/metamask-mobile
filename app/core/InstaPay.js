@@ -1,6 +1,6 @@
 import Logger from './../util/Logger';
 import { connect, utils } from '@connext/client';
-import { ERC20TokenArtifacts } from '@connext/types';
+import { CF_PATH, ERC20TokenArtifacts } from '@connext/types';
 import interval from 'interval-promise';
 import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -100,17 +100,16 @@ class InstaPay {
 	}
 
 	start = async (pwd, network) => {
-		const cfPath = "m/44'/60'/0'/25446";
 		const subdomain = network !== 'mainnet' ? `${network}.` : '';
 		const ethProviderUrl = `https://${subdomain}${API_URL}/ethprovider`;
 		const ethProvider = new eth.providers.JsonRpcProvider(ethProviderUrl);
 		const { KeyringController } = Engine.context;
 		const data = await KeyringController.exportSeedPhrase(pwd);
 		const mnemonic = JSON.stringify(data).replace(/"/g, '');
-		const wallet = eth.Wallet.fromMnemonic(mnemonic, cfPath + '/0').connect(ethProvider);
+		const wallet = eth.Wallet.fromMnemonic(mnemonic, CF_PATH + '/0').connect(ethProvider);
 		this.setState({ network, walletAddress: wallet.address });
 
-		const hdNode = fromExtendedKey(fromMnemonic(mnemonic).extendedKey).derivePath(cfPath);
+		const hdNode = fromExtendedKey(fromMnemonic(mnemonic).extendedKey).derivePath(CF_PATH);
 		const xpub = hdNode.neuter().extendedKey;
 		const keyGen = index => {
 			const res = hdNode.derivePath(index);
