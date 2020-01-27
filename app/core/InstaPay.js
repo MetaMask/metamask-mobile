@@ -1,6 +1,12 @@
 import Logger from './../util/Logger';
 import { connect, utils } from '@connext/client';
-import { CF_PATH, ERC20TokenArtifacts } from '@connext/types';
+import {
+	CF_PATH,
+	ERC20TokenArtifacts,
+	RECEIVE_TRANSFER_STARTED_EVENT,
+	RECEIVE_TRANSFER_FINISHED_EVENT,
+	RECEIVE_TRANSFER_FAILED_EVENT
+} from '@connext/types';
 import interval from 'interval-promise';
 import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -130,9 +136,11 @@ class InstaPay {
 
 		TransactionsNotificationManager.setInstaPayWalletAddress(wallet.address);
 
-		const ethProvider = channel.ethProvider;
-
-		const token = new Contract(channel.config.contractAddresses.Token, ERC20TokenArtifacts.abi, ethProvider);
+		const token = new Contract(
+			channel.config.contractAddresses.Token,
+			ERC20TokenArtifacts.abi,
+			channel.ethProvider
+		);
 
 		const swapRate = await channel.getLatestSwapRate(AddressZero, token.address);
 
@@ -150,25 +158,25 @@ class InstaPay {
 			this.setState({ swapRate: res.swapRate });
 		});
 
-		channel.on('RECIEVE_TRANSFER_STARTED', data => {
-			Logger.log('Received RECIEVE_TRANSFER_STARTED event: ', data);
+		channel.on(RECEIVE_TRANSFER_STARTED_EVENT, data => {
+			Logger.log(`Received ${RECEIVE_TRANSFER_STARTED_EVENT} event: `, data);
 			this.setState({ receivingTransferStarted: true });
 		});
 
-		channel.on('RECIEVE_TRANSFER_FINISHED', data => {
-			Logger.log('Received RECIEVE_TRANSFER_FINISHED event: ', data);
+		channel.on(RECEIVE_TRANSFER_FINISHED_EVENT, data => {
+			Logger.log(`Received ${RECEIVE_TRANSFER_FINISHED_EVENT} event: `, data);
 			this.setState({ receivingTransferCompleted: true });
 		});
 
-		channel.on('RECIEVE_TRANSFER_FAILED', data => {
-			Logger.log('Received RECIEVE_TRANSFER_FAILED event: ', data);
+		channel.on(RECEIVE_TRANSFER_FAILED_EVENT, data => {
+			Logger.log(`Received ${RECEIVE_TRANSFER_FAILED_EVENT} event: `, data);
 			this.setState({ receivingTransferFailed: true });
 		});
 
 		this.setState({
 			address: channel.signerAddress,
 			channel,
-			ethProvider,
+			ethProvider: channel.ethProvider,
 			freeBalanceAddress: channel.freeBalanceAddress,
 			swapRate,
 			token,
