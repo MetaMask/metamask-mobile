@@ -6,7 +6,7 @@ import StyledButton from '../../../UI/StyledButton';
 import DeviceSize from '../../../../util/DeviceSize';
 import { strings } from '../../../../../locales/i18n';
 import AsyncStorage from '@react-native-community/async-storage';
-import { delay } from '../../../../core/InstaPay/utils';
+import { utils } from '@connext/client';
 import InstaPay from '../../../../core/InstaPay';
 import Logger from '../../../../util/Logger';
 
@@ -112,7 +112,7 @@ export default class InstaPayWelcome extends PureComponent {
 			}
 			// Wait until we figure out the balances
 			while (this.state.needsMigration === null) {
-				await delay(500);
+				await utils.delay(500);
 			}
 
 			this.setState({ loading: false });

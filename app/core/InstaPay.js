@@ -1,46 +1,39 @@
-import Logger from '../../util/Logger';
-// eslint-disable-next-line
-import { connect, utils } from '@connext/client';
-import tokenArtifacts from './contracts/ERC20Mintable.json';
+import Logger from './../util/Logger';
+// eslint-disable-next-line import/no-namespace
+import * as connext from '@connext/client';
+import { ConnextStore } from '@connext/store';
+import {
+	CF_PATH,
+	ERC20TokenArtifacts,
+	RECEIVE_TRANSFER_STARTED_EVENT,
+	RECEIVE_TRANSFER_FINISHED_EVENT,
+	RECEIVE_TRANSFER_FAILED_EVENT
+} from '@connext/types';
 import interval from 'interval-promise';
 import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } from './utils';
-import Store from './utils/store';
-import AppConstants from '../AppConstants';
+import AppConstants from './AppConstants';
 import { Contract, ethers as eth } from 'ethers';
 import { AddressZero, Zero } from 'ethers/constants';
 import { formatEther, parseEther } from 'ethers/utils';
-import Engine from '../Engine';
+import Engine from './Engine';
 import AsyncStorage from '@react-native-community/async-storage';
-import TransactionsNotificationManager from '../TransactionsNotificationManager';
-import { renderFromWei, toWei, fromWei, BNToHex } from '../../util/number';
+import TransactionsNotificationManager from './TransactionsNotificationManager';
+import { renderFromWei, toWei, fromWei, BNToHex } from './../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
-import Networks from '../../util/networks';
-import PaymentChannelsClient from '../PaymentChannelsClient';
-// eslint-disable-next-line import/no-commonjs
-const isomorphicCrypto = require('isomorphic-webcrypto');
+import Networks from './../util/networks';
+import PaymentChannelsClient from './PaymentChannelsClient';
+
+const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse, xpubToAddress } = connext.utils;
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
-const API_URL = 'indra.connext.network/api';
 
 // Constants for channel max/min - this is also enforced on the hub
 const WITHDRAW_ESTIMATED_GAS = toBN('300000');
 const DEPOSIT_ESTIMATED_GAS = toBN('25000');
 const MAX_CHANNEL_VALUE = Currency.DAI(MAX_DEPOSIT_TOKEN.toString());
 const MIGRATION_TIMEOUT_MINUTES = 4;
-// it is important to add a default payment
-// profile on initial load in the case the
-// user is being paid without depositing, or
-// in the case where the user is redeeming a link
-
-// NOTE: in the redeem controller, if the default payment is
-// insufficient, then it will be updated. the same thing
-// happens in autodeposit, if the eth deposited > deposit
-// needed for autoswap
-const DEFAULT_COLLATERAL_MINIMUM = Currency.DAI('10');
-const DEFAULT_AMOUNT_TO_COLLATERALIZE = Currency.DAI('20');
 
 const hub = new EventEmitter();
 let client = null;
@@ -114,56 +107,43 @@ class InstaPay {
 	}
 
 	start = async (pwd, network) => {
-		const cfPath = "m/44'/60'/0'/25446";
-		const subdomain = network !== 'mainnet' ? `${network}.` : '';
-		const ethProviderUrl = `https://${subdomain}${API_URL}/ethprovider`;
-		const ethProvider = new eth.providers.JsonRpcProvider(ethProviderUrl);
-		const store = await Store.init();
 		const { KeyringController } = Engine.context;
 		const data = await KeyringController.exportSeedPhrase(pwd);
 		const mnemonic = JSON.stringify(data).replace(/"/g, '');
-		const wallet = eth.Wallet.fromMnemonic(mnemonic, cfPath + '/0').connect(ethProvider);
+		const wallet = eth.Wallet.fromMnemonic(mnemonic, CF_PATH + '/0');
 		this.setState({ network, walletAddress: wallet.address });
 
-		const hdNode = fromExtendedKey(fromMnemonic(mnemonic).extendedKey).derivePath(cfPath);
+		const hdNode = fromExtendedKey(fromMnemonic(mnemonic).extendedKey).derivePath(CF_PATH);
 		const xpub = hdNode.neuter().extendedKey;
 		const keyGen = index => {
 			const res = hdNode.derivePath(index);
 			return Promise.resolve(res.privateKey);
 		};
 
-		const options = {
-			keyGen,
-			xpub,
-			nodeUrl: `wss://${subdomain}indra.connext.network/api/messaging`,
-			ethProviderUrl,
-			store,
-			logLevel: 5
-		};
-
 		Logger.log('InstaPay :: about to connect');
 
-		const channel = await connect(options);
+		const store = new ConnextStore(AsyncStorage, {
+			asyncStorageKey: '@MetaMask:InstaPay'
+		});
+
+		const channel = await connext.connect(network, {
+			keyGen,
+			xpub,
+			store,
+			logLevel: 5
+		});
 
 		Logger.log(`xpub address: ${eth.utils.computeAddress(fromExtendedKey(xpub).publicKey)}`);
 
 		Logger.log('InstaPay :: connect complete ');
 
-		// Wait for channel to be available
-		const channelIsAvailable = async channel => {
-			const chan = await channel.getChannel();
-			return chan && chan.available;
-		};
-
-		while (!(await channelIsAvailable(channel))) {
-			await new Promise(res => setTimeout(() => res(), 1000));
-		}
-
-		Logger.log('PC:Channel is available!');
-
 		TransactionsNotificationManager.setInstaPayWalletAddress(wallet.address);
 
-		const token = new Contract(channel.config.contractAddresses.Token, tokenArtifacts.abi, ethProvider);
+		const token = new Contract(
+			channel.config.contractAddresses.Token,
+			ERC20TokenArtifacts.abi,
+			channel.ethProvider
+		);
 
 		const swapRate = await channel.getLatestSwapRate(AddressZero, token.address);
 
@@ -181,25 +161,25 @@ class InstaPay {
 			this.setState({ swapRate: res.swapRate });
 		});
 
-		channel.on('RECIEVE_TRANSFER_STARTED', data => {
-			Logger.log('Received RECIEVE_TRANSFER_STARTED event: ', data);
+		channel.on(RECEIVE_TRANSFER_STARTED_EVENT, data => {
+			Logger.log(`Received ${RECEIVE_TRANSFER_STARTED_EVENT} event: `, data);
 			this.setState({ receivingTransferStarted: true });
 		});
 
-		channel.on('RECIEVE_TRANSFER_FINISHED', data => {
-			Logger.log('Received RECIEVE_TRANSFER_FINISHED event: ', data);
+		channel.on(RECEIVE_TRANSFER_FINISHED_EVENT, data => {
+			Logger.log(`Received ${RECEIVE_TRANSFER_FINISHED_EVENT} event: `, data);
 			this.setState({ receivingTransferCompleted: true });
 		});
 
-		channel.on('RECIEVE_TRANSFER_FAILED', data => {
-			Logger.log('Received RECIEVE_TRANSFER_FAILED event: ', data);
+		channel.on(RECEIVE_TRANSFER_FAILED_EVENT, data => {
+			Logger.log(`Received ${RECEIVE_TRANSFER_FAILED_EVENT} event: `, data);
 			this.setState({ receivingTransferFailed: true });
 		});
 
 		this.setState({
 			address: channel.signerAddress,
 			channel,
-			ethProvider,
+			ethProvider: channel.ethProvider,
 			freeBalanceAddress: channel.freeBalanceAddress,
 			swapRate,
 			token,
@@ -445,25 +425,6 @@ class InstaPay {
 		}
 	};
 
-	addDefaultPaymentProfile = async () => {
-		// add the payment profile for tokens only
-		// then request collateral of this type
-		const { token, channel } = this.state;
-
-		if (!token) {
-			Logger.log('No token found, not setting default token payment profile');
-			return;
-		}
-		const tokenProfile = await channel.addPaymentProfile({
-			amountToCollateralize: DEFAULT_AMOUNT_TO_COLLATERALIZE.wad.toString(),
-			minimumMaintainedCollateral: DEFAULT_COLLATERAL_MINIMUM.wad.toString(),
-			assetId: token.address
-		});
-		this.setState({ tokenProfile });
-		Logger.log(`Got a default token profile: ${JSON.stringify(this.state.tokenProfile)}`);
-		return tokenProfile;
-	};
-
 	refreshBalances = async () => {
 		const { channel, swapRate } = this.state;
 		const { maxDeposit, minDeposit } = await this.getDepositLimits();
@@ -633,7 +594,7 @@ class InstaPay {
 			return;
 		}
 
-		const hubFBAddress = utils.xpubToAddress(channel.nodePublicIdentifier);
+		const hubFBAddress = xpubToAddress(channel.nodePublicIdentifier);
 		const collateralNeeded = balance.channel.token.wad.add(weiToToken(weiToSwap, swapRate));
 		let collateral = formatEther((await channel.getFreeBalance(token.address))[hubFBAddress]);
 
@@ -700,7 +661,6 @@ class InstaPay {
 			const amount = Currency.DAI(sendAmount);
 			const endingTs = Date.now() + 60 * 1000;
 			let transferRes = undefined;
-			await isomorphicCrypto.ensureSecure();
 			while (Date.now() < endingTs) {
 				try {
 					const data = {
@@ -1039,7 +999,7 @@ instance = {
 		await AsyncStorage.removeItem('@MetaMask:InstaPay');
 		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
 		await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
-		Store.reset();
+		this.state.channel.store.reset();
 		instance.stop();
 	},
 	reloadClient,
