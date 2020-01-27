@@ -20,7 +20,6 @@ import PaymentChannelsClient from './PaymentChannelsClient';
 const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } = utils;
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
-const API_URL = 'indra.connext.network/api';
 
 // Constants for channel max/min - this is also enforced on the hub
 const WITHDRAW_ESTIMATED_GAS = toBN('300000');
@@ -100,13 +99,10 @@ class InstaPay {
 	}
 
 	start = async (pwd, network) => {
-		const subdomain = network !== 'mainnet' ? `${network}.` : '';
-		const ethProviderUrl = `https://${subdomain}${API_URL}/ethprovider`;
-		const ethProvider = new eth.providers.JsonRpcProvider(ethProviderUrl);
 		const { KeyringController } = Engine.context;
 		const data = await KeyringController.exportSeedPhrase(pwd);
 		const mnemonic = JSON.stringify(data).replace(/"/g, '');
-		const wallet = eth.Wallet.fromMnemonic(mnemonic, CF_PATH + '/0').connect(ethProvider);
+		const wallet = eth.Wallet.fromMnemonic(mnemonic, CF_PATH + '/0');
 		this.setState({ network, walletAddress: wallet.address });
 
 		const hdNode = fromExtendedKey(fromMnemonic(mnemonic).extendedKey).derivePath(CF_PATH);
@@ -116,36 +112,25 @@ class InstaPay {
 			return Promise.resolve(res.privateKey);
 		};
 
-		const options = {
-			keyGen,
-			xpub,
-			nodeUrl: `wss://${subdomain}indra.connext.network/api/messaging`,
-			ethProviderUrl,
-			asyncStorage: AsyncStorage,
-			logLevel: 5
-		};
-
 		Logger.log('InstaPay :: about to connect');
 
-		const channel = await connect(options);
+		const channel = await connect(
+			network,
+			{
+				keyGen,
+				xpub,
+				asyncStorage: AsyncStorage,
+				logLevel: 5
+			}
+		);
 
 		Logger.log(`xpub address: ${eth.utils.computeAddress(fromExtendedKey(xpub).publicKey)}`);
 
 		Logger.log('InstaPay :: connect complete ');
 
-		// Wait for channel to be available
-		const channelIsAvailable = async channel => {
-			const chan = await channel.getChannel();
-			return chan && chan.available;
-		};
-
-		while (!(await channelIsAvailable(channel))) {
-			await new Promise(res => setTimeout(() => res(), 1000));
-		}
-
-		Logger.log('PC:Channel is available!');
-
 		TransactionsNotificationManager.setInstaPayWalletAddress(wallet.address);
+
+		const ethProvider = channel.ethProvider;
 
 		const token = new Contract(channel.config.contractAddresses.Token, ERC20TokenArtifacts.abi, ethProvider);
 
