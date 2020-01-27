@@ -1,8 +1,6 @@
 import Logger from '../../util/Logger';
 import { connect, utils } from '@connext/client';
-// eslint-disable-next-line
-// import { ERC20TokenArtifacts } from '@connext/types';
-import tokenArtifacts from './contracts/ERC20Mintable.json';
+import { ERC20TokenArtifacts } from '@connext/types';
 import interval from 'interval-promise';
 import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -149,7 +147,7 @@ class InstaPay {
 
 		TransactionsNotificationManager.setInstaPayWalletAddress(wallet.address);
 
-		const token = new Contract(channel.config.contractAddresses.Token, tokenArtifacts.abi, ethProvider);
+		const token = new Contract(channel.config.contractAddresses.Token, ERC20TokenArtifacts.abi, ethProvider);
 
 		const swapRate = await channel.getLatestSwapRate(AddressZero, token.address);
 
