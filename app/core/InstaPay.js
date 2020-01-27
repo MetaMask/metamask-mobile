@@ -1,6 +1,7 @@
 import Logger from './../util/Logger';
 // eslint-disable-next-line import/no-namespace
 import * as connext from '@connext/client';
+import { ConnextStore } from '@connext/store';
 import {
 	CF_PATH,
 	ERC20TokenArtifacts,
@@ -121,10 +122,14 @@ class InstaPay {
 
 		Logger.log('InstaPay :: about to connect');
 
+		const store = new ConnextStore(AsyncStorage, {
+			asyncStorageKey: '@MetaMask:InstaPay'
+		});
+
 		const channel = await connext.connect(network, {
 			keyGen,
 			xpub,
-			asyncStorage: AsyncStorage,
+			store,
 			logLevel: 5
 		});
 
