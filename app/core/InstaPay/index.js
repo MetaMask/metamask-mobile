@@ -8,7 +8,6 @@ import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import { Currency, minBN, toBN, tokenToWei, weiToToken, delay, inverse } from './utils';
-import Store from './utils/store';
 import AppConstants from '../AppConstants';
 import { Contract, ethers as eth } from 'ethers';
 import { AddressZero, Zero } from 'ethers/constants';
@@ -108,7 +107,6 @@ class InstaPay {
 		const subdomain = network !== 'mainnet' ? `${network}.` : '';
 		const ethProviderUrl = `https://${subdomain}${API_URL}/ethprovider`;
 		const ethProvider = new eth.providers.JsonRpcProvider(ethProviderUrl);
-		const store = await Store.init();
 		const { KeyringController } = Engine.context;
 		const data = await KeyringController.exportSeedPhrase(pwd);
 		const mnemonic = JSON.stringify(data).replace(/"/g, '');
@@ -127,7 +125,7 @@ class InstaPay {
 			xpub,
 			nodeUrl: `wss://${subdomain}indra.connext.network/api/messaging`,
 			ethProviderUrl,
-			store,
+			asyncStorage: AsyncStorage,
 			logLevel: 5
 		};
 
@@ -1010,7 +1008,6 @@ instance = {
 		await AsyncStorage.removeItem('@MetaMask:InstaPay');
 		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
 		await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
-		Store.reset();
 		instance.stop();
 	},
 	reloadClient,
