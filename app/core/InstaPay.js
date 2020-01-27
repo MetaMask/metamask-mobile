@@ -994,6 +994,7 @@ instance = {
 		await AsyncStorage.removeItem('@MetaMask:InstaPay');
 		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
 		await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
+		this.state.channel.store.reset();
 		instance.stop();
 	},
 	reloadClient,
