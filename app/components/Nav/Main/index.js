@@ -407,10 +407,6 @@ class Main extends PureComponent {
 		 */
 		setTransactionObject: PropTypes.func,
 		/**
-		 * Object containing the information for the current transaction
-		 */
-		transaction: PropTypes.object,
-		/**
 		 * Selected address
 		 */
 		selectedAddress: PropTypes.string,
@@ -788,13 +784,7 @@ class Main extends PureComponent {
 	};
 
 	onUnapprovedTransaction = async transactionMeta => {
-		if (
-			this.props.transaction.value ||
-			this.props.transaction.to ||
-			transactionMeta.origin === TransactionTypes.MMM
-		) {
-			return;
-		}
+		if (transactionMeta.origin === TransactionTypes.MMM) return;
 		// Check if it's a payment channel deposit transaction to sign
 		const to = safeToChecksumAddress(transactionMeta.transaction.to);
 		const networkId = Networks[this.props.providerType].networkId;
@@ -1109,7 +1099,6 @@ class Main extends PureComponent {
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
-	transaction: state.transaction,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
