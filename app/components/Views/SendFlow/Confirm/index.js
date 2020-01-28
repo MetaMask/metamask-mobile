@@ -328,8 +328,8 @@ class Confirm extends PureComponent {
 		} else if (selectedAsset.tokenId) {
 			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${parsedTicker}`;
 			const collectibleTransferInformation =
-				selectedAsset.address in collectiblesTransferInformation &&
-				collectiblesTransferInformation[selectedAsset.address];
+				selectedAsset.address.toLowerCase() in collectiblesTransferInformation &&
+				collectiblesTransferInformation[selectedAsset.address.toLowerCase()];
 			if (
 				!collectibleTransferInformation ||
 				(collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transferFrom')

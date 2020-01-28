@@ -153,6 +153,27 @@ exports[`Amount should render correctly 1`] = `
           />
         </View>
       </View>
+      <View
+        style={
+          Object {
+            "marginVertical": 16,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "alignSelf": "center",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "lineHeight": 16,
+            }
+          }
+        >
+          Balance: undefined
+        </Text>
+      </View>
     </View>
   </View>
   <KeyboardAvoidingView
