@@ -148,3 +148,6 @@ rm -rf node_modules/react-native/React/React.xcodeproj/project.pbxproj.bak
 echo "15. Remove Branch examples"
 rm -rf node_modules/react-native-branch/examples/
 rm -rf node_modules/react-native-branch/native-tests/
+
+echo "16. Init git submodules"
+git submodule update --init
