@@ -1,0 +1,13 @@
+diff --git a/node_modules/xmlhttprequest/lib/XMLHttpRequest.js b/node_modules/xmlhttprequest/lib/XMLHttpRequest.js
+index 4893913..0543f38 100644
+--- a/node_modules/xmlhttprequest/lib/XMLHttpRequest.js
++++ b/node_modules/xmlhttprequest/lib/XMLHttpRequest.js
+@@ -12,7 +12,7 @@
+  */
+
+ var Url = require("url");
+-var spawn = require("child_process").spawn;
++//var spawn= require("child_process").spawn;
+ var fs = require("fs");
+
+ exports.XMLHttpRequest = function() {

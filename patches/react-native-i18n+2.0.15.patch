@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-i18n/android/build.gradle b/node_modules/react-native-i18n/android/build.gradle
+index 2614c62..12cbda7 100644
+--- a/node_modules/react-native-i18n/android/build.gradle
++++ b/node_modules/react-native-i18n/android/build.gradle
+@@ -22,5 +22,5 @@ android {
+ }
+
+ dependencies {
+-  compile "com.facebook.react:react-native:+" // From node_modules
++  api "com.facebook.react:react-native:+" // From node_modules
+ }
+diff --git a/node_modules/react-native-i18n/android/src/main/AndroidManifest.xml b/node_modules/react-native-i18n/android/src/main/AndroidManifest.xml
+index 818651f..f746bbd 100644
+--- a/node_modules/react-native-i18n/android/src/main/AndroidManifest.xml
++++ b/node_modules/react-native-i18n/android/src/main/AndroidManifest.xml
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="com.AlexanderZaytsev.RNI18n">
+-    <uses-sdk android:minSdkVersion="16" />
++
+ </manifest>
