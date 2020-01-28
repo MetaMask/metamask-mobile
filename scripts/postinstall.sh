@@ -150,4 +150,5 @@ rm -rf node_modules/react-native-branch/examples/
 rm -rf node_modules/react-native-branch/native-tests/
 
 echo "16. Init git submodules"
+echo "This may take a while..."
 git submodule update --init
