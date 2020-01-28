@@ -1,0 +1,669 @@
+diff --git a/node_modules/react-native/React/React.xcodeproj/project.pbxproj b/node_modules/react-native/React/React.xcodeproj/project.pbxproj
+index 28fcfe8..9c8c3b6 100644
+--- a/node_modules/react-native/React/React.xcodeproj/project.pbxproj
++++ b/node_modules/react-native/React/React.xcodeproj/project.pbxproj
+@@ -103,8 +103,6 @@
+ 		13B080261A694A8400A75B9A /* RCTWrapperViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B080241A694A8400A75B9A /* RCTWrapperViewController.m */; };
+ 		13BB3D021BECD54500932C10 /* RCTImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 13BB3D011BECD54500932C10 /* RCTImageSource.m */; };
+ 		13BCE8091C99CB9D00DD7AAD /* RCTRootShadowView.m in Sources */ = {isa = PBXBuildFile; fileRef = 13BCE8081C99CB9D00DD7AAD /* RCTRootShadowView.m */; };
+-		13C156051AB1A2840079392D /* RCTWebView.m in Sources */ = {isa = PBXBuildFile; fileRef = 13C156021AB1A2840079392D /* RCTWebView.m */; };
+-		13C156061AB1A2840079392D /* RCTWebViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 13C156041AB1A2840079392D /* RCTWebViewManager.m */; };
+ 		13CC8A821B17642100940AE7 /* RCTBorderDrawing.m in Sources */ = {isa = PBXBuildFile; fileRef = 13CC8A811B17642100940AE7 /* RCTBorderDrawing.m */; };
+ 		13D033631C1837FE0021DC29 /* RCTClipboard.m in Sources */ = {isa = PBXBuildFile; fileRef = 13D033621C1837FE0021DC29 /* RCTClipboard.m */; };
+ 		13D9FEEB1CDCCECF00158BD7 /* RCTEventEmitter.m in Sources */ = {isa = PBXBuildFile; fileRef = 13D9FEEA1CDCCECF00158BD7 /* RCTEventEmitter.m */; };
+@@ -539,8 +537,6 @@
+ 		3D80D9921DF6FA890028D040 /* RCTTextDecorationLineType.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = E3BBC8EB1ADE6F47001BBD81 /* RCTTextDecorationLineType.h */; };
+ 		3D80D9931DF6FA890028D040 /* RCTView.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13E0674F1A70F44B002CDEE1 /* RCTView.h */; };
+ 		3D80D9951DF6FA890028D040 /* RCTViewManager.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13E0674D1A70F44B002CDEE1 /* RCTViewManager.h */; };
+-		3D80D9961DF6FA890028D040 /* RCTWebView.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13C156011AB1A2840079392D /* RCTWebView.h */; };
+-		3D80D9971DF6FA890028D040 /* RCTWebViewManager.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13C156031AB1A2840079392D /* RCTWebViewManager.h */; };
+ 		3D80D9981DF6FA890028D040 /* RCTWrapperViewController.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13B080231A694A8400A75B9A /* RCTWrapperViewController.h */; };
+ 		3D80D99A1DF6FA890028D040 /* UIView+React.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13E067531A70F44B002CDEE1 /* UIView+React.h */; };
+ 		3D80DA191DF820620028D040 /* RCTImageLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D1FA0831DE4F3A000E03CC6 /* RCTImageLoader.h */; };
+@@ -637,8 +633,6 @@
+ 		3D80DA8C1DF820620028D040 /* RCTTextDecorationLineType.h in Headers */ = {isa = PBXBuildFile; fileRef = E3BBC8EB1ADE6F47001BBD81 /* RCTTextDecorationLineType.h */; };
+ 		3D80DA8D1DF820620028D040 /* RCTView.h in Headers */ = {isa = PBXBuildFile; fileRef = 13E0674F1A70F44B002CDEE1 /* RCTView.h */; };
+ 		3D80DA8F1DF820620028D040 /* RCTViewManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 13E0674D1A70F44B002CDEE1 /* RCTViewManager.h */; };
+-		3D80DA901DF820620028D040 /* RCTWebView.h in Headers */ = {isa = PBXBuildFile; fileRef = 13C156011AB1A2840079392D /* RCTWebView.h */; };
+-		3D80DA911DF820620028D040 /* RCTWebViewManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 13C156031AB1A2840079392D /* RCTWebViewManager.h */; };
+ 		3D80DA921DF820620028D040 /* RCTWrapperViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 13B080231A694A8400A75B9A /* RCTWrapperViewController.h */; };
+ 		3D80DA931DF820620028D040 /* UIView+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 83F15A171B7CC46900F10295 /* UIView+Private.h */; };
+ 		3D80DA941DF820620028D040 /* UIView+React.h in Headers */ = {isa = PBXBuildFile; fileRef = 13E067531A70F44B002CDEE1 /* UIView+React.h */; };
+@@ -750,8 +744,6 @@
+ 		3DA982301E5B0F7F004F2374 /* RCTTVView.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 130443D61E401AD800D93A67 /* RCTTVView.h */; };
+ 		3DA982311E5B0F7F004F2374 /* RCTView.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13E0674F1A70F44B002CDEE1 /* RCTView.h */; };
+ 		3DA982331E5B0F7F004F2374 /* RCTViewManager.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13E0674D1A70F44B002CDEE1 /* RCTViewManager.h */; };
+-		3DA982341E5B0F7F004F2374 /* RCTWebView.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13C156011AB1A2840079392D /* RCTWebView.h */; };
+-		3DA982351E5B0F7F004F2374 /* RCTWebViewManager.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13C156031AB1A2840079392D /* RCTWebViewManager.h */; };
+ 		3DA982361E5B0F7F004F2374 /* RCTWrapperViewController.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13B080231A694A8400A75B9A /* RCTWrapperViewController.h */; };
+ 		3DA982381E5B0F7F004F2374 /* UIView+React.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = 13E067531A70F44B002CDEE1 /* UIView+React.h */; };
+ 		3DA982391E5B0F8A004F2374 /* UIView+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 83F15A171B7CC46900F10295 /* UIView+Private.h */; };
+@@ -1429,8 +1421,6 @@
+ 				3DA982301E5B0F7F004F2374 /* RCTTVView.h in Copy Headers */,
+ 				3DA982311E5B0F7F004F2374 /* RCTView.h in Copy Headers */,
+ 				3DA982331E5B0F7F004F2374 /* RCTViewManager.h in Copy Headers */,
+-				3DA982341E5B0F7F004F2374 /* RCTWebView.h in Copy Headers */,
+-				3DA982351E5B0F7F004F2374 /* RCTWebViewManager.h in Copy Headers */,
+ 				3DA982361E5B0F7F004F2374 /* RCTWrapperViewController.h in Copy Headers */,
+ 				3DA982381E5B0F7F004F2374 /* UIView+React.h in Copy Headers */,
+ 				3DA981BF1E5B0F29004F2374 /* RCTAssert.h in Copy Headers */,
+@@ -1663,8 +1653,6 @@
+ 				3D80D9921DF6FA890028D040 /* RCTTextDecorationLineType.h in Copy Headers */,
+ 				3D80D9931DF6FA890028D040 /* RCTView.h in Copy Headers */,
+ 				3D80D9951DF6FA890028D040 /* RCTViewManager.h in Copy Headers */,
+-				3D80D9961DF6FA890028D040 /* RCTWebView.h in Copy Headers */,
+-				3D80D9971DF6FA890028D040 /* RCTWebViewManager.h in Copy Headers */,
+ 				3D80D9981DF6FA890028D040 /* RCTWrapperViewController.h in Copy Headers */,
+ 				3D80D99A1DF6FA890028D040 /* UIView+React.h in Copy Headers */,
+ 			);
+@@ -1927,10 +1915,6 @@
+ 		13BB3D011BECD54500932C10 /* RCTImageSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RCTImageSource.m; sourceTree = "<group>"; };
+ 		13BCE8071C99CB9D00DD7AAD /* RCTRootShadowView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTRootShadowView.h; sourceTree = "<group>"; };
+ 		13BCE8081C99CB9D00DD7AAD /* RCTRootShadowView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RCTRootShadowView.m; sourceTree = "<group>"; };
+-		13C156011AB1A2840079392D /* RCTWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTWebView.h; sourceTree = "<group>"; };
+-		13C156021AB1A2840079392D /* RCTWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RCTWebView.m; sourceTree = "<group>"; };
+-		13C156031AB1A2840079392D /* RCTWebViewManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTWebViewManager.h; sourceTree = "<group>"; };
+-		13C156041AB1A2840079392D /* RCTWebViewManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RCTWebViewManager.m; sourceTree = "<group>"; };
+ 		13C325261AA63B6A0048765F /* RCTAutoInsetsProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTAutoInsetsProtocol.h; sourceTree = "<group>"; };
+ 		13C325281AA63B6A0048765F /* RCTComponent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTComponent.h; sourceTree = "<group>"; };
+ 		13CC8A801B17642100940AE7 /* RCTBorderDrawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTBorderDrawing.h; sourceTree = "<group>"; };
+@@ -2611,10 +2595,6 @@
+ 				13E067501A70F44B002CDEE1 /* RCTView.m */,
+ 				13E0674D1A70F44B002CDEE1 /* RCTViewManager.h */,
+ 				13E0674E1A70F44B002CDEE1 /* RCTViewManager.m */,
+-				13C156011AB1A2840079392D /* RCTWebView.h */,
+-				13C156021AB1A2840079392D /* RCTWebView.m */,
+-				13C156031AB1A2840079392D /* RCTWebViewManager.h */,
+-				13C156041AB1A2840079392D /* RCTWebViewManager.m */,
+ 				13B080231A694A8400A75B9A /* RCTWrapperViewController.h */,
+ 				13B080241A694A8400A75B9A /* RCTWrapperViewController.m */,
+ 				59D031E41F8353D3008361F0 /* SafeAreaView */,
+@@ -3521,8 +3501,6 @@
+ 				3D80DA8F1DF820620028D040 /* RCTViewManager.h in Headers */,
+ 				13134CA01E296B2A00B9F3CB /* RCTCxxUtils.h in Headers */,
+ 				599FAA4A1FB274980058CCF6 /* RCTSurfaceView.h in Headers */,
+-				3D80DA901DF820620028D040 /* RCTWebView.h in Headers */,
+-				3D80DA911DF820620028D040 /* RCTWebViewManager.h in Headers */,
+ 				3D80DA921DF820620028D040 /* RCTWrapperViewController.h in Headers */,
+ 				3D80DA931DF820620028D040 /* UIView+Private.h in Headers */,
+ 				3D80DA941DF820620028D040 /* UIView+React.h in Headers */,
+@@ -4513,13 +4491,11 @@
+ 				130443C61E401A8C00D93A67 /* RCTConvert+Transform.m in Sources */,
+ 				191E3EC11C29DC3800C180A6 /* RCTRefreshControl.m in Sources */,
+ 				3DCE532B1FEAB23100613583 /* RCTDatePickerManager.m in Sources */,
+-				13C156051AB1A2840079392D /* RCTWebView.m in Sources */,
+ 				83CBBA601A601EAA00E9B192 /* RCTBridge.m in Sources */,
+ 				50E98FEC21460B0D00CD9289 /* RCTWKWebView.m in Sources */,
+ 				590D7BFF1EBD458B00D8A370 /* RCTShadowView+Layout.m in Sources */,
+ 				5335D5411FE81A4700883D58 /* RCTShadowView.m in Sources */,
+ 				66CD94B31F1045E700CB3C7C /* RCTMaskedView.m in Sources */,
+-				13C156061AB1A2840079392D /* RCTWebViewManager.m in Sources */,
+ 				58114A161AAE854800E7D092 /* RCTPicker.m in Sources */,
+ 				83A1FE8C1B62640A00BE0E65 /* RCTModalHostView.m in Sources */,
+ 				5925356A20084D0600DD584B /* RCTSurfaceSizeMeasureMode.mm in Sources */,
+diff --git a/node_modules/react-native/React/Views/RCTWebView.m b/node_modules/react-native/React/Views/RCTWebView.m
+deleted file mode 100644
+index 8f61e38..0000000
+--- a/node_modules/react-native/React/Views/RCTWebView.m
++++ /dev/null
+@@ -1,351 +0,0 @@
+-/**
+- * Copyright (c) Facebook, Inc. and its affiliates.
+- *
+- * This source code is licensed under the MIT license found in the
+- * LICENSE file in the root directory of this source tree.
+- */
+-
+-#import "RCTWebView.h"
+-
+-#import <UIKit/UIKit.h>
+-
+-#import "RCTAutoInsetsProtocol.h"
+-#import "RCTConvert.h"
+-#import "RCTEventDispatcher.h"
+-#import "RCTLog.h"
+-#import "RCTUtils.h"
+-#import "RCTView.h"
+-#import "UIView+React.h"
+-
+-NSString *const RCTJSNavigationScheme = @"react-js-navigation";
+-
+-static NSString *const kPostMessageHost = @"postMessage";
+-
+-@interface RCTWebView () <UIWebViewDelegate, RCTAutoInsetsProtocol>
+-
+-@property (nonatomic, copy) RCTDirectEventBlock onLoadingStart;
+-@property (nonatomic, copy) RCTDirectEventBlock onLoadingFinish;
+-@property (nonatomic, copy) RCTDirectEventBlock onLoadingError;
+-@property (nonatomic, copy) RCTDirectEventBlock onShouldStartLoadWithRequest;
+-@property (nonatomic, copy) RCTDirectEventBlock onMessage;
+-
+-@end
+-
+-@implementation RCTWebView
+-{
+-  UIWebView *_webView;
+-  NSString *_injectedJavaScript;
+-}
+-
+-- (void)dealloc
+-{
+-  _webView.delegate = nil;
+-}
+-
+-- (instancetype)initWithFrame:(CGRect)frame
+-{
+-  if ((self = [super initWithFrame:frame])) {
+-    super.backgroundColor = [UIColor clearColor];
+-    _automaticallyAdjustContentInsets = YES;
+-    _contentInset = UIEdgeInsetsZero;
+-    _webView = [[UIWebView alloc] initWithFrame:self.bounds];
+-    _webView.delegate = self;
+-#if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000 /* __IPHONE_11_0 */
+-    if ([_webView.scrollView respondsToSelector:@selector(setContentInsetAdjustmentBehavior:)]) {
+-      _webView.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+-    }
+-#endif
+-    [self addSubview:_webView];
+-  }
+-  return self;
+-}
+-
+-RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
+-
+-- (void)goForward
+-{
+-  [_webView goForward];
+-}
+-
+-- (void)goBack
+-{
+-  [_webView goBack];
+-}
+-
+-- (void)reload
+-{
+-  NSURLRequest *request = [RCTConvert NSURLRequest:self.source];
+-  if (request.URL && !_webView.request.URL.absoluteString.length) {
+-    [_webView loadRequest:request];
+-  }
+-  else {
+-    [_webView reload];
+-  }
+-}
+-
+-- (void)stopLoading
+-{
+-  [_webView stopLoading];
+-}
+-
+-- (void)postMessage:(NSString *)message
+-{
+-  NSDictionary *eventInitDict = @{
+-    @"data": message,
+-  };
+-  NSString *source = [NSString
+-    stringWithFormat:@"document.dispatchEvent(new MessageEvent('message', %@));",
+-    RCTJSONStringify(eventInitDict, NULL)
+-  ];
+-  [_webView stringByEvaluatingJavaScriptFromString:source];
+-}
+-
+-- (void)injectJavaScript:(NSString *)script
+-{
+-  [_webView stringByEvaluatingJavaScriptFromString:script];
+-}
+-
+-- (void)setSource:(NSDictionary *)source
+-{
+-  if (![_source isEqualToDictionary:source]) {
+-    _source = [source copy];
+-
+-    // Check for a static html source first
+-    NSString *html = [RCTConvert NSString:source[@"html"]];
+-    if (html) {
+-      NSURL *baseURL = [RCTConvert NSURL:source[@"baseUrl"]];
+-      if (!baseURL) {
+-        baseURL = [NSURL URLWithString:@"about:blank"];
+-      }
+-      [_webView loadHTMLString:html baseURL:baseURL];
+-      return;
+-    }
+-
+-    NSURLRequest *request = [RCTConvert NSURLRequest:source];
+-    // Because of the way React works, as pages redirect, we actually end up
+-    // passing the redirect urls back here, so we ignore them if trying to load
+-    // the same url. We'll expose a call to 'reload' to allow a user to load
+-    // the existing page.
+-    if ([request.URL isEqual:_webView.request.URL]) {
+-      return;
+-    }
+-    if (!request.URL) {
+-      // Clear the webview
+-      [_webView loadHTMLString:@"" baseURL:nil];
+-      return;
+-    }
+-    [_webView loadRequest:request];
+-  }
+-}
+-
+-- (void)layoutSubviews
+-{
+-  [super layoutSubviews];
+-  _webView.frame = self.bounds;
+-}
+-
+-- (void)setContentInset:(UIEdgeInsets)contentInset
+-{
+-  _contentInset = contentInset;
+-  [RCTView autoAdjustInsetsForView:self
+-                    withScrollView:_webView.scrollView
+-                      updateOffset:NO];
+-}
+-
+-- (void)setScalesPageToFit:(BOOL)scalesPageToFit
+-{
+-  if (_webView.scalesPageToFit != scalesPageToFit) {
+-    _webView.scalesPageToFit = scalesPageToFit;
+-    [_webView reload];
+-  }
+-}
+-
+-- (BOOL)scalesPageToFit
+-{
+-  return _webView.scalesPageToFit;
+-}
+-
+-- (void)setBackgroundColor:(UIColor *)backgroundColor
+-{
+-  CGFloat alpha = CGColorGetAlpha(backgroundColor.CGColor);
+-  self.opaque = _webView.opaque = (alpha == 1.0);
+-  _webView.backgroundColor = backgroundColor;
+-}
+-
+-- (UIColor *)backgroundColor
+-{
+-  return _webView.backgroundColor;
+-}
+-
+-- (NSMutableDictionary<NSString *, id> *)baseEvent
+-{
+-  NSMutableDictionary<NSString *, id> *event = [[NSMutableDictionary alloc] initWithDictionary:@{
+-    @"url": _webView.request.URL.absoluteString ?: @"",
+-    @"loading" : @(_webView.loading),
+-    @"title": [_webView stringByEvaluatingJavaScriptFromString:@"document.title"],
+-    @"canGoBack": @(_webView.canGoBack),
+-    @"canGoForward" : @(_webView.canGoForward),
+-  }];
+-
+-  return event;
+-}
+-
+-- (void)refreshContentInset
+-{
+-  [RCTView autoAdjustInsetsForView:self
+-                    withScrollView:_webView.scrollView
+-                      updateOffset:YES];
+-}
+-
+-#pragma mark - UIWebViewDelegate methods
+-
+-- (BOOL)webView:(__unused UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request
+- navigationType:(UIWebViewNavigationType)navigationType
+-{
+-  BOOL isJSNavigation = [request.URL.scheme isEqualToString:RCTJSNavigationScheme];
+-
+-  static NSDictionary<NSNumber *, NSString *> *navigationTypes;
+-  static dispatch_once_t onceToken;
+-  dispatch_once(&onceToken, ^{
+-    navigationTypes = @{
+-      @(UIWebViewNavigationTypeLinkClicked): @"click",
+-      @(UIWebViewNavigationTypeFormSubmitted): @"formsubmit",
+-      @(UIWebViewNavigationTypeBackForward): @"backforward",
+-      @(UIWebViewNavigationTypeReload): @"reload",
+-      @(UIWebViewNavigationTypeFormResubmitted): @"formresubmit",
+-      @(UIWebViewNavigationTypeOther): @"other",
+-    };
+-  });
+-
+-  // skip this for the JS Navigation handler
+-  if (!isJSNavigation && _onShouldStartLoadWithRequest) {
+-    NSMutableDictionary<NSString *, id> *event = [self baseEvent];
+-    [event addEntriesFromDictionary: @{
+-      @"url": (request.URL).absoluteString,
+-      @"navigationType": navigationTypes[@(navigationType)]
+-    }];
+-    if (![self.delegate webView:self
+-      shouldStartLoadForRequest:event
+-                   withCallback:_onShouldStartLoadWithRequest]) {
+-      return NO;
+-    }
+-  }
+-
+-  if (_onLoadingStart) {
+-    // We have this check to filter out iframe requests and whatnot
+-    BOOL isTopFrame = [request.URL isEqual:request.mainDocumentURL];
+-    if (isTopFrame) {
+-      NSMutableDictionary<NSString *, id> *event = [self baseEvent];
+-      [event addEntriesFromDictionary: @{
+-        @"url": (request.URL).absoluteString,
+-        @"navigationType": navigationTypes[@(navigationType)]
+-      }];
+-      _onLoadingStart(event);
+-    }
+-  }
+-
+-  if (isJSNavigation && [request.URL.host isEqualToString:kPostMessageHost]) {
+-    NSString *data = request.URL.query;
+-    data = [data stringByReplacingOccurrencesOfString:@"+" withString:@" "];
+-    data = [data stringByAddingPercentEncodingWithAllowedCharacters:NSCharacterSet.URLQueryAllowedCharacterSet];
+-
+-    NSMutableDictionary<NSString *, id> *event = [self baseEvent];
+-    [event addEntriesFromDictionary: @{
+-      @"data": data,
+-    }];
+-
+-    NSString *source = @"document.dispatchEvent(new MessageEvent('message:received'));";
+-
+-    [_webView stringByEvaluatingJavaScriptFromString:source];
+-
+-    _onMessage(event);
+-  }
+-
+-  // JS Navigation handler
+-  return !isJSNavigation;
+-}
+-
+-- (void)webView:(__unused UIWebView *)webView didFailLoadWithError:(NSError *)error
+-{
+-  if (_onLoadingError) {
+-    if ([error.domain isEqualToString:NSURLErrorDomain] && error.code == NSURLErrorCancelled) {
+-      // NSURLErrorCancelled is reported when a page has a redirect OR if you load
+-      // a new URL in the WebView before the previous one came back. We can just
+-      // ignore these since they aren't real errors.
+-      // http://stackoverflow.com/questions/1024748/how-do-i-fix-nsurlerrordomain-error-999-in-iphone-3-0-os
+-      return;
+-    }
+-
+-    if ([error.domain isEqualToString:@"WebKitErrorDomain"] && error.code == 102) {
+-      // Error code 102 "Frame load interrupted" is raised by the UIWebView if
+-      // its delegate returns FALSE from webView:shouldStartLoadWithRequest:navigationType
+-      // when the URL is from an http redirect. This is a common pattern when
+-      // implementing OAuth with a WebView.
+-      return;
+-    }
+-
+-    NSMutableDictionary<NSString *, id> *event = [self baseEvent];
+-    [event addEntriesFromDictionary:@{
+-      @"domain": error.domain,
+-      @"code": @(error.code),
+-      @"description": error.localizedDescription,
+-    }];
+-    _onLoadingError(event);
+-  }
+-}
+-
+-- (void)webViewDidFinishLoad:(UIWebView *)webView
+-{
+-  if (_messagingEnabled) {
+-    #if RCT_DEV
+-    // See isNative in lodash
+-    NSString *testPostMessageNative = @"String(window.postMessage) === String(Object.hasOwnProperty).replace('hasOwnProperty', 'postMessage')";
+-    BOOL postMessageIsNative = [
+-      [webView stringByEvaluatingJavaScriptFromString:testPostMessageNative]
+-      isEqualToString:@"true"
+-    ];
+-    if (!postMessageIsNative) {
+-      RCTLogError(@"Setting onMessage on a WebView overrides existing values of window.postMessage, but a previous value was defined");
+-    }
+-    #endif
+-    NSString *source = [NSString stringWithFormat:
+-      @"(function() {"
+-        "window.originalPostMessage = window.postMessage;"
+-
+-        "var messageQueue = [];"
+-        "var messagePending = false;"
+-
+-        "function processQueue() {"
+-          "if (!messageQueue.length || messagePending) return;"
+-          "messagePending = true;"
+-          "window.location = '%@://%@?' + encodeURIComponent(messageQueue.shift());"
+-        "}"
+-
+-        "window.postMessage = function(data) {"
+-          "messageQueue.push(String(data));"
+-          "processQueue();"
+-        "};"
+-
+-        "document.addEventListener('message:received', function(e) {"
+-          "messagePending = false;"
+-          "processQueue();"
+-        "});"
+-      "})();", RCTJSNavigationScheme, kPostMessageHost
+-    ];
+-    [webView stringByEvaluatingJavaScriptFromString:source];
+-  }
+-  if (_injectedJavaScript != nil) {
+-    NSString *jsEvaluationValue = [webView stringByEvaluatingJavaScriptFromString:_injectedJavaScript];
+-
+-    NSMutableDictionary<NSString *, id> *event = [self baseEvent];
+-    event[@"jsEvaluationValue"] = jsEvaluationValue;
+-
+-    _onLoadingFinish(event);
+-  }
+-  // we only need the final 'finishLoad' call so only fire the event when we're actually done loading.
+-  else if (_onLoadingFinish && !webView.loading && ![webView.request.URL.absoluteString isEqualToString:@"about:blank"]) {
+-    _onLoadingFinish([self baseEvent]);
+-  }
+-}
+-
+-@end
+diff --git a/node_modules/react-native/React/Views/RCTWebViewManager.h b/node_modules/react-native/React/Views/RCTWebViewManager.h
+deleted file mode 100644
+index d06ea1b..0000000
+--- a/node_modules/react-native/React/Views/RCTWebViewManager.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-/**
+- * Copyright (c) Facebook, Inc. and its affiliates.
+- *
+- * This source code is licensed under the MIT license found in the
+- * LICENSE file in the root directory of this source tree.
+- */
+-
+-#import <React/RCTViewManager.h>
+-
+-@interface RCTWebViewManager : RCTViewManager
+-
+-@end
+diff --git a/node_modules/react-native/React/Views/RCTWebViewManager.m b/node_modules/react-native/React/Views/RCTWebViewManager.m
+deleted file mode 100644
+index fc39f7c..0000000
+--- a/node_modules/react-native/React/Views/RCTWebViewManager.m
++++ /dev/null
+@@ -1,158 +0,0 @@
+-/**
+- * Copyright (c) Facebook, Inc. and its affiliates.
+- *
+- * This source code is licensed under the MIT license found in the
+- * LICENSE file in the root directory of this source tree.
+- */
+-
+-#import "RCTWebViewManager.h"
+-
+-#import "RCTBridge.h"
+-#import "RCTUIManager.h"
+-#import "RCTWebView.h"
+-#import "UIView+React.h"
+-
+-@interface RCTWebViewManager () <RCTWebViewDelegate>
+-
+-@end
+-
+-@implementation RCTWebViewManager
+-{
+-  NSConditionLock *_shouldStartLoadLock;
+-  BOOL _shouldStartLoad;
+-}
+-
+-RCT_EXPORT_MODULE()
+-
+-- (UIView *)view
+-{
+-  RCTWebView *webView = [RCTWebView new];
+-  webView.delegate = self;
+-  return webView;
+-}
+-
+-RCT_EXPORT_VIEW_PROPERTY(source, NSDictionary)
+-RCT_REMAP_VIEW_PROPERTY(bounces, _webView.scrollView.bounces, BOOL)
+-RCT_REMAP_VIEW_PROPERTY(scrollEnabled, _webView.scrollView.scrollEnabled, BOOL)
+-RCT_REMAP_VIEW_PROPERTY(decelerationRate, _webView.scrollView.decelerationRate, CGFloat)
+-RCT_EXPORT_VIEW_PROPERTY(scalesPageToFit, BOOL)
+-RCT_EXPORT_VIEW_PROPERTY(messagingEnabled, BOOL)
+-RCT_EXPORT_VIEW_PROPERTY(injectedJavaScript, NSString)
+-RCT_EXPORT_VIEW_PROPERTY(contentInset, UIEdgeInsets)
+-RCT_EXPORT_VIEW_PROPERTY(automaticallyAdjustContentInsets, BOOL)
+-RCT_EXPORT_VIEW_PROPERTY(onLoadingStart, RCTDirectEventBlock)
+-RCT_EXPORT_VIEW_PROPERTY(onLoadingFinish, RCTDirectEventBlock)
+-RCT_EXPORT_VIEW_PROPERTY(onLoadingError, RCTDirectEventBlock)
+-RCT_EXPORT_VIEW_PROPERTY(onMessage, RCTDirectEventBlock)
+-RCT_EXPORT_VIEW_PROPERTY(onShouldStartLoadWithRequest, RCTDirectEventBlock)
+-RCT_REMAP_VIEW_PROPERTY(allowsInlineMediaPlayback, _webView.allowsInlineMediaPlayback, BOOL)
+-RCT_REMAP_VIEW_PROPERTY(mediaPlaybackRequiresUserAction, _webView.mediaPlaybackRequiresUserAction, BOOL)
+-RCT_REMAP_VIEW_PROPERTY(dataDetectorTypes, _webView.dataDetectorTypes, UIDataDetectorTypes)
+-
+-RCT_EXPORT_METHOD(goBack:(nonnull NSNumber *)reactTag)
+-{
+-  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, RCTWebView *> *viewRegistry) {
+-    RCTWebView *view = viewRegistry[reactTag];
+-    if (![view isKindOfClass:[RCTWebView class]]) {
+-      RCTLogError(@"Invalid view returned from registry, expecting RCTWebView, got: %@", view);
+-    } else {
+-      [view goBack];
+-    }
+-  }];
+-}
+-
+-RCT_EXPORT_METHOD(goForward:(nonnull NSNumber *)reactTag)
+-{
+-  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, RCTWebView *> *viewRegistry) {
+-    RCTWebView *view = viewRegistry[reactTag];
+-    if (![view isKindOfClass:[RCTWebView class]]) {
+-      RCTLogError(@"Invalid view returned from registry, expecting RCTWebView, got: %@", view);
+-    } else {
+-      [view goForward];
+-    }
+-  }];
+-}
+-
+-RCT_EXPORT_METHOD(reload:(nonnull NSNumber *)reactTag)
+-{
+-  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, RCTWebView *> *viewRegistry) {
+-    RCTWebView *view = viewRegistry[reactTag];
+-    if (![view isKindOfClass:[RCTWebView class]]) {
+-      RCTLogError(@"Invalid view returned from registry, expecting RCTWebView, got: %@", view);
+-    } else {
+-      [view reload];
+-    }
+-  }];
+-}
+-
+-RCT_EXPORT_METHOD(stopLoading:(nonnull NSNumber *)reactTag)
+-{
+-  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, RCTWebView *> *viewRegistry) {
+-    RCTWebView *view = viewRegistry[reactTag];
+-    if (![view isKindOfClass:[RCTWebView class]]) {
+-      RCTLogError(@"Invalid view returned from registry, expecting RCTWebView, got: %@", view);
+-    } else {
+-      [view stopLoading];
+-    }
+-  }];
+-}
+-
+-RCT_EXPORT_METHOD(postMessage:(nonnull NSNumber *)reactTag message:(NSString *)message)
+-{
+-  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, RCTWebView *> *viewRegistry) {
+-    RCTWebView *view = viewRegistry[reactTag];
+-    if (![view isKindOfClass:[RCTWebView class]]) {
+-      RCTLogError(@"Invalid view returned from registry, expecting RCTWebView, got: %@", view);
+-    } else {
+-      [view postMessage:message];
+-    }
+-  }];
+-}
+-
+-RCT_EXPORT_METHOD(injectJavaScript:(nonnull NSNumber *)reactTag script:(NSString *)script)
+-{
+-  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, RCTWebView *> *viewRegistry) {
+-    RCTWebView *view = viewRegistry[reactTag];
+-    if (![view isKindOfClass:[RCTWebView class]]) {
+-      RCTLogError(@"Invalid view returned from registry, expecting RCTWebView, got: %@", view);
+-    } else {
+-      [view injectJavaScript:script];
+-    }
+-  }];
+-}
+-
+-#pragma mark - Exported synchronous methods
+-
+-- (BOOL)webView:(__unused RCTWebView *)webView
+-shouldStartLoadForRequest:(NSMutableDictionary<NSString *, id> *)request
+-   withCallback:(RCTDirectEventBlock)callback
+-{
+-  _shouldStartLoadLock = [[NSConditionLock alloc] initWithCondition:arc4random()];
+-  _shouldStartLoad = YES;
+-  request[@"lockIdentifier"] = @(_shouldStartLoadLock.condition);
+-  callback(request);
+-
+-  // Block the main thread for a maximum of 250ms until the JS thread returns
+-  if ([_shouldStartLoadLock lockWhenCondition:0 beforeDate:[NSDate dateWithTimeIntervalSinceNow:.25]]) {
+-    BOOL returnValue = _shouldStartLoad;
+-    [_shouldStartLoadLock unlock];
+-    _shouldStartLoadLock = nil;
+-    return returnValue;
+-  } else {
+-    RCTLogWarn(@"Did not receive response to shouldStartLoad in time, defaulting to YES");
+-    return YES;
+-  }
+-}
+-
+-RCT_EXPORT_METHOD(startLoadWithResult:(BOOL)result lockIdentifier:(NSInteger)lockIdentifier)
+-{
+-  if ([_shouldStartLoadLock tryLockWhenCondition:lockIdentifier]) {
+-    _shouldStartLoad = result;
+-    [_shouldStartLoadLock unlockWithCondition:0];
+-  } else {
+-    RCTLogWarn(@"startLoadWithResult invoked with invalid lockIdentifier: "
+-               "got %lld, expected %lld", (long long)lockIdentifier, (long long)_shouldStartLoadLock.condition);
+-  }
+-}
+-
+-@end
+diff --git a/node_modules/react-native/react.gradle b/node_modules/react-native/react.gradle
+index f10a00b..b8b49ed 100644
+--- a/node_modules/react-native/react.gradle
++++ b/node_modules/react-native/react.gradle
+@@ -47,7 +47,21 @@ afterEvaluate {
+                 resourcesDir.deleteDir()
+                 resourcesDir.mkdirs()
+             }
+-
++doLast {
++def moveFunc = { resSuffix ->
++File originalDir = file("$buildDir/generated/res/react/release/drawable-${resSuffix}");
++if (originalDir.exists()) {
++File destDir = file("$buildDir/../src/main/res/drawable-${resSuffix}");
++ant.move(file: originalDir, tofile: destDir);
++}
++}
++moveFunc.curry("ldpi").call()
++moveFunc.curry("mdpi").call()
++moveFunc.curry("hdpi").call()
++moveFunc.curry("xhdpi").call()
++moveFunc.curry("xxhdpi").call()
++moveFunc.curry("xxxhdpi").call()
++}
+             // Set up inputs and outputs so gradle can cache the result
+             inputs.files fileTree(dir: reactRoot, excludes: inputExcludes)
+             outputs.dir(jsBundleDir)
