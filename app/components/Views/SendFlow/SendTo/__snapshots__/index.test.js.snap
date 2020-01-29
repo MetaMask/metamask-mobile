@@ -8,6 +8,7 @@ exports[`SendTo should render correctly 1`] = `
       "flex": 1,
     }
   }
+  testID="send-screen"
 >
   <View
     style={
@@ -152,6 +153,7 @@ exports[`SendTo should render correctly 1`] = `
             "flexDirection": "row",
           }
         }
+        testID="add-address-modal"
       >
         <View
           style={
@@ -229,6 +231,7 @@ exports[`SendTo should render correctly 1`] = `
                     "width": "100%",
                   }
                 }
+                testID="address-alias-input"
                 underlineColorAndroid="transparent"
               />
             </View>

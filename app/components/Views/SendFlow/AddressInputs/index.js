@@ -143,6 +143,7 @@ export const AddressTo = props => {
 							onBlur={onInputBlur}
 							onSubmitEditing={onSubmit}
 							value={toSelectedAddress}
+							testID={'txn-to-address-input'}
 						/>
 					</View>
 					{!!onScan && (
@@ -171,7 +172,7 @@ export const AddressTo = props => {
 						</View>
 					</View>
 					{!!onClear && (
-						<TouchableOpacity onPress={onClear} style={styles.iconWrapper}>
+						<TouchableOpacity onPress={onClear} style={styles.iconWrapper} testID={'clear-address-button'}>
 							<AntIcon
 								name="close"
 								size={20}

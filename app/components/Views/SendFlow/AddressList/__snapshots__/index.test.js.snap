@@ -26,6 +26,7 @@ exports[`AddressList should render correctly 1`] = `
           "padding": 16,
         }
       }
+      testID="my-accounts-button"
     >
       <Text
         style={
@@ -52,6 +53,7 @@ exports[`AddressList should render correctly 1`] = `
           "padding": 16,
         }
       }
+      testID="no-contacts-message"
     >
       <Text
         style={
