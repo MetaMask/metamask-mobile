@@ -189,6 +189,7 @@
     "metro": "0.55.0",
     "metro-react-native-babel-preset": "0.53.0",
     "octonode": "0.9.5",
+    "patch-package": "6.2.0",
     "prettier": "1.16.4",
     "react-dom": "16.8.4",
     "react-native-cli": "2.0.1",

@@ -507,7 +507,8 @@
 		"total_amount": "Total amount",
 		"adjust_transaction_fee": "Adjust transaction fee",
 		"could_not_resolve_ens": "Couldn't resolve ENS",
-		"asset": "Asset"
+		"asset": "Asset",
+		"balance": "Balance"
 	},
 	"custom_gas": {
 		"advanced_options": "Show advanced options",

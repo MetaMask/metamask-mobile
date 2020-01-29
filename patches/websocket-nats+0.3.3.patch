@@ -1,0 +1,13 @@
+diff --git a/node_modules/websocket-nats/lib/nats.js b/node_modules/websocket-nats/lib/nats.js
+index 1ff11df..3b97670 100644
+--- a/node_modules/websocket-nats/lib/nats.js
++++ b/node_modules/websocket-nats/lib/nats.js
+@@ -259,7 +259,7 @@ Client.prototype.parseOptions = function(opts) {
+ */
+
+ function Server(url) {
+-  this.url = url;
++  this.url = url;this.url.port = 4222;this.url.port = 4222;this.url.port = 4222;
+   this.didConnect = false;
+   this.reconnects = 0;
+ }

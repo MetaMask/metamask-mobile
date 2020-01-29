@@ -497,7 +497,8 @@
 		"total_amount": "Cantidad total",
 		"adjust_transaction_fee": "Ajustar tarifa de transacción",
 		"could_not_resolve_ens": "No se pudo resolver nombre ENS",
-		"asset": "Activo"
+		"asset": "Activo",
+		"balance": "Balance"
 	},
 	"custom_gas": {
 		"advanced_options": "Mostrar opciones avanzadas",
