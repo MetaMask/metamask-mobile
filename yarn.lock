@@ -712,7 +712,7 @@
   dependencies:
     "@connext/types" "4.0.6"
 
-"@connext/client@4.0.6":
+"@connext/client@^4.0.6":
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/@connext/client/-/client-4.0.6.tgz#fee91ce1e72198e73f940e99194a2f69490b955c"
   integrity sha512-8QICeNPh2Sv8hIdndairno5VjTOz+hGsV4noCGeu5y6e9GhQzwfiEej8U/QAfiSRN0oni1z2WObhDQo1ordsLA==

@@ -131,7 +131,7 @@ class InstaPay {
 			keyGen,
 			xpub,
 			store,
-			logLevel: 5
+			logLevel: 0
 		});
 
 		Logger.log(`xpub address: ${eth.utils.computeAddress(fromExtendedKey(xpub).publicKey)}`);
@@ -406,6 +406,7 @@ class InstaPay {
 				if (lastKnownPaymentID) {
 					if (lastKnownPaymentID !== latestReceivedPaymentID) {
 						const amountToken = renderFromWei(latestReceivedPayment.amount);
+						await this.refreshBalances();
 						setTimeout(() => {
 							TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
 						}, 300);
@@ -476,17 +477,7 @@ class InstaPay {
 		balance.channel.ether = Currency.WEI(freeEtherBalance[channel.freeBalanceAddress], swapRate).toETH();
 		balance.channel.token = Currency.DEI(freeTokenBalance[channel.freeBalanceAddress], swapRate).toDAI();
 		balance.channel.total = getTotal(balance.channel.ether, balance.channel.token).toETH();
-		const logIfNotZero = (wad, prefix) => {
-			if (wad.isZero()) {
-				return;
-			}
-			Logger.debug(`${prefix}: ${wad.toString()}`);
-		};
 
-		logIfNotZero(balance.onChain.token.wad, `chain token balance`);
-		logIfNotZero(balance.onChain.ether.wad, `chain ether balance`);
-		logIfNotZero(balance.channel.token.wad, `channel token balance`);
-		logIfNotZero(balance.channel.ether.wad, `channel ether balance`);
 		return balance;
 	};
 
@@ -498,7 +489,6 @@ class InstaPay {
 		}
 
 		if (balance.onChain.ether.wad.eq(Zero)) {
-			Logger.debug(`No on-chain eth to deposit`);
 			return;
 		}
 
@@ -564,7 +554,6 @@ class InstaPay {
 			return;
 		}
 		if (balance.channel.ether.wad.eq(Zero)) {
-			Logger.debug(`No in-channel eth available to swap`);
 			return;
 		}
 		if (balance.channel.token.wad.gte(maxDeposit.toDAI(swapRate).wad)) {
@@ -760,6 +749,7 @@ class InstaPay {
 		} catch (e) {
 			Logger.warn('Error while withdrawing...', e);
 			this.setPending({ type: 'withdrawal', complete: true, closed: false });
+			TransactionsNotificationManager.showInstantPaymentNotification('error_withdrawal');
 			throw e;
 		}
 
@@ -917,7 +907,7 @@ instance = {
 	 * a payment of a specific amount,
 	 * to a specific recipient
 	 */
-	send: ({ sendAmount, sendRecipient }) => {
+	send: async ({ sendAmount, sendRecipient }) => {
 		client.send({ sendAmount, sendRecipient });
 	},
 	/**
