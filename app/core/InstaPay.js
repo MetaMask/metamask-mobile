@@ -16,7 +16,8 @@ import { EventEmitter } from 'events';
 import AppConstants from './AppConstants';
 import { Contract, ethers as eth } from 'ethers';
 import { AddressZero, Zero } from 'ethers/constants';
-import { formatEther, parseEther } from 'ethers/utils';
+import { formatEther, parseEther, hexlify, randomBytes } from 'ethers/utils';
+
 import Engine from './Engine';
 import AsyncStorage from '@react-native-community/async-storage';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
@@ -25,7 +26,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from './../util/networks';
 import PaymentChannelsClient from './PaymentChannelsClient';
 
-const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, xpubToAddress } = connext.utils;
+const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, xpubToAddress, inverse } = connext.utils;
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
 
@@ -378,9 +379,11 @@ class InstaPay {
 	checkPaymentHistory = async () => {
 		let paymentHistory = await this.state.channel.getTransferHistory();
 		if (paymentHistory.length) {
-			paymentHistory = paymentHistory.sort((a, b) => b.id - a.id);
+			paymentHistory = paymentHistory.sort(
+				(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+			);
 			const lastPayment = paymentHistory[0];
-			const latestPaymentId = parseInt(lastPayment.id, 10);
+			const latestPaymentId = lastPayment.paymentId;
 			if (latestPaymentId !== this.state.latestPaymentId) {
 				if (
 					lastPayment.receiverPublicIdentifier &&
@@ -390,8 +393,7 @@ class InstaPay {
 				}
 			}
 
-			const lastKnownPaymentIDStr = await AsyncStorage.getItem('@MetaMask:lastKnownInstantPaymentID');
-			let lastKnownPaymentID = 0;
+			const lastKnownPaymentID = await AsyncStorage.getItem('@MetaMask:lastKnownInstantPaymentID');
 
 			const latestReceivedPayment = paymentHistory.find(
 				payment =>
@@ -400,25 +402,18 @@ class InstaPay {
 			);
 
 			if (latestReceivedPayment) {
-				const latestReceivedPaymentID = parseInt(latestReceivedPayment.id, 10);
-				if (lastKnownPaymentIDStr) {
-					lastKnownPaymentID = parseInt(lastKnownPaymentIDStr, 10);
-					if (lastKnownPaymentID < latestReceivedPaymentID) {
+				const latestReceivedPaymentID = latestReceivedPayment.paymentId;
+				if (lastKnownPaymentID) {
+					if (lastKnownPaymentID !== latestReceivedPaymentID) {
 						const amountToken = renderFromWei(latestReceivedPayment.amount);
 						setTimeout(() => {
 							TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
 						}, 300);
-						await AsyncStorage.setItem(
-							'@MetaMask:lastKnownInstantPaymentID',
-							latestReceivedPaymentID.toString()
-						);
+						await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestReceivedPaymentID);
 					}
 				} else {
 					// For first time flow
-					await AsyncStorage.setItem(
-						'@MetaMask:lastKnownInstantPaymentID',
-						latestReceivedPaymentID.toString()
-					);
+					await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestReceivedPaymentID);
 				}
 			}
 			this.setState({ transactions: paymentHistory.reverse() });
@@ -651,21 +646,28 @@ class InstaPay {
 
 	send = async ({ sendAmount, sendRecipient }) =>
 		new Promise(async (resolve, reject) => {
+			const { channel, token } = this.state;
 			const amount = Currency.DAI(sendAmount);
 			const endingTs = Date.now() + 60 * 1000;
 			let transferRes = undefined;
 			while (Date.now() < endingTs) {
 				try {
 					const data = {
-						assetId: this.getAssetId(),
+						assetId: token.address,
 						amount: amount.wad.toString(),
-						recipient: sendRecipient
+						conditionType: 'LINKED_TRANSFER_TO_RECIPIENT',
+						paymentId: hexlify(randomBytes(32)),
+						preImage: hexlify(randomBytes(32)),
+						recipient: sendRecipient,
+						meta: { source: 'InstaPay v2' }
 					};
-					Logger.log('INSTAPAY ::  SEND :: DATA', data);
 
-					transferRes = await this.state.channel.transfer(data);
+					Logger.log('INSTAPAY ::  SEND :: DATA', data);
+					transferRes = await channel.conditionalTransfer(data);
+
 					Logger.log('INSTAPAY ::  SEND :: transferRes', transferRes);
 					this.setState({ pendingPayment: true });
+
 					break;
 				} catch (e) {
 					Logger.error('ERROR SENDING INSTAPAY', e);
@@ -677,7 +679,6 @@ class InstaPay {
 				reject('ERROR');
 				return;
 			}
-			this.checkPaymentHistory();
 			resolve();
 		});
 
@@ -721,7 +722,7 @@ class InstaPay {
 		let txHash = null;
 
 		try {
-			const { balance, channel, swapRate } = this.state;
+			const { balance, channel, swapRate, token } = this.state;
 			const total = balance.channel.total;
 			if (total.wad.lte(Zero)) return;
 			Logger.log(balance);
@@ -730,19 +731,29 @@ class InstaPay {
 			const selectedAddress = Engine.context.PreferencesController.state.selectedAddress;
 			Logger.log(`Withdrawing ${total.toETH().format()} to: ${selectedAddress}`);
 
-			const totalInWei = balance.channel.ether.wad.toString();
-			const totalInDAI = Currency.WEI(totalInWei, swapRate)
-				.toDAI()
-				.wad.toString();
-			this.setState({ withdrawalPendingValueInDAI: fromWei(totalInDAI) });
+			// swap all in-channel tokens for eth
+			if (balance.channel.token.wad.gt(Zero)) {
+				this.setState({ withdrawalPendingValueInDAI: fromWei(balance.channel.token.wad.toString()) });
+
+				await channel.requestCollateral(AddressZero);
+				await channel.swap({
+					amount: balance.channel.token.wad.toString(),
+					fromAssetId: token.address,
+					swapRate: inverse(swapRate),
+					toAssetId: AddressZero
+				});
+
+				await this.refreshBalances();
+			}
 
 			const result = await channel.withdraw({
-				amount: totalInWei,
+				amount: balance.channel.ether.wad.toString(),
 				assetId: AddressZero,
 				recipient: selectedAddress
 			});
 
 			Logger.log(`Cashout result: ${JSON.stringify(result)}`);
+
 			txHash = result.transaction.hash;
 
 			this.setPending({ type: 'withdrawal', complete: true, closed: false, txHash });
@@ -977,7 +988,7 @@ instance = {
 		await AsyncStorage.removeItem('@MetaMask:InstaPay');
 		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
 		await AsyncStorage.removeItem('@MetaMask:InstaPayVersion');
-		this.state.channel.store.reset();
+		this.state.channel && this.state.channel.store && this.state.channel.store.reset();
 		instance.stop();
 	},
 	reloadClient,
