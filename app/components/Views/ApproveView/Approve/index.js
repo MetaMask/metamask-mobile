@@ -476,7 +476,7 @@ class Approve extends PureComponent {
 			newData = originalTransactionData;
 		} else {
 			const spender = decodeTransferData('transfer', data)[0];
-			newData = generateApproveData({ spender, value: parseFloat(spendLimitCustomValue).toString(16) });
+			newData = generateApproveData({ spender, value: parseInt(spendLimitCustomValue).toString(16) });
 		}
 
 		setTransactionObject({ data: newData });
