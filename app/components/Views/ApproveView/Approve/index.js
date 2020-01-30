@@ -18,7 +18,7 @@ import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { BNToHex, hexToBN } from 'gaba/dist/util';
-import { renderFromWei, weiToFiatNumber, isBN, renderFromTokenMinimalUnit } from '../../../../util/number';
+import { renderFromWei, weiToFiatNumber, isBN, renderFromTokenMinimalUnit, isDecimal } from '../../../../util/number';
 import { getTicker, decodeTransferData, generateApproveData } from '../../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ErrorMessage from '../../SendFlow/ErrorMessage';
@@ -456,7 +456,7 @@ class Approve extends PureComponent {
 
 	onSpendLimitCustomValueChange = value => {
 		let validSpendLimitCustomValue = true;
-		if (value) {
+		if (value && isDecimal(value)) {
 			const floatValue = parseFloat(value);
 			if (floatValue < 1) validSpendLimitCustomValue = false;
 		} else {
