@@ -8,11 +8,9 @@ import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import InstaPay from '../../../../core/InstaPay';
 import AppConstants from '../../../../core/AppConstants';
 import ANALYTICS_EVENT_OPTS from '../../../../util/analytics';
 import Analytics from '../../../../core/Analytics';
-import Logger from '../../../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -93,21 +91,6 @@ class ExperimentalSettings extends PureComponent {
 		}
 	};
 
-	restorePaymentChannelsState = async () => {
-		try {
-			this.setState({ restoringState: true });
-			await InstaPay.restoreState();
-			await InstaPay.reloadClient();
-			Alert.alert(
-				strings('experimental_settings.restore_successful'),
-				strings('experimental_settings.restore_successful_desc')
-			);
-			this.setState({ restoringState: false });
-		} catch (e) {
-			Logger.error('Error restoring state', e);
-		}
-	};
-
 	togglePaymentChannels = enabled => {
 		this.props.setEnablePaymentChannels(enabled);
 		InteractionManager.runAfterInteractions(() => {
@@ -146,19 +129,6 @@ class ExperimentalSettings extends PureComponent {
 							disabled={!paymentChannelsEnabled}
 						>
 							{strings('experimental_settings.payment_channels_cta').toUpperCase()}
-						</StyledButton>
-
-						<Text style={styles.desc}>
-							{strings('experimental_settings.payment_channels_restore_state_desc')}
-						</Text>
-						<StyledButton
-							type="normal"
-							onPress={this.restorePaymentChannelsState}
-							containerStyle={styles.clearHistoryConfirm}
-							disabled={!paymentChannelsEnabled}
-							loading={this.state.restoringState}
-						>
-							{strings('experimental_settings.payment_channels_restore_state').toUpperCase()}
 						</StyledButton>
 					</View>
 

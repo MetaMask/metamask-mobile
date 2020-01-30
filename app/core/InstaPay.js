@@ -68,7 +68,6 @@ class InstaPay {
 	constructor(pwd, network) {
 		const swapRate = '100.00';
 		this.state = {
-			username: '',
 			address: '',
 			balance: {
 				channel: {
@@ -95,7 +94,6 @@ class InstaPay {
 			token: null,
 			xpub: '',
 			tokenProfile: null,
-			usernameSynced: false,
 			migrating: false,
 			migrated: false,
 			pendingDeposits: 0,
@@ -185,17 +183,10 @@ class InstaPay {
 			swapRate,
 			token,
 			xpub: channel.publicIdentifier,
-			ready: true,
-			username: null
+			ready: true
 		});
 
 		await this.startPoller();
-	};
-
-	restoreState = async () => {
-		if (this.state.channel) {
-			return this.state.channel.restoreState();
-		}
 	};
 
 	isMigrationNeeded = async () => {
@@ -620,11 +611,6 @@ class InstaPay {
 		this.setState({ pending });
 	};
 
-	closeConfirmations = () => {
-		const { pending } = this.state;
-		this.setState({ pending: { ...pending, closed: true } });
-	};
-
 	getBalance = () => this.state.balance.channel.token.toDAI().format({ decimals: 2, symbol: false });
 
 	getAssetId = () => {
@@ -811,30 +797,6 @@ class InstaPay {
 		Logger.log(`${prefix}:error - state dump:`, this.state);
 	};
 
-	setUsername = async username => {
-		this.setState({ username });
-		Logger.log('username set to ', username);
-	};
-
-	checkForExistingUsername = async xpub => {
-		// TBD where to check since there's no nameserver yet
-		const username = null;
-		Logger.log(`Instapay check username ${xpub} resolved to `, username);
-		if (!this.state.username) {
-			this.setState({ username, usernameSynced: true });
-			if (username) {
-				AsyncStorage.setItem('@MetaMask:InstaPayUsername', username);
-			}
-		}
-	};
-
-	getXpubFromUsername = async username => {
-		// TBD where to check since there's no nameserver yet
-		const xpub = null;
-		Logger.log(`Instapay check username ${username} resolved to `, xpub);
-		return xpub;
-	};
-
 	stop = () => {
 		running = false;
 		if (this.state.channel && this.state.token) {
@@ -963,17 +925,7 @@ instance = {
 	getXpub: () => (client && client.state && client.state.xpub.toLowerCase()) || '',
 	getDepositAddress: () =>
 		(client && client.state && client.state.walletAddress && toChecksumAddress(client.state.walletAddress)) || '',
-	setUsername: username => {
-		client && client.setUsername(username);
-	},
-	syncUsername: () => {
-		if (client && !client.state.username) {
-			client.checkForExistingUsername(client.state.xpub);
-		}
-	},
-	getXpubFromUsername: username => client && client.getXpubFromUsername(username),
 	cleanUp: async () => {
-		await AsyncStorage.removeItem('@MetaMask:InstaPayUsername');
 		await AsyncStorage.removeItem('@MetaMask:InstaPayMnemonic');
 		await AsyncStorage.removeItem('@MetaMask:InstaPay');
 		await AsyncStorage.removeItem('@MetaMask:lastKnownInstantPaymentID');
@@ -984,7 +936,6 @@ instance = {
 	reloadClient,
 	moveFundsFromV1: action => client && client.moveFundsFromV1(action),
 	isMigrationNeeded: () => client && client.isMigrationNeeded(),
-	restoreState: () => client && client.restoreState(),
 	isMigrating: () => client && client.state.migrating,
 	isPaymentPending: () => client && client.state.pendingPayment,
 	setPaymentPending: val => client && client.setState({ pendingPayment: val })
