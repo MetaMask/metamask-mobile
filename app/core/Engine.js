@@ -81,7 +81,8 @@ class Engine {
 										const { TransactionController } = this.datamodel.context;
 										try {
 											const hash = await (await TransactionController.addTransaction(
-												payload.params[0]
+												payload.params[0],
+												payload.origin
 											)).result;
 											end(undefined, hash);
 										} catch (error) {

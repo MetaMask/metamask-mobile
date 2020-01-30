@@ -517,6 +517,37 @@
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
 		"cost_explanation": "This is the cost for processing this payment on the blockchain."
 	},
+	"spend_limit_edition": {
+		"save": "Save",
+		"title": "Edit permission",
+		"spend_limit": "Spend limit edition",
+		"allow": "Allow",
+		"allow_explanation": "to withdraw and spend up to the following amount:",
+		"unlimited": "Unlimited",
+		"requested_by": "Spend limit requested by",
+		"custom_spend_limit": "Custom spend limit",
+		"max_spend_limit": "Enter a max spend limit",
+		"minimum": "1.00 {{tokenSymbol}} minimum",
+		"cancel": "Cancel",
+		"approve": "Approve",
+		"allow_to_access": "Allow {{host}} to access your {{tokenSymbol}}?",
+		"you_trust_this_site_1": "Do you trust this site? By granting this permission, you're allowing",
+		"you_trust_this_site_2": "to withdraw your {{tokenSymbol}} and automate transactions for you.",
+		"edit_permission": "Edit permission",
+		"edit": "Edit",
+		"transaction_fee_explanation": "A transaction fee is associated with this permission.",
+		"view_details": "View details",
+		"permission_request": "Permission request",
+		"details_explanation": "{{host}} may access and spend up to this max amount from this account.",
+		"amount": "Amount:",
+		"to": "To:",
+		"contract": "Contract ({{address}})",
+		"data": "Data",
+		"function_approve": "Function: Approve",
+		"close": "Close",
+		"all_set": "All set!",
+		"all_set_desc": "You’ve successfully set permissions for this site."
+	},
 	"browser": {
 		"title": "Browser",
 		"reload": "Reload",
@@ -561,6 +592,9 @@
 	},
 	"approval": {
 		"title": "Confirm Transaction"
+	},
+	"approve": {
+		"title": "Approve"
 	},
 	"transactions": {
 		"tx_review_confirm": "CONFIRM",

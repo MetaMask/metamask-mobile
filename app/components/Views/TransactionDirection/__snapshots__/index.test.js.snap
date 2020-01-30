@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionDirection should render correctly 1`] = `
+<TransactionDirection
+  dispatch={[Function]}
+  identities={
+    Object {
+      "0x1": Object {
+        "name": "Account 1",
+      },
+    }
+  }
+  transaction={Object {}}
+/>
+`;
