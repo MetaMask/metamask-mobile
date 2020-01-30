@@ -6,12 +6,11 @@ import Identicon from '../Identicon';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AssetActionButtons from '../AssetActionButtons';
+import { setTokensTransaction } from '../../../actions/transaction';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { getEther } from '../../../util/transactions';
-import { newAssetTransaction } from '../../../actions/newTransaction';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -85,9 +84,9 @@ class AssetOverview extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
-		 * Start transaction with asset
+		 * Action that sets a tokens type transaction
 		 */
-		newAssetTransaction: PropTypes.func,
+		setTokensTransaction: PropTypes.func.isRequired,
 		/**
 		 * An object containing token balances for current account and network in the format address => balance
 		 */
@@ -113,12 +112,12 @@ class AssetOverview extends PureComponent {
 
 	onSend = async () => {
 		const { asset } = this.props;
-		if (asset.isETH) {
-			this.props.newAssetTransaction(getEther());
-			this.props.navigation.navigate('SendFlowView');
+		if (asset.isEth) {
+			this.props.setTokensTransaction({ symbol: 'ETH' });
+			this.props.navigation.navigate('SendView');
 		} else {
-			this.props.newAssetTransaction(asset);
-			this.props.navigation.navigate('SendFlowView');
+			this.props.setTokensTransaction(asset);
+			this.props.navigation.navigate('SendView');
 		}
 	};
 
@@ -153,7 +152,11 @@ class AssetOverview extends PureComponent {
 		let balance, balanceFiat;
 		if (asset.isETH) {
 			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
-			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
+			balanceFiat = weiToFiat(
+				hexToBN(accounts[selectedAddress].balance),
+				conversionRate,
+				currentCurrency.toUpperCase()
+			);
 		} else {
 			const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 			balance =
@@ -164,11 +167,11 @@ class AssetOverview extends PureComponent {
 		}
 		// choose balances depending on 'primaryCurrency'
 		if (primaryCurrency === 'ETH') {
-			mainBalance = `${balance} ${asset.symbol}`;
+			mainBalance = balance + ' ' + asset.symbol;
 			secondaryBalance = balanceFiat;
 		} else {
-			mainBalance = !balanceFiat ? `${balance} ${asset.symbol}` : balanceFiat;
-			secondaryBalance = !balanceFiat ? balanceFiat : `${balance} ${asset.symbol}`;
+			mainBalance = !balanceFiat ? balance + ' ' + asset.symbol : balanceFiat;
+			secondaryBalance = !balanceFiat ? balanceFiat : balance + ' ' + asset.symbol;
 		}
 
 		return (
@@ -205,8 +208,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	toggleReceiveModal: asset => dispatch(toggleReceiveModal(asset)),
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
+	setTokensTransaction: asset => dispatch(setTokensTransaction(asset)),
+	toggleReceiveModal: asset => dispatch(toggleReceiveModal(asset))
 });
 
 export default connect(

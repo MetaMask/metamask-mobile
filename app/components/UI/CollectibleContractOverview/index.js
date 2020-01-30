@@ -5,10 +5,10 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
 import AssetActionButtons from '../AssetActionButtons';
+import { setCollectibleContractTransaction } from '../../../actions/transaction';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-import { newAssetTransaction } from '../../../actions/newTransaction';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -63,11 +63,11 @@ class CollectibleContractOverview extends PureComponent {
 		/**
 		 * Action that sets a collectible contract type transaction
 		 */
-		toggleCollectibleContractModal: PropTypes.func.isRequired,
+		setCollectibleContractTransaction: PropTypes.func.isRequired,
 		/**
-		 * Start transaction with asset
+		 * Action that sets a collectible contract type transaction
 		 */
-		newAssetTransaction: PropTypes.func
+		toggleCollectibleContractModal: PropTypes.func.isRequired
 	};
 
 	onAdd = () => {
@@ -80,8 +80,8 @@ class CollectibleContractOverview extends PureComponent {
 		const collectible = collectibles.find(
 			collectible => collectible.address.toLowerCase() === collectibleContract.address.toLowerCase()
 		);
-		this.props.newAssetTransaction(collectible);
-		this.props.navigation.navigate('SendFlowView');
+		this.props.setCollectibleContractTransaction(collectible);
+		this.props.navigation.navigate('SendView');
 	};
 
 	onInfo = () => this.props.toggleCollectibleContractModal();
@@ -132,8 +132,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal()),
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
+	setCollectibleContractTransaction: collectible => dispatch(setCollectibleContractTransaction(collectible)),
+	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal())
 });
 
 export default connect(

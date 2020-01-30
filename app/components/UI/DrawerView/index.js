@@ -33,6 +33,7 @@ import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Engine from '../../../core/Engine';
+import { setTokensTransaction } from '../../../actions/transaction';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
 import { getVersion, getBuildNumber, getSystemName, getApiLevel, getSystemVersion } from 'react-native-device-info';
@@ -48,8 +49,6 @@ import { generateUniversalLinkAddress } from '../../../util/payment-link-generat
 import EthereumAddress from '../EthereumAddress';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
-import { getEther } from '../../../util/transactions';
-import { newAssetTransaction } from '../../../actions/newTransaction';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -344,13 +343,13 @@ class DrawerView extends PureComponent {
 		 */
 		receiveModalVisible: PropTypes.bool.isRequired,
 		/**
-		 * Start transaction with asset
-		 */
-		newAssetTransaction: PropTypes.func.isRequired,
-		/**
 		 * Boolean that determines the status of the networks modal
 		 */
 		accountsModalVisible: PropTypes.bool.isRequired,
+		/**
+		 * Action that sets a tokens type transaction
+		 */
+		setTokensTransaction: PropTypes.func.isRequired,
 		/**
 		 * Boolean that determines if the user has set a password before
 		 */
@@ -483,8 +482,9 @@ class DrawerView extends PureComponent {
 	};
 
 	onSend = async () => {
-		this.props.newAssetTransaction(getEther());
-		this.props.navigation.navigate('SendFlowView');
+		const { ticker } = this.props;
+		this.props.setTokensTransaction({ symbol: ticker, isETH: true });
+		this.props.navigation.navigate('SendView');
 		this.hideDrawer();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
 	};
@@ -981,7 +981,6 @@ class DrawerView extends PureComponent {
 					propagateSwipe
 				>
 					<AccountList
-						enableAccountsAddition
 						identities={identities}
 						selectedAddress={selectedAddress}
 						keyrings={keyrings}
@@ -1066,7 +1065,7 @@ const mapDispatchToProps = dispatch => ({
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
 	showAlert: config => dispatch(showAlert(config)),
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
+	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
 });
 
 export default connect(

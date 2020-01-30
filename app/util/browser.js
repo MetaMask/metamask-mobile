@@ -13,15 +13,12 @@ export default function onUrlSubmit(input, searchEngine = 'Google', defaultProto
 	//Check if it's a url or a keyword
 	const res = input.match(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',;=.+]+$/g);
 	if (res === null) {
-		// Add exception for localhost
-		if (!input.startsWith('http://localhost') && !input.startsWith('localhost')) {
-			// In case of keywords we default to google search
-			let searchUrl = 'https://www.google.com/search?q=' + escape(input);
-			if (searchEngine === 'DuckDuckGo') {
-				searchUrl = 'https://duckduckgo.com/?q=' + escape(input);
-			}
-			return searchUrl;
+		// In case of keywords we default to google search
+		let searchUrl = 'https://www.google.com/search?q=' + escape(input);
+		if (searchEngine === 'DuckDuckGo') {
+			searchUrl = 'https://duckduckgo.com/?q=' + escape(input);
 		}
+		return searchUrl;
 	}
 	const hasProtocol = input.match(/^[a-z]*:\/\//);
 	const sanitizedURL = hasProtocol ? input : `${defaultProtocol}${input}`;

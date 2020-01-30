@@ -73,6 +73,7 @@ exports[`ActionModal should render correctly 1`] = `
           Object {
             "borderTopColor": "#bbc0c5",
             "borderTopWidth": 1,
+            "flex": 0,
             "flexDirection": "row",
             "padding": 16,
           }

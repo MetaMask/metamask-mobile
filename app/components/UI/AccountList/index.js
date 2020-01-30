@@ -102,11 +102,7 @@ class AccountList extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string,
-		/**
-		 * Whether it will show options to create or import accounts
-		 */
-		enableAccountsAddition: PropTypes.bool
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -154,7 +150,6 @@ class AccountList extends PureComponent {
 		const previousIndex = this.state.selectedAccountIndex;
 		const { PreferencesController } = Engine.context;
 		const { keyrings } = this.props;
-
 		requestAnimationFrame(async () => {
 			try {
 				this.mounted && this.setState({ selectedAccountIndex: newIndex });
@@ -162,14 +157,6 @@ class AccountList extends PureComponent {
 				const allKeyrings =
 					keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
-
-				// If not enabled is used from address book so we don't change accounts
-				if (!this.props.enableAccountsAddition) {
-					this.props.onAccountChange(accountsOrdered[newIndex]);
-					const orderedAccounts = this.getAccounts();
-					this.mounted && this.setState({ orderedAccounts });
-					return;
-				}
 
 				PreferencesController.setSelectedAddress(accountsOrdered[newIndex]);
 
@@ -294,7 +281,6 @@ class AccountList extends PureComponent {
 
 	render() {
 		const { orderedAccounts } = this.state;
-		const { enableAccountsAddition } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
 				<View style={styles.titleWrapper}>
@@ -307,30 +293,28 @@ class AccountList extends PureComponent {
 					ref={this.flatList}
 					style={styles.accountsWrapper}
 					testID={'account-number-button'}
-					getItemLayout={(_, index) => ({ length: 80, offset: 80 * index, index })} // eslint-disable-line
+					getItemLayout={(data, index) => ({ length: 80, offset: 80 * index, index })} // eslint-disable-line
 				/>
-				{enableAccountsAddition && (
-					<View style={styles.footer}>
-						<TouchableOpacity
-							style={styles.footerButton}
-							testID={'create-account-button'}
-							onPress={this.addAccount}
-						>
-							{this.state.loading ? (
-								<ActivityIndicator size="small" color={colors.blue} />
-							) : (
-								<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
-							)}
-						</TouchableOpacity>
-						<TouchableOpacity
-							onPress={this.importAccount}
-							style={styles.footerButton}
-							testID={'import-account-button'}
-						>
-							<Text style={styles.btnText}>{strings('accounts.import_account')}</Text>
-						</TouchableOpacity>
-					</View>
-				)}
+				<View style={styles.footer}>
+					<TouchableOpacity
+						style={styles.footerButton}
+						testID={'create-account-button'}
+						onPress={this.addAccount}
+					>
+						{this.state.loading ? (
+							<ActivityIndicator size="small" color={colors.blue} />
+						) : (
+							<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
+						)}
+					</TouchableOpacity>
+					<TouchableOpacity
+						onPress={this.importAccount}
+						style={styles.footerButton}
+						testID={'import-account-button'}
+					>
+						<Text style={styles.btnText}>{strings('accounts.import_account')}</Text>
+					</TouchableOpacity>
+				</View>
 			</SafeAreaView>
 		);
 	}

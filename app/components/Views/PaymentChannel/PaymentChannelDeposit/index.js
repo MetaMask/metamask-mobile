@@ -386,9 +386,13 @@ class Deposit extends PureComponent {
 		const { conversionRate, currentCurrency } = this.props;
 		const maxETH = PaymentChannelsClient.getMaximumDepositEth();
 		const maxFiat =
-			conversionRate && maxETH && isDecimal(maxETH) && weiToFiat(toWei(maxETH), conversionRate, currentCurrency);
+			conversionRate &&
+			maxETH &&
+			isDecimal(maxETH) &&
+			weiToFiat(toWei(maxETH), conversionRate, currentCurrency.toUpperCase());
 		const minFiat =
-			conversionRate && weiToFiat(toWei(PaymentChannelsClient.MIN_DEPOSIT_ETH), conversionRate, currentCurrency);
+			conversionRate &&
+			weiToFiat(toWei(PaymentChannelsClient.MIN_DEPOSIT_ETH), conversionRate, currentCurrency.toUpperCase());
 		return (
 			<React.Fragment>
 				<Text style={styles.explainerText}>
@@ -413,12 +417,12 @@ class Deposit extends PureComponent {
 		let secondaryAmount, currency, secondaryCurrency;
 		if (primaryCurrency === 'ETH') {
 			secondaryAmount = weiToFiatNumber(value, conversionRate).toString();
-			secondaryCurrency = currentCurrency;
+			secondaryCurrency = currentCurrency.toUpperCase();
 			currency = getTicker(ticker);
 		} else {
 			secondaryAmount = renderFromWei(value);
 			secondaryCurrency = getTicker(ticker);
-			currency = currentCurrency;
+			currency = currentCurrency.toUpperCase();
 		}
 		return (
 			<TouchableWithoutFeedback style={styles.root} onPress={Keyboard.dismiss}>

@@ -1,6 +1,5 @@
 import { BN } from 'ethereumjs-util';
-import { renderFromWei, weiToFiat, toWei } from './number';
-import { strings } from '../../locales/i18n';
+import { renderFromWei, weiToFiat } from './number';
 
 /**
  * Calculates wei value of estimate gas price in gwei
@@ -9,7 +8,8 @@ import { strings } from '../../locales/i18n';
  * @returns {Object} - BN instance containing gas price in wei
  */
 export function apiEstimateModifiedToWEI(estimate) {
-	return toWei(estimate, 'gwei');
+	const GWEIRate = 1000000000;
+	return new BN((estimate * GWEIRate).toString(), 10);
 }
 
 /**
@@ -62,40 +62,6 @@ export function getRenderableFiatGasFee(estimate, conversionRate, currencyCode, 
 }
 
 /**
- * Parse minutes number to readable wait time
- *
- * @param {number} min - Minutes
- * @returns {string} - Readable wait time
- */
-export function parseWaitTime(min) {
-	let tempMin = min,
-		parsed = '',
-		val;
-	const timeUnits = [
-		[strings('unit.week'), 10080],
-		[strings('unit.day'), 1440],
-		[strings('unit.hour'), 60],
-		[strings('unit.minute'), 1]
-	];
-	timeUnits.forEach(unit => {
-		if (parsed.includes(' ')) return;
-		val = Math.floor(tempMin / unit[1]);
-		if (val) {
-			if (parsed !== '') parsed += ' ';
-			parsed += `${val}${unit[0]}`;
-		}
-		tempMin = min % unit[1];
-	});
-	if (parsed === '') {
-		val = (Math.round(tempMin * 100) * 3) / 5;
-		if (val) {
-			parsed += ` ${Math.ceil(val)}${strings('unit.second')}`;
-		}
-	}
-	return parsed;
-}
-
-/**
  * Fetches gas estimated from gas station
  *
  * @returns {Object} - Object containing basic estimates
@@ -126,7 +92,7 @@ export async function fetchBasicGasEstimates() {
 			}) => {
 				const basicEstimates = {
 					average,
-					averageWait: avgWait,
+					avgWait,
 					blockTime,
 					blockNum,
 					fast,

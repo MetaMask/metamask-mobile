@@ -88,8 +88,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 32,
 		paddingTop: Platform.OS === 'android' ? 3 : 0,
-		paddingLeft: 10,
-		textTransform: 'uppercase'
+		paddingLeft: 10
 	},
 	fiatValue: {
 		...fontStyles.normal,
@@ -430,7 +429,7 @@ class PaymentRequest extends PureComponent {
 				? balanceToFiat(undefAmount, conversionRate, exchangeRate, currentCurrency)
 				: undefined;
 		} else {
-			secondaryAmount = weiToFiat(toWei(undefAmount), conversionRate, currentCurrency);
+			secondaryAmount = weiToFiat(toWei(undefAmount), conversionRate, currentCurrency.toUpperCase());
 		}
 		return { symbol, secondaryAmount, cryptoAmount };
 	};
@@ -444,7 +443,7 @@ class PaymentRequest extends PureComponent {
 	handleFiatPrimaryCurrency = amount => {
 		const { conversionRate, currentCurrency, contractExchangeRates } = this.props;
 		const { selectedAsset } = this.state;
-		const symbol = currentCurrency;
+		const symbol = currentCurrency.toUpperCase();
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		const undefAmount = (isDecimal(amount) && amount) || 0;
 		let secondaryAmount, cryptoAmount;

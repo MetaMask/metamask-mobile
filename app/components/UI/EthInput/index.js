@@ -69,8 +69,7 @@ const styles = StyleSheet.create({
 	},
 	secondaryCurrency: {
 		...fontStyles.normal,
-		fontSize: 12,
-		textTransform: 'uppercase'
+		fontSize: 12
 	},
 	secondaryValues: {
 		flexDirection: 'row',
@@ -540,7 +539,8 @@ class EthInput extends PureComponent {
 								{secondaryAmount}
 							</Text>
 							<Text style={styles.secondaryCurrency} numberOfLines={1}>
-								{` ${secondaryCurrency}`}
+								{' '}
+								{secondaryCurrency}
 							</Text>
 						</View>
 					)}
@@ -589,12 +589,12 @@ class EthInput extends PureComponent {
 				let secondaryAmount, currency, secondaryCurrency;
 				if (internalPrimaryCurrency === 'ETH') {
 					secondaryAmount = weiToFiatNumber(value, conversionRate).toString();
-					secondaryCurrency = currentCurrency;
+					secondaryCurrency = currentCurrency.toUpperCase();
 					currency = getTicker(ticker);
 				} else {
 					secondaryAmount = renderFromWei(value);
 					secondaryCurrency = getTicker(ticker);
-					currency = currentCurrency;
+					currency = currentCurrency.toUpperCase();
 				}
 				const image = <Image source={ethLogo} style={styles.logo} />;
 				return this.renderTokenInput(image, currency, secondaryAmount, secondaryCurrency);
@@ -608,16 +608,18 @@ class EthInput extends PureComponent {
 						const finalValue = (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
 						secondaryAmount = balanceToFiatNumber(finalValue, conversionRate, exchangeRate).toString();
 						currency = selectedAsset.symbol;
-						secondaryCurrency = currentCurrency;
+						secondaryCurrency = currentCurrency.toUpperCase();
 					} else {
 						const finalValue = (value && renderFromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
 						secondaryAmount = finalValue.toString();
-						currency = currentCurrency;
+						currency = currentCurrency.toUpperCase();
 						secondaryCurrency = selectedAsset.symbol;
 					}
 				} else {
 					currency =
-						internalPrimaryCurrency === 'ETH' ? selectedAsset.symbol : currentCurrency && currentCurrency;
+						internalPrimaryCurrency === 'ETH'
+							? selectedAsset.symbol
+							: currentCurrency && currentCurrency.toUpperCase();
 				}
 
 				const image = <TokenImage asset={selectedAsset} containerStyle={styles.logo} iconStyle={styles.logo} />;

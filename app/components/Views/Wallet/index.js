@@ -186,7 +186,11 @@ class Wallet extends PureComponent {
 					symbol: getTicker(ticker),
 					isETH: true,
 					balance,
-					balanceFiat: weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency),
+					balanceFiat: weiToFiat(
+						hexToBN(accounts[selectedAddress].balance),
+						conversionRate,
+						currentCurrency.toUpperCase()
+					),
 					logo: '../images/eth-logo.png'
 				},
 				...tokens
