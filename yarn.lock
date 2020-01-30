@@ -3715,17 +3715,24 @@ eth-hd-keyring@^3.4.0:
     events "^1.1.1"
     xtend "^4.0.1"
 
-eth-json-rpc-errors@2.0.0, eth-json-rpc-errors@^2.0.0:
+eth-json-rpc-errors@^1.0.1, eth-json-rpc-errors@^1.1.0:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/eth-json-rpc-errors/-/eth-json-rpc-errors-1.1.1.tgz#148377ef55155585981c21ff574a8937f9d6991f"
+  integrity sha512-WT5shJ5KfNqHi9jOZD+ID8I1kuYWNrigtZat7GOQkvwo99f8SzAVaEcWhJUv656WiZOAg3P1RiJQANtUmDmbIg==
+  dependencies:
+    fast-safe-stringify "^2.0.6"
+
+eth-json-rpc-errors@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/eth-json-rpc-errors/-/eth-json-rpc-errors-2.0.0.tgz#bdc19df8b80a820844709193372f0d75fb74fed8"
   integrity sha512-casdSTVOxbC3ptfUdclJRvU0Sgmdm/QtezLku8l4iVR5wNFe+KF+tfnlm2I84xxpx7mkyyHeeUxmRkcB5Os6mw==
   dependencies:
     fast-safe-stringify "^2.0.6"
 
-eth-json-rpc-errors@^1.0.1, eth-json-rpc-errors@^1.1.0:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/eth-json-rpc-errors/-/eth-json-rpc-errors-1.1.1.tgz#148377ef55155585981c21ff574a8937f9d6991f"
-  integrity sha512-WT5shJ5KfNqHi9jOZD+ID8I1kuYWNrigtZat7GOQkvwo99f8SzAVaEcWhJUv656WiZOAg3P1RiJQANtUmDmbIg==
+eth-json-rpc-errors@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/eth-json-rpc-errors/-/eth-json-rpc-errors-2.0.1.tgz#e7a4c4e3c76913dff26dbc021966c72b2822e0f2"
+  integrity sha512-ldF9fdzkdHAgTWmqh/bgHi7uH+8icAyjcEdFOBGD32zTWd7J66VDo0rBaiaQPowXitiyAcs1R23Mje1gkdIofA==
   dependencies:
     fast-safe-stringify "^2.0.6"
 
@@ -7102,9 +7109,10 @@ merkle-patricia-tree@^2.1.2, merkle-patricia-tree@^2.3.2:
     rlp "^2.0.0"
     semaphore ">=1.0.1"
 
-"metamask-mobile-provider@git+ssh://git@github.com/metamask/metamask-mobile-provider.git#ed038a21d4301ece822f3926e504a1081ae65456":
-  version "1.0.0"
-  resolved "git+ssh://git@github.com/metamask/metamask-mobile-provider.git#ed038a21d4301ece822f3926e504a1081ae65456"
+metamask-mobile-provider@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/metamask-mobile-provider/-/metamask-mobile-provider-1.0.1.tgz#d8387f29f907c0ea48f1e344b0a034fb28dc4d01"
+  integrity sha512-64NIPJhnswFV+tCQN8XURs2zxQWBFMcp/RgVLpWioncc2Ahj0AyR5E6+gHKT/jS1PjR/gs18p83C8keRqPNtCg==
 
 methods@^1.1.1:
   version "1.1.2"

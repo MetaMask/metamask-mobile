@@ -61,7 +61,7 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import { resemblesAddress } from '../../../util/address';
 
 import createAsyncMiddleware from 'json-rpc-engine/src/createAsyncMiddleware';
-import { errors as rpcErrors } from 'eth-json-rpc-errors';
+import { ethErrors } from 'eth-json-rpc-errors';
 
 const { HOMEPAGE_URL, USER_AGENT } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -451,273 +451,274 @@ export class BrowserTab extends PureComponent {
 	}
 
 	initializeBackgroundBridge = (url, isMainFrame) => {
-		const newBridge = new BackgroundBridge(
-			this.webview,
+		const newBridge = new BackgroundBridge({
+			webview: this.webview,
 			url,
-			{
-				// ALL USER FACING RPC CALLS HERE
-				eth_requestAccounts: senderUrl =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'eth_requestAccounts') return next();
-						const { hostname } = senderUrl;
-						const { params } = req;
-						const { approvedHosts, privacyMode, selectedAddress } = this.props;
-						if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
-							res.result = [selectedAddress];
-						} else {
-							if (!this.state.showApprovalDialog) {
-								setTimeout(async () => {
-									if (!this.state.showApprovalDialog) {
-										await this.getPageMeta();
-										this.setState({
-											showApprovalDialog: true,
-											showApprovalDialogHostname: hostname
-										});
-									}
-								}, 1000);
-							}
-							const approved = await new Promise((resolve, reject) => {
-								this.approvalRequest = { resolve, reject };
-							});
-							if (approved) {
-								res.result = [selectedAddress.toLowerCase()];
-								this.backgroundBridges.forEach(bridge => {
-									if (bridge.hostname === senderUrl.hostname) {
-										bridge.emit('update');
-									}
-								});
-							} else {
-								throw rpcErrors.eth.userRejectedRequest('User denied account authorization');
-							}
-						}
-					}),
-
-				eth_accounts: senderUrl =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'eth_accounts') return next();
-						const { hostname } = senderUrl;
-						const { approvedHosts, privacyMode, selectedAddress } = this.props;
-						const isEnabled = !privacyMode || approvedHosts[hostname];
-						if (isEnabled) {
-							res.result = [selectedAddress.toLowerCase()];
-						} else {
-							res.result = [];
-						}
-					}),
-
-				eth_sign: () =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'eth_sign') return next();
-						const { MessageManager } = Engine.context;
-						const pageMeta = await this.getPageMeta();
-						const rawSig = await MessageManager.addUnapprovedMessageAsync({
-							data: req.params[1],
-							from: req.params[0],
-							...pageMeta
-						});
-						res.result = rawSig;
-					}),
-
-				personal_sign: () =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'personal_sign') return next();
-						const { PersonalMessageManager } = Engine.context;
-						const firstParam = req.params[0];
-						const secondParam = req.params[1];
-						const params = {
-							data: firstParam,
-							from: secondParam
-						};
-						if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
-							params.data = secondParam;
-							params.from = firstParam;
-						}
-						const pageMeta = await this.getPageMeta();
-						const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-							...params,
-							...pageMeta
-						});
-
-						res.result = rawSig;
-					}),
-				eth_signTypedData: () =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'eth_signTypedData') return next();
-						const { TypedMessageManager } = Engine.context;
-						const pageMeta = await this.getPageMeta();
-						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-							{
-								data: req.params[0],
-								from: req.params[1],
-								...pageMeta
-							},
-							'V1'
-						);
-
-						res.result = rawSig;
-					}),
-				eth_signTypedData_v3: () =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'eth_signTypedData_v3') return next();
-						const { TypedMessageManager } = Engine.context;
-						const data = JSON.parse(req.params[1]);
-						const chainId = data.domain.chainId;
-						const activeChainId =
-							this.props.networkType === 'rpc'
-								? this.props.network
-								: Networks[this.props.networkType].networkId;
-
-						// eslint-disable-next-line eqeqeq
-						if (chainId && chainId != activeChainId) {
-							throw rpcErrors.eth.userRejectedRequest(
-								`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
-							);
-						}
-
-						const pageMeta = await this.getPageMeta();
-						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-							{
-								data: req.params[1],
-								from: req.params[0],
-								...pageMeta
-							},
-							'V3'
-						);
-
-						res.result = rawSig;
-					}),
-				eth_signTypedData_v4: () =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'eth_signTypedData_v4') return next();
-						const { TypedMessageManager } = Engine.context;
-						const data = JSON.parse(req.params[1]);
-						const chainId = data.domain.chainId;
-						const activeChainId =
-							this.props.networkType === 'rpc'
-								? this.props.network
-								: Networks[this.props.networkType].networkId;
-
-						// eslint-disable-next-line eqeqeq
-						if (chainId && chainId != activeChainId) {
-							throw rpcErrors.eth.userRejectedRequest(
-								`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
-							);
-						}
-
-						const pageMeta = await this.getPageMeta();
-						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-							{
-								data: req.params[1],
-								from: req.params[0],
-								...pageMeta
-							},
-							'V4'
-						);
-
-						res.result = rawSig;
-					}),
-				web3_clientVersion: () =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'web3_clientVersion') return next();
-						res.result = `MetaMask/${this.props.app_version}/Beta/Mobile`;
-					}),
-				wallet_scanQRCode: () =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'wallet_scanQRCode') return next();
-						this.props.navigation.navigate('QRScanner', {
-							onScanSuccess: data => {
-								let result = data;
-								if (data.target_address) {
-									result = data.target_address;
-								} else if (data.scheme) {
-									result = JSON.stringify(data);
-								}
-								res.result = result;
-							},
-							onScanError: e => {
-								throw rpcErrors.eth.userRejectedRequest(e.toString());
-							}
-						});
-					}),
-				wallet_watchAsset: () =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'wallet_watchAsset') return next();
-						const {
-							options: { address, decimals, image, symbol },
-							type
-						} = req;
-						const { AssetsController } = Engine.context;
-						const suggestionResult = await AssetsController.watchAsset(
-							{ address, symbol, decimals, image },
-							type
-						);
-						res.result = suggestionResult.result;
-					}),
-				metamask_removeFavorite: () =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'metamask_removeFavorite') return next();
-						if (!this.isHomepage()) {
-							throw rpcErrors.eth.userRejectedRequest('unauthorized');
-						}
-
-						Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
-							{
-								text: strings('browser.cancel'),
-								onPress: () => {
-									res.result = {
-										favorites: this.props.bookmarks
-									};
-								},
-								style: 'cancel'
-							},
-							{
-								text: strings('browser.yes'),
-								onPress: () => {
-									const bookmark = { url: req[0] };
-									this.props.removeBookmark(bookmark);
-									// remove bookmark from homepage
-									this.refreshHomeScripts();
-									res.result = {
-										favorites: this.props.bookmarks
-									};
-								}
-							}
-						]);
-					}),
-				metamask_showTutorial: () =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'metamask_showTutorial') return next();
-						this.wizardScrollAdjusted = false;
-						this.props.setOnboardingWizardStep(1);
-						this.props.navigation.navigate('WalletView');
-						res.result = true;
-					}),
-				metamask_showAutocomplete: () =>
-					createAsyncMiddleware(async (req, res, next) => {
-						if (req.method !== 'metamask_showAutocomplete') return next();
-						this.fromHomepage = true;
-						this.setState(
-							{
-								autocompleteInputValue: ''
-							},
-							() => {
-								this.showUrlModal(true);
-								setTimeout(() => {
-									this.fromHomepage = false;
-								}, 1500);
-							}
-						);
-						res.result = true;
-					})
-			},
-			hostname => {
+			getRpcMethodMiddleware: this.getRpcMethodMiddleware.bind(this),
+			shouldExposeAccounts: hostname => {
 				const { approvedHosts, privacyMode } = this.props;
 				return !privacyMode || approvedHosts[hostname];
 			},
 			isMainFrame
-		);
+		});
 		this.backgroundBridges.push(newBridge);
 	};
+
+	getRpcMethodMiddleware = ({ hostname }) =>
+		// all user facing RPC calls not implemented by the provider
+		createAsyncMiddleware(async (req, res, next) => {
+			const rpcMethods = {
+				eth_requestAccounts: async () => {
+					const { params } = req;
+					const { approvedHosts, privacyMode, selectedAddress } = this.props;
+
+					if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
+						res.result = [selectedAddress];
+					} else {
+						if (!this.state.showApprovalDialog) {
+							setTimeout(async () => {
+								if (!this.state.showApprovalDialog) {
+									await this.getPageMeta();
+									this.setState({
+										showApprovalDialog: true,
+										showApprovalDialogHostname: hostname
+									});
+								}
+							}, 1000); // TODO: how long does this actually have to be?
+						}
+
+						const approved = await new Promise((resolve, reject) => {
+							this.approvalRequest = { resolve, reject };
+						});
+
+						if (approved) {
+							res.result = [selectedAddress.toLowerCase()];
+							this.backgroundBridges.forEach(bridge => {
+								if (bridge.hostname === hostname) {
+									bridge.emit('update');
+								}
+							});
+						} else {
+							throw ethErrors.provider.userRejectedRequest('User denied account authorization.');
+						}
+					}
+				},
+
+				eth_accounts: async () => {
+					const { approvedHosts, privacyMode, selectedAddress } = this.props;
+					const isEnabled = !privacyMode || approvedHosts[hostname];
+
+					if (isEnabled) {
+						res.result = [selectedAddress.toLowerCase()];
+					} else {
+						res.result = [];
+					}
+				},
+
+				eth_sign: async () => {
+					const { MessageManager } = Engine.context;
+					const pageMeta = await this.getPageMeta();
+					const rawSig = await MessageManager.addUnapprovedMessageAsync({
+						data: req.params[1],
+						from: req.params[0],
+						...pageMeta
+					});
+
+					res.result = rawSig;
+				},
+
+				personal_sign: async () => {
+					const { PersonalMessageManager } = Engine.context;
+					const firstParam = req.params[0];
+					const secondParam = req.params[1];
+					const params = {
+						data: firstParam,
+						from: secondParam
+					};
+
+					if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
+						params.data = secondParam;
+						params.from = firstParam;
+					}
+
+					const pageMeta = await this.getPageMeta();
+					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+						...params,
+						...pageMeta
+					});
+
+					res.result = rawSig;
+				},
+
+				eth_signTypedData: async () => {
+					const { TypedMessageManager } = Engine.context;
+					const pageMeta = await this.getPageMeta();
+					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+						{
+							data: req.params[0],
+							from: req.params[1],
+							...pageMeta
+						},
+						'V1'
+					);
+
+					res.result = rawSig;
+				},
+
+				eth_signTypedData_v3: async () => {
+					const { TypedMessageManager } = Engine.context;
+					const data = JSON.parse(req.params[1]);
+					const chainId = data.domain.chainId;
+					const activeChainId =
+						this.props.networkType === 'rpc'
+							? this.props.network
+							: Networks[this.props.networkType].networkId;
+
+					// eslint-disable-next-line eqeqeq
+					if (chainId && chainId != activeChainId) {
+						throw ethErrors.rpc.invalidRequest(
+							`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
+						);
+					}
+
+					const pageMeta = await this.getPageMeta();
+					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+						{
+							data: req.params[1],
+							from: req.params[0],
+							...pageMeta
+						},
+						'V3'
+					);
+
+					res.result = rawSig;
+				},
+
+				eth_signTypedData_v4: async () => {
+					const { TypedMessageManager } = Engine.context;
+					const data = JSON.parse(req.params[1]);
+					const chainId = data.domain.chainId;
+					const activeChainId =
+						this.props.networkType === 'rpc'
+							? this.props.network
+							: Networks[this.props.networkType].networkId;
+
+					// eslint-disable-next-line eqeqeq
+					if (chainId && chainId != activeChainId) {
+						throw ethErrors.rpc.invalidRequest(
+							`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
+						);
+					}
+
+					const pageMeta = await this.getPageMeta();
+					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+						{
+							data: req.params[1],
+							from: req.params[0],
+							...pageMeta
+						},
+						'V4'
+					);
+
+					res.result = rawSig;
+				},
+
+				web3_clientVersion: async () => {
+					res.result = `MetaMask/${this.props.app_version}/Beta/Mobile`;
+				},
+
+				wallet_scanQRCode: async () => {
+					this.props.navigation.navigate('QRScanner', {
+						onScanSuccess: data => {
+							let result = data;
+							if (data.target_address) {
+								result = data.target_address;
+							} else if (data.scheme) {
+								result = JSON.stringify(data);
+							}
+							res.result = result;
+						},
+						onScanError: e => {
+							throw ethErrors.rpc.internal(e.toString());
+						}
+					});
+				},
+
+				wallet_watchAsset: async () => {
+					const {
+						options: { address, decimals, image, symbol },
+						type
+					} = req;
+					const { AssetsController } = Engine.context;
+					const suggestionResult = await AssetsController.watchAsset(
+						{ address, symbol, decimals, image },
+						type
+					);
+
+					res.result = suggestionResult.result;
+				},
+
+				metamask_removeFavorite: async () => {
+					if (!this.isHomepage()) {
+						throw ethErrors.provider.unauthorized('Forbidden.');
+					}
+
+					Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
+						{
+							text: strings('browser.cancel'),
+							onPress: () => {
+								res.result = {
+									favorites: this.props.bookmarks
+								};
+							},
+							style: 'cancel'
+						},
+						{
+							text: strings('browser.yes'),
+							onPress: () => {
+								const bookmark = { url: req[0] };
+								this.props.removeBookmark(bookmark);
+								// remove bookmark from homepage
+								this.refreshHomeScripts();
+								res.result = {
+									favorites: this.props.bookmarks
+								};
+							}
+						}
+					]);
+				},
+
+				metamask_showTutorial: async () => {
+					this.wizardScrollAdjusted = false;
+					this.props.setOnboardingWizardStep(1);
+					this.props.navigation.navigate('WalletView');
+
+					res.result = true;
+				},
+
+				metamask_showAutocomplete: async () => {
+					this.fromHomepage = true;
+					this.setState(
+						{
+							autocompleteInputValue: ''
+						},
+						() => {
+							this.showUrlModal(true);
+							setTimeout(() => {
+								this.fromHomepage = false;
+							}, 1500);
+						}
+					);
+
+					res.result = true;
+				}
+			};
+
+			if (!rpcMethods[req.method]) {
+				return next();
+			}
+			await rpcMethods[req.method]();
+		});
 
 	init = async () => {
 		const entryScriptWeb3 =
@@ -728,10 +729,10 @@ export class BrowserTab extends PureComponent {
 		const analyticsEnabled = Analytics.getEnabled();
 
 		const homepageScripts = `
-			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
-			window.__mmSearchEngine = "${this.props.searchEngine}";
-			window.__mmMetametrics = ${analyticsEnabled};
-		`;
+      window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+      window.__mmSearchEngine = "${this.props.searchEngine}";
+      window.__mmMetametrics = ${analyticsEnabled};
+    `;
 
 		await this.setState({ entryScriptWeb3: entryScriptWeb3 + SPA_urlChangeListener, homepageScripts });
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
@@ -828,11 +829,11 @@ export class BrowserTab extends PureComponent {
 		const analyticsEnabled = Analytics.getEnabled();
 
 		const homepageScripts = `
-			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
-			window.__mmSearchEngine="${this.props.searchEngine}";
-			window.__mmMetametrics = ${analyticsEnabled};
-			window.postMessage('updateFavorites', '*');
-		`;
+      window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+      window.__mmSearchEngine="${this.props.searchEngine}";
+      window.__mmMetametrics = ${analyticsEnabled};
+      window.postMessage('updateFavorites', '*');
+    `;
 		this.setState({ homepageScripts }, () => {
 			const { current } = this.webview;
 			if (current) {
@@ -1146,10 +1147,10 @@ export class BrowserTab extends PureComponent {
 					const analyticsEnabled = Analytics.getEnabled();
 
 					const homepageScripts = `
-						window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
-						window.__mmSearchEngine="${this.props.searchEngine}";
-						window.__mmMetametrics = ${analyticsEnabled};
-					`;
+            window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+            window.__mmSearchEngine="${this.props.searchEngine}";
+            window.__mmMetametrics = ${analyticsEnabled};
+          `;
 					this.setState({ homepageScripts });
 				}
 			})
@@ -1244,6 +1245,7 @@ export class BrowserTab extends PureComponent {
 					this.onFrameLoadStarted(url);
 					break;
 				}
+
 				case 'NAV_CHANGE': {
 					const { url, title } = data.payload;
 					this.setState({
@@ -1257,6 +1259,7 @@ export class BrowserTab extends PureComponent {
 					this.updateTabInfo(data.payload.url);
 					break;
 				}
+
 				case 'GET_TITLE_FOR_BOOKMARK':
 					if (data.payload.title) {
 						this.setState({
