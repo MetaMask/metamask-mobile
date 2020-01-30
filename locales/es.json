@@ -507,6 +507,34 @@
 		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027",
 		"cost_explanation": "Este es el costo por procesar este pago en la blockchain."
 	},
+	"spend_limit_edition": {
+		"save": "Guardar",
+		"title": "Editar permiso",
+		"spend_limit": "Editar límite de gasto",
+		"allow": "Permitir",
+		"allow_explanation": "para retirar y gastar hasta la siguiente cantidad:",
+		"unlimited": "Ilimitado",
+		"requested_by": "Límite de gasto requerido por",
+		"custom_spend_limit": "Límite de gasto personalizado",
+		"max_spend_limit": "Ingrese un límite de gasto máximo",
+		"minimum": "1.00 {{tokenSymbol}} mínimo",
+		"cancel": "Cancelar",
+		"approve": "Aprobar",
+		"allow_to_access": "¿Permitir {{host}} para acceder a su {{tokenSymbol}}?",
+		"you_trust_this_site_1": "¿Confías en este sitio? Al otorgar este permiso, estás permitiendo a",
+		"you_trust_this_site_2": "para retirar su {{tokenSymbol}} y automatizar las transacciones por ti.",
+		"edit_permission": "Editar permiso",
+		"edit": "Editar",
+		"transaction_fee_explanation": "Una tarifa de transacción está asociada con este permiso.",
+		"view_details": "Ver detalles",
+		"permission_request": "Solicitud de permiso",
+		"details_explanation": "{{host}} puede acceder y gastar hasta esta cantidad máxima desde esta cuenta.",
+		"amount": "Cantidad:",
+		"to": "A:",
+		"contract": "Contrato ({{address}})",
+		"data": "Datos",
+		"function_approve": "Método: Aprobar"
+	},
 	"browser": {
 		"title": "Navegador",
 		"reload": "Recargar",
@@ -550,6 +578,9 @@
 	},
 	"approval": {
 		"title": "Confirmar Transacción"
+	},
+	"approve": {
+		"title": "Aprobar"
 	},
 	"transactions": {
 		"tx_review_confirm": "CONFIRMAR",
