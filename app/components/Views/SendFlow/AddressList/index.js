@@ -231,6 +231,7 @@ class AddressList extends PureComponent {
 						name={identities[address].name}
 						onAccountPress={onAccountPress}
 						onAccountLongPress={onAccountLongPress}
+						testID={'account-identity'}
 					/>
 				))}
 			</View>

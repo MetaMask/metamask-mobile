@@ -8,6 +8,7 @@ exports[`Amount should render correctly 1`] = `
       "flex": 1,
     }
   }
+  testID="amount-screen"
 >
   <View
     style={
@@ -149,6 +150,7 @@ exports[`Amount should render correctly 1`] = `
                 "textAlign": "center",
               }
             }
+            testID="txn-amount-input"
             underlineColorAndroid="transparent"
           />
         </View>
@@ -215,6 +217,7 @@ exports[`Amount should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
+        testID="txn-amount-next-button"
         type="confirm"
       >
         Next

@@ -9,8 +9,7 @@ const COLLECTIBLE_CONTRACT_ADDRESS = '0x16baf0de678e52367adc69fd067e5edd1d33e3bf
 const COLLECTIBLE_IDENTIFIER = '404';
 const TOKEN_ADDRESS = '0x12525e53a7fB9e072e60062D087b19a05442BD8f';
 const TEST_PRIVATE_KEY = 'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
-const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
-const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
+const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe('Wallet Tests', () => {
 	beforeEach(() => {
@@ -33,7 +32,11 @@ describe('Wallet Tests', () => {
 		// Check that we are on the import from seed screen
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input seed phrase
-		await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, CORRECT_SEED_WORDS);
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField(`input-seed-phrase`, CORRECT_SEED_WORDS);
+		} else {
+			await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, CORRECT_SEED_WORDS);
+		}
 		// Input password
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, CORRECT_PASSWORD);
 		// Input password confirm
@@ -86,7 +89,12 @@ describe('Wallet Tests', () => {
 		// Clear text
 		await TestHelpers.clearField('input-private-key');
 		// Input correct private key
-		await TestHelpers.typeTextAndHideKeyboard('input-private-key', TEST_PRIVATE_KEY);
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField('input-private-key', TEST_PRIVATE_KEY);
+			await element(by.id('input-private-key')).tapReturnKey();
+		} else {
+			await TestHelpers.typeTextAndHideKeyboard('input-private-key', TEST_PRIVATE_KEY);
+		}
 		// Check that we are on the account succesfully imported screen
 		await TestHelpers.checkIfVisible('import-success-screen');
 		// Tap X to close modal
@@ -296,62 +304,54 @@ describe('Wallet Tests', () => {
 		await TestHelpers.checkIfElementWithTextIsVisible('0 TENX');
 	});
 
-	it('should send ETH to account 2', async () => {
+	it('should input a valid address', async () => {
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Tap on ETH asset
 		await TestHelpers.waitAndTap('eth-logo');
 		// Check that we are on the token overview screen
 		await TestHelpers.checkIfVisible('token-asset-overview');
-		// Check that the token amount is correct
-		await TestHelpers.checkIfElementHasString('token-asset-overview', '3 ETH');
 		// Tap on Send button
 		await TestHelpers.tapByText('SEND');
 		// Check that we are on the send screen
 		await TestHelpers.checkIfVisible('send-screen');
-		// Make sure view with my accounts visible
-		await TestHelpers.checkIfExists('my-accounts-button');
-		// Make sure the no contacts message shows
-		await TestHelpers.checkIfExists('no-contacts-message');
-		// Input incorrect address
-		await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', INVALID_ADDRESS);
-		// Check that the error is displayed
-		await TestHelpers.checkIfVisible('address-error');
-		// Clear text
-		await TestHelpers.clearField('txn-to-address-input');
-		// Input valid myth address
-		await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', MYTH_ADDRESS);
-		// Tap on add this address to your address book
-		await TestHelpers.waitAndTap('add-address-button');
-		// Make sure address book modal is displayed
-		await TestHelpers.checkIfExists('add-address-modal');
-		// Input alias
-		await TestHelpers.typeTextAndHideKeyboard('address-alias-input', 'Myth');
-		// Save contact
-		await TestHelpers.tapByText('Save');
-		// Clear address
-		await TestHelpers.tap('clear-address-button');
+		// Input test address
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField('txn-to-address-input', VALID_ADDRESS);
+		} else {
+			await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', VALID_ADDRESS);
+		}
+		// Tap the Next CTA
+		await TestHelpers.waitAndTap('address-book-next-button');
+		// Check that we are on the amount view
+		await TestHelpers.checkIfVisible('amount-screen');
+	});
 
-		// Tap on Transfer between my accounts button
-		// await TestHelpers.waitAndTap('my-accounts-button');
-		// // Tap on Account 2
-		// await TestHelpers.tapByText('Account 2');
-		// // Tap the Next CTA
-		// await TestHelpers.waitAndTap('address-book-next-button');
+	it('should input and validate amount', async () => {
+		// Input amount
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField('txn-amount-input', '5');
+		} else {
+			await TestHelpers.typeTextAndHideKeyboard('txn-amount-input', '5');
+		}
+		// Tap Next CTA
+		await TestHelpers.tap('txn-amount-next-button');
+		// Check that the insufficient funds warning pops up
+		await TestHelpers.checkIfVisible('amount-error');
+		// Input acceptable value
+		await TestHelpers.replaceTextInField('txn-amount-input', '0.000001');
+		// Tap Next CTA
+		await TestHelpers.tap('txn-amount-next-button');
+		// Check that we are on the confirm view
+		await TestHelpers.checkIfVisible('txn-confirm-screen');
+	});
 
-		//OLD FLOW
-
-		// Tap on account drop down arrow
-		// await TestHelpers.tap('account-drop-down');
-		// // Tap on Account 2
-		// await TestHelpers.tapByText('Account 2');
-		// // Input Amount
-		// await TestHelpers.replaceTextInField('amount-input', '0.000001');
-		// // Tap on NEXT button
-		// await TestHelpers.tapByText('NEXT');
-		// // Tap on CONFIRM button
-		// await TestHelpers.tapByText('CONFIRM');
-		// // Check that we are on the token overview screen
-		// await TestHelpers.checkIfVisible('token-asset-overview');
+	it('should send ETH to Account 2', async () => {
+		// Check that the amount is correct
+		await TestHelpers.checkIfHasText('confirm-txn-amount', '$0.00017');
+		// Tap on the Send CTA
+		await TestHelpers.tap('txn-confirm-send-button');
+		// Check that we are on the token overview screen
+		await TestHelpers.checkIfVisible('token-asset-overview');
 	});
 });
