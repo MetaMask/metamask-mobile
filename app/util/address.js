@@ -48,8 +48,8 @@ export function renderShortXpubAddress(address, chars = 4) {
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
+	address = safeToChecksumAddress(address);
 	if (identities && address && address in identities) {
-		address = toChecksumAddress(address);
 		return identities[address].name;
 	}
 	return renderShortAddress(address);
