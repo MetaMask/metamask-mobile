@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Approve should render correctly 1`] = `
+<Approve
+  accounts={
+    Object {
+      "0x2": Object {
+        "balance": "0",
+      },
+    }
+  }
+  contractBalances={
+    Object {
+      "0x2": "0",
+    }
+  }
+  conversionRate={100}
+  currentCurrency="USD"
+  identities={
+    Object {
+      "0x1": Object {
+        "name": "Account 1",
+      },
+    }
+  }
+  setTransactionObject={[Function]}
+  showAlert={[Function]}
+  ticker="ETH"
+  transaction={Object {}}
+  transactions={Array []}
+/>
+`;

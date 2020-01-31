@@ -81,7 +81,13 @@ import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDeposit';
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
 import Networks from '../../../util/networks';
-import { CONNEXT_DEPOSIT, getMethodData, TOKEN_METHOD_TRANSFER, decodeTransferData } from '../../../util/transactions';
+import {
+	CONNEXT_DEPOSIT,
+	getMethodData,
+	TOKEN_METHOD_TRANSFER,
+	decodeTransferData,
+	APPROVE_FUNCTION_SIGNATURE
+} from '../../../util/transactions';
 import { BN, isValidAddress } from 'ethereumjs-util';
 import { isENS, safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
@@ -89,6 +95,8 @@ import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
 import AsyncStorage from '@react-native-community/async-storage';
+import Approve from '../../Views/ApproveView/Approve';
+import ApproveSuccess from '../../Views/ApproveView/Success';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
@@ -274,6 +282,25 @@ const MainNavigator = createStackNavigator(
 				}
 			})
 		},
+		ApproveView: {
+			screen: createStackNavigator({
+				Approve: {
+					screen: Approve
+				}
+			})
+		},
+		ApproveSuccessView: {
+			screen: createStackNavigator(
+				{
+					ApproveSuccess: {
+						screen: ApproveSuccess
+					}
+				},
+				{
+					headerMode: 'none'
+				}
+			)
+		},
 		AddBookmarkView: {
 			screen: createStackNavigator({
 				AddBookmark: {
@@ -379,10 +406,6 @@ class Main extends PureComponent {
 		 * Action that sets a transaction
 		 */
 		setTransactionObject: PropTypes.func,
-		/**
-		 * Object containing the information for the current transaction
-		 */
-		transaction: PropTypes.object,
 		/**
 		 * Selected address
 		 */
@@ -761,13 +784,7 @@ class Main extends PureComponent {
 	};
 
 	onUnapprovedTransaction = async transactionMeta => {
-		if (
-			this.props.transaction.value ||
-			this.props.transaction.to ||
-			transactionMeta.origin === TransactionTypes.MMM
-		) {
-			return;
-		}
+		if (transactionMeta.origin === TransactionTypes.MMM) return;
 		// Check if it's a payment channel deposit transaction to sign
 		const to = safeToChecksumAddress(transactionMeta.transaction.to);
 		const networkId = Networks[this.props.providerType].networkId;
@@ -820,6 +837,7 @@ class Main extends PureComponent {
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
 					selectedAsset: asset,
 					id: transactionMeta.id,
+					origin: transactionMeta.origin,
 					...transactionMeta.transaction
 				});
 			} else {
@@ -828,10 +846,16 @@ class Main extends PureComponent {
 
 				this.props.setEtherTransaction({
 					id: transactionMeta.id,
+					origin: transactionMeta.origin,
 					...transactionMeta.transaction
 				});
 			}
-			this.props.navigation.push('ApprovalView');
+
+			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
+				this.props.navigation.push('ApproveView');
+			} else {
+				this.props.navigation.push('ApprovalView');
+			}
 		}
 	};
 
@@ -1075,7 +1099,6 @@ class Main extends PureComponent {
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
-	transaction: state.transaction,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
