@@ -73,7 +73,7 @@ export default function ActionView({
 						containerStyle={[styles.button, styles.cancel]}
 						disabled={confirmed}
 					>
-						{cancelText.toUpperCase()}
+						{cancelText}
 					</StyledButton>
 				)}
 				{showConfirmButton && (
@@ -84,7 +84,7 @@ export default function ActionView({
 						containerStyle={[styles.button, styles.confirm]}
 						disabled={confirmed || confirmDisabled}
 					>
-						{confirmed ? <ActivityIndicator size="small" color="white" /> : confirmText.toUpperCase()}
+						{confirmed ? <ActivityIndicator size="small" color="white" /> : confirmText}
 					</StyledButton>
 				)}
 			</View>
