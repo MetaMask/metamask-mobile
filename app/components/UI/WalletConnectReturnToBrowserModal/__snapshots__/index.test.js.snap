@@ -8,7 +8,7 @@ exports[`WalletConnectReturnToBrowserModal should render correctly 1`] = `
     style={
       Object {
         "color": "#000000",
-        "fontFamily": "Roboto",
+        "fontFamily": "CircularStd-Medium",
         "fontSize": 22,
         "fontWeight": "600",
         "marginBottom": 15,
@@ -24,7 +24,7 @@ exports[`WalletConnectReturnToBrowserModal should render correctly 1`] = `
         "alignSelf": "center",
         "borderRadius": 10,
         "color": "#777777",
-        "fontFamily": "Roboto",
+        "fontFamily": "CircularStd-Medium",
         "fontSize": 16,
         "fontWeight": "400",
         "textAlign": "center",

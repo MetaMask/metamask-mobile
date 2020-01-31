@@ -45,7 +45,7 @@ exports[`Confirm should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "marginVertical": 3,
@@ -71,7 +71,7 @@ exports[`Confirm should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "marginVertical": 3,
@@ -106,7 +106,7 @@ exports[`Confirm should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
             }
@@ -119,7 +119,7 @@ exports[`Confirm should render correctly 1`] = `
             Array [
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
               },
@@ -143,7 +143,7 @@ exports[`Confirm should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
             }
@@ -190,13 +190,13 @@ exports[`Confirm should render correctly 1`] = `
             Array [
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
               },
               Object {
                 "alignSelf": "flex-end",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontWeight": "600",
               },
             ]
@@ -267,7 +267,7 @@ exports[`Confirm should render correctly 1`] = `
             Object {
               "alignSelf": "center",
               "color": "#037dd6",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -290,7 +290,7 @@ exports[`Confirm should render correctly 1`] = `
             Object {
               "alignSelf": "center",
               "color": "#037dd6",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -370,7 +370,7 @@ exports[`Confirm should render correctly 1`] = `
             Object {
               "alignSelf": "center",
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 18,
               "fontWeight": "600",
               "margin": 16,
@@ -467,7 +467,7 @@ exports[`Confirm should render correctly 1`] = `
             Object {
               "alignItems": "center",
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 16,
               "fontWeight": "600",
               "justifyContent": "center",

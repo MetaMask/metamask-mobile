@@ -23,7 +23,7 @@ exports[`NetworkList should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 18,
           "fontWeight": "600",
           "marginHorizontal": 20,
@@ -123,7 +123,7 @@ exports[`NetworkList should render correctly 1`] = `
               style={
                 Object {
                   "color": "#000000",
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontSize": 16,
                   "fontWeight": "400",
                 }
@@ -138,7 +138,7 @@ exports[`NetworkList should render correctly 1`] = `
             style={
               Object {
                 "color": "#777777",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "marginLeft": 30,
@@ -164,7 +164,7 @@ exports[`NetworkList should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 13,
             "fontWeight": "600",
             "marginHorizontal": 20,
@@ -228,7 +228,7 @@ exports[`NetworkList should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 16,
               "fontWeight": "400",
             }
@@ -289,7 +289,7 @@ exports[`NetworkList should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 16,
               "fontWeight": "400",
             }
@@ -350,7 +350,7 @@ exports[`NetworkList should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 16,
               "fontWeight": "400",
             }
@@ -411,7 +411,7 @@ exports[`NetworkList should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 16,
               "fontWeight": "400",
             }
@@ -474,7 +474,7 @@ exports[`NetworkList should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 16,
               "fontWeight": "400",
             }
@@ -512,7 +512,7 @@ exports[`NetworkList should render correctly 1`] = `
         style={
           Object {
             "color": "#037dd6",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 16,
             "fontWeight": "400",
           }

@@ -17,7 +17,7 @@ exports[`AccountApproval should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 14,
           "fontWeight": "600",
           "marginVertical": 24,
@@ -85,7 +85,7 @@ exports[`AccountApproval should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "textAlign": "center",
@@ -98,7 +98,7 @@ exports[`AccountApproval should render correctly 1`] = `
             style={
               Object {
                 "color": "#777777",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "textAlign": "center",
@@ -188,7 +188,7 @@ exports[`AccountApproval should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "marginTop": 12,
@@ -204,7 +204,7 @@ exports[`AccountApproval should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "marginVertical": 24,
@@ -216,7 +216,7 @@ exports[`AccountApproval should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 20,
               "fontWeight": "600",
             }
@@ -248,7 +248,7 @@ exports[`AccountApproval should render correctly 1`] = `
               "color": "#000000",
               "flexGrow": 1,
               "flexShrink": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -259,7 +259,7 @@ exports[`AccountApproval should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 14,
                 "fontWeight": "600",
               }
@@ -280,7 +280,7 @@ exports[`AccountApproval should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "marginVertical": 24,
