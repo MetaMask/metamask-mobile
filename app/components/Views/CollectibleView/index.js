@@ -6,9 +6,9 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
-import { setIndividualCollectibleTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
+import { newAssetTransaction } from '../../../actions/newTransaction';
 
 const styles = StyleSheet.create({
 	root: {
@@ -46,9 +46,9 @@ class CollectibleView extends PureComponent {
 		*/
 		navigation: PropTypes.object,
 		/**
-		 * Action that sets a collectible contract type transaction
+		 * Start transaction with asset
 		 */
-		setIndividualCollectibleTransaction: PropTypes.func.isRequired
+		newAssetTransaction: PropTypes.func
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -60,8 +60,8 @@ class CollectibleView extends PureComponent {
 				state: { params }
 			}
 		} = this.props;
-		this.props.setIndividualCollectibleTransaction(params);
-		this.props.navigation.navigate('SendView');
+		this.props.newAssetTransaction(params);
+		this.props.navigation.navigate('SendFlowView');
 	};
 
 	render() {
@@ -104,7 +104,7 @@ class CollectibleView extends PureComponent {
 }
 
 const mapDispatchToProps = dispatch => ({
-	setIndividualCollectibleTransaction: collectible => dispatch(setIndividualCollectibleTransaction(collectible))
+	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
 });
 
 export default connect(

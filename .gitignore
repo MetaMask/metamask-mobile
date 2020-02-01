@@ -57,7 +57,6 @@ buck-out/
 coverage
 
 # app-specific
-/android/app/src/main/assets/InpageBridge.js
 /android/app/src/main/assets/InpageBridgeWeb3.js
 /app/core/InpageBridgeWeb3.js
 

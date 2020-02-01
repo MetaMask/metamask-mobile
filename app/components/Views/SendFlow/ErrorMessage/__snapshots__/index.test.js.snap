@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ErrorMessage should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#fcf2f3",
+      "borderColor": "#D73A49",
+      "borderRadius": 4,
+      "borderWidth": 1,
+      "padding": 15,
+    }
+  }
+>
+  <Text
+    style={
+      Object {
+        "alignItems": "center",
+        "color": "#D73A49",
+        "flexDirection": "row",
+        "fontFamily": "Roboto",
+        "fontSize": 12,
+        "fontWeight": "400",
+      }
+    }
+  >
+    error
+  </Text>
+</View>
+`;

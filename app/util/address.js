@@ -48,8 +48,8 @@ export function renderShortXpubAddress(address, chars = 4) {
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
+	address = safeToChecksumAddress(address);
 	if (identities && address && address in identities) {
-		address = toChecksumAddress(address);
 		return identities[address].name;
 	}
 	return renderShortAddress(address);
@@ -86,19 +86,6 @@ export function isENS(name) {
 	}
 	return true;
 }
-/**
- * Validates an InstaPay name
- *
- * @param {String} name - String corresponding to an InstaPay name
- * @returns {boolean} - Returns a boolean indicating if it is valid
- */
-export function isInstaPay(name) {
-	if (!isValidXpub(name)) {
-		const matches = name.match(/^[a-zA-Z0-9]*$/);
-		return (matches && matches.length > 0) || false;
-	}
-	return false;
-}
 
 /**
  * Determines if a given string looks like a valid Ethereum address
@@ -120,7 +107,7 @@ export function safeToChecksumAddress(address) {
  * @param {address} string
  */
 export function isValidXpub(address) {
-	if (address && (!address.startsWith('xpub') || address.length !== 111)) {
+	if (address && (!address.toLowerCase().startsWith('xpub') || address.length !== 111)) {
 		return false;
 	}
 	return true;

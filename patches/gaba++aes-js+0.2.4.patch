@@ -1,0 +1,13 @@
+diff --git a/node_modules/gaba/node_modules/aes-js/index.js b/node_modules/gaba/node_modules/aes-js/index.js
+index 70da76b..2a5afa4 100644
+--- a/node_modules/gaba/node_modules/aes-js/index.js
++++ b/node_modules/gaba/node_modules/aes-js/index.js
+@@ -2,7 +2,7 @@
+
+ (function() {
+     var root = this;
+-    var previous_mymodule = root.mymodule;
++    //////var previous_mymodule = root.mymodule;
+
+     var createBuffer = null, convertBytesToString, convertStringToBytes = null;
+

@@ -70,6 +70,7 @@ export const TransactionNotification = props => {
 			case 'received_payment':
 				return <Icon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
 			case 'cancelled':
+			case 'error_withdrawal':
 			case 'error':
 				return (
 					<MaterialIcon color={colors.red} size={36} name="alert-circle-outline" style={styles.checkIcon} />
@@ -92,6 +93,8 @@ export const TransactionNotification = props => {
 				return strings('notifications.success_deposit_title');
 			case 'success_withdrawal':
 				return strings('notifications.success_withdrawal_title');
+			case 'error_withdrawal':
+				return strings('notifications.error_withdrawal_title');
 			case 'received':
 				return strings('notifications.received_title', {
 					amount: transaction.amount,

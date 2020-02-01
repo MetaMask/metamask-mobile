@@ -348,10 +348,10 @@ class PaymentChannel extends PureComponent {
 		const aMinuteAgo = Date.now() - 1000 * 60 * 1;
 		if (transactions && transactions.length && this.state.xpub) {
 			parsedTransactions = transactions
-				.map(tx => ({
+				.map((tx, i) => ({
 					time: Date.parse(tx.createdAt),
 					status: tx.receiverPublicIdentifier ? 'confirmed' : 'submitted',
-					id: tx.id.toString(),
+					id: i.toString(),
 					paymentChannelTransaction: true,
 					transaction: {
 						from: tx.senderPublicIdentifier,

@@ -1,6 +1,7 @@
 package io.metamask;
 
 import com.facebook.react.ReactApplication;
+import com.sensors.RNSensorsPackage;
 import net.rhogan.rnsecurerandom.RNSecureRandomPackage;
 import com.peel.react.TcpSocketsModule;
 import com.swmansion.reanimated.ReanimatedPackage;
@@ -51,6 +52,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		protected List<ReactPackage> getPackages() {
 			return Arrays.<ReactPackage>asList(
 					new MainReactPackage(),
+            new RNSensorsPackage(),
 					new RNSecureRandomPackage(),
 					new TcpSocketsModule(),
 					new ReanimatedPackage(),

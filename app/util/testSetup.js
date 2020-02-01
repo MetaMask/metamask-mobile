@@ -142,6 +142,3 @@ NativeModules.PlatformConstants = {
 };
 
 jest.mock('NativeAnimatedHelper');
-
-jest.mock('expo-random', () => ({ getRandomBytesAsync: jest.fn() }));
-jest.mock('react-native-securerandom', () => ({ generateSecureRandom: () => Promise.resolve(1) }));

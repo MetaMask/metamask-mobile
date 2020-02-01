@@ -489,14 +489,52 @@
 		"speedup_tx_message": "Enviar este intento no garantiza que su transacción original se acelerará. Si el intento de acelerar es exitoso, se le cobrará la tarifa de transacción anterior.",
 		"nevermind": "No, gracias",
 		"gas_cancel_fee": "Tarifa de Cancelación",
-		"gas_speedup_fee": "Tarifa de Aceleración"
+		"gas_speedup_fee": "Tarifa de Aceleración",
+		"use_max": "Usar máximo",
+		"set_gas": "Ajustar",
+		"cancel_gas": "Cancelar",
+		"transaction_fee": "Tarifa de transacción",
+		"total_amount": "Cantidad total",
+		"adjust_transaction_fee": "Ajustar tarifa de transacción",
+		"could_not_resolve_ens": "No se pudo resolver nombre ENS",
+		"asset": "Activo",
+		"balance": "Balance"
 	},
 	"custom_gas": {
-		"advanced_options": "Opciones Avanzadas",
-		"hide_advanced_options": "Ocultar Opciones Avanzadas",
+		"advanced_options": "Mostrar opciones avanzadas",
+		"hide_advanced_options": "Ocultar opciones avanzadas",
 		"gas_limit": "Límite de Gas:",
 		"gas_price": "Precio de Gas: (GWEI)",
-		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027"
+		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027",
+		"cost_explanation": "Este es el costo por procesar este pago en la blockchain."
+	},
+	"spend_limit_edition": {
+		"save": "Guardar",
+		"title": "Editar permiso",
+		"spend_limit": "Editar límite de gasto",
+		"allow": "Permitir",
+		"allow_explanation": "para retirar y gastar hasta la siguiente cantidad:",
+		"unlimited": "Ilimitado",
+		"requested_by": "Límite de gasto requerido por",
+		"custom_spend_limit": "Límite de gasto personalizado",
+		"max_spend_limit": "Ingrese un límite de gasto máximo",
+		"minimum": "1.00 {{tokenSymbol}} mínimo",
+		"cancel": "Cancelar",
+		"approve": "Aprobar",
+		"allow_to_access": "¿Permitir {{host}} para acceder a su {{tokenSymbol}}?",
+		"you_trust_this_site_1": "¿Confías en este sitio? Al otorgar este permiso, estás permitiendo a",
+		"you_trust_this_site_2": "para retirar su {{tokenSymbol}} y automatizar las transacciones por ti.",
+		"edit_permission": "Editar permiso",
+		"edit": "Editar",
+		"transaction_fee_explanation": "Una tarifa de transacción está asociada con este permiso.",
+		"view_details": "Ver detalles",
+		"permission_request": "Solicitud de permiso",
+		"details_explanation": "{{host}} puede acceder y gastar hasta esta cantidad máxima desde esta cuenta.",
+		"amount": "Cantidad:",
+		"to": "A:",
+		"contract": "Contrato ({{address}})",
+		"data": "Datos",
+		"function_approve": "Método: Aprobar"
 	},
 	"browser": {
 		"title": "Navegador",
@@ -542,6 +580,9 @@
 	"approval": {
 		"title": "Confirmar Transacción"
 	},
+	"approve": {
+		"title": "Aprobar"
+	},
 	"transactions": {
 		"tx_review_confirm": "CONFIRMAR",
 		"tx_review_transfer": "TRANSFERIR",
@@ -584,7 +625,33 @@
 		"view_on_etherscan": "VER EN ETHERSCAN",
 		"hash_copied_to_clipboard": "El hash de la transacción fue copiado al portapapeles",
 		"address_copied_to_clipboard": "La dirección fue copiada al portapapeles",
-		"transaction_error": "Error de transacción"
+		"transaction_error": "Error de transacción",
+		"address_to_placeholder": "Buscar, dirección pública (0x), o ENS",
+		"address_from_balance": "Balance:"
+	},
+	"address_book": {
+		"recents": "Recientes",
+		"save": "Guardar",
+		"delete_contact": "Eliminar contacto",
+		"delete": "Eliminar",
+		"cancel": "Cancelar",
+		"add_to_address_book": "Agregar a libreta de direcciones",
+		"enter_an_alias": "Introduce un alias",
+		"add_this_address": "Agrega esta dirección a tu libreta de direcciones",
+		"next": "Siguiente",
+		"enter_an_alias_placeholder": "ej. Vitalik B.",
+		"add_contact_title": "Agregar Contacto",
+		"add_contact": "Agregar contacto",
+		"edit_contact_title": "Editar Contacto",
+		"edit_contact": "Editar contacto",
+		"address_already_saved": "Este contacto ya está guardado",
+		"address": "Dirección",
+		"name": "Nombre",
+		"nickname": "Nombre",
+		"add_input_placeholder": "Dirección pública (0x), o ENS",
+		"between_account": "Transferir entre mis cuentas",
+		"no_contacts": "No tienes contactos en tu agenda",
+		"others": "Otros"
 	},
 	"transaction_submitted": {
 		"title": "Transacción Enviada",
@@ -809,6 +876,7 @@
 		"speedup_title": "Acelerando #{{nonce}}!",
 		"success_deposit_title": "Depósito Completo!",
 		"success_withdrawal_title": "Retiro Completo!",
+		"error_withdrawal_title": "Retiro Fallido",
 		"error_title": "Oops, algo ha salido mal :/",
 		"received_title": "Has recibido {{amount}} {{assetType}}!",
 		"received_payment_title": "Pago instantáneo recibido",
@@ -820,6 +888,7 @@
 		"speedup_message": "Intentando acelerar la transacción",
 		"success_deposit_message": "Tus fondos están listos para ser utilizados",
 		"success_withdrawal_message": "Tus fondos han sido transferidos a tu billetera",
+		"error_withdrawal_message": "Por favor inténtalo de nuevo",
 		"received_message": "Presiona para ver esta transacción",
 		"received_payment_message": "Has recibido {{amount}} DAI",
 		"prompt_title": "Habilitar Notificationes",

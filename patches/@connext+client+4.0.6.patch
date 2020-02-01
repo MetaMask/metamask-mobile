@@ -1,0 +1,13 @@
+diff --git a/node_modules/@connext/client/dist/connext.js b/node_modules/@connext/client/dist/connext.js
+index b9ad5da..587e9ba 100644
+--- a/node_modules/@connext/client/dist/connext.js
++++ b/node_modules/@connext/client/dist/connext.js
+@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const types_1 = require("@connext/types");
+-require("core-js/stable");
++
+ const ethers_1 = require("ethers");
+ const constants_1 = require("ethers/constants");
+ const utils_1 = require("ethers/utils");

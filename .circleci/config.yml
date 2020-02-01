@@ -86,7 +86,7 @@ jobs:
               yarn global add detox-cli
       - run: echo $IOS_ENV | tr "|" "\n" > .ios.env
       - run: detox clean-framework-cache && detox build-framework-cache
-      - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
+      - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup --workers 2
   upload-coverage:
     <<: *defaults
     docker:

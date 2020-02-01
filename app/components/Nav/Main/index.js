@@ -30,6 +30,7 @@ import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import AppInformation from '../../Views/Settings/AppInformation';
+import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import TransactionsView from '../../Views/TransactionsView';
 import SyncWithExtension from '../../Views/SyncWithExtension';
@@ -38,6 +39,7 @@ import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import CollectibleView from '../../Views/CollectibleView';
 import Send from '../../Views/Send';
+import SendTo from '../../Views/SendFlow/SendTo';
 import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -83,7 +85,13 @@ import InstaPayUpdate from '../../Views/PaymentChannel/InstaPayUpdate';
 import InstaPayMigrating from '../../Views/PaymentChannel/InstaPayMigrating';
 import InstaPayWithdrawing from '../../Views/PaymentChannel/InstaPayWithdrawing';
 
-import { getMethodData, TOKEN_METHOD_TRANSFER, decodeTransferData } from '../../../util/transactions';
+import Networks from '../../../util/networks';
+import {
+	getMethodData,
+	TOKEN_METHOD_TRANSFER,
+	decodeTransferData,
+	APPROVE_FUNCTION_SIGNATURE
+} from '../../../util/transactions';
 import { BN, isValidAddress } from 'ethereumjs-util';
 import { isENS, safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
@@ -91,6 +99,12 @@ import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
 import AsyncStorage from '@react-native-community/async-storage';
+import Approve from '../../Views/ApproveView/Approve';
+import ApproveSuccess from '../../Views/ApproveView/Success';
+import Amount from '../../Views/SendFlow/Amount';
+import Confirm from '../../Views/SendFlow/Confirm';
+import ContactForm from '../../Views/Settings/Contacts/ContactForm';
+import TransactionTypes from '../../../core/TransactionTypes';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -207,6 +221,12 @@ const MainNavigator = createStackNavigator(
 				CompanySettings: {
 					screen: AppInformation
 				},
+				ContactsSettings: {
+					screen: Contacts
+				},
+				ContactForm: {
+					screen: ContactForm
+				},
 				SyncWithExtensionView: {
 					screen: SyncWithExtension
 				},
@@ -246,12 +266,44 @@ const MainNavigator = createStackNavigator(
 				}
 			})
 		},
+		SendFlowView: {
+			screen: createStackNavigator({
+				SendTo: {
+					screen: SendTo
+				},
+				Amount: {
+					screen: Amount
+				},
+				Confirm: {
+					screen: Confirm
+				}
+			})
+		},
 		ApprovalView: {
 			screen: createStackNavigator({
 				Approval: {
 					screen: Approval
 				}
 			})
+		},
+		ApproveView: {
+			screen: createStackNavigator({
+				Approve: {
+					screen: Approve
+				}
+			})
+		},
+		ApproveSuccessView: {
+			screen: createStackNavigator(
+				{
+					ApproveSuccess: {
+						screen: ApproveSuccess
+					}
+				},
+				{
+					headerMode: 'none'
+				}
+			)
 		},
 		AddBookmarkView: {
 			screen: createStackNavigator({
@@ -383,6 +435,10 @@ class Main extends PureComponent {
 		 * Object containing the information for the current transaction
 		 */
 		transaction: PropTypes.object,
+    /**
+		 * Selected address
+		 */
+		selectedAddress: PropTypes.string,
 		/**
 		 * Array of ERC20 assets
 		 */
@@ -750,15 +806,15 @@ class Main extends PureComponent {
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transactionMeta.id);
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+				{ text: strings('navigation.ok') }
+			]);
 			this.setState({ transactionHandled: false });
 		}
 	};
 
 	onUnapprovedTransaction = async transactionMeta => {
-		if (this.props.transaction.value || this.props.transaction.to) {
-			return;
-		}
+		if (transactionMeta.origin === TransactionTypes.MMM) return;
 		// Check if it's a payment channel deposit transaction to sign
 		const to = safeToChecksumAddress(transactionMeta.transaction.to);
 		if (
@@ -808,6 +864,7 @@ class Main extends PureComponent {
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
 					selectedAsset: asset,
 					id: transactionMeta.id,
+					origin: transactionMeta.origin,
 					...transactionMeta.transaction
 				});
 			} else {
@@ -816,10 +873,16 @@ class Main extends PureComponent {
 
 				this.props.setEtherTransaction({
 					id: transactionMeta.id,
+					origin: transactionMeta.origin,
 					...transactionMeta.transaction
 				});
 			}
-			this.props.navigation.push('ApprovalView');
+
+			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
+				this.props.navigation.push('ApproveView');
+			} else {
+				this.props.navigation.push('ApprovalView');
+			}
 		}
 	};
 
@@ -1064,6 +1127,7 @@ class Main extends PureComponent {
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	transaction: state.transaction,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,

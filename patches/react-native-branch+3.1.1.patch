@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-branch/android/build.gradle b/node_modules/react-native-branch/android/build.gradle
+index 438f0e3..3eb34a7 100755
+--- a/node_modules/react-native-branch/android/build.gradle
++++ b/node_modules/react-native-branch/android/build.gradle
+@@ -13,7 +13,7 @@ android {
+     compileSdkVersion safeExtGet('compileSdkVersion', 26)
+
+     defaultConfig {
+-        minSdkVersion safeExtGet('minSdkVersion', 16)
++        minSdkVersion safeExtGet('minSdkVersion', 19)
+         targetSdkVersion safeExtGet('targetSdkVersion', 26)
+         versionCode 1
+         versionName "1.0"

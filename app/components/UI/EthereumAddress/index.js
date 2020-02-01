@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { InteractionManager, Text } from 'react-native';
 import { connect } from 'react-redux';
 import { renderShortAddress, renderFullAddress } from '../../../util/address';
-import doENSReverseLookup from '../../../util/ENSUtils';
+import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { isValidAddress } from 'ethereumjs-util';
 
 /**

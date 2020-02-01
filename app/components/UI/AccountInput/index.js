@@ -5,20 +5,12 @@ import PropTypes from 'prop-types';
 import { ScrollView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import {
-	renderShortAddress,
-	renderShortXpubAddress,
-	isENS,
-	isInstaPay,
-	isValidXpub,
-	resemblesAddress
-} from '../../../util/address';
+import { renderShortAddress, renderShortXpubAddress, isENS, resemblesAddress } from '../../../util/address';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ElevatedView from 'react-native-elevated-view';
 import ENS from 'ethjs-ens';
 import networkMap from 'ethjs-ens/lib/network-map.json';
 import Engine from '../../../core/Engine';
-import InstaPay from '../../../core/InstaPay';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import DeviceSize from '../../../util/DeviceSize';
@@ -239,14 +231,6 @@ class AccountInput extends PureComponent {
 		return true;
 	};
 
-	isInstaPayName = recipient => {
-		if (!isInstaPay(recipient)) {
-			this.setState({ ensRecipient: undefined });
-			return false;
-		}
-		return true;
-	};
-
 	lookupEnsName = async recipient => {
 		const { address } = this.state;
 		try {
@@ -256,20 +240,6 @@ class AccountInput extends PureComponent {
 				return true;
 			}
 			throw new Error(strings('transaction.no_address_for_ens'));
-		} catch (error) {
-			this.props.updateToAddressError && this.props.updateToAddressError(error.message);
-			return false;
-		}
-	};
-
-	lookupInstaPayName = async recipient => {
-		try {
-			const resolvedAddress = await InstaPay.getXpubFromUsername(recipient.trim());
-			if (isValidXpub(resolvedAddress)) {
-				this.setState({ address: resolvedAddress, instaPayRecipient: recipient });
-				return true;
-			}
-			throw new Error(strings('transaction.no_address_for_instapay'));
 		} catch (error) {
 			this.props.updateToAddressError && this.props.updateToAddressError(error.message);
 			return false;
@@ -289,11 +259,6 @@ class AccountInput extends PureComponent {
 			const isEnsName = this.isEnsName(value) && (await this.lookupEnsName(value));
 			if (isEnsName) {
 				onBlur && onBlur(address, value);
-			} else {
-				const isInstaPayName = this.isInstaPayName(value) && (await this.lookupInstaPayName(value));
-				if (isInstaPayName) {
-					onBlur && onBlur(address, value);
-				}
 			}
 		} else {
 			this.setState({ address: value, ensRecipient: undefined, instaPayRecipient: undefined });

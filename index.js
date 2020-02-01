@@ -2,8 +2,6 @@ import './shim.js';
 
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
-// eslint-disable-next-line import/no-commonjs
-const isomorphicCrypto = require('isomorphic-webcrypto');
 import { AppRegistry, YellowBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
@@ -14,6 +12,10 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'{}',
+	'Module RCTSearchApiManager',
+	'Unable to symbolicate stack trace',
+	'socketDidDisconnect',
 	'Sending acceptance message',
 	'waiting for proposal acceptance',
 	'Not subscribed to',
@@ -49,21 +51,14 @@ YellowBox.ignoreWarnings([
 	'RCTBridge required dispatch_sync',
 	'Remote debugger is in a background tab',
 	"Can't call setState (or forceUpdate) on an unmounted component",
+	'No stops in gradient',
+	"Cannot read property 'hash' of null",
 	'asmCrypto seems to be load',
 	'Successfully proposed',
 	'Attempting to resolve promise'
 ]);
 
-async function secureRandomValuesBeforeInit() {
-	if (!__DEV__) {
-		await isomorphicCrypto.ensureSecure();
-		const array = new Uint8Array(1);
-		isomorphicCrypto.getRandomValues(array);
-	}
-	/**
-	 * Application entry point responsible for registering root component
-	 */
-	AppRegistry.registerComponent(name, () => Root);
-}
-
-secureRandomValuesBeforeInit();
+/**
+ * Application entry point responsible for registering root component
+ */
+AppRegistry.registerComponent(name, () => Root);

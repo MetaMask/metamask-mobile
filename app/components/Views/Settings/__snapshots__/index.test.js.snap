@@ -22,6 +22,11 @@ exports[`Settings should render correctly 1`] = `
     title="Advanced"
   />
   <SettingsDrawer
+    description="Add, edit, remove, and manage your accounts"
+    onPress={[Function]}
+    title="Contacts"
+  />
+  <SettingsDrawer
     description="Privacy settings, MetaMetrics, private key and wallet seed phrase"
     onPress={[Function]}
     title="Security & Privacy"
