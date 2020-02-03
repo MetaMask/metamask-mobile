@@ -2,6 +2,8 @@ import './shim.js';
 
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
+// eslint-disable-next-line import/no-commonjs
+const isomorphicCrypto = require('isomorphic-webcrypto');
 import { AppRegistry, YellowBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
@@ -58,7 +60,16 @@ YellowBox.ignoreWarnings([
 	'Attempting to resolve promise'
 ]);
 
-/**
- * Application entry point responsible for registering root component
- */
-AppRegistry.registerComponent(name, () => Root);
+async function secureRandomValuesBeforeInit() {
+	if (!__DEV__) {
+		await isomorphicCrypto.ensureSecure();
+		const array = new Uint8Array(1);
+		isomorphicCrypto.getRandomValues(array);
+	}
+	/**
+	 * Application entry point responsible for registering root component
+	 */
+	AppRegistry.registerComponent(name, () => Root);
+}
+
+secureRandomValuesBeforeInit();
