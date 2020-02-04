@@ -35,8 +35,6 @@ import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Engine from '../../../core/Engine';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
-import ActionModal from '../ActionModal';
-import { getVersion, getBuildNumber, getSystemName, getApiLevel, getSystemVersion } from 'react-native-device-info';
 import Logger from '../../../util/Logger';
 import DeviceSize from '../../../util/DeviceSize';
 import OnboardingWizard from '../OnboardingWizard';
@@ -226,24 +224,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 		margin: 0
 	},
-	modalView: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		padding: 20,
-		flexDirection: 'column'
-	},
-	modalText: {
-		fontSize: 18,
-		textAlign: 'center',
-		...fontStyles.normal
-	},
-	modalTitle: {
-		fontSize: 22,
-		marginBottom: 15,
-		textAlign: 'center',
-		...fontStyles.bold
-	},
 	secureModalText: {
 		textAlign: 'center',
 		fontSize: 13,
@@ -381,7 +361,6 @@ class DrawerView extends PureComponent {
 	};
 
 	state = {
-		submitFeedback: false,
 		showSecureWalletModal: false
 	};
 
@@ -583,43 +562,10 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_VIEW_ETHERSCAN);
 	};
 
-	submitFeedback = () => {
-		this.setState({ submitFeedback: true });
-	};
-
-	closeSubmitFeedback = () => {
-		this.setState({ submitFeedback: false });
-	};
-	handleURL = url => {
-		const handleError = error => {
-			console.log(error);
-			this.closeSubmitFeedback();
-		};
-		if (USE_EXTERNAL_LINKS) {
-			Linking.openURL(url)
-				.then(this.closeSubmitFeedback)
-				.catch(handleError);
-		} else {
-			this.goToBrowserUrl(url, strings('drawer.submit_bug'));
-			this.closeSubmitFeedback();
-		}
-	};
 	goToBugFeedback = () => {
-		this.handleURL('https://metamask.zendesk.com/hc/en-us/requests/new');
-	};
-
-	goToGeneralFeedback = () => {
-		const formId = '1FAIpQLSecHcnnn84-m01guIbv7Nh93mCj_G8IVdDn96dKFcXgNx0fKg';
-		this.goToFeedback(formId);
-	};
-
-	goToFeedback = async formId => {
-		const appVersion = await getVersion();
-		const buildNumber = await getBuildNumber();
-		const systemName = await getSystemName();
-		const systemVersion = systemName === 'Android' ? await getApiLevel() : await getSystemVersion();
-		this.handleURL(
-			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`
+		this.goToBrowserUrl(
+			`https://metamask.zendesk.com/hc/en-us/requests/new`,
+			strings('drawer.submit_feedback_title')
 		);
 	};
 
@@ -770,7 +716,7 @@ class DrawerView extends PureComponent {
 				},
 				{
 					name: strings('drawer.submit_feedback'),
-					action: this.submitFeedback
+					action: this.goToBugFeedback
 				},
 				{
 					name: strings('drawer.logout'),
@@ -1004,21 +950,6 @@ class DrawerView extends PureComponent {
 					/>
 				</Modal>
 				{this.renderOnboardingWizard()}
-				<ActionModal
-					modalVisible={this.state.submitFeedback}
-					confirmText={strings('drawer.submit_bug')}
-					cancelText={strings('drawer.submit_general_feedback')}
-					onCancelPress={this.goToGeneralFeedback}
-					onRequestClose={this.closeSubmitFeedback}
-					onConfirmPress={this.goToBugFeedback}
-					cancelButtonMode={'confirm'}
-					confirmButtonMode={'confirm'}
-				>
-					<View style={styles.modalView}>
-						<Text style={styles.modalTitle}>{strings('drawer.submit_feedback')}</Text>
-						<Text style={styles.modalText}>{strings('drawer.submit_feedback_message')}</Text>
-					</View>
-				</ActionModal>
 				<Modal
 					isVisible={this.props.receiveModalVisible}
 					onBackdropPress={this.toggleReceiveModal}
