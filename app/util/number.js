@@ -324,9 +324,7 @@ export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
 export function handleWeiNumber(wei) {
 	const comps = wei.split('.');
 	let fraction = comps[1];
-	console.log('ORIGINAL FRACTION', fraction);
 	if (fraction && fraction.length > 18) fraction = fraction.substring(0, 18);
-	console.log('FRACTION', fraction);
 	const finalWei = fraction ? [comps[0], fraction].join('.') : comps[0];
 	return finalWei;
 }
