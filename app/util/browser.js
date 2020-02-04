@@ -32,10 +32,12 @@ export default function onUrlSubmit(input, searchEngine = 'Google', defaultProto
  * Return host from url string
  *
  * @param {string} url - String containing url
+ * @param {string} defaultProtocol - Protocol string to append to URLs that have none
  * @returns {string} - String corresponding to host
  */
-export function getHost(url) {
-	const urlObj = new URL(url);
+export function getHost(url, defaultProtocol = 'https://') {
+	const hasProtocol = url.match(/^[a-z]*:\/\//);
+	const urlObj = new URL(hasProtocol ? url : `${defaultProtocol}${url}`);
 	const { hostname } = urlObj;
 	return hostname;
 }
