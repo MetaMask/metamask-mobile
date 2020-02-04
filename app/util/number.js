@@ -316,6 +316,22 @@ export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
 }
 
 /**
+ * Handles wie input to have less or equal to 18 decimals
+ *
+ * @param {string} wei - Amount in decimal notation
+ * @returns {string} - Number string with less or equal 18 decimals
+ */
+export function handleWeiNumber(wei) {
+	const comps = wei.split('.');
+	let fraction = comps[1];
+	console.log('ORIGINAL FRACTION', fraction);
+	if (fraction && fraction.length > 18) fraction = fraction.substring(0, 18);
+	console.log('FRACTION', fraction);
+	const finalWei = fraction ? [comps[0], fraction].join('.') : comps[0];
+	return finalWei;
+}
+
+/**
  * Converts fiat number as human-readable fiat string to wei expressed as a BN
  *
  * @param {number|string} fiat - Fiat number

@@ -35,7 +35,8 @@ import {
 	fiatNumberToTokenMinimalUnit,
 	weiToFiatNumber,
 	balanceToFiatNumber,
-	getCurrencySymbol
+	getCurrencySymbol,
+	handleWeiNumber
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
@@ -525,14 +526,14 @@ class Amount extends PureComponent {
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let inputValueConversion, renderableInputValueConversion, hasExchangeRate;
 		const processedTicker = getTicker(ticker);
-		const processedInputValue = isDecimal(inputValue) ? inputValue : '0';
+		const processedInputValue = isDecimal(inputValue) ? handleWeiNumber(inputValue) : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
 		if (selectedAsset.isETH) {
 			hasExchangeRate = true;
 			if (internalPrimaryCurrencyIsCrypto) {
-				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue.toString(16)), conversionRate)}`;
+				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue), conversionRate)}`;
 				renderableInputValueConversion = `${weiToFiat(
-					toWei(processedInputValue.toString(16)),
+					toWei(processedInputValue),
 					conversionRate,
 					currentCurrency
 				)}`;
