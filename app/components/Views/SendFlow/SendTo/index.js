@@ -19,6 +19,7 @@ import { isENS } from '../../../../util/address';
 import { getTicker, getEther } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
+import WarningMessage from '../WarningMessage';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -92,7 +93,6 @@ const styles = StyleSheet.create({
 		marginBottom: 16
 	},
 	buttonNextWrapper: {
-		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'flex-end'
 	},
@@ -102,7 +102,9 @@ const styles = StyleSheet.create({
 	},
 	addressErrorWrapper: {
 		margin: 16
-	}
+	},
+	footerContainer: { flex: 1, justifyContent: 'flex-end' },
+	warningContainer: { marginHorizontal: 24, marginBottom: 32 }
 });
 
 const dummy = () => true;
@@ -456,14 +458,20 @@ class SendFlow extends PureComponent {
 									</Text>
 								</TouchableOpacity>
 							)}
-							<View style={styles.buttonNextWrapper}>
-								<StyledButton
-									type={'confirm'}
-									containerStyle={styles.buttonNext}
-									onPress={this.onTransactionDirectionSet}
-								>
-									{strings('address_book.next')}
-								</StyledButton>
+							<View style={styles.footerContainer}>
+								<View style={styles.warningContainer}>
+									<WarningMessage warningMessage="You have 0 ETH in your account to pay for transaction fees. Buy some ETH or deposit from another account." />
+								</View>
+
+								<View style={styles.buttonNextWrapper}>
+									<StyledButton
+										type={'confirm'}
+										containerStyle={styles.buttonNext}
+										onPress={this.onTransactionDirectionSet}
+									>
+										{strings('address_book.next')}
+									</StyledButton>
+								</View>
 							</View>
 						</View>
 					)}
