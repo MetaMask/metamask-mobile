@@ -115,10 +115,12 @@ class ContactForm extends PureComponent {
 		addressError: undefined,
 		toEnsName: undefined,
 		addressReady: false,
-		mode: this.props.navigation.getParam('mode', ADD)
+		mode: this.props.navigation.getParam('mode', ADD),
+		memo: undefined
 	};
 
 	addressInput = React.createRef();
+	memoInput = React.createRef();
 
 	componentDidMount = () => {
 		const { mode } = this.state;
@@ -127,7 +129,7 @@ class ContactForm extends PureComponent {
 			const networkAddressBook = addressBook[network] || {};
 			const address = this.props.navigation.getParam('address', '');
 			const contact = networkAddressBook[address] || identities[address];
-			this.setState({ address, name: contact.name, addressReady: true });
+			this.setState({ address, name: contact.name, memo: contact.memo, addressReady: true });
 		}
 	};
 
@@ -173,17 +175,26 @@ class ContactForm extends PureComponent {
 		this.setState({ address, addressError, toEnsName, addressReady });
 	};
 
+	onChangeMemo = memo => {
+		this.setState({ memo });
+	};
+
 	jumpToAddressInput = () => {
 		const { current } = this.addressInput;
 		current && current.focus();
 	};
 
+	jumpToMemoInput = () => {
+		const { current } = this.memoInput;
+		current && current.focus();
+	};
+
 	saveContact = () => {
-		const { name, address } = this.state;
+		const { name, address, memo } = this.state;
 		const { network, navigation } = this.props;
 		const { AddressBookController } = Engine.context;
 		if (!name || !address) return;
-		AddressBookController.set(toChecksumAddress(address), name, network);
+		AddressBookController.set(toChecksumAddress(address), name, network, memo);
 		navigation.pop();
 	};
 
@@ -198,7 +209,7 @@ class ContactForm extends PureComponent {
 	};
 
 	render = () => {
-		const { address, addressError, toEnsName, name, mode, addressReady } = this.state;
+		const { address, addressError, toEnsName, name, mode, addressReady, memo } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
@@ -233,7 +244,7 @@ class ContactForm extends PureComponent {
 									style={[styles.textInput]}
 									value={toEnsName || address}
 									ref={this.addressInput}
-									onSubmitEditing={this.saveContact}
+									onSubmitEditing={this.jumpToMemoInput}
 								/>
 								{toEnsName && <Text style={styles.resolvedInput}>{renderShortAddress(address)}</Text>}
 							</View>
@@ -241,6 +252,26 @@ class ContactForm extends PureComponent {
 							<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
 								<AntIcon name="scan1" size={20} color={colors.grey500} style={styles.scanIcon} />
 							</TouchableOpacity>
+						</View>
+
+						<Text style={styles.label}>{'Memo'}</Text>
+						<View style={styles.input}>
+							<View style={styles.inputWrapper}>
+								<TextInput
+									multiline
+									autoCapitalize={'none'}
+									autoCorrect={false}
+									onChangeText={this.onChangeMemo}
+									placeholder={'Memo'}
+									placeholderTextColor={colors.grey100}
+									spellCheck={false}
+									numberOfLines={1}
+									onBlur={this.onBlur}
+									style={styles.textInput}
+									value={memo}
+									ref={this.memoInput}
+								/>
+							</View>
 						</View>
 					</View>
 
