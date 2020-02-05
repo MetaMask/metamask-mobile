@@ -471,7 +471,7 @@ class SendFlow extends PureComponent {
 							<View style={styles.footerContainer}>
 								{balanceIsZero && (
 									<View style={styles.warningContainer}>
-										<WarningMessage warningMessage="You have 0 ETH in your account to pay for transaction fees. Buy some ETH or deposit from another account." />
+										<WarningMessage warningMessage={strings('transaction.not_enough_for_gas')} />
 									</View>
 								)}
 								<View style={styles.buttonNextWrapper}>

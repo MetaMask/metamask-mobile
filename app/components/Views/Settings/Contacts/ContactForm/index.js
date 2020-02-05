@@ -254,7 +254,7 @@ class ContactForm extends PureComponent {
 							</TouchableOpacity>
 						</View>
 
-						<Text style={styles.label}>{'Memo'}</Text>
+						<Text style={styles.label}>{strings('address_book.memo')}</Text>
 						<View style={styles.input}>
 							<View style={styles.inputWrapper}>
 								<TextInput
@@ -262,7 +262,7 @@ class ContactForm extends PureComponent {
 									autoCapitalize={'none'}
 									autoCorrect={false}
 									onChangeText={this.onChangeMemo}
-									placeholder={'Memo'}
+									placeholder={strings('address_book.memo')}
 									placeholderTextColor={colors.grey100}
 									spellCheck={false}
 									numberOfLines={1}

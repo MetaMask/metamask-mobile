@@ -507,7 +507,8 @@
 		"adjust_transaction_fee": "Adjust transaction fee",
 		"could_not_resolve_ens": "Couldn't resolve ENS",
 		"asset": "Asset",
-		"balance": "Balance"
+		"balance": "Balance",
+		"not_enough_for_gas": "You have 0 ETH in your account to pay for transaction fees. Buy some ETH or deposit from another account."
 	},
 	"custom_gas": {
 		"advanced_options": "Show advanced options",
@@ -664,7 +665,8 @@
 		"add_input_placeholder": "Public address (0x), or ENS",
 		"between_account": "Transfer between my accounts",
 		"no_contacts": "No contacts in your address book",
-		"others": "Others"
+		"others": "Others",
+		"memo": "Memo"
 	},
 	"transaction_submitted": {
 		"title": "Transaction Submitted",
