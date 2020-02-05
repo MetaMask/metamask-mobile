@@ -103,8 +103,14 @@ const styles = StyleSheet.create({
 	addressErrorWrapper: {
 		margin: 16
 	},
-	footerContainer: { flex: 1, justifyContent: 'flex-end' },
-	warningContainer: { marginHorizontal: 24, marginBottom: 32 }
+	footerContainer: {
+		flex: 1,
+		justifyContent: 'flex-end'
+	},
+	warningContainer: {
+		marginHorizontal: 24,
+		marginBottom: 32
+	}
 });
 
 const dummy = () => true;

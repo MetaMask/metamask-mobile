@@ -21,14 +21,22 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
-	icon: { paddingRight: 8 }
+	icon: {
+		paddingRight: 8
+	},
+	iconWrapper: {
+		alignItems: 'center',
+		flexDirection: 'row'
+	}
 });
 
 export default function WarningMessage(props) {
 	const { warningMessage } = props;
 	return (
 		<View style={styles.wrapper}>
-			<AntIcon style={styles.icon} name="bells" color={colors.yellow} size={15} />
+			<View style={styles.iconWrapper}>
+				<AntIcon style={styles.icon} name="bells" color={colors.yellow} size={15} />
+			</View>
 			<Text style={styles.errorMessage}>{warningMessage}</Text>
 		</View>
 	);
