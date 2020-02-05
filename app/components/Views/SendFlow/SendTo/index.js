@@ -20,6 +20,7 @@ import { getTicker, getEther } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
+import { hexToBN } from 'gaba/dist/util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -168,6 +169,7 @@ class SendFlow extends PureComponent {
 
 	state = {
 		addressError: undefined,
+		balanceIsZero: false,
 		fromAccountModalVisible: false,
 		addToAddressBookModalVisible: false,
 		fromSelectedAddress: this.props.selectedAddress,
@@ -190,7 +192,8 @@ class SendFlow extends PureComponent {
 		this.setState({
 			fromAccountName: ens || fromAccountName,
 			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
-			inputWidth: { width: '100%' }
+			inputWidth: { width: '100%' },
+			balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero()
 		});
 		if (!Object.keys(networkAddressBook).length) {
 			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
@@ -411,6 +414,7 @@ class SendFlow extends PureComponent {
 			toSelectedAddressName,
 			addToAddressToAddressBook,
 			addressError,
+			balanceIsZero,
 			toInputHighlighted,
 			inputWidth
 		} = this.state;
@@ -465,10 +469,11 @@ class SendFlow extends PureComponent {
 								</TouchableOpacity>
 							)}
 							<View style={styles.footerContainer}>
-								<View style={styles.warningContainer}>
-									<WarningMessage warningMessage="You have 0 ETH in your account to pay for transaction fees. Buy some ETH or deposit from another account." />
-								</View>
-
+								{balanceIsZero && (
+									<View style={styles.warningContainer}>
+										<WarningMessage warningMessage="You have 0 ETH in your account to pay for transaction fees. Buy some ETH or deposit from another account." />
+									</View>
+								)}
 								<View style={styles.buttonNextWrapper}>
 									<StyledButton
 										type={'confirm'}
