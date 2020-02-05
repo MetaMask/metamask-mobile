@@ -562,11 +562,19 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_VIEW_ETHERSCAN);
 	};
 
+	handleURL = url => {
+		const handleError = error => {
+			console.log(error);
+		};
+		if (USE_EXTERNAL_LINKS) {
+			Linking.openURL(url).catch(handleError);
+		} else {
+			this.goToBrowserUrl(url, strings('drawer.submit_feedback_title'));
+		}
+	};
+
 	goToBugFeedback = () => {
-		this.goToBrowserUrl(
-			`https://metamask.zendesk.com/hc/en-us/requests/new`,
-			strings('drawer.submit_feedback_title')
-		);
+		this.handleURL('https://metamask.zendesk.com/hc/en-us/requests/new');
 	};
 
 	showHelp = () => {
