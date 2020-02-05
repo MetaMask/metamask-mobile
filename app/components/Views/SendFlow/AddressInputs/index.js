@@ -11,7 +11,7 @@ import { strings } from '../../../../../locales/i18n';
 const styles = StyleSheet.create({
 	wrapper: {
 		flexDirection: 'row',
-		margin: 8
+		marginHorizontal: 8
 	},
 	selectWrapper: {
 		flex: 1,
@@ -20,7 +20,8 @@ const styles = StyleSheet.create({
 		minHeight: 52,
 		flexDirection: 'row',
 		borderWidth: 1,
-		borderRadius: 8
+		borderRadius: 8,
+		marginVertical: 8
 	},
 	inputWrapper: {
 		flex: 1,
@@ -29,7 +30,8 @@ const styles = StyleSheet.create({
 		minHeight: 52,
 		flexDirection: 'row',
 		borderWidth: 1,
-		borderRadius: 8
+		borderRadius: 8,
+		marginTop: 8
 	},
 	input: {
 		flex: 1,
