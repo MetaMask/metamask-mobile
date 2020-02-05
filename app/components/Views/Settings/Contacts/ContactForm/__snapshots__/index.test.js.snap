@@ -160,6 +160,66 @@ exports[`ContactForm should render correctly 1`] = `
           />
         </TouchableOpacity>
       </View>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        Memo
+      </Text>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "#bbc0c5",
+            "borderRadius": 5,
+            "borderWidth": 2,
+            "flex": 1,
+            "flexDirection": "row",
+            "fontFamily": "Roboto",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "padding": 10,
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "flex": 1,
+              "flexDirection": "column",
+            }
+          }
+        >
+          <TextInput
+            allowFontScaling={true}
+            autoCapitalize="none"
+            autoCorrect={false}
+            multiline={true}
+            numberOfLines={1}
+            onChangeText={[Function]}
+            placeholder="Memo"
+            placeholderTextColor="#d6d9dc"
+            rejectResponderTermination={true}
+            spellCheck={false}
+            style={
+              Object {
+                "fontFamily": "Roboto",
+                "fontWeight": "400",
+                "padding": 0,
+                "paddingRight": 8,
+              }
+            }
+            underlineColorAndroid="transparent"
+          />
+        </View>
+      </View>
     </View>
     <View
       style={
