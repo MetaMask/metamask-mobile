@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
@@ -48,7 +48,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	address: {
-		flex: 1,
 		flexDirection: 'column',
 		alignItems: 'flex-start',
 		marginHorizontal: 8
@@ -105,6 +104,16 @@ const styles = StyleSheet.create({
 	},
 	dropdownIcon: {
 		alignSelf: 'center'
+	},
+	checkIconWrapper: {
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	checkAddress: {
+		maxWidth: '80%'
+	},
+	toInputWrapper: {
+		flexDirection: 'row'
 	}
 });
 
@@ -161,15 +170,20 @@ export const AddressTo = props => {
 				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 					<View style={styles.addressToInformation}>
 						<Identicon address={toSelectedAddress} diameter={30} />
-						<View style={styles.address}>
-							{toAddressName && (
-								<Text style={styles.textAddress} numberOfLines={1}>
-									{toAddressName}
+						<View style={styles.toInputWrapper}>
+							<View style={[styles.address, styles.checkAddress]}>
+								{toAddressName && (
+									<Text style={styles.textAddress} numberOfLines={1}>
+										{toAddressName}
+									</Text>
+								)}
+								<Text style={toAddressName ? styles.textBalance : styles.textAddress} numberOfLines={1}>
+									{renderShortAddress(toSelectedAddress)}
 								</Text>
-							)}
-							<Text style={toAddressName ? styles.textBalance : styles.textAddress} numberOfLines={1}>
-								{renderShortAddress(toSelectedAddress)}
-							</Text>
+							</View>
+							<View style={styles.checkIconWrapper}>
+								<AntIcon name="check" color={colors.green600} size={15} />
+							</View>
 						</View>
 					</View>
 					{!!onClear && (
@@ -250,7 +264,7 @@ export const AddressFrom = props => {
 				<View style={styles.identiconWrapper}>
 					<Identicon address={fromAccountAddress} diameter={30} />
 				</View>
-				<View style={styles.address}>
+				<View style={[baseStyles.flexGrow, styles.address]}>
 					<Text style={styles.textAddress}>{fromAccountName}</Text>
 					<Text style={styles.textBalance}>{`${strings(
 						'transactions.address_from_balance'
