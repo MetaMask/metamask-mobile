@@ -12,7 +12,7 @@ exports[`ModalNavbarTitle should render correctly 1`] = `
   <Text
     style={
       Object {
-        "fontFamily": "Roboto",
+        "fontFamily": "CircularStd-Medium",
         "fontSize": 18,
         "fontWeight": "400",
       }

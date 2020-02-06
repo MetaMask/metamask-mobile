@@ -33,7 +33,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
         style={
           Object {
             "color": "#848c96",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 12,
             "fontWeight": "600",
           }
@@ -45,7 +45,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 12,
             "fontWeight": "400",
             "padding": 16,
@@ -73,7 +73,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
         style={
           Object {
             "color": "#848c96",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 12,
             "fontWeight": "600",
           }
@@ -95,7 +95,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
           "backgroundColor": "#FFFFFF",
           "color": "#000000",
           "flex": 1,
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 12,
           "fontWeight": "400",
           "minHeight": 64,

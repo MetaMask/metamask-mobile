@@ -53,7 +53,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 32,
                 "fontWeight": "400",
                 "justifyContent": "center",
@@ -77,7 +77,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               style={
                 Object {
                   "color": "#000000",
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "lineHeight": 23,
@@ -102,7 +102,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               Array [
                 Object {
                   "color": "#777777",
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "marginLeft": 5,
@@ -144,7 +144,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "borderBottomColor": "#d6d9dc",
                 "borderBottomWidth": 1,
                 "borderRadius": 4,
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 20,
                 "fontWeight": "400",
                 "paddingLeft": 0,
@@ -171,7 +171,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               style={
                 Object {
                   "color": "#777777",
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "height": 20,
@@ -188,7 +188,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               Object {
                 "color": "#777777",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
@@ -212,7 +212,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               Array [
                 Object {
                   "color": "#777777",
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "marginLeft": 5,
@@ -255,7 +255,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "borderBottomColor": "#d6d9dc",
                 "borderBottomWidth": 1,
                 "borderRadius": 4,
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 20,
                 "fontWeight": "400",
                 "paddingLeft": 0,
@@ -279,7 +279,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               Object {
                 "color": "#777777",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
@@ -305,7 +305,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               Object {
                 "flex": 1,
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 16,
                 "fontWeight": "400",
               }

@@ -44,7 +44,7 @@ exports[`PickComponent should render correctly 1`] = `
       <Text
         style={
           Object {
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontWeight": "400",
           }
         }
@@ -86,7 +86,7 @@ exports[`PickComponent should render correctly 1`] = `
       <Text
         style={
           Object {
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontWeight": "400",
           }
         }

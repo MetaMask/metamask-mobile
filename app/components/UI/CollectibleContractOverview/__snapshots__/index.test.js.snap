@@ -45,7 +45,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 30,
           "fontWeight": "400",
           "textAlign": "center",

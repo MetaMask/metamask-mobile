@@ -37,7 +37,7 @@ exports[`ContactForm should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -66,7 +66,7 @@ exports[`ContactForm should render correctly 1`] = `
               "borderWidth": 2,
               "flex": 1,
               "flexDirection": "row",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
               "padding": 10,
@@ -80,7 +80,7 @@ exports[`ContactForm should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -98,7 +98,7 @@ exports[`ContactForm should render correctly 1`] = `
             "borderWidth": 2,
             "flex": 1,
             "flexDirection": "row",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 12,
             "fontWeight": "400",
             "padding": 10,
@@ -127,7 +127,7 @@ exports[`ContactForm should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontWeight": "400",
                   "padding": 0,
                   "paddingRight": 8,

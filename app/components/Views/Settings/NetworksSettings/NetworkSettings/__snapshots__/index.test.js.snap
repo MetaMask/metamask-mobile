@@ -38,7 +38,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -52,7 +52,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -64,7 +64,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -88,7 +88,7 @@ exports[`NetworkSettings should render correctly 1`] = `
               "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "400",
               "padding": 10,
             },
@@ -102,7 +102,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -127,7 +127,7 @@ exports[`NetworkSettings should render correctly 1`] = `
               "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "400",
               "padding": 10,
             },
@@ -141,7 +141,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -167,7 +167,7 @@ exports[`NetworkSettings should render correctly 1`] = `
               "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "400",
               "padding": 10,
             },
@@ -180,7 +180,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -204,7 +204,7 @@ exports[`NetworkSettings should render correctly 1`] = `
               "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "400",
               "padding": 10,
             },
@@ -218,7 +218,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -242,7 +242,7 @@ exports[`NetworkSettings should render correctly 1`] = `
               "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "400",
               "padding": 10,
             },

@@ -81,7 +81,7 @@ exports[`Tabs should render correctly 1`] = `
           Array [
             Object {
               "color": "#037dd6",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 16,
               "fontWeight": "400",
             },
@@ -157,12 +157,12 @@ exports[`Tabs should render correctly 1`] = `
           Array [
             Object {
               "color": "#037dd6",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 16,
               "fontWeight": "400",
             },
             Object {
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "600",
             },
             null,
