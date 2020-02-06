@@ -75,7 +75,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 18,
 		color: colors.grey500,
-		marginVertical: 4
+		marginVertical: 4,
+		textTransform: 'uppercase'
 	},
 	explainerText: {
 		...fontStyles.normal,
@@ -94,7 +95,8 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		fontSize: 40,
 		maxWidth: '70%',
-		padding: 0
+		padding: 0,
+		minWidth: 85
 	},
 	inputWrapper: {
 		flexDirection: 'row',
@@ -452,7 +454,7 @@ class Deposit extends PureComponent {
 									{secondaryAmount}
 								</Text>
 								<Text style={styles.fiatValue} numberOfLines={1}>
-									{' ' + secondaryCurrency}
+									{` ${secondaryCurrency}`}
 								</Text>
 							</View>
 						)}

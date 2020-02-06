@@ -42,7 +42,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
     <Text
       style={
         Object {
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 24,
           "fontWeight": "400",
         }
@@ -54,7 +54,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
       style={
         Object {
           "color": "#848c96",
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 12,
           "fontWeight": "400",
           "marginTop": 8,

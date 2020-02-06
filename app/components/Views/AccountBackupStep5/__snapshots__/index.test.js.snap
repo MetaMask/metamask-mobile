@@ -38,7 +38,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
         style={
           Object {
             "color": "#037dd6",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 18,
             "fontWeight": "400",
           }
@@ -68,7 +68,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 32,
               "fontWeight": "400",
               "justifyContent": "center",
@@ -92,7 +92,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "lineHeight": 20,
@@ -1009,7 +1009,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
       <Text
         style={
           Object {
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 13,
             "fontWeight": "400",
             "textAlign": "center",

@@ -72,7 +72,7 @@ exports[`CustomAlert should render correctly 1`] = `
       <Text
         style={
           Object {
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 16,
             "fontWeight": "600",
             "marginBottom": 15,

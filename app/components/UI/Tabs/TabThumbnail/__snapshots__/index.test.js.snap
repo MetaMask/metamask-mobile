@@ -75,7 +75,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           style={
             Object {
               "color": "#FFFFFF",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 18,
               "fontWeight": "600",
               "marginLeft": 5,
