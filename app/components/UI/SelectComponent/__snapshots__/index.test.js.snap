@@ -33,7 +33,7 @@ exports[`SelectComponent should render correctly 1`] = `
               "alignSelf": "flex-start",
               "color": "#000000",
               "flex": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
               "paddingBottom": 10,
@@ -124,7 +124,7 @@ exports[`SelectComponent should render correctly 1`] = `
             style={
               Object {
                 "flex": 1,
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 17,
                 "fontWeight": "600",
                 "paddingVertical": 10,
@@ -168,7 +168,7 @@ exports[`SelectComponent should render correctly 1`] = `
                 style={
                   Object {
                     "flex": 1,
-                    "fontFamily": "Roboto",
+                    "fontFamily": "CircularStd-Medium",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "paddingVertical": 10,
@@ -196,7 +196,7 @@ exports[`SelectComponent should render correctly 1`] = `
                 style={
                   Object {
                     "flex": 1,
-                    "fontFamily": "Roboto",
+                    "fontFamily": "CircularStd-Medium",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "paddingVertical": 10,

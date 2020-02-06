@@ -33,7 +33,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "400",
             }
           }
@@ -53,7 +53,7 @@ exports[`AddBookmark should render correctly 1`] = `
               "borderColor": "#d6d9dc",
               "borderRadius": 4,
               "borderWidth": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "400",
               "padding": 16,
             }
@@ -66,7 +66,7 @@ exports[`AddBookmark should render correctly 1`] = `
           style={
             Object {
               "color": "#D73A49",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "400",
             }
           }
@@ -82,7 +82,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "400",
             }
           }
@@ -100,7 +100,7 @@ exports[`AddBookmark should render correctly 1`] = `
               "borderColor": "#d6d9dc",
               "borderRadius": 4,
               "borderWidth": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "400",
               "padding": 16,
             }
@@ -113,7 +113,7 @@ exports[`AddBookmark should render correctly 1`] = `
           style={
             Object {
               "color": "#D73A49",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontWeight": "400",
             }
           }

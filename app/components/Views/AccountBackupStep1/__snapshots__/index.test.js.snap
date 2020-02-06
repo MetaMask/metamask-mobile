@@ -41,7 +41,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
         style={
           Object {
             "color": "#037dd6",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 18,
             "fontWeight": "400",
           }
@@ -72,7 +72,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 32,
               "fontWeight": "400",
               "justifyContent": "center",
@@ -101,7 +101,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
               }
@@ -124,7 +124,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "lineHeight": 23,
@@ -156,7 +156,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "color": "#000000",
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "lineHeight": 23,
@@ -169,7 +169,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               <Text
                 style={
                   Object {
-                    "fontFamily": "Roboto",
+                    "fontFamily": "CircularStd-Medium",
                     "fontWeight": "600",
                     "lineHeight": 25,
                   }
@@ -201,7 +201,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "color": "#000000",
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "lineHeight": 23,
@@ -214,7 +214,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               <Text
                 style={
                   Object {
-                    "fontFamily": "Roboto",
+                    "fontFamily": "CircularStd-Medium",
                     "fontWeight": "600",
                     "lineHeight": 25,
                   }

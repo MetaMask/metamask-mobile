@@ -68,19 +68,19 @@ export const baseStyles = {
  */
 export const fontStyles = {
 	normal: {
-		fontFamily: 'Roboto',
+		fontFamily: 'CircularStd-Medium',
 		fontWeight: '400'
 	},
 	light: {
-		fontFamily: 'Roboto',
+		fontFamily: 'CircularStd-Medium',
 		fontWeight: '300'
 	},
 	thin: {
-		fontFamily: 'Roboto',
+		fontFamily: 'CircularStd-Medium',
 		fontWeight: '100'
 	},
 	bold: {
-		fontFamily: 'Roboto',
+		fontFamily: 'CircularStd-Medium',
 		fontWeight: '600'
 	}
 };
