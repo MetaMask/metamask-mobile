@@ -166,7 +166,7 @@ exports[`SendTo should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 24,
                 "fontWeight": "400",
                 "marginBottom": 24,
@@ -179,7 +179,7 @@ exports[`SendTo should render correctly 1`] = `
             style={
               Object {
                 "color": "#5B5D67",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "marginBottom": 24,
@@ -225,7 +225,7 @@ exports[`SendTo should render correctly 1`] = `
                 style={
                   Object {
                     "color": "#000000",
-                    "fontFamily": "Roboto",
+                    "fontFamily": "CircularStd-Medium",
                     "fontSize": 20,
                     "fontWeight": "400",
                     "width": "100%",

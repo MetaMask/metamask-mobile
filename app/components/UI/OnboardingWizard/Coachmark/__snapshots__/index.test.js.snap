@@ -63,7 +63,7 @@ exports[`Coachmark should render correctly 1`] = `
           Object {
             "alignSelf": "center",
             "color": "#FFFFFF",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 18,
             "fontWeight": "600",
           }

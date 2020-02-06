@@ -18,7 +18,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         Object {
           "color": "#000000",
           "flex": 1,
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 15,
           "fontWeight": "400",
           "paddingVertical": 10,
@@ -55,7 +55,7 @@ exports[`TransactionDetails should render correctly 1`] = `
             Object {
               "color": "#777777",
               "flex": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
             },
@@ -90,7 +90,7 @@ exports[`TransactionDetails should render correctly 1`] = `
       Object {
         "color": "#000000",
         "flex": 1,
-        "fontFamily": "Roboto",
+        "fontFamily": "CircularStd-Medium",
         "fontSize": 15,
         "fontWeight": "400",
         "paddingVertical": 10,
@@ -127,7 +127,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         Object {
           "color": "#777777",
           "flex": 1,
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 12,
           "fontWeight": "400",
         }
@@ -155,7 +155,7 @@ exports[`TransactionDetails should render correctly 1`] = `
       Object {
         "color": "#000000",
         "flex": 1,
-        "fontFamily": "Roboto",
+        "fontFamily": "CircularStd-Medium",
         "fontSize": 15,
         "fontWeight": "400",
         "paddingVertical": 10,
@@ -192,7 +192,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         Object {
           "color": "#777777",
           "flex": 1,
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 12,
           "fontWeight": "400",
         }
@@ -220,7 +220,7 @@ exports[`TransactionDetails should render correctly 1`] = `
       Object {
         "color": "#000000",
         "flex": 1,
-        "fontFamily": "Roboto",
+        "fontFamily": "CircularStd-Medium",
         "fontSize": 15,
         "fontWeight": "400",
         "paddingVertical": 10,
@@ -264,7 +264,7 @@ exports[`TransactionDetails should render correctly 1`] = `
             Object {
               "color": "#777777",
               "flex": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
             },
@@ -283,7 +283,7 @@ exports[`TransactionDetails should render correctly 1`] = `
             Object {
               "color": "#777777",
               "flex": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
             },
@@ -315,7 +315,7 @@ exports[`TransactionDetails should render correctly 1`] = `
             Object {
               "color": "#777777",
               "flex": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
             },
@@ -334,7 +334,7 @@ exports[`TransactionDetails should render correctly 1`] = `
             Object {
               "color": "#777777",
               "flex": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
             },
@@ -366,7 +366,7 @@ exports[`TransactionDetails should render correctly 1`] = `
             Object {
               "color": "#777777",
               "flex": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
             },
@@ -385,7 +385,7 @@ exports[`TransactionDetails should render correctly 1`] = `
             Object {
               "color": "#777777",
               "flex": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
             },
@@ -417,7 +417,7 @@ exports[`TransactionDetails should render correctly 1`] = `
             Object {
               "color": "#777777",
               "flex": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
             },
@@ -436,7 +436,7 @@ exports[`TransactionDetails should render correctly 1`] = `
             Object {
               "color": "#777777",
               "flex": 1,
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
             },

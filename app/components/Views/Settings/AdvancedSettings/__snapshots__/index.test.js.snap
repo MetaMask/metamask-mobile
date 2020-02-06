@@ -67,7 +67,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           <Text
             style={
               Object {
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 22,
                 "fontWeight": "600",
                 "marginBottom": 20,
@@ -80,7 +80,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           <Text
             style={
               Object {
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 18,
                 "fontWeight": "400",
                 "textAlign": "center",
@@ -107,7 +107,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -120,7 +120,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -163,7 +163,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -176,7 +176,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -221,7 +221,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -234,7 +234,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -283,7 +283,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -296,7 +296,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -337,7 +337,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -350,7 +350,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
