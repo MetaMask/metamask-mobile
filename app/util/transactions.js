@@ -123,35 +123,34 @@ export function generateApproveData(opts) {
 /**
  * Decode transfer data for specified method data
  *
- * @param {String} type - Method to use to generate data
+ * @param {String} type - Method to use to decode data
  * @param {String} data - Data to decode
  * @returns {Object} - Object containing the decoded transfer data
  */
-export function decodeTransferData(type, data) {
-	switch (type) {
-		case 'transfer': {
-			const encodedAddress = data.substr(10, 64);
-			const encodedAmount = data.substr(74, 138);
-			const bufferEncodedAddress = rawEncode(['address'], [addHexPrefix(encodedAddress)]);
-			return [
-				addHexPrefix(rawDecode(['address'], bufferEncodedAddress)[0]),
-				parseInt(encodedAmount, 16).toString(),
-				encodedAmount
-			];
-		}
-		case 'transferFrom': {
-			const encodedFromAddress = data.substr(10, 64);
-			const encodedToAddress = data.substr(74, 64);
-			const encodedTokenId = data.substr(138, 64);
-			const bufferEncodedFromAddress = rawEncode(['address'], [addHexPrefix(encodedFromAddress)]);
-			const bufferEncodedToAddress = rawEncode(['address'], [addHexPrefix(encodedToAddress)]);
-			return [
-				addHexPrefix(rawDecode(['address'], bufferEncodedFromAddress)[0]),
-				addHexPrefix(rawDecode(['address'], bufferEncodedToAddress)[0]),
-				parseInt(encodedTokenId, 16).toString()
-			];
-		}
+export function decodeTransferData(data) {
+	const signature = data.substr(0, 10);
+	if (signature === TRANSFER_FUNCTION_SIGNATURE) {
+		const encodedAddress = data.substr(10, 64);
+		const encodedAmount = data.substr(74, 138);
+		const bufferEncodedAddress = rawEncode(['address'], [addHexPrefix(encodedAddress)]);
+		return [
+			addHexPrefix(rawDecode(['address'], bufferEncodedAddress)[0]),
+			parseInt(encodedAmount, 16).toString(),
+			encodedAmount
+		];
+	} else if (signature === TRANSFER_FROM_FUNCTION_SIGNATURE) {
+		const encodedFromAddress = data.substr(10, 64);
+		const encodedToAddress = data.substr(74, 64);
+		const encodedTokenId = data.substr(138, 64);
+		const bufferEncodedFromAddress = rawEncode(['address'], [addHexPrefix(encodedFromAddress)]);
+		const bufferEncodedToAddress = rawEncode(['address'], [addHexPrefix(encodedToAddress)]);
+		return [
+			addHexPrefix(rawDecode(['address'], bufferEncodedFromAddress)[0]),
+			addHexPrefix(rawDecode(['address'], bufferEncodedToAddress)[0]),
+			parseInt(encodedTokenId, 16).toString()
+		];
 	}
+	throw new Error(`[transactions] Data not valid as transfer data, ${signature}`);
 }
 
 /**

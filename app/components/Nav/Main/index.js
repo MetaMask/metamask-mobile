@@ -825,7 +825,7 @@ class Main extends PureComponent {
 					}
 				}
 
-				const decodedData = decodeTransferData('transfer', data);
+				const decodedData = decodeTransferData(data);
 				transactionMeta.transaction.value = hexToBN(decodedData[2]);
 				transactionMeta.transaction.readableValue = renderFromTokenMinimalUnit(
 					hexToBN(decodedData[2]),

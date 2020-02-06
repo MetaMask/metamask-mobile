@@ -118,7 +118,7 @@ class TransactionReviewSummary extends PureComponent {
 				contract = tokens.find(({ address }) => address === safeToChecksumAddress(to));
 			}
 			const symbol = (contract && contract.symbol) || 'ERC20';
-			assetAmount = `${decodeTransferData('transfer', data)[1]} ${symbol}`;
+			assetAmount = `${decodeTransferData(data)[1]} ${symbol}`;
 		} else {
 			[assetAmount, conversionRate, fiatValue] = this.getRenderValues()();
 		}

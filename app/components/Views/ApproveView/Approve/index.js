@@ -345,7 +345,7 @@ class Approve extends PureComponent {
 			tokenSymbol = contract.symbol;
 			tokenDecimals = contract.decimals;
 		}
-		const originalApproveAmount = decodeTransferData('transfer', data)[1];
+		const originalApproveAmount = decodeTransferData(data)[1];
 		const totalGas = gas.mul(gasPrice);
 		this.setState({
 			host,
@@ -475,7 +475,7 @@ class Approve extends PureComponent {
 		if (spendLimitUnlimitedSelected) {
 			newData = originalTransactionData;
 		} else {
-			const spender = decodeTransferData('transfer', data)[0];
+			const spender = decodeTransferData(data)[0];
 			newData = generateApproveData({ spender, value: parseInt(spendLimitCustomValue).toString(16) });
 		}
 
@@ -705,7 +705,7 @@ class Approve extends PureComponent {
 			currentCurrency
 		} = this.props;
 		const { host, tokenSymbol, viewDetails, totalGas, totalGasFiat, ticker, gasError } = this.state;
-		const amount = decodeTransferData('transfer', data)[1];
+		const amount = decodeTransferData(data)[1];
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionDirection />
