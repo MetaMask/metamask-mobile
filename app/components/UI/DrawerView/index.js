@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import {
 	Alert,
 	Clipboard,
+	Linking,
 	Platform,
 	TouchableOpacity,
 	View,
@@ -284,6 +285,8 @@ const ICON_IMAGES = {
 const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-line
 const instapay_logo_selected = require('../../../images/mm-instapay-selected.png'); // eslint-disable-line
 const instapay_logo = require('../../../images/mm-instapay.png'); // eslint-disable-line
+
+const USE_EXTERNAL_LINKS = Platform.OS === 'android' || false;
 
 /**
  * View component that displays the MetaMask fox
@@ -587,10 +590,22 @@ class DrawerView extends PureComponent {
 	closeSubmitFeedback = () => {
 		this.setState({ submitFeedback: false });
 	};
-
+	handleURL = url => {
+		const handleError = error => {
+			console.log(error);
+			this.closeSubmitFeedback();
+		};
+		if (USE_EXTERNAL_LINKS) {
+			Linking.openURL(url)
+				.then(this.closeSubmitFeedback)
+				.catch(handleError);
+		} else {
+			this.goToBrowserUrl(url, strings('drawer.submit_bug'));
+			this.closeSubmitFeedback();
+		}
+	};
 	goToBugFeedback = () => {
-		this.goToBrowserUrl(`https://metamask.zendesk.com/hc/en-us/requests/new`, strings('drawer.submit_bug'));
-		this.setState({ submitFeedback: false });
+		this.handleURL('https://metamask.zendesk.com/hc/en-us/requests/new');
 	};
 
 	goToGeneralFeedback = () => {
@@ -603,11 +618,9 @@ class DrawerView extends PureComponent {
 		const buildNumber = await getBuildNumber();
 		const systemName = await getSystemName();
 		const systemVersion = systemName === 'Android' ? await getApiLevel() : await getSystemVersion();
-		this.goToBrowserUrl(
-			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`,
-			strings('drawer.feedback')
+		this.handleURL(
+			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`
 		);
-		this.setState({ submitFeedback: false });
 	};
 
 	showHelp = () => {
