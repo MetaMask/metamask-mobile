@@ -7,6 +7,11 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import Fuse from 'fuse.js';
 import { strings } from '../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
+import {
+	decodeTransferData,
+	TRANSFER_FUNCTION_SIGNATURE,
+	TRANSFER_FROM_FUNCTION_SIGNATURE
+} from '../../../../util/transactions';
 
 const styles = StyleSheet.create({
 	root: {
@@ -153,7 +158,13 @@ class AddressList extends PureComponent {
 		const parsedRecents = [];
 		if (!inputSearch) {
 			const networkTransactions = transactions.filter(tx => tx.networkID === network);
-			networkTransactions.forEach(async ({ transaction: { to } }) => {
+			networkTransactions.forEach(async ({ transaction: { to, data } }) => {
+				// Check if is a transfer tx
+				if (data.substring(0, 10) === TRANSFER_FUNCTION_SIGNATURE) {
+					[to] = decodeTransferData('transfer', data);
+				} else if (data.substring(0, 10) === TRANSFER_FROM_FUNCTION_SIGNATURE) {
+					[, to] = decodeTransferData('transferFrom', data);
+				}
 				const checksummedTo = safeToChecksumAddress(to);
 				if (recents.length > 2) return;
 				if (!recents.includes(checksummedTo) && !Object.keys(identities).includes(checksummedTo)) {
