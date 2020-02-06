@@ -50,6 +50,7 @@ describe('Transactions utils :: generateTransferData', () => {
 describe('Transactions utils :: decodeTransferData', () => {
 	it('decodeTransferData transfer', () => {
 		const [address, amount] = decodeTransferData(
+			'transfer',
 			'0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001'
 		);
 		expect(address).toEqual('0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589a0');
@@ -58,6 +59,7 @@ describe('Transactions utils :: decodeTransferData', () => {
 
 	it('decodeTransferData ERC721', () => {
 		const [fromAddress, toAddress, tokenId] = decodeTransferData(
+			'transferFrom',
 			'0x23b872dd00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589c900000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589b400000000000000000000000000000000000000000000000000000000000004f1'
 		);
 		expect(fromAddress).toEqual('0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589c9');

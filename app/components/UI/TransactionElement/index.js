@@ -409,7 +409,7 @@ class TransactionElement extends PureComponent {
 			collectibleContracts
 		} = this.props;
 		let { actionKey } = this.state;
-		const [addressFrom, addressTo, tokenId] = decodeTransferData(data);
+		const [addressFrom, addressTo, tokenId] = decodeTransferData('transferFrom', data);
 		const collectible = collectibleContracts.find(
 			collectible => collectible.address.toLowerCase() === to.toLowerCase()
 		);

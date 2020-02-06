@@ -105,7 +105,7 @@ export default class TransferElement extends PureComponent {
 			selectedAddress
 		} = this.props;
 		const actionKey = await getActionKey(tx, selectedAddress);
-		const [addressTo, encodedAmount] = decodeTransferData(data);
+		const [addressTo, encodedAmount] = decodeTransferData('transfer', data);
 		const isCollectible = await isCollectibleAddress(to, encodedAmount);
 		this.mounted && this.setState({ actionKey, addressTo, encodedAmount, isCollectible });
 	};

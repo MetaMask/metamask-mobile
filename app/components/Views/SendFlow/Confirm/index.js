@@ -334,12 +334,12 @@ class Confirm extends PureComponent {
 				!collectibleTransferInformation ||
 				(collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transferFrom')
 			) {
-				[, transactionTo] = decodeTransferData(data);
+				[, transactionTo] = decodeTransferData('transferFrom', data);
 			} else if (
 				collectibleTransferInformation.tradable &&
 				collectibleTransferInformation.method === 'transfer'
 			) {
-				[transactionTo, ,] = decodeTransferData(data);
+				[transactionTo, ,] = decodeTransferData('transfer', data);
 			}
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
@@ -349,7 +349,7 @@ class Confirm extends PureComponent {
 			let amount;
 			const { address, symbol = 'ERC20', decimals } = selectedAsset;
 			fromAccountBalance = `${renderFromTokenMinimalUnit(contractBalances[address], decimals)} ${symbol}`;
-			[transactionTo, , amount] = decodeTransferData(data);
+			[transactionTo, , amount] = decodeTransferData('transfer', data);
 			const transferValue = renderFromTokenMinimalUnit(amount, decimals);
 			transactionValue = `${transferValue} ${symbol}`;
 			const exchangeRate = contractExchangeRates[address];
