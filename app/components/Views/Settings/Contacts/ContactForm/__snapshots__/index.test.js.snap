@@ -50,6 +50,7 @@ exports[`ContactForm should render correctly 1`] = `
         allowFontScaling={true}
         autoCapitalize="none"
         autoCorrect={false}
+        editable={true}
         numberOfLines={1}
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
@@ -72,6 +73,7 @@ exports[`ContactForm should render correctly 1`] = `
               "padding": 10,
             },
             Object {},
+            Object {},
           ]
         }
         underlineColorAndroid="transparent"
@@ -91,18 +93,21 @@ exports[`ContactForm should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
-            "alignItems": "center",
-            "borderColor": "#bbc0c5",
-            "borderRadius": 5,
-            "borderWidth": 2,
-            "flex": 1,
-            "flexDirection": "row",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "padding": 10,
-          }
+          Array [
+            Object {
+              "alignItems": "center",
+              "borderColor": "#bbc0c5",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "flex": 1,
+              "flexDirection": "row",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "padding": 10,
+            },
+            Object {},
+          ]
         }
       >
         <View
@@ -117,6 +122,7 @@ exports[`ContactForm should render correctly 1`] = `
             allowFontScaling={true}
             autoCapitalize="none"
             autoCorrect={false}
+            editable={true}
             numberOfLines={1}
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
@@ -164,7 +170,7 @@ exports[`ContactForm should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -175,18 +181,21 @@ exports[`ContactForm should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
-            "alignItems": "center",
-            "borderColor": "#bbc0c5",
-            "borderRadius": 5,
-            "borderWidth": 2,
-            "flex": 1,
-            "flexDirection": "row",
-            "fontFamily": "Roboto",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "padding": 10,
-          }
+          Array [
+            Object {
+              "alignItems": "center",
+              "borderColor": "#bbc0c5",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "flex": 1,
+              "flexDirection": "row",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "padding": 10,
+            },
+            Object {},
+          ]
         }
       >
         <View
@@ -201,6 +210,7 @@ exports[`ContactForm should render correctly 1`] = `
             allowFontScaling={true}
             autoCapitalize="none"
             autoCorrect={false}
+            editable={true}
             multiline={true}
             numberOfLines={1}
             onChangeText={[Function]}
@@ -210,7 +220,7 @@ exports[`ContactForm should render correctly 1`] = `
             spellCheck={false}
             style={
               Object {
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontWeight": "400",
                 "padding": 0,
                 "paddingRight": 8,
@@ -239,25 +249,45 @@ exports[`ContactForm should render correctly 1`] = `
           }
         }
       >
-        <StyledButton
-          disabled={true}
-          disabledContainerStyle={
+        <View
+          style={
             Object {
-              "opacity": 0.6,
+              "marginVertical": 4,
             }
           }
-          onPress={[Function]}
-          styleDisabled={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          type="confirm"
         >
-          Add contact
-        </StyledButton>
+          <StyledButton
+            disabled={true}
+            disabledContainerStyle={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            onPress={[Function]}
+            styleDisabled={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            type="confirm"
+          >
+            Add contact
+          </StyledButton>
+        </View>
       </View>
     </View>
+    <ActionSheet
+      cancelButtonIndex={1}
+      destructiveButtonIndex={0}
+      onPress={[Function]}
+      options={
+        Array [
+          "Delete",
+          "Cancel",
+        ]
+      }
+      title="Delete contact"
+    />
   </KeyboardAwareScrollViewMock>
 </SafeAreaView>
 `;
