@@ -13,6 +13,7 @@ import { doENSLookup } from '../../../../../util/ENSUtils';
 import { isENS, renderShortAddress } from '../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
+import ActionSheet from 'react-native-actionsheet';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -77,6 +78,9 @@ const styles = StyleSheet.create({
 	},
 	textInputDisaled: {
 		borderColor: colors.transparent
+	},
+	actionButton: {
+		marginVertical: 4
 	}
 });
 
@@ -120,6 +124,7 @@ class ContactForm extends PureComponent {
 		editable: true
 	};
 
+	actionSheet = React.createRef();
 	addressInput = React.createRef();
 	memoInput = React.createRef();
 
@@ -139,6 +144,11 @@ class ContactForm extends PureComponent {
 	onEdit = () => {
 		const { editable } = this.state;
 		this.setState({ editable: !editable });
+	};
+
+	onDelete = () => {
+		this.contactAddressToRemove = this.state.address;
+		this.actionSheet && this.actionSheet.show();
 	};
 
 	onChangeName = name => {
@@ -206,6 +216,13 @@ class ContactForm extends PureComponent {
 		navigation.pop();
 	};
 
+	deleteContact = () => {
+		const { AddressBookController } = Engine.context;
+		const { network, navigation } = this.props;
+		AddressBookController.delete(network, this.contactAddressToRemove);
+		navigation.pop();
+	};
+
 	onScan = () => {
 		this.props.navigation.navigate('QRScanner', {
 			onScanSuccess: meta => {
@@ -214,6 +231,10 @@ class ContactForm extends PureComponent {
 				}
 			}
 		});
+	};
+
+	createActionSheetRef = ref => {
+		this.actionSheet = ref;
 	};
 
 	render = () => {
@@ -294,17 +315,40 @@ class ContactForm extends PureComponent {
 
 					{addressError && <ErrorMessage errorMessage={addressError} />}
 
-					<View style={styles.buttonsWrapper}>
-						<View style={styles.buttonsContainer}>
-							<StyledButton
-								type={'confirm'}
-								disabled={!editable || !addressReady || !name || !!addressError}
-								onPress={this.saveContact}
-							>
-								{strings(`address_book.${mode}_contact`)}
-							</StyledButton>
+					{!!editable && (
+						<View style={styles.buttonsWrapper}>
+							<View style={styles.buttonsContainer}>
+								<View style={styles.actionButton}>
+									<StyledButton
+										type={'confirm'}
+										disabled={!addressReady || !name || !!addressError}
+										onPress={this.saveContact}
+									>
+										{strings(`address_book.${mode}_contact`)}
+									</StyledButton>
+								</View>
+								<View style={styles.actionButton}>
+									<StyledButton
+										style={styles.actionButton}
+										type={'warning-empty'}
+										disabled={!addressReady || !name || !!addressError}
+										onPress={this.onDelete}
+									>
+										{strings(`address_book.delete`)}
+									</StyledButton>
+								</View>
+							</View>
 						</View>
-					</View>
+					)}
+					<ActionSheet
+						ref={this.createActionSheetRef}
+						title={strings('address_book.delete_contact')}
+						options={[strings('address_book.delete'), strings('address_book.cancel')]}
+						cancelButtonIndex={1}
+						destructiveButtonIndex={0}
+						// eslint-disable-next-line react/jsx-no-bind
+						onPress={index => (index === 0 ? this.deleteContact() : null)}
+					/>
 				</KeyboardAwareScrollView>
 			</SafeAreaView>
 		);

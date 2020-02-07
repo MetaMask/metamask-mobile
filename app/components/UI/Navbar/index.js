@@ -234,7 +234,9 @@ export function getEditableOptions(title, navigation) {
 		),
 		headerRight: editMode ? (
 			<TouchableOpacity onPress={() => rightAction()} style={styles.backButton}>
-				<Text style={styles.closeButtonText}>{strings('address_book.edit')}</Text>
+				<Text style={styles.closeButtonText}>
+					{editMode ? strings('address_book.edit') : strings('address_book.cancel')}
+				</Text>
 			</TouchableOpacity>
 		) : (
 			<View />
