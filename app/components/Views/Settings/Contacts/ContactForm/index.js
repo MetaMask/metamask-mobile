@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
-import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
+import { getEditableOptions } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
 import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
@@ -88,10 +88,7 @@ const EDIT = 'edit';
  */
 class ContactForm extends PureComponent {
 	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(
-			strings(`address_book.${navigation.getParam('mode', ADD)}_contact_title`),
-			navigation
-		);
+		getEditableOptions(strings(`address_book.${navigation.getParam('mode', ADD)}_contact_title`), navigation);
 
 	static propTypes = {
 		/**
@@ -120,7 +117,7 @@ class ContactForm extends PureComponent {
 		addressReady: false,
 		mode: this.props.navigation.getParam('mode', ADD),
 		memo: undefined,
-		editable: false
+		editable: true
 	};
 
 	addressInput = React.createRef();
@@ -128,13 +125,20 @@ class ContactForm extends PureComponent {
 
 	componentDidMount = () => {
 		const { mode } = this.state;
+		const { navigation } = this.props;
 		if (mode === EDIT) {
 			const { addressBook, network, identities } = this.props;
 			const networkAddressBook = addressBook[network] || {};
 			const address = this.props.navigation.getParam('address', '');
 			const contact = networkAddressBook[address] || identities[address];
-			this.setState({ address, name: contact.name, memo: contact.memo, addressReady: true });
+			this.setState({ address, name: contact.name, memo: contact.memo, addressReady: true, editable: false });
+			navigation && navigation.setParams({ dispatch: this.onEdit, mode: EDIT });
 		}
+	};
+
+	onEdit = () => {
+		const { editable } = this.state;
+		this.setState({ editable: !editable });
 	};
 
 	onChangeName = name => {
@@ -213,7 +217,7 @@ class ContactForm extends PureComponent {
 	};
 
 	render = () => {
-		const { address, addressError, toEnsName, name, mode, addressReady, memo } = this.state;
+		const { address, addressError, toEnsName, name, mode, addressReady, memo, editable, inputWidth } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
@@ -231,18 +235,18 @@ class ContactForm extends PureComponent {
 							onBlur={this.onBlur}
 							style={[
 								styles.input,
-								this.state.inputWidth ? { width: this.state.inputWidth } : {},
-								this.state.editable ? {} : styles.textInputDisaled
+								inputWidth ? { width: inputWidth } : {},
+								editable ? {} : styles.textInputDisaled
 							]}
 							value={name}
 							onSubmitEditing={this.jumpToAddressInput}
 						/>
 
 						<Text style={styles.label}>{strings('address_book.address')}</Text>
-						<View style={[styles.input, this.state.editable ? {} : styles.textInputDisaled]}>
+						<View style={[styles.input, editable ? {} : styles.textInputDisaled]}>
 							<View style={styles.inputWrapper}>
 								<TextInput
-									editable={this.state.editable}
+									editable={editable}
 									autoCapitalize={'none'}
 									autoCorrect={false}
 									onChangeText={this.onChangeAddress}
@@ -259,7 +263,7 @@ class ContactForm extends PureComponent {
 								{toEnsName && <Text style={styles.resolvedInput}>{renderShortAddress(address)}</Text>}
 							</View>
 
-							{this.state.editable && (
+							{editable && (
 								<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
 									<AntIcon name="scan1" size={20} color={colors.grey500} style={styles.scanIcon} />
 								</TouchableOpacity>
@@ -267,11 +271,11 @@ class ContactForm extends PureComponent {
 						</View>
 
 						<Text style={styles.label}>{strings('address_book.memo')}</Text>
-						<View style={[styles.input, this.state.editable ? {} : styles.textInputDisaled]}>
+						<View style={[styles.input, editable ? {} : styles.textInputDisaled]}>
 							<View style={styles.inputWrapper}>
 								<TextInput
 									multiline
-									editable={this.state.editable}
+									editable={editable}
 									autoCapitalize={'none'}
 									autoCorrect={false}
 									onChangeText={this.onChangeMemo}
@@ -294,7 +298,7 @@ class ContactForm extends PureComponent {
 						<View style={styles.buttonsContainer}>
 							<StyledButton
 								type={'confirm'}
-								disabled={!addressReady || !name || !!addressError}
+								disabled={!editable || !addressReady || !name || !!addressError}
 								onPress={this.saveContact}
 							>
 								{strings(`address_book.${mode}_contact`)}
