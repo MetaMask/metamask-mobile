@@ -226,7 +226,11 @@ class AddressList extends PureComponent {
 		const { myAccountsOpened } = this.state;
 		if (inputSearch) return;
 		return !myAccountsOpened ? (
-			<TouchableOpacity style={styles.myAccountsTouchable} onPress={this.openMyAccounts}>
+			<TouchableOpacity
+				style={styles.myAccountsTouchable}
+				onPress={this.openMyAccounts}
+				testID={'my-accounts-button'}
+			>
 				<Text style={[styles.messageText, styles.messageLeft]}>{strings('address_book.between_account')}</Text>
 			</TouchableOpacity>
 		) : (
@@ -238,6 +242,7 @@ class AddressList extends PureComponent {
 						name={identities[address].name}
 						onAccountPress={onAccountPress}
 						onAccountLongPress={onAccountLongPress}
+						testID={'account-identity'}
 					/>
 				))}
 			</View>
@@ -279,7 +284,7 @@ class AddressList extends PureComponent {
 							renderItem={this.renderElement}
 						/>
 					) : (
-						<View style={styles.message}>
+						<View style={styles.message} testID={'no-contacts-message'}>
 							<Text style={styles.messageText}>{strings('address_book.no_contacts')}</Text>
 						</View>
 					)}
