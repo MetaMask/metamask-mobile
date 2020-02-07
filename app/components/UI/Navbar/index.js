@@ -214,7 +214,8 @@ export function getEditableOptions(title, navigation) {
 	const rightAction = navigation.getParam('dispatch', () => {
 		'';
 	});
-	const editMode = navigation.getParam('mode', '') === 'edit';
+	const editMode = navigation.getParam('editMode', '') === 'edit';
+	const addMode = navigation.getParam('mode', '') === 'add';
 	return {
 		title,
 		headerTitleStyle: {
@@ -232,7 +233,7 @@ export function getEditableOptions(title, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: editMode ? (
+		headerRight: !addMode ? (
 			<TouchableOpacity onPress={() => rightAction()} style={styles.backButton}>
 				<Text style={styles.closeButtonText}>
 					{editMode ? strings('address_book.edit') : strings('address_book.cancel')}

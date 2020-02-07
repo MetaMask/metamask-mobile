@@ -142,7 +142,11 @@ class ContactForm extends PureComponent {
 	};
 
 	onEdit = () => {
+		const { navigation } = this.props;
 		const { editable } = this.state;
+		if (editable) navigation.setParams({ editMode: EDIT });
+		else navigation.setParams({ editMode: ADD });
+
 		this.setState({ editable: !editable });
 	};
 
@@ -327,16 +331,18 @@ class ContactForm extends PureComponent {
 										{strings(`address_book.${mode}_contact`)}
 									</StyledButton>
 								</View>
-								<View style={styles.actionButton}>
-									<StyledButton
-										style={styles.actionButton}
-										type={'warning-empty'}
-										disabled={!addressReady || !name || !!addressError}
-										onPress={this.onDelete}
-									>
-										{strings(`address_book.delete`)}
-									</StyledButton>
-								</View>
+								{mode === EDIT && (
+									<View style={styles.actionButton}>
+										<StyledButton
+											style={styles.actionButton}
+											type={'warning-empty'}
+											disabled={!addressReady || !name || !!addressError}
+											onPress={this.onDelete}
+										>
+											{strings(`address_book.delete`)}
+										</StyledButton>
+									</View>
+								)}
 							</View>
 						</View>
 					)}

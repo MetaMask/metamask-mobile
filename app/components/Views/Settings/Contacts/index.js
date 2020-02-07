@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
 });
 
 const EDIT = 'edit';
+const ADD = 'add';
 
 /**
  * View that contains app information
@@ -62,11 +63,11 @@ class Contacts extends PureComponent {
 	};
 
 	onAddressPress = address => {
-		this.props.navigation.navigate('ContactForm', { mode: EDIT, address });
+		this.props.navigation.navigate('ContactForm', { mode: EDIT, editMode: EDIT, address });
 	};
 
 	goToAddContact = () => {
-		this.props.navigation.navigate('ContactForm');
+		this.props.navigation.navigate('ContactForm', { mode: ADD });
 	};
 
 	goToEditContact = () => {
