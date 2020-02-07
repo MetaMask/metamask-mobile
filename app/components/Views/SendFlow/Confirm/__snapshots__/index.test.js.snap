@@ -8,6 +8,7 @@ exports[`Confirm should render correctly 1`] = `
       "flex": 1,
     }
   }
+  testID="txn-confirm-screen"
 >
   <View
     style={
@@ -79,6 +80,7 @@ exports[`Confirm should render correctly 1`] = `
             "textTransform": "uppercase",
           }
         }
+        testID="confirm-txn-amount"
       />
     </View>
     <View
@@ -330,6 +332,7 @@ exports[`Confirm should render correctly 1`] = `
           "opacity": 0.6,
         }
       }
+      testID="txn-confirm-send-button"
       type="confirm"
     >
       Send
