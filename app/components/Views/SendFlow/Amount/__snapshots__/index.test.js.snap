@@ -59,7 +59,7 @@ exports[`Amount should render correctly 1`] = `
             style={
               Object {
                 "color": "#FFFFFF",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "paddingVertical": 2,
@@ -108,7 +108,7 @@ exports[`Amount should render correctly 1`] = `
               Object {
                 "alignSelf": "flex-end",
                 "color": "#037dd6",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "textTransform": "uppercase",
@@ -166,7 +166,7 @@ exports[`Amount should render correctly 1`] = `
           style={
             Object {
               "alignSelf": "center",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
               "lineHeight": 16,

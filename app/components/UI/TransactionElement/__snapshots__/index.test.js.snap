@@ -34,7 +34,7 @@ exports[`TransactionElement should render correctly 1`] = `
         style={
           Object {
             "color": "#777777",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 12,
             "fontWeight": "400",
             "marginBottom": 10,
@@ -69,7 +69,7 @@ exports[`TransactionElement should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 15,
                 "fontWeight": "400",
               }
@@ -81,7 +81,7 @@ exports[`TransactionElement should render correctly 1`] = `
                 Object {
                   "backgroundColor": "#f2f3f4",
                   "color": "#848c96",
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontSize": 9,
                   "fontWeight": "600",
                   "letterSpacing": 0.5,
@@ -111,7 +111,7 @@ exports[`TransactionElement should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 15,
                 "fontWeight": "400",
               }
@@ -123,7 +123,7 @@ exports[`TransactionElement should render correctly 1`] = `
             style={
               Object {
                 "color": "#777777",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "textTransform": "uppercase",

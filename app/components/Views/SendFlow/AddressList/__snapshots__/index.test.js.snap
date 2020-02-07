@@ -33,7 +33,7 @@ exports[`AddressList should render correctly 1`] = `
           Array [
             Object {
               "color": "#037dd6",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 16,
               "fontWeight": "400",
               "textAlign": "center",
@@ -59,7 +59,7 @@ exports[`AddressList should render correctly 1`] = `
         style={
           Object {
             "color": "#037dd6",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 16,
             "fontWeight": "400",
             "textAlign": "center",

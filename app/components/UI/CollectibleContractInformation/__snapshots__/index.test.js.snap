@@ -23,7 +23,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 18,
           "fontWeight": "600",
           "marginHorizontal": 20,
@@ -54,7 +54,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
         style={
           Object {
             "borderColor": "#d6d9dc",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontWeight": "600",
             "marginTop": 0,
           }
@@ -66,7 +66,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
         style={
           Object {
             "color": "#848c96",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 16,
             "fontWeight": "400",
             "paddingTop": 10,
@@ -87,7 +87,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
         style={
           Object {
             "borderColor": "#d6d9dc",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontWeight": "600",
             "marginTop": 0,
           }
@@ -99,7 +99,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
         style={
           Object {
             "color": "#848c96",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 16,
             "fontWeight": "400",
             "paddingTop": 10,
@@ -120,7 +120,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
         style={
           Object {
             "borderColor": "#d6d9dc",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontWeight": "600",
             "marginTop": 0,
           }
@@ -133,7 +133,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           Array [
             Object {
               "color": "#848c96",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 16,
               "fontWeight": "400",
               "paddingTop": 10,
@@ -178,7 +178,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
             style={
               Object {
                 "color": "#777777",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 8,
                 "fontWeight": "300",
                 "marginTop": 4,
@@ -236,7 +236,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
         style={
           Object {
             "color": "#037dd6",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 16,
             "fontWeight": "400",
           }

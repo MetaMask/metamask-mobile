@@ -18,7 +18,7 @@ exports[`ErrorMessage should render correctly 1`] = `
         "alignItems": "center",
         "color": "#D73A49",
         "flexDirection": "row",
-        "fontFamily": "Roboto",
+        "fontFamily": "CircularStd-Medium",
         "fontSize": 12,
         "fontWeight": "400",
       }
