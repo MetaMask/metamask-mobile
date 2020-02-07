@@ -74,6 +74,9 @@ const styles = StyleSheet.create({
 	inputWrapper: {
 		flex: 1,
 		flexDirection: 'column'
+	},
+	textInputDisaled: {
+		borderColor: colors.transparent
 	}
 });
 
@@ -116,7 +119,8 @@ class ContactForm extends PureComponent {
 		toEnsName: undefined,
 		addressReady: false,
 		mode: this.props.navigation.getParam('mode', ADD),
-		memo: undefined
+		memo: undefined,
+		editable: false
 	};
 
 	addressInput = React.createRef();
@@ -216,6 +220,7 @@ class ContactForm extends PureComponent {
 					<View style={styles.scrollWrapper}>
 						<Text style={styles.label}>{strings('address_book.name')}</Text>
 						<TextInput
+							editable={this.state.editable}
 							autoCapitalize={'none'}
 							autoCorrect={false}
 							onChangeText={this.onChangeName}
@@ -224,15 +229,20 @@ class ContactForm extends PureComponent {
 							spellCheck={false}
 							numberOfLines={1}
 							onBlur={this.onBlur}
-							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							style={[
+								styles.input,
+								this.state.inputWidth ? { width: this.state.inputWidth } : {},
+								this.state.editable ? {} : styles.textInputDisaled
+							]}
 							value={name}
 							onSubmitEditing={this.jumpToAddressInput}
 						/>
 
 						<Text style={styles.label}>{strings('address_book.address')}</Text>
-						<View style={styles.input}>
+						<View style={[styles.input, this.state.editable ? {} : styles.textInputDisaled]}>
 							<View style={styles.inputWrapper}>
 								<TextInput
+									editable={this.state.editable}
 									autoCapitalize={'none'}
 									autoCorrect={false}
 									onChangeText={this.onChangeAddress}
@@ -249,16 +259,19 @@ class ContactForm extends PureComponent {
 								{toEnsName && <Text style={styles.resolvedInput}>{renderShortAddress(address)}</Text>}
 							</View>
 
-							<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
-								<AntIcon name="scan1" size={20} color={colors.grey500} style={styles.scanIcon} />
-							</TouchableOpacity>
+							{this.state.editable && (
+								<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
+									<AntIcon name="scan1" size={20} color={colors.grey500} style={styles.scanIcon} />
+								</TouchableOpacity>
+							)}
 						</View>
 
 						<Text style={styles.label}>{strings('address_book.memo')}</Text>
-						<View style={styles.input}>
+						<View style={[styles.input, this.state.editable ? {} : styles.textInputDisaled]}>
 							<View style={styles.inputWrapper}>
 								<TextInput
 									multiline
+									editable={this.state.editable}
 									autoCapitalize={'none'}
 									autoCorrect={false}
 									onChangeText={this.onChangeMemo}
