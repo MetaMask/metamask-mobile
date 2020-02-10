@@ -11,9 +11,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       "flex": 0,
       "flexDirection": "row",
       "justifyContent": "space-between",
-      "paddingBottom": 36,
-      "paddingHorizontal": 14,
-      "paddingVertical": 18,
     }
   }
 >
@@ -25,7 +22,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       Object {
         "alignItems": "center",
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "padding": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -57,7 +55,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       Object {
         "alignItems": "center",
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "padding": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -90,7 +89,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       Object {
         "alignItems": "center",
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "padding": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -118,7 +118,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       Object {
         "alignItems": "center",
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "padding": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -141,7 +142,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       Object {
         "alignItems": "center",
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "padding": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -169,7 +171,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       Object {
         "alignItems": "center",
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "padding": 30,
         "textAlign": "center",
         "width": 24,
       }
