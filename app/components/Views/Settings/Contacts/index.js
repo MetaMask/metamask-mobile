@@ -33,6 +33,10 @@ class Contacts extends PureComponent {
 
 	static propTypes = {
 		/**
+		 * Map representing the address book
+		 */
+		addressBook: PropTypes.object,
+		/**
 		/* navigation object required to push new views
 		*/
 		navigation: PropTypes.object,
@@ -48,6 +52,23 @@ class Contacts extends PureComponent {
 
 	actionSheet;
 	contactAddressToRemove;
+
+	componentDidUpdate = prevProps => {
+		const { network } = this.props;
+		if (
+			prevProps.addressBook &&
+			this.props.addressBook &&
+			JSON.stringify(prevProps.addressBook[network]) !== JSON.stringify(this.props.addressBook[network])
+		)
+			this.updateAddressList();
+	};
+
+	updateAddressList = () => {
+		this.setState({ reloadAddressList: true });
+		setTimeout(() => {
+			this.setState({ reloadAddressList: false });
+		}, 100);
+	};
 
 	onAddressLongPress = address => {
 		this.contactAddressToRemove = address;
@@ -106,6 +127,7 @@ class Contacts extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	network: state.engine.backgroundState.NetworkController.network
 });
 
