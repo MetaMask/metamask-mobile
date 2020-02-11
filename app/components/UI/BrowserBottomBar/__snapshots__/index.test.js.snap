@@ -11,9 +11,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       "flex": 0,
       "flexDirection": "row",
       "justifyContent": "space-between",
-      "paddingBottom": 36,
-      "paddingHorizontal": 14,
-      "paddingVertical": 18,
+      "paddingBottom": 18,
     }
   }
 >
@@ -24,8 +22,11 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -56,8 +57,11 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -89,8 +93,11 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -117,8 +124,11 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -140,8 +150,11 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -168,8 +181,11 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
-        "justifyContent": "center",
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
