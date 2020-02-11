@@ -32,10 +32,9 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-around',
 		alignItems: 'center',
 		textAlign: 'center',
+		flex: 1,
 		paddingTop: 30,
-		paddingRight: 28,
-		paddingBottom: 30,
-		paddingLeft: 28
+		paddingBottom: 30
 	},
 	tabIcon: {
 		marginTop: 0,
