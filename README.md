@@ -1,5 +1,7 @@
 ![MetaMask logo](logo.png?raw=true)
+
 # MetaMask
+
 [![CircleCI](https://circleci.com/gh/MetaMask/metamask-mobile/tree/develop.svg?style=shield)](https://circleci.com/gh/MetaMask/metamask-mobile/tree/develop)
 
 MetaMask is a mobile web browser that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
@@ -10,57 +12,106 @@ To learn how to develop MetaMask-compatible applications, visit our [Developer D
 
 ## MetaMask Mobile
 
-### Building locally
+### Building Locally
+
 The code is built using React-Native and running code locally requires a Mac or Linux OS.
 
 - Install [Node.js](https://nodejs.org) **version 10 (latest stable) and yarn@1 (latest)**
-    - If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
+  - If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
-- Before starting, you need to install React Native dependencies:
-    - [MacOs](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1)
-    - [Linux](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-2)
-- Now clone this repo and then install all our dependencies.
+- Install the React Native dependencies (`React Native CLI`, _not_ `Expo CLI`)
+  - [macOS](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1)
+  - [Linux](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-2)
+
+- _MetaMask Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
+
+- Clone this repo and install our dependencies:
 
 ```bash
+git clone ...
 cd metamask-mobile
-yarn install
+yarn install # this will run a lengthy postinstall flow
 ```
-- Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key.
 
-- Running the app on Android:
+- Then, in one terminal, run:
 
-You will need the `secret-tool` (a part of [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions) binary on your machine. You'll also want to have the android SDK; the easiest way to do that is by installing [Android Studio](https://developer.android.com/studio). Additionally, you'll need to install the Google Play Licencing Library via the SDK Manager in Android Studio.
+```bash
+yarn start
+```
+
+#### Android
+
+- Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
+  - TODO: how to add emulator
+  - _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
+- Linux only:
+  - You need the `secret-tool` (part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions) binary on your machine.
+- Finally, start the emulator from Android Studio, and run:
 
 ```bash
 yarn start:android
 ```
 
-- Running the app on iOS:
+#### iOS
+
+TODO: iOS dependencies, how to add simulator
 
 ```bash
 yarn start:ios
 ```
 
-### Running tests:
- - Unit test:
+#### Build Troubleshooting
+
+Unfortunately, the build system may fail to pick up local changes, such as installing new NPM packages or `yarn link`ing a dependency.
+If the app is behaving strangely or not picking up your local changes, it may be due to build issues.
+To ensure that you're starting with a clean slate, close all emulators/simulators, stop the `yarn start` process, and run:
+
+```bash
+yarn clean
+
+# if you're going to `yarn link` any packages,
+# do that here, before the next command
+
+yarn start:clean
+
+# ...and then, in another terminal
+
+yarn start:ios
+
+# or
+
+yarn start:android
 ```
+
+### Debugging
+
+TODO: add dapp debugging links
+
+Visit [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
+
+#### Running Tests
+
+- Unit tests:
+
+```bash
 yarn test:unit
 ```
- - E2E Tests (iOS)
-```
+
+- E2E tests (iOS)
+
+```bash
 yarn test:e2e:ios
 ```
- - E2E Tests (Android)
-```
+
+- E2E tests (Android)
+
+```bash
 yarn test:e2e:android
 ```
 
 ### Architecture
+
 To get a better understanding of the internal architecture of this app take a look at [this diagram](https://github.com/MetaMask/metamask-mobile/blob/develop/architecture.svg)
-
-### Troubleshooting
-
-Visit [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
 
 ## License
 
