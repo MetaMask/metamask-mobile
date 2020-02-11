@@ -208,9 +208,7 @@ class AccountBackupStep5 extends PureComponent {
 
 	findNextAvailableIndex = () => {
 		const { currentIndex, confirmedWords } = this.state;
-		for (let i = 0; i < 12; i++) {
-			if (!confirmedWords[i].word) return i;
-		}
+		for (let i = 0; i < 12; i++) if (!confirmedWords[i].word) return i;
 		return currentIndex + 1;
 	};
 
@@ -232,6 +230,7 @@ class AccountBackupStep5 extends PureComponent {
 	clearConfirmedWordAt = i => {
 		const { confirmedWords, wordsDict } = this.state;
 		const { word, originalPosition } = confirmedWords[i];
+		if (!word || originalPosition === undefined) return;
 		const currentIndex = i;
 		wordsDict[[word, originalPosition]].currentPosition = undefined;
 		confirmedWords[i] = { word: undefined, originalPosition: undefined };
