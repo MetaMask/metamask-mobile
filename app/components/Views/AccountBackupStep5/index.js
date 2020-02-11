@@ -206,17 +206,25 @@ class AccountBackupStep5 extends PureComponent {
 		this.setState({ wordsDict: dict });
 	};
 
+	findNextAvailableIndex = () => {
+		const { currentIndex, confirmedWords } = this.state;
+		for (let i = 0; i < 12; i++) {
+			if (!confirmedWords[i]) return i;
+		}
+		return currentIndex + 1;
+	};
+
 	selectWord = (word, i) => {
 		const { wordsDict, confirmedWords } = this.state;
 		let currentIndex = this.state.currentIndex;
 		if (wordsDict[[word, i]].currentPosition !== undefined) {
-			currentIndex--;
+			currentIndex = wordsDict[[word, i]].currentPosition;
 			wordsDict[[word, i]].currentPosition = undefined;
 			confirmedWords[currentIndex] = undefined;
 		} else {
-			wordsDict[[word, i]].currentPosition = currentIndex;
+			wordsDict[[word, i]].currentPosition = this.findNextAvailableIndex();
 			confirmedWords[currentIndex] = word;
-			currentIndex++;
+			currentIndex = this.findNextAvailableIndex();
 		}
 		this.setState({ currentIndex, wordsDict, confirmedWords });
 	};
