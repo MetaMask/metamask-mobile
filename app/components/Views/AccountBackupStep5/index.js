@@ -188,7 +188,7 @@ class AccountBackupStep5 extends PureComponent {
 	}
 
 	state = {
-		confirmedWords: Array(12).fill(),
+		confirmedWords: Array(12).fill({ word: undefined, originalPosition: undefined }),
 		showSuccessModal: false,
 		wordsDict: {},
 		currentIndex: 0
@@ -209,7 +209,7 @@ class AccountBackupStep5 extends PureComponent {
 	findNextAvailableIndex = () => {
 		const { currentIndex, confirmedWords } = this.state;
 		for (let i = 0; i < 12; i++) {
-			if (!confirmedWords[i]) return i;
+			if (!confirmedWords[i].word) return i;
 		}
 		return currentIndex + 1;
 	};
@@ -220,12 +220,21 @@ class AccountBackupStep5 extends PureComponent {
 		if (wordsDict[[word, i]].currentPosition !== undefined) {
 			currentIndex = wordsDict[[word, i]].currentPosition;
 			wordsDict[[word, i]].currentPosition = undefined;
-			confirmedWords[currentIndex] = undefined;
+			confirmedWords[currentIndex] = { word: undefined, originalPosition: undefined };
 		} else {
 			wordsDict[[word, i]].currentPosition = this.findNextAvailableIndex();
-			confirmedWords[currentIndex] = word;
+			confirmedWords[currentIndex] = { word, originalPosition: i };
 			currentIndex = this.findNextAvailableIndex();
 		}
+		this.setState({ currentIndex, wordsDict, confirmedWords });
+	};
+
+	clearConfirmedWordAt = i => {
+		const { confirmedWords, wordsDict } = this.state;
+		const { word, originalPosition } = confirmedWords[i];
+		const currentIndex = i;
+		wordsDict[[word, originalPosition]].currentPosition = undefined;
+		confirmedWords[i] = { word: undefined, originalPosition: undefined };
 		this.setState({ currentIndex, wordsDict, confirmedWords });
 	};
 
@@ -261,7 +270,12 @@ class AccountBackupStep5 extends PureComponent {
 		let wordText = '';
 		if (word) wordText = `${i + 1}. ${word}`;
 		return (
-			<TouchableOpacity key={`word_${i}`}>
+			<TouchableOpacity
+				key={`word_${i}`}
+				onPress={() => {
+					this.clearConfirmedWordAt(i);
+				}}
+			>
 				<Text style={[styles.word, i === currentIndex ? styles.currentWord : null]}>{wordText}</Text>
 			</TouchableOpacity>
 		);
@@ -286,10 +300,10 @@ class AccountBackupStep5 extends PureComponent {
 
 							<View style={styles.seedPhraseWrapper}>
 								<View style={styles.colLeft}>
-									{confirmedWords.slice(0, 6).map((word, i) => this.renderWordBox(word, i))}
+									{confirmedWords.slice(0, 6).map(({ word }, i) => this.renderWordBox(word, i))}
 								</View>
 								<View style={styles.colRight}>
-									{confirmedWords.slice(-6).map((word, i) => this.renderWordBox(word, i + 6))}
+									{confirmedWords.slice(-6).map(({ word }, i) => this.renderWordBox(word, i + 6))}
 								</View>
 							</View>
 
