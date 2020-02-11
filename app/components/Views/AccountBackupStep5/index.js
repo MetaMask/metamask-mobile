@@ -207,7 +207,7 @@ class AccountBackupStep5 extends PureComponent {
 			wordsDict[[word, i]].currentPosition = undefined;
 			confirmedWords[currentIndex] = { word: undefined, originalPosition: undefined };
 		} else {
-			wordsDict[[word, i]].currentPosition = this.findNextAvailableIndex();
+			wordsDict[[word, i]].currentPosition = currentIndex;
 			confirmedWords[currentIndex] = { word, originalPosition: i };
 			currentIndex = this.findNextAvailableIndex();
 		}
