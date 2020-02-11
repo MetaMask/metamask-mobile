@@ -11,14 +11,16 @@ import DeviceSize from '../../../util/DeviceSize';
 import { colors } from '../../../styles/common';
 
 const HOME_INDICATOR_HEIGHT = 18;
+const defaultBottomBarPadding = 0;
 
 const styles = StyleSheet.create({
 	bottomBar: {
 		backgroundColor: Platform.OS === 'android' ? colors.white : colors.grey000,
 		flexDirection: 'row',
-		paddingHorizontal: 14,
-		paddingVertical: 18,
-		paddingBottom: DeviceSize.isIphoneX() && Platform.OS === 'ios' ? 18 + HOME_INDICATOR_HEIGHT : 18,
+		paddingBottom:
+			DeviceSize.isIphoneX() && Platform.OS === 'ios'
+				? defaultBottomBarPadding + HOME_INDICATOR_HEIGHT
+				: defaultBottomBarPadding,
 		flex: 0,
 		borderTopWidth: Platform.OS === 'android' ? 0 : StyleSheet.hairlineWidth,
 		borderColor: colors.grey200,
@@ -27,9 +29,12 @@ const styles = StyleSheet.create({
 	iconButton: {
 		height: 24,
 		width: 24,
-		justifyContent: 'center',
+		justifyContent: 'space-around',
 		alignItems: 'center',
-		textAlign: 'center'
+		textAlign: 'center',
+		flex: 1,
+		paddingTop: 30,
+		paddingBottom: 30
 	},
 	tabIcon: {
 		marginTop: 0,
