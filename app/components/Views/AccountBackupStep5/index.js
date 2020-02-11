@@ -250,7 +250,8 @@ class AccountBackupStep5 extends PureComponent {
 
 	goNext = () => {
 		const words = this.props.navigation.getParam('words', []);
-		if (words.join('') === this.state.confirmedWords.join('')) {
+		const confirmedWords = this.state.confirmedWords.map(confirmedWord => confirmedWord.word);
+		if (words.join('') === confirmedWords.join('')) {
 			this.props.seedphraseBackedUp();
 			this.setState({ showSuccessModal: true });
 		} else {
