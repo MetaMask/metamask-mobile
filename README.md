@@ -33,6 +33,8 @@ cd metamask-mobile
 yarn install # this will run a lengthy postinstall flow
 ```
 
+- Open Google Chrome
+
 - Then, in one terminal, run:
 
 ```bash
@@ -85,11 +87,47 @@ yarn start:android
 
 ### Debugging
 
-TODO: add dapp debugging links
+First, make sure you have the following running:
 
-Visit [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
+- Google Chrome
+- `yarn start`
+- Your Android emulator or iOS simulator
+- `yarn start:android` or `yarn start:ios`
 
-#### Running Tests
+Next, check that the React Native Debugger is working:
+
+- If it's not already in Chrome, open a new tab and go to: http://localhost:8081/debugger-ui/
+- If that doesn't take you to the React Native Debugger, something is wrong
+
+#### Debugging iOS (macOS Only)
+
+For more details, see [this page](https://medium.com/@mattcroak718/debugging-your-iphone-mobile-web-app-using-safari-development-tools-71240657c487).
+
+- You should be able to inspect the mobile app using the console in the React Native Debugger tab
+- To debug a website (dapp) in the browser:
+  - Navigate to the website in the app's browser
+  - Open Safari
+    - Go to: _Preferences -> Advanced_ and select `Show Develop menu in menu bar`
+  - Select `Develop` in the menu bar
+    - Find your simulator in the second section from the top
+    - Select the relevant WebView from the list
+      - The simulator will highlight the WebView when you hover over it in Safari
+
+#### Debugging Android
+
+For more details, see [this page](https://developers.google.com/web/tools/chrome-devtools/remote-debugging/webviews).
+
+- You should be able to inspect the mobile app using the console in the React Native Debugger tab
+- To debug a website (dapp) in the browser:
+  - Navigate to the website in the app's browser
+  - Go to chrome://inspect
+  - Select the relevant WebView under **Remote Target**
+
+#### Miscellaneous
+
+- [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
+
+### Running Tests
 
 - Unit tests:
 
