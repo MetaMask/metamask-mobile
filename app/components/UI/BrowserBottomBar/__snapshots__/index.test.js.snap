@@ -22,11 +22,10 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
         "justifyContent": "space-around",
         "paddingBottom": 30,
-        "paddingLeft": 28,
-        "paddingRight": 28,
         "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
@@ -58,11 +57,10 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
         "justifyContent": "space-around",
         "paddingBottom": 30,
-        "paddingLeft": 28,
-        "paddingRight": 28,
         "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
@@ -95,11 +93,10 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
         "justifyContent": "space-around",
         "paddingBottom": 30,
-        "paddingLeft": 28,
-        "paddingRight": 28,
         "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
@@ -127,11 +124,10 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
         "justifyContent": "space-around",
         "paddingBottom": 30,
-        "paddingLeft": 28,
-        "paddingRight": 28,
         "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
@@ -154,11 +150,10 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
         "justifyContent": "space-around",
         "paddingBottom": 30,
-        "paddingLeft": 28,
-        "paddingRight": 28,
         "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
@@ -186,11 +181,10 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "flex": 1,
         "height": 24,
         "justifyContent": "space-around",
         "paddingBottom": 30,
-        "paddingLeft": 28,
-        "paddingRight": 28,
         "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
