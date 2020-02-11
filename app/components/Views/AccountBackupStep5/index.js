@@ -191,7 +191,8 @@ class AccountBackupStep5 extends PureComponent {
 		confirmedWords: Array(12).fill({ word: undefined, originalPosition: undefined }),
 		showSuccessModal: false,
 		wordsDict: {},
-		currentIndex: 0
+		currentIndex: 0,
+		seedPhraseReady: false
 	};
 
 	componentDidMount = () => {
@@ -207,9 +208,9 @@ class AccountBackupStep5 extends PureComponent {
 	};
 
 	findNextAvailableIndex = () => {
-		const { currentIndex, confirmedWords } = this.state;
+		const { confirmedWords } = this.state;
 		for (let i = 0; i < 12; i++) if (!confirmedWords[i].word) return i;
-		return currentIndex + 1;
+		return 12;
 	};
 
 	selectWord = (word, i) => {
@@ -224,16 +225,22 @@ class AccountBackupStep5 extends PureComponent {
 			confirmedWords[currentIndex] = { word, originalPosition: i };
 			currentIndex = this.findNextAvailableIndex();
 		}
-		this.setState({ currentIndex, wordsDict, confirmedWords });
+		this.setState({
+			currentIndex,
+			wordsDict,
+			confirmedWords,
+			seedPhraseReady: this.findNextAvailableIndex() === 12
+		});
 	};
 
 	clearConfirmedWordAt = i => {
 		const { confirmedWords, wordsDict } = this.state;
 		const { word, originalPosition } = confirmedWords[i];
-		if (!word || originalPosition === undefined) return;
 		const currentIndex = i;
-		wordsDict[[word, originalPosition]].currentPosition = undefined;
-		confirmedWords[i] = { word: undefined, originalPosition: undefined };
+		if (word && (originalPosition || originalPosition === 0)) {
+			wordsDict[[word, originalPosition]].currentPosition = undefined;
+			confirmedWords[i] = { word: undefined, originalPosition: undefined };
+		}
 		this.setState({ currentIndex, wordsDict, confirmedWords });
 	};
 
@@ -298,8 +305,7 @@ class AccountBackupStep5 extends PureComponent {
 	};
 
 	render = () => {
-		const { confirmedWords, wordsDict } = this.state;
-
+		const { confirmedWords, wordsDict, seedPhraseReady } = this.state;
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<ScrollView style={styles.mainWrapper} testID={'account-backup-step-5-screen'}>
@@ -333,6 +339,7 @@ class AccountBackupStep5 extends PureComponent {
 								type={'confirm'}
 								onPress={this.goNext}
 								testID={'submit-button'}
+								disabled={!seedPhraseReady}
 							>
 								{strings('account_backup_step_5.cta_text')}
 							</StyledButton>
