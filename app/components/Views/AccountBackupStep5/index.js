@@ -248,8 +248,19 @@ class AccountBackupStep5 extends PureComponent {
 		});
 	};
 
+	renderWordBox = (word, i) => {
+		const { currentIndex } = this.state;
+		let wordText = '';
+		if (word) wordText = `${i + 1}. ${word}`;
+		return (
+			<TouchableOpacity key={`word_${i}`}>
+				<Text style={[styles.word, i === currentIndex ? styles.currentWord : null]}>{wordText}</Text>
+			</TouchableOpacity>
+		);
+	};
+
 	render = () => {
-		const { confirmedWords, wordsDict, currentIndex } = this.state;
+		const { confirmedWords, wordsDict } = this.state;
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -267,35 +278,10 @@ class AccountBackupStep5 extends PureComponent {
 
 							<View style={styles.seedPhraseWrapper}>
 								<View style={styles.colLeft}>
-									{confirmedWords.slice(0, 6).map((word, i) => (
-										<TouchableOpacity
-											key={`word_${i}`}
-											// eslint-disable-next-line react/jsx-no-bind
-											onPress={() => this.updateWordAtIndex(i)}
-										>
-											<Text style={[styles.word, i === currentIndex ? styles.currentWord : null]}>
-												{(word && `${i + 1}. ${word}`) || ' '}
-											</Text>
-										</TouchableOpacity>
-									))}
+									{confirmedWords.slice(0, 6).map((word, i) => this.renderWordBox(word, i))}
 								</View>
 								<View style={styles.colRight}>
-									{confirmedWords.slice(-6).map((word, i) => (
-										<TouchableOpacity
-											// eslint-disable-next-line react/jsx-no-bind
-											onPress={() => this.updateWordAtIndex(i + 6)}
-											key={`word_${i}`}
-										>
-											<Text
-												style={[
-													styles.word,
-													i + 6 === currentIndex ? styles.currentWord : null
-												]}
-											>
-												{(word && `${i + 7}. ${word}`) || ' '}
-											</Text>
-										</TouchableOpacity>
-									))}
+									{confirmedWords.slice(-6).map((word, i) => this.renderWordBox(word, i + 6))}
 								</View>
 							</View>
 
