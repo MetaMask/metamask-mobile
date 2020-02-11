@@ -1872,7 +1872,9 @@ export class BrowserTab extends PureComponent {
 				{!isHidden && this.renderOptions()}
 				{!isHidden && this.renderBottomBar()}
 				{!isHidden && this.renderOnboardingWizard()}
-				<BackupAlert onPress={this.backupAlertPress} style={styles.backupAlert} />
+				{!isHidden && this.props.passwordSet && !this.props.seedphraseBackedUp && (
+					<BackupAlert onPress={this.backupAlertPress} style={styles.backupAlert} />
+				)}
 			</View>
 		);
 	}
