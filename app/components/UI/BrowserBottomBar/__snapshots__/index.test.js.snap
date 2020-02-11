@@ -11,6 +11,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       "flex": 0,
       "flexDirection": "row",
       "justifyContent": "space-between",
+      "paddingBottom": 18,
     }
   }
 >
