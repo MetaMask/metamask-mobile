@@ -209,7 +209,7 @@ class AccountBackupStep5 extends PureComponent {
 	selectWord = (word, i) => {
 		const { wordsDict, confirmedWords } = this.state;
 		let currentIndex = this.state.currentIndex;
-		if (wordsDict[[word, i]].currentPosition) {
+		if (wordsDict[[word, i]].currentPosition !== undefined) {
 			currentIndex--;
 			wordsDict[[word, i]].currentPosition = undefined;
 			confirmedWords[currentIndex] = undefined;
@@ -218,7 +218,7 @@ class AccountBackupStep5 extends PureComponent {
 			confirmedWords[currentIndex] = word;
 			currentIndex++;
 		}
-		this.setState({ currentIndex, wordsDict });
+		this.setState({ currentIndex, wordsDict, confirmedWords });
 	};
 
 	goBack = () => {
@@ -288,7 +288,8 @@ class AccountBackupStep5 extends PureComponent {
 							<View style={styles.words}>
 								{Object.keys(wordsDict).map((key, i) => {
 									const [word] = key.split(',');
-									const selected = wordsDict[key].currentPosition ? styles.selectedWord : null;
+									const selected =
+										wordsDict[key].currentPosition !== undefined ? styles.selectedWord : null;
 									const selectedText = selected ? styles.selectedWordText : null;
 									return (
 										<TouchableOpacity
