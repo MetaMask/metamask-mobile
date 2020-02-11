@@ -165,12 +165,26 @@ class AccountBackupStep5 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		const words = props.navigation.getParam('words', []);
-		if (process.env.JEST_WORKER_ID === undefined) {
-			this.words = [...words].sort(() => 0.5 - Math.random());
-		} else {
-			this.words = words;
-		}
+		// const words = props.navigation.getParam('words', []);
+		// if (process.env.JEST_WORKER_ID === undefined) {
+		// 	this.words = [...words].sort(() => 0.5 - Math.random());
+		// } else {
+		// 	this.words = words;
+		// }
+		this.words = [
+			'outdoor',
+			'group',
+			'glove',
+			'unhappy',
+			'speed',
+			'pattern',
+			'fix',
+			'devote',
+			'renew',
+			'lyrics',
+			'wool',
+			'speed'
+		];
 	}
 
 	state = {
