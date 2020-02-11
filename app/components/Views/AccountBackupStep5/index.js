@@ -271,11 +271,28 @@ class AccountBackupStep5 extends PureComponent {
 		return (
 			<TouchableOpacity
 				key={`word_${i}`}
+				// eslint-disable-next-line react/jsx-no-bind
 				onPress={() => {
 					this.clearConfirmedWordAt(i);
 				}}
 			>
 				<Text style={[styles.word, i === currentIndex ? styles.currentWord : null]}>{wordText}</Text>
+			</TouchableOpacity>
+		);
+	};
+
+	renderWordSelectableBox = (key, i) => {
+		const { wordsDict } = this.state;
+		const [word] = key.split(',');
+		const selected = wordsDict[key].currentPosition !== undefined;
+		return (
+			<TouchableOpacity
+				// eslint-disable-next-line react/jsx-no-bind
+				onPress={() => this.selectWord(word, i)}
+				style={[styles.selectableWord, selected && styles.selectedWord]}
+				key={`selectableWord_${i}`}
+			>
+				<Text style={[styles.selectableWordText, selected && styles.selectedWordText]}>{word}</Text>
 			</TouchableOpacity>
 		);
 	};
@@ -307,22 +324,7 @@ class AccountBackupStep5 extends PureComponent {
 							</View>
 
 							<View style={styles.words}>
-								{Object.keys(wordsDict).map((key, i) => {
-									const [word] = key.split(',');
-									const selected =
-										wordsDict[key].currentPosition !== undefined ? styles.selectedWord : null;
-									const selectedText = selected ? styles.selectedWordText : null;
-									return (
-										<TouchableOpacity
-											// eslint-disable-next-line react/jsx-no-bind
-											onPress={() => this.selectWord(word, i)}
-											style={[styles.selectableWord, selected]}
-											key={`selectableWord_${i}`}
-										>
-											<Text style={[styles.selectableWordText, selectedText]}>{word}</Text>
-										</TouchableOpacity>
-									);
-								})}
+								{Object.keys(wordsDict).map((key, i) => this.renderWordSelectableBox(key, i))}
 							</View>
 						</View>
 						<View style={styles.buttonWrapper}>
