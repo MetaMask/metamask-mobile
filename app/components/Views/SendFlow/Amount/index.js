@@ -48,10 +48,10 @@ import CollectibleImage from '../../../UI/CollectibleImage';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
 import TransactionTypes from '../../../../core/TransactionTypes';
-import DeviceSize from '../../../../util/DeviceSize';
+import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
 
-const KEYBOARD_OFFSET = DeviceSize.isSmallDevice() ? 80 : 120;
+const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
 const ethLogo = require('../../../../images/eth-logo.png'); // eslint-disable-line
 

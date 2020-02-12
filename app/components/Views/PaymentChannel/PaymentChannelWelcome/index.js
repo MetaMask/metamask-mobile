@@ -3,7 +3,7 @@ import { SafeAreaView, Image, Text, View, StyleSheet, TouchableOpacity, Platform
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import StyledButton from '../../../UI/StyledButton';
-import DeviceSize from '../../../../util/DeviceSize';
+import Device from '../../../../util/Device';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
 
@@ -11,20 +11,20 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		backgroundColor: colors.white,
-		paddingBottom: DeviceSize.isIphoneX() ? 32 : 8
+		paddingBottom: Device.isIphoneX() ? 32 : 8
 	},
 	frame: {
 		justifyContent: 'center',
-		marginTop: DeviceSize.isSmallDevice() ? 5 : 80,
+		marginTop: Device.isSmallDevice() ? 5 : 80,
 		marginBottom: 10,
 		marginHorizontal: 35,
 		alignSelf: 'center',
-		width: DeviceSize.isSmallDevice() ? '80%' : '100%'
+		width: Device.isSmallDevice() ? '80%' : '100%'
 	},
 	content: {
 		flex: 1,
 		marginHorizontal: 30,
-		marginVertical: DeviceSize.isIphoneX() ? 10 : 0
+		marginVertical: Device.isIphoneX() ? 10 : 0
 	},
 	text: {
 		...fontStyles.normal,

@@ -14,11 +14,11 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import TabThumbnail from './TabThumbnail';
 import { colors, fontStyles } from '../../../styles/common';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 
 const THUMB_VERTICAL_MARGIN = 15;
-const NAVBAR_SIZE = DeviceSize.isIphoneX() ? 88 : 64;
-const THUMB_HEIGHT = Dimensions.get('window').height / (DeviceSize.isIphone5S() ? 4 : 5) + THUMB_VERTICAL_MARGIN;
+const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
+const THUMB_HEIGHT = Dimensions.get('window').height / (Device.isIphone5S() ? 4 : 5) + THUMB_VERTICAL_MARGIN;
 const ROWS_VISIBLE = Math.floor((Dimensions.get('window').height - NAVBAR_SIZE - THUMB_VERTICAL_MARGIN) / THUMB_HEIGHT);
 const TABS_VISIBLE = ROWS_VISIBLE;
 
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 	tabActions: {
 		paddingHorizontal: 20,
 		flexDirection: 'row',
-		marginBottom: DeviceSize.isIphoneX() ? 0 : 0,
+		marginBottom: Device.isIphoneX() ? 0 : 0,
 		paddingTop: 17,
 		shadowColor: colors.black,
 		shadowOffset: {
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.58,
 		shadowRadius: 15.0,
 		backgroundColor: colors.grey000,
-		height: DeviceSize.isIphoneX() ? 80 : 50
+		height: Device.isIphoneX() ? 80 : 50
 	},
 	tabs: {
 		flex: 1,

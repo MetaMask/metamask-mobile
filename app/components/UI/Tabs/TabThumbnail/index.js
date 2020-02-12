@@ -6,15 +6,15 @@ import WebsiteIcon from '../../WebsiteIcon';
 import { strings } from '../../../../../locales/i18n';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
-import DeviceSize from '../../../../util/DeviceSize';
+import Device from '../../../../util/Device';
 import AppConstants from '../../../../core/AppConstants';
 import { getHost } from '../../../../util/browser';
 
 const margin = 15;
 const width = Dimensions.get('window').width - margin * 2;
-const height = Dimensions.get('window').height / (DeviceSize.isIphone5S() ? 4 : 5);
+const height = Dimensions.get('window').height / (Device.isIphone5S() ? 4 : 5);
 let paddingTop = Dimensions.get('window').height - 190;
-if (DeviceSize.isIphoneX()) {
+if (Device.isIphoneX()) {
 	paddingTop -= 65;
 }
 

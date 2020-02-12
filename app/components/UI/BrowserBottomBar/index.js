@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcons from 'react-native-vector-icons/Feather';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import { colors } from '../../../styles/common';
 
 const HOME_INDICATOR_HEIGHT = 18;
@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		backgroundColor: Platform.OS === 'android' ? colors.white : colors.grey000,
 		flexDirection: 'row',
 		paddingBottom:
-			DeviceSize.isIphoneX() && Platform.OS === 'ios'
+			Device.isIphoneX() && Platform.OS === 'ios'
 				? defaultBottomBarPadding + HOME_INDICATOR_HEIGHT
 				: defaultBottomBarPadding,
 		flex: 0,

@@ -14,7 +14,7 @@ import {
 	Platform
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	footer: {
-		height: DeviceSize.isIphoneX() ? 140 : 110,
-		paddingBottom: DeviceSize.isIphoneX() ? 30 : 0,
+		height: Device.isIphoneX() ? 140 : 110,
+		paddingBottom: Device.isIphoneX() ? 30 : 0,
 		justifyContent: 'center',
 		flexDirection: 'column',
 		alignItems: 'center'

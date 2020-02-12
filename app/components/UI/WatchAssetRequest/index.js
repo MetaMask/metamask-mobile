@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import ActionView from '../ActionView';
 import { renderFromTokenMinimalUnit } from '../../../util/number';
 import TokenImage from '../../UI/TokenImage';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0,
+		paddingBottom: Device.isIphoneX() ? 20 : 0,
 		minHeight: Platform.OS === 'ios' ? '50%' : '60%'
 	},
 	title: {

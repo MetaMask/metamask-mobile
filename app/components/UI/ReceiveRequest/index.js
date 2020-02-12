@@ -14,7 +14,7 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import AddressQRCode from '../../Views/AddressQRCode';
 
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 	},
 	actionsWrapper: {
 		marginHorizontal: 16,
-		paddingBottom: DeviceSize.isIphoneX() ? 16 : 8
+		paddingBottom: Device.isIphoneX() ? 16 : 8
 	},
 	row: {
 		flexDirection: 'row',

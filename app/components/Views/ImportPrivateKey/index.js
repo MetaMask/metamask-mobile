@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import { importAccountFromPrivateKey } from '../../../util/address';
 
 const styles = StyleSheet.create({
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	button: {
-		marginBottom: DeviceSize.isIphoneX() ? 20 : 0
+		marginBottom: Device.isIphoneX() ? 20 : 0
 	},
 	top: {
 		paddingTop: 0,
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 22,
 		paddingTop: 20,
 		paddingBottom: 10,
-		marginTop: DeviceSize.isIphoneX() ? 40 : 20
+		marginTop: Device.isIphoneX() ? 40 : 20
 	},
 	closeIcon: {
 		fontSize: 28,

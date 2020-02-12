@@ -45,7 +45,7 @@ import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
 import DeeplinkManager from '../../../core/DeeplinkManager';
@@ -167,10 +167,10 @@ const styles = StyleSheet.create({
 	},
 	urlModalContent: {
 		flexDirection: 'row',
-		paddingTop: Platform.OS === 'android' ? 10 : DeviceSize.isIphoneX() ? 50 : 27,
+		paddingTop: Platform.OS === 'android' ? 10 : Device.isIphoneX() ? 50 : 27,
 		paddingHorizontal: 10,
 		backgroundColor: colors.white,
-		height: Platform.OS === 'android' ? 59 : DeviceSize.isIphoneX() ? 87 : 65
+		height: Platform.OS === 'android' ? 59 : Device.isIphoneX() ? 87 : 65
 	},
 	urlModal: {
 		justifyContent: 'flex-start',
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
 	backupAlert: {
 		zIndex: 99999999,
 		position: 'absolute',
-		bottom: Platform.OS === 'ios' ? (DeviceSize.isIphoneX() ? 100 : 90) : 70,
+		bottom: Platform.OS === 'ios' ? (Device.isIphoneX() ? 100 : 90) : 70,
 		left: 16,
 		right: 16
 	}

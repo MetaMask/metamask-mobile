@@ -15,7 +15,7 @@ import { strings } from '../../../../locales/i18n';
 import AsyncStorage from '@react-native-community/async-storage';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 
 const MIN_HEIGHT = Dimensions.get('window').height;
 const styles = StyleSheet.create({
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 	largeSkipWrapper: {
 		alignItems: 'center',
 		alignSelf: 'center',
-		bottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 98 : 66
+		bottom: Platform.OS === 'ios' && Device.isIphoneX() ? 98 : 66
 	},
 	skip: {
 		height: 30,
@@ -156,7 +156,7 @@ class OnboardingWizard extends PureComponent {
 					<ElevatedView
 						elevation={10}
 						style={[
-							DeviceSize.isSmallDevice() ? styles.smallSkipWrapper : styles.largeSkipWrapper,
+							Device.isSmallDevice() ? styles.smallSkipWrapper : styles.largeSkipWrapper,
 							Platform.OS === 'ios' ? {} : styles.androidElevated
 						]}
 					>

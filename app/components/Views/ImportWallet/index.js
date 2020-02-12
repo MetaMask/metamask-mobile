@@ -30,9 +30,9 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import TermsAndConditions from '../TermsAndConditions';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 
-const SMALL_DEVICE = DeviceSize.isSmallDevice();
+const SMALL_DEVICE = Device.isSmallDevice();
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 		height: Platform.OS === 'ios' ? 90 : 45
 	},
 	title: {
-		fontSize: DeviceSize.isSmallDevice() ? 20 : 24,
+		fontSize: Device.isSmallDevice() ? 20 : 24,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',

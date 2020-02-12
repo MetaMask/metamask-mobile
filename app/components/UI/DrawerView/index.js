@@ -38,7 +38,7 @@ import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
 import { getVersion, getBuildNumber, getSystemName, getApiLevel, getSystemVersion } from 'react-native-device-info';
 import Logger from '../../../util/Logger';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	header: {
-		paddingTop: DeviceSize.isIphoneX() ? 60 : 24,
+		paddingTop: Device.isIphoneX() ? 60 : 24,
 		backgroundColor: colors.grey000,
-		height: DeviceSize.isIphoneX() ? 110 : 74,
+		height: Device.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0
 	},

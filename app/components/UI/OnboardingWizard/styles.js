@@ -1,8 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 
-const SMALL_DEVICE = DeviceSize.isSmallDevice();
+const SMALL_DEVICE = Device.isSmallDevice();
 
 export default StyleSheet.create({
 	container: {

@@ -13,7 +13,7 @@ import networkMap from 'ethjs-ens/lib/network-map.json';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import EthereumAddress from '../EthereumAddress';
 import AppConstants from '../../../core/AppConstants';
 
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		marginRight: 24,
 		paddingLeft: 0,
-		minWidth: DeviceSize.isSmallDevice() ? 100 : 120
+		minWidth: Device.isSmallDevice() ? 100 : 120
 	},
 	qrCodeButton: {
 		minHeight: 50,
@@ -385,9 +385,7 @@ class AccountInput extends PureComponent {
 								autoCapitalize="none"
 								autoCorrect={false}
 								onChangeText={this.onChange}
-								placeholder={
-									DeviceSize.isSmallDevice() ? placeholder.substr(0, 13) + '...' : placeholder
-								}
+								placeholder={Device.isSmallDevice() ? placeholder.substr(0, 13) + '...' : placeholder}
 								placeholderTextColor={colors.grey100}
 								spellCheck={false}
 								editable={this.state.inputEnabled}
