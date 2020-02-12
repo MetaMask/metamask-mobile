@@ -545,6 +545,12 @@ class Amount extends PureComponent {
 					currentCurrency
 				)}`;
 			} else {
+				console.log(
+					'!!internalPrimaryCurrencyIsCrypto'.toUpperCase(),
+					processedInputValue,
+					fiatNumberToWei(processedInputValue, conversionRate)
+				);
+
 				inputValueConversion = `${renderFromWei(fiatNumberToWei(processedInputValue, conversionRate))}`;
 				renderableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
 			}

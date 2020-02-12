@@ -339,8 +339,10 @@ export function handleWeiNumber(wei) {
 export function fiatNumberToWei(fiat, conversionRate) {
 	const floatFiatConverted = parseFloat(fiat) / conversionRate;
 	const base = Math.pow(10, 18);
-	const weiNumber = Math.trunc(base * floatFiatConverted);
-	const weiBN = numberToBN(weiNumber);
+	let weiNumber = Math.trunc(base * floatFiatConverted);
+	// avoid decimals
+	weiNumber = weiNumber.toLocaleString('fullwide', { useGrouping: false }).split('.');
+	const weiBN = new BN(weiNumber.toString(16));
 	return weiBN;
 }
 
