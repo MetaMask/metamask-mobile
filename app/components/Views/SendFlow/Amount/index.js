@@ -524,9 +524,14 @@ class Amount extends PureComponent {
 	onInputChange = (inputValue, selectedAsset) => {
 		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
-		let inputValueConversion, renderableInputValueConversion, hasExchangeRate;
+		let inputValueConversion, renderableInputValueConversion, hasExchangeRate, comma;
 		// Remove spaces from input
 		inputValue = inputValue && inputValue.replace(/\s+/g, '');
+		// Handle semicolon for other languages
+		if (inputValue && inputValue.includes(',')) {
+			comma = true;
+			inputValue = inputValue.replace(',', '.');
+		}
 		const processedTicker = getTicker(ticker);
 		const processedInputValue = isDecimal(inputValue) ? handleWeiNumber(inputValue) : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
@@ -568,7 +573,7 @@ class Amount extends PureComponent {
 				renderableInputValueConversion = `${inputValueConversion} ${selectedAsset.symbol}`;
 			}
 		}
-
+		if (comma) inputValue = inputValue && inputValue.replace('.', ',');
 		inputValueConversion = inputValueConversion === '0' ? undefined : inputValueConversion;
 		this.setState({
 			inputValue,
