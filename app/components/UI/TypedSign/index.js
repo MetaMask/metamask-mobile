@@ -104,7 +104,7 @@ export default class TypedSign extends PureComponent {
 	renderTypedMessageV3 = obj =>
 		Object.keys(obj).map(key => (
 			<View style={styles.message} key={key}>
-				{typeof obj[key] === 'object' ? (
+				{obj[key] && typeof obj[key] === 'object' ? (
 					<View>
 						<Text style={[styles.messageText, styles.msgKey]}>{key}:</Text>
 						<View>{this.renderTypedMessageV3(obj[key])}</View>
