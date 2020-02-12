@@ -205,7 +205,7 @@ describe('Number utils :: fiatNumberToWei', () => {
 		const one = numberToBN(Math.pow(10, 18));
 		const ten = numberToBN(Math.pow(10, 19));
 		const decimal = numberToBN(Math.pow(10, 17));
-		const aThird = numberToBN('4a03ce68d215534');
+		const aThird = numberToBN('4a03ce68d215408');
 		expect(fiatNumberToWei('0.1234512345', 0.1234512345)).toEqual(one);
 		expect(fiatNumberToWei('0.5', 0.5)).toEqual(one);
 		expect(fiatNumberToWei('100', 10)).toEqual(ten);

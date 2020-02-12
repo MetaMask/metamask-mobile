@@ -342,7 +342,7 @@ export function fiatNumberToWei(fiat, conversionRate) {
 	let weiNumber = Math.trunc(base * floatFiatConverted);
 	// avoid decimals
 	weiNumber = weiNumber.toLocaleString('fullwide', { useGrouping: false }).split('.');
-	const weiBN = new BN(weiNumber.toString(16));
+	const weiBN = numberToBN(weiNumber[0]);
 	return weiBN;
 }
 
