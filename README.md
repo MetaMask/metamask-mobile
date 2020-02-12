@@ -47,7 +47,8 @@ yarn start
   - TODO: how to add emulator
   - _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
 - Linux only:
-  - You need the `secret-tool` (part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions) binary on your machine.
+  - Ensure that you have the `secret-tool` binary on your machine.
+    - Part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions.
 - Finally, start the emulator from Android Studio, and run:
 
 ```bash
@@ -149,7 +150,7 @@ yarn test:e2e:android
 
 ### Architecture
 
-To get a better understanding of the internal architecture of this app take a look at [this diagram](https://github.com/MetaMask/metamask-mobile/blob/develop/architecture.svg)
+To get a better understanding of the internal architecture of this app take a look at [this diagram](https://github.com/MetaMask/metamask-mobile/blob/develop/architecture.svg).
 
 ## License
 
