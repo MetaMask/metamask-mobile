@@ -769,6 +769,7 @@ class Amount extends PureComponent {
 							onChangeText={this.onInputChange}
 							keyboardType={'numeric'}
 							placeholder={'0'}
+							testID={'txn-amount-input'}
 						/>
 					</View>
 				</View>
@@ -795,7 +796,7 @@ class Amount extends PureComponent {
 					<Text style={styles.balanceText}>{`${strings('transaction.balance')}: ${currentBalance}`}</Text>
 				</View>
 				{amountError && (
-					<View style={styles.errorMessageWrapper}>
+					<View style={styles.errorMessageWrapper} testID={'amount-error'}>
 						<ErrorMessage errorMessage={amountError} />
 					</View>
 				)}
@@ -826,7 +827,7 @@ class Amount extends PureComponent {
 		const { estimatedTotalGas } = this.state;
 		const { selectedAsset } = this.props;
 		return (
-			<SafeAreaView style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper} testID={'amount-screen'}>
 				<View style={styles.inputWrapper}>
 					<View style={styles.actionsWrapper}>
 						<View style={styles.actionBorder} />
@@ -872,6 +873,7 @@ class Amount extends PureComponent {
 							containerStyle={styles.buttonNext}
 							disabled={!estimatedTotalGas}
 							onPress={this.onNext}
+							testID={'txn-amount-next-button'}
 						>
 							{strings('transaction.next')}
 						</StyledButton>

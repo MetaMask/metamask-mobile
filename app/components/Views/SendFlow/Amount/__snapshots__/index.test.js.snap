@@ -8,6 +8,7 @@ exports[`Amount should render correctly 1`] = `
       "flex": 1,
     }
   }
+  testID="amount-screen"
 >
   <View
     style={
@@ -58,7 +59,7 @@ exports[`Amount should render correctly 1`] = `
             style={
               Object {
                 "color": "#FFFFFF",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "paddingVertical": 2,
@@ -107,7 +108,7 @@ exports[`Amount should render correctly 1`] = `
               Object {
                 "alignSelf": "flex-end",
                 "color": "#037dd6",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "textTransform": "uppercase",
@@ -149,6 +150,7 @@ exports[`Amount should render correctly 1`] = `
                 "textAlign": "center",
               }
             }
+            testID="txn-amount-input"
             underlineColorAndroid="transparent"
           />
         </View>
@@ -164,7 +166,7 @@ exports[`Amount should render correctly 1`] = `
           style={
             Object {
               "alignSelf": "center",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 12,
               "fontWeight": "400",
               "lineHeight": 16,
@@ -215,6 +217,7 @@ exports[`Amount should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
+        testID="txn-amount-next-button"
         type="confirm"
       >
         Next

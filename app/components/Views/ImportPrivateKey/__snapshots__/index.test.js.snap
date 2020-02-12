@@ -94,7 +94,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 32,
               "fontWeight": "400",
               "justifyContent": "center",
@@ -117,7 +117,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "textAlign": "left",
@@ -139,7 +139,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "textAlign": "left",
@@ -162,7 +162,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         <View
           style={
             Object {
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 18,
               "fontWeight": "600",
             }
@@ -171,7 +171,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           <Text
             style={
               Object {
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 18,
                 "fontWeight": "600",
               }
@@ -199,7 +199,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                 "borderColor": "#d6d9dc",
                 "borderRadius": 4,
                 "borderWidth": 0.5,
-                "fontFamily": "Roboto",
+                "fontFamily": "CircularStd-Medium",
                 "fontSize": 15,
                 "fontWeight": "400",
                 "height": 120,

@@ -53,7 +53,7 @@ exports[`ReceiveRequestAction should render correctly 1`] = `
     <Text
       style={
         Object {
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 14,
           "fontWeight": "600",
           "padding": 5,
@@ -75,7 +75,7 @@ exports[`ReceiveRequestAction should render correctly 1`] = `
       style={
         Object {
           "color": "#6a737d",
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 12,
           "fontWeight": "400",
           "padding": 5,
