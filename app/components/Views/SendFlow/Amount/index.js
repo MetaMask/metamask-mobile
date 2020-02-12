@@ -525,6 +525,8 @@ class Amount extends PureComponent {
 		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let inputValueConversion, renderableInputValueConversion, hasExchangeRate;
+		// Remove spaces from input
+		inputValue = inputValue && inputValue.replace(/\s+/g, '');
 		const processedTicker = getTicker(ticker);
 		const processedInputValue = isDecimal(inputValue) ? handleWeiNumber(inputValue) : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
