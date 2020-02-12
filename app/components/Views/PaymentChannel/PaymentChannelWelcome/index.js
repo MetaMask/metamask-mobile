@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, Image, Text, View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { SafeAreaView, Image, Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import StyledButton from '../../../UI/StyledButton';
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 		margin: 30
 	},
 	closeIcon: {
-		marginTop: Platform.OS === 'ios' ? 24 : 14,
+		marginTop: Device.isIos() ? 24 : 14,
 		alignSelf: 'flex-end'
 	}
 });

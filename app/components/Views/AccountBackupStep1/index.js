@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { ScrollView, Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, Platform } from 'react-native';
+import { ScrollView, Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -7,6 +7,7 @@ import Button from '../../UI/Button';
 import Pager from '../../UI/Pager';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -205,7 +206,7 @@ export default class AccountBackupStep1 extends PureComponent {
 						</View>
 					</View>
 				</ScrollView>
-				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.dismiss} />}
+				{Device.isAndroid() && <AndroidBackHandler customBackPress={this.dismiss} />}
 			</SafeAreaView>
 		);
 	}

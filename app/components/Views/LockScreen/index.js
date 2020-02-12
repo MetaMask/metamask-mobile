@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Dimensions, Animated, View, AppState, Platform } from 'react-native';
+import { StyleSheet, Dimensions, Animated, View, AppState } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
@@ -7,6 +7,7 @@ import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
+import Device from '../../../util/Device';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 
@@ -90,7 +91,7 @@ class LockScreen extends PureComponent {
 	};
 
 	attemptUnlock = () => {
-		if (Platform.OS === 'android') {
+		if (Device.isAndroid()) {
 			this.unlockKeychain();
 		} else {
 			setTimeout(() => {
@@ -124,7 +125,7 @@ class LockScreen extends PureComponent {
 				this.locked = false;
 				this.setState({ ready: true }, () => {
 					Logger.log('Lockscreen::unlockKeychain - state: ready');
-					if (Platform.OS === 'android') {
+					if (Device.isAndroid()) {
 						setTimeout(() => {
 							this.secondAnimation ? this.secondAnimation.play(0, 25) : this.onAnimationFinished();
 							setTimeout(() => {

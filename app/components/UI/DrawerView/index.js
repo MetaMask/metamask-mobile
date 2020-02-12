@@ -3,7 +3,6 @@ import {
 	Alert,
 	Clipboard,
 	Linking,
-	Platform,
 	TouchableOpacity,
 	View,
 	Image,
@@ -70,7 +69,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'flex-end',
 		alignItems: 'center',
 		marginRight: 3,
-		marginTop: Platform.OS === 'android' ? -3 : -10
+		marginTop: Device.isAndroid() ? -3 : -10
 	},
 	settingsIcon: {
 		marginBottom: 12
@@ -78,9 +77,9 @@ const styles = StyleSheet.create({
 	metamaskLogo: {
 		flexDirection: 'row',
 		flex: 1,
-		marginTop: Platform.OS === 'android' ? 0 : 12,
+		marginTop: Device.isAndroid() ? 0 : 12,
 		marginLeft: 15,
-		paddingTop: Platform.OS === 'android' ? 10 : 0
+		paddingTop: Device.isAndroid() ? 10 : 0
 	},
 	metamaskFox: {
 		height: 27,
@@ -162,9 +161,9 @@ const styles = StyleSheet.create({
 		marginLeft: 5
 	},
 	buttonText: {
-		marginLeft: Platform.OS === 'ios' ? 8 : 28,
-		marginTop: Platform.OS === 'ios' ? 0 : -23,
-		paddingBottom: Platform.OS === 'ios' ? 0 : 3,
+		marginLeft: Device.isIos() ? 8 : 28,
+		marginTop: Device.isIos() ? 0 : -23,
+		paddingBottom: Device.isIos() ? 0 : 3,
 		fontSize: 15,
 		color: colors.blue,
 		...fontStyles.normal
@@ -178,10 +177,9 @@ const styles = StyleSheet.create({
 		marginTop: 0
 	},
 	buttonReceive: {
-		transform:
-			Platform.OS === 'ios'
-				? [{ rotate: '90deg' }]
-				: [{ rotate: '90deg' }, { translateX: ANDROID_OFFSET }, { translateY: ANDROID_OFFSET }]
+		transform: Device.isIos()
+			? [{ rotate: '90deg' }]
+			: [{ rotate: '90deg' }, { translateX: ANDROID_OFFSET }, { translateY: ANDROID_OFFSET }]
 	},
 	menu: {},
 	noTopBorder: {
@@ -286,7 +284,7 @@ const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-lin
 const instapay_logo_selected = require('../../../images/mm-instapay-selected.png'); // eslint-disable-line
 const instapay_logo = require('../../../images/mm-instapay.png'); // eslint-disable-line
 
-const USE_EXTERNAL_LINKS = Platform.OS === 'android' || false;
+const USE_EXTERNAL_LINKS = Device.isAndroid() || false;
 
 /**
  * View component that displays the MetaMask fox

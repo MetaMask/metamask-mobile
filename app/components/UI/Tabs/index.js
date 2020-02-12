@@ -1,14 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-	InteractionManager,
-	Platform,
-	Dimensions,
-	View,
-	Text,
-	ScrollView,
-	TouchableOpacity,
-	StyleSheet
-} from 'react-native';
+import { InteractionManager, Dimensions, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
@@ -97,7 +88,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.transparent
 	},
 	newTabIcon: {
-		marginTop: Platform.OS === 'ios' ? 3 : 2.5,
+		marginTop: Device.isIos() ? 3 : 2.5,
 		color: colors.white,
 		fontSize: 24,
 		textAlign: 'center',

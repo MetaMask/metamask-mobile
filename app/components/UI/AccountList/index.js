@@ -10,8 +10,7 @@ import {
 	StyleSheet,
 	Text,
 	View,
-	SafeAreaView,
-	Platform
+	SafeAreaView
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
@@ -43,7 +42,7 @@ const styles = StyleSheet.create({
 		height: 5,
 		borderRadius: 4,
 		backgroundColor: colors.grey400,
-		opacity: Platform.OS === 'android' ? 0.6 : 0.5
+		opacity: Device.isAndroid() ? 0.6 : 0.5
 	},
 	accountsWrapper: {
 		flex: 1

@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Keyboard, ScrollView, Platform, StyleSheet, Text, TextInput, View, Image } from 'react-native';
+import { Keyboard, ScrollView, StyleSheet, Text, TextInput, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		marginRight: 0,
 		fontSize: 16,
-		paddingTop: Platform.OS === 'android' ? 1 : 0,
+		paddingTop: Device.isAndroid() ? 1 : 0,
 		paddingLeft: Device.isSmallDevice() ? 4 : 10,
 		alignSelf: 'center'
 	},
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	splitNoSecondaryAmount: {
-		top: Platform.OS === 'android' ? 5 : 8
+		top: Device.isAndroid() ? 5 : 8
 	},
 	ethContainer: {
 		flex: 1,
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
 		maxWidth: '65%'
 	},
 	icon: {
-		paddingVertical: Platform.OS === 'android' ? 8 : 6,
+		paddingVertical: Device.isAndroid() ? 8 : 6,
 		marginRight: 10
 	},
 	logo: {
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		right: 10,
 		flexDirection: 'row',
-		top: Platform.OS === 'android' ? 18 : 15
+		top: Device.isAndroid() ? 18 : 15
 	},
 	switch: {
 		transform: [{ rotate: '270deg' }],
@@ -213,7 +213,7 @@ class EthInput extends PureComponent {
 		assets: undefined,
 		secondaryAmount: undefined,
 		internalPrimaryCurrency: this.props.primaryCurrency,
-		inputEnabled: Platform.OS === 'ios'
+		inputEnabled: Device.isIos()
 	};
 
 	/**

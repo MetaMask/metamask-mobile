@@ -1,11 +1,19 @@
 'use strict';
 
-import { Dimensions } from 'react-native';
+import { Dimensions, Platform } from 'react-native';
 
 const getDeviceWidth = () => Dimensions.get('window').width;
 const getDeviceHeight = () => Dimensions.get('window').height;
 
 export default class Device {
+	static isIos() {
+		return Platform.OS === 'ios';
+	}
+
+	static isAndroid() {
+		return Platform.OS === 'android';
+	}
+
 	static isIpad() {
 		return getDeviceWidth() >= 1000 || getDeviceHeight() >= 1000;
 	}

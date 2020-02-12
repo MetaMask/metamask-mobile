@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 		margin: 5,
 		color: colors.black,
 		...fontStyles.normal,
-		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'Roboto'
+		fontFamily: Device.isIos() ? 'Courier' : 'Roboto'
 	},
 	title: {
 		textAlign: 'center',

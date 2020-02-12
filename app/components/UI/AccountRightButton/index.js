@@ -1,15 +1,16 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import Identicon from '../Identicon';
 import { toggleAccountsModal } from '../../../actions/modals';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	leftButton: {
 		marginTop: 12,
-		marginRight: Platform.OS === 'android' ? 7 : 18,
-		marginLeft: Platform.OS === 'android' ? 7 : 0,
+		marginRight: Device.isAndroid() ? 7 : 18,
+		marginLeft: Device.isAndroid() ? 7 : 0,
 		marginBottom: 12,
 		alignItems: 'center',
 		justifyContent: 'center'

@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		paddingBottom: Device.isIphoneX() ? 20 : 0,
-		minHeight: Platform.OS === 'ios' ? '50%' : '60%'
+		minHeight: Device.isIos() ? '50%' : '60%'
 	},
 	title: {
 		textAlign: 'center',

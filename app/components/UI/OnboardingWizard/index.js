@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, TouchableOpacity, View, StyleSheet, Text, Dimensions } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Text, Dimensions } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
@@ -36,12 +36,12 @@ const styles = StyleSheet.create({
 	smallSkipWrapper: {
 		alignItems: 'center',
 		alignSelf: 'center',
-		bottom: Platform.OS === 'ios' ? 30 : 35
+		bottom: Device.isIos() ? 30 : 35
 	},
 	largeSkipWrapper: {
 		alignItems: 'center',
 		alignSelf: 'center',
-		bottom: Platform.OS === 'ios' && Device.isIphoneX() ? 98 : 66
+		bottom: Device.isIos() && Device.isIphoneX() ? 98 : 66
 	},
 	skip: {
 		height: 30,
@@ -149,7 +149,7 @@ class OnboardingWizard extends PureComponent {
 				disableAnimation
 				transparent
 				onBackButtonPress={this.getBackButtonBehavior}
-				style={[styles.root, Platform.OS === 'android' ? { minHeight: MIN_HEIGHT } : {}]}
+				style={[styles.root, Device.isAndroid() ? { minHeight: MIN_HEIGHT } : {}]}
 			>
 				<View style={styles.main}>{this.onboardingWizardNavigator(step)}</View>
 				{step !== 1 && (
@@ -157,11 +157,11 @@ class OnboardingWizard extends PureComponent {
 						elevation={10}
 						style={[
 							Device.isSmallDevice() ? styles.smallSkipWrapper : styles.largeSkipWrapper,
-							Platform.OS === 'ios' ? {} : styles.androidElevated
+							Device.isIos() ? {} : styles.androidElevated
 						]}
 					>
 						<TouchableOpacity
-							style={[styles.skip, Platform.OS === 'ios' ? styles.iosTouchable : {}]}
+							style={[styles.skip, Device.isIos() ? styles.iosTouchable : {}]}
 							onPress={this.closeOnboardingWizard}
 						>
 							<View style={styles.skipTextWrapper}>
