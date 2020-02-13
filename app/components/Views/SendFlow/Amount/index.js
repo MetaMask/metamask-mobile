@@ -35,7 +35,8 @@ import {
 	fiatNumberToTokenMinimalUnit,
 	weiToFiatNumber,
 	balanceToFiatNumber,
-	getCurrencySymbol
+	getCurrencySymbol,
+	handleWeiNumber
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
@@ -523,16 +524,23 @@ class Amount extends PureComponent {
 	onInputChange = (inputValue, selectedAsset) => {
 		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
-		let inputValueConversion, renderableInputValueConversion, hasExchangeRate;
+		let inputValueConversion, renderableInputValueConversion, hasExchangeRate, comma;
+		// Remove spaces from input
+		inputValue = inputValue && inputValue.replace(/\s+/g, '');
+		// Handle semicolon for other languages
+		if (inputValue && inputValue.includes(',')) {
+			comma = true;
+			inputValue = inputValue.replace(',', '.');
+		}
 		const processedTicker = getTicker(ticker);
-		const processedInputValue = isDecimal(inputValue) ? inputValue : '0';
+		const processedInputValue = isDecimal(inputValue) ? handleWeiNumber(inputValue) : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
 		if (selectedAsset.isETH) {
 			hasExchangeRate = true;
 			if (internalPrimaryCurrencyIsCrypto) {
-				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue.toString(16)), conversionRate)}`;
+				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue), conversionRate)}`;
 				renderableInputValueConversion = `${weiToFiat(
-					toWei(processedInputValue.toString(16)),
+					toWei(processedInputValue),
 					conversionRate,
 					currentCurrency
 				)}`;
@@ -565,7 +573,7 @@ class Amount extends PureComponent {
 				renderableInputValueConversion = `${inputValueConversion} ${selectedAsset.symbol}`;
 			}
 		}
-
+		if (comma) inputValue = inputValue && inputValue.replace('.', ',');
 		inputValueConversion = inputValueConversion === '0' ? undefined : inputValueConversion;
 		this.setState({
 			inputValue,
