@@ -16,7 +16,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
-// import SecureKeychain from '../../../core/SecureKeychain';
+import SecureKeychain from '../../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
 
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 const SEED_PHRASE = 'seed_phrase';
-// const CONFIRM_PASSWORD = 'confirm_password';
+const CONFIRM_PASSWORD = 'confirm_password';
 /**
  * View that's shown during the fourth step of
  * the backup seed phrase flow
@@ -165,34 +165,20 @@ export default class AccountBackupStep4 extends PureComponent {
 	};
 
 	async componentDidMount() {
-		// this.words = this.props.navigation.getParam('words', []);
-		// // If the user is going to the backup seed flow directly
-		// if (!this.words.length) {
-		// 	try {
-		// 		const credentials = await SecureKeychain.getGenericPassword();
-		// 		if (credentials) {
-		// 			this.words = await this.tryExportSeedPhrase(credentials.password);
-		// 		} else {
-		// 			this.setState({ view: CONFIRM_PASSWORD });
-		// 		}
-		// 	} catch (e) {
-		// 		this.setState({ view: CONFIRM_PASSWORD });
-		// 	}
-		// }
-		this.words = [
-			'outdoor',
-			'group',
-			'glove',
-			'unhappy',
-			'speed',
-			'pattern',
-			'fix',
-			'devote',
-			'renew',
-			'lyrics',
-			'wool',
-			'speed'
-		];
+		this.words = this.props.navigation.getParam('words', []);
+		// If the user is going to the backup seed flow directly
+		if (!this.words.length) {
+			try {
+				const credentials = await SecureKeychain.getGenericPassword();
+				if (credentials) {
+					this.words = await this.tryExportSeedPhrase(credentials.password);
+				} else {
+					this.setState({ view: CONFIRM_PASSWORD });
+				}
+			} catch (e) {
+				this.setState({ view: CONFIRM_PASSWORD });
+			}
+		}
 		this.setState({ ready: true });
 	}
 
