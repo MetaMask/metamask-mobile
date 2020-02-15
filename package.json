@@ -88,7 +88,7 @@
     "https-browserify": "0.0.1",
     "json-rpc-engine": "5.1.5",
     "json-rpc-middleware-stream": "2.1.1",
-    "lottie-react-native": "git+ssh://git@github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
+    "lottie-react-native": "https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
     "obj-multiplex": "1.0.0",
