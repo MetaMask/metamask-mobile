@@ -4,7 +4,6 @@ import com.facebook.react.ReactApplication;
 import com.sensors.RNSensorsPackage;
 import com.swmansion.reanimated.ReanimatedPackage;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
-import com.smixx.fabric.FabricPackage;
 import com.reactnativecommunity.netinfo.NetInfoPackage;
 import fr.greweb.reactnativeviewshot.RNViewShotPackage;
 import com.airbnb.android.react.lottie.LottiePackage;
@@ -53,7 +52,6 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 			new RNSensorsPackage(),
 			new ReanimatedPackage(),
 			new RNCWebViewPackage(),
-			new FabricPackage(),
 			new NetInfoPackage(),
 			new RNViewShotPackage(),
 			new LottiePackage(),
