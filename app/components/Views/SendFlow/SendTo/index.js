@@ -334,7 +334,7 @@ class SendFlow extends PureComponent {
 				confirmDisabled={!alias}
 			>
 				<View style={styles.addToAddressBookRoot}>
-					<View style={styles.addToAddressBookWrapper}>
+					<View style={styles.addToAddressBookWrapper} testID={'add-address-modal'}>
 						<View style={baseStyles.flexGrow}>
 							<Text style={styles.addTextTitle}>{strings('address_book.add_to_address_book')}</Text>
 							<Text style={styles.addTextSubtitle}>{strings('address_book.enter_an_alias')}</Text>
@@ -353,6 +353,7 @@ class SendFlow extends PureComponent {
 										onFocus={this.onInputFocus}
 										onSubmitEditing={this.onFocus}
 										value={alias}
+										testID={'address-alias-input'}
 									/>
 								</View>
 							</View>
@@ -408,7 +409,7 @@ class SendFlow extends PureComponent {
 		} = this.state;
 
 		return (
-			<SafeAreaView style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
 				<View style={styles.imputWrapper}>
 					<AddressFrom
 						onPressIcon={this.toggleFromAccountModal}
@@ -432,7 +433,7 @@ class SendFlow extends PureComponent {
 					/>
 				</View>
 				{addressError && (
-					<View style={styles.addressErrorWrapper}>
+					<View style={styles.addressErrorWrapper} testID={'address-error'}>
 						<ErrorMessage errorMessage={addressError} />
 					</View>
 				)}
@@ -450,6 +451,7 @@ class SendFlow extends PureComponent {
 								<TouchableOpacity
 									style={styles.myAccountsTouchable}
 									onPress={this.toggleAddToAddressBookModal}
+									testID={'add-address-button'}
 								>
 									<Text style={styles.myAccountsText}>
 										{strings('address_book.add_this_address')}
@@ -461,6 +463,7 @@ class SendFlow extends PureComponent {
 									type={'confirm'}
 									containerStyle={styles.buttonNext}
 									onPress={this.onTransactionDirectionSet}
+									testID={'address-book-next-button'}
 								>
 									{strings('address_book.next')}
 								</StyledButton>

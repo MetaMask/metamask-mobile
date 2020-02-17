@@ -40,15 +40,14 @@ class Port extends EventEmitter {
 }
 
 export class BackgroundBridge extends EventEmitter {
-	constructor(webview, url, middlewares, shouldExposeAccounts, isMainFrame) {
+	constructor({ webview, url, getRpcMethodMiddleware, shouldExposeAccounts, isMainFrame }) {
 		super();
-		const senderUrl = new URL(url);
 		this.url = url;
-		this.hostname = senderUrl.hostname;
+		this.hostname = new URL(url).hostname;
 		this.isMainFrame = isMainFrame;
 		this._webviewRef = webview && webview.current;
 
-		this.middlewares = middlewares;
+		this.createMiddleware = getRpcMethodMiddleware;
 		this.shouldExposeAccounts = shouldExposeAccounts;
 		this.provider = Engine.context.NetworkController.provider;
 		this.blockTracker = this.provider._blockTracker;
@@ -58,8 +57,8 @@ export class BackgroundBridge extends EventEmitter {
 		// setup multiplexing
 		const mux = setupMultiplex(portStream);
 		// connect features
-		this.setupProviderConnection(mux.createStream('provider'), senderUrl);
-		this.setupPublicConfig(mux.createStream('publicConfig'), senderUrl);
+		this.setupProviderConnection(mux.createStream('provider'));
+		this.setupPublicConfig(mux.createStream('publicConfig'));
 
 		Engine.context.NetworkController.subscribe(this.sendStateUpdate);
 		Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
@@ -80,10 +79,9 @@ export class BackgroundBridge extends EventEmitter {
 	/**
 	 * A method for serving our ethereum provider over a given stream.
 	 * @param {*} outStream - The stream to provide over.
-	 * @param {URL} senderUrl - The URI of the requesting resource.
 	 */
-	setupProviderConnection(outStream, senderUrl) {
-		const engine = this.setupProviderEngine(senderUrl);
+	setupProviderConnection(outStream) {
+		const engine = this.setupProviderEngine();
 
 		// setup connection
 		const providerStream = createEngineStream({ engine });
@@ -102,8 +100,8 @@ export class BackgroundBridge extends EventEmitter {
 	/**
 	 * A method for creating a provider that is safely restricted for the requesting domain.
 	 **/
-	setupProviderEngine(senderUrl) {
-		const origin = senderUrl.hostname;
+	setupProviderEngine() {
+		const origin = this.hostname;
 		// setup json rpc engine stack
 		const engine = new RpcEngine();
 		const provider = this.provider;
@@ -125,26 +123,12 @@ export class BackgroundBridge extends EventEmitter {
 		engine.push(subscriptionManager.middleware);
 		// watch asset
 
-		// requestAccounts
-		engine.push(this.middlewares.eth_requestAccounts(senderUrl));
-		engine.push(this.middlewares.eth_accounts(senderUrl));
-		// Signing methods
-		engine.push(this.middlewares.eth_sign());
-		engine.push(this.middlewares.personal_sign());
-		engine.push(this.middlewares.eth_signTypedData());
-		engine.push(this.middlewares.eth_signTypedData_v3());
-		engine.push(this.middlewares.eth_signTypedData_v4());
-
-		// walletMethods
-		engine.push(this.middlewares.web3_clientVersion());
-		engine.push(this.middlewares.wallet_scanQRCode());
-		engine.push(this.middlewares.wallet_watchAsset());
-
-		// Mobile specific methods
-		engine.push(this.middlewares.wallet_watchAsset());
-		engine.push(this.middlewares.metamask_removeFavorite());
-		engine.push(this.middlewares.metamask_showTutorial());
-		engine.push(this.middlewares.metamask_showAutocomplete());
+		// user-facing RPC methods
+		engine.push(
+			this.createMiddleware({
+				hostname: this.hostname
+			})
+		);
 
 		// forward to metamask primary provider
 		engine.push(providerAsMiddleware(provider));
@@ -160,12 +144,11 @@ export class BackgroundBridge extends EventEmitter {
 	 * this is a good candidate for deprecation.
 	 *
 	 * @param {*} outStream - The stream to provide public config over.
-	 * @param {URL} senderUrl - The URL of requesting resource
 	 */
-	setupPublicConfig(outStream, senderUrl) {
+	setupPublicConfig(outStream) {
 		const configStore = this.createPublicConfigStore({
 			// check the providerApprovalController's approvedOrigins
-			checkIsEnabled: () => this.shouldExposeAccounts(senderUrl.hostname)
+			checkIsEnabled: () => this.shouldExposeAccounts(this.hostname)
 		});
 
 		const configStream = asStream(configStore);

@@ -617,7 +617,7 @@ class Confirm extends PureComponent {
 			transactionConfirmed
 		} = this.state;
 		return (
-			<SafeAreaView style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
 					<AddressFrom
 						onPressIcon={this.toggleFromAccountModal}
@@ -638,7 +638,9 @@ class Confirm extends PureComponent {
 						<View style={styles.amountWrapper}>
 							<Text style={styles.textAmountLabel}>{strings('transaction.amount')}</Text>
 							<Text style={styles.textAmount}>{transactionValue}</Text>
-							<Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>
+							<Text style={styles.textAmountLabel} testID={'confirm-txn-amount'}>
+								{transactionValueFiat}
+							</Text>
 						</View>
 					) : (
 						<View style={styles.amountWrapper}>
@@ -711,6 +713,7 @@ class Confirm extends PureComponent {
 						disabled={!gasEstimationReady}
 						containerStyle={styles.buttonNext}
 						onPress={this.onNext}
+						testID={'txn-confirm-send-button'}
 					>
 						{transactionConfirmed ? <ActivityIndicator size="small" color="white" /> : 'Send'}
 					</StyledButton>
