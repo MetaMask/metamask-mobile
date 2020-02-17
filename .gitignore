@@ -63,5 +63,9 @@ coverage
 .ios.env
 .android.env
 
+# Sentry
+/sentry.debug.properties
+/sentry.release.properties
+
 # editor
 .vscode
