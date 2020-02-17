@@ -233,6 +233,38 @@ checkParameters "$@"
 
 printTitle
 
+if [ "$MODE" == "release" ]; then
+	if [ "$PRE_RELEASE" = false ]; then
+		if [ ! -e ./sentry.release.properties ]; then
+			if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+				cp ./sentry.release.properties.example ./sentry.release.properties
+			else
+				printError "Missing 'sentry.release.properties' file (see 'sentry.release.properties.example')"
+				exit 1
+			fi
+		fi
+		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" ./sentry.release.properties;
+		fi
+		export SENTRY_PROPERTIES='../../sentry.release.properties'
+		export METAMASK_ENVIRONMENT='production'
+	else
+		if [ ! -e ./sentry.debug.properties ]; then
+			if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+				cp ./sentry.debug.properties.example ./sentry.debug.properties
+			else
+				printError "Missing 'sentry.debug.properties' file (see 'sentry.debug.properties.example')"
+				exit 1
+			fi
+		fi
+		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" ./sentry.debug.properties;
+		fi
+		export SENTRY_PROPERTIES='../../sentry.debug.properties'
+		export METAMASK_ENVIRONMENT='prerelease'
+	fi
+fi
+
 if [ "$PLATFORM" == "ios" ]; then
 	# we don't care about env file in CI
 	if [ -f "$IOS_ENV_FILE" ] || [ "$CI" = true ]; then

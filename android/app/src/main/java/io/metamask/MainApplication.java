@@ -1,6 +1,7 @@
 package io.metamask;
 
 import com.facebook.react.ReactApplication;
+import io.sentry.RNSentryPackage;
 import com.sensors.RNSensorsPackage;
 import com.swmansion.reanimated.ReanimatedPackage;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
@@ -47,33 +48,34 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 
 		@Override
 		protected List<ReactPackage> getPackages() {
-		return Arrays.<ReactPackage>asList(
-			new MainReactPackage(),
-			new RNSensorsPackage(),
-			new ReanimatedPackage(),
-			new RNCWebViewPackage(),
-			new NetInfoPackage(),
-			new RNViewShotPackage(),
-			new LottiePackage(),
-			new AsyncStoragePackage(),
-			new ReactNativePushNotificationPackage(),
-			new BackgroundTimerPackage(),
-			new RNDeviceInfo(),
-			new SvgPackage(),
-			new RNGestureHandlerPackage(),
-			new RNScreensPackage(),
-			new RNBranchPackage(),
-			new KeychainPackage(),
-			new RandomBytesPackage(),
-			new RCTAesPackage(),
-			new RNCameraPackage(),
-			new RNFSPackage(),
-			new RNI18nPackage(),
-			new RNOSModule(),
-			new RNSharePackage(),
-			new VectorIconsPackage(),
-			new RCTAnalyticsPackage()
-		);
+			return Arrays.<ReactPackage>asList(
+				new MainReactPackage(),
+				new RNSentryPackage(),
+				new RNSensorsPackage(),
+				new ReanimatedPackage(),
+				new RNCWebViewPackage(),
+				new NetInfoPackage(),
+				new RNViewShotPackage(),
+				new LottiePackage(),
+				new AsyncStoragePackage(),
+				new ReactNativePushNotificationPackage(),
+				new BackgroundTimerPackage(),
+				new RNDeviceInfo(),
+				new SvgPackage(),
+				new RNGestureHandlerPackage(),
+				new RNScreensPackage(),
+				new RNBranchPackage(),
+				new KeychainPackage(),
+				new RandomBytesPackage(),
+				new RCTAesPackage(),
+				new RNCameraPackage(),
+				new RNFSPackage(),
+				new RNI18nPackage(),
+				new RNOSModule(),
+				new RNSharePackage(),
+				new VectorIconsPackage(),
+				new RCTAnalyticsPackage()
+			);
 		}
 
 		@Override

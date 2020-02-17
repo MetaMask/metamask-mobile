@@ -61,6 +61,8 @@
   "dependencies": {
     "@react-native-community/async-storage": "1.2.0",
     "@react-native-community/netinfo": "4.1.5",
+    "@sentry/integrations": "^5.11.1",
+    "@sentry/react-native": "1.2.2",
     "@tradle/react-native-http": "2.0.1",
     "@walletconnect/react-native": "1.0.0-beta.37",
     "asyncstorage-down": "4.2.0",
@@ -277,7 +279,7 @@
       "^.+\\.js$": "<rootDir>jest.preprocessor.js"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(jest-)?react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers)"
+      "node_modules/(?!(jest-)?react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry)"
     ],
     "snapshotSerializers": [
       "enzyme-to-json/serializer"

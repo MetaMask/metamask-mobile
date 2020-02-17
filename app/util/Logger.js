@@ -1,4 +1,6 @@
 'use strict';
+
+import { addBreadcrumb, captureException } from '@sentry/react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 
 /**
@@ -21,7 +23,9 @@ export default class Logger {
 			args.unshift('[MetaMask DEBUG]:');
 			console.log.apply(null, args); // eslint-disable-line no-console
 		} else if (metricsOptIn === 'agreed') {
-			console.log(args);
+			addBreadcrumb({
+				message: JSON.stringify(args)
+			});
 		}
 	}
 
@@ -38,7 +42,7 @@ export default class Logger {
 			args.unshift('[MetaMask DEBUG]:');
 			console.warn(args); // eslint-disable-line no-console
 		} else if (metricsOptIn === 'agreed') {
-			console.log(args);
+			captureException(args);
 		}
 	}
 }
