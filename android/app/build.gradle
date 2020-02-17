@@ -24,30 +24,7 @@ def getPassword(String currentUser, String keyChain) {
 	stdout.toString().trim()
 }
 
-buildscript {
-	repositories {
-		maven { url 'https://maven.fabric.io/public' }
-	}
-
-	dependencies {
-		// These docs use an open ended version so that our plugin
-		// can be updated quickly in response to Android tooling updates
-
-		// We recommend changing it to the latest version from our changelog:
-		// https://docs.fabric.io/android/changelog.html#fabric-gradle-plugin
-		classpath 'io.fabric.tools:gradle:1.+'
-	}
-}
-
 apply plugin: "com.android.application"
-
-apply plugin: 'io.fabric'
-
-
-repositories {
-	maven { url 'https://maven.fabric.io/public' }
-	jcenter()
-}
 
 import com.android.build.OutputFile
 
@@ -142,26 +119,7 @@ def enableSeparateBuildPerCPUArchitecture = false
  */
 def enableProguardInReleaseBuilds = false
 
-/**
-*
-* override fabric properties file if MM_FABRIC_API_KEY is set
-*/
-def buildFabricPropertiesIfNeeded() {
-	def FABRIC_API_KEY = System.getenv('MM_FABRIC_API_KEY')
-	if (FABRIC_API_KEY) {
-		def commentMessage = "AUTOGEN FABRIC PROPERTIES"
-		ant.propertyfile(file: "fabric.properties", comment: commentMessage) {
-			entry(key: "apiKey", value: FABRIC_API_KEY)
-		}
-	}
-}
-
 android {
-
-
-	afterEvaluate {
-		buildFabricPropertiesIfNeeded()
-	}
 
 	compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -253,7 +211,6 @@ dependencies {
 	implementation project(':react-native-sensors')
 	implementation project(':react-native-reanimated')
 	implementation project(':react-native-webview')
-	implementation project(':react-native-fabric')
 	implementation project(':@react-native-community_netinfo')
 	implementation project(':react-native-view-shot')
 	implementation project(':lottie-react-native')
@@ -285,9 +242,6 @@ dependencies {
 	implementation project(':react-native-vector-icons')
 	implementation 'com.mixpanel.android:mixpanel-android:5.+'
 
-	implementation('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
-		transitive = true;
-	}
 	androidTestImplementation('com.wix:detox:+') { transitive = true }
 	androidTestImplementation 'junit:junit:4.12'
 }
