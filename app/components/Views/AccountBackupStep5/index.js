@@ -165,12 +165,26 @@ class AccountBackupStep5 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		const words = props.navigation.getParam('words', []);
-		if (process.env.JEST_WORKER_ID === undefined) {
-			this.words = [...words].sort(() => 0.5 - Math.random());
-		} else {
-			this.words = words;
-		}
+		// const words = props.navigation.getParam('words', []);
+		// if (process.env.JEST_WORKER_ID === undefined) {
+		// 	this.words = [...words].sort(() => 0.5 - Math.random());
+		// } else {
+		// 	this.words = words;
+		// }
+		this.words = [
+			'outdoor',
+			'group',
+			'glove',
+			'unhappy',
+			'speed',
+			'pattern',
+			'fix',
+			'devote',
+			'renew',
+			'lyrics',
+			'wool',
+			'speed'
+		];
 	}
 
 	state = {
@@ -188,26 +202,25 @@ class AccountBackupStep5 extends PureComponent {
 	createWordsDictionary = () => {
 		const dict = {};
 		this.words.forEach((word, i) => {
-			dict[[word, i]] = { currentPosition: undefined };
+			dict[`${word},${i}`] = { currentPosition: undefined };
 		});
 		this.setState({ wordsDict: dict });
 	};
 
 	findNextAvailableIndex = () => {
 		const { confirmedWords } = this.state;
-		for (let i = 0; i < 12; i++) if (!confirmedWords[i].word) return i;
-		return 12;
+		return confirmedWords.findIndex(({ word }) => !word);
 	};
 
 	selectWord = (word, i) => {
 		const { wordsDict, confirmedWords } = this.state;
 		let currentIndex = this.state.currentIndex;
-		if (wordsDict[[word, i]].currentPosition !== undefined) {
-			currentIndex = wordsDict[[word, i]].currentPosition;
-			wordsDict[[word, i]].currentPosition = undefined;
+		if (wordsDict[`${word},${i}`].currentPosition !== undefined) {
+			currentIndex = wordsDict[`${word},${i}`].currentPosition;
+			wordsDict[`${word},${i}`].currentPosition = undefined;
 			confirmedWords[currentIndex] = { word: undefined, originalPosition: undefined };
 		} else {
-			wordsDict[[word, i]].currentPosition = currentIndex;
+			wordsDict[`${word},${i}`].currentPosition = currentIndex;
 			confirmedWords[currentIndex] = { word, originalPosition: i };
 			currentIndex = this.findNextAvailableIndex();
 		}
@@ -215,7 +228,7 @@ class AccountBackupStep5 extends PureComponent {
 			currentIndex,
 			wordsDict,
 			confirmedWords,
-			seedPhraseReady: this.findNextAvailableIndex() === 12
+			seedPhraseReady: this.findNextAvailableIndex() === -1
 		});
 	};
 
