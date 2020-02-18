@@ -240,7 +240,12 @@ class AccountBackupStep5 extends PureComponent {
 			wordsDict[[word, originalPosition]].currentPosition = undefined;
 			confirmedWords[i] = { word: undefined, originalPosition: undefined };
 		}
-		this.setState({ currentIndex, wordsDict, confirmedWords });
+		this.setState({
+			currentIndex,
+			wordsDict,
+			confirmedWords,
+			seedPhraseReady: this.findNextAvailableIndex() === -1
+		});
 	};
 
 	goBack = () => {
