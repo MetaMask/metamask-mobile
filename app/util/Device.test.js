@@ -39,7 +39,7 @@ describe('Device', () => {
 			Device.getDeviceWidth = () => 320;
 			expect(Device.isIphone5()).toBe(true);
 		});
-		it('should return false if device not 320', () => {
+		it('should return false if device width is not 320', () => {
 			Device.getDeviceWidth = () => 321;
 			expect(Device.isIphone5()).toBe(false);
 		});
@@ -49,7 +49,7 @@ describe('Device', () => {
 			Device.getDeviceWidth = () => 320;
 			expect(Device.isIphone5S()).toBe(true);
 		});
-		it('should return false if device not 320', () => {
+		it('should return false if device width is not 320', () => {
 			Device.getDeviceWidth = () => 321;
 			expect(Device.isIphone5S()).toBe(false);
 		});
@@ -60,7 +60,7 @@ describe('Device', () => {
 			Device.getDeviceHeight = () => 812;
 			expect(Device.isIphoneX()).toBe(true);
 		});
-		it('should return false if device not 320', () => {
+		it('should return false if device width is < 375 and height is < 812', () => {
 			Device.getDeviceWidth = () => 374;
 			Device.getDeviceHeight = () => 811;
 			expect(Device.isIphoneX()).toBe(false);
