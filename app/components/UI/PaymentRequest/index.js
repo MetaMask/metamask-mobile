@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import {
-	Platform,
 	SafeAreaView,
 	TextInput,
 	Text,
@@ -36,6 +35,7 @@ import StyledButton from '../StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { generateETHLink, generateERC20Link, generateUniversalLinkRequest } from '../../../util/payment-link-generator';
 import NetworkList from '../../../util/networks';
+import Device from '../../../util/Device';
 
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 	searchInput: {
 		flex: 1,
 		marginHorizontal: 0,
-		paddingTop: Platform.OS === 'android' ? 12 : 2,
+		paddingTop: Device.isAndroid() ? 12 : 2,
 		borderRadius: 8,
 		paddingHorizontal: 38,
 		fontSize: 16,
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
 	searchIcon: {
 		position: 'absolute',
 		textAlignVertical: 'center',
-		marginTop: Platform.OS === 'android' ? 9 : 10,
+		marginTop: Device.isAndroid() ? 9 : 10,
 		marginLeft: 12
 	},
 	input: {
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 	eth: {
 		...fontStyles.normal,
 		fontSize: 32,
-		paddingTop: Platform.OS === 'android' ? 3 : 0,
+		paddingTop: Device.isAndroid() ? 3 : 0,
 		paddingLeft: 10,
 		textTransform: 'uppercase'
 	},
@@ -612,7 +612,7 @@ class PaymentRequest extends PureComponent {
 					style={styles.buttonsWrapper}
 					behavior={'padding'}
 					keyboardVerticalOffset={KEYBOARD_OFFSET}
-					enabled={Platform.OS === 'ios'}
+					enabled={Device.isIos()}
 				>
 					<View style={styles.buttonsContainer}>
 						<StyledButton type={'normal'} onPress={this.onReset} containerStyle={[styles.button]}>

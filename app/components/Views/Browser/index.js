@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
-import { View, Dimensions, Platform } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import PropTypes from 'prop-types';
 import { createNewTab, closeAllTabs, closeTab, setActiveTab, updateTab } from '../../../actions/browser';
 import Tabs from '../../UI/Tabs';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import { captureScreen } from 'react-native-view-shot';
 import Logger from '../../../util/Logger';
+import Device from '../../../util/Device';
 import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
@@ -14,7 +15,7 @@ import { getVersion } from 'react-native-device-info';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
-const THUMB_HEIGHT = Platform.OS === 'ios' ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
+const THUMB_HEIGHT = Device.isIos() ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
 
 /**
  * PureComponent that wraps all the browser
