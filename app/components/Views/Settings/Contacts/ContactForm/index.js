@@ -257,7 +257,6 @@ class ContactForm extends PureComponent {
 							placeholderTextColor={colors.grey100}
 							spellCheck={false}
 							numberOfLines={1}
-							onBlur={this.onBlur}
 							style={[
 								styles.input,
 								inputWidth ? { width: inputWidth } : {},
@@ -279,7 +278,6 @@ class ContactForm extends PureComponent {
 									placeholderTextColor={colors.grey100}
 									spellCheck={false}
 									numberOfLines={1}
-									onBlur={this.onBlur}
 									style={[styles.textInput]}
 									value={toEnsName || address}
 									ref={this.addressInput}
@@ -308,7 +306,6 @@ class ContactForm extends PureComponent {
 									placeholderTextColor={colors.grey100}
 									spellCheck={false}
 									numberOfLines={1}
-									onBlur={this.onBlur}
 									style={styles.textInput}
 									value={memo}
 									ref={this.memoInput}
