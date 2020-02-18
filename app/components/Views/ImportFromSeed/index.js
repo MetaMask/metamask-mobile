@@ -10,8 +10,7 @@ import {
 	View,
 	TextInput,
 	SafeAreaView,
-	StyleSheet,
-	Platform
+	StyleSheet
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -31,6 +30,7 @@ import { NavigationActions } from 'react-navigation';
 import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20
 	},
 	title: {
-		fontSize: Platform.OS === 'android' ? 20 : 25,
+		fontSize: Device.isAndroid() ? 20 : 25,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.fontPrimary,
@@ -64,12 +64,12 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	input: {
-		borderBottomWidth: Platform.OS === 'android' ? 0 : 1,
+		borderBottomWidth: Device.isAndroid() ? 0 : 1,
 		borderBottomColor: colors.grey100,
 		paddingLeft: 0,
 		paddingVertical: 10,
 		borderRadius: 4,
-		fontSize: Platform.OS === 'android' ? 14 : 20,
+		fontSize: Device.isAndroid() ? 14 : 20,
 		...fontStyles.normal
 	},
 	ctaWrapper: {
@@ -205,7 +205,7 @@ class ImportFromSeed extends PureComponent {
 		biometryChoice: false,
 		loading: false,
 		error: null,
-		inputWidth: Platform.OS === 'android' ? '99%' : undefined
+		inputWidth: Device.isAndroid() ? '99%' : undefined
 	};
 
 	passwordInput = React.createRef();
@@ -266,7 +266,7 @@ class ImportFromSeed extends PureComponent {
 
 					// If the user enables biometrics, we're trying to read the password
 					// immediately so we get the permission prompt
-					if (Platform.OS === 'ios') {
+					if (Device.isIos()) {
 						await SecureKeychain.getGenericPassword();
 					}
 					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
@@ -369,7 +369,7 @@ class ImportFromSeed extends PureComponent {
 						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
 						ios_backgroundColor={colors.grey300}
 					/>
 				</View>
@@ -383,7 +383,7 @@ class ImportFromSeed extends PureComponent {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
 					ios_backgroundColor={colors.grey300}
 				/>
 			</View>
@@ -497,7 +497,7 @@ class ImportFromSeed extends PureComponent {
 							blurOnSubmit
 							onSubmitEditing={this.jumpToPassword}
 							returnKeyType={'next'}
-							keyboardType={Platform.OS === 'android' ? 'visible-password' : 'default'}
+							keyboardType={Device.isAndroid() ? 'visible-password' : 'default'}
 							autoCapitalize="none"
 							autoCorrect={false}
 						/>

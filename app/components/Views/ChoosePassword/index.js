@@ -10,7 +10,6 @@ import {
 	TextInput,
 	SafeAreaView,
 	StyleSheet,
-	Platform,
 	TouchableOpacity
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -20,7 +19,7 @@ import { passwordSet } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
-
+import Device from '../../../util/Device';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
@@ -76,12 +75,12 @@ const styles = StyleSheet.create({
 		marginBottom: 10
 	},
 	input: {
-		borderBottomWidth: Platform.OS === 'android' ? 0 : 1,
+		borderBottomWidth: Device.isAndroid() ? 0 : 1,
 		borderBottomColor: colors.grey100,
 		paddingLeft: 0,
 		paddingVertical: 10,
 		borderRadius: 4,
-		fontSize: Platform.OS === 'android' ? 14 : 20,
+		fontSize: Device.isAndroid() ? 14 : 20,
 		...fontStyles.normal
 	},
 	ctaWrapper: {
@@ -245,7 +244,7 @@ class ChoosePassword extends PureComponent {
 
 					// If the user enables biometrics, we're trying to read the password
 					// immediately so we get the permission prompt
-					if (Platform.OS === 'ios') {
+					if (Device.isIos()) {
 						await SecureKeychain.getGenericPassword();
 					}
 					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
@@ -343,7 +342,7 @@ class ChoosePassword extends PureComponent {
 						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
 						ios_backgroundColor={colors.grey300}
 					/>
 				</View>
@@ -357,7 +356,7 @@ class ChoosePassword extends PureComponent {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
 					ios_backgroundColor={colors.grey300}
 				/>
 			</View>

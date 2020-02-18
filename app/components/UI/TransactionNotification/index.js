@@ -5,7 +5,7 @@ import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import AnimatedSpinner from '../AnimatedSpinner';
 import { hideMessage } from 'react-native-flash-message';
 import { strings } from '../../../../locales/i18n';
@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 		marginLeft: 0,
 		marginRight: 0,
-		height: DeviceSize.isIphoneX() ? 90 : 70,
+		height: Device.isIphoneX() ? 90 : 70,
 		flexDirection: 'row'
 	},
 	flashLabel: {

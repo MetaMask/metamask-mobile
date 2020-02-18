@@ -1,15 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-	Clipboard,
-	ScrollView,
-	Text,
-	Image,
-	View,
-	SafeAreaView,
-	StyleSheet,
-	TouchableOpacity,
-	Platform
-} from 'react-native';
+import { Clipboard, ScrollView, Text, Image, View, SafeAreaView, StyleSheet, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Emoji from 'react-native-emoji';
@@ -20,6 +10,7 @@ import { strings } from '../../../../locales/i18n';
 import CustomAlert from '../../UI/CustomAlert';
 import { showAlert } from '../../../actions/alert';
 import AndroidBackHandler from '../AndroidBackHandler';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -205,7 +196,7 @@ class AccountBackupStep6 extends PureComponent {
 						<Text style={styles.succesModalText}>{strings('account_backup_step_6.modal_text')}</Text>
 					</CustomAlert>
 				</ScrollView>
-				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
+				{Device.isAndroid() && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
 			</SafeAreaView>
 		);
 	}

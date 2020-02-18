@@ -6,7 +6,7 @@ import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import { strings } from '../../../../locales/i18n';
 import { util } from 'gaba';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 		minHeight: '90%',
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
+		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	informationRow: {
 		borderBottomColor: colors.grey200,
