@@ -7,10 +7,6 @@ node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,v
 echo "2. Patch npm packages"
 npx patch-package
 
-# Fix isomorphic-webcrypto for eccrypto
-TARGET="node_modules/eccrypto/browser.js"
-sed -i'' -e 's/global.crypto || global.msCrypto || {};/require("isomorphic-webcrypto");/' $TARGET;
-
 echo "3. Create xcconfig files..."
 echo "" > ios/debug.xcconfig
 echo "" > ios/release.xcconfig

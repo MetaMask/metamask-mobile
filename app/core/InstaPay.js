@@ -29,9 +29,6 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from './../util/networks';
 import PaymentChannelsClient from './PaymentChannelsClient';
 
-// eslint-disable-next-line import/no-commonjs
-const isomorphicCrypto = require('isomorphic-webcrypto');
-
 const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, xpubToAddress, inverse } = connext.utils;
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
@@ -630,9 +627,7 @@ class InstaPay {
 			const { channel, token } = this.state;
 			const amount = Currency.DAI(sendAmount);
 			const endingTs = Date.now() + 60 * 1000;
-			await isomorphicCrypto.ensureSecure();
 			let transferRes = undefined;
-			await isomorphicCrypto.ensureSecure();
 			while (Date.now() < endingTs) {
 				try {
 					const data = {
