@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, Platform, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
@@ -20,6 +20,7 @@ import Logger from '../../../../util/Logger';
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import SelectComponent from '../../../UI/SelectComponent';
 import timeoutFetch from '../../../../util/general';
+import Device from '../../../../util/Device';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -129,7 +130,7 @@ class AdvancedSettings extends PureComponent {
 
 	state = {
 		resetModalVisible: false,
-		inputWidth: Platform.OS === 'android' ? '99%' : undefined,
+		inputWidth: Device.isAndroid() ? '99%' : undefined,
 		onlineIpfsGateways: [],
 		gotAvailableGateways: false
 	};
@@ -213,7 +214,7 @@ class AdvancedSettings extends PureComponent {
 
 			let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
 			// // Android accepts attachements as BASE64
-			if (Platform.OS === 'ios') {
+			if (Device.isIos()) {
 				await RNFS.writeFile(path, data, 'utf8');
 				url = path;
 			}
@@ -242,7 +243,7 @@ class AdvancedSettings extends PureComponent {
 
 			let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
 			// // Android accepts attachements as BASE64
-			if (Platform.OS === 'ios') {
+			if (Device.isIos()) {
 				await RNFS.writeFile(path, data, 'utf8');
 				url = path;
 			}
@@ -333,9 +334,7 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showHexData}
 									onValueChange={this.toggleShowHexData}
-									trackColor={
-										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
-									}
+									trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>

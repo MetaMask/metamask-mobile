@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { Alert, StyleSheet, Switch, Text, ScrollView, Platform, View } from 'react-native';
+import { Alert, StyleSheet, Switch, Text, ScrollView, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import ActionModal from '../../../UI/ActionModal';
@@ -11,6 +11,7 @@ import { clearHistory } from '../../../../actions/browser';
 import { clearHosts, setPrivacyMode } from '../../../../actions/privacy';
 import { colors, fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
+import Device from '../../../../util/Device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
@@ -343,7 +344,7 @@ class Settings extends PureComponent {
 					await AsyncStorage.removeItem('@MetaMask:passcodeChoice');
 					// If the user enables biometrics, we're trying to read the password
 					// immediately so we get the permission prompt
-					if (Platform.OS === 'ios') {
+					if (Device.isIos()) {
 						await SecureKeychain.getGenericPassword();
 					}
 				} else {
@@ -448,7 +449,7 @@ class Settings extends PureComponent {
 							<Switch
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}
-								trackColor={Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
 							/>
 						</View>
@@ -460,7 +461,7 @@ class Settings extends PureComponent {
 							<Switch
 								value={metricsOptIn}
 								onValueChange={this.toggleMetricsOptIn}
-								trackColor={Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
 							/>
 						</View>
@@ -514,9 +515,7 @@ class Settings extends PureComponent {
 										biometryChoice // eslint-disable-line react/jsx-no-bind
 									) => this.onSecuritySettingChange(biometryChoice, 'biometrics')}
 									value={this.state.biometryChoice}
-									trackColor={
-										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
-									}
+									trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
@@ -525,7 +524,7 @@ class Settings extends PureComponent {
 					{biometryType && !this.state.biometryChoice && (
 						<View style={styles.setting}>
 							<Text style={styles.title}>
-								{Platform.OS === 'ios'
+								{Device.isIos()
 									? strings(`biometrics.enable_device_passcode_ios`)
 									: strings(`biometrics.enable_device_passcode_android`)}
 							</Text>
@@ -535,9 +534,7 @@ class Settings extends PureComponent {
 										passcodeChoice // eslint-disable-line react/jsx-no-bind
 									) => this.onSecuritySettingChange(passcodeChoice, 'passcode')}
 									value={this.state.passcodeChoice}
-									trackColor={
-										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
-									}
+									trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>

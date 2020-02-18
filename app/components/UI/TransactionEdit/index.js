@@ -4,7 +4,7 @@ import AccountSelect from '../AccountSelect';
 import ActionView from '../ActionView';
 import EthInput from '../EthInput';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { toBN, isBN, hexToBN, fromWei, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
@@ -13,6 +13,7 @@ import CustomGas from '../CustomGas';
 import { addHexPrefix } from 'ethereumjs-util';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
 	toRow: {
 		right: 15,
 		left: 15,
-		marginTop: Platform.OS === 'android' ? 125 : 120,
+		marginTop: Device.isAndroid() ? 125 : 120,
 		position: 'absolute',
 		zIndex: 4
 	},
@@ -44,12 +45,12 @@ const styles = StyleSheet.create({
 	amountRow: {
 		right: 15,
 		left: 15,
-		marginTop: Platform.OS === 'android' ? 200 : 190,
+		marginTop: Device.isAndroid() ? 200 : 190,
 		position: 'absolute',
 		zIndex: 4
 	},
 	notAbsolute: {
-		marginTop: Platform.OS === 'android' ? 270 : 240
+		marginTop: Device.isAndroid() ? 270 : 240
 	},
 	label: {
 		flex: 0,
@@ -380,7 +381,7 @@ class TransactionEdit extends PureComponent {
 					onTouchablePress={this.closeDropdowns}
 					keyboardShouldPersistTaps={'handled'}
 				>
-					<View style={[styles.form, Platform.OS === 'android' ? styles.androidForm : {}]}>
+					<View style={[styles.form, Device.isAndroid() ? styles.androidForm : {}]}>
 						<View style={[styles.formRow, styles.fromRow]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.from')}:</Text>

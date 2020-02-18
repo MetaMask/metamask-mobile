@@ -9,7 +9,6 @@ import {
 	TextInput,
 	SafeAreaView,
 	StyleSheet,
-	Platform,
 	TouchableOpacity
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -17,7 +16,7 @@ import { connect } from 'react-redux';
 import { passwordSet } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
-
+import Device from '../../../util/Device';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
@@ -62,12 +61,12 @@ const styles = StyleSheet.create({
 		marginBottom: 10
 	},
 	input: {
-		borderBottomWidth: Platform.OS === 'android' ? 0 : 1,
+		borderBottomWidth: Device.isAndroid() ? 0 : 1,
 		borderBottomColor: colors.grey100,
 		paddingLeft: 0,
 		paddingVertical: 10,
 		borderRadius: 4,
-		fontSize: Platform.OS === 'android' ? 14 : 20,
+		fontSize: Device.isAndroid() ? 14 : 20,
 		...fontStyles.normal
 	},
 	ctaWrapper: {

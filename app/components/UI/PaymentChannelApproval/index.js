@@ -1,14 +1,14 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Platform, Animated, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ActionView from '../ActionView';
 import ElevatedView from 'react-native-elevated-view';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import WebsiteIcon from '../WebsiteIcon';
 import { renderAccountName } from '../../../util/address';
 import EthereumAddress from '../EthereumAddress';
@@ -18,8 +18,8 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		minHeight: Platform.OS === 'ios' ? '65%' : '80%',
-		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
+		minHeight: Device.isIos() ? '65%' : '80%',
+		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	emptyContainer: {
 		flex: 1,
