@@ -536,7 +536,7 @@ class Amount extends PureComponent {
 		const processedInputValue = isDecimal(inputValue) ? handleWeiNumber(inputValue) : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
 		if (selectedAsset.isETH) {
-			hasExchangeRate = true;
+			hasExchangeRate = !!conversionRate;
 			if (internalPrimaryCurrencyIsCrypto) {
 				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue), conversionRate)}`;
 				renderableInputValueConversion = `${weiToFiat(
