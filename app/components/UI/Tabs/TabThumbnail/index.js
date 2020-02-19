@@ -1,24 +1,24 @@
 import React, { PureComponent } from 'react';
-import { Platform, View, Image, TouchableOpacity, StyleSheet, Text, Dimensions } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet, Text, Dimensions } from 'react-native';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
 import WebsiteIcon from '../../WebsiteIcon';
 import { strings } from '../../../../../locales/i18n';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
-import DeviceSize from '../../../../util/DeviceSize';
+import Device from '../../../../util/Device';
 import AppConstants from '../../../../core/AppConstants';
 import { getHost } from '../../../../util/browser';
 
 const margin = 15;
 const width = Dimensions.get('window').width - margin * 2;
-const height = Dimensions.get('window').height / (DeviceSize.isIphone5S() ? 4 : 5);
+const height = Dimensions.get('window').height / (Device.isIphone5S() ? 4 : 5);
 let paddingTop = Dimensions.get('window').height - 190;
-if (DeviceSize.isIphoneX()) {
+if (Device.isIphoneX()) {
 	paddingTop -= 65;
 }
 
-if (Platform.OS === 'android') {
+if (Device.isAndroid()) {
 	paddingTop -= 10;
 }
 
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
 	},
 	closeTabButton: {
 		backgroundColor: colors.transparent,
-		width: Platform.OS === 'ios' ? 30 : 35,
+		width: Device.isIos() ? 30 : 35,
 		height: 24,
 		marginRight: -5
 	}
@@ -129,7 +129,7 @@ export default class TabThumbnail extends PureComponent {
 		onSwitch: PropTypes.func
 	};
 
-	getContainer = () => (Platform.OS === 'android' ? View : ElevatedView);
+	getContainer = () => (Device.isAndroid() ? View : ElevatedView);
 
 	render() {
 		const { isActiveTab, tab, onClose, onSwitch } = this.props;

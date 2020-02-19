@@ -8,8 +8,7 @@ import {
 	Text,
 	StyleSheet,
 	InteractionManager,
-	TouchableOpacity,
-	Platform
+	TouchableOpacity
 } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
@@ -25,6 +24,7 @@ import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Modal from 'react-native-modal';
 import QRCode from 'react-native-qrcode-svg';
 import { renderNumber } from '../../../util/number';
+import Device from '../../../util/Device';
 import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		position: 'absolute',
-		right: Platform.OS === 'ios' ? -30 : -40,
-		bottom: Platform.OS === 'ios' ? 8 : 10
+		right: Device.isIos() ? -30 : -40,
+		bottom: Device.isIos() ? 8 : 10
 	},
 	qrCode: {
 		marginBottom: 16,

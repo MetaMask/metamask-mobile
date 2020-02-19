@@ -7,7 +7,6 @@ import {
 	View,
 	TouchableOpacity,
 	TextInput,
-	Platform,
 	KeyboardAvoidingView,
 	FlatList,
 	Image
@@ -35,7 +34,8 @@ import {
 	fiatNumberToTokenMinimalUnit,
 	weiToFiatNumber,
 	balanceToFiatNumber,
-	getCurrencySymbol
+	getCurrencySymbol,
+	handleWeiNumber
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
@@ -47,10 +47,10 @@ import CollectibleImage from '../../../UI/CollectibleImage';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
 import TransactionTypes from '../../../../core/TransactionTypes';
-import DeviceSize from '../../../../util/DeviceSize';
+import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
 
-const KEYBOARD_OFFSET = DeviceSize.isSmallDevice() ? 80 : 120;
+const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
 const ethLogo = require('../../../../images/eth-logo.png'); // eslint-disable-line
 
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		fontSize: 44,
 		marginRight: 8,
-		paddingVertical: Platform.OS === 'ios' ? 0 : 8,
+		paddingVertical: Device.isIos() ? 0 : 8,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
 	},
 	switch: {
 		flex: 1,
-		marginTop: Platform.OS === 'ios' ? 0 : 2
+		marginTop: Device.isIos() ? 0 : 2
 	},
 	actionSwitch: {
 		paddingHorizontal: 8,
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
 		height: 5,
 		borderRadius: 4,
 		backgroundColor: colors.grey400,
-		opacity: Platform.OS === 'android' ? 0.6 : 0.5
+		opacity: Device.isAndroid() ? 0.6 : 0.5
 	},
 	textAssetTitle: {
 		...fontStyles.normal,
@@ -523,16 +523,23 @@ class Amount extends PureComponent {
 	onInputChange = (inputValue, selectedAsset) => {
 		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
-		let inputValueConversion, renderableInputValueConversion, hasExchangeRate;
+		let inputValueConversion, renderableInputValueConversion, hasExchangeRate, comma;
+		// Remove spaces from input
+		inputValue = inputValue && inputValue.replace(/\s+/g, '');
+		// Handle semicolon for other languages
+		if (inputValue && inputValue.includes(',')) {
+			comma = true;
+			inputValue = inputValue.replace(',', '.');
+		}
 		const processedTicker = getTicker(ticker);
-		const processedInputValue = isDecimal(inputValue) ? inputValue : '0';
+		const processedInputValue = isDecimal(inputValue) ? handleWeiNumber(inputValue) : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
 		if (selectedAsset.isETH) {
-			hasExchangeRate = true;
+			hasExchangeRate = !!conversionRate;
 			if (internalPrimaryCurrencyIsCrypto) {
-				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue.toString(16)), conversionRate)}`;
+				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue), conversionRate)}`;
 				renderableInputValueConversion = `${weiToFiat(
-					toWei(processedInputValue.toString(16)),
+					toWei(processedInputValue),
 					conversionRate,
 					currentCurrency
 				)}`;
@@ -565,7 +572,7 @@ class Amount extends PureComponent {
 				renderableInputValueConversion = `${inputValueConversion} ${selectedAsset.symbol}`;
 			}
 		}
-
+		if (comma) inputValue = inputValue && inputValue.replace('.', ',');
 		inputValueConversion = inputValueConversion === '0' ? undefined : inputValueConversion;
 		this.setState({
 			inputValue,
@@ -857,7 +864,7 @@ class Amount extends PureComponent {
 					style={styles.nextActionWrapper}
 					behavior={'padding'}
 					keyboardVerticalOffset={KEYBOARD_OFFSET}
-					enabled={Platform.OS === 'ios'}
+					enabled={Device.isIos()}
 				>
 					<View style={styles.buttonNextWrapper}>
 						<StyledButton

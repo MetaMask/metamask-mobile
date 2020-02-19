@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {
-	Platform,
 	ScrollView,
 	ActivityIndicator,
 	RefreshControl,
@@ -24,6 +23,7 @@ import ActionModal from '../ActionModal';
 import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba';
 import { renderFromWei } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
+import Device from '../../../util/Device';
 import { hexToBN } from 'gaba/dist/util';
 import { BN } from 'ethereumjs-util';
 
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const ROW_HEIGHT = (Platform.OS === 'ios' ? 95 : 100) + StyleSheet.hairlineWidth;
+const ROW_HEIGHT = (Device.isIos() ? 95 : 100) + StyleSheet.hairlineWidth;
 
 /**
  * View that renders a list of transactions for a specific asset

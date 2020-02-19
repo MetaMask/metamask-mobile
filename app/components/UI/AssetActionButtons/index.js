@@ -1,9 +1,10 @@
 import React, { PureComponent } from 'react';
-import { Platform, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../styles/common';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	buttons: {
@@ -21,7 +22,7 @@ const styles = StyleSheet.create({
 	buttonIconWrapper: {
 		width: 36,
 		height: 36,
-		paddingTop: Platform.OS === 'android' ? 2 : 4,
+		paddingTop: Device.isAndroid() ? 2 : 4,
 		paddingLeft: 1,
 		justifyContent: 'center',
 		alignContent: 'center',
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 0
 	},
 	receive: {
-		right: Platform.OS === 'ios' ? 1 : 0,
+		right: Device.isIos() ? 1 : 0,
 		bottom: 1,
 		transform: [{ rotate: '90deg' }]
 	}

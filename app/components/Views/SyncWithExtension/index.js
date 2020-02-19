@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, Alert, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -14,6 +14,7 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -259,7 +260,7 @@ class SyncWithExtension extends PureComponent {
 				// If the user enables biometrics, we're trying to read the password
 				// immediately so we get the permission prompt
 				try {
-					if (Platform.OS === 'ios') {
+					if (Device.isIos()) {
 						await SecureKeychain.getGenericPassword();
 					}
 					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);

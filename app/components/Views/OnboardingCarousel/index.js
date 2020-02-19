@@ -10,14 +10,14 @@ import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
-const IMG_PADDING = DeviceSize.isIphoneX() ? 100 : DeviceSize.isIphone5S() ? 180 : 220;
+const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
 const styles = StyleSheet.create({
 	scroll: {

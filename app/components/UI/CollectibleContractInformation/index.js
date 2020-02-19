@@ -8,11 +8,11 @@ import {
 	View,
 	SafeAreaView,
 	InteractionManager,
-	Image,
-	Platform
+	Image
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
+import Device from '../../../util/Device';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 		fontSize: 8,
 		textAlignVertical: 'center',
 		paddingRight: 5,
-		marginTop: Platform.OS === 'android' ? -2 : 4,
+		marginTop: Device.isAndroid() ? -2 : 4,
 		color: colors.fontSecondary,
 		...fontStyles.light
 	},
