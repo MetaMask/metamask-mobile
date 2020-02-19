@@ -11,63 +11,63 @@ buildscript {
 		kotlin_version = "1.3.50"
 		kotlinVersion = "$kotlin_version"
 	}
-    repositories {
-        google()
-        jcenter()
-    }
+	repositories {
+		google()
+		jcenter()
+	}
 
 	dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.2'
+		classpath 'com.android.tools.build:gradle:3.3.2'
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-    }
+		// NOTE: Do not place your application dependencies here; they belong
+		// in the individual module build.gradle files
+	}
 }
 
 allprojects {
-    repositories {
-        mavenLocal()
-        google()
-        jcenter()
-        maven {	    // Replace AAR from original RN with AAR from react-native-v8
-        	url("$rootDir/../node_modules/react-native-v8/dist")
-        }
-        maven {
-        	// prebuilt libv8android.so
-        	url("$rootDir/../node_modules/v8-android/dist")
+	repositories {
+		mavenLocal()
+		google()
+		jcenter()
+		maven {		// Replace AAR from original RN with AAR from react-native-v8
+			url("$rootDir/../node_modules/react-native-v8/dist")
+		}
+		maven {
+			// prebuilt libv8android.so
+			url("$rootDir/../node_modules/v8-android/dist")
 		}
 		maven {
 			url "https://jitpack.io"
 		}
 		maven {
-            // All of Detox' artifacts are provided via the npm module
-            url "$rootDir/../node_modules/detox/Detox-android"
-        }
-    }
+			// All of Detox' artifacts are provided via the npm module
+			url "$rootDir/../node_modules/detox/Detox-android"
+		}
+	}
 
 	subprojects {
-        afterEvaluate {
-            project ->
-                if (project.hasProperty("android")) {
-                    android {
-                        compileSdkVersion = rootProject.ext.compileSdkVersion
-                        buildToolsVersion = rootProject.ext.buildToolsVersion
-                    }
-                }
-        }
-    }
+		afterEvaluate {
+			project ->
+				if (project.hasProperty("android")) {
+					android {
+						compileSdkVersion = rootProject.ext.compileSdkVersion
+						buildToolsVersion = rootProject.ext.buildToolsVersion
+					}
+				}
+		}
+	}
 }
 
 subprojects {project ->
-    if (project.name.contains('react-native-fabric')) {
-        buildscript {
-            repositories {
+	if (project.name.contains('react-native-fabric')) {
+		buildscript {
+			repositories {
 				google()
 				jcenter()
-                maven {
-					   url = 'https://dl.bintray.com/android/android-tools/'
+				maven {
+					url = 'https://dl.bintray.com/android/android-tools/'
 				}
-            }
-        }
-    }
+			}
+		}
+	}
 }
