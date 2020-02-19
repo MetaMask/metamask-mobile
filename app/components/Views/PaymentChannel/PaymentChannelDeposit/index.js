@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import {
 	SafeAreaView,
-	Platform,
 	TextInput,
 	Alert,
 	Text,
@@ -37,6 +36,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import contractMap from 'eth-contract-metadata';
 import AssetIcon from '../../../UI/AssetIcon';
 import { getTicker } from '../../../../util/transactions';
+import Device from '../../../../util/Device';
 import Modal from 'react-native-modal';
 import AddressQRCode from '../../AddressQRCode';
 
@@ -465,7 +465,7 @@ class Deposit extends PureComponent {
 							style={styles.buttonsWrapper}
 							behavior={'padding'}
 							keyboardVerticalOffset={KEYBOARD_OFFSET}
-							enabled={Platform.OS === 'ios'}
+							enabled={Device.isIos()}
 						>
 							<View style={styles.buttonsContainer}>
 								<StyledButton

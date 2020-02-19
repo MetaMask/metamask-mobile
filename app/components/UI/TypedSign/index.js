@@ -1,11 +1,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import { strings } from '../../../../locales/i18n';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 		minHeight: '90%',
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
+		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	informationRow: {
 		borderBottomColor: colors.grey200,
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 		margin: 5,
 		color: colors.black,
 		...fontStyles.normal,
-		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'Roboto'
+		fontFamily: Device.isIos() ? 'Courier' : 'Roboto'
 	},
 	title: {
 		textAlign: 'center',
@@ -104,7 +104,7 @@ export default class TypedSign extends PureComponent {
 	renderTypedMessageV3 = obj =>
 		Object.keys(obj).map(key => (
 			<View style={styles.message} key={key}>
-				{typeof obj[key] === 'object' ? (
+				{obj[key] && typeof obj[key] === 'object' ? (
 					<View>
 						<Text style={[styles.messageText, styles.msgKey]}>{key}:</Text>
 						<View>{this.renderTypedMessageV3(obj[key])}</View>

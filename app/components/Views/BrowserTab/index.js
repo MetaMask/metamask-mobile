@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import {
 	Text,
 	ActivityIndicator,
-	Platform,
 	StyleSheet,
 	TextInput,
 	View,
@@ -45,7 +44,7 @@ import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
 import DeeplinkManager from '../../../core/DeeplinkManager';
@@ -136,7 +135,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'flex-start',
-		marginTop: Platform.OS === 'android' ? 0 : -5
+		marginTop: Device.isAndroid() ? 0 : -5
 	},
 	optionText: {
 		fontSize: 16,
@@ -167,10 +166,10 @@ const styles = StyleSheet.create({
 	},
 	urlModalContent: {
 		flexDirection: 'row',
-		paddingTop: Platform.OS === 'android' ? 10 : DeviceSize.isIphoneX() ? 50 : 27,
+		paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
 		paddingHorizontal: 10,
 		backgroundColor: colors.white,
-		height: Platform.OS === 'android' ? 59 : DeviceSize.isIphoneX() ? 87 : 65
+		height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65
 	},
 	urlModal: {
 		justifyContent: 'flex-start',
@@ -178,14 +177,14 @@ const styles = StyleSheet.create({
 	},
 	urlInput: {
 		...fontStyles.normal,
-		backgroundColor: Platform.OS === 'android' ? colors.white : colors.grey000,
+		backgroundColor: Device.isAndroid() ? colors.white : colors.grey000,
 		borderRadius: 30,
-		fontSize: Platform.OS === 'android' ? 16 : 14,
+		fontSize: Device.isAndroid() ? 16 : 14,
 		padding: 8,
 		paddingLeft: 15,
 		textAlign: 'left',
 		flex: 1,
-		height: Platform.OS === 'android' ? 40 : 30
+		height: Device.isAndroid() ? 40 : 30
 	},
 	cancelButton: {
 		marginTop: 7,
@@ -224,7 +223,7 @@ const styles = StyleSheet.create({
 	backupAlert: {
 		zIndex: 99999999,
 		position: 'absolute',
-		bottom: Platform.OS === 'ios' ? (DeviceSize.isIphoneX() ? 100 : 90) : 70,
+		bottom: Device.isIos() ? (Device.isIphoneX() ? 100 : 90) : 70,
 		left: 16,
 		right: 16
 	}
@@ -721,10 +720,9 @@ export class BrowserTab extends PureComponent {
 		});
 
 	init = async () => {
-		const entryScriptWeb3 =
-			Platform.OS === 'ios'
-				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
-				: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
+		const entryScriptWeb3 = Device.isIos()
+			? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
+			: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
 
 		const analyticsEnabled = Analytics.getEnabled();
 
@@ -760,7 +758,7 @@ export class BrowserTab extends PureComponent {
 
 		BackHandler.addEventListener('hardwareBackPress', this.handleAndroidBackPress);
 
-		if (Platform.OS === 'android') {
+		if (Device.isAndroid()) {
 			DrawerStatusTracker.hub.on('drawer::open', this.drawerOpenHandler);
 		}
 
@@ -875,7 +873,7 @@ export class BrowserTab extends PureComponent {
 		Engine.context.AssetsController.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('networkChange', this.reload);
 		this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
-		if (Platform.OS === 'android') {
+		if (Device.isAndroid()) {
 			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
 			DrawerStatusTracker && DrawerStatusTracker.hub && DrawerStatusTracker.hub.removeAllListeners();
 		}
@@ -1130,7 +1128,7 @@ export class BrowserTab extends PureComponent {
 				url: this.state.inputValue,
 				onAddBookmark: async ({ name, url }) => {
 					this.props.addBookmark({ name, url });
-					if (Platform.OS === 'ios') {
+					if (Device.isIos()) {
 						const item = {
 							uniqueIdentifier: url,
 							title: name || url,
@@ -1193,7 +1191,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	dismissTextSelectionIfNeeded() {
-		if (this.isTabActive() && Platform.OS === 'android') {
+		if (this.isTabActive() && Device.isAndroid()) {
 			const { current } = this.webview;
 			if (current) {
 				setTimeout(() => {
@@ -1276,7 +1274,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onShouldStartLoadWithRequest = ({ url, navigationType }) => {
-		if (Platform.OS === 'ios') {
+		if (Device.isIos()) {
 			return true;
 		}
 		if (this.isENSUrl(url) && navigationType === 'other') {
@@ -1408,7 +1406,7 @@ export class BrowserTab extends PureComponent {
 						<View
 							style={[
 								styles.optionsWrapper,
-								Platform.OS === 'android' ? styles.optionsWrapperAndroid : styles.optionsWrapperIos
+								Device.isAndroid() ? styles.optionsWrapperAndroid : styles.optionsWrapperIos
 							]}
 						>
 							<Button onPress={this.onNewTabPress} style={styles.option}>
@@ -1590,7 +1588,7 @@ export class BrowserTab extends PureComponent {
 						selectTextOnFocus
 					/>
 
-					{Platform.OS === 'android' ? (
+					{Device.isAndroid() ? (
 						<TouchableOpacity onPress={this.clearInputText} style={styles.iconCloseButton}>
 							<MaterialIcon name="close" size={20} style={[styles.icon, styles.iconClose]} />
 						</TouchableOpacity>
@@ -1838,7 +1836,7 @@ export class BrowserTab extends PureComponent {
 		return (
 			<View
 				style={[styles.wrapper, isHidden && styles.hide]}
-				{...(Platform.OS === 'android' ? { collapsable: false } : {})}
+				{...(Device.isAndroid() ? { collapsable: false } : {})}
 			>
 				<View style={styles.webview}>
 					{activated && !forceReload && (

@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, TouchableHighlight, StyleSheet, Text, View, Image } from 'react-native';
+import { TouchableHighlight, StyleSheet, Text, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
@@ -18,6 +18,7 @@ import AppConstants from '../../../core/AppConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import StyledButton from '../StyledButton';
 import Networks from '../../../util/networks';
+import Device from '../../../util/Device';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -35,7 +36,7 @@ const styles = StyleSheet.create({
 	},
 	rowOnly: {
 		padding: 15,
-		minHeight: Platform.OS === 'ios' ? 95 : 100
+		minHeight: Device.isIos() ? 95 : 100
 	},
 	date: {
 		color: colors.fontSecondary,

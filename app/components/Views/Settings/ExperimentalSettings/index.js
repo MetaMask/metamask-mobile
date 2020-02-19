@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { Alert, Platform, Switch, StyleSheet, Text, ScrollView, View, InteractionManager } from 'react-native';
+import { Alert, Switch, StyleSheet, Text, ScrollView, View, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import StyledButton from '../../../UI/StyledButton';
 import { setEnablePaymentChannels } from '../../../../actions/settings';
@@ -10,6 +10,7 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
 import ANALYTICS_EVENT_OPTS from '../../../../util/analytics';
+import Device from '../../../../util/Device';
 import Analytics from '../../../../core/Analytics';
 
 const styles = StyleSheet.create({
@@ -113,7 +114,7 @@ class ExperimentalSettings extends PureComponent {
 							<Switch
 								value={paymentChannelsEnabled}
 								onValueChange={this.togglePaymentChannels}
-								trackColor={Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
 							/>
 						</View>

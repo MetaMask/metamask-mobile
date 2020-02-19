@@ -1,8 +1,8 @@
 'use strict';
 // eslint-disable-next-line import/default
 import Fabric from 'react-native-fabric';
-import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import Device from '../util/Device';
 
 /**
  * Wrapper class that allows us to override
@@ -43,7 +43,7 @@ export default class Logger {
 			args.unshift('[MetaMask DEBUG]:');
 			console.warn(args); // eslint-disable-line no-console
 		} else if (metricsOptIn === 'agreed') {
-			if (Platform.OS === 'android') {
+			if (Device.isAndroid()) {
 				Fabric.Crashlytics.logException(JSON.stringify(args));
 			} else {
 				Fabric.Crashlytics.recordError(JSON.stringify(args));

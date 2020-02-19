@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Clipboard, Platform, ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Clipboard, ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import Identicon from '../Identicon';
 import Engine from '../../../core/Engine';
@@ -8,6 +8,7 @@ import { setTokensTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
+import Device from '../../../util/Device';
 import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import { toggleAccountsModal } from '../../../actions/modals';
@@ -15,11 +16,11 @@ import EthereumAddress from '../EthereumAddress';
 
 const styles = StyleSheet.create({
 	scrollView: {
-		maxHeight: Platform.OS === 'ios' ? 210 : 220,
+		maxHeight: Device.isIos() ? 210 : 220,
 		backgroundColor: colors.white
 	},
 	wrapper: {
-		maxHeight: Platform.OS === 'ios' ? 210 : 220,
+		maxHeight: Device.isIos() ? 210 : 220,
 		paddingTop: 20,
 		paddingHorizontal: 20,
 		paddingBottom: 0,
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	labelInput: {
-		marginBottom: Platform.OS === 'android' ? -10 : 0
+		marginBottom: Device.isAndroid() ? -10 : 0
 	},
 	addressWrapper: {
 		backgroundColor: colors.blue000,
@@ -71,9 +72,9 @@ const styles = StyleSheet.create({
 	onboardingWizardLabel: {
 		borderWidth: 2,
 		borderRadius: 4,
-		paddingVertical: Platform.OS === 'ios' ? 2 : -4,
-		paddingHorizontal: Platform.OS === 'ios' ? 5 : 5,
-		top: Platform.OS === 'ios' ? 0 : -2
+		paddingVertical: Device.isIos() ? 2 : -4,
+		paddingHorizontal: Device.isIos() ? 5 : 5,
+		top: Device.isIos() ? 0 : -2
 	}
 });
 

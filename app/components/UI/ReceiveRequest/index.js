@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { InteractionManager, SafeAreaView, Platform, Dimensions, StyleSheet, View, Text } from 'react-native';
+import { InteractionManager, SafeAreaView, Dimensions, StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import ReceiveRequestAction from './ReceiveRequestAction';
 import Logger from '../../../util/Logger';
@@ -14,7 +14,7 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import AddressQRCode from '../../Views/AddressQRCode';
 
@@ -40,11 +40,11 @@ const styles = StyleSheet.create({
 		height: 5,
 		borderRadius: 4,
 		backgroundColor: colors.grey400,
-		opacity: Platform.OS === 'android' ? 0.6 : 0.5
+		opacity: Device.isAndroid() ? 0.6 : 0.5
 	},
 	actionsWrapper: {
 		marginHorizontal: 16,
-		paddingBottom: DeviceSize.isIphoneX() ? 16 : 8
+		paddingBottom: Device.isIphoneX() ? 16 : 8
 	},
 	row: {
 		flexDirection: 'row',

@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Platform, Alert, Text, TextInput, View, StyleSheet } from 'react-native';
+import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
@@ -7,6 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
+import Device from '../../../util/Device';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -38,7 +39,7 @@ class AddCustomCollectible extends PureComponent {
 	state = {
 		address: '',
 		tokenId: '',
-		inputWidth: Platform.OS === 'android' ? '99%' : undefined
+		inputWidth: Device.isAndroid() ? '99%' : undefined
 	};
 
 	static propTypes = {
