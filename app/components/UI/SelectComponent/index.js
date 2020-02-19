@@ -1,11 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, StyleSheet, Text, View, Platform, TouchableOpacity, Picker } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Picker } from 'react-native';
 import { fontStyles, colors, baseStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
+import Device from '../../../util/Device';
 
 const PickerItem = Picker.Item;
 const ROW_HEIGHT = 35;
@@ -108,7 +109,7 @@ export default class SelectComponent extends PureComponent {
 		pickerVisible: false
 	};
 
-	scrollView = Platform.OS === 'ios' ? React.createRef() : null;
+	scrollView = Device.isIos() ? React.createRef() : null;
 
 	onValueChange = val => {
 		this.props.onValueChange(val);
@@ -124,7 +125,7 @@ export default class SelectComponent extends PureComponent {
 	showPicker = () => {
 		dismissKeyboard();
 		this.setState({ pickerVisible: true });
-		Platform.OS === 'ios' &&
+		Device.isIos() &&
 			// If there are more options than 13 (number of items
 			// that should fit in a normal screen)
 			// then let's scroll to the selected item
@@ -212,6 +213,6 @@ export default class SelectComponent extends PureComponent {
 	);
 
 	render = () => (
-		<View style={baseStyles.flexGrow}>{Platform.OS === 'android' ? this.renderAndroid() : this.renderIOS()}</View>
+		<View style={baseStyles.flexGrow}>{Device.isAndroid() ? this.renderAndroid() : this.renderIOS()}</View>
 	);
 }

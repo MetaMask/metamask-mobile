@@ -6,7 +6,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 22,
 		paddingTop: 20,
 		paddingBottom: 10,
-		marginTop: DeviceSize.isIphoneX() ? 40 : 20
+		marginTop: Device.isIphoneX() ? 40 : 20
 	},
 	closeIcon: {
 		fontSize: 28,

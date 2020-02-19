@@ -8,7 +8,7 @@ import ElevatedView from 'react-native-elevated-view';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import WebsiteIcon from '../WebsiteIcon';
 import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		minHeight: '90%',
-		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
+		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	wrapper: {
 		paddingHorizontal: 25
@@ -37,13 +37,13 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textAlign: 'center',
 		color: colors.fontPrimary,
-		fontSize: DeviceSize.isSmallDevice() ? 16 : 20,
+		fontSize: Device.isSmallDevice() ? 16 : 20,
 		marginVertical: 24
 	},
 	dappTitle: {
 		...fontStyles.bold,
 		color: colors.fontPrimary,
-		fontSize: DeviceSize.isSmallDevice() ? 16 : 20
+		fontSize: Device.isSmallDevice() ? 16 : 20
 	},
 	permissions: {
 		alignItems: 'center',

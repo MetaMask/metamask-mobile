@@ -9,10 +9,10 @@ import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../uti
 import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
 import URL from 'url-parse';
-import DeviceSize from '../../../../util/DeviceSize';
+import Device from '../../../../util/Device';
 import EthereumAddress from '../../EthereumAddress';
 
-const HASH_LENGTH = DeviceSize.isSmallDevice() ? 18 : 20;
+const HASH_LENGTH = Device.isSmallDevice() ? 18 : 20;
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {

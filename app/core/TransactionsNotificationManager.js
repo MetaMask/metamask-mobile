@@ -6,8 +6,9 @@ import Engine from './Engine';
 import Networks, { isKnownNetwork } from '../util/networks';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { hexToBN, renderFromWei } from '../util/number';
+import Device from '../util/Device';
 import { strings } from '../../locales/i18n';
-import { Alert, AppState, Platform } from 'react-native';
+import { Alert, AppState } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import AppConstants from './AppConstants';
 
@@ -123,7 +124,7 @@ class TransactionsNotificationManager {
 			const id = (data && data.message && data.message.transaction && data.message.transaction.id) || null;
 
 			const extraData = { action: 'tx', id };
-			if (Platform.OS === 'android') {
+			if (Device.isAndroid()) {
 				pushData.tag = JSON.stringify(extraData);
 			} else {
 				pushData.userInfo = extraData;
@@ -215,7 +216,7 @@ class TransactionsNotificationManager {
 				}
 				Promise.all(pollPromises);
 
-				Platform.OS === 'ios' &&
+				Device.isIos() &&
 					setTimeout(() => {
 						this.requestPushNotificationsPermission();
 					}, 7000);

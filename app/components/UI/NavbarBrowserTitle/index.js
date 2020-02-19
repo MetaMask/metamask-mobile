@@ -1,10 +1,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -112,7 +113,7 @@ class NavbarBrowserTitle extends PureComponent {
 					{https ? <Icon name="lock" size={14} style={styles.lockIcon} /> : null}
 					<Text
 						numberOfLines={1}
-						style={[styles.currentUrl, Platform.OS === 'android' ? styles.currentUrlAndroid : {}]}
+						style={[styles.currentUrl, Device.isAndroid() ? styles.currentUrlAndroid : {}]}
 					>
 						{hostname}
 					</Text>

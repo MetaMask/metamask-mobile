@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { ScrollView, Text, View, SafeAreaView, StyleSheet, Platform } from 'react-native';
+import { ScrollView, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -7,6 +7,7 @@ import StyledButton from '../../UI/StyledButton';
 import Emoji from 'react-native-emoji';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -120,7 +121,7 @@ export default class ProtectYourAccount extends PureComponent {
 						</StyledButton>
 					</View>
 				</ScrollView>
-				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
+				{Device.isAndroid() && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
 			</SafeAreaView>
 		);
 	}
