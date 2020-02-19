@@ -1,5 +1,15 @@
 import React, { PureComponent } from 'react';
-import { Alert, Clipboard, TouchableOpacity, View, Image, Text, ScrollView, InteractionManager } from 'react-native';
+import {
+	Alert,
+	Clipboard,
+	Linking,
+	TouchableOpacity,
+	View,
+	Image,
+	Text,
+	ScrollView,
+	InteractionManager
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -26,6 +36,7 @@ import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
 import { getVersion, getBuildNumber, getSystemName, getApiLevel, getSystemVersion } from 'react-native-device-info';
 import Logger from '../../../util/Logger';
+import Device from '../../../util/Device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';

@@ -1,5 +1,5 @@
-import DeviceSize from '../../../util/DeviceSize';
-import { Platform, StyleSheet } from 'react-native';
+import Device from '../../../util/Device';
+import { StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 
 const ANDROID_OFFSET = 30;
@@ -10,9 +10,9 @@ export default StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	header: {
-		paddingTop: DeviceSize.isIphoneX() ? 60 : 24,
+		paddingTop: Device.isIphoneX() ? 60 : 24,
 		backgroundColor: colors.grey000,
-		height: DeviceSize.isIphoneX() ? 110 : 74,
+		height: Device.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0
 	},
@@ -21,7 +21,7 @@ export default StyleSheet.create({
 		alignSelf: 'flex-end',
 		alignItems: 'center',
 		marginRight: 3,
-		marginTop: Platform.OS === 'android' ? -3 : -10
+		marginTop: Device.isAndroid() ? -3 : -10
 	},
 	settingsIcon: {
 		marginBottom: 12
@@ -29,9 +29,9 @@ export default StyleSheet.create({
 	metamaskLogo: {
 		flexDirection: 'row',
 		flex: 1,
-		marginTop: Platform.OS === 'android' ? 0 : 12,
+		marginTop: Device.isAndroid() ? 0 : 12,
 		marginLeft: 15,
-		paddingTop: Platform.OS === 'android' ? 10 : 0
+		paddingTop: Device.isAndroid() ? 10 : 0
 	},
 	metamaskFox: {
 		height: 27,
@@ -113,9 +113,9 @@ export default StyleSheet.create({
 		marginLeft: 5
 	},
 	buttonText: {
-		marginLeft: Platform.OS === 'ios' ? 8 : 28,
-		marginTop: Platform.OS === 'ios' ? 0 : -23,
-		paddingBottom: Platform.OS === 'ios' ? 0 : 3,
+		marginLeft: Device.isIos() ? 8 : 28,
+		marginTop: Device.isIos() ? 0 : -23,
+		paddingBottom: Device.isIos() ? 0 : 3,
 		fontSize: 15,
 		color: colors.blue,
 		...fontStyles.normal
@@ -129,10 +129,9 @@ export default StyleSheet.create({
 		marginTop: 0
 	},
 	buttonReceive: {
-		transform:
-			Platform.OS === 'ios'
-				? [{ rotate: '90deg' }]
-				: [{ rotate: '90deg' }, { translateX: ANDROID_OFFSET }, { translateY: ANDROID_OFFSET }]
+		transform: Device.isIos()
+			? [{ rotate: '90deg' }]
+			: [{ rotate: '90deg' }, { translateX: ANDROID_OFFSET }, { translateY: ANDROID_OFFSET }]
 	},
 	menu: {},
 	noTopBorder: {
