@@ -49,39 +49,39 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		@Override
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
-				new MainReactPackage(),
-            	new RNSensorsPackage(),
-            	new ReanimatedPackage(),
-				new RNCWebViewPackage(),
-            	new FabricPackage(),
-				new NetInfoPackage(),
-            	new RNViewShotPackage(),
-            	new LottiePackage(),
-           		new AsyncStoragePackage(),
-            	new ReactNativePushNotificationPackage(),
-            	new BackgroundTimerPackage(),
-				new RNDeviceInfo(),
-				new SvgPackage(),
-				new RNGestureHandlerPackage(),
-				new RNScreensPackage(),
-				new RNBranchPackage(),
-				new KeychainPackage(),
-				new RandomBytesPackage(),
-				new RCTAesPackage(),
-				new RNCameraPackage(),
-				new RNFSPackage(),
-				new RNI18nPackage(),
-				new RNOSModule(),
-				new RNSharePackage(),
-				new VectorIconsPackage(),
-				new RCTAnalyticsPackage()
+			new MainReactPackage(),
+			new RNSensorsPackage(),
+			new ReanimatedPackage(),
+			new RNCWebViewPackage(),
+			new FabricPackage(),
+			new NetInfoPackage(),
+			new RNViewShotPackage(),
+			new LottiePackage(),
+			new AsyncStoragePackage(),
+			new ReactNativePushNotificationPackage(),
+			new BackgroundTimerPackage(),
+			new RNDeviceInfo(),
+			new SvgPackage(),
+			new RNGestureHandlerPackage(),
+			new RNScreensPackage(),
+			new RNBranchPackage(),
+			new KeychainPackage(),
+			new RandomBytesPackage(),
+			new RCTAesPackage(),
+			new RNCameraPackage(),
+			new RNFSPackage(),
+			new RNI18nPackage(),
+			new RNOSModule(),
+			new RNSharePackage(),
+			new VectorIconsPackage(),
+			new RCTAnalyticsPackage()
 		);
 		}
 
 		@Override
 		protected String getJSMainModuleName() {
 			return "index";
-    	}
+		}
   	};
 
 	@Override
@@ -97,8 +97,8 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		SoLoader.init(this, /* native exopackage */ false);
 	}
 
-	 @Override
-     public String getFileProviderAuthority() {
-            return BuildConfig.APPLICATION_ID + ".provider";
-     }
+	@Override
+	public String getFileProviderAuthority() {
+		return BuildConfig.APPLICATION_ID + ".provider";
+	}
 }
