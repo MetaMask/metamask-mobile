@@ -56,6 +56,12 @@ const styles = StyleSheet.create({
 	shareIconIOS: {
 		marginHorizontal: -5
 	},
+	hamburgerButton: {
+		paddingLeft: Device.isAndroid() ? 22 : 18,
+		paddingRight: Device.isAndroid() ? 22 : 18,
+		paddingTop: 14,
+		paddingBottom: 14
+	},
 	backButton: {
 		paddingLeft: Device.isAndroid() ? 22 : 18,
 		paddingRight: Device.isAndroid() ? 22 : 18,
@@ -71,9 +77,6 @@ const styles = StyleSheet.create({
 	},
 	infoIcon: {
 		color: colors.blue
-	},
-	moreIcon: {
-		marginTop: 5
 	},
 	flex: {
 		flex: 1
@@ -210,11 +213,7 @@ export function getPaymentRequestOptionsTitle(title, navigation) {
 		headerTintColor: colors.blue,
 		headerLeft: goBack ? (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity
-				onPress={() => goBack()}
-				style={styles.backButton}
-				testID={'request-search-asset-back-button'}
-			>
+			<TouchableOpacity onPress={goBack} style={styles.backButton} testID={'request-search-asset-back-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}
@@ -385,7 +384,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 
 	return {
 		headerLeft: (
-			<TouchableOpacity onPress={onPress} style={styles.backButton} testID={'hamburger-menu-button-browser'}>
+			<TouchableOpacity onPress={onPress} style={styles.hamburgerButton} testID={'hamburger-menu-button-browser'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
 					size={Device.isAndroid() ? 24 : 28}
