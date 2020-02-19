@@ -14,11 +14,11 @@ import androidx.test.rule.ActivityTestRule;
 @LargeTest
 public class DetoxTest {
 
-    @Rule
-    public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule<>(MainActivity.class, false, false);
+	@Rule
+	public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule<>(MainActivity.class, false, false);
 
-    @Test
-    public void runDetoxTests() {
-        Detox.runTests(mActivityRule);
-    }
+	@Test
+	public void runDetoxTests() {
+		Detox.runTests(mActivityRule);
+	}
 }
