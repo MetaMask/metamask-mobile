@@ -174,9 +174,64 @@ class AccountBackupStep5 extends PureComponent {
 	}
 
 	state = {
-		confirmedWords: Array(12).fill(),
+		confirmedWords: Array(12).fill({ word: undefined, originalPosition: undefined }),
+		showSuccessModal: false,
+		wordsDict: {},
 		currentIndex: 0,
-		showSuccessModal: false
+		seedPhraseReady: false
+	};
+
+	componentDidMount = () => {
+		this.createWordsDictionary();
+	};
+
+	createWordsDictionary = () => {
+		const dict = {};
+		this.words.forEach((word, i) => {
+			dict[`${word},${i}`] = { currentPosition: undefined };
+		});
+		this.setState({ wordsDict: dict });
+	};
+
+	findNextAvailableIndex = () => {
+		const { confirmedWords } = this.state;
+		return confirmedWords.findIndex(({ word }) => !word);
+	};
+
+	selectWord = (word, i) => {
+		const { wordsDict, confirmedWords } = this.state;
+		let currentIndex = this.state.currentIndex;
+		if (wordsDict[`${word},${i}`].currentPosition !== undefined) {
+			currentIndex = wordsDict[`${word},${i}`].currentPosition;
+			wordsDict[`${word},${i}`].currentPosition = undefined;
+			confirmedWords[currentIndex] = { word: undefined, originalPosition: undefined };
+		} else {
+			wordsDict[`${word},${i}`].currentPosition = currentIndex;
+			confirmedWords[currentIndex] = { word, originalPosition: i };
+			currentIndex = this.findNextAvailableIndex();
+		}
+		this.setState({
+			currentIndex,
+			wordsDict,
+			confirmedWords,
+			seedPhraseReady: this.findNextAvailableIndex() === -1
+		});
+	};
+
+	clearConfirmedWordAt = i => {
+		const { confirmedWords, wordsDict } = this.state;
+		const { word, originalPosition } = confirmedWords[i];
+		const currentIndex = i;
+		if (word && (originalPosition || originalPosition === 0)) {
+			wordsDict[[word, originalPosition]].currentPosition = undefined;
+			confirmedWords[i] = { word: undefined, originalPosition: undefined };
+		}
+		this.setState({
+			currentIndex,
+			wordsDict,
+			confirmedWords,
+			seedPhraseReady: this.findNextAvailableIndex() === -1
+		});
 	};
 
 	goBack = () => {
@@ -185,7 +240,8 @@ class AccountBackupStep5 extends PureComponent {
 
 	goNext = () => {
 		const words = this.props.navigation.getParam('words', []);
-		if (words.join('') === this.state.confirmedWords.join('')) {
+		const confirmedWords = this.state.confirmedWords.map(confirmedWord => confirmedWord.word);
+		if (words.join('') === confirmedWords.join('')) {
 			this.props.seedphraseBackedUp();
 			this.setState({ showSuccessModal: true });
 		} else {
@@ -206,85 +262,41 @@ class AccountBackupStep5 extends PureComponent {
 		});
 	};
 
-	getIndexOfWord(word, index, words) {
-		const confirmedWordsOcurrences = this.getNumberOfOcurrences(word, words);
-		if (confirmedWordsOcurrences === 1) {
-			return words.indexOf(word);
-		}
-
-		let currentOccurence = 0;
-
-		for (let i = 0; i < words.length; i++) {
-			if (words[i] === word) {
-				currentOccurence++;
-				if (i === index && currentOccurence <= confirmedWordsOcurrences) {
-					return i;
-				}
-			}
-		}
-		return words.indexOf(word);
-	}
-
-	selectWord = (word, i) => {
-		const newConfirmedWords = this.state.confirmedWords.slice();
-		let newIndex;
-		if (this.isSelectedWord(word, i)) {
-			const matchIndex = this.getIndexOfWord(word, i, this.state.confirmedWords);
-			newConfirmedWords[matchIndex] = undefined;
-			newIndex = matchIndex;
-		} else {
-			// Find next empty cell
-			newConfirmedWords[this.state.currentIndex] = word;
-			newIndex = 11;
-			for (i = this.state.currentIndex; i < 12; i++) {
-				if (newConfirmedWords[i] === undefined) {
-					newIndex = i;
-					break;
-				}
-			}
-		}
-		this.setState({ confirmedWords: newConfirmedWords, currentIndex: newIndex });
+	renderWordBox = (word, i) => {
+		const { currentIndex } = this.state;
+		let wordText = '';
+		if (word) wordText = `${i + 1}. ${word}`;
+		return (
+			<TouchableOpacity
+				key={`word_${i}`}
+				// eslint-disable-next-line react/jsx-no-bind
+				onPress={() => {
+					this.clearConfirmedWordAt(i);
+				}}
+			>
+				<Text style={[styles.word, i === currentIndex ? styles.currentWord : null]}>{wordText}</Text>
+			</TouchableOpacity>
+		);
 	};
 
-	updateWordAtIndex = index => {
-		const newConfirmedWords = this.state.confirmedWords.slice();
-		const newIndex = index;
-		newConfirmedWords[index] = undefined;
-		this.setState({ confirmedWords: newConfirmedWords, currentIndex: newIndex });
+	renderWordSelectableBox = (key, i) => {
+		const { wordsDict } = this.state;
+		const [word] = key.split(',');
+		const selected = wordsDict[key].currentPosition !== undefined;
+		return (
+			<TouchableOpacity
+				// eslint-disable-next-line react/jsx-no-bind
+				onPress={() => this.selectWord(word, i)}
+				style={[styles.selectableWord, selected && styles.selectedWord]}
+				key={`selectableWord_${i}`}
+			>
+				<Text style={[styles.selectableWordText, selected && styles.selectedWordText]}>{word}</Text>
+			</TouchableOpacity>
+		);
 	};
 
-	getNumberOfOcurrences(word, words) {
-		let ocurrences = 0;
-		for (let i = 0; i < words.length; i++) {
-			words[i] === word && ocurrences++;
-		}
-		return ocurrences;
-	}
-
-	isSelectedWord(word, index) {
-		if (!this.state.confirmedWords.includes(word)) {
-			return false;
-		}
-		const totalOcurrences = this.getNumberOfOcurrences(word, this.words);
-		const confirmedWordsOcurrences = this.getNumberOfOcurrences(word, this.state.confirmedWords);
-		if (totalOcurrences === confirmedWordsOcurrences) {
-			return true;
-		}
-
-		let currentOccurence = 0;
-
-		for (let i = 0; i < this.words.length; i++) {
-			if (this.words[i] === word) {
-				currentOccurence++;
-				if (i === index && currentOccurence <= confirmedWordsOcurrences) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	render() {
+	render = () => {
+		const { confirmedWords, wordsDict, seedPhraseReady } = this.state;
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<ScrollView style={styles.mainWrapper} testID={'account-backup-step-5-screen'}>
@@ -301,58 +313,15 @@ class AccountBackupStep5 extends PureComponent {
 
 							<View style={styles.seedPhraseWrapper}>
 								<View style={styles.colLeft}>
-									{this.state.confirmedWords.slice(0, 6).map((word, i) => (
-										<TouchableOpacity
-											key={`word_${i}`}
-											// eslint-disable-next-line react/jsx-no-bind
-											onPress={() => this.updateWordAtIndex(i)}
-										>
-											<Text
-												style={[
-													styles.word,
-													i === this.state.currentIndex ? styles.currentWord : null
-												]}
-											>
-												{(word && `${i + 1}. ${word}`) || ' '}
-											</Text>
-										</TouchableOpacity>
-									))}
+									{confirmedWords.slice(0, 6).map(({ word }, i) => this.renderWordBox(word, i))}
 								</View>
 								<View style={styles.colRight}>
-									{this.state.confirmedWords.slice(-6).map((word, i) => (
-										<TouchableOpacity
-											// eslint-disable-next-line react/jsx-no-bind
-											onPress={() => this.updateWordAtIndex(i + 6)}
-											key={`word_${i}`}
-										>
-											<Text
-												style={[
-													styles.word,
-													i + 6 === this.state.currentIndex ? styles.currentWord : null
-												]}
-											>
-												{(word && `${i + 7}. ${word}`) || ' '}
-											</Text>
-										</TouchableOpacity>
-									))}
+									{confirmedWords.slice(-6).map(({ word }, i) => this.renderWordBox(word, i + 6))}
 								</View>
 							</View>
 
 							<View style={styles.words}>
-								{this.words.map((word, i) => {
-									const selected = this.isSelectedWord(word, i) ? styles.selectedWord : null;
-									const selectedText = selected ? styles.selectedWordText : null;
-									return (
-										<TouchableOpacity
-											// eslint-disable-next-line react/jsx-no-bind
-											onPress={() => this.selectWord(word, i)}
-											style={[styles.selectableWord, selected]}
-											key={`selectableWord_${i}`}
-										>
-											<Text style={[styles.selectableWordText, selectedText]}>{word}</Text>
-										</TouchableOpacity>
-									);
-								})}
+								{Object.keys(wordsDict).map((key, i) => this.renderWordSelectableBox(key, i))}
 							</View>
 						</View>
 						<View style={styles.buttonWrapper}>
@@ -361,7 +330,7 @@ class AccountBackupStep5 extends PureComponent {
 								type={'confirm'}
 								onPress={this.goNext}
 								testID={'submit-button'}
-								disabled={!(this.state.confirmedWords.filter(word => word === undefined).length === 0)}
+								disabled={!seedPhraseReady}
 							>
 								{strings('account_backup_step_5.cta_text')}
 							</StyledButton>
@@ -380,7 +349,7 @@ class AccountBackupStep5 extends PureComponent {
 				</ScrollView>
 			</SafeAreaView>
 		);
-	}
+	};
 }
 
 const mapDispatchToProps = dispatch => ({
