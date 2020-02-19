@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { TouchableOpacity, Platform, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
 import TabCountIcon from '../Tabs/TabCountIcon';
@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcons from 'react-native-vector-icons/Feather';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import { colors } from '../../../styles/common';
 
 const HOME_INDICATOR_HEIGHT = 18;
@@ -15,14 +15,14 @@ const defaultBottomBarPadding = 0;
 
 const styles = StyleSheet.create({
 	bottomBar: {
-		backgroundColor: Platform.OS === 'android' ? colors.white : colors.grey000,
+		backgroundColor: Device.isAndroid() ? colors.white : colors.grey000,
 		flexDirection: 'row',
 		paddingBottom:
-			DeviceSize.isIphoneX() && Platform.OS === 'ios'
+			Device.isIphoneX() && Device.isIos()
 				? defaultBottomBarPadding + HOME_INDICATOR_HEIGHT
 				: defaultBottomBarPadding,
 		flex: 0,
-		borderTopWidth: Platform.OS === 'android' ? 0 : StyleSheet.hairlineWidth,
+		borderTopWidth: Device.isAndroid() ? 0 : StyleSheet.hairlineWidth,
 		borderColor: colors.grey200,
 		justifyContent: 'space-between'
 	},

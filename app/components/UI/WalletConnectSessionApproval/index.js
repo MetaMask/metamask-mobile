@@ -8,7 +8,7 @@ import ElevatedView from 'react-native-elevated-view';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import WebsiteIcon from '../WebsiteIcon';
 import { renderAccountName } from '../../../util/address';
 
@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		minHeight: '70%',
-		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
+		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	wrapper: {
 		paddingHorizontal: 25

@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
-import { ScrollView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { renderShortAddress, isENS } from '../../../util/address';
@@ -13,7 +13,7 @@ import networkMap from 'ethjs-ens/lib/network-map.json';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import EthereumAddress from '../EthereumAddress';
 import AppConstants from '../../../core/AppConstants';
 
@@ -25,10 +25,10 @@ const styles = StyleSheet.create({
 		color: colors.grey100,
 		position: 'absolute',
 		right: 10,
-		top: Platform.OS === 'android' ? 14 : 12
+		top: Device.isAndroid() ? 14 : 12
 	},
 	componentContainer: {
-		maxHeight: Platform.OS === 'android' ? 175 : 200,
+		maxHeight: Device.isAndroid() ? 175 : 200,
 		borderRadius: 4,
 		flex: 1
 	},
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		marginRight: 24,
 		paddingLeft: 0,
-		minWidth: DeviceSize.isSmallDevice() ? 100 : 120
+		minWidth: Device.isSmallDevice() ? 100 : 120
 	},
 	qrCodeButton: {
 		minHeight: 50,
@@ -107,8 +107,8 @@ const styles = StyleSheet.create({
 	},
 	ensAddress: {
 		fontSize: 10,
-		top: Platform.OS === 'android' ? -16 : 0,
-		paddingLeft: Platform.OS === 'android' ? 4 : 0
+		top: Device.isAndroid() ? -16 : 0,
+		paddingLeft: Device.isAndroid() ? 4 : 0
 	}
 });
 
@@ -180,7 +180,7 @@ class AccountInput extends PureComponent {
 		address: undefined,
 		ensRecipient: undefined,
 		value: undefined,
-		inputEnabled: Platform.OS === 'ios'
+		inputEnabled: Device.isIos()
 	};
 
 	componentDidMount = async () => {
@@ -377,7 +377,7 @@ class AccountInput extends PureComponent {
 			<View style={styles.root}>
 				<View style={styles.accountContainer}>
 					<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
-						<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
+						<Icon name="qrcode" size={Device.isAndroid() ? 28 : 28} />
 					</TouchableOpacity>
 					<View style={styles.inputContainer}>
 						<View style={styles.toContainer}>
@@ -385,9 +385,7 @@ class AccountInput extends PureComponent {
 								autoCapitalize="none"
 								autoCorrect={false}
 								onChangeText={this.onChange}
-								placeholder={
-									DeviceSize.isSmallDevice() ? placeholder.substr(0, 13) + '...' : placeholder
-								}
+								placeholder={Device.isSmallDevice() ? placeholder.substr(0, 13) + '...' : placeholder}
 								placeholderTextColor={colors.grey100}
 								spellCheck={false}
 								editable={this.state.inputEnabled}
