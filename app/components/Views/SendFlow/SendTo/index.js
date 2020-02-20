@@ -220,7 +220,12 @@ class SendFlow extends PureComponent {
 		PreferencesController.setSelectedAddress(accountAddress);
 		// If new account doesn't have the asset
 		this.props.setSelectedAsset(getEther());
-		this.setState({ fromAccountName, fromAccountBalance, fromSelectedAddress: accountAddress });
+		this.setState({
+			fromAccountName,
+			fromAccountBalance,
+			fromSelectedAddress: accountAddress,
+			balanceIsZero: hexToBN(accounts[accountAddress].balance).isZero()
+		});
 		this.toggleFromAccountModal();
 	};
 
