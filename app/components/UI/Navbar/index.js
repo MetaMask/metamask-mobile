@@ -59,8 +59,8 @@ const styles = StyleSheet.create({
 	hamburgerButton: {
 		paddingLeft: Device.isAndroid() ? 22 : 18,
 		paddingRight: Device.isAndroid() ? 22 : 18,
-		paddingTop: 14,
-		paddingBottom: 14
+		paddingTop: Device.isAndroid() ? 14 : 10,
+		paddingBottom: Device.isAndroid() ? 14 : 10
 	},
 	backButton: {
 		paddingLeft: Device.isAndroid() ? 22 : 18,
