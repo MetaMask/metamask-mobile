@@ -157,8 +157,12 @@ class AddressList extends PureComponent {
 		const recents = [];
 		const parsedRecents = [];
 		if (!inputSearch) {
-			const networkTransactions = transactions.filter(tx => tx.networkID === network);
+			const networkTransactions = transactions
+				.filter(tx => tx.networkID === network)
+				.sort((a, b) => b.time - a.time);
 			networkTransactions.forEach(async ({ transaction: { to, data } }) => {
+				// ignore contract deployments
+				if (!to) return;
 				// Check if is a transfer tx
 				if (data.substring(0, 10) === TRANSFER_FUNCTION_SIGNATURE) {
 					[to] = decodeTransferData('transfer', data);
