@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-start',
 		marginHorizontal: 8
 	},
+	addressWrapper: { flexDirection: 'row' },
 	textAddress: {
 		...fontStyles.normal,
 		color: colors.black,
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	checkAddress: {
-		maxWidth: '80%'
+		maxWidth: '90%'
 	},
 	toInputWrapper: {
 		flexDirection: 'row'
@@ -178,12 +179,17 @@ export const AddressTo = props => {
 										{toAddressName}
 									</Text>
 								)}
-								<Text style={toAddressName ? styles.textBalance : styles.textAddress} numberOfLines={1}>
-									{renderShortAddress(toSelectedAddress)}
-								</Text>
-							</View>
-							<View style={styles.checkIconWrapper}>
-								<AntIcon name="check" color={colors.green600} size={15} />
+								<View style={styles.addressWrapper}>
+									<Text
+										style={toAddressName ? styles.textBalance : styles.textAddress}
+										numberOfLines={1}
+									>
+										{renderShortAddress(toSelectedAddress)}
+									</Text>
+									<View style={(styles.checkIconWrapper, toAddressName ? {} : { paddingTop: 2 })}>
+										<AntIcon name="check" color={colors.green600} size={15} />
+									</View>
+								</View>
 							</View>
 						</View>
 					</View>
