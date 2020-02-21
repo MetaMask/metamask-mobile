@@ -234,13 +234,15 @@ class SendFlow extends PureComponent {
 		const networkAddressBook = addressBook[network] || {};
 		let addressError, toAddressName, toEnsName;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
-
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
 			toSelectedAddressReady = true;
 			const ens = await doENSReverseLookup(toSelectedAddress);
 			if (ens) {
 				toAddressName = ens;
+				if (!networkAddressBook[checksummedToSelectedAddress] && !identities[checksummedToSelectedAddress]) {
+					addToAddressToAddressBook = true;
+				}
 			} else if (networkAddressBook[checksummedToSelectedAddress] || identities[checksummedToSelectedAddress]) {
 				toAddressName =
 					(networkAddressBook[checksummedToSelectedAddress] &&
