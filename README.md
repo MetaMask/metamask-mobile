@@ -33,12 +33,10 @@ cd metamask-mobile
 yarn install # this will run a lengthy postinstall flow
 ```
 
-- Open Google Chrome
-
 - Then, in one terminal, run:
 
 ```bash
-yarn start
+yarn watch
 ```
 
 #### Android
@@ -78,7 +76,7 @@ yarn start:ios
 
 Unfortunately, the build system may fail to pick up local changes, such as installing new NPM packages or `yarn link`ing a dependency.
 If the app is behaving strangely or not picking up your local changes, it may be due to build issues.
-To ensure that you're starting with a clean slate, close all emulators/simulators, stop the `yarn start` process, and run:
+To ensure that you're starting with a clean slate, close all emulators/simulators, stop the `yarn watch` process, and run:
 
 ```bash
 yarn clean
@@ -86,7 +84,7 @@ yarn clean
 # if you're going to `yarn link` any packages,
 # do that here, before the next command
 
-yarn start:clean
+yarn watch:clean
 
 # ...and then, in another terminal
 
@@ -103,14 +101,14 @@ If `yarn link` fails after going through these steps, try directly `yarn add`ing
 
 First, make sure you have the following running:
 
-- Google Chrome
-- `yarn start`
+- `yarn watch`
 - Your Android emulator or iOS simulator
 - `yarn start:android` or `yarn start:ios`
 
 Next, check that the React Native Debugger is working:
 
-- If it's not already in Chrome, open a new tab and go to: http://localhost:8081/debugger-ui/
+- Open your emulator or simulator, and select `Debug JS Remotely` from its menu
+  - You can also try to navigate to this URL in Chrome: http://localhost:8081/debugger-ui/
 - If that doesn't take you to the React Native Debugger, something is wrong
 
 #### Debugging iOS (macOS Only)
