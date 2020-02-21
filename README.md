@@ -97,6 +97,8 @@ yarn start:ios
 yarn start:android
 ```
 
+If `yarn link` fails after going through these steps, try directly `yarn add`ing the local files instead.
+
 ### Debugging
 
 First, make sure you have the following running:
