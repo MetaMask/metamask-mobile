@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
+import { Platform, SafeAreaView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
 import { getEditableOptions } from '../../../../UI/Navbar';
@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
 	textInput: {
 		...fontStyles.normal,
 		padding: 0,
-		paddingRight: 8
+		paddingRight: 8,
+		color: colors.black
 	},
 	inputWrapper: {
 		flex: 1,
@@ -121,7 +122,8 @@ class ContactForm extends PureComponent {
 		addressReady: false,
 		mode: this.props.navigation.getParam('mode', ADD),
 		memo: undefined,
-		editable: true
+		editable: true,
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined
 	};
 
 	actionSheet = React.createRef();
@@ -131,6 +133,11 @@ class ContactForm extends PureComponent {
 	componentDidMount = () => {
 		const { mode } = this.state;
 		const { navigation } = this.props;
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		this.state.inputWidth &&
+			setTimeout(() => {
+				this.setState({ inputWidth: '100%' });
+			}, 100);
 		if (mode === EDIT) {
 			const { addressBook, network, identities } = this.props;
 			const networkAddressBook = addressBook[network] || {};
@@ -279,7 +286,7 @@ class ContactForm extends PureComponent {
 									placeholderTextColor={colors.grey100}
 									spellCheck={false}
 									numberOfLines={1}
-									style={[styles.textInput]}
+									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
 									value={toEnsName || address}
 									ref={this.addressInput}
 									onSubmitEditing={this.jumpToMemoInput}
@@ -307,7 +314,7 @@ class ContactForm extends PureComponent {
 									placeholderTextColor={colors.grey100}
 									spellCheck={false}
 									numberOfLines={1}
-									style={styles.textInput}
+									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
 									value={memo}
 									ref={this.memoInput}
 								/>

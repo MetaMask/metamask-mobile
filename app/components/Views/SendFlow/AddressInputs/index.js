@@ -111,7 +111,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	checkAddress: {
-		maxWidth: '90%'
+		flex: 0.9
+		// maxWidth: '90%'
 	},
 	toInputWrapper: {
 		flexDirection: 'row'
