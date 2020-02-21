@@ -1,7 +1,6 @@
 import Logger from './../util/Logger';
-// eslint-disable-next-line
+// eslint-disable-next-line import/no-namespace
 import * as connext from '@connext/client';
-// eslint-disable-next-line import/no-unresolved
 import { ConnextStore } from '@connext/store';
 import {
 	CF_PATH,
@@ -9,9 +8,7 @@ import {
 	RECEIVE_TRANSFER_STARTED_EVENT,
 	RECEIVE_TRANSFER_FINISHED_EVENT,
 	RECEIVE_TRANSFER_FAILED_EVENT
-	// eslint-disable-next-line import/no-unresolved
 } from '@connext/types';
-// eslint-disable-next-line import/no-unresolved
 import interval from 'interval-promise';
 import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -28,9 +25,6 @@ import { renderFromWei, toWei, fromWei, BNToHex } from './../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from './../util/networks';
 import PaymentChannelsClient from './PaymentChannelsClient';
-
-// eslint-disable-next-line import/no-commonjs
-const isomorphicCrypto = require('isomorphic-webcrypto');
 
 const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, xpubToAddress, inverse } = connext.utils;
 
@@ -630,7 +624,6 @@ class InstaPay {
 			const { channel, token } = this.state;
 			const amount = Currency.DAI(sendAmount);
 			const endingTs = Date.now() + 60 * 1000;
-			await isomorphicCrypto.ensureSecure();
 			let transferRes = undefined;
 			while (Date.now() < endingTs) {
 				try {
