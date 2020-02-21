@@ -224,6 +224,7 @@ class ContactForm extends PureComponent {
 		const { AddressBookController } = Engine.context;
 		const { network, navigation } = this.props;
 		AddressBookController.delete(network, this.contactAddressToRemove);
+		navigation.state.params.onDelete();
 		navigation.pop();
 	};
 
