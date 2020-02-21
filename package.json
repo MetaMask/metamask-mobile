@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "start:clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && yarn start -- --reset-cache",
+    "restart-packager-clean": "yarn start:clean",
     "clean:ios": "rm -rf ios/build",
     "clean:android": "rm -rf android/build",
     "clean:node": "rm -rf node_modules && yarn install",

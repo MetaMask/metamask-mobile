@@ -19,7 +19,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 - Install [Node.js](https://nodejs.org) **version 10 (latest stable) and yarn@1 (latest)**
   - If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
-- Install the React Native dependencies (`React Native CLI`, _not_ `Expo CLI`)
+- Install the shared React Native dependencies (`React Native CLI`, _not_ `Expo CLI`)
   - [macOS](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1)
   - [Linux](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-2)
 
@@ -44,11 +44,17 @@ yarn start
 #### Android
 
 - Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
-  - TODO: how to add emulator
   - _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
 - Linux only:
   - Ensure that you have the `secret-tool` binary on your machine.
     - Part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions.
+- Install the correct emulator
+  - Follow the instructions at:
+    - [React Native Getting Started - Android](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1) _(React Native CLI Quickstart -> [your OS] -> Android)_
+    - More details can be found [on the Android Developer site](https://developer.android.com/studio/run/emulator)
+  - You should use the following:
+    - **Android OS Version:** Latest, unless told otherwise
+    - **Device:** Google Pixel 3
 - Finally, start the emulator from Android Studio, and run:
 
 ```bash
@@ -57,7 +63,12 @@ yarn start:android
 
 #### iOS
 
-TODO: iOS dependencies, how to add simulator
+- Install the iOS dependencies
+  - [React Native Getting Started - iOS](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1) _(React Native CLI Quickstart -> [your OS] -> iOS)_
+    - You do **not** need CocoaPods
+- Install the correct simulator
+  - **iOS OS Version:** Latest, unless told otherwise
+  - **Device:** iPhone 11 Pro
 
 ```bash
 yarn start:ios
