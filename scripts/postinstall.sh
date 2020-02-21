@@ -7,10 +7,10 @@ node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,v
 echo "2. Patch npm packages"
 npx patch-package
 
-echo "2. Create xcconfig files..."
+echo "3. Create xcconfig files..."
 echo "" > ios/debug.xcconfig
 echo "" > ios/release.xcconfig
 
-echo "3. Init git submodules"
+echo "4. Init git submodules"
 echo "This may take a while..."
 git submodule update --init
