@@ -133,11 +133,13 @@ exports[`ContactForm should render correctly 1`] = `
             style={
               Array [
                 Object {
+                  "color": "#000000",
                   "fontFamily": "CircularStd-Medium",
                   "fontWeight": "400",
                   "padding": 0,
                   "paddingRight": 8,
                 },
+                Object {},
               ]
             }
             underlineColorAndroid="transparent"
@@ -219,12 +221,16 @@ exports[`ContactForm should render correctly 1`] = `
             rejectResponderTermination={true}
             spellCheck={false}
             style={
-              Object {
-                "fontFamily": "CircularStd-Medium",
-                "fontWeight": "400",
-                "padding": 0,
-                "paddingRight": 8,
-              }
+              Array [
+                Object {
+                  "color": "#000000",
+                  "fontFamily": "CircularStd-Medium",
+                  "fontWeight": "400",
+                  "padding": 0,
+                  "paddingRight": 8,
+                },
+                Object {},
+              ]
             }
             underlineColorAndroid="transparent"
           />
