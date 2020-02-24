@@ -206,7 +206,7 @@ class AddressList extends PureComponent {
 		networkAddressBookList.forEach(contact => {
 			const nameInitial = contact.name[0];
 			const initial =
-				(nameInitial && nameInitial.toUpperCase() && nameInitial.match(/[a-z]/i)) ||
+				(nameInitial && nameInitial.toUpperCase() && nameInitial.match(/[a-z]/i))[0] ||
 				strings('address_book.others');
 			if (Object.keys(addressBookTree).includes(initial)) {
 				addressBookTree[initial].push(contact);

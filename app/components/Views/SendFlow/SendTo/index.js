@@ -308,8 +308,8 @@ class SendFlow extends PureComponent {
 		const { toSelectedAddress, alias } = this.state;
 		const { AddressBookController } = Engine.context;
 		AddressBookController.set(toSelectedAddress, alias, network);
-		this.setState({ toSelectedAddressName: alias, addToAddressToAddressBook: false });
 		this.toggleAddToAddressBookModal();
+		this.setState({ toSelectedAddressName: alias, addToAddressToAddressBook: false, alias: undefined });
 	};
 
 	onScan = () => {
