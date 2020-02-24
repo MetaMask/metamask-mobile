@@ -164,9 +164,9 @@ class AddressList extends PureComponent {
 				// ignore contract deployments
 				if (!to) return;
 				// Check if is a transfer tx
-				if (data.substring(0, 10) === TRANSFER_FUNCTION_SIGNATURE) {
+				if (data && data.substring(0, 10) === TRANSFER_FUNCTION_SIGNATURE) {
 					[to] = decodeTransferData('transfer', data);
-				} else if (data.substring(0, 10) === TRANSFER_FROM_FUNCTION_SIGNATURE) {
+				} else if (data && data.substring(0, 10) === TRANSFER_FROM_FUNCTION_SIGNATURE) {
 					[, to] = decodeTransferData('transferFrom', data);
 				}
 				const checksummedTo = safeToChecksumAddress(to);
