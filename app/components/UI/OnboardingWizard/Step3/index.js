@@ -1,13 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, Text, View, StyleSheet, Dimensions } from 'react-native';
+import { Text, View, StyleSheet, Dimensions } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { colors, fontStyles } from '../../../../styles/common';
 import AccountOverview from '../../AccountOverview';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+import Device from '../../../../util/Device';
 
 const styles = StyleSheet.create({
 	main: {
@@ -92,7 +93,7 @@ class Step3 extends PureComponent {
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
 				// Adding one for android
-				const viewTop = Platform.OS === 'ios' ? py : py + 1;
+				const viewTop = Device.isIos() ? py : py + 1;
 				this.setState({
 					viewTop,
 					viewTopReady: true

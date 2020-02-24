@@ -1,22 +1,22 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
+	<!-- Base application theme. -->
+	<style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+		<!-- Customize your theme here. -->
 		<item name="android:statusBarColor">@color/lightgray</item>
 		<item name="android:windowLightStatusBar">true</item>
 		<item name="android:navigationBarColor">@color/lightgray</item>
 		<item name="android:windowLightNavigationBar">true</item>
-    </style>
+	</style>
 
-    <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowBackground">@drawable/background_splash</item>
-        <item name="android:statusBarColor">@color/white</item>
+	<style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
+		<item name="android:windowBackground">@drawable/background_splash</item>
+		<item name="android:statusBarColor">@color/white</item>
 		<item name="android:windowLightStatusBar">true</item>
-        <item name="android:navigationBarColor">@color/white</item>
+		<item name="android:navigationBarColor">@color/white</item>
 		<item name="android:windowLightStatusBar">true</item>
 		<item name="android:windowLightNavigationBar">true</item>
 
-    </style>
+	</style>
 
 </resources>

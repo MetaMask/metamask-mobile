@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Keyboard, ScrollView, Platform, StyleSheet, Text, TextInput, View, Image } from 'react-native';
+import { Keyboard, ScrollView, StyleSheet, Text, TextInput, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -23,7 +23,7 @@ import CollectibleImage from '../CollectibleImage';
 import SelectableAsset from './SelectableAsset';
 import { getTicker } from '../../../util/transactions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
@@ -52,15 +52,15 @@ const styles = StyleSheet.create({
 		paddingRight: 0,
 		paddingLeft: 0,
 		paddingTop: 0,
-		maxWidth: DeviceSize.isSmallDevice() ? '40%' : '70%',
+		maxWidth: Device.isSmallDevice() ? '40%' : '70%',
 		minWidth: 35
 	},
 	eth: {
 		...fontStyles.bold,
 		marginRight: 0,
 		fontSize: 16,
-		paddingTop: Platform.OS === 'android' ? 1 : 0,
-		paddingLeft: DeviceSize.isSmallDevice() ? 4 : 10,
+		paddingTop: Device.isAndroid() ? 1 : 0,
+		paddingLeft: Device.isSmallDevice() ? 4 : 10,
 		alignSelf: 'center'
 	},
 	secondaryValue: {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	splitNoSecondaryAmount: {
-		top: Platform.OS === 'android' ? 5 : 8
+		top: Device.isAndroid() ? 5 : 8
 	},
 	ethContainer: {
 		flex: 1,
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
 		maxWidth: '65%'
 	},
 	icon: {
-		paddingVertical: Platform.OS === 'android' ? 8 : 6,
+		paddingVertical: Device.isAndroid() ? 8 : 6,
 		marginRight: 10
 	},
 	logo: {
@@ -101,12 +101,12 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		right: 10,
 		flexDirection: 'row',
-		top: Platform.OS === 'android' ? 18 : 15
+		top: Device.isAndroid() ? 18 : 15
 	},
 	switch: {
 		transform: [{ rotate: '270deg' }],
 		marginVertical: 3,
-		marginHorizontal: DeviceSize.isSmallDevice() ? 0 : 3
+		marginHorizontal: Device.isSmallDevice() ? 0 : 3
 	},
 	scrollContainer: {
 		position: 'relative',
@@ -213,7 +213,7 @@ class EthInput extends PureComponent {
 		assets: undefined,
 		secondaryAmount: undefined,
 		internalPrimaryCurrency: this.props.primaryCurrency,
-		inputEnabled: Platform.OS === 'ios'
+		inputEnabled: Device.isIos()
 	};
 
 	/**
@@ -491,6 +491,7 @@ class EthInput extends PureComponent {
 	 */
 	onChange = value => {
 		const { onChange } = this.props;
+		value = value && value.replace(/\s+/g, '');
 		const { processedValue } = this.processValue(value && value.replace(',', '.'));
 		onChange && onChange(processedValue, value);
 		this.setState({ readableValue: value });

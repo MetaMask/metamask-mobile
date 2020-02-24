@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import { showAlert } from '../../../actions/alert';
 import GlobalAlert from '../../UI/GlobalAlert';
 
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center',
-		marginTop: DeviceSize.isSmallDevice() ? -30 : -50
+		marginTop: Device.isSmallDevice() ? -30 : -50
 	},
 	wrapper: {
 		flex: 1,
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		width: WIDTH + 40,
-		paddingBottom: DeviceSize.isSmallDevice() ? 30 : 50,
+		paddingBottom: Device.isSmallDevice() ? 30 : 50,
 		flexDirection: 'row-reverse'
 	},
 	addressTitle: {

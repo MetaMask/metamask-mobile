@@ -15,7 +15,7 @@ import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN } from '../../../util/number';
 import Logger from '../../../util/Logger';
 import { getTicker } from '../../../util/transactions';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import TransactionTypes from '../../../core/TransactionTypes';
 
 const {
@@ -60,11 +60,11 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		...fontStyles.normal,
-		fontSize: DeviceSize.isSmallDevice() ? 10 : 12
+		fontSize: Device.isSmallDevice() ? 10 : 12
 	},
 	textTitle: {
 		...fontStyles.bold,
-		fontSize: DeviceSize.isSmallDevice() ? 10 : 14
+		fontSize: Device.isSmallDevice() ? 10 : 14
 	},
 	textTotalGas: {
 		...fontStyles.bold

@@ -1,19 +1,19 @@
 const getWindowInformation = `
-    const shortcutIcon = window.document.querySelector('head > link[rel="shortcut icon"]');
-    const icon = shortcutIcon || Array.from(window.document.querySelectorAll('head > link[rel="icon"]')).find((icon) => Boolean(icon.href));
+	const shortcutIcon = window.document.querySelector('head > link[rel="shortcut icon"]');
+	const icon = shortcutIcon || Array.from(window.document.querySelectorAll('head > link[rel="icon"]')).find((icon) => Boolean(icon.href));
 
-    const siteName = document.querySelector('head > meta[property="og:site_name"]');
-    const title = siteName || document.querySelector('head > meta[name="title"]');
-    window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(
-        {
-            type: 'GET_TITLE_FOR_BOOKMARK',
-            payload: {
-                title: title ? title.content : document.title,
-                url: location.href,
-                icon: icon && icon.href
-            }
-        }
-    ))
+	const siteName = document.querySelector('head > meta[property="og:site_name"]');
+	const title = siteName || document.querySelector('head > meta[name="title"]');
+	window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(
+		{
+			type: 'GET_TITLE_FOR_BOOKMARK',
+			payload: {
+				title: title ? title.content : document.title,
+				url: location.href,
+				icon: icon && icon.href
+			}
+		}
+	))
 `;
 
 export const SPA_urlChangeListener = `(function () {
@@ -69,8 +69,8 @@ export const SPA_urlChangeListener = `(function () {
 
 export const JS_WINDOW_INFORMATION = `
 	(function () {
-        ${getWindowInformation}
-    })();
+		${getWindowInformation}
+	})();
 `;
 
 export const JS_DESELECT_TEXT = `if (window.getSelection) {window.getSelection().removeAllRanges();}

@@ -17,7 +17,8 @@ import {
 	fiatNumberToTokenMinimalUnit,
 	balanceToFiat,
 	balanceToFiatNumber,
-	renderFiat
+	renderFiat,
+	handleWeiNumber
 } from './number';
 import numberToBN from 'number-to-bn';
 
@@ -186,6 +187,16 @@ describe('Number utils :: weiToFiatNumber', () => {
 		expect(weiToFiatNumber(wei, 0.1234512345, 1)).toEqual(0.1);
 		expect(weiToFiatNumber(wei, 0.5, 2)).toEqual(0.5);
 		expect(weiToFiatNumber(wei, 0.111112, 3)).toEqual(0.111);
+	});
+});
+
+describe('Number utils :: handleWeiNumber', () => {
+	it('weiToFiatNumber', () => {
+		expect(handleWeiNumber('1.123')).toEqual('1.123');
+		expect(handleWeiNumber('1')).toEqual('1');
+		expect(handleWeiNumber('1.01')).toEqual('1.01');
+		expect(handleWeiNumber('1.111111111111111111')).toEqual('1.111111111111111111');
+		expect(handleWeiNumber('1.1111111111111111112222')).toEqual('1.111111111111111111');
 	});
 });
 
