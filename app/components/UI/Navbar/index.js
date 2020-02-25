@@ -221,8 +221,8 @@ export function getEditableOptions(title, navigation) {
 		headerLeft: (
 			<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
 				<IonicIcon
-					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
-					size={Platform.OS === 'android' ? 24 : 28}
+					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Device.isAndroid() ? 24 : 28}
 					style={styles.backIcon}
 				/>
 			</TouchableOpacity>
