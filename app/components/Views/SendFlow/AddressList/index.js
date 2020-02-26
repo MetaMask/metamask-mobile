@@ -43,6 +43,9 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.grey050,
 		padding: 8
 	},
+	labelElementInitialText: {
+		textTransform: 'uppercase'
+	},
 	labelElementText: {
 		...fontStyles.normal,
 		fontSize: 12,
@@ -56,7 +59,7 @@ const styles = StyleSheet.create({
 
 const LabelElement = label => (
 	<View key={label} style={styles.labelElementWrapper}>
-		<Text style={styles.labelElementText}>{label}</Text>
+		<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>{label}</Text>
 	</View>
 );
 
