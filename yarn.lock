@@ -4853,14 +4853,15 @@ g-status@^2.0.2:
     matcher "^1.0.0"
     simple-git "^1.85.0"
 
-gaba@1.9.2:
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/gaba/-/gaba-1.9.2.tgz#546b3733f686561032004f589ff9da6b11d02000"
-  integrity sha512-qVcSkRBErmYkiAxy/VGqetTF2zNrc2+dsv7SBcHVt5jYikhw2EMdfsEwEyWsjAM/YGry7mxmozlIS7nvdJXnYQ==
+gaba@1.10.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/gaba/-/gaba-1.10.0.tgz#f01e4462f8b7e72a02d9558977ea411d8f7a9a09"
+  integrity sha512-2WEN3YgBh9kP7xow5K579bWsvCaH8c+HE75N9VZHQtGFZmK41q/U9MfRuRx4PREfUgP0S/O9GzQz+Uu0HvA19g==
   dependencies:
     await-semaphore "^0.1.3"
     eth-contract-metadata "^1.11.0"
     eth-ens-namehash "^2.0.8"
+    eth-json-rpc-errors "^2.0.2"
     eth-json-rpc-infura "^4.0.1"
     eth-keyring-controller "^5.3.0"
     eth-method-registry "1.1.0"
