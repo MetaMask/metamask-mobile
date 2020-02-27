@@ -497,7 +497,8 @@
 		"adjust_transaction_fee": "Ajustar tarifa de transacción",
 		"could_not_resolve_ens": "No se pudo resolver nombre ENS",
 		"asset": "Activo",
-		"balance": "Balance"
+		"balance": "Balance",
+		"not_enough_for_gas": "Tienes 0 ETH en tu cuenta para pagar por la tarifa de transacción. Compra ETH o depositalo desde otra cuenta."
 	},
 	"custom_gas": {
 		"advanced_options": "Mostrar opciones avanzadas",
@@ -643,6 +644,7 @@
 		"add_contact": "Agregar contacto",
 		"edit_contact_title": "Editar Contacto",
 		"edit_contact": "Editar contacto",
+		"edit": "Editar",
 		"address_already_saved": "Este contacto ya está guardado",
 		"address": "Dirección",
 		"name": "Nombre",
@@ -650,7 +652,8 @@
 		"add_input_placeholder": "Dirección pública (0x), o ENS",
 		"between_account": "Transferir entre mis cuentas",
 		"no_contacts": "No tienes contactos en tu agenda",
-		"others": "Otros"
+		"others": "Otros",
+		"memo": "Detalles"
 	},
 	"transaction_submitted": {
 		"title": "Transacción Enviada",
