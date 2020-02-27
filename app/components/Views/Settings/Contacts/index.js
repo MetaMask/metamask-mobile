@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
 });
 
 const EDIT = 'edit';
+const ADD = 'add';
 
 /**
  * View that contains app information
@@ -31,6 +32,10 @@ class Contacts extends PureComponent {
 		getNavigationOptionsTitle(strings('app_settings.contacts_title'), navigation);
 
 	static propTypes = {
+		/**
+		 * Map representing the address book
+		 */
+		addressBook: PropTypes.object,
 		/**
 		/* navigation object required to push new views
 		*/
@@ -48,6 +53,23 @@ class Contacts extends PureComponent {
 	actionSheet;
 	contactAddressToRemove;
 
+	componentDidUpdate = prevProps => {
+		const { network } = this.props;
+		if (
+			prevProps.addressBook &&
+			this.props.addressBook &&
+			JSON.stringify(prevProps.addressBook[network]) !== JSON.stringify(this.props.addressBook[network])
+		)
+			this.updateAddressList();
+	};
+
+	updateAddressList = () => {
+		this.setState({ reloadAddressList: true });
+		setTimeout(() => {
+			this.setState({ reloadAddressList: false });
+		}, 100);
+	};
+
 	onAddressLongPress = address => {
 		this.contactAddressToRemove = address;
 		this.actionSheet && this.actionSheet.show();
@@ -62,11 +84,16 @@ class Contacts extends PureComponent {
 	};
 
 	onAddressPress = address => {
-		this.props.navigation.navigate('ContactForm', { mode: EDIT, address });
+		this.props.navigation.navigate('ContactForm', {
+			mode: EDIT,
+			editMode: EDIT,
+			address,
+			onDelete: () => this.updateAddressList()
+		});
 	};
 
 	goToAddContact = () => {
-		this.props.navigation.navigate('ContactForm');
+		this.props.navigation.navigate('ContactForm', { mode: ADD });
 	};
 
 	goToEditContact = () => {
@@ -105,6 +132,7 @@ class Contacts extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	network: state.engine.backgroundState.NetworkController.network
 });
 

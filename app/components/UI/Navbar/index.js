@@ -195,6 +195,52 @@ export function getNavigationOptionsTitle(title, navigation) {
 
 /**
  * Function that returns the navigation options
+ * This is used by contact form
+ *
+ * @param {string} title - Title in string format
+ * @param {Object} navigation - Navigation object required to push new views
+ * @returns {Object} - Corresponding navbar options
+ */
+export function getEditableOptions(title, navigation) {
+	function navigationPop() {
+		navigation.pop();
+	}
+	const rightAction = navigation.getParam('dispatch', () => {
+		'';
+	});
+	const editMode = navigation.getParam('editMode', '') === 'edit';
+	const addMode = navigation.getParam('mode', '') === 'add';
+	return {
+		title,
+		headerTitleStyle: {
+			fontSize: 20,
+			color: colors.fontPrimary,
+			...fontStyles.normal
+		},
+		headerTintColor: colors.blue,
+		headerLeft: (
+			<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
+				<IonicIcon
+					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Device.isAndroid() ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		),
+		headerRight: !addMode ? (
+			<TouchableOpacity onPress={() => rightAction()} style={styles.backButton}>
+				<Text style={styles.closeButtonText}>
+					{editMode ? strings('address_book.edit') : strings('address_book.cancel')}
+				</Text>
+			</TouchableOpacity>
+		) : (
+			<View />
+		)
+	};
+}
+
+/**
+ * Function that returns the navigation options
  * This is used by payment request view showing close and back buttons
  *
  * @param {string} title - Title in string format

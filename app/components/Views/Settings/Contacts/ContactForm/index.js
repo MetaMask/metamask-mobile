@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
+import { Platform, SafeAreaView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
-import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
+import { getEditableOptions } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
 import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
@@ -13,6 +13,7 @@ import { doENSLookup } from '../../../../../util/ENSUtils';
 import { isENS, renderShortAddress } from '../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
+import ActionSheet from 'react-native-actionsheet';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -69,11 +70,18 @@ const styles = StyleSheet.create({
 	textInput: {
 		...fontStyles.normal,
 		padding: 0,
-		paddingRight: 8
+		paddingRight: 8,
+		color: colors.black
 	},
 	inputWrapper: {
 		flex: 1,
 		flexDirection: 'column'
+	},
+	textInputDisaled: {
+		borderColor: colors.transparent
+	},
+	actionButton: {
+		marginVertical: 4
 	}
 });
 
@@ -85,10 +93,7 @@ const EDIT = 'edit';
  */
 class ContactForm extends PureComponent {
 	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(
-			strings(`address_book.${navigation.getParam('mode', ADD)}_contact_title`),
-			navigation
-		);
+		getEditableOptions(strings(`address_book.${navigation.getParam('mode', ADD)}_contact_title`), navigation);
 
 	static propTypes = {
 		/**
@@ -115,20 +120,46 @@ class ContactForm extends PureComponent {
 		addressError: undefined,
 		toEnsName: undefined,
 		addressReady: false,
-		mode: this.props.navigation.getParam('mode', ADD)
+		mode: this.props.navigation.getParam('mode', ADD),
+		memo: undefined,
+		editable: true,
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined
 	};
 
+	actionSheet = React.createRef();
 	addressInput = React.createRef();
+	memoInput = React.createRef();
 
 	componentDidMount = () => {
 		const { mode } = this.state;
+		const { navigation } = this.props;
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		this.state.inputWidth &&
+			setTimeout(() => {
+				this.setState({ inputWidth: '100%' });
+			}, 100);
 		if (mode === EDIT) {
 			const { addressBook, network, identities } = this.props;
 			const networkAddressBook = addressBook[network] || {};
 			const address = this.props.navigation.getParam('address', '');
 			const contact = networkAddressBook[address] || identities[address];
-			this.setState({ address, name: contact.name, addressReady: true });
+			this.setState({ address, name: contact.name, memo: contact.memo, addressReady: true, editable: false });
+			navigation && navigation.setParams({ dispatch: this.onEdit, mode: EDIT });
 		}
+	};
+
+	onEdit = () => {
+		const { navigation } = this.props;
+		const { editable } = this.state;
+		if (editable) navigation.setParams({ editMode: EDIT });
+		else navigation.setParams({ editMode: ADD });
+
+		this.setState({ editable: !editable });
+	};
+
+	onDelete = () => {
+		this.contactAddressToRemove = this.state.address;
+		this.actionSheet && this.actionSheet.show();
 	};
 
 	onChangeName = name => {
@@ -173,17 +204,34 @@ class ContactForm extends PureComponent {
 		this.setState({ address, addressError, toEnsName, addressReady });
 	};
 
+	onChangeMemo = memo => {
+		this.setState({ memo });
+	};
+
 	jumpToAddressInput = () => {
 		const { current } = this.addressInput;
 		current && current.focus();
 	};
 
+	jumpToMemoInput = () => {
+		const { current } = this.memoInput;
+		current && current.focus();
+	};
+
 	saveContact = () => {
-		const { name, address } = this.state;
+		const { name, address, memo } = this.state;
 		const { network, navigation } = this.props;
 		const { AddressBookController } = Engine.context;
 		if (!name || !address) return;
-		AddressBookController.set(toChecksumAddress(address), name, network);
+		AddressBookController.set(toChecksumAddress(address), name, network, memo);
+		navigation.pop();
+	};
+
+	deleteContact = () => {
+		const { AddressBookController } = Engine.context;
+		const { network, navigation } = this.props;
+		AddressBookController.delete(network, this.contactAddressToRemove);
+		navigation.state.params.onDelete();
 		navigation.pop();
 	};
 
@@ -197,14 +245,19 @@ class ContactForm extends PureComponent {
 		});
 	};
 
+	createActionSheetRef = ref => {
+		this.actionSheet = ref;
+	};
+
 	render = () => {
-		const { address, addressError, toEnsName, name, mode, addressReady } = this.state;
+		const { address, addressError, toEnsName, name, mode, addressReady, memo, editable, inputWidth } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
 					<View style={styles.scrollWrapper}>
 						<Text style={styles.label}>{strings('address_book.name')}</Text>
 						<TextInput
+							editable={this.state.editable}
 							autoCapitalize={'none'}
 							autoCorrect={false}
 							onChangeText={this.onChangeName}
@@ -212,16 +265,20 @@ class ContactForm extends PureComponent {
 							placeholderTextColor={colors.grey100}
 							spellCheck={false}
 							numberOfLines={1}
-							onBlur={this.onBlur}
-							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							style={[
+								styles.input,
+								inputWidth ? { width: inputWidth } : {},
+								editable ? {} : styles.textInputDisaled
+							]}
 							value={name}
 							onSubmitEditing={this.jumpToAddressInput}
 						/>
 
 						<Text style={styles.label}>{strings('address_book.address')}</Text>
-						<View style={styles.input}>
+						<View style={[styles.input, editable ? {} : styles.textInputDisaled]}>
 							<View style={styles.inputWrapper}>
 								<TextInput
+									editable={editable}
 									autoCapitalize={'none'}
 									autoCorrect={false}
 									onChangeText={this.onChangeAddress}
@@ -229,34 +286,80 @@ class ContactForm extends PureComponent {
 									placeholderTextColor={colors.grey100}
 									spellCheck={false}
 									numberOfLines={1}
-									onBlur={this.onBlur}
-									style={[styles.textInput]}
+									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
 									value={toEnsName || address}
 									ref={this.addressInput}
-									onSubmitEditing={this.saveContact}
+									onSubmitEditing={this.jumpToMemoInput}
 								/>
 								{toEnsName && <Text style={styles.resolvedInput}>{renderShortAddress(address)}</Text>}
 							</View>
 
-							<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
-								<AntIcon name="scan1" size={20} color={colors.grey500} style={styles.scanIcon} />
-							</TouchableOpacity>
+							{editable && (
+								<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
+									<AntIcon name="scan1" size={20} color={colors.grey500} style={styles.scanIcon} />
+								</TouchableOpacity>
+							)}
+						</View>
+
+						<Text style={styles.label}>{strings('address_book.memo')}</Text>
+						<View style={[styles.input, editable ? {} : styles.textInputDisaled]}>
+							<View style={styles.inputWrapper}>
+								<TextInput
+									multiline
+									editable={editable}
+									autoCapitalize={'none'}
+									autoCorrect={false}
+									onChangeText={this.onChangeMemo}
+									placeholder={strings('address_book.memo')}
+									placeholderTextColor={colors.grey100}
+									spellCheck={false}
+									numberOfLines={1}
+									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
+									value={memo}
+									ref={this.memoInput}
+								/>
+							</View>
 						</View>
 					</View>
 
 					{addressError && <ErrorMessage errorMessage={addressError} />}
 
-					<View style={styles.buttonsWrapper}>
-						<View style={styles.buttonsContainer}>
-							<StyledButton
-								type={'confirm'}
-								disabled={!addressReady || !name || !!addressError}
-								onPress={this.saveContact}
-							>
-								{strings(`address_book.${mode}_contact`)}
-							</StyledButton>
+					{!!editable && (
+						<View style={styles.buttonsWrapper}>
+							<View style={styles.buttonsContainer}>
+								<View style={styles.actionButton}>
+									<StyledButton
+										type={'confirm'}
+										disabled={!addressReady || !name || !!addressError}
+										onPress={this.saveContact}
+									>
+										{strings(`address_book.${mode}_contact`)}
+									</StyledButton>
+								</View>
+								{mode === EDIT && (
+									<View style={styles.actionButton}>
+										<StyledButton
+											style={styles.actionButton}
+											type={'warning-empty'}
+											disabled={!addressReady || !name || !!addressError}
+											onPress={this.onDelete}
+										>
+											{strings(`address_book.delete`)}
+										</StyledButton>
+									</View>
+								)}
+							</View>
 						</View>
-					</View>
+					)}
+					<ActionSheet
+						ref={this.createActionSheetRef}
+						title={strings('address_book.delete_contact')}
+						options={[strings('address_book.delete'), strings('address_book.cancel')]}
+						cancelButtonIndex={1}
+						destructiveButtonIndex={0}
+						// eslint-disable-next-line react/jsx-no-bind
+						onPress={index => (index === 0 ? this.deleteContact() : null)}
+					/>
 				</KeyboardAwareScrollView>
 			</SafeAreaView>
 		);

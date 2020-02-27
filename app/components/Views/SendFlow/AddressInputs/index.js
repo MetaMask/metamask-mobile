@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
@@ -11,7 +11,7 @@ import { strings } from '../../../../../locales/i18n';
 const styles = StyleSheet.create({
 	wrapper: {
 		flexDirection: 'row',
-		margin: 8
+		marginHorizontal: 8
 	},
 	selectWrapper: {
 		flex: 1,
@@ -20,7 +20,8 @@ const styles = StyleSheet.create({
 		minHeight: 52,
 		flexDirection: 'row',
 		borderWidth: 1,
-		borderRadius: 8
+		borderRadius: 8,
+		marginVertical: 8
 	},
 	inputWrapper: {
 		flex: 1,
@@ -29,7 +30,8 @@ const styles = StyleSheet.create({
 		minHeight: 52,
 		flexDirection: 'row',
 		borderWidth: 1,
-		borderRadius: 8
+		borderRadius: 8,
+		marginTop: 8
 	},
 	input: {
 		flex: 1,
@@ -46,11 +48,11 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	address: {
-		flex: 1,
 		flexDirection: 'column',
 		alignItems: 'flex-start',
 		marginHorizontal: 8
 	},
+	addressWrapper: { flexDirection: 'row' },
 	textAddress: {
 		...fontStyles.normal,
 		color: colors.black,
@@ -103,6 +105,17 @@ const styles = StyleSheet.create({
 	},
 	dropdownIcon: {
 		alignSelf: 'center'
+	},
+	checkIconWrapper: {
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	checkAddress: {
+		flex: 0.9
+		// maxWidth: '90%'
+	},
+	toInputWrapper: {
+		flexDirection: 'row'
 	}
 });
 
@@ -160,15 +173,25 @@ export const AddressTo = props => {
 				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 					<View style={styles.addressToInformation}>
 						<Identicon address={toSelectedAddress} diameter={30} />
-						<View style={styles.address}>
-							{toAddressName && (
-								<Text style={styles.textAddress} numberOfLines={1}>
-									{toAddressName}
-								</Text>
-							)}
-							<Text style={toAddressName ? styles.textBalance : styles.textAddress} numberOfLines={1}>
-								{renderShortAddress(toSelectedAddress)}
-							</Text>
+						<View style={styles.toInputWrapper}>
+							<View style={[styles.address, styles.checkAddress]}>
+								{toAddressName && (
+									<Text style={styles.textAddress} numberOfLines={1}>
+										{toAddressName}
+									</Text>
+								)}
+								<View style={styles.addressWrapper}>
+									<Text
+										style={toAddressName ? styles.textBalance : styles.textAddress}
+										numberOfLines={1}
+									>
+										{renderShortAddress(toSelectedAddress)}
+									</Text>
+									<View style={(styles.checkIconWrapper, toAddressName ? {} : { paddingTop: 2 })}>
+										<AntIcon name="check" color={colors.green600} size={15} />
+									</View>
+								</View>
+							</View>
 						</View>
 					</View>
 					{!!onClear && (
@@ -249,7 +272,7 @@ export const AddressFrom = props => {
 				<View style={styles.identiconWrapper}>
 					<Identicon address={fromAccountAddress} diameter={30} />
 				</View>
-				<View style={styles.address}>
+				<View style={[baseStyles.flexGrow, styles.address]}>
 					<Text style={styles.textAddress}>{fromAccountName}</Text>
 					<Text style={styles.textBalance}>{`${strings(
 						'transactions.address_from_balance'
