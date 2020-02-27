@@ -7,6 +7,11 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import Fuse from 'fuse.js';
 import { strings } from '../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
+import {
+	decodeTransferData,
+	TRANSFER_FUNCTION_SIGNATURE,
+	TRANSFER_FROM_FUNCTION_SIGNATURE
+} from '../../../../util/transactions';
 
 const styles = StyleSheet.create({
 	root: {
@@ -38,6 +43,9 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.grey050,
 		padding: 8
 	},
+	labelElementInitialText: {
+		textTransform: 'uppercase'
+	},
 	labelElementText: {
 		...fontStyles.normal,
 		fontSize: 12,
@@ -51,7 +59,7 @@ const styles = StyleSheet.create({
 
 const LabelElement = label => (
 	<View key={label} style={styles.labelElementWrapper}>
-		<Text style={styles.labelElementText}>{label}</Text>
+		<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>{label}</Text>
 	</View>
 );
 
@@ -152,8 +160,18 @@ class AddressList extends PureComponent {
 		const recents = [];
 		const parsedRecents = [];
 		if (!inputSearch) {
-			const networkTransactions = transactions.filter(tx => tx.networkID === network);
-			networkTransactions.forEach(async ({ transaction: { to } }) => {
+			const networkTransactions = transactions
+				.filter(tx => tx.networkID === network)
+				.sort((a, b) => b.time - a.time);
+			networkTransactions.forEach(async ({ transaction: { to, data } }) => {
+				// ignore contract deployments
+				if (!to) return;
+				// Check if is a transfer tx
+				if (data && data.substring(0, 10) === TRANSFER_FUNCTION_SIGNATURE) {
+					[to] = decodeTransferData('transfer', data);
+				} else if (data && data.substring(0, 10) === TRANSFER_FROM_FUNCTION_SIGNATURE) {
+					[, to] = decodeTransferData('transferFrom', data);
+				}
 				const checksummedTo = safeToChecksumAddress(to);
 				if (recents.length > 2) return;
 				if (!recents.includes(checksummedTo) && !Object.keys(identities).includes(checksummedTo)) {
@@ -189,10 +207,9 @@ class AddressList extends PureComponent {
 		const contactElements = [];
 		const addressBookTree = {};
 		networkAddressBookList.forEach(contact => {
-			const nameInitial = contact.name[0];
-			const initial =
-				(nameInitial && nameInitial.toUpperCase() && nameInitial.match(/[a-z]/i)) ||
-				strings('address_book.others');
+			const contactNameInitial = contact && contact.name && contact.name[0];
+			const nameInitial = contactNameInitial && contactNameInitial.match(/[a-z]/i);
+			const initial = nameInitial ? nameInitial[0] : strings('address_book.others');
 			if (Object.keys(addressBookTree).includes(initial)) {
 				addressBookTree[initial].push(contact);
 			} else {
