@@ -14,7 +14,6 @@ describe('Engine', () => {
 		expect(engine.datamodel.context).toHaveProperty('PersonalMessageManager');
 		expect(engine.datamodel.context).toHaveProperty('PhishingController');
 		expect(engine.datamodel.context).toHaveProperty('PreferencesController');
-		expect(engine.datamodel.context).toHaveProperty('ShapeShiftController');
 		expect(engine.datamodel.context).toHaveProperty('TokenBalancesController');
 		expect(engine.datamodel.context).toHaveProperty('TokenRatesController');
 		expect(engine.datamodel.context).toHaveProperty('TypedMessageManager');
