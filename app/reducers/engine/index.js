@@ -67,10 +67,6 @@ function initalizeEngine(state = {}) {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'PreferencesController' });
 	});
 
-	Engine.context.ShapeShiftController.subscribe(() => {
-		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'ShapeShiftController' });
-	});
-
 	Engine.context.TokenBalancesController.subscribe(() => {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TokenBalancesController' });
 	});
