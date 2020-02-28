@@ -45,7 +45,8 @@ exports[`ActionView should render correctly 1`] = `
         "borderTopWidth": 1,
         "flex": 0,
         "flexDirection": "row",
-        "padding": 16,
+        "paddingHorizontal": 24,
+        "paddingVertical": 16,
       }
     }
   >

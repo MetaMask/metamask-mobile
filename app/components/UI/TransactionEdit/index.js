@@ -27,13 +27,13 @@ const styles = StyleSheet.create({
 		marginRight: 0,
 		position: 'absolute',
 		zIndex: 5,
-		right: 15,
-		left: 15,
+		right: 24,
+		left: 24,
 		marginTop: 30
 	},
 	toRow: {
-		right: 15,
-		left: 15,
+		right: 24,
+		left: 24,
 		marginTop: Device.isAndroid() ? 125 : 120,
 		position: 'absolute',
 		zIndex: 4
@@ -43,8 +43,8 @@ const styles = StyleSheet.create({
 		zIndex: 3
 	},
 	amountRow: {
-		right: 15,
-		left: 15,
+		right: 24,
+		left: 24,
 		marginTop: Device.isAndroid() ? 200 : 190,
 		position: 'absolute',
 		zIndex: 4
@@ -84,7 +84,8 @@ const styles = StyleSheet.create({
 	},
 	form: {
 		flex: 1,
-		padding: 16,
+		paddingVertical: 16,
+		paddingHorizontal: 24,
 		flexDirection: 'column'
 	},
 	androidForm: {
