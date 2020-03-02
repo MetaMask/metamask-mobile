@@ -637,10 +637,10 @@ class Confirm extends PureComponent {
 					{!selectedAsset.tokenId ? (
 						<View style={styles.amountWrapper}>
 							<Text style={styles.textAmountLabel}>{strings('transaction.amount')}</Text>
-							<Text style={styles.textAmount}>{transactionValue}</Text>
-							<Text style={styles.textAmountLabel} testID={'confirm-txn-amount'}>
-								{transactionValueFiat}
+							<Text style={styles.textAmount} testID={'confirm-txn-amount'}>
+								{transactionValue}
 							</Text>
+							<Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>
 						</View>
 					) : (
 						<View style={styles.amountWrapper}>

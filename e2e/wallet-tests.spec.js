@@ -316,11 +316,7 @@ describe('Wallet Tests', () => {
 		// Check that we are on the send screen
 		await TestHelpers.checkIfVisible('send-screen');
 		// Input test address
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField('txn-to-address-input', VALID_ADDRESS);
-		} else {
-			await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', VALID_ADDRESS);
-		}
+		await TestHelpers.replaceTextInField('txn-to-address-input', VALID_ADDRESS);
 		// Tap the Next CTA
 		await TestHelpers.waitAndTap('address-book-next-button');
 		// Check that we are on the amount view
@@ -339,7 +335,7 @@ describe('Wallet Tests', () => {
 		// Check that the insufficient funds warning pops up
 		await TestHelpers.checkIfVisible('amount-error');
 		// Input acceptable value
-		await TestHelpers.replaceTextInField('txn-amount-input', '0.000001');
+		await TestHelpers.replaceTextInField('txn-amount-input', '0.00004');
 		// Tap Next CTA
 		await TestHelpers.tap('txn-amount-next-button');
 		// Check that we are on the confirm view
@@ -348,7 +344,7 @@ describe('Wallet Tests', () => {
 
 	it('should send ETH to Account 2', async () => {
 		// Check that the amount is correct
-		await TestHelpers.checkIfHasText('confirm-txn-amount', '$0.00017');
+		await TestHelpers.checkIfHasText('confirm-txn-amount', '0.00004 ETH');
 		// Tap on the Send CTA
 		await TestHelpers.tap('txn-confirm-send-button');
 		// Check that we are on the token overview screen

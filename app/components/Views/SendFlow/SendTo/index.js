@@ -488,6 +488,7 @@ class SendFlow extends PureComponent {
 										type={'confirm'}
 										containerStyle={styles.buttonNext}
 										onPress={this.onTransactionDirectionSet}
+										testID={'address-book-next-button'}
 									>
 										{strings('address_book.next')}
 									</StyledButton>
