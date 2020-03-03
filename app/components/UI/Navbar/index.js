@@ -68,7 +68,8 @@ const styles = StyleSheet.create({
 		marginTop: 5
 	},
 	closeButton: {
-		paddingHorizontal: Device.isAndroid() ? 22 : 18
+		paddingHorizontal: Device.isAndroid() ? 22 : 18,
+		paddingVertical: 14
 	},
 	infoButton: {
 		paddingLeft: Device.isAndroid() ? 22 : 18,
