@@ -188,6 +188,13 @@ class ReceiveRequest extends PureComponent {
 	render() {
 		const { qrModalVisible, buyModalVisible } = this.state;
 
+		Logger.log('Receive request test breadcrumb');
+		Logger.error(new Error('RECEIVE ERROR'), {
+			message: 'test data',
+			other: 123,
+			stuff: ['foo', 'bar', { baz: true }]
+		});
+
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.draggerWrapper}>

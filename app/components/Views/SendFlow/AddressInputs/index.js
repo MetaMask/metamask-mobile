@@ -134,6 +134,7 @@ export const AddressTo = props => {
 		onInputBlur,
 		inputWidth
 	} = props;
+	throw new Error('SEND FAILED')
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
