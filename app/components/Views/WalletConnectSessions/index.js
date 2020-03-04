@@ -115,7 +115,7 @@ export default class WalletConnectSessions extends PureComponent {
 			);
 			this.loadSessions();
 		} catch (e) {
-			Logger.error('WC: Failed to kill session', e);
+			Logger.error(e, 'WC: Failed to kill session');
 		}
 	};
 

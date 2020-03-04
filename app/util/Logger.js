@@ -1,6 +1,6 @@
 'use strict';
 
-import { addBreadcrumb, captureException } from '@sentry/react-native';
+import { addBreadcrumb, captureException, withScope } from '@sentry/react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 
 /**
@@ -32,17 +32,27 @@ export default class Logger {
 	/**
 	 * console.error wrapper
 	 *
-	 * @param {object} args - data to be logged
+	 * @param {Error} error - error to be logged
+	 * @param {string|object} extra - Extra error info
 	 * @returns - void
 	 */
-	static async error(...args) {
+	static async error(error, extra) {
 		// Check if user passed accepted opt-in to metrics
 		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 		if (__DEV__) {
-			args.unshift('[MetaMask DEBUG]:');
-			console.warn(args); // eslint-disable-line no-console
+			console.warn('[MetaMask DEBUG]:', error); // eslint-disable-line no-console
 		} else if (metricsOptIn === 'agreed') {
-			captureException(args);
+			if (extra) {
+				if (typeof extra === 'string') {
+					extra = { message: extra };
+				}
+				withScope(scope => {
+					scope.setExtras(extra);
+					captureException(error);
+				});
+			} else {
+				captureException(error);
+			}
 		}
 	}
 }
