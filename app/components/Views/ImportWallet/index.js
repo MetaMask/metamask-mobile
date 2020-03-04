@@ -172,7 +172,7 @@ class ImportWallet extends PureComponent {
 		} catch (e) {
 			if (!firstAttempt) {
 				this.props.navigation.goBack();
-				if (e.toString() === 'sync-timeout') {
+				if (e.message === 'Sync::timeout') {
 					Alert.alert(
 						strings('sync_with_extension.outdated_qr_code'),
 						strings('sync_with_extension.outdated_qr_code_desc')
