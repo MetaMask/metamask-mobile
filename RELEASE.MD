@@ -4,7 +4,7 @@
 
 2 - Bump the version number in `info.plist` and commit the change
 
-3 - Run `npm run release:ios`
+3 - Run `METAMASK_ENVIRONMENT='production' npm run release:ios`
 
 4 - Wait for the appstore email that the build has completed processing (10 min - 1 hour)
 
@@ -26,7 +26,7 @@
 
 2 - Save and commit
 
-3 - Run `npm run release:android`
+3 - Run `METAMASK_ENVIRONMENT='production' npm run release:android`
 
 4 - Go to the playstore: https://play.google.com/apps/publish/?account=9089866037123936197
 
@@ -46,7 +46,7 @@
 
 
 ### Once you're done with both stores:
-- Submit a PR with the changes 
+- Submit a PR with the changes
 - Once it's merged create a tag on master for that version
 - Go to the release pages and create a new release for that tag, including the changelog
 
