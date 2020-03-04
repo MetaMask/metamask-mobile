@@ -778,7 +778,7 @@ export class BrowserTab extends PureComponent {
 	handleDeeplinks = async ({ error, params }) => {
 		if (!this.isTabActive()) return false;
 		if (error) {
-			Logger.error('Error from Branch: ', error);
+			Logger.error(error, 'Error from Branch');
 			return;
 		}
 		if (params['+non_branch_link']) {
@@ -1004,7 +1004,7 @@ export class BrowserTab extends PureComponent {
 				this.go(fullUrl);
 				return { url: null };
 			}
-			Logger.error('Failed to resolve ENS name', err);
+			Logger.error(err, 'Failed to resolve ENS name');
 			Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
 			this.goBack();
 		}
@@ -1139,7 +1139,7 @@ export class BrowserTab extends PureComponent {
 						try {
 							SearchApi.indexSpotlightItem(item);
 						} catch (e) {
-							Logger.error('Error adding to spotlight', e);
+							Logger.error(e, 'Error adding to spotlight');
 						}
 					}
 					const analyticsEnabled = Analytics.getEnabled();
@@ -1269,7 +1269,7 @@ export class BrowserTab extends PureComponent {
 					break;
 			}
 		} catch (e) {
-			Logger.error(`Browser::onMessage on ${this.state.inputValue}`, e.toString());
+			Logger.error(e, `Browser::onMessage on ${this.state.inputValue}`);
 		}
 	};
 
