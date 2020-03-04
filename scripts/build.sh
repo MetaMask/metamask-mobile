@@ -2,6 +2,9 @@
 
 set -o pipefail
 
+readonly __DIRNAME__="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
+readonly REPO_ROOT_DIR="$(dirname "${__DIRNAME__}")"
+
 PLATFORM=$1
 MODE=$2
 TARGET=$3
@@ -239,28 +242,28 @@ if [ "$MODE" == "release" ]; then
 			if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 				cp ./sentry.release.properties.example ./sentry.release.properties
 			else
-				printError "Missing 'sentry.release.properties' file (see 'sentry.release.properties.example')"
+				printError "Missing 'sentry.release.properties' file (see 'sentry.release.properties.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
 				exit 1
 			fi
 		fi
 		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" ./sentry.release.properties;
 		fi
-		export SENTRY_PROPERTIES='../../sentry.release.properties'
+		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
 		export METAMASK_ENVIRONMENT='production'
 	else
 		if [ ! -e ./sentry.debug.properties ]; then
 			if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 				cp ./sentry.debug.properties.example ./sentry.debug.properties
 			else
-				printError "Missing 'sentry.debug.properties' file (see 'sentry.debug.properties.example')"
+				printError "Missing 'sentry.debug.properties' file (see 'sentry.debug.properties.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
 				exit 1
 			fi
 		fi
 		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" ./sentry.debug.properties;
 		fi
-		export SENTRY_PROPERTIES='../../sentry.debug.properties'
+		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
 		export METAMASK_ENVIRONMENT='prerelease'
 	fi
 fi
