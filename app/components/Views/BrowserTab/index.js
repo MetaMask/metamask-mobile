@@ -1690,7 +1690,7 @@ export class BrowserTab extends PureComponent {
 		this.setState({ showApprovalDialog: false, showApprovalDialogHostname: undefined });
 		this.approvalRequest &&
 			this.approvalRequest.reject &&
-			this.approvalRequest.reject('User rejected account access');
+			this.approvalRequest.reject(new Error('User rejected account access'));
 	};
 
 	renderApprovalModal = () => {
