@@ -3,6 +3,7 @@
 ## Current Develop Branch
 
 ## v0.2.14 - Mar 6 2020
+- [#1398](https://github.com/MetaMask/metamask-mobile/pull/1398): Add vertical padding to close button (#1398)
 - [#1384](https://github.com/MetaMask/metamask-mobile/pull/1384): Update `pubnub` dependency to match extension (#1384)
 - [#1394](https://github.com/MetaMask/metamask-mobile/pull/1394): fix wallet tests (#1394)
 - [#1397](https://github.com/MetaMask/metamask-mobile/pull/1397): fixes browser tests in release mode (#1397)
