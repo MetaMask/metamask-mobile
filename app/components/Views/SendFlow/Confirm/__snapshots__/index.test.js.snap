@@ -67,6 +67,7 @@ exports[`Confirm should render correctly 1`] = `
             "textAlign": "center",
           }
         }
+        testID="confirm-txn-amount"
       />
       <Text
         style={
@@ -80,7 +81,6 @@ exports[`Confirm should render correctly 1`] = `
             "textTransform": "uppercase",
           }
         }
-        testID="confirm-txn-amount"
       />
     </View>
     <View

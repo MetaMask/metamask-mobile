@@ -19,6 +19,8 @@ import { isENS } from '../../../../util/address';
 import { getTicker, getEther } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
+import WarningMessage from '../WarningMessage';
+import { hexToBN } from 'gaba/dist/util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -92,7 +94,6 @@ const styles = StyleSheet.create({
 		marginBottom: 16
 	},
 	buttonNextWrapper: {
-		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'flex-end'
 	},
@@ -102,6 +103,14 @@ const styles = StyleSheet.create({
 	},
 	addressErrorWrapper: {
 		margin: 16
+	},
+	footerContainer: {
+		flex: 1,
+		justifyContent: 'flex-end'
+	},
+	warningContainer: {
+		marginHorizontal: 24,
+		marginBottom: 32
 	}
 });
 
@@ -160,6 +169,7 @@ class SendFlow extends PureComponent {
 
 	state = {
 		addressError: undefined,
+		balanceIsZero: false,
 		fromAccountModalVisible: false,
 		addToAddressBookModalVisible: false,
 		fromSelectedAddress: this.props.selectedAddress,
@@ -182,7 +192,8 @@ class SendFlow extends PureComponent {
 		this.setState({
 			fromAccountName: ens || fromAccountName,
 			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
-			inputWidth: { width: '100%' }
+			inputWidth: { width: '100%' },
+			balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero()
 		});
 		if (!Object.keys(networkAddressBook).length) {
 			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
@@ -209,7 +220,12 @@ class SendFlow extends PureComponent {
 		PreferencesController.setSelectedAddress(accountAddress);
 		// If new account doesn't have the asset
 		this.props.setSelectedAsset(getEther());
-		this.setState({ fromAccountName, fromAccountBalance, fromSelectedAddress: accountAddress });
+		this.setState({
+			fromAccountName,
+			fromAccountBalance,
+			fromSelectedAddress: accountAddress,
+			balanceIsZero: hexToBN(accounts[accountAddress].balance).isZero()
+		});
 		this.toggleFromAccountModal();
 	};
 
@@ -218,13 +234,15 @@ class SendFlow extends PureComponent {
 		const networkAddressBook = addressBook[network] || {};
 		let addressError, toAddressName, toEnsName;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
-
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
 			toSelectedAddressReady = true;
 			const ens = await doENSReverseLookup(toSelectedAddress);
 			if (ens) {
 				toAddressName = ens;
+				if (!networkAddressBook[checksummedToSelectedAddress] && !identities[checksummedToSelectedAddress]) {
+					addToAddressToAddressBook = true;
+				}
 			} else if (networkAddressBook[checksummedToSelectedAddress] || identities[checksummedToSelectedAddress]) {
 				toAddressName =
 					(networkAddressBook[checksummedToSelectedAddress] &&
@@ -291,7 +309,7 @@ class SendFlow extends PureComponent {
 		const { AddressBookController } = Engine.context;
 		AddressBookController.set(toSelectedAddress, alias, network);
 		this.toggleAddToAddressBookModal();
-		// Go to send flow
+		this.setState({ toSelectedAddressName: alias, addToAddressToAddressBook: false, alias: undefined });
 	};
 
 	onScan = () => {
@@ -404,6 +422,7 @@ class SendFlow extends PureComponent {
 			toSelectedAddressName,
 			addToAddressToAddressBook,
 			addressError,
+			balanceIsZero,
 			toInputHighlighted,
 			inputWidth
 		} = this.state;
@@ -458,15 +477,22 @@ class SendFlow extends PureComponent {
 									</Text>
 								</TouchableOpacity>
 							)}
-							<View style={styles.buttonNextWrapper}>
-								<StyledButton
-									type={'confirm'}
-									containerStyle={styles.buttonNext}
-									onPress={this.onTransactionDirectionSet}
-									testID={'address-book-next-button'}
-								>
-									{strings('address_book.next')}
-								</StyledButton>
+							<View style={styles.footerContainer}>
+								{balanceIsZero && (
+									<View style={styles.warningContainer}>
+										<WarningMessage warningMessage={strings('transaction.not_enough_for_gas')} />
+									</View>
+								)}
+								<View style={styles.buttonNextWrapper}>
+									<StyledButton
+										type={'confirm'}
+										containerStyle={styles.buttonNext}
+										onPress={this.onTransactionDirectionSet}
+										testID={'address-book-next-button'}
+									>
+										{strings('address_book.next')}
+									</StyledButton>
+								</View>
 							</View>
 						</View>
 					)}

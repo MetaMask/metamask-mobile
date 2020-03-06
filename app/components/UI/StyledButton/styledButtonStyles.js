@@ -136,6 +136,10 @@ function getStyles(type) {
 			fontStyle = styles.warningText;
 			containerStyle = styles.warning;
 			break;
+		case 'warning-empty':
+			fontStyle = styles.warningText;
+			containerStyle = styles.transparent;
+			break;
 		case 'info':
 			fontStyle = styles.infoText;
 			containerStyle = styles.info;

@@ -13,7 +13,6 @@ import {
 	NetworkStatusController,
 	PhishingController,
 	PreferencesController,
-	ShapeShiftController,
 	TokenBalancesController,
 	TokenRatesController,
 	TransactionController,
@@ -111,7 +110,6 @@ class Engine {
 							ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL
 						}
 					),
-					new ShapeShiftController(),
 					new TokenBalancesController(),
 					new TokenRatesController(),
 					new TransactionController(),

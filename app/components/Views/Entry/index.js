@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, Animated, Dimensions, StyleSheet, View } from 'react-native';
+import { Animated, Dimensions, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import Branch from 'react-native-branch';
 import Engine from '../../../core/Engine';
@@ -13,6 +13,7 @@ import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
+import Device from '../../../util/Device';
 
 /**
  * Entry Screen that decides which screen to show
@@ -119,7 +120,7 @@ class Entry extends PureComponent {
 
 	animateAndGoTo(view) {
 		this.setState({ viewToGo: view }, () => {
-			if (Platform.OS === 'android') {
+			if (Device.isAndroid()) {
 				setTimeout(() => {
 					this.animation ? this.animation.play(0, 25) : this.onAnimationFinished();
 					setTimeout(() => {

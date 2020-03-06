@@ -1,9 +1,9 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
-import DeviceSize from '../../../../util/DeviceSize';
+import Device from '../../../../util/Device';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		bottom: DeviceSize.isIphoneX() ? 36 : Platform.OS === 'ios' ? 16 : 36
+		bottom: Device.isIphoneX() ? 36 : Device.isIos() ? 16 : 36
 	}
 });
 

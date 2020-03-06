@@ -1,17 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-	Switch,
-	Alert,
-	ActivityIndicator,
-	Text,
-	View,
-	TextInput,
-	SafeAreaView,
-	StyleSheet,
-	Platform,
-	Image
-} from 'react-native';
+import { Switch, Alert, ActivityIndicator, Text, View, TextInput, SafeAreaView, StyleSheet, Image } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
@@ -28,6 +17,7 @@ import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -41,17 +31,17 @@ const styles = StyleSheet.create({
 	foxWrapper: {
 		justifyContent: 'center',
 		alignSelf: 'center',
-		width: Platform.OS === 'ios' ? 130 : 100,
-		height: Platform.OS === 'ios' ? 130 : 100,
+		width: Device.isIos() ? 130 : 100,
+		height: Device.isIos() ? 130 : 100,
 		marginTop: 100
 	},
 	image: {
 		alignSelf: 'center',
-		width: Platform.OS === 'ios' ? 130 : 100,
-		height: Platform.OS === 'ios' ? 130 : 100
+		width: Device.isIos() ? 130 : 100,
+		height: Device.isIos() ? 130 : 100
 	},
 	title: {
-		fontSize: Platform.OS === 'android' ? 30 : 35,
+		fontSize: Device.isAndroid() ? 30 : 35,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.fontPrimary,
@@ -60,19 +50,19 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	field: {
-		marginBottom: Platform.OS === 'android' ? 0 : 10
+		marginBottom: Device.isAndroid() ? 0 : 10
 	},
 	label: {
 		fontSize: 16,
-		marginBottom: Platform.OS === 'android' ? 0 : 10,
+		marginBottom: Device.isAndroid() ? 0 : 10,
 		marginTop: 10
 	},
 	input: {
-		borderWidth: Platform.OS === 'android' ? 0 : 1,
+		borderWidth: Device.isAndroid() ? 0 : 1,
 		borderColor: colors.grey100,
 		padding: 10,
 		borderRadius: 4,
-		fontSize: Platform.OS === 'android' ? 15 : 20,
+		fontSize: Device.isAndroid() ? 15 : 20,
 		...fontStyles.normal
 	},
 	ctaWrapper: {
@@ -263,7 +253,7 @@ class Login extends PureComponent {
 						onValueChange={biometryChoice => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
 						ios_backgroundColor={colors.grey300}
 					/>
 				</View>
@@ -277,7 +267,7 @@ class Login extends PureComponent {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
 					ios_backgroundColor={colors.grey300}
 				/>
 			</View>
@@ -291,7 +281,7 @@ class Login extends PureComponent {
 			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 				<View testID={'login'}>
 					<View style={styles.foxWrapper}>
-						{Platform.OS === 'android' ? (
+						{Device.isAndroid() ? (
 							<Image
 								source={require('../../../images/fox.png')}
 								style={styles.image}

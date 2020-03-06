@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Platform, Alert, ActivityIndicator, TouchableOpacity, TextInput, Text, View, StyleSheet } from 'react-native';
+import { Alert, ActivityIndicator, TouchableOpacity, TextInput, Text, View, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import { importAccountFromPrivateKey } from '../../../util/address';
 
 const styles = StyleSheet.create({
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	wrapper: {
-		flex: Platform.OS === 'android' ? 0 : 1
+		flex: Device.isAndroid() ? 0 : 1
 	},
 	content: {
 		alignItems: 'flex-start'
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	button: {
-		marginBottom: DeviceSize.isIphoneX() ? 20 : 0
+		marginBottom: Device.isIphoneX() ? 20 : 0
 	},
 	top: {
 		paddingTop: 0,
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 22,
 		paddingTop: 20,
 		paddingBottom: 10,
-		marginTop: DeviceSize.isIphoneX() ? 40 : 20
+		marginTop: Device.isIphoneX() ? 40 : 20
 	},
 	closeIcon: {
 		fontSize: 28,
@@ -119,7 +119,7 @@ export default class ImportPrivateKey extends PureComponent {
 	state = {
 		privateKey: '',
 		loading: false,
-		inputWidth: Platform.OS === 'android' ? '99%' : undefined
+		inputWidth: Device.isAndroid() ? '99%' : undefined
 	};
 
 	componentDidMount = () => {

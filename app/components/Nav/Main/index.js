@@ -6,7 +6,6 @@ import {
 	StyleSheet,
 	View,
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
-	Platform,
 	Alert
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
@@ -81,6 +80,7 @@ import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDeposit';
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
 import Networks from '../../../util/networks';
+import Device from '../../../util/Device';
 import {
 	CONNEXT_DEPOSIT,
 	getMethodData,
@@ -469,7 +469,7 @@ class Main extends PureComponent {
 				requestPermissions: false,
 				onNotification: notification => {
 					let data = null;
-					if (Platform.OS === 'android') {
+					if (Device.isAndroid()) {
 						if (notification.tag) {
 							data = JSON.parse(notification.tag);
 						}
@@ -483,7 +483,7 @@ class Main extends PureComponent {
 						this.props.navigation.navigate('TransactionsHome');
 					}
 
-					if (Platform.OS === 'ios') {
+					if (Device.isIos()) {
 						notification.finish(PushNotificationIOS.FetchResult.NoData);
 					}
 				}

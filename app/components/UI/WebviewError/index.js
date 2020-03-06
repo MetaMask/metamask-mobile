@@ -1,10 +1,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, Image, StyleSheet, View, Text } from 'react-native';
+import { Image, StyleSheet, View, Text } from 'react-native';
 import AnimatedFox from 'react-native-animated-fox';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles, colors } from '../../../styles/common';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -82,7 +83,7 @@ export default class WebviewError extends PureComponent {
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.foxWrapper}>
-					{Platform.OS === 'android' ? (
+					{Device.isAndroid() ? (
 						<Image source={require('../../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
 					) : (
 						<AnimatedFox />

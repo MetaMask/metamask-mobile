@@ -16,6 +16,7 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.grey050
 	},
 	addressElementInformation: {
+		flex: 1,
 		flexDirection: 'column'
 	},
 	addressIdenticon: {
@@ -23,6 +24,7 @@ const styles = StyleSheet.create({
 	},
 	addressTextNickname: {
 		...fontStyles.normal,
+		flex: 1,
 		color: colors.black,
 		fontSize: 14
 	},
