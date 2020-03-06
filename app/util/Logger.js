@@ -1,7 +1,6 @@
 'use strict';
 
 import { addBreadcrumb, captureException, withScope } from '@sentry/react-native';
-import AsyncStorage from '@react-native-community/async-storage';
 
 /**
  * Wrapper class that allows us to override
@@ -16,13 +15,11 @@ export default class Logger {
 	 * @param {object} args - data to be logged
 	 * @returns - void
 	 */
-	static async log(...args) {
-		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+	static log(...args) {
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
 			console.log.apply(null, args); // eslint-disable-line no-console
-		} else if (metricsOptIn === 'agreed') {
+		} else {
 			addBreadcrumb({
 				message: JSON.stringify(args)
 			});
@@ -36,23 +33,19 @@ export default class Logger {
 	 * @param {string|object} extra - Extra error info
 	 * @returns - void
 	 */
-	static async error(error, extra) {
-		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+	static error(error, extra) {
 		if (__DEV__) {
 			console.warn('[MetaMask DEBUG]:', error); // eslint-disable-line no-console
-		} else if (metricsOptIn === 'agreed') {
-			if (extra) {
-				if (typeof extra === 'string') {
-					extra = { message: extra };
-				}
-				withScope(scope => {
-					scope.setExtras(extra);
-					captureException(error);
-				});
-			} else {
-				captureException(error);
+		} else if (extra) {
+			if (typeof extra === 'string') {
+				extra = { message: extra };
 			}
+			withScope(scope => {
+				scope.setExtras(extra);
+				captureException(error);
+			});
+		} else {
+			captureException(error);
 		}
 	}
 }
