@@ -30,6 +30,11 @@ const settingsReducer = (state = initialState, action) => {
 				...state,
 				showHexData: action.showHexData
 			};
+		case 'SET_NIGHT_MODE':
+			return {
+				...state,
+				nightMode: action.nightMode
+			};
 		case 'SET_PRIMARY_CURRENCY':
 			return {
 				...state,
