@@ -9,7 +9,7 @@ import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { setShowHexData } from '../../../../actions/settings';
+import { setShowHexData, setNightMode } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import { getApplicationName, getVersion, getBuildNumber } from 'react-native-device-info';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -111,6 +111,7 @@ class AdvancedSettings extends PureComponent {
 		 * Indicates whether hex data should be shown in transaction editor
 		 */
 		showHexData: PropTypes.bool,
+		nightMode: PropTypes.bool,
 		/**
 		 * Indicates whether InstaPay is ON or OFF
 		 */
@@ -119,6 +120,7 @@ class AdvancedSettings extends PureComponent {
 		 * Called to toggle show hex data
 		 */
 		setShowHexData: PropTypes.func,
+		setNightMode: PropTypes.func,
 		/**
 		 * Entire redux state used to generate state logs
 		 */
@@ -186,6 +188,10 @@ class AdvancedSettings extends PureComponent {
 
 	toggleShowHexData = showHexData => {
 		this.props.setShowHexData(showHexData);
+	};
+
+	toggleNightMode = nightMode => {
+		this.props.setNightMode(nightMode);
 	};
 
 	goToSyncWithExtension = () => {
@@ -263,7 +269,7 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	render = () => {
-		const { showHexData, ipfsGateway, paymentChannelsEnabled } = this.props;
+		const { showHexData, nightMode, ipfsGateway, paymentChannelsEnabled } = this.props;
 		const { resetModalVisible, onlineIpfsGateways } = this.state;
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
@@ -340,6 +346,18 @@ class AdvancedSettings extends PureComponent {
 							</View>
 						</View>
 						<View style={styles.setting}>
+							<Text style={styles.title}>{strings('app_settings.night_mode')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.night_mode_desc')}</Text>
+							<View style={styles.switchElement}>
+								<Switch
+									value={nightMode}
+									onValueChange={this.toggleNightMode}
+									trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+									ios_backgroundColor={colors.grey000}
+								/>
+							</View>
+						</View>
+						<View style={styles.setting}>
 							<Text style={styles.title}>{strings('app_settings.state_logs')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.state_logs_desc')}</Text>
 							<StyledButton
@@ -373,12 +391,14 @@ class AdvancedSettings extends PureComponent {
 const mapStateToProps = state => ({
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	showHexData: state.settings.showHexData,
+	nightMode: state.settings.nightMode,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	fullState: state
 });
 
 const mapDispatchToProps = dispatch => ({
-	setShowHexData: showHexData => dispatch(setShowHexData(showHexData))
+	setShowHexData: showHexData => dispatch(setShowHexData(showHexData)),
+	setNightMode: nightMode => dispatch(setNightMode(nightMode))
 });
 
 export default connect(

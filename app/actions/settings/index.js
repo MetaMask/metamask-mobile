@@ -12,6 +12,13 @@ export function setShowHexData(showHexData) {
 	};
 }
 
+export function setNightMode(nightMode) {
+	return {
+		type: 'SET_NIGHT_MODE',
+		nightMode
+	};
+}
+
 export function setLockTime(lockTime) {
 	return {
 		type: 'SET_LOCK_TIME',
