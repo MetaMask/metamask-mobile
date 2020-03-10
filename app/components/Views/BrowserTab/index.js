@@ -62,7 +62,7 @@ import { resemblesAddress } from '../../../util/address';
 import createAsyncMiddleware from 'json-rpc-engine/src/createAsyncMiddleware';
 import { ethErrors } from 'eth-json-rpc-errors';
 
-const { HOMEPAGE_URL, USER_AGENT } = AppConstants;
+const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 
 const styles = StyleSheet.create({
@@ -454,13 +454,31 @@ export class BrowserTab extends PureComponent {
 			webview: this.webview,
 			url,
 			getRpcMethodMiddleware: this.getRpcMethodMiddleware.bind(this),
-			shouldExposeAccounts: hostname => {
-				const { approvedHosts, privacyMode } = this.props;
-				return !privacyMode || approvedHosts[hostname];
-			},
 			isMainFrame
 		});
 		this.backgroundBridges.push(newBridge);
+	};
+
+	notifyConnection = (payload, hostname, restricted = true) => {
+		const { privacyMode, approvedHosts } = this.props;
+
+		// TODO:permissions move permissioning logic elsewhere
+		this.backgroundBridges.forEach(bridge => {
+			if (bridge.hostname === hostname && (!restricted || !privacyMode || approvedHosts[bridge.hostname])) {
+				bridge.sendNotification(payload);
+			}
+		});
+	};
+
+	notifyAllConnections = (payload, restricted = true) => {
+		const { privacyMode, approvedHosts } = this.props;
+
+		// TODO:permissions move permissioning logic elsewhere
+		this.backgroundBridges.forEach(bridge => {
+			if (!privacyMode || !restricted || approvedHosts[bridge.hostname]) {
+				bridge.sendNotification(payload);
+			}
+		});
 	};
 
 	getRpcMethodMiddleware = ({ hostname }) =>
@@ -492,11 +510,6 @@ export class BrowserTab extends PureComponent {
 
 						if (approved) {
 							res.result = [selectedAddress.toLowerCase()];
-							this.backgroundBridges.forEach(bridge => {
-								if (bridge.hostname === hostname) {
-									bridge.emit('update');
-								}
-							});
 						} else {
 							throw ethErrors.provider.userRejectedRequest('User denied account authorization.');
 						}
@@ -845,8 +858,12 @@ export class BrowserTab extends PureComponent {
 	}
 
 	componentDidUpdate(prevProps) {
-		const prevNavigation = prevProps.navigation;
-		const { navigation } = this.props;
+		const {
+			approvedHosts: prevApprovedHosts,
+			navigation: prevNavigation,
+			selectedAddress: prevSelectedAddress
+		} = prevProps;
+		const { approvedHosts, navigation, selectedAddress } = this.props;
 
 		// If tab wasn't activated and we detect an tab change
 		// we need to check if it's time to activate the tab
@@ -863,6 +880,27 @@ export class BrowserTab extends PureComponent {
 			if (currentUrl && prevUrl !== currentUrl && currentUrl !== this.state.url) {
 				this.loadUrl();
 			}
+		}
+
+		const numApprovedHosts = Object.keys(approvedHosts).length;
+		const prevNumApprovedHosts = Object.keys(prevApprovedHosts).length;
+
+		// this will happen if the approved hosts were cleared
+		if (numApprovedHosts === 0 && prevNumApprovedHosts > 0) {
+			this.notifyAllConnections(
+				{
+					method: NOTIFICATION_NAMES.accountsChanged,
+					result: []
+				},
+				false
+			); // notification should be sent regardless of approval status
+		}
+
+		if (numApprovedHosts > 0 && selectedAddress !== prevSelectedAddress) {
+			this.notifyAllConnections({
+				method: NOTIFICATION_NAMES.accountsChanged,
+				result: [selectedAddress]
+			});
 		}
 	}
 
