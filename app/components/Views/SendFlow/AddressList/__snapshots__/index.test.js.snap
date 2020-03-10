@@ -47,28 +47,6 @@ exports[`AddressList should render correctly 1`] = `
         Transfer between my accounts
       </Text>
     </TouchableOpacity>
-    <View
-      style={
-        Object {
-          "padding": 16,
-        }
-      }
-      testID="no-contacts-message"
-    >
-      <Text
-        style={
-          Object {
-            "color": "#037dd6",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "textAlign": "center",
-          }
-        }
-      >
-        No contacts in your address book
-      </Text>
-    </View>
   </ScrollViewMock>
 </View>
 `;
