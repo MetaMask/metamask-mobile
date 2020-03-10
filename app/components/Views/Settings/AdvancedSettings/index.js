@@ -25,74 +25,77 @@ import Device from '../../../../util/Device';
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		padding: 24,
-		paddingBottom: 48
-	},
-	title: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 20,
-		lineHeight: 20
-	},
-	desc: {
-		...fontStyles.normal,
-		color: colors.grey500,
-		fontSize: 14,
-		lineHeight: 20,
-		marginTop: 12
-	},
-	resetConfirm: {
-		marginTop: 18
-	},
-	switchElement: {
-		marginTop: 18
-	},
-	setting: {
-		marginTop: 50
-	},
-	firstSetting: {
-		marginTop: 0
-	},
-	modalView: {
-		alignItems: 'center',
-		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		padding: 20
-	},
-	modalText: {
-		...fontStyles.normal,
-		fontSize: 18,
-		textAlign: 'center'
-	},
-	modalTitle: {
-		...fontStyles.bold,
-		fontSize: 22,
-		textAlign: 'center',
-		marginBottom: 20
-	},
-	picker: {
-		borderColor: colors.grey200,
-		borderRadius: 5,
-		borderWidth: 2,
-		marginTop: 16
-	},
-	inner: {
-		paddingBottom: 48
-	},
-	syncConfirm: {
-		marginTop: 18
-	},
-	ipfsGatewayLoadingWrapper: {
-		height: 37,
-		alignItems: 'center',
-		justifyContent: 'center'
-	}
-});
+const getStyles = nightMode => {
+	const styles = StyleSheet.create({
+		wrapper: {
+			backgroundColor: nightMode ? colors.black : colors.white,
+			flex: 1,
+			padding: 24,
+			paddingBottom: 48
+		},
+		title: {
+			...fontStyles.normal,
+			color: nightMode ? colors.white : colors.fontPrimary,
+			fontSize: 20,
+			lineHeight: 20
+		},
+		desc: {
+			...fontStyles.normal,
+			color: nightMode ? colors.white : colors.grey500,
+			fontSize: 14,
+			lineHeight: 20,
+			marginTop: 12
+		},
+		resetConfirm: {
+			marginTop: 18
+		},
+		switchElement: {
+			marginTop: 18
+		},
+		setting: {
+			marginTop: 50
+		},
+		firstSetting: {
+			marginTop: 0
+		},
+		modalView: {
+			alignItems: 'center',
+			flex: 1,
+			flexDirection: 'column',
+			justifyContent: 'center',
+			padding: 20
+		},
+		modalText: {
+			...fontStyles.normal,
+			fontSize: 18,
+			textAlign: 'center'
+		},
+		modalTitle: {
+			...fontStyles.bold,
+			fontSize: 22,
+			textAlign: 'center',
+			marginBottom: 20
+		},
+		picker: {
+			borderColor: colors.grey200,
+			borderRadius: 5,
+			borderWidth: 2,
+			marginTop: 16
+		},
+		inner: {
+			paddingBottom: 48
+		},
+		syncConfirm: {
+			marginTop: 18
+		},
+		ipfsGatewayLoadingWrapper: {
+			height: 37,
+			alignItems: 'center',
+			justifyContent: 'center'
+		}
+	});
+	return styles;
+};
 
 /**
  * Main view for app configurations
@@ -124,7 +127,8 @@ class AdvancedSettings extends PureComponent {
 		/**
 		 * Entire redux state used to generate state logs
 		 */
-		fullState: PropTypes.object
+		fullState: PropTypes.object,
+		styles: PropTypes.object
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -269,7 +273,7 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	render = () => {
-		const { showHexData, nightMode, ipfsGateway, paymentChannelsEnabled } = this.props;
+		const { styles, showHexData, nightMode, ipfsGateway, paymentChannelsEnabled } = this.props;
 		const { resetModalVisible, onlineIpfsGateways } = this.state;
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
@@ -389,6 +393,7 @@ class AdvancedSettings extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	styles: getStyles(state.settings.nightMode),
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	showHexData: state.settings.showHexData,
 	nightMode: state.settings.nightMode,

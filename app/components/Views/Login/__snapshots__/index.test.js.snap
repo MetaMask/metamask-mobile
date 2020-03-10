@@ -4,7 +4,92 @@ exports[`Login should render correctly 1`] = `
 <Login
   accountsLength={1}
   networkType="ropsten"
+  nightMode={false}
   setOnboardingWizardStep={[Function]}
+  styles={
+    Object {
+      "biometrics": Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "marginBottom": 30,
+        "marginTop": 20,
+      },
+      "biometryLabel": Object {
+        "flex": 1,
+        "fontFamily": "CircularStd-Medium",
+        "fontSize": 16,
+        "fontWeight": "400",
+      },
+      "biometrySwitch": Object {
+        "flex": 0,
+      },
+      "ctaWrapper": Object {
+        "marginTop": 20,
+      },
+      "errorMsg": Object {
+        "color": "#D73A49",
+        "fontFamily": "CircularStd-Medium",
+        "fontWeight": "400",
+      },
+      "field": Object {
+        "marginBottom": 10,
+      },
+      "footer": Object {
+        "marginVertical": 40,
+      },
+      "foxWrapper": Object {
+        "alignSelf": "center",
+        "height": 130,
+        "justifyContent": "center",
+        "marginTop": 100,
+        "width": 130,
+      },
+      "goBack": Object {
+        "color": "#777777",
+        "fontFamily": "CircularStd-Medium",
+        "fontWeight": "400",
+      },
+      "image": Object {
+        "alignSelf": "center",
+        "height": 130,
+        "width": 130,
+      },
+      "input": Object {
+        "borderColor": "#d6d9dc",
+        "borderRadius": 4,
+        "borderWidth": 1,
+        "color": undefined,
+        "fontFamily": "CircularStd-Medium",
+        "fontSize": 20,
+        "fontWeight": "400",
+        "padding": 10,
+      },
+      "label": Object {
+        "color": undefined,
+        "fontSize": 16,
+        "marginBottom": 10,
+        "marginTop": 10,
+      },
+      "mainWrapper": Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      },
+      "title": Object {
+        "color": "#000000",
+        "fontFamily": "CircularStd-Medium",
+        "fontSize": 35,
+        "fontWeight": "600",
+        "justifyContent": "center",
+        "marginBottom": 20,
+        "marginTop": 20,
+        "textAlign": "center",
+      },
+      "wrapper": Object {
+        "flex": 1,
+        "paddingHorizontal": 20,
+      },
+    }
+  }
   tokensLength={0}
 />
 `;

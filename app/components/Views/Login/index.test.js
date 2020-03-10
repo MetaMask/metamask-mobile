@@ -8,6 +8,9 @@ const mockStore = configureMockStore();
 describe('Login', () => {
 	it('should render correctly', () => {
 		const initialState = {
+			settings: {
+				nightMode: false
+			},
 			engine: {
 				backgroundState: {
 					AccountTrackerController: {

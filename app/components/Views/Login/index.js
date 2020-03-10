@@ -19,81 +19,86 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import Device from '../../../util/Device';
 
-const styles = StyleSheet.create({
-	mainWrapper: {
-		backgroundColor: colors.white,
-		flex: 1
-	},
-	wrapper: {
-		flex: 1,
-		paddingHorizontal: 20
-	},
-	foxWrapper: {
-		justifyContent: 'center',
-		alignSelf: 'center',
-		width: Device.isIos() ? 130 : 100,
-		height: Device.isIos() ? 130 : 100,
-		marginTop: 100
-	},
-	image: {
-		alignSelf: 'center',
-		width: Device.isIos() ? 130 : 100,
-		height: Device.isIos() ? 130 : 100
-	},
-	title: {
-		fontSize: Device.isAndroid() ? 30 : 35,
-		marginTop: 20,
-		marginBottom: 20,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		textAlign: 'center',
-		...fontStyles.bold
-	},
-	field: {
-		marginBottom: Device.isAndroid() ? 0 : 10
-	},
-	label: {
-		fontSize: 16,
-		marginBottom: Device.isAndroid() ? 0 : 10,
-		marginTop: 10
-	},
-	input: {
-		borderWidth: Device.isAndroid() ? 0 : 1,
-		borderColor: colors.grey100,
-		padding: 10,
-		borderRadius: 4,
-		fontSize: Device.isAndroid() ? 15 : 20,
-		...fontStyles.normal
-	},
-	ctaWrapper: {
-		marginTop: 20
-	},
-	footer: {
-		marginVertical: 40
-	},
-	errorMsg: {
-		color: colors.red,
-		...fontStyles.normal
-	},
-	goBack: {
-		color: colors.fontSecondary,
-		...fontStyles.normal
-	},
-	biometrics: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginTop: 20,
-		marginBottom: 30
-	},
-	biometryLabel: {
-		flex: 1,
-		fontSize: 16,
-		...fontStyles.normal
-	},
-	biometrySwitch: {
-		flex: 0
-	}
-});
+const getStyles = nightMode => {
+	const styles = StyleSheet.create({
+		mainWrapper: {
+			backgroundColor: nightMode ? colors.black : colors.white,
+			flex: 1
+		},
+		wrapper: {
+			flex: 1,
+			paddingHorizontal: 20
+		},
+		foxWrapper: {
+			justifyContent: 'center',
+			alignSelf: 'center',
+			width: Device.isIos() ? 130 : 100,
+			height: Device.isIos() ? 130 : 100,
+			marginTop: 100
+		},
+		image: {
+			alignSelf: 'center',
+			width: Device.isIos() ? 130 : 100,
+			height: Device.isIos() ? 130 : 100
+		},
+		title: {
+			fontSize: Device.isAndroid() ? 30 : 35,
+			marginTop: 20,
+			marginBottom: 20,
+			color: nightMode ? colors.white : colors.fontPrimary,
+			justifyContent: 'center',
+			textAlign: 'center',
+			...fontStyles.bold
+		},
+		field: {
+			marginBottom: Device.isAndroid() ? 0 : 10
+		},
+		label: {
+			fontSize: 16,
+			marginBottom: Device.isAndroid() ? 0 : 10,
+			marginTop: 10,
+			color: nightMode ? colors.white : undefined
+		},
+		input: {
+			borderWidth: Device.isAndroid() ? 0 : 1,
+			borderColor: nightMode ? colors.white : colors.grey100,
+			padding: 10,
+			borderRadius: 4,
+			fontSize: Device.isAndroid() ? 15 : 20,
+			color: nightMode ? colors.white : undefined,
+			...fontStyles.normal
+		},
+		ctaWrapper: {
+			marginTop: 20
+		},
+		footer: {
+			marginVertical: 40
+		},
+		errorMsg: {
+			color: colors.red,
+			...fontStyles.normal
+		},
+		goBack: {
+			color: colors.fontSecondary,
+			...fontStyles.normal
+		},
+		biometrics: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginTop: 20,
+			marginBottom: 30
+		},
+		biometryLabel: {
+			flex: 1,
+			fontSize: 16,
+			...fontStyles.normal
+		},
+		biometrySwitch: {
+			flex: 0
+		}
+	});
+	return styles;
+};
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
@@ -122,7 +127,9 @@ class Login extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		nightMode: PropTypes.bool,
+		styles: PropTypes.object
 	};
 
 	state = {
@@ -243,6 +250,7 @@ class Login extends PureComponent {
 	};
 
 	renderSwitch = () => {
+		const { styles } = this.props;
 		if (this.state.biometryType) {
 			return (
 				<View style={styles.biometrics}>
@@ -276,70 +284,75 @@ class Login extends PureComponent {
 
 	setPassword = val => this.setState({ password: val });
 
-	render = () => (
-		<SafeAreaView style={styles.mainWrapper}>
-			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-				<View testID={'login'}>
-					<View style={styles.foxWrapper}>
-						{Device.isAndroid() ? (
-							<Image
-								source={require('../../../images/fox.png')}
-								style={styles.image}
-								resizeMethod={'auto'}
-							/>
-						) : (
-							<AnimatedFox />
-						)}
-					</View>
-					<Text style={styles.title}>{strings('login.title')}</Text>
-					<View style={styles.field}>
-						<Text style={styles.label}>{strings('login.password')}</Text>
-						<TextInput
-							style={styles.input}
-							testID={'login-password-input'}
-							value={this.state.password}
-							onChangeText={this.setPassword}
-							secureTextEntry
-							placeholder={''}
-							placeholderTextColor={colors.grey100}
-							underlineColorAndroid={colors.grey100}
-							onSubmitEditing={this.onLogin}
-							returnKeyType={'done'}
-							autoCapitalize="none"
-						/>
-					</View>
-
-					{this.renderSwitch()}
-
-					{!!this.state.error && (
-						<Text style={styles.errorMsg} testID={'invalid-password-error'}>
-							{this.state.error}
-						</Text>
-					)}
-
-					<View style={styles.ctaWrapper} testID={'log-in-button'}>
-						<StyledButton type={'confirm'} onPress={this.onLogin}>
-							{this.state.loading ? (
-								<ActivityIndicator size="small" color="white" />
+	render = () => {
+		const { styles, nightMode } = this.props;
+		return (
+			<SafeAreaView style={styles.mainWrapper}>
+				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
+					<View testID={'login'}>
+						<View style={styles.foxWrapper}>
+							{Device.isAndroid() ? (
+								<Image
+									source={require('../../../images/fox.png')}
+									style={styles.image}
+									resizeMethod={'auto'}
+								/>
 							) : (
-								strings('login.login_button')
+								<AnimatedFox />
 							)}
-						</StyledButton>
-					</View>
+						</View>
+						<Text style={styles.title}>{strings('login.title')}</Text>
+						<View style={styles.field}>
+							<Text style={styles.label}>{strings('login.password')}</Text>
+							<TextInput
+								style={styles.input}
+								testID={'login-password-input'}
+								value={this.state.password}
+								onChangeText={this.setPassword}
+								secureTextEntry
+								placeholder={''}
+								placeholderTextColor={nightMode ? colors.white : colors.grey100}
+								underlineColorAndroid={nightMode ? colors.white : colors.grey100}
+								onSubmitEditing={this.onLogin}
+								returnKeyType={'done'}
+								autoCapitalize="none"
+							/>
+						</View>
 
-					<View style={styles.footer}>
-						<Button style={styles.goBack} onPress={this.onPressGoBack}>
-							{strings('login.go_back')}
-						</Button>
+						{this.renderSwitch()}
+
+						{!!this.state.error && (
+							<Text style={styles.errorMsg} testID={'invalid-password-error'}>
+								{this.state.error}
+							</Text>
+						)}
+
+						<View style={styles.ctaWrapper} testID={'log-in-button'}>
+							<StyledButton type={'confirm'} onPress={this.onLogin}>
+								{this.state.loading ? (
+									<ActivityIndicator size="small" color="white" />
+								) : (
+									strings('login.login_button')
+								)}
+							</StyledButton>
+						</View>
+
+						<View style={styles.footer}>
+							<Button style={styles.goBack} onPress={this.onPressGoBack}>
+								{strings('login.go_back')}
+							</Button>
+						</View>
 					</View>
-				</View>
-			</KeyboardAwareScrollView>
-			<FadeOutOverlay />
-		</SafeAreaView>
-	);
+				</KeyboardAwareScrollView>
+				<FadeOutOverlay />
+			</SafeAreaView>
+		);
+	};
 }
 
 const mapStateToProps = state => ({
+	nightMode: state.settings.nightMode,
+	styles: getStyles(state.settings.nightMode),
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
