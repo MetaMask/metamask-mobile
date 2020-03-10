@@ -51,7 +51,8 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	backIconIOS: {
-		marginHorizontal: 5
+		marginHorizontal: 4,
+		marginTop: -4
 	},
 	shareIconIOS: {
 		marginHorizontal: -5
@@ -69,7 +70,7 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		paddingHorizontal: Device.isAndroid() ? 22 : 18,
-		paddingVertical: 14
+		paddingVertical: Device.isAndroid() ? 14 : 8
 	},
 	infoButton: {
 		paddingLeft: Device.isAndroid() ? 22 : 18,
@@ -273,7 +274,7 @@ export function getPaymentRequestOptionsTitle(title, navigation) {
 		headerRight: (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-				<IonicIcon name={'ios-close'} size={38} style={styles.backIcon} />
+				<IonicIcon name={'ios-close'} size={38} style={[styles.backIcon, styles.backIconIOS]} />
 			</TouchableOpacity>
 		)
 	};
