@@ -472,10 +472,11 @@ export class BrowserTab extends PureComponent {
 
 	notifyAllConnections = (payload, restricted = true) => {
 		const { privacyMode, approvedHosts } = this.props;
+		const { fullHostname } = this.state;
 
 		// TODO:permissions move permissioning logic elsewhere
 		this.backgroundBridges.forEach(bridge => {
-			if (!privacyMode || !restricted || approvedHosts[bridge.hostname]) {
+			if (bridge.hostname === fullHostname && (!privacyMode || !restricted || approvedHosts[bridge.hostname])) {
 				bridge.sendNotification(payload);
 			}
 		});
