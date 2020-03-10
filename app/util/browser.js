@@ -36,7 +36,7 @@ export default function onUrlSubmit(input, searchEngine = 'Google', defaultProto
  * @returns {string} - String corresponding to host
  */
 export function getHost(url, defaultProtocol = 'https://') {
-	const hasProtocol = url.match(/^[a-z]*:\/\//);
+	const hasProtocol = url && url.match(/^[a-z]*:\/\//);
 	const urlObj = new URL(hasProtocol ? url : `${defaultProtocol}${url}`);
 	const { hostname } = urlObj;
 	return hostname;
