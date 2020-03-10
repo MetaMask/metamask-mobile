@@ -40,7 +40,7 @@ class Port extends EventEmitter {
 }
 
 export class BackgroundBridge extends EventEmitter {
-	constructor({ webview, url, getRpcMethodMiddleware, shouldExposeAccounts, isMainFrame }) {
+	constructor({ webview, url, getRpcMethodMiddleware, isMainFrame }) {
 		super();
 		this.url = url;
 		this.hostname = new URL(url).hostname;
@@ -48,10 +48,11 @@ export class BackgroundBridge extends EventEmitter {
 		this._webviewRef = webview && webview.current;
 
 		this.createMiddleware = getRpcMethodMiddleware;
-		this.shouldExposeAccounts = shouldExposeAccounts;
 		this.provider = Engine.context.NetworkController.provider;
 		this.blockTracker = this.provider._blockTracker;
 		this.port = new Port(this._webviewRef, isMainFrame);
+
+		this.engine = null;
 
 		const portStream = new MobilePortStream(this.port, url);
 		// setup multiplexing
@@ -81,14 +82,14 @@ export class BackgroundBridge extends EventEmitter {
 	 * @param {*} outStream - The stream to provide over.
 	 */
 	setupProviderConnection(outStream) {
-		const engine = this.setupProviderEngine();
+		this.engine = this.setupProviderEngine();
 
 		// setup connection
-		const providerStream = createEngineStream({ engine });
+		const providerStream = createEngineStream({ engine: this.engine });
 
 		pump(outStream, providerStream, outStream, err => {
 			// handle any middleware cleanup
-			engine._middleware.forEach(mid => {
+			this.engine._middleware.forEach(mid => {
 				if (mid.destroy && typeof mid.destroy === 'function') {
 					mid.destroy();
 				}
@@ -146,10 +147,7 @@ export class BackgroundBridge extends EventEmitter {
 	 * @param {*} outStream - The stream to provide public config over.
 	 */
 	setupPublicConfig(outStream) {
-		const configStore = this.createPublicConfigStore({
-			// check the providerApprovalController's approvedOrigins
-			checkIsEnabled: () => this.shouldExposeAccounts(this.hostname)
-		});
+		const configStore = this.createPublicConfigStore();
 
 		const configStream = asStream(configStore);
 
@@ -166,19 +164,15 @@ export class BackgroundBridge extends EventEmitter {
 	 * Constructor helper: initialize a public config store.
 	 * This store is used to make some config info available to Dapps synchronously.
 	 */
-	createPublicConfigStore({ checkIsEnabled }) {
+	createPublicConfigStore() {
 		// subset of state for metamask inpage provider
 		const publicConfigStore = new ObservableStore();
 
-		const selectPublicState = ({ isUnlocked, selectedAddress, network }) => {
-			const isEnabled = checkIsEnabled();
-			const isReady = isUnlocked && isEnabled;
+		const selectPublicState = ({ isUnlocked, network }) => {
 			const networkType = Engine.context.NetworkController.state.provider.type;
 			const chainId = Object.keys(NetworkList).indexOf(networkType) > -1 && NetworkList[networkType].chainId;
 			const result = {
 				isUnlocked,
-				isEnabled,
-				selectedAddress: isReady ? selectedAddress.toLowerCase() : null,
 				networkVersion: network,
 				chainId: chainId ? `0x${parseInt(chainId, 10).toString(16)}` : null
 			};
@@ -202,6 +196,10 @@ export class BackgroundBridge extends EventEmitter {
 		};
 
 		return publicConfigStore;
+	}
+
+	sendNotification(payload) {
+		this.engine && this.engine.emit('notification', payload);
 	}
 
 	/**
