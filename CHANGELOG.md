@@ -2,7 +2,12 @@
 
 ## Current Develop Branch
 
-## v0.2.14 - Mar 6 2020
+## v0.2.14 - Mar 11 2020
+- [#1413](https://github.com/MetaMask/metamask-mobile/pull/1413): Fix accountsChanged notification (#1413)
+- [#1411](https://github.com/MetaMask/metamask-mobile/pull/1411): bugfix: payment request (#1411)
+- [#1410](https://github.com/MetaMask/metamask-mobile/pull/1410): bugfix: ios close icon (#1410)
+- [#1409](https://github.com/MetaMask/metamask-mobile/pull/1409): bugfix: wallet connect (#1409)
+- [#1399](https://github.com/MetaMask/metamask-mobile/pull/1399): V0.2.14 (#1399)
 - [#1398](https://github.com/MetaMask/metamask-mobile/pull/1398): Add vertical padding to close button (#1398)
 - [#1384](https://github.com/MetaMask/metamask-mobile/pull/1384): Update `pubnub` dependency to match extension (#1384)
 - [#1394](https://github.com/MetaMask/metamask-mobile/pull/1394): fix wallet tests (#1394)
