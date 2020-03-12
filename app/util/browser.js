@@ -13,12 +13,15 @@ export default function onUrlSubmit(input, searchEngine = 'Google', defaultProto
 	//Check if it's a url or a keyword
 	const res = input.match(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',;=.+]+$/g);
 	if (res === null) {
-		// In case of keywords we default to google search
-		let searchUrl = 'https://www.google.com/search?q=' + escape(input);
-		if (searchEngine === 'DuckDuckGo') {
-			searchUrl = 'https://duckduckgo.com/?q=' + escape(input);
+		// Add exception for localhost
+		if (!input.startsWith('http://localhost') && !input.startsWith('localhost')) {
+			// In case of keywords we default to google search
+			let searchUrl = 'https://www.google.com/search?q=' + escape(input);
+			if (searchEngine === 'DuckDuckGo') {
+				searchUrl = 'https://duckduckgo.com/?q=' + escape(input);
+			}
+			return searchUrl;
 		}
-		return searchUrl;
 	}
 	const hasProtocol = input.match(/^[a-z]*:\/\//);
 	const sanitizedURL = hasProtocol ? input : `${defaultProtocol}${input}`;
@@ -29,10 +32,12 @@ export default function onUrlSubmit(input, searchEngine = 'Google', defaultProto
  * Return host from url string
  *
  * @param {string} url - String containing url
+ * @param {string} defaultProtocol - Protocol string to append to URLs that have none
  * @returns {string} - String corresponding to host
  */
-export function getHost(url) {
-	const urlObj = new URL(url);
+export function getHost(url, defaultProtocol = 'https://') {
+	const hasProtocol = url && url.match(/^[a-z]*:\/\//);
+	const urlObj = new URL(hasProtocol ? url : `${defaultProtocol}${url}`);
 	const { hostname } = urlObj;
 	return hostname;
 }

@@ -5,10 +5,10 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
 import AssetActionButtons from '../AssetActionButtons';
-import { setCollectibleContractTransaction } from '../../../actions/transaction';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
+import { newAssetTransaction } from '../../../actions/newTransaction';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -63,11 +63,11 @@ class CollectibleContractOverview extends PureComponent {
 		/**
 		 * Action that sets a collectible contract type transaction
 		 */
-		setCollectibleContractTransaction: PropTypes.func.isRequired,
+		toggleCollectibleContractModal: PropTypes.func.isRequired,
 		/**
-		 * Action that sets a collectible contract type transaction
+		 * Start transaction with asset
 		 */
-		toggleCollectibleContractModal: PropTypes.func.isRequired
+		newAssetTransaction: PropTypes.func
 	};
 
 	onAdd = () => {
@@ -80,8 +80,8 @@ class CollectibleContractOverview extends PureComponent {
 		const collectible = collectibles.find(
 			collectible => collectible.address.toLowerCase() === collectibleContract.address.toLowerCase()
 		);
-		this.props.setCollectibleContractTransaction(collectible);
-		this.props.navigation.navigate('SendView');
+		this.props.newAssetTransaction(collectible);
+		this.props.navigation.navigate('SendFlowView');
 	};
 
 	onInfo = () => this.props.toggleCollectibleContractModal();
@@ -132,8 +132,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	setCollectibleContractTransaction: collectible => dispatch(setCollectibleContractTransaction(collectible)),
-	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal())
+	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal()),
+	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
 });
 
 export default connect(

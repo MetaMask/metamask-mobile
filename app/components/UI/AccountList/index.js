@@ -10,11 +10,10 @@ import {
 	StyleSheet,
 	Text,
 	View,
-	SafeAreaView,
-	Platform
+	SafeAreaView
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -43,14 +42,14 @@ const styles = StyleSheet.create({
 		height: 5,
 		borderRadius: 4,
 		backgroundColor: colors.grey400,
-		opacity: Platform.OS === 'android' ? 0.6 : 0.5
+		opacity: Device.isAndroid() ? 0.6 : 0.5
 	},
 	accountsWrapper: {
 		flex: 1
 	},
 	footer: {
-		height: DeviceSize.isIphoneX() ? 140 : 110,
-		paddingBottom: DeviceSize.isIphoneX() ? 30 : 0,
+		height: Device.isIphoneX() ? 140 : 110,
+		paddingBottom: Device.isIphoneX() ? 30 : 0,
 		justifyContent: 'center',
 		flexDirection: 'column',
 		alignItems: 'center'
@@ -102,7 +101,11 @@ class AccountList extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Whether it will show options to create or import accounts
+		 */
+		enableAccountsAddition: PropTypes.bool
 	};
 
 	state = {
@@ -150,6 +153,7 @@ class AccountList extends PureComponent {
 		const previousIndex = this.state.selectedAccountIndex;
 		const { PreferencesController } = Engine.context;
 		const { keyrings } = this.props;
+
 		requestAnimationFrame(async () => {
 			try {
 				this.mounted && this.setState({ selectedAccountIndex: newIndex });
@@ -157,6 +161,14 @@ class AccountList extends PureComponent {
 				const allKeyrings =
 					keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+
+				// If not enabled is used from address book so we don't change accounts
+				if (!this.props.enableAccountsAddition) {
+					this.props.onAccountChange(accountsOrdered[newIndex]);
+					const orderedAccounts = this.getAccounts();
+					this.mounted && this.setState({ orderedAccounts });
+					return;
+				}
 
 				PreferencesController.setSelectedAddress(accountsOrdered[newIndex]);
 
@@ -281,6 +293,7 @@ class AccountList extends PureComponent {
 
 	render() {
 		const { orderedAccounts } = this.state;
+		const { enableAccountsAddition } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
 				<View style={styles.titleWrapper}>
@@ -293,28 +306,30 @@ class AccountList extends PureComponent {
 					ref={this.flatList}
 					style={styles.accountsWrapper}
 					testID={'account-number-button'}
-					getItemLayout={(data, index) => ({ length: 80, offset: 80 * index, index })} // eslint-disable-line
+					getItemLayout={(_, index) => ({ length: 80, offset: 80 * index, index })} // eslint-disable-line
 				/>
-				<View style={styles.footer}>
-					<TouchableOpacity
-						style={styles.footerButton}
-						testID={'create-account-button'}
-						onPress={this.addAccount}
-					>
-						{this.state.loading ? (
-							<ActivityIndicator size="small" color={colors.blue} />
-						) : (
-							<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
-						)}
-					</TouchableOpacity>
-					<TouchableOpacity
-						onPress={this.importAccount}
-						style={styles.footerButton}
-						testID={'import-account-button'}
-					>
-						<Text style={styles.btnText}>{strings('accounts.import_account')}</Text>
-					</TouchableOpacity>
-				</View>
+				{enableAccountsAddition && (
+					<View style={styles.footer}>
+						<TouchableOpacity
+							style={styles.footerButton}
+							testID={'create-account-button'}
+							onPress={this.addAccount}
+						>
+							{this.state.loading ? (
+								<ActivityIndicator size="small" color={colors.blue} />
+							) : (
+								<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
+							)}
+						</TouchableOpacity>
+						<TouchableOpacity
+							onPress={this.importAccount}
+							style={styles.footerButton}
+							testID={'import-account-button'}
+						>
+							<Text style={styles.btnText}>{strings('accounts.import_account')}</Text>
+						</TouchableOpacity>
+					</View>
+				)}
 			</SafeAreaView>
 		);
 	}

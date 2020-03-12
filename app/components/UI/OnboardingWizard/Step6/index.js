@@ -1,12 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import DeviceSize from '../../../../util/DeviceSize';
+import Device from '../../../../util/Device';
 
 const styles = StyleSheet.create({
 	main: {
@@ -52,7 +52,7 @@ class Step6 extends PureComponent {
 	 * If component ref defined, calculate its position and position coachmark accordingly
 	 */
 	getPosition = () => {
-		const position = Platform.OS === 'android' ? 270 : DeviceSize.isIphoneX() ? 300 : 270;
+		const position = Device.isAndroid() ? 270 : Device.isIphoneX() ? 300 : 270;
 		this.setState({ coachmarkTop: position, ready: true });
 	};
 

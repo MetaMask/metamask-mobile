@@ -1,16 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-	Platform,
-	Alert,
-	ActivityIndicator,
-	Image,
-	Text,
-	View,
-	ScrollView,
-	StyleSheet,
-	InteractionManager
-} from 'react-native';
+import { Alert, ActivityIndicator, Image, Text, View, ScrollView, StyleSheet, InteractionManager } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -30,9 +20,9 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import TermsAndConditions from '../TermsAndConditions';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 
-const SMALL_DEVICE = DeviceSize.isSmallDevice();
+const SMALL_DEVICE = Device.isSmallDevice();
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -44,17 +34,17 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	foxWrapper: {
-		width: Platform.OS === 'ios' ? 90 : 45,
-		height: Platform.OS === 'ios' ? 90 : 45,
+		width: Device.isIos() ? 90 : 45,
+		height: Device.isIos() ? 90 : 45,
 		marginVertical: 20
 	},
 	image: {
 		alignSelf: 'center',
-		width: Platform.OS === 'ios' ? 90 : 45,
-		height: Platform.OS === 'ios' ? 90 : 45
+		width: Device.isIos() ? 90 : 45,
+		height: Device.isIos() ? 90 : 45
 	},
 	title: {
-		fontSize: 24,
+		fontSize: Device.isSmallDevice() ? 20 : 24,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
@@ -320,7 +310,7 @@ class ImportWallet extends PureComponent {
 			// If the user enables biometrics, we're trying to read the password
 			// immediately so we get the permission prompt
 			try {
-				if (Platform.OS === 'ios') {
+				if (Device.isIos()) {
 					await SecureKeychain.getGenericPassword();
 					await AsyncStorage.setItem('@MetaMask:biometryChoice', opts.biometryType);
 				}
@@ -481,7 +471,7 @@ class ImportWallet extends PureComponent {
 						<View style={styles.wrapper}>
 							{!loading && (
 								<View style={styles.foxWrapper}>
-									{Platform.OS === 'android' ? (
+									{Device.isAndroid() ? (
 										<Image
 											source={require('../../../images/fox.png')}
 											style={styles.image}

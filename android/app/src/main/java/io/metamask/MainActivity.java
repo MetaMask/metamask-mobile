@@ -18,13 +18,13 @@ import androidx.annotation.NonNull;
 
 public class MainActivity extends ReactFragmentActivity {
 
-    /**
-     * Returns the name of the main component registered from JavaScript.
-     * This is used to schedule rendering of the component.
-     */
-    @Override
-    protected String getMainComponentName() {
-        return "MetaMask";
+	/**
+	 * Returns the name of the main component registered from JavaScript.
+	 * This is used to schedule rendering of the component.
+	 */
+	@Override
+	protected String getMainComponentName() {
+		return "MetaMask";
 	}
 
 	// Override onStart, onNewIntent:
@@ -53,24 +53,24 @@ public class MainActivity extends ReactFragmentActivity {
 	}
 
 	@Override
-    protected ReactActivityDelegate createReactActivityDelegate() {
-        return new ReactActivityDelegate(this, getMainComponentName()) {
-            @NonNull
-            @Override
-            protected Bundle getLaunchOptions() {
-                Bundle bundle = new Bundle();
-                if(BuildConfig.foxCode != null){
-                	bundle.putString("foxCode", BuildConfig.foxCode);
-                } else {
-                	bundle.putString("foxCode", "debug");
-                }
-                return bundle;
-            }
-            @Override
+	protected ReactActivityDelegate createReactActivityDelegate() {
+		return new ReactActivityDelegate(this, getMainComponentName()) {
+			@NonNull
+			@Override
+			protected Bundle getLaunchOptions() {
+				Bundle bundle = new Bundle();
+				if(BuildConfig.foxCode != null){
+					bundle.putString("foxCode", BuildConfig.foxCode);
+				} else {
+					bundle.putString("foxCode", "debug");
+				}
+				return bundle;
+			}
+			@Override
 			protected ReactRootView createRootView() {
-            	return new RNGestureHandlerEnabledRootView(MainActivity.this);
-            }
-        };
+				return new RNGestureHandlerEnabledRootView(MainActivity.this);
+			}
+		};
 	}
 
 

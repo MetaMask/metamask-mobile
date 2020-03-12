@@ -53,12 +53,14 @@ const styles = StyleSheet.create({
 	balance: {
 		fontSize: 16,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
+		textTransform: 'uppercase'
 	},
 	balanceFiat: {
 		fontSize: 12,
 		color: colors.fontSecondary,
-		...fontStyles.normal
+		...fontStyles.normal,
+		textTransform: 'uppercase'
 	},
 	ethLogo: {
 		width: 50,

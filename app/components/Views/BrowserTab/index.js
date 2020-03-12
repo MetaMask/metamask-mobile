@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import {
 	Text,
 	ActivityIndicator,
-	Platform,
 	StyleSheet,
 	TextInput,
 	View,
@@ -45,7 +44,7 @@ import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
 import DeeplinkManager from '../../../core/DeeplinkManager';
@@ -53,14 +52,17 @@ import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
-import { resemblesAddress } from '../../../util/address';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
+import { resemblesAddress } from '../../../util/address';
 
-const { HOMEPAGE_URL, USER_AGENT } = AppConstants;
+import createAsyncMiddleware from 'json-rpc-engine/src/createAsyncMiddleware';
+import { ethErrors } from 'eth-json-rpc-errors';
+
+const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 
 const styles = StyleSheet.create({
@@ -133,7 +135,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'flex-start',
-		marginTop: Platform.OS === 'android' ? 0 : -5
+		marginTop: Device.isAndroid() ? 0 : -5
 	},
 	optionText: {
 		fontSize: 16,
@@ -164,10 +166,10 @@ const styles = StyleSheet.create({
 	},
 	urlModalContent: {
 		flexDirection: 'row',
-		paddingTop: Platform.OS === 'android' ? 10 : DeviceSize.isIphoneX() ? 50 : 27,
+		paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
 		paddingHorizontal: 10,
 		backgroundColor: colors.white,
-		height: Platform.OS === 'android' ? 59 : DeviceSize.isIphoneX() ? 87 : 65
+		height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65
 	},
 	urlModal: {
 		justifyContent: 'flex-start',
@@ -175,14 +177,14 @@ const styles = StyleSheet.create({
 	},
 	urlInput: {
 		...fontStyles.normal,
-		backgroundColor: Platform.OS === 'android' ? colors.white : colors.grey000,
+		backgroundColor: Device.isAndroid() ? colors.white : colors.grey000,
 		borderRadius: 30,
-		fontSize: Platform.OS === 'android' ? 16 : 14,
+		fontSize: Device.isAndroid() ? 16 : 14,
 		padding: 8,
 		paddingLeft: 15,
 		textAlign: 'left',
 		flex: 1,
-		height: Platform.OS === 'android' ? 40 : 30
+		height: Device.isAndroid() ? 40 : 30
 	},
 	cancelButton: {
 		marginTop: 7,
@@ -221,7 +223,7 @@ const styles = StyleSheet.create({
 	backupAlert: {
 		zIndex: 99999999,
 		position: 'absolute',
-		bottom: Platform.OS === 'ios' ? (DeviceSize.isIphoneX() ? 100 : 90) : 70,
+		bottom: Device.isIos() ? (Device.isIphoneX() ? 100 : 90) : 70,
 		left: 16,
 		right: 16
 	}
@@ -390,10 +392,11 @@ export class BrowserTab extends PureComponent {
 			watchAsset: false,
 			activated: props.id === props.activeTab,
 			lastError: null,
-			showApprovalDialogHostname: undefined
+			showApprovalDialogHostname: undefined,
+			showOptions: false
 		};
 	}
-
+	backgroundBridges = [];
 	webview = React.createRef();
 	inputRef = React.createRef();
 	sessionENSNames = {};
@@ -404,7 +407,6 @@ export class BrowserTab extends PureComponent {
 	wizardScrollAdjusted = false;
 	isReloading = false;
 	approvalRequest;
-	accountsRequest;
 
 	/**
 	 * Check that page metadata is available and call callback
@@ -447,211 +449,198 @@ export class BrowserTab extends PureComponent {
 		this.init();
 	}
 
-	initializeBackgroundBridge = () => {
-		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
-			eth_sign: async payload => {
-				const { MessageManager } = Engine.context;
-				try {
+	initializeBackgroundBridge = (url, isMainFrame) => {
+		const newBridge = new BackgroundBridge({
+			webview: this.webview,
+			url,
+			getRpcMethodMiddleware: this.getRpcMethodMiddleware.bind(this),
+			isMainFrame
+		});
+		this.backgroundBridges.push(newBridge);
+	};
+
+	notifyConnection = (payload, hostname, restricted = true) => {
+		const { privacyMode, approvedHosts } = this.props;
+
+		// TODO:permissions move permissioning logic elsewhere
+		this.backgroundBridges.forEach(bridge => {
+			if (bridge.hostname === hostname && (!restricted || !privacyMode || approvedHosts[bridge.hostname])) {
+				bridge.sendNotification(payload);
+			}
+		});
+	};
+
+	notifyAllConnections = (payload, restricted = true) => {
+		const { privacyMode, approvedHosts } = this.props;
+		const { fullHostname } = this.state;
+
+		// TODO:permissions move permissioning logic elsewhere
+		this.backgroundBridges.forEach(bridge => {
+			if (bridge.hostname === fullHostname && (!privacyMode || !restricted || approvedHosts[bridge.hostname])) {
+				bridge.sendNotification(payload);
+			}
+		});
+	};
+
+	getRpcMethodMiddleware = ({ hostname }) =>
+		// all user facing RPC calls not implemented by the provider
+		createAsyncMiddleware(async (req, res, next) => {
+			const rpcMethods = {
+				eth_requestAccounts: async () => {
+					const { params } = req;
+					const { approvedHosts, privacyMode, selectedAddress } = this.props;
+
+					if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
+						res.result = [selectedAddress];
+					} else {
+						if (!this.state.showApprovalDialog) {
+							setTimeout(async () => {
+								if (!this.state.showApprovalDialog) {
+									await this.getPageMeta();
+									this.setState({
+										showApprovalDialog: true,
+										showApprovalDialogHostname: hostname
+									});
+								}
+							}, 1000); // TODO: how long does this actually have to be?
+						}
+
+						const approved = await new Promise((resolve, reject) => {
+							this.approvalRequest = { resolve, reject };
+						});
+
+						if (approved) {
+							res.result = [selectedAddress.toLowerCase()];
+						} else {
+							throw ethErrors.provider.userRejectedRequest('User denied account authorization.');
+						}
+					}
+				},
+
+				eth_accounts: async () => {
+					const { approvedHosts, privacyMode, selectedAddress } = this.props;
+					const isEnabled = !privacyMode || approvedHosts[hostname];
+
+					if (isEnabled) {
+						res.result = [selectedAddress.toLowerCase()];
+					} else {
+						res.result = [];
+					}
+				},
+
+				eth_sign: async () => {
+					const { MessageManager } = Engine.context;
 					const pageMeta = await this.getPageMeta();
 					const rawSig = await MessageManager.addUnapprovedMessageAsync({
-						data: payload.params[1],
-						from: payload.params[0],
+						data: req.params[1],
+						from: req.params[0],
 						...pageMeta
 					});
 
-					return (
-						!this.isReloading &&
-						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				} catch (error) {
-					return (
-						!this.isReloading &&
-						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				}
-			},
-			personal_sign: async payload => {
-				const { PersonalMessageManager } = Engine.context;
-				try {
-					const firstParam = payload.params[0];
-					const secondParam = payload.params[1];
+					res.result = rawSig;
+				},
+
+				personal_sign: async () => {
+					const { PersonalMessageManager } = Engine.context;
+					const firstParam = req.params[0];
+					const secondParam = req.params[1];
 					const params = {
 						data: firstParam,
 						from: secondParam
 					};
+
 					if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
 						params.data = secondParam;
 						params.from = firstParam;
 					}
+
 					const pageMeta = await this.getPageMeta();
 					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 						...params,
 						...pageMeta
 					});
-					return (
-						!this.isReloading &&
-						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				} catch (error) {
-					return (
-						!this.isReloading &&
-						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				}
-			},
-			eth_signTypedData: async payload => {
-				const { TypedMessageManager } = Engine.context;
-				try {
+
+					res.result = rawSig;
+				},
+
+				eth_signTypedData: async () => {
+					const { TypedMessageManager } = Engine.context;
 					const pageMeta = await this.getPageMeta();
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 						{
-							data: payload.params[0],
-							from: payload.params[1],
+							data: req.params[0],
+							from: req.params[1],
 							...pageMeta
 						},
 						'V1'
 					);
-					return (
-						!this.isReloading &&
-						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				} catch (error) {
-					return (
-						!this.isReloading &&
-						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				}
-			},
-			eth_signTypedData_v3: async payload => {
-				const { TypedMessageManager } = Engine.context;
 
-				let data;
-				try {
-					data = JSON.parse(payload.params[1]);
-				} catch (e) {
-					throw new Error('Data must be passed as a valid JSON string.');
-				}
-				const chainId = data.domain.chainId;
-				const activeChainId =
-					this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
+					res.result = rawSig;
+				},
 
-				// eslint-disable-next-line eqeqeq
-				if (chainId && chainId != activeChainId) {
-					throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
-				}
+				eth_signTypedData_v3: async () => {
+					const { TypedMessageManager } = Engine.context;
+					const data = JSON.parse(req.params[1]);
+					const chainId = data.domain.chainId;
+					const activeChainId =
+						this.props.networkType === 'rpc'
+							? this.props.network
+							: Networks[this.props.networkType].networkId;
 
-				try {
+					// eslint-disable-next-line eqeqeq
+					if (chainId && chainId != activeChainId) {
+						throw ethErrors.rpc.invalidRequest(
+							`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
+						);
+					}
+
 					const pageMeta = await this.getPageMeta();
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 						{
-							data: payload.params[1],
-							from: payload.params[0],
+							data: req.params[1],
+							from: req.params[0],
 							...pageMeta
 						},
 						'V3'
 					);
-					return (
-						!this.isReloading &&
-						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				} catch (error) {
-					return (
-						!this.isReloading &&
-						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				}
-			},
-			eth_signTypedData_v4: async payload => {
-				const { TypedMessageManager } = Engine.context;
 
-				let data;
-				try {
-					data = JSON.parse(payload.params[1]);
-				} catch (e) {
-					throw new Error('Data must be passed as a valid JSON string.');
-				}
+					res.result = rawSig;
+				},
 
-				const chainId = data.domain.chainId;
-				const activeChainId =
-					this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
+				eth_signTypedData_v4: async () => {
+					const { TypedMessageManager } = Engine.context;
+					const data = JSON.parse(req.params[1]);
+					const chainId = data.domain.chainId;
+					const activeChainId =
+						this.props.networkType === 'rpc'
+							? this.props.network
+							: Networks[this.props.networkType].networkId;
 
-				if (chainId && chainId !== activeChainId) {
-					throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
-				}
+					// eslint-disable-next-line eqeqeq
+					if (chainId && chainId != activeChainId) {
+						throw ethErrors.rpc.invalidRequest(
+							`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
+						);
+					}
 
-				try {
 					const pageMeta = await this.getPageMeta();
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 						{
-							data: payload.params[1],
-							from: payload.params[0],
+							data: req.params[1],
+							from: req.params[0],
 							...pageMeta
 						},
 						'V4'
 					);
-					return (
-						!this.isReloading &&
-						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				} catch (error) {
-					return (
-						!this.isReloading &&
-						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
-					);
-				}
-			},
-			eth_requestAccounts: ({ hostname, params }) => {
-				const { approvedHosts, privacyMode, selectedAddress } = this.props;
-				const promise = new Promise((resolve, reject) => {
-					this.approvalRequest = { resolve, reject };
-				});
-				if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
-					this.approvalRequest.resolve([selectedAddress]);
-					//if not approved previously
-					if (!this.backgroundBridge._accounts) {
-						this.backgroundBridge.enableAccounts();
-					}
-				} else {
-					// Let the damn website load first!
-					// Otherwise we don't get enough time to load the metadata
-					// (title, icon, etc)
 
-					setTimeout(async () => {
-						await this.getPageMeta();
-						this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
-					}, 1000);
-				}
-				return !this.isReloading && promise;
-			},
-			eth_accounts: ({ id, jsonrpc, hostname }) => {
-				const { approvedHosts, privacyMode, selectedAddress } = this.props;
-				const isEnabled = !privacyMode || approvedHosts[hostname];
-				const promise = new Promise((resolve, reject) => {
-					this.accountsRequest = { resolve, reject };
-				});
-				if (isEnabled) {
-					this.accountsRequest.resolve({ id, jsonrpc, result: [selectedAddress] });
-				} else {
-					this.accountsRequest.resolve({ id, jsonrpc, result: [] });
-				}
-				return !this.isReloading && promise;
-			},
-			net_version: payload =>
-				!this.isReloading &&
-				Promise.resolve({
-					result: `${Networks[this.props.networkType].networkId}`,
-					jsonrpc: payload.jsonrpc,
-					id: payload.id
-				}),
-			web3_clientVersion: payload =>
-				!this.isReloading &&
-				Promise.resolve({
-					result: `MetaMask/${this.props.app_version}/Beta/Mobile`,
-					jsonrpc: payload.jsonrpc,
-					id: payload.id
-				}),
-			wallet_scanQRCode: payload => {
-				const promise = new Promise((resolve, reject) => {
+					res.result = rawSig;
+				},
+
+				web3_clientVersion: async () => {
+					res.result = `MetaMask/${this.props.app_version}/Beta/Mobile`;
+				},
+
+				wallet_scanQRCode: async () => {
 					this.props.navigation.navigate('QRScanner', {
 						onScanSuccess: data => {
 							let result = data;
@@ -660,108 +649,104 @@ export class BrowserTab extends PureComponent {
 							} else if (data.scheme) {
 								result = JSON.stringify(data);
 							}
-							resolve({ result, jsonrpc: payload.jsonrpc, id: payload.id });
+							res.result = result;
 						},
 						onScanError: e => {
-							reject({ errir: e.toString(), jsonrpc: payload.jsonrpc, id: payload.id });
+							throw ethErrors.rpc.internal(e.toString());
 						}
 					});
-				});
-				return !this.isReloading && promise;
-			},
-			wallet_watchAsset: async ({ params }) => {
-				const {
-					options: { address, decimals, image, symbol },
-					type
-				} = params;
-				const { AssetsController } = Engine.context;
-				const suggestionResult = await AssetsController.watchAsset({ address, symbol, decimals, image }, type);
-				return !this.isReloading && suggestionResult.result;
-			},
-			metamask_isApproved: async ({ hostname }) =>
-				!this.isReloading && {
-					isApproved: !!this.props.approvedHosts[hostname]
 				},
-			metamask_removeFavorite: ({ params }) => {
-				const promise = new Promise((resolve, reject) => {
+
+				wallet_watchAsset: async () => {
+					const {
+						options: { address, decimals, image, symbol },
+						type
+					} = req;
+					const { AssetsController } = Engine.context;
+					const suggestionResult = await AssetsController.watchAsset(
+						{ address, symbol, decimals, image },
+						type
+					);
+
+					res.result = suggestionResult.result;
+				},
+
+				metamask_removeFavorite: async () => {
 					if (!this.isHomepage()) {
-						reject({ error: 'unauthorized' });
+						throw ethErrors.provider.unauthorized('Forbidden.');
 					}
 
 					Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
 						{
 							text: strings('browser.cancel'),
 							onPress: () => {
-								resolve({
+								res.result = {
 									favorites: this.props.bookmarks
-								});
+								};
 							},
 							style: 'cancel'
 						},
 						{
 							text: strings('browser.yes'),
 							onPress: () => {
-								const bookmark = { url: params[0] };
+								const bookmark = { url: req[0] };
 								this.props.removeBookmark(bookmark);
 								// remove bookmark from homepage
 								this.refreshHomeScripts();
-								resolve({
+								res.result = {
 									favorites: this.props.bookmarks
-								});
+								};
 							}
 						}
 					]);
-				});
-				return !this.isReloading && promise;
-			},
-			metamask_showTutorial: () => {
-				this.wizardScrollAdjusted = false;
-				this.props.setOnboardingWizardStep(1);
-				this.props.navigation.navigate('WalletView');
+				},
 
-				return !this.isReloading && Promise.resolve({ result: true });
-			},
-			metamask_showAutocomplete: () => {
-				this.fromHomepage = true;
-				this.setState(
-					{
-						autocompleteInputValue: ''
-					},
-					() => {
-						this.showUrlModal(true);
-						setTimeout(() => {
-							this.fromHomepage = false;
-						}, 1500);
-					}
-				);
+				metamask_showTutorial: async () => {
+					this.wizardScrollAdjusted = false;
+					this.props.setOnboardingWizardStep(1);
+					this.props.navigation.navigate('WalletView');
 
-				return !this.isReloading && Promise.resolve({ result: true });
+					res.result = true;
+				},
+
+				metamask_showAutocomplete: async () => {
+					this.fromHomepage = true;
+					this.setState(
+						{
+							autocompleteInputValue: ''
+						},
+						() => {
+							this.showUrlModal(true);
+							setTimeout(() => {
+								this.fromHomepage = false;
+							}, 1500);
+						}
+					);
+
+					res.result = true;
+				}
+			};
+
+			if (!rpcMethods[req.method]) {
+				return next();
 			}
+			await rpcMethods[req.method]();
 		});
-	};
 
 	init = async () => {
-		const entryScriptWeb3 =
-			Platform.OS === 'ios'
-				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
-				: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
-
-		const updatedentryScriptWeb3 = entryScriptWeb3.replace(
-			'undefined; // INITIAL_NETWORK',
-			this.props.networkType === 'rpc'
-				? `'${this.props.network}'`
-				: `'${Networks[this.props.networkType].networkId}'`
-		);
+		const entryScriptWeb3 = Device.isIos()
+			? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
+			: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
 
 		const analyticsEnabled = Analytics.getEnabled();
 
 		const homepageScripts = `
-			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
-			window.__mmSearchEngine = "${this.props.searchEngine}";
-			window.__mmMetametrics = ${analyticsEnabled};
-		`;
+      window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+      window.__mmSearchEngine = "${this.props.searchEngine}";
+      window.__mmMetametrics = ${analyticsEnabled};
+    `;
 
-		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener, homepageScripts });
+		await this.setState({ entryScriptWeb3: entryScriptWeb3 + SPA_urlChangeListener, homepageScripts });
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
 			if (!this.isTabActive()) return false;
 			this.setState({ watchAsset: true, suggestedAssetMeta });
@@ -787,7 +772,7 @@ export class BrowserTab extends PureComponent {
 
 		BackHandler.addEventListener('hardwareBackPress', this.handleAndroidBackPress);
 
-		if (Platform.OS === 'android') {
+		if (Device.isAndroid()) {
 			DrawerStatusTracker.hub.on('drawer::open', this.drawerOpenHandler);
 		}
 
@@ -856,11 +841,11 @@ export class BrowserTab extends PureComponent {
 		const analyticsEnabled = Analytics.getEnabled();
 
 		const homepageScripts = `
-			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
-			window.__mmSearchEngine="${this.props.searchEngine}";
-			window.__mmMetametrics = ${analyticsEnabled};
-			window.postMessage('updateFavorites', '*');
-		`;
+      window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+      window.__mmSearchEngine="${this.props.searchEngine}";
+      window.__mmMetametrics = ${analyticsEnabled};
+      window.postMessage('updateFavorites', '*');
+    `;
 		this.setState({ homepageScripts }, () => {
 			const { current } = this.webview;
 			if (current) {
@@ -874,8 +859,12 @@ export class BrowserTab extends PureComponent {
 	}
 
 	componentDidUpdate(prevProps) {
-		const prevNavigation = prevProps.navigation;
-		const { navigation } = this.props;
+		const {
+			approvedHosts: prevApprovedHosts,
+			navigation: prevNavigation,
+			selectedAddress: prevSelectedAddress
+		} = prevProps;
+		const { approvedHosts, navigation, selectedAddress } = this.props;
 
 		// If tab wasn't activated and we detect an tab change
 		// we need to check if it's time to activate the tab
@@ -893,15 +882,37 @@ export class BrowserTab extends PureComponent {
 				this.loadUrl();
 			}
 		}
+
+		const numApprovedHosts = Object.keys(approvedHosts).length;
+		const prevNumApprovedHosts = Object.keys(prevApprovedHosts).length;
+
+		// this will happen if the approved hosts were cleared
+		if (numApprovedHosts === 0 && prevNumApprovedHosts > 0) {
+			this.notifyAllConnections(
+				{
+					method: NOTIFICATION_NAMES.accountsChanged,
+					result: []
+				},
+				false
+			); // notification should be sent regardless of approval status
+		}
+
+		if (numApprovedHosts > 0 && selectedAddress !== prevSelectedAddress) {
+			this.notifyAllConnections({
+				method: NOTIFICATION_NAMES.accountsChanged,
+				result: [selectedAddress]
+			});
+		}
 	}
 
 	componentWillUnmount() {
 		this.mounted = false;
+		this.backgroundBridges.forEach(bridge => bridge.onDisconnect());
 		// Remove all Engine listeners
 		Engine.context.AssetsController.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('networkChange', this.reload);
 		this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
-		if (Platform.OS === 'android') {
+		if (Device.isAndroid()) {
 			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
 			DrawerStatusTracker && DrawerStatusTracker.hub && DrawerStatusTracker.hub.removeAllListeners();
 		}
@@ -1068,8 +1079,11 @@ export class BrowserTab extends PureComponent {
 		}, 100);
 		// Need to wait for nav_change & onPageChanged
 		setTimeout(() => {
-			this.setState({ forwardEnabled: true });
-		}, 1000);
+			this.setState({
+				forwardEnabled: true,
+				currentPageTitle: null
+			});
+		}, 500);
 	};
 
 	goBackToHomepage = async () => {
@@ -1153,7 +1167,7 @@ export class BrowserTab extends PureComponent {
 				url: this.state.inputValue,
 				onAddBookmark: async ({ name, url }) => {
 					this.props.addBookmark({ name, url });
-					if (Platform.OS === 'ios') {
+					if (Device.isIos()) {
 						const item = {
 							uniqueIdentifier: url,
 							title: name || url,
@@ -1170,10 +1184,10 @@ export class BrowserTab extends PureComponent {
 					const analyticsEnabled = Analytics.getEnabled();
 
 					const homepageScripts = `
-						window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
-						window.__mmSearchEngine="${this.props.searchEngine}";
-						window.__mmMetametrics = ${analyticsEnabled};
-					`;
+            window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+            window.__mmSearchEngine="${this.props.searchEngine}";
+            window.__mmMetametrics = ${analyticsEnabled};
+          `;
 					this.setState({ homepageScripts });
 				}
 			})
@@ -1216,7 +1230,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	dismissTextSelectionIfNeeded() {
-		if (this.isTabActive() && Platform.OS === 'android') {
+		if (this.isTabActive() && Device.isAndroid()) {
 			const { current } = this.webview;
 			if (current) {
 				setTimeout(() => {
@@ -1227,11 +1241,7 @@ export class BrowserTab extends PureComponent {
 	}
 
 	toggleOptionsIfNeeded() {
-		if (
-			this.props.navigation &&
-			this.props.navigation.state.params &&
-			this.props.navigation.state.params.showOptions
-		) {
+		if (this.state.showOptions) {
 			this.toggleOptions();
 		}
 	}
@@ -1239,25 +1249,40 @@ export class BrowserTab extends PureComponent {
 	toggleOptions = () => {
 		this.dismissTextSelectionIfNeeded();
 
-		this.props.navigation &&
-			this.props.navigation.setParams({
-				...this.props.navigation.state.params,
-				showOptions: !this.props.navigation.state.params.showOptions
-			});
-
-		!this.props.navigation.state.params.showOptions &&
-			InteractionManager.runAfterInteractions(() => {
-				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_BROWSER_OPTIONS);
-			});
+		this.setState({ showOptions: !this.state.showOptions }, () => {
+			if (this.state.showOptions) {
+				InteractionManager.runAfterInteractions(() => {
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_BROWSER_OPTIONS);
+				});
+			}
+		});
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
-			if (!data || !data.type) {
+			if (!data || (!data.type && !data.name)) {
 				return;
 			}
+			if (data.name) {
+				this.backgroundBridges.forEach(bridge => {
+					if (bridge.isMainFrame) {
+						const { origin } = data && data.origin && new URL(data.origin);
+						bridge.url === origin && bridge.onMessage(data);
+					} else {
+						bridge.url === data.origin && bridge.onMessage(data);
+					}
+				});
+				return;
+			}
+
 			switch (data.type) {
+				case 'FRAME_READY': {
+					const { url } = data.payload;
+					this.onFrameLoadStarted(url);
+					break;
+				}
+
 				case 'NAV_CHANGE': {
 					const { url, title } = data.payload;
 					this.setState({
@@ -1271,9 +1296,7 @@ export class BrowserTab extends PureComponent {
 					this.updateTabInfo(data.payload.url);
 					break;
 				}
-				case 'INPAGE_REQUEST':
-					this.backgroundBridge.onMessage(data);
-					break;
+
 				case 'GET_TITLE_FOR_BOOKMARK':
 					if (data.payload.title) {
 						this.setState({
@@ -1290,7 +1313,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onShouldStartLoadWithRequest = ({ url, navigationType }) => {
-		if (Platform.OS === 'ios') {
+		if (Device.isIos()) {
 			return true;
 		}
 		if (this.isENSUrl(url) && navigationType === 'other') {
@@ -1378,19 +1401,7 @@ export class BrowserTab extends PureComponent {
 		this.setState({ progress });
 	};
 
-	waitForBridgeAndEnableAccounts = async () => {
-		while (!this.backgroundBridge) {
-			await new Promise(res => setTimeout(() => res(), 1000));
-		}
-		this.backgroundBridge.enableAccounts();
-	};
-
 	onLoadEnd = () => {
-		const { approvedHosts, privacyMode } = this.props;
-		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
-			this.waitForBridgeAndEnableAccounts();
-		}
-
 		// Wait for the title, then store the visit
 		setTimeout(() => {
 			this.props.addToBrowserHistory({
@@ -1426,7 +1437,7 @@ export class BrowserTab extends PureComponent {
 	);
 
 	renderOptions = () => {
-		const showOptions = (this.props.navigation && this.props.navigation.getParam('showOptions', false)) || false;
+		const { showOptions } = this.state;
 		if (showOptions) {
 			return (
 				<TouchableWithoutFeedback onPress={this.toggleOptions}>
@@ -1434,7 +1445,7 @@ export class BrowserTab extends PureComponent {
 						<View
 							style={[
 								styles.optionsWrapper,
-								Platform.OS === 'android' ? styles.optionsWrapperAndroid : styles.optionsWrapperIos
+								Device.isAndroid() ? styles.optionsWrapperAndroid : styles.optionsWrapperIos
 							]}
 						>
 							<Button onPress={this.onNewTabPress} style={styles.option}>
@@ -1616,7 +1627,7 @@ export class BrowserTab extends PureComponent {
 						selectTextOnFocus
 					/>
 
-					{Platform.OS === 'android' ? (
+					{Device.isAndroid() ? (
 						<TouchableOpacity onPress={this.clearInputText} style={styles.iconCloseButton}>
 							<MaterialIcon name="close" size={20} style={[styles.icon, styles.iconClose]} />
 						</TouchableOpacity>
@@ -1672,7 +1683,6 @@ export class BrowserTab extends PureComponent {
 		const { approveHost, selectedAddress } = this.props;
 		this.setState({ showApprovalDialog: false, showApprovalDialogHostname: undefined });
 		approveHost(this.state.fullHostname);
-		this.backgroundBridge.enableAccounts();
 		this.approvalRequest && this.approvalRequest.resolve && this.approvalRequest.resolve([selectedAddress]);
 	};
 
@@ -1783,9 +1793,17 @@ export class BrowserTab extends PureComponent {
 		this.sessionENSNames[url] = host;
 	};
 
-	onLoadStart = ({ nativeEvent }) => {
-		this.initializeBackgroundBridge();
-		this.backgroundBridge && this.backgroundBridge.disableAccounts();
+	onFrameLoadStarted = url => {
+		url && this.initializeBackgroundBridge(url, false);
+	};
+
+	webviewRefIsReady = () =>
+		this.webview &&
+		this.webview.current &&
+		this.webview.current.webViewRef &&
+		this.webview.current.webViewRef.current;
+
+	onLoadStart = async ({ nativeEvent }) => {
 		// Handle the scenario when going back
 		// from an ENS name
 		if (nativeEvent.navigationType === 'backforward' && nativeEvent.url === this.state.inputValue) {
@@ -1798,6 +1816,24 @@ export class BrowserTab extends PureComponent {
 					currentEnsName
 				});
 			}
+		}
+
+		let i = 0;
+		while (!this.webviewRefIsReady() && i < 10) {
+			await new Promise(res =>
+				setTimeout(() => {
+					res();
+				}, 500)
+			);
+			i++;
+		}
+
+		if (this.webviewRefIsReady()) {
+			// Reset the previous bridges
+			this.backgroundBridges.length && this.backgroundBridges.forEach(bridge => bridge.onDisconnect());
+			this.backgroundBridges = [];
+			const origin = new URL(nativeEvent.url).origin;
+			this.initializeBackgroundBridge(origin, true);
 		}
 	};
 
@@ -1839,7 +1875,7 @@ export class BrowserTab extends PureComponent {
 		return (
 			<View
 				style={[styles.wrapper, isHidden && styles.hide]}
-				{...(Platform.OS === 'android' ? { collapsable: false } : {})}
+				{...(Device.isAndroid() ? { collapsable: false } : {})}
 			>
 				<View style={styles.webview}>
 					{activated && !forceReload && (

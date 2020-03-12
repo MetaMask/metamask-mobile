@@ -246,6 +246,9 @@ describe('Browser Tests', () => {
 			await TestHelpers.replaceTextInField('url-input', ETHEREUM_ENABLE);
 			await element(by.id('url-input')).tapReturnKey();
 		}
+
+		await TestHelpers.checkIfHasText('dapp-name-title', 'brunobar79.github.io');
+
 		// Tap on CONNECT button
 		if (!device.getPlatform() === 'android') {
 			await TestHelpers.delay(2000);
@@ -305,8 +308,20 @@ describe('Browser Tests', () => {
 		await TestHelpers.delay(1000);
 		// Check that account approval is displayed with correct dapp name
 		await TestHelpers.checkIfHasText('dapp-name-title', 'Uniswap Exchange');
+
+		// There is a yellow warning that pops up in dev mode, when canceling the connection request
+		// go to index.js and add this to the list of warnings
+		// to block in order to get it to work = "Error in RPC response",
+
 		// Tap on CANCEL button
 		await TestHelpers.tapByText('CANCEL');
+
+		// THIS SUCKS BUT UNISWAP IS ASKING TO CONNECT TWICE
+		// Tap on CANCEL button
+		// Wait for page to load
+		await TestHelpers.delay(1000);
+		await TestHelpers.tapByText('CANCEL');
+
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
 	});
@@ -316,10 +331,12 @@ describe('Browser Tests', () => {
 		await TestHelpers.checkIfVisible('browser-screen');
 		// Tap on options
 		await TestHelpers.waitAndTap('options-button');
-		// Tap on New tab
+		// Tap on Add to Favorites
 		await TestHelpers.tapByText('Add to Favorites');
+		// Check that we are on the correct screen
+		await TestHelpers.checkIfVisible('add-bookmark-screen');
 		// Tap on ADD button
-		await TestHelpers.tapByText('ADD');
+		await TestHelpers.tap('add-bookmark-confirm-button');
 	});
 
 	it('should go back home and navigate to favorites', async () => {

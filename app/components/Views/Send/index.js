@@ -19,6 +19,7 @@ import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getTransactionReviewActionKey, decodeTransferData } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
 import { isENS } from '../../../util/address';
+import TransactionTypes from '../../../core/TransactionTypes';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -397,7 +398,10 @@ class Send extends PureComponent {
 			} else {
 				transaction = this.prepareAssetTransaction(transaction, selectedAsset);
 			}
-			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
+			const { result, transactionMeta } = await TransactionController.addTransaction(
+				transaction,
+				TransactionTypes.MMM
+			);
 
 			await TransactionController.approveTransaction(transactionMeta.id);
 
@@ -446,7 +450,9 @@ class Send extends PureComponent {
 				this.removeCollectible();
 			});
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+				{ text: strings('navigation.ok') }
+			]);
 			this.setState({ transactionConfirmed: false });
 			await this.reset();
 		}

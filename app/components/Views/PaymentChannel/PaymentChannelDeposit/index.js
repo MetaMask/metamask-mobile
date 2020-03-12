@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import {
 	SafeAreaView,
-	Platform,
 	TextInput,
 	Alert,
 	Text,
@@ -37,6 +36,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import contractMap from 'eth-contract-metadata';
 import AssetIcon from '../../../UI/AssetIcon';
 import { getTicker } from '../../../../util/transactions';
+import Device from '../../../../util/Device';
 import Modal from 'react-native-modal';
 import AddressQRCode from '../../AddressQRCode';
 
@@ -75,7 +75,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 18,
 		color: colors.grey500,
-		marginVertical: 4
+		marginVertical: 4,
+		textTransform: 'uppercase'
 	},
 	explainerText: {
 		...fontStyles.normal,
@@ -94,7 +95,8 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		fontSize: 40,
 		maxWidth: '70%',
-		padding: 0
+		padding: 0,
+		minWidth: 85
 	},
 	inputWrapper: {
 		flexDirection: 'row',
@@ -386,13 +388,9 @@ class Deposit extends PureComponent {
 		const { conversionRate, currentCurrency } = this.props;
 		const maxETH = PaymentChannelsClient.getMaximumDepositEth();
 		const maxFiat =
-			conversionRate &&
-			maxETH &&
-			isDecimal(maxETH) &&
-			weiToFiat(toWei(maxETH), conversionRate, currentCurrency.toUpperCase());
+			conversionRate && maxETH && isDecimal(maxETH) && weiToFiat(toWei(maxETH), conversionRate, currentCurrency);
 		const minFiat =
-			conversionRate &&
-			weiToFiat(toWei(PaymentChannelsClient.MIN_DEPOSIT_ETH), conversionRate, currentCurrency.toUpperCase());
+			conversionRate && weiToFiat(toWei(PaymentChannelsClient.MIN_DEPOSIT_ETH), conversionRate, currentCurrency);
 		return (
 			<React.Fragment>
 				<Text style={styles.explainerText}>
@@ -417,12 +415,12 @@ class Deposit extends PureComponent {
 		let secondaryAmount, currency, secondaryCurrency;
 		if (primaryCurrency === 'ETH') {
 			secondaryAmount = weiToFiatNumber(value, conversionRate).toString();
-			secondaryCurrency = currentCurrency.toUpperCase();
+			secondaryCurrency = currentCurrency;
 			currency = getTicker(ticker);
 		} else {
 			secondaryAmount = renderFromWei(value);
 			secondaryCurrency = getTicker(ticker);
-			currency = currentCurrency.toUpperCase();
+			currency = currentCurrency;
 		}
 		return (
 			<TouchableWithoutFeedback style={styles.root} onPress={Keyboard.dismiss}>
@@ -456,7 +454,7 @@ class Deposit extends PureComponent {
 									{secondaryAmount}
 								</Text>
 								<Text style={styles.fiatValue} numberOfLines={1}>
-									{' ' + secondaryCurrency}
+									{` ${secondaryCurrency}`}
 								</Text>
 							</View>
 						)}
@@ -467,7 +465,7 @@ class Deposit extends PureComponent {
 							style={styles.buttonsWrapper}
 							behavior={'padding'}
 							keyboardVerticalOffset={KEYBOARD_OFFSET}
-							enabled={Platform.OS === 'ios'}
+							enabled={Device.isIos()}
 						>
 							<View style={styles.buttonsContainer}>
 								<StyledButton

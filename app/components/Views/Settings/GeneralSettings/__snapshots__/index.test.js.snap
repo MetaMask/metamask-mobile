@@ -34,7 +34,7 @@ exports[`GeneralSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -47,7 +47,7 @@ exports[`GeneralSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -72,11 +72,6 @@ exports[`GeneralSettings should render correctly 1`] = `
           onValueChange={[Function]}
           options={
             Array [
-              Object {
-                "key": "1st",
-                "label": "1ST - FirstBlood",
-                "value": "1st",
-              },
               Object {
                 "key": "adt",
                 "label": "ADT - adToken",
@@ -333,11 +328,6 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "trst",
               },
               Object {
-                "key": "uah",
-                "label": "UAH - Ukrainian Hryvnia",
-                "value": "uah",
-              },
-              Object {
                 "key": "usd",
                 "label": "USD - United States Dollar",
                 "value": "usd",
@@ -399,7 +389,7 @@ exports[`GeneralSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -412,7 +402,7 @@ exports[`GeneralSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -441,7 +431,7 @@ exports[`GeneralSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -454,7 +444,7 @@ exports[`GeneralSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -486,7 +476,7 @@ exports[`GeneralSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -499,7 +489,7 @@ exports[`GeneralSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,

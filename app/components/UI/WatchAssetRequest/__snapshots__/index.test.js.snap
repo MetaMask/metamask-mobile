@@ -17,7 +17,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 18,
           "fontWeight": "600",
           "marginHorizontal": 20,
@@ -60,7 +60,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 16,
               "fontWeight": "400",
             }
@@ -98,7 +98,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontWeight": "600",
                 }
               }
@@ -142,7 +142,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
               <Text
                 style={
                   Object {
-                    "fontFamily": "Roboto",
+                    "fontFamily": "CircularStd-Medium",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "paddingHorizontal": 10,
@@ -173,7 +173,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontWeight": "600",
                 }
               }
@@ -191,7 +191,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "fontFamily": "Roboto",
+                  "fontFamily": "CircularStd-Medium",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "paddingHorizontal": 10,

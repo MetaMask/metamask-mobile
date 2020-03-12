@@ -15,6 +15,7 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import contractMap from 'eth-contract-metadata';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import { safeToChecksumAddress } from '../../../util/address';
+import TransactionTypes from '../../../core/TransactionTypes';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -136,7 +137,7 @@ class TransactionEditor extends PureComponent {
 				to: selectedAsset && selectedAsset.address ? selectedAsset.address : to
 			});
 		} catch (e) {
-			estimation = { gas: '0x5208' };
+			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
 		}
 		return estimation;
 	};

@@ -3,11 +3,11 @@
 #
 # For a list of all available actions, check out
 #
-#     https://docs.fastlane.tools/actions
+#	 https://docs.fastlane.tools/actions
 #
 # For a list of all available plugins, check out
 #
-#     https://docs.fastlane.tools/plugins/available-plugins
+#	 https://docs.fastlane.tools/plugins/available-plugins
 #
 
 # Uncomment the line if you want fastlane to automatically update itself
@@ -31,13 +31,13 @@ platform :ios do
 			clean: true,
 			scheme: "MetaMask",
 			configuration: "Release",
-		    export_method: "app-store",
+			export_method: "app-store",
 			output_name: "MetaMask"
 		)
 		upload_to_testflight(
-      		distribute_external: false,
+	  		distribute_external: false,
 			skip_waiting_for_build_processing: true
-    	)
+		)
 
 	end
 
@@ -54,13 +54,13 @@ platform :ios do
 			clean: true,
 			scheme: "MetaMask",
 			configuration: "Release",
-		    export_method: "app-store",
+			export_method: "app-store",
 			output_name: "MetaMask"
 		)
 		upload_to_testflight(
-      		distribute_external: false,
+	  		distribute_external: false,
 			skip_waiting_for_build_processing: true
-    	)
+		)
 
 	end
 end

@@ -13,7 +13,6 @@ import {
 	NetworkStatusController,
 	PhishingController,
 	PreferencesController,
-	ShapeShiftController,
 	TokenBalancesController,
 	TokenRatesController,
 	TransactionController,
@@ -81,7 +80,8 @@ class Engine {
 										const { TransactionController } = this.datamodel.context;
 										try {
 											const hash = await (await TransactionController.addTransaction(
-												payload.params[0]
+												payload.params[0],
+												payload.origin
 											)).result;
 											end(undefined, hash);
 										} catch (error) {
@@ -110,7 +110,6 @@ class Engine {
 							ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL
 						}
 					),
-					new ShapeShiftController(),
 					new TokenBalancesController(),
 					new TokenRatesController(),
 					new TransactionController(),

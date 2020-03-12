@@ -15,18 +15,22 @@ export const colors = {
 	black: '#000000',
 	white: '#FFFFFF',
 	white100: '#F9FAFB',
+	grey600: '#5B5D67',
 	grey500: '#6a737d',
 	grey400: '#848c96',
 	grey300: '#9fa6ae',
 	grey200: '#bbc0c5',
 	grey100: '#d6d9dc',
+	grey050: '#D8D8D8',
 	grey000: '#f2f3f4',
+	grey: '#333333',
 	red: '#D73A49',
 	red000: '#fcf2f3',
 	blue: '#037dd6',
 	blue000: '#eaf6ff',
 	green600: '#1e7e34',
 	green500: '#28a745',
+	green400: '#28A745',
 	green300: '#86e29b',
 	green200: '#afecbd',
 	green100: '#e6f9ea',
@@ -64,19 +68,19 @@ export const baseStyles = {
  */
 export const fontStyles = {
 	normal: {
-		fontFamily: 'Roboto',
+		fontFamily: 'CircularStd-Medium',
 		fontWeight: '400'
 	},
 	light: {
-		fontFamily: 'Roboto',
+		fontFamily: 'CircularStd-Medium',
 		fontWeight: '300'
 	},
 	thin: {
-		fontFamily: 'Roboto',
+		fontFamily: 'CircularStd-Medium',
 		fontWeight: '100'
 	},
 	bold: {
-		fontFamily: 'Roboto',
+		fontFamily: 'CircularStd-Medium',
 		fontWeight: '600'
 	}
 };

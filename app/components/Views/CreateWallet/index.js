@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-	Platform,
 	Image,
 	ActivityIndicator,
 	InteractionManager,
@@ -24,6 +23,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 // eslint-disable-next-line import/named
 import { NavigationActions, withNavigationFocus } from 'react-navigation';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -53,8 +53,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	foxWrapper: {
-		width: Platform.OS === 'ios' ? 90 : 80,
-		height: Platform.OS === 'ios' ? 90 : 80,
+		width: Device.isIos() ? 90 : 80,
+		height: Device.isIos() ? 90 : 80,
 		marginTop: 30,
 		marginBottom: 30
 	},
@@ -157,7 +157,7 @@ class CreateWallet extends PureComponent {
 					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
 							<View style={styles.foxWrapper}>
-								{Platform.OS === 'android' ? (
+								{Device.isAndroid() ? (
 									<Image
 										source={require('../../../images/fox.png')}
 										style={styles.image}
@@ -167,10 +167,7 @@ class CreateWallet extends PureComponent {
 									<AnimatedFox />
 								)}
 							</View>
-							<ActivityIndicator
-								size="large"
-								color={Platform.OS === 'android' ? colors.blue : colors.grey}
-							/>
+							<ActivityIndicator size="large" color={Device.isAndroid() ? colors.blue : colors.grey} />
 							<Text style={styles.title}>{strings('create_wallet.title')}</Text>
 							<Text style={styles.subtitle}>{strings('create_wallet.subtitle')}</Text>
 						</View>

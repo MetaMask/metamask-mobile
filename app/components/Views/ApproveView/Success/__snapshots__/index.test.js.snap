@@ -1,0 +1,98 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Success should render correctly 1`] = `
+<_class
+  emulateUnlessSupported={true}
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "flexDirection": "column",
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "marginTop": 120,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      color="#28A745"
+      name="checkcircleo"
+      size={95}
+    />
+  </View>
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "fontFamily": "CircularStd-Medium",
+        "fontSize": 24,
+        "fontWeight": "400",
+        "lineHeight": 34,
+        "marginVertical": 20,
+      }
+    }
+  >
+    All set!
+  </Text>
+  <Text
+    style={
+      Object {
+        "color": "#6a737d",
+        "fontFamily": "CircularStd-Medium",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "lineHeight": 20,
+        "marginHorizontal": 70,
+        "marginVertical": 20,
+        "textAlign": "center",
+      }
+    }
+  >
+    You’ve successfully set permissions for this site.
+  </Text>
+  <View
+    style={
+      Object {
+        "alignSelf": "flex-end",
+        "flex": 1,
+        "flexDirection": "row",
+        "marginHorizontal": 24,
+        "marginVertical": 12,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignSelf": "flex-end",
+          "flex": 1,
+          "flexDirection": "column",
+        }
+      }
+    >
+      <StyledButton
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="confirm"
+      >
+        Close
+      </StyledButton>
+    </View>
+  </View>
+</_class>
+`;

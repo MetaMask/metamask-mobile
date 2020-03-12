@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import {
 	Alert,
 	Clipboard,
-	Platform,
+	Linking,
 	TouchableOpacity,
 	View,
 	Image,
@@ -33,12 +33,11 @@ import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Engine from '../../../core/Engine';
-import { setTokensTransaction } from '../../../actions/transaction';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
 import { getVersion, getBuildNumber, getSystemName, getApiLevel, getSystemVersion } from 'react-native-device-info';
 import Logger from '../../../util/Logger';
-import DeviceSize from '../../../util/DeviceSize';
+import Device from '../../../util/Device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
@@ -49,6 +48,8 @@ import { generateUniversalLinkAddress } from '../../../util/payment-link-generat
 import EthereumAddress from '../EthereumAddress';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
+import { getEther } from '../../../util/transactions';
+import { newAssetTransaction } from '../../../actions/newTransaction';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -57,9 +58,9 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	header: {
-		paddingTop: DeviceSize.isIphoneX() ? 60 : 24,
+		paddingTop: Device.isIphoneX() ? 60 : 24,
 		backgroundColor: colors.grey000,
-		height: DeviceSize.isIphoneX() ? 110 : 74,
+		height: Device.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0
 	},
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'flex-end',
 		alignItems: 'center',
 		marginRight: 3,
-		marginTop: Platform.OS === 'android' ? -3 : -10
+		marginTop: Device.isAndroid() ? -3 : -10
 	},
 	settingsIcon: {
 		marginBottom: 12
@@ -76,9 +77,9 @@ const styles = StyleSheet.create({
 	metamaskLogo: {
 		flexDirection: 'row',
 		flex: 1,
-		marginTop: Platform.OS === 'android' ? 0 : 12,
+		marginTop: Device.isAndroid() ? 0 : 12,
 		marginLeft: 15,
-		paddingTop: Platform.OS === 'android' ? 10 : 0
+		paddingTop: Device.isAndroid() ? 10 : 0
 	},
 	metamaskFox: {
 		height: 27,
@@ -160,9 +161,9 @@ const styles = StyleSheet.create({
 		marginLeft: 5
 	},
 	buttonText: {
-		marginLeft: Platform.OS === 'ios' ? 8 : 28,
-		marginTop: Platform.OS === 'ios' ? 0 : -23,
-		paddingBottom: Platform.OS === 'ios' ? 0 : 3,
+		marginLeft: Device.isIos() ? 8 : 28,
+		marginTop: Device.isIos() ? 0 : -23,
+		paddingBottom: Device.isIos() ? 0 : 3,
 		fontSize: 15,
 		color: colors.blue,
 		...fontStyles.normal
@@ -176,10 +177,9 @@ const styles = StyleSheet.create({
 		marginTop: 0
 	},
 	buttonReceive: {
-		transform:
-			Platform.OS === 'ios'
-				? [{ rotate: '90deg' }]
-				: [{ rotate: '90deg' }, { translateX: ANDROID_OFFSET }, { translateY: ANDROID_OFFSET }]
+		transform: Device.isIos()
+			? [{ rotate: '90deg' }]
+			: [{ rotate: '90deg' }, { translateX: ANDROID_OFFSET }, { translateY: ANDROID_OFFSET }]
 	},
 	menu: {},
 	noTopBorder: {
@@ -284,6 +284,8 @@ const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-lin
 const instapay_logo_selected = require('../../../images/mm-instapay-selected.png'); // eslint-disable-line
 const instapay_logo = require('../../../images/mm-instapay.png'); // eslint-disable-line
 
+const USE_EXTERNAL_LINKS = Device.isAndroid() || false;
+
 /**
  * View component that displays the MetaMask fox
  * in the middle of the screen
@@ -343,13 +345,13 @@ class DrawerView extends PureComponent {
 		 */
 		receiveModalVisible: PropTypes.bool.isRequired,
 		/**
+		 * Start transaction with asset
+		 */
+		newAssetTransaction: PropTypes.func.isRequired,
+		/**
 		 * Boolean that determines the status of the networks modal
 		 */
 		accountsModalVisible: PropTypes.bool.isRequired,
-		/**
-		 * Action that sets a tokens type transaction
-		 */
-		setTokensTransaction: PropTypes.func.isRequired,
 		/**
 		 * Boolean that determines if the user has set a password before
 		 */
@@ -482,9 +484,8 @@ class DrawerView extends PureComponent {
 	};
 
 	onSend = async () => {
-		const { ticker } = this.props;
-		this.props.setTokensTransaction({ symbol: ticker, isETH: true });
-		this.props.navigation.navigate('SendView');
+		this.props.newAssetTransaction(getEther());
+		this.props.navigation.navigate('SendFlowView');
 		this.hideDrawer();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
 	};
@@ -587,10 +588,22 @@ class DrawerView extends PureComponent {
 	closeSubmitFeedback = () => {
 		this.setState({ submitFeedback: false });
 	};
-
+	handleURL = url => {
+		const handleError = error => {
+			console.log(error);
+			this.closeSubmitFeedback();
+		};
+		if (USE_EXTERNAL_LINKS) {
+			Linking.openURL(url)
+				.then(this.closeSubmitFeedback)
+				.catch(handleError);
+		} else {
+			this.goToBrowserUrl(url, strings('drawer.submit_bug'));
+			this.closeSubmitFeedback();
+		}
+	};
 	goToBugFeedback = () => {
-		this.goToBrowserUrl(`https://metamask.zendesk.com/hc/en-us/requests/new`, strings('drawer.submit_bug'));
-		this.setState({ submitFeedback: false });
+		this.handleURL('https://metamask.zendesk.com/hc/en-us/requests/new');
 	};
 
 	goToGeneralFeedback = () => {
@@ -603,11 +616,9 @@ class DrawerView extends PureComponent {
 		const buildNumber = await getBuildNumber();
 		const systemName = await getSystemName();
 		const systemVersion = systemName === 'Android' ? await getApiLevel() : await getSystemVersion();
-		this.goToBrowserUrl(
-			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`,
-			strings('drawer.feedback')
+		this.handleURL(
+			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`
 		);
-		this.setState({ submitFeedback: false });
 	};
 
 	showHelp = () => {
@@ -981,6 +992,7 @@ class DrawerView extends PureComponent {
 					propagateSwipe
 				>
 					<AccountList
+						enableAccountsAddition
 						identities={identities}
 						selectedAddress={selectedAddress}
 						keyrings={keyrings}
@@ -1065,7 +1077,7 @@ const mapDispatchToProps = dispatch => ({
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
 	showAlert: config => dispatch(showAlert(config)),
-	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
+	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
 });
 
 export default connect(

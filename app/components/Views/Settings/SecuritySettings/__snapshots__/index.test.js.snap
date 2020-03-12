@@ -35,7 +35,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -48,7 +48,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -89,7 +89,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -102,7 +102,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -144,7 +144,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -157,7 +157,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -201,7 +201,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -214,7 +214,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -259,7 +259,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -272,7 +272,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -354,7 +354,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -368,7 +368,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Array [
             Object {
               "color": "#6a737d",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -415,7 +415,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -430,7 +430,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Array [
             Object {
               "color": "#6a737d",
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -475,6 +475,8 @@ exports[`SecuritySettings should render correctly 1`] = `
       confirmDisabled={false}
       confirmTestID=""
       confirmText="CLEAR"
+      displayCancelButton={true}
+      displayConfirmButton={true}
       modalVisible={false}
       onCancelPress={[Function]}
       onConfirmPress={[Function]}
@@ -494,7 +496,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 22,
               "fontWeight": "600",
               "marginBottom": 20,
@@ -507,7 +509,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 18,
               "fontWeight": "400",
               "textAlign": "center",
@@ -526,6 +528,8 @@ exports[`SecuritySettings should render correctly 1`] = `
       confirmDisabled={false}
       confirmTestID=""
       confirmText="CLEAR"
+      displayCancelButton={true}
+      displayConfirmButton={true}
       modalVisible={false}
       onCancelPress={[Function]}
       onConfirmPress={[Function]}
@@ -545,7 +549,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 22,
               "fontWeight": "600",
               "marginBottom": 20,
@@ -558,7 +562,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "Roboto",
+              "fontFamily": "CircularStd-Medium",
               "fontSize": 18,
               "fontWeight": "400",
               "textAlign": "center",

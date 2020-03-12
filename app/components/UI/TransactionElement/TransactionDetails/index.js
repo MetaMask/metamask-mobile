@@ -9,10 +9,10 @@ import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../uti
 import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
 import URL from 'url-parse';
-import DeviceSize from '../../../../util/DeviceSize';
+import Device from '../../../../util/Device';
 import EthereumAddress from '../../EthereumAddress';
 
-const HASH_LENGTH = DeviceSize.isSmallDevice() ? 18 : 20;
+const HASH_LENGTH = Device.isSmallDevice() ? 18 : 20;
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textAlign: 'center',
 		marginTop: 15,
-		marginBottom: 10
+		marginBottom: 10,
+		textTransform: 'uppercase'
 	},
 	hash: {
 		fontSize: 12
@@ -308,9 +309,7 @@ class TransactionDetails extends PureComponent {
 						>
 							<Text style={styles.viewOnEtherscan}>
 								{(rpcBlockExplorer &&
-									`${strings('transactions.view_on')} ${getBlockExplorerName(
-										rpcBlockExplorer
-									).toUpperCase()}`) ||
+									`${strings('transactions.view_on')} ${getBlockExplorerName(rpcBlockExplorer)}`) ||
 									strings('transactions.view_on_etherscan')}
 							</Text>
 						</TouchableOpacity>

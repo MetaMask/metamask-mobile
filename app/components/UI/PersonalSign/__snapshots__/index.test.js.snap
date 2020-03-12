@@ -18,7 +18,7 @@ exports[`PersonalSign should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "Roboto",
+          "fontFamily": "CircularStd-Medium",
           "fontSize": 18,
           "fontWeight": "600",
           "marginHorizontal": 20,
@@ -53,7 +53,7 @@ exports[`PersonalSign should render correctly 1`] = `
       <Text
         style={
           Object {
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 16,
             "fontWeight": "400",
             "margin": 5,
@@ -68,7 +68,7 @@ exports[`PersonalSign should render correctly 1`] = `
           Object {
             "color": "#000000",
             "flex": 1,
-            "fontFamily": "Roboto",
+            "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
             "margin": 5,
