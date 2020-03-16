@@ -111,9 +111,9 @@ describe('Test Dapp Initiated Transactions', () => {
 		// Input Amount
 		await TestHelpers.replaceTextInField('amount-input', '0.000001');
 		// Tap on NEXT button
-		await TestHelpers.tapByText('NEXT');
+		await TestHelpers.tapByText('Next');
 		// Tap on CONFIRM button
-		await TestHelpers.tapByText('CONFIRM');
+		await TestHelpers.tapByText('Confirm');
 		// Wait for enable notifications alert to show up
 		if (device.getPlatform() === 'ios') {
 			// Check that we are on the browser screen
@@ -153,7 +153,7 @@ describe('Test Dapp Initiated Transactions', () => {
 		}
 	});
 
-	it('should navigate to test dapp repo to create and approve a token', async () => {
+	it('should navigate to test dapp repo to perform transactions', async () => {
 		// Open Drawer
 		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
@@ -178,61 +178,65 @@ describe('Test Dapp Initiated Transactions', () => {
 			await element(by.id('url-input')).tapReturnKey();
 			await TestHelpers.delay(1500);
 		}
+		// Tap on connect button to bring up connection request
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.tapAtPoint('browser-screen', { x: 65, y: 114 });
+			await TestHelpers.delay(1000);
+		} else {
+			await TestHelpers.tapAtPoint('browser-screen', { x: 65, y: 120 });
+		}
 		// Give some time for connect request
 		await TestHelpers.delay(1000);
 		// Check that account approval is displayed with correct dapp name
 		await TestHelpers.checkIfHasText('dapp-name-title', TEST_DAPP_TITLE);
 		// Tap on CONNECT button
 		await TestHelpers.tapByText('CONNECT');
-		// Tap on Create Token
+		// Give some time for account to be displayed
+		await TestHelpers.delay(1500);
+		// Tap on Create Token button
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 20, y: 56 });
+			await TestHelpers.tapAtPoint('browser-screen', { x: 70, y: 295 });
 			await TestHelpers.delay(1000);
 		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 23, y: 63 });
+			await TestHelpers.tapAtPoint('browser-screen', { x: 70, y: 297 });
 		}
-		// Check that we are on the confirm transaction screen
-		await TestHelpers.checkIfVisible('confirm-transaction-screen');
+		// Tap Edit
+		await TestHelpers.tap('confirm-txn-edit-button');
+		// Tap on SLOW for transaction fee
+		await TestHelpers.tapByText('SLOW');
+		// Tap on NEXT button
+		await TestHelpers.tapByText('Next');
 		// Tap on CONFIRM button
-		await TestHelpers.tapByText('CONFIRM');
-		// Wait for enable notifications alert to show up
-		if (device.getPlatform() === 'ios') {
-			// Check that we are on the browser screen
-			await TestHelpers.checkIfVisible('browser-screen');
-			// Wait for enable notifications alert to show up
-			await TestHelpers.delay(10000);
-			// Dismiss alert
-			await TestHelpers.tapAlertWithButton('No, thanks');
-		}
+		await TestHelpers.tapByText('Confirm');
 		// Delay so that webpage shifts down after address gets added
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.delay(10000);
+			await TestHelpers.delay(5000);
 		}
 		// Tap on Approve Tokens button
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 97, y: 67 });
+			await TestHelpers.tapAtPoint('browser-screen', { x: 300, y: 293 });
 			await TestHelpers.delay(1000);
 		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 100, y: 74 });
+			await TestHelpers.tapAtPoint('browser-screen', { x: 301, y: 298 });
 		}
-		// Check that we are on the confirm transaction screen
-		await TestHelpers.checkIfVisible('confirm-transaction-screen');
-		// Tap on CONFIRM button
-		await TestHelpers.tapByText('CONFIRM');
-		// Delay
-		await TestHelpers.delay(1000);
+		// // Check that we are on the confirm transaction screen
+		// await TestHelpers.checkIfVisible('confirm-transaction-screen');
+		// // Tap on CONFIRM button
+		// await TestHelpers.tapByText('CONFIRM');
+		// // Delay
+		// await TestHelpers.delay(1000);
 	});
 
-	it('should log out', async () => {
-		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-browser');
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on Log Out
-		await TestHelpers.tapByText('Log Out');
-		// Tap YES
-		await TestHelpers.tapAlertWithButton('YES');
-		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('login');
-	});
+	// it('should log out', async () => {
+	// 	// Open Drawer
+	// 	await TestHelpers.tap('hamburger-menu-button-browser');
+	// 	// Check that the drawer is visbile
+	// 	await TestHelpers.checkIfVisible('drawer-screen');
+	// 	// Tap on Log Out
+	// 	await TestHelpers.tapByText('Log Out');
+	// 	// Tap YES
+	// 	await TestHelpers.tapAlertWithButton('YES');
+	// 	// Check that we are on the wallet screen
+	// 	await TestHelpers.checkIfVisible('login');
+	// });
 });
