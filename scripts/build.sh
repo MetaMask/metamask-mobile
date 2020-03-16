@@ -246,7 +246,7 @@ checkAuthToken() {
 
 	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
-	elif ! grep -qE '^auth.token=[[:alpha:]]+$' "./${propertiesFileName}"; then
+	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
 		printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
 		exit 1
 	fi
