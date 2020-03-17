@@ -665,7 +665,6 @@
 		"nickname": "Name",
 		"add_input_placeholder": "Public address (0x), or ENS",
 		"between_account": "Transfer between my accounts",
-		"no_contacts": "No contacts in your address book",
 		"others": "Others",
 		"memo": "Memo"
 	},
