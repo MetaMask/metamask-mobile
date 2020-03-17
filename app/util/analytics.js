@@ -8,6 +8,9 @@ const NAMES = {
 	ONBOARDING_SELECTED_IMPORT_WALLET: 'Selected Import Wallet',
 	ONBOARDING_SELECTED_SYNC_WITH_EXTENSION: 'Selected Sync with Extension',
 	ONBOARDING_SELECTED_WITH_SEEDPHRASE: 'Selected Import with Seedphrase',
+	ONBOARDING_SELECTED_TAKE_THE_TOUR: `Onboarding wizard 'Take the tour'`,
+	ONBOARDING_SELECTED_NO_THANKS: `Onboarding wizard 'No thanks'`,
+	ONBOARDING_SELECTED_SKIP: 'Onboarding wizard Skip',
 	// Navigation Drawer
 	NAVIGATION_TAPS_ACCOUNT_NAME: 'Tapped Account Name / Profile',
 	NAVIGATION_TAPS_SEND: "Taps on 'Send'",
@@ -70,6 +73,8 @@ const ACTIONS = {
 	METRICS_OPTS: 'Metrics Option',
 	IMPORT_OR_CREATE: 'Import or Create',
 	IMPORT_OR_SYNC: 'Import or Sync',
+	ONBOARDING_NEXT: 'Onboarding Next',
+	ONBOARDING_SKIP: 'Onboarding Skip',
 	// Navigation Drawer
 	NAVIGATION_DRAWER: 'Navigation Drawer',
 	// Common Navigation
@@ -138,6 +143,16 @@ const ANALYTICS_EVENT_OPTS = {
 		CATEGORIES.ONBOARDING,
 		ACTIONS.IMPORT_OR_SYNC,
 		NAMES.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION
+	),
+	ONBOARDING_SELECTED_TAKE_THE_TOUR: generateOpt(
+		CATEGORIES.ONBOARDING,
+		ACTIONS.ONBOARDING_NEXT,
+		NAMES.ONBOARDING_SELECTED_TAKE_THE_TOUR
+	),
+	ONBOARDING_SELECTED_NO_THANKS: generateOpt(
+		CATEGORIES.ONBOARDING,
+		ACTIONS.ONBOARDING_NEXT,
+		NAMES.ONBOARDING_SELECTED_NO_THANKS
 	),
 	// Navigation Drawer
 	NAVIGATION_TAPS_ACCOUNT_NAME: generateOpt(
