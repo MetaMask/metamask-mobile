@@ -8,6 +8,7 @@ const ROPSTEN_FAUCET = 'https://faucet.metamask.io';
 const TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/';
 const TEST_DAPP_TITLE = 'E2E Test Dapp';
 const ETH_FAUCET = 'Test Ether Faucet';
+const DAPP_ACCESS = 'Allow metamask.github.io to access your TST?';
 
 describe('Test Dapp Initiated Transactions', () => {
 	beforeEach(() => {
@@ -75,7 +76,7 @@ describe('Test Dapp Initiated Transactions', () => {
 		// Tap on Browser
 		await TestHelpers.tapByText('Browser');
 		// Wait for page to load
-		await TestHelpers.delay(1000);
+		await TestHelpers.delay(2000);
 		// Check that we are on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
 		// Tap on search in bottom navbar
@@ -83,10 +84,11 @@ describe('Test Dapp Initiated Transactions', () => {
 		// Navigate to URL
 		if (device.getPlatform() === 'ios') {
 			await TestHelpers.typeTextAndHideKeyboard('url-input', ROPSTEN_FAUCET);
+			await TestHelpers.delay(8500);
 		} else {
 			await TestHelpers.replaceTextInField('url-input', ROPSTEN_FAUCET);
 			await element(by.id('url-input')).tapReturnKey();
-			await TestHelpers.delay(1500);
+			await TestHelpers.delay(8500);
 		}
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
@@ -173,10 +175,11 @@ describe('Test Dapp Initiated Transactions', () => {
 		// Navigate to URL
 		if (device.getPlatform() === 'ios') {
 			await TestHelpers.typeTextAndHideKeyboard('url-input', TEST_DAPP_URL);
+			await TestHelpers.delay(3500);
 		} else {
 			await TestHelpers.replaceTextInField('url-input', TEST_DAPP_URL);
 			await element(by.id('url-input')).tapReturnKey();
-			await TestHelpers.delay(1500);
+			await TestHelpers.delay(3500);
 		}
 		// Tap on connect button to bring up connection request
 		if (device.getPlatform() === 'android') {
@@ -192,13 +195,17 @@ describe('Test Dapp Initiated Transactions', () => {
 		// Tap on CONNECT button
 		await TestHelpers.tapByText('CONNECT');
 		// Give some time for account to be displayed
-		await TestHelpers.delay(1500);
+		await TestHelpers.delay(2000);
 		// Tap on Create Token button
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 70, y: 295 });
-			await TestHelpers.delay(1000);
-		} else {
+		if (device.getPlatform() === 'ios') {
 			await TestHelpers.tapAtPoint('browser-screen', { x: 70, y: 297 });
+		} else {
+			await TestHelpers.tapAtPoint('browser-screen', { x: 65, y: 289 });
+			await TestHelpers.delay(1000);
+			await TestHelpers.tapAtPoint('browser-screen', { x: 114, y: 290 });
+			await TestHelpers.delay(1000);
+			await TestHelpers.tapAtPoint('browser-screen', { x: 70, y: 315 });
+			await TestHelpers.delay(1000);
 		}
 		// Tap Edit
 		await TestHelpers.tap('confirm-txn-edit-button');
@@ -208,35 +215,56 @@ describe('Test Dapp Initiated Transactions', () => {
 		await TestHelpers.tapByText('Next');
 		// Tap on CONFIRM button
 		await TestHelpers.tapByText('Confirm');
-		// Delay so that webpage shifts down after address gets added
+		// on iOS dismiss notification and on Android, wait some time for token to be created
 		if (device.getPlatform() === 'android') {
 			await TestHelpers.delay(5000);
+		} else {
+			// Check that we are on the browser screen
+			await TestHelpers.checkIfVisible('browser-screen');
+			// Wait for enable notifications alert to show up
+			await TestHelpers.delay(10000);
+			// Dismiss alert
+			await TestHelpers.tapAlertWithButton('No, thanks');
 		}
 		// Tap on Approve Tokens button
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 300, y: 293 });
+			await TestHelpers.tapAtPoint('browser-screen', { x: 300, y: 289 });
+			await TestHelpers.delay(1000);
+			await TestHelpers.tapAtPoint('browser-screen', { x: 341, y: 290 });
+			await TestHelpers.delay(1000);
+			await TestHelpers.tapAtPoint('browser-screen', { x: 350, y: 307 });
 			await TestHelpers.delay(1000);
 		} else {
 			await TestHelpers.tapAtPoint('browser-screen', { x: 301, y: 298 });
 		}
-		// // Check that we are on the confirm transaction screen
-		// await TestHelpers.checkIfVisible('confirm-transaction-screen');
-		// // Tap on CONFIRM button
-		// await TestHelpers.tapByText('CONFIRM');
-		// // Delay
-		// await TestHelpers.delay(1000);
+		// Check that we are on the approve screen
+		await TestHelpers.checkIfVisible('approve-screen');
+		// Check that title is correct
+		await TestHelpers.checkIfElementHasString('allow-access', DAPP_ACCESS);
+		// Tap on Approve button
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.tapByText('Approve');
+		} else {
+			await TestHelpers.tapAtPoint('approve-screen', { x: 275, y: 620 });
+		}
+		// Delay
+		await TestHelpers.delay(1000);
+		// Check that we are on the success screen
+		await TestHelpers.checkIfVisible('approve-success-screen');
+		// Close Success screen
+		await TestHelpers.tap('approve-success-close-button');
 	});
 
-	// it('should log out', async () => {
-	// 	// Open Drawer
-	// 	await TestHelpers.tap('hamburger-menu-button-browser');
-	// 	// Check that the drawer is visbile
-	// 	await TestHelpers.checkIfVisible('drawer-screen');
-	// 	// Tap on Log Out
-	// 	await TestHelpers.tapByText('Log Out');
-	// 	// Tap YES
-	// 	await TestHelpers.tapAlertWithButton('YES');
-	// 	// Check that we are on the wallet screen
-	// 	await TestHelpers.checkIfVisible('login');
-	// });
+	it('should log out', async () => {
+		// Open Drawer
+		await TestHelpers.tap('hamburger-menu-button-browser');
+		// Check that the drawer is visbile
+		await TestHelpers.checkIfVisible('drawer-screen');
+		// Tap on Log Out
+		await TestHelpers.tapByText('Log Out');
+		// Tap YES
+		await TestHelpers.tapAlertWithButton('YES');
+		// Check that we are on the login screen
+		await TestHelpers.checkIfVisible('login');
+	});
 });
