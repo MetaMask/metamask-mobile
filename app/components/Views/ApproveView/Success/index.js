@@ -59,7 +59,7 @@ export default class Success extends PureComponent {
 	};
 
 	render = () => (
-		<SafeAreaView style={styles.root}>
+		<SafeAreaView style={styles.root} testID={'approve-success-screen'}>
 			<View style={styles.iconWrapper}>
 				<AntDesign name={'checkcircleo'} size={95} color={colors.green400} />
 			</View>
@@ -67,7 +67,12 @@ export default class Success extends PureComponent {
 			<Text style={styles.description}>{strings('spend_limit_edition.all_set_desc')}</Text>
 			<View style={styles.buttonsWrapper}>
 				<View style={styles.buttonsContainer}>
-					<StyledButton type="confirm" onPress={this.close} containerStyle={styles.close}>
+					<StyledButton
+						type="confirm"
+						onPress={this.close}
+						containerStyle={styles.close}
+						testID={'approve-success-close-button'}
+					>
 						{strings('spend_limit_edition.close')}
 					</StyledButton>
 				</View>
