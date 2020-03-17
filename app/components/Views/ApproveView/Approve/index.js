@@ -717,11 +717,11 @@ class Approve extends PureComponent {
 					confirmButtonMode={'confirm'}
 				>
 					<View>
-						<View style={styles.section}>
+						<View style={styles.section} testID={'approve-screen'}>
 							<View style={styles.websiteIconWrapper}>
 								<WebsiteIcon style={styles.icon} url={transaction.origin} title={host} />
 							</View>
-							<Text style={styles.title}>
+							<Text style={styles.title} testID={'allow-access'}>
 								{strings('spend_limit_edition.allow_to_access', { host, tokenSymbol })}
 							</Text>
 							<Text style={styles.explanation}>
