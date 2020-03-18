@@ -500,6 +500,7 @@ class DrawerView extends PureComponent {
 		const { providerType } = this.props;
 		if (AppConstants.CONNEXT.SUPPORTED_NETWORKS.indexOf(providerType) !== -1) {
 			this.props.navigation.navigate('PaymentChannelHome');
+			this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_LOGOUT);
 		} else {
 			Alert.alert(
 				strings('experimental_settings.network_not_supported'),
