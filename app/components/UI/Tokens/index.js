@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, Image, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
 import TokenImage from '../TokenImage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
@@ -13,6 +13,8 @@ import AssetElement from '../AssetElement';
 import FadeIn from 'react-native-fade-in-image';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -130,7 +132,7 @@ class Tokens extends PureComponent {
 		<View style={styles.footer} key={'tokens-footer'}>
 			<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
 				<Icon name="plus" size={16} color={colors.blue} />
-				<Text style={styles.addText}>{strings('wallet.add_tokens').toUpperCase()}</Text>
+				<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
 			</TouchableOpacity>
 		</View>
 	);
@@ -194,6 +196,9 @@ class Tokens extends PureComponent {
 
 	goToAddToken = () => {
 		this.props.navigation.push('AddAsset', { assetType: 'token' });
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_TOKENS);
+		});
 	};
 
 	showRemoveMenu = token => {
