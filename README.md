@@ -107,15 +107,20 @@ First, make sure you have the following running:
 
 Next, check that the React Native Debugger is working:
 
-- Open your emulator or simulator, and select `Debug JS Remotely` from its menu
-  - You can also try to navigate to this URL in Chrome: http://localhost:8081/debugger-ui/
-- If that doesn't take you to the React Native Debugger, something is wrong
+- Open your emulator or simulator, and select `Debug JS Remotely` (or something similar) from its developer menu
+- To open the developer menu:
+  - iOS Simulator: `Cmd + D`
+  - Android Emulator
+    - macOS: `Cmd + M`
+	- Windows, Linux: `Ctrl + M`
+- If it doesn't open automatically, try navigating to this URL in Chrome: http://localhost:8081/debugger-ui/
+- If these steps do not take you to the React Native Debugger, something is wrong
 
 #### Debugging iOS (macOS Only)
 
 For more details, see [this page](https://medium.com/@mattcroak718/debugging-your-iphone-mobile-web-app-using-safari-development-tools-71240657c487).
 
-- You should be able to inspect the mobile app using the console in the React Native Debugger tab
+- You should be able to inspect the mobile app using the console in the React Native Debugger in Chrome
 - To debug a website (dapp) in the browser:
   - Navigate to the website in the app's browser
   - Open Safari
@@ -129,7 +134,7 @@ For more details, see [this page](https://medium.com/@mattcroak718/debugging-you
 
 For more details, see [this page](https://developers.google.com/web/tools/chrome-devtools/remote-debugging/webviews).
 
-- You should be able to inspect the mobile app using the console in the React Native Debugger tab
+- You should be able to inspect the mobile app using the console in the React Native Debugger in Chrome
 - To debug a website (dapp) in the browser:
   - Navigate to the website in the app's browser
   - Go to chrome://inspect
