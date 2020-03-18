@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, View, StyleSheet, Text, Dimensions } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Text, Dimensions, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
@@ -16,6 +16,8 @@ import AsyncStorage from '@react-native-community/async-storage';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 import Device from '../../../util/Device';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const MIN_HEIGHT = Dimensions.get('window').height;
 const styles = StyleSheet.create({
@@ -69,6 +71,15 @@ const styles = StyleSheet.create({
 	}
 });
 
+const stepDescription = {
+	1: 'Welcome',
+	2: 'Accounts',
+	3: 'Account Name',
+	4: 'Main Navigation',
+	5: 'Browser',
+	6: 'Search'
+};
+
 class OnboardingWizard extends PureComponent {
 	static propTypes = {
 		/**
@@ -92,11 +103,22 @@ class OnboardingWizard extends PureComponent {
 	/**
 	 * Close onboarding wizard setting step to 0 and closing drawer
 	 */
-	closeOnboardingWizard = async () => {
-		const { setOnboardingWizardStep, navigation } = this.props;
+	closeOnboardingWizard = async (closing = true) => {
+		const {
+			setOnboardingWizardStep,
+			navigation,
+			wizard: { step }
+		} = this.props;
 		await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'explored');
 		setOnboardingWizardStep && setOnboardingWizardStep(0);
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
+		console.log('closing', closing);
+		closing &&
+			InteractionManager.runAfterInteractions(() => {
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SKIP_TUTORIAL, {
+					View: stepDescription[step]
+				});
+			});
 	};
 
 	onboardingWizardNavigator = step => {

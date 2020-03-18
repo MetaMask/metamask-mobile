@@ -54,7 +54,7 @@ class Step1 extends PureComponent {
 	 */
 	onClose = () => {
 		const { onClose } = this.props;
-		onClose && onClose();
+		onClose && onClose(false);
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_NO_THANKS);
 		});
