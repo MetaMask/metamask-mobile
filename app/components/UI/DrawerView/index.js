@@ -583,6 +583,7 @@ class DrawerView extends PureComponent {
 	};
 
 	submitFeedback = () => {
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND_FEEDBACK);
 		this.setState({ submitFeedback: true });
 	};
 
