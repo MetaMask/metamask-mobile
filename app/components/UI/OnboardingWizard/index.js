@@ -112,7 +112,6 @@ class OnboardingWizard extends PureComponent {
 		await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'explored');
 		setOnboardingWizardStep && setOnboardingWizardStep(0);
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
-		console.log('closing', closing);
 		closing &&
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SKIP_TUTORIAL, {
