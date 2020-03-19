@@ -197,7 +197,7 @@ class AccountList extends PureComponent {
 	importAccount = () => {
 		this.props.onImportAccount();
 		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
 		});
 	};
 
@@ -225,7 +225,7 @@ class AccountList extends PureComponent {
 			}
 		});
 		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
 		});
 	};
 
