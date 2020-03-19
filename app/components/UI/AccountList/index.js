@@ -196,6 +196,9 @@ class AccountList extends PureComponent {
 
 	importAccount = () => {
 		this.props.onImportAccount();
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
+		});
 	};
 
 	addAccount = async () => {
@@ -220,6 +223,9 @@ class AccountList extends PureComponent {
 				Logger.error('error while trying to add a new account', e); // eslint-disable-line
 				this.mounted && this.setState({ loading: false });
 			}
+		});
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
 		});
 	};
 

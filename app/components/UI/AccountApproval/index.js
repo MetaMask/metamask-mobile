@@ -226,8 +226,14 @@ class AccountApproval extends PureComponent {
 	 * @return {object} - Object containing numberOfTokens, numberOfAccounts, network and timeOpen
 	 */
 	getTrackingParams = () => {
-		const { tokensLength, accountsLength, networkType } = this.props;
+		const {
+			tokensLength,
+			accountsLength,
+			networkType,
+			currentPageInformation: { url }
+		} = this.props;
 		return {
+			view: url,
 			numberOfTokens: tokensLength,
 			numberOfAccounts: accountsLength,
 			network: networkType,
