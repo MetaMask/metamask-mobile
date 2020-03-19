@@ -17,6 +17,8 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Device from '../../../util/Device';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import AddressQRCode from '../../Views/AddressQRCode';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const TOTAL_PADDING = 64;
 const ACTION_WIDTH = (Dimensions.get('window').width - TOTAL_PADDING) / 2;
@@ -127,6 +129,9 @@ class ReceiveRequest extends PureComponent {
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_SHARE_ADDRESS);
+		});
 	};
 
 	/**
@@ -138,6 +143,7 @@ class ReceiveRequest extends PureComponent {
 			setTimeout(() => {
 				this.setState({ buyModalVisible: false });
 			}, 1500);
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_BUY);
 		});
 	};
 
@@ -153,6 +159,17 @@ class ReceiveRequest extends PureComponent {
 	 */
 	openQrModal = () => {
 		this.setState({ qrModalVisible: true });
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_QR_CODE);
+		});
+	};
+
+	onReceive = () => {
+		this.props.toggleReceiveModal();
+		this.props.navigation.navigate('PaymentRequestView', { receiveAsset: this.props.receiveAsset });
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+		});
 	};
 
 	actions = [
@@ -172,10 +189,7 @@ class ReceiveRequest extends PureComponent {
 			icon: <FontAwesome5 solid name={'hand-holding'} size={30} color={colors.black} />,
 			title: strings('receive_request.request_title'),
 			description: strings('receive_request.request_description'),
-			onPress: () => {
-				this.props.toggleReceiveModal();
-				this.props.navigation.navigate('PaymentRequestView', { receiveAsset: this.props.receiveAsset });
-			}
+			onPress: this.onReceive
 		},
 		{
 			icon: <FontAwesome name={'credit-card'} size={32} color={colors.black} />,
