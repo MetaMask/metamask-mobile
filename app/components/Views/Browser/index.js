@@ -146,7 +146,7 @@ class Browser extends PureComponent {
 			...this.props.navigation.state.params,
 			showTabs: false,
 			url,
-			silent: true
+			silent: false
 		});
 	};
 
