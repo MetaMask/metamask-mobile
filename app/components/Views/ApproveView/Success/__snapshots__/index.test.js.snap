@@ -11,6 +11,7 @@ exports[`Success should render correctly 1`] = `
       "flexDirection": "column",
     }
   }
+  testID="approve-success-screen"
 >
   <View
     style={
@@ -88,6 +89,7 @@ exports[`Success should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
+        testID="approve-success-close-button"
         type="confirm"
       >
         Close
