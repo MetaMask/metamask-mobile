@@ -34,6 +34,7 @@ import Analytics from '../../../core/Analytics';
 import { withNavigationFocus } from 'react-navigation';
 import { showAlert } from '../../../actions/alert';
 import AddressQRCode from '../AddressQRCode';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const SAI_ADDRESS = AppConstants.SAI_ADDRESS;
 
@@ -465,6 +466,9 @@ class PaymentChannel extends PureComponent {
 			],
 			{ cancelable: false }
 		);
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.INSTAPAY_WITHDRAW_FUNDS);
+		});
 	};
 
 	onSend = () => {
@@ -475,10 +479,16 @@ class PaymentChannel extends PureComponent {
 			symbol: 'SAI'
 		});
 		this.props.navigation.navigate('PaymentChannelSend');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.INSTAPAY_SEND_FUNDS);
+		});
 	};
 
 	onDeposit = () => {
 		this.props.navigation.navigate('PaymentChannelDeposit');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.INSTAPAY_DEPOSIT_FUNDS);
+		});
 	};
 
 	renderInfo() {
@@ -579,6 +589,9 @@ class PaymentChannel extends PureComponent {
 
 	openQrModal = () => {
 		this.setState({ qrModalVisible: true });
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.INSTAPAY_RECEIVE_FUNDS);
+		});
 	};
 
 	areButtonsDisabled = () => {
