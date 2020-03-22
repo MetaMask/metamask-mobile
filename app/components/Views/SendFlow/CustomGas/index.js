@@ -29,20 +29,19 @@ const styles = StyleSheet.create({
 	},
 	selectors: {
 		backgroundColor: colors.white,
-		flexDirection: 'row',
-		justifyContent: 'space-between'
+		flexDirection: 'column',
+		justifyContent: 'space-between',
+		marginVertical: 20
 	},
 	selector: {
-		flex: 1,
-		textAlign: 'center',
+		// flex: 1,
+		// textAlign: 'center',
 		padding: 12,
 		borderWidth: 1,
-		borderRadius: 6,
-		borderColor: colors.grey100,
-		marginVertical: 16
-	},
-	selectorCenter: {
-		marginHorizontal: 8
+		borderBottomWidth: 0,
+		// borderRadius: 6,
+		borderColor: colors.grey100
+		// marginVertical: 16
 	},
 	advancedOptions: {
 		textAlign: 'right',
@@ -371,8 +370,8 @@ class CustomGas extends PureComponent {
 				onPress={onPress}
 				style={[
 					styles.selector,
-					selected ? styles.selectorSelected : styles.selectorNotSelected,
-					name === 'average' && styles.selectorCenter
+					selected ? styles.selectorSelected : styles.selectorNotSelected
+					// name === 'average' && styles.selectorCenter
 				]}
 			>
 				<View style={styles.selectorTitle}>
