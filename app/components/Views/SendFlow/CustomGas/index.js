@@ -33,14 +33,11 @@ const styles = StyleSheet.create({
 		marginVertical: 20
 	},
 	selector: {
-		// flex: 1,
-		// textAlign: 'center',
 		padding: 12,
 		borderWidth: 1,
-		borderBottomWidth: 0,
-		// borderRadius: 6,
-		borderColor: colors.grey100
-		// marginVertical: 16
+		borderColor: colors.grey100,
+		marginTop: -1,
+		zIndex: 0
 	},
 	advancedOptions: {
 		textAlign: 'right',
@@ -102,11 +99,11 @@ const styles = StyleSheet.create({
 	},
 	selectorSelected: {
 		backgroundColor: colors.blue000,
-		borderColor: colors.blue
+		borderColor: colors.blue,
+		zIndex: 1
 	},
 	selectorNotSelected: {
-		backgroundColor: colors.white,
-		borderColor: colors.grey500
+		backgroundColor: colors.white
 	},
 	selectorTop: {
 		borderTopLeftRadius: 6,
@@ -380,7 +377,6 @@ class CustomGas extends PureComponent {
 				style={[
 					styles.selector,
 					selected ? styles.selectorSelected : styles.selectorNotSelected,
-					// name === 'average' && styles.selectorCenter
 					name === 'slow' && styles.selectorTop,
 					name === 'fast' && styles.selectorBottom
 				]}
