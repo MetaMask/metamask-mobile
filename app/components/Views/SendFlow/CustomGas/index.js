@@ -16,7 +16,6 @@ import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
 import { getTicker } from '../../../../util/transactions';
-import Ionicon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 
 const {
@@ -56,12 +55,12 @@ const styles = StyleSheet.create({
 	textTime: {
 		...fontStyles.bold,
 		color: colors.black,
-		marginVertical: 8,
-		fontSize: 14,
+		marginVertical: 4,
+		fontSize: 18,
 		textTransform: 'none'
 	},
 	textTitle: {
-		...fontStyles.light,
+		...fontStyles.bold,
 		color: colors.black,
 		letterSpacing: 1,
 		fontSize: 10,
@@ -108,6 +107,15 @@ const styles = StyleSheet.create({
 	selectorNotSelected: {
 		backgroundColor: colors.white,
 		borderColor: colors.grey500
+	},
+	selectorTop: {
+		borderTopLeftRadius: 6,
+		borderTopRightRadius: 6
+	},
+	selectorBottom: {
+		borderBottomLeftRadius: 6,
+		borderBottomRightRadius: 6,
+		borderBottomWidth: 1
 	},
 	advancedOptionsContainer: {
 		marginTop: 16
@@ -364,19 +372,21 @@ class CustomGas extends PureComponent {
 	renderGasSelector = (name, wei, selected, wait, onPress) => {
 		const { conversionRate, currentCurrency, gas } = this.props;
 		const ticker = getTicker(this.props.ticker);
+		console.log(name);
 		return (
 			<TouchableOpacity
 				key={name}
 				onPress={onPress}
 				style={[
 					styles.selector,
-					selected ? styles.selectorSelected : styles.selectorNotSelected
+					selected ? styles.selectorSelected : styles.selectorNotSelected,
 					// name === 'average' && styles.selectorCenter
+					name === 'slow' && styles.selectorTop,
+					name === 'fast' && styles.selectorBottom
 				]}
 			>
 				<View style={styles.selectorTitle}>
 					<Text style={styles.textTitle}>{strings(`transaction.gas_fee_${name}`)}</Text>
-					{selected && <Ionicon name={'ios-checkmark-circle-outline'} size={14} color={colors.blue} />}
 				</View>
 				<Text style={[styles.text, styles.textTime]}>{wait}</Text>
 				<Text style={styles.text}>
