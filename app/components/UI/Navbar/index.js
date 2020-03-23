@@ -28,6 +28,12 @@ const trackEvent = event => {
 	});
 };
 
+const trackEventWithParameters = (event, params) => {
+	InteractionManager.runAfterInteractions(() => {
+		Analytics.trackEventWithParameters(event, params);
+	});
+};
+
 const styles = StyleSheet.create({
 	rightButton: {
 		marginTop: 7,
@@ -351,7 +357,11 @@ export function getApproveNavbar(title) {
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
 export function getSendFlowTitle(title, navigation) {
-	const rightAction = () => navigation.dismiss();
+	const rightAction = () => {
+		console.log('title.split()[1]', title.split('.')[1]);
+		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, { view: title.split('.')[1] });
+		navigation.dismiss();
+	};
 	const leftAction = () => navigation.pop();
 	const canGoBack = title !== 'send.send_to';
 	return {

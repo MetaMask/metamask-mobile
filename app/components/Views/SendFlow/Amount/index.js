@@ -9,7 +9,8 @@ import {
 	TextInput,
 	KeyboardAvoidingView,
 	FlatList,
-	Image
+	Image,
+	InteractionManager
 } from 'react-native';
 import { connect } from 'react-redux';
 import { setSelectedAsset, prepareTransaction } from '../../../../actions/newTransaction';
@@ -49,6 +50,8 @@ import { strings } from '../../../../../locales/i18n';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
+import Analytics from '../../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../../util/analytics';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -347,7 +350,11 @@ class Amount extends PureComponent {
 		/**
 		 * Current transaction state
 		 */
-		transactionState: PropTypes.object
+		transactionState: PropTypes.object,
+		/**
+		 * Network provider type as mainnet
+		 */
+		providerType: PropTypes.string
 	};
 
 	state = {
@@ -378,11 +385,14 @@ class Amount extends PureComponent {
 	};
 
 	onNext = async () => {
-		const { navigation, selectedAsset } = this.props;
+		const { navigation, selectedAsset, providerType } = this.props;
 		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto, hasExchangeRate } = this.state;
 		const value = internalPrimaryCurrencyIsCrypto || !hasExchangeRate ? inputValue : inputValueConversion;
 		if (!selectedAsset.tokenId && this.validateAmount(value)) return;
 		await this.prepareTransaction(value);
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_AMOUNT, { network: providerType });
+		});
 		navigation.navigate('Confirm');
 	};
 
@@ -892,6 +902,7 @@ const mapStateToProps = state => ({
 	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
