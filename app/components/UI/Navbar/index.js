@@ -184,7 +184,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 		},
 		headerTintColor: colors.blue,
 		headerLeft: (
-			<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
+			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'title-back-arrow-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}
@@ -221,7 +221,7 @@ export function getEditableOptions(title, navigation) {
 		},
 		headerTintColor: colors.blue,
 		headerLeft: (
-			<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
+			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'edit-contact-back-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}
@@ -358,13 +358,13 @@ export function getSendFlowTitle(title, navigation) {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerRight: (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+			<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-cancel-button'}>
 				<Text style={styles.closeButtonText}>{'Cancel'}</Text>
 			</TouchableOpacity>
 		),
 		headerLeft: canGoBack ? (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+			<TouchableOpacity onPress={leftAction} style={styles.closeButton} testID={'send-back-button'}>
 				<Text style={styles.closeButtonText}>{'Back'}</Text>
 			</TouchableOpacity>
 		) : (
@@ -708,7 +708,7 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
 		headerTitle: <NavbarTitle title={title} translate={translate} />,
 		headerLeft: (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton} testID={'asset-back-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}
