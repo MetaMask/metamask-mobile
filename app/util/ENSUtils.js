@@ -31,6 +31,8 @@ export async function doENSReverseLookup(address, network) {
 			}
 			// eslint-disable-next-line no-empty
 		} catch (e) {}
+	} else {
+		return Promise.resolve();
 	}
 }
 

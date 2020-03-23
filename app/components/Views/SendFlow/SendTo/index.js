@@ -189,15 +189,19 @@ class SendFlow extends PureComponent {
 		const { fromAccountName } = this.state;
 		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
+
 		this.setState({
 			fromAccountName: ens || fromAccountName,
 			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
-			inputWidth: { width: '100%' },
 			balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero()
 		});
 		if (!Object.keys(networkAddressBook).length) {
 			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
 		}
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		setTimeout(() => {
+			this.setState({ inputWidth: { width: '100%' } });
+		}, 100);
 	};
 
 	toggleFromAccountModal = () => {
