@@ -358,8 +358,11 @@ export function getApproveNavbar(title) {
  */
 export function getSendFlowTitle(title, navigation) {
 	const rightAction = () => {
-		console.log('title.split()[1]', title.split('.')[1]);
-		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, { view: title.split('.')[1] });
+		const providerType = navigation.getParam('providerType', '');
+		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
+			view: title.split('.')[1],
+			network: providerType
+		});
 		navigation.dismiss();
 	};
 	const leftAction = () => navigation.pop();
@@ -369,13 +372,13 @@ export function getSendFlowTitle(title, navigation) {
 		headerRight: (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{'Cancel'}</Text>
+				<Text style={styles.closeButtonText}>{strings('transaction.cancel')}</Text>
 			</TouchableOpacity>
 		),
 		headerLeft: canGoBack ? (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{'Back'}</Text>
+				<Text style={styles.closeButtonText}>{strings('transaction.back')}</Text>
 			</TouchableOpacity>
 		) : (
 			<View />

@@ -191,8 +191,10 @@ class SendFlow extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { addressBook, selectedAddress, accounts, ticker, network } = this.props;
+		const { addressBook, selectedAddress, accounts, ticker, network, navigation, providerType } = this.props;
 		const { fromAccountName } = this.state;
+		// For analytics
+		navigation.setParams({ providerType });
 		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
 		this.setState({

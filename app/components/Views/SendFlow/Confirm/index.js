@@ -294,6 +294,9 @@ class Confirm extends PureComponent {
 	};
 
 	componentDidMount = async () => {
+		// For analytics
+		const { navigation, providerType } = this.props;
+		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
 	};

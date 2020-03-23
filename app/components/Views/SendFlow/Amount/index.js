@@ -373,7 +373,9 @@ class Amount extends PureComponent {
 	collectibles = [];
 
 	componentDidMount = async () => {
-		const { tokens, ticker, selectedAsset } = this.props;
+		const { tokens, ticker, selectedAsset, navigation, providerType } = this.props;
+		// For analytics
+		navigation.setParams({ providerType });
 		this.tokens = [getEther(ticker), ...tokens];
 		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
@@ -381,6 +383,7 @@ class Amount extends PureComponent {
 		// if collectible don't do this
 		if (!selectedAsset.tokenId) this.handleSelectedAssetBalance(selectedAsset);
 		const estimatedTotalGas = await this.estimateTransactionTotalGas();
+
 		this.setState({ estimatedTotalGas });
 	};
 
