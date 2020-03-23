@@ -146,19 +146,21 @@ For more details, see [this page](https://developers.google.com/web/tools/chrome
 
 ### Running Tests
 
-- Unit tests:
+#### Unit Tests
 
 ```bash
 yarn test:unit
 ```
 
-- E2E tests (iOS)
+#### E2E Tests (iOS)
+
+First, [follow the instructions here](https://github.com/wix/AppleSimulatorUtils) to install `applesimutils`. Then:
 
 ```bash
 yarn test:e2e:ios
 ```
 
-- E2E tests (Android)
+#### E2E Tests (Android)
 
 ```bash
 yarn test:e2e:android

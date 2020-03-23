@@ -1,3 +1,4 @@
+version: 2.1
 aliases:
   - &restore-node-cache
     keys:
@@ -15,7 +16,6 @@ aliases:
 defaults: &defaults
   working_directory: ~/MetaMask
 
-version: 2
 jobs:
   prep-deps:
     <<: *defaults
@@ -152,7 +152,6 @@ jobs:
           path: sourcemaps/ios
           destination: sourcemaps-ios
 workflows:
-  version: 2
   full_test:
     jobs:
       - prep-deps:
