@@ -252,7 +252,7 @@ class ContactForm extends PureComponent {
 	render = () => {
 		const { address, addressError, toEnsName, name, mode, addressReady, memo, editable, inputWidth } = this.state;
 		return (
-			<SafeAreaView style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper} testID={'add-contact-screen'}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
 					<View style={styles.scrollWrapper}>
 						<Text style={styles.label}>{strings('address_book.name')}</Text>
@@ -272,6 +272,7 @@ class ContactForm extends PureComponent {
 							]}
 							value={name}
 							onSubmitEditing={this.jumpToAddressInput}
+							testID={'contact-name-input'}
 						/>
 
 						<Text style={styles.label}>{strings('address_book.address')}</Text>
@@ -290,6 +291,7 @@ class ContactForm extends PureComponent {
 									value={toEnsName || address}
 									ref={this.addressInput}
 									onSubmitEditing={this.jumpToMemoInput}
+									testID={'contact-address-input'}
 								/>
 								{toEnsName && <Text style={styles.resolvedInput}>{renderShortAddress(address)}</Text>}
 							</View>
@@ -317,6 +319,7 @@ class ContactForm extends PureComponent {
 									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
 									value={memo}
 									ref={this.memoInput}
+									testID={'contact-memo-input'}
 								/>
 							</View>
 						</View>
@@ -332,6 +335,7 @@ class ContactForm extends PureComponent {
 										type={'confirm'}
 										disabled={!addressReady || !name || !!addressError}
 										onPress={this.saveContact}
+										testID={'contact-add-contact-button'}
 									>
 										{strings(`address_book.${mode}_contact`)}
 									</StyledButton>
