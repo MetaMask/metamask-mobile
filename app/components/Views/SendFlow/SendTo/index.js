@@ -191,14 +191,12 @@ class SendFlow extends PureComponent {
 		const ens = await doENSReverseLookup(selectedAddress, network);
 		setTimeout(() => {
 			this.setState({
+				fromAccountName: ens || fromAccountName,
+				fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
+				balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero(),
 				inputWidth: { width: '100%' }
 			});
 		}, 100);
-		this.setState({
-			fromAccountName: ens || fromAccountName,
-			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
-			balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero()
-		});
 		if (!Object.keys(networkAddressBook).length) {
 			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
 		}
