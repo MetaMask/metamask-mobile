@@ -121,7 +121,7 @@ jobs:
           name: build:pre-release
           command:
             |
-              yarn build:android:pre-release:bundle
+              METAMASK_ENVIRONMENT='prerelease' yarn build:android:pre-release:bundle
       - store_artifacts:
           path: android/app/build/outputs/bundle/release
           destination: bundle
@@ -147,7 +147,7 @@ jobs:
           at: .
       - run:
           name: pre-release
-          command: yarn build:ios:pre-release
+          command: METAMASK_ENVIRONMENT='prerelease' yarn build:ios:pre-release
       - store_artifacts:
           path: sourcemaps/ios
           destination: sourcemaps-ios
