@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
+import Svg, { Circle } from 'react-native-svg';
 import {
 	getRenderableEthGasFee,
 	getRenderableFiatGasFee,
@@ -127,6 +128,15 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.black,
 		fontSize: 14
+	},
+	gasSelectorContainer: {
+		display: 'flex',
+		flexDirection: 'row',
+		alignItems: 'flex-start'
+	},
+	radio: {
+		marginVertical: 4,
+		marginRight: 8
 	}
 });
 
@@ -380,14 +390,30 @@ class CustomGas extends PureComponent {
 					name === 'fast' && styles.selectorBottom
 				]}
 			>
-				<View style={styles.selectorTitle}>
-					<Text style={styles.textTitle}>{strings(`transaction.gas_fee_${name}`)}</Text>
+				<View style={styles.gasSelectorContainer}>
+					<View style={styles.radio}>
+						{/* TODO: make this a component! */}
+						<Svg width="12" height="12" viewBox="0 0 12 12">
+							{selected ? (
+								<Circle cx="6" cy="6" r="4" stroke="#037DD6" strokeWidth="4" fill="none" />
+							) : (
+								<Circle cx="6" cy="6" r="5.5" stroke="#D2D8DD" fill="none" />
+							)}
+						</Svg>
+					</View>
+					<View>
+						<View style={styles.selectorTitle}>
+							<Text style={styles.textTitle}>{strings(`transaction.gas_fee_${name}`)}</Text>
+						</View>
+						<Text style={[styles.text, styles.textTime]}>{wait}</Text>
+						<Text style={styles.text}>
+							{getRenderableEthGasFee(wei, gas)} {ticker}
+						</Text>
+						<Text style={styles.text}>
+							{getRenderableFiatGasFee(wei, conversionRate, currentCurrency, gas)}
+						</Text>
+					</View>
 				</View>
-				<Text style={[styles.text, styles.textTime]}>{wait}</Text>
-				<Text style={styles.text}>
-					{getRenderableEthGasFee(wei, gas)} {ticker}
-				</Text>
-				<Text style={styles.text}>{getRenderableFiatGasFee(wei, conversionRate, currentCurrency, gas)}</Text>
 			</TouchableOpacity>
 		);
 	};
