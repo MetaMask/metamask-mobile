@@ -268,9 +268,6 @@ elif ["$MODE" == "debug"]; then
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
 fi
 
-		checkAuthToken 'sentry.debug.properties'
-		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-
 if [ "$PLATFORM" == "ios" ]; then
 	# we don't care about env file in CI
 	if [ -f "$IOS_ENV_FILE" ] || [ "$CI" = true ]; then
