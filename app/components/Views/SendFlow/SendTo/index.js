@@ -477,7 +477,7 @@ class SendFlow extends PureComponent {
 									</Text>
 								</TouchableOpacity>
 							)}
-							<View style={styles.footerContainer}>
+							<View style={styles.footerContainer} testID={'no-eth-message'}>
 								{balanceIsZero && (
 									<View style={styles.warningContainer}>
 										<WarningMessage warningMessage={strings('transaction.not_enough_for_gas')} />

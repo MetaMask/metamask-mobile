@@ -99,6 +99,10 @@ export default class TestHelpers {
 			.withTimeout(10000);
 	}
 
+	static checkIfElementWithTextIsNotVisible(text) {
+		return expect(element(by.text(text)).atIndex(0)).toBeNotVisible();
+	}
+
 	static checkIfExists(elementId) {
 		return expect(element(by.id(elementId))).toExist();
 	}
