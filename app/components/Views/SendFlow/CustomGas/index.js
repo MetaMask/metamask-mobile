@@ -369,7 +369,6 @@ class CustomGas extends PureComponent {
 	renderGasSelector = (name, wei, selected, wait, onPress) => {
 		const { conversionRate, currentCurrency, gas } = this.props;
 		const ticker = getTicker(this.props.ticker);
-		console.log(name);
 		return (
 			<TouchableOpacity
 				key={name}
