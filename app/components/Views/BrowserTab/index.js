@@ -689,7 +689,7 @@ export class BrowserTab extends PureComponent {
 						{
 							text: strings('browser.yes'),
 							onPress: () => {
-								const bookmark = { url: req[0] };
+								const bookmark = { url: req.params[0] };
 								this.props.removeBookmark(bookmark);
 								// remove bookmark from homepage
 								this.refreshHomeScripts();
