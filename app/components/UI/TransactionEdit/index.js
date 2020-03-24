@@ -428,10 +428,14 @@ class TransactionEdit extends PureComponent {
 						</View>
 						{!paymentChannelTransaction && (
 							<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
-								<View style={styles.label}>
+								<View>
 									<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
 									{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
 								</View>
+							</View>
+						)}
+						{!paymentChannelTransaction && (
+							<View style={[styles.formRow, styles.row]}>
 								<CustomGas
 									handleGasFeeSelection={this.updateGas}
 									totalGas={totalGas}
