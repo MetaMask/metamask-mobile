@@ -2429,7 +2429,7 @@
 			outputPaths = (
 			);
 			shellPath = /bin/sh;
-			shellScript = "if [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n../node_modules/@sentry/cli/bin/sentry-cli upload-dsym";
+			shellScript = "if [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\nif [ \"${CONFIGURATION}\" != \"Debug\" ]; then\n    ../node_modules/@sentry/cli/bin/sentry-cli upload-dsym\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
 
