@@ -19,7 +19,7 @@ import Logger from '../../../../util/Logger';
 import { getTicker } from '../../../../util/transactions';
 import TransactionTypes from '../../../../core/TransactionTypes';
 
-const Radio = selected => (
+const Radio = ({ selected }) => (
 	<Svg width="12" height="12" viewBox="0 0 12 12">
 		{selected ? (
 			<Circle cx="6" cy="6" r="4" stroke="#037DD6" strokeWidth="4" fill="none" />
@@ -28,6 +28,10 @@ const Radio = selected => (
 		)}
 	</Svg>
 );
+
+Radio.propTypes = {
+	selected: PropTypes.boolean
+};
 
 const {
 	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
