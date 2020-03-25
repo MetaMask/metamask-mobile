@@ -92,7 +92,7 @@ export function parseWaitTime(min) {
 			parsed += ` ${Math.ceil(val)}${strings('unit.second')}`;
 		}
 	}
-	return parsed;
+	return parsed.trim();
 }
 
 /**
