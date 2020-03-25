@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
-import Svg, { Circle } from 'react-native-svg';
 import {
 	getRenderableEthGasFee,
 	getRenderableFiatGasFee,
@@ -18,20 +17,7 @@ import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../
 import Logger from '../../../../util/Logger';
 import { getTicker } from '../../../../util/transactions';
 import TransactionTypes from '../../../../core/TransactionTypes';
-
-const Radio = ({ selected }) => (
-	<Svg width="12" height="12" viewBox="0 0 12 12">
-		{selected ? (
-			<Circle cx="6" cy="6" r="4" stroke="#037DD6" strokeWidth="4" fill="none" />
-		) : (
-			<Circle cx="6" cy="6" r="5.5" stroke="#D2D8DD" fill="none" />
-		)}
-	</Svg>
-);
-
-Radio.propTypes = {
-	selected: PropTypes.boolean
-};
+import Radio from '../../../UI/Radio';
 
 const {
 	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
