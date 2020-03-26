@@ -427,42 +427,40 @@ class TransactionEdit extends PureComponent {
 							/>
 						</View>
 						{!paymentChannelTransaction && (
-							<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
-								<View>
-									<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
-									{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
-								</View>
-							</View>
-						)}
-						{!paymentChannelTransaction && (
-							<View style={[styles.formRow, styles.row]}>
-								<CustomGas
-									handleGasFeeSelection={this.updateGas}
-									totalGas={totalGas}
-									gas={gas}
-									gasPrice={gasPrice}
-									onPress={this.closeDropdowns}
-								/>
-							</View>
-						)}
-						{!paymentChannelTransaction && (
-							<View style={[styles.formRow, styles.row]}>
-								{showHexData && (
-									<View style={styles.label}>
-										<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
+							<>
+								<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
+									<View>
+										<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
+										{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
 									</View>
-								)}
-								{showHexData && (
-									<TextInput
-										multiline
-										onChangeText={this.updateData}
-										placeholder={strings('transaction.optional')}
-										placeholderTextColor={colors.grey100}
-										style={styles.hexData}
-										value={data}
+								</View>
+								<View style={[styles.formRow, styles.row]}>
+									<CustomGas
+										handleGasFeeSelection={this.updateGas}
+										totalGas={totalGas}
+										gas={gas}
+										gasPrice={gasPrice}
+										onPress={this.closeDropdowns}
 									/>
-								)}
-							</View>
+								</View>
+								<View style={[styles.formRow, styles.row]}>
+									{showHexData && (
+										<View style={styles.label}>
+											<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
+										</View>
+									)}
+									{showHexData && (
+										<TextInput
+											multiline
+											onChangeText={this.updateData}
+											placeholder={strings('transaction.optional')}
+											placeholderTextColor={colors.grey100}
+											style={styles.hexData}
+											value={data}
+										/>
+									)}
+								</View>
+							</>
 						)}
 					</View>
 				</ActionView>
