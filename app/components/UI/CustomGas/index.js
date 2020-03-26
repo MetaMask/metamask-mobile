@@ -16,11 +16,20 @@ import { getTicker } from '../../../util/transactions';
 import Radio from '../Radio';
 
 const styles = StyleSheet.create({
+	labelText: {
+		...fontStyles.bold,
+		color: colors.grey400,
+		fontSize: 16
+	},
 	titleContainer: {
 		flex: 1,
 		width: '100%',
 		flexDirection: 'row',
 		justifyContent: 'space-between'
+	},
+	titleMargin: {
+		marginBottom: 10,
+		alignItems: 'flex-end'
 	},
 	radio: {
 		marginLeft: 'auto'
@@ -49,8 +58,7 @@ const styles = StyleSheet.create({
 	},
 	advancedOptions: {
 		textAlign: 'right',
-		alignItems: 'flex-end',
-		marginTop: 10
+		alignItems: 'flex-end'
 	},
 	slow: {
 		borderBottomStartRadius: 6,
@@ -81,7 +89,8 @@ const styles = StyleSheet.create({
 		textTransform: 'none'
 	},
 	textAdvancedOptions: {
-		color: colors.blue
+		color: colors.blue,
+		fontSize: 14
 	},
 	gasInput: {
 		...fontStyles.bold,
@@ -135,7 +144,11 @@ class CustomGas extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Displayed when there is a gas station error
+		 */
+		gasError: PropTypes.string
 	};
 
 	state = {
@@ -378,18 +391,25 @@ class CustomGas extends PureComponent {
 	render = () => {
 		if (this.state.ready) {
 			const { advancedCustomGas } = this.state;
+			const { gasError } = this.props;
 			return (
 				<View style={baseStyles.flexGrow}>
-					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
-					<View style={styles.advancedOptions}>
-						<TouchableOpacity onPress={this.onAdvancedOptions}>
-							<Text style={styles.textAdvancedOptions}>
-								{advancedCustomGas
-									? strings('custom_gas.hide_advanced_options')
-									: strings('custom_gas.advanced_options')}
-							</Text>
-						</TouchableOpacity>
+					<View style={[styles.titleContainer, styles.titleMargin]}>
+						<View>
+							<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
+							{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
+						</View>
+						<View style={styles.advancedOptions}>
+							<TouchableOpacity onPress={this.onAdvancedOptions}>
+								<Text style={styles.textAdvancedOptions}>
+									{advancedCustomGas
+										? strings('custom_gas.hide_advanced_options')
+										: strings('custom_gas.advanced_options')}
+								</Text>
+							</TouchableOpacity>
+						</View>
 					</View>
+					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
 				</View>
 			);
 		}
