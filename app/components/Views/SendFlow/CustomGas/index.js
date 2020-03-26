@@ -8,20 +8,12 @@ import {
 	getRenderableEthGasFee,
 	getRenderableFiatGasFee,
 	apiEstimateModifiedToWEI,
-	fetchBasicGasEstimates,
-	convertApiValueToGWEI,
-	parseWaitTime
+	getBasicGasEstimates
 } from '../../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../../../../util/number';
-import Logger from '../../../../util/Logger';
 import { getTicker } from '../../../../util/transactions';
-import TransactionTypes from '../../../../core/TransactionTypes';
 import Radio from '../../../UI/Radio';
-
-const {
-	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
-} = TransactionTypes;
 
 const styles = StyleSheet.create({
 	root: {
@@ -304,40 +296,8 @@ class CustomGas extends PureComponent {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		let basicGasEstimates;
-		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
-		} catch (error) {
-			Logger.log('Error while trying to get gas limit estimates', error);
-			basicGasEstimates = {
-				average: AVERAGE_GAS,
-				averageWait: 2,
-				safeLow: LOW_GAS,
-				safeLowWait: 4,
-				fast: FAST_GAS,
-				fastWait: 1
-			};
-		}
-
-		// Handle api failure returning same gas prices
-		let { average, fast, safeLow } = basicGasEstimates;
-		const { averageWait, fastWait, safeLowWait } = basicGasEstimates;
-
-		if (average === fast && average === safeLow) {
-			average = AVERAGE_GAS;
-			safeLow = LOW_GAS;
-			fast = FAST_GAS;
-		}
-
-		this.setState({
-			averageGwei: convertApiValueToGWEI(average),
-			fastGwei: convertApiValueToGWEI(fast),
-			safeLowGwei: convertApiValueToGWEI(safeLow),
-			averageWait: parseWaitTime(averageWait),
-			fastWait: parseWaitTime(fastWait),
-			safeLowWait: parseWaitTime(safeLowWait),
-			ready: true
-		});
+		const basicGasEstimates = await getBasicGasEstimates();
+		this.setState({ ...basicGasEstimates, ready: true });
 	};
 
 	onGasLimitChange = value => {
