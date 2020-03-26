@@ -13,14 +13,9 @@ import {
 import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
-import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	selectors: {
-		backgroundColor: colors.white,
-		borderColor: colors.grey100,
-		borderRadius: 4,
-		borderWidth: 1,
 		flex: 1,
 		position: 'relative',
 		flexDirection: 'row',
@@ -30,38 +25,50 @@ const styles = StyleSheet.create({
 		alignSelf: 'stretch',
 		textAlign: 'center',
 		alignItems: 'flex-start',
-		width: '33%',
-		paddingVertical: 8,
-		paddingHorizontal: 10
+		width: '33.333333333%',
+		paddingVertical: 10,
+		paddingHorizontal: 12,
+		borderWidth: 1,
+		borderColor: colors.grey100,
+		marginLeft: -2
+	},
+	selectorSelected: {
+		backgroundColor: colors.blue000,
+		borderColor: colors.blue,
+		zIndex: 1
 	},
 	advancedOptions: {
 		textAlign: 'right',
 		alignItems: 'flex-end',
 		marginTop: 10
 	},
-	average: {
-		borderColor: colors.grey100,
-		borderRightWidth: 1,
-		borderLeftWidth: 1
-	},
 	slow: {
-		borderBottomStartRadius: 4,
-		borderTopStartRadius: 4
+		borderBottomStartRadius: 6,
+		borderTopStartRadius: 6
 	},
 	fast: {
-		borderBottomEndRadius: 4,
-		borderTopEndRadius: 4
+		borderBottomEndRadius: 6,
+		borderTopEndRadius: 6
 	},
 	text: {
 		...fontStyles.normal,
-		fontSize: Device.isSmallDevice() ? 10 : 12
+		fontSize: 10,
+		color: colors.black
 	},
 	textTitle: {
 		...fontStyles.bold,
-		fontSize: Device.isSmallDevice() ? 10 : 14
+		fontSize: 10,
+		color: colors.black
 	},
 	textTotalGas: {
 		...fontStyles.bold
+	},
+	textTime: {
+		...fontStyles.bold,
+		color: colors.black,
+		marginVertical: 4,
+		fontSize: 18,
+		textTransform: 'none'
 	},
 	textAdvancedOptions: {
 		color: colors.blue
@@ -265,14 +272,10 @@ class CustomGas extends PureComponent {
 				<TouchableOpacity
 					key={'safeLow'}
 					onPress={this.onPressGasSlow}
-					style={[
-						styles.selector,
-						styles.slow,
-						{ backgroundColor: gasSlowSelected ? colors.blue : colors.white }
-					]}
+					style={[styles.selector, styles.slow, gasSlowSelected && styles.selectorSelected]}
 				>
 					<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
-					<Text>{safeLowWait}</Text>
+					<Text style={styles.textTime}>{safeLowWait}</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 					</Text>
@@ -283,14 +286,10 @@ class CustomGas extends PureComponent {
 				<TouchableOpacity
 					key={'average'}
 					onPress={this.onPressGasAverage}
-					style={[
-						styles.selector,
-						styles.average,
-						{ backgroundColor: gasAverageSelected ? colors.blue : colors.white }
-					]}
+					style={[styles.selector, gasAverageSelected && styles.selectorSelected]}
 				>
 					<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
-					<Text>{averageWait}</Text>
+					<Text style={styles.textTime}>{averageWait}</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 					</Text>
@@ -301,14 +300,10 @@ class CustomGas extends PureComponent {
 				<TouchableOpacity
 					key={'fast'}
 					onPress={this.onPressGasFast}
-					style={[
-						styles.selector,
-						styles.fast,
-						{ backgroundColor: gasFastSelected ? colors.blue : colors.white }
-					]}
+					style={[styles.selector, styles.fast, gasFastSelected && styles.selectorSelected]}
 				>
 					<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
-					<Text>{fastWait}</Text>
+					<Text style={styles.textTime}>{fastWait}</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 					</Text>
