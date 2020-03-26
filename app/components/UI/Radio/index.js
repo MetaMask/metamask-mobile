@@ -14,7 +14,7 @@ const Radio = ({ selected }) => (
 );
 
 Radio.propTypes = {
-	selected: PropTypes.boolean
+	selected: PropTypes.bool
 };
 
 export default Radio;
