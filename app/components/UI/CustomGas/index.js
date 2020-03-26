@@ -8,19 +8,12 @@ import {
 	getRenderableEthGasFee,
 	getRenderableFiatGasFee,
 	apiEstimateModifiedToWEI,
-	fetchBasicGasEstimates,
-	convertApiValueToGWEI
+	getBasicGasEstimates
 } from '../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN } from '../../../util/number';
-import Logger from '../../../util/Logger';
 import { getTicker } from '../../../util/transactions';
 import Device from '../../../util/Device';
-import TransactionTypes from '../../../core/TransactionTypes';
-
-const {
-	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
-} = TransactionTypes;
 
 const styles = StyleSheet.create({
 	selectors: {
@@ -134,8 +127,11 @@ class CustomGas extends PureComponent {
 		gasAverageSelected: true,
 		gasSlowSelected: false,
 		averageGwei: 0,
+		averageWait: undefined,
 		fastGwei: 0,
+		fastWait: undefined,
 		safeLowGwei: 0,
+		safeLowWait: undefined,
 		selected: 'average',
 		ready: false,
 		advancedCustomGas: false,
@@ -233,28 +229,8 @@ class CustomGas extends PureComponent {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		let basicGasEstimates;
-		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
-		} catch (error) {
-			Logger.log('Error while trying to get gas limit estimates', error);
-			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
-		}
-
-		// Handle api failure returning same gas prices
-		let { average, fast, safeLow } = basicGasEstimates;
-		if (average === fast && average === safeLow) {
-			average = AVERAGE_GAS;
-			safeLow = LOW_GAS;
-			fast = FAST_GAS;
-		}
-
-		this.setState({
-			averageGwei: convertApiValueToGWEI(average),
-			fastGwei: convertApiValueToGWEI(fast),
-			safeLowGwei: convertApiValueToGWEI(safeLow),
-			ready: true
-		});
+		const basicGasEstimates = await getBasicGasEstimates();
+		this.setState({ ...basicGasEstimates, ready: true });
 	};
 
 	onGasLimitChange = value => {
@@ -271,7 +247,7 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasSelector = () => {
-		const { averageGwei, fastGwei, safeLowGwei } = this.state;
+		const { averageGwei, fastGwei, safeLowGwei, averageWait, safeLowWait, fastWait } = this.state;
 		const { conversionRate, currentCurrency, gas } = this.props;
 		const ticker = getTicker(this.props.ticker);
 		return (
@@ -288,6 +264,7 @@ class CustomGas extends PureComponent {
 					<Text style={[styles.textTitle, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
 						{strings('transaction.gas_fee_slow')}
 					</Text>
+					<Text>{safeLowWait}</Text>
 					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
 						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 					</Text>
@@ -309,6 +286,7 @@ class CustomGas extends PureComponent {
 					>
 						{strings('transaction.gas_fee_average')}
 					</Text>
+					<Text>{averageWait}</Text>
 					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
 						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 					</Text>
@@ -328,6 +306,7 @@ class CustomGas extends PureComponent {
 					<Text style={[styles.textTitle, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
 						{strings('transaction.gas_fee_fast')}
 					</Text>
+					<Text>{fastWait}</Text>
 					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
 						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 					</Text>
