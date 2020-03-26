@@ -271,14 +271,12 @@ class CustomGas extends PureComponent {
 						{ backgroundColor: gasSlowSelected ? colors.blue : colors.white }
 					]}
 				>
-					<Text style={[styles.textTitle, { color: gasSlowSelected ? colors.white : undefined }]}>
-						{strings('transaction.gas_fee_slow')}
-					</Text>
+					<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
 					<Text>{safeLowWait}</Text>
-					<Text style={[styles.text, { color: gasSlowSelected ? colors.white : undefined }]}>
+					<Text style={styles.text}>
 						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text, { color: gasSlowSelected ? colors.white : undefined }]}>
+					<Text style={styles.text}>
 						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
@@ -291,14 +289,12 @@ class CustomGas extends PureComponent {
 						{ backgroundColor: gasAverageSelected ? colors.blue : colors.white }
 					]}
 				>
-					<Text style={[styles.textTitle, { color: gasAverageSelected ? colors.white : undefined }]}>
-						{strings('transaction.gas_fee_average')}
-					</Text>
+					<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
 					<Text>{averageWait}</Text>
-					<Text style={[styles.text, { color: gasAverageSelected ? colors.white : undefined }]}>
+					<Text style={styles.text}>
 						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text, { color: gasAverageSelected ? colors.white : undefined }]}>
+					<Text style={styles.text}>
 						{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
@@ -311,14 +307,12 @@ class CustomGas extends PureComponent {
 						{ backgroundColor: gasFastSelected ? colors.blue : colors.white }
 					]}
 				>
-					<Text style={[styles.textTitle, { color: gasFastSelected ? colors.white : undefined }]}>
-						{strings('transaction.gas_fee_fast')}
-					</Text>
+					<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
 					<Text>{fastWait}</Text>
-					<Text style={[styles.text, { color: gasFastSelected ? colors.white : undefined }]}>
+					<Text style={styles.text}>
 						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text, { color: gasFastSelected ? colors.white : undefined }]}>
+					<Text style={styles.text}>
 						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
