@@ -37,8 +37,7 @@ const styles = StyleSheet.create({
 		padding: 12,
 		borderWidth: 1,
 		borderColor: colors.grey100,
-		marginTop: -1,
-		zIndex: 0
+		marginTop: -1
 	},
 	advancedOptions: {
 		textAlign: 'right',
