@@ -247,7 +247,17 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasSelector = () => {
-		const { averageGwei, fastGwei, safeLowGwei, averageWait, safeLowWait, fastWait } = this.state;
+		const {
+			averageGwei,
+			fastGwei,
+			safeLowGwei,
+			averageWait,
+			safeLowWait,
+			fastWait,
+			gasSlowSelected,
+			gasAverageSelected,
+			gasFastSelected
+		} = this.state;
 		const { conversionRate, currentCurrency, gas } = this.props;
 		const ticker = getTicker(this.props.ticker);
 		return (
@@ -258,17 +268,17 @@ class CustomGas extends PureComponent {
 					style={[
 						styles.selector,
 						styles.slow,
-						{ backgroundColor: this.state.gasSlowSelected ? colors.blue : colors.white }
+						{ backgroundColor: gasSlowSelected ? colors.blue : colors.white }
 					]}
 				>
-					<Text style={[styles.textTitle, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
+					<Text style={[styles.textTitle, { color: gasSlowSelected ? colors.white : undefined }]}>
 						{strings('transaction.gas_fee_slow')}
 					</Text>
 					<Text>{safeLowWait}</Text>
-					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
+					<Text style={[styles.text, { color: gasSlowSelected ? colors.white : undefined }]}>
 						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
+					<Text style={[styles.text, { color: gasSlowSelected ? colors.white : undefined }]}>
 						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
@@ -278,19 +288,17 @@ class CustomGas extends PureComponent {
 					style={[
 						styles.selector,
 						styles.average,
-						{ backgroundColor: this.state.gasAverageSelected ? colors.blue : colors.white }
+						{ backgroundColor: gasAverageSelected ? colors.blue : colors.white }
 					]}
 				>
-					<Text
-						style={[styles.textTitle, { color: this.state.gasAverageSelected ? colors.white : undefined }]}
-					>
+					<Text style={[styles.textTitle, { color: gasAverageSelected ? colors.white : undefined }]}>
 						{strings('transaction.gas_fee_average')}
 					</Text>
 					<Text>{averageWait}</Text>
-					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
+					<Text style={[styles.text, { color: gasAverageSelected ? colors.white : undefined }]}>
 						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
+					<Text style={[styles.text, { color: gasAverageSelected ? colors.white : undefined }]}>
 						{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
@@ -300,17 +308,17 @@ class CustomGas extends PureComponent {
 					style={[
 						styles.selector,
 						styles.fast,
-						{ backgroundColor: this.state.gasFastSelected ? colors.blue : colors.white }
+						{ backgroundColor: gasFastSelected ? colors.blue : colors.white }
 					]}
 				>
-					<Text style={[styles.textTitle, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
+					<Text style={[styles.textTitle, { color: gasFastSelected ? colors.white : undefined }]}>
 						{strings('transaction.gas_fee_fast')}
 					</Text>
 					<Text>{fastWait}</Text>
-					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
+					<Text style={[styles.text, { color: gasFastSelected ? colors.white : undefined }]}>
 						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
+					<Text style={[styles.text, { color: gasFastSelected ? colors.white : undefined }]}>
 						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
