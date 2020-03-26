@@ -13,8 +13,18 @@ import {
 import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
+import Radio from '../Radio';
 
 const styles = StyleSheet.create({
+	titleContainer: {
+		flex: 1,
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'space-between'
+	},
+	radio: {
+		marginLeft: 'auto'
+	},
 	selectors: {
 		flex: 1,
 		position: 'relative',
@@ -274,7 +284,14 @@ class CustomGas extends PureComponent {
 					onPress={this.onPressGasSlow}
 					style={[styles.selector, styles.slow, gasSlowSelected && styles.selectorSelected]}
 				>
-					<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
+					<View style={styles.titleContainer}>
+						<View>
+							<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
+						</View>
+						<View style={styles.radio}>
+							<Radio selected={gasSlowSelected} />
+						</View>
+					</View>
 					<Text style={styles.textTime}>{safeLowWait}</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
@@ -288,7 +305,14 @@ class CustomGas extends PureComponent {
 					onPress={this.onPressGasAverage}
 					style={[styles.selector, gasAverageSelected && styles.selectorSelected]}
 				>
-					<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
+					<View style={styles.titleContainer}>
+						<View>
+							<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
+						</View>
+						<View style={styles.radio}>
+							<Radio selected={gasAverageSelected} />
+						</View>
+					</View>
 					<Text style={styles.textTime}>{averageWait}</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
@@ -302,7 +326,14 @@ class CustomGas extends PureComponent {
 					onPress={this.onPressGasFast}
 					style={[styles.selector, styles.fast, gasFastSelected && styles.selectorSelected]}
 				>
-					<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
+					<View style={styles.titleContainer}>
+						<View>
+							<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
+						</View>
+						<View style={styles.radio}>
+							<Radio selected={gasFastSelected} />
+						</View>
+					</View>
 					<Text style={styles.textTime}>{fastWait}</Text>
 					<Text style={styles.text}>
 						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
