@@ -27,13 +27,13 @@ const styles = StyleSheet.create({
 		marginRight: 0,
 		position: 'absolute',
 		zIndex: 5,
-		right: 15,
-		left: 15,
+		right: 24,
+		left: 24,
 		marginTop: 30
 	},
 	toRow: {
-		right: 15,
-		left: 15,
+		right: 24,
+		left: 24,
 		marginTop: Device.isAndroid() ? 125 : 120,
 		position: 'absolute',
 		zIndex: 4
@@ -43,8 +43,8 @@ const styles = StyleSheet.create({
 		zIndex: 3
 	},
 	amountRow: {
-		right: 15,
-		left: 15,
+		right: 24,
+		left: 24,
 		marginTop: Device.isAndroid() ? 200 : 190,
 		position: 'absolute',
 		zIndex: 4
@@ -84,7 +84,8 @@ const styles = StyleSheet.create({
 	},
 	form: {
 		flex: 1,
-		padding: 16,
+		paddingVertical: 16,
+		paddingHorizontal: 24,
 		flexDirection: 'column'
 	},
 	androidForm: {
@@ -426,38 +427,40 @@ class TransactionEdit extends PureComponent {
 							/>
 						</View>
 						{!paymentChannelTransaction && (
-							<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
-								<View style={styles.label}>
-									<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
-									{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
-								</View>
-								<CustomGas
-									handleGasFeeSelection={this.updateGas}
-									totalGas={totalGas}
-									gas={gas}
-									gasPrice={gasPrice}
-									onPress={this.closeDropdowns}
-								/>
-							</View>
-						)}
-						{!paymentChannelTransaction && (
-							<View style={[styles.formRow, styles.row]}>
-								{showHexData && (
-									<View style={styles.label}>
-										<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
+							<>
+								<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
+									<View>
+										<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
+										{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
 									</View>
-								)}
-								{showHexData && (
-									<TextInput
-										multiline
-										onChangeText={this.updateData}
-										placeholder={strings('transaction.optional')}
-										placeholderTextColor={colors.grey100}
-										style={styles.hexData}
-										value={data}
+								</View>
+								<View style={[styles.formRow, styles.row]}>
+									<CustomGas
+										handleGasFeeSelection={this.updateGas}
+										totalGas={totalGas}
+										gas={gas}
+										gasPrice={gasPrice}
+										onPress={this.closeDropdowns}
 									/>
-								)}
-							</View>
+								</View>
+								<View style={[styles.formRow, styles.row]}>
+									{showHexData && (
+										<View style={styles.label}>
+											<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
+										</View>
+									)}
+									{showHexData && (
+										<TextInput
+											multiline
+											onChangeText={this.updateData}
+											placeholder={strings('transaction.optional')}
+											placeholderTextColor={colors.grey100}
+											style={styles.hexData}
+											value={data}
+										/>
+									)}
+								</View>
+							</>
 						)}
 					</View>
 				</ActionView>

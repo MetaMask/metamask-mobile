@@ -6,7 +6,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
     Object {
       "borderColor": "#bbc0c5",
       "borderTopWidth": 1,
-      "paddingHorizontal": 16,
+      "paddingHorizontal": 24,
     }
   }
 >

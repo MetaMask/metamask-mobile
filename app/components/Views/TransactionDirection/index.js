@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		borderRightWidth: 1,
 		paddingRight: 35,
-		paddingLeft: 20
+		paddingLeft: 24
 	},
 	addressText: {
 		...fontStyles.normal,
