@@ -511,8 +511,8 @@
 		"not_enough_for_gas": "You have 0 ETH in your account to pay for transaction fees. Buy some ETH or deposit from another account."
 	},
 	"custom_gas": {
-		"advanced_options": "Show advanced options",
-		"hide_advanced_options": "Hide advanced options",
+		"advanced_options": "Advanced",
+		"hide_advanced_options": "Hide advanced",
 		"gas_limit": "Gas Limit:",
 		"gas_price": "Gas Price: (GWEI)",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",

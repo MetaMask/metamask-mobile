@@ -225,37 +225,9 @@ exports[`TransactionEdit should render correctly 1`] = `
           ]
         }
       >
-        <View>
-          <Text
-            style={
-              Object {
-                "color": "#848c96",
-                "fontFamily": "CircularStd-Medium",
-                "fontSize": 16,
-                "fontWeight": "600",
-              }
-            }
-          >
-            Transaction Fee
-            :
-          </Text>
-        </View>
-      </View>
-      <View
-        style={
-          Array [
-            Object {
-              "flexDirection": "row",
-            },
-            Object {
-              "marginTop": 18,
-              "zIndex": 3,
-            },
-          ]
-        }
-      >
         <Connect(CustomGas)
           gas=""
+          gasError=""
           gasPrice=""
           handleGasFeeSelection={[Function]}
           onPress={[Function]}
