@@ -41,7 +41,7 @@ export const colors = {
 	orange: '#f66a0a',
 	orange300: '#faa66c',
 	orange000: '#fef5ef',
-	spinnerColor: '#F758AC',
+	spinnerColor: '#037DD6',
 	dimmed: '#00000080',
 	transparent: 'transparent',
 	lightOverlay: 'rgba(0,0,0,.2)',

@@ -3,25 +3,26 @@ import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import ElevatedView from 'react-native-elevated-view';
-import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/Device';
 import AnimatedSpinner from '../AnimatedSpinner';
 import { hideMessage } from 'react-native-flash-message';
 import { strings } from '../../../../locales/i18n';
 import GestureRecognizer from 'react-native-swipe-gestures';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 const styles = StyleSheet.create({
 	defaultFlashFloating: {
+		flex: 1,
 		backgroundColor: colors.normalAlert,
-		padding: 15,
-		marginTop: 10,
-		marginLeft: 0,
-		marginRight: 0,
-		height: Device.isIphoneX() ? 90 : 70,
-		flexDirection: 'row'
+		padding: 16,
+		marginHorizontal: 8,
+		flexDirection: 'row',
+		borderRadius: 8,
+		marginBottom: Device.isIphoneX() ? 20 : 10
 	},
 	flashLabel: {
+		flex: 1,
 		flexDirection: 'column',
 		color: colors.white
 	},
@@ -31,6 +32,7 @@ const styles = StyleSheet.create({
 		color: colors.white
 	},
 	flashTitle: {
+		flex: 1,
 		fontSize: 14,
 		marginBottom: 2,
 		lineHeight: 18,
@@ -39,6 +41,21 @@ const styles = StyleSheet.create({
 	},
 	flashIcon: {
 		marginRight: 15
+	},
+	touchableContainer: {
+		flex: 1,
+		flexDirection: 'row'
+	},
+	closeTouchable: {
+		flex: 0.1,
+		flexDirection: 'column',
+		alignItems: 'flex-end'
+	},
+	closeIcon: {
+		flex: 1,
+		color: colors.white,
+		alignItems: 'flex-start',
+		marginTop: -8
 	}
 });
 
@@ -68,7 +85,7 @@ export const TransactionNotification = props => {
 			case 'success':
 			case 'received':
 			case 'received_payment':
-				return <Icon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
+				return <IonicIcon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
 			case 'cancelled':
 			case 'error':
 				return (
@@ -117,19 +134,6 @@ export const TransactionNotification = props => {
 	};
 
 	// eslint-disable-next-line
-	_getContent = () => (
-		<Fragment>
-			<View style={styles.flashIcon}>{this._getIcon()}</View>
-			<View style={styles.flashLabel}>
-				<Text style={styles.flashTitle} testID={'notification-title'}>
-					{this._getTitle()}
-				</Text>
-				<Text style={styles.flashText}>{this._getDescription()}</Text>
-			</View>
-		</Fragment>
-	);
-
-	// eslint-disable-next-line
 	_onPress = () => {
 		if (callback) {
 			hideMessage();
@@ -142,22 +146,32 @@ export const TransactionNotification = props => {
 	return (
 		<ElevatedView elevation={10} style={baseStyles.flex}>
 			<GestureRecognizer
-				// eslint-disable-next-line react/jsx-no-bind
 				testID={'notification-swipe'}
-				onSwipeDown={() => hideMessage()}
+				onSwipeDown={hideMessage}
 				config={{
 					velocityThreshold: 0.2,
 					directionalOffsetThreshold: 50
 				}}
-				style={baseStyles.flex}
+				style={[styles.defaultFlashFloating]}
 			>
 				<TouchableOpacity
-					style={[styles.defaultFlash, styles.defaultFlashFloating]}
+					style={styles.touchableContainer}
 					testID={'press-notification-button'}
 					onPress={this._onPress}
 					activeOpacity={0.8}
 				>
-					{this._getContent()}
+					<Fragment>
+						<View style={styles.flashIcon}>{this._getIcon()}</View>
+						<View style={styles.flashLabel}>
+							<Text style={styles.flashTitle} testID={'notification-title'}>
+								{this._getTitle()}
+							</Text>
+							<Text style={styles.flashText}>{this._getDescription()}</Text>
+						</View>
+						<TouchableOpacity style={styles.closeTouchable} onPress={hideMessage}>
+							<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
+						</TouchableOpacity>
+					</Fragment>
 				</TouchableOpacity>
 			</GestureRecognizer>
 		</ElevatedView>

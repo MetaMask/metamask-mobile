@@ -870,7 +870,7 @@
 		"back_to_safety": "Volver al area segura"
 	},
 	"notifications": {
-		"pending_title": "Transacción enviada!",
+		"pending_title": "Transacción enviada",
 		"pending_deposit_title": "Depósito en progreso!",
 		"pending_withdrawal_title": "Retiro en progreso!",
 		"success_title": "Transacción #{{nonce}} Completa!",
@@ -880,7 +880,7 @@
 		"error_title": "Oops, algo ha salido mal :/",
 		"received_title": "Has recibido {{amount}} {{assetType}}!",
 		"received_payment_title": "Pago instantáneo recibido",
-		"pending_message": "Tu transacción esta en proceso",
+		"pending_message": "Tu transacción está en proceso",
 		"pending_deposit_message": "Esperando que el deposito sea compleado",
 		"pending_withdrawal_message": "Esperando que el retiro sea completado",
 		"error_message": "Presiona para ver esta transacción",

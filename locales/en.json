@@ -899,7 +899,7 @@
 		"back_to_safety": "Back to safety"
 	},
 	"notifications": {
-		"pending_title": "Transaction submitted!",
+		"pending_title": "Transaction submitted",
 		"pending_deposit_title": "Deposit in progress!",
 		"pending_withdrawal_title": "Withdrawal in progress!",
 		"cancelled_title": "Transaction cancelled!",
@@ -910,7 +910,7 @@
 		"error_title": "Oops, something went wrong :/",
 		"received_title": "You received {{amount}} {{assetType}}!",
 		"received_payment_title": "Instant payment received",
-		"pending_message": "Waiting for confirmation...",
+		"pending_message": "Waiting for confirmation",
 		"pending_deposit_message": "Waiting for deposit to complete",
 		"pending_withdrawal_message": "Waiting for withdrawal to complete",
 		"error_message": "Tap to view this transaction",
