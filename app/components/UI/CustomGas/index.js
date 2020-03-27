@@ -298,9 +298,7 @@ class CustomGas extends PureComponent {
 					style={[styles.selector, styles.slow, gasSlowSelected && styles.selectorSelected]}
 				>
 					<View style={styles.titleContainer}>
-						<View>
-							<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
-						</View>
+						<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
 						<View style={styles.radio}>
 							<Radio selected={gasSlowSelected} />
 						</View>
@@ -319,9 +317,7 @@ class CustomGas extends PureComponent {
 					style={[styles.selector, gasAverageSelected && styles.selectorSelected]}
 				>
 					<View style={styles.titleContainer}>
-						<View>
-							<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
-						</View>
+						<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
 						<View style={styles.radio}>
 							<Radio selected={gasAverageSelected} />
 						</View>
@@ -340,9 +336,7 @@ class CustomGas extends PureComponent {
 					style={[styles.selector, styles.fast, gasFastSelected && styles.selectorSelected]}
 				>
 					<View style={styles.titleContainer}>
-						<View>
-							<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
-						</View>
+						<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
 						<View style={styles.radio}>
 							<Radio selected={gasFastSelected} />
 						</View>
