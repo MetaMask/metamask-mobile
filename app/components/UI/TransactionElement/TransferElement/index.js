@@ -136,21 +136,19 @@ export default class TransferElement extends PureComponent {
 
 		const userHasToken = safeToChecksumAddress(to) in tokens;
 		const token = userHasToken ? tokens[safeToChecksumAddress(to)] : null;
-		const renderActionKey = token ? strings('transactions.sent') + ' ' + token.symbol : actionKey;
+		const renderActionKey = token ? `${strings('transactions.sent')} ${token.symbol}` : actionKey;
 		const renderTokenAmount = token
-			? renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol
+			? `${renderFromTokenMinimalUnit(amount, token.decimals)} ${token.symbol}`
 			: undefined;
 		const exchangeRate = token ? contractExchangeRates[token.address] : undefined;
 		let renderTokenFiatAmount, renderTokenFiatNumber;
 		if (exchangeRate) {
-			renderTokenFiatAmount =
-				'- ' +
-				balanceToFiat(
-					fromTokenMinimalUnit(amount, token.decimals) || 0,
-					conversionRate,
-					exchangeRate,
-					currentCurrency
-				).toUpperCase();
+			renderTokenFiatAmount = `- ${balanceToFiat(
+				fromTokenMinimalUnit(amount, token.decimals) || 0,
+				conversionRate,
+				exchangeRate,
+				currentCurrency
+			)}`;
 			renderTokenFiatNumber = balanceToFiatNumber(
 				fromTokenMinimalUnit(amount, token.decimals) || 0,
 				conversionRate,
@@ -159,7 +157,7 @@ export default class TransferElement extends PureComponent {
 		}
 
 		const renderToken = token
-			? renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol
+			? `${renderFromTokenMinimalUnit(amount, token.decimals)} ${token.symbol}`
 			: strings('transaction.value_not_available');
 		const totalFiatNumber = renderTokenFiatNumber
 			? weiToFiatNumber(totalGas, conversionRate) + renderTokenFiatNumber
@@ -196,25 +194,20 @@ export default class TransferElement extends PureComponent {
 			collectible => collectible.address.toLowerCase() === to.toLowerCase()
 		);
 		if (collectible) {
-			actionKey = strings('transactions.sent') + ' ' + collectible.name;
+			actionKey = `${strings('transactions.sent')} ${collectible.name}`;
 		} else {
 			actionKey = strings('transactions.sent_collectible');
 		}
 
 		const renderCollectible = collectible
-			? strings('unit.token_id') + tokenId + ' ' + collectible.symbol
-			: strings('unit.token_id') + tokenId;
+			? `${strings('unit.token_id')} ${tokenId} ${collectible.symbol}`
+			: `${strings('unit.token_id')} ${tokenId}`;
 
 		const transactionDetails = {
 			renderValue: renderCollectible,
-			renderTotalValue:
-				renderCollectible +
-				' ' +
-				strings('unit.divisor') +
-				' ' +
-				renderFromWei(totalGas) +
-				' ' +
-				strings('unit.eth'),
+			renderTotalValue: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${strings(
+				'unit.eth'
+			)}`,
 			renderTotalValueFiat: undefined
 		};
 
