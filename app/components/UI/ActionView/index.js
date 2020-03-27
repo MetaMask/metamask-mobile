@@ -12,7 +12,8 @@ const styles = StyleSheet.create({
 		borderTopWidth: 1,
 		flex: 0,
 		flexDirection: 'row',
-		padding: 16
+		paddingVertical: 16,
+		paddingHorizontal: 24
 	},
 	button: {
 		flex: 1

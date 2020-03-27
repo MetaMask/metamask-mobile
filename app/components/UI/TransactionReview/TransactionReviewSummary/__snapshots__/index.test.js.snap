@@ -12,7 +12,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
     style={
       Object {
         "backgroundColor": undefined,
-        "padding": 16,
+        "padding": 24,
       }
     }
   >

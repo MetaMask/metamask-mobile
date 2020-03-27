@@ -41,11 +41,11 @@ exports[`AdvancedSettings should render correctly 1`] = `
       <ActionModal
         cancelButtonMode="neutral"
         cancelTestID=""
-        cancelText="NEVERMIND"
+        cancelText="Cancel"
         confirmButtonMode="warning"
         confirmDisabled={false}
         confirmTestID=""
-        confirmText="RESET"
+        confirmText="Yes, reset"
         displayCancelButton={true}
         displayConfirmButton={true}
         modalVisible={false}
@@ -67,8 +67,9 @@ exports[`AdvancedSettings should render correctly 1`] = `
           <Text
             style={
               Object {
+                "color": "#000000",
                 "fontFamily": "CircularStd-Medium",
-                "fontSize": 22,
+                "fontSize": 24,
                 "fontWeight": "600",
                 "marginBottom": 20,
                 "textAlign": "center",
@@ -80,8 +81,9 @@ exports[`AdvancedSettings should render correctly 1`] = `
           <Text
             style={
               Object {
+                "color": "#000000",
                 "fontFamily": "CircularStd-Medium",
-                "fontSize": 18,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "textAlign": "center",
               }

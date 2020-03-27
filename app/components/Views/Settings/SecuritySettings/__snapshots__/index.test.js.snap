@@ -470,7 +470,7 @@ exports[`SecuritySettings should render correctly 1`] = `
     <ActionModal
       cancelButtonMode="neutral"
       cancelTestID=""
-      cancelText="NEVERMIND"
+      cancelText="Cancel"
       confirmButtonMode="warning"
       confirmDisabled={false}
       confirmTestID=""
@@ -523,7 +523,7 @@ exports[`SecuritySettings should render correctly 1`] = `
     <ActionModal
       cancelButtonMode="neutral"
       cancelTestID=""
-      cancelText="NEVERMIND"
+      cancelText="Cancel"
       confirmButtonMode="warning"
       confirmDisabled={false}
       confirmTestID=""

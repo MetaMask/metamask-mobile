@@ -28,7 +28,8 @@ exports[`TransactionEdit should render correctly 1`] = `
           Object {
             "flex": 1,
             "flexDirection": "column",
-            "padding": 16,
+            "paddingHorizontal": 24,
+            "paddingVertical": 16,
           },
           Object {},
         ]
@@ -41,11 +42,11 @@ exports[`TransactionEdit should render correctly 1`] = `
               "flexDirection": "row",
             },
             Object {
-              "left": 15,
+              "left": 24,
               "marginRight": 0,
               "marginTop": 30,
               "position": "absolute",
-              "right": 15,
+              "right": 24,
               "zIndex": 5,
             },
           ]
@@ -91,10 +92,10 @@ exports[`TransactionEdit should render correctly 1`] = `
               "zIndex": 3,
             },
             Object {
-              "left": 15,
+              "left": 24,
               "marginTop": 190,
               "position": "absolute",
-              "right": 15,
+              "right": 24,
               "zIndex": 4,
             },
           ]
@@ -157,10 +158,10 @@ exports[`TransactionEdit should render correctly 1`] = `
               "flexDirection": "row",
             },
             Object {
-              "left": 15,
+              "left": 24,
               "marginTop": 120,
               "position": "absolute",
-              "right": 15,
+              "right": 24,
               "zIndex": 4,
             },
           ]
@@ -224,15 +225,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           ]
         }
       >
-        <View
-          style={
-            Object {
-              "flex": 0,
-              "paddingRight": 18,
-              "width": 106,
-            }
-          }
-        >
+        <View>
           <Text
             style={
               Object {
@@ -247,6 +240,20 @@ exports[`TransactionEdit should render correctly 1`] = `
             :
           </Text>
         </View>
+      </View>
+      <View
+        style={
+          Array [
+            Object {
+              "flexDirection": "row",
+            },
+            Object {
+              "marginTop": 18,
+              "zIndex": 3,
+            },
+          ]
+        }
+      >
         <Connect(CustomGas)
           gas=""
           gasPrice=""

@@ -14,10 +14,11 @@ const styles = StyleSheet.create({
 	modalView: {
 		flexDirection: 'column',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		marginHorizontal: 24
 	},
 	modalContainer: {
-		width: '90%',
+		width: '100%',
 		backgroundColor: colors.white,
 		borderRadius: 10
 	},
