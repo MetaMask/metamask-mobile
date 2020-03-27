@@ -4,7 +4,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
 <View
   style={
     Object {
-      "paddingHorizontal": 16,
+      "paddingHorizontal": 24,
     }
   }
 >

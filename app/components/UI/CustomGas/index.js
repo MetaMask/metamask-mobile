@@ -38,7 +38,8 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		alignItems: 'flex-start',
 		width: '33%',
-		padding: 5
+		paddingVertical: 8,
+		paddingHorizontal: 10
 	},
 	advancedOptions: {
 		textAlign: 'right',
