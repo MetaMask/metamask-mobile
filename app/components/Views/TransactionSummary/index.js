@@ -10,8 +10,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.grey050,
 		borderRadius: 8,
-		padding: 16,
-		marginHorizontal: 24
+		padding: 16
 	},
 	summaryRow: {
 		flexDirection: 'row',
