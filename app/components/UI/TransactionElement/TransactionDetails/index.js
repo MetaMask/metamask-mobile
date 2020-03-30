@@ -18,16 +18,15 @@ const HASH_LENGTH = Device.isSmallDevice() ? 18 : 20;
 const styles = StyleSheet.create({
 	detailRowWrapper: {
 		flex: 1,
-		backgroundColor: colors.grey000,
-		paddingVertical: 10,
+		backgroundColor: colors.white,
 		paddingHorizontal: 15,
 		marginTop: 10
 	},
 	detailRowTitle: {
 		flex: 1,
-		paddingVertical: 10,
-		fontSize: 15,
-		color: colors.fontPrimary,
+		fontSize: 10,
+		color: colors.grey500,
+		marginBottom: 8,
 		...fontStyles.normal
 	},
 	detailRowInfo: {
@@ -44,6 +43,14 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'row'
 	},
+	section: {
+		flex: 1,
+		paddingVertical: 16
+	},
+	sectionBorderBottom: {
+		borderBottomColor: colors.grey100,
+		borderBottomWidth: 1
+	},
 	flexEnd: {
 		flex: 1,
 		alignItems: 'flex-end'
@@ -54,17 +61,17 @@ const styles = StyleSheet.create({
 	detailRowText: {
 		flex: 1,
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
 	viewOnEtherscan: {
-		fontSize: 14,
+		fontSize: 16,
 		color: colors.blue,
 		...fontStyles.normal,
-		textAlign: 'center',
-		marginTop: 15,
-		marginBottom: 10,
-		textTransform: 'uppercase'
+		textAlign: 'center'
+	},
+	touchableViewOnEtherscan: {
+		marginVertical: 24
 	},
 	hash: {
 		fontSize: 12
@@ -74,6 +81,9 @@ const styles = StyleSheet.create({
 	},
 	copyIcon: {
 		paddingRight: 5
+	},
+	summaryWrapper: {
+		marginVertical: 6
 	}
 });
 
@@ -243,7 +253,7 @@ class TransactionDetails extends PureComponent {
 		console.log('transactionObject', this.props.transactionDetails);
 		return (
 			<View style={styles.detailRowWrapper}>
-				<View style={styles.flexRow}>
+				<View style={[styles.section, styles.flexRow, styles.sectionBorderBottom]}>
 					<View style={baseStyles.flexGrow}>
 						<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
 						<EthereumAddress
@@ -261,28 +271,27 @@ class TransactionDetails extends PureComponent {
 						/>
 					</View>
 				</View>
-				<View style={baseStyles.flexGrow}>
+				<View style={styles.section}>
 					<Text style={[styles.detailRowTitle, styles.textUppercase]}>{'Nonce'}</Text>
-					<Text style={[styles.detailRowTitle]}>
-						{parseInt(transactionObject.transaction.nonce.replace(/^#/, ''), 16)}
+					<Text style={[styles.detailRowText]}>
+						{`#${parseInt(transactionObject.transaction.nonce.replace(/^#/, ''), 16)}`}
 					</Text>
 				</View>
-
-				<TransactionSummary
-					transactionValueFiat={this.props.transactionDetails.renderValueFiat}
-					transactionFeeFiat={this.props.transactionDetails.renderTotalGasFiat}
-					transactionTotalAmountFiat={this.props.transactionDetails.renderTotalValueFiat}
-					transactionTotalAmount={this.props.transactionDetails.renderTotalValue}
-					gasEstimationReady
-				/>
+				<View style={styles.summaryWrapper}>
+					<TransactionSummary
+						transactionValueFiat={this.props.transactionDetails.renderValueFiat}
+						transactionFeeFiat={this.props.transactionDetails.renderTotalGasFiat}
+						transactionTotalAmountFiat={this.props.transactionDetails.renderTotalValueFiat}
+						transactionTotalAmount={this.props.transactionDetails.renderTotalValue}
+						gasEstimationReady
+					/>
+				</View>
 
 				{this.props.transactionDetails.transactionHash &&
 					transactionObject.status !== 'cancelled' &&
 					blockExplorer &&
 					rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
-						<TouchableOpacity
-							onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
-						>
+						<TouchableOpacity onPress={this.viewOnEtherscan} style={styles.touchableViewOnEtherscan}>
 							<Text style={styles.viewOnEtherscan}>
 								{(rpcBlockExplorer &&
 									`${strings('transactions.view_on')} ${getBlockExplorerName(rpcBlockExplorer)}`) ||

@@ -636,7 +636,7 @@
 		"gas_price": "Gas Price (GWEI)",
 		"total": "Total",
 		"view_on": "VIEW ON",
-		"view_on_etherscan": "VIEW ON ETHERSCAN",
+		"view_on_etherscan": "View on Etherscan",
 		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
 		"address_copied_to_clipboard": "Address copied to clipboard",
 		"transaction_error": "Transaction error",
@@ -671,7 +671,7 @@
 	"transaction_submitted": {
 		"title": "Transaction Submitted",
 		"your_tx_hash_is": "Your transaction hash is:",
-		"view_on_etherscan": "VIEW ON ETHERSCAN"
+		"view_on_etherscan": "View on Etherscan"
 	},
 	"sync_with_extension": {
 		"title": "Sync data from Extension",
