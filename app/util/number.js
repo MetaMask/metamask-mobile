@@ -302,6 +302,13 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
 	return `${value} ${currencyCode}`;
 }
 
+export function addCurrencySymbol(value, currencyCode) {
+	if (currencySymbols[currencyCode]) {
+		return `${currencySymbols[currencyCode]}${value}`;
+	}
+	return `${value} ${currencyCode}`;
+}
+
 /**
  * Converts wei expressed as a BN instance into a human-readable fiat string
  *

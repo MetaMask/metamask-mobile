@@ -13,9 +13,11 @@ import {
 	isBN,
 	balanceToFiatNumber,
 	renderToGwei,
-	weiToFiatNumber
+	weiToFiatNumber,
+	weiToFiat,
+	addCurrencySymbol
 } from '../../../../util/number';
-import { getActionKey, decodeTransferData, isCollectibleAddress } from '../../../../util/transactions';
+import { getActionKey, decodeTransferData, isCollectibleAddress, getTicker } from '../../../../util/transactions';
 import { renderFullAddress, safeToChecksumAddress } from '../../../../util/address';
 
 const styles = StyleSheet.create({
@@ -83,7 +85,11 @@ export default class TransferElement extends PureComponent {
 		/**
 		 * An array that represents the user collectible contracts
 		 */
-		collectibleContracts: PropTypes.array
+		collectibleContracts: PropTypes.array,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -143,12 +149,12 @@ export default class TransferElement extends PureComponent {
 		const exchangeRate = token ? contractExchangeRates[token.address] : undefined;
 		let renderTokenFiatAmount, renderTokenFiatNumber;
 		if (exchangeRate) {
-			renderTokenFiatAmount = `- ${balanceToFiat(
+			renderTokenFiatAmount = balanceToFiat(
 				fromTokenMinimalUnit(amount, token.decimals) || 0,
 				conversionRate,
 				exchangeRate,
 				currentCurrency
-			)}`;
+			);
 			renderTokenFiatNumber = balanceToFiatNumber(
 				fromTokenMinimalUnit(amount, token.decimals) || 0,
 				conversionRate,
@@ -163,18 +169,21 @@ export default class TransferElement extends PureComponent {
 			? weiToFiatNumber(totalGas, conversionRate) + renderTokenFiatNumber
 			: undefined;
 
+		const ticker = getTicker(this.props.ticker);
+
 		const transactionDetails = {
+			renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+			renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
 			renderValue: renderToken,
-			renderTotalValue: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${strings(
-				'unit.eth'
-			)}`,
-			renderTotalValueFiat: totalFiatNumber ? `${totalFiatNumber} ${currentCurrency}` : undefined
+			renderValueFiat: renderTokenFiatAmount ? `${renderTokenFiatAmount}` : undefined,
+			renderTotalValue: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
+			renderTotalValueFiat: totalFiatNumber ? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}` : undefined
 		};
 
 		const transactionElement = {
 			actionKey: renderActionKey,
 			value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
-			fiatValue: renderTokenFiatAmount
+			fiatValue: `- ${renderTokenFiatAmount}`
 		};
 
 		return [transactionElement, transactionDetails];

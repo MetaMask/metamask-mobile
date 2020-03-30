@@ -46,35 +46,16 @@ const styles = StyleSheet.create({
 	},
 	flexEnd: {
 		flex: 1,
-		flexDirection: 'flex-end'
+		alignItems: 'flex-end'
 	},
 	textUppercase: {
 		textTransform: 'uppercase'
-	},
-	detailRowInfoItem: {
-		flex: 1,
-		flexDirection: 'row',
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-		marginBottom: 10,
-		paddingBottom: 5
-	},
-	noBorderBottom: {
-		borderBottomWidth: 0
 	},
 	detailRowText: {
 		flex: 1,
 		fontSize: 12,
 		color: colors.fontSecondary,
 		...fontStyles.normal
-	},
-	alignLeft: {
-		textAlign: 'left',
-		width: '40%'
-	},
-	alignRight: {
-		textAlign: 'right',
-		width: '60%'
 	},
 	viewOnEtherscan: {
 		fontSize: 14,
@@ -295,45 +276,6 @@ class TransactionDetails extends PureComponent {
 					gasEstimationReady
 				/>
 
-				<View style={styles.detailRowInfo}>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>
-							{this.props.transactionDetails.valueLabel || strings('transactions.amount')}
-						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{this.props.transactionDetails.renderValue}
-						</Text>
-					</View>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>
-							{strings('transactions.gas_limit')}
-						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{this.props.transactionDetails.renderGas}
-						</Text>
-					</View>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>
-							{strings('transactions.gas_price')}
-						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{this.props.transactionDetails.renderGasPrice}
-						</Text>
-					</View>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.total')}</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{this.props.transactionDetails.renderTotalValue}
-						</Text>
-					</View>
-					{this.props.transactionDetails.renderTotalValueFiat ? (
-						<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
-							<Text style={[styles.detailRowText, styles.alignRight]}>
-								{this.props.transactionDetails.renderTotalValueFiat}
-							</Text>
-						</View>
-					) : null}
-				</View>
 				{this.props.transactionDetails.transactionHash &&
 					transactionObject.status !== 'cancelled' &&
 					blockExplorer &&

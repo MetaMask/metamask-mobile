@@ -669,6 +669,7 @@ class TransactionElement extends PureComponent {
 					onPressItem={this.props.onPressItem}
 					tokens={this.props.tokens}
 					collectibleContracts={this.props.collectibleContracts}
+					ticker={this.props.ticker}
 				/>
 			);
 		}
