@@ -42,6 +42,7 @@ import CollectibleImage from '../../../UI/CollectibleImage';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import TransactionSummary from '../../TransactionSummary';
 
 const {
 	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
@@ -181,7 +182,6 @@ const styles = StyleSheet.create({
 		height: 120,
 		width: 120
 	},
-
 	qrCode: {
 		marginBottom: 16,
 		paddingHorizontal: 36,
@@ -191,7 +191,6 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		width: '100%'
 	},
-
 	hexDataWrapper: {
 		padding: 10,
 		alignItems: 'center'
@@ -659,7 +658,13 @@ class Confirm extends PureComponent {
 							</View>
 						</View>
 					)}
-
+					<TransactionSummary
+						transactionValueFiat={transactionValueFiat}
+						transactionFeeFiat={transactionFeeFiat}
+						transactionTotalAmountFiat={transactionTotalAmountFiat}
+						transactionTotalAmount={transactionTotalAmount}
+						gasEstimationReady={gasEstimationReady}
+					/>
 					<View style={styles.summaryWrapper}>
 						<View style={styles.summaryRow}>
 							<Text style={styles.textSummary}>{strings('transaction.amount')}</Text>

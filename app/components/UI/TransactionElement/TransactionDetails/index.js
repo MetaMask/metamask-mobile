@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Clipboard, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
@@ -11,6 +11,7 @@ import { connect } from 'react-redux';
 import URL from 'url-parse';
 import Device from '../../../../util/Device';
 import EthereumAddress from '../../EthereumAddress';
+import TransactionSummary from '../../../Views/TransactionSummary';
 
 const HASH_LENGTH = Device.isSmallDevice() ? 18 : 20;
 
@@ -38,6 +39,17 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		padding: 10,
 		marginBottom: 5
+	},
+	flexRow: {
+		flex: 1,
+		flexDirection: 'row'
+	},
+	flexEnd: {
+		flex: 1,
+		flexDirection: 'flex-end'
+	},
+	textUppercase: {
+		textTransform: 'uppercase'
 	},
 	detailRowInfoItem: {
 		flex: 1,
@@ -247,20 +259,42 @@ class TransactionDetails extends PureComponent {
 	render = () => {
 		const { blockExplorer, transactionObject } = this.props;
 		const { rpcBlockExplorer } = this.state;
+		console.log('transactionObject', this.props.transactionDetails);
 		return (
 			<View style={styles.detailRowWrapper}>
-				{this.renderTxHash(this.props.transactionDetails.transactionHash)}
-				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
-				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<EthereumAddress style={styles.detailRowText} address={this.props.transactionDetails.renderFrom} />
-					{this.renderCopyFromIcon()}
+				<View style={styles.flexRow}>
+					<View style={baseStyles.flexGrow}>
+						<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
+						<EthereumAddress
+							type="medium"
+							style={styles.detailRowText}
+							address={this.props.transactionDetails.renderFrom}
+						/>
+					</View>
+					<View style={styles.flexEnd}>
+						<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
+						<EthereumAddress
+							type="medium"
+							style={styles.detailRowText}
+							address={this.props.transactionDetails.renderTo}
+						/>
+					</View>
 				</View>
-				<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
-				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<EthereumAddress style={styles.detailRowText} address={this.props.transactionDetails.renderTo} />
-					{this.renderCopyToIcon()}
+				<View style={baseStyles.flexGrow}>
+					<Text style={[styles.detailRowTitle, styles.textUppercase]}>{'Nonce'}</Text>
+					<Text style={[styles.detailRowTitle]}>
+						{parseInt(transactionObject.transaction.nonce.replace(/^#/, ''), 16)}
+					</Text>
 				</View>
-				<Text style={styles.detailRowTitle}>{strings('transactions.details')}</Text>
+
+				<TransactionSummary
+					transactionValueFiat={this.props.transactionDetails.renderValueFiat}
+					transactionFeeFiat={this.props.transactionDetails.renderTotalGasFiat}
+					transactionTotalAmountFiat={this.props.transactionDetails.renderTotalValueFiat}
+					transactionTotalAmount={this.props.transactionDetails.renderTotalValue}
+					gasEstimationReady
+				/>
+
 				<View style={styles.detailRowInfo}>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>

@@ -290,6 +290,9 @@ export function renderToGwei(value, unit = 'ether') {
 export function weiToFiat(wei, conversionRate, currencyCode) {
 	if (!conversionRate) return undefined;
 	if (!wei || !isBN(wei) || !conversionRate) {
+		if (currencySymbols[currencyCode]) {
+			return `${currencySymbols[currencyCode]}${0.0}`;
+		}
 		return `0.00 ${currencyCode}`;
 	}
 	const value = weiToFiatNumber(wei, conversionRate);

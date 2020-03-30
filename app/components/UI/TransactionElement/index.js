@@ -382,7 +382,7 @@ class TransactionElement extends PureComponent {
 					{this.renderTxElementImage(transactionElement)}
 					<View style={styles.info} numberOfLines={1}>
 						<Text numberOfLines={1} style={styles.address}>
-							{symbol ? symbol + ' ' + actionKey : actionKey}
+							{symbol ? `${symbol} ${actionKey}` : actionKey}
 						</Text>
 						<Text style={[styles.status, this.getStatusStyle(status)]}>{status}</Text>
 					</View>
@@ -407,7 +407,9 @@ class TransactionElement extends PureComponent {
 				transaction: { gas, gasPrice, data, to },
 				transactionHash
 			},
-			collectibleContracts
+			collectibleContracts,
+			conversionRate,
+			currentCurrency
 		} = this.props;
 		let { actionKey } = this.state;
 		const [addressFrom, addressTo, tokenId] = decodeTransferData('transferFrom', data);
@@ -415,34 +417,31 @@ class TransactionElement extends PureComponent {
 			collectible => collectible.address.toLowerCase() === to.toLowerCase()
 		);
 		if (collectible) {
-			actionKey = strings('transactions.sent') + ' ' + collectible.name;
+			actionKey = `${strings('transactions.sent')} ${collectible.name}`;
 		}
 
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 		const renderCollectible = collectible
-			? strings('unit.token_id') + tokenId + ' ' + collectible.symbol
-			: strings('unit.token_id') + tokenId;
+			? `${strings('unit.token_id')}${tokenId} ${collectible.symbol}`
+			: `${strings('unit.token_id')}${tokenId}`;
 
 		const renderFrom = renderFullAddress(addressFrom);
 		const renderTo = renderFullAddress(addressTo);
+		const ticker = getTicker(this.props.ticker);
 
 		const transactionDetails = {
 			renderFrom,
 			renderTo,
 			transactionHash,
 			renderValue: renderCollectible,
+			renderValueFiat: renderCollectible,
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalValue:
-				renderCollectible +
-				' ' +
-				strings('unit.divisor') +
-				' ' +
-				renderFromWei(totalGas) +
-				' ' +
-				strings('unit.eth'),
+			renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+			renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
+			renderTotalValue: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
 			renderTotalValueFiat: undefined
 		};
 
@@ -469,7 +468,7 @@ class TransactionElement extends PureComponent {
 		const ticker = getTicker(this.props.ticker);
 		const { actionKey } = this.state;
 		const totalEth = hexToBN(value);
-		const renderTotalEth = renderFromWei(totalEth) + ' ' + ticker;
+		const renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
 		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 
 		const gasBN = hexToBN(gas);
@@ -479,15 +478,18 @@ class TransactionElement extends PureComponent {
 
 		const renderFrom = renderFullAddress(from);
 		const renderTo = renderFullAddress(to);
-
+		console.log('decodeConfirmTx', value, conversionRate, currentCurrency);
 		const transactionDetails = {
 			renderFrom,
 			renderTo,
 			transactionHash,
-			renderValue: renderFromWei(value) + ' ' + ticker,
+			renderValue: `${renderFromWei(value)} ${ticker}`,
+			renderValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency),
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalValue: renderFromWei(totalValue) + ' ' + ticker,
+			renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+			renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
+			renderTotalValue: `${renderFromWei(totalValue)} ${ticker}`,
 			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency)
 		};
 
@@ -517,7 +519,7 @@ class TransactionElement extends PureComponent {
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 
-		const renderTotalEth = renderFromWei(totalGas) + ' ' + ticker;
+		const renderTotalEth = `${renderFromWei(totalGas)} ${ticker}`;
 		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 		const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 
@@ -536,10 +538,13 @@ class TransactionElement extends PureComponent {
 			renderFrom,
 			renderTo,
 			transactionHash,
-			renderValue: renderFromWei(value) + ' ' + ticker,
+			renderValue: `${renderFromWei(value)} ${ticker}`,
+			renderValueFiat: weiToFiat(value, conversionRate, currentCurrency),
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalValue: renderFromWei(totalEth) + ' ' + ticker,
+			renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+			renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
+			renderTotalValue: `${renderFromWei(totalEth)} ${ticker}`,
 			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency)
 		};
 
@@ -563,7 +568,7 @@ class TransactionElement extends PureComponent {
 		const totalEth = hexToBN(value);
 		const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 		const readableTotalEth = renderFromWei(totalEth);
-		const renderTotalEth = readableTotalEth + ' ' + (isDeposit ? strings('unit.eth') : strings('unit.sai'));
+		const renderTotalEth = `${readableTotalEth} ${isDeposit ? strings('unit.eth') : strings('unit.sai')}`;
 		const renderTotalEthFiat = isDeposit
 			? totalEthFiat
 			: balanceToFiat(parseFloat(readableTotalEth), conversionRate, exchangeRate, currentCurrency);
@@ -578,6 +583,7 @@ class TransactionElement extends PureComponent {
 			renderGas: gas ? parseInt(gas, 16).toString() : strings('transactions.tx_details_not_available'),
 			renderGasPrice: gasPrice ? renderToGwei(gasPrice) : strings('transactions.tx_details_not_available'),
 			renderValue: renderTotalEth,
+			renderValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency),
 			renderTotalValue: renderTotalEth,
 			renderTotalValueFiat: isDeposit && totalEthFiat
 		};
