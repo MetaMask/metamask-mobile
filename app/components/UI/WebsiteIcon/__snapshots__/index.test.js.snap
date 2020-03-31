@@ -12,11 +12,7 @@ exports[`WebsiteIcon should render correctly 1`] = `
   >
     <Image
       onError={[Function]}
-      source={
-        Object {
-          "uri": "https://api.faviconkit.com/url.com/64",
-        }
-      }
+      source={null}
     />
   </FadeIn>
 </View>
