@@ -4,6 +4,7 @@ import { StyleSheet, View, Text, Image } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 import { colors, fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
+import { DOMParser } from 'react-native-html-parser';
 
 const styles = StyleSheet.create({
 	fallback: {
@@ -56,15 +57,59 @@ export default class WebsiteIcon extends PureComponent {
 	};
 
 	state = {
-		renderIconUrlError: false
+		renderIconUrlError: false,
+		apiLogoUrl: null
 	};
 
-	/**
-	 * Get image url from favicon api
-	 */
-	getIconUrl = url => {
-		const iconUrl = `https://api.faviconkit.com/${getHost(url)}/64`;
-		return iconUrl;
+	componentDidMount = async () => {
+		const { url } = this.props;
+		const protocol = url.split('://')[0];
+
+		const response = await fetch(url);
+		const html = await response.text();
+
+		const doc = new DOMParser({
+			locator: {},
+			errorHandler: (level, msg) => {
+				console.log(level, msg);
+			}
+		}).parseFromString(html, 'text/html');
+		const nodeList = doc.getElementsByTagName('link');
+
+		const links = [];
+		for (let i = 0; i < nodeList.length; i++) {
+			links.push(nodeList[i]);
+		}
+
+		const icons = links.filter(el => {
+			const sizes = el.getAttribute('sizes');
+			return sizes && el;
+		});
+
+		this.setState({
+			apiLogoUrl: { uri: `${protocol}://${this.getBestIcon(icons, url)}` }
+		});
+	};
+
+	getBestIcon = (icons, siteUrl) => {
+		let size = 0;
+		let icon;
+		const host = getHost(siteUrl);
+
+		icons.forEach(_icon => {
+			const sizes = _icon.getAttribute('sizes');
+			const _size = parseInt(sizes.split('x')[0]);
+			if (_size > size) {
+				size = _size;
+				icon = _icon;
+			}
+		});
+		let href = icon.getAttribute('href');
+		if (!href.indexOf(host) >= 0) {
+			href = host + href;
+		}
+
+		return href;
 	};
 
 	/**
@@ -75,9 +120,8 @@ export default class WebsiteIcon extends PureComponent {
 	};
 
 	render = () => {
-		const { renderIconUrlError } = this.state;
+		const { renderIconUrlError, apiLogoUrl } = this.state;
 		const { viewStyle, style, textStyle, transparent, url } = this.props;
-		const apiLogoUrl = { uri: this.getIconUrl(url) };
 		const title = typeof this.props.title === 'string' ? this.props.title.substr(0, 1) : getHost(url).substr(0, 1);
 
 		if (renderIconUrlError && title) {
@@ -92,9 +136,11 @@ export default class WebsiteIcon extends PureComponent {
 
 		return (
 			<View style={viewStyle}>
-				<FadeIn placeholderStyle={{ backgroundColor: transparent ? colors.transparent : colors.white }}>
-					<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
-				</FadeIn>
+				{apiLogoUrl ? (
+					<FadeIn placeholderStyle={{ backgroundColor: transparent ? colors.transparent : colors.white }}>
+						<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
+					</FadeIn>
+				) : null}
 			</View>
 		);
 	};
