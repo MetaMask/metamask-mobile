@@ -80,7 +80,6 @@ export default class WebsiteIcon extends PureComponent {
 
 	componentDidMount = async () => {
 		const { url } = this.props;
-		const protocol = url.split('://')[0];
 
 		const doc = await this.getDocument();
 
@@ -96,12 +95,17 @@ export default class WebsiteIcon extends PureComponent {
 		// filter out non icons (like stylesheets)
 		const icons = links.filter(el => {
 			const sizes = el.getAttribute('sizes');
-			return sizes && el;
+			const rel = el.getAttribute('rel');
+			return sizes || (/icon/.test(rel) && el);
 		});
 
-		this.setState({
-			apiLogoUrl: { uri: `${protocol}://${this.getBestIcon(icons, url)}` }
-		});
+		const best = this.getBestIcon(icons, url);
+
+		if (best) {
+			this.setState({ apiLogoUrl: { uri: best } });
+		} else {
+			this.setState({ renderIconUrlError: true });
+		}
 	};
 
 	/**
@@ -110,7 +114,9 @@ export default class WebsiteIcon extends PureComponent {
 	getBestIcon = (icons, siteUrl) => {
 		let size = 0;
 		let icon;
+		let href;
 		const host = getHost(siteUrl);
+		const protocol = siteUrl.split('://')[0];
 
 		icons.forEach(_icon => {
 			const sizes = _icon.getAttribute('sizes');
@@ -120,9 +126,17 @@ export default class WebsiteIcon extends PureComponent {
 				icon = _icon;
 			}
 		});
-		let href = icon.getAttribute('href');
-		if (!href.indexOf(host) >= 0) {
-			href = host + href;
+
+		// icon is still undefined, likely the site only has a favicon
+		// use favicon as a last resort
+		if (!icon) {
+			href = `https://api.faviconkit.com/${getHost(siteUrl)}/64`;
+		} else {
+			href = icon ? icon.getAttribute('href') : null;
+			// use this to determine if the host and protocol needs to be included
+			if (href && !(href.indexOf('://') >= 0)) {
+				href = `${protocol}://${host}${href}`;
+			}
 		}
 
 		return href;
@@ -137,6 +151,7 @@ export default class WebsiteIcon extends PureComponent {
 
 	render = () => {
 		const { renderIconUrlError, apiLogoUrl } = this.state;
+
 		const { viewStyle, style, textStyle, transparent, url } = this.props;
 		const title = typeof this.props.title === 'string' ? this.props.title.substr(0, 1) : getHost(url).substr(0, 1);
 
@@ -152,11 +167,9 @@ export default class WebsiteIcon extends PureComponent {
 
 		return (
 			<View style={viewStyle}>
-				{apiLogoUrl ? (
-					<FadeIn placeholderStyle={{ backgroundColor: transparent ? colors.transparent : colors.white }}>
-						<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
-					</FadeIn>
-				) : null}
+				<FadeIn placeholderStyle={{ backgroundColor: transparent ? colors.transparent : colors.white }}>
+					<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
+				</FadeIn>
 			</View>
 		);
 	};
