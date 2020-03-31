@@ -17,9 +17,7 @@ const HASH_LENGTH = Device.isSmallDevice() ? 18 : 20;
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
-		backgroundColor: colors.white,
-		paddingHorizontal: 15,
-		marginTop: 10
+		paddingHorizontal: 15
 	},
 	detailRowTitle: {
 		fontSize: 10,
@@ -33,7 +31,6 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
-		backgroundColor: colors.white,
 		padding: 10,
 		marginBottom: 5
 	},

@@ -156,7 +156,22 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center'
-	}
+	},
+	titleWrapper: {
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.grey100,
+		flexDirection: 'row'
+	},
+	title: {
+		flex: 1,
+		textAlign: 'center',
+		fontSize: 18,
+		marginVertical: 12,
+		marginHorizontal: 20,
+		color: colors.fontPrimary,
+		...fontStyles.bold
+	},
+	closeIcon: { paddingTop: 4, position: 'absolute', right: 16 }
 });
 
 const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
@@ -729,6 +744,12 @@ class TransactionElement extends PureComponent {
 				>
 					<View style={styles.modalView}>
 						<View style={styles.modalContainer}>
+							<View style={styles.titleWrapper}>
+								<Text style={styles.title} onPress={this.onCloseDetailsModal}>
+									{actionKey}
+								</Text>
+								<Ionicons name={'ios-close'} size={38} style={styles.closeIcon} />
+							</View>
 							<TransactionDetails
 								transactionObject={tx}
 								blockExplorer={blockExplorer}
