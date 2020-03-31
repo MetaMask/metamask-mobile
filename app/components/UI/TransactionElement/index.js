@@ -19,6 +19,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import StyledButton from '../StyledButton';
 import Networks from '../../../util/networks';
 import Device from '../../../util/Device';
+import Modal from 'react-native-modal';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -141,6 +142,20 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		paddingTop: 10,
 		paddingLeft: 40
+	},
+	modalContainer: {
+		width: '90%',
+		backgroundColor: colors.white,
+		borderRadius: 10
+	},
+	modal: {
+		margin: 0,
+		width: '100%'
+	},
+	modalView: {
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center'
 	}
 });
 
@@ -229,7 +244,8 @@ class TransactionElement extends PureComponent {
 	state = {
 		actionKey: undefined,
 		cancelIsOpen: false,
-		speedUpIsOpen: false
+		speedUpIsOpen: false,
+		detailsModalVisible: false
 	};
 
 	mounted = false;
@@ -264,6 +280,11 @@ class TransactionElement extends PureComponent {
 	onPressItem = () => {
 		const { tx, i, onPressItem } = this.props;
 		onPressItem(tx.id, i);
+		this.setState({ detailsModalVisible: true });
+	};
+
+	onCloseDetailsModal = () => {
+		this.setState({ detailsModalVisible: false });
 	};
 
 	renderTxTime = () => {
@@ -646,10 +667,11 @@ class TransactionElement extends PureComponent {
 				paymentChannelTransaction,
 				transaction: { gas, gasPrice }
 			},
-			selected,
-			tx
+			tx,
+			showAlert,
+			blockExplorer
 		} = this.props;
-		const { actionKey } = this.state;
+		const { actionKey, detailsModalVisible } = this.state;
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
@@ -688,17 +710,36 @@ class TransactionElement extends PureComponent {
 			}
 		}
 		return (
-			<TouchableHighlight
-				style={styles.row}
-				onPress={this.onPressItem}
-				underlayColor={colors.grey000}
-				activeOpacity={1}
-			>
-				<View style={styles.rowContent}>
-					{this.renderTxElement(transactionElement)}
-					{this.renderTxDetails(selected, tx, transactionDetails)}
-				</View>
-			</TouchableHighlight>
+			<View>
+				<TouchableHighlight
+					style={styles.row}
+					onPress={this.onPressItem}
+					underlayColor={colors.grey000}
+					activeOpacity={1}
+				>
+					<View style={styles.rowContent}>{this.renderTxElement(transactionElement)}</View>
+				</TouchableHighlight>
+				<Modal
+					isVisible={detailsModalVisible}
+					style={styles.modal}
+					onBackdropPress={this.onCloseDetailsModal}
+					onBackButtonPress={this.onCloseDetailsModal}
+					onSwipeComplete={this.onCloseDetailsModal}
+					swipeDirection={'down'}
+				>
+					<View style={styles.modalView}>
+						<View style={styles.modalContainer}>
+							<TransactionDetails
+								transactionObject={tx}
+								blockExplorer={blockExplorer}
+								showAlert={showAlert}
+								transactionDetails={transactionDetails}
+								navigation={this.props.navigation}
+							/>
+						</View>
+					</View>
+				</Modal>
+			</View>
 		);
 	}
 }

@@ -302,6 +302,13 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
 	return `${value} ${currencyCode}`;
 }
 
+/**
+ * Adds currency symbol to a value
+ *
+ * @param {number} wei - BN corresponding to an amount of wei
+ * @param {string} currencyCode - Current currency code to display
+ * @returns {string} - Currency-formatted string
+ */
 export function addCurrencySymbol(value, currencyCode) {
 	if (currencySymbols[currencyCode]) {
 		return `${currencySymbols[currencyCode]}${value}`;

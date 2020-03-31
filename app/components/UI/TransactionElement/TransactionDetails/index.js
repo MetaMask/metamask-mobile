@@ -17,13 +17,11 @@ const HASH_LENGTH = Device.isSmallDevice() ? 18 : 20;
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
-		flex: 1,
 		backgroundColor: colors.white,
 		paddingHorizontal: 15,
 		marginTop: 10
 	},
 	detailRowTitle: {
-		flex: 1,
 		fontSize: 10,
 		color: colors.grey500,
 		marginBottom: 8,
@@ -40,11 +38,9 @@ const styles = StyleSheet.create({
 		marginBottom: 5
 	},
 	flexRow: {
-		flex: 1,
 		flexDirection: 'row'
 	},
 	section: {
-		flex: 1,
 		paddingVertical: 16
 	},
 	sectionBorderBottom: {
@@ -59,7 +55,6 @@ const styles = StyleSheet.create({
 		textTransform: 'uppercase'
 	},
 	detailRowText: {
-		flex: 1,
 		fontSize: 12,
 		color: colors.fontPrimary,
 		...fontStyles.normal
@@ -250,25 +245,26 @@ class TransactionDetails extends PureComponent {
 	render = () => {
 		const { blockExplorer, transactionObject } = this.props;
 		const { rpcBlockExplorer } = this.state;
-		console.log('transactionObject', this.props.transactionDetails);
 		return (
 			<View style={styles.detailRowWrapper}>
 				<View style={[styles.section, styles.flexRow, styles.sectionBorderBottom]}>
-					<View style={baseStyles.flexGrow}>
-						<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
-						<EthereumAddress
-							type="medium"
-							style={styles.detailRowText}
-							address={this.props.transactionDetails.renderFrom}
-						/>
-					</View>
-					<View style={styles.flexEnd}>
-						<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
-						<EthereumAddress
-							type="medium"
-							style={styles.detailRowText}
-							address={this.props.transactionDetails.renderTo}
-						/>
+					<View style={[baseStyles.flexGrow, styles.flexRow]}>
+						<View style={baseStyles.flexRow}>
+							<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
+							<EthereumAddress
+								type="medium"
+								style={styles.detailRowText}
+								address={this.props.transactionDetails.renderFrom}
+							/>
+						</View>
+						<View style={styles.flexEnd}>
+							<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
+							<EthereumAddress
+								type="medium"
+								style={styles.detailRowText}
+								address={this.props.transactionDetails.renderTo}
+							/>
+						</View>
 					</View>
 				</View>
 				<View style={styles.section}>
