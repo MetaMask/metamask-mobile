@@ -61,26 +61,39 @@ export default class WebsiteIcon extends PureComponent {
 		apiLogoUrl: null
 	};
 
-	componentDidMount = async () => {
+	/**
+	 * Get and parse HTML
+	 */
+	getDocument = async () => {
 		const { url } = this.props;
-		const protocol = url.split('://')[0];
 
 		const response = await fetch(url);
 		const html = await response.text();
 
-		const doc = new DOMParser({
+		return new DOMParser({
 			locator: {},
 			errorHandler: (level, msg) => {
 				console.log(level, msg);
 			}
 		}).parseFromString(html, 'text/html');
+	};
+
+	componentDidMount = async () => {
+		const { url } = this.props;
+		const protocol = url.split('://')[0];
+
+		const doc = await this.getDocument();
+
+		// get all <link> tags
 		const nodeList = doc.getElementsByTagName('link');
 
+		// collect all <link>'s into an array for filtering
 		const links = [];
 		for (let i = 0; i < nodeList.length; i++) {
 			links.push(nodeList[i]);
 		}
 
+		// filter out non icons (like stylesheets)
 		const icons = links.filter(el => {
 			const sizes = el.getAttribute('sizes');
 			return sizes && el;
@@ -91,6 +104,9 @@ export default class WebsiteIcon extends PureComponent {
 		});
 	};
 
+	/**
+	 * Get the best favicon available based on size
+	 */
 	getBestIcon = (icons, siteUrl) => {
 		let size = 0;
 		let icon;
