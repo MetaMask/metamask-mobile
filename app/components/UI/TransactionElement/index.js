@@ -279,16 +279,11 @@ class TransactionElement extends PureComponent {
 		this.mounted = true;
 		const {
 			tx,
-			tx: {
-				paymentChannelTransaction,
-				transaction: { gas, gasPrice }
-			},
+			tx: { paymentChannelTransaction },
 			selectedAddress,
 			ticker
 		} = this.props;
-		const gasBN = hexToBN(gas);
-		const gasPriceBN = hexToBN(gasPrice);
-		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+
 		const actionKey = tx.actionKey || (await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction));
 		let transactionElement, transactionDetails;
 		if (paymentChannelTransaction) {
@@ -308,7 +303,7 @@ class TransactionElement extends PureComponent {
 					[transactionElement, transactionDetails] = this.decodeConfirmTx(actionKey);
 			}
 		}
-		this.mounted && this.setState({ totalGas, transactionElement, transactionDetails });
+		this.mounted && this.setState({ transactionElement, transactionDetails });
 	};
 
 	componentWillUnmount() {
@@ -657,7 +652,7 @@ class TransactionElement extends PureComponent {
 	getTokenTransfer = totalGas => {
 		const {
 			tx: {
-				transaction: { to }
+				transaction: { to, data }
 			},
 			conversionRate,
 			currentCurrency,
@@ -665,7 +660,8 @@ class TransactionElement extends PureComponent {
 			contractExchangeRates
 		} = this.props;
 
-		const { actionKey, encodedAmount } = this.state;
+		const { actionKey } = this.state;
+		const [, encodedAmount] = decodeTransferData('transfer', data);
 
 		const amount = toBN(encodedAmount);
 
