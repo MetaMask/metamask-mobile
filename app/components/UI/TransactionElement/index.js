@@ -19,7 +19,7 @@ import StyledButton from '../StyledButton';
 import Networks from '../../../util/networks';
 import Device from '../../../util/Device';
 import Modal from 'react-native-modal';
-import { decodePaymentChannelTx, decodeTransferTx, decodeTransferFromTx } from './utils';
+import { decodePaymentChannelTx, decodeTransferTx, decodeTransferFromTx, decodeDeploymentTx } from './utils';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -288,7 +288,7 @@ class TransactionElement extends PureComponent {
 					[transactionElement, transactionDetails] = decodeTransferFromTx({ ...this.props, actionKey });
 					break;
 				case strings('transactions.contract_deploy'):
-					[transactionElement, transactionDetails] = this.decodeDeploymentTx(actionKey);
+					[transactionElement, transactionDetails] = decodeDeploymentTx(actionKey);
 					break;
 				default:
 					[transactionElement, transactionDetails] = this.decodeConfirmTx(actionKey);
@@ -486,52 +486,6 @@ class TransactionElement extends PureComponent {
 			actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat
-		};
-
-		return [transactionElement, transactionDetails];
-	};
-
-	decodeDeploymentTx = actionKey => {
-		const {
-			tx: {
-				transaction: { value, gas, gasPrice, from },
-				transactionHash
-			},
-			conversionRate,
-			currentCurrency
-		} = this.props;
-		const ticker = getTicker(this.props.ticker);
-		const gasBN = hexToBN(gas);
-		const gasPriceBN = hexToBN(gasPrice);
-		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-
-		const renderTotalEth = `${renderFromWei(totalGas)} ${ticker}`;
-		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
-		const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
-
-		const renderFrom = renderFullAddress(from);
-		const renderTo = strings('transactions.to_contract');
-
-		const transactionElement = {
-			renderTo,
-			renderFrom,
-			actionKey,
-			value: renderTotalEth,
-			fiatValue: renderTotalEthFiat,
-			contractDeployment: true
-		};
-		const transactionDetails = {
-			renderFrom,
-			renderTo,
-			transactionHash,
-			renderValue: `${renderFromWei(value)} ${ticker}`,
-			renderValueFiat: weiToFiat(value, conversionRate, currentCurrency),
-			renderGas: parseInt(gas, 16).toString(),
-			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-			renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
-			renderTotalValue: `${renderFromWei(totalEth)} ${ticker}`,
-			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency)
 		};
 
 		return [transactionElement, transactionDetails];

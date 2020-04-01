@@ -265,3 +265,50 @@ export function decodeTransferFromTx(args) {
 
 	return [transactionElement, transactionDetails];
 }
+
+export function decodeDeploymentTx(args) {
+	const {
+		tx: {
+			transaction: { value, gas, gasPrice, from },
+			transactionHash
+		},
+		conversionRate,
+		currentCurrency,
+		actionKey
+	} = args;
+	const ticker = getTicker(args.ticker);
+	const gasBN = hexToBN(gas);
+	const gasPriceBN = hexToBN(gasPrice);
+	const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+
+	const renderTotalEth = `${renderFromWei(totalGas)} ${ticker}`;
+	const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
+	const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
+
+	const renderFrom = renderFullAddress(from);
+	const renderTo = strings('transactions.to_contract');
+
+	const transactionElement = {
+		renderTo,
+		renderFrom,
+		actionKey,
+		value: renderTotalEth,
+		fiatValue: renderTotalEthFiat,
+		contractDeployment: true
+	};
+	const transactionDetails = {
+		renderFrom,
+		renderTo,
+		transactionHash,
+		renderValue: `${renderFromWei(value)} ${ticker}`,
+		renderValueFiat: weiToFiat(value, conversionRate, currentCurrency),
+		renderGas: parseInt(gas, 16).toString(),
+		renderGasPrice: renderToGwei(gasPrice),
+		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+		renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
+		renderTotalValue: `${renderFromWei(totalEth)} ${ticker}`,
+		renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency)
+	};
+
+	return [transactionElement, transactionDetails];
+}
