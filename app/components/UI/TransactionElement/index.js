@@ -6,7 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
 import { renderFromWei, weiToFiat, hexToBN, toBN, isBN, renderToGwei, balanceToFiat } from '../../../util/number';
 import Identicon from '../Identicon';
-import { getActionKey, decodeTransferData, getTicker } from '../../../util/transactions';
+import { getActionKey, getTicker } from '../../../util/transactions';
 import TransactionDetails from './TransactionDetails';
 import { renderFullAddress, safeToChecksumAddress } from '../../../util/address';
 import FadeIn from 'react-native-fade-in-image';
@@ -19,7 +19,7 @@ import StyledButton from '../StyledButton';
 import Networks from '../../../util/networks';
 import Device from '../../../util/Device';
 import Modal from 'react-native-modal';
-import { decodePaymentChannelTx, decodeTransferTx } from './utils';
+import { decodePaymentChannelTx, decodeTransferTx, decodeTransferFromTx } from './utils';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -222,6 +222,7 @@ class TransactionElement extends PureComponent {
 		/**
 		 * An array that represents the user collectible contracts
 		 */
+		// eslint-disable-next-line react/no-unused-prop-types
 		collectibleContracts: PropTypes.array,
 		/**
 		 * Boolean to determine if this network supports a block explorer
@@ -284,7 +285,7 @@ class TransactionElement extends PureComponent {
 					[transactionElement, transactionDetails] = await decodeTransferTx({ ...this.props, actionKey });
 					break;
 				case strings('transactions.sent_collectible'):
-					[transactionElement, transactionDetails] = this.decodeTransferFromTx(actionKey);
+					[transactionElement, transactionDetails] = decodeTransferFromTx({ ...this.props, actionKey });
 					break;
 				case strings('transactions.contract_deploy'):
 					[transactionElement, transactionDetails] = this.decodeDeploymentTx(actionKey);
@@ -437,60 +438,6 @@ class TransactionElement extends PureComponent {
 				)}
 			</View>
 		);
-	};
-
-	decodeTransferFromTx = actionKey => {
-		const {
-			tx: {
-				transaction: { gas, gasPrice, data, to },
-				transactionHash
-			},
-			collectibleContracts,
-			conversionRate,
-			currentCurrency
-		} = this.props;
-		const [addressFrom, addressTo, tokenId] = decodeTransferData('transferFrom', data);
-		const collectible = collectibleContracts.find(
-			collectible => collectible.address.toLowerCase() === to.toLowerCase()
-		);
-		if (collectible) {
-			actionKey = `${strings('transactions.sent')} ${collectible.name}`;
-		}
-
-		const gasBN = hexToBN(gas);
-		const gasPriceBN = hexToBN(gasPrice);
-		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-		const renderCollectible = collectible
-			? `${strings('unit.token_id')}${tokenId} ${collectible.symbol}`
-			: `${strings('unit.token_id')}${tokenId}`;
-
-		const renderFrom = renderFullAddress(addressFrom);
-		const renderTo = renderFullAddress(addressTo);
-		const ticker = getTicker(this.props.ticker);
-
-		const transactionDetails = {
-			renderFrom,
-			renderTo,
-			transactionHash,
-			renderValue: renderCollectible,
-			renderValueFiat: renderCollectible,
-			renderGas: parseInt(gas, 16).toString(),
-			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-			renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
-			renderTotalValue: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
-			renderTotalValueFiat: undefined
-		};
-
-		const transactionElement = {
-			renderTo,
-			renderFrom,
-			actionKey,
-			value: `${strings('unit.token_id')}${tokenId}`,
-			fiatValue: collectible ? collectible.symbol : undefined
-		};
-
-		return [transactionElement, transactionDetails];
 	};
 
 	decodeConfirmTx = actionKey => {

@@ -210,3 +210,58 @@ export async function decodeTransferTx(args) {
 	};
 	return [transactionElement, transactionDetails];
 }
+
+export function decodeTransferFromTx(args) {
+	const {
+		tx: {
+			transaction: { gas, gasPrice, data, to },
+			transactionHash
+		},
+		collectibleContracts,
+		conversionRate,
+		currentCurrency
+	} = args;
+	const [addressFrom, addressTo, tokenId] = decodeTransferData('transferFrom', data);
+	const collectible = collectibleContracts.find(
+		collectible => collectible.address.toLowerCase() === to.toLowerCase()
+	);
+	let actionKey = args.actionKey;
+	if (collectible) {
+		actionKey = `${strings('transactions.sent')} ${collectible.name}`;
+	}
+
+	const gasBN = hexToBN(gas);
+	const gasPriceBN = hexToBN(gasPrice);
+	const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+	const renderCollectible = collectible
+		? `${strings('unit.token_id')}${tokenId} ${collectible.symbol}`
+		: `${strings('unit.token_id')}${tokenId}`;
+
+	const renderFrom = renderFullAddress(addressFrom);
+	const renderTo = renderFullAddress(addressTo);
+	const ticker = getTicker(args.ticker);
+
+	const transactionDetails = {
+		renderFrom,
+		renderTo,
+		transactionHash,
+		renderValue: renderCollectible,
+		renderValueFiat: renderCollectible,
+		renderGas: parseInt(gas, 16).toString(),
+		renderGasPrice: renderToGwei(gasPrice),
+		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+		renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
+		renderTotalValue: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
+		renderTotalValueFiat: undefined
+	};
+
+	const transactionElement = {
+		renderTo,
+		renderFrom,
+		actionKey,
+		value: `${strings('unit.token_id')}${tokenId}`,
+		fiatValue: collectible ? collectible.symbol : undefined
+	};
+
+	return [transactionElement, transactionDetails];
+}
