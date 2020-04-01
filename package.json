@@ -59,7 +59,8 @@
     ]
   },
   "resolutions": {
-    "**/optimist/minimist": "^1.2.5"
+    "**/optimist/minimist": "^1.2.5",
+    "react-native-level-fs/**/bl": "^0.9.5"
   },
   "dependencies": {
     "@react-native-community/async-storage": "1.2.0",
