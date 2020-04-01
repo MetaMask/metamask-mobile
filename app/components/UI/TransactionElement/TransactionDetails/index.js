@@ -118,7 +118,8 @@ class TransactionDetails extends PureComponent {
 		/**
 		 * Frequent RPC list from PreferencesController
 		 */
-		frequentRpcList: PropTypes.array
+		frequentRpcList: PropTypes.array,
+		close: PropTypes.func
 	};
 
 	state = {
@@ -210,7 +211,8 @@ class TransactionDetails extends PureComponent {
 			transactionDetails: { transactionHash },
 			network: {
 				provider: { type }
-			}
+			},
+			close
 		} = this.props;
 		const { rpcBlockExplorer } = this.state;
 		try {
@@ -230,6 +232,7 @@ class TransactionDetails extends PureComponent {
 					title: etherscan_url
 				});
 			}
+			close && close();
 		} catch (e) {
 			// eslint-disable-next-line no-console
 			Logger.error(e, { message: `can't get a block explorer link for network `, networkID });

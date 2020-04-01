@@ -530,6 +530,7 @@ class TransactionElement extends PureComponent {
 								showAlert={showAlert}
 								transactionDetails={transactionDetails}
 								navigation={this.props.navigation}
+								close={this.onCloseDetailsModal}
 							/>
 						</View>
 					</View>
