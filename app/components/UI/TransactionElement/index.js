@@ -517,7 +517,12 @@ class TransactionElement extends PureComponent {
 								<Text style={styles.title} onPress={this.onCloseDetailsModal}>
 									{transactionElement.actionKey}
 								</Text>
-								<Ionicons name={'ios-close'} size={38} style={styles.closeIcon} />
+								<Ionicons
+									onPress={this.onCloseDetailsModal}
+									name={'ios-close'}
+									size={38}
+									style={styles.closeIcon}
+								/>
 							</View>
 							<TransactionDetails
 								transactionObject={tx}
