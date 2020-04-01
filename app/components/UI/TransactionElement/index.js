@@ -348,19 +348,6 @@ class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderTxDetails = (selected, tx, transactionDetails) => {
-		const { showAlert, blockExplorer } = this.props;
-		return selected ? (
-			<TransactionDetails
-				transactionObject={tx}
-				blockExplorer={blockExplorer}
-				showAlert={showAlert}
-				transactionDetails={transactionDetails}
-				navigation={this.props.navigation}
-			/>
-		) : null;
-	};
-
 	renderTxElementImage = transactionElement => {
 		const {
 			renderTo,
@@ -437,11 +424,7 @@ class TransactionElement extends PureComponent {
 			},
 			providerType
 		} = this.props;
-		const { renderTo, value, fiatValue = false, actionKey } = transactionElement;
-		let symbol;
-		if (renderTo in contractMap) {
-			symbol = contractMap[renderTo].symbol;
-		}
+		const { value, fiatValue = false, actionKey } = transactionElement;
 		const networkId = Networks[providerType].networkId;
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		const renderSpeedUpAction = safeToChecksumAddress(to) !== AppConstants.CONNEXT.CONTRACTS[networkId];
@@ -452,7 +435,7 @@ class TransactionElement extends PureComponent {
 					{this.renderTxElementImage(transactionElement)}
 					<View style={styles.info} numberOfLines={1}>
 						<Text numberOfLines={1} style={styles.address}>
-							{symbol ? `${symbol} ${actionKey}` : actionKey}
+							{actionKey}
 						</Text>
 						<Text style={[styles.status, this.getStatusStyle(status)]}>{status}</Text>
 					</View>
@@ -546,7 +529,6 @@ class TransactionElement extends PureComponent {
 
 		const renderFrom = renderFullAddress(from);
 		const renderTo = renderFullAddress(to);
-		console.log('decodeConfirmTx', value, conversionRate, currentCurrency);
 		const transactionDetails = {
 			renderFrom,
 			renderTo,
@@ -561,10 +543,15 @@ class TransactionElement extends PureComponent {
 			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency)
 		};
 
+		let symbol;
+		if (renderTo in contractMap) {
+			symbol = contractMap[renderTo].symbol;
+		}
+
 		const transactionElement = {
 			renderTo,
 			renderFrom,
-			actionKey,
+			actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat
 		};
@@ -683,9 +670,7 @@ class TransactionElement extends PureComponent {
 		const amount = toBN(encodedAmount);
 
 		const userHasToken = safeToChecksumAddress(to) in tokens;
-		console.log('ASD userHasToken', userHasToken);
 		const token = userHasToken ? tokens[safeToChecksumAddress(to)] : null;
-		console.log('ASD userHasToken', token);
 		const renderActionKey = token ? `${strings('transactions.sent')} ${token.symbol}` : actionKey;
 		const renderTokenAmount = token
 			? `${renderFromTokenMinimalUnit(amount, token.decimals)} ${token.symbol}`
