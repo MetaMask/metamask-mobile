@@ -4,15 +4,27 @@ import { TouchableHighlight, StyleSheet, Text, View, Image } from 'react-native'
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
-import { renderFromWei, weiToFiat, hexToBN, toBN, isBN, renderToGwei, balanceToFiat } from '../../../util/number';
+import {
+	renderFromWei,
+	weiToFiat,
+	hexToBN,
+	toBN,
+	isBN,
+	renderToGwei,
+	balanceToFiat,
+	renderFromTokenMinimalUnit,
+	fromTokenMinimalUnit,
+	balanceToFiatNumber,
+	addCurrencySymbol,
+	weiToFiatNumber
+} from '../../../util/number';
 import Identicon from '../Identicon';
-import { getActionKey, decodeTransferData, getTicker } from '../../../util/transactions';
+import { getActionKey, decodeTransferData, getTicker, isCollectibleAddress } from '../../../util/transactions';
 import TransactionDetails from './TransactionDetails';
 import { renderFullAddress, safeToChecksumAddress } from '../../../util/address';
 import FadeIn from 'react-native-fade-in-image';
 import TokenImage from '../TokenImage';
 import contractMap from 'eth-contract-metadata';
-import TransferElement from './TransferElement';
 import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -167,7 +179,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 18,
 		marginVertical: 12,
-		marginHorizontal: 20,
+		marginHorizontal: 24,
 		color: colors.fontPrimary,
 		...fontStyles.bold
 	},
@@ -201,11 +213,6 @@ class TransactionElement extends PureComponent {
 		 * Currency code of the currently-active currency
 		 */
 		currentCurrency: PropTypes.string,
-		/**
-		 * Callback function that will adjust the scroll
-		 * position once the transaction detail is visible
-		 */
-		selected: PropTypes.bool,
 		/**
 		 * String of selected address
 		 */
@@ -260,7 +267,10 @@ class TransactionElement extends PureComponent {
 		actionKey: undefined,
 		cancelIsOpen: false,
 		speedUpIsOpen: false,
-		detailsModalVisible: false
+		detailsModalVisible: false,
+		transactionGas: { gasBN: undefined, gasPriceBN: undefined, gasTotal: undefined },
+		transactionElement: undefined,
+		transactionDetails: undefined
 	};
 
 	mounted = false;
@@ -269,12 +279,36 @@ class TransactionElement extends PureComponent {
 		this.mounted = true;
 		const {
 			tx,
-			tx: { paymentChannelTransaction },
+			tx: {
+				paymentChannelTransaction,
+				transaction: { gas, gasPrice }
+			},
 			selectedAddress,
 			ticker
 		} = this.props;
+		const gasBN = hexToBN(gas);
+		const gasPriceBN = hexToBN(gasPrice);
+		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 		const actionKey = tx.actionKey || (await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction));
-		this.mounted && this.setState({ actionKey });
+		let transactionElement, transactionDetails;
+		if (paymentChannelTransaction) {
+			[transactionElement, transactionDetails] = this.decodePaymentChannelTx();
+		} else {
+			switch (actionKey) {
+				case strings('transactions.sent_tokens'):
+					[transactionElement, transactionDetails] = await this.decodeTransferTx(actionKey);
+					break;
+				case strings('transactions.sent_collectible'):
+					[transactionElement, transactionDetails] = this.decodeTransferFromTx(actionKey);
+					break;
+				case strings('transactions.contract_deploy'):
+					[transactionElement, transactionDetails] = this.decodeDeploymentTx(actionKey);
+					break;
+				default:
+					[transactionElement, transactionDetails] = this.decodeConfirmTx(actionKey);
+			}
+		}
+		this.mounted && this.setState({ totalGas, transactionElement, transactionDetails });
 	};
 
 	componentWillUnmount() {
@@ -403,7 +437,7 @@ class TransactionElement extends PureComponent {
 			},
 			providerType
 		} = this.props;
-		const { renderTo, actionKey, value, fiatValue = false } = transactionElement;
+		const { renderTo, value, fiatValue = false, actionKey } = transactionElement;
 		let symbol;
 		if (renderTo in contractMap) {
 			symbol = contractMap[renderTo].symbol;
@@ -437,7 +471,7 @@ class TransactionElement extends PureComponent {
 		);
 	};
 
-	decodeTransferFromTx = () => {
+	decodeTransferFromTx = actionKey => {
 		const {
 			tx: {
 				transaction: { gas, gasPrice, data, to },
@@ -447,7 +481,6 @@ class TransactionElement extends PureComponent {
 			conversionRate,
 			currentCurrency
 		} = this.props;
-		let { actionKey } = this.state;
 		const [addressFrom, addressTo, tokenId] = decodeTransferData('transferFrom', data);
 		const collectible = collectibleContracts.find(
 			collectible => collectible.address.toLowerCase() === to.toLowerCase()
@@ -492,7 +525,7 @@ class TransactionElement extends PureComponent {
 		return [transactionElement, transactionDetails];
 	};
 
-	decodeConfirmTx = () => {
+	decodeConfirmTx = actionKey => {
 		const {
 			tx: {
 				transaction: { value, gas, gasPrice, from, to },
@@ -502,7 +535,6 @@ class TransactionElement extends PureComponent {
 			currentCurrency
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
-		const { actionKey } = this.state;
 		const totalEth = hexToBN(value);
 		const renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
 		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
@@ -540,7 +572,7 @@ class TransactionElement extends PureComponent {
 		return [transactionElement, transactionDetails];
 	};
 
-	decodeDeploymentTx = () => {
+	decodeDeploymentTx = actionKey => {
 		const {
 			tx: {
 				transaction: { value, gas, gasPrice, from },
@@ -550,7 +582,6 @@ class TransactionElement extends PureComponent {
 			currentCurrency
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
-		const { actionKey } = this.state;
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
@@ -636,6 +667,147 @@ class TransactionElement extends PureComponent {
 		return [transactionElement, transactionDetails];
 	};
 
+	getTokenTransfer = totalGas => {
+		const {
+			tx: {
+				transaction: { to }
+			},
+			conversionRate,
+			currentCurrency,
+			tokens,
+			contractExchangeRates
+		} = this.props;
+
+		const { actionKey, encodedAmount } = this.state;
+
+		const amount = toBN(encodedAmount);
+
+		const userHasToken = safeToChecksumAddress(to) in tokens;
+		console.log('ASD userHasToken', userHasToken);
+		const token = userHasToken ? tokens[safeToChecksumAddress(to)] : null;
+		console.log('ASD userHasToken', token);
+		const renderActionKey = token ? `${strings('transactions.sent')} ${token.symbol}` : actionKey;
+		const renderTokenAmount = token
+			? `${renderFromTokenMinimalUnit(amount, token.decimals)} ${token.symbol}`
+			: undefined;
+		const exchangeRate = token ? contractExchangeRates[token.address] : undefined;
+		let renderTokenFiatAmount, renderTokenFiatNumber;
+		if (exchangeRate) {
+			renderTokenFiatAmount = balanceToFiat(
+				fromTokenMinimalUnit(amount, token.decimals) || 0,
+				conversionRate,
+				exchangeRate,
+				currentCurrency
+			);
+			renderTokenFiatNumber = balanceToFiatNumber(
+				fromTokenMinimalUnit(amount, token.decimals) || 0,
+				conversionRate,
+				exchangeRate
+			);
+		}
+
+		const renderToken = token
+			? `${renderFromTokenMinimalUnit(amount, token.decimals)} ${token.symbol}`
+			: strings('transaction.value_not_available');
+		const totalFiatNumber = renderTokenFiatNumber
+			? weiToFiatNumber(totalGas, conversionRate) + renderTokenFiatNumber
+			: undefined;
+
+		const ticker = getTicker(this.props.ticker);
+
+		const transactionDetails = {
+			renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+			renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
+			renderValue: renderToken,
+			renderValueFiat: renderTokenFiatAmount ? `${renderTokenFiatAmount}` : undefined,
+			renderTotalValue: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
+			renderTotalValueFiat: totalFiatNumber ? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}` : undefined
+		};
+
+		const transactionElement = {
+			actionKey: renderActionKey,
+			value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
+			fiatValue: `- ${renderTokenFiatAmount}`
+		};
+
+		return [transactionElement, transactionDetails];
+	};
+
+	getCollectibleTransfer = totalGas => {
+		const {
+			tx: {
+				transaction: { to }
+			},
+			collectibleContracts
+		} = this.props;
+		const { encodedAmount } = this.state;
+		let actionKey;
+		const tokenId = encodedAmount;
+		const collectible = collectibleContracts.find(
+			collectible => collectible.address.toLowerCase() === to.toLowerCase()
+		);
+		if (collectible) {
+			actionKey = `${strings('transactions.sent')} ${collectible.name}`;
+		} else {
+			actionKey = strings('transactions.sent_collectible');
+		}
+
+		const renderCollectible = collectible
+			? `${strings('unit.token_id')} ${tokenId} ${collectible.symbol}`
+			: `${strings('unit.token_id')} ${tokenId}`;
+
+		const transactionDetails = {
+			renderValue: renderCollectible,
+			renderTotalValue: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${strings(
+				'unit.eth'
+			)}`,
+			renderTotalValueFiat: undefined
+		};
+
+		const transactionElement = {
+			actionKey,
+			value: `${strings('unit.token_id')}${tokenId}`,
+			fiatValue: collectible ? collectible.symbol : undefined
+		};
+
+		return [transactionElement, transactionDetails];
+	};
+
+	decodeTransferTx = async () => {
+		const {
+			tx: {
+				transaction: { from, gas, gasPrice, data, to },
+				transactionHash
+			}
+		} = this.props;
+
+		const decodedData = decodeTransferData('transfer', data);
+		const addressTo = decodedData[0];
+		const isCollectible = await isCollectibleAddress(to, decodedData[1]);
+
+		const gasBN = hexToBN(gas);
+		const gasPriceBN = hexToBN(gasPrice);
+		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+		const renderGas = parseInt(gas, 16).toString();
+		const renderGasPrice = renderToGwei(gasPrice);
+
+		let [transactionElement, transactionDetails] = isCollectible
+			? this.getCollectibleTransfer(totalGas)
+			: this.getTokenTransfer(totalGas);
+		transactionElement = { ...transactionElement, renderTo: addressTo };
+		transactionDetails = {
+			...transactionDetails,
+			...{
+				renderFrom: renderFullAddress(from),
+				renderTo: renderFullAddress(addressTo),
+				transactionHash,
+				renderGas,
+				renderGasPrice
+			}
+		};
+		return [transactionElement, transactionDetails];
+	};
+
 	renderCancelButton = () => (
 		<StyledButton
 			type={'danger'}
@@ -677,53 +849,10 @@ class TransactionElement extends PureComponent {
 	);
 
 	render() {
-		const {
-			tx: {
-				paymentChannelTransaction,
-				transaction: { gas, gasPrice }
-			},
-			tx,
-			showAlert,
-			blockExplorer
-		} = this.props;
-		const { actionKey, detailsModalVisible } = this.state;
-		const gasBN = hexToBN(gas);
-		const gasPriceBN = hexToBN(gasPrice);
-		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-		let transactionElement, transactionDetails;
-		if (actionKey === strings('transactions.sent_tokens')) {
-			return (
-				<TransferElement
-					renderTxElement={this.renderTxElement}
-					renderTxDetails={this.renderTxDetails}
-					tx={this.props.tx}
-					contractExchangeRates={this.props.contractExchangeRates}
-					conversionRate={this.props.conversionRate}
-					currentCurrency={this.props.currentCurrency}
-					selected={this.props.selected}
-					selectedAddress={this.props.selectedAddress}
-					i={this.props.i}
-					onPressItem={this.props.onPressItem}
-					tokens={this.props.tokens}
-					collectibleContracts={this.props.collectibleContracts}
-					ticker={this.props.ticker}
-				/>
-			);
-		}
-		if (paymentChannelTransaction) {
-			[transactionElement, transactionDetails] = this.decodePaymentChannelTx();
-		} else {
-			switch (actionKey) {
-				case strings('transactions.sent_collectible'):
-					[transactionElement, transactionDetails] = this.decodeTransferFromTx(totalGas);
-					break;
-				case strings('transactions.contract_deploy'):
-					[transactionElement, transactionDetails] = this.decodeDeploymentTx(totalGas);
-					break;
-				default:
-					[transactionElement, transactionDetails] = this.decodeConfirmTx(totalGas);
-			}
-		}
+		const { tx, showAlert, blockExplorer } = this.props;
+		const { detailsModalVisible, transactionElement, transactionDetails } = this.state;
+
+		if (!transactionElement || !transactionDetails) return <View />;
 		return (
 			<View>
 				<TouchableHighlight
@@ -746,7 +875,7 @@ class TransactionElement extends PureComponent {
 						<View style={styles.modalContainer}>
 							<View style={styles.titleWrapper}>
 								<Text style={styles.title} onPress={this.onCloseDetailsModal}>
-									{actionKey}
+									{transactionElement.actionKey}
 								</Text>
 								<Ionicons name={'ios-close'} size={38} style={styles.closeIcon} />
 							</View>
