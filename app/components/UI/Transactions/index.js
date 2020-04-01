@@ -16,7 +16,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
-import { hasBlockExplorer } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import ActionModal from '../ActionModal';
@@ -134,10 +133,6 @@ class Transactions extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
-		 * String representing the selected the selected network
-		 */
-		networkType: PropTypes.string,
-		/**
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
@@ -145,10 +140,6 @@ class Transactions extends PureComponent {
 		 * Currency code of the currently-active currency
 		 */
 		currentCurrency: PropTypes.string,
-		/**
-		 * Action that shows the global alert
-		 */
-		showAlert: PropTypes.func,
 		/**
 		 * Loading flag from an external call
 		 */
@@ -281,8 +272,6 @@ class Transactions extends PureComponent {
 
 	keyExtractor = item => item.id.toString();
 
-	blockExplorer = () => hasBlockExplorer(this.props.networkType);
-
 	validateBalance = (tx, rate) => {
 		const { accounts } = this.props;
 		try {
@@ -364,14 +353,12 @@ class Transactions extends PureComponent {
 			selectedAddress={this.props.selectedAddress}
 			selected={!!this.state.selectedTx.get(item.id)}
 			onPressItem={this.toggleDetailsView}
-			blockExplorer
 			tokens={this.props.tokens}
 			collectibleContracts={this.props.collectibleContracts}
 			contractExchangeRates={this.props.contractExchangeRates}
 			exchangeRate={this.props.exchangeRate}
 			conversionRate={this.props.conversionRate}
 			currentCurrency={this.props.currentCurrency}
-			showAlert={this.props.showAlert}
 			navigation={this.props.navigation}
 		/>
 	);

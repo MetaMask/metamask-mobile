@@ -114,6 +114,7 @@ class Wallet extends PureComponent {
 	}
 
 	onRefresh = async () => {
+		// DELETE THIS
 		const a = {
 			id: 'bee074f0-6ed2-11ea-b01a-01f8af0c72dc',
 			networkID: '3',

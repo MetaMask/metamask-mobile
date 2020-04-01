@@ -15,14 +15,14 @@ import {
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { renderFullAddress, safeToChecksumAddress } from '../../../util/address';
-import { decodeTransferData, isCollectibleAddress, getTicker } from '../../../util/transactions';
+import { decodeTransferData, isCollectibleAddress, getTicker, getActionKey } from '../../../util/transactions';
 import contractMap from 'eth-contract-metadata';
 
 const {
 	CONNEXT: { CONTRACTS }
 } = AppConstants;
 
-export function decodePaymentChannelTx(args) {
+function decodePaymentChannelTx(args) {
 	const {
 		tx: {
 			networkID,
@@ -177,7 +177,7 @@ function getCollectibleTransfer(args) {
 	return [transactionElement, transactionDetails];
 }
 
-export async function decodeTransferTx(args) {
+async function decodeTransferTx(args) {
 	const {
 		tx: {
 			transaction: { from, gas, gasPrice, data, to },
@@ -212,7 +212,7 @@ export async function decodeTransferTx(args) {
 	return [transactionElement, transactionDetails];
 }
 
-export function decodeTransferFromTx(args) {
+function decodeTransferFromTx(args) {
 	const {
 		tx: {
 			transaction: { gas, gasPrice, data, to },
@@ -267,7 +267,7 @@ export function decodeTransferFromTx(args) {
 	return [transactionElement, transactionDetails];
 }
 
-export function decodeDeploymentTx(args) {
+function decodeDeploymentTx(args) {
 	const {
 		tx: {
 			transaction: { value, gas, gasPrice, from },
@@ -314,7 +314,7 @@ export function decodeDeploymentTx(args) {
 	return [transactionElement, transactionDetails];
 }
 
-export function decodeConfirmTx(args) {
+function decodeConfirmTx(args) {
 	const {
 		tx: {
 			transaction: { value, gas, gasPrice, from, to },
@@ -363,5 +363,29 @@ export function decodeConfirmTx(args) {
 		fiatValue: renderTotalEthFiat
 	};
 
+	return [transactionElement, transactionDetails];
+}
+
+export default async function decodeTransaction(args) {
+	const { tx, selectedAddress, ticker, paymentChannelTransaction } = args;
+	const actionKey = tx.actionKey || (await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction));
+	let transactionElement, transactionDetails;
+	if (paymentChannelTransaction) {
+		[transactionElement, transactionDetails] = decodePaymentChannelTx({ ...args, actionKey });
+	} else {
+		switch (actionKey) {
+			case strings('transactions.sent_tokens'):
+				[transactionElement, transactionDetails] = await decodeTransferTx({ ...args, actionKey });
+				break;
+			case strings('transactions.sent_collectible'):
+				[transactionElement, transactionDetails] = decodeTransferFromTx({ ...args, actionKey });
+				break;
+			case strings('transactions.contract_deploy'):
+				[transactionElement, transactionDetails] = decodeDeploymentTx({ ...args, actionKey });
+				break;
+			default:
+				[transactionElement, transactionDetails] = decodeConfirmTx({ ...args, actionKey });
+		}
+	}
 	return [transactionElement, transactionDetails];
 }

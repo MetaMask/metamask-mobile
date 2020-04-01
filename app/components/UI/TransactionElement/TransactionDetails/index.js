@@ -1,20 +1,16 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Clipboard, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
 import URL from 'url-parse';
-import Device from '../../../../util/Device';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
 import { toLocaleDateTime } from '../../../../util/date';
-
-const HASH_LENGTH = Device.isSmallDevice() ? 18 : 20;
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
@@ -25,15 +21,6 @@ const styles = StyleSheet.create({
 		color: colors.grey500,
 		marginBottom: 8,
 		...fontStyles.normal
-	},
-	detailRowInfo: {
-		borderRadius: 5,
-		shadowColor: colors.grey400,
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.5,
-		shadowRadius: 3,
-		padding: 10,
-		marginBottom: 5
 	},
 	flexRow: {
 		flexDirection: 'row'
@@ -66,15 +53,6 @@ const styles = StyleSheet.create({
 	touchableViewOnEtherscan: {
 		marginVertical: 24
 	},
-	hash: {
-		fontSize: 12
-	},
-	singleRow: {
-		flexDirection: 'row'
-	},
-	copyIcon: {
-		paddingRight: 5
-	},
 	summaryWrapper: {
 		marginVertical: 6
 	},
@@ -104,14 +82,6 @@ class TransactionDetails extends PureComponent {
 		 */
 		transactionObject: PropTypes.object,
 		/**
-		 * Boolean to determine if this network supports a block explorer
-		 */
-		blockExplorer: PropTypes.bool,
-		/**
-		 * Action that shows the global alert
-		 */
-		showAlert: PropTypes.func,
-		/**
 		 * Object with information to render
 		 */
 		transactionDetails: PropTypes.object,
@@ -123,7 +93,6 @@ class TransactionDetails extends PureComponent {
 	};
 
 	state = {
-		cancelIsOpen: false,
 		rpcBlockExplorer: undefined
 	};
 
@@ -140,70 +109,6 @@ class TransactionDetails extends PureComponent {
 		}
 		this.setState({ rpcBlockExplorer: blockExplorer });
 	};
-
-	renderTxHash = transactionHash => {
-		if (!transactionHash) return null;
-		return (
-			<View>
-				<Text style={styles.detailRowTitle}>{strings('transactions.hash')}</Text>
-				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={[styles.detailRowText, styles.hash]}>{`${transactionHash.substr(
-						0,
-						HASH_LENGTH
-					)} ... ${transactionHash.substr(-HASH_LENGTH)}`}</Text>
-					{this.renderCopyIcon()}
-				</View>
-			</View>
-		);
-	};
-
-	copy = async () => {
-		await Clipboard.setString(this.props.transactionDetails.transactionHash);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 1500,
-			content: 'clipboard-alert',
-			data: { msg: strings('transactions.hash_copied_to_clipboard') }
-		});
-	};
-
-	copyFrom = async () => {
-		await Clipboard.setString(this.props.transactionDetails.renderFrom);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 1500,
-			content: 'clipboard-alert',
-			data: { msg: strings('transactions.address_copied_to_clipboard') }
-		});
-	};
-
-	copyTo = async () => {
-		await Clipboard.setString(this.props.transactionDetails.renderTo);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 1500,
-			content: 'clipboard-alert',
-			data: { msg: strings('transactions.address_copied_to_clipboard') }
-		});
-	};
-
-	renderCopyIcon = () => (
-		<TouchableOpacity style={styles.copyIcon} onPress={this.copy}>
-			<Icon name={'copy'} size={15} color={colors.blue} />
-		</TouchableOpacity>
-	);
-
-	renderCopyToIcon = () => (
-		<TouchableOpacity style={styles.copyIcon} onPress={this.copyTo}>
-			<Icon name={'copy'} size={15} color={colors.blue} />
-		</TouchableOpacity>
-	);
-
-	renderCopyFromIcon = () => (
-		<TouchableOpacity style={styles.copyIcon} onPress={this.copyFrom}>
-			<Icon name={'copy'} size={15} color={colors.blue} />
-		</TouchableOpacity>
-	);
 
 	viewOnEtherscan = () => {
 		const {
@@ -239,14 +144,6 @@ class TransactionDetails extends PureComponent {
 		}
 	};
 
-	showCancelModal = () => {
-		this.setState({ cancelIsOpen: true });
-	};
-
-	hideCancelModal = () => {
-		this.setState({ cancelIsOpen: false });
-	};
-
 	renderStatusText = status => {
 		status = status.charAt(0).toUpperCase() + status.slice(1);
 		switch (status) {
@@ -261,7 +158,6 @@ class TransactionDetails extends PureComponent {
 
 	render = () => {
 		const {
-			blockExplorer,
 			transactionObject,
 			transactionObject: { status, time }
 		} = this.props;
@@ -318,7 +214,6 @@ class TransactionDetails extends PureComponent {
 
 				{this.props.transactionDetails.transactionHash &&
 					transactionObject.status !== 'cancelled' &&
-					blockExplorer &&
 					rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
 						<TouchableOpacity onPress={this.viewOnEtherscan} style={styles.touchableViewOnEtherscan}>
 							<Text style={styles.viewOnEtherscan}>

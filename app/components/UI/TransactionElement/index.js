@@ -5,7 +5,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
 import Identicon from '../Identicon';
-import { getActionKey } from '../../../util/transactions';
 import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
 import FadeIn from 'react-native-fade-in-image';
@@ -18,13 +17,7 @@ import StyledButton from '../StyledButton';
 import Networks from '../../../util/networks';
 import Device from '../../../util/Device';
 import Modal from 'react-native-modal';
-import {
-	decodePaymentChannelTx,
-	decodeTransferTx,
-	decodeTransferFromTx,
-	decodeDeploymentTx,
-	decodeConfirmTx
-} from './utils';
+import decodeTransaction from './utils';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -232,16 +225,9 @@ class TransactionElement extends PureComponent {
 		// eslint-disable-next-line react/no-unused-prop-types
 		collectibleContracts: PropTypes.array,
 		/**
-		 * Boolean to determine if this network supports a block explorer
-		 */
-		blockExplorer: PropTypes.bool,
-		/**
-		 * Action that shows the global alert
-		 */
-		showAlert: PropTypes.func,
-		/**
 		 * Current provider ticker
 		 */
+		// eslint-disable-next-line react/no-unused-prop-types
 		ticker: PropTypes.string,
 		/**
 		 * Current exchange rate
@@ -275,33 +261,8 @@ class TransactionElement extends PureComponent {
 	mounted = false;
 
 	componentDidMount = async () => {
+		const [transactionElement, transactionDetails] = await decodeTransaction(this.props);
 		this.mounted = true;
-		const {
-			tx,
-			tx: { paymentChannelTransaction },
-			selectedAddress,
-			ticker
-		} = this.props;
-
-		const actionKey = tx.actionKey || (await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction));
-		let transactionElement, transactionDetails;
-		if (paymentChannelTransaction) {
-			[transactionElement, transactionDetails] = decodePaymentChannelTx({ ...this.props, actionKey });
-		} else {
-			switch (actionKey) {
-				case strings('transactions.sent_tokens'):
-					[transactionElement, transactionDetails] = await decodeTransferTx({ ...this.props, actionKey });
-					break;
-				case strings('transactions.sent_collectible'):
-					[transactionElement, transactionDetails] = decodeTransferFromTx({ ...this.props, actionKey });
-					break;
-				case strings('transactions.contract_deploy'):
-					[transactionElement, transactionDetails] = decodeDeploymentTx({ ...this.props, actionKey });
-					break;
-				default:
-					[transactionElement, transactionDetails] = decodeConfirmTx({ ...this.props, actionKey });
-			}
-		}
 		this.mounted && this.setState({ transactionElement, transactionDetails });
 	};
 
@@ -489,7 +450,7 @@ class TransactionElement extends PureComponent {
 	);
 
 	render() {
-		const { tx, showAlert, blockExplorer } = this.props;
+		const { tx } = this.props;
 		const { detailsModalVisible, transactionElement, transactionDetails } = this.state;
 
 		if (!transactionElement || !transactionDetails) return <View />;
@@ -526,8 +487,6 @@ class TransactionElement extends PureComponent {
 							</View>
 							<TransactionDetails
 								transactionObject={tx}
-								blockExplorer={blockExplorer}
-								showAlert={showAlert}
 								transactionDetails={transactionDetails}
 								navigation={this.props.navigation}
 								close={this.onCloseDetailsModal}
