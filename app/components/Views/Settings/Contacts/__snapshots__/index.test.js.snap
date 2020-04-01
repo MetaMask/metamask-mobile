@@ -8,6 +8,7 @@ exports[`Contacts should render correctly 1`] = `
       "flex": 1,
     }
   }
+  testID="contacts-screen"
 >
   <Connect(AddressList)
     onAccountLongPress={[Function]}
@@ -33,6 +34,7 @@ exports[`Contacts should render correctly 1`] = `
         "opacity": 0.6,
       }
     }
+    testID="add-contact-button"
     type="confirm"
   >
     Add contact

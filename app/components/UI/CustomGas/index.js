@@ -8,26 +8,33 @@ import {
 	getRenderableEthGasFee,
 	getRenderableFiatGasFee,
 	apiEstimateModifiedToWEI,
-	fetchBasicGasEstimates,
-	convertApiValueToGWEI
+	getBasicGasEstimates
 } from '../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN } from '../../../util/number';
-import Logger from '../../../util/Logger';
 import { getTicker } from '../../../util/transactions';
-import Device from '../../../util/Device';
-import TransactionTypes from '../../../core/TransactionTypes';
-
-const {
-	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
-} = TransactionTypes;
+import Radio from '../Radio';
 
 const styles = StyleSheet.create({
+	labelText: {
+		...fontStyles.bold,
+		color: colors.grey400,
+		fontSize: 16
+	},
+	titleContainer: {
+		flex: 1,
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'space-between'
+	},
+	titleMargin: {
+		marginBottom: 10,
+		alignItems: 'flex-end'
+	},
+	radio: {
+		marginLeft: 'auto'
+	},
 	selectors: {
-		backgroundColor: colors.white,
-		borderColor: colors.grey100,
-		borderRadius: 4,
-		borderWidth: 1,
 		flex: 1,
 		position: 'relative',
 		flexDirection: 'row',
@@ -37,40 +44,53 @@ const styles = StyleSheet.create({
 		alignSelf: 'stretch',
 		textAlign: 'center',
 		alignItems: 'flex-start',
-		width: '33%',
-		padding: 5
+		width: '33.333333333%',
+		paddingVertical: 10,
+		paddingHorizontal: 12,
+		borderWidth: 1,
+		borderColor: colors.grey100,
+		marginLeft: -2
+	},
+	selectorSelected: {
+		backgroundColor: colors.blue000,
+		borderColor: colors.blue,
+		zIndex: 1
 	},
 	advancedOptions: {
 		textAlign: 'right',
-		alignItems: 'flex-end',
-		marginTop: 10
-	},
-	average: {
-		borderColor: colors.grey100,
-		borderRightWidth: 1,
-		borderLeftWidth: 1
+		alignItems: 'flex-end'
 	},
 	slow: {
-		borderBottomStartRadius: 4,
-		borderTopStartRadius: 4
+		borderBottomStartRadius: 6,
+		borderTopStartRadius: 6
 	},
 	fast: {
-		borderBottomEndRadius: 4,
-		borderTopEndRadius: 4
+		borderBottomEndRadius: 6,
+		borderTopEndRadius: 6
 	},
 	text: {
 		...fontStyles.normal,
-		fontSize: Device.isSmallDevice() ? 10 : 12
+		fontSize: 10,
+		color: colors.black
 	},
 	textTitle: {
 		...fontStyles.bold,
-		fontSize: Device.isSmallDevice() ? 10 : 14
+		fontSize: 10,
+		color: colors.black
 	},
 	textTotalGas: {
 		...fontStyles.bold
 	},
+	textTime: {
+		...fontStyles.bold,
+		color: colors.black,
+		marginVertical: 4,
+		fontSize: 18,
+		textTransform: 'none'
+	},
 	textAdvancedOptions: {
-		color: colors.blue
+		color: colors.blue,
+		fontSize: 14
 	},
 	gasInput: {
 		...fontStyles.bold,
@@ -124,7 +144,11 @@ class CustomGas extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Displayed when there is a gas station error
+		 */
+		gasError: PropTypes.string
 	};
 
 	state = {
@@ -133,8 +157,11 @@ class CustomGas extends PureComponent {
 		gasAverageSelected: true,
 		gasSlowSelected: false,
 		averageGwei: 0,
+		averageWait: undefined,
 		fastGwei: 0,
+		fastWait: undefined,
 		safeLowGwei: 0,
+		safeLowWait: undefined,
 		selected: 'average',
 		ready: false,
 		advancedCustomGas: false,
@@ -232,28 +259,8 @@ class CustomGas extends PureComponent {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		let basicGasEstimates;
-		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
-		} catch (error) {
-			Logger.log('Error while trying to get gas limit estimates', error);
-			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
-		}
-
-		// Handle api failure returning same gas prices
-		let { average, fast, safeLow } = basicGasEstimates;
-		if (average === fast && average === safeLow) {
-			average = AVERAGE_GAS;
-			safeLow = LOW_GAS;
-			fast = FAST_GAS;
-		}
-
-		this.setState({
-			averageGwei: convertApiValueToGWEI(average),
-			fastGwei: convertApiValueToGWEI(fast),
-			safeLowGwei: convertApiValueToGWEI(safeLow),
-			ready: true
-		});
+		const basicGasEstimates = await getBasicGasEstimates();
+		this.setState({ ...basicGasEstimates, ready: true });
 	};
 
 	onGasLimitChange = value => {
@@ -270,7 +277,17 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasSelector = () => {
-		const { averageGwei, fastGwei, safeLowGwei } = this.state;
+		const {
+			averageGwei,
+			fastGwei,
+			safeLowGwei,
+			averageWait,
+			safeLowWait,
+			fastWait,
+			gasSlowSelected,
+			gasAverageSelected,
+			gasFastSelected
+		} = this.state;
 		const { conversionRate, currentCurrency, gas } = this.props;
 		const ticker = getTicker(this.props.ticker);
 		return (
@@ -278,59 +295,57 @@ class CustomGas extends PureComponent {
 				<TouchableOpacity
 					key={'safeLow'}
 					onPress={this.onPressGasSlow}
-					style={[
-						styles.selector,
-						styles.slow,
-						{ backgroundColor: this.state.gasSlowSelected ? colors.blue : colors.white }
-					]}
+					style={[styles.selector, styles.slow, gasSlowSelected && styles.selectorSelected]}
 				>
-					<Text style={[styles.textTitle, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
-						{strings('transaction.gas_fee_slow')}
-					</Text>
-					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
+					<View style={styles.titleContainer}>
+						<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
+						<View style={styles.radio}>
+							<Radio selected={gasSlowSelected} />
+						</View>
+					</View>
+					<Text style={styles.textTime}>{safeLowWait}</Text>
+					<Text style={styles.text}>
 						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
+					<Text style={styles.text}>
 						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
 					key={'average'}
 					onPress={this.onPressGasAverage}
-					style={[
-						styles.selector,
-						styles.average,
-						{ backgroundColor: this.state.gasAverageSelected ? colors.blue : colors.white }
-					]}
+					style={[styles.selector, gasAverageSelected && styles.selectorSelected]}
 				>
-					<Text
-						style={[styles.textTitle, { color: this.state.gasAverageSelected ? colors.white : undefined }]}
-					>
-						{strings('transaction.gas_fee_average')}
-					</Text>
-					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
+					<View style={styles.titleContainer}>
+						<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
+						<View style={styles.radio}>
+							<Radio selected={gasAverageSelected} />
+						</View>
+					</View>
+					<Text style={styles.textTime}>{averageWait}</Text>
+					<Text style={styles.text}>
 						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
+					<Text style={styles.text}>
 						{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
 					key={'fast'}
 					onPress={this.onPressGasFast}
-					style={[
-						styles.selector,
-						styles.fast,
-						{ backgroundColor: this.state.gasFastSelected ? colors.blue : colors.white }
-					]}
+					style={[styles.selector, styles.fast, gasFastSelected && styles.selectorSelected]}
 				>
-					<Text style={[styles.textTitle, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
-						{strings('transaction.gas_fee_fast')}
-					</Text>
-					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
+					<View style={styles.titleContainer}>
+						<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
+						<View style={styles.radio}>
+							<Radio selected={gasFastSelected} />
+						</View>
+					</View>
+					<Text style={styles.textTime}>{fastWait}</Text>
+					<Text style={styles.text}>
 						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 					</Text>
-					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
+					<Text style={styles.text}>
 						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
@@ -370,18 +385,25 @@ class CustomGas extends PureComponent {
 	render = () => {
 		if (this.state.ready) {
 			const { advancedCustomGas } = this.state;
+			const { gasError } = this.props;
 			return (
 				<View style={baseStyles.flexGrow}>
-					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
-					<View style={styles.advancedOptions}>
-						<TouchableOpacity onPress={this.onAdvancedOptions}>
-							<Text style={styles.textAdvancedOptions}>
-								{advancedCustomGas
-									? strings('custom_gas.hide_advanced_options')
-									: strings('custom_gas.advanced_options')}
-							</Text>
-						</TouchableOpacity>
+					<View style={[styles.titleContainer, styles.titleMargin]}>
+						<View>
+							<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
+							{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
+						</View>
+						<View style={styles.advancedOptions}>
+							<TouchableOpacity onPress={this.onAdvancedOptions}>
+								<Text style={styles.textAdvancedOptions}>
+									{advancedCustomGas
+										? strings('custom_gas.hide_advanced_options')
+										: strings('custom_gas.advanced_options')}
+								</Text>
+							</TouchableOpacity>
+						</View>
 					</View>
+					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
 				</View>
 			);
 		}

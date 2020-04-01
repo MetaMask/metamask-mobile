@@ -18,7 +18,7 @@ import { getTicker } from '../../../../util/transactions';
 
 const styles = StyleSheet.create({
 	overview: {
-		paddingHorizontal: 16,
+		paddingHorizontal: 24,
 		borderTopWidth: 1,
 		borderColor: colors.grey200
 	},
