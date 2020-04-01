@@ -1,15 +1,7 @@
 import React, { PureComponent } from 'react';
-// import ActionView from '../ActionView';
+import ActionView from '../ActionView';
 import PropTypes from 'prop-types';
-import {
-	StyleSheet,
-	Text,
-	View,
-	InteractionManager,
-	ScrollView,
-	ActivityIndicator,
-	TouchableOpacity
-} from 'react-native';
+import { StyleSheet, Text, View, InteractionManager, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -25,19 +17,8 @@ import { AddressFrom, AddressTo } from '../../Views/SendFlow/AddressInputs';
 import { weiToFiat } from '../../../util/number';
 // import { prepareTransaction } from '../../../actions/newTransaction';
 import ErrorMessage from '../../Views/SendFlow/ErrorMessage';
-import StyledButton from '../../UI/StyledButton';
 
 const styles = StyleSheet.create({
-	buttonNext: {
-		flex: 1,
-		marginHorizontal: 24,
-		alignSelf: 'flex-end'
-	},
-	buttonNextWrapper: {
-		flexDirection: 'row',
-		alignItems: 'flex-end',
-		marginBottom: 16
-	},
 	actionTouchable: {
 		padding: 12
 	},
@@ -145,7 +126,7 @@ class TransactionReview extends PureComponent {
 		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
-		// onCancel: PropTypes.func,
+		onCancel: PropTypes.func,
 		/**
 		 * Called when a user changes modes
 		 */
@@ -254,12 +235,13 @@ class TransactionReview extends PureComponent {
 			transaction,
 			currentCurrency,
 			conversionRate,
+			onCancel,
 			onConfirm,
 			transaction: { from, to, assetType, readableValue }
 		} = this.props;
 		console.log(currentCurrency, conversionRate);
 		console.log(transaction);
-		const { gasEstimationReady, showHexData } = this.state;
+		const { error, gasEstimationReady, showHexData } = this.state;
 		const errorMessage = null;
 		return (
 			<View style={styles.root}>
@@ -292,90 +274,75 @@ class TransactionReview extends PureComponent {
 						inputWidth={{ width: '100%' }}
 					/>
 				</View>
-				<ScrollView style={baseStyles.flexGrow}>
-					<View style={styles.amountWrapper}>
-						<Text style={styles.textAmountLabel}>{strings('transaction.amount')}</Text>
-						<Text style={styles.textAmount} testID={'confirm-txn-amount'}>
-							{readableValue} {assetType}
-						</Text>
-						<Text style={styles.textAmountLabel}>
-							{weiToFiat(readableValue, conversionRate, currentCurrency)}
-						</Text>
-					</View>
-
-					<View style={styles.summaryWrapper}>
-						<View style={styles.summaryRow}>
-							<Text style={styles.textSummary}>{strings('transaction.amount')}</Text>
-							<Text style={[styles.textSummary, styles.textSummaryAmount]}>{`100`}</Text>
-						</View>
-						<View style={styles.summaryRow}>
-							<Text style={styles.textSummary}>{strings('transaction.transaction_fee')}</Text>
-							{this.renderIfGastEstimationReady(
-								<Text style={[styles.textSummary, styles.textSummaryAmount]}>{`200`}</Text>
-							)}
-						</View>
-						<View style={styles.separator} />
-						<View style={styles.summaryRow}>
-							<Text style={[styles.textSummary, styles.textBold]}>
-								{strings('transaction.total_amount')}
-							</Text>
-							{this.renderIfGastEstimationReady(
-								<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>
-									{`200`}
-								</Text>
-							)}
-						</View>
-						<View style={styles.totalCryptoRow}>
-							{this.renderIfGastEstimationReady(
-								<Text style={[styles.textSummary, styles.textCrypto]}>{`200`}</Text>
-							)}
-						</View>
-					</View>
-					{errorMessage && (
-						<View style={styles.errorMessageWrapper}>
-							<ErrorMessage errorMessage={errorMessage} />
-						</View>
-					)}
-					<View style={styles.actionsWrapper}>
-						<TouchableOpacity
-							style={styles.actionTouchable}
-							disabled={!gasEstimationReady}
-							onPress={this.toggleCustomGasModal}
-						>
-							<Text style={styles.actionText}>{strings('transaction.adjust_transaction_fee')}</Text>
-						</TouchableOpacity>
-						{showHexData && (
-							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleHexDataModal}>
-								<Text style={styles.actionText}>{strings('transaction.hex_data')}</Text>
-							</TouchableOpacity>
-						)}
-					</View>
-				</ScrollView>
-				<View style={styles.buttonNextWrapper}>
-					<StyledButton
-						type={'confirm'}
-						disabled={!gasEstimationReady}
-						containerStyle={styles.buttonNext}
-						onPress={onConfirm}
-						testID={'txn-confirm-send-button'}
-					>
-						{transactionConfirmed ? <ActivityIndicator size="small" color="white" /> : 'Send'}
-					</StyledButton>
-				</View>
-				{/*<ActionView
+				<ActionView
+					style={baseStyles.flexGrow}
 					confirmButtonMode="confirm"
 					cancelText={strings('transaction.reject')}
-					onCancelPress={this.props.onCancel}
-					onConfirmPress={this.props.onConfirm}
+					onCancelPress={onCancel}
+					onConfirmPress={onConfirm}
 					confirmed={transactionConfirmed}
 					confirmDisabled={error !== undefined}
 				>
-					<View>
-						<TransactionReviewSummary actionKey={actionKey} />
-						<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
-						{!!error && <Text style={styles.error}>{error}</Text>}
-					</View>
-				</ActionView>*/}
+					<>
+						<View style={styles.amountWrapper}>
+							<Text style={styles.textAmountLabel}>{strings('transaction.amount')}</Text>
+							<Text style={styles.textAmount} testID={'confirm-txn-amount'}>
+								{readableValue} {assetType}
+							</Text>
+							<Text style={styles.textAmountLabel}>
+								{weiToFiat(readableValue, conversionRate, currentCurrency)}
+							</Text>
+						</View>
+
+						<View style={styles.summaryWrapper}>
+							<View style={styles.summaryRow}>
+								<Text style={styles.textSummary}>{strings('transaction.amount')}</Text>
+								<Text style={[styles.textSummary, styles.textSummaryAmount]}>{`100`}</Text>
+							</View>
+							<View style={styles.summaryRow}>
+								<Text style={styles.textSummary}>{strings('transaction.transaction_fee')}</Text>
+								{this.renderIfGastEstimationReady(
+									<Text style={[styles.textSummary, styles.textSummaryAmount]}>{`200`}</Text>
+								)}
+							</View>
+							<View style={styles.separator} />
+							<View style={styles.summaryRow}>
+								<Text style={[styles.textSummary, styles.textBold]}>
+									{strings('transaction.total_amount')}
+								</Text>
+								{this.renderIfGastEstimationReady(
+									<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>
+										{`200`}
+									</Text>
+								)}
+							</View>
+							<View style={styles.totalCryptoRow}>
+								{this.renderIfGastEstimationReady(
+									<Text style={[styles.textSummary, styles.textCrypto]}>{`200`}</Text>
+								)}
+							</View>
+						</View>
+						{errorMessage && (
+							<View style={styles.errorMessageWrapper}>
+								<ErrorMessage errorMessage={errorMessage} />
+							</View>
+						)}
+						<View style={styles.actionsWrapper}>
+							<TouchableOpacity
+								style={styles.actionTouchable}
+								disabled={!gasEstimationReady}
+								onPress={this.toggleCustomGasModal}
+							>
+								<Text style={styles.actionText}>{strings('transaction.adjust_transaction_fee')}</Text>
+							</TouchableOpacity>
+							{showHexData && (
+								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleHexDataModal}>
+									<Text style={styles.actionText}>{strings('transaction.hex_data')}</Text>
+								</TouchableOpacity>
+							)}
+						</View>
+					</>
+				</ActionView>
 			</View>
 		);
 	};
