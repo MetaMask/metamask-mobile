@@ -4,11 +4,10 @@ import { TouchableHighlight, StyleSheet, Text, View, Image } from 'react-native'
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
-import { renderFromWei, weiToFiat, hexToBN, toBN, isBN, renderToGwei, balanceToFiat } from '../../../util/number';
 import Identicon from '../Identicon';
-import { getActionKey, getTicker } from '../../../util/transactions';
+import { getActionKey } from '../../../util/transactions';
 import TransactionDetails from './TransactionDetails';
-import { renderFullAddress, safeToChecksumAddress } from '../../../util/address';
+import { safeToChecksumAddress } from '../../../util/address';
 import FadeIn from 'react-native-fade-in-image';
 import TokenImage from '../TokenImage';
 import contractMap from 'eth-contract-metadata';
@@ -19,7 +18,13 @@ import StyledButton from '../StyledButton';
 import Networks from '../../../util/networks';
 import Device from '../../../util/Device';
 import Modal from 'react-native-modal';
-import { decodePaymentChannelTx, decodeTransferTx, decodeTransferFromTx, decodeDeploymentTx } from './utils';
+import {
+	decodePaymentChannelTx,
+	decodeTransferTx,
+	decodeTransferFromTx,
+	decodeDeploymentTx,
+	decodeConfirmTx
+} from './utils';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -197,10 +202,12 @@ class TransactionElement extends PureComponent {
 		/**
 		 * ETH to current currency conversion rate
 		 */
+		// eslint-disable-next-line react/no-unused-prop-types
 		conversionRate: PropTypes.number,
 		/**
 		 * Currency code of the currently-active currency
 		 */
+		// eslint-disable-next-line react/no-unused-prop-types
 		currentCurrency: PropTypes.string,
 		/**
 		 * String of selected address
@@ -239,6 +246,7 @@ class TransactionElement extends PureComponent {
 		/**
 		 * Current exchange rate
 		 */
+		// eslint-disable-next-line react/no-unused-prop-types
 		exchangeRate: PropTypes.number,
 		/**
 		 * Callback to speed up tx
@@ -288,10 +296,10 @@ class TransactionElement extends PureComponent {
 					[transactionElement, transactionDetails] = decodeTransferFromTx({ ...this.props, actionKey });
 					break;
 				case strings('transactions.contract_deploy'):
-					[transactionElement, transactionDetails] = decodeDeploymentTx(actionKey);
+					[transactionElement, transactionDetails] = decodeDeploymentTx({ ...this.props, actionKey });
 					break;
 				default:
-					[transactionElement, transactionDetails] = this.decodeConfirmTx(actionKey);
+					[transactionElement, transactionDetails] = decodeConfirmTx({ ...this.props, actionKey });
 			}
 		}
 		this.mounted && this.setState({ transactionElement, transactionDetails });
@@ -438,106 +446,6 @@ class TransactionElement extends PureComponent {
 				)}
 			</View>
 		);
-	};
-
-	decodeConfirmTx = actionKey => {
-		const {
-			tx: {
-				transaction: { value, gas, gasPrice, from, to },
-				transactionHash
-			},
-			conversionRate,
-			currentCurrency
-		} = this.props;
-		const ticker = getTicker(this.props.ticker);
-		const totalEth = hexToBN(value);
-		const renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
-		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
-
-		const gasBN = hexToBN(gas);
-		const gasPriceBN = hexToBN(gasPrice);
-		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-		const totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
-
-		const renderFrom = renderFullAddress(from);
-		const renderTo = renderFullAddress(to);
-		const transactionDetails = {
-			renderFrom,
-			renderTo,
-			transactionHash,
-			renderValue: `${renderFromWei(value)} ${ticker}`,
-			renderValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency),
-			renderGas: parseInt(gas, 16).toString(),
-			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-			renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
-			renderTotalValue: `${renderFromWei(totalValue)} ${ticker}`,
-			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency)
-		};
-
-		let symbol;
-		if (renderTo in contractMap) {
-			symbol = contractMap[renderTo].symbol;
-		}
-
-		const transactionElement = {
-			renderTo,
-			renderFrom,
-			actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
-			value: renderTotalEth,
-			fiatValue: renderTotalEthFiat
-		};
-
-		return [transactionElement, transactionDetails];
-	};
-
-	decodePaymentChannelTx = () => {
-		const {
-			tx: {
-				networkID,
-				transactionHash,
-				transaction: { value, gas, gasPrice, from, to }
-			},
-			conversionRate,
-			currentCurrency,
-			exchangeRate
-		} = this.props;
-		const { actionKey } = this.state;
-		const contract = CONTRACTS[networkID];
-		const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
-		const totalEth = hexToBN(value);
-		const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
-		const readableTotalEth = renderFromWei(totalEth);
-		const renderTotalEth = `${readableTotalEth} ${isDeposit ? strings('unit.eth') : strings('unit.sai')}`;
-		const renderTotalEthFiat = isDeposit
-			? totalEthFiat
-			: balanceToFiat(parseFloat(readableTotalEth), conversionRate, exchangeRate, currentCurrency);
-
-		const renderFrom = renderFullAddress(from);
-		const renderTo = renderFullAddress(to);
-
-		const transactionDetails = {
-			renderFrom,
-			renderTo,
-			transactionHash,
-			renderGas: gas ? parseInt(gas, 16).toString() : strings('transactions.tx_details_not_available'),
-			renderGasPrice: gasPrice ? renderToGwei(gasPrice) : strings('transactions.tx_details_not_available'),
-			renderValue: renderTotalEth,
-			renderValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency),
-			renderTotalValue: renderTotalEth,
-			renderTotalValueFiat: isDeposit && totalEthFiat
-		};
-
-		const transactionElement = {
-			renderFrom,
-			renderTo,
-			actionKey,
-			value: renderTotalEth,
-			fiatValue: renderTotalEthFiat,
-			paymentChannelTransaction: true
-		};
-
-		return [transactionElement, transactionDetails];
 	};
 
 	renderCancelButton = () => (

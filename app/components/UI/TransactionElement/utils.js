@@ -16,6 +16,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { renderFullAddress, safeToChecksumAddress } from '../../../util/address';
 import { decodeTransferData, isCollectibleAddress, getTicker } from '../../../util/transactions';
+import contractMap from 'eth-contract-metadata';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -308,6 +309,58 @@ export function decodeDeploymentTx(args) {
 		renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
 		renderTotalValue: `${renderFromWei(totalEth)} ${ticker}`,
 		renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency)
+	};
+
+	return [transactionElement, transactionDetails];
+}
+
+export function decodeConfirmTx(args) {
+	const {
+		tx: {
+			transaction: { value, gas, gasPrice, from, to },
+			transactionHash
+		},
+		conversionRate,
+		currentCurrency,
+		actionKey
+	} = args;
+	const ticker = getTicker(args.ticker);
+	const totalEth = hexToBN(value);
+	const renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
+	const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
+
+	const gasBN = hexToBN(gas);
+	const gasPriceBN = hexToBN(gasPrice);
+	const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+	const totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
+
+	const renderFrom = renderFullAddress(from);
+	const renderTo = renderFullAddress(to);
+	const transactionDetails = {
+		renderFrom,
+		renderTo,
+		transactionHash,
+		renderValue: `${renderFromWei(value)} ${ticker}`,
+		renderValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency),
+		renderGas: parseInt(gas, 16).toString(),
+		renderGasPrice: renderToGwei(gasPrice),
+		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+		renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
+		renderTotalValue: `${renderFromWei(totalValue)} ${ticker}`,
+		renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency)
+	};
+
+	let symbol;
+	if (renderTo in contractMap) {
+		symbol = contractMap[renderTo].symbol;
+	}
+
+	const transactionElement = {
+		renderTo,
+		renderFrom,
+		actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
+		value: renderTotalEth,
+		fiatValue: renderTotalEthFiat
 	};
 
 	return [transactionElement, transactionDetails];
