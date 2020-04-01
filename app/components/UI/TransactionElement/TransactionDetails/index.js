@@ -12,6 +12,7 @@ import URL from 'url-parse';
 import Device from '../../../../util/Device';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
+import { toLocaleDateTime } from '../../../../util/date';
 
 const HASH_LENGTH = Device.isSmallDevice() ? 18 : 20;
 
@@ -76,6 +77,10 @@ const styles = StyleSheet.create({
 	},
 	summaryWrapper: {
 		marginVertical: 6
+	},
+	statusText: {
+		fontSize: 12,
+		...fontStyles.normal
 	}
 });
 
@@ -239,11 +244,39 @@ class TransactionDetails extends PureComponent {
 		this.setState({ cancelIsOpen: false });
 	};
 
+	renderStatusText = status => {
+		status = status.charAt(0).toUpperCase() + status.slice(1);
+		switch (status) {
+			case 'Confirmed':
+				return <Text style={[styles.statusText, { color: colors.green400 }]}>{status}</Text>;
+			case 'Pending':
+				return <Text style={[styles.statusText, { color: colors.orange }]}>{status}</Text>;
+			case 'Failed':
+				return <Text style={[styles.statusText, { color: colors.red }]}>{status}</Text>;
+		}
+	};
+
 	render = () => {
-		const { blockExplorer, transactionObject } = this.props;
+		const {
+			blockExplorer,
+			transactionObject,
+			transactionObject: { status, time }
+		} = this.props;
 		const { rpcBlockExplorer } = this.state;
 		return (
 			<View style={styles.detailRowWrapper}>
+				<View style={[styles.section, styles.flexRow, styles.sectionBorderBottom]}>
+					<View style={[baseStyles.flexGrow, styles.flexRow]}>
+						<View style={baseStyles.flexRow}>
+							<Text style={styles.detailRowTitle}>{'Status'}</Text>
+							{this.renderStatusText(status)}
+						</View>
+						<View style={styles.flexEnd}>
+							<Text style={styles.detailRowTitle}>{'Date'}</Text>
+							<Text style={styles.statusText}>{toLocaleDateTime(time)}</Text>
+						</View>
+					</View>
+				</View>
 				<View style={[styles.section, styles.flexRow, styles.sectionBorderBottom]}>
 					<View style={[baseStyles.flexGrow, styles.flexRow]}>
 						<View style={baseStyles.flexRow}>
