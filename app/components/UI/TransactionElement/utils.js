@@ -366,8 +366,19 @@ function decodeConfirmTx(args) {
 	return [transactionElement, transactionDetails];
 }
 
+/**
+ * Parse transaction with wallet information to render
+ *
+ * @param {*} args - Should contain tx, selectedAddress, ticker, conversionRate,
+ * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens
+ */
 export default async function decodeTransaction(args) {
-	const { tx, selectedAddress, ticker, paymentChannelTransaction } = args;
+	const {
+		tx,
+		tx: { paymentChannelTransaction },
+		selectedAddress,
+		ticker
+	} = args;
 	const actionKey = tx.actionKey || (await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction));
 	let transactionElement, transactionDetails;
 	if (paymentChannelTransaction) {
