@@ -663,7 +663,6 @@ class Approve extends PureComponent {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ approved: true });
 					this.props.navigation.pop();
-					this.props.navigation.navigate('ApproveSuccessView');
 					TransactionsNotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
 						assetType: 'ETH'

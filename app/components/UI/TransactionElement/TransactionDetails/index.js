@@ -232,7 +232,7 @@ class TransactionDetails extends PureComponent {
 			}
 		} catch (e) {
 			// eslint-disable-next-line no-console
-			Logger.error(`can't get a block explorer link for network `, networkID, e);
+			Logger.error(e, { message: `can't get a block explorer link for network `, networkID });
 		}
 	};
 

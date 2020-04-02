@@ -29,8 +29,6 @@ app/bin
 .gradle
 local.properties
 *.iml
-android/app/src/main/assets/crashlytics-build.properties
-android/app/src/main/res/values/com_crashlytics_export_strings.xml
 android/.project
 android/app/.project
 android/app/bin/
@@ -64,6 +62,10 @@ coverage
 .js.env
 .ios.env
 .android.env
+
+# Sentry
+/sentry.debug.properties
+/sentry.release.properties
 
 # editor
 .vscode
