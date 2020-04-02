@@ -19,6 +19,15 @@ import { weiToFiat } from '../../../util/number';
 import ErrorMessage from '../../Views/SendFlow/ErrorMessage';
 
 const styles = StyleSheet.create({
+	textBold: {
+		...fontStyles.bold,
+		alignSelf: 'flex-end'
+	},
+	separator: {
+		borderBottomWidth: 1,
+		borderBottomColor: colors.grey050,
+		marginVertical: 6
+	},
 	actionTouchable: {
 		padding: 12
 	},
