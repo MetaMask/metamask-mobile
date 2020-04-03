@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import Modal from 'react-native-modal';
 import { StyleSheet, View, Text } from 'react-native';
 import { hideTransactionNotification } from '../../../actions/transactionNotification';
 import { connect } from 'react-redux';
@@ -12,11 +11,6 @@ import { TransactionNotification } from '../TransactionNotification';
 import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
-	modal: {
-		margin: 0,
-		width: '100%',
-		height: '100%'
-	},
 	modalView: {
 		flex: 1,
 		flexDirection: 'column',
@@ -42,6 +36,10 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		...fontStyles.bold
 	},
+	modalTypeView: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+	modalTypeVisible: { zIndex: 100 },
+	modalTypeNotVisible: { zIndex: -100 },
+	transactionDetailsVisible: { top: 0, backgroundColor: colors.greytransparent },
 	closeIcon: { paddingTop: 4, position: 'absolute', right: 16 },
 	notificationContainer: { flex: 0.1, flexDirection: 'row', alignItems: 'flex-end' },
 	notificationWrapper: { height: 70, width: '100%', marginBottom: Device.isIphoneX() ? 20 : 10 }
@@ -79,7 +77,8 @@ class TxNotification extends PureComponent {
 	state = {
 		transactionDetails: undefined,
 		transactionElement: undefined,
-		tx: undefined
+		tx: undefined,
+		transactionDetailsIsVisible: undefined
 	};
 
 	async componentDidUpdate(prevProps) {
@@ -100,14 +99,29 @@ class TxNotification extends PureComponent {
 		this.props.hideTransactionNotification();
 	};
 
+	onCloseDetails = () => {
+		this.setState({ transactionDetailsIsVisible: false });
+	};
+
+	onPress = () => {
+		this.setState({ transactionDetailsIsVisible: true });
+	};
+
 	render = () => {
 		const { isVisible, navigation } = this.props;
-		const { transactionElement, transactionDetails, tx } = this.state;
+		const { transactionElement, transactionDetails, tx, transactionDetailsIsVisible } = this.state;
 
 		if (!transactionElement || !transactionDetails) return <View />;
-
+		console.log('isVisible', isVisible);
 		return (
-			<Modal
+			<View
+				style={[
+					styles.modalTypeView,
+					!isVisible ? styles.modalTypeNotVisible : styles.modalTypeVisible,
+					transactionDetailsIsVisible ? styles.transactionDetailsVisible : {}
+				]}
+			>
+				{/* 
 				style={styles.modal}
 				isVisible={isVisible}
 				onBackdropPress={this.onClose}
@@ -117,34 +131,41 @@ class TxNotification extends PureComponent {
 				animationOut={'fadeOut'}
 				useNativeDriver
 				underlayColor={colors.grey000}
-			>
-				<View style={styles.modalView}>
-					<View style={styles.modalContainer}>
-						<View style={styles.titleWrapper}>
-							<Text style={styles.title} onPress={this.onClose}>
-								{transactionElement.actionKey}
-							</Text>
-							<Ionicons onPress={this.onClose} name={'ios-close'} size={38} style={styles.closeIcon} />
+			> */}
+				{!!transactionDetailsIsVisible && (
+					<View style={styles.modalView}>
+						<View style={styles.modalContainer}>
+							<View style={styles.titleWrapper}>
+								<Text style={styles.title} onPress={this.onCloseDetails}>
+									{transactionElement.actionKey}
+								</Text>
+								<Ionicons
+									onPress={this.onCloseDetails}
+									name={'ios-close'}
+									size={38}
+									style={styles.closeIcon}
+								/>
+							</View>
+							<TransactionDetails
+								transactionObject={tx}
+								transactionDetails={transactionDetails}
+								navigation={navigation}
+								close={this.onClose}
+							/>
 						</View>
-						<TransactionDetails
-							transactionObject={tx}
-							transactionDetails={transactionDetails}
-							navigation={navigation}
-							close={this.onClose}
-						/>
 					</View>
-				</View>
+				)}
 				<View style={styles.notificationContainer}>
 					<View style={styles.notificationWrapper}>
 						<TransactionNotification
 							message={{ type: 'pending', message: { transaction: tx } }}
-							// eslint-disable-next-line react/jsx-no-bind
-							onPress={() => console.log('onPress')}
+							onPress={this.onPress}
 							onHide={this.onClose}
 						/>
 					</View>
 				</View>
-			</Modal>
+			</View>
+			// </Modal>
 		);
 	};
 }
