@@ -15,7 +15,6 @@ import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 import ENS from 'ethjs-ens';
 import GlobalAlert from '../../UI/GlobalAlert';
-import FlashMessage from 'react-native-flash-message';
 import BackgroundTimer from 'react-native-background-timer';
 import Browser from '../../Views/Browser';
 import AddBookmark from '../../Views/AddBookmark';
@@ -59,7 +58,6 @@ import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import { TransactionNotification } from '../../UI/TransactionNotification';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -1082,11 +1080,6 @@ class Main extends PureComponent {
 				<View style={styles.flex}>
 					{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
 					<GlobalAlert />
-					<FlashMessage
-						position="bottom"
-						MessageComponent={TransactionNotification}
-						animationDuration={150}
-					/>
 					<FadeOutOverlay />
 					<TxNotification />
 				</View>

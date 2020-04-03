@@ -8,13 +8,17 @@ import { colors, fontStyles } from '../../../styles/common';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TransactionDetails from '../TransactionElement/TransactionDetails';
 import decodeTransaction from '../TransactionElement/utils';
+import { TransactionNotification } from '../TransactionNotification';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
-		width: '100%'
+		width: '100%',
+		height: '100%'
 	},
 	modalView: {
+		flex: 1,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center'
@@ -38,7 +42,9 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		...fontStyles.bold
 	},
-	closeIcon: { paddingTop: 4, position: 'absolute', right: 16 }
+	closeIcon: { paddingTop: 4, position: 'absolute', right: 16 },
+	notificationContainer: { flex: 0.1, flexDirection: 'row', alignItems: 'flex-end' },
+	notificationWrapper: { height: 70, width: '100%', marginBottom: Device.isIphoneX() ? 20 : 10 }
 });
 
 /**
@@ -66,8 +72,8 @@ class TxNotification extends PureComponent {
 		/**
 		 * An array that represents the user transactions on chain
 		 */
-		transactions: PropTypes.array,
-		transactionId: PropTypes.string
+		transactions: PropTypes.array
+		// transactionId: PropTypes.string
 	};
 
 	state = {
@@ -76,34 +82,15 @@ class TxNotification extends PureComponent {
 		tx: undefined
 	};
 
-	componentDidMount = async () => {
-		const { transactions, transactionId } = this.props;
-		const [transactionElement, transactionDetails] = await decodeTransaction(this.props);
-		const tx = transactions.find(({ id }) => id === transactionId);
-		this.setState({ tx, transactionElement, transactionDetails });
-		console.log('txnotification componentDidMount'.toUpperCase());
-	};
-
 	async componentDidUpdate(prevProps) {
-		console.log(
-			'TxNotification componentDidUpdate',
-			prevProps.isVisible,
-			this.props.isVisible,
-			this.props.autodismiss
-		);
 		if (this.props.autodismiss && !isNaN(this.props.autodismiss) && !prevProps.isVisible && this.props.isVisible) {
 			setTimeout(() => {
-				console.log('TxNotification', 'hideTransactionNotification'.toUpperCase());
 				this.props.hideTransactionNotification();
 			}, this.props.autodismiss);
 
-			const { transactions, transactionId } = this.props;
-			console.log('TxNotification', 'in setstate', transactionId);
+			const { transactions } = this.props;
 			const tx = transactions[1293];
-			console.log('TxNotification', 'in setstate TXXXX', tx);
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
-			console.log('TxNotification', transactionElement, transactionDetails);
-			console.log('TxNotification', tx, transactionElement, transactionDetails);
 			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({ tx, transactionElement, transactionDetails });
 		}
@@ -125,7 +112,7 @@ class TxNotification extends PureComponent {
 				isVisible={isVisible}
 				onBackdropPress={this.onClose}
 				onBackButtonPress={this.onClose}
-				backdropOpacity={0.7}
+				backdropOpacity={0.1}
 				animationIn={'fadeIn'}
 				animationOut={'fadeOut'}
 				useNativeDriver
@@ -134,21 +121,26 @@ class TxNotification extends PureComponent {
 				<View style={styles.modalView}>
 					<View style={styles.modalContainer}>
 						<View style={styles.titleWrapper}>
-							<Text style={styles.title} onPress={this.onCloseDetailsModal}>
+							<Text style={styles.title} onPress={this.onClose}>
 								{transactionElement.actionKey}
 							</Text>
-							<Ionicons
-								onPress={this.onCloseDetailsModal}
-								name={'ios-close'}
-								size={38}
-								style={styles.closeIcon}
-							/>
+							<Ionicons onPress={this.onClose} name={'ios-close'} size={38} style={styles.closeIcon} />
 						</View>
 						<TransactionDetails
 							transactionObject={tx}
 							transactionDetails={transactionDetails}
 							navigation={navigation}
-							close={this.onCloseDetailsModal}
+							close={this.onClose}
+						/>
+					</View>
+				</View>
+				<View style={styles.notificationContainer}>
+					<View style={styles.notificationWrapper}>
+						<TransactionNotification
+							message={{ type: 'pending', message: { transaction: tx } }}
+							// eslint-disable-next-line react/jsx-no-bind
+							onPress={() => console.log('onPress')}
+							onHide={this.onClose}
 						/>
 					</View>
 				</View>

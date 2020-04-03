@@ -1,10 +1,9 @@
 import React, { Fragment } from 'react';
 import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, baseStyles, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import ElevatedView from 'react-native-elevated-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Device from '../../../util/Device';
 import AnimatedSpinner from '../AnimatedSpinner';
 import { hideMessage } from 'react-native-flash-message';
 import { strings } from '../../../../locales/i18n';
@@ -18,8 +17,7 @@ const styles = StyleSheet.create({
 		padding: 16,
 		marginHorizontal: 8,
 		flexDirection: 'row',
-		borderRadius: 8,
-		marginBottom: Device.isIphoneX() ? 20 : 10
+		borderRadius: 8
 	},
 	flashLabel: {
 		flex: 1,
@@ -68,8 +66,10 @@ export const TransactionNotification = props => {
 	const {
 		message: {
 			type,
-			message: { transaction, callback }
-		}
+			message: { transaction }
+		},
+		onPress,
+		onHide
 	} = props;
 
 	// eslint-disable-next-line
@@ -134,17 +134,17 @@ export const TransactionNotification = props => {
 	};
 
 	// eslint-disable-next-line
-	_onPress = () => {
-		if (callback) {
-			hideMessage();
-			setTimeout(() => {
-				callback();
-			}, 300);
-		}
-	};
+	// _onPress = () => {
+	// 	if (callback) {
+	// 		hideMessage();
+	// 		setTimeout(() => {
+	// 			callback();
+	// 		}, 300);
+	// 	}
+	// };
 
 	return (
-		<ElevatedView elevation={10} style={baseStyles.flex}>
+		<ElevatedView elevation={10} style={baseStyles.flexGrow}>
 			<GestureRecognizer
 				testID={'notification-swipe'}
 				onSwipeDown={hideMessage}
@@ -157,7 +157,7 @@ export const TransactionNotification = props => {
 				<TouchableOpacity
 					style={styles.touchableContainer}
 					testID={'press-notification-button'}
-					onPress={this._onPress}
+					onPress={onPress}
 					activeOpacity={0.8}
 				>
 					<Fragment>
@@ -168,7 +168,7 @@ export const TransactionNotification = props => {
 							</Text>
 							<Text style={styles.flashText}>{this._getDescription()}</Text>
 						</View>
-						<TouchableOpacity style={styles.closeTouchable} onPress={hideMessage}>
+						<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
 							<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
 						</TouchableOpacity>
 					</Fragment>
@@ -179,5 +179,7 @@ export const TransactionNotification = props => {
 };
 
 TransactionNotification.propTypes = {
-	message: PropTypes.object
+	message: PropTypes.object,
+	onPress: PropTypes.func,
+	onHide: PropTypes.func
 };
