@@ -7,7 +7,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TransactionDetails from '../TransactionElement/TransactionDetails';
 import decodeTransaction from '../TransactionElement/utils';
-import { TransactionNotification } from '../TransactionNotification';
+import TransactionNotification from '../TransactionNotification';
 import Device from '../../../util/Device';
 import Animated, { Easing } from 'react-native-reanimated';
 
@@ -188,7 +188,8 @@ class TxNotification extends PureComponent {
 				<Animated.View style={[styles.notificationContainer]}>
 					<View style={styles.notificationWrapper}>
 						<TransactionNotification
-							message={{ type: 'pending', message: { transaction: tx } }}
+							type="pending"
+							transaction={tx}
 							onPress={this.deatilsFadeIn}
 							onHide={this.onClose}
 						/>

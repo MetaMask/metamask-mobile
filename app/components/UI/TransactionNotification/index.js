@@ -61,16 +61,8 @@ const styles = StyleSheet.create({
  * TransactionNotification component used to render
  * in-app notifications for the transctions
  */
-// eslint-disable-next-line import/prefer-default-export
-export const TransactionNotification = props => {
-	const {
-		message: {
-			type,
-			message: { transaction }
-		},
-		onPress,
-		onHide
-	} = props;
+export default function TransactionNotification(props) {
+	const { type, transaction, onPress, onHide } = props;
 
 	// eslint-disable-next-line
 	_getIcon = () => {
@@ -176,10 +168,11 @@ export const TransactionNotification = props => {
 			</GestureRecognizer>
 		</ElevatedView>
 	);
-};
+}
 
 TransactionNotification.propTypes = {
-	message: PropTypes.object,
+	type: PropTypes.string,
+	transaction: PropTypes.object,
 	onPress: PropTypes.func,
 	onHide: PropTypes.func
 };
