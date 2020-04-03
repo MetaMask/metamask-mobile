@@ -373,12 +373,14 @@ function decodeConfirmTx(args) {
  * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens
  */
 export default async function decodeTransaction(args) {
+	console.log('txnotifcation decodeTransaction aaaah');
 	const {
 		tx,
 		tx: { paymentChannelTransaction },
 		selectedAddress,
 		ticker
 	} = args;
+	console.log('txnotifcation decodeTransaction');
 	const actionKey = tx.actionKey || (await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction));
 	let transactionElement, transactionDetails;
 	if (paymentChannelTransaction) {
