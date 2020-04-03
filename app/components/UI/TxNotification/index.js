@@ -9,13 +9,17 @@ import TransactionDetails from '../TransactionElement/TransactionDetails';
 import decodeTransaction from '../TransactionElement/utils';
 import { TransactionNotification } from '../TransactionNotification';
 import Device from '../../../util/Device';
+import Animated, { Easing } from 'react-native-reanimated';
 
 const styles = StyleSheet.create({
 	modalView: {
 		flex: 1,
 		flexDirection: 'column',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		backgroundColor: colors.greytransparent,
+		paddingBottom: 100,
+		marginBottom: -100
 	},
 	modalContainer: {
 		width: '90%',
@@ -36,13 +40,36 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		...fontStyles.bold
 	},
-	modalTypeView: { position: 'absolute', bottom: 0, left: 0, right: 0 },
-	modalTypeVisible: { zIndex: 100 },
-	modalTypeNotVisible: { zIndex: -100 },
-	transactionDetailsVisible: { top: 0, backgroundColor: colors.greytransparent },
-	closeIcon: { paddingTop: 4, position: 'absolute', right: 16 },
-	notificationContainer: { flex: 0.1, flexDirection: 'row', alignItems: 'flex-end' },
-	notificationWrapper: { height: 70, width: '100%', marginBottom: Device.isIphoneX() ? 20 : 10 }
+	modalTypeView: {
+		position: 'absolute',
+		bottom: 0,
+		left: 0,
+		right: 0
+	},
+	modalTypeVisible: {
+		zIndex: 100
+	},
+	modalTypeNotVisible: {
+		zIndex: -100
+	},
+	transactionDetailsVisible: {
+		top: 0
+	},
+	closeIcon: {
+		paddingTop: 4,
+		position: 'absolute',
+		right: 16
+	},
+	notificationContainer: {
+		flex: 0.1,
+		flexDirection: 'row',
+		alignItems: 'flex-end'
+	},
+	notificationWrapper: {
+		height: 70,
+		width: '100%',
+		marginBottom: Device.isIphoneX() ? 20 : 10
+	}
 });
 
 /**
@@ -78,7 +105,19 @@ class TxNotification extends PureComponent {
 		transactionDetails: undefined,
 		transactionElement: undefined,
 		tx: undefined,
-		transactionDetailsIsVisible: undefined
+		transactionDetailsIsVisible: true
+	};
+
+	notificationFadeIn = new Animated.Value(0);
+	detailsFadeAnim = new Animated.Value(0);
+	notificationFadeAnim = new Animated.Value(0);
+
+	deatilsFadeIn = () => {
+		Animated.timing(this.detailsFadeAnim, {
+			toValue: 1,
+			duration: 500,
+			easing: Easing.linear
+		}).start();
 	};
 
 	async componentDidUpdate(prevProps) {
@@ -86,7 +125,6 @@ class TxNotification extends PureComponent {
 			setTimeout(() => {
 				this.props.hideTransactionNotification();
 			}, this.props.autodismiss);
-
 			const { transactions } = this.props;
 			const tx = transactions[1293];
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
@@ -96,11 +134,16 @@ class TxNotification extends PureComponent {
 	}
 
 	onClose = () => {
+		this.onCloseDetails();
 		this.props.hideTransactionNotification();
 	};
 
 	onCloseDetails = () => {
-		this.setState({ transactionDetailsIsVisible: false });
+		Animated.timing(this.detailsFadeAnim, {
+			toValue: 0,
+			duration: 500,
+			easing: Easing.linear
+		}).start();
 	};
 
 	onPress = () => {
@@ -121,51 +164,37 @@ class TxNotification extends PureComponent {
 					transactionDetailsIsVisible ? styles.transactionDetailsVisible : {}
 				]}
 			>
-				{/* 
-				style={styles.modal}
-				isVisible={isVisible}
-				onBackdropPress={this.onClose}
-				onBackButtonPress={this.onClose}
-				backdropOpacity={0.1}
-				animationIn={'fadeIn'}
-				animationOut={'fadeOut'}
-				useNativeDriver
-				underlayColor={colors.grey000}
-			> */}
-				{!!transactionDetailsIsVisible && (
-					<View style={styles.modalView}>
-						<View style={styles.modalContainer}>
-							<View style={styles.titleWrapper}>
-								<Text style={styles.title} onPress={this.onCloseDetails}>
-									{transactionElement.actionKey}
-								</Text>
-								<Ionicons
-									onPress={this.onCloseDetails}
-									name={'ios-close'}
-									size={38}
-									style={styles.closeIcon}
-								/>
-							</View>
-							<TransactionDetails
-								transactionObject={tx}
-								transactionDetails={transactionDetails}
-								navigation={navigation}
-								close={this.onClose}
+				<Animated.View style={[styles.modalView, { opacity: this.detailsFadeAnim }]}>
+					<View style={styles.modalContainer}>
+						<View style={styles.titleWrapper}>
+							<Text style={styles.title} onPress={this.onCloseDetails}>
+								{transactionElement.actionKey}
+							</Text>
+							<Ionicons
+								onPress={this.onCloseDetails}
+								name={'ios-close'}
+								size={38}
+								style={styles.closeIcon}
 							/>
 						</View>
+						<TransactionDetails
+							transactionObject={tx}
+							transactionDetails={transactionDetails}
+							navigation={navigation}
+							close={this.onClose}
+						/>
 					</View>
-				)}
-				<View style={styles.notificationContainer}>
+				</Animated.View>
+				<Animated.View style={[styles.notificationContainer]}>
 					<View style={styles.notificationWrapper}>
 						<TransactionNotification
 							message={{ type: 'pending', message: { transaction: tx } }}
-							onPress={this.onPress}
+							onPress={this.deatilsFadeIn}
 							onHide={this.onClose}
 						/>
 					</View>
-				</View>
+				</Animated.View>
 			</View>
-			// </Modal>
 		);
 	};
 }
