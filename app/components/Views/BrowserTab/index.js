@@ -393,7 +393,8 @@ export class BrowserTab extends PureComponent {
 			activated: props.id === props.activeTab,
 			lastError: null,
 			showApprovalDialogHostname: undefined,
-			showOptions: false
+			showOptions: false,
+			lastUrlBeforeHome: null
 		};
 	}
 	backgroundBridges = [];
@@ -402,7 +403,6 @@ export class BrowserTab extends PureComponent {
 	sessionENSNames = {};
 	ensIgnoreList = [];
 	snapshotTimer = null;
-	lastUrlBeforeHome = null;
 	goingBack = false;
 	wizardScrollAdjusted = false;
 	isReloading = false;
@@ -1069,8 +1069,17 @@ export class BrowserTab extends PureComponent {
 		setTimeout(() => {
 			this.goingBack = false;
 		}, 500);
+
 		const { current } = this.webview;
-		current && current.goBack();
+		const { lastUrlBeforeHome } = this.state;
+
+
+		if(this.isHomepage() && lastUrlBeforeHome){
+			this.go(lastUrlBeforeHome);
+		}else{
+			current && current.goBack();
+		}
+
 		setTimeout(() => {
 			this.props.navigation.setParams({
 				...this.props.navigation.state.params,
@@ -1103,14 +1112,15 @@ export class BrowserTab extends PureComponent {
 		}, 100);
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 		setTimeout(() => {
-			this.lastUrlBeforeHome = lastUrlBeforeHome;
+			this.setState({ lastUrlBeforeHome });
 		}, 1000);
 	};
 
 	goForward = async () => {
 		const { current } = this.webview;
-		if (this.lastUrlBeforeHome) {
-			this.go(this.lastUrlBeforeHome);
+		const { lastUrlBeforeHome } = this.state;
+		if (lastUrlBeforeHome) {
+			this.go(lastUrlBeforeHome);
 		} else if (this.canGoForward()) {
 			this.toggleOptionsIfNeeded();
 			current && current.goForward && current.goForward();
@@ -1291,7 +1301,7 @@ export class BrowserTab extends PureComponent {
 						currentPageTitle: title,
 						forwardEnabled: false
 					});
-					this.lastUrlBeforeHome = null;
+					this.setState({ lastUrlBeforeHome: null });
 					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
 					this.updateTabInfo(data.payload.url);
 					break;
@@ -1327,7 +1337,7 @@ export class BrowserTab extends PureComponent {
 		if (this.isHomepage(url)) {
 			this.refreshHomeScripts();
 		}
-		if (url === this.state.url) return;
+		if (url === this.state.url && !this.isHomepage(url)) return;
 		const { ipfsGateway } = this.props;
 		const data = {};
 		const urlObj = new URL(url);
@@ -1339,7 +1349,7 @@ export class BrowserTab extends PureComponent {
 			return;
 		}
 
-		this.lastUrlBeforeHome = null;
+		this.setState({ lastUrlBeforeHome: null});
 
 		if (!this.state.showPhishingModal && !this.isAllowedUrl(urlObj.hostname)) {
 			this.handleNotAllowedUrl(url);
@@ -1518,7 +1528,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	renderBottomBar = () => {
-		const canGoBack = !this.isHomepage();
+		const canGoBack = this.canGoBack();
 		const canGoForward = this.canGoForward();
 		return (
 			<BrowserBottomBar
@@ -1838,6 +1848,14 @@ export class BrowserTab extends PureComponent {
 	};
 
 	canGoForward = () => this.state.forwardEnabled;
+
+	canGoBack = () => {
+		if(this.isHomepage()){
+			return !!this.state.lastUrlBeforeHome;
+		}
+
+		return true;
+	}
 
 	isTabActive = () => {
 		const { activeTab, id } = this.props;
