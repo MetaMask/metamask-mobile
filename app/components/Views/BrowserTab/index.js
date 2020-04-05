@@ -1349,7 +1349,9 @@ export class BrowserTab extends PureComponent {
 			return;
 		}
 
-		this.setState({ lastUrlBeforeHome: null});
+		if(!this.isHomepage(url)){
+			this.setState({ lastUrlBeforeHome: null});
+		}
 
 		if (!this.state.showPhishingModal && !this.isAllowedUrl(urlObj.hostname)) {
 			this.handleNotAllowedUrl(url);
