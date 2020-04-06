@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		backgroundColor: colors.greytransparent,
 		paddingBottom: 100,
-		marginBottom: -100
+		marginBottom: -200
 	},
 	modalContainer: {
 		width: '90%',
@@ -105,19 +105,21 @@ class TxNotification extends PureComponent {
 		transactionDetails: undefined,
 		transactionElement: undefined,
 		tx: undefined,
-		transactionDetailsIsVisible: true
+		transactionDetailsIsVisible: false
 	};
 
 	notificationFadeIn = new Animated.Value(0);
 	detailsFadeAnim = new Animated.Value(0);
 	notificationFadeAnim = new Animated.Value(0);
 
-	deatilsFadeIn = () => {
+	deatilsFadeIn = async () => {
+		await this.setState({ transactionDetailsIsVisible: true });
 		Animated.timing(this.detailsFadeAnim, {
 			toValue: 1,
 			duration: 500,
 			easing: Easing.linear
 		}).start();
+		// setTimeout(() => this.setState({transactionDetailsIsVisible: true}), 500)
 	};
 
 	async componentDidUpdate(prevProps) {
@@ -130,6 +132,8 @@ class TxNotification extends PureComponent {
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
 			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({ tx, transactionElement, transactionDetails });
+		} else if (prevProps.isVisible && !this.props.isVisible) {
+			this.onCloseDetails();
 		}
 	}
 
@@ -144,6 +148,7 @@ class TxNotification extends PureComponent {
 			duration: 500,
 			easing: Easing.linear
 		}).start();
+		setTimeout(() => this.setState({ transactionDetailsIsVisible: false }), 500);
 	};
 
 	onPress = () => {
@@ -155,7 +160,6 @@ class TxNotification extends PureComponent {
 		const { transactionElement, transactionDetails, tx, transactionDetailsIsVisible } = this.state;
 
 		if (!transactionElement || !transactionDetails) return <View />;
-		console.log('isVisible', isVisible);
 		return (
 			<View
 				style={[
@@ -164,27 +168,29 @@ class TxNotification extends PureComponent {
 					transactionDetailsIsVisible ? styles.transactionDetailsVisible : {}
 				]}
 			>
-				<Animated.View style={[styles.modalView, { opacity: this.detailsFadeAnim }]}>
-					<View style={styles.modalContainer}>
-						<View style={styles.titleWrapper}>
-							<Text style={styles.title} onPress={this.onCloseDetails}>
-								{transactionElement.actionKey}
-							</Text>
-							<Ionicons
-								onPress={this.onCloseDetails}
-								name={'ios-close'}
-								size={38}
-								style={styles.closeIcon}
+				{transactionDetailsIsVisible && (
+					<Animated.View style={[styles.modalView, { opacity: this.detailsFadeAnim }]}>
+						<View style={styles.modalContainer}>
+							<View style={styles.titleWrapper}>
+								<Text style={styles.title} onPress={this.onCloseDetails}>
+									{transactionElement.actionKey}
+								</Text>
+								<Ionicons
+									onPress={this.onCloseDetails}
+									name={'ios-close'}
+									size={38}
+									style={styles.closeIcon}
+								/>
+							</View>
+							<TransactionDetails
+								transactionObject={tx}
+								transactionDetails={transactionDetails}
+								navigation={navigation}
+								close={this.onClose}
 							/>
 						</View>
-						<TransactionDetails
-							transactionObject={tx}
-							transactionDetails={transactionDetails}
-							navigation={navigation}
-							close={this.onClose}
-						/>
-					</View>
-				</Animated.View>
+					</Animated.View>
+				)}
 				<Animated.View style={[styles.notificationContainer]}>
 					<View style={styles.notificationWrapper}>
 						<TransactionNotification
