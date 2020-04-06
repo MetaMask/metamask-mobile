@@ -1,6 +1,5 @@
 'use strict';
 
-import { showMessage, hideMessage } from 'react-native-flash-message';
 import PushNotification from 'react-native-push-notification';
 import Engine from './Engine';
 import Networks, { isKnownNetwork } from '../util/networks';
@@ -22,6 +21,8 @@ class TransactionsNotificationManager {
 	 * Navigation object from react-navigation
 	 */
 	_navigation;
+	_showTransactionNotification;
+	_hideTransactionNotification;
 	/**
 	 * Array containing the id of the transaction that should be
 	 * displayed while interacting with a notification
@@ -135,7 +136,10 @@ class TransactionsNotificationManager {
 				this._transactionToView.push(id);
 			}
 		} else {
-			showMessage(data);
+			this._showTransactionNotification({
+				autodismiss: data.duration,
+				transactionId: data.message.transaction.id
+			});
 		}
 	}
 
@@ -157,7 +161,7 @@ class TransactionsNotificationManager {
 	_finishedCallback = transactionMeta => {
 		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// If it fails we hide the pending tx notification
-		hideMessage();
+		this._hideTransactionNotification(transactionMeta.id);
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
 			setTimeout(() => {
 				// Then we show the error notification
@@ -180,7 +184,7 @@ class TransactionsNotificationManager {
 	_confirmedCallback = (transactionMeta, originalTransaction) => {
 		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// Once it's confirmed we hide the pending tx notification
-		hideMessage();
+		this._hideTransactionNotification(transactionMeta.id);
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
 			setTimeout(() => {
 				// Then we show the success notification
@@ -246,9 +250,11 @@ class TransactionsNotificationManager {
 	/**
 	 * Creates a TransactionsNotificationManager instance
 	 */
-	constructor(_navigation) {
+	constructor(_navigation, _showTransactionNotification, _hideTransactionNotification) {
 		if (!TransactionsNotificationManager.instance) {
 			this._navigation = _navigation;
+			this._showTransactionNotification = _showTransactionNotification;
+			this._hideTransactionNotification = _hideTransactionNotification;
 			this._transactionToView = [];
 			this._backgroundMode = false;
 			TransactionsNotificationManager.instance = this;
@@ -409,8 +415,12 @@ class TransactionsNotificationManager {
 let instance;
 
 export default {
-	init(_navigation) {
-		instance = new TransactionsNotificationManager(_navigation);
+	init(_navigation, _showTransactionNotification, _hideTransactionNotification) {
+		instance = new TransactionsNotificationManager(
+			_navigation,
+			_showTransactionNotification,
+			_hideTransactionNotification
+		);
 		return instance;
 	},
 	watchSubmittedTransaction(transaction) {
@@ -429,7 +439,8 @@ export default {
 		return instance.requestPushNotificationsPermission();
 	},
 	showInstantPaymentNotification(type) {
-		hideMessage();
+		// handle this
+		this._hideTransactionNotification();
 		setTimeout(() => {
 			const notification = {
 				type,

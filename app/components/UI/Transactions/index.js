@@ -350,9 +350,8 @@ class Transactions extends PureComponent {
 			onSpeedUpAction={this.onSpeedUpAction}
 			onCancelAction={this.onCancelAction}
 			testID={'txn-item'}
-			selectedAddress={this.props.selectedAddress}
-			selected={!!this.state.selectedTx.get(item.id)}
 			onPressItem={this.toggleDetailsView}
+			selectedAddress={this.props.selectedAddress}
 			tokens={this.props.tokens}
 			collectibleContracts={this.props.collectibleContracts}
 			contractExchangeRates={this.props.contractExchangeRates}

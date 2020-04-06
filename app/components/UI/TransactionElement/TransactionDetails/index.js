@@ -150,6 +150,7 @@ class TransactionDetails extends PureComponent {
 			case 'Confirmed':
 				return <Text style={[styles.statusText, { color: colors.green400 }]}>{status}</Text>;
 			case 'Pending':
+			case 'Submitted':
 				return <Text style={[styles.statusText, { color: colors.orange }]}>{status}</Text>;
 			case 'Failed':
 				return <Text style={[styles.statusText, { color: colors.red }]}>{status}</Text>;

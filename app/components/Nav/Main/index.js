@@ -100,6 +100,7 @@ import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
 import TxNotification from '../../UI/TxNotification';
+import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -429,7 +430,9 @@ class Main extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		showTransactionNotification: PropTypes.func,
+		hideTransactionNotification: PropTypes.func
 	};
 
 	state = {
@@ -527,7 +530,11 @@ class Main extends PureComponent {
 			});
 
 			setTimeout(() => {
-				TransactionsNotificationManager.init(this.props.navigation);
+				TransactionsNotificationManager.init(
+					this.props.navigation,
+					this.props.showTransactionNotification,
+					this.props.hideTransactionNotification
+				);
 				this.pollForIncomingTransactions();
 
 				this.initializeWalletConnect();
@@ -1105,7 +1112,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	setEtherTransaction: transaction => dispatch(setEtherTransaction(transaction)),
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
+	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
+	hideTransactionNotification: () => dispatch(hideTransactionNotification())
 });
 
 export default connect(

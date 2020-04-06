@@ -17,7 +17,6 @@ import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
-import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -90,8 +89,7 @@ class Wallet extends PureComponent {
 		/**
 		 * Current onboarding wizard step
 		 */
-		wizardStep: PropTypes.number,
-		showTransactionNotification: PropTypes.func
+		wizardStep: PropTypes.number
 		// hideTransactionNotification: PropTypes.func
 	};
 
@@ -117,31 +115,6 @@ class Wallet extends PureComponent {
 	}
 
 	onRefresh = async () => {
-		// DELETE THIS
-		const a = {
-			id: 'bee074f0-6ed2-11ea-b01a-01f8af0c72dc',
-			networkID: '3',
-			origin: 'MetaMask Mobile',
-			status: 'submitted',
-			time: 1585166201279,
-			transaction: {
-				from: '0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589a2',
-				gas: '0x5208',
-				gasPrice: '0x77359400',
-				nonce: '0x329',
-				to: '0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589a2'
-			},
-			rawTransaction:
-				'0xf86d82032984773594008252089456ced0d816c668d7c0bcc3fbf0ab2c6896f589a288016345785d8a0000802aa0ff01cbd08075d9dfddcfc8c866abb9f683761cc0a3366f881bd778c1ce8b95eba011490ce7eb21db11a965f71a242f855d9205c8be3c2a7212ab63a42c4a4b705a',
-			transactionHash: '0x36738251ef114cb267b324a652773f96bc958b061e078ad874a2bb20dec3ea98',
-			assetType: undefined
-		};
-		TransactionsNotificationManager.watchSubmittedTransaction(a);
-
-		this.props.showTransactionNotification({
-			autodismiss: 10000,
-			transactionId: 'e554c881-7525-11ea-84e7-8172c18fdd87'
-		});
 		// this.props.hideTransactionNotification();
 		requestAnimationFrame(async () => {
 			this.setState({ refreshing: true });

@@ -97,8 +97,48 @@ class TxNotification extends PureComponent {
 		/**
 		 * An array that represents the user transactions on chain
 		 */
-		transactions: PropTypes.array
-		// transactionId: PropTypes.string
+		transactions: PropTypes.array,
+		transactionId: PropTypes.string,
+		/**
+		 * String of selected address
+		 */
+		// eslint-disable-next-line react/no-unused-prop-types
+		selectedAddress: PropTypes.string,
+		/**
+		 * Current provider ticker
+		 */
+		// eslint-disable-next-line react/no-unused-prop-types
+		ticker: PropTypes.string,
+		/**
+		 * ETH to current currency conversion rate
+		 */
+		// eslint-disable-next-line react/no-unused-prop-types
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		// eslint-disable-next-line react/no-unused-prop-types
+		currentCurrency: PropTypes.string,
+		/**
+		 * Current exchange rate
+		 */
+		// eslint-disable-next-line react/no-unused-prop-types
+		exchangeRate: PropTypes.number,
+		/**
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
+		// eslint-disable-next-line react/no-unused-prop-types
+		contractExchangeRates: PropTypes.object,
+		/**
+		 * An array that represents the user collectible contracts
+		 */
+		// eslint-disable-next-line react/no-unused-prop-types
+		collectibleContracts: PropTypes.array,
+		/**
+		 * An array that represents the user tokens
+		 */
+		// eslint-disable-next-line react/no-unused-prop-types
+		tokens: PropTypes.object
 	};
 
 	state = {
@@ -126,22 +166,27 @@ class TxNotification extends PureComponent {
 	};
 
 	componentDidUpdate = async prevProps => {
-		if (this.props.autodismiss && !isNaN(this.props.autodismiss) && !prevProps.isVisible && this.props.isVisible) {
-			setTimeout(() => {
-				this.props.hideTransactionNotification();
-			}, this.props.autodismiss);
+		if (!prevProps.isVisible && this.props.isVisible) {
+			this.props.autodismiss &&
+				setTimeout(() => {
+					this.props.hideTransactionNotification();
+				}, this.props.autodismiss);
 			const { transactions } = this.props;
-			const tx = transactions[1293];
+			const tx = transactions.find(({ id }) => id === this.props.transactionId);
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
-			this.animatedTimingStart(this.notificationAnimated, 0);
 			// eslint-disable-next-line react/no-did-update-set-state
 			await this.setState({ tx, transactionElement, transactionDetails, internalIsVisible: true });
+			this.animatedTimingStart(this.notificationAnimated, 0);
 		} else if (prevProps.isVisible && !this.props.isVisible) {
 			this.animatedTimingStart(this.notificationAnimated, 100);
 			this.animatedTimingStart(this.detailsAnimated, 0);
 			// eslint-disable-next-line react/no-did-update-set-state
 			setTimeout(() => this.setState({ internalIsVisible: false }), 1000);
 		}
+	};
+
+	componentWillUnmount = () => {
+		this.props.hideTransactionNotification();
 	};
 
 	onClose = () => {
@@ -221,7 +266,17 @@ const mapStateToProps = state => ({
 	isVisible: state.transactionNotification.isVisible,
 	autodismiss: state.transactionNotification.autodismiss,
 	transactionId: state.transactionNotification.transactionId,
-	transactions: state.engine.backgroundState.TransactionController.transactions
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
+		tokens[token.address] = token;
+		return tokens;
+	}, {}),
+	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
 });
 
 const mapDispatchToProps = dispatch => ({
