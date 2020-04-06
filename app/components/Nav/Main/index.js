@@ -1080,11 +1080,6 @@ class Main extends PureComponent {
 				<View style={styles.flex}>
 					{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
 					<GlobalAlert />
-					{/* <FlashMessage
-						position="bottom"
-						MessageComponent={TransactionNotification}
-						animationDuration={150}
-					/> */}
 					<FadeOutOverlay />
 					<TxNotification />
 				</View>

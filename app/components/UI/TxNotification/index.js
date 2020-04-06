@@ -109,10 +109,8 @@ class TxNotification extends PureComponent {
 		internalIsVisible: this.props.isVisible
 	};
 
-	notificationFadeIn = new Animated.Value(0);
-	notificationY = new Animated.Value(100);
-	detailsFadeAnim = new Animated.Value(0);
-	notificationFadeAnim = new Animated.Value(0);
+	notificationAnimated = new Animated.Value(100);
+	detailsAnimated = new Animated.Value(0);
 
 	animatedTimingStart = (animatedRef, toValue) => {
 		Animated.timing(animatedRef, {
@@ -124,7 +122,7 @@ class TxNotification extends PureComponent {
 
 	deatilsFadeIn = async () => {
 		await this.setState({ transactionDetailsIsVisible: true });
-		this.animatedTimingStart(this.detailsFadeAnim, 1);
+		this.animatedTimingStart(this.detailsAnimated, 1);
 	};
 
 	componentDidUpdate = async prevProps => {
@@ -135,12 +133,12 @@ class TxNotification extends PureComponent {
 			const { transactions } = this.props;
 			const tx = transactions[1293];
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
-			this.animatedTimingStart(this.notificationY, 0);
+			this.animatedTimingStart(this.notificationAnimated, 0);
 			// eslint-disable-next-line react/no-did-update-set-state
 			await this.setState({ tx, transactionElement, transactionDetails, internalIsVisible: true });
 		} else if (prevProps.isVisible && !this.props.isVisible) {
-			this.animatedTimingStart(this.notificationY, 100);
-			this.animatedTimingStart(this.detailsFadeAnim, 0);
+			this.animatedTimingStart(this.notificationAnimated, 100);
+			this.animatedTimingStart(this.detailsAnimated, 0);
 			// eslint-disable-next-line react/no-did-update-set-state
 			setTimeout(() => this.setState({ internalIsVisible: false }), 1000);
 		}
@@ -152,7 +150,7 @@ class TxNotification extends PureComponent {
 	};
 
 	onCloseDetails = () => {
-		this.animatedTimingStart(this.detailsFadeAnim, 0);
+		this.animatedTimingStart(this.detailsAnimated, 0);
 		setTimeout(() => this.setState({ transactionDetailsIsVisible: false }), 1000);
 	};
 
@@ -180,7 +178,7 @@ class TxNotification extends PureComponent {
 				]}
 			>
 				{transactionDetailsIsVisible && (
-					<Animated.View style={[styles.modalView, { opacity: this.detailsFadeAnim }]}>
+					<Animated.View style={[styles.modalView, { opacity: this.detailsAnimated }]}>
 						<View style={styles.modalContainer}>
 							<View style={styles.titleWrapper}>
 								<Text style={styles.title} onPress={this.onCloseDetails}>
@@ -203,7 +201,7 @@ class TxNotification extends PureComponent {
 					</Animated.View>
 				)}
 				<Animated.View
-					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationY }] }]}
+					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
 				>
 					<View style={styles.notificationWrapper}>
 						<TransactionNotification
