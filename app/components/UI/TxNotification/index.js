@@ -138,7 +138,8 @@ class TxNotification extends PureComponent {
 		 * An array that represents the user tokens
 		 */
 		// eslint-disable-next-line react/no-unused-prop-types
-		tokens: PropTypes.object
+		tokens: PropTypes.object,
+		status: PropTypes.string
 	};
 
 	state = {
@@ -173,6 +174,7 @@ class TxNotification extends PureComponent {
 				}, this.props.autodismiss);
 			const { transactions } = this.props;
 			const tx = transactions.find(({ id }) => id === this.props.transactionId);
+			console.log('from txnotification TX', tx);
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
 			// eslint-disable-next-line react/no-did-update-set-state
 			await this.setState({ tx, transactionElement, transactionDetails, internalIsVisible: true });
@@ -204,7 +206,7 @@ class TxNotification extends PureComponent {
 	};
 
 	render = () => {
-		const { navigation } = this.props;
+		const { navigation, status } = this.props;
 		const {
 			transactionElement,
 			transactionDetails,
@@ -213,6 +215,7 @@ class TxNotification extends PureComponent {
 			internalIsVisible
 		} = this.state;
 
+		console.log('from txnotification status, tx', status, tx);
 		if (!transactionElement || !transactionDetails) return <View />;
 		return (
 			<View
@@ -250,8 +253,8 @@ class TxNotification extends PureComponent {
 				>
 					<View style={styles.notificationWrapper}>
 						<TransactionNotification
-							type="pending"
-							transaction={tx}
+							status={status}
+							transaction={tx.transaction}
 							onPress={this.deatilsFadeIn}
 							onHide={this.onClose}
 						/>
@@ -266,6 +269,7 @@ const mapStateToProps = state => ({
 	isVisible: state.transactionNotification.isVisible,
 	autodismiss: state.transactionNotification.autodismiss,
 	transactionId: state.transactionNotification.transactionId,
+	status: state.transactionNotification.status,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,

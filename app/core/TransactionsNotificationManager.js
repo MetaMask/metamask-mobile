@@ -136,9 +136,11 @@ class TransactionsNotificationManager {
 				this._transactionToView.push(id);
 			}
 		} else {
+			console.log('this._showTransactionNotification({', data.type);
 			this._showTransactionNotification({
 				autodismiss: data.duration,
-				transactionId: data.message.transaction.id
+				transactionId: data.message.transaction.id,
+				status: data.type
 			});
 		}
 	}

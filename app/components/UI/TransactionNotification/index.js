@@ -62,11 +62,11 @@ const styles = StyleSheet.create({
  * in-app notifications for the transctions
  */
 export default function TransactionNotification(props) {
-	const { type, transaction, onPress, onHide } = props;
+	const { status, transaction, onPress, onHide } = props;
 
 	// eslint-disable-next-line
 	_getIcon = () => {
-		switch (type) {
+		switch (status) {
 			case 'pending':
 			case 'pending_withdrawal':
 			case 'pending_deposit':
@@ -88,7 +88,7 @@ export default function TransactionNotification(props) {
 
 	// eslint-disable-next-line no-undef
 	_getTitle = () => {
-		switch (type) {
+		switch (status) {
 			case 'pending':
 				return strings('notifications.pending_title');
 			case 'pending_deposit':
@@ -96,7 +96,7 @@ export default function TransactionNotification(props) {
 			case 'pending_withdrawal':
 				return strings('notifications.pending_withdrawal_title');
 			case 'success':
-				return strings('notifications.success_title', { nonce: transaction.nonce });
+				return strings('notifications.success_title', { nonce: parseInt(transaction.nonce) });
 			case 'success_deposit':
 				return strings('notifications.success_deposit_title');
 			case 'success_withdrawal':
@@ -107,7 +107,7 @@ export default function TransactionNotification(props) {
 					assetType: transaction.assetType
 				});
 			case 'speedup':
-				return strings('notifications.speedup_title', { nonce: transaction.nonce });
+				return strings('notifications.speedup_title', { nonce: parseInt(transaction.nonce) });
 			case 'received_payment':
 				return strings('notifications.received_payment_title');
 			case 'cancelled':
@@ -119,21 +119,12 @@ export default function TransactionNotification(props) {
 
 	// eslint-disable-next-line no-undef
 	_getDescription = () => {
+		console.log('_getDescription', status);
 		if (transaction && transaction.amount) {
-			return strings(`notifications.${type}_message`, { amount: transaction.amount });
+			return strings(`notifications.${status}_message`, { amount: transaction.amount });
 		}
-		return strings(`notifications.${type}_message`);
+		return strings(`notifications.${status}_message`);
 	};
-
-	// eslint-disable-next-line
-	// _onPress = () => {
-	// 	if (callback) {
-	// 		hideMessage();
-	// 		setTimeout(() => {
-	// 			callback();
-	// 		}, 300);
-	// 	}
-	// };
 
 	return (
 		<ElevatedView elevation={10} style={baseStyles.flexGrow}>
@@ -171,7 +162,7 @@ export default function TransactionNotification(props) {
 }
 
 TransactionNotification.propTypes = {
-	type: PropTypes.string,
+	status: PropTypes.string,
 	transaction: PropTypes.object,
 	onPress: PropTypes.func,
 	onHide: PropTypes.func
