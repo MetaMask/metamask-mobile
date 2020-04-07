@@ -115,7 +115,7 @@ function getTokenTransfer(args) {
 		: strings('transaction.value_not_available');
 	const totalFiatNumber = renderTokenFiatNumber
 		? weiToFiatNumber(totalGas, conversionRate) + renderTokenFiatNumber
-		: undefined;
+		: weiToFiatNumber(totalGas, conversionRate);
 
 	const ticker = getTicker(args.ticker);
 
@@ -123,7 +123,9 @@ function getTokenTransfer(args) {
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
 		renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
 		renderValue: renderToken,
-		renderValueFiat: renderTokenFiatAmount ? `${renderTokenFiatAmount}` : undefined,
+		renderValueFiat: renderTokenFiatAmount
+			? `${renderTokenFiatAmount}`
+			: `${addCurrencySymbol(0, currentCurrency)}`,
 		renderTotalValue: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
 		renderTotalValueFiat: totalFiatNumber ? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}` : undefined
 	};
@@ -143,7 +145,9 @@ function getCollectibleTransfer(args) {
 			transaction: { to, data }
 		},
 		collectibleContracts,
-		totalGas
+		totalGas,
+		conversionRate,
+		currentCurrency
 	} = args;
 	let actionKey;
 	const [, tokenId] = decodeTransferData('transfer', data);
@@ -165,7 +169,7 @@ function getCollectibleTransfer(args) {
 		renderTotalValue: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${strings(
 			'unit.eth'
 		)}`,
-		renderTotalValueFiat: undefined
+		renderTotalValueFiat: weiToFiat(totalGas, conversionRate, currentCurrency)
 	};
 
 	const transactionElement = {
@@ -253,7 +257,7 @@ function decodeTransferFromTx(args) {
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
 		renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
 		renderTotalValue: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
-		renderTotalValueFiat: undefined
+		renderTotalValueFiat: weiToFiat(totalGas, conversionRate, currentCurrency)
 	};
 
 	const transactionElement = {
