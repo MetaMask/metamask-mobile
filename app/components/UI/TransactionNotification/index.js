@@ -119,7 +119,6 @@ export default function TransactionNotification(props) {
 
 	// eslint-disable-next-line no-undef
 	_getDescription = () => {
-		console.log('_getDescription', status);
 		if (transaction && transaction.amount) {
 			return strings(`notifications.${status}_message`, { amount: transaction.amount });
 		}

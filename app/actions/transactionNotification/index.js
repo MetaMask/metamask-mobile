@@ -4,13 +4,13 @@ export function hideTransactionNotification() {
 	};
 }
 
-export function showTransactionNotification({ autodismiss, transactionId, status }) {
+export function showTransactionNotification({ autodismiss, transaction, status }) {
 	console.log('showTransactionNotification', showTransactionNotification);
 	return {
 		type: 'SHOW_TRANSACTION_NOTIFICATION',
 		isVisible: true,
 		autodismiss,
-		transactionId,
+		transaction,
 		status
 	};
 }

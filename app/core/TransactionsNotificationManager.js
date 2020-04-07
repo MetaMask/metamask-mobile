@@ -59,8 +59,8 @@ class TransactionsNotificationManager {
 			let message = '';
 			let nonce = '';
 
-			if (data && data.message && data.message.transaction && data.message.transaction.nonce) {
-				nonce = data.message.transaction.nonce;
+			if (data && data && data.transaction && data.transaction.nonce) {
+				nonce = data.transaction.nonce;
 			}
 
 			switch (data.type) {
@@ -102,15 +102,15 @@ class TransactionsNotificationManager {
 					break;
 				case 'received':
 					title = strings('notifications.received_title', {
-						amount: data.message.transaction.amount,
-						assetType: data.message.transaction.assetType
+						amount: data.transaction.amount,
+						assetType: data.transaction.assetType
 					});
 					message = strings('notifications.received_message');
 					break;
 				case 'received_payment':
 					title = strings('notifications.received_payment_title');
 					message = strings('notifications.received_payment_message', {
-						amount: data.message.transaction.amount
+						amount: data.transaction.amount
 					});
 					break;
 			}
@@ -122,7 +122,7 @@ class TransactionsNotificationManager {
 				smallIcon: 'ic_notification_small'
 			};
 
-			const id = (data && data.message && data.message.transaction && data.message.transaction.id) || null;
+			const id = (data && data.transaction && data.transaction.id) || null;
 
 			const extraData = { action: 'tx', id };
 			if (Device.isAndroid()) {
@@ -136,10 +136,9 @@ class TransactionsNotificationManager {
 				this._transactionToView.push(id);
 			}
 		} else {
-			console.log('this._showTransactionNotification({', data.type);
 			this._showTransactionNotification({
 				autodismiss: data.duration,
-				transactionId: data.message.transaction.id,
+				transaction: data.transaction,
 				status: data.type
 			});
 		}
@@ -170,11 +169,7 @@ class TransactionsNotificationManager {
 				this._showNotification({
 					type: transactionMeta.status === 'cancelled' ? 'cancelled' : 'error',
 					autoHide: true,
-					message: {
-						transaction: transactionMeta,
-						id: transactionMeta.id,
-						callback: () => this._viewTransaction(transactionMeta.id)
-					},
+					transaction: { id: transactionMeta.id },
 					duration: 5000
 				});
 				// Clean up
@@ -192,14 +187,9 @@ class TransactionsNotificationManager {
 				// Then we show the success notification
 				this._showNotification({
 					type: 'success',
-					message: {
-						transaction: {
-							nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`,
-							id: transactionMeta.id
-						},
-						callback: () => this._viewTransaction(transactionMeta.id)
+					transaction: {
+						id: transactionMeta.id
 					},
-					autoHide: true,
 					duration: 5000
 				});
 				// Clean up
@@ -238,12 +228,8 @@ class TransactionsNotificationManager {
 			this._showNotification({
 				autoHide: false,
 				type: 'speedup',
-				message: {
-					transaction: {
-						nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`,
-						id: transactionMeta.id
-					},
-					callback: () => this._viewTransaction(transactionMeta.id)
+				transaction: {
+					id: transactionMeta.id
 				}
 			});
 		}, 2000);
@@ -336,12 +322,8 @@ class TransactionsNotificationManager {
 			this._showNotification({
 				type: 'pending',
 				autoHide: false,
-				message: {
-					transaction: {
-						nonce: `${parseInt(nonce, 16)}`,
-						id: transaction.id
-					},
-					callback: () => this._viewTransaction(transaction.id)
+				transaction: {
+					id: transaction.id
 				}
 			});
 
@@ -389,17 +371,15 @@ class TransactionsNotificationManager {
 						lastBlock <= parseInt(tx.blockNumber, 10) &&
 						tx.time > oldestTimeAllowed
 				);
+			console.log('this._showNotification'.toUpperCase(), txs);
 			if (txs.length > 0) {
 				this._showNotification({
 					type: 'received',
-					message: {
-						transaction: {
-							nonce: `${hexToBN(txs[0].transaction.nonce).toString()}`,
-							amount: `${renderFromWei(hexToBN(txs[0].transaction.value))}`,
-							assetType: strings('unit.eth'),
-							id: txs[0].id
-						},
-						callback: () => this._viewTransaction(txs[0].id)
+					transaction: {
+						nonce: `${hexToBN(txs[0].transaction.nonce).toString()}`,
+						amount: `${renderFromWei(hexToBN(txs[0].transaction.value))}`,
+						id: txs[0].id,
+						assetType: strings('unit.eth')
 					},
 					autoHide: true,
 					duration: 5000

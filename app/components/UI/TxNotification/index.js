@@ -98,7 +98,10 @@ class TxNotification extends PureComponent {
 		 * An array that represents the user transactions on chain
 		 */
 		transactions: PropTypes.array,
-		transactionId: PropTypes.string,
+		/**
+		 * Corresponding transaction can contain id, nonce and amount
+		 */
+		transaction: PropTypes.object,
 		/**
 		 * String of selected address
 		 */
@@ -161,7 +164,7 @@ class TxNotification extends PureComponent {
 		}).start();
 	};
 
-	deatilsFadeIn = async () => {
+	detailsFadeIn = async () => {
 		await this.setState({ transactionDetailsIsVisible: true });
 		this.animatedTimingStart(this.detailsAnimated, 1);
 	};
@@ -173,8 +176,7 @@ class TxNotification extends PureComponent {
 					this.props.hideTransactionNotification();
 				}, this.props.autodismiss);
 			const { transactions } = this.props;
-			const tx = transactions.find(({ id }) => id === this.props.transactionId);
-			console.log('from txnotification TX', tx);
+			const tx = transactions.find(({ id }) => id === this.props.transaction.id);
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
 			// eslint-disable-next-line react/no-did-update-set-state
 			await this.setState({ tx, transactionElement, transactionDetails, internalIsVisible: true });
@@ -214,8 +216,6 @@ class TxNotification extends PureComponent {
 			transactionDetailsIsVisible,
 			internalIsVisible
 		} = this.state;
-
-		console.log('from txnotification status, tx', status, tx);
 		if (!transactionElement || !transactionDetails) return <View />;
 		return (
 			<View
@@ -254,8 +254,8 @@ class TxNotification extends PureComponent {
 					<View style={styles.notificationWrapper}>
 						<TransactionNotification
 							status={status}
-							transaction={tx.transaction}
-							onPress={this.deatilsFadeIn}
+							transaction={{ ...tx.transaction, ...this.props.transaction }}
+							onPress={this.detailsFadeIn}
 							onHide={this.onClose}
 						/>
 					</View>
@@ -268,7 +268,7 @@ class TxNotification extends PureComponent {
 const mapStateToProps = state => ({
 	isVisible: state.transactionNotification.isVisible,
 	autodismiss: state.transactionNotification.autodismiss,
-	transactionId: state.transactionNotification.transactionId,
+	transaction: state.transactionNotification.transaction,
 	status: state.transactionNotification.status,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
