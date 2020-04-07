@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -127,18 +127,16 @@ export default function TransactionNotification(props) {
 				onPress={onPress}
 				activeOpacity={0.8}
 			>
-				<Fragment>
-					<View style={styles.flashIcon}>{this._getIcon()}</View>
-					<View style={styles.flashLabel}>
-						<Text style={styles.flashTitle} testID={'notification-title'}>
-							{this._getTitle()}
-						</Text>
-						<Text style={styles.flashText}>{this._getDescription()}</Text>
-					</View>
-					<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
-						<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
-					</TouchableOpacity>
-				</Fragment>
+				<View style={styles.flashIcon}>{this._getIcon()}</View>
+				<View style={styles.flashLabel}>
+					<Text style={styles.flashTitle} testID={'notification-title'}>
+						{this._getTitle()}
+					</Text>
+					<Text style={styles.flashText}>{this._getDescription()}</Text>
+				</View>
+				<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
+					<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
+				</TouchableOpacity>
 			</TouchableOpacity>
 		</ElevatedView>
 	);

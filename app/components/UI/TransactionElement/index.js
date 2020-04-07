@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { TouchableHighlight, StyleSheet, Text, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { toLocaleDateTime } from '../../../util/date';
+import { toDateFormat } from '../../../util/date';
 import Identicon from '../Identicon';
 import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
@@ -298,7 +298,7 @@ class TransactionElement extends PureComponent {
 		return (
 			<Text style={styles.date}>
 				{(!incoming || selfSent) && tx.transaction.nonce && `#${parseInt(tx.transaction.nonce, 16)}  - `}
-				{`${toLocaleDateTime(tx.time)}`}
+				{`${toDateFormat(tx.time)}`}
 			</Text>
 		);
 	};

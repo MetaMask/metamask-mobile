@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import URL from 'url-parse';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
-import { toLocaleDateTime } from '../../../../util/date';
+import { toDateFormat } from '../../../../util/date';
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
@@ -173,7 +173,7 @@ class TransactionDetails extends PureComponent {
 						</View>
 						<View style={styles.flexEnd}>
 							<Text style={styles.detailRowTitle}>{'Date'}</Text>
-							<Text style={styles.statusText}>{toLocaleDateTime(time)}</Text>
+							<Text style={styles.statusText}>{toDateFormat(time)}</Text>
 						</View>
 					</View>
 				</View>
