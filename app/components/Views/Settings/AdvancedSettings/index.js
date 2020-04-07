@@ -66,14 +66,16 @@ const styles = StyleSheet.create({
 	},
 	modalText: {
 		...fontStyles.normal,
-		fontSize: 18,
-		textAlign: 'center'
+		fontSize: 16,
+		textAlign: 'center',
+		color: colors.black
 	},
 	modalTitle: {
 		...fontStyles.bold,
-		fontSize: 22,
+		fontSize: 24,
 		textAlign: 'center',
-		marginBottom: 20
+		marginBottom: 20,
+		color: colors.black
 	},
 	picker: {
 		borderColor: colors.grey200,

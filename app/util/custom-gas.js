@@ -1,6 +1,8 @@
 import { BN } from 'ethereumjs-util';
 import { renderFromWei, weiToFiat, toWei } from './number';
 import { strings } from '../../locales/i18n';
+import Logger from '../util/Logger';
+import TransactionTypes from '../core/TransactionTypes';
 
 /**
  * Calculates wei value of estimate gas price in gwei
@@ -140,4 +142,49 @@ export async function fetchBasicGasEstimates() {
 				return basicEstimates;
 			}
 		);
+}
+
+/**
+ * Sanitize gas estimates into formatted wait times
+ *
+ * @returns {Object} - Object containing formatted wait times
+ */
+export async function getBasicGasEstimates() {
+	const {
+		CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
+	} = TransactionTypes;
+
+	let basicGasEstimates;
+	try {
+		basicGasEstimates = await fetchBasicGasEstimates();
+	} catch (error) {
+		Logger.log('Error while trying to get gas limit estimates', error);
+		basicGasEstimates = {
+			average: AVERAGE_GAS,
+			averageWait: 2,
+			safeLow: LOW_GAS,
+			safeLowWait: 4,
+			fast: FAST_GAS,
+			fastWait: 1
+		};
+	}
+
+	// Handle api failure returning same gas prices
+	let { average, fast, safeLow } = basicGasEstimates;
+	const { averageWait, fastWait, safeLowWait } = basicGasEstimates;
+
+	if (average === fast && average === safeLow) {
+		average = AVERAGE_GAS;
+		safeLow = LOW_GAS;
+		fast = FAST_GAS;
+	}
+
+	return {
+		averageGwei: convertApiValueToGWEI(average),
+		fastGwei: convertApiValueToGWEI(fast),
+		safeLowGwei: convertApiValueToGWEI(safeLow),
+		averageWait: parseWaitTime(averageWait),
+		fastWait: parseWaitTime(fastWait),
+		safeLowWait: parseWaitTime(safeLowWait)
+	};
 }

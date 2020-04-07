@@ -94,7 +94,6 @@ import MessageSign from '../../UI/MessageSign';
 import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
 import AsyncStorage from '@react-native-community/async-storage';
 import Approve from '../../Views/ApproveView/Approve';
-import ApproveSuccess from '../../Views/ApproveView/Success';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
@@ -288,18 +287,6 @@ const MainNavigator = createStackNavigator(
 					screen: Approve
 				}
 			})
-		},
-		ApproveSuccessView: {
-			screen: createStackNavigator(
-				{
-					ApproveSuccess: {
-						screen: ApproveSuccess
-					}
-				},
-				{
-					headerMode: 'none'
-				}
-			)
 		},
 		AddBookmarkView: {
 			screen: createStackNavigator({

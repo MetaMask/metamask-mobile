@@ -6,7 +6,7 @@ exports[`StyledButton should render correctly on Android the button with type ca
     style={
       Array [
         Object {
-          "borderRadius": 4,
+          "borderRadius": 100,
           "justifyContent": "center",
           "padding": 15,
         },
@@ -29,7 +29,7 @@ exports[`StyledButton should render correctly on Android the button with type co
     style={
       Array [
         Object {
-          "borderRadius": 4,
+          "borderRadius": 100,
           "justifyContent": "center",
           "padding": 15,
         },
@@ -51,7 +51,7 @@ exports[`StyledButton should render correctly on Android the button with type no
     style={
       Array [
         Object {
-          "borderRadius": 4,
+          "borderRadius": 100,
           "justifyContent": "center",
           "padding": 15,
         },
@@ -74,7 +74,7 @@ exports[`StyledButton should render correctly on Android the button with type or
     style={
       Array [
         Object {
-          "borderRadius": 4,
+          "borderRadius": 100,
           "justifyContent": "center",
           "padding": 15,
         },
@@ -94,7 +94,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
   containerStyle={
     Array [
       Object {
-        "borderRadius": 4,
+        "borderRadius": 100,
         "justifyContent": "center",
         "padding": 15,
       },
@@ -129,7 +129,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
   containerStyle={
     Array [
       Object {
-        "borderRadius": 4,
+        "borderRadius": 100,
         "justifyContent": "center",
         "padding": 15,
       },
@@ -163,7 +163,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
   containerStyle={
     Array [
       Object {
-        "borderRadius": 4,
+        "borderRadius": 100,
         "justifyContent": "center",
         "padding": 15,
       },
@@ -198,7 +198,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
   containerStyle={
     Array [
       Object {
-        "borderRadius": 4,
+        "borderRadius": 100,
         "justifyContent": "center",
         "padding": 15,
       },
