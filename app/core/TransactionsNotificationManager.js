@@ -371,7 +371,6 @@ class TransactionsNotificationManager {
 						lastBlock <= parseInt(tx.blockNumber, 10) &&
 						tx.time > oldestTimeAllowed
 				);
-			console.log('this._showNotification'.toUpperCase(), txs);
 			if (txs.length > 0) {
 				this._showNotification({
 					type: 'received',
