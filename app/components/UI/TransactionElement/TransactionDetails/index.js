@@ -205,10 +205,10 @@ class TransactionDetails extends PureComponent {
 				</View>
 				<View style={styles.summaryWrapper}>
 					<TransactionSummary
-						amount={this.props.transactionDetails.renderValueFiat}
-						fee={this.props.transactionDetails.renderTotalGasFiat}
-						totalAmount={this.props.transactionDetails.renderTotalValueFiat}
-						secondaryTotalAmount={this.props.transactionDetails.renderTotalValue}
+						amount={this.props.transactionDetails.summaryAmount}
+						fee={this.props.transactionDetails.summaryFee}
+						totalAmount={this.props.transactionDetails.summaryTotalAmount}
+						secondaryTotalAmount={this.props.transactionDetails.summarySecondaryTotalAmount}
 						gasEstimationReady
 					/>
 				</View>

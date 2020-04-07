@@ -54,9 +54,9 @@ function decodePaymentChannelTx(args) {
 		renderGas: gas ? parseInt(gas, 16).toString() : strings('transactions.tx_details_not_available'),
 		renderGasPrice: gasPrice ? renderToGwei(gasPrice) : strings('transactions.tx_details_not_available'),
 		renderValue: renderTotalEth,
-		renderValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency),
-		renderTotalValue: renderTotalEth,
-		renderTotalValueFiat: isDeposit && totalEthFiat
+		summaryAmount: weiToFiat(totalEth, conversionRate, currentCurrency),
+		summarySecondaryTotalAmount: renderTotalEth,
+		summaryTotalAmount: isDeposit && totalEthFiat
 	};
 
 	const transactionElement = {
@@ -121,13 +121,11 @@ function getTokenTransfer(args) {
 
 	const transactionDetails = {
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-		renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
+		summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
 		renderValue: renderToken,
-		renderValueFiat: renderTokenFiatAmount
-			? `${renderTokenFiatAmount}`
-			: `${addCurrencySymbol(0, currentCurrency)}`,
-		renderTotalValue: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
-		renderTotalValueFiat: totalFiatNumber ? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}` : undefined
+		summaryAmount: renderTokenFiatAmount ? `${renderTokenFiatAmount}` : `${addCurrencySymbol(0, currentCurrency)}`,
+		summarySecondaryTotalAmount: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
+		summaryTotalAmount: totalFiatNumber ? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}` : undefined
 	};
 
 	const transactionElement = {
@@ -166,10 +164,10 @@ function getCollectibleTransfer(args) {
 
 	const transactionDetails = {
 		renderValue: renderCollectible,
-		renderTotalValue: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${strings(
-			'unit.eth'
-		)}`,
-		renderTotalValueFiat: weiToFiat(totalGas, conversionRate, currentCurrency)
+		summarySecondaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(
+			totalGas
+		)} ${strings('unit.eth')}`,
+		summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency)
 	};
 
 	const transactionElement = {
@@ -251,13 +249,15 @@ function decodeTransferFromTx(args) {
 		renderTo,
 		transactionHash,
 		renderValue: renderCollectible,
-		renderValueFiat: renderCollectible,
+		summaryAmount: renderCollectible,
 		renderGas: parseInt(gas, 16).toString(),
 		renderGasPrice: renderToGwei(gasPrice),
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-		renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
-		renderTotalValue: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
-		renderTotalValueFiat: weiToFiat(totalGas, conversionRate, currentCurrency)
+		summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+		summarySecondaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(
+			totalGas
+		)} ${ticker}`,
+		summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency)
 	};
 
 	const transactionElement = {
@@ -306,13 +306,13 @@ function decodeDeploymentTx(args) {
 		renderTo,
 		transactionHash,
 		renderValue: `${renderFromWei(value)} ${ticker}`,
-		renderValueFiat: weiToFiat(value, conversionRate, currentCurrency),
+		summaryAmount: weiToFiat(value, conversionRate, currentCurrency),
 		renderGas: parseInt(gas, 16).toString(),
 		renderGasPrice: renderToGwei(gasPrice),
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-		renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
-		renderTotalValue: `${renderFromWei(totalEth)} ${ticker}`,
-		renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency)
+		summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+		summarySecondaryTotalAmount: `${renderFromWei(totalEth)} ${ticker}`,
+		summaryTotalAmount: weiToFiat(totalEth, conversionRate, currentCurrency)
 	};
 
 	return [transactionElement, transactionDetails];
@@ -345,13 +345,13 @@ function decodeConfirmTx(args) {
 		renderTo,
 		transactionHash,
 		renderValue: `${renderFromWei(value)} ${ticker}`,
-		renderValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency),
+		summaryAmount: weiToFiat(totalEth, conversionRate, currentCurrency),
 		renderGas: parseInt(gas, 16).toString(),
 		renderGasPrice: renderToGwei(gasPrice),
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-		renderTotalGasFiat: weiToFiat(totalGas, conversionRate, currentCurrency),
-		renderTotalValue: `${renderFromWei(totalValue)} ${ticker}`,
-		renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency)
+		summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+		summarySecondaryTotalAmount: `${renderFromWei(totalValue)} ${ticker}`,
+		summaryTotalAmount: weiToFiat(totalValue, conversionRate, currentCurrency)
 	};
 
 	let symbol;
