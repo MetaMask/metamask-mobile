@@ -11,6 +11,8 @@ import TransactionNotification from '../TransactionNotification';
 import Device from '../../../util/Device';
 import Animated, { Easing } from 'react-native-reanimated';
 
+const BROWSER_ROUTE = 'BrowserView';
+
 const styles = StyleSheet.create({
 	modalView: {
 		flex: 1,
@@ -18,8 +20,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		backgroundColor: colors.greytransparent,
-		paddingBottom: 100,
-		marginBottom: -200
+		paddingBottom: 200,
+		marginBottom: -300
 	},
 	modalContainer: {
 		width: '90%',
@@ -42,9 +44,12 @@ const styles = StyleSheet.create({
 	},
 	modalTypeView: {
 		position: 'absolute',
-		bottom: 0,
+		bottom: Device.isIphoneX() ? 20 : 10,
 		left: 0,
 		right: 0
+	},
+	modalTypeViewBrowser: {
+		bottom: Device.isIphoneX() ? 90 : 80
 	},
 	modalTypeVisible: {
 		zIndex: 100
@@ -67,8 +72,7 @@ const styles = StyleSheet.create({
 	},
 	notificationWrapper: {
 		height: 70,
-		width: '100%',
-		marginBottom: Device.isIphoneX() ? 20 : 10
+		width: '100%'
 	}
 });
 
@@ -150,7 +154,8 @@ class TxNotification extends PureComponent {
 		transactionElement: undefined,
 		tx: undefined,
 		transactionDetailsIsVisible: false,
-		internalIsVisible: this.props.isVisible
+		internalIsVisible: this.props.isVisible,
+		inBrowserView: false
 	};
 
 	notificationAnimated = new Animated.Value(100);
@@ -171,23 +176,36 @@ class TxNotification extends PureComponent {
 
 	componentDidUpdate = async prevProps => {
 		if (!prevProps.isVisible && this.props.isVisible) {
+			// Auto dismiss notifiaction in case of confirmations
 			this.props.autodismiss &&
 				setTimeout(() => {
 					this.props.hideTransactionNotification();
 				}, this.props.autodismiss);
-			const { transactions } = this.props;
-			const tx = transactions.find(({ id }) => id === this.props.transaction.id);
+			// Check whether current view is browser
+			let inBrowserView;
+			const currentRouteName = this.findRouteNameFromNavigatorState(this.props.navigation.state);
+			if (this.findRouteNameFromNavigatorState(prevProps.navigation.state) !== currentRouteName) {
+				inBrowserView = currentRouteName === BROWSER_ROUTE;
+			}
+			// Find new transaction and parse its data
+			const tx = this.props.transactions.find(({ id }) => id === this.props.transaction.id);
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
 			// eslint-disable-next-line react/no-did-update-set-state
-			await this.setState({ tx, transactionElement, transactionDetails, internalIsVisible: true });
+			await this.setState({ tx, transactionElement, transactionDetails, internalIsVisible: true, inBrowserView });
 			this.animatedTimingStart(this.notificationAnimated, 0);
 		} else if (prevProps.isVisible && !this.props.isVisible) {
-			this.animatedTimingStart(this.notificationAnimated, 100);
+			this.animatedTimingStart(this.notificationAnimated, 200);
 			this.animatedTimingStart(this.detailsAnimated, 0);
 			// eslint-disable-next-line react/no-did-update-set-state
 			setTimeout(() => this.setState({ internalIsVisible: false }), 1000);
 		}
 	};
+
+	findRouteNameFromNavigatorState({ routes }) {
+		let route = routes[routes.length - 1];
+		while (route.index !== undefined) route = route.routes[route.index];
+		return route.routeName;
+	}
 
 	componentWillUnmount = () => {
 		this.props.hideTransactionNotification();
@@ -214,15 +232,18 @@ class TxNotification extends PureComponent {
 			transactionDetails,
 			tx,
 			transactionDetailsIsVisible,
-			internalIsVisible
+			internalIsVisible,
+			inBrowserView
 		} = this.state;
+
 		if (!transactionElement || !transactionDetails) return <View />;
 		return (
 			<View
 				style={[
 					styles.modalTypeView,
 					!internalIsVisible ? styles.modalTypeNotVisible : styles.modalTypeVisible,
-					transactionDetailsIsVisible ? styles.transactionDetailsVisible : {}
+					transactionDetailsIsVisible ? styles.transactionDetailsVisible : {},
+					inBrowserView ? styles.modalTypeViewBrowser : {}
 				]}
 			>
 				{transactionDetailsIsVisible && (

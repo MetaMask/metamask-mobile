@@ -1081,14 +1081,13 @@ class Main extends PureComponent {
 
 	render() {
 		const { forceReload } = this.state;
-
 		return (
 			<React.Fragment>
 				<View style={styles.flex}>
 					{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
 					<GlobalAlert />
 					<FadeOutOverlay />
-					<TxNotification />
+					<TxNotification navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
