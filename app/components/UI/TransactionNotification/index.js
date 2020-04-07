@@ -5,9 +5,7 @@ import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import ElevatedView from 'react-native-elevated-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AnimatedSpinner from '../AnimatedSpinner';
-import { hideMessage } from 'react-native-flash-message';
 import { strings } from '../../../../locales/i18n';
-import GestureRecognizer from 'react-native-swipe-gestures';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 const styles = StyleSheet.create({
@@ -39,10 +37,6 @@ const styles = StyleSheet.create({
 	},
 	flashIcon: {
 		marginRight: 15
-	},
-	touchableContainer: {
-		flex: 1,
-		flexDirection: 'row'
 	},
 	closeTouchable: {
 		flex: 0.1,
@@ -127,35 +121,25 @@ export default function TransactionNotification(props) {
 
 	return (
 		<ElevatedView elevation={10} style={baseStyles.flexGrow}>
-			<GestureRecognizer
-				testID={'notification-swipe'}
-				onSwipeDown={hideMessage}
-				config={{
-					velocityThreshold: 0.2,
-					directionalOffsetThreshold: 50
-				}}
-				style={[styles.defaultFlashFloating]}
+			<TouchableOpacity
+				style={styles.defaultFlashFloating}
+				testID={'press-notification-button'}
+				onPress={onPress}
+				activeOpacity={0.8}
 			>
-				<TouchableOpacity
-					style={styles.touchableContainer}
-					testID={'press-notification-button'}
-					onPress={onPress}
-					activeOpacity={0.8}
-				>
-					<Fragment>
-						<View style={styles.flashIcon}>{this._getIcon()}</View>
-						<View style={styles.flashLabel}>
-							<Text style={styles.flashTitle} testID={'notification-title'}>
-								{this._getTitle()}
-							</Text>
-							<Text style={styles.flashText}>{this._getDescription()}</Text>
-						</View>
-						<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
-							<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
-						</TouchableOpacity>
-					</Fragment>
-				</TouchableOpacity>
-			</GestureRecognizer>
+				<Fragment>
+					<View style={styles.flashIcon}>{this._getIcon()}</View>
+					<View style={styles.flashLabel}>
+						<Text style={styles.flashTitle} testID={'notification-title'}>
+							{this._getTitle()}
+						</Text>
+						<Text style={styles.flashText}>{this._getDescription()}</Text>
+					</View>
+					<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
+						<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
+					</TouchableOpacity>
+				</Fragment>
+			</TouchableOpacity>
 		</ElevatedView>
 	);
 }
