@@ -89,6 +89,9 @@ class TransactionDetails extends PureComponent {
 		 * Frequent RPC list from PreferencesController
 		 */
 		frequentRpcList: PropTypes.array,
+		/**
+		 * Callback to close the view
+		 */
 		close: PropTypes.func
 	};
 

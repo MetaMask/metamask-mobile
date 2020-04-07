@@ -431,7 +431,13 @@ class Main extends PureComponent {
 		 * A string representing the network name
 		 */
 		providerType: PropTypes.string,
+		/**
+		 * Dispatch showing a transaction notification
+		 */
 		showTransactionNotification: PropTypes.func,
+		/**
+		 * Dispatch hiding a transaction notification
+		 */
 		hideTransactionNotification: PropTypes.func
 	};
 
