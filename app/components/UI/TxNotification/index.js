@@ -146,7 +146,12 @@ class TxNotification extends PureComponent {
 		 */
 		// eslint-disable-next-line react/no-unused-prop-types
 		tokens: PropTypes.object,
-		status: PropTypes.string
+		status: PropTypes.string,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		// eslint-disable-next-line react/no-unused-prop-types
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -301,7 +306,8 @@ const mapStateToProps = state => ({
 	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 const mapDispatchToProps = dispatch => ({

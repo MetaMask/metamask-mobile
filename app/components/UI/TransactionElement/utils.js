@@ -32,7 +32,8 @@ function decodePaymentChannelTx(args) {
 		conversionRate,
 		currentCurrency,
 		exchangeRate,
-		actionKey
+		actionKey,
+		primaryCurrency
 	} = args;
 	const contract = CONTRACTS[networkID];
 	const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
@@ -47,17 +48,30 @@ function decodePaymentChannelTx(args) {
 	const renderFrom = renderFullAddress(from);
 	const renderTo = renderFullAddress(to);
 
-	const transactionDetails = {
+	let transactionDetails = {
 		renderFrom,
 		renderTo,
 		transactionHash,
 		renderGas: gas ? parseInt(gas, 16).toString() : strings('transactions.tx_details_not_available'),
 		renderGasPrice: gasPrice ? renderToGwei(gasPrice) : strings('transactions.tx_details_not_available'),
-		renderValue: renderTotalEth,
-		summaryAmount: weiToFiat(totalEth, conversionRate, currentCurrency),
-		summarySecondaryTotalAmount: renderTotalEth,
-		summaryTotalAmount: isDeposit && totalEthFiat
+		renderValue: renderTotalEth
 	};
+
+	if (primaryCurrency === 'ETH') {
+		transactionDetails = {
+			...transactionDetails,
+			summaryAmount: renderTotalEth,
+			summaryTotalAmount: isDeposit && totalEthFiat,
+			summarySecondaryTotalAmount: weiToFiat(totalEth, conversionRate, currentCurrency)
+		};
+	} else {
+		transactionDetails = {
+			...transactionDetails,
+			summaryAmount: weiToFiat(totalEth, conversionRate, currentCurrency),
+			summaryTotalAmount: isDeposit && totalEthFiat,
+			summarySecondaryTotalAmount: renderTotalEth
+		};
+	}
 
 	const transactionElement = {
 		renderFrom,
@@ -81,13 +95,12 @@ function getTokenTransfer(args) {
 		tokens,
 		contractExchangeRates,
 		totalGas,
-		actionKey
+		actionKey,
+		primaryCurrency
 	} = args;
 
 	const [, encodedAmount] = decodeTransferData('transfer', data);
-
 	const amount = toBN(encodedAmount);
-
 	const userHasToken = safeToChecksumAddress(to) in tokens;
 	const token = userHasToken ? tokens[safeToChecksumAddress(to)] : null;
 	const renderActionKey = token ? `${strings('transactions.sent')} ${token.symbol}` : actionKey;
@@ -119,14 +132,33 @@ function getTokenTransfer(args) {
 
 	const ticker = getTicker(args.ticker);
 
-	const transactionDetails = {
+	let transactionDetails = {
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-		summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
-		renderValue: renderToken,
-		summaryAmount: renderTokenFiatAmount ? `${renderTokenFiatAmount}` : `${addCurrencySymbol(0, currentCurrency)}`,
-		summarySecondaryTotalAmount: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
-		summaryTotalAmount: totalFiatNumber ? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}` : undefined
+		renderValue: renderToken
 	};
+	if (primaryCurrency === 'ETH') {
+		transactionDetails = {
+			...transactionDetails,
+			summaryAmount: renderToken,
+			summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
+			summaryTotalAmount: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
+			summarySecondaryTotalAmount: totalFiatNumber
+				? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}`
+				: undefined
+		};
+	} else {
+		transactionDetails = {
+			...transactionDetails,
+			summaryAmount: renderTokenFiatAmount
+				? `${renderTokenFiatAmount}`
+				: `${addCurrencySymbol(0, currentCurrency)}`,
+			summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+			summaryTotalAmount: totalFiatNumber ? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}` : undefined,
+			summarySecondaryTotalAmount: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(
+				totalGas
+			)} ${ticker}`
+		};
+	}
 
 	const transactionElement = {
 		actionKey: renderActionKey,
@@ -145,7 +177,8 @@ function getCollectibleTransfer(args) {
 		collectibleContracts,
 		totalGas,
 		conversionRate,
-		currentCurrency
+		currentCurrency,
+		primaryCurrency
 	} = args;
 	let actionKey;
 	const [, tokenId] = decodeTransferData('transfer', data);
@@ -162,13 +195,25 @@ function getCollectibleTransfer(args) {
 		? `${strings('unit.token_id')} ${tokenId} ${collectible.symbol}`
 		: `${strings('unit.token_id')} ${tokenId}`;
 
-	const transactionDetails = {
-		renderValue: renderCollectible,
-		summarySecondaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(
-			totalGas
-		)} ${strings('unit.eth')}`,
-		summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency)
-	};
+	let transactionDetails = { renderValue: renderCollectible };
+
+	if (primaryCurrency === 'ETH') {
+		transactionDetails = {
+			...transactionDetails,
+			summaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${strings(
+				'unit.eth'
+			)}`,
+			summarySecondaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency)
+		};
+	} else {
+		transactionDetails = {
+			...transactionDetails,
+			summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency),
+			summarySecondaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(
+				totalGas
+			)} ${strings('unit.eth')}`
+		};
+	}
 
 	const transactionElement = {
 		actionKey,
@@ -222,7 +267,8 @@ function decodeTransferFromTx(args) {
 		},
 		collectibleContracts,
 		conversionRate,
-		currentCurrency
+		currentCurrency,
+		primaryCurrency
 	} = args;
 	const [addressFrom, addressTo, tokenId] = decodeTransferData('transferFrom', data);
 	const collectible = collectibleContracts.find(
@@ -244,21 +290,35 @@ function decodeTransferFromTx(args) {
 	const renderTo = renderFullAddress(addressTo);
 	const ticker = getTicker(args.ticker);
 
-	const transactionDetails = {
+	let transactionDetails = {
 		renderFrom,
 		renderTo,
 		transactionHash,
 		renderValue: renderCollectible,
-		summaryAmount: renderCollectible,
 		renderGas: parseInt(gas, 16).toString(),
 		renderGasPrice: renderToGwei(gasPrice),
-		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-		summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
-		summarySecondaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(
-			totalGas
-		)} ${ticker}`,
-		summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency)
+		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`
 	};
+
+	if (primaryCurrency === 'ETH') {
+		transactionDetails = {
+			...transactionDetails,
+			summaryAmount: renderCollectible,
+			summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
+			summarySecondaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency),
+			summaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`
+		};
+	} else {
+		transactionDetails = {
+			...transactionDetails,
+			summaryAmount: renderCollectible,
+			summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+			summarySecondaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(
+				totalGas
+			)} ${ticker}`,
+			summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency)
+		};
+	}
 
 	const transactionElement = {
 		renderTo,
@@ -279,7 +339,8 @@ function decodeDeploymentTx(args) {
 		},
 		conversionRate,
 		currentCurrency,
-		actionKey
+		actionKey,
+		primaryCurrency
 	} = args;
 	const ticker = getTicker(args.ticker);
 	const gasBN = hexToBN(gas);
@@ -301,19 +362,33 @@ function decodeDeploymentTx(args) {
 		fiatValue: renderTotalEthFiat,
 		contractDeployment: true
 	};
-	const transactionDetails = {
+	let transactionDetails = {
 		renderFrom,
 		renderTo,
 		transactionHash,
 		renderValue: `${renderFromWei(value)} ${ticker}`,
-		summaryAmount: weiToFiat(value, conversionRate, currentCurrency),
 		renderGas: parseInt(gas, 16).toString(),
 		renderGasPrice: renderToGwei(gasPrice),
-		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-		summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
-		summarySecondaryTotalAmount: `${renderFromWei(totalEth)} ${ticker}`,
-		summaryTotalAmount: weiToFiat(totalEth, conversionRate, currentCurrency)
+		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`
 	};
+
+	if (primaryCurrency === 'ETH') {
+		transactionDetails = {
+			...transactionDetails,
+			summaryAmount: `${renderFromWei(value)} ${ticker}`,
+			summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
+			summarySecondaryTotalAmount: weiToFiat(totalEth, conversionRate, currentCurrency),
+			summaryTotalAmount: `${renderFromWei(totalEth)} ${ticker}`
+		};
+	} else {
+		transactionDetails = {
+			...transactionDetails,
+			summaryAmount: weiToFiat(value, conversionRate, currentCurrency),
+			summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+			summarySecondaryTotalAmount: `${renderFromWei(totalEth)} ${ticker}`,
+			summaryTotalAmount: weiToFiat(totalEth, conversionRate, currentCurrency)
+		};
+	}
 
 	return [transactionElement, transactionDetails];
 }
@@ -326,7 +401,8 @@ function decodeConfirmTx(args) {
 		},
 		conversionRate,
 		currentCurrency,
-		actionKey
+		actionKey,
+		primaryCurrency
 	} = args;
 	const ticker = getTicker(args.ticker);
 	const totalEth = hexToBN(value);
@@ -340,19 +416,33 @@ function decodeConfirmTx(args) {
 
 	const renderFrom = renderFullAddress(from);
 	const renderTo = renderFullAddress(to);
-	const transactionDetails = {
+	let transactionDetails = {
 		renderFrom,
 		renderTo,
 		transactionHash,
 		renderValue: `${renderFromWei(value)} ${ticker}`,
-		summaryAmount: weiToFiat(totalEth, conversionRate, currentCurrency),
 		renderGas: parseInt(gas, 16).toString(),
 		renderGasPrice: renderToGwei(gasPrice),
-		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-		summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
-		summarySecondaryTotalAmount: `${renderFromWei(totalValue)} ${ticker}`,
-		summaryTotalAmount: weiToFiat(totalValue, conversionRate, currentCurrency)
+		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`
 	};
+
+	if (primaryCurrency === 'ETH') {
+		transactionDetails = {
+			...transactionDetails,
+			summaryAmount: renderTotalEth,
+			summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
+			summarySecondaryTotalAmount: weiToFiat(totalValue, conversionRate, currentCurrency),
+			summaryTotalAmount: `${renderFromWei(totalValue)} ${ticker}`
+		};
+	} else {
+		transactionDetails = {
+			...transactionDetails,
+			summaryAmount: weiToFiat(totalEth, conversionRate, currentCurrency),
+			summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+			summarySecondaryTotalAmount: `${renderFromWei(totalValue)} ${ticker}`,
+			summaryTotalAmount: weiToFiat(totalValue, conversionRate, currentCurrency)
+		};
+	}
 
 	let symbol;
 	if (renderTo in contractMap) {

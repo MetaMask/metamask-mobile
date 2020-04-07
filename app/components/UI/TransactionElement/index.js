@@ -245,7 +245,12 @@ class TransactionElement extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		// eslint-disable-next-line react/no-unused-prop-types
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -501,6 +506,7 @@ class TransactionElement extends PureComponent {
 
 const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	primaryCurrency: state.settings.primaryCurrency
 });
 export default connect(mapStateToProps)(TransactionElement);
