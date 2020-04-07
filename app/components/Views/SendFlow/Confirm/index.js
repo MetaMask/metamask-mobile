@@ -622,10 +622,10 @@ class Confirm extends PureComponent {
 					)}
 					<View style={styles.summaryWrapper}>
 						<TransactionSummary
-							transactionValueFiat={transactionValueFiat}
-							transactionFeeFiat={transactionFeeFiat}
-							transactionTotalAmountFiat={transactionTotalAmountFiat}
-							transactionTotalAmount={transactionTotalAmount}
+							amount={transactionValueFiat}
+							fee={transactionFeeFiat}
+							totalAmount={transactionTotalAmountFiat}
+							secondaryTotalAmount={transactionTotalAmount}
 							gasEstimationReady={gasEstimationReady}
 						/>
 					</View>

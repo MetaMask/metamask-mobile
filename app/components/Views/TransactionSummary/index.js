@@ -53,10 +53,10 @@ const styles = StyleSheet.create({
 
 export default class TransactionSummary extends PureComponent {
 	static propTypes = {
-		transactionValueFiat: PropTypes.string,
-		transactionFeeFiat: PropTypes.string,
-		transactionTotalAmountFiat: PropTypes.string,
-		transactionTotalAmount: PropTypes.string,
+		amount: PropTypes.string,
+		fee: PropTypes.string,
+		totalAmount: PropTypes.string,
+		secondaryTotalAmount: PropTypes.string,
 		gasEstimationReady: PropTypes.bool
 	};
 
@@ -72,22 +72,17 @@ export default class TransactionSummary extends PureComponent {
 	};
 
 	render = () => {
-		const {
-			transactionValueFiat,
-			transactionFeeFiat,
-			transactionTotalAmountFiat,
-			transactionTotalAmount
-		} = this.props;
+		const { amount, fee, totalAmount, secondaryTotalAmount } = this.props;
 		return (
 			<View style={styles.summaryWrapper}>
 				<View style={styles.summaryRow}>
 					<Text style={styles.textSummary}>{strings('transaction.amount')}</Text>
-					<Text style={[styles.textSummary, styles.textSummaryAmount]}>{transactionValueFiat}</Text>
+					<Text style={[styles.textSummary, styles.textSummaryAmount]}>{amount}</Text>
 				</View>
 				<View style={styles.summaryRow}>
 					<Text style={styles.textSummary}>{strings('transaction.transaction_fee')}</Text>
 					{this.renderIfGastEstimationReady(
-						<Text style={[styles.textSummary, styles.textSummaryAmount]}>{transactionFeeFiat}</Text>
+						<Text style={[styles.textSummary, styles.textSummaryAmount]}>{fee}</Text>
 					)}
 				</View>
 				<View style={styles.separator} />
@@ -95,13 +90,13 @@ export default class TransactionSummary extends PureComponent {
 					<Text style={[styles.textSummary, styles.textBold]}>{strings('transaction.total_amount')}</Text>
 					{this.renderIfGastEstimationReady(
 						<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>
-							{transactionTotalAmountFiat}
+							{totalAmount}
 						</Text>
 					)}
 				</View>
 				<View style={styles.totalCryptoRow}>
 					{this.renderIfGastEstimationReady(
-						<Text style={[styles.textSummary, styles.textCrypto]}>{transactionTotalAmount}</Text>
+						<Text style={[styles.textSummary, styles.textCrypto]}>{secondaryTotalAmount}</Text>
 					)}
 				</View>
 			</View>
