@@ -21,7 +21,11 @@ def flipper_post_install(installer)
   end
 end
 
+
 target 'MetaMask' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  # use_frameworks!
+
   # Pods for MetaMask
   pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
   pod 'FBReactNativeSpec', :path => "../node_modules/react-native/Libraries/FBReactNativeSpec"
@@ -41,7 +45,7 @@ target 'MetaMask' do
   pod 'React-RCTText', :path => '../node_modules/react-native/Libraries/Text'
   pod 'React-RCTVibration', :path => '../node_modules/react-native/Libraries/Vibration'
   pod 'React-Core/RCTWebSocket', :path => '../node_modules/react-native/'
-
+  
   pod 'React-cxxreact', :path => '../node_modules/react-native/ReactCommon/cxxreact'
   pod 'React-jsi', :path => '../node_modules/react-native/ReactCommon/jsi'
   pod 'React-jsiexecutor', :path => '../node_modules/react-native/ReactCommon/jsiexecutor'
@@ -49,33 +53,24 @@ target 'MetaMask' do
   pod 'ReactCommon/callinvoker', :path => "../node_modules/react-native/ReactCommon"
   pod 'ReactCommon/turbomodule/core', :path => "../node_modules/react-native/ReactCommon"
   pod 'Yoga', :path => '../node_modules/react-native/ReactCommon/yoga', :modular_headers => true
-
+  
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
 
-  target 'MetaMaskTests' do
-    inherit! :complete
-    # Pods for testing
-  end
+  pod 'RNSVG', :path => '../node_modules/react-native-svg'
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
+  pod 'RNFS', :path => '../node_modules/react-native-fs'
 
-  use_native_modules!
-
+  pod 'react-native-randombytes', :path => '../node_modules/react-native-randombytes'
+  
   # Enables Flipper.
   #
   # Note that if you have use_frameworks! enabled, Flipper will not work and
   # you should disable these next few lines.
   add_flipper_pods!
+
   post_install do |installer|
     flipper_post_install(installer)
-  end
-end
-
-target 'MetaMask-tvOS' do
-  # Pods for MetaMask-tvOS
-
-  target 'MetaMask-tvOSTests' do
-    inherit! :search_paths
-    # Pods for testing
   end
 end
