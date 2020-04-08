@@ -114,8 +114,6 @@ project.ext.sentryCli = [
 	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
 ]
 
-apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
-
 /**
  * Set this to true to create two separate APKs instead of one:
  *   - An APK that only works on ARM devices
