@@ -1,5 +1,8 @@
 PODS:
   - boost-for-react-native (1.63.0)
+  - Branch (0.28.1):
+    - Branch/Core (= 0.28.1)
+  - Branch/Core (0.28.1)
   - CocoaAsyncSocket (7.6.4)
   - CocoaLibEvent (1.0.0)
   - DoubleConversion (1.1.6)
@@ -67,6 +70,10 @@ PODS:
     - DoubleConversion
     - glog
   - glog (0.3.5)
+  - lottie-ios (2.5.3)
+  - lottie-react-native (3.1.0):
+    - lottie-ios (~> 2.5.0)
+    - React
   - OpenSSL-Universal (1.0.2.19):
     - OpenSSL-Universal/Static (= 1.0.2.19)
   - OpenSSL-Universal/Static (1.0.2.19)
@@ -170,6 +177,14 @@ PODS:
     - React-jsi (= 0.62.1)
     - React-jsiexecutor (= 0.62.1)
     - Yoga
+  - React-Core/RCTPushNotificationHeaders (0.62.1):
+    - Folly (= 2018.10.22.00)
+    - glog
+    - React-Core/Default
+    - React-cxxreact (= 0.62.1)
+    - React-jsi (= 0.62.1)
+    - React-jsiexecutor (= 0.62.1)
+    - Yoga
   - React-Core/RCTSettingsHeaders (0.62.1):
     - Folly (= 2018.10.22.00)
     - glog
@@ -233,7 +248,26 @@ PODS:
     - React-cxxreact (= 0.62.1)
     - React-jsi (= 0.62.1)
   - React-jsinspector (0.62.1)
+  - react-native-async-storage (1.2.0):
+    - React
+  - react-native-background-timer (2.1.1):
+    - React
+  - react-native-branch (3.1.1):
+    - Branch (= 0.28.1)
+    - React
+  - react-native-camera (2.10.0):
+    - React
+    - react-native-camera/RCT (= 2.10.0)
+    - react-native-camera/RN (= 2.10.0)
+  - react-native-camera/RCT (2.10.0):
+    - React
+  - react-native-camera/RN (2.10.0):
+    - React
+  - react-native-netinfo (4.1.5):
+    - React
   - react-native-randombytes (3.5.3):
+    - React
+  - react-native-webview (7.0.5):
     - React
   - React-RCTActionSheet (0.62.1):
     - React-Core/RCTActionSheetHeaders (= 0.62.1)
@@ -268,6 +302,11 @@ PODS:
     - RCTTypeSafety (= 0.62.1)
     - React-Core/RCTNetworkHeaders (= 0.62.1)
     - ReactCommon/turbomodule/core (= 0.62.1)
+  - React-RCTPushNotification (0.62.1):
+    - FBReactNativeSpec (= 0.62.1)
+    - RCTTypeSafety (= 0.62.1)
+    - React-Core/RCTPushNotificationHeaders (= 0.62.1)
+    - ReactCommon/turbomodule/core (= 0.62.1)
   - React-RCTSettings (0.62.1):
     - FBReactNativeSpec (= 0.62.1)
     - Folly (= 2018.10.22.00)
@@ -294,12 +333,36 @@ PODS:
     - React-cxxreact (= 0.62.1)
     - React-jsi (= 0.62.1)
     - ReactCommon/callinvoker (= 0.62.1)
+  - RNDeviceInfo (3.1.4):
+    - React
   - RNFS (2.13.3):
+    - React
+  - RNGestureHandler (1.3.0):
+    - React
+  - RNI18n (2.0.15):
+    - React
+  - RNKeychain (3.0.0):
+    - React
+  - RNReanimated (1.3.0):
+    - React
+  - RNScreens (1.0.0-alpha.23):
+    - React
+  - RNSensors (5.3.0):
+    - React
+  - RNSentry (1.3.3):
+    - React
+    - Sentry (~> 4.4.0)
+  - RNShare (1.2.1):
     - React
   - RNSVG (9.13.3):
     - React
   - RNVectorIcons (6.4.2):
     - React
+  - RNViewShot (2.6.0):
+    - React
+  - Sentry (4.4.3):
+    - Sentry/Core (= 4.4.3)
+  - Sentry/Core (4.4.3)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -315,6 +378,7 @@ DEPENDENCIES:
   - FlipperKit/SKIOSNetworkPlugin (~> 0.33.1)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - lottie-react-native (from `../node_modules/lottie-react-native`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
   - React (from `../node_modules/react-native/`)
@@ -326,26 +390,44 @@ DEPENDENCIES:
   - React-jsi (from `../node_modules/react-native/ReactCommon/jsi`)
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
+  - "react-native-async-storage (from `../node_modules/@react-native-community/async-storage`)"
+  - react-native-background-timer (from `../node_modules/react-native-background-timer`)
+  - react-native-branch (from `../node_modules/react-native-branch`)
+  - react-native-camera (from `../node_modules/react-native-camera`)
+  - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
+  - react-native-webview (from `../node_modules/react-native-webview`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
   - React-RCTBlob (from `../node_modules/react-native/Libraries/Blob`)
   - React-RCTImage (from `../node_modules/react-native/Libraries/Image`)
   - React-RCTLinking (from `../node_modules/react-native/Libraries/LinkingIOS`)
   - React-RCTNetwork (from `../node_modules/react-native/Libraries/Network`)
+  - React-RCTPushNotification (from `../node_modules/react-native/Libraries/PushNotificationIOS`)
   - React-RCTSettings (from `../node_modules/react-native/Libraries/Settings`)
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/callinvoker (from `../node_modules/react-native/ReactCommon`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFS (from `../node_modules/react-native-fs`)
+  - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNI18n (from `../node_modules/react-native-i18n`)
+  - RNKeychain (from `../node_modules/react-native-keychain`)
+  - RNReanimated (from `../node_modules/react-native-reanimated`)
+  - RNScreens (from `../node_modules/react-native-screens`)
+  - RNSensors (from `../node_modules/react-native-sensors`)
+  - "RNSentry (from `../node_modules/@sentry/react-native`)"
+  - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
+  - RNViewShot (from `../node_modules/react-native-view-shot`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - boost-for-react-native
+    - Branch
     - CocoaAsyncSocket
     - CocoaLibEvent
     - Flipper
@@ -355,7 +437,9 @@ SPEC REPOS:
     - Flipper-PeerTalk
     - Flipper-RSocket
     - FlipperKit
+    - lottie-ios
     - OpenSSL-Universal
+    - Sentry
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -369,6 +453,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/Folly.podspec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
+  lottie-react-native:
+    :path: "../node_modules/lottie-react-native"
   RCTRequired:
     :path: "../node_modules/react-native/Libraries/RCTRequired"
   RCTTypeSafety:
@@ -387,8 +473,20 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsiexecutor"
   React-jsinspector:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
+  react-native-async-storage:
+    :path: "../node_modules/@react-native-community/async-storage"
+  react-native-background-timer:
+    :path: "../node_modules/react-native-background-timer"
+  react-native-branch:
+    :path: "../node_modules/react-native-branch"
+  react-native-camera:
+    :path: "../node_modules/react-native-camera"
+  react-native-netinfo:
+    :path: "../node_modules/@react-native-community/netinfo"
   react-native-randombytes:
     :path: "../node_modules/react-native-randombytes"
+  react-native-webview:
+    :path: "../node_modules/react-native-webview"
   React-RCTActionSheet:
     :path: "../node_modules/react-native/Libraries/ActionSheetIOS"
   React-RCTAnimation:
@@ -401,6 +499,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/LinkingIOS"
   React-RCTNetwork:
     :path: "../node_modules/react-native/Libraries/Network"
+  React-RCTPushNotification:
+    :path: "../node_modules/react-native/Libraries/PushNotificationIOS"
   React-RCTSettings:
     :path: "../node_modules/react-native/Libraries/Settings"
   React-RCTText:
@@ -409,17 +509,38 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Vibration"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNFS:
     :path: "../node_modules/react-native-fs"
+  RNGestureHandler:
+    :path: "../node_modules/react-native-gesture-handler"
+  RNI18n:
+    :path: "../node_modules/react-native-i18n"
+  RNKeychain:
+    :path: "../node_modules/react-native-keychain"
+  RNReanimated:
+    :path: "../node_modules/react-native-reanimated"
+  RNScreens:
+    :path: "../node_modules/react-native-screens"
+  RNSensors:
+    :path: "../node_modules/react-native-sensors"
+  RNSentry:
+    :path: "../node_modules/@sentry/react-native"
+  RNShare:
+    :path: "../node_modules/react-native-share"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
+  RNViewShot:
+    :path: "../node_modules/react-native-view-shot"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
+  Branch: edf6cab0cecb437d6a6abba3a25d0a0fa6f277ec
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
   DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
@@ -434,6 +555,8 @@ SPEC CHECKSUMS:
   FlipperKit: 6dc9b8f4ef60d9e5ded7f0264db299c91f18832e
   Folly: 30e7936e1c45c08d884aa59369ed951a8e68cf51
   glog: 1f3da668190260b06b429bb211bfbee5cd790c28
+  lottie-ios: a50d5c0160425cd4b01b852bb9578963e6d92d31
+  lottie-react-native: 7ca15c46249b61e3f9ffcf114cb4123e907a2156
   OpenSSL-Universal: 8b48cc0d10c1b2923617dfe5c178aa9ed2689355
   RCTRequired: e291538a455f5ad1afc2139a4288990be0cadd46
   RCTTypeSafety: 8b6237185765dd9a03a3647807e08864105b1f95
@@ -444,23 +567,41 @@ SPEC CHECKSUMS:
   React-jsi: 600d8e42510c3254fd2abd702f4b9d3f598d8f52
   React-jsiexecutor: e9698dee4fd43ceb44832baf15d5745f455b0157
   React-jsinspector: f74a62727e5604119abd4a1eda52c0a12144bcd5
+  react-native-async-storage: 572b0e6bbb368eeb3d303f2505d642517a9396de
+  react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
+  react-native-branch: 6bbb82aef1201f87b28a96e58140fb394b042dff
+  react-native-camera: 5d4ee26d19ac5aa9a8d8663b50f53b1c1250597c
+  react-native-netinfo: 0e563248a4b9a99c33ec29bd03c2d50767db22a6
   react-native-randombytes: 3638d24759d67c68f6ccba60c52a7a8a8faa6a23
+  react-native-webview: 174e0f8f1bf547224a134215607c75c4bb0312b7
   React-RCTActionSheet: af8f28dd82fec89b8fe29637b8c779829e016a88
   React-RCTAnimation: 0d21fff7c20fb8ee41de5f2ebb63221127febd96
   React-RCTBlob: 9496bd93130b22069bfbc5d35e98653dae7c35c6
   React-RCTImage: a220d154ab3b92bc8a3d040651a21a047c5876b7
   React-RCTLinking: 07b694640ae4a43e25c0e3e54713345f9ef1a706
   React-RCTNetwork: 043479410782020c2081498b5766db136aea6fe9
+  React-RCTPushNotification: e4b1593c2da8298a753995f504729e4358f1296c
   React-RCTSettings: 826bed85c8887cec143f561a27bb3044f28fbde4
   React-RCTText: 239e040f401505001327a109f9188a4e6dad1bd2
   React-RCTVibration: 072c3b427dd29e730c2ee5bfc509cf5054741a50
   ReactCommon: 3585806280c51d5c2c0d3aa5a99014c3badb629d
+  RNDeviceInfo: 88099e84466f053bae3f34c307b506738b2b6946
   RNFS: c9bbde46b0d59619f8e7b735991c60e0f73d22c1
+  RNGestureHandler: 5329a942fce3d41c68b84c2c2276ce06a696d8b0
+  RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
+  RNKeychain: c2e80f306e4d57e296133051d1e448b5289b3024
+  RNReanimated: 6abbbae2e5e72609d85aabd92a982a94566885f1
+  RNScreens: f28b48b8345f2f5f39ed6195518291515032a788
+  RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
+  RNSentry: 86baf0c87120cd5eb491d073989f8cbc1a2174c6
+  RNShare: 48cf88cadf9ca2143cdaa557c1ec7f8808040ffc
   RNSVG: f6177f8d7c095fada7cfee2e4bb7388ba426064c
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
+  RNViewShot: 05672e0b3c36cd70633466614b4451869a70c6c7
+  Sentry: 14bdd673870e8cf64932b149fad5bbbf39a9b390
   Yoga: 50fb6eb13d2152e7363293ff603385db380815b1
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 9aee5be99c7f34314cbabf827d8c0dd390046b50
+PODFILE CHECKSUM: 929385f7f2359018f63d15f400795f36cf4d7f55
 
 COCOAPODS: 1.9.1

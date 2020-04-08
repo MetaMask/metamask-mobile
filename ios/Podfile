@@ -13,12 +13,26 @@ end
 # Post Install processing for Flipper
 def flipper_post_install(installer)
   installer.pods_project.targets.each do |target|
-    if target.name == 'YogaKit'
-      target.build_configurations.each do |config|
-        config.build_settings['SWIFT_VERSION'] = '4.1'
-      end
-    end
+  	if target.name == 'YogaKit'
+  	  target.build_configurations.each do |config|
+  	    config.build_settings['SWIFT_VERSION'] = '4.1'
+  	  end
+  	end
   end
+  file_name = Dir.glob("*.xcodeproj")[0]
+  app_project = Xcodeproj::Project.open(file_name)
+  app_project.native_targets.each do |target|
+  	target.build_configurations.each do |config|
+  	cflags = config.build_settings['OTHER_CFLAGS'] || '$(inherited) '
+    unless cflags.include? '-DFB_SONARKIT_ENABLED=1'
+      puts 'Adding -DFB_SONARKIT_ENABLED=1 in OTHER_CFLAGS...'
+  	  cflags << '-DFB_SONARKIT_ENABLED=1'
+    end
+  	config.build_settings['OTHER_CFLAGS'] = cflags
+  	end
+  	app_project.save
+  end
+  installer.pods_project.save
 end
 
 
@@ -45,6 +59,7 @@ target 'MetaMask' do
   pod 'React-RCTText', :path => '../node_modules/react-native/Libraries/Text'
   pod 'React-RCTVibration', :path => '../node_modules/react-native/Libraries/Vibration'
   pod 'React-Core/RCTWebSocket', :path => '../node_modules/react-native/'
+  pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
   
   pod 'React-cxxreact', :path => '../node_modules/react-native/ReactCommon/cxxreact'
   pod 'React-jsi', :path => '../node_modules/react-native/ReactCommon/jsi'
@@ -57,13 +72,10 @@ target 'MetaMask' do
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
-
-  pod 'RNSVG', :path => '../node_modules/react-native-svg'
-  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
-  pod 'RNFS', :path => '../node_modules/react-native-fs'
-
-  pod 'react-native-randombytes', :path => '../node_modules/react-native-randombytes'
   
+  
+  use_native_modules!
+
   # Enables Flipper.
   #
   # Note that if you have use_frameworks! enabled, Flipper will not work and
