@@ -26,7 +26,6 @@ const styles = StyleSheet.create({
 	},
 	modalContainer: {
 		width: '90%',
-		backgroundColor: colors.white,
 		borderRadius: 10
 	},
 	titleWrapper: {
@@ -48,16 +47,10 @@ const styles = StyleSheet.create({
 		bottom: Device.isIphoneX() ? 20 : 10,
 		left: 0,
 		right: 0,
-		backgroundColor: colors.red
+		zIndex: 101
 	},
 	modalTypeViewBrowser: {
 		bottom: Device.isIphoneX() ? 90 : 80
-	},
-	modalTypeVisible: {
-		zIndex: 101
-	},
-	modalTypeNotVisible: {
-		zIndex: -101
 	},
 	transactionDetailsVisible: {
 		top: 0
@@ -161,7 +154,7 @@ class TxNotification extends PureComponent {
 		transactionElement: undefined,
 		tx: undefined,
 		transactionDetailsIsVisible: false,
-		internalIsVisible: this.props.isVisible,
+		internalIsVisible: true,
 		inBrowserView: false
 	};
 
@@ -172,13 +165,19 @@ class TxNotification extends PureComponent {
 		Animated.timing(animatedRef, {
 			toValue,
 			duration: 500,
-			easing: Easing.linear
+			easing: Easing.linear,
+			useNativeDriver: true
 		}).start();
 	};
 
 	detailsFadeIn = async () => {
 		await this.setState({ transactionDetailsIsVisible: true });
 		this.animatedTimingStart(this.detailsAnimated, 1);
+	};
+
+	componentDidMount = () => {
+		// To get the notificationAnimated ref when component mounts
+		setTimeout(() => this.setState({ internalIsVisible: this.props.isVisible }), 50);
 	};
 
 	componentDidUpdate = async prevProps => {
@@ -191,12 +190,14 @@ class TxNotification extends PureComponent {
 			// Check whether current view is browser
 			let inBrowserView;
 			const currentRouteName = this.findRouteNameFromNavigatorState(this.props.navigation.state);
+			console.log('inBrowserView currentRouteName', currentRouteName);
 			if (this.findRouteNameFromNavigatorState(prevProps.navigation.state) !== currentRouteName) {
 				inBrowserView = currentRouteName === BROWSER_ROUTE;
 			}
 			// Find new transaction and parse its data
 			const tx = this.props.transactions.find(({ id }) => id === this.props.transaction.id);
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
+			console.log('inBrowserView', inBrowserView);
 			// eslint-disable-next-line react/no-did-update-set-state
 			await this.setState({
 				tx,
@@ -261,13 +262,13 @@ class TxNotification extends PureComponent {
 			inBrowserView
 		} = this.state;
 
-		if (!transactionElement || !transactionDetails) return null;
+		if (!internalIsVisible) return null;
+
 		return (
 			<ElevatedView
-				elevation={!internalIsVisible ? -100 : 100}
+				elevation={100}
 				style={[
 					styles.modalTypeView,
-					!internalIsVisible ? styles.modalTypeNotVisible : styles.modalTypeVisible,
 					transactionDetailsIsVisible ? styles.transactionDetailsVisible : {},
 					inBrowserView ? styles.modalTypeViewBrowser : {}
 				]}
@@ -301,7 +302,7 @@ class TxNotification extends PureComponent {
 					<View style={styles.notificationWrapper}>
 						<TransactionNotification
 							status={status}
-							transaction={{ ...tx.transaction, ...this.props.transaction }}
+							transaction={tx ? { ...tx.transaction, ...this.props.transaction } : {}}
 							onPress={this.detailsFadeIn}
 							onHide={this.onClose}
 						/>
