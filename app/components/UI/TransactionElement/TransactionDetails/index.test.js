@@ -30,7 +30,8 @@ describe('TransactionDetails', () => {
 		const wrapper = shallow(
 			<TransactionDetails
 				transactionObject={{
-					networkID: '1'
+					networkID: '1',
+					status: 'confirmed'
 				}}
 				transactionDetails={{
 					renderFrom: '0x0',

@@ -2,7 +2,6 @@ import React from 'react';
 import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
-import ElevatedView from 'react-native-elevated-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AnimatedSpinner from '../AnimatedSpinner';
 import { strings } from '../../../../locales/i18n';
@@ -120,7 +119,7 @@ export default function TransactionNotification(props) {
 	};
 
 	return (
-		<ElevatedView elevation={10} style={baseStyles.flexGrow}>
+		<View style={baseStyles.flexGrow}>
 			<TouchableOpacity
 				style={styles.defaultFlashFloating}
 				testID={'press-notification-button'}
@@ -138,7 +137,7 @@ export default function TransactionNotification(props) {
 					<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
 				</TouchableOpacity>
 			</TouchableOpacity>
-		</ElevatedView>
+		</View>
 	);
 }
 

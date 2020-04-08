@@ -10,6 +10,7 @@ import decodeTransaction from '../TransactionElement/utils';
 import TransactionNotification from '../TransactionNotification';
 import Device from '../../../util/Device';
 import Animated, { Easing } from 'react-native-reanimated';
+import ElevatedView from 'react-native-elevated-view';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -46,16 +47,17 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		bottom: Device.isIphoneX() ? 20 : 10,
 		left: 0,
-		right: 0
+		right: 0,
+		backgroundColor: colors.red
 	},
 	modalTypeViewBrowser: {
 		bottom: Device.isIphoneX() ? 90 : 80
 	},
 	modalTypeVisible: {
-		zIndex: 100
+		zIndex: 101
 	},
 	modalTypeNotVisible: {
-		zIndex: -100
+		zIndex: -101
 	},
 	transactionDetailsVisible: {
 		top: 0
@@ -196,13 +198,31 @@ class TxNotification extends PureComponent {
 			const tx = this.props.transactions.find(({ id }) => id === this.props.transaction.id);
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
 			// eslint-disable-next-line react/no-did-update-set-state
-			await this.setState({ tx, transactionElement, transactionDetails, internalIsVisible: true, inBrowserView });
+			await this.setState({
+				tx,
+				transactionElement,
+				transactionDetails,
+				internalIsVisible: true,
+				inBrowserView,
+				transactionDetailsIsVisible: false
+			});
+			console.log('this.notificationAnimated', this.notificationAnimated);
+
 			this.animatedTimingStart(this.notificationAnimated, 0);
 		} else if (prevProps.isVisible && !this.props.isVisible) {
 			this.animatedTimingStart(this.notificationAnimated, 200);
 			this.animatedTimingStart(this.detailsAnimated, 0);
 			// eslint-disable-next-line react/no-did-update-set-state
-			setTimeout(() => this.setState({ internalIsVisible: false }), 1000);
+			setTimeout(
+				() =>
+					this.setState({
+						internalIsVisible: false,
+						tx: undefined,
+						transactionElement: undefined,
+						transactionDetails: undefined
+					}),
+				500
+			);
 		}
 	};
 
@@ -241,9 +261,10 @@ class TxNotification extends PureComponent {
 			inBrowserView
 		} = this.state;
 
-		if (!transactionElement || !transactionDetails) return <View />;
+		if (!transactionElement || !transactionDetails) return null;
 		return (
-			<View
+			<ElevatedView
+				elevation={!internalIsVisible ? -100 : 100}
 				style={[
 					styles.modalTypeView,
 					!internalIsVisible ? styles.modalTypeNotVisible : styles.modalTypeVisible,
@@ -286,7 +307,7 @@ class TxNotification extends PureComponent {
 						/>
 					</View>
 				</Animated.View>
-			</View>
+			</ElevatedView>
 		);
 	};
 }
