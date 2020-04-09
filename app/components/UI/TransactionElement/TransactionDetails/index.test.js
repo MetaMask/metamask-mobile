@@ -31,7 +31,10 @@ describe('TransactionDetails', () => {
 			<TransactionDetails
 				transactionObject={{
 					networkID: '1',
-					status: 'confirmed'
+					status: 'confirmed',
+					transaction: {
+						nonce: ''
+					}
 				}}
 				transactionDetails={{
 					renderFrom: '0x0',

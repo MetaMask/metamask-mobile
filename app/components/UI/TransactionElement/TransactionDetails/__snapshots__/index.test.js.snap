@@ -4,44 +4,31 @@ exports[`TransactionDetails should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#f2f3f4",
-      "flex": 1,
-      "marginTop": 10,
       "paddingHorizontal": 15,
-      "paddingVertical": 10,
     }
   }
 >
-  <View>
-    <Text
-      style={
+  <View
+    style={
+      Array [
         Object {
-          "color": "#000000",
-          "flex": 1,
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 15,
-          "fontWeight": "400",
-          "paddingVertical": 10,
-        }
-      }
-    >
-      Hash
-    </Text>
+          "paddingVertical": 16,
+        },
+        Object {
+          "flexDirection": "row",
+        },
+        Object {
+          "borderBottomColor": "#d6d9dc",
+          "borderBottomWidth": 1,
+        },
+      ]
+    }
+  >
     <View
       style={
         Array [
           Object {
-            "backgroundColor": "#FFFFFF",
-            "borderRadius": 5,
-            "marginBottom": 5,
-            "padding": 10,
-            "shadowColor": "#848c96",
-            "shadowOffset": Object {
-              "height": 2,
-              "width": 0,
-            },
-            "shadowOpacity": 0.5,
-            "shadowRadius": 3,
+            "flex": 1,
           },
           Object {
             "flexDirection": "row",
@@ -49,407 +36,236 @@ exports[`TransactionDetails should render correctly 1`] = `
         ]
       }
     >
-      <Text
-        style={
-          Array [
+      <View>
+        <Text
+          style={
             Object {
-              "color": "#777777",
-              "flex": 1,
+              "color": "#6a737d",
               "fontFamily": "CircularStd-Medium",
-              "fontSize": 12,
+              "fontSize": 10,
               "fontWeight": "400",
-            },
-            Object {
-              "fontSize": 12,
-            },
-          ]
-        }
-      >
-        0x2 ... 0x2
-      </Text>
-      <TouchableOpacity
-        activeOpacity={0.2}
-        onPress={[Function]}
+              "marginBottom": 8,
+            }
+          }
+        >
+          Status
+        </Text>
+        <Text
+          style={
+            Array [
+              Object {
+                "fontFamily": "CircularStd-Medium",
+                "fontSize": 12,
+                "fontWeight": "400",
+              },
+              Object {
+                "color": "#28A745",
+              },
+            ]
+          }
+        >
+          Confirmed
+        </Text>
+      </View>
+      <View
         style={
           Object {
-            "paddingRight": 5,
+            "alignItems": "flex-end",
+            "flex": 1,
           }
         }
       >
-        <Icon
-          allowFontScaling={false}
-          color="#037dd6"
-          name="copy"
-          size={15}
+        <Text
+          style={
+            Object {
+              "color": "#6a737d",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 10,
+              "fontWeight": "400",
+              "marginBottom": 8,
+            }
+          }
+        >
+          Date
+        </Text>
+        <Text
+          style={
+            Object {
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 12,
+              "fontWeight": "400",
+            }
+          }
+        >
+          [missing "en.date.months.NaN" translation] NaN at NaN:NaNam
+        </Text>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      Array [
+        Object {
+          "paddingVertical": 16,
+        },
+        Object {
+          "flexDirection": "row",
+        },
+        Object {
+          "borderBottomColor": "#d6d9dc",
+          "borderBottomWidth": 1,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "flex": 1,
+          },
+          Object {
+            "flexDirection": "row",
+          },
+        ]
+      }
+    >
+      <View>
+        <Text
+          style={
+            Object {
+              "color": "#6a737d",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 10,
+              "fontWeight": "400",
+              "marginBottom": 8,
+            }
+          }
+        >
+          From
+        </Text>
+        <Connect(EthereumAddress)
+          address="0x0"
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 12,
+              "fontWeight": "400",
+            }
+          }
+          type="medium"
         />
-      </TouchableOpacity>
+      </View>
+      <View
+        style={
+          Object {
+            "alignItems": "flex-end",
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#6a737d",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 10,
+              "fontWeight": "400",
+              "marginBottom": 8,
+            }
+          }
+        >
+          To
+        </Text>
+        <Connect(EthereumAddress)
+          address="0x1"
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 12,
+              "fontWeight": "400",
+            }
+          }
+          type="medium"
+        />
+      </View>
     </View>
   </View>
-  <Text
+  <View
     style={
       Object {
-        "color": "#000000",
-        "flex": 1,
-        "fontFamily": "CircularStd-Medium",
-        "fontSize": 15,
-        "fontWeight": "400",
-        "paddingVertical": 10,
+        "paddingVertical": 16,
       }
     }
   >
-    From
-  </Text>
-  <View
-    style={
-      Array [
-        Object {
-          "backgroundColor": "#FFFFFF",
-          "borderRadius": 5,
-          "marginBottom": 5,
-          "padding": 10,
-          "shadowColor": "#848c96",
-          "shadowOffset": Object {
-            "height": 2,
-            "width": 0,
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 10,
+            "fontWeight": "400",
+            "marginBottom": 8,
           },
-          "shadowOpacity": 0.5,
-          "shadowRadius": 3,
-        },
-        Object {
-          "flexDirection": "row",
-        },
-      ]
-    }
-  >
-    <Connect(EthereumAddress)
-      address="0x0"
-      style={
-        Object {
-          "color": "#777777",
-          "flex": 1,
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 12,
-          "fontWeight": "400",
-        }
-      }
-    />
-    <TouchableOpacity
-      activeOpacity={0.2}
-      onPress={[Function]}
-      style={
-        Object {
-          "paddingRight": 5,
-        }
-      }
-    >
-      <Icon
-        allowFontScaling={false}
-        color="#037dd6"
-        name="copy"
-        size={15}
-      />
-    </TouchableOpacity>
-  </View>
-  <Text
-    style={
-      Object {
-        "color": "#000000",
-        "flex": 1,
-        "fontFamily": "CircularStd-Medium",
-        "fontSize": 15,
-        "fontWeight": "400",
-        "paddingVertical": 10,
-      }
-    }
-  >
-    To
-  </Text>
-  <View
-    style={
-      Array [
-        Object {
-          "backgroundColor": "#FFFFFF",
-          "borderRadius": 5,
-          "marginBottom": 5,
-          "padding": 10,
-          "shadowColor": "#848c96",
-          "shadowOffset": Object {
-            "height": 2,
-            "width": 0,
+          Object {
+            "textTransform": "uppercase",
           },
-          "shadowOpacity": 0.5,
-          "shadowRadius": 3,
-        },
-        Object {
-          "flexDirection": "row",
-        },
-      ]
-    }
-  >
-    <Connect(EthereumAddress)
-      address="0x1"
-      style={
-        Object {
-          "color": "#777777",
-          "flex": 1,
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 12,
-          "fontWeight": "400",
-        }
-      }
-    />
-    <TouchableOpacity
-      activeOpacity={0.2}
-      onPress={[Function]}
-      style={
-        Object {
-          "paddingRight": 5,
-        }
+        ]
       }
     >
-      <Icon
-        allowFontScaling={false}
-        color="#037dd6"
-        name="copy"
-        size={15}
-      />
-    </TouchableOpacity>
-  </View>
-  <Text
-    style={
-      Object {
-        "color": "#000000",
-        "flex": 1,
-        "fontFamily": "CircularStd-Medium",
-        "fontSize": 15,
-        "fontWeight": "400",
-        "paddingVertical": 10,
+      Nonce
+    </Text>
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 12,
+            "fontWeight": "400",
+          },
+        ]
       }
-    }
-  >
-    Details
-  </Text>
+    >
+      #NaN
+    </Text>
+  </View>
   <View
     style={
       Object {
-        "backgroundColor": "#FFFFFF",
-        "borderRadius": 5,
-        "marginBottom": 5,
-        "padding": 10,
-        "shadowColor": "#848c96",
-        "shadowOffset": Object {
-          "height": 2,
-          "width": 0,
-        },
-        "shadowOpacity": 0.5,
-        "shadowRadius": 3,
+        "marginVertical": 6,
       }
     }
   >
-    <View
-      style={
-        Object {
-          "borderBottomWidth": 0.5,
-          "borderColor": "#d6d9dc",
-          "flex": 1,
-          "flexDirection": "row",
-          "marginBottom": 10,
-          "paddingBottom": 5,
-        }
-      }
-    >
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#777777",
-              "flex": 1,
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 12,
-              "fontWeight": "400",
-            },
-            Object {
-              "textAlign": "left",
-              "width": "40%",
-            },
-          ]
-        }
-      >
-        Amount
-      </Text>
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#777777",
-              "flex": 1,
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 12,
-              "fontWeight": "400",
-            },
-            Object {
-              "textAlign": "right",
-              "width": "60%",
-            },
-          ]
-        }
-      >
-        2 TKN
-      </Text>
-    </View>
-    <View
-      style={
-        Object {
-          "borderBottomWidth": 0.5,
-          "borderColor": "#d6d9dc",
-          "flex": 1,
-          "flexDirection": "row",
-          "marginBottom": 10,
-          "paddingBottom": 5,
-        }
-      }
-    >
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#777777",
-              "flex": 1,
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 12,
-              "fontWeight": "400",
-            },
-            Object {
-              "textAlign": "left",
-              "width": "40%",
-            },
-          ]
-        }
-      >
-        Gas Limit (Units)
-      </Text>
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#777777",
-              "flex": 1,
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 12,
-              "fontWeight": "400",
-            },
-            Object {
-              "textAlign": "right",
-              "width": "60%",
-            },
-          ]
-        }
-      >
-        21000
-      </Text>
-    </View>
-    <View
-      style={
-        Object {
-          "borderBottomWidth": 0.5,
-          "borderColor": "#d6d9dc",
-          "flex": 1,
-          "flexDirection": "row",
-          "marginBottom": 10,
-          "paddingBottom": 5,
-        }
-      }
-    >
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#777777",
-              "flex": 1,
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 12,
-              "fontWeight": "400",
-            },
-            Object {
-              "textAlign": "left",
-              "width": "40%",
-            },
-          ]
-        }
-      >
-        Gas Price (GWEI)
-      </Text>
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#777777",
-              "flex": 1,
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 12,
-              "fontWeight": "400",
-            },
-            Object {
-              "textAlign": "right",
-              "width": "60%",
-            },
-          ]
-        }
-      >
-        2
-      </Text>
-    </View>
-    <View
-      style={
-        Object {
-          "borderBottomWidth": 0.5,
-          "borderColor": "#d6d9dc",
-          "flex": 1,
-          "flexDirection": "row",
-          "marginBottom": 10,
-          "paddingBottom": 5,
-        }
-      }
-    >
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#777777",
-              "flex": 1,
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 12,
-              "fontWeight": "400",
-            },
-            Object {
-              "textAlign": "left",
-              "width": "40%",
-            },
-          ]
-        }
-      >
-        Total
-      </Text>
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#777777",
-              "flex": 1,
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 12,
-              "fontWeight": "400",
-            },
-            Object {
-              "textAlign": "right",
-              "width": "60%",
-            },
-          ]
-        }
-      >
-        2 TKN / 0.001 ETH
-      </Text>
-    </View>
+    <TransactionSummary
+      gasEstimationReady={true}
+    />
   </View>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    onPress={[Function]}
+    style={
+      Object {
+        "marginVertical": 24,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#037dd6",
+          "fontFamily": "CircularStd-Medium",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "textAlign": "center",
+        }
+      }
+    >
+      View on Etherscan
+    </Text>
+  </TouchableOpacity>
 </View>
 `;
