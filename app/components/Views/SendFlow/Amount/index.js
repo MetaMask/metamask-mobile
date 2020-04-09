@@ -674,7 +674,7 @@ class Amount extends PureComponent {
 				onPress={() => this.pickSelectedAsset(collectible)}
 			>
 				<View style={styles.assetElement}>
-					<CollectibleImage collectible={collectible} />
+					<CollectibleImage collectible={collectible} iconStyle={styles.tokenImage} containerStyle={styles.tokenImage} />
 					<View style={styles.assetInformationWrapper}>
 						<Text style={styles.textAssetTitle}>{name}</Text>
 					</View>
