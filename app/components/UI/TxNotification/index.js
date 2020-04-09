@@ -189,16 +189,16 @@ class TxNotification extends PureComponent {
 		setTimeout(() => this.setState({ internalIsVisible: this.props.isVisible }), 100);
 	};
 
+	isInBrowserView = () => {
+		const currentRouteName = this.findRouteNameFromNavigatorState(this.props.navigation.state);
+		return currentRouteName === BROWSER_ROUTE;
+	};
+
 	componentDidUpdate = async prevProps => {
 		// Check whether current view is browser
 		if (this.props.isVisible && prevProps.navigation.state !== this.props.navigation.state) {
-			let inBrowserView = this.state.inBrowserView;
-			const currentRouteName = this.findRouteNameFromNavigatorState(this.props.navigation.state);
-			if (this.findRouteNameFromNavigatorState(prevProps.navigation.state) !== currentRouteName) {
-				inBrowserView = currentRouteName === BROWSER_ROUTE;
-			}
 			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({ inBrowserView });
+			this.setState({ inBrowserView: this.isInBrowserView(prevProps) });
 		}
 		if (!prevProps.isVisible && this.props.isVisible) {
 			// Auto dismiss notification in case of confirmations
@@ -215,7 +215,8 @@ class TxNotification extends PureComponent {
 				transactionElement,
 				transactionDetails,
 				internalIsVisible: true,
-				transactionDetailsIsVisible: false
+				transactionDetailsIsVisible: false,
+				inBrowserView: this.isInBrowserView(prevProps)
 			});
 
 			setTimeout(() => this.animatedTimingStart(this.notificationAnimated, 0), 100);
