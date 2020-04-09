@@ -325,7 +325,7 @@
 
 	function buildOpts(opts) {
 		if (!opts.seed) {
-			throw 'No seed provided';
+			throw new Error('No seed provided');
 		}
 
 		seedrand(opts.seed);

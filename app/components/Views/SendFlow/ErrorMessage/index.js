@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 export default function ErrorMessage(props) {
 	const { errorMessage } = props;
 	return (
-		<View style={styles.wrapper}>
+		<View style={styles.wrapper} testID={'error-message-warning'}>
 			<Text style={styles.errorMessage}>{errorMessage}</Text>
 		</View>
 	);

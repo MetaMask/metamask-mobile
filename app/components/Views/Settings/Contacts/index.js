@@ -107,14 +107,19 @@ class Contacts extends PureComponent {
 	render = () => {
 		const { reloadAddressList } = this.state;
 		return (
-			<SafeAreaView style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper} testID={'contacts-screen'}>
 				<AddressList
 					onlyRenderAddressBook
 					reloadAddressList={reloadAddressList}
 					onAccountPress={this.onAddressPress}
 					onAccountLongPress={this.onAddressLongPress}
 				/>
-				<StyledButton type={'confirm'} containerStyle={styles.addContact} onPress={this.goToAddContact}>
+				<StyledButton
+					type={'confirm'}
+					containerStyle={styles.addContact}
+					onPress={this.goToAddContact}
+					testID={'add-contact-button'}
+				>
 					{strings('address_book.add_contact')}
 				</StyledButton>
 				<ActionSheet

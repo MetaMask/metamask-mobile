@@ -57,18 +57,6 @@ exports[`Main should render correctly 1`] = `
               "getScreenOptions": [Function],
               "getStateForAction": [Function],
             },
-            "ApproveSuccessView": Object {
-              "childRouters": Object {
-                "ApproveSuccess": null,
-              },
-              "getActionCreators": [Function],
-              "getActionForPathAndParams": [Function],
-              "getComponentForRouteName": [Function],
-              "getComponentForState": [Function],
-              "getPathAndParamsForState": [Function],
-              "getScreenOptions": [Function],
-              "getStateForAction": [Function],
-            },
             "ApproveView": Object {
               "childRouters": Object {
                 "Approve": null,
@@ -394,18 +382,6 @@ exports[`Main should render correctly 1`] = `
               "ApprovalView": Object {
                 "childRouters": Object {
                   "Approval": null,
-                },
-                "getActionCreators": [Function],
-                "getActionForPathAndParams": [Function],
-                "getComponentForRouteName": [Function],
-                "getComponentForState": [Function],
-                "getPathAndParamsForState": [Function],
-                "getScreenOptions": [Function],
-                "getStateForAction": [Function],
-              },
-              "ApproveSuccessView": Object {
-                "childRouters": Object {
-                  "ApproveSuccess": null,
                 },
                 "getActionCreators": [Function],
                 "getActionForPathAndParams": [Function],

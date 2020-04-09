@@ -2,6 +2,10 @@ import './shim.js';
 
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
+
+import setupSentry from './app/util/setupSentry';
+setupSentry();
+
 import { AppRegistry, YellowBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';

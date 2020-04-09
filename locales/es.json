@@ -652,7 +652,6 @@
 		"nickname": "Nombre",
 		"add_input_placeholder": "Dirección pública (0x), o ENS",
 		"between_account": "Transferir entre mis cuentas",
-		"no_contacts": "No tienes contactos en tu agenda",
 		"others": "Otros",
 		"memo": "Detalles"
 	},

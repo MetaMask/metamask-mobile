@@ -182,7 +182,7 @@ class AccountList extends PureComponent {
 			} catch (e) {
 				// Restore to the previous index in case anything goes wrong
 				this.mounted && this.setState({ selectedAccountIndex: previousIndex });
-				Logger.error('error while trying change the selected account', e); // eslint-disable-line
+				Logger.error(e, 'error while trying change the selected account'); // eslint-disable-line
 			}
 			InteractionManager.runAfterInteractions(() => {
 				setTimeout(() => {
@@ -220,7 +220,7 @@ class AccountList extends PureComponent {
 				this.mounted && this.setState({ orderedAccounts });
 			} catch (e) {
 				// Restore to the previous index in case anything goes wrong
-				Logger.error('error while trying to add a new account', e); // eslint-disable-line
+				Logger.error(e, 'error while trying to add a new account'); // eslint-disable-line
 				this.mounted && this.setState({ loading: false });
 			}
 		});

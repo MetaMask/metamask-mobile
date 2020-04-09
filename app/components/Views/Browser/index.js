@@ -146,7 +146,7 @@ class Browser extends PureComponent {
 			...this.props.navigation.state.params,
 			showTabs: false,
 			url,
-			silent: true
+			silent: false
 		});
 	};
 
@@ -270,7 +270,7 @@ class Browser extends PureComponent {
 					resolve(true);
 				},
 				error => {
-					Logger.error(`Error saving tab ${url}`, error);
+					Logger.error(error, `Error saving tab ${url}`);
 					reject(error);
 				}
 			);

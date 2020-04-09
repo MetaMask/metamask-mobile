@@ -283,7 +283,7 @@ class WalletConnect {
 			});
 			hub.on('walletconnectSessionRequest::rejected', peerId => {
 				if (peerInfo.peerId === peerId) {
-					reject(false);
+					reject(new Error('walletconnectSessionRequest::rejected'));
 				}
 			});
 		});

@@ -47,6 +47,7 @@ exports[`ActionModal should render correctly 1`] = `
         "alignItems": "center",
         "flexDirection": "column",
         "justifyContent": "center",
+        "marginHorizontal": 24,
       }
     }
   >
@@ -55,7 +56,7 @@ exports[`ActionModal should render correctly 1`] = `
         Object {
           "backgroundColor": "#FFFFFF",
           "borderRadius": 10,
-          "width": "90%",
+          "width": "100%",
         }
       }
     >

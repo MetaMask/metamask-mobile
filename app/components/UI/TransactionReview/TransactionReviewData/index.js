@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	overview: {
-		paddingHorizontal: 16
+		paddingHorizontal: 24
 	},
 	label: {
 		flex: 0,
