@@ -658,7 +658,10 @@
 		"address_copied_to_clipboard": "Address copied to clipboard",
 		"transaction_error": "Transaction error",
 		"address_to_placeholder": "Search, public address (0x), or ENS",
-		"address_from_balance": "Balance:"
+		"address_from_balance": "Balance:",
+		"status": "Status",
+		"date": "Date",
+		"nonce": "Nonce"
 	},
 	"address_book": {
 		"recents": "Recents",

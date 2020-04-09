@@ -171,11 +171,11 @@ class TransactionDetails extends PureComponent {
 				<View style={[styles.section, styles.flexRow, styles.sectionBorderBottom]}>
 					<View style={[baseStyles.flexGrow, styles.flexRow]}>
 						<View style={baseStyles.flexRow}>
-							<Text style={styles.detailRowTitle}>{'Status'}</Text>
+							<Text style={styles.detailRowTitle}>{strings('transactions.status')}</Text>
 							{this.renderStatusText(status)}
 						</View>
 						<View style={styles.flexEnd}>
-							<Text style={styles.detailRowTitle}>{'Date'}</Text>
+							<Text style={styles.detailRowTitle}>{strings('transactions.date')}</Text>
 							<Text style={styles.statusText}>{toDateFormat(time)}</Text>
 						</View>
 					</View>
@@ -201,7 +201,7 @@ class TransactionDetails extends PureComponent {
 					</View>
 				</View>
 				<View style={styles.section}>
-					<Text style={[styles.detailRowTitle, styles.textUppercase]}>{'Nonce'}</Text>
+					<Text style={[styles.detailRowTitle, styles.textUppercase]}>{strings('transactions.nonce')}</Text>
 					<Text style={[styles.detailRowText]}>
 						{`#${parseInt(transactionObject.transaction.nonce.replace(/^#/, ''), 16)}`}
 					</Text>
