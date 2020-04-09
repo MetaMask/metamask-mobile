@@ -77,6 +77,7 @@ class Analytics {
 	 */
 	trackEvent = event => {
 		if (!this.enabled) return;
+		console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
 		RCTAnalytics.trackEvent(event);
 		if (__DEV__) {
 			console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console

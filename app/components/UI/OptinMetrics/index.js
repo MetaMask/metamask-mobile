@@ -148,6 +148,7 @@ class OptinMetrics extends PureComponent {
 	];
 
 	componentDidMount() {
+		Analytics.enable();
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 	}
 
@@ -200,16 +201,16 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press cancel
 	 */
 	onCancel = async () => {
-		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
-		Analytics.disable();
-		InteractionManager.runAfterInteractions(() => {
+		InteractionManager.runAfterInteractions(async () => {
 			if (this.props.events && this.props.events.length) {
 				this.props.events.forEach(e => Analytics.trackEvent(e));
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
+			Analytics.disable();
+			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
+			this.continue();
 		});
-		this.continue();
 	};
 
 	/**
@@ -217,7 +218,6 @@ class OptinMetrics extends PureComponent {
 	 */
 	onConfirm = async () => {
 		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
-		Analytics.enable();
 		InteractionManager.runAfterInteractions(() => {
 			if (this.props.events && this.props.events.length) {
 				this.props.events.forEach(e => Analytics.trackEvent(e));
