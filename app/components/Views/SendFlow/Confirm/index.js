@@ -588,7 +588,7 @@ class Confirm extends PureComponent {
 					assetType
 				});
 				this.checkRemoveCollectible();
-				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_AMOUNT, {
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CONFIRM_SEND, {
 					network: providerType
 				});
 				navigation && navigation.dismiss();

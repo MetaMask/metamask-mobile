@@ -401,6 +401,7 @@ class Approve extends PureComponent {
 
 	onViewDetails = () => {
 		const { viewDetails } = this.state;
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
 		this.setState({ viewDetails: !viewDetails });
 	};
 
