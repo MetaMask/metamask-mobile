@@ -112,6 +112,8 @@ describe('Test Dapp Initiated Transactions', () => {
 		await TestHelpers.tap('confirm-txn-edit-button');
 		// Input Amount
 		await TestHelpers.replaceTextInField('amount-input', '0.000001');
+		// Tap on FAST for transaction fee
+		await TestHelpers.tapByText('FAST');
 		// Tap on NEXT button
 		await TestHelpers.tapByText('Next');
 		// Tap on CONFIRM button
@@ -181,12 +183,13 @@ describe('Test Dapp Initiated Transactions', () => {
 			await element(by.id('url-input')).tapReturnKey();
 			await TestHelpers.delay(3500);
 		}
+
 		// Tap on connect button to bring up connection request
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 65, y: 114 });
+			await TestHelpers.tapAtPoint('browser-screen', { x: 183, y: 261 });
 			await TestHelpers.delay(1000);
 		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 65, y: 120 });
+			await TestHelpers.tapAtPoint('browser-screen', { x: 191, y: 267 });
 		}
 		// Give some time for connect request
 		await TestHelpers.delay(1000);
@@ -196,63 +199,40 @@ describe('Test Dapp Initiated Transactions', () => {
 		await TestHelpers.tapByText('CONNECT');
 		// Give some time for account to be displayed
 		await TestHelpers.delay(2000);
-		// Tap on Create Token button
+
+		// Scroll to bottom of browser view and create token then approve token
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 70, y: 297 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 65, y: 289 });
+			// Scroll down to bottom of page
+			await TestHelpers.swipe('browser-screen', 'up');
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapAtPoint('browser-screen', { x: 114, y: 290 });
-			await TestHelpers.delay(1000);
-			await TestHelpers.tapAtPoint('browser-screen', { x: 70, y: 315 });
-			await TestHelpers.delay(1000);
-		}
-		// Tap Edit
-		await TestHelpers.tap('confirm-txn-edit-button');
-		// Tap on SLOW for transaction fee
-		await TestHelpers.tapByText('SLOW');
-		// Tap on NEXT button
-		await TestHelpers.tapByText('Next');
-		// Tap on CONFIRM button
-		await TestHelpers.tapByText('Confirm');
-		// on iOS dismiss notification and on Android, wait some time for token to be created
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.delay(5000);
-		} else {
+			// Tap on Create Token button
+			await TestHelpers.tapAtPoint('browser-screen', { x: 225, y: 505 });
+			// Tap Edit
+			await TestHelpers.tap('confirm-txn-edit-button');
+			// Tap on FAST for transaction fee
+			await TestHelpers.tapByText('FAST');
+			// Tap on NEXT button
+			await TestHelpers.tapByText('Next');
+			// Tap on CONFIRM button
+			await TestHelpers.tapByText('Confirm');
+			// on iOS dismiss notification
 			// Check that we are on the browser screen
 			await TestHelpers.checkIfVisible('browser-screen');
 			// Wait for enable notifications alert to show up
 			await TestHelpers.delay(10000);
 			// Dismiss alert
 			await TestHelpers.tapAlertWithButton('No, thanks');
-		}
-		// Tap on Approve Tokens button
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 300, y: 289 });
+			// Tap on Approve Tokens button
+			await TestHelpers.tapAtPoint('browser-screen', { x: 229, y: 553 });
+			// Check that we are on the approve screen
+			await TestHelpers.checkIfVisible('approve-screen');
+			// Check that title is correct
+			await TestHelpers.checkIfElementHasString('allow-access', DAPP_ACCESS);
+			// Tap on Approve button
+			await TestHelpers.tapAtPoint('approve-screen', { x: 330, y: 600 });
+			// Give enough time for notification to go away
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapAtPoint('browser-screen', { x: 341, y: 290 });
-			await TestHelpers.delay(1000);
-			await TestHelpers.tapAtPoint('browser-screen', { x: 350, y: 307 });
-			await TestHelpers.delay(1000);
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 301, y: 298 });
 		}
-		// Check that we are on the approve screen
-		await TestHelpers.checkIfVisible('approve-screen');
-		// Check that title is correct
-		await TestHelpers.checkIfElementHasString('allow-access', DAPP_ACCESS);
-		// Tap on Approve button
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapByText('Approve');
-		} else {
-			await TestHelpers.tapAtPoint('approve-screen', { x: 275, y: 620 });
-		}
-		// Delay
-		await TestHelpers.delay(1000);
-		// Check that we are on the success screen
-		await TestHelpers.checkIfVisible('approve-success-screen');
-		// Close Success screen
-		await TestHelpers.tap('approve-success-close-button');
 	});
 
 	it('should log out', async () => {
