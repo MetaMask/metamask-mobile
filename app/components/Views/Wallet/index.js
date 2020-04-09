@@ -90,7 +90,6 @@ class Wallet extends PureComponent {
 		 * Current onboarding wizard step
 		 */
 		wizardStep: PropTypes.number
-		// hideTransactionNotification: PropTypes.func
 	};
 
 	state = {
@@ -115,7 +114,6 @@ class Wallet extends PureComponent {
 	}
 
 	onRefresh = async () => {
-		// this.props.hideTransactionNotification();
 		requestAnimationFrame(async () => {
 			this.setState({ refreshing: true });
 			const {

@@ -20,7 +20,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: colors.greytransparent,
 		paddingBottom: 200,
 		marginBottom: -300
 	},
@@ -45,17 +44,21 @@ const styles = StyleSheet.create({
 	},
 	modalTypeView: {
 		position: 'absolute',
-		bottom: Device.isIphoneX() ? 20 : 10,
+		bottom: 0,
+		paddingBottom: Device.isIphoneX() ? 20 : 10,
 		left: 0,
 		right: 0,
-		zIndex: 101,
 		backgroundColor: colors.transparent
 	},
-	modalTypeViewBrowser: {
-		bottom: Device.isIphoneX() ? 90 : 70
+	modalViewInBrowserView: {
+		paddingBottom: Device.isIos() ? 130 : 120
 	},
-	transactionDetailsVisible: {
-		top: 0
+	modalTypeViewDetailsVisible: {
+		height: '100%',
+		backgroundColor: colors.greytransparent
+	},
+	modalTypeViewBrowser: {
+		bottom: Device.isIphoneX() ? 70 : 60
 	},
 	closeIcon: {
 		paddingTop: 4,
@@ -181,6 +184,7 @@ class TxNotification extends PureComponent {
 	};
 
 	componentDidMount = () => {
+		this.props.hideTransactionNotification();
 		// To get the notificationAnimated ref when component mounts
 		setTimeout(() => this.setState({ internalIsVisible: this.props.isVisible }), 100);
 	};
@@ -274,12 +278,18 @@ class TxNotification extends PureComponent {
 				elevation={100}
 				style={[
 					styles.modalTypeView,
-					transactionDetailsIsVisible ? styles.transactionDetailsVisible : {},
-					inBrowserView ? styles.modalTypeViewBrowser : {}
+					inBrowserView ? styles.modalTypeViewBrowser : {},
+					transactionDetailsIsVisible ? styles.modalTypeViewDetailsVisible : {}
 				]}
 			>
 				{transactionDetailsIsVisible && (
-					<Animated.View style={[styles.modalView, { opacity: this.detailsAnimated }]}>
+					<Animated.View
+						style={[
+							styles.modalView,
+							{ opacity: this.detailsAnimated },
+							inBrowserView ? styles.modalViewInBrowserView : {}
+						]}
+					>
 						<View style={styles.modalContainer}>
 							<View style={styles.titleWrapper}>
 								<Text style={styles.title} onPress={this.onCloseDetails}>
