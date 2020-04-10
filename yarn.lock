@@ -7295,12 +7295,10 @@ merkle-patricia-tree@^2.1.2, merkle-patricia-tree@^2.3.2:
     rlp "^2.0.0"
     semaphore ">=1.0.1"
 
-metamask-mobile-provider@../metamask-mobile-provider:
-  version "1.0.2"
-
-metamask-mobile-provider@./metamask-mobile-provider-v1.0.2.tgz:
-  version "1.0.2"
-  resolved "./metamask-mobile-provider-v1.0.2.tgz#711241af28df866950a41eb00bbe3dfaf33e2039"
+metamask-mobile-provider@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/metamask-mobile-provider/-/metamask-mobile-provider-1.1.0.tgz#477aa8ee55d91bd79a0f4c00a5083be159a5a678"
+  integrity sha512-GZLiq2sCPvYlHT4xYVklrAg6hWA/RZyFoekCtQz+842LbFtajHYmSb0DW5GDgEdQ/unaABU9A6BfKpfUurOe2A==
 
 methods@^1.1.1:
   version "1.1.2"
