@@ -197,12 +197,14 @@ class SendFlow extends PureComponent {
 		navigation.setParams({ providerType });
 		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
-		this.setState({
-			fromAccountName: ens || fromAccountName,
-			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
-			inputWidth: { width: '100%' },
-			balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero()
-		});
+		setTimeout(() => {
+			this.setState({
+				fromAccountName: ens || fromAccountName,
+				fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
+				balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero(),
+				inputWidth: { width: '100%' }
+			});
+		}, 100);
 		if (!Object.keys(networkAddressBook).length) {
 			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
 		}
@@ -490,7 +492,7 @@ class SendFlow extends PureComponent {
 									</Text>
 								</TouchableOpacity>
 							)}
-							<View style={styles.footerContainer}>
+							<View style={styles.footerContainer} testID={'no-eth-message'}>
 								{balanceIsZero && (
 									<View style={styles.warningContainer}>
 										<WarningMessage warningMessage={strings('transaction.not_enough_for_gas')} />

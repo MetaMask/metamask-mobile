@@ -66,14 +66,16 @@ const styles = StyleSheet.create({
 	},
 	modalText: {
 		...fontStyles.normal,
-		fontSize: 18,
-		textAlign: 'center'
+		fontSize: 16,
+		textAlign: 'center',
+		color: colors.black
 	},
 	modalTitle: {
 		...fontStyles.bold,
-		fontSize: 22,
+		fontSize: 24,
 		textAlign: 'center',
-		marginBottom: 20
+		marginBottom: 20,
+		color: colors.black
 	},
 	picker: {
 		borderColor: colors.grey200,
@@ -225,7 +227,7 @@ class AdvancedSettings extends PureComponent {
 				url
 			});
 		} catch (err) {
-			Logger.error('State log error', err);
+			Logger.error(err, 'State log error');
 		}
 	};
 
@@ -253,7 +255,7 @@ class AdvancedSettings extends PureComponent {
 				url
 			});
 		} catch (err) {
-			Logger.error('Instapay log error', err);
+			Logger.error(err, 'Instapay log error');
 		}
 	};
 

@@ -190,7 +190,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 		},
 		headerTintColor: colors.blue,
 		headerLeft: (
-			<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
+			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'title-back-arrow-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}
@@ -227,7 +227,7 @@ export function getEditableOptions(title, navigation) {
 		},
 		headerTintColor: colors.blue,
 		headerLeft: (
-			<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
+			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'edit-contact-back-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}
@@ -721,7 +721,7 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
 		headerTitle: <NavbarTitle title={title} translate={translate} />,
 		headerLeft: (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton} testID={'asset-back-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}

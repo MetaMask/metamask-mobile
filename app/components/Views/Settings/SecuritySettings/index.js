@@ -368,7 +368,7 @@ class Settings extends PureComponent {
 			if (e.message === 'Invalid password') {
 				Alert.alert(strings('app_settings.invalid_password'), strings('app_settings.invalid_password_message'));
 			}
-			Logger.error('SecuritySettings:biometrics', e);
+			Logger.error(e, 'SecuritySettings:biometrics');
 			// Return the switch to the previous value
 			if (type === 'biometrics') {
 				this.setState({ biometryChoice: !enabled });

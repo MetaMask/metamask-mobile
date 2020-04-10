@@ -51,9 +51,6 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		marginHorizontal: 8,
 		color: colors.grey600
-	},
-	message: {
-		padding: 16
 	}
 });
 
@@ -289,11 +286,7 @@ class AddressList extends PureComponent {
 							keyExtractor={this.elementKeyExtractor}
 							renderItem={this.renderElement}
 						/>
-					) : (
-						<View style={styles.message} testID={'no-contacts-message'}>
-							<Text style={styles.messageText}>{strings('address_book.no_contacts')}</Text>
-						</View>
-					)}
+					) : null}
 				</ScrollView>
 			</View>
 		);
