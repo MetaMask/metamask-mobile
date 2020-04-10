@@ -104,6 +104,7 @@ import com.android.build.OutputFile
  */
 
 project.ext.react = [
+	entryFile: "index.js",
 	enableHermes: false,  // clean and rebuild if changing
 ]
 
@@ -113,6 +114,8 @@ project.ext.sentryCli = [
 	logLevel: "debug",
 	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
 ]
+
+apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
 
 /**
  * Set this to true to create two separate APKs instead of one:
@@ -226,14 +229,12 @@ android {
 		it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
 
 	}
-	packagingOptions {
-		// Make sure libjsc.so does not packed in APK
-		pickFirst "lib/armeabi-v7a/libc++_shared.so"
+   packagingOptions {
+        pickFirst "lib/armeabi-v7a/libc++_shared.so"
         pickFirst "lib/arm64-v8a/libc++_shared.so"
         pickFirst "lib/x86/libc++_shared.so"
         pickFirst "lib/x86_64/libc++_shared.so"
-		exclude "**/libjsc.so"
-	}
+    }
 	// applicationVariants are e.g. debug, release
 	applicationVariants.all { variant ->
 		variant.outputs.each { output ->
@@ -248,40 +249,19 @@ android {
 	}
 }
 
-dependencies {
-	implementation project(':@sentry_react-native')
-	implementation project(':react-native-sensors')
-	implementation project(':react-native-reanimated')
-	implementation project(':react-native-webview')
-	implementation project(':@react-native-community_netinfo')
-	implementation project(':react-native-view-shot')
+dependencies {	
 	implementation project(':lottie-react-native')
-	implementation project(':@react-native-community_async-storage')
-	implementation project(':react-native-push-notification')
-	implementation project(':react-native-background-timer')
-	implementation project(':react-native-device-info')
-	implementation project(':react-native-svg')
+
 	implementation project(':react-native-gesture-handler')
-	implementation project(':react-native-screens')
+	
 	implementation 'androidx.multidex:multidex:2.0.0'
 	implementation 'androidx.annotation:annotation:1.1.0'
 	implementation 'androidx.appcompat:appcompat:1.0.0'
 	implementation "com.facebook.react:react-native:+"  // From node_modules
 	implementation 'org.chromium:v8-android:7.8.+'
 
-	implementation project(':react-native-branch')
 	implementation "io.branch.sdk.android:library:4.1.2"
 
-
-	implementation project(':react-native-camera')
-	implementation project(':react-native-share')
-	implementation project(':react-native-i18n')
-	implementation project(':react-native-aes-crypto')
-	implementation project(':react-native-keychain')
-	implementation project(':react-native-os')
-	implementation project(':react-native-randombytes')
-	implementation project(':react-native-fs')
-	implementation project(':react-native-vector-icons')
 	implementation 'com.mixpanel.android:mixpanel-android:5.+'
 
 	androidTestImplementation('com.wix:detox:+') { transitive = true }
