@@ -207,8 +207,8 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
-			Analytics.disable();
 			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
+			Analytics.disable();
 			this.continue();
 		});
 	};
