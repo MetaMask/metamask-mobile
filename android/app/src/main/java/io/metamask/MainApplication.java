@@ -4,21 +4,11 @@ import com.facebook.react.ReactApplication;
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactInstanceManager;
-import io.sentry.RNSentryPackage;
-import com.sensors.RNSensorsPackage;
-import com.swmansion.reanimated.ReanimatedPackage;
-import com.reactnativecommunity.webview.RNCWebViewPackage;
-import com.reactnativecommunity.netinfo.NetInfoPackage;
-import fr.greweb.reactnativeviewshot.RNViewShotPackage;
 import com.airbnb.android.react.lottie.LottiePackage;
-import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
-import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
-import com.ocetnik.timer.BackgroundTimerPackage;
-import com.learnium.RNDeviceInfo.RNDeviceInfo;
-import com.horcrux.svg.SvgPackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 import io.branch.rnbranch.RNBranchPackage;
 import io.branch.rnbranch.RNBranchModule;
+
 import io.metamask.nativeModules.RCTAnalyticsPackage;
 import io.metamask.nativeModules.PreventScreenshotPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -31,6 +21,7 @@ import com.rnfs.RNFSPackage;
 import org.reactnative.camera.RNCameraPackage;
 import com.tectiv3.aes.RCTAesPackage;
 import com.swmansion.rnscreens.RNScreensPackage;
+
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
@@ -81,8 +72,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
         packages.add(new RCTAnalyticsPackage());
 				packages.add(new PreventScreenshotPackage());
 
-				return packages;
-			);
+			return packages;
 		}
 
 		@Override
@@ -99,9 +89,9 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		SoLoader.init(this, /* native exopackage */ false);
 
 		RNBranchModule.getAutoInstance(this);
-		SoLoader.init(this, /* native exopackage */ false);
 		initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
     }
     /**
@@ -132,7 +122,8 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
     		} catch (InvocationTargetException e) {
     		  e.printStackTrace();
     		}
-    	}
+		}
+	}
 
 	@Override
 	public String getFileProviderAuthority() {
