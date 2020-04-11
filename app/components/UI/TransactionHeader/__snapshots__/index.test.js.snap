@@ -106,7 +106,7 @@ exports[`TransactionHeader should render correctly 1`] = `
         }
       }
     >
-      Ethereum
+      Ropsten
     </Text>
   </View>
   <View
