@@ -107,10 +107,6 @@ class SignatureRequest extends PureComponent {
 		 */
 		children: PropTypes.node,
 		/**
-		 * Object containing domain information for the signature request for EIP712
-		 */
-		domain: PropTypes.object,
-		/**
 		 * Object containing current page title and url
 		 */
 		currentPageInformation: PropTypes.object,
@@ -188,7 +184,6 @@ class SignatureRequest extends PureComponent {
 			accounts,
 			selectedAddress,
 			identities,
-			domain,
 			currentPageInformation,
 			type
 		} = this.props;
@@ -218,7 +213,7 @@ class SignatureRequest extends PureComponent {
 							</Text>
 						</View>
 					</View>
-					<TransactionHeader domain={domain} currentPageInformation={currentPageInformation} type={type} />
+					<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
 					<View style={styles.signingInformation}>
 						{showWarning ? (
 							this.showWarning()
