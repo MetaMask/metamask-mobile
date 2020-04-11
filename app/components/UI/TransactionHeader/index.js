@@ -122,12 +122,13 @@ class TransactionHeader extends PureComponent {
 			currentPageInformation: { url }
 		} = this.props;
 		const title = getHost(url);
-		const networkStatusIndicatorColor =
-			this.getTrackingParams().status[this.getTrackingParams().network] === 'ok' ? 'green' : 'red';
+		const network = this.getTrackingParams().network;
+		const networkStatusIndicatorColor = this.getTrackingParams().status[network] === 'ok' ? 'green' : 'red';
 		const networkStatusIndicator = (
 			<View style={[styles.networkStatusIndicator, { backgroundColor: networkStatusIndicatorColor }]} />
 		);
 		const secureIcon = getUrlObj(url).protocol === 'https:' ? lockIcon : warningIcon;
+		const capitalizedNetwork = network.charAt(0).toUpperCase() + network.slice(1);
 		return (
 			<View style={styles.transactionHeader}>
 				<WebsiteIcon style={styles.domainLogo} viewStyle={styles.assetLogo} title={title} url={url} />
@@ -137,7 +138,7 @@ class TransactionHeader extends PureComponent {
 				</View>
 				<View style={styles.networkContainer}>
 					{networkStatusIndicator}
-					<Text style={styles.network}>Ethereum</Text>
+					<Text style={styles.network}>{capitalizedNetwork}</Text>
 				</View>
 				<View style={styles.functionNameWrapper}>
 					<Text style={styles.functionName}>{'functionName'}</Text>
