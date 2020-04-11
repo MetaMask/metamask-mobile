@@ -1,0 +1,142 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionHeader should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "justifyContent": "center",
+      "margin": 10,
+    }
+  }
+>
+  <WebsiteIcon
+    style={
+      Object {
+        "borderRadius": 32,
+        "height": 64,
+        "marginTop": 15,
+        "width": 64,
+      }
+    }
+    title="url"
+    url="url"
+    viewStyle={
+      Object {
+        "alignItems": "center",
+        "borderRadius": 10,
+        "justifyContent": "center",
+      }
+    }
+  />
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginTop": 10,
+      }
+    }
+  >
+    <Image
+      resizeMethod="resize"
+      resizeMode="contain"
+      source={
+        Object {
+          "testUri": "../../../app/images/warning-icon.png",
+        }
+      }
+      style={
+        Object {
+          "height": 15,
+          "marginBottom": 3,
+          "marginRight": 5,
+          "width": 15,
+        }
+      }
+    />
+    <Text
+      style={
+        Object {
+          "color": "#000000",
+          "fontFamily": "CircularStd-Medium",
+          "fontSize": 14,
+          "fontWeight": "600",
+          "textAlign": "center",
+        }
+      }
+    >
+      url
+    </Text>
+  </View>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginBottom": 12,
+      }
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "borderRadius": 2.5,
+            "height": 5,
+            "width": 5,
+          },
+          Object {
+            "backgroundColor": "green",
+          },
+        ]
+      }
+    />
+    <Text
+      style={
+        Object {
+          "color": "#000000",
+          "fontFamily": "CircularStd-Medium",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "padding": 5,
+          "textAlign": "center",
+        }
+      }
+    >
+      Ethereum
+    </Text>
+  </View>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "borderColor": "#d6d9dc",
+          "borderRadius": 10,
+          "borderWidth": 1,
+          "fontFamily": "CircularStd-Medium",
+          "fontSize": 10,
+          "fontWeight": "300",
+          "height": 20,
+          "paddingLeft": 6,
+          "paddingRight": 6,
+          "paddingTop": 3,
+          "textAlign": "center",
+        }
+      }
+    >
+      functionName
+    </Text>
+  </View>
+</View>
+`;
