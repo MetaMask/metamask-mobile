@@ -208,22 +208,22 @@ class OptinMetrics extends PureComponent {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
 			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
-			Analytics.disableInstance();
+			Analytics.disable();
+			this.continue();
 		});
-		this.continue();
 	};
 
 	/**
 	 * Callback on press confirm
 	 */
 	onConfirm = async () => {
-		InteractionManager.runAfterInteractions(async () => {
+		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
+		InteractionManager.runAfterInteractions(() => {
 			if (this.props.events && this.props.events.length) {
 				this.props.events.forEach(e => Analytics.trackEvent(e));
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
 		});
 		this.continue();
 	};
