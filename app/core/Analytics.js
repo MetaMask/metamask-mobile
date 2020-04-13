@@ -62,6 +62,15 @@ class Analytics {
 	};
 
 	/**
+	 * Disable analytics for the current class instance
+	 * It will block sending events internally but it will keep RCTAnalytics enabled until app reload
+	 */
+	disableInstance = () => {
+		this.enabled = false;
+		this._notify();
+	};
+
+	/**
 	 * Subscribe for enabled changes
 	 *
 	 * @param listener - Callback to add to listeners
@@ -213,6 +222,9 @@ export default {
 	},
 	disable() {
 		return instance && instance.disable();
+	},
+	disableInstance() {
+		return instance && instance.disableInstance();
 	},
 	getEnabled() {
 		return instance && instance.enabled;
