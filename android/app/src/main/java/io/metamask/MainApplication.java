@@ -22,6 +22,7 @@ import org.reactnative.camera.RNCameraPackage;
 import com.tectiv3.aes.RCTAesPackage;
 import com.swmansion.rnscreens.RNScreensPackage;
 
+import io.metamask.nativeModules.RCTAnalyticsPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
