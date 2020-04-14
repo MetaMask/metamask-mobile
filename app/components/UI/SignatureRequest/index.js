@@ -5,6 +5,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import ActionView from '../ActionView';
+import AccountInfoCard from '../AccountInfoCard';
 import TransactionHeader from '../TransactionHeader';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
@@ -160,7 +161,10 @@ class SignatureRequest extends PureComponent {
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
 				>
-					<View style={styles.children}>{children}</View>
+					<View style={styles.children}>
+						{children}
+						<AccountInfoCard />
+					</View>
 				</ActionView>
 			</View>
 		);
