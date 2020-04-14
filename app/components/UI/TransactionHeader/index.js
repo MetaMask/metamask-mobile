@@ -101,6 +101,11 @@ class TransactionHeader extends PureComponent {
 		};
 	};
 
+	/**
+	 * Returns a small circular indicator, red if the current selected network is offline, green if it's online.
+	 *=
+	 * @return {element} - JSX view element
+	 */
 	renderNetworkStatusIndicator = () => {
 		const network = this.getTrackingParams().network;
 		const networkStatusIndicatorColor = this.getTrackingParams().status[network] === 'ok' ? 'green' : 'red';
@@ -110,6 +115,11 @@ class TransactionHeader extends PureComponent {
 		return networkStatusIndicator;
 	};
 
+	/**
+	 * Returns a secure icon next to the dApp URL. Lock for https protocol, warning sign otherwise.
+	 *=
+	 * @return {element} - JSX image element
+	 */
 	renderSecureIcon = () => {
 		const { url } = this.props.currentPageInformation;
 		const secureIcon = getUrlObj(url).protocol === 'https:' ? lockIcon : warningIcon;
