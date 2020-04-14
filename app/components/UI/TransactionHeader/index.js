@@ -101,16 +101,20 @@ class TransactionHeader extends PureComponent {
 		};
 	};
 
-	render() {
-		const {
-			currentPageInformation: { url }
-		} = this.props;
-		const title = getHost(url);
+	renderNetworkStatusIndicator = () => {
 		const network = this.getTrackingParams().network;
 		const networkStatusIndicatorColor = this.getTrackingParams().status[network] === 'ok' ? 'green' : 'red';
 		const networkStatusIndicator = (
 			<View style={[styles.networkStatusIndicator, { backgroundColor: networkStatusIndicatorColor }]} />
 		);
+		return networkStatusIndicator;
+	};
+
+	render() {
+		const {
+			currentPageInformation: { url }
+		} = this.props;
+		const title = getHost(url);
 		const secureIcon = getUrlObj(url).protocol === 'https:' ? lockIcon : warningIcon;
 		return (
 			<View style={styles.transactionHeader}>
@@ -120,8 +124,8 @@ class TransactionHeader extends PureComponent {
 					<Text style={styles.domainUrl}>{title}</Text>
 				</View>
 				<View style={styles.networkContainer}>
-					{networkStatusIndicator}
-					<Text style={styles.network}>{network}</Text>
+					{this.renderNetworkStatusIndicator()}
+					<Text style={styles.network}>{this.getTrackingParams().network}</Text>
 				</View>
 			</View>
 		);
