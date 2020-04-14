@@ -5,7 +5,7 @@ exports[`CollectibleImage should render correctly 1`] = `
   style={
     Array [
       Object {
-        "borderRadius": 25,
+        "borderRadius": 10,
         "height": 50,
         "overflow": "hidden",
         "width": 50,
