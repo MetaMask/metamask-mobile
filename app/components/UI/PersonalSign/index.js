@@ -32,14 +32,6 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: colors.fontPrimary,
 		...fontStyles.normal
-	},
-	title: {
-		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 20,
-		color: colors.fontPrimary,
-		...fontStyles.bold
 	}
 });
 
@@ -100,11 +92,6 @@ export default class PersonalSign extends PureComponent {
 		const { messageParams, currentPageInformation } = this.props;
 		return (
 			<View style={styles.root}>
-				<View style={styles.titleWrapper}>
-					<Text style={styles.title} onPress={this.cancelSignature}>
-						{strings('signature_request.title')}
-					</Text>
-				</View>
 				<SignatureRequest
 					navigation={this.props.navigation}
 					onCancel={this.cancelSignature}
