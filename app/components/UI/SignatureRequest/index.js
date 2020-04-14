@@ -5,14 +5,13 @@ import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import ActionView from '../ActionView';
+import TransactionHeader from '../TransactionHeader';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { renderFromWei } from '../../../util/number';
 import Identicon from '../Identicon';
-import WebsiteIcon from '../WebsiteIcon';
 import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
-import { getHost } from '../../../util/browser';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -66,39 +65,11 @@ const styles = StyleSheet.create({
 		padding: 5,
 		textAlign: 'center'
 	},
-	domainText: {
-		...fontStyles.normal,
-		textAlign: 'center',
-		fontSize: 12,
-		padding: 5,
-		color: colors.black
-	},
-	domainTitle: {
-		...fontStyles.bold,
-		textAlign: 'center',
-		fontSize: 16,
-		padding: 5,
-		color: colors.black
-	},
 	children: {
 		flex: 1,
 		borderTopColor: colors.grey200,
 		borderTopWidth: 1,
 		height: '100%'
-	},
-	domainLogo: {
-		marginTop: 15,
-		width: 64,
-		height: 64,
-		borderRadius: 32
-	},
-	assetLogo: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 10
-	},
-	domainWrapper: {
-		margin: 10
 	}
 });
 
@@ -136,10 +107,6 @@ class SignatureRequest extends PureComponent {
 		 */
 		children: PropTypes.node,
 		/**
-		 * Object containing domain information for the signature request for EIP712
-		 */
-		domain: PropTypes.object,
-		/**
 		 * Object containing current page title and url
 		 */
 		currentPageInformation: PropTypes.object,
@@ -148,31 +115,13 @@ class SignatureRequest extends PureComponent {
 		 */
 		type: PropTypes.string,
 		/**
-		 * String representing the selected the selected network
+		 * String representing the selected network
 		 */
 		networkType: PropTypes.string,
 		/**
 		 * Whether it should display the warning message
 		 */
 		showWarning: PropTypes.bool
-	};
-
-	renderPageInformation = () => {
-		const {
-			domain,
-			currentPageInformation: { url },
-			currentPageInformation
-		} = this.props;
-		const title = typeof currentPageInformation.title === 'string' ? currentPageInformation.title : getHost(url);
-		const name = domain && typeof domain.name === 'string';
-		return (
-			<View style={styles.domainWrapper}>
-				<WebsiteIcon style={styles.domainLogo} viewStyle={styles.assetLogo} title={title} url={url} />
-				<Text style={styles.domainTitle}>{title}</Text>
-				<Text style={styles.domainText}>{url}</Text>
-				{!!name && <Text style={styles.domainText}>{name}</Text>}
-			</View>
-		);
 	};
 
 	/**
@@ -229,7 +178,15 @@ class SignatureRequest extends PureComponent {
 	);
 
 	render() {
-		const { children, showWarning, accounts, selectedAddress, identities } = this.props;
+		const {
+			children,
+			showWarning,
+			accounts,
+			selectedAddress,
+			identities,
+			currentPageInformation,
+			type
+		} = this.props;
 		const balance = renderFromWei(accounts[selectedAddress].balance);
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		return (
@@ -256,7 +213,7 @@ class SignatureRequest extends PureComponent {
 							</Text>
 						</View>
 					</View>
-					{this.renderPageInformation()}
+					<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
 					<View style={styles.signingInformation}>
 						{showWarning ? (
 							this.showWarning()
