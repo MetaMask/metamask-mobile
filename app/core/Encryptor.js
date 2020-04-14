@@ -12,6 +12,7 @@ export default class Encryptor {
 	_generateSalt(byteCount = 32) {
 		const view = new Uint8Array(byteCount);
 		global.crypto.getRandomValues(view);
+		// eslint-disable-next-line no-undef
 		const b64encoded = btoa(String.fromCharCode.apply(null, view));
 		return b64encoded;
 	}
