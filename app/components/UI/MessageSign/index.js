@@ -24,14 +24,6 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		margin: 5,
 		fontSize: 16
-	},
-	title: {
-		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 20,
-		color: colors.fontPrimary,
-		...fontStyles.bold
 	}
 });
 
@@ -92,11 +84,6 @@ export default class MessageSign extends PureComponent {
 		const { messageParams, currentPageInformation, navigation } = this.props;
 		return (
 			<View style={styles.root}>
-				<View style={styles.titleWrapper}>
-					<Text style={styles.title} onPress={this.cancelSignature}>
-						{strings('signature_request.title')}
-					</Text>
-				</View>
 				<SignatureRequest
 					navigation={navigation}
 					onCancel={this.cancelSignature}
