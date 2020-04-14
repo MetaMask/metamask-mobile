@@ -59,24 +59,8 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 12,
 		padding: 5,
-		color: colors.black
-	},
-	functionNameWrapper: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	functionName: {
-		...fontStyles.light,
-		height: 20,
-		borderWidth: 1,
-		borderRadius: 10,
-		paddingTop: 3,
-		paddingLeft: 6,
-		paddingRight: 6,
-		borderColor: colors.grey100,
-		textAlign: 'center',
-		fontSize: 10
+		color: colors.black,
+		textTransform: 'capitalize'
 	}
 });
 
@@ -128,7 +112,6 @@ class TransactionHeader extends PureComponent {
 			<View style={[styles.networkStatusIndicator, { backgroundColor: networkStatusIndicatorColor }]} />
 		);
 		const secureIcon = getUrlObj(url).protocol === 'https:' ? lockIcon : warningIcon;
-		const capitalizedNetwork = network.charAt(0).toUpperCase() + network.slice(1);
 		return (
 			<View style={styles.transactionHeader}>
 				<WebsiteIcon style={styles.domainLogo} viewStyle={styles.assetLogo} title={title} url={url} />
@@ -138,10 +121,7 @@ class TransactionHeader extends PureComponent {
 				</View>
 				<View style={styles.networkContainer}>
 					{networkStatusIndicator}
-					<Text style={styles.network}>{capitalizedNetwork}</Text>
-				</View>
-				<View style={styles.functionNameWrapper}>
-					<Text style={styles.functionName}>{'functionName'}</Text>
+					<Text style={styles.network}>{network}</Text>
 				</View>
 			</View>
 		);
