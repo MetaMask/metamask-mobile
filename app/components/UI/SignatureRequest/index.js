@@ -6,7 +6,6 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import ActionView from '../ActionView';
 import TransactionHeader from '../TransactionHeader';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
@@ -161,9 +160,7 @@ class SignatureRequest extends PureComponent {
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
 				>
-					<View style={styles.children}>
-						<KeyboardAwareScrollView>{children}</KeyboardAwareScrollView>
-					</View>
+					<View style={styles.children}>{children}</View>
 				</ActionView>
 			</View>
 		);
