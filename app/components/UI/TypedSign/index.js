@@ -26,12 +26,6 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontFamily: Device.isIos() ? 'Courier' : 'Roboto'
 	},
-	messageLabelText: {
-		flex: 1,
-		...fontStyles.bold,
-		fontSize: 16,
-		marginBottom: 5
-	},
 	message: {
 		marginLeft: 10
 	},
@@ -148,11 +142,6 @@ export default class TypedSign extends PureComponent {
 		}
 		return (
 			<View style={styles.root}>
-				<View style={styles.titleWrapper}>
-					<Text style={styles.title} onPress={this.cancelSignature}>
-						{strings('signature_request.title')}
-					</Text>
-				</View>
 				<SignatureRequest
 					navigation={this.props.navigation}
 					onCancel={this.cancelSignature}
