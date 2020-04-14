@@ -9,7 +9,7 @@
     "clean:android": "rm -rf android/build",
     "clean:node": "rm -rf node_modules && yarn install",
     "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn install",
-    "lint": "eslint .",
+    "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
     "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
     "format": "prettier '**/*.{js,json}' --write",
     "start:ios": "./scripts/build.sh ios debug",
@@ -63,7 +63,7 @@
     "react-native-level-fs/**/bl": "^0.9.5"
   },
   "dependencies": {
-    "@react-native-community/async-storage": "1.9.0",
+    "@react-native-community/async-storage": "1.2.0",
     "@react-native-community/netinfo": "4.1.5",
     "@react-native-community/viewpager": "^3.3.0",
     "@sentry/integrations": "^5.13.0",
@@ -132,7 +132,7 @@
     "react-native-keyboard-aware-scroll-view": "0.8.0",
     "react-native-keychain": "git+ssh://git@github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f",
     "react-native-level-fs": "3.0.1",
-    "react-native-modal": "9.0.0",
+    "react-native-modal": "^11.5.6",
     "react-native-os": "git+ssh://git@github.com/MetaMask/react-native-os.git#67cbc5787295f36575c64442e7f74b803b3de8dd",
     "react-native-progress": "3.5.0",
     "react-native-push-notification": "git+ssh://git@github.com/MetaMask/react-native-push-notification.git#androidx",
