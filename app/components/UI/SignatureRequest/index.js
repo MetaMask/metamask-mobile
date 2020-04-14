@@ -1,15 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import ActionView from '../ActionView';
 import TransactionHeader from '../TransactionHeader';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { renderFromWei } from '../../../util/number';
-import Identicon from '../Identicon';
-import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
@@ -18,31 +15,8 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1
 	},
-	text: {
-		...fontStyles.normal,
-		fontSize: 16,
-		padding: 5
-	},
-	accountInformation: {
-		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		margin: 20,
-		marginBottom: 40
-	},
-	accountInfoCol: {
-		flex: 1,
-		height: 40
-	},
 	signingInformation: {
 		margin: 10
-	},
-	account: {
-		flex: 1,
-		flexDirection: 'row'
-	},
-	identicon: {
-		padding: 5
 	},
 	warningText: {
 		...fontStyles.normal,
@@ -83,14 +57,6 @@ class SignatureRequest extends PureComponent {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * Map of accounts to information objects including balances
-		 */
-		accounts: PropTypes.object,
-		/**
-		 * List of accounts from the PreferencesController
-		 */
-		identities: PropTypes.object,
-		/**
 		 * Callback triggered when this message signature is rejected
 		 */
 		onCancel: PropTypes.func,
@@ -98,10 +64,6 @@ class SignatureRequest extends PureComponent {
 		 * Callback triggered when this message signature is approved
 		 */
 		onConfirm: PropTypes.func,
-		/**
-		 * A string that represents the selected address
-		 */
-		selectedAddress: PropTypes.string,
 		/**
 		 * Content to display above the action buttons
 		 */
@@ -178,41 +140,10 @@ class SignatureRequest extends PureComponent {
 	);
 
 	render() {
-		const {
-			children,
-			showWarning,
-			accounts,
-			selectedAddress,
-			identities,
-			currentPageInformation,
-			type
-		} = this.props;
-		const balance = renderFromWei(accounts[selectedAddress].balance);
-		const accountLabel = renderAccountName(selectedAddress, identities);
+		const { children, showWarning, currentPageInformation, type } = this.props;
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.header}>
-					<View style={styles.accountInformation}>
-						<View style={styles.accountInfoCol}>
-							<Text>{strings('signature_request.account_title')}</Text>
-							<View style={[styles.account, baseStyles.flexGrow]}>
-								<View style={[styles.identicon]}>
-									<Identicon address={selectedAddress} diameter={20} />
-								</View>
-								<View style={baseStyles.flexGrow}>
-									<Text numberOfLines={1} style={styles.text}>
-										{accountLabel}
-									</Text>
-								</View>
-							</View>
-						</View>
-						<View style={styles.accountInfoCol}>
-							<Text>{strings('signature_request.balance_title')}</Text>
-							<Text style={styles.text}>
-								{balance} {strings('unit.eth')}
-							</Text>
-						</View>
-					</View>
 					<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
 					<View style={styles.signingInformation}>
 						{showWarning ? (
@@ -240,9 +171,6 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
