@@ -103,10 +103,11 @@ exports[`TransactionHeader should render correctly 1`] = `
           "fontWeight": "400",
           "padding": 5,
           "textAlign": "center",
+          "textTransform": "capitalize",
         }
       }
     >
-      Ropsten
+      ropsten
     </Text>
   </View>
 </View>
