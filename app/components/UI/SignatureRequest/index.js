@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
 		textDecorationLine: 'underline'
 	},
 	signText: {
-		...fontStyles.normal,
-		fontSize: 16,
+		...fontStyles.bold,
+		fontSize: 20,
 		padding: 5,
 		textAlign: 'center'
 	},

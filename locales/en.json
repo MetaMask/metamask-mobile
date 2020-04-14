@@ -715,7 +715,7 @@
 		"cancel": "CANCEL",
 		"sign": "SIGN",
 		"sign_requested": "Your signature is being requested",
-		"signing": "You are signing:",
+		"signing": "Sign this message?",
 		"account_title": "Account:",
 		"balance_title": "Balance:",
 		"message": "Message:",
