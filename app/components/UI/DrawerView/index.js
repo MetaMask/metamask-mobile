@@ -590,7 +590,7 @@ class DrawerView extends PureComponent {
 	};
 	handleURL = url => {
 		const handleError = error => {
-			console.log(error);
+			console.warn(error);
 			this.closeSubmitFeedback();
 		};
 		if (USE_EXTERNAL_LINKS) {

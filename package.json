@@ -1,336 +1,302 @@
 {
-  "name": "metamask",
-  "version": "0.2.14",
-  "private": true,
-  "scripts": {
-    "watch": "react-native start",
-    "watch:clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && yarn watch -- --reset-cache",
-    "clean:ios": "rm -rf ios/build",
-    "clean:android": "rm -rf android/build",
-    "clean:node": "rm -rf node_modules && yarn install",
-    "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn install",
-    "lint": "eslint .",
-    "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
-    "format": "prettier '**/*.{js,json}' --write",
-    "start:ios": "./scripts/build.sh ios debug",
-    "start:ios:device": "./scripts/build.sh ios debug --device",
-    "start:android": "./scripts/build.sh android debug",
-    "build:announce": "node ./scripts/metamask-bot-build-announce.js",
-    "build:android:release": "./scripts/build.sh android release",
-    "build:android:pre-release": "./scripts/build.sh android release --pre",
-    "build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
-    "build:ios:release": "./scripts/build.sh ios release",
-    "build:ios:pre-release": "./scripts/build.sh ios release --pre",
-    "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
-    "release:ios": "./scripts/build.sh ios release",
-    "test": "yarn test:unit && yarn test:e2e",
-    "test:unit": "jest ./app/",
-    "test:unit:update": "time jest -u ./app/",
-    "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
-    "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
-    "test:e2e:android": "detox build -c android.emu.debug && detox test -c android.emu.debug",
-    "postinstall": "./scripts/postinstall.sh",
-    "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
-    "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
-    "stacktrace:android": "stack-beautifier sourcemaps/android/index.js.map -t sourcemaps/trace.txt",
-    "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
-    "update-changelog": "./scripts/auto-changelog.sh"
-  },
-  "prettier": {
-    "printWidth": 120,
-    "singleQuote": true,
-    "tabWidth": 4,
-    "useTabs": true
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.js": [
-      "prettier --write",
-      "eslint --ignore-path=.prettierignore",
-      "git add"
-    ],
-    "*.json": [
-      "prettier --write",
-      "git add"
-    ]
-  },
-  "resolutions": {
-    "**/optimist/minimist": "^1.2.5",
-    "react-native-level-fs/**/bl": "^0.9.5"
-  },
-  "dependencies": {
-    "@react-native-community/async-storage": "1.2.0",
-    "@react-native-community/netinfo": "4.1.5",
-    "@react-native-community/viewpager": "^3.3.0",
-    "@sentry/integrations": "^5.13.0",
-    "@sentry/react-native": "^1.3.3",
-    "@tradle/react-native-http": "2.0.1",
-    "@walletconnect/react-native": "1.0.0-beta.37",
-    "asyncstorage-down": "4.2.0",
-    "babel-plugin-transform-inline-environment-variables": "0.4.3",
-    "babel-plugin-transform-remove-console": "6.9.4",
-    "base-64": "0.1.0",
-    "bignumber.js": "8.1.1",
-    "buffer": "5.2.1",
-    "connext": "4.2.5",
-    "content-hash": "2.3.2",
-    "dnode": "1.2.2",
-    "eth-contract-metadata": "1.12.1",
-    "eth-ens-namehash": "2.0.8",
-    "eth-json-rpc-errors": "^2.0.2",
-    "eth-json-rpc-filters": "4.1.1",
-    "eth-json-rpc-infura": "4.0.0",
-    "eth-json-rpc-middleware": "4.3.0",
-    "eth-url-parser": "1.0.2",
-    "ethereumjs-abi": "0.6.6",
-    "ethereumjs-util": "6.1.0",
-    "ethers": "4.0.27",
-    "ethjs-contract": "0.2.3",
-    "ethjs-ens": "2.0.1",
-    "ethjs-query": "0.3.8",
-    "ethjs-unit": "0.1.6",
-    "events": "3.0.0",
-    "fuse.js": "3.4.4",
-    "gaba": "1.10.0",
-    "https-browserify": "0.0.1",
-    "json-rpc-engine": "5.1.5",
-    "json-rpc-middleware-stream": "2.1.1",
-    "lottie-react-native": "git+ssh://git@github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
-    "multihashes": "0.4.14",
-    "number-to-bn": "1.7.0",
-    "obj-multiplex": "1.0.0",
-    "obs-store": "4.0.3",
-    "path": "0.12.7",
-    "pify": "4.0.1",
-    "prop-types": "15.7.2",
-    "pubnub": "4.27.3",
-    "pump": "3.0.0",
-    "qs": "6.7.0",
-    "react": "16.11.0",
-    "react-native": "0.62.1",
-    "react-native-actionsheet": "2.4.2",
-    "react-native-aes-crypto": "git+ssh://git@github.com/MetaMask/react-native-aes.git#b73625d7e1ce711ed3c2fbd795eea2bda5a5e9ad",
-    "react-native-animated-fox": "git+ssh://git@github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9",
-    "react-native-background-timer": "2.1.1",
-    "react-native-branch": "git+ssh://git@github.com/MetaMask/react-native-branch-deep-linking-attribution.git#6abb7e34a8f77f624013bb148aed87f50e72bf8f",
-    "react-native-browser-polyfill": "0.1.2",
-    "react-native-button": "git+ssh://git@github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7",
-    "react-native-camera": "2.10.0",
-    "react-native-crypto": "2.1.2",
-    "react-native-device-info": "3.1.4",
-    "react-native-elevated-view": "0.0.6",
-    "react-native-emoji": "1.3.1",
-    "react-native-fade-in-image": "1.4.1",
-    "react-native-flash-message": "0.1.11",
-    "react-native-fs": "git+ssh://git@github.com/MetaMask/react-native-fs.git#androidx",
-    "react-native-gesture-handler": "git+ssh://git@github.com/MetaMask/react-native-gesture-handler.git#android-x-updated",
-    "react-native-i18n": "2.0.15",
-    "react-native-keyboard-aware-scroll-view": "0.8.0",
-    "react-native-keychain": "git+ssh://git@github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f",
-    "react-native-level-fs": "3.0.1",
-    "react-native-modal": "9.0.0",
-    "react-native-os": "git+ssh://git@github.com/MetaMask/react-native-os.git#67cbc5787295f36575c64442e7f74b803b3de8dd",
-    "react-native-progress": "3.5.0",
-    "react-native-push-notification": "git+ssh://git@github.com/MetaMask/react-native-push-notification.git#androidx",
-    "react-native-qrcode-svg": "5.1.2",
-    "react-native-randombytes": "^3.5.3",
-    "react-native-reanimated": "1.3.0",
-    "react-native-screens": "1.0.0-alpha.23",
-    "react-native-scrollable-tab-view": "^1.0.0",
-    "react-native-search-api": "git+ssh://git@github.com/MetaMask/react-native-search-api.git#270512b6641bfaba155ca8b31aa2e1d8b5cf0ec6",
-    "react-native-sensors": "5.3.0",
-    "react-native-share": "git+ssh://git@github.com/MetaMask/react-native-share.git#androidx",
-    "react-native-svg": "9.13.3",
-    "react-native-swipe-gestures": "1.0.3",
-    "react-native-tcp": "git+ssh://git@github.com/MetaMask/react-native-tcp.git#961328b678b01427b0d2cd7ddb506f620a5418e1",
-    "react-native-v8": "0.59.10-patch.4",
-    "react-native-vector-icons": "6.4.2",
-    "react-native-view-shot": "git+ssh://git@github.com/MetaMask/react-native-view-shot.git#androidx",
-    "react-native-webview": "git+ssh://git@github.com/MetaMask/react-native-webview.git#408df176e6fe7c00aa05c2fddb4054968330e8a1",
-    "react-navigation": "4.0.10",
-    "react-navigation-drawer": "1.4.0",
-    "react-navigation-stack": "1.7.3",
-    "react-navigation-tabs": "2.5.5",
-    "react-redux": "5.1.1",
-    "readable-stream": "1.0.33",
-    "redux": "4.0.1",
-    "redux-mock-store": "1.5.3",
-    "redux-persist": "5.10.0",
-    "stream-browserify": "1.0.0",
-    "through2": "3.0.1",
-    "url": "0.11.0",
-    "url-parse": "1.4.4",
-    "valid-url": "1.0.9",
-    "vm-browserify": "0.0.4",
-    "zxcvbn": "4.4.2"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.9.0",
-    "@babel/runtime": "^7.9.2",
-    "@react-native-community/eslint-config": "^1.0.0",
-    "assert": "1.4.1",
-    "babel-core": "7.0.0-bridge.0",
-    "babel-eslint": "10.0.3",
-    "babel-jest": "^25.2.6",
-    "concat-cli": "4.0.0",
-    "detox": "14.7.0",
-    "enzyme": "3.9.0",
-    "enzyme-adapter-react-16": "1.10.0",
-    "enzyme-to-json": "3.3.5",
-    "eslint": "^6.8.0",
-    "eslint-config-react-native": "4.0.0",
-    "eslint-plugin-import": "2.18.2",
-    "eslint-plugin-react": "7.16.0",
-    "eslint-plugin-react-native": "3.7.0",
-    "husky": "1.3.1",
-    "jest": "^25.2.7",
-    "jest-serializer": "24.4.0",
-    "lint-staged": "8.1.5",
-    "metamask-mobile-provider": "^1.0.2",
-    "metro": "^0.59.0",
-    "metro-react-native-babel-preset": "^0.59.0",
-    "octonode": "0.9.5",
-    "patch-package": "6.2.0",
-    "prettier": "1.16.4",
-    "react-dom": "16.8.4",
-    "react-native-cli": "2.0.1",
-    "react-test-renderer": "16.11.0",
-    "regenerator-runtime": "0.13.1",
-    "request-promise": "4.2.4",
-    "rn-nodeify": "10.0.1",
-    "stack-beautifier": "1.0.2"
-  },
-  "eslintConfig": {
-    "parser": "babel-eslint",
-    "extends": [
-      "react-native"
-    ],
-    "globals": {
-      "process": true,
-      "beforeAll": true,
-      "afterAll": true,
-      "describe": true,
-      "expect": true,
-      "it": true,
-      "jasmine": true,
-      "jest": true,
-      "spyOn": true,
-      "element": true,
-      "by": true,
-      "beforeEach": true,
-      "device": true,
-      "waitFor": true,
-      "__DEV__": true
-    },
-    "rules": {
-      "class-methods-use-this": 0,
-      "eol-last": 1,
-      "import/no-named-as-default": 0,
-      "no-invalid-this": 0,
-      "no-new": 0,
-      "react/jsx-handler-names": 0,
-      "react/no-did-mount-set-state": 0,
-      "react/prefer-stateless-function": 0,
-      "require-atomic-updates": 0
-    }
-  },
-  "detox": {
-    "configurations": {
-      "ios.sim.debug": {
-        "binaryPath": "ios/build/MetaMask/Build/Products/Debug-iphonesimulator/MetaMask.app",
-        "build": "yarn start:ios",
-        "type": "ios.simulator",
-        "device": {
-          "type": "iPhone 11 Pro"
-        }
-      },
-      "ios.sim.release": {
-        "binaryPath": "ios/build/MetaMask/Build/Products/Release-iphonesimulator/MetaMask.app",
-        "build": "yarn build:ios:release",
-        "type": "ios.simulator",
-        "device": {
-          "type": "iPhone 11 Pro"
-        }
-      },
-      "android.emu.debug": {
-        "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
-        "build": "source .android.env && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..",
-        "type": "android.emulator",
-        "device": {
-          "avdName": "Pixel_3_API_29"
-        }
-      },
-      "android.emu.release": {
-        "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
-        "build": "source .android.env && cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..",
-        "type": "android.emulator",
-        "device": {
-          "avdName": "Pixel_3_API_29"
-        }
-      }
-    },
-    "runner-config": "e2e/config.json",
-    "test-runner": "jest"
-  },
-  "jest": {
-    "preset": "react-native",
-    "setupFiles": [
-      "<rootDir>/app/util/testSetup.js"
-    ],
-    "transform": {
-      "^.+\\.js$": "<rootDir>jest.preprocessor.js"
-    },
-    "transformIgnorePatterns": [
-      "node_modules/(?!(jest-)?react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry)"
-    ],
-    "snapshotSerializers": [
-      "enzyme-to-json/serializer"
-    ],
-    "collectCoverage": false,
-    "collectCoverageFrom": [
-      "<rootDir>/app/**/*.{js,jsx}",
-      "!<rootDir>/node_modules/",
-      "!<rootDir>/app/util/*.{js,jsx}",
-      "!<rootDir>/app/entry*.js"
-    ]
-  },
-  "react-native": {
-    "crypto": "react-native-crypto",
-    "_stream_transform": "readable-stream/transform",
-    "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
-    "_stream_duplex": "readable-stream/duplex",
-    "_stream_passthrough": "readable-stream/passthrough",
-    "stream": "stream-browserify",
-    "http": "@tradle/react-native-http",
-    "https": "https-browserify",
-    "vm": "vm-browserify",
-    "os": "react-native-os",
-    "net": "react-native-tcp",
-    "fs": "react-native-level-fs"
-  },
-  "browser": {
-    "crypto": "react-native-crypto",
-    "_stream_transform": "readable-stream/transform",
-    "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
-    "_stream_duplex": "readable-stream/duplex",
-    "_stream_passthrough": "readable-stream/passthrough",
-    "stream": "stream-browserify",
-    "http": "@tradle/react-native-http",
-    "https": "https-browserify",
-    "vm": "vm-browserify",
-    "os": "react-native-os",
-    "net": "react-native-tcp",
-    "fs": "react-native-level-fs"
-  },
-  "rnpm": {
-    "assets": [
-      "./app/fonts"
-    ]
-  }
+	"name": "metamask",
+	"version": "0.2.14",
+	"private": true,
+	"scripts": {
+		"watch": "react-native start",
+		"watch:clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && yarn watch -- --reset-cache",
+		"clean:ios": "rm -rf ios/build",
+		"clean:android": "rm -rf android/build",
+		"clean:node": "rm -rf node_modules && yarn install",
+		"clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn install",
+		"lint": "eslint '**/*.js' --ignore-path=.prettierignore",
+		"lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
+		"format": "prettier '**/*.{js,json}' --write",
+		"start:ios": "./scripts/build.sh ios debug",
+		"start:ios:device": "./scripts/build.sh ios debug --device",
+		"start:android": "./scripts/build.sh android debug",
+		"build:announce": "node ./scripts/metamask-bot-build-announce.js",
+		"build:android:release": "./scripts/build.sh android release",
+		"build:android:pre-release": "./scripts/build.sh android release --pre",
+		"build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
+		"build:ios:release": "./scripts/build.sh ios release",
+		"build:ios:pre-release": "./scripts/build.sh ios release --pre",
+		"release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
+		"release:ios": "./scripts/build.sh ios release",
+		"test": "yarn test:unit && yarn test:e2e",
+		"test:unit": "jest ./app/",
+		"test:unit:update": "time jest -u ./app/",
+		"test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
+		"test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
+		"test:e2e:android": "detox build -c android.emu.debug && detox test -c android.emu.debug",
+		"postinstall": "./scripts/postinstall.sh",
+		"sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
+		"sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
+		"stacktrace:android": "stack-beautifier sourcemaps/android/index.js.map -t sourcemaps/trace.txt",
+		"stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
+		"update-changelog": "./scripts/auto-changelog.sh"
+	},
+	"prettier": {
+		"printWidth": 120,
+		"singleQuote": true,
+		"tabWidth": 4,
+		"useTabs": true
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"lint-staged": {
+		"*.js": [
+			"prettier --write",
+			"eslint --ignore-path=.prettierignore",
+			"git add"
+		],
+		"*.json": [
+			"prettier --write",
+			"git add"
+		]
+	},
+	"resolutions": {
+		"**/optimist/minimist": "^1.2.5",
+		"react-native-level-fs/**/bl": "^0.9.5"
+	},
+	"dependencies": {
+		"@react-native-community/async-storage": "1.2.0",
+		"@react-native-community/netinfo": "4.1.5",
+		"@react-native-community/viewpager": "^3.3.0",
+		"@sentry/integrations": "^5.13.0",
+		"@sentry/react-native": "^1.3.3",
+		"@tradle/react-native-http": "2.0.1",
+		"@walletconnect/react-native": "1.0.0-beta.37",
+		"asyncstorage-down": "4.2.0",
+		"babel-plugin-transform-inline-environment-variables": "0.4.3",
+		"babel-plugin-transform-remove-console": "6.9.4",
+		"base-64": "0.1.0",
+		"bignumber.js": "8.1.1",
+		"buffer": "5.2.1",
+		"connext": "4.2.5",
+		"content-hash": "2.3.2",
+		"dnode": "1.2.2",
+		"eth-contract-metadata": "1.12.1",
+		"eth-ens-namehash": "2.0.8",
+		"eth-json-rpc-errors": "^2.0.2",
+		"eth-json-rpc-filters": "4.1.1",
+		"eth-json-rpc-infura": "4.0.0",
+		"eth-json-rpc-middleware": "4.3.0",
+		"eth-url-parser": "1.0.2",
+		"ethereumjs-abi": "0.6.6",
+		"ethereumjs-util": "6.1.0",
+		"ethers": "4.0.27",
+		"ethjs-contract": "0.2.3",
+		"ethjs-ens": "2.0.1",
+		"ethjs-query": "0.3.8",
+		"ethjs-unit": "0.1.6",
+		"events": "3.0.0",
+		"fuse.js": "3.4.4",
+		"gaba": "1.10.0",
+		"https-browserify": "0.0.1",
+		"json-rpc-engine": "5.1.5",
+		"json-rpc-middleware-stream": "2.1.1",
+		"lottie-react-native": "git+ssh://git@github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
+		"multihashes": "0.4.14",
+		"number-to-bn": "1.7.0",
+		"obj-multiplex": "1.0.0",
+		"obs-store": "4.0.3",
+		"path": "0.12.7",
+		"pify": "4.0.1",
+		"prop-types": "15.7.2",
+		"pubnub": "4.27.3",
+		"pump": "3.0.0",
+		"qs": "6.7.0",
+		"react": "16.11.0",
+		"react-native": "0.62.1",
+		"react-native-actionsheet": "2.4.2",
+		"react-native-aes-crypto": "git+ssh://git@github.com/MetaMask/react-native-aes.git#b73625d7e1ce711ed3c2fbd795eea2bda5a5e9ad",
+		"react-native-animated-fox": "git+ssh://git@github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9",
+		"react-native-background-timer": "2.1.1",
+		"react-native-branch": "git+ssh://git@github.com/MetaMask/react-native-branch-deep-linking-attribution.git#6abb7e34a8f77f624013bb148aed87f50e72bf8f",
+		"react-native-browser-polyfill": "0.1.2",
+		"react-native-button": "git+ssh://git@github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7",
+		"react-native-camera": "2.10.0",
+		"react-native-crypto": "2.1.2",
+		"react-native-device-info": "3.1.4",
+		"react-native-elevated-view": "0.0.6",
+		"react-native-emoji": "1.3.1",
+		"react-native-fade-in-image": "1.4.1",
+		"react-native-flash-message": "0.1.11",
+		"react-native-fs": "git+ssh://git@github.com/MetaMask/react-native-fs.git#androidx",
+		"react-native-gesture-handler": "git+ssh://git@github.com/MetaMask/react-native-gesture-handler.git#android-x-updated",
+		"react-native-i18n": "2.0.15",
+		"react-native-keyboard-aware-scroll-view": "0.8.0",
+		"react-native-keychain": "git+ssh://git@github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f",
+		"react-native-level-fs": "3.0.1",
+		"react-native-modal": "9.0.0",
+		"react-native-os": "git+ssh://git@github.com/MetaMask/react-native-os.git#67cbc5787295f36575c64442e7f74b803b3de8dd",
+		"react-native-progress": "3.5.0",
+		"react-native-push-notification": "git+ssh://git@github.com/MetaMask/react-native-push-notification.git#androidx",
+		"react-native-qrcode-svg": "5.1.2",
+		"react-native-randombytes": "^3.5.3",
+		"react-native-reanimated": "1.3.0",
+		"react-native-screens": "1.0.0-alpha.23",
+		"react-native-scrollable-tab-view": "^1.0.0",
+		"react-native-search-api": "git+ssh://git@github.com/MetaMask/react-native-search-api.git#270512b6641bfaba155ca8b31aa2e1d8b5cf0ec6",
+		"react-native-sensors": "5.3.0",
+		"react-native-share": "git+ssh://git@github.com/MetaMask/react-native-share.git#androidx",
+		"react-native-svg": "9.13.3",
+		"react-native-swipe-gestures": "1.0.3",
+		"react-native-tcp": "git+ssh://git@github.com/MetaMask/react-native-tcp.git#961328b678b01427b0d2cd7ddb506f620a5418e1",
+		"react-native-v8": "0.59.10-patch.4",
+		"react-native-vector-icons": "6.4.2",
+		"react-native-view-shot": "git+ssh://git@github.com/MetaMask/react-native-view-shot.git#androidx",
+		"react-native-webview": "git+ssh://git@github.com/MetaMask/react-native-webview.git#408df176e6fe7c00aa05c2fddb4054968330e8a1",
+		"react-navigation": "4.0.10",
+		"react-navigation-drawer": "1.4.0",
+		"react-navigation-stack": "1.7.3",
+		"react-navigation-tabs": "2.5.5",
+		"react-redux": "5.1.1",
+		"readable-stream": "1.0.33",
+		"redux": "4.0.1",
+		"redux-mock-store": "1.5.3",
+		"redux-persist": "5.10.0",
+		"stream-browserify": "1.0.0",
+		"through2": "3.0.1",
+		"url": "0.11.0",
+		"url-parse": "1.4.4",
+		"valid-url": "1.0.9",
+		"vm-browserify": "0.0.4",
+		"zxcvbn": "4.4.2"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.6.2",
+		"@babel/runtime": "^7.6.2",
+		"@react-native-community/eslint-config": "^0.0.5",
+		"assert": "1.4.1",
+		"babel-core": "7.0.0-bridge.0",
+		"babel-eslint": "10.0.3",
+		"babel-jest": "^25.2.6",
+		"concat-cli": "4.0.0",
+		"detox": "14.7.0",
+		"enzyme": "3.9.0",
+		"enzyme-adapter-react-16": "1.10.0",
+		"enzyme-to-json": "3.3.5",
+		"eslint": "^6.5.1",
+		"eslint-config-react-native": "4.0.0",
+		"eslint-plugin-import": "2.18.2",
+		"eslint-plugin-react": "7.16.0",
+		"eslint-plugin-react-native": "3.7.0",
+		"husky": "1.3.1",
+		"jest": "^25.2.7",
+		"jest-serializer": "24.4.0",
+		"lint-staged": "8.1.5",
+		"metamask-mobile-provider": "^1.0.2",
+		"metro": "^0.59.0",
+		"metro-react-native-babel-preset": "^0.59.0",
+		"octonode": "0.9.5",
+		"patch-package": "6.2.0",
+		"prettier": "1.16.4",
+		"react-dom": "16.8.4",
+		"react-native-cli": "2.0.1",
+		"react-test-renderer": "16.11.0",
+		"regenerator-runtime": "0.13.1",
+		"request-promise": "4.2.4",
+		"rn-nodeify": "10.0.1",
+		"stack-beautifier": "1.0.2"
+	},
+	"detox": {
+		"configurations": {
+			"ios.sim.debug": {
+				"binaryPath": "ios/build/MetaMask/Build/Products/Debug-iphonesimulator/MetaMask.app",
+				"build": "yarn start:ios",
+				"type": "ios.simulator",
+				"device": {
+					"type": "iPhone 11 Pro"
+				}
+			},
+			"ios.sim.release": {
+				"binaryPath": "ios/build/MetaMask/Build/Products/Release-iphonesimulator/MetaMask.app",
+				"build": "yarn build:ios:release",
+				"type": "ios.simulator",
+				"device": {
+					"type": "iPhone 11 Pro"
+				}
+			},
+			"android.emu.debug": {
+				"binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
+				"build": "source .android.env && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..",
+				"type": "android.emulator",
+				"device": {
+					"avdName": "Pixel_3_API_29"
+				}
+			},
+			"android.emu.release": {
+				"binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
+				"build": "source .android.env && cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..",
+				"type": "android.emulator",
+				"device": {
+					"avdName": "Pixel_3_API_29"
+				}
+			}
+		},
+		"runner-config": "e2e/config.json",
+		"test-runner": "jest"
+	},
+	"jest": {
+		"preset": "react-native",
+		"setupFiles": [
+			"<rootDir>/app/util/testSetup.js"
+		],
+		"transform": {
+			"^.+\\.js$": "<rootDir>jest.preprocessor.js"
+		},
+		"transformIgnorePatterns": [
+			"node_modules/(?!(jest-)?react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry)"
+		],
+		"snapshotSerializers": [
+			"enzyme-to-json/serializer"
+		],
+		"collectCoverage": false,
+		"collectCoverageFrom": [
+			"<rootDir>/app/**/*.{js,jsx}",
+			"!<rootDir>/node_modules/",
+			"!<rootDir>/app/util/*.{js,jsx}",
+			"!<rootDir>/app/entry*.js"
+		]
+	},
+	"react-native": {
+		"crypto": "react-native-crypto",
+		"_stream_transform": "readable-stream/transform",
+		"_stream_readable": "readable-stream/readable",
+		"_stream_writable": "readable-stream/writable",
+		"_stream_duplex": "readable-stream/duplex",
+		"_stream_passthrough": "readable-stream/passthrough",
+		"stream": "stream-browserify",
+		"http": "@tradle/react-native-http",
+		"https": "https-browserify",
+		"vm": "vm-browserify",
+		"os": "react-native-os",
+		"net": "react-native-tcp",
+		"fs": "react-native-level-fs"
+	},
+	"browser": {
+		"crypto": "react-native-crypto",
+		"_stream_transform": "readable-stream/transform",
+		"_stream_readable": "readable-stream/readable",
+		"_stream_writable": "readable-stream/writable",
+		"_stream_duplex": "readable-stream/duplex",
+		"_stream_passthrough": "readable-stream/passthrough",
+		"stream": "stream-browserify",
+		"http": "@tradle/react-native-http",
+		"https": "https-browserify",
+		"vm": "vm-browserify",
+		"os": "react-native-os",
+		"net": "react-native-tcp",
+		"fs": "react-native-level-fs"
+	},
+	"rnpm": {
+		"assets": [
+			"./app/fonts"
+		]
+	}
 }
