@@ -8,7 +8,7 @@
     "clean:ios": "rm -rf ios/build",
     "clean:android": "rm -rf android/build",
     "clean:node": "rm -rf node_modules && yarn install",
-    "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn install",
+    "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn install && (cd ios/ && pod install && cd ..)",
     "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
     "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
     "format": "prettier '**/*.{js,json}' --write",
