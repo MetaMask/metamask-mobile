@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
-import { fontStyles, baseStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { renderFromWei } from '../../../util/number';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
@@ -9,28 +9,46 @@ import { connect } from 'react-redux';
 import { renderAccountName } from '../../../util/address';
 
 const styles = StyleSheet.create({
-	text: {
-		...fontStyles.normal,
-		fontSize: 16,
-		padding: 5
+	AccountInfoCard: {
+		flex: baseStyles.flexGrow,
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 	accountInformation: {
-		flex: 1,
+		width: '90%',
+		flex: baseStyles.flexGrow,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		margin: 20,
-		marginBottom: 40
+		borderWidth: 1,
+		borderColor: colors.grey200,
+		borderRadius: 10,
+		height: 60,
+		marginTop: 20,
+		marginBottom: 20,
+		paddingLeft: 10,
+		paddingRight: 10
 	},
-	accountInfoCol: {
-		flex: 1,
-		height: 40
+	identiconWrapper: {
+		flex: baseStyles.flexGrow,
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: 5,
+		marginRight: 10
 	},
-	account: {
-		flex: 1,
-		flexDirection: 'row'
+	accountInfoRow: {
+		flex: 8,
+		flexDirection: 'column',
+		justifyContent: 'center'
 	},
-	identicon: {
-		padding: 5
+	accountText: {
+		...fontStyles.normal,
+		fontSize: 16,
+		paddingTop: 5
+	},
+	balanceText: {
+		...fontStyles.light,
+		fontSize: 14,
+		paddingBottom: 5
 	}
 });
 
@@ -55,25 +73,19 @@ class AccountInfoCard extends PureComponent {
 		const balance = renderFromWei(accounts[selectedAddress].balance);
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		return (
-			<View style={styles.accountInformation}>
-				<View style={styles.accountInfoCol}>
-					<Text>{strings('signature_request.account_title')}</Text>
-					<View style={[styles.account, baseStyles.flexGrow]}>
-						<View style={[styles.identicon]}>
-							<Identicon address={selectedAddress} diameter={20} />
-						</View>
-						<View style={baseStyles.flexGrow}>
-							<Text numberOfLines={1} style={styles.text}>
-								{accountLabel}
-							</Text>
-						</View>
+			<View style={styles.AccountInfoCard}>
+				<View style={styles.accountInformation}>
+					<View style={styles.identiconWrapper}>
+						<Identicon address={selectedAddress} diameter={35} />
 					</View>
-				</View>
-				<View style={styles.accountInfoCol}>
-					<Text>{strings('signature_request.balance_title')}</Text>
-					<Text style={styles.text}>
-						{balance} {strings('unit.eth')}
-					</Text>
+					<View style={styles.accountInfoRow}>
+						<Text numberOfLines={1} style={styles.accountText}>
+							{accountLabel}
+						</Text>
+						<Text numberOfLines={1} style={styles.balanceText}>
+							{strings('signature_request.balance_title')} {balance} {strings('unit.eth')}
+						</Text>
+					</View>
 				</View>
 			</View>
 		);
