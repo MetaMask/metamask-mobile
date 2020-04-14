@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 		textDecorationLine: 'underline'
 	},
 	signText: {
-		...fontStyles.normal,
+		...fontStyles.bold,
 		fontSize: 16,
 		padding: 5,
 		textAlign: 'center'
