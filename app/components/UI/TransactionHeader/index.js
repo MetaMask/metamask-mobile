@@ -110,17 +110,22 @@ class TransactionHeader extends PureComponent {
 		return networkStatusIndicator;
 	};
 
+	renderSecureIcon = () => {
+		const { url } = this.props.currentPageInformation;
+		const secureIcon = getUrlObj(url).protocol === 'https:' ? lockIcon : warningIcon;
+		return <Image style={styles.secureIcon} source={secureIcon} resizeMode="contain" resizeMethod="resize" />;
+	};
+
 	render() {
 		const {
 			currentPageInformation: { url }
 		} = this.props;
 		const title = getHost(url);
-		const secureIcon = getUrlObj(url).protocol === 'https:' ? lockIcon : warningIcon;
 		return (
 			<View style={styles.transactionHeader}>
 				<WebsiteIcon style={styles.domainLogo} viewStyle={styles.assetLogo} title={title} url={url} />
 				<View style={styles.domanUrlContainer}>
-					<Image style={styles.secureIcon} source={secureIcon} resizeMode="contain" resizeMethod="resize" />
+					{this.renderSecureIcon()}
 					<Text style={styles.domainUrl}>{title}</Text>
 				</View>
 				<View style={styles.networkContainer}>
