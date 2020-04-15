@@ -160,6 +160,7 @@ class SignatureRequest extends PureComponent {
 					confirmText={strings('signature_request.sign')}
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
+					isSigning
 				>
 					<View style={styles.children}>
 						{children}
