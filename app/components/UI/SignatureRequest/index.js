@@ -1,9 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import WebsiteIcon from '../WebsiteIcon';
 import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
 import TransactionHeader from '../TransactionHeader';
@@ -17,6 +20,23 @@ const styles = StyleSheet.create({
 	},
 	signingInformation: {
 		margin: 10
+	},
+	websiteIconWrapper: {
+		...baseStyles.flexGrow,
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: 5,
+		marginRight: 15
+	},
+	domainLogo: {
+		width: 40,
+		height: 40,
+		borderRadius: 32
+	},
+	assetLogo: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: 10
 	},
 	warningText: {
 		...fontStyles.normal,
@@ -39,11 +59,31 @@ const styles = StyleSheet.create({
 		padding: 5,
 		textAlign: 'center'
 	},
-	children: {
+	childrenWrapper: {
 		flex: 1,
-		borderTopColor: colors.grey200,
-		borderTopWidth: 1,
+		flexDirection: 'column',
+		justifyContent: 'space-between',
+		alignItems: 'center',
 		height: '100%'
+	},
+	children: {
+		flex: 2,
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'flex-start',
+		width: '90%',
+		borderWidth: 1,
+		borderColor: colors.grey200,
+		borderRadius: 10,
+		height: 200,
+		marginBottom: 20,
+		paddingVertical: 10,
+		paddingHorizontal: 15
+	},
+	arrowIconWrapper: {
+		...baseStyles.flexGrow,
+		alignSelf: 'center',
+		alignItems: 'flex-end'
 	}
 });
 
@@ -141,6 +181,8 @@ class SignatureRequest extends PureComponent {
 
 	render() {
 		const { children, showWarning, currentPageInformation, type } = this.props;
+		const url = currentPageInformation.url;
+		const title = getHost(url);
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.header}>
@@ -162,8 +204,21 @@ class SignatureRequest extends PureComponent {
 					onConfirmPress={this.onConfirm}
 					isSigning
 				>
-					<View style={styles.children}>
-						{children}
+					<View style={styles.childrenWrapper}>
+						<View style={styles.children}>
+							<View style={styles.websiteIconWrapper}>
+								<WebsiteIcon
+									style={styles.domainLogo}
+									viewStyle={styles.assetLogo}
+									title={title}
+									url={url}
+								/>
+							</View>
+							{children}
+							<View style={styles.arrowIconWrapper}>
+								<Ionicons name={'ios-arrow-forward'} size={20} />
+							</View>
+						</View>
 						<AccountInfoCard />
 					</View>
 				</ActionView>
