@@ -25,7 +25,7 @@ import {
 	renderFiatAddition,
 	toWei
 } from '../../../../util/number';
-import { getTicker, decodeTransferData } from '../../../../util/transactions';
+import { getTicker, decodeTransferData, getTransactionToName } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
 import { prepareTransaction } from '../../../../actions/newTransaction';
@@ -761,20 +761,56 @@ class Confirm extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	network: state.engine.backgroundState.NetworkController.network,
-	showHexData: state.settings.showHexData,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transactionState: state.newTransaction,
-	identities: state.engine.backgroundState.PreferencesController.identities,
-	keyrings: state.engine.backgroundState.KeyringController.keyrings
-});
+const mapStateToProps = (state, ownProps) => {
+	const { transaction: ownPropsTransaction } = ownProps;
+
+	const identities = state.engine.backgroundState.PreferencesController.identities;
+	const network = state.engine.backgroundState.NetworkController.network;
+	let transactionState;
+
+	if (ownPropsTransaction) {
+		const { data, from, gas, gasPrice, to, value, ensRecipient, selectedAsset } = ownPropsTransaction;
+
+		const selectedAddress = state.engine.backgroundState.PreferencesController.selectedAddress;
+		const fromAddress = from || selectedAddress;
+
+		const addressBook = state.engine.backgroundState.AddressBookController.addressBook;
+		const transactionToName = getTransactionToName({
+			addressBook,
+			network,
+			toAddress: to,
+			identities,
+			ensRecipient
+		});
+
+		transactionState = {
+			...ownPropsTransaction,
+			transaction: { data, from: fromAddress, gas, gasPrice, to, value },
+			transactionTo: to,
+			transactionToName,
+			transactionFromName: identities[fromAddress].name,
+			transactionValue: value,
+			selectedAsset: selectedAsset || { isETH: true, symbol: 'ETH' }
+		};
+	} else {
+		transactionState = state.newTransaction;
+	}
+
+	return {
+		accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+		contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+		contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+		currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+		conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+		network,
+		identities,
+		providerType: state.engine.backgroundState.NetworkController.provider.type,
+		showHexData: state.settings.showHexData,
+		ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+		transactionState,
+		keyrings: state.engine.backgroundState.KeyringController.keyrings
+	};
+};
 
 const mapDispatchToProps = dispatch => ({
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction))
