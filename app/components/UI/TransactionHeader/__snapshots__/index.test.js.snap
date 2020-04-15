@@ -39,20 +39,13 @@ exports[`TransactionHeader should render correctly 1`] = `
       }
     }
   >
-    <Image
-      resizeMethod="resize"
-      resizeMode="contain"
-      source={
-        Object {
-          "testUri": "../../../app/images/warning-icon.png",
-        }
-      }
+    <Icon
+      allowFontScaling={false}
+      name="warning"
+      size={15}
       style={
         Object {
-          "height": 15,
-          "marginBottom": 3,
           "marginRight": 5,
-          "width": 15,
         }
       }
     />
