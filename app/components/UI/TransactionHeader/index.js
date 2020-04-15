@@ -78,27 +78,9 @@ class TransactionHeader extends PureComponent {
 		 */
 		networkType: PropTypes.string,
 		/**
-		 * String representing signature type
-		 */
-		type: PropTypes.string,
-		/**
 		 * Object representing the status of infura networks
 		 */
 		networkStatus: PropTypes.object
-	};
-
-	/**
-	 * Returns corresponding tracking params to send
-	 *=
-	 * @return {object} - Object containing network and functionType
-	 */
-	getTrackingParams = () => {
-		const { networkType, networkStatus, type } = this.props;
-		return {
-			network: networkType,
-			status: networkStatus,
-			functionType: type
-		};
 	};
 
 	/**
@@ -107,8 +89,8 @@ class TransactionHeader extends PureComponent {
 	 * @return {element} - JSX view element
 	 */
 	renderNetworkStatusIndicator = () => {
-		const network = this.getTrackingParams().network;
-		const networkStatusIndicatorColor = this.getTrackingParams().status[network] === 'ok' ? 'green' : 'red';
+		const { networkType, networkStatus } = this.props;
+		const networkStatusIndicatorColor = networkStatus[networkType] === 'ok' ? 'green' : 'red';
 		const networkStatusIndicator = (
 			<View style={[styles.networkStatusIndicator, { backgroundColor: networkStatusIndicatorColor }]} />
 		);
@@ -128,7 +110,8 @@ class TransactionHeader extends PureComponent {
 
 	render() {
 		const {
-			currentPageInformation: { url }
+			currentPageInformation: { url },
+			networkType
 		} = this.props;
 		const title = getHost(url);
 		return (
@@ -140,7 +123,7 @@ class TransactionHeader extends PureComponent {
 				</View>
 				<View style={styles.networkContainer}>
 					{this.renderNetworkStatusIndicator()}
-					<Text style={styles.network}>{this.getTrackingParams().network}</Text>
+					<Text style={styles.network}>{networkType}</Text>
 				</View>
 			</View>
 		);
