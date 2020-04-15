@@ -185,7 +185,7 @@ class TransactionDetails extends PureComponent {
 						<View style={baseStyles.flexRow}>
 							<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
 							<EthereumAddress
-								type="medium"
+								type="short"
 								style={styles.detailRowText}
 								address={this.props.transactionDetails.renderFrom}
 							/>
@@ -193,7 +193,7 @@ class TransactionDetails extends PureComponent {
 						<View style={styles.flexEnd}>
 							<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
 							<EthereumAddress
-								type="medium"
+								type="short"
 								style={styles.detailRowText}
 								address={this.props.transactionDetails.renderTo}
 							/>
