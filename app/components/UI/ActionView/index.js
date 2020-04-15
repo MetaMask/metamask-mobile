@@ -43,28 +43,33 @@ export default function ActionView({
 	showConfirmButton,
 	confirmed,
 	confirmDisabled,
-	keyboardShouldPersistTaps = 'never'
+	keyboardShouldPersistTaps = 'never',
+	isSigning = false
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
-			<KeyboardAwareScrollView
-				style={baseStyles.flexGrow}
-				resetScrollToCoords={{ x: 0, y: 0 }}
-				keyboardShouldPersistTaps={keyboardShouldPersistTaps}
-			>
-				<TouchableWithoutFeedback
+			{isSigning ? (
+				<View style={baseStyles.flexGrow}>{children}</View>
+			) : (
+				<KeyboardAwareScrollView
 					style={baseStyles.flexGrow}
-					// eslint-disable-next-line react/jsx-no-bind
-					onPress={() => {
-						if (keyboardShouldPersistTaps === 'handled') {
-							Keyboard.dismiss();
-						}
-						onTouchablePress && onTouchablePress();
-					}}
+					resetScrollToCoords={{ x: 0, y: 0 }}
+					keyboardShouldPersistTaps={keyboardShouldPersistTaps}
 				>
-					{children}
-				</TouchableWithoutFeedback>
-			</KeyboardAwareScrollView>
+					<TouchableWithoutFeedback
+						style={baseStyles.flexGrow}
+						// eslint-disable-next-line react/jsx-no-bind
+						onPress={() => {
+							if (keyboardShouldPersistTaps === 'handled') {
+								Keyboard.dismiss();
+							}
+							onTouchablePress && onTouchablePress();
+						}}
+					>
+						{children}
+					</TouchableWithoutFeedback>
+				</KeyboardAwareScrollView>
+			)}
 			<View style={styles.actionContainer}>
 				{showCancelButton && (
 					<StyledButton
@@ -101,7 +106,8 @@ ActionView.defaultProps = {
 	confirmed: false,
 	cancelTestID: '',
 	showCancelButton: true,
-	showConfirmButton: true
+	showConfirmButton: true,
+	isSigning: false
 };
 
 ActionView.propTypes = {
@@ -161,5 +167,9 @@ ActionView.propTypes = {
 	/**
 	 * Determines if the keyboard should stay visible after a tap
 	 */
-	keyboardShouldPersistTaps: PropTypes.string
+	keyboardShouldPersistTaps: PropTypes.string,
+	/**
+	 * Whether a personal, message or typed sign is taking place
+	 */
+	isSigning: PropTypes.bool
 };
