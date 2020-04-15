@@ -9,11 +9,6 @@ import { connect } from 'react-redux';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
-	AccountInfoCard: {
-		...baseStyles.flexGrow,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
 	accountInformation: {
 		width: '90%',
 		...baseStyles.flexGrow,
@@ -23,10 +18,9 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey200,
 		borderRadius: 10,
 		height: 75,
-		marginTop: 20,
 		marginBottom: 20,
-		paddingLeft: 15,
-		paddingRight: 15
+		paddingVertical: 10,
+		paddingHorizontal: 15
 	},
 	identiconWrapper: {
 		...baseStyles.flexGrow,
@@ -55,7 +49,8 @@ const styles = StyleSheet.create({
 	accountAddress: {
 		flex: 5,
 		...fontStyles.normal,
-		fontSize: 14
+		fontSize: 14,
+		textAlign: 'right'
 	},
 	balanceText: {
 		flex: 1,
@@ -92,25 +87,22 @@ class AccountInfoCard extends PureComponent {
 		const address = renderShortAddress(selectedAddress);
 		const dollarBalance = conversionRate * balance;
 		return (
-			<View style={styles.AccountInfoCard}>
-				<View style={styles.accountInformation}>
-					<View style={styles.identiconWrapper}>
-						<Identicon address={selectedAddress} diameter={40} />
-					</View>
-					<View style={styles.accountInfoRow}>
-						<View style={styles.accountNameAndAddress}>
-							<Text numberOfLines={1} style={styles.accountName}>
-								{accountLabel}
-							</Text>
-							<Text numberOfLines={1} style={styles.accountAddress}>
-								({address})
-							</Text>
-						</View>
-						<Text numberOfLines={1} style={styles.balanceText}>
-							{strings('signature_request.balance_title')} ${dollarBalance} ({balance}{' '}
-							{strings('unit.eth')})
+			<View style={styles.accountInformation}>
+				<View style={styles.identiconWrapper}>
+					<Identicon address={selectedAddress} diameter={40} />
+				</View>
+				<View style={styles.accountInfoRow}>
+					<View style={styles.accountNameAndAddress}>
+						<Text numberOfLines={1} style={styles.accountName}>
+							{accountLabel}
+						</Text>
+						<Text numberOfLines={1} style={styles.accountAddress}>
+							({address})
 						</Text>
 					</View>
+					<Text numberOfLines={1} style={styles.balanceText}>
+						{strings('signature_request.balance_title')} ${dollarBalance} ({balance} {strings('unit.eth')})
+					</Text>
 				</View>
 			</View>
 		);
