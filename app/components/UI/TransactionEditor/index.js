@@ -2,8 +2,8 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
+import ConfirmSend from '../../Views/SendFlow/Confirm';
 import TransactionReview from '../TransactionReview';
-import TransactionEdit from '../TransactionEdit';
 import { isBN, hexToBN, toBN, isDecimal } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
@@ -569,27 +569,11 @@ class TransactionEditor extends PureComponent {
 	};
 
 	render = () => {
-		const { mode, transactionConfirmed } = this.props;
+		const { mode, transactionConfirmed, transaction } = this.props;
+
 		return (
 			<View style={styles.root}>
-				{mode === EDIT && (
-					<TransactionEdit
-						navigation={this.props.navigation}
-						onCancel={this.onCancel}
-						onModeChange={this.props.onModeChange}
-						handleUpdateAmount={this.handleUpdateAmount}
-						handleUpdateData={this.handleUpdateData}
-						handleUpdateFromAddress={this.handleUpdateFromAddress}
-						handleUpdateToAddress={this.handleUpdateToAddress}
-						handleGasFeeSelection={this.handleGasFeeSelection}
-						validateAmount={this.validateAmount}
-						validateGas={this.validateGas}
-						validateToAddress={this.validateToAddress}
-						handleUpdateAsset={this.handleUpdateAsset}
-						checkForAssetAddress={this.checkForAssetAddress}
-						handleUpdateReadableValue={this.handleUpdateReadableValue}
-					/>
-				)}
+				{mode === EDIT && <ConfirmSend transaction={transaction} />}
 				{mode === REVIEW && (
 					<TransactionReview
 						onCancel={this.onCancel}
