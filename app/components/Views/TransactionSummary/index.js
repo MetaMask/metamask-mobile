@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ActivityIndicator, Text } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 
@@ -51,6 +51,14 @@ const styles = StyleSheet.create({
 	loader: {
 		backgroundColor: colors.white,
 		height: 10
+	},
+	transactionFeeLeft: {
+		display: 'flex',
+		flexDirection: 'row'
+	},
+	transactionEditText: {
+		fontSize: 12,
+		marginLeft: 8
 	}
 });
 
@@ -60,7 +68,8 @@ export default class TransactionSummary extends PureComponent {
 		fee: PropTypes.string,
 		totalAmount: PropTypes.string,
 		secondaryTotalAmount: PropTypes.string,
-		gasEstimationReady: PropTypes.bool
+		gasEstimationReady: PropTypes.bool,
+		onEditPress: PropTypes.func
 	};
 
 	renderIfGastEstimationReady = children => {
@@ -75,7 +84,7 @@ export default class TransactionSummary extends PureComponent {
 	};
 
 	render = () => {
-		const { amount, fee, totalAmount, secondaryTotalAmount } = this.props;
+		const { amount, fee, totalAmount, secondaryTotalAmount, gasEstimationReady, onEditPress } = this.props;
 		return (
 			<View style={styles.summaryWrapper}>
 				<View style={styles.summaryRow}>
@@ -83,9 +92,24 @@ export default class TransactionSummary extends PureComponent {
 					<Text style={[styles.textSummary, styles.textSummaryAmount]}>{amount}</Text>
 				</View>
 				<View style={styles.summaryRow}>
-					<Text style={[styles.textSummary, !fee ? styles.textFee : null]}>
-						{!fee ? strings('transaction.transaction_fee_less') : strings('transaction.transaction_fee')}
-					</Text>
+					
+					<View style={styles.transactionFeeLeft}>
+						<Text style={[styles.textSummary, !fee ? styles.textFee : null]}>
+							{!fee ? strings('transaction.transaction_fee_less') : strings('transaction.transaction_fee')}
+						</Text>
+						{!fee
+							? null
+							: <TouchableOpacity
+								disabled={!gasEstimationReady}
+								onPress={onEditPress}
+								key="transactionFeeEdit"
+							>
+								<Text style={[styles.actionText, styles.transactionEditText]}>
+									{strings('transaction.edit')}
+								</Text>
+							</TouchableOpacity>
+						}
+					</View>
 					{!!fee &&
 						this.renderIfGastEstimationReady(
 							<Text style={[styles.textSummary, styles.textSummaryAmount]}>{fee}</Text>
