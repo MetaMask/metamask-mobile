@@ -1,12 +1,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import WebsiteIcon from '../WebsiteIcon';
 import { getHost, getUrlObj } from '../../../util/browser';
-import lockIcon from '../../../images/lock-icon.png';
-import warningIcon from '../../../images/warning-icon.png';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	transactionHeader: {
@@ -32,10 +31,7 @@ const styles = StyleSheet.create({
 		marginTop: 10
 	},
 	secureIcon: {
-		width: 15,
-		height: 15,
-		marginRight: 5,
-		marginBottom: 3
+		marginRight: 5
 	},
 	domainUrl: {
 		...fontStyles.bold,
@@ -104,8 +100,13 @@ class TransactionHeader extends PureComponent {
 	 */
 	renderSecureIcon = () => {
 		const { url } = this.props.currentPageInformation;
-		const secureIcon = getUrlObj(url).protocol === 'https:' ? lockIcon : warningIcon;
-		return <Image style={styles.secureIcon} source={secureIcon} resizeMode="contain" resizeMethod="resize" />;
+		const secureIcon =
+			getUrlObj(url).protocol === 'https:' ? (
+				<FontAwesome name={'lock'} size={15} style={styles.secureIcon} />
+			) : (
+				<FontAwesome name={'warning'} size={15} style={styles.secureIcon} />
+			);
+		return secureIcon;
 	};
 
 	render() {
