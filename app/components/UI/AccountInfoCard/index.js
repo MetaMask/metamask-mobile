@@ -6,49 +6,62 @@ import { renderFromWei } from '../../../util/number';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
-import { renderAccountName } from '../../../util/address';
+import { renderAccountName, renderShortAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	AccountInfoCard: {
-		flex: baseStyles.flexGrow,
+		...baseStyles.flexGrow,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
 	accountInformation: {
 		width: '90%',
-		flex: baseStyles.flexGrow,
+		...baseStyles.flexGrow,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
-		height: 60,
+		height: 75,
 		marginTop: 20,
 		marginBottom: 20,
-		paddingLeft: 10,
-		paddingRight: 10
+		paddingLeft: 15,
+		paddingRight: 15
 	},
 	identiconWrapper: {
-		flex: baseStyles.flexGrow,
+		...baseStyles.flexGrow,
 		justifyContent: 'center',
 		alignItems: 'center',
 		padding: 5,
-		marginRight: 10
+		marginRight: 15
 	},
 	accountInfoRow: {
 		flex: 8,
 		flexDirection: 'column',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		alignItems: 'flex-start'
 	},
-	accountText: {
+	accountNameAndAddress: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'flex-end'
+	},
+	accountName: {
+		flex: 6,
 		...fontStyles.normal,
-		fontSize: 16,
-		paddingTop: 5
+		fontSize: 14
+	},
+	accountAddress: {
+		flex: 5,
+		...fontStyles.normal,
+		fontSize: 14
 	},
 	balanceText: {
+		flex: 1,
 		...fontStyles.light,
-		fontSize: 14,
-		paddingBottom: 5
+		fontSize: 12,
+		alignSelf: 'flex-start'
 	}
 });
 
@@ -65,25 +78,37 @@ class AccountInfoCard extends PureComponent {
 		/**
 		 * A string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * A number that specifies the ETH/USD conversion rate
+		 */
+		conversionRate: PropTypes.number
 	};
 
 	render() {
-		const { accounts, selectedAddress, identities } = this.props;
+		const { accounts, selectedAddress, identities, conversionRate } = this.props;
 		const balance = renderFromWei(accounts[selectedAddress].balance);
 		const accountLabel = renderAccountName(selectedAddress, identities);
+		const address = renderShortAddress(selectedAddress);
+		const dollarBalance = conversionRate * balance;
 		return (
 			<View style={styles.AccountInfoCard}>
 				<View style={styles.accountInformation}>
 					<View style={styles.identiconWrapper}>
-						<Identicon address={selectedAddress} diameter={35} />
+						<Identicon address={selectedAddress} diameter={40} />
 					</View>
 					<View style={styles.accountInfoRow}>
-						<Text numberOfLines={1} style={styles.accountText}>
-							{accountLabel}
-						</Text>
+						<View style={styles.accountNameAndAddress}>
+							<Text numberOfLines={1} style={styles.accountName}>
+								{accountLabel}
+							</Text>
+							<Text numberOfLines={1} style={styles.accountAddress}>
+								({address})
+							</Text>
+						</View>
 						<Text numberOfLines={1} style={styles.balanceText}>
-							{strings('signature_request.balance_title')} {balance} {strings('unit.eth')}
+							{strings('signature_request.balance_title')} ${dollarBalance} ({balance}{' '}
+							{strings('unit.eth')})
 						</Text>
 					</View>
 				</View>
@@ -95,7 +120,8 @@ class AccountInfoCard extends PureComponent {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate
 });
 
 export default connect(mapStateToProps)(AccountInfoCard);
