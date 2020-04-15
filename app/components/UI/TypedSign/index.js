@@ -10,23 +10,21 @@ import Device from '../../../util/Device';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		minHeight: '90%',
+		minHeight: '70%',
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
-	informationRow: {
-		borderBottomColor: colors.grey200,
-		borderBottomWidth: 1,
-		padding: 20
+	informationCol: {
+		flex: 7,
+		paddingTop: 5
 	},
 	messageLabelText: {
-		...fontStyles.normal,
-		margin: 5,
-		fontSize: 16
+		...fontStyles.bold,
+		fontSize: 16,
+		marginBottom: 5
 	},
 	messageText: {
-		margin: 5,
 		color: colors.black,
 		...fontStyles.normal,
 		fontFamily: Device.isIos() ? 'Courier' : 'Roboto'
@@ -148,7 +146,7 @@ export default class TypedSign extends PureComponent {
 					currentPageInformation={currentPageInformation}
 					type="typedSign"
 				>
-					<View style={styles.informationRow}>
+					<View style={styles.informationCol}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
 						{this.renderTypedMessage()}
 					</View>
