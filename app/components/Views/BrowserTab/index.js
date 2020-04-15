@@ -1093,7 +1093,7 @@ export class BrowserTab extends PureComponent {
 				forwardEnabled: true,
 				currentPageTitle: null
 			});
-		}, 500);
+		}, 1000);
 	};
 
 	goBackToHomepage = async () => {
@@ -1854,7 +1854,7 @@ export class BrowserTab extends PureComponent {
 
 	canGoBack = () => {
 		if (this.isHomepage()) {
-			return !!this.state.lastUrlBeforeHome;
+			return !!this.state.lastUrlBeforeHome && !this.isHomepage(this.state.lastUrlBeforeHome);
 		}
 
 		return true;
