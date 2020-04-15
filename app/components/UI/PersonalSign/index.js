@@ -11,24 +11,22 @@ import Device from '../../../util/Device';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		minHeight: '90%',
+		minHeight: '70%',
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
-	informationRow: {
-		borderBottomColor: colors.grey200,
-		borderBottomWidth: 1,
-		padding: 20
+	informationCol: {
+		flex: 7,
+		paddingTop: 10
 	},
 	messageLabelText: {
-		...fontStyles.normal,
-		margin: 5,
+		...fontStyles.bold,
+		marginBottom: 5,
 		fontSize: 16
 	},
 	messageText: {
 		flex: 1,
-		margin: 5,
 		fontSize: 14,
 		color: colors.fontPrimary,
 		...fontStyles.normal
@@ -99,7 +97,7 @@ export default class PersonalSign extends PureComponent {
 					currentPageInformation={currentPageInformation}
 					type="personalSign"
 				>
-					<View style={styles.informationRow}>
+					<View style={styles.informationCol}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
 						{util
 							.hexToText(messageParams.data)
