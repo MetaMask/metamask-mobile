@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 	signText: {
 		...fontStyles.bold,
 		fontSize: 20,
-		padding: 5,
+		marginBottom: 10,
 		textAlign: 'center'
 	},
 	childrenWrapper: {
