@@ -154,7 +154,7 @@ exports[`TransactionDetails should render correctly 1`] = `
               "fontWeight": "400",
             }
           }
-          type="medium"
+          type="short"
         />
       </View>
       <View
@@ -188,7 +188,7 @@ exports[`TransactionDetails should render correctly 1`] = `
               "fontWeight": "400",
             }
           }
-          type="medium"
+          type="short"
         />
       </View>
     </View>
