@@ -17,6 +17,7 @@ exports[`AddBookmark should render correctly 1`] = `
     confirmTestID="add-bookmark-confirm-button"
     confirmText="Add"
     confirmed={false}
+    isSigning={false}
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
     showCancelButton={true}

@@ -37,6 +37,7 @@ exports[`WalletConnectSessionApproval should render correctly 1`] = `
     confirmTestID=""
     confirmText="CONNECT"
     confirmed={false}
+    isSigning={false}
     showCancelButton={true}
     showConfirmButton={true}
   >
