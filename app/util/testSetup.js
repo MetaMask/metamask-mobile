@@ -3,8 +3,7 @@ import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
 import TransactionsNotificationManager from '../core/TransactionsNotificationManager';
 import { NativeModules, View } from 'react-native';
-// eslint-disable-next-line import/no-unresolved
-import mockAsyncStorage from '@react-native-community/async-storage/jest/async-storage-mock';
+import mockAsyncStorage from '../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';
 
 Enzyme.configure({ adapter: new Adapter() });
 
