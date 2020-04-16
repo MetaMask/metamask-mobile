@@ -7,29 +7,11 @@ exports[`PersonalSign should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
-      "minHeight": "90%",
+      "minHeight": "70%",
       "paddingBottom": 20,
     }
   }
 >
-  <View>
-    <Text
-      onPress={[Function]}
-      style={
-        Object {
-          "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 18,
-          "fontWeight": "600",
-          "marginHorizontal": 20,
-          "marginVertical": 12,
-          "textAlign": "center",
-        }
-      }
-    >
-      Signature Request
-    </Text>
-  </View>
   <Connect(SignatureRequest)
     currentPageInformation={
       Object {
@@ -44,9 +26,8 @@ exports[`PersonalSign should render correctly 1`] = `
     <View
       style={
         Object {
-          "borderBottomColor": "#bbc0c5",
-          "borderBottomWidth": 1,
-          "padding": 20,
+          "flex": 7,
+          "paddingTop": 10,
         }
       }
     >
@@ -55,8 +36,8 @@ exports[`PersonalSign should render correctly 1`] = `
           Object {
             "fontFamily": "CircularStd-Medium",
             "fontSize": 16,
-            "fontWeight": "400",
-            "margin": 5,
+            "fontWeight": "600",
+            "marginBottom": 5,
           }
         }
       >
@@ -71,7 +52,6 @@ exports[`PersonalSign should render correctly 1`] = `
             "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
-            "margin": 5,
           }
         }
       />
