@@ -29,17 +29,6 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontFamily: Device.isIos() ? 'Courier' : 'Roboto'
 	},
-	title: {
-		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 20,
-		color: colors.fontPrimary,
-		...fontStyles.bold
-	},
-	message: {
-		marginLeft: 20
-	},
 	msgKey: {
 		fontWeight: 'bold'
 	}
@@ -101,7 +90,7 @@ export default class TypedSign extends PureComponent {
 
 	renderTypedMessageV3 = obj =>
 		Object.keys(obj).map(key => (
-			<View style={styles.message} key={key}>
+			<View key={key}>
 				{obj[key] && typeof obj[key] === 'object' ? (
 					<View>
 						<Text style={[styles.messageText, styles.msgKey]}>{key}:</Text>
@@ -119,7 +108,7 @@ export default class TypedSign extends PureComponent {
 		const { messageParams } = this.props;
 		if (messageParams.version === 'V1') {
 			return (
-				<View style={styles.message}>
+				<View>
 					{messageParams.data.map((obj, i) => (
 						<View key={`${obj.name}_${i}`}>
 							<Text style={[styles.messageText, styles.msgKey]}>{obj.name}:</Text>
