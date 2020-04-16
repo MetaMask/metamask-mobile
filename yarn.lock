@@ -10393,13 +10393,6 @@ react-native-tab-view@^2.9.0:
     process "^0.11.9"
     util "^0.10.3"
 
-react-native-v8@0.59.10-patch.4:
-  version "0.59.10-patch.4"
-  resolved "https://registry.yarnpkg.com/react-native-v8/-/react-native-v8-0.59.10-patch.4.tgz#6f32630a9badff5acb118c0a2820a76a88874431"
-  integrity sha512-dsiXdI1RSHf2tHlLjIPysI+Y2qK7T58vsjin5uLBKnYwfgU4C0ITQ/2wDTtTu/ukMm7aRVRwSB6dkX/KrsCyIw==
-  dependencies:
-    v8-android "7.8.x >= 7.8.1"
-
 react-native-vector-icons@6.4.2:
   version "6.4.2"
   resolved "https://registry.yarnpkg.com/react-native-vector-icons/-/react-native-vector-icons-6.4.2.tgz#ee0b097e783387544ed160a3192a437c097e551d"
@@ -12546,11 +12539,6 @@ uuid@^3.0.1, uuid@^3.3.2:
   version "3.3.3"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.3.tgz#4568f0216e78760ee1dbf3a4d2cf53e224112866"
   integrity sha512-pW0No1RGHgzlpHJO1nsVrHKpOEIxkGg1xB+v0ZmdNH5OAeAwzAVrCnI2/6Mtx+Uys6iaylxa+D3g4j63IKKjSQ==
-
-"v8-android@7.8.x >= 7.8.1":
-  version "7.8.1"
-  resolved "https://registry.yarnpkg.com/v8-android/-/v8-android-7.8.1.tgz#2686c3fe655742bbd02e1b6d1c3e336365d4e8e0"
-  integrity sha512-fxqBNITrILwfzQI9ZIWHR44B6Hvhplfht+V9dpcTrm7CGZjWpUaD/n3C0ghCW15VLRYhWPuCVltXHwbvsBOLjw==
 
 v8-compile-cache@^2.0.3:
   version "2.1.0"

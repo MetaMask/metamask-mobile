@@ -147,7 +147,6 @@
 		"react-native-svg": "9.13.3",
 		"react-native-swipe-gestures": "1.0.3",
 		"react-native-tcp": "git+ssh://git@github.com/MetaMask/react-native-tcp.git#961328b678b01427b0d2cd7ddb506f620a5418e1",
-		"react-native-v8": "0.59.10-patch.4",
 		"react-native-vector-icons": "6.4.2",
 		"react-native-view-shot": "git+ssh://git@github.com/MetaMask/react-native-view-shot.git#androidx",
 		"react-native-webview": "git+ssh://git@github.com/MetaMask/react-native-webview.git#408df176e6fe7c00aa05c2fddb4054968330e8a1",
