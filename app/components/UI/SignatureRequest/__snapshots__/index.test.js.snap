@@ -31,7 +31,7 @@ exports[`SignatureRequest should render correctly 1`] = `
             "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "600",
-            "padding": 5,
+            "marginBottom": 10,
             "textAlign": "center",
           }
         }
