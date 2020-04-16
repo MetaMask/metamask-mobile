@@ -124,7 +124,7 @@ class TransactionHeader extends PureComponent {
 				</View>
 				<View style={styles.networkContainer}>
 					{this.renderNetworkStatusIndicator()}
-					<Text style={styles.network}>{networkType}</Text>
+					<Text style={styles.network}>{networkType === 'mainnet' ? 'Ethereum' : networkType}</Text>
 				</View>
 			</View>
 		);
