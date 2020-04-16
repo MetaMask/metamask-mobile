@@ -17,17 +17,30 @@ const styles = StyleSheet.create({
 	},
 	informationCol: {
 		flex: 7,
-		paddingTop: 5
-	},
-	messageLabelText: {
-		...fontStyles.bold,
-		fontSize: 16,
-		marginBottom: 5
+		paddingTop: 5,
+		flexDirection: 'column',
+		flexWrap: 'wrap'
 	},
 	messageText: {
 		color: colors.black,
 		...fontStyles.normal,
 		fontFamily: Device.isIos() ? 'Courier' : 'Roboto'
+	},
+	messageLabelText: {
+		flex: 1,
+		...fontStyles.bold,
+		fontSize: 16,
+		marginBottom: 5
+	},
+	message: {
+		marginLeft: 10
+	},
+	messageWrapper: {
+		flex: 4,
+		flexDirection: 'column',
+		flexWrap: 'wrap',
+		overflow: 'hidden',
+		zIndex: 1
 	},
 	msgKey: {
 		fontWeight: 'bold'
@@ -90,7 +103,7 @@ export default class TypedSign extends PureComponent {
 
 	renderTypedMessageV3 = obj =>
 		Object.keys(obj).map(key => (
-			<View key={key}>
+			<View style={styles.message} key={key}>
 				{obj[key] && typeof obj[key] === 'object' ? (
 					<View>
 						<Text style={[styles.messageText, styles.msgKey]}>{key}:</Text>
@@ -108,7 +121,7 @@ export default class TypedSign extends PureComponent {
 		const { messageParams } = this.props;
 		if (messageParams.version === 'V1') {
 			return (
-				<View>
+				<View style={styles.message}>
 					{messageParams.data.map((obj, i) => (
 						<View key={`${obj.name}_${i}`}>
 							<Text style={[styles.messageText, styles.msgKey]}>{obj.name}:</Text>
@@ -145,7 +158,7 @@ export default class TypedSign extends PureComponent {
 				>
 					<View style={styles.informationCol}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						{this.renderTypedMessage()}
+						<View style={styles.messageWrapper}>{this.renderTypedMessage()}</View>
 					</View>
 				</SignatureRequest>
 			</View>
