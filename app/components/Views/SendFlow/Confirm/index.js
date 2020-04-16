@@ -43,7 +43,7 @@ import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 const {
 	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }

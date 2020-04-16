@@ -22,7 +22,7 @@ import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
 import { hexToBN } from 'gaba/dist/util';
 import Analytics from '../../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {

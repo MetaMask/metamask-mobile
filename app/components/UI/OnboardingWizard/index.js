@@ -17,7 +17,7 @@ import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 import Device from '../../../util/Device';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS, ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 
 const MIN_HEIGHT = Dimensions.get('window').height;
 const styles = StyleSheet.create({
@@ -71,15 +71,6 @@ const styles = StyleSheet.create({
 	}
 });
 
-const stepDescription = {
-	1: 'Welcome',
-	2: 'Accounts',
-	3: 'Account Name',
-	4: 'Main Navigation',
-	5: 'Browser',
-	6: 'Search'
-};
-
 class OnboardingWizard extends PureComponent {
 	static propTypes = {
 		/**
@@ -115,7 +106,7 @@ class OnboardingWizard extends PureComponent {
 		closing &&
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SKIP_TUTORIAL, {
-					View: stepDescription[step]
+					View: ONBOARDING_WIZARD_STEP_DESCRIPTION[step]
 				});
 			});
 	};

@@ -23,7 +23,7 @@ import { strings } from '../../../../locales/i18n';
 import { toggleAccountsModal } from '../../../actions/modals';
 import EthereumAddress from '../EthereumAddress';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	scrollView: {

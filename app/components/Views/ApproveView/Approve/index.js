@@ -37,7 +37,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
 import Identicon from '../../../UI/Identicon';
 import Analytics from '../../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {

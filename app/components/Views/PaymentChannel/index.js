@@ -34,7 +34,7 @@ import Analytics from '../../../core/Analytics';
 import { withNavigationFocus } from 'react-navigation';
 import { showAlert } from '../../../actions/alert';
 import AddressQRCode from '../AddressQRCode';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const SAI_ADDRESS = AppConstants.SAI_ADDRESS;
 

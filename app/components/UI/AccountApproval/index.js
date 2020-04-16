@@ -12,7 +12,7 @@ import Device from '../../../util/Device';
 import WebsiteIcon from '../WebsiteIcon';
 import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getHost } from '../../../util/browser';
 
 const styles = StyleSheet.create({

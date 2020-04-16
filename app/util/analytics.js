@@ -1,3 +1,12 @@
+export const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
+	1: 'Welcome',
+	2: 'Accounts',
+	3: 'Account Name',
+	4: 'Main Navigation',
+	5: 'Browser',
+	6: 'Search'
+};
+
 const generateOpt = (category, action, name) => ({ category, action, name });
 
 const NAMES = {
@@ -154,7 +163,7 @@ const CATEGORIES = {
 	DAPP_INTERACTIONS: 'Dapp Interactions'
 };
 
-const ANALYTICS_EVENT_OPTS = {
+export const ANALYTICS_EVENT_OPTS = {
 	//Onboarding
 	ONBOARDING_METRICS_OPT_IN: generateOpt(
 		CATEGORIES.ONBOARDING,
@@ -458,5 +467,3 @@ const ANALYTICS_EVENT_OPTS = {
 		NAMES.DAPP_APPROVE_SCREEN_VIEW_DETAILS
 	)
 };
-
-export default ANALYTICS_EVENT_OPTS;

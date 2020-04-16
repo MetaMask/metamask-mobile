@@ -7,7 +7,7 @@ import Device from '../../../../util/Device';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import ANALYTICS_EVENT_OPTS from '../../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Analytics from '../../../../core/Analytics';
 
 const styles = StyleSheet.create({

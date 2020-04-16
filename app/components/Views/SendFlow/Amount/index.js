@@ -51,7 +51,7 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -687,7 +687,11 @@ class Amount extends PureComponent {
 				onPress={() => this.pickSelectedAsset(collectible)}
 			>
 				<View style={styles.assetElement}>
-					<CollectibleImage collectible={collectible} iconStyle={styles.tokenImage} containerStyle={styles.tokenImage} />
+					<CollectibleImage
+						collectible={collectible}
+						iconStyle={styles.tokenImage}
+						containerStyle={styles.tokenImage}
+					/>
 					<View style={styles.assetInformationWrapper}>
 						<Text style={styles.textAssetTitle}>{name}</Text>
 					</View>

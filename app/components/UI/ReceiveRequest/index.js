@@ -18,7 +18,7 @@ import Device from '../../../util/Device';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import AddressQRCode from '../../Views/AddressQRCode';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const TOTAL_PADDING = 64;
 const ACTION_WIDTH = (Dimensions.get('window').width - TOTAL_PADDING) / 2;
