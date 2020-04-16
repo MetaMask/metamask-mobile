@@ -31,6 +31,12 @@ describe('Confirm', () => {
 					},
 					TokenBalancesController: {
 						contractBalances: {}
+					},
+					PreferencesController: {
+						identities: {}
+					},
+					KeyringController: {
+						keyrings: {}
 					}
 				}
 			},
