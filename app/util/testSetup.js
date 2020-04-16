@@ -3,6 +3,8 @@ import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
 import TransactionsNotificationManager from '../core/TransactionsNotificationManager';
 import { NativeModules, View } from 'react-native';
+// eslint-disable-next-line import/no-unresolved
+import mockAsyncStorage from '@react-native-community/async-storage/jest/async-storage-mock';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -88,7 +90,7 @@ jest.mock('react-native-device-info', () => 'DeviceInfo');
 jest.mock('react-native-search-api', () => 'SearchApi');
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
-jest.mock('react-native-commmunity', () => 'RNC');
+jest.mock('@react-native-community/async-storage', () => mockAsyncStorage);
 jest.mock('react-native-camera', () => ({
 	RNCamera: View,
 	Aspect: true
