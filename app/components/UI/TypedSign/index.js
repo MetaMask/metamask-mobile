@@ -29,6 +29,12 @@ const styles = StyleSheet.create({
 	message: {
 		marginLeft: 10
 	},
+	messageLabelText: {
+		flex: 1,
+		...fontStyles.bold,
+		fontSize: 16,
+		marginBottom: 5
+	},
 	messageWrapper: {
 		flex: 4,
 		flexDirection: 'column',
