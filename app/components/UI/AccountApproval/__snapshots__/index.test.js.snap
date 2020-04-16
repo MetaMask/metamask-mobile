@@ -37,6 +37,7 @@ exports[`AccountApproval should render correctly 1`] = `
     confirmTestID=""
     confirmText="CONNECT"
     confirmed={false}
+    isSigning={false}
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
     showCancelButton={true}
