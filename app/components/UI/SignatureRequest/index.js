@@ -1,6 +1,6 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 /**
  * PureComponent that renders scrollable content inside signature request user interface
  */
-class SignatureRequest extends PureComponent {
+class SignatureRequest extends React.Component {
 	static propTypes = {
 		/**
 		 * Object representing the navigator
@@ -124,6 +124,10 @@ class SignatureRequest extends PureComponent {
 		 * Whether it should display the warning message
 		 */
 		showWarning: PropTypes.bool
+	};
+
+	state = {
+		showExpandedMessage: false
 	};
 
 	/**
@@ -179,6 +183,36 @@ class SignatureRequest extends PureComponent {
 		</TouchableOpacity>
 	);
 
+	renderActionViewChildren = () => {
+		const { children, currentPageInformation } = this.props;
+		const { showExpandedMessage } = this.state;
+		const url = currentPageInformation.url;
+		const title = getHost(url);
+		const arrowIcon = this.shouldRenderArrow() ? this.renderArrowIcon() : null;
+		const actionViewChildren = showExpandedMessage ? (
+			<View />
+		) : (
+			<View style={styles.childrenWrapper}>
+				<TouchableWithoutFeedback onPress={this.handleMessageTap()}>
+					<View style={styles.children}>
+						<View style={styles.websiteIconWrapper}>
+							<WebsiteIcon
+								style={styles.domainLogo}
+								viewStyle={styles.assetLogo}
+								title={title}
+								url={url}
+							/>
+						</View>
+						{children}
+						{arrowIcon}
+					</View>
+				</TouchableWithoutFeedback>
+				<AccountInfoCard />
+			</View>
+		);
+		return actionViewChildren;
+	};
+
 	shouldRenderArrow = () => {
 		if (this.props.children._owner.type.name === 'TypedSign') {
 			return true;
@@ -192,11 +226,12 @@ class SignatureRequest extends PureComponent {
 		</View>
 	);
 
+	handleMessageTap = () => {
+		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
+	};
+
 	render() {
-		const { children, showWarning, currentPageInformation, type } = this.props;
-		const url = currentPageInformation.url;
-		const title = getHost(url);
-		const arrowIcon = this.shouldRenderArrow() ? this.renderArrowIcon() : null;
+		const { showWarning, currentPageInformation, type } = this.props;
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.header}>
@@ -218,21 +253,7 @@ class SignatureRequest extends PureComponent {
 					onConfirmPress={this.onConfirm}
 					isSigning
 				>
-					<View style={styles.childrenWrapper}>
-						<View style={styles.children}>
-							<View style={styles.websiteIconWrapper}>
-								<WebsiteIcon
-									style={styles.domainLogo}
-									viewStyle={styles.assetLogo}
-									title={title}
-									url={url}
-								/>
-							</View>
-							{children}
-							{arrowIcon}
-						</View>
-						<AccountInfoCard />
-					</View>
+					{this.renderActionViewChildren()}
 				</ActionView>
 			</View>
 		);
