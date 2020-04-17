@@ -2,7 +2,6 @@
 
 exports[`BackupAlert should render correctly 1`] = `
 <TouchableOpacity
-  activeOpacity={0.2}
   onPress={[Function]}
 >
   <ElevatedView

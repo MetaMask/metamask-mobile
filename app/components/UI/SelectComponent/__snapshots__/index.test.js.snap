@@ -16,7 +16,6 @@ exports[`SelectComponent should render correctly 1`] = `
     }
   >
     <TouchableOpacity
-      activeOpacity={0.2}
       onPress={[Function]}
     >
       <View
@@ -151,7 +150,6 @@ exports[`SelectComponent should render correctly 1`] = `
             }
           >
             <TouchableOpacity
-              activeOpacity={0.2}
               key="key 1"
               onPress={[Function]}
               style={
@@ -179,7 +177,6 @@ exports[`SelectComponent should render correctly 1`] = `
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="key 2"
               onPress={[Function]}
               style={

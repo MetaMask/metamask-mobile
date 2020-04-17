@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Confirm should render correctly 1`] = `
-<SafeAreaView
+<ForwardRef(SafeAreaView)
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -102,7 +102,6 @@ exports[`Confirm should render correctly 1`] = `
       }
     >
       <TouchableOpacity
-        activeOpacity={0.2}
         disabled={true}
         onPress={[Function]}
         style={
@@ -126,7 +125,6 @@ exports[`Confirm should render correctly 1`] = `
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        activeOpacity={0.2}
         onPress={[Function]}
         style={
           Object {
@@ -281,7 +279,6 @@ exports[`Confirm should render correctly 1`] = `
       }
     >
       <TouchableOpacity
-        activeOpacity={0.2}
         onPress={[Function]}
         style={
           Object {
@@ -340,5 +337,5 @@ exports[`Confirm should render correctly 1`] = `
       </View>
     </View>
   </ReactNativeModal>
-</SafeAreaView>
+</ForwardRef(SafeAreaView)>
 `;

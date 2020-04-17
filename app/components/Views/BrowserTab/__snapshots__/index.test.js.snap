@@ -87,7 +87,6 @@ exports[`Browser should render correctly 1`] = `
       testID="url-modal"
     >
       <TextInput
-        allowFontScaling={true}
         autoCapitalize="none"
         autoCorrect={false}
         clearButtonMode="while-editing"
@@ -96,7 +95,6 @@ exports[`Browser should render correctly 1`] = `
         onSubmitEditing={[Function]}
         placeholder="Search or Type URL"
         placeholderTextColor="#848c96"
-        rejectResponderTermination={true}
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
@@ -114,11 +112,9 @@ exports[`Browser should render correctly 1`] = `
           }
         }
         testID="url-input"
-        underlineColorAndroid="transparent"
         value=""
       />
       <TouchableOpacity
-        activeOpacity={0.2}
         onPress={[Function]}
         style={
           Object {

@@ -5,13 +5,13 @@ import configureMockStore from 'redux-mock-store';
 
 const mockStore = configureMockStore();
 
-describe('ReceiveRequestAction', () => {
+describe.only('ReceiveRequestAction', () => {
 	it('should render correctly', () => {
 		const initialState = {};
 
 		const wrapper = shallow(<ReceiveRequestAction actionTitle={'Title'} actionDescription={'Description'} />, {
 			context: { store: mockStore(initialState) }
 		});
-		expect(wrapper.dive()).toMatchSnapshot();
+		expect(wrapper).toMatchSnapshot();
 	});
 });

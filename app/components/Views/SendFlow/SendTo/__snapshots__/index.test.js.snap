@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SendTo should render correctly 1`] = `
-<SafeAreaView
+<ForwardRef(SafeAreaView)
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -215,14 +215,12 @@ exports[`SendTo should render correctly 1`] = `
               }
             >
               <TextInput
-                allowFontScaling={true}
                 autoCapitalize="none"
                 autoCorrect={false}
                 numberOfLines={1}
                 onChangeText={[Function]}
                 placeholder="e.g. Vitalik B."
                 placeholderTextColor="#d6d9dc"
-                rejectResponderTermination={true}
                 spellCheck={false}
                 style={
                   Object {
@@ -234,7 +232,6 @@ exports[`SendTo should render correctly 1`] = `
                   }
                 }
                 testID="address-alias-input"
-                underlineColorAndroid="transparent"
               />
             </View>
           </View>
@@ -242,5 +239,5 @@ exports[`SendTo should render correctly 1`] = `
       </View>
     </View>
   </ActionModal>
-</SafeAreaView>
+</ForwardRef(SafeAreaView)>
 `;
