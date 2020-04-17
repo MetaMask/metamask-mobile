@@ -179,10 +179,24 @@ class SignatureRequest extends PureComponent {
 		</TouchableOpacity>
 	);
 
+	shouldRenderArrow = () => {
+		if (this.props.children._owner.type.name === 'TypedSign') {
+			return true;
+		}
+		return false;
+	};
+
+	renderArrowIcon = () => (
+		<View style={styles.arrowIconWrapper}>
+			<Ionicons name={'ios-arrow-forward'} size={20} />
+		</View>
+	);
+
 	render() {
 		const { children, showWarning, currentPageInformation, type } = this.props;
 		const url = currentPageInformation.url;
 		const title = getHost(url);
+		const arrowIcon = this.shouldRenderArrow() ? this.renderArrowIcon() : null;
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.header}>
@@ -215,9 +229,7 @@ class SignatureRequest extends PureComponent {
 								/>
 							</View>
 							{children}
-							<View style={styles.arrowIconWrapper}>
-								<Ionicons name={'ios-arrow-forward'} size={20} />
-							</View>
+							{arrowIcon}
 						</View>
 						<AccountInfoCard />
 					</View>
