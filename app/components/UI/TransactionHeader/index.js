@@ -5,6 +5,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import WebsiteIcon from '../WebsiteIcon';
 import { getHost, getUrlObj } from '../../../util/browser';
+import networkList from '../../../util/networks';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
@@ -115,6 +116,7 @@ class TransactionHeader extends PureComponent {
 			networkType
 		} = this.props;
 		const title = getHost(url);
+		const networkName = networkList[networkType].shortName;
 		return (
 			<View style={styles.transactionHeader}>
 				<WebsiteIcon style={styles.domainLogo} viewStyle={styles.assetLogo} title={title} url={url} />
@@ -124,7 +126,7 @@ class TransactionHeader extends PureComponent {
 				</View>
 				<View style={styles.networkContainer}>
 					{this.renderNetworkStatusIndicator()}
-					<Text style={styles.network}>{networkType === 'mainnet' ? 'Ethereum' : networkType}</Text>
+					<Text style={styles.network}>{networkName}</Text>
 				</View>
 			</View>
 		);

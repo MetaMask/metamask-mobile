@@ -100,7 +100,7 @@ exports[`TransactionHeader should render correctly 1`] = `
         }
       }
     >
-      ropsten
+      Ropsten
     </Text>
   </View>
 </View>
