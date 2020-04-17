@@ -72,7 +72,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
         }
       }
     >
-      <ReceiveRequestAction
+      <Connect(ReceiveRequestAction)
         actionDescription="Email or text your address"
         actionTitle="Share Address"
         icon={
@@ -92,7 +92,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
           }
         }
       />
-      <ReceiveRequestAction
+      <Connect(ReceiveRequestAction)
         actionDescription="Scannable image that can read your address"
         actionTitle="QR Code"
         icon={
@@ -121,7 +121,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
         }
       }
     >
-      <ReceiveRequestAction
+      <Connect(ReceiveRequestAction)
         actionDescription="Request assets from friends"
         actionTitle="Request"
         icon={
@@ -144,7 +144,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
           }
         }
       />
-      <ReceiveRequestAction
+      <Connect(ReceiveRequestAction)
         actionDescription="Buy Crypto with Credit Card"
         actionTitle="Buy"
         icon={
