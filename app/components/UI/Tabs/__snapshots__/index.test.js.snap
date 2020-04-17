@@ -61,7 +61,6 @@ exports[`Tabs should render correctly 1`] = `
     }
   >
     <TouchableOpacity
-      activeOpacity={0.2}
       style={
         Array [
           Object {
@@ -103,7 +102,6 @@ exports[`Tabs should render correctly 1`] = `
       }
     >
       <TouchableOpacity
-        activeOpacity={0.2}
         onPress={[Function]}
         style={
           Object {
@@ -136,7 +134,6 @@ exports[`Tabs should render correctly 1`] = `
       </TouchableOpacity>
     </View>
     <TouchableOpacity
-      activeOpacity={0.2}
       style={
         Array [
           Object {
