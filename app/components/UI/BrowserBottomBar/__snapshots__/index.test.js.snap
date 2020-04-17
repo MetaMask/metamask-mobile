@@ -16,7 +16,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   }
 >
   <TouchableOpacity
-    activeOpacity={0.2}
     disabled={false}
     onPress={[Function]}
     style={
@@ -51,7 +50,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     />
   </TouchableOpacity>
   <TouchableOpacity
-    activeOpacity={0.2}
     disabled={true}
     onPress={[Function]}
     style={
@@ -88,7 +86,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     />
   </TouchableOpacity>
   <TouchableOpacity
-    activeOpacity={0.2}
     onPress={[Function]}
     style={
       Object {
@@ -119,7 +116,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     />
   </TouchableOpacity>
   <TouchableOpacity
-    activeOpacity={0.2}
     onPress={[Function]}
     style={
       Object {
@@ -146,7 +142,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     />
   </TouchableOpacity>
   <TouchableOpacity
-    activeOpacity={0.2}
     style={
       Object {
         "alignItems": "center",
@@ -176,7 +171,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     />
   </TouchableOpacity>
   <TouchableOpacity
-    activeOpacity={0.2}
     onPress={[Function]}
     style={
       Object {
