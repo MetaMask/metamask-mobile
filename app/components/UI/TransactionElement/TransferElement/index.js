@@ -17,6 +17,7 @@ import {
 } from '../../../../util/number';
 import { getActionKey, decodeTransferData, isCollectibleAddress } from '../../../../util/transactions';
 import { renderFullAddress, safeToChecksumAddress } from '../../../../util/address';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	row: {
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders a transfer transaction item, part of transactions list
  */
-export default class TransferElement extends PureComponent {
+class TransferElement extends PureComponent {
 	static propTypes = {
 		/**
 		 * Transaction object
@@ -267,3 +268,5 @@ export default class TransferElement extends PureComponent {
 		);
 	};
 }
+
+export default connect()(TransferElement);

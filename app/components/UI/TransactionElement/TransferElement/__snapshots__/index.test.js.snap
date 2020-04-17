@@ -1,27 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransferElement should render correctly 1`] = `
-<AnimatedComponent
-  accessible={true}
-  isTVSelectable={true}
-  onResponderGrant={[Function]}
-  onResponderMove={[Function]}
-  onResponderRelease={[Function]}
-  onResponderTerminate={[Function]}
-  onResponderTerminationRequest={[Function]}
-  onStartShouldSetResponder={[Function]}
+<TouchableOpacity
+  onPress={[Function]}
   style={
-    Array [
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "borderBottomWidth": 0.5,
-        "borderColor": "#d6d9dc",
-        "flex": 1,
-      },
-      Object {
-        "opacity": 1,
-      },
-    ]
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderBottomWidth": 0.5,
+      "borderColor": "#d6d9dc",
+      "flex": 1,
+    }
   }
 >
   <View
@@ -31,5 +19,5 @@ exports[`TransferElement should render correctly 1`] = `
       }
     }
   />
-</AnimatedComponent>
+</TouchableOpacity>
 `;
