@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -21,22 +21,11 @@ const styles = StyleSheet.create({
 	signingInformation: {
 		margin: 10
 	},
-	websiteIconWrapper: {
-		...baseStyles.flexGrow,
-		justifyContent: 'center',
-		alignItems: 'center',
-		padding: 5,
-		marginRight: 15
-	},
 	domainLogo: {
 		width: 40,
 		height: 40,
+		marginRight: 15,
 		borderRadius: 20
-	},
-	assetLogo: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 10
 	},
 	warningText: {
 		...fontStyles.normal,
@@ -69,21 +58,23 @@ const styles = StyleSheet.create({
 	children: {
 		flex: 2,
 		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'flex-start',
+		justifyContent: 'flex-start',
 		width: '90%',
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
 		height: 200,
 		marginBottom: 20,
-		paddingVertical: 10,
-		paddingHorizontal: 15
+		padding: 16
 	},
 	arrowIconWrapper: {
-		...baseStyles.flexGrow,
 		alignSelf: 'center',
-		alignItems: 'flex-end'
+		marginLeft: 'auto'
+	},
+	arrowIcon: {
+		textAlign: 'right',
+		color: colors.grey200,
+		alignSelf: 'flex-end'
 	}
 });
 
@@ -193,16 +184,9 @@ class SignatureRequest extends React.Component {
 			<View />
 		) : (
 			<View style={styles.childrenWrapper}>
-				<TouchableWithoutFeedback onPress={() => this.handleMessageTap()}>
+				<TouchableWithoutFeedback>
 					<View style={styles.children}>
-						<View style={styles.websiteIconWrapper}>
-							<WebsiteIcon
-								style={styles.domainLogo}
-								viewStyle={styles.assetLogo}
-								title={title}
-								url={url}
-							/>
-						</View>
+						<WebsiteIcon style={styles.domainLogo} title={title} url={url} />
 						{children}
 						{arrowIcon}
 					</View>
@@ -222,7 +206,7 @@ class SignatureRequest extends React.Component {
 
 	renderArrowIcon = () => (
 		<View style={styles.arrowIconWrapper}>
-			<Ionicons name={'ios-arrow-forward'} size={20} />
+			<Ionicons name={'ios-arrow-forward'} size={20} style={styles.arrowIcon} />
 		</View>
 	);
 
