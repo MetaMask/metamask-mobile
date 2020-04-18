@@ -16,10 +16,9 @@ const styles = StyleSheet.create({
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	informationCol: {
-		flex: 7,
-		paddingTop: 5,
-		flexDirection: 'column',
-		flexWrap: 'wrap'
+		width: '75%',
+		alignItems: 'flex-start',
+		flexDirection: 'column'
 	},
 	messageText: {
 		color: colors.black,
