@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 /**
  * PureComponent that supports personal_sign
  */
-export default class PersonalSign extends PureComponent {
+export default class PersonalSign extends React.Component {
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens
@@ -58,6 +58,10 @@ export default class PersonalSign extends PureComponent {
 		 * Object containing current page title and url
 		 */
 		currentPageInformation: PropTypes.object
+	};
+
+	state = {
+		renderArrow: false
 	};
 
 	signMessage = async () => {
@@ -86,8 +90,36 @@ export default class PersonalSign extends PureComponent {
 		this.props.onConfirm();
 	};
 
+	renderMessageText = () => {
+		const { messageParams } = this.props;
+		const textChild = util
+			.hexToText(messageParams.data)
+			.split('\n')
+			.map((line, i) => (
+				<Text key={`txt_${i}`} style={styles.messageText}>
+					{line}
+				</Text>
+			));
+		const messageText = this.state.renderArrow ? (
+			<Text numberOfLines={5} ellipsizeMode={'tail'}>
+				{textChild}
+			</Text>
+		) : (
+			<Text onTextLayout={this.shouldRenderArrow}>{textChild}</Text>
+		);
+		return messageText;
+	};
+
+	shouldRenderArrow = e => {
+		if (e.nativeEvent.lines.length > 5) {
+			this.setState({ renderArrow: true });
+			return;
+		}
+		this.setState({ renderArrow: false });
+	};
+
 	render() {
-		const { messageParams, currentPageInformation } = this.props;
+		const { currentPageInformation } = this.props;
 		return (
 			<View style={styles.root}>
 				<SignatureRequest
@@ -95,20 +127,12 @@ export default class PersonalSign extends PureComponent {
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
 					currentPageInformation={currentPageInformation}
+					shouldRenderArrow={this.state.renderArrow}
 					type="personalSign"
 				>
 					<View style={styles.informationCol}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						<Text numberOfLines={5} ellipsizeMode={'tail'}>
-							{util
-								.hexToText(messageParams.data)
-								.split('\n')
-								.map((line, i) => (
-									<Text key={`txt_${i}`} style={styles.messageText}>
-										{line}
-									</Text>
-								))}
-						</Text>
+						{this.renderMessageText()}
 					</View>
 				</SignatureRequest>
 			</View>
