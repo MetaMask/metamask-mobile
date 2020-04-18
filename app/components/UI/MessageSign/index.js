@@ -93,7 +93,9 @@ export default class MessageSign extends PureComponent {
 				>
 					<View style={styles.informationCol}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						<Text numberOfLines={5}>{messageParams.data}</Text>
+						<Text numberOfLines={5} ellipsizeMode={'tail'}>
+							{messageParams.data}
+						</Text>
 					</View>
 				</SignatureRequest>
 			</View>

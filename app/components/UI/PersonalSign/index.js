@@ -26,12 +26,6 @@ const styles = StyleSheet.create({
 		marginBottom: 5,
 		fontSize: 16
 	},
-	messageWrapper: {
-		flex: 4,
-		flexDirection: 'column',
-		overflow: 'hidden',
-		zIndex: 1
-	},
 	messageText: {
 		fontSize: 14,
 		color: colors.fontPrimary,
@@ -105,7 +99,7 @@ export default class PersonalSign extends PureComponent {
 				>
 					<View style={styles.informationCol}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						<View style={styles.messageWrapper}>
+						<Text numberOfLines={5} ellipsizeMode={'tail'}>
 							{util
 								.hexToText(messageParams.data)
 								.split('\n')
@@ -114,7 +108,7 @@ export default class PersonalSign extends PureComponent {
 										{line}
 									</Text>
 								))}
-						</View>
+						</Text>
 					</View>
 				</SignatureRequest>
 			</View>
