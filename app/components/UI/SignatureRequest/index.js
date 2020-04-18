@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 	domainLogo: {
 		width: 40,
 		height: 40,
-		borderRadius: 32
+		borderRadius: 20
 	},
 	assetLogo: {
 		alignItems: 'center',
@@ -193,7 +193,7 @@ class SignatureRequest extends React.Component {
 			<View />
 		) : (
 			<View style={styles.childrenWrapper}>
-				<TouchableWithoutFeedback onPress={this.handleMessageTap()}>
+				<TouchableWithoutFeedback onPress={() => this.handleMessageTap()}>
 					<View style={styles.children}>
 						<View style={styles.websiteIconWrapper}>
 							<WebsiteIcon
