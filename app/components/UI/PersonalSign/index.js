@@ -17,16 +17,22 @@ const styles = StyleSheet.create({
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	informationCol: {
-		flex: 7,
-		paddingTop: 10
+		width: '75%',
+		alignItems: 'flex-start',
+		flexDirection: 'column'
 	},
 	messageLabelText: {
 		...fontStyles.bold,
 		marginBottom: 5,
 		fontSize: 16
 	},
+	messageWrapper: {
+		flex: 4,
+		flexDirection: 'column',
+		overflow: 'hidden',
+		zIndex: 1
+	},
 	messageText: {
-		flex: 1,
 		fontSize: 14,
 		color: colors.fontPrimary,
 		...fontStyles.normal
@@ -99,14 +105,16 @@ export default class PersonalSign extends PureComponent {
 				>
 					<View style={styles.informationCol}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						{util
-							.hexToText(messageParams.data)
-							.split('\n')
-							.map((line, i) => (
-								<Text key={`txt_${i}`} style={styles.messageText}>
-									{line}
-								</Text>
-							))}
+						<View style={styles.messageWrapper}>
+							{util
+								.hexToText(messageParams.data)
+								.split('\n')
+								.map((line, i) => (
+									<Text key={`txt_${i}`} style={styles.messageText}>
+										{line}
+									</Text>
+								))}
+						</View>
 					</View>
 				</SignatureRequest>
 			</View>
