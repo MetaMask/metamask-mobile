@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 /**
  * PureComponent that supports eth_sign
  */
-export default class MessageSign extends PureComponent {
+export default class MessageSign extends React.Component {
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens
@@ -52,6 +52,10 @@ export default class MessageSign extends PureComponent {
 		 * Object containing current page title and url
 		 */
 		currentPageInformation: PropTypes.object
+	};
+
+	state = {
+		renderArrow: false
 	};
 
 	signMessage = async () => {
@@ -80,8 +84,28 @@ export default class MessageSign extends PureComponent {
 		this.props.onConfirm();
 	};
 
+	renderMessageText = () => {
+		const { messageParams } = this.props;
+		const messageText = this.state.renderArrow ? (
+			<Text numberOfLines={5} ellipsizeMode={'tail'}>
+				{messageParams.data}
+			</Text>
+		) : (
+			<Text onTextLayout={this.shouldRenderArrow}>{messageParams.data}</Text>
+		);
+		return messageText;
+	};
+
+	shouldRenderArrow = e => {
+		if (e.nativeEvent.lines.length > 5) {
+			this.setState({ renderArrow: true });
+			return;
+		}
+		this.setState({ renderArrow: false });
+	};
+
 	render() {
-		const { messageParams, currentPageInformation, navigation } = this.props;
+		const { currentPageInformation, navigation } = this.props;
 		return (
 			<View style={styles.root}>
 				<SignatureRequest
@@ -89,13 +113,12 @@ export default class MessageSign extends PureComponent {
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
 					currentPageInformation={currentPageInformation}
+					shouldRenderArrow={this.state.renderArrow}
 					type="ethSign"
 				>
 					<View style={styles.informationCol}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						<Text numberOfLines={5} ellipsizeMode={'tail'}>
-							{messageParams.data}
-						</Text>
+						{this.renderMessageText()}
 					</View>
 				</SignatureRequest>
 			</View>
