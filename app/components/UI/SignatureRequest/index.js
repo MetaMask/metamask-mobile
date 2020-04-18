@@ -114,7 +114,11 @@ class SignatureRequest extends React.Component {
 		/**
 		 * Whether it should display the warning message
 		 */
-		showWarning: PropTypes.bool
+		showWarning: PropTypes.bool,
+		/**
+		 * Whether it should render the expand arrow icon
+		 */
+		shouldRenderArrow: PropTypes.bool
 	};
 
 	state = {
@@ -175,11 +179,11 @@ class SignatureRequest extends React.Component {
 	);
 
 	renderActionViewChildren = () => {
-		const { children, currentPageInformation } = this.props;
+		const { children, currentPageInformation, shouldRenderArrow } = this.props;
 		const { showExpandedMessage } = this.state;
 		const url = currentPageInformation.url;
 		const title = getHost(url);
-		const arrowIcon = this.shouldRenderArrow() ? this.renderArrowIcon() : null;
+		const arrowIcon = shouldRenderArrow ? this.renderArrowIcon() : null;
 		const actionViewChildren = showExpandedMessage ? (
 			<View />
 		) : (
@@ -195,13 +199,6 @@ class SignatureRequest extends React.Component {
 			</View>
 		);
 		return actionViewChildren;
-	};
-
-	shouldRenderArrow = () => {
-		if (this.props.children._owner.type.name === 'TypedSign') {
-			return true;
-		}
-		return false;
 	};
 
 	renderArrowIcon = () => (
