@@ -16,8 +16,9 @@ const styles = StyleSheet.create({
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	informationCol: {
-		flex: 7,
-		paddingTop: 10
+		width: '75%',
+		alignItems: 'flex-start',
+		flexDirection: 'column'
 	},
 	messageLabelText: {
 		...fontStyles.bold,
@@ -89,11 +90,10 @@ export default class MessageSign extends PureComponent {
 					onConfirm={this.confirmSignature}
 					currentPageInformation={currentPageInformation}
 					type="ethSign"
-					showWarning
 				>
 					<View style={styles.informationCol}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						<Text>{messageParams.data}</Text>
+						<Text numberOfLines={5}>{messageParams.data}</Text>
 					</View>
 				</SignatureRequest>
 			</View>
