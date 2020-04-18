@@ -38,7 +38,6 @@ const styles = StyleSheet.create({
 	messageWrapper: {
 		flex: 4,
 		flexDirection: 'column',
-		flexWrap: 'wrap',
 		overflow: 'hidden',
 		zIndex: 1
 	},
