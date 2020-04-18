@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import { renderFromWei } from '../../../util/number';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
@@ -11,51 +11,44 @@ import { renderAccountName, renderShortAddress } from '../../../util/address';
 const styles = StyleSheet.create({
 	accountInformation: {
 		width: '90%',
-		...baseStyles.flexGrow,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
-		height: 75,
 		marginBottom: 20,
-		paddingVertical: 10,
-		paddingHorizontal: 15
+		padding: 16
 	},
-	identiconWrapper: {
-		...baseStyles.flexGrow,
-		justifyContent: 'center',
-		alignItems: 'center',
-		padding: 5,
-		marginRight: 15
+	identicon: {
+		marginRight: 16
 	},
 	accountInfoRow: {
-		flex: 8,
+		width: '80%',
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'flex-start'
 	},
 	accountNameAndAddress: {
-		flex: 1,
+		width: '100%',
 		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'flex-end'
+		justifyContent: 'flex-start'
 	},
 	accountName: {
-		flex: 6,
-		...fontStyles.normal,
-		fontSize: 14
+		maxWidth: '55%',
+		...fontStyles.bold,
+		fontSize: 16,
+		marginRight: 2,
+		textAlign: 'left'
 	},
 	accountAddress: {
-		flex: 5,
-		...fontStyles.normal,
-		fontSize: 14,
+		maxWidth: '50%',
+		...fontStyles.bold,
+		fontSize: 16,
 		textAlign: 'right'
 	},
 	balanceText: {
-		flex: 1,
-		...fontStyles.light,
-		fontSize: 12,
+		...fontStyles.thin,
+		fontSize: 14,
 		alignSelf: 'flex-start'
 	}
 });
@@ -88,9 +81,7 @@ class AccountInfoCard extends PureComponent {
 		const dollarBalance = conversionRate * balance;
 		return (
 			<View style={styles.accountInformation}>
-				<View style={styles.identiconWrapper}>
-					<Identicon address={selectedAddress} diameter={40} />
-				</View>
+				<Identicon address={selectedAddress} diameter={40} customStyle={styles.identicon} />
 				<View style={styles.accountInfoRow}>
 					<View style={styles.accountNameAndAddress}>
 						<Text numberOfLines={1} style={styles.accountName}>
