@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionElement should render correctly 1`] = `
-<ForwardRef
+<TouchableHighlight
   activeOpacity={1}
   onPress={[Function]}
   style={
@@ -135,5 +135,5 @@ exports[`TransactionElement should render correctly 1`] = `
       </View>
     </View>
   </View>
-</ForwardRef>
+</TouchableHighlight>
 `;
