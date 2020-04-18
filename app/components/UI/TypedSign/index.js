@@ -152,6 +152,7 @@ export default class TypedSign extends PureComponent {
 					onConfirm={this.confirmSignature}
 					domain={domain}
 					currentPageInformation={currentPageInformation}
+					shouldRenderArrow
 					type="typedSign"
 				>
 					<View style={styles.informationCol}>
