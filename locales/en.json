@@ -733,8 +733,8 @@
 	},
 	"signature_request": {
 		"title": "Signature Request",
-		"cancel": "CANCEL",
-		"sign": "SIGN",
+		"cancel": "Cancel",
+		"sign": "Sign",
 		"sign_requested": "Your signature is being requested",
 		"signing": "Sign this message?",
 		"account_title": "Account:",
