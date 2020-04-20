@@ -21,15 +21,16 @@ exports[`TypedSign should render correctly 1`] = `
     }
     onCancel={[Function]}
     onConfirm={[Function]}
+    shouldRenderArrow={true}
+    toggleExpandedMessage={[Function]}
     type="typedSign"
   >
     <View
       style={
         Object {
-          "flex": 7,
+          "alignItems": "flex-start",
           "flexDirection": "column",
-          "flexWrap": "wrap",
-          "paddingTop": 5,
+          "width": "75%",
         }
       }
     >
@@ -44,14 +45,14 @@ exports[`TypedSign should render correctly 1`] = `
           }
         }
       >
-        Message:
+        Message
+        :
       </Text>
       <View
         style={
           Object {
             "flex": 4,
             "flexDirection": "column",
-            "flexWrap": "wrap",
             "overflow": "hidden",
             "zIndex": 1,
           }

@@ -1,0 +1,105 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ExpandedMessage should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 10,
+      "borderTopRightRadius": 10,
+      "flex": 1,
+      "maxHeight": "75%",
+      "paddingBottom": 20,
+      "paddingHorizontal": 16,
+      "paddingTop": 16,
+    }
+  }
+>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginBottom": 20,
+        "width": "100%",
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="ios-arrow-back"
+      size={30}
+      style={
+        Object {
+          "color": "#bbc0c5",
+          "flex": 1,
+        }
+      }
+    />
+    <Text
+      style={
+        Object {
+          "flex": 1,
+          "fontFamily": "CircularStd-Medium",
+          "fontSize": 16,
+          "fontWeight": "600",
+          "textAlign": "center",
+        }
+      }
+    >
+      Message
+    </Text>
+    <View
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    />
+  </TouchableOpacity>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "marginBottom": 20,
+      }
+    }
+  >
+    <WebsiteIcon
+      style={
+        Object {
+          "borderRadius": 20,
+          "height": 40,
+          "marginBottom": 20,
+          "width": 40,
+        }
+      }
+      title="url"
+      url="url"
+    />
+    <Text
+      style={
+        Object {
+          "fontFamily": "CircularStd-Medium",
+          "fontSize": 16,
+          "fontWeight": "600",
+          "textAlign": "center",
+        }
+      }
+    >
+      Message from
+       
+      url
+    </Text>
+  </View>
+  <ScrollViewMock
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  />
+</View>
+`;

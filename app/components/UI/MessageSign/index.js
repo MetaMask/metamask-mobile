@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * PureComponent that supports eth_sign
+ * Component that supports eth_sign
  */
 export default class MessageSign extends React.Component {
 	static propTypes = {

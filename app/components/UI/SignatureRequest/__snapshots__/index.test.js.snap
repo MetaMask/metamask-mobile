@@ -64,70 +64,37 @@ exports[`SignatureRequest should render correctly 1`] = `
         }
       }
     >
-      <View
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={null}
         style={
           Object {
-            "alignItems": "flex-start",
             "borderColor": "#bbc0c5",
             "borderRadius": 10,
             "borderWidth": 1,
             "flex": 2,
             "flexDirection": "row",
             "height": 200,
-            "justifyContent": "space-between",
+            "justifyContent": "flex-start",
             "marginBottom": 20,
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
+            "padding": 16,
             "width": "90%",
           }
         }
       >
-        <View
+        <WebsiteIcon
           style={
             Object {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
+              "borderRadius": 20,
+              "height": 40,
               "marginRight": 15,
-              "padding": 5,
+              "width": 40,
             }
           }
-        >
-          <WebsiteIcon
-            style={
-              Object {
-                "borderRadius": 32,
-                "height": 40,
-                "width": 40,
-              }
-            }
-            title="url"
-            url="url"
-            viewStyle={
-              Object {
-                "alignItems": "center",
-                "borderRadius": 10,
-                "justifyContent": "center",
-              }
-            }
-          />
-        </View>
-        <View
-          style={
-            Object {
-              "alignItems": "flex-end",
-              "alignSelf": "center",
-              "flex": 1,
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            name="ios-arrow-forward"
-            size={20}
-          />
-        </View>
-      </View>
+          title="url"
+          url="url"
+        />
+      </TouchableOpacity>
       <Connect(AccountInfoCard) />
     </View>
   </ActionView>

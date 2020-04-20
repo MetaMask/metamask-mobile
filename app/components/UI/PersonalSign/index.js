@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * PureComponent that supports personal_sign
+ * Component that supports personal_sign
  */
 export default class PersonalSign extends React.Component {
 	static propTypes = {

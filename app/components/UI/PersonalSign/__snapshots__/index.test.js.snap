@@ -21,13 +21,17 @@ exports[`PersonalSign should render correctly 1`] = `
     }
     onCancel={[Function]}
     onConfirm={[Function]}
+    shouldRenderArrow={false}
+    showExpandedMessage={false}
+    toggleExpandedMessage={[Function]}
     type="personalSign"
   >
     <View
       style={
         Object {
-          "flex": 7,
-          "paddingTop": 10,
+          "alignItems": "flex-start",
+          "flexDirection": "column",
+          "width": "75%",
         }
       }
     >
@@ -41,20 +45,23 @@ exports[`PersonalSign should render correctly 1`] = `
           }
         }
       >
-        Message:
+        Message
       </Text>
       <Text
-        key="txt_0"
-        style={
-          Object {
-            "color": "#000000",
-            "flex": 1,
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 14,
-            "fontWeight": "400",
+        onTextLayout={[Function]}
+      >
+        <Text
+          key="txt_0"
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "400",
+            }
           }
-        }
-      />
+        />
+      </Text>
     </View>
   </Connect(SignatureRequest)>
 </View>
