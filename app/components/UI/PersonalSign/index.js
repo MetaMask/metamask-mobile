@@ -4,6 +4,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
+import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import { strings } from '../../../../locales/i18n';
 import { util } from 'gaba';
 import Device from '../../../util/Device';
@@ -30,6 +31,11 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: colors.fontPrimary,
 		...fontStyles.normal
+	},
+	expandedMessage: {
+		textAlign: 'center',
+		...fontStyles.regular,
+		fontSize: 14
 	}
 });
 
@@ -61,7 +67,8 @@ export default class PersonalSign extends React.Component {
 	};
 
 	state = {
-		renderArrow: false
+		renderArrow: false,
+		showExpandedMessage: false
 	};
 
 	signMessage = async () => {
@@ -92,6 +99,7 @@ export default class PersonalSign extends React.Component {
 
 	renderMessageText = () => {
 		const { messageParams } = this.props;
+		const { renderArrow, showExpandedMessage } = this.state;
 		const textChild = util
 			.hexToText(messageParams.data)
 			.split('\n')
@@ -100,13 +108,18 @@ export default class PersonalSign extends React.Component {
 					{line}
 				</Text>
 			));
-		const messageText = this.state.renderArrow ? (
-			<Text numberOfLines={5} ellipsizeMode={'tail'}>
-				{textChild}
-			</Text>
-		) : (
-			<Text onTextLayout={this.shouldRenderArrow}>{textChild}</Text>
-		);
+		let messageText;
+		if (showExpandedMessage) {
+			messageText = <Text style={styles.expandedMessage}>{textChild}</Text>;
+		} else {
+			messageText = renderArrow ? (
+				<Text numberOfLines={5} ellipsizeMode={'tail'}>
+					{textChild}
+				</Text>
+			) : (
+				<Text onTextLayout={this.shouldRenderArrow}>{textChild}</Text>
+			);
+		}
 		return messageText;
 	};
 
@@ -118,15 +131,28 @@ export default class PersonalSign extends React.Component {
 		this.setState({ renderArrow: false });
 	};
 
-	render() {
+	toggleExpandedMessage = () => {
+		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
+	};
+
+	renderRootView = () => {
 		const { currentPageInformation } = this.props;
-		return (
+		const { showExpandedMessage } = this.state;
+		const rootView = showExpandedMessage ? (
+			<ExpandedMessage
+				currentPageInformation={currentPageInformation}
+				renderMessage={this.renderMessageText}
+				toggleExpandedMessage={this.toggleExpandedMessage}
+			/>
+		) : (
 			<View style={styles.root}>
 				<SignatureRequest
 					navigation={this.props.navigation}
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
 					currentPageInformation={currentPageInformation}
+					showExpandedMessage={showExpandedMessage}
+					toggleExpandedMessage={this.toggleExpandedMessage}
 					shouldRenderArrow={this.state.renderArrow}
 					type="personalSign"
 				>
@@ -137,5 +163,10 @@ export default class PersonalSign extends React.Component {
 				</SignatureRequest>
 			</View>
 		);
+		return rootView;
+	};
+
+	render() {
+		return this.renderRootView();
 	}
 }
