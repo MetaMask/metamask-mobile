@@ -185,7 +185,7 @@ class SignatureRequest extends PureComponent {
 		const arrowIcon = shouldRenderArrow ? this.renderArrowIcon() : null;
 		return (
 			<View style={styles.childrenWrapper}>
-				<TouchableOpacity style={styles.children} onPress={toggleExpandedMessage}>
+				<TouchableOpacity style={styles.children} onPress={shouldRenderArrow ? toggleExpandedMessage : null}>
 					<WebsiteIcon style={styles.domainLogo} title={title} url={url} />
 					{children}
 					{arrowIcon}
