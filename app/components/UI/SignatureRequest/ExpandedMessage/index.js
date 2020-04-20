@@ -13,8 +13,8 @@ const styles = StyleSheet.create({
 		...baseStyles.flexGrow,
 		backgroundColor: colors.white,
 		maxHeight: '75%',
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
 		paddingHorizontal: 16,
 		paddingTop: 16,
 		paddingBottom: Device.isIphoneX() ? 20 : 0

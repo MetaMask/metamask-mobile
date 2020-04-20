@@ -13,8 +13,8 @@ const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		minHeight: '70%',
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	informationCol: {

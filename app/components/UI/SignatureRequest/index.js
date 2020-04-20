@@ -16,7 +16,9 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20
 	},
 	signingInformation: {
 		margin: 10
