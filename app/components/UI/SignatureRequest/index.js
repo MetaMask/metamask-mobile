@@ -122,7 +122,7 @@ class SignatureRequest extends PureComponent {
 		/**
 		 * Expands the message box on press.
 		 */
-		handleMessageTap: PropTypes.func
+		toggleExpandedMessage: PropTypes.func
 	};
 
 	/**
@@ -179,13 +179,13 @@ class SignatureRequest extends PureComponent {
 	);
 
 	renderActionViewChildren = () => {
-		const { children, currentPageInformation, shouldRenderArrow, handleMessageTap } = this.props;
+		const { children, currentPageInformation, shouldRenderArrow, toggleExpandedMessage } = this.props;
 		const url = currentPageInformation.url;
 		const title = getHost(url);
 		const arrowIcon = shouldRenderArrow ? this.renderArrowIcon() : null;
 		return (
 			<View style={styles.childrenWrapper}>
-				<TouchableOpacity style={styles.children} onPress={handleMessageTap}>
+				<TouchableOpacity style={styles.children} onPress={toggleExpandedMessage}>
 					<WebsiteIcon style={styles.domainLogo} title={title} url={url} />
 					{children}
 					{arrowIcon}
