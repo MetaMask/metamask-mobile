@@ -4,6 +4,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
+import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/Device';
 
@@ -24,6 +25,11 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		marginBottom: 5,
 		fontSize: 16
+	},
+	expandedMessage: {
+		textAlign: 'center',
+		...fontStyles.regular,
+		fontSize: 14
 	}
 });
 
@@ -55,7 +61,8 @@ export default class MessageSign extends React.Component {
 	};
 
 	state = {
-		renderArrow: false
+		renderArrow: false,
+		showExpandedMessage: false
 	};
 
 	signMessage = async () => {
@@ -86,13 +93,20 @@ export default class MessageSign extends React.Component {
 
 	renderMessageText = () => {
 		const { messageParams } = this.props;
-		const messageText = this.state.renderArrow ? (
-			<Text numberOfLines={5} ellipsizeMode={'tail'}>
-				{messageParams.data}
-			</Text>
-		) : (
-			<Text onTextLayout={this.shouldRenderArrow}>{messageParams.data}</Text>
-		);
+		const { renderArrow, showExpandedMessage } = this.state;
+
+		let messageText;
+		if (showExpandedMessage) {
+			messageText = <Text style={styles.expandedMessage}>{messageParams.data}</Text>;
+		} else {
+			messageText = renderArrow ? (
+				<Text numberOfLines={5} ellipsizeMode={'tail'}>
+					{messageParams.data}
+				</Text>
+			) : (
+				<Text onTextLayout={this.shouldRenderArrow}>{messageParams.data}</Text>
+			);
+		}
 		return messageText;
 	};
 
@@ -104,9 +118,20 @@ export default class MessageSign extends React.Component {
 		this.setState({ renderArrow: false });
 	};
 
-	render() {
+	toggleExpandedMessage = () => {
+		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
+	};
+
+	renderRootView = () => {
 		const { currentPageInformation, navigation } = this.props;
-		return (
+		const { showExpandedMessage } = this.state;
+		const rootView = showExpandedMessage ? (
+			<ExpandedMessage
+				currentPageInformation={currentPageInformation}
+				renderMessage={this.renderMessageText}
+				toggleExpandedMessage={this.toggleExpandedMessage}
+			/>
+		) : (
 			<View style={styles.root}>
 				<SignatureRequest
 					navigation={navigation}
@@ -114,6 +139,8 @@ export default class MessageSign extends React.Component {
 					onConfirm={this.confirmSignature}
 					currentPageInformation={currentPageInformation}
 					shouldRenderArrow={this.state.renderArrow}
+					showExpandedMessage={showExpandedMessage}
+					toggleExpandedMessage={this.toggleExpandedMessage}
 					type="ethSign"
 				>
 					<View style={styles.informationCol}>
@@ -123,5 +150,10 @@ export default class MessageSign extends React.Component {
 				</SignatureRequest>
 			</View>
 		);
+		return rootView;
+	};
+
+	render() {
+		return this.renderRootView();
 	}
 }
