@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 /**
  * PureComponent that renders scrollable content inside signature request user interface
  */
-class SignatureRequest extends React.Component {
+class SignatureRequest extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object representing the navigator
@@ -118,11 +118,11 @@ class SignatureRequest extends React.Component {
 		/**
 		 * Whether it should render the expand arrow icon
 		 */
-		shouldRenderArrow: PropTypes.bool
-	};
-
-	state = {
-		showExpandedMessage: false
+		shouldRenderArrow: PropTypes.bool,
+		/**
+		 * Expands the message box on press.
+		 */
+		handleMessageTap: PropTypes.func
 	};
 
 	/**
@@ -179,26 +179,20 @@ class SignatureRequest extends React.Component {
 	);
 
 	renderActionViewChildren = () => {
-		const { children, currentPageInformation, shouldRenderArrow } = this.props;
-		const { showExpandedMessage } = this.state;
+		const { children, currentPageInformation, shouldRenderArrow, handleMessageTap } = this.props;
 		const url = currentPageInformation.url;
 		const title = getHost(url);
 		const arrowIcon = shouldRenderArrow ? this.renderArrowIcon() : null;
-		const actionViewChildren = showExpandedMessage ? (
-			<View />
-		) : (
+		return (
 			<View style={styles.childrenWrapper}>
-				<TouchableWithoutFeedback>
-					<View style={styles.children}>
-						<WebsiteIcon style={styles.domainLogo} title={title} url={url} />
-						{children}
-						{arrowIcon}
-					</View>
-				</TouchableWithoutFeedback>
+				<TouchableOpacity style={styles.children} onPress={handleMessageTap}>
+					<WebsiteIcon style={styles.domainLogo} title={title} url={url} />
+					{children}
+					{arrowIcon}
+				</TouchableOpacity>
 				<AccountInfoCard />
 			</View>
 		);
-		return actionViewChildren;
 	};
 
 	renderArrowIcon = () => (
@@ -206,10 +200,6 @@ class SignatureRequest extends React.Component {
 			<Ionicons name={'ios-arrow-forward'} size={20} style={styles.arrowIcon} />
 		</View>
 	);
-
-	handleMessageTap = () => {
-		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
-	};
 
 	render() {
 		const { showWarning, currentPageInformation, type } = this.props;
