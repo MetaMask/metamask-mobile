@@ -5,8 +5,8 @@ exports[`ExpandedMessage should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "#FFFFFF",
-      "borderTopLeftRadius": 10,
-      "borderTopRightRadius": 10,
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
       "flex": 1,
       "maxHeight": "75%",
       "paddingBottom": 20,

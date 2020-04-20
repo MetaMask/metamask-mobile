@@ -5,6 +5,8 @@ exports[`SignatureRequest should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
       "flex": 1,
     }
   }
@@ -42,10 +44,10 @@ exports[`SignatureRequest should render correctly 1`] = `
   </View>
   <ActionView
     cancelTestID="request-signature-cancel-button"
-    cancelText="CANCEL"
+    cancelText="Cancel"
     confirmButtonMode="normal"
     confirmTestID="request-signature-confirm-button"
-    confirmText="SIGN"
+    confirmText="Sign"
     confirmed={false}
     isSigning={true}
     onCancelPress={[Function]}

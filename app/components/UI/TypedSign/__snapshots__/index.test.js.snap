@@ -5,8 +5,8 @@ exports[`TypedSign should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "#FFFFFF",
-      "borderTopLeftRadius": 10,
-      "borderTopRightRadius": 10,
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
       "minHeight": "70%",
       "paddingBottom": 20,
     }
