@@ -45,12 +45,12 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	normal: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.blue,
 		borderWidth: 1,
 		borderColor: colors.blue
 	},
 	normalText: {
-		color: colors.blue
+		color: colors.white
 	},
 	transparent: {
 		backgroundColor: colors.transparent,
@@ -60,10 +60,10 @@ const styles = StyleSheet.create({
 	cancel: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.grey400
+		borderColor: colors.blue
 	},
 	cancelText: {
-		color: colors.grey400
+		color: colors.blue
 	},
 	warning: {
 		backgroundColor: colors.red
