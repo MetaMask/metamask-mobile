@@ -6,7 +6,6 @@ import { store, persistor } from '../../../store/';
 
 import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { View, Text } from 'react-native';
 
 /**
  * Top level of the component hierarchy
@@ -21,11 +20,6 @@ export default class Root extends PureComponent {
 	render = () => (
 		<Provider store={store}>
 			<PersistGate persistor={persistor}>
-				{global.HermesInternal == null ? null : (
-					<View>
-						<Text>Engine: Hermes</Text>
-					</View>
-				)}
 				<App />
 			</PersistGate>
 		</Provider>
