@@ -80,10 +80,13 @@ export default class TransactionSummary extends PureComponent {
 					<Text style={[styles.textSummary, styles.textSummaryAmount]}>{amount}</Text>
 				</View>
 				<View style={styles.summaryRow}>
-					<Text style={styles.textSummary}>{strings('transaction.transaction_fee')}</Text>
-					{this.renderIfGastEstimationReady(
-						<Text style={[styles.textSummary, styles.textSummaryAmount]}>{fee}</Text>
-					)}
+					<Text style={styles.textSummary}>
+						{!fee ? strings('transaction.transaction_fee_less') : strings('transaction.transaction_fee')}
+					</Text>
+					{!!fee &&
+						this.renderIfGastEstimationReady(
+							<Text style={[styles.textSummary, styles.textSummaryAmount]}>{fee}</Text>
+						)}
 				</View>
 				<View style={styles.separator} />
 				<View style={styles.summaryRow}>

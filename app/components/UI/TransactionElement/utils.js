@@ -26,8 +26,19 @@ function decodePaymentChannelTx(args) {
 	const {
 		tx: {
 			networkID,
-			transactionHash,
-			transaction: { value, gas, gasPrice, from, to }
+			transaction: { to }
+		}
+	} = args;
+	const contract = CONTRACTS[networkID];
+	const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
+	if (isDeposit) return decodeConfirmTx(args, true);
+	return decodeTransferPaymentChannel(args);
+}
+
+function decodeTransferPaymentChannel(args) {
+	const {
+		tx: {
+			transaction: { value, from, to }
 		},
 		conversionRate,
 		currentCurrency,
@@ -35,15 +46,10 @@ function decodePaymentChannelTx(args) {
 		actionKey,
 		primaryCurrency
 	} = args;
-	const contract = CONTRACTS[networkID];
-	const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
-	const totalEth = hexToBN(value);
-	const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
-	const readableTotalEth = renderFromWei(totalEth);
-	const renderTotalEth = `${readableTotalEth} ${isDeposit ? strings('unit.eth') : strings('unit.sai')}`;
-	const renderTotalEthFiat = isDeposit
-		? totalEthFiat
-		: balanceToFiat(parseFloat(readableTotalEth), conversionRate, exchangeRate, currentCurrency);
+	const totalSAI = hexToBN(value);
+	const readableTotalSAI = renderFromWei(totalSAI);
+	const renderTotalSAI = `${readableTotalSAI} ${strings('unit.sai')}`;
+	const renderTotalSAIFiat = balanceToFiat(parseFloat(renderTotalSAI), conversionRate, exchangeRate, currentCurrency);
 
 	const renderFrom = renderFullAddress(from);
 	const renderTo = renderFullAddress(to);
@@ -51,25 +57,22 @@ function decodePaymentChannelTx(args) {
 	let transactionDetails = {
 		renderFrom,
 		renderTo,
-		transactionHash,
-		renderGas: gas ? parseInt(gas, 16).toString() : strings('transactions.tx_details_not_available'),
-		renderGasPrice: gasPrice ? renderToGwei(gasPrice) : strings('transactions.tx_details_not_available'),
-		renderValue: renderTotalEth
+		renderValue: renderTotalSAI
 	};
 
 	if (primaryCurrency === 'ETH') {
 		transactionDetails = {
 			...transactionDetails,
-			summaryAmount: renderTotalEth,
-			summaryTotalAmount: isDeposit && totalEthFiat,
-			summarySecondaryTotalAmount: weiToFiat(totalEth, conversionRate, currentCurrency)
+			summaryAmount: renderTotalSAI,
+			summaryTotalAmount: renderTotalSAI,
+			summarySecondaryTotalAmount: renderTotalSAIFiat
 		};
 	} else {
 		transactionDetails = {
 			...transactionDetails,
-			summaryAmount: weiToFiat(totalEth, conversionRate, currentCurrency),
-			summaryTotalAmount: isDeposit && totalEthFiat,
-			summarySecondaryTotalAmount: renderTotalEth
+			summaryAmount: renderTotalSAIFiat,
+			summaryTotalAmount: renderTotalSAIFiat,
+			summarySecondaryTotalAmount: renderTotalSAI
 		};
 	}
 
@@ -77,8 +80,8 @@ function decodePaymentChannelTx(args) {
 		renderFrom,
 		renderTo,
 		actionKey,
-		value: renderTotalEth,
-		fiatValue: renderTotalEthFiat,
+		value: renderTotalSAI,
+		fiatValue: renderTotalSAIFiat,
 		paymentChannelTransaction: true
 	};
 
@@ -393,7 +396,7 @@ function decodeDeploymentTx(args) {
 	return [transactionElement, transactionDetails];
 }
 
-function decodeConfirmTx(args) {
+function decodeConfirmTx(args, paymentChannelTransaction) {
 	const {
 		tx: {
 			transaction: { value, gas, gasPrice, from, to },
@@ -454,7 +457,8 @@ function decodeConfirmTx(args) {
 		renderFrom,
 		actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
 		value: renderTotalEth,
-		fiatValue: renderTotalEthFiat
+		fiatValue: renderTotalEthFiat,
+		paymentChannelTransaction
 	};
 
 	return [transactionElement, transactionDetails];

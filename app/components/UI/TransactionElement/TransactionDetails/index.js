@@ -163,7 +163,11 @@ class TransactionDetails extends PureComponent {
 	render = () => {
 		const {
 			transactionObject,
-			transactionObject: { status, time }
+			transactionObject: {
+				status,
+				time,
+				transaction: { nonce }
+			}
 		} = this.props;
 		const { rpcBlockExplorer } = this.state;
 		return (
@@ -180,7 +184,7 @@ class TransactionDetails extends PureComponent {
 						</View>
 					</View>
 				</View>
-				<View style={[styles.section, styles.flexRow, styles.sectionBorderBottom]}>
+				<View style={[styles.section, styles.flexRow, !!nonce && styles.sectionBorderBottom]}>
 					<View style={[baseStyles.flexGrow, styles.flexRow]}>
 						<View style={baseStyles.flexRow}>
 							<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
@@ -200,13 +204,15 @@ class TransactionDetails extends PureComponent {
 						</View>
 					</View>
 				</View>
-				<View style={styles.section}>
-					<Text style={[styles.detailRowTitle, styles.textUppercase]}>{strings('transactions.nonce')}</Text>
-					<Text style={[styles.detailRowText]}>
-						{`#${parseInt(transactionObject.transaction.nonce.replace(/^#/, ''), 16)}`}
-					</Text>
-				</View>
-				<View style={styles.summaryWrapper}>
+				{!!nonce && (
+					<View style={styles.section}>
+						<Text style={[styles.detailRowTitle, styles.textUppercase]}>
+							{strings('transactions.nonce')}
+						</Text>
+						<Text style={[styles.detailRowText]}>{`#${parseInt(nonce.replace(/^#/, ''), 16)}`}</Text>
+					</View>
+				)}
+				<View style={(styles.summaryWrapper, !nonce && styles.touchableViewOnEtherscan)}>
 					<TransactionSummary
 						amount={this.props.transactionDetails.summaryAmount}
 						fee={this.props.transactionDetails.summaryFee}

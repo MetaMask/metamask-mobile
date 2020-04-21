@@ -627,7 +627,7 @@ class PaymentChannel extends PureComponent {
 	}
 
 	renderTransactionsHistory() {
-		const { navigation, conversionRate, currentCurrency, selectedAddress } = this.props;
+		const { navigation, conversionRate, currentCurrency, selectedAddress, primaryCurrency } = this.props;
 		return (
 			<ScrollView style={styles.transactionsWrapper}>
 				<Transactions
@@ -639,6 +639,7 @@ class PaymentChannel extends PureComponent {
 					exchangeRate={this.state.exchangeRate}
 					selectedAddress={selectedAddress}
 					loading={false}
+					primaryCurrency={primaryCurrency}
 				/>
 			</ScrollView>
 		);
