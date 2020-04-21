@@ -3,7 +3,6 @@
 exports[`TransactionElement should render correctly 1`] = `
 <TouchableHighlight
   activeOpacity={1}
-  delayPressOut={100}
   onPress={[Function]}
   style={
     Object {

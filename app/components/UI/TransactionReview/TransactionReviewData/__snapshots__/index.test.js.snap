@@ -84,12 +84,10 @@ exports[`TransactionReviewData should render correctly 1`] = `
       </Text>
     </View>
     <TextInput
-      allowFontScaling={true}
       editable={false}
       multiline={true}
       placeholder="Optional"
       placeholderTextColor="#d6d9dc"
-      rejectResponderTermination={true}
       style={
         Object {
           "backgroundColor": "#FFFFFF",
@@ -102,7 +100,6 @@ exports[`TransactionReviewData should render correctly 1`] = `
           "padding": 16,
         }
       }
-      underlineColorAndroid="transparent"
       value=""
     />
   </View>
