@@ -111,10 +111,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         Object {
           "flexDirection": "row",
         },
-        Object {
-          "borderBottomColor": "#d6d9dc",
-          "borderBottomWidth": 1,
-        },
+        false,
       ]
     }
   >
@@ -196,47 +193,7 @@ exports[`TransactionDetails should render correctly 1`] = `
   <View
     style={
       Object {
-        "paddingVertical": 16,
-      }
-    }
-  >
-    <Text
-      style={
-        Array [
-          Object {
-            "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 10,
-            "fontWeight": "400",
-            "marginBottom": 8,
-          },
-          Object {
-            "textTransform": "uppercase",
-          },
-        ]
-      }
-    >
-      Nonce
-    </Text>
-    <Text
-      style={
-        Array [
-          Object {
-            "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 12,
-            "fontWeight": "400",
-          },
-        ]
-      }
-    >
-      #NaN
-    </Text>
-  </View>
-  <View
-    style={
-      Object {
-        "marginVertical": 6,
+        "marginVertical": 24,
       }
     }
   >
