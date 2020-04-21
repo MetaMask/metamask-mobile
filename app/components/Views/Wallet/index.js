@@ -1,13 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-	RefreshControl,
-	ScrollView,
-	InteractionManager,
-	ActivityIndicator,
-	StyleSheet,
-	View,
-	NativeModules
-} from 'react-native';
+import { RefreshControl, ScrollView, InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -24,7 +16,6 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
-const PreventScreenshot = NativeModules.PreventScreenshot;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -119,7 +110,6 @@ class Wallet extends PureComponent {
 		requestAnimationFrame(() => {
 			this.init();
 		});
-		await PreventScreenshot.forbid();
 	};
 
 	onRefresh = async () => {

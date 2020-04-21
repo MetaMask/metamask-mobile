@@ -1,6 +1,16 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, ActivityIndicator, Image, Text, View, ScrollView, StyleSheet, InteractionManager } from 'react-native';
+import {
+	Alert,
+	ActivityIndicator,
+	Image,
+	Text,
+	View,
+	ScrollView,
+	StyleSheet,
+	InteractionManager,
+	NativeModules
+} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -21,6 +31,7 @@ import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import TermsAndConditions from '../TermsAndConditions';
 import Device from '../../../util/Device';
+const PreventScreenshot = NativeModules.PreventScreenshot;
 
 const SMALL_DEVICE = Device.isSmallDevice();
 
@@ -157,11 +168,17 @@ class ImportWallet extends PureComponent {
 	componentDidMount() {
 		this.mounted = true;
 		this.checkIfExistingUser();
+		InteractionManager.runAfterInteractions(() => {
+			PreventScreenshot.forbid();
+		});
 	}
 
 	componentWillUnmount() {
 		this.mounted = false;
 		this.pubnubWrapper && this.pubnubWrapper.disconnectWebsockets();
+		InteractionManager.runAfterInteractions(() => {
+			PreventScreenshot.allow();
+		});
 	}
 
 	startSync = async firstAttempt => {
