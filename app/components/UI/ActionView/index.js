@@ -42,11 +42,11 @@ export default function ActionView({
 	confirmed,
 	confirmDisabled,
 	keyboardShouldPersistTaps = 'never',
-	isSigning = false
+	noScroll
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
-			{isSigning ? (
+			{noScroll ? (
 				<View style={baseStyles.flexGrow}>{children}</View>
 			) : (
 				<KeyboardAwareScrollView
@@ -105,7 +105,7 @@ ActionView.defaultProps = {
 	cancelTestID: '',
 	showCancelButton: true,
 	showConfirmButton: true,
-	isSigning: false
+	noScroll: false
 };
 
 ActionView.propTypes = {
@@ -169,5 +169,5 @@ ActionView.propTypes = {
 	/**
 	 * Whether a personal, message or typed sign is taking place
 	 */
-	isSigning: PropTypes.bool
+	noScroll: PropTypes.bool
 };

@@ -225,7 +225,7 @@ class SignatureRequest extends PureComponent {
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
 					confirmButtonMode="sign"
-					isSigning
+					noScroll
 				>
 					{this.renderActionViewChildren()}
 				</ActionView>
