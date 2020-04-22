@@ -714,7 +714,7 @@
     "@connext/types" "4.1.0"
     eventemitter3 "4.0.0"
 
-"@connext/client@^4.1.0":
+"@connext/client@4.1.0":
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/@connext/client/-/client-4.1.0.tgz#9d9ff0d2ea9e447d52396db4006e7b3416cc0a37"
   integrity sha512-/7hrWLHQVPBnUS30RWqiU2MlB8qj7eQ/XlgXYGobucLQyQWPApJpfcXJtL9FBHOyHFh+XGWuy94jw5JJ5ZSIIg==

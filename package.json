@@ -55,7 +55,7 @@
     ]
   },
   "dependencies": {
-    "@connext/client": "^4.1.0",
+    "@connext/client": "4.1.0",
     "@connext/store": "4.1.0",
     "@connext/types": "4.1.0",
     "@react-native-community/async-storage": "1.2.0",
