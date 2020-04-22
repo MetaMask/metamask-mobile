@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
 	listWrapper: {
 		width: 50,
 		height: 50,
-		borderRadius: 25,
+		borderRadius: 10,
 		overflow: 'hidden'
 	},
 	fullWrapper: {
