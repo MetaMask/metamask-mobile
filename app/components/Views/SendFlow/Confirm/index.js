@@ -31,6 +31,7 @@ import { hexToBN, BNToHex } from 'gaba/dist/util';
 import { prepareTransaction } from '../../../../actions/newTransaction';
 import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
+import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import Logger from '../../../../util/Logger';
 import ActionModal from '../../../UI/ActionModal';
 import AccountList from '../../../UI/AccountList';
@@ -189,7 +190,8 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Confirm extends PureComponent {
-	static navigationOptions = ({ navigation }) => getSendFlowTitle('send.confirm', navigation);
+	static navigationOptions = ({ navigation, screenProps }) =>
+		getSendFlowTitle('send.confirm', navigation, screenProps);
 
 	static propTypes = {
 		/**
@@ -247,7 +249,15 @@ class Confirm extends PureComponent {
 		/**
 		 * List of keyrings
 		 */
-		keyrings: PropTypes.array
+		keyrings: PropTypes.array,
+		/**
+		 * Indicates whether the current transaction is a payment channel transaction
+		 */
+		isPaymentChannelTransaction: PropTypes.bool,
+		/**
+		 * Selected asset from current transaction state
+		 */
+		selectedAsset: PropTypes.object
 	};
 
 	state = {
@@ -291,7 +301,8 @@ class Confirm extends PureComponent {
 				transactionTo: to,
 				transaction: { from, value, gas, gasPrice, data }
 			},
-			ticker
+			ticker,
+			isPaymentChannelTransaction
 		} = this.props;
 		let fromAccountBalance,
 			transactionValue,
@@ -304,7 +315,11 @@ class Confirm extends PureComponent {
 		const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
 		const parsedTicker = getTicker(ticker);
 
-		if (selectedAsset.isETH) {
+		if (isPaymentChannelTransaction) {
+			fromAccountBalance = `${selectedAsset.assetBalance} ${selectedAsset.symbol}`;
+			transactionValue = `${value} ${selectedAsset.symbol}`;
+			transactionTo = to;
+		} else if (selectedAsset.isETH) {
 			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${parsedTicker}`;
 			transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
@@ -536,6 +551,48 @@ class Confirm extends PureComponent {
 		}
 	};
 
+	onPaymentChannelSend = async () => {
+		this.setState({ transactionConfirmed: true });
+		const {
+			navigation,
+			transactionState: { transaction }
+		} = this.props;
+		if (this.sending) {
+			return;
+		}
+		try {
+			const params = {
+				sendRecipient: transaction.to,
+				sendAmount: transaction.value
+			};
+
+			if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
+				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_amount'));
+				return false;
+			}
+
+			if (!params.sendRecipient) {
+				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_recipient'));
+			}
+
+			Logger.log('Sending ', params);
+			this.sending = true;
+			await PaymentChannelsClient.send(params);
+			this.sending = false;
+
+			Logger.log('Send succesful');
+			navigation.navigate('PaymentChannelHome');
+		} catch (e) {
+			let msg = strings('payment_channel.unknown_error');
+			if (e.message === 'insufficient_balance') {
+				msg = strings('payment_channel.insufficient_balance');
+			}
+			Alert.alert(strings('payment_channel.error'), msg);
+			Logger.log('buy error error', e);
+			this.sending = false;
+		}
+	};
+
 	onNext = async () => {
 		const { TransactionController } = Engine.context;
 		const {
@@ -662,18 +719,18 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset } = this.props.transactionState;
-		const { showHexData } = this.props;
+		const { showHexData, isPaymentChannelTransaction } = this.props;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
 			fromAccountName,
 			fromSelectedAddress,
-			transactionValue,
-			transactionValueFiat,
-			transactionFeeFiat,
-			transactionTo,
-			transactionTotalAmount,
-			transactionTotalAmountFiat,
+			transactionValue = '',
+			transactionValueFiat = '',
+			transactionFeeFiat = '',
+			transactionTo = '',
+			transactionTotalAmount = '',
+			transactionTotalAmountFiat = '',
 			errorMessage,
 			transactionConfirmed
 		} = this.state;
@@ -681,7 +738,7 @@ class Confirm extends PureComponent {
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
 					<AddressFrom
-						onPressIcon={this.toggleFromAccountModal}
+						onPressIcon={isPaymentChannelTransaction ? null : this.toggleFromAccountModal}
 						fromAccountAddress={fromSelectedAddress}
 						fromAccountName={fromAccountName}
 						fromAccountBalance={fromAccountBalance}
@@ -735,7 +792,7 @@ class Confirm extends PureComponent {
 						</View>
 					)}
 					<View style={styles.actionsWrapper}>
-						{showHexData && (
+						{!isPaymentChannelTransaction && showHexData && (
 							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleHexDataModal}>
 								<Text style={styles.actionText}>{strings('transaction.hex_data')}</Text>
 							</TouchableOpacity>
@@ -747,7 +804,7 @@ class Confirm extends PureComponent {
 						type={'confirm'}
 						disabled={!gasEstimationReady}
 						containerStyle={styles.buttonNext}
-						onPress={this.onNext}
+						onPress={isPaymentChannelTransaction ? this.onPaymentChannelSend : this.onNext}
 						testID={'txn-confirm-send-button'}
 					>
 						{transactionConfirmed ? <ActivityIndicator size="small" color="white" /> : 'Send'}
@@ -775,13 +832,15 @@ const mapStateToProps = (state, ownProps) => {
 		const fromAddress = from || selectedAddress;
 
 		const addressBook = state.engine.backgroundState.AddressBookController.addressBook;
-		const transactionToName = getTransactionToName({
-			addressBook,
-			network,
-			toAddress: to,
-			identities,
-			ensRecipient
-		});
+		const transactionToName =
+			to &&
+			getTransactionToName({
+				addressBook,
+				network,
+				toAddress: to,
+				identities,
+				ensRecipient
+			});
 
 		transactionState = {
 			...ownPropsTransaction,
@@ -808,7 +867,11 @@ const mapStateToProps = (state, ownProps) => {
 		showHexData: state.settings.showHexData,
 		ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 		transactionState,
-		keyrings: state.engine.backgroundState.KeyringController.keyrings
+		keyrings: state.engine.backgroundState.KeyringController.keyrings,
+		isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
+		selectedAsset: state.transaction.paymentChannelTransaction
+			? state.transaction.selectedAsset
+			: state.newTransaction.selectedAsset
 	};
 };
 

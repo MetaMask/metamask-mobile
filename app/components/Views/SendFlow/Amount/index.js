@@ -36,7 +36,8 @@ import {
 	weiToFiatNumber,
 	balanceToFiatNumber,
 	getCurrencySymbol,
-	handleWeiNumber
+	handleWeiNumber,
+	toBN
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
@@ -284,7 +285,8 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Amount extends PureComponent {
-	static navigationOptions = ({ navigation }) => getSendFlowTitle('send.amount', navigation);
+	static navigationOptions = ({ navigation, screenProps }) =>
+		getSendFlowTitle('send.amount', navigation, screenProps);
 
 	static propTypes = {
 		/**
@@ -354,7 +356,11 @@ class Amount extends PureComponent {
 		/**
 		 * Network provider type as mainnet
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		/**
+		 * Indicates whether the current transaction is a payment channel transaction
+		 */
+		isPaymentChannelTransaction: PropTypes.bool
 	};
 
 	state = {
@@ -373,29 +379,39 @@ class Amount extends PureComponent {
 	collectibles = [];
 
 	componentDidMount = async () => {
-		const { tokens, ticker, selectedAsset, navigation, providerType } = this.props;
 		// For analytics
+		const { tokens, ticker, selectedAsset, isPaymentChannelTransaction, navigation, providerType } = this.props;
 		navigation.setParams({ providerType });
 		this.tokens = [getEther(ticker), ...tokens];
 		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		this.onInputChange();
 		// if collectible don't do this
-		if (!selectedAsset.tokenId) this.handleSelectedAssetBalance(selectedAsset);
-		const estimatedTotalGas = await this.estimateTransactionTotalGas();
-
-		this.setState({ estimatedTotalGas });
+		if (isPaymentChannelTransaction || !selectedAsset.tokenId) {
+			this.handleSelectedAssetBalance(
+				selectedAsset,
+				isPaymentChannelTransaction ? selectedAsset.assetBalance : null
+			);
+		}
+		if (!isPaymentChannelTransaction) {
+			const estimatedTotalGas = await this.estimateTransactionTotalGas();
+			this.setState({ estimatedTotalGas });
+		}
 	};
 
 	onNext = async () => {
-		const { navigation, selectedAsset, providerType } = this.props;
+		const { navigation, selectedAsset, setSelectedAsset, providerType } = this.props;
+
 		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto, hasExchangeRate } = this.state;
 		const value = internalPrimaryCurrencyIsCrypto || !hasExchangeRate ? inputValue : inputValueConversion;
 		if (!selectedAsset.tokenId && this.validateAmount(value)) return;
 		await this.prepareTransaction(value);
+
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_AMOUNT, { network: providerType });
 		});
+
+		setSelectedAsset(selectedAsset);
 		navigation.navigate('Confirm');
 	};
 
@@ -403,9 +419,14 @@ class Amount extends PureComponent {
 		const {
 			prepareTransaction,
 			selectedAsset,
-			transactionState: { transaction, transactionTo }
+			transactionState: { transaction, transactionTo },
+			isPaymentChannelTransaction
 		} = this.props;
-		if (selectedAsset.isETH) {
+
+		if (isPaymentChannelTransaction) {
+			transaction.value = value;
+			transaction.to = transactionTo;
+		} else if (selectedAsset.isETH) {
 			transaction.data = undefined;
 			transaction.to = transactionTo;
 			transaction.value = BNToHex(toWei(value));
@@ -451,11 +472,14 @@ class Amount extends PureComponent {
 	 * @returns - Whether there is an error with the amount
 	 */
 	validateAmount = inputValue => {
-		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
+		const { accounts, selectedAddress, contractBalances, selectedAsset, isPaymentChannelTransaction } = this.props;
 		const { estimatedTotalGas } = this.state;
 		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
-			if (selectedAsset.isETH) {
+			if (isPaymentChannelTransaction) {
+				weiBalance = toBN(selectedAsset.assetBalance);
+				weiInput = toBN(inputValue);
+			} else if (selectedAsset.isETH) {
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
 				weiInput = toWei(inputValue).add(estimatedTotalGas);
 			} else {
@@ -505,11 +529,14 @@ class Amount extends PureComponent {
 			contractBalances,
 			selectedAsset,
 			conversionRate,
-			contractExchangeRates
+			contractExchangeRates,
+			isPaymentChannelTransaction
 		} = this.props;
 		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
 		let input;
-		if (selectedAsset.isETH) {
+		if (isPaymentChannelTransaction) {
+			input = selectedAsset.assetBalance;
+		} else if (selectedAsset.isETH) {
 			const balanceBN = hexToBN(accounts[selectedAddress].balance);
 			const realMaxValue = balanceBN.sub(estimatedTotalGas);
 			const maxValue = balanceBN.isZero() || realMaxValue.isNeg() ? new BN(0) : realMaxValue;
@@ -601,11 +628,14 @@ class Amount extends PureComponent {
 		this.setState({ assetsModalVisible: !assetsModalVisible });
 	};
 
-	handleSelectedAssetBalance = selectedAsset => {
+	handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
 		const { accounts, selectedAddress, contractBalances } = this.props;
 		let currentBalance;
+
 		const { address, decimals, symbol, isETH } = selectedAsset;
-		if (isETH) {
+		if (renderableBalance) {
+			currentBalance = `${renderableBalance} ${symbol}`;
+		} else if (isETH) {
 			currentBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${symbol}`;
 		} else {
 			currentBalance = `${renderFromTokenMinimalUnit(contractBalances[address], decimals)} ${symbol}`;
@@ -841,32 +871,39 @@ class Amount extends PureComponent {
 
 	render = () => {
 		const { estimatedTotalGas } = this.state;
-		const { selectedAsset } = this.props;
+		const { selectedAsset, isPaymentChannelTransaction } = this.props;
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'amount-screen'}>
 				<View style={styles.inputWrapper}>
 					<View style={styles.actionsWrapper}>
 						<View style={styles.actionBorder} />
 						<View style={styles.action}>
-							<TouchableOpacity style={styles.actionDropdown} onPress={this.toggleAssetsModal}>
+							<TouchableOpacity
+								style={styles.actionDropdown}
+								disabled={isPaymentChannelTransaction}
+								onPress={this.toggleAssetsModal}
+							>
 								<Text style={styles.textDropdown}>
 									{selectedAsset.symbol || strings('wallet.collectible')}
 								</Text>
-								<View styles={styles.arrow}>
-									<Ionicons
-										name="ios-arrow-down"
-										size={16}
-										color={colors.white}
-										style={styles.iconDropdown}
-									/>
-								</View>
+								{!isPaymentChannelTransaction && (
+									<View styles={styles.arrow}>
+										<Ionicons
+											name="ios-arrow-down"
+											size={16}
+											color={colors.white}
+											style={styles.iconDropdown}
+										/>
+									</View>
+								)}
 							</TouchableOpacity>
 						</View>
 						<View style={[styles.actionBorder, styles.actionMax]}>
 							{!selectedAsset.tokenId && (
 								<TouchableOpacity
 									style={styles.actionMaxTouchable}
-									disabled={!estimatedTotalGas}
+									disabled={!isPaymentChannelTransaction && !estimatedTotalGas}
 									onPress={this.useMax}
 								>
 									<Text style={styles.maxText}>{strings('transaction.use_max')}</Text>
@@ -887,7 +924,7 @@ class Amount extends PureComponent {
 						<StyledButton
 							type={'confirm'}
 							containerStyle={styles.buttonNext}
-							disabled={!estimatedTotalGas}
+							disabled={!isPaymentChannelTransaction && !estimatedTotalGas}
 							onPress={this.onNext}
 							testID={'txn-amount-next-button'}
 						>
@@ -914,7 +951,10 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	selectedAsset: state.newTransaction.selectedAsset,
+	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
+	selectedAsset: state.transaction.paymentChannelTransaction
+		? state.transaction.selectedAsset
+		: state.newTransaction.selectedAsset,
 	transactionState: state.newTransaction
 });
 

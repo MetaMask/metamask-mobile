@@ -426,6 +426,10 @@ class Main extends PureComponent {
 		 * Dispatch hiding a transaction notification
 		 */
 		hideTransactionNotification: PropTypes.func
+		/**
+		 * Indicates whether the current transaction is a payment channel transaction
+		 */
+		isPaymentChannelTransaction: PropTypes.bool
 	};
 
 	state = {
@@ -1092,11 +1096,19 @@ class Main extends PureComponent {
 	};
 
 	render() {
+		const { isPaymentChannelTransaction } = this.props;
 		const { forceReload } = this.state;
 		return (
 			<React.Fragment>
 				<View style={styles.flex}>
-					{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
+					{!forceReload ? (
+						<MainNavigator
+							navigation={this.props.navigation}
+							screenProps={{ isPaymentChannelTransaction }}
+						/>
+					) : (
+						this.renderLoader()
+					)}
 					<GlobalAlert />
 					<FadeOutOverlay />
 					<TxNotification navigation={this.props.navigation} />
@@ -1118,7 +1130,8 @@ const mapStateToProps = state => ({
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	allTokens: state.engine.backgroundState.AssetsController.allTokens,
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction
 });
 
 const mapDispatchToProps = dispatch => ({
