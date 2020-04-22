@@ -37,7 +37,7 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
     confirmTestID=""
     confirmText="PAY"
     confirmed={false}
-    isSigning={false}
+    noScroll={false}
     showCancelButton={true}
     showConfirmButton={true}
   >

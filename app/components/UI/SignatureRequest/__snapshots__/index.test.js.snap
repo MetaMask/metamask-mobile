@@ -45,11 +45,11 @@ exports[`SignatureRequest should render correctly 1`] = `
   <ActionView
     cancelTestID="request-signature-cancel-button"
     cancelText="Cancel"
-    confirmButtonMode="normal"
+    confirmButtonMode="sign"
     confirmTestID="request-signature-confirm-button"
     confirmText="Sign"
     confirmed={false}
-    isSigning={true}
+    noScroll={true}
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
     showCancelButton={true}
