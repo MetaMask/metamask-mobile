@@ -29,6 +29,7 @@ import { getTicker, decodeTransferData, getTransactionToName } from '../../../..
 import StyledButton from '../../../UI/StyledButton';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
 import { prepareTransaction } from '../../../../actions/newTransaction';
+import { newTransaction } from '../../../../actions/transaction';
 import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
@@ -304,7 +305,11 @@ class Confirm extends PureComponent {
 		/**
 		 * Selected asset from current transaction state
 		 */
-		selectedAsset: PropTypes.object
+		selectedAsset: PropTypes.object,
+		/**
+		 * Resets transaction state
+		 */
+		newTransaction: PropTypes.func
 	};
 
 	state = {
@@ -628,6 +633,7 @@ class Confirm extends PureComponent {
 			this.sending = false;
 
 			Logger.log('Send succesful');
+			this.props.newTransaction();
 			navigation.navigate('PaymentChannelHome');
 		} catch (e) {
 			let msg = strings('payment_channel.unknown_error');
@@ -675,6 +681,7 @@ class Confirm extends PureComponent {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CONFIRM_SEND, {
 					network: providerType
 				});
+				newTransaction();
 				navigation && navigation.dismiss();
 			});
 		} catch (error) {
@@ -960,7 +967,8 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 const mapDispatchToProps = dispatch => ({
-	prepareTransaction: transaction => dispatch(prepareTransaction(transaction))
+	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
+	newTransaction: () => dispatch(newTransaction())
 });
 
 export default connect(

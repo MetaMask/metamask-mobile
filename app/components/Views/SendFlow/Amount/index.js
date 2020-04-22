@@ -360,7 +360,15 @@ class Amount extends PureComponent {
 		/**
 		 * Indicates whether the current transaction is a payment channel transaction
 		 */
-		isPaymentChannelTransaction: PropTypes.bool
+		isPaymentChannelTransaction: PropTypes.bool,
+		/**
+		 * Indicates whether the current transaction is a deep link transaction
+		 */
+		isDeeplinkTransaction: PropTypes.bool,
+		/**
+		 * Data associated with a transaction that is being edited by this screen
+		 */
+		existingTransaction: PropTypes.object
 	};
 
 	state = {
@@ -379,15 +387,25 @@ class Amount extends PureComponent {
 	collectibles = [];
 
 	componentDidMount = async () => {
+		const {
+			tokens,
+			ticker,
+			selectedAsset,
+			isPaymentChannelTransaction,
+			isDeeplinkTransaction,
+			existingTransaction: { readableValue = '' },
+			navigation,
+			providerType
+		} = this.props;
 		// For analytics
-		const { tokens, ticker, selectedAsset, isPaymentChannelTransaction, navigation, providerType } = this.props;
 		navigation.setParams({ providerType });
+
 		this.tokens = [getEther(ticker), ...tokens];
 		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		this.onInputChange();
 		// if collectible don't do this
-		if (isPaymentChannelTransaction || !selectedAsset.tokenId) {
+		if (isPaymentChannelTransaction || isDeeplinkTransaction || !selectedAsset.tokenId) {
 			this.handleSelectedAssetBalance(
 				selectedAsset,
 				isPaymentChannelTransaction ? selectedAsset.assetBalance : null
@@ -395,7 +413,10 @@ class Amount extends PureComponent {
 		}
 		if (!isPaymentChannelTransaction) {
 			const estimatedTotalGas = await this.estimateTransactionTotalGas();
-			this.setState({ estimatedTotalGas });
+			this.setState({
+				estimatedTotalGas,
+				inputValue: readableValue
+			});
 		}
 	};
 
@@ -871,7 +892,7 @@ class Amount extends PureComponent {
 
 	render = () => {
 		const { estimatedTotalGas } = this.state;
-		const { selectedAsset, isPaymentChannelTransaction } = this.props;
+		const { selectedAsset, isPaymentChannelTransaction, isDeeplinkTransaction } = this.props;
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'amount-screen'}>
@@ -881,7 +902,7 @@ class Amount extends PureComponent {
 						<View style={styles.action}>
 							<TouchableOpacity
 								style={styles.actionDropdown}
-								disabled={isPaymentChannelTransaction}
+								disabled={isPaymentChannelTransaction || isDeeplinkTransaction}
 								onPress={this.toggleAssetsModal}
 							>
 								<Text style={styles.textDropdown}>
@@ -938,25 +959,38 @@ class Amount extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	primaryCurrency: state.settings.primaryCurrency,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
-	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
-	selectedAsset: state.transaction.paymentChannelTransaction
-		? state.transaction.selectedAsset
-		: state.newTransaction.selectedAsset,
-	transactionState: state.newTransaction
-});
+const mapStateToProps = state => {
+	const { transaction } = state;
+	let selectedAsset;
+
+	if (transaction.paymentChannelTransaction) {
+		selectedAsset = transaction.selectedAsset;
+	} else if (transaction.isDeeplinkTransaction) {
+		selectedAsset = { symbol: transaction.symbol, isETH: transaction.symbol === 'ETH' };
+	} else {
+		selectedAsset = state.newTransaction.selectedAsset;
+	}
+
+	return {
+		accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+		contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+		contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+		collectibles: state.engine.backgroundState.AssetsController.collectibles,
+		collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+		currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+		conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+		providerType: state.engine.backgroundState.NetworkController.provider.type,
+		primaryCurrency: state.settings.primaryCurrency,
+		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+		ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+		tokens: state.engine.backgroundState.AssetsController.tokens,
+		isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
+		isDeeplinkTransaction: state.transaction.isDeeplinkTransaction,
+		existingTransaction: state.transaction,
+		selectedAsset,
+		transactionState: state.newTransaction
+	};
+};
 
 const mapDispatchToProps = dispatch => ({
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
