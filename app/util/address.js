@@ -107,7 +107,7 @@ export function safeToChecksumAddress(address) {
  * @param {publicIdentifier} string
  */
 export function isValidPublicIdentifier(publicIdentifier) {
-	if (publicIdentifier && (!publicIdentifier.toLowerCase().startsWith('indra') || publicIdentifier.length !== 111)) {
+	if (publicIdentifier && (!publicIdentifier.toLowerCase().startsWith('indra') || publicIdentifier.length !== 55)) {
 		return false;
 	}
 	return true;
