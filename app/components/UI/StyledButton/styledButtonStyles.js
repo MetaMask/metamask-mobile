@@ -45,12 +45,12 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	normal: {
-		backgroundColor: colors.blue,
+		backgroundColor: colors.white,
 		borderWidth: 1,
 		borderColor: colors.blue
 	},
 	normalText: {
-		color: colors.white
+		color: colors.blue
 	},
 	transparent: {
 		backgroundColor: colors.transparent,
@@ -83,6 +83,14 @@ const styles = StyleSheet.create({
 	},
 	neutralText: {
 		color: colors.grey500
+	},
+	sign: {
+		backgroundColor: colors.blue,
+		borderWidth: 1,
+		borderColor: colors.blue
+	},
+	signText: {
+		color: colors.white
 	},
 	danger: {
 		backgroundColor: colors.red,
@@ -149,6 +157,10 @@ function getStyles(type) {
 		case 'danger':
 			fontStyle = styles.confirmText;
 			containerStyle = styles.danger;
+			break;
+		case 'sign':
+			fontStyle = styles.signText;
+			containerStyle = styles.sign;
 			break;
 		default:
 			throw new Error('Unknown button type');

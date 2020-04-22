@@ -128,7 +128,7 @@ ActionView.propTypes = {
 	/**
 	 * Type of button to show as the confirm button
 	 */
-	confirmButtonMode: PropTypes.oneOf(['normal', 'confirm']),
+	confirmButtonMode: PropTypes.oneOf(['normal', 'confirm', 'sign']),
 	/**
 	 * Text to show in the confirm button
 	 */
