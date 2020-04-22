@@ -178,15 +178,7 @@ class SignatureRequest extends PureComponent {
 	);
 
 	render() {
-		const {
-			children,
-			showWarning,
-			accounts,
-			selectedAddress,
-			identities,
-			currentPageInformation,
-			type
-		} = this.props;
+		const { children, showWarning, accounts, selectedAddress, identities, currentPageInformation } = this.props;
 		const balance = renderFromWei(accounts[selectedAddress].balance);
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		return (
@@ -213,7 +205,7 @@ class SignatureRequest extends PureComponent {
 							</Text>
 						</View>
 					</View>
-					<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
+					<TransactionHeader currentPageInformation={currentPageInformation} />
 					<View style={styles.signingInformation}>
 						{showWarning ? (
 							this.showWarning()
