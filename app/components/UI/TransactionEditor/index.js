@@ -5,7 +5,7 @@ import { colors } from '../../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
 import { isBN, hexToBN, toBN, isDecimal } from '../../../util/number';
-import { safeToChecksumAddress, isValidXpub } from '../../../util/address';
+import { safeToChecksumAddress, isValidPublicIdentifier } from '../../../util/address';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -503,11 +503,14 @@ class TransactionEditor extends PureComponent {
 		if (promptedFromApproval && !to) return error;
 		!to && (error = strings('transaction.required'));
 		!to && this.state.toFocused && (error = strings('transaction.required'));
-		to && paymentChannelTransaction && !isValidXpub(to) && (error = strings('transaction.invalid_address'));
 		to &&
 			paymentChannelTransaction &&
-			isValidXpub(to) &&
-			to.toLowerCase() === InstaPay.getXpub() &&
+			!isValidPublicIdentifier(to) &&
+			(error = strings('transaction.invalid_address'));
+		to &&
+			paymentChannelTransaction &&
+			isValidPublicIdentifier(to) &&
+			to.toLowerCase() === InstaPay.getPublicIdentifier() &&
 			(error = strings('transaction.invalid_address'));
 		to && !isValidAddress(to) && !paymentChannelTransaction && (error = strings('transaction.invalid_address'));
 		to && to.length !== 42 && !paymentChannelTransaction && (error = strings('transaction.invalid_address'));

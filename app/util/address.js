@@ -102,12 +102,12 @@ export function safeToChecksumAddress(address) {
 }
 
 /**
- * Determines if a given string looks like a valid Ethereum XPUB
+ * Determines if a given string looks like a valid InstaPay Public Identifier
  *
- * @param {address} string
+ * @param {publicIdentifier} string
  */
-export function isValidXpub(address) {
-	if (address && (!address.toLowerCase().startsWith('xpub') || address.length !== 111)) {
+export function isValidPublicIdentifier(publicIdentifier) {
+	if (publicIdentifier && (!publicIdentifier.toLowerCase().startsWith('indra') || publicIdentifier.length !== 111)) {
 		return false;
 	}
 	return true;

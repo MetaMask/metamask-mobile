@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import PropTypes from 'prop-types';
 import { parse } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
-import { isValidXpub } from '../../../util/address';
+import { isValidPublicIdentifier } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	container: {
@@ -103,7 +103,7 @@ export default class QrScanner extends PureComponent {
 					action = 'send-token';
 				}
 				data = { ...data, action };
-			} else if (isValidXpub(content)) {
+			} else if (isValidPublicIdentifier(content)) {
 				this.shouldReadBarCode = false;
 				const action = 'send-eth';
 				data = {

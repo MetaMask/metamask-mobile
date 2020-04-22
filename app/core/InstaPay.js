@@ -3,20 +3,19 @@ import Logger from './../util/Logger';
 import * as connext from '@connext/client';
 import { ConnextStore } from '@connext/store';
 import {
-	CF_PATH,
-	ERC20TokenArtifacts,
+	StoreTypes,
 	RECEIVE_TRANSFER_STARTED_EVENT,
 	RECEIVE_TRANSFER_FINISHED_EVENT,
 	RECEIVE_TRANSFER_FAILED_EVENT
 } from '@connext/types';
+import tokenAbi from 'human-standard-token-abi';
 import interval from 'interval-promise';
-import { fromExtendedKey, fromMnemonic } from 'ethers/utils/hdnode';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import AppConstants from './AppConstants';
 import { Contract, ethers as eth } from 'ethers';
 import { AddressZero, Zero } from 'ethers/constants';
-import { formatEther, parseEther, hexlify, randomBytes } from 'ethers/utils';
+import { formatEther, hexlify, randomBytes } from 'ethers/utils';
 
 import Engine from './Engine';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -26,9 +25,11 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from './../util/networks';
 import PaymentChannelsClient from './PaymentChannelsClient';
 
-const { Currency, minBN, toBN, tokenToWei, weiToToken, delay, xpubToAddress, inverse } = connext.utils;
+const { Currency, minBN, toBN, tokenToWei, delay, inverse } = connext.utils;
 
 const { MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN, SUPPORTED_NETWORKS } = AppConstants.CONNEXT;
+
+const INSTA_PAY_PATH = "m/44'/60'/0'/1337/0";
 
 // Constants for channel max/min - this is also enforced on the hub
 const WITHDRAW_ESTIMATED_GAS = toBN('300000');
@@ -82,7 +83,7 @@ class InstaPay {
 				}
 			},
 			ethProvider: null,
-			freeBalanceAddress: null,
+			signerAddress: null,
 			maxDeposit: null,
 			minDeposit: null,
 			pending: { type: 'null', complete: true, closed: true },
@@ -92,7 +93,7 @@ class InstaPay {
 			sendScanArgs: { amount: null, recipient: null },
 			swapRate,
 			token: null,
-			xpub: '',
+			publicIdentifier: '',
 			tokenProfile: null,
 			migrating: false,
 			migrated: false,
@@ -109,48 +110,31 @@ class InstaPay {
 		const { KeyringController } = Engine.context;
 		const data = await KeyringController.exportSeedPhrase(pwd);
 		const mnemonic = JSON.stringify(data).replace(/"/g, '');
-		const wallet = eth.Wallet.fromMnemonic(mnemonic, CF_PATH + '/0');
+		const wallet = eth.Wallet.fromMnemonic(mnemonic, INSTA_PAY_PATH + '/0');
 		this.setState({ network, walletAddress: wallet.address });
-
-		const hdNode = fromExtendedKey(fromMnemonic(mnemonic).extendedKey).derivePath(CF_PATH);
-		const xpub = hdNode.neuter().extendedKey;
-		const keyGen = index => {
-			const res = hdNode.derivePath(index);
-			return Promise.resolve(res.privateKey);
-		};
 
 		Logger.log('InstaPay :: about to connect');
 
-		const store = new ConnextStore(AsyncStorage, {
+		const signer = wallet.privateKey;
+		const store = new ConnextStore(StoreTypes.AsyncStorage, {
+			storage: AsyncStorage,
 			asyncStorageKey: '@MetaMask:InstaPay'
 		});
 
-		const channel = await connext.connect(network, {
-			keyGen,
-			xpub,
-			store,
-			logLevel: 0
-		});
-
-		Logger.log(`xpub address: ${eth.utils.computeAddress(fromExtendedKey(xpub).publicKey)}`);
+		const channel = await connext.connect(network, { signer, store, logLevel: 0 });
 
 		Logger.log('InstaPay :: connect complete ');
 
 		TransactionsNotificationManager.setInstaPayWalletAddress(wallet.address);
 
-		const token = new Contract(
-			channel.config.contractAddresses.Token,
-			ERC20TokenArtifacts.abi,
-			channel.ethProvider
-		);
+		const token = new Contract(channel.config.contractAddresses.Token, tokenAbi, channel.ethProvider);
 
 		const swapRate = await channel.getLatestSwapRate(AddressZero, token.address);
 
 		Logger.log(`Client created successfully!`);
 		Logger.log(` - Public Identifier: ${channel.publicIdentifier}`);
-		Logger.log(` - Account multisig address: ${channel.opts.multisigAddress}`);
-		Logger.log(` - CF Account address: ${channel.signerAddress}`);
-		Logger.log(` - Free balance address: ${channel.freeBalanceAddress}`);
+		Logger.log(` - Multisig address: ${channel.multisigAddress}`);
+		Logger.log(` - Signer address: ${channel.signerAddress}`);
 		Logger.log(` - Token address: ${token.address}`);
 		Logger.log(` - Swap rate: ${swapRate}`);
 
@@ -179,10 +163,10 @@ class InstaPay {
 			address: channel.signerAddress,
 			channel,
 			ethProvider: channel.ethProvider,
-			freeBalanceAddress: channel.freeBalanceAddress,
+			signerAddress: channel.signerAddress,
 			swapRate,
 			token,
-			xpub: channel.publicIdentifier,
+			publicIdentifier: channel.publicIdentifier,
 			ready: true
 		});
 
@@ -378,7 +362,7 @@ class InstaPay {
 			if (latestPaymentId !== this.state.latestPaymentId) {
 				if (
 					lastPayment.receiverPublicIdentifier &&
-					lastPayment.receiverPublicIdentifier.toLowerCase() !== this.state.xpub.toLowerCase()
+					lastPayment.receiverPublicIdentifier.toLowerCase() !== this.state.publicIdentifier.toLowerCase()
 				) {
 					this.setState({ pendingPayment: null, latestPaymentId });
 				}
@@ -389,7 +373,7 @@ class InstaPay {
 			const latestReceivedPayment = paymentHistory.find(
 				payment =>
 					payment.receiverPublicIdentifier &&
-					payment.receiverPublicIdentifier.toLowerCase() === this.state.xpub.toLowerCase()
+					payment.receiverPublicIdentifier.toLowerCase() === this.state.publicIdentifier.toLowerCase()
 			);
 
 			if (latestReceivedPayment) {
@@ -465,8 +449,8 @@ class InstaPay {
 		balance.onChain.ether = Currency.WEI(await ethProvider.getBalance(channel.signerAddress), swapRate).toETH();
 		balance.onChain.token = Currency.DEI(await token.balanceOf(channel.signerAddress), swapRate).toDAI();
 		balance.onChain.total = getTotal(balance.onChain.ether, balance.onChain.token).toETH();
-		balance.channel.ether = Currency.WEI(freeEtherBalance[channel.freeBalanceAddress], swapRate).toETH();
-		balance.channel.token = Currency.DEI(freeTokenBalance[channel.freeBalanceAddress], swapRate).toDAI();
+		balance.channel.ether = Currency.WEI(freeEtherBalance[channel.signerAddress], swapRate).toETH();
+		balance.channel.token = Currency.DEI(freeTokenBalance[channel.signerAddress], swapRate).toDAI();
 		balance.channel.total = getTotal(balance.channel.ether, balance.channel.token).toETH();
 
 		return balance;
@@ -566,20 +550,6 @@ class InstaPay {
 			Logger.debug(`   - maxSwap: ${maxSwap.toString()}`);
 			Logger.debug(`   - swapRate: ${swapRate.toString()}`);
 			Logger.debug(`   - balance.channel.ether.wad: ${balance.channel.ether.wad.toString()}`);
-			return;
-		}
-
-		const hubFBAddress = xpubToAddress(channel.nodePublicIdentifier);
-		const collateralNeeded = balance.channel.token.wad.add(weiToToken(weiToSwap, swapRate));
-		let collateral = formatEther((await channel.getFreeBalance(token.address))[hubFBAddress]);
-
-		Logger.log(`Collateral: ${collateral} tokens, need: ${formatEther(collateralNeeded)}`);
-
-		if (collateralNeeded.gt(parseEther(collateral))) {
-			Logger.log(`Requesting more collateral...`);
-			await channel.requestCollateral(token.address);
-			collateral = formatEther((await channel.getFreeBalance(token.address))[hubFBAddress]);
-			Logger.log(`Collateral: ${collateral} tokens, need: ${formatEther(collateralNeeded)}`);
 			return;
 		}
 
@@ -710,7 +680,6 @@ class InstaPay {
 			if (balance.channel.token.wad.gt(Zero)) {
 				this.setState({ withdrawalPendingValueInDAI: fromWei(balance.channel.token.wad.toString()) });
 
-				await channel.requestCollateral(AddressZero);
 				await channel.swap({
 					amount: balance.channel.token.wad.toString(),
 					fromAssetId: token.address,
@@ -922,7 +891,7 @@ instance = {
 	 * only used for debugging purposes
 	 */
 	dump: () => (client && client.state) || {},
-	getXpub: () => (client && client.state && client.state.xpub.toLowerCase()) || '',
+	getPublicIdentifier: () => (client && client.state && client.state.publicIdentifier.toLowerCase()) || '',
 	getDepositAddress: () =>
 		(client && client.state && client.state.walletAddress && toChecksumAddress(client.state.walletAddress)) || '',
 	cleanUp: async () => {
