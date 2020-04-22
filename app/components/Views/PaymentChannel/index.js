@@ -475,9 +475,11 @@ class PaymentChannel extends PureComponent {
 			address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
 			decimals: 18,
 			logo: 'dai.svg',
-			symbol: 'SAI'
+			symbol: 'SAI',
+			assetBalance: this.state.balance
 		});
-		this.props.navigation.navigate('PaymentChannelSend');
+
+		this.props.navigation.navigate('SendFlowView', { isPaymentChannelTransaction: true });
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.INSTAPAY_SEND_FUNDS);
 		});

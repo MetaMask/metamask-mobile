@@ -1042,6 +1042,9 @@
 		"deposit_amount": "Amount to deposit",
 		"load_funds": "Load Funds",
 		"insta_pay": "InstaPay",
+		"insta_pay_send_to": "InstaPay: Send to",
+		"insta_pay_amount": "InstaPay: Amount",
+		"insta_pay_confirm": "InstaPay: Confirm",
 		"welcome": {
 			"title": "Welcome to InstaPay!",
 			"desc_1": "This is an experimental Layer 2 feature to let you send assets to friends without transaction fees.",
