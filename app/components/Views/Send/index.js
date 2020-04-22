@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
-import TransactionEditor from '../../UI/TransactionEditor';
+import ConfirmSend from '../../Views/SendFlow/Confirm';
 import { toBN, BNToHex, hexToBN, fromWei, toTokenMinimalUnit, renderFromTokenMinimalUnit } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
@@ -189,7 +189,8 @@ class Send extends PureComponent {
 		action,
 		chain_id = null,
 		function_name = null, // eslint-disable-line no-unused-vars
-		parameters = null
+		parameters = null,
+		isDeepLinkTransaction
 	}) => {
 		if (chain_id) {
 			this.handleNetworkSwitch(chain_id);
@@ -201,6 +202,7 @@ class Send extends PureComponent {
 					symbol: 'ETH',
 					assetType: 'ETH',
 					type: 'ETHER_TRANSACTION',
+					isDeepLinkTransaction,
 					...this.handleNewTxMetaRecipient(target_address)
 				};
 				if (parameters && parameters.value) {
@@ -544,18 +546,7 @@ class Send extends PureComponent {
 
 	render = () => (
 		<SafeAreaView style={styles.wrapper}>
-			{this.state.ready ? (
-				<TransactionEditor
-					navigation={this.props.navigation}
-					mode={this.state.mode}
-					onCancel={this.onCancel}
-					onConfirm={this.onConfirm}
-					onModeChange={this.onModeChange}
-					transactionConfirmed={this.state.transactionConfirmed}
-				/>
-			) : (
-				this.renderLoader()
-			)}
+			{this.state.ready ? <ConfirmSend transaction={this.props.transaction} /> : this.renderLoader()}
 		</SafeAreaView>
 	);
 }

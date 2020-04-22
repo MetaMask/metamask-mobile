@@ -324,11 +324,15 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
  */
 export function getTransactionOptionsTitle(title, navigation) {
 	const transactionMode = navigation.getParam('mode', '');
-	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
-	const toEditLeftAction = navigation.getParam('dispatch', () => {
-		'';
-	});
-	const leftAction = transactionMode === 'edit' ? () => navigation.pop() : () => toEditLeftAction('edit');
+	const { routeName } = navigation.state;
+	const leftText =
+		transactionMode === 'edit' && routeName !== 'Send'
+			? strings('transaction.cancel')
+			: strings('transaction.edit');
+	const toEditLeftAction = () => navigation.navigate('Amount');
+	const leftAction =
+		transactionMode === 'edit' && routeName !== 'Send' ? () => navigation.pop() : () => toEditLeftAction('edit');
+	const rightAction = () => navigation.pop();
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerLeft: (
@@ -337,7 +341,15 @@ export function getTransactionOptionsTitle(title, navigation) {
 				<Text style={styles.closeButtonText}>{leftText}</Text>
 			</TouchableOpacity>
 		),
-		headerRight: <View />
+		headerRight:
+			routeName === 'Send' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
+					<Text style={styles.closeButtonText}>{'Cancel'}</Text>
+				</TouchableOpacity>
+			) : (
+				<View />
+			)
 	};
 }
 

@@ -25,7 +25,9 @@ class DeeplinkManager {
 			// That involves txs
 			action = 'smart-contract-interaction';
 		}
-		this.navigation.navigate('SendView', { txMeta: { ...ethUrl, action, source: url } });
+		this.navigation.navigate('SendView', {
+			txMeta: { ...ethUrl, action, source: url, isDeepLinkTransaction: true }
+		});
 	}
 
 	handleBrowserUrl(url, callback) {
@@ -53,7 +55,7 @@ class DeeplinkManager {
 	parse(url, browserCallBack = null) {
 		const urlObj = new URL(url);
 		let params;
-
+		console.log('url, browserCallBack', url, browserCallBack);
 		if (urlObj.query.length) {
 			params = qs.parse(urlObj.query.substring(1));
 		}
