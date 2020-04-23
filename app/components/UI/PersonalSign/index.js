@@ -135,7 +135,7 @@ export default class PersonalSign extends PureComponent {
 		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
 	};
 
-	renderRootView = () => {
+	render() {
 		const { currentPageInformation } = this.props;
 		const { showExpandedMessage } = this.state;
 		const rootView = showExpandedMessage ? (
@@ -164,9 +164,5 @@ export default class PersonalSign extends PureComponent {
 			</View>
 		);
 		return rootView;
-	};
-
-	render() {
-		return this.renderRootView();
 	}
 }

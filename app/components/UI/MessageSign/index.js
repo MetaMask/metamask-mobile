@@ -122,7 +122,7 @@ export default class MessageSign extends PureComponent {
 		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
 	};
 
-	renderRootView = () => {
+	render() {
 		const { currentPageInformation, navigation } = this.props;
 		const { showExpandedMessage } = this.state;
 		const rootView = showExpandedMessage ? (
@@ -151,9 +151,5 @@ export default class MessageSign extends PureComponent {
 			</View>
 		);
 		return rootView;
-	};
-
-	render() {
-		return this.renderRootView();
 	}
 }

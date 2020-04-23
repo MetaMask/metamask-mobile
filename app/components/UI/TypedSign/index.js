@@ -147,7 +147,7 @@ export default class TypedSign extends PureComponent {
 		}
 	};
 
-	renderRoot = () => {
+	render() {
 		const { messageParams, currentPageInformation } = this.props;
 		let domain;
 		if (messageParams.version === 'V3') {
@@ -179,9 +179,5 @@ export default class TypedSign extends PureComponent {
 			</View>
 		);
 		return rootView;
-	};
-
-	render() {
-		return this.renderRoot();
 	}
 }
