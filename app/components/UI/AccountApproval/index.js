@@ -2,9 +2,9 @@ import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, InteractionManager } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import ActionView from '../ActionView';
 import TransactionHeader from '../TransactionHeader';
+import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
@@ -15,60 +15,32 @@ import { getHost } from '../../../util/browser';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		minHeight: '90%',
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		minHeight: '55%',
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	wrapper: {
-		paddingHorizontal: 25
-	},
-	title: {
-		...fontStyles.bold,
-		color: colors.fontPrimary,
-		fontSize: 14,
-		marginVertical: 24,
-		textAlign: 'center'
+		flex: 1,
+		flexDirection: 'column',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		minHeight: '100%'
 	},
 	intro: {
-		...fontStyles.normal,
+		...fontStyles.bold,
 		textAlign: 'center',
 		color: colors.fontPrimary,
 		fontSize: Device.isSmallDevice() ? 16 : 20,
-		marginVertical: 24
-	},
-	dappTitle: {
-		...fontStyles.bold,
-		color: colors.fontPrimary,
-		fontSize: Device.isSmallDevice() ? 16 : 20
-	},
-	permissions: {
-		alignItems: 'center',
-		borderBottomWidth: 1,
-		borderColor: colors.grey100,
-		borderTopWidth: 1,
-		display: 'flex',
-		flexDirection: 'row',
-		paddingHorizontal: 8,
-		paddingVertical: 16
-	},
-	permissionText: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		flexGrow: 1,
-		flexShrink: 1,
-		fontSize: 14
-	},
-	permission: {
-		...fontStyles.bold,
-		color: colors.fontPrimary,
-		fontSize: 14
+		marginBottom: 15
 	},
 	warning: {
-		...fontStyles.normal,
+		...fontStyles.thin,
 		color: colors.fontPrimary,
 		fontSize: 14,
-		marginVertical: 24
+		width: '90%',
+		marginBottom: 15,
+		textAlign: 'center'
 	}
 });
 
@@ -159,21 +131,10 @@ class AccountApproval extends PureComponent {
 	};
 
 	render = () => {
-		const {
-			currentPageInformation: { url },
-			currentPageInformation
-		} = this.props;
-		const title =
-			typeof currentPageInformation.title === 'string' && currentPageInformation.title !== ''
-				? currentPageInformation.title
-				: getHost(url);
+		const { currentPageInformation } = this.props;
 		return (
 			<View style={styles.root}>
-				<View style={styles.titleWrapper}>
-					<Text style={styles.title} onPress={this.cancelSignature}>
-						<Text>{strings('accountApproval.title')}</Text>
-					</Text>
-				</View>
+				<TransactionHeader currentPageInformation={currentPageInformation} />
 				<ActionView
 					cancelText={strings('accountApproval.cancel')}
 					confirmText={strings('accountApproval.connect')}
@@ -182,19 +143,9 @@ class AccountApproval extends PureComponent {
 					confirmButtonMode={'confirm'}
 				>
 					<View style={styles.wrapper}>
-						<TransactionHeader currentPageInformation={currentPageInformation} />
-						<Text style={styles.intro}>
-							<Text style={styles.dappTitle}>{title} </Text>
-							{strings('accountApproval.action')}:
-						</Text>
-						<View style={styles.permissions}>
-							<Text style={styles.permissionText} numberOfLines={1}>
-								{strings('accountApproval.permission')}
-								<Text style={styles.permission}> {strings('accountApproval.address')}</Text>
-							</Text>
-							<Icon name="info-circle" color={colors.blue} size={22} />
-						</View>
+						<Text style={styles.intro}>{strings('accountApproval.action')}</Text>
 						<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
+						<AccountInfoCard />
 					</View>
 				</ActionView>
 			</View>
