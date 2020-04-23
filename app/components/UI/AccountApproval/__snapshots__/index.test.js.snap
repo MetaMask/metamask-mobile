@@ -5,37 +5,28 @@ exports[`AccountApproval should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "#FFFFFF",
-      "borderTopLeftRadius": 10,
-      "borderTopRightRadius": 10,
-      "minHeight": "90%",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "minHeight": "55%",
       "paddingBottom": 20,
     }
   }
 >
-  <View>
-    <Text
-      style={
-        Object {
-          "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 14,
-          "fontWeight": "600",
-          "marginVertical": 24,
-          "textAlign": "center",
-        }
+  <Connect(TransactionHeader)
+    currentPageInformation={
+      Object {
+        "icon": "",
+        "title": "",
+        "url": "",
       }
-    >
-      <Text>
-        CONNECT REQUEST
-      </Text>
-    </Text>
-  </View>
+    }
+  />
   <ActionView
     cancelTestID=""
-    cancelText="CANCEL"
+    cancelText="Cancel"
     confirmButtonMode="confirm"
     confirmTestID=""
-    confirmText="CONNECT"
+    confirmText="Connect"
     confirmed={false}
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
@@ -45,108 +36,44 @@ exports[`AccountApproval should render correctly 1`] = `
     <View
       style={
         Object {
-          "paddingHorizontal": 25,
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "column",
+          "justifyContent": "space-between",
+          "minHeight": "100%",
         }
       }
     >
-      <Connect(TransactionHeader)
-        currentPageInformation={
-          Object {
-            "icon": "",
-            "title": "",
-            "url": "",
-          }
-        }
-      />
       <Text
         style={
           Object {
             "color": "#000000",
             "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
-            "fontWeight": "400",
-            "marginVertical": 24,
+            "fontWeight": "600",
+            "marginBottom": 15,
             "textAlign": "center",
           }
         }
       >
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 20,
-              "fontWeight": "600",
-            }
-          }
-        >
-           
-        </Text>
-        would like to
-        :
+        Connect to this site?
       </Text>
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "borderBottomWidth": 1,
-            "borderColor": "#d6d9dc",
-            "borderTopWidth": 1,
-            "display": "flex",
-            "flexDirection": "row",
-            "paddingHorizontal": 8,
-            "paddingVertical": 16,
-          }
-        }
-      >
-        <Text
-          numberOfLines={1}
-          style={
-            Object {
-              "color": "#000000",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 14,
-              "fontWeight": "400",
-            }
-          }
-        >
-          View your
-          <Text
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
-                "fontSize": 14,
-                "fontWeight": "600",
-              }
-            }
-          >
-             
-            public address
-          </Text>
-        </Text>
-        <Icon
-          allowFontScaling={false}
-          color="#037dd6"
-          name="info-circle"
-          size={22}
-        />
-      </View>
       <Text
         style={
           Object {
             "color": "#000000",
             "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
-            "marginVertical": 24,
+            "fontWeight": "100",
+            "marginBottom": 15,
+            "textAlign": "center",
+            "width": "90%",
           }
         }
       >
         By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.
       </Text>
+      <Connect(AccountInfoCard) />
     </View>
   </ActionView>
 </View>
