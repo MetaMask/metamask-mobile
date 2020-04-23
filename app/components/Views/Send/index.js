@@ -15,7 +15,7 @@ import NetworkList, { getNetworkTypeById } from '../../../util/networks';
 import contractMap from 'eth-contract-metadata';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTransactionReviewActionKey, decodeTransferData } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
 import { isENS } from '../../../util/address';

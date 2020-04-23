@@ -51,7 +51,7 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
