@@ -8,7 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import Networks, { getAllNetworks } from '../../../util/networks';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {

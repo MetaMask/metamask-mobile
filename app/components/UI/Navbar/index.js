@@ -14,7 +14,7 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/Device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
@@ -25,6 +25,12 @@ const { HOMEPAGE_URL } = AppConstants;
 const trackEvent = event => {
 	InteractionManager.runAfterInteractions(() => {
 		Analytics.trackEvent(event);
+	});
+};
+
+const trackEventWithParameters = (event, params) => {
+	InteractionManager.runAfterInteractions(() => {
+		Analytics.trackEventWithParameters(event, params);
 	});
 };
 
@@ -351,21 +357,28 @@ export function getApproveNavbar(title) {
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
 export function getSendFlowTitle(title, navigation) {
-	const rightAction = () => navigation.dismiss();
+	const rightAction = () => {
+		const providerType = navigation.getParam('providerType', '');
+		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
+			view: title.split('.')[1],
+			network: providerType
+		});
+		navigation.dismiss();
+	};
 	const leftAction = () => navigation.pop();
 	const canGoBack = title !== 'send.send_to';
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerRight: (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-cancel-button'}>
-				<Text style={styles.closeButtonText}>{'Cancel'}</Text>
+			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{strings('transaction.cancel')}</Text>
 			</TouchableOpacity>
 		),
 		headerLeft: canGoBack ? (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.closeButton} testID={'send-back-button'}>
-				<Text style={styles.closeButtonText}>{'Back'}</Text>
+			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{strings('transaction.back')}</Text>
 			</TouchableOpacity>
 		) : (
 			<View />

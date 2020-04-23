@@ -9,7 +9,7 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
-import ANALYTICS_EVENT_OPTS from '../../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Device from '../../../../util/Device';
 import Analytics from '../../../../core/Analytics';
 

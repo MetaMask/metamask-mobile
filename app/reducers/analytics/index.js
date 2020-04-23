@@ -6,7 +6,7 @@ const initialState = {
 	enabled: false
 };
 
-function initalizeAnalytics(enabled = false) {
+function initalizeAnalytics(enabled = true) {
 	Analytics.init(enabled);
 
 	Analytics.subscribe(() => {

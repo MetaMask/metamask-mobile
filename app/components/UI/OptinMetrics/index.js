@@ -22,7 +22,7 @@ import { connect } from 'react-redux';
 import { NavigationActions, withNavigationFocus } from 'react-navigation';
 import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 
 const styles = StyleSheet.create({
@@ -148,6 +148,7 @@ class OptinMetrics extends PureComponent {
 	];
 
 	componentDidMount() {
+		Analytics.enable();
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 	}
 
@@ -200,14 +201,14 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press cancel
 	 */
 	onCancel = async () => {
-		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
-		Analytics.disable();
-		InteractionManager.runAfterInteractions(() => {
+		InteractionManager.runAfterInteractions(async () => {
 			if (this.props.events && this.props.events.length) {
 				this.props.events.forEach(e => Analytics.trackEvent(e));
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
+			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
+			Analytics.disableInstance();
 		});
 		this.continue();
 	};
@@ -216,14 +217,13 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press confirm
 	 */
 	onConfirm = async () => {
-		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
-		Analytics.enable();
-		InteractionManager.runAfterInteractions(() => {
+		InteractionManager.runAfterInteractions(async () => {
 			if (this.props.events && this.props.events.length) {
 				this.props.events.forEach(e => Analytics.trackEvent(e));
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();
+			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
 		});
 		this.continue();
 	};
