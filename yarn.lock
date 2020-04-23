@@ -10366,9 +10366,9 @@ react-native-scrollable-tab-view@^1.0.0:
     prop-types "^15.6.0"
     react-timer-mixin "^0.13.3"
 
-"react-native-search-api@git+ssh://git@github.com/MetaMask/react-native-search-api.git#270512b6641bfaba155ca8b31aa2e1d8b5cf0ec6":
-  version "1.2.0"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-search-api.git#270512b6641bfaba155ca8b31aa2e1d8b5cf0ec6"
+react-native-search-api@ombori/react-native-search-api#8/head:
+  version "1.0.1"
+  resolved "https://codeload.github.com/ombori/react-native-search-api/tar.gz/08dbdf1ffd53801057662aa3207c11d2f78e8a94"
 
 react-native-sensors@5.3.0:
   version "5.3.0"

@@ -78,6 +78,9 @@ PODS:
     - OpenSSL-Universal/Static (= 1.0.2.19)
   - OpenSSL-Universal/Static (1.0.2.19)
   - RCTRequired (0.62.1)
+  - RCTSearchApi (1.0.1):
+    - React
+    - React-RCTImage
   - RCTTypeSafety (0.62.1):
     - FBLazyVector (= 0.62.1)
     - Folly (= 2018.10.22.00)
@@ -387,6 +390,7 @@ DEPENDENCIES:
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
+  - RCTSearchApi (from `../node_modules/react-native-search-api`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
   - React (from `../node_modules/react-native/`)
   - React-Core (from `../node_modules/react-native/`)
@@ -467,6 +471,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/lottie-react-native"
   RCTRequired:
     :path: "../node_modules/react-native/Libraries/RCTRequired"
+  RCTSearchApi:
+    :path: "../node_modules/react-native-search-api"
   RCTTypeSafety:
     :path: "../node_modules/react-native/Libraries/TypeSafety"
   React:
@@ -575,6 +581,7 @@ SPEC CHECKSUMS:
   lottie-react-native: 7ca15c46249b61e3f9ffcf114cb4123e907a2156
   OpenSSL-Universal: 8b48cc0d10c1b2923617dfe5c178aa9ed2689355
   RCTRequired: e291538a455f5ad1afc2139a4288990be0cadd46
+  RCTSearchApi: d2d38a5a7bffbfb144e2c770fbb30f51b1053067
   RCTTypeSafety: 8b6237185765dd9a03a3647807e08864105b1f95
   React: 7b33e15fab929c47ac9c3c94c409258b13cfe452
   React-Core: 9a164d53492e2d8a84e7acf87988253dff09cf93

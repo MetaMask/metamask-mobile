@@ -7,11 +7,6 @@ module.exports = {
 				ios: null // disable Android platform, other platforms will still autolink if provided
 			}
 		},
-		'react-native-search-api': {
-			platforms: {
-				ios: null // disable Android platform, other platforms will still autolink if provided
-			}
-		},
 		'react-native-gesture-handler': {
 			platforms: {
 				android: null // disable Android platform, other platforms will still autolink if provided
