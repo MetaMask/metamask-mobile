@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
-import { renderFromWei } from '../../../util/number';
+import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -70,15 +70,20 @@ class AccountInfoCard extends PureComponent {
 		/**
 		 * A number that specifies the ETH/USD conversion rate
 		 */
-		conversionRate: PropTypes.number
+		conversionRate: PropTypes.number,
+		/**
+		 * The selected currency
+		 */
+		currentCurrency: PropTypes.string
 	};
 
 	render() {
-		const { accounts, selectedAddress, identities, conversionRate } = this.props;
-		const balance = renderFromWei(accounts[selectedAddress].balance);
+		const { accounts, selectedAddress, identities, conversionRate, currentCurrency } = this.props;
+		const weiBalance = hexToBN(accounts[selectedAddress].balance);
+		const balance = renderFromWei(weiBalance);
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		const address = renderShortAddress(selectedAddress);
-		const dollarBalance = conversionRate * balance;
+		const dollarBalance = weiToFiat(weiBalance, conversionRate, currentCurrency);
 		return (
 			<View style={styles.accountInformation}>
 				<Identicon address={selectedAddress} diameter={40} customStyle={styles.identicon} />
@@ -92,7 +97,7 @@ class AccountInfoCard extends PureComponent {
 						</Text>
 					</View>
 					<Text numberOfLines={1} style={styles.balanceText}>
-						{strings('signature_request.balance_title')} ${dollarBalance} ({balance} {strings('unit.eth')})
+						{strings('signature_request.balance_title')} {dollarBalance} ({balance} {strings('unit.eth')})
 					</Text>
 				</View>
 			</View>
@@ -104,7 +109,8 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
 });
 
 export default connect(mapStateToProps)(AccountInfoCard);
