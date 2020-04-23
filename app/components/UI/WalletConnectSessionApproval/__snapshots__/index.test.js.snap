@@ -32,10 +32,10 @@ exports[`WalletConnectSessionApproval should render correctly 1`] = `
   </View>
   <ActionView
     cancelTestID=""
-    cancelText="CANCEL"
+    cancelText="Cancel"
     confirmButtonMode="confirm"
     confirmTestID=""
-    confirmText="CONNECT"
+    confirmText="Connect"
     confirmed={false}
     showCancelButton={true}
     showConfirmButton={true}
@@ -219,7 +219,7 @@ exports[`WalletConnectSessionApproval should render correctly 1`] = `
         >
            
         </Text>
-        would like to
+        Connect to this site?
         :
       </Text>
       <View
