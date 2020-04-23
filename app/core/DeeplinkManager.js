@@ -55,7 +55,7 @@ class DeeplinkManager {
 	parse(url, browserCallBack = null) {
 		const urlObj = new URL(url);
 		let params;
-		console.log('url, browserCallBack', url, browserCallBack);
+
 		if (urlObj.query.length) {
 			params = qs.parse(urlObj.query.substring(1));
 		}

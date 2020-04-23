@@ -910,20 +910,25 @@ class Confirm extends PureComponent {
 }
 
 const mapStateToProps = (state, ownProps) => {
+	const { transaction: existingTransaction } = state;
 	const { transaction: ownPropsTransaction } = ownProps;
 
 	const identities = state.engine.backgroundState.PreferencesController.identities;
 	const network = state.engine.backgroundState.NetworkController.network;
 	let transactionState;
 
-	if (ownPropsTransaction) {
-		const { data, from, gas, gasPrice, to, value, ensRecipient, selectedAsset } = ownPropsTransaction;
+	const { to, ensRecipient } = ownPropsTransaction || existingTransaction || {};
+
+	if (to || ensRecipient) {
+		const { data, from, gas, gasPrice, to, value, ensRecipient, selectedAsset } =
+			ownPropsTransaction || existingTransaction;
 
 		const selectedAddress = state.engine.backgroundState.PreferencesController.selectedAddress;
 		const fromAddress = from || selectedAddress;
 
 		const addressBook = state.engine.backgroundState.AddressBookController.addressBook;
 		const transactionToName =
+			addressBook &&
 			to &&
 			getTransactionToName({
 				addressBook,
@@ -960,9 +965,7 @@ const mapStateToProps = (state, ownProps) => {
 		transactionState,
 		keyrings: state.engine.backgroundState.KeyringController.keyrings,
 		isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
-		selectedAsset: state.transaction.paymentChannelTransaction
-			? state.transaction.selectedAsset
-			: state.newTransaction.selectedAsset
+		selectedAsset: existingTransaction.selectedAsset || state.newTransaction.selectedAsset
 	};
 };
 
