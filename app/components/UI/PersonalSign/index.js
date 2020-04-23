@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 /**
  * Component that supports personal_sign
  */
-export default class PersonalSign extends React.Component {
+export default class PersonalSign extends PureComponent {
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens

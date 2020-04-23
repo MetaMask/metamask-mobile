@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 /**
  * Component that supports eth_signTypedData and eth_signTypedData_v3
  */
-export default class TypedSign extends React.Component {
+export default class TypedSign extends PureComponent {
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens
