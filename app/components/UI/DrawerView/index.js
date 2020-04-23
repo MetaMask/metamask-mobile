@@ -42,7 +42,7 @@ import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import EthereumAddress from '../EthereumAddress';
@@ -500,6 +500,7 @@ class DrawerView extends PureComponent {
 		const { providerType } = this.props;
 		if (AppConstants.CONNEXT.SUPPORTED_NETWORKS.indexOf(providerType) !== -1) {
 			this.props.navigation.navigate('PaymentChannelHome');
+			this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_INSTAPAY);
 		} else {
 			Alert.alert(
 				strings('experimental_settings.network_not_supported'),
@@ -582,6 +583,7 @@ class DrawerView extends PureComponent {
 	};
 
 	submitFeedback = () => {
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND_FEEDBACK);
 		this.setState({ submitFeedback: true });
 	};
 
