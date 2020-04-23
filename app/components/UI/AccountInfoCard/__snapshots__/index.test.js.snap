@@ -87,8 +87,8 @@ exports[`AccountInfoCard should render correctly 1`] = `
       }
     >
       Balance:
-       $
-      NaN
+       
+      0 undefined
        (
       &lt; 0.00001
        
