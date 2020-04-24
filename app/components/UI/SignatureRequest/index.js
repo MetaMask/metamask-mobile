@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 	domainLogo: {
 		width: 40,
 		height: 40,
-		marginRight: 15,
+		marginRight: 8,
 		borderRadius: 20
 	},
 	warningText: {
@@ -210,11 +210,8 @@ class SignatureRequest extends PureComponent {
 				<View style={styles.header}>
 					<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
 					<View style={styles.signingInformation}>
-						{showWarning ? (
-							this.showWarning()
-						) : (
-							<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
-						)}
+						<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
+						{showWarning ? this.showWarning() : null}
 					</View>
 				</View>
 				<ActionView

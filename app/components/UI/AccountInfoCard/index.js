@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
 	accountInformation: {
 		width: '90%',
 		flexDirection: 'row',
-		justifyContent: 'space-between',
+		justifyContent: 'flex-start',
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 		padding: 16
 	},
 	identicon: {
-		marginRight: 16
+		marginRight: 8
 	},
 	accountInfoRow: {
 		width: '80%',
