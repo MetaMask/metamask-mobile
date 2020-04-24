@@ -16,7 +16,6 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
-		marginBottom: 20,
 		padding: 16
 	},
 	identicon: {
