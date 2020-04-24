@@ -10,6 +10,7 @@ import WebsiteIcon from '../WebsiteIcon';
 import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
 import TransactionHeader from '../TransactionHeader';
+import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
@@ -21,20 +22,13 @@ const styles = StyleSheet.create({
 		borderTopRightRadius: 20
 	},
 	signingInformation: {
-		margin: 10
+		alignItems: 'center'
 	},
 	domainLogo: {
 		width: 40,
 		height: 40,
 		marginRight: 8,
 		borderRadius: 20
-	},
-	warningText: {
-		...fontStyles.normal,
-		color: colors.red,
-		textAlign: 'center',
-		paddingTop: 10,
-		paddingHorizontal: 10
 	},
 	warningLink: {
 		...fontStyles.normal,
@@ -47,15 +41,19 @@ const styles = StyleSheet.create({
 	signText: {
 		...fontStyles.bold,
 		fontSize: 20,
-		marginBottom: 10,
 		textAlign: 'center'
+	},
+	warningWrapper: {
+		width: '90%',
+		paddingTop: 20
 	},
 	childrenWrapper: {
 		flex: 1,
 		flexDirection: 'column',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		height: '100%'
+		height: '100%',
+		paddingVertical: 20
 	},
 	children: {
 		flex: 2,
@@ -170,14 +168,12 @@ class SignatureRequest extends PureComponent {
 		});
 	};
 
-	showWarning = () => (
-		<TouchableOpacity onPress={this.goToWarning}>
-			<Text style={styles.warningText}>
-				{strings('signature_request.eth_sign_warning')}
-				{` `}
-				<Text style={styles.warningLink}>{strings('signature_request.learn_more')}</Text>
-			</Text>
-		</TouchableOpacity>
+	renderWarning = () => (
+		<Text>
+			{strings('signature_request.eth_sign_warning')}
+			{` `}
+			<Text style={styles.warningLink}>{strings('signature_request.learn_more')}</Text>
+		</Text>
 	);
 
 	renderActionViewChildren = () => {
@@ -211,7 +207,11 @@ class SignatureRequest extends PureComponent {
 					<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
 					<View style={styles.signingInformation}>
 						<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
-						{showWarning ? this.showWarning() : null}
+						{showWarning ? (
+							<TouchableOpacity style={styles.warningWrapper} onPress={this.goToWarning}>
+								<WarningMessage warningMessage={this.renderWarning()} />
+							</TouchableOpacity>
+						) : null}
 					</View>
 				</View>
 				<ActionView
