@@ -742,7 +742,7 @@
 		"message": "Message",
 		"message_from": "Message from",
 		"learn_more": "Learn More",
-		"eth_sign_warning": "Signing this message can have dangerous side effects. Only sign messages from sites you fully trust with your entire account. This dangerous method will be removed in a future version."
+		"eth_sign_warning": "Proceed with caution. This action can potentially be used to withdraw assets from your account. Make sure you trust this site."
 	},
 	"watch_asset_request": {
 		"title": "Add Suggested Token",
