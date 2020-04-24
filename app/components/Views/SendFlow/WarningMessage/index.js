@@ -47,5 +47,5 @@ WarningMessage.propTypes = {
 	/**
 	 * Warning message to display
 	 */
-	warningMessage: PropTypes.string
+	warningMessage: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
 };
