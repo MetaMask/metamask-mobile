@@ -11,7 +11,7 @@ import Device from '../../../util/Device';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		minHeight: Device.isAndroid() ? '75%' : '70%',
+		minHeight: Device.isAndroid() ? '80%' : '75%',
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		paddingBottom: Device.isIphoneX() ? 20 : 0
@@ -142,6 +142,7 @@ export default class MessageSign extends PureComponent {
 					showExpandedMessage={showExpandedMessage}
 					toggleExpandedMessage={this.toggleExpandedMessage}
 					type="ethSign"
+					showWarning
 				>
 					<View style={styles.informationCol}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
