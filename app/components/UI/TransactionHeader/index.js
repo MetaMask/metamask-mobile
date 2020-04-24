@@ -10,13 +10,11 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	transactionHeader: {
-		marginHorizontal: 10,
-		marginTop: 10,
+		paddingVertical: 20,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
 	domainLogo: {
-		marginTop: 15,
 		width: 64,
 		height: 64,
 		borderRadius: 32
@@ -44,8 +42,7 @@ const styles = StyleSheet.create({
 	networkContainer: {
 		alignItems: 'center',
 		justifyContent: 'center',
-		flexDirection: 'row',
-		marginBottom: 12
+		flexDirection: 'row'
 	},
 	networkStatusIndicator: {
 		borderRadius: 2.5,
