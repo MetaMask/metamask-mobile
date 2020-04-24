@@ -26,7 +26,8 @@ const styles = StyleSheet.create({
 	},
 	iconWrapper: {
 		alignItems: 'center',
-		flexDirection: 'row'
+		flexDirection: 'row',
+		alignSelf: 'flex-start'
 	}
 });
 
