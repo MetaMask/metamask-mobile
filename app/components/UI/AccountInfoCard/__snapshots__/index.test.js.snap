@@ -8,8 +8,7 @@ exports[`AccountInfoCard should render correctly 1`] = `
       "borderRadius": 10,
       "borderWidth": 1,
       "flexDirection": "row",
-      "justifyContent": "space-between",
-      "marginBottom": 20,
+      "justifyContent": "flex-start",
       "padding": 16,
       "width": "90%",
     }
@@ -19,7 +18,7 @@ exports[`AccountInfoCard should render correctly 1`] = `
     address="0x0"
     customStyle={
       Object {
-        "marginRight": 16,
+        "marginRight": 8,
       }
     }
     diameter={40}

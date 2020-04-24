@@ -23,7 +23,7 @@ exports[`SignatureRequest should render correctly 1`] = `
     <View
       style={
         Object {
-          "margin": 10,
+          "alignItems": "center",
         }
       }
     >
@@ -33,7 +33,6 @@ exports[`SignatureRequest should render correctly 1`] = `
             "fontFamily": "CircularStd-Medium",
             "fontSize": 20,
             "fontWeight": "600",
-            "marginBottom": 10,
             "textAlign": "center",
           }
         }
@@ -63,6 +62,7 @@ exports[`SignatureRequest should render correctly 1`] = `
           "flexDirection": "column",
           "height": "100%",
           "justifyContent": "space-between",
+          "paddingVertical": 20,
         }
       }
     >
@@ -89,7 +89,7 @@ exports[`SignatureRequest should render correctly 1`] = `
             Object {
               "borderRadius": 20,
               "height": 40,
-              "marginRight": 15,
+              "marginRight": 8,
               "width": 40,
             }
           }

@@ -6,8 +6,7 @@ exports[`TransactionHeader should render correctly 1`] = `
     Object {
       "alignItems": "center",
       "justifyContent": "center",
-      "marginHorizontal": 10,
-      "marginTop": 10,
+      "paddingVertical": 20,
     }
   }
 >
@@ -16,7 +15,6 @@ exports[`TransactionHeader should render correctly 1`] = `
       Object {
         "borderRadius": 32,
         "height": 64,
-        "marginTop": 15,
         "width": 64,
       }
     }
@@ -70,7 +68,6 @@ exports[`TransactionHeader should render correctly 1`] = `
         "alignItems": "center",
         "flexDirection": "row",
         "justifyContent": "center",
-        "marginBottom": 12,
       }
     }
   >

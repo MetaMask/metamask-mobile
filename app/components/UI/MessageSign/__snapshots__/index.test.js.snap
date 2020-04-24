@@ -7,7 +7,7 @@ exports[`MessageSign should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
-      "minHeight": "70%",
+      "minHeight": "75%",
       "paddingBottom": 20,
     }
   }
@@ -23,6 +23,7 @@ exports[`MessageSign should render correctly 1`] = `
     onConfirm={[Function]}
     shouldRenderArrow={false}
     showExpandedMessage={false}
+    showWarning={true}
     toggleExpandedMessage={[Function]}
     type="ethSign"
   >
