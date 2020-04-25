@@ -1,12 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
 import AssetElement from '../AssetElement';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -95,13 +97,16 @@ class CollectibleContracts extends PureComponent {
 
 	goToAddCollectible = () => {
 		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
+		});
 	};
 
 	renderFooter = () => (
 		<View style={styles.footer} key={'collectible-contracts-footer'}>
 			<TouchableOpacity style={styles.add} onPress={this.goToAddCollectible} testID={'add-collectible-button'}>
 				<Icon name="plus" size={16} color={colors.blue} />
-				<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
+				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
 			</TouchableOpacity>
 		</View>
 	);

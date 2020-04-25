@@ -9,6 +9,7 @@ exports[`Approve should render correctly 1`] = `
       },
     }
   }
+  accountsLength={1}
   contractBalances={
     Object {
       "0x2": "0",
@@ -26,6 +27,7 @@ exports[`Approve should render correctly 1`] = `
   setTransactionObject={[Function]}
   showAlert={[Function]}
   ticker="ETH"
+  tokensLength={0}
   transaction={Object {}}
   transactions={Array []}
 />
