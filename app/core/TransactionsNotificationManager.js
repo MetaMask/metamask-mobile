@@ -21,8 +21,6 @@ class TransactionsNotificationManager {
 	 * Navigation object from react-navigation
 	 */
 	_navigation;
-	_showTransactionNotification;
-	_hideTransactionNotification;
 	/**
 	 * Array containing the id of the transaction that should be
 	 * displayed while interacting with a notification
@@ -420,8 +418,7 @@ export default {
 		return instance.requestPushNotificationsPermission();
 	},
 	showInstantPaymentNotification(type) {
-		// handle this
-		this._hideTransactionNotification();
+		instance._hideTransactionNotification();
 		setTimeout(() => {
 			const notification = {
 				type,
