@@ -474,6 +474,7 @@
 		"alert": "ALERT",
 		"amount": "Amount",
 		"next": "Next",
+		"back": "Back",
 		"confirm": "Confirm",
 		"reject": "Reject",
 		"edit": "Edit",

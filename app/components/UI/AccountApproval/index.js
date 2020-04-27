@@ -12,7 +12,7 @@ import Device from '../../../util/Device';
 import WebsiteIcon from '../WebsiteIcon';
 import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getHost } from '../../../util/browser';
 
 const styles = StyleSheet.create({
@@ -226,8 +226,14 @@ class AccountApproval extends PureComponent {
 	 * @return {object} - Object containing numberOfTokens, numberOfAccounts, network and timeOpen
 	 */
 	getTrackingParams = () => {
-		const { tokensLength, accountsLength, networkType } = this.props;
+		const {
+			tokensLength,
+			accountsLength,
+			networkType,
+			currentPageInformation: { url }
+		} = this.props;
 		return {
+			view: url,
 			numberOfTokens: tokensLength,
 			numberOfAccounts: accountsLength,
 			network: networkType,
