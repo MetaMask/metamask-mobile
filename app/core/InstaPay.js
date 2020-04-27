@@ -352,17 +352,18 @@ class InstaPay {
 	};
 
 	checkPaymentHistory = async () => {
-		let paymentHistory = await this.state.channel.getTransferHistory();
+		const paymentHistory = await this.state.channel.getTransferHistory();
 		if (paymentHistory.length) {
-			paymentHistory = paymentHistory.sort(
-				(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-			);
+			// TODO: createdAt has been removed from TransferHistory response
+			// paymentHistory = paymentHistory.sort(
+			// 	(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+			// );
 			const lastPayment = paymentHistory[0];
 			const latestPaymentId = lastPayment.paymentId;
 			if (latestPaymentId !== this.state.latestPaymentId) {
 				if (
-					lastPayment.receiverPublicIdentifier &&
-					lastPayment.receiverPublicIdentifier.toLowerCase() !== this.state.publicIdentifier.toLowerCase()
+					lastPayment.receiverIdentifier &&
+					lastPayment.receiverIdentifier.toLowerCase() !== this.state.publicIdentifier.toLowerCase()
 				) {
 					this.setState({ pendingPayment: null, latestPaymentId });
 				}
@@ -372,8 +373,8 @@ class InstaPay {
 
 			const latestReceivedPayment = paymentHistory.find(
 				payment =>
-					payment.receiverPublicIdentifier &&
-					payment.receiverPublicIdentifier.toLowerCase() === this.state.publicIdentifier.toLowerCase()
+					payment.receiverIdentifier &&
+					payment.receiverIdentifier.toLowerCase() === this.state.publicIdentifier.toLowerCase()
 			);
 
 			if (latestReceivedPayment) {
@@ -489,7 +490,7 @@ class InstaPay {
 					amount: amount.toString(),
 					assetId: token.address.toLowerCase()
 				};
-				Logger.log(`Depositing ${depositParams.amount} tokens into channel: ${channel.opts.multisigAddress}`);
+				Logger.log(`Depositing ${depositParams.amount} tokens into channel: ${channel.multisigAddress}`);
 				const result = await channel.deposit(depositParams);
 				await this.refreshBalances();
 				Logger.log(`Successfully deposited tokens! Result: ${JSON.stringify(result, null, 2)}`);
@@ -513,7 +514,7 @@ class InstaPay {
 
 			this.setPending({ type: 'deposit', complete: false, closed: false });
 			const amount = minBN([balance.onChain.ether.wad.sub(minDeposit.wad), nowMaxDeposit]);
-			Logger.log(`Depositing ${amount} wei into channel: ${channel.opts.multisigAddress}`);
+			Logger.log(`Depositing ${amount} wei into channel: ${channel.multisigAddress}`);
 			const result = await channel.deposit({ amount: amount.toString() });
 			await this.refreshBalances();
 			Logger.log(`Successfully deposited ether! Result: ${JSON.stringify(result, null, 2)}`);
@@ -737,7 +738,7 @@ class InstaPay {
 			paymentChannelTransaction: true,
 			networkID,
 			transaction: {
-				from: this.state.channel.opts.multisigAddress,
+				from: this.state.channel.multisigAddress,
 				to: Engine.context.PreferencesController.state.selectedAddress,
 				value: BNToHex(toWei(withdrawalPendingValueInDAI))
 			},
