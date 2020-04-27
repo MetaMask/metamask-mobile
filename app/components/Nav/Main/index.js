@@ -100,6 +100,7 @@ import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
+import BackupAlert from '../../UI/BackupAlert';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -1060,6 +1061,10 @@ class Main extends PureComponent {
 		);
 	};
 
+	backupAlertPress = () => {
+		this.props.navigation.navigate('AccountBackupStep1');
+	};
+
 	render() {
 		const { forceReload } = this.state;
 
@@ -1074,6 +1079,7 @@ class Main extends PureComponent {
 						animationDuration={150}
 					/>
 					<FadeOutOverlay />
+					<BackupAlert navigation={this.props.navigation} onPress={this.backupAlertPress} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}

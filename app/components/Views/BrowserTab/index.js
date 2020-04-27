@@ -55,7 +55,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
-import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import { resemblesAddress } from '../../../util/address';
 
@@ -219,13 +218,6 @@ const styles = StyleSheet.create({
 	},
 	fullScreenModal: {
 		flex: 1
-	},
-	backupAlert: {
-		zIndex: 99999999,
-		position: 'absolute',
-		bottom: Device.isIos() ? (Device.isIphoneX() ? 100 : 90) : 70,
-		left: 16,
-		right: 16
 	}
 });
 
@@ -1933,9 +1925,9 @@ export class BrowserTab extends PureComponent {
 				{!isHidden && this.renderOptions()}
 				{!isHidden && this.renderBottomBar()}
 				{!isHidden && this.renderOnboardingWizard()}
-				{!isHidden && this.props.passwordSet && !this.props.seedphraseBackedUp && (
-					<BackupAlert onPress={this.backupAlertPress} style={styles.backupAlert} />
-				)}
+				{/* {!isHidden && this.props.passwordSet && !this.props.seedphraseBackedUp && ( */}
+				{/* <BackupAlert onPress={this.backupAlertPress} style={styles.backupAlert} /> */}
+				{/* )} */}
 			</View>
 		);
 	}
