@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	wrapper: {
-		flex: Device.isAndroid() ? 0 : 1
+		flexGrow: 1
 	},
 	content: {
 		alignItems: 'flex-start'
