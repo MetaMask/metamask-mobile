@@ -29,6 +29,9 @@ const styles = StyleSheet.create({
 	textSummaryAmount: {
 		textTransform: 'uppercase'
 	},
+	textFee: {
+		fontStyle: 'italic'
+	},
 	textCrypto: {
 		...fontStyles.normal,
 		textAlign: 'right',
@@ -80,7 +83,7 @@ export default class TransactionSummary extends PureComponent {
 					<Text style={[styles.textSummary, styles.textSummaryAmount]}>{amount}</Text>
 				</View>
 				<View style={styles.summaryRow}>
-					<Text style={styles.textSummary}>
+					<Text style={[styles.textSummary, !fee ? styles.textFee : null]}>
 						{!fee ? strings('transaction.transaction_fee_less') : strings('transaction.transaction_fee')}
 					</Text>
 					{!!fee &&
