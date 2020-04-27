@@ -85,22 +85,10 @@ exports[`Confirm should render correctly 1`] = `
         }
       />
     </View>
-    <View
-      style={
-        Object {
-          "marginHorizontal": 24,
-        }
-      }
-    >
-      <TransactionSummary
-        amount=""
-        fee=""
-        gasEstimationReady={false}
-        onEditPress={[Function]}
-        secondaryTotalAmount=""
-        totalAmount=""
-      />
-    </View>
+    <TransactionReviewFeeCard
+      gasEstimationReady={false}
+      toggleCustomGasModal={[Function]}
+    />
     <View
       style={
         Object {
