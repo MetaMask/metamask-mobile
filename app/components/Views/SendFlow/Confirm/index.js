@@ -876,7 +876,7 @@ class Confirm extends PureComponent {
 			errorMessage,
 			transactionConfirmed,
 			paymentChannelBalance
-		} = this.state;
+    } = this.state;
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
