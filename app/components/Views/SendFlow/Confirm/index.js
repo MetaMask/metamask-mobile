@@ -37,6 +37,7 @@ import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import Logger from '../../../../util/Logger';
 import ActionModal from '../../../UI/ActionModal';
 import AccountList from '../../../UI/AccountList';
+import TransactionReviewFeeCard from '../../../UI/TransactionReview/TransactionReviewFeeCard';
 import CustomGas from '../CustomGas';
 import ErrorMessage from '../ErrorMessage';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
@@ -85,9 +86,6 @@ const styles = StyleSheet.create({
 		fontSize: 44,
 		textAlign: 'center'
 	},
-	summaryWrapper: {
-		marginHorizontal: 24
-	},
 	buttonNext: {
 		flex: 1,
 		marginHorizontal: 24,
@@ -109,10 +107,6 @@ const styles = StyleSheet.create({
 	},
 	actionsWrapper: {
 		margin: 24
-	},
-	loader: {
-		backgroundColor: colors.white,
-		height: 10
 	},
 	customGasModalTitle: {
 		borderBottomColor: colors.grey100,
@@ -263,7 +257,11 @@ class Confirm extends PureComponent {
 		/**
 		 * Resets transaction state
 		 */
-		resetTransaction: PropTypes.func
+    resetTransaction: PropTypes.func,
+    /**
+     * ETH or fiat, depending on user setting
+     */
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -357,6 +355,7 @@ class Confirm extends PureComponent {
 		const valueBN = hexToBN(value);
 		const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
 		const parsedTicker = getTicker(ticker);
+		const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 
 		if (isPaymentChannelTransaction) {
 			fromAccountBalance = `${selectedAsset.assetBalance} ${selectedAsset.symbol}`;
@@ -418,7 +417,8 @@ class Confirm extends PureComponent {
 				fromAccountBalance,
 				transactionValue,
 				transactionValueFiat,
-				transactionFeeFiat,
+        transactionFeeFiat,
+        transactionFee,
 				transactionTo,
 				transactionTotalAmount,
 				transactionTotalAmountFiat
@@ -838,8 +838,8 @@ class Confirm extends PureComponent {
 	};
 
 	render = () => {
-		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, isPaymentChannelTransaction } = this.props;
+    const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
+    const { showHexData, isPaymentChannelTransaction, primaryCurrency } = this.props;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -847,15 +847,16 @@ class Confirm extends PureComponent {
 			fromSelectedAddress,
 			transactionValue = '',
 			transactionValueFiat = '',
-			transactionFeeFiat = '',
+      transactionFeeFiat = '',
+      transactionFee,
 			transactionTo = '',
 			transactionTotalAmount = '',
 			transactionTotalAmountFiat = '',
 			errorMessage,
 			transactionConfirmed,
 			paymentChannelBalance
-		} = this.state;
-
+    } = this.state;
+    
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
@@ -897,19 +898,20 @@ class Confirm extends PureComponent {
 								<Text style={styles.collectibleTokenId}>{`#${selectedAsset.tokenId}`}</Text>
 							</View>
 						</View>
-					)}
-					<View style={styles.summaryWrapper}>
-						{!isPaymentChannelTransaction && (
-							<TransactionSummary
-								amount={transactionValueFiat}
-								fee={transactionFeeFiat}
-								totalAmount={transactionTotalAmountFiat}
-								secondaryTotalAmount={transactionTotalAmount}
-								gasEstimationReady={gasEstimationReady}
-								onEditPress={this.toggleCustomGasModal}
-							/>
-						)}
-					</View>
+          )}
+          {!isPaymentChannelTransaction && (
+					<TransactionReviewFeeCard
+						totalGasFiat={transactionFeeFiat}
+						totalGasEth={transactionFee}
+						totalFiat={transactionTotalAmountFiat}
+						fiat={transactionValueFiat}
+						totalValue={transactionTotalAmount}
+						transactionValue={transactionValue}
+						primaryCurrency={primaryCurrency}
+						gasEstimationReady={gasEstimationReady}
+						toggleCustomGasModal={this.toggleCustomGasModal}
+          />
+          )}
 					{errorMessage && (
 						<View style={styles.errorMessageWrapper}>
 							<ErrorMessage errorMessage={errorMessage} />
@@ -956,7 +958,9 @@ const mapStateToProps = state => ({
 	transactionState: state.transaction,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
-	selectedAsset: state.transaction.selectedAsset
+	selectedAsset: state.transaction.selectedAsset,
+	transactionState: state.newTransaction,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 const mapDispatchToProps = dispatch => ({
