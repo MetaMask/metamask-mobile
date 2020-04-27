@@ -66,6 +66,17 @@ exports[`SignatureRequest should render correctly 1`] = `
         }
       }
     >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "marginBottom": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <Connect(AccountInfoCard) />
+      </View>
       <TouchableOpacity
         activeOpacity={0.2}
         onPress={null}
@@ -78,7 +89,6 @@ exports[`SignatureRequest should render correctly 1`] = `
             "flexDirection": "row",
             "height": 200,
             "justifyContent": "flex-start",
-            "marginBottom": 20,
             "padding": 16,
             "width": "90%",
           }
@@ -97,7 +107,6 @@ exports[`SignatureRequest should render correctly 1`] = `
           url="url"
         />
       </TouchableOpacity>
-      <Connect(AccountInfoCard) />
     </View>
   </ActionView>
 </View>
