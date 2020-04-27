@@ -52,6 +52,21 @@ const styles = StyleSheet.create({
 	}
 });
 
+const BLOCKED_LIST = [
+	'PaymentChannelDeposit',
+	'PaymentChannelSend',
+	'ImportPrivateKey',
+	'Send',
+	'SendTo',
+	'Amount',
+	'Confirm',
+	'Approval',
+	'Approve',
+	'AddBookmark',
+	'RevealPrivateCredentialView',
+	'AccountBackupStep'
+];
+
 /**
  * PureComponent that renders an alert shown when the
  * seed phrase hasn't been backed up
@@ -62,33 +77,31 @@ class BackupAlert extends PureComponent {
 		/**
 		 * The action that will be triggered onPress
 		 */
-		onPress: PropTypes.any
+		onPress: PropTypes.any,
 		/**
 		 * redux flag that indicates if the user
 		 * completed the seed phrase backup flow
 		 */
-		// seedphraseBackedUp: PropTypes.bool,
+		seedphraseBackedUp: PropTypes.bool,
 		/**
 		 * redux flag that indicates if the user set a password
 		 */
-		// passwordSet: PropTypes.bool,
+		passwordSet: PropTypes.bool
 	};
 
 	state = {
-		inBrowserView: false
+		inBrowserView: false,
+		inAccountBackupStep: false
 	};
 
 	componentDidUpdate = async prevProps => {
-		// Check whether current view is browser
 		if (prevProps.navigation.state !== this.props.navigation.state) {
+			const currentRouteName = this.findRouteNameFromNavigatorState(this.props.navigation.state);
+			const inBrowserView = currentRouteName === BROWSER_ROUTE;
+			const blockedView = BLOCKED_LIST.find(path => currentRouteName.includes(path));
 			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({ inBrowserView: this.isInBrowserView(prevProps) });
+			this.setState({ inBrowserView, blockedView });
 		}
-	};
-
-	isInBrowserView = () => {
-		const currentRouteName = this.findRouteNameFromNavigatorState(this.props.navigation.state);
-		return currentRouteName === BROWSER_ROUTE;
 	};
 
 	findRouteNameFromNavigatorState({ routes }) {
@@ -98,10 +111,9 @@ class BackupAlert extends PureComponent {
 	}
 
 	render() {
-		// const { onPress, seedphraseBackedUp, passwordSet } = this.props;
-		const { onPress } = this.props;
-		const { inBrowserView } = this.state;
-		// if (!passwordSet || seedphraseBackedUp) return null
+		const { onPress, seedphraseBackedUp, passwordSet } = this.props;
+		const { inBrowserView, blockedView } = this.state;
+		if (!passwordSet || seedphraseBackedUp || blockedView) return null;
 		return (
 			<ElevatedView
 				elevation={100}
