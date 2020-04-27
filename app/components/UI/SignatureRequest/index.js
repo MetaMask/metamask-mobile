@@ -55,6 +55,11 @@ const styles = StyleSheet.create({
 		height: '100%',
 		paddingVertical: 20
 	},
+	accountInfoCardWrapper: {
+		marginBottom: 20,
+		width: '100%',
+		alignItems: 'center'
+	},
 	children: {
 		flex: 2,
 		flexDirection: 'row',
@@ -64,7 +69,6 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey200,
 		borderRadius: 10,
 		height: 200,
-		marginBottom: 20,
 		padding: 16
 	},
 	arrowIconWrapper: {
@@ -183,12 +187,14 @@ class SignatureRequest extends PureComponent {
 		const arrowIcon = shouldRenderArrow ? this.renderArrowIcon() : null;
 		return (
 			<View style={styles.childrenWrapper}>
+				<View style={styles.accountInfoCardWrapper}>
+					<AccountInfoCard />
+				</View>
 				<TouchableOpacity style={styles.children} onPress={shouldRenderArrow ? toggleExpandedMessage : null}>
 					<WebsiteIcon style={styles.domainLogo} title={title} url={url} />
 					{children}
 					{arrowIcon}
 				</TouchableOpacity>
-				<AccountInfoCard />
 			</View>
 		);
 	};
