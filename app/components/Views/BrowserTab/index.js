@@ -341,15 +341,6 @@ export class BrowserTab extends PureComponent {
 		 */
 		wizardStep: PropTypes.number,
 		/**
-		 * redux flag that indicates if the user set a password
-		 */
-		passwordSet: PropTypes.bool,
-		/**
-		 * redux flag that indicates if the user
-		 * completed the seed phrase backup flow
-		 */
-		seedphraseBackedUp: PropTypes.bool,
-		/**
 		 * the current version of the app
 		 */
 		app_version: PropTypes.string
@@ -1925,9 +1916,6 @@ export class BrowserTab extends PureComponent {
 				{!isHidden && this.renderOptions()}
 				{!isHidden && this.renderBottomBar()}
 				{!isHidden && this.renderOnboardingWizard()}
-				{/* {!isHidden && this.props.passwordSet && !this.props.seedphraseBackedUp && ( */}
-				{/* <BackupAlert onPress={this.backupAlertPress} style={styles.backupAlert} /> */}
-				{/* )} */}
 			</View>
 		);
 	}
@@ -1944,9 +1932,7 @@ const mapStateToProps = state => ({
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
 	activeTab: state.browser.activeTab,
-	wizardStep: state.wizard.step,
-	seedphraseBackedUp: state.user.seedphraseBackedUp,
-	passwordSet: state.user.passwordSet
+	wizardStep: state.wizard.step
 });
 
 const mapDispatchToProps = dispatch => ({

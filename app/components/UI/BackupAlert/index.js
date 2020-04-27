@@ -6,6 +6,7 @@ import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
+import { connect } from 'react-redux';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -55,13 +56,22 @@ const styles = StyleSheet.create({
  * PureComponent that renders an alert shown when the
  * seed phrase hasn't been backed up
  */
-export default class BackupAlert extends PureComponent {
+class BackupAlert extends PureComponent {
 	static propTypes = {
 		navigation: PropTypes.object,
 		/**
 		 * The action that will be triggered onPress
 		 */
 		onPress: PropTypes.any
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		// seedphraseBackedUp: PropTypes.bool,
+		/**
+		 * redux flag that indicates if the user set a password
+		 */
+		// passwordSet: PropTypes.bool,
 	};
 
 	state = {
@@ -88,8 +98,10 @@ export default class BackupAlert extends PureComponent {
 	}
 
 	render() {
+		// const { onPress, seedphraseBackedUp, passwordSet } = this.props;
 		const { onPress } = this.props;
 		const { inBrowserView } = this.state;
+		// if (!passwordSet || seedphraseBackedUp) return null
 		return (
 			<ElevatedView
 				elevation={100}
@@ -111,3 +123,10 @@ export default class BackupAlert extends PureComponent {
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	passwordSet: state.user.passwordSet
+});
+
+export default connect(mapStateToProps)(BackupAlert);
