@@ -78,27 +78,27 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * Total gas fee in fiat
 		 */
-		totalGasFiat: PropTypes.number,
+		totalGasFiat: PropTypes.string,
 		/**
 		 * Total gas fee in ETH
 		 */
-		totalGasEth: PropTypes.number,
+		totalGasEth: PropTypes.string,
 		/**
 		 * Total transaction value in fiat
 		 */
-		totalFiat: PropTypes.number,
+		totalFiat: PropTypes.string,
 		/**
 		 * Transaction value in fiat before gas fee
 		 */
-		fiat: PropTypes.number,
+		fiat: PropTypes.string,
 		/**
 		 * Total transaction value in ETH
 		 */
-		totalValue: PropTypes.number,
+		totalValue: PropTypes.string,
 		/**
 		 * Transaction value in ETH before gas fee
 		 */
-		transactionValue: PropTypes.number,
+		transactionValue: PropTypes.string,
 		/**
 		 * ETH or fiat, dependent on user setting
 		 */

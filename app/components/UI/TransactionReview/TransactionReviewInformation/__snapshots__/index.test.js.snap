@@ -38,7 +38,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
         }
       }
     >
-      Transaction Fee
+      Network fee
     </Text>
     <View>
       <Text
@@ -109,7 +109,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           }
         }
       >
-        Amount + Transaction Fee
+        Amount + Network fee
       </Text>
     </View>
   </View>
