@@ -89,7 +89,7 @@ class ImportPrivateKeySuccess extends PureComponent {
 		keyrings: PropTypes.array
 	};
 
-	componentDidMount = async () => {
+	componentDidMount = () => {
 		const { PreferencesController } = Engine.context;
 		const { keyrings } = this.props;
 		try {
@@ -106,7 +106,7 @@ class ImportPrivateKeySuccess extends PureComponent {
 		});
 	};
 
-	componentWillUnmount = async () => {
+	componentWillUnmount = () => {
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot && PreventScreenshot.allow();
 			BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);

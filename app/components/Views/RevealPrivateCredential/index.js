@@ -188,7 +188,7 @@ class RevealPrivateCredential extends PureComponent {
 			});
 	}
 
-	componentWillUnmount = async () => {
+	componentWillUnmount = () => {
 		PreventScreenshot &&
 			InteractionManager.runAfterInteractions(() => {
 				PreventScreenshot.allow();

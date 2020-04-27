@@ -106,7 +106,7 @@ class Wallet extends PureComponent {
 		this.mounted = true;
 	}
 
-	componentDidMount = async () => {
+	componentDidMount = () => {
 		requestAnimationFrame(() => {
 			this.init();
 		});
