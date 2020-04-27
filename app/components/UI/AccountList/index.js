@@ -18,7 +18,7 @@ import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AccountElement from './AccountElement';
 import { connect } from 'react-redux';
 
@@ -196,6 +196,9 @@ class AccountList extends PureComponent {
 
 	importAccount = () => {
 		this.props.onImportAccount();
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+		});
 	};
 
 	addAccount = async () => {
@@ -220,6 +223,9 @@ class AccountList extends PureComponent {
 				Logger.error(e, 'error while trying to add a new account'); // eslint-disable-line
 				this.mounted && this.setState({ loading: false });
 			}
+		});
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
 		});
 	};
 

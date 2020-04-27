@@ -10,7 +10,7 @@ import { newTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTransactionReviewActionKey } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { safeToChecksumAddress } from '../../../util/address';
