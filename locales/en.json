@@ -481,7 +481,7 @@
 		"cancel": "Cancel",
 		"speedup": "Speed up",
 		"from": "From",
-		"gas_fee": "Transaction Fee",
+		"gas_fee": "Network fee",
 		"gas_fee_fast": "FAST",
 		"gas_fee_average": "AVERAGE",
 		"gas_fee_slow": "SLOW",
