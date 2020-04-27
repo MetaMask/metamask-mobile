@@ -27,7 +27,7 @@ import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import AnimatedFox from 'react-native-animated-fox';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import TermsAndConditions from '../TermsAndConditions';
 import Device from '../../../util/Device';

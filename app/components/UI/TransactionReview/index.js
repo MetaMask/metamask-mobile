@@ -12,7 +12,7 @@ import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import TransactionDirection from '../../Views/TransactionDirection';
 
 const styles = StyleSheet.create({

@@ -1,12 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, InteractionManager } from 'react-native';
 import Coachmark from '../Coachmark';
 import Device from '../../../../util/Device';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import Analytics from '../../../../core/Analytics';
 
 const styles = StyleSheet.create({
 	main: {
@@ -42,6 +44,9 @@ class Step1 extends PureComponent {
 	onNext = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(2);
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_TAKE_THE_TOUR);
+		});
 	};
 
 	/**
@@ -49,7 +54,10 @@ class Step1 extends PureComponent {
 	 */
 	onClose = () => {
 		const { onClose } = this.props;
-		onClose && onClose();
+		onClose && onClose(false);
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_NO_THANKS);
+		});
 	};
 
 	/**
