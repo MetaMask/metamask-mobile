@@ -9,7 +9,8 @@ import {
 	ScrollView,
 	StyleSheet,
 	InteractionManager,
-	NativeModules
+	NativeModules,
+	Platform
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
@@ -31,7 +32,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import TermsAndConditions from '../TermsAndConditions';
 import Device from '../../../util/Device';
-const PreventScreenshot = NativeModules.PreventScreenshot;
+const PreventScreenshot = Platform.OS === 'android' ? NativeModules.PreventScreenshot : null;
 
 const SMALL_DEVICE = Device.isSmallDevice();
 
@@ -168,17 +169,19 @@ class ImportWallet extends PureComponent {
 	componentDidMount() {
 		this.mounted = true;
 		this.checkIfExistingUser();
-		InteractionManager.runAfterInteractions(() => {
-			PreventScreenshot.forbid();
-		});
+		PreventScreenshot &&
+			InteractionManager.runAfterInteractions(() => {
+				PreventScreenshot.forbid();
+			});
 	}
 
 	componentWillUnmount() {
 		this.mounted = false;
 		this.pubnubWrapper && this.pubnubWrapper.disconnectWebsockets();
-		InteractionManager.runAfterInteractions(() => {
-			PreventScreenshot.allow();
-		});
+		PreventScreenshot &&
+			InteractionManager.runAfterInteractions(() => {
+				PreventScreenshot.allow();
+			});
 	}
 
 	startSync = async firstAttempt => {
