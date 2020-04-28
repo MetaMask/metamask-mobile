@@ -51,6 +51,7 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import TransactionSummary from '../../TransactionSummary';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import Device from '../../../../util/Device';
 
 const {
 	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
@@ -118,6 +119,13 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		alignSelf: 'center',
 		margin: 16
+	},
+	customGasWrapper: {
+		backgroundColor: colors.white,
+		minHeight: '90%',
+		borderTopLeftRadius: 10,
+		borderTopRightRadius: 10,
+		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	errorMessageWrapper: {
 		marginTop: 16,
@@ -514,21 +522,24 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomGasModal = () => {
-		const { customGasModalVisible, currentCustomGasSelected, gasError } = this.state;
+		const { customGasModalVisible, currentCustomGasSelected } = this.state;
 		const { gas, gasPrice } = this.props.transactionState.transaction;
 		return (
-			<ActionModal
-				modalVisible={customGasModalVisible}
-				confirmText={strings('transaction.set_gas')}
-				cancelText={strings('transaction.cancel_gas')}
-				onCancelPress={this.toggleCustomGasModal}
-				onRequestClose={this.toggleCustomGasModal}
-				onConfirmPress={this.handleSetGasFee}
-				confirmDisabled={!!gasError}
-				cancelButtonMode={'neutral'}
-				confirmButtonMode={'confirm'}
+			<Modal
+				isVisible={customGasModalVisible}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.toggleCustomGasModal}
+				onBackButtonPress={this.toggleCustomGasModal}
+				onSwipeComplete={this.toggleCustomGasModal}
+				swipeDirection={'down'}
+				propagateSwipe
 			>
-				<View style={baseStyles.flexGrow}>
+				<View style={styles.customGasWrapper}>
 					<View style={styles.customGasModalTitle}>
 						<Text style={styles.customGasModalTitleText}>{strings('transaction.transaction_fee')}</Text>
 					</View>
@@ -539,7 +550,7 @@ class Confirm extends PureComponent {
 						gasPrice={gasPrice}
 					/>
 				</View>
-			</ActionModal>
+			</Modal>
 		);
 	};
 
