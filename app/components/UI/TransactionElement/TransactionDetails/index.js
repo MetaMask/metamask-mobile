@@ -148,7 +148,7 @@ class TransactionDetails extends PureComponent {
 	};
 
 	renderStatusText = status => {
-		status = status.charAt(0).toUpperCase() + status.slice(1);
+		status = status && status.charAt(0).toUpperCase() + status.slice(1);
 		switch (status) {
 			case 'Confirmed':
 				return <Text style={[styles.statusText, { color: colors.green400 }]}>{status}</Text>;

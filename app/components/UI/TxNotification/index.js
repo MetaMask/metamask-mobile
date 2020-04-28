@@ -207,7 +207,10 @@ class TxNotification extends PureComponent {
 					this.props.hideTransactionNotification();
 				}, this.props.autodismiss);
 			// Find new transaction and parse its data
-			const tx = this.props.transactions.find(({ id }) => id === this.props.transaction.id);
+			const { paymentChannelTransaction } = this.props.transaction;
+			const tx = paymentChannelTransaction
+				? { paymentChannelTransaction, transaction: {} }
+				: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
 			// eslint-disable-next-line react/no-did-update-set-state
 			await this.setState({
@@ -261,6 +264,17 @@ class TxNotification extends PureComponent {
 		this.setState({ transactionDetailsIsVisible: true });
 	};
 
+	onNotificationPress = () => {
+		const {
+			tx: { paymentChannelTransaction }
+		} = this.state;
+		if (paymentChannelTransaction) {
+			this.props.navigation.navigate('PaymentChannelHome');
+		} else {
+			this.detailsFadeIn();
+		}
+	};
+
 	render = () => {
 		const { navigation, status } = this.props;
 		const {
@@ -273,17 +287,17 @@ class TxNotification extends PureComponent {
 		} = this.state;
 
 		if (!internalIsVisible) return null;
-
+		const { paymentChannelTransaction } = tx;
 		return (
 			<ElevatedView
 				elevation={100}
 				style={[
 					styles.modalTypeView,
 					inBrowserView ? styles.modalTypeViewBrowser : {},
-					transactionDetailsIsVisible ? styles.modalTypeViewDetailsVisible : {}
+					transactionDetailsIsVisible && !paymentChannelTransaction ? styles.modalTypeViewDetailsVisible : {}
 				]}
 			>
-				{transactionDetailsIsVisible && (
+				{transactionDetailsIsVisible && !paymentChannelTransaction && (
 					<Animated.View
 						style={[
 							styles.modalView,
@@ -319,7 +333,7 @@ class TxNotification extends PureComponent {
 						<TransactionNotification
 							status={status}
 							transaction={{ ...tx.transaction, ...this.props.transaction }}
-							onPress={this.detailsFadeIn}
+							onPress={this.onNotificationPress}
 							onHide={this.onClose}
 						/>
 					</View>

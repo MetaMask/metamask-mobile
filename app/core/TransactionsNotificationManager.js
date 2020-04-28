@@ -119,7 +119,6 @@ class TransactionsNotificationManager {
 				largeIcon: 'ic_notification',
 				smallIcon: 'ic_notification_small'
 			};
-
 			const id = (data && data.transaction && data.transaction.id) || null;
 
 			const extraData = { action: 'tx', id };
@@ -418,14 +417,12 @@ export default {
 		return instance.requestPushNotificationsPermission();
 	},
 	showInstantPaymentNotification(type) {
-		instance._hideTransactionNotification();
 		setTimeout(() => {
 			const notification = {
 				type,
 				autoHide: type.indexOf('success') !== -1,
-				message: {
-					transaction: null,
-					callback: () => null
+				transaction: {
+					paymentChannelTransaction: true
 				}
 			};
 			if (notification.autoHide) {
@@ -435,17 +432,17 @@ export default {
 			return instance._showNotification(notification);
 		}, 300);
 	},
-	showIncomingPaymentNotification: amount =>
+	showIncomingPaymentNotification: amount => {
 		instance._showNotification({
 			type: 'received_payment',
-			message: {
-				transaction: {
-					amount,
-					assetType: ''
-				},
-				callback: () => instance.goTo('PaymentChannelHome')
+			transaction: {
+				amount,
+				assetType: '',
+				paymentChannelTransaction: true
 			},
+			callback: () => instance.goTo('PaymentChannelHome'),
 			autoHide: true,
 			duration: 5000
-		})
+		});
+	}
 };

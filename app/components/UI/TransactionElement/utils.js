@@ -30,7 +30,7 @@ function decodePaymentChannelTx(args) {
 		}
 	} = args;
 	const contract = CONTRACTS[networkID];
-	const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
+	const isDeposit = contract && to && to.toLowerCase() === contract.toLowerCase();
 	if (isDeposit) return decodeConfirmTx(args, true);
 	return decodeTransferPaymentChannel(args);
 }
