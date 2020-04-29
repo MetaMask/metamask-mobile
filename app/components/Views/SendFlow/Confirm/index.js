@@ -51,7 +51,6 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import TransactionSummary from '../../TransactionSummary';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import Device from '../../../../util/Device';
 
 const {
 	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
@@ -108,24 +107,6 @@ const styles = StyleSheet.create({
 	},
 	actionsWrapper: {
 		margin: 24
-	},
-	customGasModalTitle: {
-		borderBottomColor: colors.grey100,
-		borderBottomWidth: 1
-	},
-	customGasModalTitleText: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 18,
-		alignSelf: 'center',
-		margin: 16
-	},
-	customGasWrapper: {
-		backgroundColor: colors.white,
-		minHeight: '90%',
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	errorMessageWrapper: {
 		marginTop: 16,
@@ -539,17 +520,14 @@ class Confirm extends PureComponent {
 				swipeDirection={'down'}
 				propagateSwipe
 			>
-				<View style={styles.customGasWrapper}>
-					<View style={styles.customGasModalTitle}>
-						<Text style={styles.customGasModalTitleText}>{strings('transaction.transaction_fee')}</Text>
-					</View>
-					<CustomGas
-						selected={currentCustomGasSelected}
-						handleGasFeeSelection={this.handleGasFeeSelection}
-						gas={gas}
-						gasPrice={gasPrice}
-					/>
-				</View>
+				<CustomGas
+					selected={currentCustomGasSelected}
+					handleGasFeeSelection={this.handleGasFeeSelection}
+					gas={gas}
+					gasPrice={gasPrice}
+					toggleCustomGasModal={this.toggleCustomGasModal}
+					handleSetGasFee={this.handleSetGasFee}
+				/>
 			</Modal>
 		);
 	};
