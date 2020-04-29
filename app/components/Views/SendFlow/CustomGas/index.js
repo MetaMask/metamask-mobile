@@ -185,6 +185,25 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		borderColor: colors.grey100
 	},
+	optionsContainer: {
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
+		paddingBottom: 20
+	},
+	basicButton: {
+		width: 116,
+		height: 36,
+		padding: 8,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	optionSelected: {
+		backgroundColor: colors.grey000,
+		borderWidth: 1,
+		borderRadius: 20,
+		borderColor: colors.grey100
+	},
 	selectorTitle: {
 		flexDirection: 'row',
 		alignItems: 'flex-start',
