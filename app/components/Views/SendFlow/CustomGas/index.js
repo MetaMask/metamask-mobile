@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 	textTime: {
 		...fontStyles.bold,
 		color: colors.black,
-		marginVertical: 4,
+		marginBottom: 4,
 		fontSize: 18,
 		textTransform: 'none'
 	},
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
 	},
 	selectorTitle: {
 		flexDirection: 'row',
-		alignItems: 'center',
+		alignItems: 'flex-start',
 		justifyContent: 'space-between',
 		height: 16
 	},
@@ -159,6 +159,7 @@ const styles = StyleSheet.create({
 	gasSelectorContainer: {
 		display: 'flex',
 		flexDirection: 'row',
+		justifyContent: 'space-between',
 		alignItems: 'flex-start'
 	},
 	footerContainer: {
@@ -169,10 +170,7 @@ const styles = StyleSheet.create({
 	buttonNext: {
 		flex: 1
 	},
-	radio: {
-		marginVertical: 4,
-		marginRight: 8
-	}
+	radio: {}
 });
 
 /**
@@ -402,9 +400,6 @@ class CustomGas extends PureComponent {
 				]}
 			>
 				<View style={styles.gasSelectorContainer}>
-					<View style={styles.radio}>
-						<Radio selected={selected} />
-					</View>
 					<View>
 						<View style={styles.selectorTitle}>
 							<Text style={styles.textTitle}>{strings(`transaction.gas_fee_${name}`)}</Text>
@@ -416,6 +411,9 @@ class CustomGas extends PureComponent {
 						<Text style={styles.text}>
 							{getRenderableFiatGasFee(wei, conversionRate, currentCurrency, gas)}
 						</Text>
+					</View>
+					<View style={styles.radio}>
+						<Radio selected={selected} />
 					</View>
 				</View>
 			</TouchableOpacity>
