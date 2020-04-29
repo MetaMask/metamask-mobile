@@ -516,6 +516,7 @@
 		"speedup_tx_title": "Attempt to speed up?",
 		"speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
 		"nevermind": "Nevermind",
+		"edit_network_fee": "Edit Network Fee",
 		"gas_cancel_fee": "Gas Cancellation Fee",
 		"gas_speedup_fee": "Gas Speed Up fee",
 		"use_max": "Use max",
@@ -532,11 +533,13 @@
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced",
+		"basic_options": "Basic",
 		"hide_advanced_options": "Hide advanced",
 		"gas_limit": "Gas Limit:",
 		"gas_price": "Gas Price: (GWEI)",
+		"save": "Save",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
-		"cost_explanation": "This is the cost for processing this payment on the blockchain."
+		"cost_explanation": "Select the network fee you are willing to pay. The higher the fee, the better chances and faster your transaction will go through."
 	},
 	"spend_limit_edition": {
 		"save": "Save",
