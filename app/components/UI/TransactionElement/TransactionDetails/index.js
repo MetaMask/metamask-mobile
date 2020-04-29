@@ -3,7 +3,11 @@ import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
-import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
+import NetworkList, {
+	getNetworkTypeById,
+	findBlockExplorerForRpc,
+	getBlockExplorerName
+} from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
@@ -11,6 +15,9 @@ import URL from 'url-parse';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
+import StyledButton from '../../StyledButton';
+import { safeToChecksumAddress } from '../../../../util/address';
+import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
@@ -59,6 +66,23 @@ const styles = StyleSheet.create({
 	statusText: {
 		fontSize: 12,
 		...fontStyles.normal
+	},
+	actionContainerStyle: {
+		height: 25,
+		width: 70,
+		padding: 0
+	},
+	speedupActionContainerStyle: {
+		marginRight: 10
+	},
+	actionStyle: {
+		fontSize: 10,
+		padding: 0,
+		paddingHorizontal: 10
+	},
+	transactionActionsContainer: {
+		flexDirection: 'row',
+		paddingTop: 10
 	}
 });
 
@@ -92,7 +116,11 @@ class TransactionDetails extends PureComponent {
 		/**
 		 * Callback to close the view
 		 */
-		close: PropTypes.func
+		close: PropTypes.func,
+		/**
+		 * A string representing the network name
+		 */
+		providerType: PropTypes.string
 	};
 
 	state = {
@@ -160,15 +188,41 @@ class TransactionDetails extends PureComponent {
 		}
 	};
 
+	renderSpeedUpButton = () => (
+		<StyledButton
+			type={'normal'}
+			containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
+			style={styles.actionStyle}
+			onPress={this.showSpeedUpModal}
+		>
+			{strings('transaction.speedup')}
+		</StyledButton>
+	);
+
+	renderCancelButton = () => (
+		<StyledButton
+			type={'cancel'}
+			containerStyle={styles.actionContainerStyle}
+			style={styles.actionStyle}
+			onPress={this.showCancelModal}
+		>
+			{strings('transaction.cancel')}
+		</StyledButton>
+	);
+
 	render = () => {
 		const {
 			transactionObject,
 			transactionObject: {
 				status,
 				time,
-				transaction: { nonce }
-			}
+				transaction: { nonce, to }
+			},
+			providerType
 		} = this.props;
+		const networkId = NetworkList[providerType].networkId;
+		const renderTxActions = status === 'submitted' || status === 'approved';
+		const renderSpeedUpAction = safeToChecksumAddress(to) !== AppConstants.CONNEXT.CONTRACTS[networkId];
 		const { rpcBlockExplorer } = this.state;
 		return (
 			<View style={styles.detailRowWrapper}>
@@ -177,6 +231,12 @@ class TransactionDetails extends PureComponent {
 						<View style={baseStyles.flexRow}>
 							<Text style={styles.detailRowTitle}>{strings('transactions.status')}</Text>
 							{this.renderStatusText(status)}
+							{!!renderTxActions && (
+								<View style={styles.transactionActionsContainer}>
+									{renderSpeedUpAction && this.renderSpeedUpButton()}
+									{this.renderCancelButton()}
+								</View>
+							)}
 						</View>
 						<View style={styles.flexEnd}>
 							<Text style={styles.detailRowTitle}>{strings('transactions.date')}</Text>
@@ -240,6 +300,7 @@ class TransactionDetails extends PureComponent {
 
 const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController,
-	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 export default connect(mapStateToProps)(TransactionDetails);

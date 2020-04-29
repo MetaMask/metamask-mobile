@@ -416,7 +416,7 @@ class TransactionElement extends PureComponent {
 
 	renderCancelButton = () => (
 		<StyledButton
-			type={'danger'}
+			type={'cancel'}
 			containerStyle={styles.actionContainerStyle}
 			style={styles.actionStyle}
 			onPress={this.showCancelModal}
