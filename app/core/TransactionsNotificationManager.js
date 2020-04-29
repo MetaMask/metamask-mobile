@@ -184,8 +184,10 @@ class TransactionsNotificationManager {
 				// Then we show the success notification
 				this._showNotification({
 					type: 'success',
+					autoHide: true,
 					transaction: {
-						id: transactionMeta.id
+						id: transactionMeta.id,
+						nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`
 					},
 					duration: 5000
 				});
@@ -226,7 +228,8 @@ class TransactionsNotificationManager {
 				autoHide: false,
 				type: 'speedup',
 				transaction: {
-					id: transactionMeta.id
+					id: transactionMeta.id,
+					nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`
 				}
 			});
 		}, 2000);
