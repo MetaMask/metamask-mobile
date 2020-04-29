@@ -11,29 +11,49 @@ import {
 	getBasicGasEstimates
 } from '../../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
+import StyledButton from '../../../UI/StyledButton';
 import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import Radio from '../../../UI/Radio';
+import Device from '../../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
-		margin: 16
+		backgroundColor: colors.white,
+		minHeight: '50%',
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		paddingTop: 24,
+		paddingHorizontal: 24,
+		paddingBottom: Device.isIphoneX() ? 44 : 0
+	},
+	customGasHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		width: '100%',
+		paddingBottom: 20
 	},
 	selectors: {
 		backgroundColor: colors.white,
-		flexDirection: 'column',
+		flexDirection: 'row',
 		justifyContent: 'space-between',
-		marginVertical: 20
+		paddingBottom: 10
 	},
 	selector: {
+		flex: 1,
 		padding: 12,
 		borderWidth: 1,
-		borderColor: colors.grey100,
-		marginTop: -1
+		borderColor: colors.grey100
 	},
-	advancedOptions: {
-		textAlign: 'right',
-		alignItems: 'center'
+	selectorLeft: {
+		borderTopLeftRadius: 10,
+		borderBottomLeftRadius: 10
+	},
+	selectorRight: {
+		borderTopRightRadius: 10,
+		borderBottomRightRadius: 10
 	},
 	text: {
 		...fontStyles.light,
@@ -55,16 +75,22 @@ const styles = StyleSheet.create({
 		fontSize: 10,
 		textTransform: 'uppercase'
 	},
+	customGasModalTitleText: {
+		...fontStyles.bold,
+		color: colors.black,
+		fontSize: 14,
+		alignSelf: 'center'
+	},
 	textTotalGas: {
 		...fontStyles.bold,
 		color: colors.black,
 		marginBottom: 8,
 		marginTop: 4
 	},
-	textAdvancedOptions: {
+	textOptions: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.blue
+		color: colors.black
 	},
 	gasInput: {
 		...fontStyles.bold,
@@ -97,17 +123,27 @@ const styles = StyleSheet.create({
 	selectorNotSelected: {
 		backgroundColor: colors.white
 	},
-	selectorTop: {
-		borderTopLeftRadius: 6,
-		borderTopRightRadius: 6
-	},
-	selectorBottom: {
-		borderBottomLeftRadius: 6,
-		borderBottomRightRadius: 6,
-		borderBottomWidth: 1
-	},
 	advancedOptionsContainer: {
 		marginTop: 16
+	},
+	optionsContainer: {
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
+		paddingBottom: 20
+	},
+	basicButton: {
+		width: 116,
+		height: 36,
+		padding: 8,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	optionSelected: {
+		backgroundColor: colors.grey000,
+		borderWidth: 1,
+		borderRadius: 20,
+		borderColor: colors.grey100
 	},
 	selectorTitle: {
 		flexDirection: 'row',
@@ -118,12 +154,20 @@ const styles = StyleSheet.create({
 	message: {
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 14
+		fontSize: 12
 	},
 	gasSelectorContainer: {
 		display: 'flex',
 		flexDirection: 'row',
 		alignItems: 'flex-start'
+	},
+	footerContainer: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'flex-end'
+	},
+	buttonNext: {
+		flex: 1
 	},
 	radio: {
 		marginVertical: 4,
@@ -163,7 +207,15 @@ class CustomGas extends PureComponent {
 		/**
 		 * Current selector selected
 		 */
-		selected: PropTypes.string
+		selected: PropTypes.string,
+		/**
+		 * Shows or hides the custom gas modal
+		 */
+		toggleCustomGasModal: PropTypes.func,
+		/**
+		 * Sets the gas fee
+		 */
+		handleSetGasFee: PropTypes.func
 	};
 
 	state = {
@@ -345,8 +397,8 @@ class CustomGas extends PureComponent {
 				style={[
 					styles.selector,
 					selected ? styles.selectorSelected : styles.selectorNotSelected,
-					name === 'slow' && styles.selectorTop,
-					name === 'fast' && styles.selectorBottom
+					name === 'slow' && styles.selectorLeft,
+					name === 'fast' && styles.selectorRight
 				]}
 			>
 				<View style={styles.gasSelectorContainer}>
@@ -437,18 +489,41 @@ class CustomGas extends PureComponent {
 	render = () => {
 		if (this.state.ready) {
 			const { advancedCustomGas } = this.state;
+			const { toggleCustomGasModal, handleSetGasFee } = this.props;
 			return (
 				<View style={styles.root}>
-					<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
-					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
-					<View style={styles.advancedOptions}>
-						<TouchableOpacity onPress={this.onAdvancedOptions}>
-							<Text style={styles.textAdvancedOptions}>
-								{advancedCustomGas
-									? strings('custom_gas.hide_advanced_options')
-									: strings('custom_gas.advanced_options')}
-							</Text>
+					<View style={styles.customGasHeader}>
+						<TouchableOpacity onPress={toggleCustomGasModal}>
+							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
 						</TouchableOpacity>
+						<Text style={styles.customGasModalTitleText}>{strings('transaction.edit_network_fee')}</Text>
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+					</View>
+					<View style={styles.optionsContainer}>
+						<TouchableOpacity
+							style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
+							onPress={this.onAdvancedOptions}
+						>
+							<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
+							onPress={this.onAdvancedOptions}
+						>
+							<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
+						</TouchableOpacity>
+					</View>
+					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
+					<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
+					<View style={styles.footerContainer}>
+						<StyledButton
+							type={'confirm'}
+							containerStyle={styles.buttonNext}
+							onPress={handleSetGasFee}
+							testID={'custom-gas-save-button'}
+						>
+							{strings('custom_gas.save')}
+						</StyledButton>
 					</View>
 				</View>
 			);
