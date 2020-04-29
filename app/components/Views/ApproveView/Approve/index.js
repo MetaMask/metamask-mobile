@@ -25,6 +25,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import CustomGas from '../../SendFlow/CustomGas';
 import ActionModal from '../../../UI/ActionModal';
+import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { BNToHex, hexToBN } from 'gaba/dist/util';
@@ -457,29 +458,30 @@ class Approve extends PureComponent {
 		const { customGasModalVisible, currentCustomGasSelected, gasError } = this.state;
 		const { gas, gasPrice } = this.props.transaction;
 		return (
-			<ActionModal
-				modalVisible={customGasModalVisible}
-				confirmText={strings('transaction.set_gas')}
-				cancelText={strings('transaction.cancel_gas')}
-				confirmDisabled={!!gasError}
-				onCancelPress={this.toggleCustomGasModal}
-				onRequestClose={this.toggleCustomGasModal}
-				onConfirmPress={this.handleSetGasFee}
-				cancelButtonMode={'neutral'}
-				confirmButtonMode={'confirm'}
+			<Modal
+				isVisible={customGasModalVisible}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.toggleCustomGasModal}
+				onBackButtonPress={this.toggleCustomGasModal}
+				onSwipeComplete={this.toggleCustomGasModal}
+				swipeDirection={'down'}
+				propagateSwipe
 			>
-				<View style={baseStyles.flexGrow}>
-					<View style={styles.customGasModalTitle}>
-						<Text style={styles.customGasModalTitleText}>{strings('transaction.transaction_fee')}</Text>
-					</View>
-					<CustomGas
-						selected={currentCustomGasSelected}
-						handleGasFeeSelection={this.handleGasFeeSelection}
-						gas={gas}
-						gasPrice={gasPrice}
-					/>
-				</View>
-			</ActionModal>
+				<CustomGas
+					selected={currentCustomGasSelected}
+					handleGasFeeSelection={this.handleGasFeeSelection}
+					gas={gas}
+					gasPrice={gasPrice}
+					gasError={gasError}
+					toggleCustomGasModal={this.toggleCustomGasModal}
+					handleSetGasFee={this.handleSetGasFee}
+				/>
+			</Modal>
 		);
 	};
 
