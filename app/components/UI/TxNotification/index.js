@@ -290,7 +290,6 @@ class TxNotification extends PureComponent {
 		const { paymentChannelTransaction } = tx;
 		return (
 			<ElevatedView
-				elevation={100}
 				style={[
 					styles.modalTypeView,
 					inBrowserView ? styles.modalTypeViewBrowser : {},
