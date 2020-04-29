@@ -199,6 +199,10 @@ class CustomGas extends PureComponent {
 		 */
 		gasPrice: PropTypes.object,
 		/**
+		 * Contains the gas error, if any
+		 */
+		gasError: PropTypes.string,
+		/**
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string,
@@ -487,7 +491,7 @@ class CustomGas extends PureComponent {
 	render = () => {
 		if (this.state.ready) {
 			const { advancedCustomGas } = this.state;
-			const { toggleCustomGasModal, handleSetGasFee } = this.props;
+			const { toggleCustomGasModal, handleSetGasFee, gasError } = this.props;
 			return (
 				<View style={styles.root}>
 					<View style={styles.customGasHeader}>
@@ -515,6 +519,7 @@ class CustomGas extends PureComponent {
 					<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
 					<View style={styles.footerContainer}>
 						<StyledButton
+							disabled={!!gasError}
 							type={'confirm'}
 							containerStyle={styles.buttonNext}
 							onPress={handleSetGasFee}
