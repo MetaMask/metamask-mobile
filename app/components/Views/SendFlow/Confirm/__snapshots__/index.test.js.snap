@@ -157,9 +157,9 @@ exports[`Confirm should render correctly 1`] = `
   </View>
   <ReactNativeModal
     animationIn="slideInUp"
-    animationInTiming={300}
+    animationInTiming={600}
     animationOut="slideOutDown"
-    animationOutTiming={300}
+    animationOutTiming={600}
     avoidKeyboard={false}
     backdropColor="black"
     backdropOpacity={0.7}
@@ -231,36 +231,24 @@ exports[`Confirm should render correctly 1`] = `
           "flex": 1,
         }
       }
-    >
-      <View
-        style={
-          Object {
-            "borderBottomColor": "#d6d9dc",
-            "borderBottomWidth": 1,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "alignSelf": "center",
-              "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 18,
-              "fontWeight": "600",
-              "margin": 16,
-            }
-          }
-        >
-          Transaction fee
-        </Text>
-      </View>
-      <Connect(CustomGas)
-        handleGasFeeSelection={[Function]}
-        selected="average"
-      />
-    </View>
-  </ActionModal>
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    useNativeDriver={false}
+  >
+    <Connect(CustomGas)
+      handleGasFeeSelection={[Function]}
+      handleSetGasFee={[Function]}
+      selected="average"
+      toggleCustomGasModal={[Function]}
+    />
+  </ReactNativeModal>
   <ReactNativeModal
     animationIn="slideInUp"
     animationInTiming={300}
