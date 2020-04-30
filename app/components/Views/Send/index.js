@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
+import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
 import { toBN, BNToHex, hexToBN, fromWei, toTokenMinimalUnit, renderFromTokenMinimalUnit } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -84,7 +85,7 @@ class Send extends PureComponent {
 	};
 
 	state = {
-		mode: EDIT,
+		mode: REVIEW,
 		transactionKey: undefined,
 		ready: false,
 		transactionConfirmed: false,
@@ -95,17 +96,16 @@ class Send extends PureComponent {
 	unmountHandled = false;
 
 	/**
-	 * Resets gas and gasPrice of transaction, passing state to 'edit'
+	 * Resets gas and gasPrice of transaction
 	 */
 	async reset() {
-		const { transaction, navigation } = this.props;
+		const { transaction } = this.props;
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
 		this.props.setTransactionObject({
 			gas: hexToBN(gas),
 			gasPrice: hexToBN(gasPrice)
 		});
-		navigation && navigation.setParams({ mode: EDIT });
-		return this.mounted && this.setState({ mode: EDIT, transactionKey: Date.now() });
+		return this.mounted && this.setState({ transactionKey: Date.now() });
 	}
 
 	/**
@@ -133,7 +133,7 @@ class Send extends PureComponent {
 	 */
 	async componentDidMount() {
 		const { navigation } = this.props;
-		navigation && navigation.setParams({ mode: EDIT, dispatch: this.onModeChange });
+		navigation && navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
@@ -190,7 +190,7 @@ class Send extends PureComponent {
 		chain_id = null,
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null,
-		isDeepLinkTransaction
+		deepLinkTransaction
 	}) => {
 		if (chain_id) {
 			this.handleNetworkSwitch(chain_id);
@@ -202,7 +202,7 @@ class Send extends PureComponent {
 					symbol: 'ETH',
 					assetType: 'ETH',
 					type: 'ETHER_TRANSACTION',
-					isDeepLinkTransaction,
+					deepLinkTransaction,
 					...this.handleNewTxMetaRecipient(target_address)
 				};
 				if (parameters && parameters.value) {
@@ -251,7 +251,7 @@ class Send extends PureComponent {
 		}
 
 		this.props.setTransactionObject(newTxMeta);
-		this.mounted && this.setState({ ready: true, mode: EDIT, transactionKey: Date.now() });
+		this.mounted && this.setState({ ready: true, transactionKey: Date.now() });
 	};
 
 	/**
@@ -536,6 +536,8 @@ class Send extends PureComponent {
 		});
 	};
 
+	changeToReviewMode = () => this.onModeChange(REVIEW);
+
 	renderLoader() {
 		return (
 			<View style={styles.loader}>
@@ -544,9 +546,23 @@ class Send extends PureComponent {
 		);
 	}
 
+	renderModeComponent() {
+		if (this.state.mode === EDIT) {
+			return (
+				<EditAmount
+					transaction={this.props.transaction}
+					navigation={this.props.navigation}
+					onConfirm={this.changeToReviewMode}
+				/>
+			);
+		} else if (this.state.mode === REVIEW) {
+			return <ConfirmSend transaction={this.props.transaction} navigation={this.props.navigation} />;
+		}
+	}
+
 	render = () => (
 		<SafeAreaView style={styles.wrapper}>
-			{this.state.ready ? <ConfirmSend transaction={this.props.transaction} /> : this.renderLoader()}
+			{this.state.ready ? this.renderModeComponent() : this.renderLoader()}
 		</SafeAreaView>
 	);
 }

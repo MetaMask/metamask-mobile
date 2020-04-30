@@ -26,7 +26,7 @@ class DeeplinkManager {
 			action = 'smart-contract-interaction';
 		}
 		this.navigation.navigate('SendView', {
-			txMeta: { ...ethUrl, action, source: url, isDeepLinkTransaction: true }
+			txMeta: { ...ethUrl, action, source: url, deepLinkTransaction: true }
 		});
 	}
 

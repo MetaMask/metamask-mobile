@@ -365,7 +365,11 @@ class Amount extends PureComponent {
 		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
-		setTransactionObject: PropTypes.func
+		setTransactionObject: PropTypes.func,
+		/**
+		 * function to call when the 'Next' button is clicked
+		 */
+		onConfirm: PropTypes.func
 	};
 
 	state = {
@@ -391,7 +395,6 @@ class Amount extends PureComponent {
 			existingTransaction: { readableValue = '', paymentChannelTransaction, isDeeplinkTransaction },
 			navigation,
 			providerType
-
 		} = this.props;
 		// For analytics
 		navigation.setParams({ providerType });
@@ -418,7 +421,14 @@ class Amount extends PureComponent {
 	};
 
 	onNext = async () => {
-		const { navigation, selectedAsset, setSelectedAsset, existingTransaction, providerType } = this.props;
+		const {
+			navigation,
+			selectedAsset,
+			setSelectedAsset,
+			existingTransaction,
+			providerType,
+			onConfirm
+		} = this.props;
 		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto, hasExchangeRate } = this.state;
 		const value = internalPrimaryCurrencyIsCrypto || !hasExchangeRate ? inputValue : inputValueConversion;
 		if (!selectedAsset.tokenId && this.validateAmount(value)) return;
@@ -433,7 +443,11 @@ class Amount extends PureComponent {
 		});
 
 		setSelectedAsset(selectedAsset);
-		navigation.navigate('Confirm');
+		if (onConfirm) {
+			onConfirm();
+		} else {
+			navigation.navigate('Confirm');
+		}
 	};
 
 	updateTransaction = value => {
@@ -975,15 +989,16 @@ class Amount extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => {
-	const { transaction: existingTransaction, newTransaction } = state;
+const mapStateToProps = (state, ownProps) => {
+	const { transaction, newTransaction } = state;
+	const existingTransaction = ownProps.transaction || transaction;
 
-	const { isDeepLinkTransaction, paymentChannelTransaction, symbol } = existingTransaction;
+	const { deepLinkTransaction, paymentChannelTransaction, symbol } = existingTransaction;
 	let selectedAsset;
 
 	if (paymentChannelTransaction) {
 		selectedAsset = existingTransaction.selectedAsset;
-	} else if (isDeepLinkTransaction) {
+	} else if (deepLinkTransaction) {
 		selectedAsset = { symbol, isETH: symbol === 'ETH' };
 	} else {
 		selectedAsset = newTransaction.selectedAsset;

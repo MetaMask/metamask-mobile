@@ -16,7 +16,7 @@ const initialState = {
 	ensRecipient: undefined,
 	symbol: undefined,
 	paymentChannelTransaction: undefined,
-	isDeepLinkTransaction: undefined
+	deepLinkTransaction: undefined
 };
 
 const getAssetType = selectedAsset => {
