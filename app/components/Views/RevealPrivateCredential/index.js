@@ -8,9 +8,7 @@ import {
 	TextInput,
 	TouchableOpacity,
 	Clipboard,
-	NativeModules,
-	InteractionManager,
-	Platform
+	InteractionManager
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
@@ -26,7 +24,7 @@ import { showAlert } from '../../../actions/alert';
 import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-const PreventScreenshot = Platform.OS === 'android' ? NativeModules.PreventScreenshot : null;
+import PreventScreenshot from '../../../core/PreventScreenshot';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -182,17 +180,15 @@ class RevealPrivateCredential extends PureComponent {
 				}
 			}
 		}
-		PreventScreenshot &&
-			InteractionManager.runAfterInteractions(() => {
-				PreventScreenshot.forbid();
-			});
+		InteractionManager.runAfterInteractions(() => {
+			PreventScreenshot.forbid();
+		});
 	}
 
 	componentWillUnmount = () => {
-		PreventScreenshot &&
-			InteractionManager.runAfterInteractions(() => {
-				PreventScreenshot.allow();
-			});
+		InteractionManager.runAfterInteractions(() => {
+			PreventScreenshot.allow();
+		});
 	};
 
 	cancel = () => {

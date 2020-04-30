@@ -1,15 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-	TouchableOpacity,
-	ScrollView,
-	Text,
-	View,
-	StyleSheet,
-	InteractionManager,
-	BackHandler,
-	NativeModules,
-	Platform
-} from 'react-native';
+import { TouchableOpacity, ScrollView, Text, View, StyleSheet, InteractionManager, BackHandler } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -19,7 +9,7 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-const PreventScreenshot = Platform.OS === 'android' ? NativeModules.PreventScreenshot : null;
+import PreventScreenshot from '../../../core/PreventScreenshot';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -101,14 +91,14 @@ class ImportPrivateKeySuccess extends PureComponent {
 			Logger.error(e, 'Error while refreshing imported pkey');
 		}
 		InteractionManager.runAfterInteractions(() => {
-			PreventScreenshot && PreventScreenshot.forbid();
+			PreventScreenshot.forbid();
 			BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 		});
 	};
 
 	componentWillUnmount = () => {
 		InteractionManager.runAfterInteractions(() => {
-			PreventScreenshot && PreventScreenshot.allow();
+			PreventScreenshot.allow();
 			BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
 		});
 	};
