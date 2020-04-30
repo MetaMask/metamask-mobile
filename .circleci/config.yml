@@ -147,7 +147,7 @@ jobs:
           at: .
       - run:
           name: pre-release
-          command: METAMASK_ENVIRONMENT='prerelease' yarn build:ios:pre-release
+          command: METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
       - store_artifacts:
           path: sourcemaps/ios
           destination: sourcemaps-ios
