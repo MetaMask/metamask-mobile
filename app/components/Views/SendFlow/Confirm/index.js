@@ -25,11 +25,10 @@ import {
 	renderFiatAddition,
 	toWei
 } from '../../../../util/number';
-import { getTicker, decodeTransferData, getTransactionToName } from '../../../../util/transactions';
+import { getTicker, decodeTransferData } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
-import { prepareTransaction } from '../../../../actions/newTransaction';
-import { newTransaction } from '../../../../actions/transaction';
+import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
 import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
@@ -309,7 +308,7 @@ class Confirm extends PureComponent {
 		/**
 		 * Resets transaction state
 		 */
-		newTransaction: PropTypes.func
+		resetTransaction: PropTypes.func
 	};
 
 	state = {
@@ -342,6 +341,7 @@ class Confirm extends PureComponent {
 	};
 
 	parseTransactionData = () => {
+		console.log('this.props', this.props);
 		const {
 			accounts,
 			contractBalances,
@@ -633,7 +633,7 @@ class Confirm extends PureComponent {
 			this.sending = false;
 
 			Logger.log('Send succesful');
-			this.props.newTransaction();
+			this.props.resetTransaction();
 			navigation.navigate('PaymentChannelHome');
 		} catch (e) {
 			let msg = strings('payment_channel.unknown_error');
@@ -651,7 +651,8 @@ class Confirm extends PureComponent {
 		const {
 			transactionState: { assetType },
 			navigation,
-			providerType
+			providerType,
+			resetTransaction
 		} = this.props;
 		this.setState({ transactionConfirmed: true });
 		if (this.validateGas()) {
@@ -681,7 +682,7 @@ class Confirm extends PureComponent {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CONFIRM_SEND, {
 					network: providerType
 				});
-				newTransaction();
+				resetTransaction();
 				navigation && navigation.dismiss();
 			});
 		} catch (error) {
@@ -909,69 +910,26 @@ class Confirm extends PureComponent {
 	};
 }
 
-const mapStateToProps = (state, ownProps) => {
-	const { transaction: existingTransaction } = state;
-	const { transaction: ownPropsTransaction } = ownProps;
-
-	const identities = state.engine.backgroundState.PreferencesController.identities;
-	const network = state.engine.backgroundState.NetworkController.network;
-	let transactionState;
-
-	const { to, ensRecipient } = ownPropsTransaction || existingTransaction || {};
-
-	if (to || ensRecipient) {
-		const { data, from, gas, gasPrice, to, value, ensRecipient, selectedAsset } =
-			ownPropsTransaction || existingTransaction;
-
-		const selectedAddress = state.engine.backgroundState.PreferencesController.selectedAddress;
-		const fromAddress = from || selectedAddress;
-
-		const addressBook = state.engine.backgroundState.AddressBookController.addressBook;
-		const transactionToName =
-			addressBook &&
-			to &&
-			getTransactionToName({
-				addressBook,
-				network,
-				toAddress: to,
-				identities,
-				ensRecipient
-			});
-
-		transactionState = {
-			...ownPropsTransaction,
-			transaction: { data, from: fromAddress, gas, gasPrice, to, value },
-			transactionTo: to,
-			transactionToName,
-			transactionFromName: identities[fromAddress].name,
-			transactionValue: value,
-			selectedAsset: selectedAsset || { isETH: true, symbol: 'ETH' }
-		};
-	} else {
-		transactionState = state.newTransaction;
-	}
-
-	return {
-		accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-		contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-		contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-		currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-		conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-		network,
-		identities,
-		providerType: state.engine.backgroundState.NetworkController.provider.type,
-		showHexData: state.settings.showHexData,
-		ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-		transactionState,
-		keyrings: state.engine.backgroundState.KeyringController.keyrings,
-		isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
-		selectedAsset: existingTransaction.selectedAsset || state.newTransaction.selectedAsset
-	};
-};
+const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	network: state.engine.backgroundState.NetworkController.network,
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	showHexData: state.settings.showHexData,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	transactionState: state.transaction,
+	keyrings: state.engine.backgroundState.KeyringController.keyrings,
+	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
+	selectedAsset: state.transaction.selectedAsset
+});
 
 const mapDispatchToProps = dispatch => ({
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
-	newTransaction: () => dispatch(newTransaction())
+	resetTransaction: () => dispatch(resetTransaction())
 });
 
 export default connect(

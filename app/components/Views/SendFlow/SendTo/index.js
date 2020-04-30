@@ -14,7 +14,7 @@ import Engine from '../../../../core/Engine';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
 import StyledButton from '../../../UI/StyledButton';
-import { setSelectedAsset, setRecipient, newAssetTransaction } from '../../../../actions/newTransaction';
+import { setSelectedAsset, setRecipient, newAssetTransaction } from '../../../../actions/transaction';
 import { isENS } from '../../../../util/address';
 import { getTicker, getEther } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
@@ -550,7 +550,7 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	selectedAsset: state.transaction.paymentChannelTransaction
 		? state.transaction.selectedAsset
-		: state.newTransaction.selectedAsset,
+		: state.transaction.selectedAsset,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,

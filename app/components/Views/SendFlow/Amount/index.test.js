@@ -59,9 +59,6 @@ describe('Amount', () => {
 			settings: {
 				primaryCurrency: 'fiat'
 			},
-			newTransaction: {
-				selectedAsset: {}
-			},
 			transaction: {
 				selectedAsset: {}
 			}

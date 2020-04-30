@@ -13,8 +13,7 @@ import {
 	InteractionManager
 } from 'react-native';
 import { connect } from 'react-redux';
-import { setSelectedAsset, prepareTransaction } from '../../../../actions/newTransaction';
-import { setTransactionObject } from '../../../../actions/transaction';
+import { setSelectedAsset, prepareTransaction, setTransactionObject } from '../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -990,7 +989,7 @@ class Amount extends PureComponent {
 }
 
 const mapStateToProps = (state, ownProps) => {
-	const { transaction, newTransaction } = state;
+	const { transaction } = state;
 	const existingTransaction = ownProps.transaction || transaction;
 
 	const { deepLinkTransaction, paymentChannelTransaction, symbol } = existingTransaction;
@@ -1001,7 +1000,7 @@ const mapStateToProps = (state, ownProps) => {
 	} else if (deepLinkTransaction) {
 		selectedAsset = { symbol, isETH: symbol === 'ETH' };
 	} else {
-		selectedAsset = newTransaction.selectedAsset;
+		selectedAsset = transaction.selectedAsset;
 	}
 
 	return {
@@ -1019,7 +1018,7 @@ const mapStateToProps = (state, ownProps) => {
 		tokens: state.engine.backgroundState.AssetsController.tokens,
 		existingTransaction,
 		selectedAsset,
-		transactionState: newTransaction
+		transactionState: transaction
 	};
 };
 

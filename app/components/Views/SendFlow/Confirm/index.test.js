@@ -43,15 +43,12 @@ describe('Confirm', () => {
 			settings: {
 				showHexData: true
 			},
-			newTransaction: {
+			transaction: {
 				selectedAsset: {},
 				transaction: {
 					from: '0x1',
 					to: '0x2'
 				}
-			},
-			transaction: {
-				selectedAsset: {}
 			}
 		};
 		const wrapper = shallow(<Confirm />, {

@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import AppConstants from '../core/AppConstants';
+import { getTxData, getTxMeta } from '../util/transaction-reducer-helpers';
 
 const migrations = {
 	// Needed after https://github.com/MetaMask/gaba/pull/152
@@ -32,6 +33,22 @@ const migrations = {
 		state.engine.backgroundState.AssetsController.tokens = migratedTokens;
 
 		return state;
+	},
+	// Combine the transactions reducer and newTransaction reducer
+	2: state => {
+		const newTransaction = state.newTransaction;
+		const oldTransactions = state.transactions;
+		const txMeta = getTxMeta(oldTransactions);
+		const newState = {
+			...state,
+			transaction: {
+				...newTransaction,
+				transaction: getTxData(oldTransactions),
+				...txMeta
+			}
+		};
+		delete newState.newTransaction;
+		return newState;
 	}
 };
 
