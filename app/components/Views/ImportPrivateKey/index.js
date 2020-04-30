@@ -1,5 +1,14 @@
 import React, { PureComponent } from 'react';
-import { Alert, ActivityIndicator, TouchableOpacity, TextInput, Text, View, StyleSheet } from 'react-native';
+import {
+	Alert,
+	ActivityIndicator,
+	TouchableOpacity,
+	TextInput,
+	Text,
+	View,
+	StyleSheet,
+	InteractionManager
+} from 'react-native';
 
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -10,6 +19,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/Device';
 import { importAccountFromPrivateKey } from '../../../util/address';
+import PreventScreenshot from '../../../core/PreventScreenshot';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -129,10 +139,12 @@ export default class ImportPrivateKey extends PureComponent {
 			setTimeout(() => {
 				this.mounted && this.setState({ inputWidth: '100%' });
 			}, 100);
+		InteractionManager.runAfterInteractions(() => PreventScreenshot.forbid());
 	};
 
 	componentWillUnmount = () => {
 		this.mounted = false;
+		InteractionManager.runAfterInteractions(() => PreventScreenshot.allow());
 	};
 
 	goNext = async () => {
