@@ -61,6 +61,9 @@ describe('Amount', () => {
 			},
 			newTransaction: {
 				selectedAsset: {}
+			},
+			transaction: {
+				selectedAsset: {}
 			}
 		};
 		const wrapper = shallow(<Amount />, {

@@ -49,6 +49,9 @@ describe('Confirm', () => {
 					from: '0x1',
 					to: '0x2'
 				}
+			},
+			transaction: {
+				selectedAsset: {}
 			}
 		};
 		const wrapper = shallow(<Confirm />, {

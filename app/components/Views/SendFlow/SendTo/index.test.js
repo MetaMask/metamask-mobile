@@ -63,6 +63,9 @@ describe('SendTo', () => {
 			},
 			newTransaction: {
 				selectedAsset: {}
+			},
+			transaction: {
+				selectedAsset: {}
 			}
 		};
 		const wrapper = shallow(<SendTo />, {
