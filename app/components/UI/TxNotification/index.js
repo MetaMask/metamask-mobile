@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, InteractionManager } from 'react-native';
 import { hideTransactionNotification } from '../../../actions/transactionNotification';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
@@ -16,6 +16,7 @@ import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba';
 import ActionContent from '../ActionModal/ActionContent';
 import TransactionActionContent from '../TransactionActionModal/TransactionActionContent';
 import { renderFromWei } from '../../../util/number';
+import Engine from '../../../core/Engine';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -325,6 +326,28 @@ class TxNotification extends PureComponent {
 
 	speedupTransaction = () => {
 		this.onSpeedUpFinish();
+	};
+
+	speedUpTransaction = () => {
+		InteractionManager.runAfterInteractions(() => {
+			try {
+				Engine.context.TransactionController.speedUpTransaction(this.state.tx.id);
+			} catch (e) {
+				// ignore because transaction already went through
+			}
+			this.onSpeedUpFinish();
+		});
+	};
+
+	cancelTransaction = () => {
+		InteractionManager.runAfterInteractions(() => {
+			try {
+				Engine.context.TransactionController.stopTransaction(this.state.tx.id);
+			} catch (e) {
+				// ignore because transaction already went through
+			}
+			this.onCancelFinish();
+		});
 	};
 
 	render = () => {
