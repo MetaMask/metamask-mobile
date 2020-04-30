@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
 	},
 	detailsContainer: {
 		flex: 1,
-		width: '300%',
+		width: '200%',
 		flexDirection: 'row'
 	},
 	transactionAction: {
@@ -91,6 +91,8 @@ const styles = StyleSheet.create({
 });
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
+const ACTION_CANCEL = 'cancel';
+const ACTION_SPEEDUP = 'speedup';
 
 /**
  * Wrapper component for a global alert
@@ -183,9 +185,8 @@ class TxNotification extends PureComponent {
 	};
 
 	notificationAnimated = new Animated.Value(100);
-	detailsYAnimated = new Animated.Value(-WINDOW_WIDTH);
-	speedUpXAnimated = new Animated.Value(-WINDOW_WIDTH);
-	cancelXAnimated = new Animated.Value(-WINDOW_WIDTH);
+	detailsYAnimated = new Animated.Value(0);
+	actionXAnimated = new Animated.Value(0);
 	detailsAnimated = new Animated.Value(0);
 
 	existingGasPriceDecimal = '0x0';
@@ -301,31 +302,20 @@ class TxNotification extends PureComponent {
 	};
 
 	onSpeedUpPress = () => {
-		this.animatedTimingStart(this.detailsYAnimated, 0);
-		this.animatedTimingStart(this.speedUpXAnimated, 0);
-	};
-
-	onSpeedUpFinish = () => {
-		this.animatedTimingStart(this.detailsYAnimated, -WINDOW_WIDTH);
-		this.animatedTimingStart(this.speedUpXAnimated, -WINDOW_WIDTH);
+		this.setState({ transactionAction: ACTION_SPEEDUP });
+		this.animateActionTo(-WINDOW_WIDTH);
 	};
 
 	onCancelPress = () => {
-		this.animatedTimingStart(this.detailsYAnimated, -2 * WINDOW_WIDTH);
-		this.animatedTimingStart(this.cancelXAnimated, -2 * WINDOW_WIDTH);
+		this.setState({ transactionAction: ACTION_CANCEL });
+		this.animateActionTo(-WINDOW_WIDTH);
 	};
 
-	onCancelFinish = () => {
-		this.animatedTimingStart(this.detailsYAnimated, -WINDOW_WIDTH);
-		this.animatedTimingStart(this.cancelXAnimated, -WINDOW_WIDTH);
-	};
+	onActionFinish = () => this.animateActionTo(0);
 
-	cancelTransaction = () => {
-		this.onCancelFinish();
-	};
-
-	speedupTransaction = () => {
-		this.onSpeedUpFinish();
+	animateActionTo = position => {
+		this.animatedTimingStart(this.detailsYAnimated, position);
+		this.animatedTimingStart(this.actionXAnimated, position);
 	};
 
 	speedUpTransaction = () => {
@@ -335,7 +325,7 @@ class TxNotification extends PureComponent {
 			} catch (e) {
 				// ignore because transaction already went through
 			}
-			this.onSpeedUpFinish();
+			this.onActionFinish();
 		});
 	};
 
@@ -346,7 +336,7 @@ class TxNotification extends PureComponent {
 			} catch (e) {
 				// ignore because transaction already went through
 			}
-			this.onCancelFinish();
+			this.onActionFinish();
 		});
 	};
 
@@ -358,11 +348,13 @@ class TxNotification extends PureComponent {
 			tx,
 			transactionDetailsIsVisible,
 			internalIsVisible,
-			inBrowserView
+			inBrowserView,
+			transactionAction
 		} = this.state;
 
 		if (!internalIsVisible) return null;
 		const { paymentChannelTransaction } = tx;
+		const isActionCancel = transactionAction === ACTION_CANCEL;
 		return (
 			<ElevatedView
 				style={[
@@ -372,33 +364,6 @@ class TxNotification extends PureComponent {
 				]}
 			>
 				<View style={styles.detailsContainer}>
-					<Animated.View
-						style={[
-							styles.modalView,
-							{ opacity: this.detailsAnimated },
-							inBrowserView ? styles.modalViewInBrowserView : {},
-							{ transform: [{ translateX: this.speedUpXAnimated }] }
-						]}
-					>
-						<View style={styles.transactionAction}>
-							<ActionContent
-								onCancelPress={this.onSpeedUpFinish}
-								onConfirmPress={this.speedupTransaction}
-								confirmText={strings('transaction.lets_try')}
-								cancelText={strings('transaction.nevermind')}
-							>
-								<TransactionActionContent
-									confirmDisabled={false}
-									feeText={`${renderFromWei(
-										Math.floor(this.existingGasPriceDecimal * SPEED_UP_RATE)
-									)} ${strings('unit.eth')}`}
-									titleText={strings('transaction.cancel_tx_title')}
-									gasTitleText={strings('transaction.gas_speedup_fee')}
-									descriptionText={strings('transaction.speedup_tx_message')}
-								/>
-							</ActionContent>
-						</View>
-					</Animated.View>
 					{transactionDetailsIsVisible && !paymentChannelTransaction && (
 						<Animated.View
 							style={[
@@ -437,24 +402,26 @@ class TxNotification extends PureComponent {
 							styles.modalView,
 							{ opacity: this.detailsAnimated },
 							inBrowserView ? styles.modalViewInBrowserView : {},
-							{ transform: [{ translateX: this.cancelXAnimated }] }
+							{ transform: [{ translateX: this.actionXAnimated }] }
 						]}
 					>
 						<View style={styles.transactionAction}>
 							<ActionContent
-								onCancelPress={this.onCancelFinish}
-								onConfirmPress={this.cancelTransaction}
+								onCancelPress={this.onActionFinish}
+								onConfirmPress={isActionCancel ? this.cancelTransaction : this.speedUpTransaction}
 								confirmText={strings('transaction.lets_try')}
 								cancelText={strings('transaction.nevermind')}
 							>
 								<TransactionActionContent
 									confirmDisabled={false}
 									feeText={`${renderFromWei(
-										Math.floor(this.existingGasPriceDecimal * CANCEL_RATE)
+										Math.floor(
+											this.existingGasPriceDecimal * isActionCancel ? CANCEL_RATE : SPEED_UP_RATE
+										)
 									)} ${strings('unit.eth')}`}
-									titleText={strings('transaction.cancel_tx_title')}
-									gasTitleText={strings('transaction.gas_cancel_fee')}
-									descriptionText={strings('transaction.cancel_tx_message')}
+									titleText={strings(`transaction.${transactionAction}_tx_title`)}
+									gasTitleText={strings(`transaction.gas_${transactionAction}_fee`)}
+									descriptionText={strings(`transaction.${transactionAction}_tx_message`)}
 								/>
 							</ActionContent>
 						</View>
