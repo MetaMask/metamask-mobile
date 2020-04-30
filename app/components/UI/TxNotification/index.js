@@ -11,6 +11,11 @@ import TransactionNotification from '../TransactionNotification';
 import Device from '../../../util/Device';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
+import { strings } from '../../../../locales/i18n';
+// import { renderFromWei } from '../../../util/number';
+// import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba';
+import ActionContent from '../ActionModal/ActionContent';
+import TransactionActionContent from '../TransactionActionModal/TransactionActionContent';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -78,6 +83,9 @@ const styles = StyleSheet.create({
 		flex: 1,
 		width: '300%',
 		flexDirection: 'row'
+	},
+	transactionAction: {
+		width: '100%'
 	}
 });
 
@@ -337,18 +345,21 @@ class TxNotification extends PureComponent {
 							{ transform: [{ translateX: this.speedUpXAnimated }] }
 						]}
 					>
-						<View style={styles.modalContainer}>
-							<View style={styles.titleWrapper}>
-								<Text style={styles.title} onPress={this.onCloseDetails}>
-									{'SpeedUp'}
-								</Text>
-								<Ionicons
-									onPress={this.onSpeedUpFinish}
-									name={'ios-close'}
-									size={38}
-									style={styles.closeIcon}
+						<View style={styles.transactionAction}>
+							<ActionContent
+								onCancelPress={this.onSpeedUpFinish}
+								onConfirmPress={this.cancelTransaction}
+								confirmText={strings('transaction.lets_try')}
+								cancelText={strings('transaction.nevermind')}
+							>
+								<TransactionActionContent
+									confirmDisabled={false}
+									feeText={`gas`}
+									titleText={strings('transaction.cancel_tx_title')}
+									gasTitleText={strings('transaction.gas_speedup_fee')}
+									descriptionText={strings('transaction.speedup_tx_message')}
 								/>
-							</View>
+							</ActionContent>
 						</View>
 					</Animated.View>
 					{transactionDetailsIsVisible && !paymentChannelTransaction && (
@@ -392,18 +403,21 @@ class TxNotification extends PureComponent {
 							{ transform: [{ translateX: this.cancelXAnimated }] }
 						]}
 					>
-						<View style={styles.modalContainer}>
-							<View style={styles.titleWrapper}>
-								<Text style={styles.title} onPress={this.onCloseDetails}>
-									{'Cancel'}
-								</Text>
-								<Ionicons
-									onPress={this.onCancelFinish}
-									name={'ios-close'}
-									size={38}
-									style={styles.closeIcon}
+						<View style={styles.transactionAction}>
+							<ActionContent
+								onCancelPress={this.onCancelFinish}
+								onConfirmPress={this.cancelTransaction}
+								confirmText={strings('transaction.lets_try')}
+								cancelText={strings('transaction.nevermind')}
+							>
+								<TransactionActionContent
+									confirmDisabled={false}
+									feeText={`gas`}
+									titleText={strings('transaction.cancel_tx_title')}
+									gasTitleText={strings('transaction.gas_cancel_fee')}
+									descriptionText={strings('transaction.cancel_tx_message')}
 								/>
-							</View>
+							</ActionContent>
 						</View>
 					</Animated.View>
 				</View>
