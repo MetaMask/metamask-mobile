@@ -13,7 +13,7 @@ import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
 

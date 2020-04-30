@@ -12,7 +12,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
   <KeyboardAwareScrollViewMock
     contentContainerStyle={
       Object {
-        "flex": 1,
+        "flexGrow": 1,
       }
     }
     enableAutomaticScroll={true}

@@ -16,7 +16,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
