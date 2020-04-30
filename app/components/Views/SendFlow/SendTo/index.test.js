@@ -61,9 +61,6 @@ describe('SendTo', () => {
 			settings: {
 				primaryCurrency: 'fiat'
 			},
-			newTransaction: {
-				selectedAsset: {}
-			},
 			transaction: {
 				selectedAsset: {}
 			}

@@ -8,7 +8,7 @@ import AssetActionButtons from '../AssetActionButtons';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-import { newAssetTransaction } from '../../../actions/newTransaction';
+import { newAssetTransaction } from '../../../actions/transaction';
 
 const styles = StyleSheet.create({
 	wrapper: {

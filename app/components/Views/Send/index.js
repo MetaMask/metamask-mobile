@@ -10,14 +10,14 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { connect } from 'react-redux';
-import { newTransaction, setTransactionObject } from '../../../actions/transaction';
+import { resetTransaction, setTransactionObject } from '../../../actions/transaction';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import NetworkList, { getNetworkTypeById } from '../../../util/networks';
 import contractMap from 'eth-contract-metadata';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { getTransactionReviewActionKey, decodeTransferData } from '../../../util/transactions';
+import { getTransactionReviewActionKey, decodeTransferData, getTransactionToName } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
 import { isENS } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -53,7 +53,7 @@ class Send extends PureComponent {
 		/**
 		 * Action that cleans transaction state
 		 */
-		newTransaction: PropTypes.func.isRequired,
+		resetTransaction: PropTypes.func.isRequired,
 		/**
 		 * A string representing the network name
 		 */
@@ -81,7 +81,15 @@ class Send extends PureComponent {
 		/**
 		 * Network id
 		 */
-		network: PropTypes.string
+		network: PropTypes.string,
+		/**
+		 * List of accounts from the PreferencesController
+		 */
+		identities: PropTypes.object,
+		/**
+		 * Selected address as string
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -112,7 +120,7 @@ class Send extends PureComponent {
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
 	clear = () => {
-		this.props.newTransaction();
+		this.props.resetTransaction();
 	};
 
 	/**
@@ -192,10 +200,13 @@ class Send extends PureComponent {
 		parameters = null,
 		deepLinkTransaction
 	}) => {
+		const { addressBook, network, identities, selectedAddress } = this.props;
+
 		if (chain_id) {
 			this.handleNetworkSwitch(chain_id);
 		}
-		let newTxMeta;
+
+		let newTxMeta = {};
 		switch (action) {
 			case 'send-eth':
 				newTxMeta = {
@@ -203,10 +214,12 @@ class Send extends PureComponent {
 					assetType: 'ETH',
 					type: 'ETHER_TRANSACTION',
 					deepLinkTransaction,
+					selectedAsset: { symbol: 'ETH', isETH: true },
 					...this.handleNewTxMetaRecipient(target_address)
 				};
 				if (parameters && parameters.value) {
 					newTxMeta.value = toBN(parameters.value);
+					newTxMeta.transactionValue = newTxMeta.value;
 					newTxMeta.readableValue = fromWei(newTxMeta.value);
 				}
 				break;
@@ -242,13 +255,24 @@ class Send extends PureComponent {
 		}
 		if (!newTxMeta.gas || !newTxMeta.gasPrice) {
 			const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(this.props.transaction);
-			newTxMeta.gas = gas;
-			newTxMeta.gasPrice = gasPrice;
+			newTxMeta.gas = toBN(gas);
+			newTxMeta.gasPrice = toBN(gasPrice);
 		}
 
 		if (!newTxMeta.value) {
 			newTxMeta.value = toBN(0);
 		}
+
+		newTxMeta.transactionToName = getTransactionToName({
+			addressBook,
+			network,
+			toAddress: newTxMeta.to,
+			identities,
+			ensRecipient: newTxMeta.ensRecipient
+		});
+		newTxMeta.transactionTo = newTxMeta.to;
+		newTxMeta.from = selectedAddress;
+		newTxMeta.transactionFromName = identities[selectedAddress].name;
 
 		this.props.setTransactionObject(newTxMeta);
 		this.mounted && this.setState({ ready: true, transactionKey: Date.now() });
@@ -574,11 +598,13 @@ const mapStateToProps = state => ({
 	transaction: state.transaction,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 const mapDispatchToProps = dispatch => ({
-	newTransaction: () => dispatch(newTransaction()),
+	resetTransaction: () => dispatch(resetTransaction()),
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	showAlert: config => dispatch(showAlert(config))
 });

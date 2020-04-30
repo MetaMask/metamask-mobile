@@ -6,7 +6,7 @@ import TransactionEditor from '../../UI/TransactionEditor';
 import { BNToHex, hexToBN } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
-import { newTransaction } from '../../../actions/transaction';
+import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import Analytics from '../../../core/Analytics';
@@ -40,7 +40,7 @@ class Approval extends PureComponent {
 		/**
 		 * Action that cleans transaction state
 		 */
-		newTransaction: PropTypes.func.isRequired,
+		resetTransaction: PropTypes.func.isRequired,
 		/**
 		 * Transaction state
 		 */
@@ -137,7 +137,7 @@ class Approval extends PureComponent {
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
 	clear = () => {
-		this.props.newTransaction();
+		this.props.resetTransaction();
 	};
 
 	onCancel = () => {
@@ -265,7 +265,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	newTransaction: () => dispatch(newTransaction())
+	resetTransaction: () => dispatch(resetTransaction())
 });
 
 export default connect(

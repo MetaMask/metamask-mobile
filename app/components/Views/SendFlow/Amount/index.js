@@ -13,8 +13,7 @@ import {
 	InteractionManager
 } from 'react-native';
 import { connect } from 'react-redux';
-import { setSelectedAsset, prepareTransaction } from '../../../../actions/newTransaction';
-import { setTransactionObject } from '../../../../actions/transaction';
+import { setSelectedAsset, prepareTransaction, setTransactionObject } from '../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -359,10 +358,6 @@ class Amount extends PureComponent {
 		 */
 		providerType: PropTypes.string,
 		/**
-		 * Data associated with a transaction that is being edited by this screen
-		 */
-		existingTransaction: PropTypes.object,
-		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
 		setTransactionObject: PropTypes.func,
@@ -392,7 +387,7 @@ class Amount extends PureComponent {
 			tokens,
 			ticker,
 			selectedAsset,
-			existingTransaction: { readableValue = '', paymentChannelTransaction, isDeeplinkTransaction },
+			transactionState: { readableValue, deeplinkTransaction, paymentChannelTransaction },
 			navigation,
 			providerType
 		} = this.props;
@@ -405,7 +400,7 @@ class Amount extends PureComponent {
 		this.onInputChange(readableValue);
 		// if collectible don't do this
 
-		if (paymentChannelTransaction || isDeeplinkTransaction || !selectedAsset.tokenId) {
+		if (paymentChannelTransaction || deeplinkTransaction || !selectedAsset.tokenId) {
 			this.handleSelectedAssetBalance(
 				selectedAsset,
 				paymentChannelTransaction ? selectedAsset.assetBalance : null
@@ -425,7 +420,7 @@ class Amount extends PureComponent {
 			navigation,
 			selectedAsset,
 			setSelectedAsset,
-			existingTransaction,
+			transactionState: { transaction },
 			providerType,
 			onConfirm
 		} = this.props;
@@ -433,7 +428,7 @@ class Amount extends PureComponent {
 		const value = internalPrimaryCurrencyIsCrypto || !hasExchangeRate ? inputValue : inputValueConversion;
 		if (!selectedAsset.tokenId && this.validateAmount(value)) return;
 
-		if (existingTransaction.value !== undefined) {
+		if (transaction.value !== undefined) {
 			this.updateTransaction(value);
 		} else {
 			await this.prepareTransaction(value);
@@ -451,10 +446,14 @@ class Amount extends PureComponent {
 	};
 
 	updateTransaction = value => {
-		const { selectedAsset, existingTransaction, setTransactionObject, selectedAddress } = this.props;
-
+		const {
+			selectedAsset,
+			transactionState: { transaction },
+			setTransactionObject,
+			selectedAddress
+		} = this.props;
 		setTransactionObject({
-			...existingTransaction,
+			...transaction,
 			value: BNToHex(toWei(value)),
 			selectedAsset,
 			from: selectedAddress
@@ -465,7 +464,8 @@ class Amount extends PureComponent {
 		const {
 			prepareTransaction,
 			selectedAsset,
-			transactionState: { transaction, transactionTo }
+			transactionState: { transaction, transactionTo, paymentChannelTransaction },
+			setTransactionObject
 		} = this.props;
 
 		if (selectedAsset.isETH) {
@@ -503,7 +503,15 @@ class Amount extends PureComponent {
 			transaction.to = selectedAsset.address;
 			transaction.value = '0x0';
 		}
-		prepareTransaction(transaction);
+
+		if (paymentChannelTransaction) {
+			setTransactionObject({
+				...transaction,
+				readableValue: value
+			});
+		} else {
+			prepareTransaction(transaction);
+		}
 	};
 
 	/**
@@ -519,7 +527,7 @@ class Amount extends PureComponent {
 			selectedAddress,
 			contractBalances,
 			selectedAsset,
-			existingTransaction: { paymentChannelTransaction }
+			transactionState: { paymentChannelTransaction }
 		} = this.props;
 		const { estimatedTotalGas } = this.state;
 		let weiBalance, weiInput, amountError;
@@ -578,7 +586,7 @@ class Amount extends PureComponent {
 			selectedAsset,
 			conversionRate,
 			contractExchangeRates,
-			existingTransaction: { paymentChannelTransaction }
+			transactionState: { paymentChannelTransaction }
 		} = this.props;
 		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
 		let input;
@@ -921,7 +929,7 @@ class Amount extends PureComponent {
 		const { estimatedTotalGas } = this.state;
 		const {
 			selectedAsset,
-			existingTransaction: { paymentChannelTransaction, isDeeplinkTransaction }
+			transactionState: { paymentChannelTransaction, isDeeplinkTransaction }
 		} = this.props;
 
 		return (
@@ -989,39 +997,22 @@ class Amount extends PureComponent {
 	};
 }
 
-const mapStateToProps = (state, ownProps) => {
-	const { transaction, newTransaction } = state;
-	const existingTransaction = ownProps.transaction || transaction;
-
-	const { deepLinkTransaction, paymentChannelTransaction, symbol } = existingTransaction;
-	let selectedAsset;
-
-	if (paymentChannelTransaction) {
-		selectedAsset = existingTransaction.selectedAsset;
-	} else if (deepLinkTransaction) {
-		selectedAsset = { symbol, isETH: symbol === 'ETH' };
-	} else {
-		selectedAsset = newTransaction.selectedAsset;
-	}
-
-	return {
-		accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-		contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-		contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-		collectibles: state.engine.backgroundState.AssetsController.collectibles,
-		collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
-		currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-		conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-		providerType: state.engine.backgroundState.NetworkController.provider.type,
-		primaryCurrency: state.settings.primaryCurrency,
-		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-		ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-		tokens: state.engine.backgroundState.AssetsController.tokens,
-		existingTransaction,
-		selectedAsset,
-		transactionState: newTransaction
-	};
-};
+const mapStateToProps = (state, ownProps) => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	primaryCurrency: state.settings.primaryCurrency,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
+	transactionState: ownProps.transaction || state.transaction,
+	selectedAsset: state.transaction.selectedAsset
+});
 
 const mapDispatchToProps = dispatch => ({
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),

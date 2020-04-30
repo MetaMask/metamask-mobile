@@ -6,7 +6,7 @@ import TransactionEditor from '../../../UI/TransactionEditor';
 import { strings } from '../../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
-import { newTransaction } from '../../../../actions/transaction';
+import { resetTransaction } from '../../../../actions/transaction';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import Logger from '../../../../util/Logger';
 import { fromTokenMinimalUnit } from '../../../../util/number';
@@ -40,7 +40,7 @@ class PaymentChannelSend extends PureComponent {
 		/**
 		 * Action that cleans transaction state
 		 */
-		newTransaction: PropTypes.func.isRequired,
+		resetTransaction: PropTypes.func.isRequired,
 		/**
 		 * Transaction state
 		 */
@@ -72,7 +72,7 @@ class PaymentChannelSend extends PureComponent {
 	 * Cancels transaction and sets mounted to false
 	 */
 	async componentWillUnmount() {
-		this.props.newTransaction();
+		this.props.resetTransaction();
 	}
 
 	onCancel = () => {
@@ -154,7 +154,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	newTransaction: () => dispatch(newTransaction())
+	resetTransaction: () => dispatch(resetTransaction())
 });
 
 export default connect(
