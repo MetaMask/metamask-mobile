@@ -11,7 +11,7 @@ import { renderFromWei } from '../../../util/number';
 import Identicon from '../Identicon';
 import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
