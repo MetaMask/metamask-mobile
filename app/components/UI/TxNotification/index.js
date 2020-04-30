@@ -12,10 +12,10 @@ import Device from '../../../util/Device';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
-// import { renderFromWei } from '../../../util/number';
-// import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba';
+import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba';
 import ActionContent from '../ActionModal/ActionContent';
 import TransactionActionContent from '../TransactionActionModal/TransactionActionContent';
+import { renderFromWei } from '../../../util/number';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -187,6 +187,8 @@ class TxNotification extends PureComponent {
 	cancelXAnimated = new Animated.Value(-WINDOW_WIDTH);
 	detailsAnimated = new Animated.Value(0);
 
+	existingGasPriceDecimal = '0x0';
+
 	animatedTimingStart = (animatedRef, toValue) => {
 		Animated.timing(animatedRef, {
 			toValue,
@@ -232,6 +234,8 @@ class TxNotification extends PureComponent {
 			// 	: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
 			const tx = this.props.transactions[0];
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
+			const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+			this.existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
 			// eslint-disable-next-line react/no-did-update-set-state
 			await this.setState({
 				tx,
@@ -315,6 +319,14 @@ class TxNotification extends PureComponent {
 		this.animatedTimingStart(this.cancelXAnimated, -WINDOW_WIDTH);
 	};
 
+	cancelTransaction = () => {
+		this.onCancelFinish();
+	};
+
+	speedupTransaction = () => {
+		this.onSpeedUpFinish();
+	};
+
 	render = () => {
 		const { navigation, status } = this.props;
 		const {
@@ -348,13 +360,15 @@ class TxNotification extends PureComponent {
 						<View style={styles.transactionAction}>
 							<ActionContent
 								onCancelPress={this.onSpeedUpFinish}
-								onConfirmPress={this.cancelTransaction}
+								onConfirmPress={this.speedupTransaction}
 								confirmText={strings('transaction.lets_try')}
 								cancelText={strings('transaction.nevermind')}
 							>
 								<TransactionActionContent
 									confirmDisabled={false}
-									feeText={`gas`}
+									feeText={`${renderFromWei(
+										Math.floor(this.existingGasPriceDecimal * SPEED_UP_RATE)
+									)} ${strings('unit.eth')}`}
 									titleText={strings('transaction.cancel_tx_title')}
 									gasTitleText={strings('transaction.gas_speedup_fee')}
 									descriptionText={strings('transaction.speedup_tx_message')}
@@ -412,7 +426,9 @@ class TxNotification extends PureComponent {
 							>
 								<TransactionActionContent
 									confirmDisabled={false}
-									feeText={`gas`}
+									feeText={`${renderFromWei(
+										Math.floor(this.existingGasPriceDecimal * CANCEL_RATE)
+									)} ${strings('unit.eth')}`}
 									titleText={strings('transaction.cancel_tx_title')}
 									gasTitleText={strings('transaction.gas_cancel_fee')}
 									descriptionText={strings('transaction.cancel_tx_message')}
