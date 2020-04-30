@@ -21,7 +21,7 @@ import Device from '../../../../util/Device';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		minHeight: '50%',
+		minHeight: 200,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		paddingTop: 24,
@@ -61,6 +61,13 @@ const styles = StyleSheet.create({
 		fontSize: 10,
 		textTransform: 'uppercase'
 	},
+	advancedOptionsText: {
+		flex: 1,
+		textAlign: 'left',
+		...fontStyles.light,
+		color: colors.black,
+		fontSize: 16
+	},
 	textTime: {
 		...fontStyles.bold,
 		color: colors.black,
@@ -81,11 +88,17 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		alignSelf: 'center'
 	},
+	totalGasWrapper: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'flex-start',
+		paddingVertical: 8,
+		paddingRight: 20
+	},
 	textTotalGas: {
 		...fontStyles.bold,
 		color: colors.black,
-		marginBottom: 8,
-		marginTop: 4
+		fontSize: 14
 	},
 	textOptions: {
 		...fontStyles.normal,
@@ -93,25 +106,44 @@ const styles = StyleSheet.create({
 		color: colors.black
 	},
 	gasInput: {
+		flex: 1,
 		...fontStyles.bold,
 		backgroundColor: colors.white,
 		borderColor: colors.grey100,
-		borderRadius: 4,
+		borderRadius: 8,
 		borderWidth: 1,
-		fontSize: 16,
+		fontSize: 14,
 		paddingHorizontal: 10,
 		paddingVertical: 8,
-		position: 'relative',
-		marginTop: 4
+		position: 'relative'
+	},
+	warningWrapper: {
+		marginBottom: 20,
+		height: 50,
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	warningTextWrapper: {
+		width: '100%',
+		paddingHorizontal: 10,
+		paddingVertical: 8,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
+		borderRadius: 8,
+		borderWidth: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 	warningText: {
 		color: colors.red,
-		marginVertical: 4,
+		fontSize: 12,
 		...fontStyles.normal
+	},
+	invisible: {
+		opacity: 0
 	},
 	loader: {
 		backgroundColor: colors.white,
-		flex: 1,
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
@@ -124,7 +156,15 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	advancedOptionsContainer: {
-		marginTop: 16
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	valueRow: {
+		width: '100%',
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: 20
 	},
 	optionsContainer: {
 		flexDirection: 'row',
@@ -154,7 +194,8 @@ const styles = StyleSheet.create({
 	message: {
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 12
+		fontSize: 12,
+		paddingBottom: 20
 	},
 	gasSelectorContainer: {
 		display: 'flex',
@@ -163,7 +204,6 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-start'
 	},
 	footerContainer: {
-		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'flex-end'
 	},
@@ -452,38 +492,55 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasInput = () => {
-		const {
-			customGasLimit,
-			customGasPrice,
-			warningGasLimit,
-			warningGasPrice,
-			customGasLimitBN,
-			customGasPriceBN
-		} = this.state;
+		const { customGasLimit, customGasPrice, customGasLimitBN, customGasPriceBN } = this.state;
 		const ticker = getTicker(this.props.ticker);
 		const totalGas = customGasLimitBN.mul(customGasPriceBN);
 		return (
 			<View style={styles.advancedOptionsContainer}>
-				<Text style={styles.text}>Total</Text>
-				<Text style={styles.textTotalGas}>
-					{renderFromWei(totalGas)} {ticker}
-				</Text>
-				<Text style={styles.text}>{strings('custom_gas.gas_limit')}</Text>
-				<TextInput
-					keyboardType="numeric"
-					style={styles.gasInput}
-					onChangeText={this.onGasLimitChange}
-					value={customGasLimit}
-				/>
-				<Text style={styles.warningText}>{warningGasLimit}</Text>
-				<Text style={styles.text}>{strings('custom_gas.gas_price')}</Text>
-				<TextInput
-					keyboardType="numeric"
-					style={styles.gasInput}
-					onChangeText={this.onGasPriceChange}
-					value={customGasPrice}
-				/>
-				<Text style={styles.warningText}>{warningGasPrice}</Text>
+				<View style={styles.valueRow}>
+					<Text style={styles.advancedOptionsText}>Total</Text>
+					<View style={styles.totalGasWrapper}>
+						<Text style={styles.textTotalGas}>
+							{renderFromWei(totalGas)} {ticker}
+						</Text>
+					</View>
+				</View>
+				<View style={styles.valueRow}>
+					<Text style={styles.advancedOptionsText}>{strings('custom_gas.gas_limit')}</Text>
+					<TextInput
+						keyboardType="numeric"
+						style={styles.gasInput}
+						onChangeText={this.onGasLimitChange}
+						value={customGasLimit}
+					/>
+				</View>
+				<View style={styles.valueRow}>
+					<Text style={styles.advancedOptionsText}>{strings('custom_gas.gas_price')}</Text>
+					<TextInput
+						keyboardType="numeric"
+						style={styles.gasInput}
+						onChangeText={this.onGasPriceChange}
+						value={customGasPrice}
+					/>
+				</View>
+			</View>
+		);
+	};
+
+	renderGasError = () => {
+		const { warningGasLimit, warningGasPrice } = this.state;
+		const { gasError } = this.props;
+		let gasErrorMessage;
+		if ((warningGasLimit && warningGasPrice) || warningGasPrice) {
+			gasErrorMessage = warningGasPrice;
+		} else if (warningGasLimit) {
+			gasErrorMessage = warningGasLimit;
+		}
+		return (
+			<View style={styles.warningWrapper}>
+				<View style={[styles.warningTextWrapper, !gasError ? styles.invisible : null]}>
+					<Text style={styles.warningText}>{gasErrorMessage}</Text>
+				</View>
 			</View>
 		);
 	};
@@ -516,7 +573,10 @@ class CustomGas extends PureComponent {
 						</TouchableOpacity>
 					</View>
 					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
-					<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
+					{!advancedCustomGas ? (
+						<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
+					) : null}
+					{advancedCustomGas ? this.renderGasError() : null}
 					<View style={styles.footerContainer}>
 						<StyledButton
 							disabled={!!gasError}
