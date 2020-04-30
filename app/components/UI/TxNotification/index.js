@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { hideTransactionNotification } from '../../../actions/transactionNotification';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
@@ -73,8 +73,15 @@ const styles = StyleSheet.create({
 	notificationWrapper: {
 		height: 70,
 		width: '100%'
+	},
+	detailsContainer: {
+		flex: 1,
+		width: '300%',
+		flexDirection: 'row'
 	}
 });
+
+const WINDOW_WIDTH = Dimensions.get('window').width;
 
 /**
  * Wrapper component for a global alert
@@ -167,6 +174,9 @@ class TxNotification extends PureComponent {
 	};
 
 	notificationAnimated = new Animated.Value(100);
+	detailsYAnimated = new Animated.Value(-WINDOW_WIDTH);
+	speedUpXAnimated = new Animated.Value(-WINDOW_WIDTH);
+	cancelXAnimated = new Animated.Value(-WINDOW_WIDTH);
 	detailsAnimated = new Animated.Value(0);
 
 	animatedTimingStart = (animatedRef, toValue) => {
@@ -206,11 +216,13 @@ class TxNotification extends PureComponent {
 				setTimeout(() => {
 					this.props.hideTransactionNotification();
 				}, this.props.autodismiss);
+			// <<<<<<<<<<<<   FIX THIS   >>>>>>>>>>>>>>>>
 			// Find new transaction and parse its data
-			const { paymentChannelTransaction } = this.props.transaction;
-			const tx = paymentChannelTransaction
-				? { paymentChannelTransaction, transaction: {} }
-				: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
+			// const { paymentChannelTransaction } = this.props.transaction;
+			// const tx = paymentChannelTransaction
+			// 	? { paymentChannelTransaction, transaction: {} }
+			// 	: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
+			const tx = this.props.transactions[0];
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
 			// eslint-disable-next-line react/no-did-update-set-state
 			await this.setState({
@@ -275,6 +287,26 @@ class TxNotification extends PureComponent {
 		}
 	};
 
+	onSpeedUpPress = () => {
+		this.animatedTimingStart(this.detailsYAnimated, 0);
+		this.animatedTimingStart(this.speedUpXAnimated, 0);
+	};
+
+	onSpeedUpFinish = () => {
+		this.animatedTimingStart(this.detailsYAnimated, -WINDOW_WIDTH);
+		this.animatedTimingStart(this.speedUpXAnimated, -WINDOW_WIDTH);
+	};
+
+	onCancelPress = () => {
+		this.animatedTimingStart(this.detailsYAnimated, -2 * WINDOW_WIDTH);
+		this.animatedTimingStart(this.cancelXAnimated, -2 * WINDOW_WIDTH);
+	};
+
+	onCancelFinish = () => {
+		this.animatedTimingStart(this.detailsYAnimated, -WINDOW_WIDTH);
+		this.animatedTimingStart(this.cancelXAnimated, -WINDOW_WIDTH);
+	};
+
 	render = () => {
 		const { navigation, status } = this.props;
 		const {
@@ -296,35 +328,85 @@ class TxNotification extends PureComponent {
 					transactionDetailsIsVisible && !paymentChannelTransaction ? styles.modalTypeViewDetailsVisible : {}
 				]}
 			>
-				{transactionDetailsIsVisible && !paymentChannelTransaction && (
+				<View style={styles.detailsContainer}>
 					<Animated.View
 						style={[
 							styles.modalView,
 							{ opacity: this.detailsAnimated },
-							inBrowserView ? styles.modalViewInBrowserView : {}
+							inBrowserView ? styles.modalViewInBrowserView : {},
+							{ transform: [{ translateX: this.speedUpXAnimated }] }
 						]}
 					>
 						<View style={styles.modalContainer}>
 							<View style={styles.titleWrapper}>
 								<Text style={styles.title} onPress={this.onCloseDetails}>
-									{transactionElement.actionKey}
+									{'SpeedUp'}
 								</Text>
 								<Ionicons
-									onPress={this.onCloseDetails}
+									onPress={this.onSpeedUpFinish}
 									name={'ios-close'}
 									size={38}
 									style={styles.closeIcon}
 								/>
 							</View>
-							<TransactionDetails
-								transactionObject={tx}
-								transactionDetails={transactionDetails}
-								navigation={navigation}
-								close={this.onClose}
-							/>
 						</View>
 					</Animated.View>
-				)}
+					{transactionDetailsIsVisible && !paymentChannelTransaction && (
+						<Animated.View
+							style={[
+								styles.modalView,
+								{ opacity: this.detailsAnimated },
+								inBrowserView ? styles.modalViewInBrowserView : {},
+								{ transform: [{ translateX: this.detailsYAnimated }] }
+							]}
+						>
+							<View style={styles.modalContainer}>
+								<View style={styles.titleWrapper}>
+									<Text style={styles.title} onPress={this.onCloseDetails}>
+										{transactionElement.actionKey}
+									</Text>
+									<Ionicons
+										onPress={this.onCloseDetails}
+										name={'ios-close'}
+										size={38}
+										style={styles.closeIcon}
+									/>
+								</View>
+								<TransactionDetails
+									transactionObject={tx}
+									transactionDetails={transactionDetails}
+									navigation={navigation}
+									close={this.onClose}
+									showSpeedUpModal={this.onSpeedUpPress}
+									showCancelModal={this.onCancelPress}
+								/>
+							</View>
+						</Animated.View>
+					)}
+
+					<Animated.View
+						style={[
+							styles.modalView,
+							{ opacity: this.detailsAnimated },
+							inBrowserView ? styles.modalViewInBrowserView : {},
+							{ transform: [{ translateX: this.cancelXAnimated }] }
+						]}
+					>
+						<View style={styles.modalContainer}>
+							<View style={styles.titleWrapper}>
+								<Text style={styles.title} onPress={this.onCloseDetails}>
+									{'Cancel'}
+								</Text>
+								<Ionicons
+									onPress={this.onCancelFinish}
+									name={'ios-close'}
+									size={38}
+									style={styles.closeIcon}
+								/>
+							</View>
+						</View>
+					</Animated.View>
+				</View>
 				<Animated.View
 					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
 				>

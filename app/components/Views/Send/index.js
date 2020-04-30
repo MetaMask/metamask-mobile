@@ -442,6 +442,10 @@ class Send extends PureComponent {
 			}
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 			this.props.navigation.pop();
+			console.log('sssss', {
+				...transactionMeta,
+				assetType: transaction.assetType
+			});
 			InteractionManager.runAfterInteractions(() => {
 				TransactionsNotificationManager.watchSubmittedTransaction({
 					...transactionMeta,

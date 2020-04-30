@@ -120,11 +120,14 @@ class TransactionDetails extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		showSpeedUpModal: PropTypes.func,
+		showCancelModal: PropTypes.func
 	};
 
 	state = {
-		rpcBlockExplorer: undefined
+		rpcBlockExplorer: undefined,
+		renderTxActions: true
 	};
 
 	componentDidMount = () => {
@@ -193,7 +196,7 @@ class TransactionDetails extends PureComponent {
 			type={'normal'}
 			containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
 			style={styles.actionStyle}
-			onPress={this.showSpeedUpModal}
+			onPress={this.props.showSpeedUpModal}
 		>
 			{strings('transaction.speedup')}
 		</StyledButton>
@@ -204,7 +207,7 @@ class TransactionDetails extends PureComponent {
 			type={'cancel'}
 			containerStyle={styles.actionContainerStyle}
 			style={styles.actionStyle}
-			onPress={this.showCancelModal}
+			onPress={this.props.showCancelModal}
 		>
 			{strings('transaction.cancel')}
 		</StyledButton>
