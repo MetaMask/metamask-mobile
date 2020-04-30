@@ -70,7 +70,7 @@ class Step6 extends PureComponent {
 	 */
 	onClose = () => {
 		const { onClose } = this.props;
-		onClose && onClose();
+		onClose && onClose(false);
 	};
 
 	/**
