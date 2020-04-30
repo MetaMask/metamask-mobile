@@ -201,28 +201,5 @@ exports[`TransactionDetails should render correctly 1`] = `
       gasEstimationReady={true}
     />
   </View>
-  <TouchableOpacity
-    activeOpacity={0.2}
-    onPress={[Function]}
-    style={
-      Object {
-        "marginVertical": 24,
-      }
-    }
-  >
-    <Text
-      style={
-        Object {
-          "color": "#037dd6",
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 16,
-          "fontWeight": "400",
-          "textAlign": "center",
-        }
-      }
-    >
-      View on Etherscan
-    </Text>
-  </TouchableOpacity>
 </View>
 `;

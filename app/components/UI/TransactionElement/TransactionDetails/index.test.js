@@ -20,7 +20,7 @@ describe('TransactionDetails', () => {
 					NetworkController: {
 						provider: {
 							rpcTarget: '',
-							type: ''
+							type: 'rpc'
 						}
 					}
 				}
