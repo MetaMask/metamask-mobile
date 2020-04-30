@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "private": true,
   "scripts": {
     "watch": "node node_modules/react-native/local-cli/cli.js start",
