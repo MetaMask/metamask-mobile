@@ -2541,7 +2541,7 @@
 					"\"$(SRCROOT)/MetaMask\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 0.2.14;
+				MARKETING_VERSION = 0.2.15;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -2615,7 +2615,7 @@
 					"\"$(SRCROOT)/MetaMask\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 0.2.14;
+				MARKETING_VERSION = 0.2.15;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
