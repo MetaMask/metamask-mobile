@@ -146,6 +146,9 @@ jobs:
       - attach_workspace:
           at: .
       - run:
+          name: Install Sentry CLI
+          command: curl -sL https://sentry.io/get-cli/ | bash
+      - run:
           name: pre-release
           command: METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
       - store_artifacts:
