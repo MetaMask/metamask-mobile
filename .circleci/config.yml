@@ -70,7 +70,7 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: 11.2.1
+      xcode: 11.3.1
     steps:
       - checkout
       - attach_workspace:
@@ -136,7 +136,7 @@ jobs:
           command: yarn build:announce
   publish-pre-release-ios:
     macos:
-      xcode: 11.2.1
+      xcode: 11.3.1
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
@@ -145,6 +145,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
+      - run:
+          name: Install Sentry CLI
+          command: curl -sL https://sentry.io/get-cli/ | bash
       - run:
           name: pre-release
           command: METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
