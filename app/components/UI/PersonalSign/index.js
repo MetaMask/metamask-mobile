@@ -7,16 +7,8 @@ import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import { strings } from '../../../../locales/i18n';
 import { util } from 'gaba';
-import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		minHeight: Device.isAndroid() ? '75%' : '70%',
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		paddingBottom: Device.isIphoneX() ? 20 : 0
-	},
 	informationCol: {
 		width: '75%',
 		alignItems: 'flex-start',
@@ -145,23 +137,21 @@ export default class PersonalSign extends PureComponent {
 				toggleExpandedMessage={this.toggleExpandedMessage}
 			/>
 		) : (
-			<View style={styles.root}>
-				<SignatureRequest
-					navigation={this.props.navigation}
-					onCancel={this.cancelSignature}
-					onConfirm={this.confirmSignature}
-					currentPageInformation={currentPageInformation}
-					showExpandedMessage={showExpandedMessage}
-					toggleExpandedMessage={this.toggleExpandedMessage}
-					shouldRenderArrow={this.state.renderArrow}
-					type="personalSign"
-				>
-					<View style={styles.informationCol}>
-						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						{this.renderMessageText()}
-					</View>
-				</SignatureRequest>
-			</View>
+			<SignatureRequest
+				navigation={this.props.navigation}
+				onCancel={this.cancelSignature}
+				onConfirm={this.confirmSignature}
+				currentPageInformation={currentPageInformation}
+				showExpandedMessage={showExpandedMessage}
+				toggleExpandedMessage={this.toggleExpandedMessage}
+				shouldRenderArrow={this.state.renderArrow}
+				type="personalSign"
+			>
+				<View style={styles.informationCol}>
+					<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
+					{this.renderMessageText()}
+				</View>
+			</SignatureRequest>
 		);
 		return rootView;
 	}
