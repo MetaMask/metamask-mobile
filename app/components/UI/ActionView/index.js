@@ -41,33 +41,28 @@ export default function ActionView({
 	showConfirmButton,
 	confirmed,
 	confirmDisabled,
-	keyboardShouldPersistTaps = 'never',
-	noScroll
+	keyboardShouldPersistTaps = 'never'
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
-			{noScroll ? (
-				<View style={baseStyles.flexGrow}>{children}</View>
-			) : (
-				<KeyboardAwareScrollView
+			<KeyboardAwareScrollView
+				style={baseStyles.flexGrow}
+				resetScrollToCoords={{ x: 0, y: 0 }}
+				keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+			>
+				<TouchableWithoutFeedback
 					style={baseStyles.flexGrow}
-					resetScrollToCoords={{ x: 0, y: 0 }}
-					keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+					// eslint-disable-next-line react/jsx-no-bind
+					onPress={() => {
+						if (keyboardShouldPersistTaps === 'handled') {
+							Keyboard.dismiss();
+						}
+						onTouchablePress && onTouchablePress();
+					}}
 				>
-					<TouchableWithoutFeedback
-						style={baseStyles.flexGrow}
-						// eslint-disable-next-line react/jsx-no-bind
-						onPress={() => {
-							if (keyboardShouldPersistTaps === 'handled') {
-								Keyboard.dismiss();
-							}
-							onTouchablePress && onTouchablePress();
-						}}
-					>
-						{children}
-					</TouchableWithoutFeedback>
-				</KeyboardAwareScrollView>
-			)}
+					{children}
+				</TouchableWithoutFeedback>
+			</KeyboardAwareScrollView>
 			<View style={styles.actionContainer}>
 				{showCancelButton && (
 					<StyledButton
@@ -104,8 +99,7 @@ ActionView.defaultProps = {
 	confirmed: false,
 	cancelTestID: '',
 	showCancelButton: true,
-	showConfirmButton: true,
-	noScroll: false
+	showConfirmButton: true
 };
 
 ActionView.propTypes = {
@@ -165,9 +159,5 @@ ActionView.propTypes = {
 	/**
 	 * Determines if the keyboard should stay visible after a tap
 	 */
-	keyboardShouldPersistTaps: PropTypes.string,
-	/**
-	 * Whether a personal, message or typed sign is taking place
-	 */
-	noScroll: PropTypes.bool
+	keyboardShouldPersistTaps: PropTypes.string
 };
