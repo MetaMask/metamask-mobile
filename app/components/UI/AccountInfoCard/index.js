@@ -10,7 +10,6 @@ import { renderAccountName, renderShortAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	accountInformation: {
-		width: '90%',
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
 		borderWidth: 1,
