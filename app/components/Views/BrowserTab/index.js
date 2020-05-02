@@ -1167,11 +1167,6 @@ export class BrowserTab extends PureComponent {
 
 	addBookmark = () => {
 		this.toggleOptionsIfNeeded();
-		// Check it doesn't exist already
-		if (this.props.bookmarks.filter(i => i.url === this.state.inputValue).length) {
-			Alert.alert(strings('browser.error'), strings('browser.bookmark_already_exists'));
-			return false;
-		}
 		this.checkForPageMeta(() =>
 			this.props.navigation.push('AddBookmarkView', {
 				title: this.state.currentPageTitle || '',
@@ -1498,14 +1493,16 @@ export class BrowserTab extends PureComponent {
 						{strings('browser.reload')}
 					</Text>
 				</Button>
-				<Button onPress={this.addBookmark} style={styles.option}>
-					<View style={styles.optionIconWrapper}>
-						<Icon name="star" size={16} style={styles.optionIcon} />
-					</View>
-					<Text style={styles.optionText} numberOfLines={1}>
-						{strings('browser.add_to_favorites')}
-					</Text>
-				</Button>
+				{!this.isFavorite() && (
+					<Button onPress={this.addBookmark} style={styles.option}>
+						<View style={styles.optionIconWrapper}>
+							<Icon name="star" size={16} style={styles.optionIcon} />
+						</View>
+						<Text style={styles.optionText} numberOfLines={1}>
+							{strings('browser.add_to_favorites')}
+						</Text>
+					</Button>
+				)}
 				<Button onPress={this.share} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="share" size={15} style={styles.optionIcon} />
@@ -1863,6 +1860,12 @@ export class BrowserTab extends PureComponent {
 	isTabActive = () => {
 		const { activeTab, id } = this.props;
 		return activeTab === id;
+	};
+
+	isFavorite = () => {
+		const { bookmarks, navigation } = this.props;
+		const currentUrl = navigation.getParam('url', null);
+		return bookmarks.some(({ url }) => url === currentUrl);
 	};
 
 	isHomepage = (url = null) => {
