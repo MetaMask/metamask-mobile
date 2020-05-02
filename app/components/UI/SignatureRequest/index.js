@@ -23,6 +23,12 @@ const styles = StyleSheet.create({
 		borderTopRightRadius: 20,
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
+	expandedHeight2: {
+		minHeight: '80%'
+	},
+	expandedHeight1: {
+		minHeight: '75%'
+	},
 	signingInformation: {
 		alignItems: 'center',
 		marginBottom: 20
@@ -204,8 +210,14 @@ class SignatureRequest extends PureComponent {
 
 	render() {
 		const { showWarning, currentPageInformation, type } = this.props;
+		let expandedHeight;
+		if (Device.getDeviceHeight() < 736) {
+			expandedHeight = styles.expandedHeight2;
+		} else if (type === 'ethSign' && Device.getDeviceHeight() >= 736) {
+			expandedHeight = styles.expandedHeight1;
+		}
 		return (
-			<View style={styles.root}>
+			<View style={[styles.root, expandedHeight]}>
 				<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
 				<View style={styles.signingInformation}>
 					<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
