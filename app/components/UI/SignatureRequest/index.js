@@ -11,18 +11,21 @@ import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
 import TransactionHeader from '../TransactionHeader';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import Device from '../../../util/Device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
-	wrapper: {
+	root: {
 		backgroundColor: colors.white,
-		flex: 1,
+		minHeight: Device.isIos() ? '70%' : '80%',
 		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20
+		borderTopRightRadius: 20,
+		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	signingInformation: {
-		alignItems: 'center'
+		alignItems: 'center',
+		marginBottom: 20
 	},
 	domainLogo: {
 		width: 40,
@@ -44,31 +47,25 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	warningWrapper: {
-		width: '90%',
-		paddingTop: 20
+		width: '100%',
+		paddingHorizontal: 24,
+		paddingTop: 24
 	},
-	childrenWrapper: {
-		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		height: '100%',
-		paddingVertical: 20
+	actionViewChild: {
+		paddingHorizontal: 24
 	},
 	accountInfoCardWrapper: {
 		marginBottom: 20,
-		width: '100%',
-		alignItems: 'center'
+		width: '100%'
 	},
 	children: {
-		flex: 2,
+		alignSelf: 'center',
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
-		width: '90%',
+		width: '100%',
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
-		height: 200,
 		padding: 16
 	},
 	arrowIconWrapper: {
@@ -186,7 +183,7 @@ class SignatureRequest extends PureComponent {
 		const title = getHost(url);
 		const arrowIcon = shouldRenderArrow ? this.renderArrowIcon() : null;
 		return (
-			<View style={styles.childrenWrapper}>
+			<View style={styles.actionViewChild}>
 				<View style={styles.accountInfoCardWrapper}>
 					<AccountInfoCard />
 				</View>
@@ -208,17 +205,15 @@ class SignatureRequest extends PureComponent {
 	render() {
 		const { showWarning, currentPageInformation, type } = this.props;
 		return (
-			<View style={styles.wrapper}>
-				<View style={styles.header}>
-					<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
-					<View style={styles.signingInformation}>
-						<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
-						{showWarning ? (
-							<TouchableOpacity style={styles.warningWrapper} onPress={this.goToWarning}>
-								<WarningMessage warningMessage={this.renderWarning()} />
-							</TouchableOpacity>
-						) : null}
-					</View>
+			<View style={styles.root}>
+				<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
+				<View style={styles.signingInformation}>
+					<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
+					{showWarning ? (
+						<TouchableOpacity style={styles.warningWrapper} onPress={this.goToWarning}>
+							<WarningMessage warningMessage={this.renderWarning()} />
+						</TouchableOpacity>
+					) : null}
 				</View>
 				<ActionView
 					cancelTestID={'request-signature-cancel-button'}
@@ -228,7 +223,6 @@ class SignatureRequest extends PureComponent {
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
 					confirmButtonMode="sign"
-					noScroll
 				>
 					{this.renderActionViewChildren()}
 				</ActionView>
