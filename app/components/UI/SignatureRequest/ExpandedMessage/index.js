@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import WebsiteIcon from '../../WebsiteIcon';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -94,7 +94,9 @@ export default class ExpandedMessage extends PureComponent {
 						{strings('signature_request.message_from')} {title}
 					</Text>
 				</View>
-				<View style={styles.messageWrapper}>{renderMessage()}</View>
+				<View style={styles.messageWrapper}>
+					<ScrollView>{renderMessage()}</ScrollView>
+				</View>
 			</View>
 		);
 	}
