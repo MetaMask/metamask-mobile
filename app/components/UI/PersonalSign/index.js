@@ -22,12 +22,11 @@ const styles = StyleSheet.create({
 	messageText: {
 		fontSize: 14,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
+		textAlign: 'center'
 	},
-	expandedMessage: {
-		textAlign: 'center',
-		...fontStyles.regular,
-		fontSize: 14
+	textLeft: {
+		textAlign: 'left'
 	}
 });
 
@@ -96,13 +95,13 @@ export default class PersonalSign extends PureComponent {
 			.hexToText(messageParams.data)
 			.split('\n')
 			.map((line, i) => (
-				<Text key={`txt_${i}`} style={styles.messageText}>
+				<Text key={`txt_${i}`} style={[styles.messageText, !showExpandedMessage ? styles.textLeft : null]}>
 					{line}
 				</Text>
 			));
 		let messageText;
 		if (showExpandedMessage) {
-			messageText = <Text style={styles.expandedMessage}>{textChild}</Text>;
+			messageText = textChild;
 		} else {
 			messageText = renderArrow ? (
 				<Text numberOfLines={5} ellipsizeMode={'tail'}>
