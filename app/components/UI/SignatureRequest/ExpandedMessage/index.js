@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import WebsiteIcon from '../../WebsiteIcon';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -10,15 +10,14 @@ import { getHost } from '../../../../util/browser';
 
 const styles = StyleSheet.create({
 	expandedRoot: {
-		...baseStyles.flexGrow,
 		backgroundColor: colors.white,
-		maxHeight: '75%',
+		minHeight: Device.isIos() ? '70%' : '80%',
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
-		paddingHorizontal: 16,
-		paddingTop: 16,
-		paddingBottom: Device.isIphoneX() ? 20 : 0
+		padding: 24,
+		paddingBottom: Device.isIphoneX() ? 44 : 24
 	},
+
 	expandedMessageHeader: {
 		width: '100%',
 		flexDirection: 'row',
@@ -54,8 +53,8 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: 16
 	},
-	scrollView: {
-		flex: 1
+	messageWrapper: {
+		...baseStyles.flexGrow
 	}
 });
 
@@ -95,7 +94,7 @@ export default class ExpandedMessage extends PureComponent {
 						{strings('signature_request.message_from')} {title}
 					</Text>
 				</View>
-				<ScrollView style={styles.scrollView}>{renderMessage()}</ScrollView>
+				<View style={styles.messageWrapper}>{renderMessage()}</View>
 			</View>
 		);
 	}
