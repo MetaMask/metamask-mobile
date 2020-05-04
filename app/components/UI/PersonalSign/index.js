@@ -107,7 +107,6 @@ export default class PersonalSign extends PureComponent {
 	};
 
 	shouldRenderArrow = e => {
-		console.log(e.nativeEvent);
 		if (e.nativeEvent.lines.length > 5) {
 			this.setState({ renderArrow: true });
 			return;
