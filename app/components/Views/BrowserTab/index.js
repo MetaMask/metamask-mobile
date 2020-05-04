@@ -1493,7 +1493,7 @@ export class BrowserTab extends PureComponent {
 						{strings('browser.reload')}
 					</Text>
 				</Button>
-				{!this.isFavorite() && (
+				{!this.isBookmark() && (
 					<Button onPress={this.addBookmark} style={styles.option}>
 						<View style={styles.optionIconWrapper}>
 							<Icon name="star" size={16} style={styles.optionIcon} />
@@ -1862,7 +1862,7 @@ export class BrowserTab extends PureComponent {
 		return activeTab === id;
 	};
 
-	isFavorite = () => {
+	isBookmark = () => {
 		const { bookmarks, navigation } = this.props;
 		const currentUrl = navigation.getParam('url', null);
 		return bookmarks.some(({ url }) => url === currentUrl);
