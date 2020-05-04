@@ -33,11 +33,19 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginBottom: 20
 	},
-	domainLogo: {
+	domainLogoWrapper: {
 		width: 40,
 		height: 40,
 		marginRight: 8,
 		borderRadius: 20
+	},
+	domainLogo: {
+		width: '100%',
+		height: '100%'
+	},
+	messageColumn: {
+		width: '75%',
+		justifyContent: 'space-between'
 	},
 	warningLink: {
 		...fontStyles.normal,
@@ -51,6 +59,16 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: 20,
 		textAlign: 'center'
+	},
+	messageLabelText: {
+		...fontStyles.bold,
+		fontSize: 16,
+		marginBottom: 5
+	},
+	readMore: {
+		color: colors.blue,
+		fontSize: 14,
+		...fontStyles.bold
 	},
 	warningWrapper: {
 		width: '100%',
@@ -75,13 +93,11 @@ const styles = StyleSheet.create({
 		padding: 16
 	},
 	arrowIconWrapper: {
-		alignSelf: 'center',
-		marginLeft: 'auto'
+		flexGrow: 1,
+		alignItems: 'flex-end'
 	},
 	arrowIcon: {
-		textAlign: 'right',
-		color: colors.grey200,
-		alignSelf: 'flex-end'
+		color: colors.grey200
 	}
 });
 
@@ -194,9 +210,20 @@ class SignatureRequest extends PureComponent {
 					<AccountInfoCard />
 				</View>
 				<TouchableOpacity style={styles.children} onPress={shouldRenderArrow ? toggleExpandedMessage : null}>
-					<WebsiteIcon style={styles.domainLogo} title={title} url={url} />
-					{children}
-					{arrowIcon}
+					<WebsiteIcon
+						style={styles.domainLogo}
+						viewStyle={styles.domainLogoWrapper}
+						title={title}
+						url={url}
+					/>
+					<View style={styles.messageColumn}>
+						<Text style={styles.messageLabelText}>{strings('signature_request.message')}:</Text>
+						{children}
+						{shouldRenderArrow ? (
+							<Text style={styles.readMore}>{strings('signature_request.read_more')}</Text>
+						) : null}
+					</View>
+					<View style={styles.arrowIconWrapper}>{arrowIcon}</View>
 				</TouchableOpacity>
 			</View>
 		);
