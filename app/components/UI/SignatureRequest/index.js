@@ -207,7 +207,7 @@ class SignatureRequest extends PureComponent {
 		return (
 			<View style={styles.actionViewChild}>
 				<View style={styles.accountInfoCardWrapper}>
-					<AccountInfoCard />
+					<AccountInfoCard operation="signing" />
 				</View>
 				<TouchableOpacity style={styles.children} onPress={shouldRenderArrow ? toggleExpandedMessage : null}>
 					<WebsiteIcon

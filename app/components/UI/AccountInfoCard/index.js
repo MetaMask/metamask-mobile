@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
 		marginRight: 8
 	},
 	accountInfoRow: {
-		width: '80%',
+		flexGrow: 1,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'flex-start'
@@ -35,14 +35,12 @@ const styles = StyleSheet.create({
 		maxWidth: '55%',
 		...fontStyles.bold,
 		fontSize: 16,
-		marginRight: 2,
-		textAlign: 'left'
+		marginRight: 2
 	},
 	accountAddress: {
-		maxWidth: '50%',
+		flexGrow: 1,
 		...fontStyles.bold,
-		fontSize: 16,
-		textAlign: 'right'
+		fontSize: 16
 	},
 	balanceText: {
 		...fontStyles.thin,
@@ -72,11 +70,15 @@ class AccountInfoCard extends PureComponent {
 		/**
 		 * The selected currency
 		 */
-		currentCurrency: PropTypes.string
+		currentCurrency: PropTypes.string,
+		/**
+		 * Declares the operation being performed i.e. 'signing'
+		 */
+		operation: PropTypes.string
 	};
 
 	render() {
-		const { accounts, selectedAddress, identities, conversionRate, currentCurrency } = this.props;
+		const { accounts, selectedAddress, identities, conversionRate, currentCurrency, operation } = this.props;
 		const weiBalance = hexToBN(accounts[selectedAddress].balance);
 		const balance = renderFromWei(weiBalance);
 		const accountLabel = renderAccountName(selectedAddress, identities);
@@ -94,9 +96,12 @@ class AccountInfoCard extends PureComponent {
 							({address})
 						</Text>
 					</View>
-					<Text numberOfLines={1} style={styles.balanceText}>
-						{strings('signature_request.balance_title')} {dollarBalance} ({balance} {strings('unit.eth')})
-					</Text>
+					{operation === 'signing' ? null : (
+						<Text numberOfLines={1} style={styles.balanceText}>
+							{strings('signature_request.balance_title')} {dollarBalance} ({balance}{' '}
+							{strings('unit.eth')})
+						</Text>
+					)}
 				</View>
 			</View>
 		);
