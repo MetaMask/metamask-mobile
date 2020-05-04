@@ -3,6 +3,15 @@
 ## Current Develop Branch
 
 ## v0.2.15 - May 1 2020
+- [#1529](https://github.com/MetaMask/metamask-mobile/pull/1529): sentry android production (#1529)
+- [#1528](https://github.com/MetaMask/metamask-mobile/pull/1528): Bugfix/sentry in circle ci (#1528)
+- [#1527](https://github.com/MetaMask/metamask-mobile/pull/1527): env to production (#1527)
+- [#1526](https://github.com/MetaMask/metamask-mobile/pull/1526): use release properties (#1526)
+- [#1525](https://github.com/MetaMask/metamask-mobile/pull/1525): package version bump (#1525)
+- [#1523](https://github.com/MetaMask/metamask-mobile/pull/1523): Bugfix/import private key (#1523)
+- [#1522](https://github.com/MetaMask/metamask-mobile/pull/1522): Revert "Loosen nvmrc to major version (#1516)" (#1522)
+- [#1516](https://github.com/MetaMask/metamask-mobile/pull/1516): Loosen nvmrc to major version (#1516)
+- [#1518](https://github.com/MetaMask/metamask-mobile/pull/1518): V0.2.15 (#1518)
 - [#1507](https://github.com/MetaMask/metamask-mobile/pull/1507): Bugfix/import account view (#1507)
 - [#1453](https://github.com/MetaMask/metamask-mobile/pull/1453): Feature: analytics v2 (#1453)
 - [#1481](https://github.com/MetaMask/metamask-mobile/pull/1481): bugfix/search-token (#1481)
