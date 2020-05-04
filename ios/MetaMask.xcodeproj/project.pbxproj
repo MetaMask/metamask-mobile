@@ -703,14 +703,22 @@
 			remoteGlobalIDString = 58B5119B1A9E6C1200147676;
 			remoteInfo = RCTText;
 		};
+<<<<<<< HEAD
 		AA9CFE7D2436841F005916AD /* PBXContainerItemProxy */ = {
+=======
+		AA2B80F9245BA7E40040F36C /* PBXContainerItemProxy */ = {
+>>>>>>> develop
 			isa = PBXContainerItemProxy;
 			containerPortal = 70988A2A19B140A89BF69948 /* RNSentry.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 134814201AA4EA6300B7C361;
 			remoteInfo = RNSentry;
 		};
+<<<<<<< HEAD
 		AA9CFE7F2436841F005916AD /* PBXContainerItemProxy */ = {
+=======
+		AA2B80FB245BA7E40040F36C /* PBXContainerItemProxy */ = {
+>>>>>>> develop
 			isa = PBXContainerItemProxy;
 			containerPortal = 70988A2A19B140A89BF69948 /* RNSentry.xcodeproj */;
 			proxyType = 2;
@@ -1499,11 +1507,19 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+<<<<<<< HEAD
 		AA9CFE792436841F005916AD /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				AA9CFE7E2436841F005916AD /* libRNSentry.a */,
 				AA9CFE802436841F005916AD /* libRNSentry-tvOS.a */,
+=======
+		AA2B80F5245BA7E40040F36C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA2B80FA245BA7E40040F36C /* libRNSentry.a */,
+				AA2B80FC245BA7E40040F36C /* libRNSentry-tvOS.a */,
+>>>>>>> develop
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1721,7 +1737,11 @@
 					ProjectRef = CBAA0A8C106D459EA02E314B /* RNSensors.xcodeproj */;
 				},
 				{
+<<<<<<< HEAD
 					ProductGroup = AA9CFE792436841F005916AD /* Products */;
+=======
+					ProductGroup = AA2B80F5245BA7E40040F36C /* Products */;
+>>>>>>> develop
 					ProjectRef = 70988A2A19B140A89BF69948 /* RNSentry.xcodeproj */;
 				},
 				{
@@ -2334,6 +2354,7 @@
 			remoteRef = 832341B41AAA6A8300B99B32 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+<<<<<<< HEAD
 		AA9CFE7E2436841F005916AD /* libRNSentry.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -2346,6 +2367,20 @@
 			fileType = archive.ar;
 			path = "libRNSentry-tvOS.a";
 			remoteRef = AA9CFE7F2436841F005916AD /* PBXContainerItemProxy */;
+=======
+		AA2B80FA245BA7E40040F36C /* libRNSentry.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNSentry.a;
+			remoteRef = AA2B80F9245BA7E40040F36C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		AA2B80FC245BA7E40040F36C /* libRNSentry-tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libRNSentry-tvOS.a";
+			remoteRef = AA2B80FB245BA7E40040F36C /* PBXContainerItemProxy */;
+>>>>>>> develop
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		ADBDB9271DFEBF0700ED6528 /* libRCTBlob.a */ = {
@@ -2424,7 +2459,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n#if [ \"${CONFIGURATION}\" == \"Debug\" ]; then\n#    export SKIP_BUNDLING=true\n#fi\n\nexport NODE_BINARY=${which node}\n../node_modules/@sentry/cli/bin/sentry-cli react-native xcode ../node_modules/react-native/scripts/react-native-xcode.sh\n";
+			shellScript = "export NODE_BINARY=$(which node)\nif [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n\n\n/usr/local/bin/sentry-cli react-native xcode \\\n  ../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		15FDD86321B76696006B7C35 /* Override xcconfig files */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2456,7 +2491,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\nif [ \"${CONFIGURATION}\" != \"Debug\" ]; then\n    ../node_modules/@sentry/cli/bin/sentry-cli upload-dsym\nfi";
+			shellScript = "if [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\nif [ \"${CONFIGURATION}\" != \"Debug\" ]; then\n    /usr/local/bin/sentry-cli upload-dsym\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
