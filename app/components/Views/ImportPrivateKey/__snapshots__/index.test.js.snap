@@ -5,7 +5,6 @@ exports[`ImportPrivateKey should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "#eaf6ff",
-      "flex": 1,
     }
   }
 >
@@ -30,7 +29,6 @@ exports[`ImportPrivateKey should render correctly 1`] = `
     style={
       Object {
         "backgroundColor": "#eaf6ff",
-        "flex": 1,
       }
     }
     testID="first-incoming-transaction-screen"
