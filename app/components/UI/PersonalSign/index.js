@@ -5,20 +5,9 @@ import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
-import { strings } from '../../../../locales/i18n';
 import { util } from 'gaba';
 
 const styles = StyleSheet.create({
-	informationCol: {
-		width: '75%',
-		alignItems: 'flex-start',
-		flexDirection: 'column'
-	},
-	messageLabelText: {
-		...fontStyles.bold,
-		marginBottom: 5,
-		fontSize: 16
-	},
 	messageText: {
 		fontSize: 14,
 		color: colors.fontPrimary,
@@ -27,6 +16,9 @@ const styles = StyleSheet.create({
 	},
 	textLeft: {
 		textAlign: 'left'
+	},
+	messageWrapper: {
+		marginBottom: 5
 	}
 });
 
@@ -115,6 +107,7 @@ export default class PersonalSign extends PureComponent {
 	};
 
 	shouldRenderArrow = e => {
+		console.log(e.nativeEvent);
 		if (e.nativeEvent.lines.length > 5) {
 			this.setState({ renderArrow: true });
 			return;
@@ -146,10 +139,7 @@ export default class PersonalSign extends PureComponent {
 				shouldRenderArrow={this.state.renderArrow}
 				type="personalSign"
 			>
-				<View style={styles.informationCol}>
-					<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-					{this.renderMessageText()}
-				</View>
+				<View style={styles.messageWrapper}>{this.renderMessageText()}</View>
 			</SignatureRequest>
 		);
 		return rootView;

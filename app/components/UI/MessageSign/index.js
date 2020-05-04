@@ -5,23 +5,15 @@ import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
-import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
-	informationCol: {
-		width: '75%',
-		alignItems: 'flex-start',
-		flexDirection: 'column'
-	},
-	messageLabelText: {
-		...fontStyles.bold,
-		marginBottom: 5,
-		fontSize: 16
-	},
 	expandedMessage: {
 		textAlign: 'center',
 		...fontStyles.regular,
 		fontSize: 14
+	},
+	messageWrapper: {
+		marginBottom: 5
 	}
 });
 
@@ -135,10 +127,7 @@ export default class MessageSign extends PureComponent {
 				type="ethSign"
 				showWarning
 			>
-				<View style={styles.informationCol}>
-					<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-					{this.renderMessageText()}
-				</View>
+				<View style={styles.messageWrapper}>{this.renderMessageText()}</View>
 			</SignatureRequest>
 		);
 		return rootView;

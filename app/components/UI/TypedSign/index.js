@@ -5,37 +5,24 @@ import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
-import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
-	informationCol: {
-		width: '75%',
-		alignItems: 'flex-start',
-		flexDirection: 'column'
-	},
 	messageText: {
 		color: colors.black,
 		...fontStyles.normal,
 		fontFamily: Device.isIos() ? 'Courier' : 'Roboto'
 	},
-	messageLabelText: {
-		flex: 1,
-		...fontStyles.bold,
-		fontSize: 16,
-		marginBottom: 5
-	},
 	message: {
 		marginLeft: 10
 	},
-	messageWrapper: {
-		flex: 4,
-		flexDirection: 'column',
-		overflow: 'hidden',
-		zIndex: 1
-	},
 	msgKey: {
 		fontWeight: 'bold'
+	},
+	messageWrapper: {
+		marginBottom: 5,
+		maxHeight: 70,
+		overflow: 'hidden'
 	}
 });
 
@@ -163,10 +150,7 @@ export default class TypedSign extends PureComponent {
 				shouldRenderArrow
 				type="typedSign"
 			>
-				<View style={styles.informationCol}>
-					<Text style={styles.messageLabelText}>{strings('signature_request.message')}:</Text>
-					<View style={styles.messageWrapper}>{this.renderTypedMessage()}</View>
-				</View>
+				<View style={styles.messageWrapper}>{this.renderTypedMessage()}</View>
 			</SignatureRequest>
 		);
 		return rootView;
