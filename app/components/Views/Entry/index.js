@@ -103,7 +103,7 @@ class Entry extends PureComponent {
 
 	handleDeeplinks = async ({ error, params }) => {
 		if (error) {
-			Logger.error('Error from Branch: ', error);
+			Logger.error(error, 'Error from Branch');
 			return;
 		}
 		if (params['+non_branch_link']) {

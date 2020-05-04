@@ -3,6 +3,7 @@ import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
 import TransactionsNotificationManager from '../core/TransactionsNotificationManager';
 import { NativeModules, View } from 'react-native';
+import mockAsyncStorage from '../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -82,13 +83,13 @@ jest.mock('../core/Engine', () => ({
 
 jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Promise.resolve('FaceId') }));
 jest.mock('react-native-share', () => 'RNShare');
-jest.mock('react-native-fabric', () => 'Fabric');
 jest.mock('react-native-branch', () => 'RNBranch');
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('react-native-device-info', () => 'DeviceInfo');
 jest.mock('react-native-search-api', () => 'SearchApi');
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
+jest.mock('@react-native-community/async-storage', () => mockAsyncStorage);
 jest.mock('react-native-camera', () => ({
 	RNCamera: View,
 	Aspect: true

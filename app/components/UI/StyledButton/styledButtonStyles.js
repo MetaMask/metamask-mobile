@@ -4,7 +4,7 @@ import { colors, fontStyles } from '../../../styles/common';
 const styles = StyleSheet.create({
 	container: {
 		padding: 15,
-		borderRadius: 4,
+		borderRadius: 100,
 		justifyContent: 'center'
 	},
 	text: {
@@ -66,9 +66,7 @@ const styles = StyleSheet.create({
 		color: colors.grey400
 	},
 	warning: {
-		backgroundColor: colors.white,
-		borderWidth: 1,
-		borderColor: colors.red
+		backgroundColor: colors.red
 	},
 	info: {
 		backgroundColor: colors.white,
@@ -76,7 +74,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.blue
 	},
 	warningText: {
-		color: colors.red
+		color: colors.white
 	},
 	neutral: {
 		backgroundColor: colors.white,

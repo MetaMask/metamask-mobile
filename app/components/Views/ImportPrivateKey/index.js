@@ -13,11 +13,10 @@ import { importAccountFromPrivateKey } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.blue000,
-		flex: 1
+		backgroundColor: colors.blue000
 	},
 	wrapper: {
-		flex: Device.isAndroid() ? 0 : 1
+		flexGrow: 1
 	},
 	content: {
 		alignItems: 'flex-start'

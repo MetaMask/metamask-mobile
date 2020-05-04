@@ -3,7 +3,7 @@ import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import AddressList from './../AddressList';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity, Text, TextInput, SafeAreaView } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, TextInput, SafeAreaView, InteractionManager } from 'react-native';
 import { AddressFrom, AddressTo } from './../AddressInputs';
 import Modal from 'react-native-modal';
 import AccountList from '../../../UI/AccountList';
@@ -21,6 +21,8 @@ import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
 import { hexToBN } from 'gaba/dist/util';
+import Analytics from '../../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -162,7 +164,11 @@ class SendFlow extends PureComponent {
 		/**
 		 * Set selected in transaction state
 		 */
-		setSelectedAsset: PropTypes.func
+		setSelectedAsset: PropTypes.func,
+		/**
+		 * Network provider type as mainnet
+		 */
+		providerType: PropTypes.string
 	};
 
 	addressToInputRef = React.createRef();
@@ -185,16 +191,20 @@ class SendFlow extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { addressBook, selectedAddress, accounts, ticker, network } = this.props;
+		const { addressBook, selectedAddress, accounts, ticker, network, navigation, providerType } = this.props;
 		const { fromAccountName } = this.state;
+		// For analytics
+		navigation.setParams({ providerType });
 		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
-		this.setState({
-			fromAccountName: ens || fromAccountName,
-			fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
-			inputWidth: { width: '100%' },
-			balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero()
-		});
+		setTimeout(() => {
+			this.setState({
+				fromAccountName: ens || fromAccountName,
+				fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
+				balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero(),
+				inputWidth: { width: '100%' }
+			});
+		}, 100);
 		if (!Object.keys(networkAddressBook).length) {
 			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
 		}
@@ -323,7 +333,7 @@ class SendFlow extends PureComponent {
 	};
 
 	onTransactionDirectionSet = async () => {
-		const { setRecipient, navigation } = this.props;
+		const { setRecipient, navigation, providerType } = this.props;
 		const {
 			fromSelectedAddress,
 			toSelectedAddress,
@@ -334,6 +344,11 @@ class SendFlow extends PureComponent {
 		const addressError = await this.validateToAddress();
 		if (addressError) return;
 		setRecipient(fromSelectedAddress, toSelectedAddress, toEnsName, toSelectedAddressName, fromAccountName);
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_RECIPIENT, {
+				network: providerType
+			});
+		});
 		navigation.navigate('Amount');
 	};
 
@@ -477,7 +492,7 @@ class SendFlow extends PureComponent {
 									</Text>
 								</TouchableOpacity>
 							)}
-							<View style={styles.footerContainer}>
+							<View style={styles.footerContainer} testID={'no-eth-message'}>
 								{balanceIsZero && (
 									<View style={styles.warningContainer}>
 										<WarningMessage warningMessage={strings('transaction.not_enough_for_gas')} />
@@ -513,7 +528,8 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({

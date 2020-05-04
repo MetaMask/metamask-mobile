@@ -8,20 +8,12 @@ import {
 	getRenderableEthGasFee,
 	getRenderableFiatGasFee,
 	apiEstimateModifiedToWEI,
-	fetchBasicGasEstimates,
-	convertApiValueToGWEI,
-	parseWaitTime
+	getBasicGasEstimates
 } from '../../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../../../../util/number';
-import Logger from '../../../../util/Logger';
 import { getTicker } from '../../../../util/transactions';
-import Ionicon from 'react-native-vector-icons/Ionicons';
-import TransactionTypes from '../../../../core/TransactionTypes';
-
-const {
-	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
-} = TransactionTypes;
+import Radio from '../../../UI/Radio';
 
 const styles = StyleSheet.create({
 	root: {
@@ -29,20 +21,15 @@ const styles = StyleSheet.create({
 	},
 	selectors: {
 		backgroundColor: colors.white,
-		flexDirection: 'row',
-		justifyContent: 'space-between'
+		flexDirection: 'column',
+		justifyContent: 'space-between',
+		marginVertical: 20
 	},
 	selector: {
-		flex: 1,
-		textAlign: 'center',
 		padding: 12,
 		borderWidth: 1,
-		borderRadius: 6,
 		borderColor: colors.grey100,
-		marginVertical: 16
-	},
-	selectorCenter: {
-		marginHorizontal: 8
+		marginTop: -1
 	},
 	advancedOptions: {
 		textAlign: 'right',
@@ -57,12 +44,12 @@ const styles = StyleSheet.create({
 	textTime: {
 		...fontStyles.bold,
 		color: colors.black,
-		marginVertical: 8,
-		fontSize: 14,
+		marginVertical: 4,
+		fontSize: 18,
 		textTransform: 'none'
 	},
 	textTitle: {
-		...fontStyles.light,
+		...fontStyles.bold,
 		color: colors.black,
 		letterSpacing: 1,
 		fontSize: 10,
@@ -104,11 +91,20 @@ const styles = StyleSheet.create({
 	},
 	selectorSelected: {
 		backgroundColor: colors.blue000,
-		borderColor: colors.blue
+		borderColor: colors.blue,
+		zIndex: 1
 	},
 	selectorNotSelected: {
-		backgroundColor: colors.white,
-		borderColor: colors.grey500
+		backgroundColor: colors.white
+	},
+	selectorTop: {
+		borderTopLeftRadius: 6,
+		borderTopRightRadius: 6
+	},
+	selectorBottom: {
+		borderBottomLeftRadius: 6,
+		borderBottomRightRadius: 6,
+		borderBottomWidth: 1
 	},
 	advancedOptionsContainer: {
 		marginTop: 16
@@ -123,6 +119,15 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.black,
 		fontSize: 14
+	},
+	gasSelectorContainer: {
+		display: 'flex',
+		flexDirection: 'row',
+		alignItems: 'flex-start'
+	},
+	radio: {
+		marginVertical: 4,
+		marginRight: 8
 	}
 });
 
@@ -291,40 +296,8 @@ class CustomGas extends PureComponent {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		let basicGasEstimates;
-		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
-		} catch (error) {
-			Logger.log('Error while trying to get gas limit estimates', error);
-			basicGasEstimates = {
-				average: AVERAGE_GAS,
-				averageWait: 2,
-				safeLow: LOW_GAS,
-				safeLowWait: 4,
-				fast: FAST_GAS,
-				fastWait: 1
-			};
-		}
-
-		// Handle api failure returning same gas prices
-		let { average, fast, safeLow } = basicGasEstimates;
-		const { averageWait, fastWait, safeLowWait } = basicGasEstimates;
-
-		if (average === fast && average === safeLow) {
-			average = AVERAGE_GAS;
-			safeLow = LOW_GAS;
-			fast = FAST_GAS;
-		}
-
-		this.setState({
-			averageGwei: convertApiValueToGWEI(average),
-			fastGwei: convertApiValueToGWEI(fast),
-			safeLowGwei: convertApiValueToGWEI(safeLow),
-			averageWait: parseWaitTime(averageWait),
-			fastWait: parseWaitTime(fastWait),
-			safeLowWait: parseWaitTime(safeLowWait),
-			ready: true
-		});
+		const basicGasEstimates = await getBasicGasEstimates();
+		this.setState({ ...basicGasEstimates, ready: true });
 	};
 
 	onGasLimitChange = value => {
@@ -372,18 +345,27 @@ class CustomGas extends PureComponent {
 				style={[
 					styles.selector,
 					selected ? styles.selectorSelected : styles.selectorNotSelected,
-					name === 'average' && styles.selectorCenter
+					name === 'slow' && styles.selectorTop,
+					name === 'fast' && styles.selectorBottom
 				]}
 			>
-				<View style={styles.selectorTitle}>
-					<Text style={styles.textTitle}>{strings(`transaction.gas_fee_${name}`)}</Text>
-					{selected && <Ionicon name={'ios-checkmark-circle-outline'} size={14} color={colors.blue} />}
+				<View style={styles.gasSelectorContainer}>
+					<View style={styles.radio}>
+						<Radio selected={selected} />
+					</View>
+					<View>
+						<View style={styles.selectorTitle}>
+							<Text style={styles.textTitle}>{strings(`transaction.gas_fee_${name}`)}</Text>
+						</View>
+						<Text style={[styles.text, styles.textTime]}>{wait}</Text>
+						<Text style={styles.text}>
+							{getRenderableEthGasFee(wei, gas)} {ticker}
+						</Text>
+						<Text style={styles.text}>
+							{getRenderableFiatGasFee(wei, conversionRate, currentCurrency, gas)}
+						</Text>
+					</View>
 				</View>
-				<Text style={[styles.text, styles.textTime]}>{wait}</Text>
-				<Text style={styles.text}>
-					{getRenderableEthGasFee(wei, gas)} {ticker}
-				</Text>
-				<Text style={styles.text}>{getRenderableFiatGasFee(wei, conversionRate, currentCurrency, gas)}</Text>
 			</TouchableOpacity>
 		);
 	};

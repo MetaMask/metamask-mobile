@@ -42,6 +42,8 @@ import CollectibleImage from '../../../UI/CollectibleImage';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import Analytics from '../../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 const {
 	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
@@ -266,7 +268,11 @@ class Confirm extends PureComponent {
 		/**
 		 * Indicates whether hex data should be shown in transaction editor
 		 */
-		showHexData: PropTypes.bool
+		showHexData: PropTypes.bool,
+		/**
+		 * Network provider type as mainnet
+		 */
+		providerType: PropTypes.string
 	};
 
 	state = {
@@ -288,6 +294,9 @@ class Confirm extends PureComponent {
 	};
 
 	componentDidMount = async () => {
+		// For analytics
+		const { navigation, providerType } = this.props;
+		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
 	};
@@ -445,6 +454,9 @@ class Confirm extends PureComponent {
 	toggleCustomGasModal = () => {
 		const { customGasModalVisible } = this.state;
 		this.setState({ customGasModalVisible: !customGasModalVisible });
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
+		});
 	};
 
 	toggleHexDataModal = () => {
@@ -548,7 +560,8 @@ class Confirm extends PureComponent {
 		const { TransactionController } = Engine.context;
 		const {
 			transactionState: { assetType },
-			navigation
+			navigation,
+			providerType
 		} = this.props;
 		this.setState({ transactionConfirmed: true });
 		if (this.validateGas()) {
@@ -575,6 +588,9 @@ class Confirm extends PureComponent {
 					assetType
 				});
 				this.checkRemoveCollectible();
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CONFIRM_SEND, {
+					network: providerType
+				});
 				navigation && navigation.dismiss();
 			});
 		} catch (error) {
@@ -733,6 +749,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	network: state.engine.backgroundState.NetworkController.network,
 	showHexData: state.settings.showHexData,
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transactionState: state.newTransaction
 });

@@ -14,7 +14,7 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/Device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
@@ -25,6 +25,12 @@ const { HOMEPAGE_URL } = AppConstants;
 const trackEvent = event => {
 	InteractionManager.runAfterInteractions(() => {
 		Analytics.trackEvent(event);
+	});
+};
+
+const trackEventWithParameters = (event, params) => {
+	InteractionManager.runAfterInteractions(() => {
+		Analytics.trackEventWithParameters(event, params);
 	});
 };
 
@@ -184,7 +190,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 		},
 		headerTintColor: colors.blue,
 		headerLeft: (
-			<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
+			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'title-back-arrow-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}
@@ -221,7 +227,7 @@ export function getEditableOptions(title, navigation) {
 		},
 		headerTintColor: colors.blue,
 		headerLeft: (
-			<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
+			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'edit-contact-back-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}
@@ -351,7 +357,14 @@ export function getApproveNavbar(title) {
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
 export function getSendFlowTitle(title, navigation) {
-	const rightAction = () => navigation.dismiss();
+	const rightAction = () => {
+		const providerType = navigation.getParam('providerType', '');
+		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
+			view: title.split('.')[1],
+			network: providerType
+		});
+		navigation.dismiss();
+	};
 	const leftAction = () => navigation.pop();
 	const canGoBack = title !== 'send.send_to';
 	return {
@@ -359,13 +372,13 @@ export function getSendFlowTitle(title, navigation) {
 		headerRight: (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{'Cancel'}</Text>
+				<Text style={styles.closeButtonText}>{strings('transaction.cancel')}</Text>
 			</TouchableOpacity>
 		),
 		headerLeft: canGoBack ? (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{'Back'}</Text>
+				<Text style={styles.closeButtonText}>{strings('transaction.back')}</Text>
 			</TouchableOpacity>
 		) : (
 			<View />
@@ -708,7 +721,7 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
 		headerTitle: <NavbarTitle title={title} translate={translate} />,
 		headerLeft: (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton} testID={'asset-back-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}

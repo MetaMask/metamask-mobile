@@ -1,5 +1,15 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, TextInput, Clipboard, Alert } from 'react-native';
+import {
+	SafeAreaView,
+	StyleSheet,
+	Text,
+	View,
+	TouchableOpacity,
+	TextInput,
+	Clipboard,
+	Alert,
+	InteractionManager
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
@@ -26,6 +36,8 @@ import { showAlert } from '../../../../actions/alert';
 import Feather from 'react-native-vector-icons/Feather';
 import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
 import Identicon from '../../../UI/Identicon';
+import Analytics from '../../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -301,7 +313,19 @@ class Approve extends PureComponent {
 		/**
 		 * List of transactions
 		 */
-		transactions: PropTypes.array
+		transactions: PropTypes.array,
+		/**
+		 * Number of tokens
+		 */
+		tokensLength: PropTypes.number,
+		/**
+		 * Number of accounts
+		 */
+		accountsLength: PropTypes.number,
+		/**
+		 * A string representing the network name
+		 */
+		providerType: PropTypes.string
 	};
 
 	state = {
@@ -363,18 +387,33 @@ class Approve extends PureComponent {
 		if (!approved) Engine.context.TransactionController.cancelTransaction(transaction.id);
 	};
 
+	trackApproveEvent = event => {
+		const { transaction, tokensLength, accountsLength, providerType } = this.props;
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(event, {
+				view: transaction.origin,
+				numberOfTokens: tokensLength,
+				numberOfAccounts: accountsLength,
+				network: providerType
+			});
+		});
+	};
+
 	onViewDetails = () => {
 		const { viewDetails } = this.state;
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
 		this.setState({ viewDetails: !viewDetails });
 	};
 
 	toggleCustomGasModal = () => {
 		const { customGasModalVisible } = this.state;
+		!customGasModalVisible && this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_FEE);
 		this.setState({ customGasModalVisible: !customGasModalVisible, gasError: undefined });
 	};
 
 	toggleEditPermissionModal = () => {
 		const { editPermissionModalVisible } = this.state;
+		!editPermissionModalVisible && this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_PERMISSION);
 		this.setState({ editPermissionModalVisible: !editPermissionModalVisible });
 	};
 
@@ -663,7 +702,6 @@ class Approve extends PureComponent {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ approved: true });
 					this.props.navigation.pop();
-					this.props.navigation.navigate('ApproveSuccessView');
 					TransactionsNotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
 						assetType: 'ETH'
@@ -677,6 +715,7 @@ class Approve extends PureComponent {
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
+			this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_APPROVE);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 			this.setState({ transactionHandled: false });
@@ -684,6 +723,7 @@ class Approve extends PureComponent {
 	};
 
 	onCancel = () => {
+		this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_CANCEL);
 		this.props.navigation.pop();
 	};
 
@@ -717,11 +757,11 @@ class Approve extends PureComponent {
 					confirmButtonMode={'confirm'}
 				>
 					<View>
-						<View style={styles.section}>
+						<View style={styles.section} testID={'approve-screen'}>
 							<View style={styles.websiteIconWrapper}>
 								<WebsiteIcon style={styles.icon} url={transaction.origin} title={host} />
 							</View>
-							<Text style={styles.title}>
+							<Text style={styles.title} testID={'allow-access'}>
 								{strings('spend_limit_edition.allow_to_access', { host, tokenSymbol })}
 							</Text>
 							<Text style={styles.explanation}>
@@ -855,7 +895,10 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: state.transaction,
-	transactions: state.engine.backgroundState.TransactionController.transactions
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
+	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({

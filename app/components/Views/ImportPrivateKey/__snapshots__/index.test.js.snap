@@ -5,14 +5,13 @@ exports[`ImportPrivateKey should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "#eaf6ff",
-      "flex": 1,
     }
   }
 >
   <KeyboardAwareScrollViewMock
     contentContainerStyle={
       Object {
-        "flex": 1,
+        "flexGrow": 1,
       }
     }
     enableAutomaticScroll={true}
@@ -30,7 +29,6 @@ exports[`ImportPrivateKey should render correctly 1`] = `
     style={
       Object {
         "backgroundColor": "#eaf6ff",
-        "flex": 1,
       }
     }
     testID="first-incoming-transaction-screen"

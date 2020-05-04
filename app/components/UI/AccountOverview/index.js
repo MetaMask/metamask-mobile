@@ -1,6 +1,15 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Clipboard, ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import {
+	Clipboard,
+	ScrollView,
+	TextInput,
+	StyleSheet,
+	Text,
+	View,
+	TouchableOpacity,
+	InteractionManager
+} from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import Identicon from '../Identicon';
 import Engine from '../../../core/Engine';
@@ -13,6 +22,8 @@ import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import { toggleAccountsModal } from '../../../actions/modals';
 import EthereumAddress from '../EthereumAddress';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	scrollView: {
@@ -185,6 +196,9 @@ class AccountOverview extends PureComponent {
 			autodismiss: 1500,
 			content: 'clipboard-alert',
 			data: { msg: strings('account_details.account_copied_to_clipboard') }
+		});
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_COPIED_ADDRESS);
 		});
 	};
 

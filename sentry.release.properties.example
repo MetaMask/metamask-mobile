@@ -1,0 +1,5 @@
+defaults.url=https://sentry.io/
+defaults.org=metamask
+defaults.project=metamask-mobile
+auth.token=
+cli.executable=node_modules/@sentry/cli/bin/sentry-cli
