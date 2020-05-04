@@ -538,16 +538,17 @@ class Main extends PureComponent {
 		let hasSAI = false;
 		Object.keys(this.props.allTokens).forEach(account => {
 			const tokens = this.props.allTokens[account].mainnet;
-			tokens.forEach(token => {
-				if (token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
-					if (this.props.contractBalances[AppConstants.SAI_ADDRESS]) {
-						const balance = this.props.contractBalances[AppConstants.SAI_ADDRESS];
-						if (!balance.isZero()) {
-							hasSAI = true;
+			tokens &&
+				tokens.forEach(token => {
+					if (token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
+						if (this.props.contractBalances[AppConstants.SAI_ADDRESS]) {
+							const balance = this.props.contractBalances[AppConstants.SAI_ADDRESS];
+							if (!balance.isZero()) {
+								hasSAI = true;
+							}
 						}
 					}
-				}
-			});
+				});
 		});
 
 		if (hasSAI) {
