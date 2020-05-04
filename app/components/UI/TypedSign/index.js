@@ -16,12 +16,16 @@ const styles = StyleSheet.create({
 	message: {
 		marginLeft: 10
 	},
+	truncatedMessageWrapper: {
+		marginBottom: 5,
+		height: 70,
+		overflow: 'hidden'
+	},
 	msgKey: {
 		fontWeight: 'bold'
 	},
 	messageWrapper: {
 		marginBottom: 5,
-		maxHeight: 70,
 		overflow: 'hidden'
 	}
 });
@@ -54,7 +58,8 @@ export default class TypedSign extends PureComponent {
 	};
 
 	state = {
-		showExpandedMessage: false
+		showExpandedMessage: false,
+		truncateMessage: false
 	};
 
 	signMessage = async () => {
@@ -86,6 +91,14 @@ export default class TypedSign extends PureComponent {
 
 	toggleExpandedMessage = () => {
 		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
+	};
+
+	shouldTruncateMessage = e => {
+		if (e.nativeEvent.layout.height > 70) {
+			this.setState({ truncateMessage: true });
+			return;
+		}
+		this.setState({ truncateMessage: false });
 	};
 
 	renderTypedMessageV3 = obj =>
@@ -129,6 +142,7 @@ export default class TypedSign extends PureComponent {
 
 	render() {
 		const { messageParams, currentPageInformation } = this.props;
+		const { truncateMessage } = this.state;
 		let domain;
 		if (messageParams.version === 'V3') {
 			domain = JSON.parse(messageParams.data).domain;
@@ -147,10 +161,15 @@ export default class TypedSign extends PureComponent {
 				toggleExpandedMessage={this.toggleExpandedMessage}
 				domain={domain}
 				currentPageInformation={currentPageInformation}
-				shouldRenderArrow
+				shouldRenderArrow={truncateMessage}
 				type="typedSign"
 			>
-				<View style={styles.messageWrapper}>{this.renderTypedMessage()}</View>
+				<View
+					style={truncateMessage ? styles.truncatedMessageWrapper : styles.messageWrapper}
+					onLayout={truncateMessage ? null : this.shouldTruncateMessage}
+				>
+					{this.renderTypedMessage()}
+				</View>
 			</SignatureRequest>
 		);
 		return rootView;
