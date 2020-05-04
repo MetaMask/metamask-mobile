@@ -17,7 +17,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
-import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -131,25 +130,6 @@ class Wallet extends PureComponent {
 			];
 			await Promise.all(actions);
 			this.setState({ refreshing: false });
-			// <<<<<<<<<<<<   FIX THIS   >>>>>>>>>>>>>>>>
-			TransactionsNotificationManager.watchSubmittedTransaction({
-				assetType: undefined,
-				id: '8f1a6040-8a62-11ea-a323-37bfa8b52661',
-				networkID: '4',
-				origin: 'MetaMask Mobile',
-				rawTransaction:
-					'0xf86b07850189640200825208948f616d5c9ca50de70b871fc0b631ed12eaf4e4ba872386f26fc10000802ca0a0eb3e2c33c176da7ee5c01c477281fd53e5e21bf6ac6e0d6836c3f49c2707cda055f8c4efa0d9c5c2673646453f4d330b291b7e137c6660f02afbb7e3a4804c84',
-				status: 'submitted',
-				time: 1588196650052,
-				transaction: {
-					from: '0x8f616d5c9ca50de70b871fc0b631ed12eaf4e4ba',
-					gas: '0x5208',
-					gasPrice: '0x189640200',
-					nonce: '0x7',
-					to: '0x8f616d5c9ca50de70b871fc0b631ed12eaf4e4ba'
-				},
-				transactionHash: '0x4285f89f40a72cadb74238843e80c916ad7f6f34c6c4ff08d3d9b0262c8ffd38'
-			});
 		});
 	};
 

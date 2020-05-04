@@ -23,7 +23,6 @@ export const colors = {
 	grey100: '#d6d9dc',
 	grey050: '#D8D8D8',
 	grey000: '#f2f3f4',
-	// FIX THIS
 	greytransparent: 'rgba(36, 41, 46, 0.6)',
 	grey: '#333333',
 	red: '#D73A49',

@@ -228,13 +228,10 @@ class TxNotification extends PureComponent {
 				setTimeout(() => {
 					this.props.hideTransactionNotification();
 				}, this.props.autodismiss);
-			// <<<<<<<<<<<<   FIX THIS   >>>>>>>>>>>>>>>>
-			// Find new transaction and parse its data
-			// const { paymentChannelTransaction } = this.props.transaction;
-			// const tx = paymentChannelTransaction
-			// 	? { paymentChannelTransaction, transaction: {} }
-			// 	: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
-			const tx = this.props.transactions[0];
+			const { paymentChannelTransaction } = this.props.transaction;
+			const tx = paymentChannelTransaction
+				? { paymentChannelTransaction, transaction: {} }
+				: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
 			const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
 			this.existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
