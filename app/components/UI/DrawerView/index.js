@@ -765,6 +765,10 @@ class DrawerView extends PureComponent {
 			],
 			[
 				{
+					name: strings('drawer.settings'),
+					action: this.showSettings
+				},
+				{
 					name: strings('drawer.help'),
 					action: this.showHelp
 				},
