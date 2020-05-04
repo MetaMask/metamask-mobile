@@ -141,7 +141,7 @@ class SignatureRequest extends PureComponent {
 		/**
 		 * Whether it should render the expand arrow icon
 		 */
-		shouldRenderArrow: PropTypes.bool,
+		truncateMessage: PropTypes.bool,
 		/**
 		 * Expands the message box on press.
 		 */
@@ -200,16 +200,16 @@ class SignatureRequest extends PureComponent {
 	);
 
 	renderActionViewChildren = () => {
-		const { children, currentPageInformation, shouldRenderArrow, toggleExpandedMessage } = this.props;
+		const { children, currentPageInformation, truncateMessage, toggleExpandedMessage } = this.props;
 		const url = currentPageInformation.url;
 		const title = getHost(url);
-		const arrowIcon = shouldRenderArrow ? this.renderArrowIcon() : null;
+		const arrowIcon = truncateMessage ? this.renderArrowIcon() : null;
 		return (
 			<View style={styles.actionViewChild}>
 				<View style={styles.accountInfoCardWrapper}>
 					<AccountInfoCard operation="signing" />
 				</View>
-				<TouchableOpacity style={styles.children} onPress={shouldRenderArrow ? toggleExpandedMessage : null}>
+				<TouchableOpacity style={styles.children} onPress={truncateMessage ? toggleExpandedMessage : null}>
 					<WebsiteIcon
 						style={styles.domainLogo}
 						viewStyle={styles.domainLogoWrapper}
@@ -219,7 +219,7 @@ class SignatureRequest extends PureComponent {
 					<View style={styles.messageColumn}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}:</Text>
 						{children}
-						{shouldRenderArrow ? (
+						{truncateMessage ? (
 							<Text style={styles.readMore}>{strings('signature_request.read_more')}</Text>
 						) : null}
 					</View>

@@ -45,7 +45,7 @@ export default class MessageSign extends PureComponent {
 	};
 
 	state = {
-		renderArrow: false,
+		truncateMessage: false,
 		showExpandedMessage: false
 	};
 
@@ -77,29 +77,29 @@ export default class MessageSign extends PureComponent {
 
 	renderMessageText = () => {
 		const { messageParams } = this.props;
-		const { renderArrow, showExpandedMessage } = this.state;
+		const { truncateMessage, showExpandedMessage } = this.state;
 
 		let messageText;
 		if (showExpandedMessage) {
 			messageText = <Text style={styles.expandedMessage}>{messageParams.data}</Text>;
 		} else {
-			messageText = renderArrow ? (
+			messageText = truncateMessage ? (
 				<Text numberOfLines={5} ellipsizeMode={'tail'}>
 					{messageParams.data}
 				</Text>
 			) : (
-				<Text onTextLayout={this.shouldRenderArrow}>{messageParams.data}</Text>
+				<Text onTextLayout={this.shouldTruncateMessage}>{messageParams.data}</Text>
 			);
 		}
 		return messageText;
 	};
 
-	shouldRenderArrow = e => {
+	shouldTruncateMessage = e => {
 		if (e.nativeEvent.lines.length > 5) {
-			this.setState({ renderArrow: true });
+			this.setState({ truncateMessage: true });
 			return;
 		}
-		this.setState({ renderArrow: false });
+		this.setState({ truncateMessage: false });
 	};
 
 	toggleExpandedMessage = () => {
@@ -121,7 +121,7 @@ export default class MessageSign extends PureComponent {
 				onCancel={this.cancelSignature}
 				onConfirm={this.confirmSignature}
 				currentPageInformation={currentPageInformation}
-				shouldRenderArrow={this.state.renderArrow}
+				truncateMessage={this.state.truncateMessage}
 				showExpandedMessage={showExpandedMessage}
 				toggleExpandedMessage={this.toggleExpandedMessage}
 				type="ethSign"

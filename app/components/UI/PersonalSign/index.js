@@ -50,7 +50,7 @@ export default class PersonalSign extends PureComponent {
 	};
 
 	state = {
-		renderArrow: false,
+		truncateMessage: false,
 		showExpandedMessage: false
 	};
 
@@ -82,7 +82,7 @@ export default class PersonalSign extends PureComponent {
 
 	renderMessageText = () => {
 		const { messageParams } = this.props;
-		const { renderArrow, showExpandedMessage } = this.state;
+		const { truncateMessage, showExpandedMessage } = this.state;
 		const textChild = util
 			.hexToText(messageParams.data)
 			.split('\n')
@@ -95,23 +95,23 @@ export default class PersonalSign extends PureComponent {
 		if (showExpandedMessage) {
 			messageText = textChild;
 		} else {
-			messageText = renderArrow ? (
+			messageText = truncateMessage ? (
 				<Text numberOfLines={5} ellipsizeMode={'tail'}>
 					{textChild}
 				</Text>
 			) : (
-				<Text onTextLayout={this.shouldRenderArrow}>{textChild}</Text>
+				<Text onTextLayout={this.shouldTruncateMessage}>{textChild}</Text>
 			);
 		}
 		return messageText;
 	};
 
-	shouldRenderArrow = e => {
+	shouldTruncateMessage = e => {
 		if (e.nativeEvent.lines.length > 5) {
-			this.setState({ renderArrow: true });
+			this.setState({ truncateMessage: true });
 			return;
 		}
-		this.setState({ renderArrow: false });
+		this.setState({ truncateMessage: false });
 	};
 
 	toggleExpandedMessage = () => {
@@ -135,7 +135,7 @@ export default class PersonalSign extends PureComponent {
 				currentPageInformation={currentPageInformation}
 				showExpandedMessage={showExpandedMessage}
 				toggleExpandedMessage={this.toggleExpandedMessage}
-				shouldRenderArrow={this.state.renderArrow}
+				truncateMessage={this.state.truncateMessage}
 				type="personalSign"
 			>
 				<View style={styles.messageWrapper}>{this.renderMessageText()}</View>

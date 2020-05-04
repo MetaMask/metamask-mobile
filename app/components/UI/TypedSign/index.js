@@ -161,7 +161,7 @@ export default class TypedSign extends PureComponent {
 				toggleExpandedMessage={this.toggleExpandedMessage}
 				domain={domain}
 				currentPageInformation={currentPageInformation}
-				shouldRenderArrow={truncateMessage}
+				truncateMessage={truncateMessage}
 				type="typedSign"
 			>
 				<View
