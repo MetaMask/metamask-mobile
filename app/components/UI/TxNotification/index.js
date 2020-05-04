@@ -360,8 +360,8 @@ class TxNotification extends PureComponent {
 					transactionDetailsIsVisible && !paymentChannelTransaction ? styles.modalTypeViewDetailsVisible : {}
 				]}
 			>
-				<View style={styles.detailsContainer}>
-					{transactionDetailsIsVisible && !paymentChannelTransaction && (
+				{transactionDetailsIsVisible && !paymentChannelTransaction && (
+					<View style={styles.detailsContainer}>
 						<Animated.View
 							style={[
 								styles.modalView,
@@ -392,38 +392,41 @@ class TxNotification extends PureComponent {
 								/>
 							</View>
 						</Animated.View>
-					)}
 
-					<Animated.View
-						style={[
-							styles.modalView,
-							{ opacity: this.detailsAnimated },
-							inBrowserView ? styles.modalViewInBrowserView : {},
-							{ transform: [{ translateX: this.actionXAnimated }] }
-						]}
-					>
-						<View style={styles.transactionAction}>
-							<ActionContent
-								onCancelPress={this.onActionFinish}
-								onConfirmPress={isActionCancel ? this.cancelTransaction : this.speedUpTransaction}
-								confirmText={strings('transaction.lets_try')}
-								cancelText={strings('transaction.nevermind')}
-							>
-								<TransactionActionContent
-									confirmDisabled={false}
-									feeText={`${renderFromWei(
-										Math.floor(
-											this.existingGasPriceDecimal * isActionCancel ? CANCEL_RATE : SPEED_UP_RATE
-										)
-									)} ${strings('unit.eth')}`}
-									titleText={strings(`transaction.${transactionAction}_tx_title`)}
-									gasTitleText={strings(`transaction.gas_${transactionAction}_fee`)}
-									descriptionText={strings(`transaction.${transactionAction}_tx_message`)}
-								/>
-							</ActionContent>
-						</View>
-					</Animated.View>
-				</View>
+						<Animated.View
+							style={[
+								styles.modalView,
+								{ opacity: this.detailsAnimated },
+								inBrowserView ? styles.modalViewInBrowserView : {},
+								{ transform: [{ translateX: this.actionXAnimated }] }
+							]}
+						>
+							<View style={styles.transactionAction}>
+								<ActionContent
+									onCancelPress={this.onActionFinish}
+									onConfirmPress={isActionCancel ? this.cancelTransaction : this.speedUpTransaction}
+									confirmText={strings('transaction.lets_try')}
+									cancelText={strings('transaction.nevermind')}
+								>
+									<TransactionActionContent
+										confirmDisabled={false}
+										feeText={`${renderFromWei(
+											Math.floor(
+												this.existingGasPriceDecimal * isActionCancel
+													? CANCEL_RATE
+													: SPEED_UP_RATE
+											)
+										)} ${strings('unit.eth')}`}
+										titleText={strings(`transaction.${transactionAction}_tx_title`)}
+										gasTitleText={strings(`transaction.gas_${transactionAction}_fee`)}
+										descriptionText={strings(`transaction.${transactionAction}_tx_message`)}
+									/>
+								</ActionContent>
+							</View>
+						</Animated.View>
+					</View>
+				)}
+
 				<Animated.View
 					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
 				>
