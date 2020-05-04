@@ -742,6 +742,7 @@
 		"message": "Message",
 		"message_from": "Message from",
 		"learn_more": "Learn More",
+		"read_more": "Read more",
 		"eth_sign_warning": "Proceed with caution. This action can potentially be used to withdraw assets from your account. Make sure you trust this site."
 	},
 	"watch_asset_request": {
