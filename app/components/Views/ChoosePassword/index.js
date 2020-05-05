@@ -197,89 +197,86 @@ class ChoosePassword extends PureComponent {
 	}
 
 	onPressCreate = async () => {
-		if (this.state.loading) return;
-		let error = null;
-		if (this.state.password.length < 8) {
-			error = strings('choose_password.password_length_error');
-		} else if (this.state.password !== this.state.confirmPassword) {
-			error = strings('choose_password.password_dont_match');
+		const { loading, password, confirmPassword } = this.state;
+		if (loading) return;
+		if (password.length < 8) {
+			Alert.alert('Error', strings('choose_password.password_length_error'));
+			return;
+		} else if (password !== confirmPassword) {
+			Alert.alert('Error', strings('choose_password.password_dont_match'));
+			return;
 		}
-		if (error) {
-			Alert.alert('Error', error);
-		} else {
-			try {
-				this.setState({ loading: true });
-				const { KeyringController, PreferencesController } = Engine.context;
-				const mnemonic = await KeyringController.exportSeedPhrase('');
-				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
-				// Preserve the selected address
-				const selectedAddress = this.props.selectedAddress;
-				// Preserve the keyring before restoring
-				const hdKeyring = KeyringController.state.keyrings[0];
-				// Preserve all the prefs
-				const prefs = PreferencesController.state;
-				const existingAccountCount = hdKeyring.accounts.length;
-				// Recreate keyring
-				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
-				for (let i = 0; i < existingAccountCount - 1; i++) {
-					await KeyringController.addNewAccount();
+		try {
+			this.setState({ loading: true });
+			const { KeyringController, PreferencesController } = Engine.context;
+			const mnemonic = await KeyringController.exportSeedPhrase('');
+			const seed = JSON.stringify(mnemonic).replace(/"/g, '');
+			// Preserve the selected address
+			const selectedAddress = this.props.selectedAddress;
+			// Preserve the keyring before restoring
+			const hdKeyring = KeyringController.state.keyrings[0];
+			// Preserve all the prefs
+			const prefs = PreferencesController.state;
+			const existingAccountCount = hdKeyring.accounts.length;
+			// Recreate keyring
+			await KeyringController.createNewVaultAndRestore(password, seed);
+			for (let i = 0; i < existingAccountCount - 1; i++) {
+				await KeyringController.addNewAccount();
+			}
+			// Set prefs again
+			await PreferencesController.update(prefs);
+
+			// Reselect previous selected account if still available
+			if (hdKeyring.accounts.includes(selectedAddress)) {
+				PreferencesController.setSelectedAddress(selectedAddress);
+			} else {
+				PreferencesController.setSelectedAddress(hdKeyring[0]);
+			}
+
+			if (this.state.biometryType && this.state.biometryChoice) {
+				const authOptions = {
+					accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+				};
+
+				await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
+
+				// If the user enables biometrics, we're trying to read the password
+				// immediately so we get the permission prompt
+				if (Device.isIos()) {
+					await SecureKeychain.getGenericPassword();
 				}
-
-				// Set prefs again
-				await PreferencesController.update(prefs);
-
-				// Reselect previous selected account if still available
-				if (hdKeyring.accounts.includes(selectedAddress)) {
-					PreferencesController.setSelectedAddress(selectedAddress);
+				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+				await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+				await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
+			} else {
+				if (this.state.rememberMe) {
+					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
+						accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
+					});
 				} else {
-					PreferencesController.setSelectedAddress(hdKeyring[0]);
+					await SecureKeychain.resetGenericPassword();
 				}
+				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+				await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+			}
 
-				if (this.state.biometryType && this.state.biometryChoice) {
-					const authOptions = {
-						accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					};
-
-					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-
-					// If the user enables biometrics, we're trying to read the password
-					// immediately so we get the permission prompt
-					if (Device.isIos()) {
-						await SecureKeychain.getGenericPassword();
-					}
-					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
-					await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
-					await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
-				} else {
-					if (this.state.rememberMe) {
-						await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
-							accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
-						});
-					} else {
-						await SecureKeychain.resetGenericPassword();
-					}
-					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-					await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
-					await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
-				}
-
-				// mark the user as existing so it doesn't see the create password screen again
-				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			// mark the user as existing so it doesn't see the create password screen again
+			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			this.setState({ loading: false });
+			this.props.passwordSet();
+			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
+			this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
+		} catch (error) {
+			// Should we force people to enable passcode / biometrics?
+			if (error.toString() === PASSCODE_NOT_SET_ERROR) {
+				Alert.alert(
+					strings('choose_password.security_alert_title'),
+					strings('choose_password.security_alert_message')
+				);
 				this.setState({ loading: false });
-				this.props.passwordSet();
-				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-				this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
-			} catch (error) {
-				// Should we force people to enable passcode / biometrics?
-				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
-					Alert.alert(
-						strings('choose_password.security_alert_title'),
-						strings('choose_password.security_alert_message')
-					);
-					this.setState({ loading: false });
-				} else {
-					this.setState({ loading: false, error: error.toString() });
-				}
+			} else {
+				this.setState({ loading: false, error: error.toString() });
 			}
 		}
 	};

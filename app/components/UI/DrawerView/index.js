@@ -851,7 +851,7 @@ class DrawerView extends PureComponent {
 						<View style={styles.accountBgOverlay}>
 							<TouchableOpacity
 								style={styles.identiconWrapper}
-								onPress={this.toggleAccountsModal}
+								onPress={this.onSecureWalletModalAction}
 								testID={'navbar-account-identicon'}
 							>
 								<View style={styles.identiconBorder}>
