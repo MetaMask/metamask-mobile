@@ -9,6 +9,7 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import PreventScreenshot from '../../../core/PreventScreenshot';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -78,7 +79,7 @@ class ImportPrivateKeySuccess extends PureComponent {
 		keyrings: PropTypes.array
 	};
 
-	componentDidMount = async () => {
+	componentDidMount = () => {
 		const { PreferencesController } = Engine.context;
 		const { keyrings } = this.props;
 		try {
@@ -90,15 +91,17 @@ class ImportPrivateKeySuccess extends PureComponent {
 			Logger.error(e, 'Error while refreshing imported pkey');
 		}
 		InteractionManager.runAfterInteractions(() => {
+			PreventScreenshot.forbid();
 			BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 		});
 	};
 
-	componentWillUnmount() {
+	componentWillUnmount = () => {
 		InteractionManager.runAfterInteractions(() => {
+			PreventScreenshot.allow();
 			BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
 		});
-	}
+	};
 
 	handleBackPress = () => {
 		this.props.navigation.popToTop();
