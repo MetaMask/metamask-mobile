@@ -64,16 +64,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		paddingBottom: 0
 	},
-	settings: {
-		paddingHorizontal: 12,
-		alignSelf: 'flex-end',
-		alignItems: 'center',
-		marginRight: 3,
-		marginTop: Device.isAndroid() ? -3 : -10
-	},
-	settingsIcon: {
-		marginBottom: 12
-	},
 	metamaskLogo: {
 		flexDirection: 'row',
 		flex: 1,
@@ -852,13 +842,6 @@ class DrawerView extends PureComponent {
 							<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
 							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 						</View>
-						<TouchableOpacity
-							style={styles.settings}
-							testID={`settings-button`}
-							onPress={this.showSettings}
-						>
-							<FeatherIcon name="settings" size={22} style={styles.settingsIcon} />
-						</TouchableOpacity>
 					</View>
 					<View style={styles.account}>
 						<View style={styles.accountBgOverlay}>
