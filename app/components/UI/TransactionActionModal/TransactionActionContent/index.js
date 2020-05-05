@@ -86,8 +86,20 @@ TransactionActionContent.propTypes = {
 	 * Whether confirm button is disabled
 	 */
 	confirmDisabled: PropTypes.bool,
+	/**
+	 * Text to show as fee
+	 */
 	feeText: PropTypes.string,
+	/**
+	 * Text to show as tit;e
+	 */
 	titleText: PropTypes.string,
+	/**
+	 * Text to show as title of gas section
+	 */
 	gasTitleText: PropTypes.string,
+	/**
+	 * Text to show as description
+	 */
 	descriptionText: PropTypes.string
 };

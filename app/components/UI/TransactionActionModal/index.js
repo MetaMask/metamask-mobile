@@ -31,6 +31,7 @@ export default function TransactionActionModal({
 			onRequestClose={onCancelPress}
 			cancelButtonMode={cancelButtonMode}
 			confirmButtonMode={confirmButtonMode}
+			confirmDisabled={confirmDisabled}
 		>
 			<TransactionActionContent
 				confirmDisabled={confirmDisabled}
@@ -75,10 +76,28 @@ TransactionActionModal.propTypes = {
 	 * Called when the confirm button is clicked
 	 */
 	onConfirmPress: PropTypes.func,
+	/**
+	 * Cancel button enabled or disabled
+	 */
 	cancelButtonMode: PropTypes.string,
+	/**
+	 * Confirm button enabled or disabled
+	 */
 	confirmButtonMode: PropTypes.string,
+	/**
+	 * Text to show as fee
+	 */
 	feeText: PropTypes.string,
+	/**
+	 * Text to show as tit;e
+	 */
 	titleText: PropTypes.string,
+	/**
+	 * Text to show as title of gas section
+	 */
 	gasTitleText: PropTypes.string,
+	/**
+	 * Text to show as description
+	 */
 	descriptionText: PropTypes.string
 };
