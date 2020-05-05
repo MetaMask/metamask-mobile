@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
 		marginVertical: 24
 	},
 	summaryWrapper: {
-		marginVertical: 6
+		marginVertical: 8
 	},
 	statusText: {
 		fontSize: 12,
@@ -276,7 +276,7 @@ class TransactionDetails extends PureComponent {
 						<Text style={[styles.detailRowText]}>{`#${parseInt(nonce.replace(/^#/, ''), 16)}`}</Text>
 					</View>
 				)}
-				<View style={(styles.summaryWrapper, !nonce && styles.touchableViewOnEtherscan)}>
+				<View style={[styles.summaryWrapper, !nonce && styles.touchableViewOnEtherscan]}>
 					<TransactionSummary
 						amount={this.props.transactionDetails.summaryAmount}
 						fee={this.props.transactionDetails.summaryFee}
