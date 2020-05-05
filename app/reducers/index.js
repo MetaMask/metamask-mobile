@@ -11,6 +11,7 @@ import userReducer from './user';
 import wizardReducer from './wizard';
 import analyticsReducer from './analytics';
 import onboardingReducer from './onboarding';
+import transactionNotificationReducer from './transactionNotification';
 import { combineReducers } from 'redux';
 
 const rootReducer = combineReducers({
@@ -26,7 +27,8 @@ const rootReducer = combineReducers({
 	newTransaction: newTransactionReducer,
 	user: userReducer,
 	wizard: wizardReducer,
-	onboarding: onboardingReducer
+	onboarding: onboardingReducer,
+	transactionNotification: transactionNotificationReducer
 });
 
 export default rootReducer;

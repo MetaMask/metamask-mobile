@@ -21,6 +21,9 @@ describe('TransactionElement', () => {
 						}
 					}
 				}
+			},
+			settings: {
+				primaryCurrency: 'ETH'
 			}
 		};
 
