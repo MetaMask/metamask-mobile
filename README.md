@@ -8,7 +8,7 @@ MetaMask is a mobile web browser that provides easy access to websites that use 
 
 For up to the minute news, follow our [Twitter](https://twitter.com/metamask_io) or [Medium](https://medium.com/metamask) pages.
 
-To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://metamask.github.io/metamask-docs/).
+To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
 
 ## MetaMask Mobile
 

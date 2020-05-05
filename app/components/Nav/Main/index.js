@@ -15,7 +15,6 @@ import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 import ENS from 'ethjs-ens';
 import GlobalAlert from '../../UI/GlobalAlert';
-import FlashMessage from 'react-native-flash-message';
 import BackgroundTimer from 'react-native-background-timer';
 import Browser from '../../Views/Browser';
 import AddBookmark from '../../Views/AddBookmark';
@@ -59,7 +58,6 @@ import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import { TransactionNotification } from '../../UI/TransactionNotification';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -100,6 +98,8 @@ import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
+import TxNotification from '../../UI/TxNotification';
+import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -417,7 +417,15 @@ class Main extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		/**
+		 * Dispatch showing a transaction notification
+		 */
+		showTransactionNotification: PropTypes.func,
+		/**
+		 * Dispatch hiding a transaction notification
+		 */
+		hideTransactionNotification: PropTypes.func
 	};
 
 	state = {
@@ -515,7 +523,11 @@ class Main extends PureComponent {
 			});
 
 			setTimeout(() => {
-				TransactionsNotificationManager.init(this.props.navigation);
+				TransactionsNotificationManager.init(
+					this.props.navigation,
+					this.props.showTransactionNotification,
+					this.props.hideTransactionNotification
+				);
 				this.pollForIncomingTransactions();
 
 				this.initializeWalletConnect();
@@ -538,16 +550,17 @@ class Main extends PureComponent {
 		let hasSAI = false;
 		Object.keys(this.props.allTokens).forEach(account => {
 			const tokens = this.props.allTokens[account].mainnet;
-			tokens.forEach(token => {
-				if (token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
-					if (this.props.contractBalances[AppConstants.SAI_ADDRESS]) {
-						const balance = this.props.contractBalances[AppConstants.SAI_ADDRESS];
-						if (!balance.isZero()) {
-							hasSAI = true;
+			tokens &&
+				tokens.forEach(token => {
+					if (token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
+						if (this.props.contractBalances[AppConstants.SAI_ADDRESS]) {
+							const balance = this.props.contractBalances[AppConstants.SAI_ADDRESS];
+							if (!balance.isZero()) {
+								hasSAI = true;
+							}
 						}
 					}
-				}
-			});
+				});
 		});
 
 		if (hasSAI) {
@@ -1062,18 +1075,13 @@ class Main extends PureComponent {
 
 	render() {
 		const { forceReload } = this.state;
-
 		return (
 			<React.Fragment>
 				<View style={styles.flex}>
 					{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
 					<GlobalAlert />
-					<FlashMessage
-						position="bottom"
-						MessageComponent={TransactionNotification}
-						animationDuration={150}
-					/>
 					<FadeOutOverlay />
+					<TxNotification navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
@@ -1097,7 +1105,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	setEtherTransaction: transaction => dispatch(setEtherTransaction(transaction)),
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
+	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
+	hideTransactionNotification: () => dispatch(hideTransactionNotification())
 });
 
 export default connect(

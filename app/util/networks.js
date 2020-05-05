@@ -11,36 +11,42 @@ import URL from 'url-parse';
 const NetworkList = {
 	mainnet: {
 		name: 'Ethereum Main Network',
+		shortName: 'Ethereum',
 		networkId: 1,
 		chainId: 1,
 		color: '#3cc29e'
 	},
 	ropsten: {
 		name: 'Ropsten Test Network',
+		shortName: 'Ropsten',
 		networkId: 3,
 		chainId: 3,
 		color: '#ff4a8d'
 	},
 	kovan: {
 		name: 'Kovan Test Network',
+		shortName: 'Kovan',
 		networkId: 42,
 		chainId: 42,
 		color: '#7057ff'
 	},
 	rinkeby: {
 		name: 'Rinkeby Test Network',
+		shortName: 'Rinkeby',
 		networkId: 4,
 		chainId: 4,
 		color: '#f6c343'
 	},
 	goerli: {
 		name: 'Goerli Test Network',
+		shortName: 'Goerli',
 		networkId: 5,
 		chainId: 5,
 		color: '#3099f2'
 	},
 	rpc: {
 		name: 'Private Network',
+		shortName: 'Private',
 		color: colors.grey000
 	}
 };
