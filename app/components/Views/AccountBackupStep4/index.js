@@ -7,7 +7,8 @@ import {
 	View,
 	SafeAreaView,
 	StyleSheet,
-	TextInput
+	TextInput,
+	InteractionManager
 } from 'react-native';
 
 import PropTypes from 'prop-types';
@@ -17,6 +18,7 @@ import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
+import PreventScreenshot from '../../../core/PreventScreenshot';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -180,7 +182,12 @@ export default class AccountBackupStep4 extends PureComponent {
 			}
 		}
 		this.setState({ ready: true });
+		InteractionManager.runAfterInteractions(() => PreventScreenshot.forbid());
 	}
+
+	componentWillUnmount = () => {
+		InteractionManager.runAfterInteractions(() => PreventScreenshot.allow());
+	};
 
 	dismiss = () => {
 		this.props.navigation.goBack();
