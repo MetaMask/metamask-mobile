@@ -15,7 +15,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
-import { passwordSet } from '../../../actions/user';
+import { passwordSet, passwordUnset } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -158,6 +158,11 @@ class ChoosePassword extends PureComponent {
 		 */
 		passwordSet: PropTypes.func,
 		/**
+		 * The action to update the password set flag
+		 * in the redux store to false
+		 */
+		passwordUnset: PropTypes.func,
+		/**
 		 * The action to update the lock time
 		 * in the redux store
 		 */
@@ -208,6 +213,7 @@ class ChoosePassword extends PureComponent {
 		}
 		try {
 			this.setState({ loading: true });
+			this.props.passwordSet();
 			const { KeyringController, PreferencesController } = Engine.context;
 			const mnemonic = await KeyringController.exportSeedPhrase('');
 			const seed = JSON.stringify(mnemonic).replace(/"/g, '');
@@ -264,10 +270,10 @@ class ChoosePassword extends PureComponent {
 			// mark the user as existing so it doesn't see the create password screen again
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.setState({ loading: false });
-			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
 		} catch (error) {
+			this.props.passwordUnset();
 			// Should we force people to enable passcode / biometrics?
 			if (error.toString() === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
@@ -545,6 +551,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	passwordSet: () => dispatch(passwordSet()),
+	passwordUnset: () => dispatch(passwordUnset()),
 	setLockTime: time => dispatch(setLockTime(time))
 });
 
