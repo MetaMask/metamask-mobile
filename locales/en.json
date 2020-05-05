@@ -1,4 +1,21 @@
 {
+	"date": {
+		"months": {
+			"0": "Jan",
+			"1": "Feb",
+			"2": "Mar",
+			"3": "Apr",
+			"4": "May",
+			"5": "Jun",
+			"6": "Jul",
+			"7": "Aug",
+			"8": "Sept",
+			"9": "Oct",
+			"10": "Nov",
+			"11": "Dec"
+		},
+		"connector": "at"
+	},
 	"autocomplete": {
 		"placeholder": "Search or Type URL"
 	},
@@ -504,6 +521,7 @@
 		"set_gas": "Set",
 		"cancel_gas": "Cancel",
 		"transaction_fee": "Transaction fee",
+		"transaction_fee_less": "No fee",
 		"total_amount": "Total amount",
 		"adjust_transaction_fee": "Adjust transaction fee",
 		"could_not_resolve_ens": "Couldn't resolve ENS",
@@ -637,12 +655,15 @@
 		"gas_price": "Gas Price (GWEI)",
 		"total": "Total",
 		"view_on": "VIEW ON",
-		"view_on_etherscan": "VIEW ON ETHERSCAN",
+		"view_on_etherscan": "View on Etherscan",
 		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
 		"address_copied_to_clipboard": "Address copied to clipboard",
 		"transaction_error": "Transaction error",
 		"address_to_placeholder": "Search, public address (0x), or ENS",
-		"address_from_balance": "Balance:"
+		"address_from_balance": "Balance:",
+		"status": "Status",
+		"date": "Date",
+		"nonce": "Nonce"
 	},
 	"address_book": {
 		"recents": "Recents",
@@ -672,7 +693,7 @@
 	"transaction_submitted": {
 		"title": "Transaction Submitted",
 		"your_tx_hash_is": "Your transaction hash is:",
-		"view_on_etherscan": "VIEW ON ETHERSCAN"
+		"view_on_etherscan": "View on Etherscan"
 	},
 	"sync_with_extension": {
 		"title": "Sync data from Extension",
@@ -900,7 +921,7 @@
 		"back_to_safety": "Back to safety"
 	},
 	"notifications": {
-		"pending_title": "Transaction submitted!",
+		"pending_title": "Transaction submitted",
 		"pending_deposit_title": "Deposit in progress!",
 		"pending_withdrawal_title": "Withdrawal in progress!",
 		"cancelled_title": "Transaction cancelled!",
@@ -911,7 +932,7 @@
 		"error_title": "Oops, something went wrong :/",
 		"received_title": "You received {{amount}} {{assetType}}!",
 		"received_payment_title": "Instant payment received",
-		"pending_message": "Waiting for confirmation...",
+		"pending_message": "Waiting for confirmation",
 		"pending_deposit_message": "Waiting for deposit to complete",
 		"pending_withdrawal_message": "Waiting for withdrawal to complete",
 		"error_message": "Tap to view this transaction",

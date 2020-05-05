@@ -16,16 +16,15 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
-import { hasBlockExplorer } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
-import ActionModal from '../ActionModal';
 import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba';
 import { renderFromWei } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/Device';
 import { hexToBN } from 'gaba/dist/util';
 import { BN } from 'ethereumjs-util';
+import TransactionActionModal from '../TransactionActionModal';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -46,47 +45,6 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		color: colors.fontTertiary,
 		...fontStyles.normal
-	},
-	modalView: {
-		alignItems: 'stretch',
-		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'space-between',
-		padding: 20
-	},
-	modalText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		textAlign: 'center',
-		paddingVertical: 8
-	},
-	modalTitle: {
-		...fontStyles.bold,
-		fontSize: 22,
-		textAlign: 'center'
-	},
-	gasTitle: {
-		...fontStyles.bold,
-		fontSize: 16,
-		textAlign: 'center',
-		marginVertical: 8
-	},
-	cancelFeeWrapper: {
-		backgroundColor: colors.grey000,
-		textAlign: 'center',
-		padding: 15
-	},
-	cancelFee: {
-		...fontStyles.bold,
-		fontSize: 24,
-		textAlign: 'center'
-	},
-	warningText: {
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.red,
-		paddingVertical: 8,
-		textAlign: 'center'
 	}
 });
 
@@ -134,10 +92,6 @@ class Transactions extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
-		 * String representing the selected the selected network
-		 */
-		networkType: PropTypes.string,
-		/**
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
@@ -145,10 +99,6 @@ class Transactions extends PureComponent {
 		 * Currency code of the currently-active currency
 		 */
 		currentCurrency: PropTypes.string,
-		/**
-		 * Action that shows the global alert
-		 */
-		showAlert: PropTypes.func,
 		/**
 		 * Loading flag from an external call
 		 */
@@ -281,8 +231,6 @@ class Transactions extends PureComponent {
 
 	keyExtractor = item => item.id.toString();
 
-	blockExplorer = () => hasBlockExplorer(this.props.networkType);
-
 	validateBalance = (tx, rate) => {
 		const { accounts } = this.props;
 		try {
@@ -320,7 +268,7 @@ class Transactions extends PureComponent {
 	onCancelAction = (cancelAction, existingGasPriceDecimal, tx) => {
 		this.existingGasPriceDecimal = existingGasPriceDecimal;
 		this.cancelTxId = tx.id;
-		if (this.validateBalance(tx, SPEED_UP_RATE)) {
+		if (this.validateBalance(tx, CANCEL_RATE)) {
 			this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled: true });
 		} else {
 			this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled: false });
@@ -361,17 +309,14 @@ class Transactions extends PureComponent {
 			onSpeedUpAction={this.onSpeedUpAction}
 			onCancelAction={this.onCancelAction}
 			testID={'txn-item'}
-			selectedAddress={this.props.selectedAddress}
-			selected={!!this.state.selectedTx.get(item.id)}
 			onPressItem={this.toggleDetailsView}
-			blockExplorer
+			selectedAddress={this.props.selectedAddress}
 			tokens={this.props.tokens}
 			collectibleContracts={this.props.collectibleContracts}
 			contractExchangeRates={this.props.contractExchangeRates}
 			exchangeRate={this.props.exchangeRate}
 			conversionRate={this.props.conversionRate}
 			currentCurrency={this.props.currentCurrency}
-			showAlert={this.props.showAlert}
 			navigation={this.props.navigation}
 		/>
 	);
@@ -406,57 +351,36 @@ class Transactions extends PureComponent {
 					onEndReachedThreshold={0.5}
 					ListHeaderComponent={header}
 				/>
-				<ActionModal
-					modalVisible={this.state.cancelIsOpen}
-					confirmText={strings('transaction.lets_try')}
-					cancelText={strings('transaction.nevermind')}
-					onCancelPress={this.onCancelCompleted}
-					onRequestClose={this.onCancelCompleted}
-					onConfirmPress={this.cancelTransaction}
-					confirmDisabled={cancelConfirmDisabled}
-				>
-					<View style={styles.modalView}>
-						<Text style={styles.modalTitle}>{strings('transaction.cancel_tx_title')}</Text>
-						<Text style={styles.gasTitle}>{strings('transaction.gas_cancel_fee')}</Text>
-						<View style={styles.cancelFeeWrapper}>
-							<Text style={styles.cancelFee}>
-								{`${renderFromWei(Math.floor(this.existingGasPriceDecimal * CANCEL_RATE))} ${strings(
-									'unit.eth'
-								)}`}
-							</Text>
-						</View>
-						<Text style={styles.modalText}>{strings('transaction.cancel_tx_message')}</Text>
-						{cancelConfirmDisabled && (
-							<Text style={styles.warningText}>{strings('transaction.insufficient')}</Text>
-						)}
-					</View>
-				</ActionModal>
 
-				<ActionModal
-					modalVisible={this.state.speedUpIsOpen}
+				<TransactionActionModal
+					isVisible={this.state.cancelIsOpen}
+					confirmDisabled={cancelConfirmDisabled}
+					onCancelPress={this.onCancelCompleted}
+					onConfirmPress={this.cancelTransaction}
 					confirmText={strings('transaction.lets_try')}
 					cancelText={strings('transaction.nevermind')}
-					onCancelPress={this.onSpeedUpCompleted}
-					onRequestClose={this.onSpeedUpCompleted}
-					onConfirmPress={this.speedUpTransaction}
+					feeText={`${renderFromWei(Math.floor(this.existingGasPriceDecimal * CANCEL_RATE))} ${strings(
+						'unit.eth'
+					)}`}
+					titleText={strings('transaction.cancel_tx_title')}
+					gasTitleText={strings('transaction.gas_cancel_fee')}
+					descriptionText={strings('transaction.cancel_tx_message')}
+				/>
+
+				<TransactionActionModal
+					isVisible={this.state.speedUpIsOpen}
 					confirmDisabled={speedUpConfirmDisabled}
-				>
-					<View style={styles.modalView}>
-						<Text style={styles.modalTitle}>{strings('transaction.speedup_tx_title')}</Text>
-						<Text style={styles.gasTitle}>{strings('transaction.gas_speedup_fee')}</Text>
-						<View style={styles.cancelFeeWrapper}>
-							<Text style={styles.cancelFee}>
-								{`${renderFromWei(Math.floor(this.existingGasPriceDecimal * SPEED_UP_RATE))} ${strings(
-									'unit.eth'
-								)}`}
-							</Text>
-						</View>
-						<Text style={styles.modalText}>{strings('transaction.speedup_tx_message')}</Text>
-						{speedUpConfirmDisabled && (
-							<Text style={styles.warningText}>{strings('transaction.insufficient')}</Text>
-						)}
-					</View>
-				</ActionModal>
+					onCancelPress={this.onSpeedUpCompleted}
+					onConfirmPress={this.speedUpTransaction}
+					confirmText={strings('transaction.lets_try')}
+					cancelText={strings('transaction.nevermind')}
+					feeText={`${renderFromWei(Math.floor(this.existingGasPriceDecimal * SPEED_UP_RATE))} ${strings(
+						'unit.eth'
+					)}`}
+					titleText={strings('transaction.speedup_tx_title')}
+					gasTitleText={strings('transaction.gas_speedup_fee')}
+					descriptionText={strings('transaction.speedup_tx_message')}
+				/>
 			</View>
 		);
 	};

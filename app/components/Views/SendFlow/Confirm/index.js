@@ -42,6 +42,7 @@ import CollectibleImage from '../../../UI/CollectibleImage';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import TransactionSummary from '../../TransactionSummary';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
@@ -80,45 +81,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	summaryWrapper: {
-		flexDirection: 'column',
-		borderWidth: 1,
-		borderColor: colors.grey050,
-		borderRadius: 8,
-		padding: 16,
 		marginHorizontal: 24
-	},
-	summaryRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		marginVertical: 6
-	},
-	totalCryptoRow: {
-		alignItems: 'flex-end',
-		marginTop: 8
-	},
-	textSummary: {
-		...fontStyles.normal,
-		color: colors.black,
-		fontSize: 12
-	},
-	textSummaryAmount: {
-		textTransform: 'uppercase'
-	},
-	textCrypto: {
-		...fontStyles.normal,
-		textAlign: 'right',
-		fontSize: 12,
-		textTransform: 'uppercase',
-		color: colors.grey500
-	},
-	textBold: {
-		...fontStyles.bold,
-		alignSelf: 'flex-end'
-	},
-	separator: {
-		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
-		marginVertical: 6
 	},
 	buttonNext: {
 		flex: 1,
@@ -183,7 +146,6 @@ const styles = StyleSheet.create({
 		height: 120,
 		width: 120
 	},
-
 	qrCode: {
 		marginBottom: 16,
 		paddingHorizontal: 36,
@@ -193,7 +155,6 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		width: '100%'
 	},
-
 	hexDataWrapper: {
 		padding: 10,
 		alignItems: 'center'
@@ -583,6 +544,7 @@ class Confirm extends PureComponent {
 			}
 
 			InteractionManager.runAfterInteractions(() => {
+				console.log('transactionnnn', { ...transactionMeta, assetType: transactionMeta.transaction.assetType });
 				TransactionsNotificationManager.watchSubmittedTransaction({
 					...transactionMeta,
 					assetType
@@ -674,34 +636,14 @@ class Confirm extends PureComponent {
 							</View>
 						</View>
 					)}
-
 					<View style={styles.summaryWrapper}>
-						<View style={styles.summaryRow}>
-							<Text style={styles.textSummary}>{strings('transaction.amount')}</Text>
-							<Text style={[styles.textSummary, styles.textSummaryAmount]}>{transactionValueFiat}</Text>
-						</View>
-						<View style={styles.summaryRow}>
-							<Text style={styles.textSummary}>{strings('transaction.transaction_fee')}</Text>
-							{this.renderIfGastEstimationReady(
-								<Text style={[styles.textSummary, styles.textSummaryAmount]}>{transactionFeeFiat}</Text>
-							)}
-						</View>
-						<View style={styles.separator} />
-						<View style={styles.summaryRow}>
-							<Text style={[styles.textSummary, styles.textBold]}>
-								{strings('transaction.total_amount')}
-							</Text>
-							{this.renderIfGastEstimationReady(
-								<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>
-									{transactionTotalAmountFiat}
-								</Text>
-							)}
-						</View>
-						<View style={styles.totalCryptoRow}>
-							{this.renderIfGastEstimationReady(
-								<Text style={[styles.textSummary, styles.textCrypto]}>{transactionTotalAmount}</Text>
-							)}
-						</View>
+						<TransactionSummary
+							amount={transactionValueFiat}
+							fee={transactionFeeFiat}
+							totalAmount={transactionTotalAmountFiat}
+							secondaryTotalAmount={transactionTotalAmount}
+							gasEstimationReady={gasEstimationReady}
+						/>
 					</View>
 					{errorMessage && (
 						<View style={styles.errorMessageWrapper}>

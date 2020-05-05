@@ -16,6 +16,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
+import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -260,4 +261,12 @@ const mapStateToProps = state => ({
 	wizardStep: state.wizard.step
 });
 
-export default connect(mapStateToProps)(Wallet);
+const mapDispatchToProps = dispatch => ({
+	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
+	hideTransactionNotification: () => dispatch(hideTransactionNotification())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Wallet);
