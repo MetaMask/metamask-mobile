@@ -756,18 +756,22 @@ class DrawerView extends PureComponent {
 			[
 				{
 					name: strings('drawer.settings'),
+					icon: this.getFeatherIcon('settings'),
 					action: this.showSettings
 				},
 				{
 					name: strings('drawer.help'),
+					icon: this.getFeatherIcon('help-circle'),
 					action: this.showHelp
 				},
 				{
 					name: strings('drawer.submit_feedback'),
+					icon: this.getFeatherIcon('message-square'),
 					action: this.submitFeedback
 				},
 				{
 					name: strings('drawer.logout'),
+					icon: this.getFeatherIcon('log-out'),
 					action: this.logout
 				}
 			]
