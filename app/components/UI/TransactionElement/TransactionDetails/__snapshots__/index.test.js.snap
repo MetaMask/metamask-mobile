@@ -192,9 +192,14 @@ exports[`TransactionDetails should render correctly 1`] = `
   </View>
   <View
     style={
-      Object {
-        "marginVertical": 24,
-      }
+      Array [
+        Object {
+          "marginVertical": 8,
+        },
+        Object {
+          "marginVertical": 24,
+        },
+      ]
     }
   >
     <TransactionSummary
