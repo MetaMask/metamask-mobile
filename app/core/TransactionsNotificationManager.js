@@ -1,6 +1,5 @@
 'use strict';
 
-import { showMessage, hideMessage } from 'react-native-flash-message';
 import PushNotification from 'react-native-push-notification';
 import Engine from './Engine';
 import Networks, { isKnownNetwork } from '../util/networks';
@@ -58,8 +57,8 @@ class TransactionsNotificationManager {
 			let message = '';
 			let nonce = '';
 
-			if (data && data.message && data.message.transaction && data.message.transaction.nonce) {
-				nonce = data.message.transaction.nonce;
+			if (data && data.transaction && data.transaction.nonce) {
+				nonce = data.transaction.nonce;
 			}
 
 			switch (data.type) {
@@ -101,15 +100,15 @@ class TransactionsNotificationManager {
 					break;
 				case 'received':
 					title = strings('notifications.received_title', {
-						amount: data.message.transaction.amount,
-						assetType: data.message.transaction.assetType
+						amount: data.transaction.amount,
+						assetType: data.transaction.assetType
 					});
 					message = strings('notifications.received_message');
 					break;
 				case 'received_payment':
 					title = strings('notifications.received_payment_title');
 					message = strings('notifications.received_payment_message', {
-						amount: data.message.transaction.amount
+						amount: data.transaction.amount
 					});
 					break;
 			}
@@ -120,8 +119,7 @@ class TransactionsNotificationManager {
 				largeIcon: 'ic_notification',
 				smallIcon: 'ic_notification_small'
 			};
-
-			const id = (data && data.message && data.message.transaction && data.message.transaction.id) || null;
+			const id = (data && data.transaction && data.transaction.id) || null;
 
 			const extraData = { action: 'tx', id };
 			if (Device.isAndroid()) {
@@ -135,7 +133,11 @@ class TransactionsNotificationManager {
 				this._transactionToView.push(id);
 			}
 		} else {
-			showMessage(data);
+			this._showTransactionNotification({
+				autodismiss: data.duration,
+				transaction: data.transaction,
+				status: data.type
+			});
 		}
 	}
 
@@ -157,18 +159,14 @@ class TransactionsNotificationManager {
 	_finishedCallback = transactionMeta => {
 		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// If it fails we hide the pending tx notification
-		hideMessage();
+		this._hideTransactionNotification(transactionMeta.id);
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
 			setTimeout(() => {
 				// Then we show the error notification
 				this._showNotification({
 					type: transactionMeta.status === 'cancelled' ? 'cancelled' : 'error',
 					autoHide: true,
-					message: {
-						transaction: transactionMeta,
-						id: transactionMeta.id,
-						callback: () => this._viewTransaction(transactionMeta.id)
-					},
+					transaction: { id: transactionMeta.id },
 					duration: 5000
 				});
 				// Clean up
@@ -180,20 +178,17 @@ class TransactionsNotificationManager {
 	_confirmedCallback = (transactionMeta, originalTransaction) => {
 		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// Once it's confirmed we hide the pending tx notification
-		hideMessage();
+		this._hideTransactionNotification(transactionMeta.id);
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
 			setTimeout(() => {
 				// Then we show the success notification
 				this._showNotification({
 					type: 'success',
-					message: {
-						transaction: {
-							nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`,
-							id: transactionMeta.id
-						},
-						callback: () => this._viewTransaction(transactionMeta.id)
-					},
 					autoHide: true,
+					transaction: {
+						id: transactionMeta.id,
+						nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`
+					},
 					duration: 5000
 				});
 				// Clean up
@@ -232,12 +227,9 @@ class TransactionsNotificationManager {
 			this._showNotification({
 				autoHide: false,
 				type: 'speedup',
-				message: {
-					transaction: {
-						nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`,
-						id: transactionMeta.id
-					},
-					callback: () => this._viewTransaction(transactionMeta.id)
+				transaction: {
+					id: transactionMeta.id,
+					nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`
 				}
 			});
 		}, 2000);
@@ -246,9 +238,11 @@ class TransactionsNotificationManager {
 	/**
 	 * Creates a TransactionsNotificationManager instance
 	 */
-	constructor(_navigation) {
+	constructor(_navigation, _showTransactionNotification, _hideTransactionNotification) {
 		if (!TransactionsNotificationManager.instance) {
 			this._navigation = _navigation;
+			this._showTransactionNotification = _showTransactionNotification;
+			this._hideTransactionNotification = _hideTransactionNotification;
 			this._transactionToView = [];
 			this._backgroundMode = false;
 			TransactionsNotificationManager.instance = this;
@@ -328,12 +322,8 @@ class TransactionsNotificationManager {
 			this._showNotification({
 				type: 'pending',
 				autoHide: false,
-				message: {
-					transaction: {
-						nonce: `${parseInt(nonce, 16)}`,
-						id: transaction.id
-					},
-					callback: () => this._viewTransaction(transaction.id)
+				transaction: {
+					id: transaction.id
 				}
 			});
 
@@ -384,14 +374,11 @@ class TransactionsNotificationManager {
 			if (txs.length > 0) {
 				this._showNotification({
 					type: 'received',
-					message: {
-						transaction: {
-							nonce: `${hexToBN(txs[0].transaction.nonce).toString()}`,
-							amount: `${renderFromWei(hexToBN(txs[0].transaction.value))}`,
-							assetType: strings('unit.eth'),
-							id: txs[0].id
-						},
-						callback: () => this._viewTransaction(txs[0].id)
+					transaction: {
+						nonce: `${hexToBN(txs[0].transaction.nonce).toString()}`,
+						amount: `${renderFromWei(hexToBN(txs[0].transaction.value))}`,
+						id: txs[0].id,
+						assetType: strings('unit.eth')
 					},
 					autoHide: true,
 					duration: 5000
@@ -409,8 +396,12 @@ class TransactionsNotificationManager {
 let instance;
 
 export default {
-	init(_navigation) {
-		instance = new TransactionsNotificationManager(_navigation);
+	init(_navigation, _showTransactionNotification, _hideTransactionNotification) {
+		instance = new TransactionsNotificationManager(
+			_navigation,
+			_showTransactionNotification,
+			_hideTransactionNotification
+		);
 		return instance;
 	},
 	watchSubmittedTransaction(transaction) {
@@ -429,14 +420,12 @@ export default {
 		return instance.requestPushNotificationsPermission();
 	},
 	showInstantPaymentNotification(type) {
-		hideMessage();
 		setTimeout(() => {
 			const notification = {
 				type,
 				autoHide: type.indexOf('success') !== -1,
-				message: {
-					transaction: null,
-					callback: () => null
+				transaction: {
+					paymentChannelTransaction: true
 				}
 			};
 			if (notification.autoHide) {
@@ -446,17 +435,17 @@ export default {
 			return instance._showNotification(notification);
 		}, 300);
 	},
-	showIncomingPaymentNotification: amount =>
+	showIncomingPaymentNotification: amount => {
 		instance._showNotification({
 			type: 'received_payment',
-			message: {
-				transaction: {
-					amount,
-					assetType: ''
-				},
-				callback: () => instance.goTo('PaymentChannelHome')
+			transaction: {
+				amount,
+				assetType: '',
+				paymentChannelTransaction: true
 			},
+			callback: () => instance.goTo('PaymentChannelHome'),
 			autoHide: true,
 			duration: 5000
-		})
+		});
+	}
 };
