@@ -268,7 +268,7 @@ class Transactions extends PureComponent {
 	onCancelAction = (cancelAction, existingGasPriceDecimal, tx) => {
 		this.existingGasPriceDecimal = existingGasPriceDecimal;
 		this.cancelTxId = tx.id;
-		if (this.validateBalance(tx, SPEED_UP_RATE)) {
+		if (this.validateBalance(tx, CANCEL_RATE)) {
 			this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled: true });
 		} else {
 			this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled: false });

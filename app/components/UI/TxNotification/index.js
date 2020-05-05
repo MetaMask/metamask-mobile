@@ -12,11 +12,13 @@ import Device from '../../../util/Device';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
-import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba';
+import { CANCEL_RATE, SPEED_UP_RATE, BN } from 'gaba';
 import ActionContent from '../ActionModal/ActionContent';
 import TransactionActionContent from '../TransactionActionModal/TransactionActionContent';
 import { renderFromWei } from '../../../util/number';
 import Engine from '../../../core/Engine';
+import { safeToChecksumAddress } from '../../../util/address';
+import { hexToBN } from 'gaba/dist/util';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -100,6 +102,10 @@ const ACTION_SPEEDUP = 'speedup';
  */
 class TxNotification extends PureComponent {
 	static propTypes = {
+		/**
+		 * Map of accounts to information objects including balances
+		 */
+		accounts: PropTypes.object,
 		/**
 		/* navigation object required to push new views
 		*/
@@ -299,16 +305,35 @@ class TxNotification extends PureComponent {
 	};
 
 	onSpeedUpPress = () => {
-		this.setState({ transactionAction: ACTION_SPEEDUP });
+		const transactionActionDisabled = this.validateBalance(this.state.tx, SPEED_UP_RATE);
+		this.setState({ transactionAction: ACTION_SPEEDUP, transactionActionDisabled });
 		this.animateActionTo(-WINDOW_WIDTH);
 	};
 
 	onCancelPress = () => {
-		this.setState({ transactionAction: ACTION_CANCEL });
+		const transactionActionDisabled = this.validateBalance(this.state.tx, CANCEL_RATE);
+		this.setState({ transactionAction: ACTION_CANCEL, transactionActionDisabled });
 		this.animateActionTo(-WINDOW_WIDTH);
 	};
 
 	onActionFinish = () => this.animateActionTo(0);
+
+	validateBalance = (tx, rate) => {
+		const { accounts } = this.props;
+		try {
+			const checksummedFrom = safeToChecksumAddress(tx.transaction.from);
+			const balance = accounts[checksummedFrom].balance;
+			return hexToBN(balance).lt(
+				hexToBN(tx.transaction.gasPrice)
+					.mul(new BN(rate * 10))
+					.mul(new BN(10))
+					.mul(hexToBN(tx.transaction.gas))
+					.add(hexToBN(tx.transaction.value))
+			);
+		} catch (e) {
+			return false;
+		}
+	};
 
 	animateActionTo = position => {
 		this.animatedTimingStart(this.detailsYAnimated, position);
@@ -346,7 +371,8 @@ class TxNotification extends PureComponent {
 			transactionDetailsIsVisible,
 			internalIsVisible,
 			inBrowserView,
-			transactionAction
+			transactionAction,
+			transactionActionDisabled
 		} = this.state;
 
 		if (!internalIsVisible) return null;
@@ -407,9 +433,10 @@ class TxNotification extends PureComponent {
 									onConfirmPress={isActionCancel ? this.cancelTransaction : this.speedUpTransaction}
 									confirmText={strings('transaction.lets_try')}
 									cancelText={strings('transaction.nevermind')}
+									confirmDisabled={transactionActionDisabled}
 								>
 									<TransactionActionContent
-										confirmDisabled={false}
+										confirmDisabled={transactionActionDisabled}
 										feeText={`${renderFromWei(
 											Math.floor(
 												this.existingGasPriceDecimal * isActionCancel
@@ -445,6 +472,7 @@ class TxNotification extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	isVisible: state.transactionNotification.isVisible,
 	autodismiss: state.transactionNotification.autodismiss,
 	transaction: state.transactionNotification.transaction,
