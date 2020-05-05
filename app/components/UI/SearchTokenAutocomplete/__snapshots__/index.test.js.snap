@@ -18,7 +18,6 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
     confirmTestID=""
     confirmText="ADD TOKEN"
     confirmed={false}
-    noScroll={false}
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
     showCancelButton={true}

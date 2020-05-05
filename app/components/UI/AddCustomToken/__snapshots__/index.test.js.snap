@@ -18,7 +18,6 @@ exports[`AddCustomToken should render correctly 1`] = `
     confirmTestID="add-custom-asset-confirm-button"
     confirmText="ADD TOKEN"
     confirmed={false}
-    noScroll={false}
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
     showCancelButton={true}

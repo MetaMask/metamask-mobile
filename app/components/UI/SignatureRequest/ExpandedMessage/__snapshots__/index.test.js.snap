@@ -7,11 +7,9 @@ exports[`ExpandedMessage should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
-      "flex": 1,
-      "maxHeight": "75%",
-      "paddingBottom": 20,
-      "paddingHorizontal": 16,
-      "paddingTop": 16,
+      "minHeight": "70%",
+      "padding": 24,
+      "paddingBottom": 44,
     }
   }
 >
@@ -100,6 +98,10 @@ exports[`ExpandedMessage should render correctly 1`] = `
         "flex": 1,
       }
     }
-  />
+  >
+    <TouchableWithoutFeedback>
+      <View />
+    </TouchableWithoutFeedback>
+  </ScrollViewMock>
 </View>
 `;

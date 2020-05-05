@@ -18,7 +18,6 @@ exports[`TransactionReview should render correctly 1`] = `
     confirmTestID=""
     confirmText="Confirm"
     confirmed={false}
-    noScroll={false}
     showCancelButton={true}
     showConfirmButton={true}
   >

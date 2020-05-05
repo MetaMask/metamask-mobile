@@ -17,7 +17,6 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
     confirmTestID=""
     confirmText="Next"
     confirmed={false}
-    noScroll={false}
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
     showCancelButton={true}

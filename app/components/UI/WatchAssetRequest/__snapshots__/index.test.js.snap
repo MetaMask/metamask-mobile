@@ -36,7 +36,6 @@ exports[`WatchAssetRequest should render correctly 1`] = `
     confirmTestID="request-signature-confirm-button"
     confirmText="ADD TOKEN"
     confirmed={false}
-    noScroll={false}
     onConfirmPress={[Function]}
     showCancelButton={true}
     showConfirmButton={true}

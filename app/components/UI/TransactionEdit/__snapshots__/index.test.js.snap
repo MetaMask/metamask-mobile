@@ -17,7 +17,6 @@ exports[`TransactionEdit should render correctly 1`] = `
     confirmText="Next"
     confirmed={false}
     keyboardShouldPersistTaps="handled"
-    noScroll={false}
     onConfirmPress={[Function]}
     onTouchablePress={[Function]}
     showCancelButton={true}

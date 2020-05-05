@@ -1,68 +1,46 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PersonalSign should render correctly 1`] = `
-<View
-  style={
+<Connect(SignatureRequest)
+  currentPageInformation={
     Object {
-      "backgroundColor": "#FFFFFF",
-      "borderTopLeftRadius": 20,
-      "borderTopRightRadius": 20,
-      "minHeight": "70%",
-      "paddingBottom": 20,
+      "title": "title",
+      "url": "url",
     }
   }
+  onCancel={[Function]}
+  onConfirm={[Function]}
+  truncateMessage={false}
+  type="personalSign"
 >
-  <Connect(SignatureRequest)
-    currentPageInformation={
+  <View
+    style={
       Object {
-        "title": "title",
-        "url": "url",
+        "marginBottom": 5,
       }
     }
-    onCancel={[Function]}
-    onConfirm={[Function]}
-    shouldRenderArrow={false}
-    showExpandedMessage={false}
-    toggleExpandedMessage={[Function]}
-    type="personalSign"
   >
-    <View
-      style={
-        Object {
-          "alignItems": "flex-start",
-          "flexDirection": "column",
-          "width": "75%",
-        }
-      }
+    <Text
+      onTextLayout={[Function]}
     >
       <Text
+        key="txt_0"
         style={
-          Object {
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 16,
-            "fontWeight": "600",
-            "marginBottom": 5,
-          }
-        }
-      >
-        Message
-      </Text>
-      <Text
-        onTextLayout={[Function]}
-      >
-        <Text
-          key="txt_0"
-          style={
+          Array [
             Object {
               "color": "#000000",
               "fontFamily": "CircularStd-Medium",
               "fontSize": 14,
               "fontWeight": "400",
-            }
-          }
-        />
-      </Text>
-    </View>
-  </Connect(SignatureRequest)>
-</View>
+              "textAlign": "center",
+            },
+            Object {
+              "textAlign": "left",
+            },
+          ]
+        }
+      />
+    </Text>
+  </View>
+</Connect(SignatureRequest)>
 `;

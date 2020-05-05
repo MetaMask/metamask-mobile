@@ -1,64 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TypedSign should render correctly 1`] = `
-<View
-  style={
+<Connect(SignatureRequest)
+  currentPageInformation={
     Object {
-      "backgroundColor": "#FFFFFF",
-      "borderTopLeftRadius": 20,
-      "borderTopRightRadius": 20,
-      "minHeight": "70%",
-      "paddingBottom": 20,
+      "title": "title",
+      "url": "url",
     }
   }
+  onCancel={[Function]}
+  onConfirm={[Function]}
+  truncateMessage={false}
+  type="typedSign"
 >
-  <Connect(SignatureRequest)
-    currentPageInformation={
-      Object {
-        "title": "title",
-        "url": "url",
-      }
-    }
-    onCancel={[Function]}
-    onConfirm={[Function]}
-    shouldRenderArrow={true}
-    toggleExpandedMessage={[Function]}
-    type="typedSign"
-  >
-    <View
-      style={
-        Object {
-          "alignItems": "flex-start",
-          "flexDirection": "column",
-          "width": "75%",
-        }
-      }
-    >
-      <Text
-        style={
-          Object {
-            "flex": 1,
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 16,
-            "fontWeight": "600",
-            "marginBottom": 5,
-          }
-        }
-      >
-        Message
-        :
-      </Text>
-      <View
-        style={
-          Object {
-            "flex": 4,
-            "flexDirection": "column",
-            "overflow": "hidden",
-            "zIndex": 1,
-          }
-        }
-      />
-    </View>
-  </Connect(SignatureRequest)>
-</View>
+  <View
+    onLayout={[Function]}
+    style={Array []}
+  />
+</Connect(SignatureRequest)>
 `;

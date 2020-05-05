@@ -10,7 +10,6 @@ exports[`AccountInfoCard should render correctly 1`] = `
       "flexDirection": "row",
       "justifyContent": "flex-start",
       "padding": 16,
-      "width": "90%",
     }
   }
 >
@@ -28,8 +27,8 @@ exports[`AccountInfoCard should render correctly 1`] = `
       Object {
         "alignItems": "flex-start",
         "flexDirection": "column",
+        "flexGrow": 1,
         "justifyContent": "center",
-        "width": "80%",
       }
     }
   >
@@ -51,7 +50,6 @@ exports[`AccountInfoCard should render correctly 1`] = `
             "fontWeight": "600",
             "marginRight": 2,
             "maxWidth": "55%",
-            "textAlign": "left",
           }
         }
       >
@@ -61,11 +59,10 @@ exports[`AccountInfoCard should render correctly 1`] = `
         numberOfLines={1}
         style={
           Object {
+            "flexGrow": 1,
             "fontFamily": "CircularStd-Medium",
             "fontSize": 16,
             "fontWeight": "600",
-            "maxWidth": "50%",
-            "textAlign": "right",
           }
         }
       >
