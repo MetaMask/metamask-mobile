@@ -41,12 +41,19 @@ export default class MessageSign extends PureComponent {
 		/**
 		 * Object containing current page title and url
 		 */
-		currentPageInformation: PropTypes.object
+		currentPageInformation: PropTypes.object,
+		/**
+		 * Hides or shows the expanded signing message
+		 */
+		toggleExpandedMessage: PropTypes.func,
+		/**
+		 * Indicated whether or not the expanded message is shown
+		 */
+		showExpandedMessage: PropTypes.bool
 	};
 
 	state = {
-		truncateMessage: false,
-		showExpandedMessage: false
+		truncateMessage: false
 	};
 
 	signMessage = async () => {
@@ -76,8 +83,8 @@ export default class MessageSign extends PureComponent {
 	};
 
 	renderMessageText = () => {
-		const { messageParams } = this.props;
-		const { truncateMessage, showExpandedMessage } = this.state;
+		const { messageParams, showExpandedMessage } = this.props;
+		const { truncateMessage } = this.state;
 
 		let messageText;
 		if (showExpandedMessage) {
@@ -102,18 +109,13 @@ export default class MessageSign extends PureComponent {
 		this.setState({ truncateMessage: false });
 	};
 
-	toggleExpandedMessage = () => {
-		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
-	};
-
 	render() {
-		const { currentPageInformation, navigation } = this.props;
-		const { showExpandedMessage } = this.state;
+		const { currentPageInformation, navigation, showExpandedMessage, toggleExpandedMessage } = this.props;
 		const rootView = showExpandedMessage ? (
 			<ExpandedMessage
 				currentPageInformation={currentPageInformation}
 				renderMessage={this.renderMessageText}
-				toggleExpandedMessage={this.toggleExpandedMessage}
+				toggleExpandedMessage={toggleExpandedMessage}
 			/>
 		) : (
 			<SignatureRequest
@@ -123,7 +125,7 @@ export default class MessageSign extends PureComponent {
 				currentPageInformation={currentPageInformation}
 				truncateMessage={this.state.truncateMessage}
 				showExpandedMessage={showExpandedMessage}
-				toggleExpandedMessage={this.toggleExpandedMessage}
+				toggleExpandedMessage={toggleExpandedMessage}
 				type="ethSign"
 				showWarning
 			>

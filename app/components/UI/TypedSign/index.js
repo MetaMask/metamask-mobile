@@ -54,11 +54,18 @@ export default class TypedSign extends PureComponent {
 		/**
 		 * Object containing current page title and url
 		 */
-		currentPageInformation: PropTypes.object
+		currentPageInformation: PropTypes.object,
+		/**
+		 * Hides or shows the expanded signing message
+		 */
+		toggleExpandedMessage: PropTypes.func,
+		/**
+		 * Indicated whether or not the expanded message is shown
+		 */
+		showExpandedMessage: PropTypes.bool
 	};
 
 	state = {
-		showExpandedMessage: false,
 		truncateMessage: false
 	};
 
@@ -87,10 +94,6 @@ export default class TypedSign extends PureComponent {
 	confirmSignature = () => {
 		this.signMessage();
 		this.props.onConfirm();
-	};
-
-	toggleExpandedMessage = () => {
-		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
 	};
 
 	shouldTruncateMessage = e => {
@@ -141,24 +144,24 @@ export default class TypedSign extends PureComponent {
 	};
 
 	render() {
-		const { messageParams, currentPageInformation } = this.props;
+		const { messageParams, currentPageInformation, showExpandedMessage, toggleExpandedMessage } = this.props;
 		const { truncateMessage } = this.state;
 		let domain;
 		if (messageParams.version === 'V3') {
 			domain = JSON.parse(messageParams.data).domain;
 		}
-		const rootView = this.state.showExpandedMessage ? (
+		const rootView = showExpandedMessage ? (
 			<ExpandedMessage
 				currentPageInformation={currentPageInformation}
 				renderMessage={this.renderTypedMessage}
-				toggleExpandedMessage={this.toggleExpandedMessage}
+				toggleExpandedMessage={toggleExpandedMessage}
 			/>
 		) : (
 			<SignatureRequest
 				navigation={this.props.navigation}
 				onCancel={this.cancelSignature}
 				onConfirm={this.confirmSignature}
-				toggleExpandedMessage={this.toggleExpandedMessage}
+				toggleExpandedMessage={toggleExpandedMessage}
 				domain={domain}
 				currentPageInformation={currentPageInformation}
 				truncateMessage={truncateMessage}

@@ -46,12 +46,19 @@ export default class PersonalSign extends PureComponent {
 		/**
 		 * Object containing current page title and url
 		 */
-		currentPageInformation: PropTypes.object
+		currentPageInformation: PropTypes.object,
+		/**
+		 * Hides or shows the expanded signing message
+		 */
+		toggleExpandedMessage: PropTypes.func,
+		/**
+		 * Indicated whether or not the expanded message is shown
+		 */
+		showExpandedMessage: PropTypes.bool
 	};
 
 	state = {
-		truncateMessage: false,
-		showExpandedMessage: false
+		truncateMessage: false
 	};
 
 	signMessage = async () => {
@@ -81,8 +88,8 @@ export default class PersonalSign extends PureComponent {
 	};
 
 	renderMessageText = () => {
-		const { messageParams } = this.props;
-		const { truncateMessage, showExpandedMessage } = this.state;
+		const { messageParams, showExpandedMessage } = this.props;
+		const { truncateMessage } = this.state;
 		const textChild = util
 			.hexToText(messageParams.data)
 			.split('\n')
@@ -114,18 +121,13 @@ export default class PersonalSign extends PureComponent {
 		this.setState({ truncateMessage: false });
 	};
 
-	toggleExpandedMessage = () => {
-		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
-	};
-
 	render() {
-		const { currentPageInformation } = this.props;
-		const { showExpandedMessage } = this.state;
+		const { currentPageInformation, toggleExpandedMessage, showExpandedMessage } = this.props;
 		const rootView = showExpandedMessage ? (
 			<ExpandedMessage
 				currentPageInformation={currentPageInformation}
 				renderMessage={this.renderMessageText}
-				toggleExpandedMessage={this.toggleExpandedMessage}
+				toggleExpandedMessage={toggleExpandedMessage}
 			/>
 		) : (
 			<SignatureRequest
@@ -134,7 +136,7 @@ export default class PersonalSign extends PureComponent {
 				onConfirm={this.confirmSignature}
 				currentPageInformation={currentPageInformation}
 				showExpandedMessage={showExpandedMessage}
-				toggleExpandedMessage={this.toggleExpandedMessage}
+				toggleExpandedMessage={toggleExpandedMessage}
 				truncateMessage={this.state.truncateMessage}
 				type="personalSign"
 			>
