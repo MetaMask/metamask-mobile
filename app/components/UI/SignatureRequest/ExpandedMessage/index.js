@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import WebsiteIcon from '../../WebsiteIcon';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: 16
 	},
-	messageWrapper: {
+	scrollView: {
 		...baseStyles.flexGrow
 	}
 });
@@ -94,9 +94,11 @@ export default class ExpandedMessage extends PureComponent {
 						{strings('signature_request.message_from')} {title}
 					</Text>
 				</View>
-				<View style={styles.messageWrapper}>
-					<ScrollView>{renderMessage()}</ScrollView>
-				</View>
+				<ScrollView style={styles.scrollView}>
+					<TouchableWithoutFeedback>
+						<View>{renderMessage()}</View>
+					</TouchableWithoutFeedback>
+				</ScrollView>
 			</View>
 		);
 	}
