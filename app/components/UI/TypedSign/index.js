@@ -18,15 +18,16 @@ const styles = StyleSheet.create({
 	},
 	truncatedMessageWrapper: {
 		marginBottom: 5,
-		height: 70,
 		overflow: 'hidden'
+	},
+	iosHeight: {
+		height: 70
+	},
+	androidHeight: {
+		height: 97
 	},
 	msgKey: {
 		fontWeight: 'bold'
-	},
-	messageWrapper: {
-		marginBottom: 5,
-		overflow: 'hidden'
 	}
 });
 
@@ -97,7 +98,10 @@ export default class TypedSign extends PureComponent {
 	};
 
 	shouldTruncateMessage = e => {
-		if (e.nativeEvent.layout.height > 70) {
+		if (
+			(Device.isIos() && e.nativeEvent.layout.height > 70) ||
+			(Device.isAndroid() && e.nativeEvent.layout.height > 100)
+		) {
 			this.setState({ truncateMessage: true });
 			return;
 		}
@@ -146,10 +150,20 @@ export default class TypedSign extends PureComponent {
 	render() {
 		const { messageParams, currentPageInformation, showExpandedMessage, toggleExpandedMessage } = this.props;
 		const { truncateMessage } = this.state;
+		const messageWrapperStyles = [];
 		let domain;
 		if (messageParams.version === 'V3') {
 			domain = JSON.parse(messageParams.data).domain;
 		}
+		if (truncateMessage) {
+			messageWrapperStyles.push(styles.truncatedMessageWrapper);
+			if (Device.isIos()) {
+				messageWrapperStyles.push(styles.iosHeight);
+			} else {
+				messageWrapperStyles.push(styles.androidHeight);
+			}
+		}
+
 		const rootView = showExpandedMessage ? (
 			<ExpandedMessage
 				currentPageInformation={currentPageInformation}
@@ -167,10 +181,7 @@ export default class TypedSign extends PureComponent {
 				truncateMessage={truncateMessage}
 				type="typedSign"
 			>
-				<View
-					style={truncateMessage ? styles.truncatedMessageWrapper : styles.messageWrapper}
-					onLayout={truncateMessage ? null : this.shouldTruncateMessage}
-				>
+				<View style={messageWrapperStyles} onLayout={truncateMessage ? null : this.shouldTruncateMessage}>
 					{this.renderTypedMessage()}
 				</View>
 			</SignatureRequest>
