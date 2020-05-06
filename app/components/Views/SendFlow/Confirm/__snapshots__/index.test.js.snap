@@ -93,8 +93,12 @@ exports[`Confirm should render correctly 1`] = `
       }
     >
       <TransactionSummary
+        amount=""
+        fee=""
         gasEstimationReady={false}
         onEditPress={[Function]}
+        secondaryTotalAmount=""
+        totalAmount=""
       />
     </View>
     <View

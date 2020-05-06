@@ -560,14 +560,14 @@ class Confirm extends PureComponent {
 		this.setState({ transactionConfirmed: true });
 		const {
 			navigation,
-			transactionState: { transaction, readableValue }
+			transactionState: { readableValue, transactionTo }
 		} = this.props;
 		if (this.sending) {
 			return;
 		}
 		try {
 			const params = {
-				sendRecipient: transaction.to,
+				sendRecipient: transactionTo,
 				sendAmount: readableValue
 			};
 
@@ -785,14 +785,16 @@ class Confirm extends PureComponent {
 						</View>
 					)}
 					<View style={styles.summaryWrapper}>
-						<TransactionSummary
-							amount={transactionValueFiat}
-							fee={transactionFeeFiat}
-							totalAmount={transactionTotalAmountFiat}
-							secondaryTotalAmount={transactionTotalAmount}
-							gasEstimationReady={gasEstimationReady}
-							onEditPress={this.toggleCustomGasModal}
-						/>
+						{!isPaymentChannelTransaction && (
+							<TransactionSummary
+								amount={transactionValueFiat}
+								fee={transactionFeeFiat}
+								totalAmount={transactionTotalAmountFiat}
+								secondaryTotalAmount={transactionTotalAmount}
+								gasEstimationReady={gasEstimationReady}
+								onEditPress={this.toggleCustomGasModal}
+							/>
+						)}
 					</View>
 					{errorMessage && (
 						<View style={styles.errorMessageWrapper}>

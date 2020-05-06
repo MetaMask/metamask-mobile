@@ -548,9 +548,7 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	selectedAsset: state.transaction.paymentChannelTransaction
-		? state.transaction.selectedAsset
-		: state.transaction.selectedAsset,
+	selectedAsset: state.transaction.selectedAsset,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,

@@ -92,14 +92,14 @@ export default class TransactionSummary extends PureComponent {
 					<Text style={[styles.textSummary, styles.textSummaryAmount]}>{amount}</Text>
 				</View>
 				<View style={styles.summaryRow}>
-					
 					<View style={styles.transactionFeeLeft}>
 						<Text style={[styles.textSummary, !fee ? styles.textFee : null]}>
-							{!fee ? strings('transaction.transaction_fee_less') : strings('transaction.transaction_fee')}
+							{!fee
+								? strings('transaction.transaction_fee_less')
+								: strings('transaction.transaction_fee')}
 						</Text>
-						{!fee
-							? null
-							: <TouchableOpacity
+						{!fee || !onEditPress ? null : (
+							<TouchableOpacity
 								disabled={!gasEstimationReady}
 								onPress={onEditPress}
 								key="transactionFeeEdit"
@@ -108,7 +108,7 @@ export default class TransactionSummary extends PureComponent {
 									{strings('transaction.edit')}
 								</Text>
 							</TouchableOpacity>
-						}
+						)}
 					</View>
 					{!!fee &&
 						this.renderIfGastEstimationReady(

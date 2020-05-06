@@ -425,7 +425,7 @@ class Main extends PureComponent {
 		/**
 		 * Dispatch hiding a transaction notification
 		 */
-		hideTransactionNotification: PropTypes.func
+		hideTransactionNotification: PropTypes.func,
 		/**
 		 * Indicates whether the current transaction is a payment channel transaction
 		 */

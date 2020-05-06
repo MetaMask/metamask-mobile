@@ -349,7 +349,9 @@ export function getTransactionToName({ addressBook, network, toAddress, identiti
 	const checksummedToAddress = toChecksumAddress(toAddress);
 
 	const transactionToName =
-		(networkAddressBook[checksummedToAddress] && networkAddressBook[checksummedToAddress].name) ||
+		(networkAddressBook &&
+			networkAddressBook[checksummedToAddress] &&
+			networkAddressBook[checksummedToAddress].name) ||
 		(identities[checksummedToAddress] && identities[checksummedToAddress].name);
 
 	return transactionToName;
