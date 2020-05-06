@@ -60,9 +60,17 @@ const styles = StyleSheet.create({
 	cancel: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.blue
+		borderColor: colors.grey400
 	},
 	cancelText: {
+		color: colors.grey400
+	},
+	signingCancel: {
+		backgroundColor: colors.white,
+		borderWidth: 1,
+		borderColor: colors.blue
+	},
+	signingCancelText: {
 		color: colors.blue
 	},
 	warning: {
@@ -129,6 +137,10 @@ function getStyles(type) {
 		case 'cancel':
 			fontStyle = styles.cancelText;
 			containerStyle = styles.cancel;
+			break;
+		case 'signingCancel':
+			fontStyle = styles.signingCancelText;
+			containerStyle = styles.signingCancel;
 			break;
 		case 'transparent':
 			fontStyle = styles.whiteText;

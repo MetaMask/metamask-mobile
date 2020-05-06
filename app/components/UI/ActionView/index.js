@@ -67,7 +67,7 @@ export default function ActionView({
 				{showCancelButton && (
 					<StyledButton
 						testID={cancelTestID}
-						type={'cancel'}
+						type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
 						onPress={onCancelPress}
 						containerStyle={[styles.button, styles.cancel]}
 						disabled={confirmed}
