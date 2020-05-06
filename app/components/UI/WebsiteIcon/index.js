@@ -87,10 +87,7 @@ export default class WebsiteIcon extends PureComponent {
 		const nodeList = doc.getElementsByTagName('link');
 
 		// collect all <link>'s into an array for filtering
-		const links = [];
-		for (let i = 0; i < nodeList.length; i++) {
-			links.push(nodeList[i]);
-		}
+		const links = Array.from(nodeList);
 
 		// filter out non icons (like stylesheets)
 		const icons = links.filter(el => {
