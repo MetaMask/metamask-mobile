@@ -238,9 +238,9 @@ class SignatureRequest extends PureComponent {
 	render() {
 		const { showWarning, currentPageInformation, type } = this.props;
 		let expandedHeight;
-		if (Device.getDeviceHeight() < 736) {
+		if (Device.isMediumDevice()) {
 			expandedHeight = styles.expandedHeight2;
-		} else if (type === 'ethSign' && Device.getDeviceHeight() >= 736) {
+		} else if (type === 'ethSign' && Device.isMediumDevice()) {
 			expandedHeight = styles.expandedHeight1;
 		}
 		return (
