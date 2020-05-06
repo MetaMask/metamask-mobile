@@ -7,6 +7,7 @@ import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
+import { getTicker } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	accountInformation: {
@@ -74,13 +75,25 @@ class AccountInfoCard extends PureComponent {
 		/**
 		 * Declares the operation being performed i.e. 'signing'
 		 */
-		operation: PropTypes.string
+		operation: PropTypes.string,
+		/**
+		 * Current selected ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	render() {
-		const { accounts, selectedAddress, identities, conversionRate, currentCurrency, operation } = this.props;
+		const {
+			accounts,
+			selectedAddress,
+			identities,
+			conversionRate,
+			currentCurrency,
+			operation,
+			ticker
+		} = this.props;
 		const weiBalance = hexToBN(accounts[selectedAddress].balance);
-		const balance = renderFromWei(weiBalance);
+		const balance = `(${renderFromWei(weiBalance)} ${getTicker(ticker)})`;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		const address = renderShortAddress(selectedAddress);
 		const dollarBalance = weiToFiat(weiBalance, conversionRate, currentCurrency);
@@ -98,8 +111,7 @@ class AccountInfoCard extends PureComponent {
 					</View>
 					{operation === 'signing' ? null : (
 						<Text numberOfLines={1} style={styles.balanceText}>
-							{strings('signature_request.balance_title')} {dollarBalance} ({balance}{' '}
-							{strings('unit.eth')})
+							{strings('signature_request.balance_title')} {dollarBalance} {balance}
 						</Text>
 					)}
 				</View>
@@ -113,7 +125,8 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 export default connect(mapStateToProps)(AccountInfoCard);
