@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 	messageLabelText: {
 		...fontStyles.bold,
 		fontSize: 16,
-		marginBottom: 5
+		marginBottom: 4
 	},
 	readMore: {
 		color: colors.blue,

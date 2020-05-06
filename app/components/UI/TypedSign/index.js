@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 		marginLeft: 10
 	},
 	truncatedMessageWrapper: {
-		marginBottom: 5,
+		marginBottom: 4,
 		overflow: 'hidden'
 	},
 	iosHeight: {

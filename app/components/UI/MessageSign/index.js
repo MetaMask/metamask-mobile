@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 		fontSize: 14
 	},
 	messageWrapper: {
-		marginBottom: 5
+		marginBottom: 4
 	}
 });
 

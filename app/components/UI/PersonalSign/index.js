@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		textAlign: 'left'
 	},
 	messageWrapper: {
-		marginBottom: 5
+		marginBottom: 4
 	}
 });
 
