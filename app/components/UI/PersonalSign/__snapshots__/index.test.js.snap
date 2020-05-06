@@ -16,7 +16,7 @@ exports[`PersonalSign should render correctly 1`] = `
   <View
     style={
       Object {
-        "marginBottom": 5,
+        "marginBottom": 4,
       }
     }
   >

@@ -26,6 +26,11 @@ describe('AccountInfoCard', () => {
 					},
 					CurrencyRateController: {
 						conversionRate: 10
+					},
+					NetworkController: {
+						provider: {
+							ticker: 'eth'
+						}
 					}
 				}
 			}

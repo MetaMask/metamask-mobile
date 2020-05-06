@@ -85,11 +85,8 @@ exports[`AccountInfoCard should render correctly 1`] = `
       Balance:
        
       0 undefined
-       (
-      &lt; 0.00001
        
-      ETH
-      )
+      (&lt; 0.00001 eth)
     </Text>
   </View>
 </View>
