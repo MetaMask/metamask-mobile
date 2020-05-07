@@ -108,7 +108,7 @@ checkParameters(){
 
 prebuild(){
 	# Import provider
-	cp node_modules/metamask-mobile-provider/dist/index.js app/core/InpageBridgeWeb3.js
+	cp node_modules/@metamask/mobile-provider/dist/index.js app/core/InpageBridgeWeb3.js
 
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then

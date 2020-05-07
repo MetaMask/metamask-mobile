@@ -909,6 +909,11 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^13.0.0"
 
+"@metamask/mobile-provider@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.0.tgz#d28f58f213ca364c9a732b867eef74301542699a"
+  integrity sha512-W4kmc6wXDiEkdh69OmI26IrDNhp5vDfsRBnOWLhQ/c3Prl+jz05D2n9u4Ryx/4FUTUa5G0LpCwR2KS9SMz0ZIw==
+
 "@react-native-community/async-storage@1.9.0":
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/@react-native-community/async-storage/-/async-storage-1.9.0.tgz#af26a8879bd2987970fbbe81a9623851d29a56f1"
@@ -7303,11 +7308,6 @@ merkle-patricia-tree@^2.1.2, merkle-patricia-tree@^2.3.2:
     readable-stream "^2.0.0"
     rlp "^2.0.0"
     semaphore ">=1.0.1"
-
-metamask-mobile-provider@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/metamask-mobile-provider/-/metamask-mobile-provider-1.1.0.tgz#477aa8ee55d91bd79a0f4c00a5083be159a5a678"
-  integrity sha512-GZLiq2sCPvYlHT4xYVklrAg6hWA/RZyFoekCtQz+842LbFtajHYmSb0DW5GDgEdQ/unaABU9A6BfKpfUurOe2A==
 
 methods@^1.1.1:
   version "1.1.2"
