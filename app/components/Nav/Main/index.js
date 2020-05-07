@@ -440,7 +440,8 @@ class Main extends PureComponent {
 		paymentChannelRequest: false,
 		paymentChannelRequestLoading: false,
 		paymentChannelRequestCompleted: false,
-		paymentChannelRequestInfo: {}
+		paymentChannelRequestInfo: {},
+		showExpandedMessage: false
 	};
 
 	backgroundMode = false;
@@ -929,8 +930,19 @@ class Main extends PureComponent {
 		this.setState({ signMessage: false });
 	};
 
+	toggleExpandedMessage = () => {
+		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
+	};
+
 	renderSigningModal = () => {
-		const { signMessage, signMessageParams, signType, currentPageTitle, currentPageUrl } = this.state;
+		const {
+			signMessage,
+			signMessageParams,
+			signType,
+			currentPageTitle,
+			currentPageUrl,
+			showExpandedMessage
+		} = this.state;
 		return (
 			<Modal
 				isVisible={signMessage}
@@ -941,7 +953,7 @@ class Main extends PureComponent {
 				animationInTiming={600}
 				animationOutTiming={600}
 				onBackdropPress={this.onSignAction}
-				onBackButtonPress={this.onSignAction}
+				onBackButtonPress={showExpandedMessage ? this.toggleExpandedMessage : this.onSignAction}
 				onSwipeComplete={this.onSignAction}
 				swipeDirection={'down'}
 				propagateSwipe
@@ -952,6 +964,8 @@ class Main extends PureComponent {
 						onCancel={this.onSignAction}
 						onConfirm={this.onSignAction}
 						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+						toggleExpandedMessage={this.toggleExpandedMessage}
+						showExpandedMessage={showExpandedMessage}
 					/>
 				)}
 				{signType === 'typed' && (
@@ -960,6 +974,8 @@ class Main extends PureComponent {
 						onCancel={this.onSignAction}
 						onConfirm={this.onSignAction}
 						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+						toggleExpandedMessage={this.toggleExpandedMessage}
+						showExpandedMessage={showExpandedMessage}
 					/>
 				)}
 				{signType === 'eth' && (
@@ -969,6 +985,8 @@ class Main extends PureComponent {
 						onCancel={this.onSignAction}
 						onConfirm={this.onSignAction}
 						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+						toggleExpandedMessage={this.toggleExpandedMessage}
+						showExpandedMessage={showExpandedMessage}
 					/>
 				)}
 			</Modal>
