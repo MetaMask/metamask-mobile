@@ -16,7 +16,6 @@ import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
 import { getHost } from '../../../../util/browser';
-import TransactionDirection from '../../TransactionDirection';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress, renderShortAddress, renderAccountName } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
@@ -814,7 +813,6 @@ class Approve extends PureComponent {
 					propagateSwipe
 				>
 					<View style={styles.approveView}>
-						<TransactionDirection />
 						<View style={styles.section} testID={'approve-screen'}>
 							<View style={styles.websiteIconWrapper}>
 								<WebsiteIcon style={styles.icon} url={transaction.origin} title={host} />
