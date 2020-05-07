@@ -726,7 +726,7 @@ class Confirm extends PureComponent {
 	};
 
 	render = () => {
-		const { transactionToName, selectedAsset } = this.props.transactionState;
+		const { transactionToName, selectedAsset, deepLinkTransaction } = this.props.transactionState;
 		const { showHexData, isPaymentChannelTransaction } = this.props;
 		const {
 			gasEstimationReady,
@@ -746,7 +746,7 @@ class Confirm extends PureComponent {
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
 					<AddressFrom
-						onPressIcon={isPaymentChannelTransaction ? null : this.toggleFromAccountModal}
+						onPressIcon={!deepLinkTransaction ? null : this.toggleFromAccountModal}
 						fromAccountAddress={fromSelectedAddress}
 						fromAccountName={fromAccountName}
 						fromAccountBalance={fromAccountBalance}

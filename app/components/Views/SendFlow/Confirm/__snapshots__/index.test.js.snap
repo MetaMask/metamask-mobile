@@ -22,7 +22,7 @@ exports[`Confirm should render correctly 1`] = `
   >
     <AddressFrom
       fromAccountAddress="0x1"
-      onPressIcon={[Function]}
+      onPressIcon={null}
     />
     <AddressTo
       addressToReady={true}
