@@ -94,20 +94,14 @@ exports[`SignatureRequest should render correctly 1`] = `
         <WebsiteIcon
           style={
             Object {
-              "height": "100%",
-              "width": "100%",
-            }
-          }
-          title="url"
-          url="url"
-          viewStyle={
-            Object {
               "borderRadius": 20,
               "height": 40,
               "marginRight": 8,
               "width": 40,
             }
           }
+          title="url"
+          url="url"
         />
         <View
           style={
