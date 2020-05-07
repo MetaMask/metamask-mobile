@@ -533,7 +533,7 @@ class Amount extends PureComponent {
 		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
 			if (paymentChannelTransaction) {
-				weiBalance = toBN(selectedAsset.assetBalance);
+				weiBalance = toBN(Number(selectedAsset.assetBalance));
 				weiInput = toBN(inputValue);
 			} else if (selectedAsset.isETH) {
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
