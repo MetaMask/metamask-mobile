@@ -44,6 +44,10 @@ RCT_REMAP_METHOD(getRemoteVariables,
   }
 }
 
+- (NSString *)distinctId {
+  return [[Mixpanel sharedInstance] distinctId];
+}
+
 - (NSString *)getCategory:(NSDictionary *)event{
   return event[@"category"];
 }
