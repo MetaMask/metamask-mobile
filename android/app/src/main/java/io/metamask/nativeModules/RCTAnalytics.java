@@ -54,6 +54,11 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 	}
 
 	@ReactMethod
+	public String getDistinctId() {
+		return this.mixpanel.getDistinctId();
+	}
+
+	@ReactMethod
 	public void optIn(boolean val) {
 
 
