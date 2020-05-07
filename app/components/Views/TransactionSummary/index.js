@@ -58,7 +58,8 @@ const styles = StyleSheet.create({
 	},
 	transactionEditText: {
 		fontSize: 12,
-		marginLeft: 8
+		marginLeft: 8,
+		color: colors.blue
 	}
 });
 
