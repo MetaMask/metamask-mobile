@@ -1,3 +1,7 @@
+function getDefinedProperties(object) {
+	return Object.entries(object).reduce((obj, [key, val]) => (val !== undefined ? { ...obj, [key]: val } : obj), {});
+}
+
 /**
  * Get the standard set of properties of a transaction from a larger set of tx data
  *
@@ -6,14 +10,8 @@
  */
 export function getTxData(txMeta = {}) {
 	const { data, from, gas, gasPrice, to, value } = txMeta; // eslint-disable-line no-unused-vars
-	return {
-		data,
-		from,
-		gas,
-		gasPrice,
-		to,
-		value
-	};
+	const txData = { data, from, gas, gasPrice, to, value };
+	return getDefinedProperties(txData);
 }
 
 /**
@@ -24,5 +22,5 @@ export function getTxData(txMeta = {}) {
  */
 export function getTxMeta(txMeta = {}) {
 	const { data, from, gas, gasPrice, to, value, ...rest } = txMeta; // eslint-disable-line no-unused-vars
-	return { ...rest };
+	return getDefinedProperties(rest);
 }

@@ -14,6 +14,7 @@ import { addHexPrefix } from 'ethereumjs-util';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import Device from '../../../util/Device';
+import { getNormalizedTxState } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	root: {
@@ -468,7 +469,7 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	showHexData: state.settings.showHexData,
-	transaction: state.transaction
+	transaction: getNormalizedTxState(state)
 });
 
 export default connect(mapStateToProps)(TransactionEdit);

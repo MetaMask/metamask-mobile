@@ -356,3 +356,7 @@ export function getTransactionToName({ addressBook, network, toAddress, identiti
 
 	return transactionToName;
 }
+
+export function getNormalizedTxState(state) {
+	return { ...state.transaction, ...state.transaction.transaction };
+}

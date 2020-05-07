@@ -90,7 +90,10 @@ const transactionReducer = (state = initialState, action) => {
 
 			return {
 				...state,
-				transaction: getTxData(action.transaction),
+				transaction: {
+					...state.transaction,
+					...getTxData(action.transaction)
+				},
 				...txMeta
 			};
 		}
@@ -122,8 +125,8 @@ const transactionReducer = (state = initialState, action) => {
 				assetType: 'ETH',
 				selectedAsset: { isETH: true, symbol: 'ETH' },
 				type: 'ETHER_TRANSACTION',
-				...getTxMeta(action),
-				transaction: getTxData(action)
+				...getTxMeta(action.transaction),
+				transaction: getTxData(action.transaction)
 			};
 		case 'SET_INDIVIDUAL_TOKEN_TRANSACTION':
 			return {
