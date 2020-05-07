@@ -33,15 +33,11 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginBottom: 20
 	},
-	domainLogoWrapper: {
+	domainLogo: {
 		width: 40,
 		height: 40,
 		marginRight: 8,
 		borderRadius: 20
-	},
-	domainLogo: {
-		width: '100%',
-		height: '100%'
 	},
 	messageColumn: {
 		width: '75%',
@@ -210,12 +206,7 @@ class SignatureRequest extends PureComponent {
 					<AccountInfoCard operation="signing" />
 				</View>
 				<TouchableOpacity style={styles.children} onPress={truncateMessage ? toggleExpandedMessage : null}>
-					<WebsiteIcon
-						style={styles.domainLogo}
-						viewStyle={styles.domainLogoWrapper}
-						title={title}
-						url={url}
-					/>
+					<WebsiteIcon style={styles.domainLogo} title={title} url={url} />
 					<View style={styles.messageColumn}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}:</Text>
 						{children}
