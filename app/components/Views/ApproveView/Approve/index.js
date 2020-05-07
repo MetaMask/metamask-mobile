@@ -56,33 +56,50 @@ const styles = StyleSheet.create({
 	},
 	section: {
 		flexDirection: 'column',
-		paddingHorizontal: 24,
-		borderBottomWidth: 1,
-		borderBottomColor: colors.grey200,
-		paddingVertical: 20
+		padding: 24
 	},
 	title: {
-		...fontStyles.normal,
+		...fontStyles.bold,
 		fontSize: 24,
 		textAlign: 'center',
 		color: colors.black,
 		lineHeight: 34,
 		marginVertical: 16
 	},
+	host: {
+		...fontStyles.normal,
+		fontSize: 16,
+		textAlign: 'center',
+		color: colors.black,
+		lineHeight: 20,
+		marginTop: 8
+	},
+	network: {
+		...fontStyles.normal,
+		fontSize: 12,
+		textAlign: 'center',
+		color: colors.black,
+		lineHeight: 20
+	},
 	explanation: {
 		...fontStyles.normal,
 		fontSize: 14,
 		textAlign: 'center',
-		color: colors.grey500,
+		color: colors.black,
 		lineHeight: 20
 	},
 	editPermissionText: {
 		...fontStyles.bold,
 		color: colors.blue,
-		fontSize: 14,
+		fontSize: 12,
 		lineHeight: 20,
 		textAlign: 'center',
-		marginVertical: 20
+		marginVertical: 20,
+		borderWidth: 1,
+		borderRadius: 20,
+		borderColor: colors.blue,
+		paddingVertical: 8,
+		paddingHorizontal: 16
 	},
 	viewDetailsText: {
 		...fontStyles.normal,
@@ -816,14 +833,16 @@ class Approve extends PureComponent {
 							<View style={styles.websiteIconWrapper}>
 								<WebsiteIcon style={styles.icon} url={transaction.origin} title={host} />
 							</View>
+							<Text style={styles.host} testID={'host'}>
+								{host}
+							</Text>
+							<Text style={styles.network} testID={'network'}>
+								Ethereum
+							</Text>
 							<Text style={styles.title} testID={'allow-access'}>
-								{strings('spend_limit_edition.allow_to_access', { host, tokenSymbol })}
+								{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
 							</Text>
-							<Text style={styles.explanation}>
-								{strings('spend_limit_edition.you_trust_this_site_1')}
-								<Text style={fontStyles.bold}> {host} </Text>
-								{strings('spend_limit_edition.you_trust_this_site_2', { tokenSymbol })}
-							</Text>
+							<Text style={styles.explanation}>{strings('spend_limit_edition.you_trust_this_site')}</Text>
 							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermissionModal}>
 								<Text style={styles.editPermissionText}>
 									{strings('spend_limit_edition.edit_permission')}
