@@ -18,6 +18,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
+		paddingTop: 24,
 		minHeight: Device.isIos() ? '70%' : '80%',
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
 	},
 	signingInformation: {
 		alignItems: 'center',
-		marginBottom: 20
+		marginVertical: 24
 	},
 	domainLogo: {
 		width: 40,
