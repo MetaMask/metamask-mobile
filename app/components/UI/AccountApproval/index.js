@@ -10,36 +10,31 @@ import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { getHost } from '../../../util/browser';
 
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
-		minHeight: '55%',
+		minHeight: Device.isMediumDevice() ? '75%' : '60%',
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
-	wrapper: {
+	accountCardWrapper: {
 		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		minHeight: '100%'
+		paddingHorizontal: 24
 	},
 	intro: {
 		...fontStyles.bold,
 		textAlign: 'center',
 		color: colors.fontPrimary,
-		fontSize: Device.isSmallDevice() ? 16 : 20,
-		marginBottom: 15
+		fontSize: Device.isSmallDevice() ? 16 : 20
 	},
 	warning: {
 		...fontStyles.thin,
 		color: colors.fontPrimary,
+		padding: 24,
 		fontSize: 14,
-		width: '90%',
-		marginBottom: 15,
+		width: '100%',
 		textAlign: 'center'
 	}
 });
@@ -135,6 +130,8 @@ class AccountApproval extends PureComponent {
 		return (
 			<View style={styles.root}>
 				<TransactionHeader currentPageInformation={currentPageInformation} />
+				<Text style={styles.intro}>{strings('accountApproval.action')}</Text>
+				<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
 				<ActionView
 					cancelText={strings('accountApproval.cancel')}
 					confirmText={strings('accountApproval.connect')}
@@ -142,9 +139,7 @@ class AccountApproval extends PureComponent {
 					onConfirmPress={this.onConfirm}
 					confirmButtonMode={'confirm'}
 				>
-					<View style={styles.wrapper}>
-						<Text style={styles.intro}>{strings('accountApproval.action')}</Text>
-						<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
+					<View style={styles.accountCardWrapper}>
 						<AccountInfoCard />
 					</View>
 				</ActionView>
