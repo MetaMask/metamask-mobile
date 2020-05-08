@@ -14,7 +14,6 @@ import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
-import WebsiteIcon from '../../../UI/WebsiteIcon';
 import { getHost } from '../../../../util/browser';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress, renderShortAddress, renderAccountName } from '../../../../util/address';
@@ -42,17 +41,13 @@ import Identicon from '../../../UI/Identicon';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Device from '../../../../util/Device';
+import TransactionHeader from '../../../UI/TransactionHeader';
 
 const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1
-	},
-	icon: {
-		borderRadius: 32,
-		height: 64,
-		width: 64
 	},
 	section: {
 		flexDirection: 'column',
@@ -65,21 +60,6 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		lineHeight: 34,
 		marginVertical: 16
-	},
-	host: {
-		...fontStyles.normal,
-		fontSize: 16,
-		textAlign: 'center',
-		color: colors.black,
-		lineHeight: 20,
-		marginTop: 8
-	},
-	network: {
-		...fontStyles.normal,
-		fontSize: 12,
-		textAlign: 'center',
-		color: colors.black,
-		lineHeight: 20
 	},
 	explanation: {
 		...fontStyles.normal,
@@ -109,10 +89,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	actionTouchable: {
-		flexDirection: 'column',
-		alignItems: 'center'
-	},
-	websiteIconWrapper: {
 		flexDirection: 'column',
 		alignItems: 'center'
 	},
@@ -830,15 +806,7 @@ class Approve extends PureComponent {
 				>
 					<View>
 						<View style={styles.section} testID={'approve-screen'}>
-							<View style={styles.websiteIconWrapper}>
-								<WebsiteIcon style={styles.icon} url={transaction.origin} title={host} />
-							</View>
-							<Text style={styles.host} testID={'host'}>
-								{host}
-							</Text>
-							<Text style={styles.network} testID={'network'}>
-								Ethereum
-							</Text>
+							<TransactionHeader currentPageInformation={{ title: host, url: transaction.origin }} />
 							<Text style={styles.title} testID={'allow-access'}>
 								{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
 							</Text>
