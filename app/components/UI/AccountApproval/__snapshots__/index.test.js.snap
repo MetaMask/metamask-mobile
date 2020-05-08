@@ -7,8 +7,9 @@ exports[`AccountApproval should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
-      "minHeight": "60%",
+      "minHeight": "57%",
       "paddingBottom": 20,
+      "paddingTop": 24,
     }
   }
 >
@@ -28,6 +29,8 @@ exports[`AccountApproval should render correctly 1`] = `
         "fontFamily": "CircularStd-Medium",
         "fontSize": 20,
         "fontWeight": "600",
+        "marginBottom": 8,
+        "marginTop": 16,
         "textAlign": "center",
       }
     }
@@ -41,7 +44,8 @@ exports[`AccountApproval should render correctly 1`] = `
         "fontFamily": "CircularStd-Medium",
         "fontSize": 14,
         "fontWeight": "100",
-        "padding": 24,
+        "marginBottom": 16,
+        "paddingHorizontal": 24,
         "textAlign": "center",
         "width": "100%",
       }
