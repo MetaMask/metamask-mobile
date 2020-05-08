@@ -17,7 +17,7 @@
 
 #import <react-native-branch/RNBranch.h>
 
-
+#import "RNSplashScreen.h"
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
@@ -57,6 +57,7 @@
   launchScreenView.frame = self.window.bounds;
   rootView.loadingView = launchScreenView;
 
+  //[RNSplashScreen show];
   return YES;
 }
 

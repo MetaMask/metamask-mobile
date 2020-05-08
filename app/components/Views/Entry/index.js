@@ -14,6 +14,7 @@ import { colors } from '../../../styles/common';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
+import SplashScreen from 'react-native-splash-screen';
 
 /**
  * Entry Screen that decides which screen to show
@@ -92,6 +93,7 @@ class Entry extends PureComponent {
 		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
 
 		setTimeout(async () => {
+			SplashScreen.hide();
 			const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 			if (existingUser !== null) {
 				await this.unlockKeychain();

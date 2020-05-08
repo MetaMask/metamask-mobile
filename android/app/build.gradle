@@ -215,6 +215,7 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-splash-screen')
 	implementation project(':@sentry_react-native')
 	implementation project(':react-native-sensors')
 	implementation project(':react-native-reanimated')

@@ -9625,6 +9625,10 @@ react-native-sensors@5.3.0:
   version "1.2.1"
   resolved "git+ssh://git@github.com/MetaMask/react-native-share.git#f6186e0c41d99674de2633d5e4d079f61fb9237c"
 
+"react-native-splash-screen@git+ssh://git@github.com/MetaMask/react-native-splash-screen.git":
+  version "3.2.0"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee"
+
 react-native-svg@9.13.3:
   version "9.13.3"
   resolved "https://registry.yarnpkg.com/react-native-svg/-/react-native-svg-9.13.3.tgz#6414b337d55af169ac2487ab70f3108404434446"
