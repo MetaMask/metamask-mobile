@@ -57,7 +57,9 @@
   launchScreenView.frame = self.window.bounds;
   rootView.loadingView = launchScreenView;
 
+  //Uncomment the following line to enable the splashscreen on ios
   //[RNSplashScreen show];
+  
   return YES;
 }
 
