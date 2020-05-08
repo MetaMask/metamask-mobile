@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		paddingTop: 24,
-		minHeight: Device.isIos() ? '70%' : '80%',
+		minHeight: Device.isIos() ? '72%' : '80%',
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		paddingBottom: Device.isIphoneX() ? 20 : 0
