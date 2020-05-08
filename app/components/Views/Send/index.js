@@ -5,7 +5,7 @@ import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
-import { toBN, BNToHex, hexToBN, fromWei, toTokenMinimalUnit, renderFromTokenMinimalUnit } from '../../../util/number';
+import { toBN, BNToHex, hexToBN, fromWei, toTokenMinimalUnit } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
@@ -17,7 +17,12 @@ import contractMap from 'eth-contract-metadata';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { getTransactionReviewActionKey, decodeTransferData, getTransactionToName } from '../../../util/transactions';
+import {
+	getTransactionReviewActionKey,
+	decodeTransferData,
+	getTransactionToName,
+	generateTransferData
+} from '../../../util/transactions';
 import Logger from '../../../util/Logger';
 import { isENS } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -43,7 +48,7 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Send extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', navigation);
+	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.confirm', navigation);
 
 	static propTypes = {
 		/**
@@ -197,8 +202,7 @@ class Send extends PureComponent {
 		action,
 		chain_id = null,
 		function_name = null, // eslint-disable-line no-unused-vars
-		parameters = null,
-		deepLinkTransaction
+		parameters = null
 	}) => {
 		const { addressBook, network, identities, selectedAddress } = this.props;
 
@@ -213,30 +217,50 @@ class Send extends PureComponent {
 					symbol: 'ETH',
 					assetType: 'ETH',
 					type: 'ETHER_TRANSACTION',
-					deepLinkTransaction,
+					paymentRequest: true,
 					selectedAsset: { symbol: 'ETH', isETH: true },
 					...this.handleNewTxMetaRecipient(target_address)
 				};
 				if (parameters && parameters.value) {
-					newTxMeta.value = toBN(parameters.value);
+					newTxMeta.value = BNToHex(toBN(parameters.value));
 					newTxMeta.transactionValue = newTxMeta.value;
 					newTxMeta.readableValue = fromWei(newTxMeta.value);
 				}
+				newTxMeta.transactionToName = getTransactionToName({
+					addressBook,
+					network,
+					toAddress: newTxMeta.to,
+					identities,
+					ensRecipient: newTxMeta.ensRecipient
+				});
+				newTxMeta.transactionTo = newTxMeta.to;
 				break;
 			case 'send-token': {
 				const selectedAsset = await this.handleTokenDeeplink(target_address);
+				const { ensRecipient, to } = this.handleNewTxMetaRecipient(parameters.address);
+				const tokenAmount = toTokenMinimalUnit(parameters.uint256 || '0', selectedAsset.decimals);
 				newTxMeta = {
 					assetType: 'ERC20',
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
+					paymentRequest: true,
 					selectedAsset,
-					...this.handleNewTxMetaRecipient(parameters.address)
+					ensRecipient,
+					to: selectedAsset.address,
+					transactionTo: to,
+					data: generateTransferData('transfer', {
+						toAddress: parameters.address,
+						amount: BNToHex(tokenAmount)
+					}),
+					value: '0x0',
+					readableValue: parameters.uint256 || '0'
 				};
-				if (parameters && parameters.uint256) {
-					newTxMeta.value = toTokenMinimalUnit(parameters.uint256, selectedAsset.decimals);
-					newTxMeta.readableValue = String(
-						renderFromTokenMinimalUnit(newTxMeta.value, selectedAsset.decimals)
-					);
-				}
+				newTxMeta.transactionToName = getTransactionToName({
+					addressBook,
+					network,
+					toAddress: to,
+					identities,
+					ensRecipient
+				});
 				break;
 			}
 		}
@@ -263,14 +287,6 @@ class Send extends PureComponent {
 			newTxMeta.value = toBN(0);
 		}
 
-		newTxMeta.transactionToName = getTransactionToName({
-			addressBook,
-			network,
-			toAddress: newTxMeta.to,
-			identities,
-			ensRecipient: newTxMeta.ensRecipient
-		});
-		newTxMeta.transactionTo = newTxMeta.to;
 		newTxMeta.from = selectedAddress;
 		newTxMeta.transactionFromName = identities[selectedAddress].name;
 

@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
  */
 class Amount extends PureComponent {
 	static navigationOptions = ({ navigation, screenProps }) =>
-		getSendFlowTitle('send.amount', navigation, screenProps);
+		getSendFlowTitle('send.confirm', navigation, screenProps);
 
 	static propTypes = {
 		/**
@@ -387,7 +387,7 @@ class Amount extends PureComponent {
 			tokens,
 			ticker,
 			selectedAsset,
-			transactionState: { readableValue, deeplinkTransaction, paymentChannelTransaction },
+			transactionState: { readableValue, paymentRequest, paymentChannelTransaction },
 			navigation,
 			providerType
 		} = this.props;
@@ -400,7 +400,7 @@ class Amount extends PureComponent {
 		this.onInputChange(readableValue);
 		// if collectible don't do this
 
-		if (paymentChannelTransaction || deeplinkTransaction || !selectedAsset.tokenId) {
+		if (paymentChannelTransaction || paymentRequest || !selectedAsset.tokenId) {
 			this.handleSelectedAssetBalance(
 				selectedAsset,
 				paymentChannelTransaction ? selectedAsset.assetBalance : null
@@ -448,16 +448,32 @@ class Amount extends PureComponent {
 	updateTransaction = value => {
 		const {
 			selectedAsset,
-			transactionState: { transaction },
+			transactionState: { transaction, paymentChannelTransaction, transactionTo },
 			setTransactionObject,
 			selectedAddress
 		} = this.props;
-		setTransactionObject({
+
+		const transactionObject = {
 			...transaction,
 			value: BNToHex(toWei(value)),
 			selectedAsset,
 			from: selectedAddress
-		});
+		};
+
+		if (selectedAsset.erc20) {
+			const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
+			transactionObject.data = generateTransferData('transfer', {
+				toAddress: transactionTo,
+				amount: BNToHex(tokenAmount)
+			});
+			transactionObject.value = '0x0';
+		}
+
+		if (paymentChannelTransaction || selectedAsset.erc20) {
+			transactionObject.readableValue = value;
+		}
+
+		setTransactionObject(transactionObject);
 	};
 
 	prepareTransaction = async value => {
@@ -929,7 +945,7 @@ class Amount extends PureComponent {
 		const { estimatedTotalGas } = this.state;
 		const {
 			selectedAsset,
-			transactionState: { paymentChannelTransaction, isDeeplinkTransaction }
+			transactionState: { paymentChannelTransaction, isPaymentRequest }
 		} = this.props;
 
 		return (
@@ -940,7 +956,7 @@ class Amount extends PureComponent {
 						<View style={styles.action}>
 							<TouchableOpacity
 								style={styles.actionDropdown}
-								disabled={paymentChannelTransaction || isDeeplinkTransaction}
+								disabled={paymentChannelTransaction || isPaymentRequest}
 								onPress={this.toggleAssetsModal}
 							>
 								<Text style={styles.textDropdown}>

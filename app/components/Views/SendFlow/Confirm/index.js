@@ -282,7 +282,9 @@ class Confirm extends PureComponent {
 		transactionTotalAmount: undefined,
 		transactionTotalAmountFiat: undefined,
 		errorMessage: undefined,
-		fromAccountModalVisible: false
+		fromAccountModalVisible: false,
+		paymentChannelBalance: this.props.selectedAsset.assetBalance,
+		paymentChannelReady: false
 	};
 
 	componentDidMount = async () => {
@@ -291,6 +293,26 @@ class Confirm extends PureComponent {
 		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
+		PaymentChannelsClient.hub.on('state::change', paymentChannelState => {
+			if (paymentChannelState.balance !== this.state.paymentChannelBalance || !this.state.paymentChannelReady) {
+				this.setState({
+					paymentChannelBalance: paymentChannelState.balance,
+					paymentChannelReady: true
+				});
+			}
+		});
+	};
+
+	componentDidUpdate = prevProps => {
+		const {
+			transactionState: {
+				transactionTo,
+				transaction: { value }
+			}
+		} = this.props;
+		if (prevProps.transactionState.transaction.value !== value && transactionTo !== undefined) {
+			this.parseTransactionData();
+		}
 	};
 
 	parseTransactionData = () => {
@@ -355,7 +377,10 @@ class Confirm extends PureComponent {
 		} else {
 			let amount;
 			const { address, symbol = 'ERC20', decimals } = selectedAsset;
-			fromAccountBalance = `${renderFromTokenMinimalUnit(contractBalances[address], decimals)} ${symbol}`;
+			fromAccountBalance = `${renderFromTokenMinimalUnit(
+				contractBalances[address] ? contractBalances[address] : '0',
+				decimals
+			)} ${symbol}`;
 			[transactionTo, , amount] = decodeTransferData('transfer', data);
 			const transferValue = renderFromTokenMinimalUnit(amount, decimals);
 			transactionValue = `${transferValue} ${symbol}`;
@@ -726,7 +751,7 @@ class Confirm extends PureComponent {
 	};
 
 	render = () => {
-		const { transactionToName, selectedAsset, deepLinkTransaction } = this.props.transactionState;
+		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
 		const { showHexData, isPaymentChannelTransaction } = this.props;
 		const {
 			gasEstimationReady,
@@ -740,16 +765,18 @@ class Confirm extends PureComponent {
 			transactionTotalAmount = '',
 			transactionTotalAmountFiat = '',
 			errorMessage,
-			transactionConfirmed
+			transactionConfirmed,
+			paymentChannelBalance
 		} = this.state;
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
 					<AddressFrom
-						onPressIcon={!deepLinkTransaction ? null : this.toggleFromAccountModal}
+						onPressIcon={!paymentRequest ? null : this.toggleFromAccountModal}
 						fromAccountAddress={fromSelectedAddress}
 						fromAccountName={fromAccountName}
-						fromAccountBalance={fromAccountBalance}
+						fromAccountBalance={isPaymentChannelTransaction ? paymentChannelBalance : fromAccountBalance}
 					/>
 					<AddressTo
 						addressToReady

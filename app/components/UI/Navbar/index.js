@@ -322,15 +322,17 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getTransactionOptionsTitle(title, navigation) {
+export function getTransactionOptionsTitle(_title, navigation) {
 	const transactionMode = navigation.getParam('mode', '');
 	const { routeName } = navigation.state;
 	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
-	const toEditLeftAction = navigation.getParam('dispatch', () => {
+	const modeChange = navigation.getParam('dispatch', () => {
 		'';
 	});
-	const leftAction = transactionMode === 'edit' ? () => navigation.pop() : () => toEditLeftAction('edit');
-	const rightAction = () => navigation.pop();
+	const leftAction = transactionMode === 'edit' ? () => navigation.pop() : () => modeChange('edit');
+	const rightAction = transactionMode === 'edit' ? () => modeChange('review') : () => navigation.pop();
+	const rightText = transactionMode === 'edit' ? strings('transaction.back') : strings('transaction.cancel');
+	const title = transactionMode === 'edit' ? 'transaction.edit' : _title;
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerLeft: (
@@ -343,7 +345,7 @@ export function getTransactionOptionsTitle(title, navigation) {
 			routeName === 'Send' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
-					<Text style={styles.closeButtonText}>{'Cancel'}</Text>
+					<Text style={styles.closeButtonText}>{rightText}</Text>
 				</TouchableOpacity>
 			) : (
 				<View />
@@ -381,8 +383,12 @@ export function getSendFlowTitle(title, navigation, screenProps) {
 		});
 		navigation.dismiss();
 	};
-	const leftAction = () => navigation.pop();
-	const canGoBack = title !== 'send.send_to' && !screenProps.isDeepLinkTransaction;
+	const { routeName } = navigation.state;
+	const leftAction =
+		screenProps.isPaymentChannelTransaction && routeName === 'Confirm'
+			? () => navigation.navigate('Amount')
+			: () => navigation.pop();
+	const canGoBack = title !== 'send.send_to' && !screenProps.isPaymentRequest;
 
 	const titleToRender = screenProps.isPaymentChannelTransaction ? sendTitleToPaymentChannelTitleMap[title] : title;
 

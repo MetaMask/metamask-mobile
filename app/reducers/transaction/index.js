@@ -19,7 +19,7 @@ const initialState = {
 	transactionValue: undefined,
 	symbol: undefined,
 	paymentChannelTransaction: undefined,
-	deepLinkTransaction: undefined,
+	paymentRequest: undefined,
 	readableValue: undefined,
 	id: undefined,
 	type: undefined
