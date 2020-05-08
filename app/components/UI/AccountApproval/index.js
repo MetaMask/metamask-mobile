@@ -14,9 +14,10 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
+		paddingTop: 24,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
-		minHeight: Device.isMediumDevice() ? '75%' : '60%',
+		minHeight: Device.isMediumDevice() ? '77%' : '57%',
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	accountCardWrapper: {
@@ -27,12 +28,15 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		textAlign: 'center',
 		color: colors.fontPrimary,
-		fontSize: Device.isSmallDevice() ? 16 : 20
+		fontSize: Device.isSmallDevice() ? 16 : 20,
+		marginBottom: 8,
+		marginTop: 16
 	},
 	warning: {
 		...fontStyles.thin,
 		color: colors.fontPrimary,
-		padding: 24,
+		paddingHorizontal: 24,
+		marginBottom: 16,
 		fontSize: 14,
 		width: '100%',
 		textAlign: 'center'
