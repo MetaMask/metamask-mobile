@@ -7,7 +7,7 @@ exports[`AccountApproval should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
-      "minHeight": "55%",
+      "minHeight": "60%",
       "paddingBottom": 20,
     }
   }
@@ -21,6 +21,34 @@ exports[`AccountApproval should render correctly 1`] = `
       }
     }
   />
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "fontFamily": "CircularStd-Medium",
+        "fontSize": 20,
+        "fontWeight": "600",
+        "textAlign": "center",
+      }
+    }
+  >
+    Connect to this site?
+  </Text>
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "fontFamily": "CircularStd-Medium",
+        "fontSize": 14,
+        "fontWeight": "100",
+        "padding": 24,
+        "textAlign": "center",
+        "width": "100%",
+      }
+    }
+  >
+    By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.
+  </Text>
   <ActionView
     cancelTestID=""
     cancelText="Cancel"
@@ -36,43 +64,11 @@ exports[`AccountApproval should render correctly 1`] = `
     <View
       style={
         Object {
-          "alignItems": "center",
           "flex": 1,
-          "flexDirection": "column",
-          "justifyContent": "space-between",
-          "minHeight": "100%",
+          "paddingHorizontal": 24,
         }
       }
     >
-      <Text
-        style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 20,
-            "fontWeight": "600",
-            "marginBottom": 15,
-            "textAlign": "center",
-          }
-        }
-      >
-        Connect to this site?
-      </Text>
-      <Text
-        style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 14,
-            "fontWeight": "100",
-            "marginBottom": 15,
-            "textAlign": "center",
-            "width": "90%",
-          }
-        }
-      >
-        By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.
-      </Text>
       <Connect(AccountInfoCard) />
     </View>
   </ActionView>
