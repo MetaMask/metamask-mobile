@@ -371,7 +371,7 @@ export function getSendFlowTitle(title, navigation) {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerRight: (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+			<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-cancel-button'}>
 				<Text style={styles.closeButtonText}>{strings('transaction.cancel')}</Text>
 			</TouchableOpacity>
 		),
