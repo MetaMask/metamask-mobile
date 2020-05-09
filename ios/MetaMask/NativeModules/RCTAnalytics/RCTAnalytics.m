@@ -24,10 +24,16 @@ RCT_EXPORT_METHOD(optIn:(BOOL) val) {
     });
 }
 
-
 RCT_EXPORT_METHOD(trackEvent:(NSDictionary *)event)
 {
   [[Mixpanel sharedInstance] track: [self getCategory:event] properties:[self getInfo:event]];
+}
+
+RCT_REMAP_METHOD(getDistinctId,
+                 getDistinctIdWithResolver:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject)
+{
+  resolve([[Mixpanel sharedInstance] distinctId]);
 }
 
 
@@ -42,10 +48,6 @@ RCT_REMAP_METHOD(getRemoteVariables,
   } else {
     resolve(@"{}");
   }
-}
-
-- (NSString *)distinctId {
-  return [[Mixpanel sharedInstance] distinctId];
 }
 
 - (NSString *)getCategory:(NSDictionary *)event{

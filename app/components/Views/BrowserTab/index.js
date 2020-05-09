@@ -64,6 +64,7 @@ import { ethErrors } from 'eth-json-rpc-errors';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
+const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -407,6 +408,7 @@ export class BrowserTab extends PureComponent {
 	wizardScrollAdjusted = false;
 	isReloading = false;
 	approvalRequest;
+	analyticsDistinctId;
 
 	/**
 	 * Check that page metadata is available and call callback
@@ -739,12 +741,15 @@ export class BrowserTab extends PureComponent {
 			: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
 
 		const analyticsEnabled = Analytics.getEnabled();
+		const disctinctId = await Analytics.getDistinctId();
 
 		const homepageScripts = `
       window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
       window.__mmSearchEngine = "${this.props.searchEngine}";
       window.__mmMetametrics = ${analyticsEnabled};
-    `;
+	  window.__mmDistinctId = "${disctinctId}";
+      window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+	  `;
 
 		await this.setState({ entryScriptWeb3: entryScriptWeb3 + SPA_urlChangeListener, homepageScripts });
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
@@ -837,22 +842,24 @@ export class BrowserTab extends PureComponent {
 		}
 	}
 
-	refreshHomeScripts() {
+	refreshHomeScripts = async () => {
 		const analyticsEnabled = Analytics.getEnabled();
-
+		const disctinctId = await Analytics.getDistinctId();
 		const homepageScripts = `
       window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
       window.__mmSearchEngine="${this.props.searchEngine}";
-      window.__mmMetametrics = ${analyticsEnabled};
-      window.postMessage('updateFavorites', '*');
-    `;
+	  window.__mmMetametrics = ${analyticsEnabled};
+	  window.__mmDistinctId = "${disctinctId}";
+	  window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+	  window.postMessage('updateFavorites', '*');
+	`;
 		this.setState({ homepageScripts }, () => {
 			const { current } = this.webview;
 			if (current) {
 				current.injectJavaScript(homepageScripts);
 			}
 		});
-	}
+	};
 
 	setTabActive() {
 		this.setState({ activated: true });
@@ -1188,16 +1195,19 @@ export class BrowserTab extends PureComponent {
 						}
 					}
 					const analyticsEnabled = Analytics.getEnabled();
-
+					const disctinctId = await Analytics.getDistinctId();
 					const homepageScripts = `
             window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
             window.__mmSearchEngine="${this.props.searchEngine}";
-            window.__mmMetametrics = ${analyticsEnabled};
+			window.__mmMetametrics = ${analyticsEnabled};
+			window.__mmDistinctId = "${disctinctId}";
+			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
           `;
 					this.setState({ homepageScripts });
 				}
 			})
 		);
+
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
 	};
 

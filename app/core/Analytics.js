@@ -1,6 +1,6 @@
 'use strict';
 
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules } from 'react-native';
 const RCTAnalytics = NativeModules.Analytics;
 
 /**
@@ -79,9 +79,12 @@ class Analytics {
 		this.listeners.push(listener);
 	};
 
-	getDistinctId = () => {
-		const distinctId = Platform.OS === 'ios' ? RCTAnalytics.distinctId : RCTAnalytics.getDistinctId();
-		return distinctId;
+	/**
+	 * Get current tracking id
+	 */
+	getDistinctId = async () => {
+		const id = await RCTAnalytics.getDistinctId();
+		return id;
 	};
 
 	/**

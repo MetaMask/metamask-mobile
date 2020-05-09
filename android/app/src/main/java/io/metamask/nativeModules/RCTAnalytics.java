@@ -20,6 +20,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import com.facebook.react.bridge.Promise;
 
 public class RCTAnalytics extends ReactContextBaseJavaModule {
 
@@ -54,8 +55,9 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 	}
 
 	@ReactMethod
-	public String getDistinctId() {
-		return this.mixpanel.getDistinctId();
+	public void getDistinctId(Promise promise) {
+		String distinctId = this.mixpanel.getDistinctId();
+		promise.resolve(distinctId);
 	}
 
 	@ReactMethod
