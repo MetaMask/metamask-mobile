@@ -48,7 +48,6 @@ import CollectibleImage from '../../../UI/CollectibleImage';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
-import TransactionSummary from '../../TransactionSummary';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
