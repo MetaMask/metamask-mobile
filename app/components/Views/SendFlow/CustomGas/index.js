@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 		borderTopRightRadius: 20,
 		paddingTop: 24,
 		paddingHorizontal: 24,
-		paddingBottom: Device.isIphoneX() ? 44 : 0
+		paddingBottom: Device.isIphoneX() ? 44 : 24
 	},
 	customGasHeader: {
 		flexDirection: 'row',
