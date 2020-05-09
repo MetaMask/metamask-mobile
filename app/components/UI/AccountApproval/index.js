@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import StyledButton from '../StyledButton';
 import { StyleSheet, Text, View, InteractionManager } from 'react-native';
-import ActionView from '../ActionView';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
@@ -17,13 +17,13 @@ const styles = StyleSheet.create({
 		paddingTop: 24,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
-		minHeight: Device.isMediumDevice() ? '77%' : '57%',
+		minHeight: 200,
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	accountCardWrapper: {
-		flex: 1,
 		paddingHorizontal: 24
 	},
+
 	intro: {
 		...fontStyles.bold,
 		textAlign: 'center',
@@ -40,6 +40,21 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		width: '100%',
 		textAlign: 'center'
+	},
+	actionContainer: {
+		flex: 0,
+		flexDirection: 'row',
+		paddingVertical: 16,
+		paddingHorizontal: 24
+	},
+	button: {
+		flex: 1
+	},
+	cancel: {
+		marginRight: 8
+	},
+	confirm: {
+		marginLeft: 8
 	}
 });
 
@@ -136,17 +151,25 @@ class AccountApproval extends PureComponent {
 				<TransactionHeader currentPageInformation={currentPageInformation} />
 				<Text style={styles.intro}>{strings('accountApproval.action')}</Text>
 				<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
-				<ActionView
-					cancelText={strings('accountApproval.cancel')}
-					confirmText={strings('accountApproval.connect')}
-					onCancelPress={this.onCancel}
-					onConfirmPress={this.onConfirm}
-					confirmButtonMode={'confirm'}
-				>
-					<View style={styles.accountCardWrapper}>
-						<AccountInfoCard />
-					</View>
-				</ActionView>
+				<View style={styles.accountCardWrapper}>
+					<AccountInfoCard />
+				</View>
+				<View style={styles.actionContainer}>
+					<StyledButton
+						type={'cancel'}
+						onPress={this.onCancel}
+						containerStyle={[styles.button, styles.cancel]}
+					>
+						{strings('accountApproval.cancel')}
+					</StyledButton>
+					<StyledButton
+						type={'confirm'}
+						onPress={this.onConfirm}
+						containerStyle={[styles.button, styles.confirm]}
+					>
+						{strings('accountApproval.connect')}
+					</StyledButton>
+				</View>
 			</View>
 		);
 	};
