@@ -23,7 +23,6 @@ const styles = StyleSheet.create({
 	accountCardWrapper: {
 		paddingHorizontal: 24
 	},
-
 	intro: {
 		...fontStyles.bold,
 		textAlign: 'center',
