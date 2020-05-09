@@ -7,7 +7,7 @@ exports[`AccountApproval should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
-      "minHeight": "57%",
+      "minHeight": 200,
       "paddingBottom": 20,
       "paddingTop": 24,
     }
@@ -53,28 +53,77 @@ exports[`AccountApproval should render correctly 1`] = `
   >
     By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.
   </Text>
-  <ActionView
-    cancelTestID=""
-    cancelText="Cancel"
-    confirmButtonMode="confirm"
-    confirmTestID=""
-    confirmText="Connect"
-    confirmed={false}
-    onCancelPress={[Function]}
-    onConfirmPress={[Function]}
-    showCancelButton={true}
-    showConfirmButton={true}
+  <View
+    style={
+      Object {
+        "paddingHorizontal": 24,
+      }
+    }
   >
-    <View
-      style={
+    <Connect(AccountInfoCard) />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 0,
+        "flexDirection": "row",
+        "paddingHorizontal": 24,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <StyledButton
+      containerStyle={
+        Array [
+          Object {
+            "flex": 1,
+          },
+          Object {
+            "marginRight": 8,
+          },
+        ]
+      }
+      disabledContainerStyle={
         Object {
-          "flex": 1,
-          "paddingHorizontal": 24,
+          "opacity": 0.6,
         }
       }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      type="cancel"
     >
-      <Connect(AccountInfoCard) />
-    </View>
-  </ActionView>
+      Cancel
+    </StyledButton>
+    <StyledButton
+      containerStyle={
+        Array [
+          Object {
+            "flex": 1,
+          },
+          Object {
+            "marginLeft": 8,
+          },
+        ]
+      }
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      type="confirm"
+    >
+      Connect
+    </StyledButton>
+  </View>
 </View>
 `;
