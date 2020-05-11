@@ -36,8 +36,7 @@ import {
 	weiToFiatNumber,
 	balanceToFiatNumber,
 	getCurrencySymbol,
-	handleWeiNumber,
-	toBN
+	handleWeiNumber
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { hexToBN, BNToHex } from 'gaba/dist/util';
@@ -549,8 +548,8 @@ class Amount extends PureComponent {
 		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
 			if (paymentChannelTransaction) {
-				weiBalance = toBN(Number(selectedAsset.assetBalance));
-				weiInput = toBN(inputValue);
+				weiBalance = toWei(Number(selectedAsset.assetBalance));
+				weiInput = toWei(inputValue);
 			} else if (selectedAsset.isETH) {
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
 				weiInput = toWei(inputValue).add(estimatedTotalGas);
