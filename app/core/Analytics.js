@@ -39,6 +39,7 @@ class Analytics {
 			this.listeners = [];
 			Analytics.instance = this;
 			RCTAnalytics.optIn(this.enabled);
+			this.peopleIdentify();
 		}
 		return Analytics.instance;
 	}
@@ -85,6 +86,10 @@ class Analytics {
 	getDistinctId = async () => {
 		const id = await RCTAnalytics.getDistinctId();
 		return id;
+	};
+
+	peopleIdentify = () => {
+		RCTAnalytics.peopleIdentify();
 	};
 
 	/**

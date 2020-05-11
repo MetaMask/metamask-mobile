@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.Promise;
 
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.mixpanel.android.mpmetrics.People;
 import com.mixpanel.android.mpmetrics.Tweak;
 
 import org.json.JSONException;
@@ -61,15 +62,18 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 	}
 
 	@ReactMethod
+	public void peopleIdentify() {
+		String distinctId = this.mixpanel.getDistinctId();
+		this.mixpanel.getPeople().identify(distinctId);
+	}
+
+	@ReactMethod
 	public void optIn(boolean val) {
-
-
 		if(val){
 			this.mixpanel.optInTracking();
 		}else{
 			this.mixpanel.optOutTracking();
 		}
-
 	}
 
 	@ReactMethod
