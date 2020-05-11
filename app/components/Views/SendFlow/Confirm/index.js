@@ -412,7 +412,7 @@ class Confirm extends PureComponent {
 				currentCurrency
 			);
 		}
-		console.log('fromAccountBalance', fromAccountBalance);
+
 		this.setState(
 			{
 				fromAccountBalance,
@@ -629,7 +629,7 @@ class Confirm extends PureComponent {
 				weiInput = toWei(transaction.value);
 				errorMessage = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');
 			} else if (selectedAsset.isETH) {
-				const totalGas = gas.mul(gasPrice);
+				const totalGas = gas ? gas.mul(gasPrice) : toBN('0x0');
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
 				weiInput = hexToBN(transaction.value).add(totalGas);
 				errorMessage = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');

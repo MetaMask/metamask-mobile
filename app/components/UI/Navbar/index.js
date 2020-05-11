@@ -329,18 +329,21 @@ export function getTransactionOptionsTitle(_title, navigation) {
 	const modeChange = navigation.getParam('dispatch', () => {
 		'';
 	});
-	const leftAction = transactionMode === 'edit' ? () => navigation.pop() : () => modeChange('edit');
-	const rightAction = transactionMode === 'edit' ? () => modeChange('review') : () => navigation.pop();
-	const rightText = transactionMode === 'edit' ? strings('transaction.back') : strings('transaction.cancel');
+	const leftAction = () => modeChange('edit');
+	const rightAction = () => navigation.pop();
+	const rightText = strings('transaction.cancel');
 	const title = transactionMode === 'edit' ? 'transaction.edit' : _title;
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
-		headerLeft: (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.closeButton} testID={'confirm-txn-edit-button'}>
-				<Text style={styles.closeButtonText}>{leftText}</Text>
-			</TouchableOpacity>
-		),
+		headerLeft:
+			transactionMode !== 'edit' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={leftAction} style={styles.closeButton} testID={'confirm-txn-edit-button'}>
+					<Text style={styles.closeButtonText}>{leftText}</Text>
+				</TouchableOpacity>
+			) : (
+				<View />
+			),
 		headerRight:
 			routeName === 'Send' ? (
 				// eslint-disable-next-line react/jsx-no-bind
