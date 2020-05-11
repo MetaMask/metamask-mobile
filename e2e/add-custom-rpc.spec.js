@@ -42,7 +42,7 @@ describe('Custom RPC Tests', () => {
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on settings
-		await TestHelpers.tap('settings-button');
+		await TestHelpers.tapByText('Settings');
 		// Tap on the "Networks" option
 		await TestHelpers.tapByText('Networks');
 		// Check that we are on the networks screen
@@ -120,7 +120,7 @@ describe('Custom RPC Tests', () => {
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on settings
-		await TestHelpers.tap('settings-button');
+		await TestHelpers.tapByText('Settings');
 		// Tap on the "Networks" option
 		await TestHelpers.tapByText('Networks');
 		// Check that we are on the networks screen
