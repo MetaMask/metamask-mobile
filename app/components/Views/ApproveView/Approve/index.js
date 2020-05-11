@@ -580,12 +580,12 @@ class Approve extends PureComponent {
 				? renderFromTokenMinimalUnit(contractBalances[checksummedTo], tokenDecimals)
 				: 0;
 		return (
-			<View style={baseStyles.flexGrow}>
+			<View style={styles.section}>
 				<View style={styles.customGasModalTitle}>
 					<Text style={styles.customGasModalTitleText}>{strings('spend_limit_edition.title')}</Text>
 				</View>
 
-				<KeyboardAwareScrollView extraScrollHeight={-140}>
+				<KeyboardAwareScrollView>
 					<View style={styles.fromGraphic}>
 						<Identicon address={from} diameter={18} />
 						<Text style={styles.addressText} numberOfLines={1}>
