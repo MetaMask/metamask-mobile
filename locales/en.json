@@ -491,6 +491,7 @@
 		"review_function_type": "FUNCTION TYPE",
 		"review_hex_data": "HEX DATA",
 		"insufficient": "Insufficient funds",
+		"insufficient_tokens": "Insufficient {{token}}",
 		"invalid_address": "Invalid address",
 		"invalid_amount": "Invalid amount",
 		"invalid_gas": "Invalid gas amount",

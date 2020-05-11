@@ -23,7 +23,9 @@ import {
 	weiToFiatNumber,
 	balanceToFiatNumber,
 	renderFiatAddition,
-	toWei
+	toWei,
+	isDecimal,
+	toBN
 } from '../../../../util/number';
 import { getTicker, decodeTransferData } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
@@ -293,6 +295,7 @@ class Confirm extends PureComponent {
 		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
+
 		PaymentChannelsClient.hub.on('state::change', paymentChannelState => {
 			if (paymentChannelState.balance !== this.state.paymentChannelBalance || !this.state.paymentChannelReady) {
 				this.setState({
@@ -303,15 +306,27 @@ class Confirm extends PureComponent {
 		});
 	};
 
-	componentDidUpdate = prevProps => {
+	componentDidUpdate = (prevProps, prevState) => {
 		const {
 			transactionState: {
 				transactionTo,
 				transaction: { value }
-			}
+			},
+			contractBalances,
+			selectedAsset
 		} = this.props;
-		if (prevProps.transactionState.transaction.value !== value && transactionTo !== undefined) {
+		const { errorMessage, fromSelectedAddress } = this.state;
+		const valueChanged = prevProps.transactionState.transaction.value !== value;
+		const fromAddressChanged = prevState.fromSelectedAddress !== fromSelectedAddress;
+		const previousContractBalance = prevProps.contractBalances[selectedAsset.address];
+		const newContractBalance = contractBalances[selectedAsset.address];
+		const contractBalanceChanged = previousContractBalance !== newContractBalance;
+		const recipientIsDefined = transactionTo !== undefined;
+		if (recipientIsDefined && (valueChanged || fromAddressChanged || contractBalanceChanged)) {
 			this.parseTransactionData();
+		}
+		if (!prevState.errorMessage && errorMessage) {
+			this.scrollView.scrollToEnd({ animated: true });
 		}
 	};
 
@@ -331,6 +346,7 @@ class Confirm extends PureComponent {
 			ticker,
 			isPaymentChannelTransaction
 		} = this.props;
+		const { fromSelectedAddress } = this.state;
 		let fromAccountBalance,
 			transactionValue,
 			transactionValueFiat,
@@ -347,7 +363,7 @@ class Confirm extends PureComponent {
 			transactionValue = `${readableValue} ${selectedAsset.symbol}`;
 			transactionTo = to;
 		} else if (selectedAsset.isETH) {
-			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${parsedTicker}`;
+			fromAccountBalance = `${renderFromWei(accounts[fromSelectedAddress].balance)} ${parsedTicker}`;
 			transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
@@ -396,15 +412,21 @@ class Confirm extends PureComponent {
 				currentCurrency
 			);
 		}
-		this.setState({
-			fromAccountBalance,
-			transactionValue,
-			transactionValueFiat,
-			transactionFeeFiat,
-			transactionTo,
-			transactionTotalAmount,
-			transactionTotalAmountFiat
-		});
+		console.log('fromAccountBalance', fromAccountBalance);
+		this.setState(
+			{
+				fromAccountBalance,
+				transactionValue,
+				transactionValueFiat,
+				transactionFeeFiat,
+				transactionTo,
+				transactionTotalAmount,
+				transactionTotalAmountFiat
+			},
+			() => {
+				this.validateAmount({ ...this.props.transactionState.transaction, from: fromSelectedAddress });
+			}
+		);
 	};
 
 	prepareTransaction = async () => {
@@ -561,10 +583,11 @@ class Confirm extends PureComponent {
 			transactionState: { transaction }
 		} = this.props;
 		const { fromSelectedAddress } = this.state;
-		transaction.gas = BNToHex(transaction.gas);
-		transaction.gasPrice = BNToHex(transaction.gasPrice);
-		transaction.from = fromSelectedAddress;
-		return transaction;
+		const transactionToSend = { ...transaction };
+		transactionToSend.gas = BNToHex(transaction.gas);
+		transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
+		transactionToSend.from = fromSelectedAddress;
+		return transactionToSend;
 	};
 
 	/**
@@ -581,6 +604,55 @@ class Confirm extends PureComponent {
 		}
 	};
 
+	/**
+	 * Validates crypto value only
+	 * Independent of current internalPrimaryCurrencyIsCrypto
+	 *
+	 * @param {string} - Crypto value
+	 * @returns - Whether there is an error with the amount
+	 */
+	validateAmount = transaction => {
+		const {
+			accounts,
+			contractBalances,
+			selectedAsset,
+			transactionState: {
+				paymentChannelTransaction,
+				transaction: { gas, gasPrice }
+			}
+		} = this.props;
+		const selectedAddress = transaction.from;
+		let weiBalance, weiInput, errorMessage;
+		if (isDecimal(transaction.value)) {
+			if (paymentChannelTransaction) {
+				weiBalance = toWei(Number(selectedAsset.assetBalance));
+				weiInput = toWei(transaction.value);
+				errorMessage = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');
+			} else if (selectedAsset.isETH) {
+				const totalGas = gas.mul(gasPrice);
+				weiBalance = hexToBN(accounts[selectedAddress].balance);
+				weiInput = hexToBN(transaction.value).add(totalGas);
+				errorMessage = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');
+			} else {
+				const [, , amount] = decodeTransferData('transfer', transaction.data);
+				weiBalance = contractBalances[selectedAsset.address];
+				weiInput = toBN(amount);
+				errorMessage =
+					weiBalance === undefined || weiBalance.gte(weiInput)
+						? undefined
+						: strings('transaction.insufficient_tokens', { token: selectedAsset.symbol });
+			}
+		} else {
+			errorMessage = strings('transaction.invalid_amount');
+		}
+		this.setState({ errorMessage }, () => {
+			if (errorMessage) {
+				this.scrollView.scrollToEnd({ animated: true });
+			}
+		});
+		return !!errorMessage;
+	};
+
 	onPaymentChannelSend = async () => {
 		this.setState({ transactionConfirmed: true });
 		const {
@@ -588,6 +660,10 @@ class Confirm extends PureComponent {
 			transactionState: { readableValue, transactionTo }
 		} = this.props;
 		if (this.sending) {
+			return;
+		}
+		if (this.validateAmount({ value: readableValue })) {
+			this.setState({ transactionConfirmed: false });
 			return;
 		}
 		try {
@@ -639,6 +715,10 @@ class Confirm extends PureComponent {
 		}
 		try {
 			const transaction = this.prepareTransactionToSend();
+			if (this.validateAmount(transaction)) {
+				this.setState({ transactionConfirmed: false });
+				return;
+			}
 			const { result, transactionMeta } = await TransactionController.addTransaction(
 				transaction,
 				TransactionTypes.MMM
@@ -691,7 +771,7 @@ class Confirm extends PureComponent {
 		} = this.props;
 
 		const gasBN = hexToBN(gas);
-		const weiTransactionFee = gasBN.mul(gasPrice);
+		const weiTransactionFee = gasBN.mul(hexToBN(gasPrice));
 		const valueBN = hexToBN(value);
 		const transactionTotalAmountBN = weiTransactionFee.add(valueBN);
 
@@ -701,20 +781,19 @@ class Confirm extends PureComponent {
 	};
 
 	onAccountChange = async accountAddress => {
-		const { identities, ticker, accounts } = this.props;
+		const { identities, accounts } = this.props;
 		const { name } = identities[accountAddress];
 		const { PreferencesController } = Engine.context;
-		const fromAccountBalance = `${renderFromWei(accounts[accountAddress].balance)} ${getTicker(ticker)}`;
 		const ens = await doENSReverseLookup(accountAddress);
 		const fromAccountName = ens || name;
 		PreferencesController.setSelectedAddress(accountAddress);
 		// If new account doesn't have the asset
 		this.setState({
 			fromAccountName,
-			fromAccountBalance,
 			fromSelectedAddress: accountAddress,
 			balanceIsZero: hexToBN(accounts[accountAddress].balance).isZero()
 		});
+		this.parseTransactionData();
 		this.toggleFromAccountModal();
 	};
 
@@ -748,6 +827,10 @@ class Confirm extends PureComponent {
 				/>
 			</Modal>
 		);
+	};
+
+	setScrollViewRef = ref => {
+		this.scrollView = ref;
 	};
 
 	render = () => {
@@ -786,7 +869,7 @@ class Confirm extends PureComponent {
 					/>
 				</View>
 
-				<ScrollView style={baseStyles.flexGrow}>
+				<ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
 					{!selectedAsset.tokenId ? (
 						<View style={styles.amountWrapper}>
 							<Text style={styles.textAmountLabel}>{strings('transaction.amount')}</Text>
@@ -839,7 +922,7 @@ class Confirm extends PureComponent {
 				<View style={styles.buttonNextWrapper}>
 					<StyledButton
 						type={'confirm'}
-						disabled={!gasEstimationReady}
+						disabled={!gasEstimationReady || Boolean(errorMessage)}
 						containerStyle={styles.buttonNext}
 						onPress={isPaymentChannelTransaction ? this.onPaymentChannelSend : this.onNext}
 						testID={'txn-confirm-send-button'}
