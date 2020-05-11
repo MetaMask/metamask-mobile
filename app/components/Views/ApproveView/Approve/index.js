@@ -19,7 +19,6 @@ import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress, renderShortAddress, renderAccountName } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import CustomGas from '../../SendFlow/CustomGas';
 import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
@@ -846,12 +845,6 @@ class Approve extends PureComponent {
 									<Text style={styles.viewDetailsText}>
 										{strings('spend_limit_edition.view_details')}
 									</Text>
-									<IonicIcon
-										name={`ios-arrow-${viewDetails ? 'up' : 'down'}`}
-										size={16}
-										color={colors.blue}
-										style={styles.copyIcon}
-									/>
 								</View>
 							</TouchableOpacity>
 							{gasError && (
