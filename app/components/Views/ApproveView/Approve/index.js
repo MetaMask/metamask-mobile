@@ -806,115 +806,128 @@ class Approve extends PureComponent {
 					propagateSwipe
 				>
 					<View style={styles.approveView}>
-						<View style={styles.section} testID={'approve-screen'}>
-							<TransactionHeader currentPageInformation={{ title: host, url: transaction.origin }} />
-							<Text style={styles.title} testID={'allow-access'}>
-								{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
-							</Text>
-							<Text style={styles.explanation}>{strings('spend_limit_edition.you_trust_this_site')}</Text>
-							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermissionModal}>
-								<Text style={styles.editPermissionText}>
-									{strings('spend_limit_edition.edit_permission')}
-								</Text>
-							</TouchableOpacity>
-							<AccountInfoCard />
-						</View>
-						<View style={styles.section}>
-							<View style={styles.sectionTitleRow}>
-								<FontAwesome5 name={'tag'} size={20} color={colors.grey500} />
-								<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-									{strings('transaction.transaction_fee')}
-								</Text>
-								<TouchableOpacity style={styles.sectionRight} onPress={this.toggleCustomGasModal}>
-									<Text style={styles.editText}>{strings('transaction.edit')}</Text>
-								</TouchableOpacity>
-							</View>
-							<View style={styles.row}>
-								<View style={styles.sectionLeft}>
-									<Text style={styles.sectionExplanationText}>
-										{strings('spend_limit_edition.transaction_fee_explanation')}
+						{viewDetails ? (
+							<>
+								<View style={styles.section}>
+									<View style={styles.sectionTitleRow}>
+										<FontAwesome5
+											name={'user-check'}
+											size={20}
+											color={colors.grey500}
+											onPress={this.toggleEditPermissionModal}
+										/>
+										<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
+											{strings('spend_limit_edition.permission_request')}
+										</Text>
+										<TouchableOpacity
+											style={styles.sectionRight}
+											onPress={this.toggleEditPermissionModal}
+										>
+											<Text style={styles.editText}>{strings('spend_limit_edition.edit')}</Text>
+										</TouchableOpacity>
+									</View>
+									<View style={styles.row}>
+										<Text style={styles.sectionExplanationText}>
+											{strings('spend_limit_edition.details_explanation', { host })}
+										</Text>
+									</View>
+									<Text style={styles.permissionDetails}>
+										<Text style={fontStyles.bold}>{strings('spend_limit_edition.amount')}</Text>{' '}
+										{`${amount} ${tokenSymbol}`}
 									</Text>
+									<View style={styles.row}>
+										<Text style={styles.permissionDetails}>
+											<Text style={fontStyles.bold}>{strings('spend_limit_edition.to')}</Text>{' '}
+											{strings('spend_limit_edition.contract', {
+												address: renderShortAddress(transaction.to)
+											})}
+										</Text>
+										<Feather
+											name="copy"
+											size={16}
+											color={colors.blue}
+											style={styles.copyIcon}
+											onPress={this.copyContractAddress}
+										/>
+									</View>
 								</View>
-								<View style={[styles.column, styles.sectionRight]}>
-									<Text style={styles.fiatFeeText}>{`${totalGasFiat} ${currentCurrency}`}</Text>
-									<Text style={styles.feeText}>{`${totalGas} ${ticker}`}</Text>
+								<View style={styles.section}>
+									<View style={styles.sectionTitleRow}>
+										<FontAwesome5 solid name={'file-alt'} size={20} color={colors.grey500} />
+										<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
+											{strings('spend_limit_edition.data')}
+										</Text>
+									</View>
+									<View style={styles.row}>
+										<Text style={styles.sectionExplanationText}>
+											{strings('spend_limit_edition.function_approve')}
+										</Text>
+									</View>
+									<Text style={styles.sectionExplanationText}>{transaction.data}</Text>
 								</View>
-							</View>
-							<TouchableOpacity style={styles.actionTouchable} onPress={this.onViewDetails}>
-								<View style={styles.viewDetailsWrapper}>
-									<Text style={styles.viewDetailsText}>
-										{strings('spend_limit_edition.view_details')}
-									</Text>
-								</View>
-							</TouchableOpacity>
-							{gasError && (
-								<View style={styles.errorMessageWrapper}>
-									<ErrorMessage errorMessage={gasError} />
-								</View>
-							)}
-						</View>
-
-						{viewDetails && (
-							<View style={styles.section}>
-								<View style={styles.sectionTitleRow}>
-									<FontAwesome5
-										name={'user-check'}
-										size={20}
-										color={colors.grey500}
-										onPress={this.toggleEditPermissionModal}
+							</>
+						) : (
+							<>
+								<View style={styles.section} testID={'approve-screen'}>
+									<TransactionHeader
+										currentPageInformation={{ title: host, url: transaction.origin }}
 									/>
-									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-										{strings('spend_limit_edition.permission_request')}
+									<Text style={styles.title} testID={'allow-access'}>
+										{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
+									</Text>
+									<Text style={styles.explanation}>
+										{strings('spend_limit_edition.you_trust_this_site')}
 									</Text>
 									<TouchableOpacity
-										style={styles.sectionRight}
+										style={styles.actionTouchable}
 										onPress={this.toggleEditPermissionModal}
 									>
-										<Text style={styles.editText}>{strings('spend_limit_edition.edit')}</Text>
+										<Text style={styles.editPermissionText}>
+											{strings('spend_limit_edition.edit_permission')}
+										</Text>
 									</TouchableOpacity>
+									<AccountInfoCard />
 								</View>
-								<View style={styles.row}>
-									<Text style={styles.sectionExplanationText}>
-										{strings('spend_limit_edition.details_explanation', { host })}
-									</Text>
+								<View style={styles.section}>
+									<View style={styles.sectionTitleRow}>
+										<FontAwesome5 name={'tag'} size={20} color={colors.grey500} />
+										<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
+											{strings('transaction.transaction_fee')}
+										</Text>
+										<TouchableOpacity
+											style={styles.sectionRight}
+											onPress={this.toggleCustomGasModal}
+										>
+											<Text style={styles.editText}>{strings('transaction.edit')}</Text>
+										</TouchableOpacity>
+									</View>
+									<View style={styles.row}>
+										<View style={styles.sectionLeft}>
+											<Text style={styles.sectionExplanationText}>
+												{strings('spend_limit_edition.transaction_fee_explanation')}
+											</Text>
+										</View>
+										<View style={[styles.column, styles.sectionRight]}>
+											<Text
+												style={styles.fiatFeeText}
+											>{`${totalGasFiat} ${currentCurrency}`}</Text>
+											<Text style={styles.feeText}>{`${totalGas} ${ticker}`}</Text>
+										</View>
+									</View>
+									<TouchableOpacity style={styles.actionTouchable} onPress={this.onViewDetails}>
+										<View style={styles.viewDetailsWrapper}>
+											<Text style={styles.viewDetailsText}>
+												{strings('spend_limit_edition.view_details')}
+											</Text>
+										</View>
+									</TouchableOpacity>
+									{gasError && (
+										<View style={styles.errorMessageWrapper}>
+											<ErrorMessage errorMessage={gasError} />
+										</View>
+									)}
 								</View>
-								<Text style={styles.permissionDetails}>
-									<Text style={fontStyles.bold}>{strings('spend_limit_edition.amount')}</Text>{' '}
-									{`${amount} ${tokenSymbol}`}
-								</Text>
-								<View style={styles.row}>
-									<Text style={styles.permissionDetails}>
-										<Text style={fontStyles.bold}>{strings('spend_limit_edition.to')}</Text>{' '}
-										{strings('spend_limit_edition.contract', {
-											address: renderShortAddress(transaction.to)
-										})}
-									</Text>
-									<Feather
-										name="copy"
-										size={16}
-										color={colors.blue}
-										style={styles.copyIcon}
-										onPress={this.copyContractAddress}
-									/>
-								</View>
-							</View>
-						)}
-
-						{viewDetails && (
-							<View style={styles.section}>
-								<View style={styles.sectionTitleRow}>
-									<FontAwesome5 solid name={'file-alt'} size={20} color={colors.grey500} />
-									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-										{strings('spend_limit_edition.data')}
-									</Text>
-								</View>
-								<View style={styles.row}>
-									<Text style={styles.sectionExplanationText}>
-										{strings('spend_limit_edition.function_approve')}
-									</Text>
-								</View>
-								<Text style={styles.sectionExplanationText}>{transaction.data}</Text>
-							</View>
+							</>
 						)}
 						{this.renderCustomGasModal()}
 						{this.renderEditPermissionModal()}
