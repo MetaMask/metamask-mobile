@@ -638,7 +638,7 @@ class Confirm extends PureComponent {
 				weiBalance = contractBalances[selectedAsset.address];
 				weiInput = toBN(amount);
 				errorMessage =
-					weiBalance === undefined || weiBalance.gte(weiInput)
+					weiBalance && weiBalance.gte(weiInput)
 						? undefined
 						: strings('transaction.insufficient_tokens', { token: selectedAsset.symbol });
 			}
