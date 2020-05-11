@@ -366,7 +366,7 @@ class Approve extends PureComponent {
 		customGas: undefined,
 		customGasPrice: undefined,
 		customGasModalVisible: false,
-		editPermissionModalVisible: false,
+		editPermissionVisible: false,
 		gasError: undefined,
 		host: undefined,
 		originalApproveAmount: undefined,
@@ -443,10 +443,10 @@ class Approve extends PureComponent {
 		this.setState({ customGasModalVisible: !customGasModalVisible, gasError: undefined });
 	};
 
-	toggleEditPermissionModal = () => {
-		const { editPermissionModalVisible } = this.state;
-		!editPermissionModalVisible && this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_PERMISSION);
-		this.setState({ editPermissionModalVisible: !editPermissionModalVisible });
+	toggleEditPermission = () => {
+		const { editPermissionVisible } = this.state;
+		!editPermissionVisible && this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_PERMISSION);
+		this.setState({ editPermissionVisible: !editPermissionVisible });
 	};
 
 	handleSetGasFee = () => {
@@ -557,18 +557,16 @@ class Approve extends PureComponent {
 		}
 
 		setTransactionObject({ data: newData });
-		this.toggleEditPermissionModal();
+		this.toggleEditPermission();
 	};
 
-	renderEditPermissionModal = () => {
+	renderEditPermission = () => {
 		const {
-			editPermissionModalVisible,
 			host,
 			spendLimitUnlimitedSelected,
 			tokenDecimals,
 			tokenSymbol,
 			spendLimitCustomValue,
-			validSpendLimitCustomValue,
 			originalApproveAmount
 		} = this.state;
 		const {
@@ -582,125 +580,113 @@ class Approve extends PureComponent {
 				? renderFromTokenMinimalUnit(contractBalances[checksummedTo], tokenDecimals)
 				: 0;
 		return (
-			<ActionModal
-				modalVisible={editPermissionModalVisible}
-				confirmText={strings('spend_limit_edition.save')}
-				onCancelPress={this.toggleEditPermissionModal}
-				onRequestClose={this.toggleEditPermissionModal}
-				onConfirmPress={this.handleSetSpendLimit}
-				cancelButtonMode={'neutral'}
-				confirmButtonMode={'confirm'}
-				confirmDisabled={!spendLimitUnlimitedSelected && !validSpendLimitCustomValue}
-				displayCancelButton={false}
-			>
-				<View style={baseStyles.flexGrow}>
-					<View style={styles.customGasModalTitle}>
-						<Text style={styles.customGasModalTitleText}>{strings('spend_limit_edition.title')}</Text>
+			<View style={baseStyles.flexGrow}>
+				<View style={styles.customGasModalTitle}>
+					<Text style={styles.customGasModalTitleText}>{strings('spend_limit_edition.title')}</Text>
+				</View>
+
+				<KeyboardAwareScrollView extraScrollHeight={-140}>
+					<View style={styles.fromGraphic}>
+						<Identicon address={from} diameter={18} />
+						<Text style={styles.addressText} numberOfLines={1}>
+							{renderAccountName(from, identities)}
+						</Text>
+						<View style={styles.tokenBalanceWrapper}>
+							<Text
+								style={styles.tokenBalanceText}
+								numberOfLines={1}
+							>{`${tokenBalance} ${tokenSymbol}`}</Text>
+						</View>
 					</View>
 
-					<KeyboardAwareScrollView extraScrollHeight={-140}>
-						<View style={styles.fromGraphic}>
-							<Identicon address={from} diameter={18} />
-							<Text style={styles.addressText} numberOfLines={1}>
-								{renderAccountName(from, identities)}
-							</Text>
-							<View style={styles.tokenBalanceWrapper}>
+					<View style={styles.spendLimitWrapper}>
+						<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
+						<Text style={styles.spendLimitSubtitle}>
+							{strings('spend_limit_edition.allow')}
+							<Text style={fontStyles.bold}>{` ${host} `}</Text>
+							{strings('spend_limit_edition.allow_explanation')}
+						</Text>
+
+						<View style={styles.option}>
+							<TouchableOpacity
+								onPress={this.onPressSpendLimitUnlimitedSelected}
+								style={styles.touchableOption}
+							>
+								{spendLimitUnlimitedSelected ? (
+									<View style={styles.outSelectedCircle}>
+										<View style={styles.selectedCircle} />
+									</View>
+								) : (
+									<View style={styles.circle} />
+								)}
+							</TouchableOpacity>
+							<View style={styles.spendLimitContent}>
 								<Text
-									style={styles.tokenBalanceText}
+									style={[
+										styles.optionText,
+										spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
+									]}
+								>
+									{strings('spend_limit_edition.unlimited')}
+								</Text>
+								<Text style={styles.sectionExplanationText}>
+									{strings('spend_limit_edition.requested_by')}
+									<Text style={fontStyles.bold}>{` ${host}`}</Text>
+								</Text>
+								<Text
+									style={[styles.optionText, styles.textBlack]}
+								>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
+							</View>
+						</View>
+
+						<View style={styles.option}>
+							<TouchableOpacity
+								onPress={this.onPressSpendLimitCustomSelected}
+								style={styles.touchableOption}
+							>
+								{spendLimitUnlimitedSelected ? (
+									<View style={styles.circle} />
+								) : (
+									<View style={styles.outSelectedCircle}>
+										<View style={styles.selectedCircle} />
+									</View>
+								)}
+							</TouchableOpacity>
+							<View style={styles.spendLimitContent}>
+								<Text
+									style={[
+										styles.optionText,
+										!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
+									]}
+								>
+									{strings('spend_limit_edition.custom_spend_limit')}
+								</Text>
+								<Text style={styles.sectionExplanationText}>
+									{strings('spend_limit_edition.max_spend_limit')}
+								</Text>
+								<TextInput
+									ref={this.customSpendLimitInput}
+									autoCapitalize="none"
+									keyboardType="numeric"
+									autoCorrect={false}
+									onChangeText={this.onSpendLimitCustomValueChange}
+									placeholder={`100 ${tokenSymbol}`}
+									placeholderTextColor={colors.grey100}
+									spellCheck={false}
+									style={styles.input}
+									value={spendLimitCustomValue}
 									numberOfLines={1}
-								>{`${tokenBalance} ${tokenSymbol}`}</Text>
+									onFocus={this.onPressSpendLimitCustomSelected}
+									returnKeyType={'done'}
+								/>
+								<Text style={styles.sectionExplanationText}>
+									{strings('spend_limit_edition.minimum', { tokenSymbol })}
+								</Text>
 							</View>
 						</View>
-
-						<View style={styles.spendLimitWrapper}>
-							<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
-							<Text style={styles.spendLimitSubtitle}>
-								{strings('spend_limit_edition.allow')}
-								<Text style={fontStyles.bold}>{` ${host} `}</Text>
-								{strings('spend_limit_edition.allow_explanation')}
-							</Text>
-
-							<View style={styles.option}>
-								<TouchableOpacity
-									onPress={this.onPressSpendLimitUnlimitedSelected}
-									style={styles.touchableOption}
-								>
-									{spendLimitUnlimitedSelected ? (
-										<View style={styles.outSelectedCircle}>
-											<View style={styles.selectedCircle} />
-										</View>
-									) : (
-										<View style={styles.circle} />
-									)}
-								</TouchableOpacity>
-								<View style={styles.spendLimitContent}>
-									<Text
-										style={[
-											styles.optionText,
-											spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
-										]}
-									>
-										{strings('spend_limit_edition.unlimited')}
-									</Text>
-									<Text style={styles.sectionExplanationText}>
-										{strings('spend_limit_edition.requested_by')}
-										<Text style={fontStyles.bold}>{` ${host}`}</Text>
-									</Text>
-									<Text
-										style={[styles.optionText, styles.textBlack]}
-									>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
-								</View>
-							</View>
-
-							<View style={styles.option}>
-								<TouchableOpacity
-									onPress={this.onPressSpendLimitCustomSelected}
-									style={styles.touchableOption}
-								>
-									{spendLimitUnlimitedSelected ? (
-										<View style={styles.circle} />
-									) : (
-										<View style={styles.outSelectedCircle}>
-											<View style={styles.selectedCircle} />
-										</View>
-									)}
-								</TouchableOpacity>
-								<View style={styles.spendLimitContent}>
-									<Text
-										style={[
-											styles.optionText,
-											!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
-										]}
-									>
-										{strings('spend_limit_edition.custom_spend_limit')}
-									</Text>
-									<Text style={styles.sectionExplanationText}>
-										{strings('spend_limit_edition.max_spend_limit')}
-									</Text>
-									<TextInput
-										ref={this.customSpendLimitInput}
-										autoCapitalize="none"
-										keyboardType="numeric"
-										autoCorrect={false}
-										onChangeText={this.onSpendLimitCustomValueChange}
-										placeholder={`100 ${tokenSymbol}`}
-										placeholderTextColor={colors.grey100}
-										spellCheck={false}
-										style={styles.input}
-										value={spendLimitCustomValue}
-										numberOfLines={1}
-										onFocus={this.onPressSpendLimitCustomSelected}
-										returnKeyType={'done'}
-									/>
-									<Text style={styles.sectionExplanationText}>
-										{strings('spend_limit_edition.minimum', { tokenSymbol })}
-									</Text>
-								</View>
-							</View>
-						</View>
-					</KeyboardAwareScrollView>
-				</View>
-			</ActionModal>
+					</View>
+				</KeyboardAwareScrollView>
+			</View>
 		);
 	};
 
@@ -782,7 +768,16 @@ class Approve extends PureComponent {
 			transaction: { data },
 			currentCurrency
 		} = this.props;
-		const { host, tokenSymbol, viewDetails, totalGas, totalGasFiat, ticker, gasError } = this.state;
+		const {
+			host,
+			tokenSymbol,
+			viewDetails,
+			totalGas,
+			totalGasFiat,
+			ticker,
+			gasError,
+			editPermissionVisible
+		} = this.state;
 		const amount = decodeTransferData('transfer', data)[1];
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -814,14 +809,14 @@ class Approve extends PureComponent {
 											name={'user-check'}
 											size={20}
 											color={colors.grey500}
-											onPress={this.toggleEditPermissionModal}
+											onPress={this.toggleEditPermission}
 										/>
 										<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
 											{strings('spend_limit_edition.permission_request')}
 										</Text>
 										<TouchableOpacity
 											style={styles.sectionRight}
-											onPress={this.toggleEditPermissionModal}
+											onPress={this.toggleEditPermission}
 										>
 											<Text style={styles.editText}>{strings('spend_limit_edition.edit')}</Text>
 										</TouchableOpacity>
@@ -866,6 +861,8 @@ class Approve extends PureComponent {
 									<Text style={styles.sectionExplanationText}>{transaction.data}</Text>
 								</View>
 							</>
+						) : editPermissionVisible ? (
+							this.renderEditPermission()
 						) : (
 							<>
 								<View style={styles.section} testID={'approve-screen'}>
@@ -880,7 +877,7 @@ class Approve extends PureComponent {
 									</Text>
 									<TouchableOpacity
 										style={styles.actionTouchable}
-										onPress={this.toggleEditPermissionModal}
+										onPress={this.toggleEditPermission}
 									>
 										<Text style={styles.editPermissionText}>
 											{strings('spend_limit_edition.edit_permission')}
@@ -930,7 +927,6 @@ class Approve extends PureComponent {
 							</>
 						)}
 						{this.renderCustomGasModal()}
-						{this.renderEditPermissionModal()}
 					</View>
 				</Modal>
 			</SafeAreaView>
