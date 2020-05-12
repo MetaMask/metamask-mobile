@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
-import ActionView from '../ActionView';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, InteractionManager } from 'react-native';
+import StyledButton from '../StyledButton';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -13,19 +13,9 @@ import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import TransactionDirection from '../../Views/TransactionDirection';
+import TransactionHeader from '../TransactionHeader';
 
 const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		flex: 1
-	},
-	reviewForm: {
-		flex: 1
-	},
-	overview: {
-		flex: 1
-	},
 	tabUnderlineStyle: {
 		height: 2,
 		backgroundColor: colors.blue
@@ -50,6 +40,21 @@ const styles = StyleSheet.create({
 		letterSpacing: 0.5,
 		marginHorizontal: 14,
 		...fontStyles.normal
+	},
+	actionContainer: {
+		flex: 0,
+		flexDirection: 'row',
+		paddingVertical: 16,
+		paddingHorizontal: 24
+	},
+	button: {
+		flex: 1
+	},
+	cancel: {
+		marginRight: 8
+	},
+	confirm: {
+		marginLeft: 8
 	}
 });
 
@@ -85,7 +90,11 @@ class TransactionReview extends PureComponent {
 		/**
 		 * Callback to validate transaction in parent state
 		 */
-		validate: PropTypes.func
+		validate: PropTypes.func,
+		/**
+		 * Browser/tab information
+		 */
+		browser: PropTypes.object
 	};
 
 	state = {
@@ -134,7 +143,7 @@ class TransactionReview extends PureComponent {
 		const { showHexData, actionKey } = this.state;
 		const { transaction } = this.props;
 		return (
-			<View style={styles.overview}>
+			<React.Fragment>
 				{showHexData && transaction.data ? (
 					<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
 						<TransactionReviewInformation
@@ -146,31 +155,52 @@ class TransactionReview extends PureComponent {
 				) : (
 					<TransactionReviewInformation edit={this.edit} />
 				)}
-			</View>
+			</React.Fragment>
 		);
 	};
+
+	getUrlFromBrowser() {
+		const { browser } = this.props;
+		let url;
+		browser.tabs.forEach(tab => {
+			if (tab.id === browser.activeTab) {
+				url = tab.url;
+			}
+		});
+		return url;
+	}
 
 	render = () => {
 		const { transactionConfirmed } = this.props;
 		const { actionKey, error } = this.state;
+		const currentPageInformation = { url: this.getUrlFromBrowser() };
 		return (
-			<View style={styles.root}>
-				<TransactionDirection />
-				<ActionView
-					confirmButtonMode="confirm"
-					cancelText={strings('transaction.reject')}
-					onCancelPress={this.props.onCancel}
-					onConfirmPress={this.props.onConfirm}
-					confirmed={transactionConfirmed}
-					confirmDisabled={error !== undefined}
-				>
-					<View>
-						<TransactionReviewSummary actionKey={actionKey} />
-						<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
-						{!!error && <Text style={styles.error}>{error}</Text>}
-					</View>
-				</ActionView>
-			</View>
+			<React.Fragment>
+				<TransactionHeader currentPageInformation={currentPageInformation} />
+				<React.Fragment>
+					<TransactionReviewSummary actionKey={actionKey} />
+					{this.renderTransactionDetails()}
+					{!!error && <Text style={styles.error}>{error}</Text>}
+				</React.Fragment>
+				<View style={styles.actionContainer}>
+					<StyledButton
+						type={'cancel'}
+						onPress={this.props.onCancel}
+						containerStyle={[styles.button, styles.cancel]}
+						disabled={transactionConfirmed}
+					>
+						{strings('transaction.reject')}
+					</StyledButton>
+					<StyledButton
+						type={'confirm'}
+						onPress={this.props.onConfirm}
+						containerStyle={[styles.button, styles.confirm]}
+						disabled={transactionConfirmed || error !== undefined}
+					>
+						{strings('accountApproval.connect')}
+					</StyledButton>
+				</View>
+			</React.Fragment>
 		);
 	};
 }
@@ -178,7 +208,8 @@ class TransactionReview extends PureComponent {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	showHexData: state.settings.showHexData,
-	transaction: getNormalizedTxState(state)
+	transaction: getNormalizedTxState(state),
+	browser: state.browser
 });
 
 export default connect(mapStateToProps)(TransactionReview);
