@@ -51,6 +51,19 @@ import TransactionHeader from '../../../UI/TransactionHeader';
 import AccountInfoCard from '../../../UI/AccountInfoCard';
 
 const styles = StyleSheet.create({
+	networkFee: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		borderWidth: 1,
+		borderColor: colors.grey200,
+		borderRadius: 10,
+		padding: 16,
+		marginTop: -32
+	},
+	networkFeeArrow: {
+		paddingLeft: 20,
+		marginTop: 2
+	},
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1
@@ -65,7 +78,8 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.black,
 		lineHeight: 34,
-		marginVertical: 16
+		marginVertical: 16,
+		marginTop: -16
 	},
 	explanation: {
 		...fontStyles.normal,
@@ -87,13 +101,13 @@ const styles = StyleSheet.create({
 		paddingVertical: 8,
 		paddingHorizontal: 16
 	},
-	viewDetailsText: {
-		...fontStyles.normal,
-		color: colors.blue,
-		fontSize: 12,
-		lineHeight: 16,
-		textAlign: 'center'
-	},
+	// viewDetailsText: {
+	// 	...fontStyles.normal,
+	// 	color: colors.blue,
+	// 	fontSize: 12,
+	// 	lineHeight: 16,
+	// 	textAlign: 'center'
+	// },
 	actionTouchable: {
 		flexDirection: 'column',
 		alignItems: 'center'
@@ -120,32 +134,36 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		fontSize: 12
 	},
-	fiatFeeText: {
-		...fontStyles.bold,
-		fontSize: 18,
-		color: colors.black,
-		textTransform: 'uppercase'
-	},
-	feeText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		color: colors.grey500
-	},
+	// fiatFeeText: {
+	// 	...fontStyles.bold,
+	// 	fontSize: 18,
+	// 	color: colors.black,
+	// 	textTransform: 'uppercase'
+	// },
+	// feeText: {
+	// 	...fontStyles.normal,
+	// 	fontSize: 14,
+	// 	color: colors.grey500
+	// },
 	row: {
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
-	column: {
-		flexDirection: 'column'
-	},
+	// column: {
+	// 	flexDirection: 'column'
+	// },
 	sectionLeft: {
-		flex: 0.6,
-		flexDirection: 'row',
-		alignItems: 'center'
+		...fontStyles.bold,
+		color: colors.black,
+		fontSize: 14,
+		flex: 1,
+		textAlign: 'right'
 	},
 	sectionRight: {
-		flex: 0.4,
-		alignItems: 'flex-end'
+		...fontStyles.bold,
+		color: colors.black,
+		fontSize: 14,
+		flex: 1
 	},
 	permissionDetails: {
 		...fontStyles.normal,
@@ -153,10 +171,10 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		marginVertical: 8
 	},
-	viewDetailsWrapper: {
-		flexDirection: 'row',
-		marginTop: 20
-	},
+	// viewDetailsWrapper: {
+	// 	flexDirection: 'row',
+	// 	marginTop: 20
+	// },
 	copyIcon: {
 		marginLeft: 8
 	},
@@ -327,7 +345,7 @@ class Approve extends PureComponent {
 		/**
 		 * Currency code of the currently-active currency
 		 */
-		currentCurrency: PropTypes.string,
+		// currentCurrency: PropTypes.string,
 		/**
 		 * Transaction state
 		 */
@@ -750,16 +768,16 @@ class Approve extends PureComponent {
 	render = () => {
 		const {
 			transaction,
-			transaction: { data },
-			currentCurrency
+			transaction: { data }
+			// currentCurrency
 		} = this.props;
 		const {
 			host,
 			tokenSymbol,
 			viewDetails,
 			totalGas,
-			totalGasFiat,
-			ticker,
+			// totalGasFiat,
+			// ticker,
 			gasError,
 			editPermissionVisible
 		} = this.state;
@@ -878,7 +896,7 @@ class Approve extends PureComponent {
 									<AccountInfoCard />
 								</View>
 								<View style={styles.section}>
-									<View style={styles.sectionTitleRow}>
+									{/*<View style={styles.sectionTitleRow}>
 										<FontAwesome5 name={'tag'} size={20} color={colors.grey500} />
 										<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
 											{strings('transaction.transaction_fee')}
@@ -908,6 +926,17 @@ class Approve extends PureComponent {
 											<Text style={styles.viewDetailsText}>
 												{strings('spend_limit_edition.view_details')}
 											</Text>
+										</View>
+									</TouchableOpacity>*/}
+									<TouchableOpacity onPress={this.toggleCustomGasModal}>
+										<View style={styles.networkFee}>
+											<Text style={styles.sectionRight}>
+												{strings('transaction.transaction_fee')}
+											</Text>
+											<Text style={styles.sectionLeft}>{totalGas}</Text>
+											<View style={styles.networkFeeArrow}>
+												<IonicIcon name="ios-arrow-forward" size={16} color={colors.grey00} />
+											</View>
 										</View>
 									</TouchableOpacity>
 									{gasError && (
