@@ -21,13 +21,6 @@ import TransactionTypes from '../../../core/TransactionTypes';
 const EDIT = 'edit';
 const REVIEW = 'review';
 
-const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		flex: 1
-	}
-});
-
 /**
  * PureComponent that supports editing and reviewing a transaction
  */
@@ -573,25 +566,25 @@ class TransactionEditor extends PureComponent {
 		const { mode, transactionConfirmed, transaction } = this.props;
 
 		return (
-			<View style={styles.root}>
-				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
-				{mode === EDIT && !transaction.paymentChannelTransaction && (
-					<TransactionEdit
-						navigation={this.props.navigation}
-						onCancel={this.onCancel}
-						onModeChange={this.props.onModeChange}
-						handleUpdateAmount={this.handleUpdateAmount}
-						handleUpdateData={this.handleUpdateData}
-						handleUpdateFromAddress={this.handleUpdateFromAddress}
-						handleUpdateToAddress={this.handleUpdateToAddress}
-						handleGasFeeSelection={this.handleGasFeeSelection}
-						validateAmount={this.validateAmount}
-						validateGas={this.validateGas}
-						validateToAddress={this.validateToAddress}
-						handleUpdateAsset={this.handleUpdateAsset}
-						checkForAssetAddress={this.checkForAssetAddress}
-						handleUpdateReadableValue={this.handleUpdateReadableValue}
-					/>
+			<React.Fragment>
+        {mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
+        {mode === EDIT && !transaction.paymentChannelTransaction && (
+        <TransactionEdit
+          navigation={this.props.navigation}
+          onCancel={this.onCancel}
+          onModeChange={this.props.onModeChange}
+          handleUpdateAmount={this.handleUpdateAmount}
+          handleUpdateData={this.handleUpdateData}
+          handleUpdateFromAddress={this.handleUpdateFromAddress}
+          handleUpdateToAddress={this.handleUpdateToAddress}
+          handleGasFeeSelection={this.handleGasFeeSelection}
+          validateAmount={this.validateAmount}
+          validateGas={this.validateGas}
+          validateToAddress={this.validateToAddress}
+          handleUpdateAsset={this.handleUpdateAsset}
+          checkForAssetAddress={this.checkForAssetAddress}
+          handleUpdateReadableValue={this.handleUpdateReadableValue}
+        />
 				)}
 				{mode === REVIEW && (
 					<TransactionReview
@@ -602,7 +595,7 @@ class TransactionEditor extends PureComponent {
 						transactionConfirmed={transactionConfirmed}
 					/>
 				)}
-			</View>
+			</React.Fragment>
 		);
 	};
 }
