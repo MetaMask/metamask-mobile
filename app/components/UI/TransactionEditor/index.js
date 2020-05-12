@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
@@ -11,15 +12,36 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { generateTransferData, getNormalizedTxState } from '../../../util/transactions';
 import { setTransactionObject } from '../../../actions/transaction';
+import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from 'eth-contract-metadata';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
+import Device from '../../../util/Device';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
+
+const styles = StyleSheet.create({
+	reviewRoot: {
+		backgroundColor: colors.white,
+		minHeight: 700,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		paddingTop: 24,
+		paddingBottom: Device.isIphoneX() ? 24 : 0
+	},
+	editRoot: {
+		backgroundColor: colors.white,
+		minHeight: 700,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		paddingTop: 24,
+		paddingBottom: Device.isIphoneX() ? 44 : 24
+	}
+});
 
 /**
  * PureComponent that supports editing and reviewing a transaction
@@ -569,31 +591,35 @@ class TransactionEditor extends PureComponent {
 			<React.Fragment>
         {mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
         {mode === EDIT && !transaction.paymentChannelTransaction && (
-        <TransactionEdit
-          navigation={this.props.navigation}
-          onCancel={this.onCancel}
-          onModeChange={this.props.onModeChange}
-          handleUpdateAmount={this.handleUpdateAmount}
-          handleUpdateData={this.handleUpdateData}
-          handleUpdateFromAddress={this.handleUpdateFromAddress}
-          handleUpdateToAddress={this.handleUpdateToAddress}
-          handleGasFeeSelection={this.handleGasFeeSelection}
-          validateAmount={this.validateAmount}
-          validateGas={this.validateGas}
-          validateToAddress={this.validateToAddress}
-          handleUpdateAsset={this.handleUpdateAsset}
-          checkForAssetAddress={this.checkForAssetAddress}
-          handleUpdateReadableValue={this.handleUpdateReadableValue}
-        />
+          <View style={styles.editRoot}>
+            <TransactionEdit
+              navigation={this.props.navigation}
+              onCancel={this.onCancel}
+              onModeChange={this.props.onModeChange}
+              handleUpdateAmount={this.handleUpdateAmount}
+              handleUpdateData={this.handleUpdateData}
+              handleUpdateFromAddress={this.handleUpdateFromAddress}
+              handleUpdateToAddress={this.handleUpdateToAddress}
+              handleGasFeeSelection={this.handleGasFeeSelection}
+              validateAmount={this.validateAmount}
+              validateGas={this.validateGas}
+              validateToAddress={this.validateToAddress}
+              handleUpdateAsset={this.handleUpdateAsset}
+              checkForAssetAddress={this.checkForAssetAddress}
+              handleUpdateReadableValue={this.handleUpdateReadableValue}
+            />
+          </View>
 				)}
 				{mode === REVIEW && (
-					<TransactionReview
-						onCancel={this.onCancel}
-						onConfirm={this.onConfirm}
-						onModeChange={this.props.onModeChange}
-						validate={this.validate}
-						transactionConfirmed={transactionConfirmed}
-					/>
+					<View style={styles.reviewRoot}>
+						<TransactionReview
+							onCancel={this.onCancel}
+							onConfirm={this.onConfirm}
+							onModeChange={this.props.onModeChange}
+							validate={this.validate}
+							transactionConfirmed={transactionConfirmed}
+						/>
+					</View>
 				)}
 			</React.Fragment>
 		);
