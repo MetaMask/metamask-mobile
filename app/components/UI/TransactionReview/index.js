@@ -14,6 +14,7 @@ import TransactionReviewSummary from './TransactionReviewSummary';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import TransactionHeader from '../TransactionHeader';
+import AccountInfoCard from '../AccountInfoCard';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
@@ -28,6 +29,9 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		letterSpacing: 0.5,
 		...fontStyles.bold
+	},
+	accountInfoCardWrapper: {
+		paddingHorizontal: 24
 	},
 	error: {
 		backgroundColor: colors.red000,
@@ -179,6 +183,9 @@ class TransactionReview extends PureComponent {
 				<TransactionHeader currentPageInformation={currentPageInformation} />
 				<React.Fragment>
 					<TransactionReviewSummary actionKey={actionKey} />
+					<View style={styles.accountInfoCardWrapper}>
+						<AccountInfoCard />
+					</View>
 					{this.renderTransactionDetails()}
 					{!!error && <Text style={styles.error}>{error}</Text>}
 				</React.Fragment>
