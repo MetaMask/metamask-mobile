@@ -1,14 +1,14 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Alert, InteractionManager } from 'react-native';
+import { StyleSheet, Alert, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
-import TransactionHeader from '../../UI/TransactionHeader';
 import Modal from 'react-native-modal';
 import { BNToHex, hexToBN } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
 import { resetTransaction } from '../../../actions/transaction';
+import { newTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
 import Analytics from '../../../core/Analytics';
@@ -17,22 +17,12 @@ import { getTransactionReviewActionKey, getNormalizedTxState } from '../../../ut
 import { strings } from '../../../../locales/i18n';
 import { safeToChecksumAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import Device from '../../../util/Device';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
 const APPROVAL = 'Approval';
 
 const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		minHeight: 200,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		paddingTop: 24,
-		paddingHorizontal: 24,
-		paddingBottom: Device.isIphoneX() ? 44 : 24
-	},
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
@@ -73,11 +63,7 @@ class Approval extends PureComponent {
 		/**
 		 * Tells whether or not dApp transaction modal is visible
 		 */
-		dappTransactionModalVisible: PropTypes.bool,
-		/**
-		 * Browser/tab information
-		 */
-		browser: PropTypes.object
+		dappTransactionModalVisible: PropTypes.bool
 	};
 
 	state = {
@@ -281,21 +267,9 @@ class Approval extends PureComponent {
 		return transaction;
 	}
 
-	getUrlFromBrowser() {
-		const { browser } = this.props;
-		let url;
-		browser.tabs.forEach(tab => {
-			if (tab.id === browser.activeTab) {
-				url = tab.url;
-			}
-		});
-		return url;
-	}
-
 	render = () => {
 		const { transaction, dappTransactionModalVisible } = this.props;
 		const { mode } = this.state;
-		const currentPageInformation = { url: this.getUrlFromBrowser() };
 		return (
 			<Modal
 				isVisible={dappTransactionModalVisible}
@@ -311,19 +285,16 @@ class Approval extends PureComponent {
 				swipeDirection={'down'}
 				propagateSwipe
 			>
-				<SafeAreaView style={styles.root}>
-					<TransactionHeader currentPageInformation={currentPageInformation} />
-					<TransactionEditor
-						promptedFromApproval
-						mode={mode}
-						onCancel={this.onCancel}
-						onConfirm={this.onConfirm}
-						onModeChange={this.onModeChange}
-						transaction={transaction}
-						navigation={this.props.navigation}
-						dappTransactionModalVisible={dappTransactionModalVisible}
-					/>
-				</SafeAreaView>
+				<TransactionEditor
+					promptedFromApproval
+					mode={mode}
+					onCancel={this.onCancel}
+					onConfirm={this.onConfirm}
+					onModeChange={this.onModeChange}
+					transaction={transaction}
+					navigation={this.props.navigation}
+					dappTransactionModalVisible={dappTransactionModalVisible}
+				/>
 			</Modal>
 		);
 	};
@@ -332,8 +303,7 @@ class Approval extends PureComponent {
 const mapStateToProps = state => ({
 	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	browser: state.browser
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
