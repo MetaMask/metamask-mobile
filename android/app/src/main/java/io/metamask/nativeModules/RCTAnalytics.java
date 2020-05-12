@@ -13,7 +13,6 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.Promise;
 
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
-import com.mixpanel.android.mpmetrics.People;
 import com.mixpanel.android.mpmetrics.Tweak;
 
 import org.json.JSONException;
