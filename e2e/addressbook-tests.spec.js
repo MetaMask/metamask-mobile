@@ -91,7 +91,7 @@ describe('Addressbook Tests', () => {
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on settings
-		await TestHelpers.tap('settings-button');
+		await TestHelpers.tapByText('Settings');
 		// Tap on the "Contacts" option
 		await TestHelpers.tapByText('Contacts');
 		// Check that we are on the contacts screen
