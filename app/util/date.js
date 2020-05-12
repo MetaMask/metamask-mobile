@@ -9,8 +9,8 @@ export function toLocaleDateTime(timestamp) {
 
 export function toDateFormat(timestamp) {
 	const dateObj = new Date(timestamp);
-	const month = strings(`date.months.${dateObj.getDay()}`);
-	const day = dateObj.getMonth();
+	const month = strings(`date.months.${dateObj.getMonth()}`);
+	const day = dateObj.getDate();
 	let meridiem = 'am';
 	let hour = dateObj.getHours();
 	if (hour > 12) {
