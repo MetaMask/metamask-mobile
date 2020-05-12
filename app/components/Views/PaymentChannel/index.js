@@ -474,7 +474,7 @@ class PaymentChannel extends PureComponent {
 		this.props.setPaymentChannelTransaction({
 			address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
 			decimals: 18,
-			logo: 'dai.svg',
+			logo: 'sai.svg',
 			symbol: 'SAI',
 			assetBalance: this.state.balance
 		});
