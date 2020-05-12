@@ -491,6 +491,7 @@
 		"review_function_type": "FUNCTION TYPE",
 		"review_hex_data": "HEX DATA",
 		"insufficient": "Insufficient funds",
+		"insufficient_tokens": "Insufficient {{token}}",
 		"invalid_address": "Invalid address",
 		"invalid_amount": "Invalid amount",
 		"invalid_gas": "Invalid gas amount",
@@ -1064,6 +1065,9 @@
 		"deposit_amount": "Amount to deposit",
 		"load_funds": "Load Funds",
 		"insta_pay": "InstaPay",
+		"insta_pay_send_to": "InstaPay: Send to",
+		"insta_pay_amount": "InstaPay: Amount",
+		"insta_pay_confirm": "InstaPay: Confirm",
 		"welcome": {
 			"title": "Welcome to InstaPay!",
 			"desc_1": "This is an experimental Layer 2 feature to let you send assets to friends without transaction fees.",

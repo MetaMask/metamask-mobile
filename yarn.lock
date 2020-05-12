@@ -5009,10 +5009,10 @@ g-status@^2.0.2:
     matcher "^1.0.0"
     simple-git "^1.85.0"
 
-gaba@1.10.0:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/gaba/-/gaba-1.10.0.tgz#f01e4462f8b7e72a02d9558977ea411d8f7a9a09"
-  integrity sha512-2WEN3YgBh9kP7xow5K579bWsvCaH8c+HE75N9VZHQtGFZmK41q/U9MfRuRx4PREfUgP0S/O9GzQz+Uu0HvA19g==
+gaba@1.11.0:
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/gaba/-/gaba-1.11.0.tgz#7ff49cad2f2b95941222121a1984bb63783fe076"
+  integrity sha512-rQcLgR/FHQ8W6oNza/vxFnkbav0vgauBxm6LKqK6BkbjJGB979qoBRVja9fU/H5dUMiYmHJO9CrHjL0ofG/ukA==
   dependencies:
     await-semaphore "^0.1.3"
     eth-contract-metadata "^1.11.0"

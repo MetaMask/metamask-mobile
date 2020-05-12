@@ -49,7 +49,7 @@ import EthereumAddress from '../EthereumAddress';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
-import { newAssetTransaction } from '../../../actions/newTransaction';
+import { newAssetTransaction } from '../../../actions/transaction';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
