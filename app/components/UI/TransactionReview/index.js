@@ -5,7 +5,7 @@ import { StyleSheet, Text, View, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { getTransactionReviewActionKey } from '../../../util/transactions';
+import { getTransactionReviewActionKey, getNormalizedTxState } from '../../../util/transactions';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
@@ -178,7 +178,7 @@ class TransactionReview extends PureComponent {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	showHexData: state.settings.showHexData,
-	transaction: state.transaction
+	transaction: getNormalizedTxState(state)
 });
 
 export default connect(mapStateToProps)(TransactionReview);

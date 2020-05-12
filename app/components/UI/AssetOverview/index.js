@@ -11,7 +11,7 @@ import { connect } from 'react-redux';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
-import { newAssetTransaction } from '../../../actions/newTransaction';
+import { newAssetTransaction } from '../../../actions/transaction';
 
 const styles = StyleSheet.create({
 	wrapper: {

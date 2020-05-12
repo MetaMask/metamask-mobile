@@ -2,7 +2,7 @@
 
 exports[`PaymentChannelSend should render correctly 1`] = `
 <PaymentChannelSend
-  newTransaction={[Function]}
+  resetTransaction={[Function]}
   transaction={Object {}}
 />
 `;

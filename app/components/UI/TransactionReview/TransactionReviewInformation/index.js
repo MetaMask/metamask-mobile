@@ -14,7 +14,7 @@ import {
 	renderFromWei
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
-import { getTicker } from '../../../../util/transactions';
+import { getTicker, getNormalizedTxState } from '../../../../util/transactions';
 
 const styles = StyleSheet.create({
 	overview: {
@@ -277,7 +277,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	transaction: state.transaction,
+	transaction: getNormalizedTxState(state),
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
