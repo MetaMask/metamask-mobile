@@ -492,7 +492,6 @@ class Approve extends PureComponent {
 	};
 
 	toggleCustomGas = () => {
-		console.log('toggleCustomGas');
 		const { customGasVisible } = this.state;
 		!customGasVisible && this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_FEE);
 		this.setState({ customGasVisible: !customGasVisible, gasError: undefined });
