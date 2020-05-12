@@ -88,6 +88,9 @@ class Analytics {
 		return id;
 	};
 
+	/**
+	 * Identify current user to mixpanel people
+	 */
 	peopleIdentify = () => {
 		RCTAnalytics.peopleIdentify();
 	};
