@@ -19,7 +19,6 @@ import { getHost } from '../../../../util/browser';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress, renderShortAddress } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import CustomGas from '../../SendFlow/CustomGas';
 import ActionModal from '../../../UI/ActionModal';
 import Modal from 'react-native-modal';
@@ -36,7 +35,6 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ErrorMessage from '../../SendFlow/ErrorMessage';
 import { showAlert } from '../../../../actions/alert';
-import Feather from 'react-native-vector-icons/Feather';
 import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
@@ -58,6 +56,31 @@ const styles = StyleSheet.create({
 	actionContainer: {
 		flexDirection: 'row',
 		marginVertical: 20
+	},
+	transactionDetails: {
+		borderWidth: 1,
+		borderColor: colors.grey200,
+		borderRadius: 10,
+		padding: 16
+	},
+	transactionDetailsRow: {
+		display: 'flex',
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		paddingVertical: 4
+	},
+	transactionDetailsTextLeft: {
+		...fontStyles.thin,
+		color: colors.black,
+		fontSize: 14,
+		flex: 1
+	},
+	transactionDetailsTextRight: {
+		...fontStyles.bold,
+		color: colors.black,
+		fontSize: 14,
+		flex: 1,
+		textAlign: 'right'
 	},
 	networkFee: {
 		flexDirection: 'row',
@@ -122,28 +145,28 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center'
 	},
-	sectionTitleText: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		marginLeft: 8
-	},
-	sectionTitleRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginBottom: 12
-	},
+	// sectionTitleText: {
+	// 	...fontStyles.bold,
+	// 	color: colors.black,
+	// 	fontSize: 14,
+	// 	marginLeft: 8
+	// },
+	// sectionTitleRow: {
+	// 	flexDirection: 'row',
+	// 	alignItems: 'center',
+	// 	marginBottom: 12
+	// },
 	sectionExplanationText: {
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.grey500,
 		marginVertical: 6
 	},
-	editText: {
-		...fontStyles.normal,
-		color: colors.blue,
-		fontSize: 12
-	},
+	// editText: {
+	// 	...fontStyles.normal,
+	// 	color: colors.blue,
+	// 	fontSize: 12
+	// },
 	// fiatFeeText: {
 	// 	...fontStyles.bold,
 	// 	fontSize: 18,
@@ -155,10 +178,10 @@ const styles = StyleSheet.create({
 	// 	fontSize: 14,
 	// 	color: colors.grey500
 	// },
-	row: {
-		flexDirection: 'row',
-		alignItems: 'center'
-	},
+	// row: {
+	// 	flexDirection: 'row',
+	// 	alignItems: 'center'
+	// },
 	// column: {
 	// 	flexDirection: 'column'
 	// },
@@ -166,28 +189,28 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		color: colors.black,
 		fontSize: 14,
-		flex: 1,
-		textAlign: 'right'
+		flex: 1
 	},
 	sectionRight: {
 		...fontStyles.bold,
 		color: colors.black,
 		fontSize: 14,
-		flex: 1
+		flex: 1,
+		textAlign: 'right'
 	},
-	permissionDetails: {
-		...fontStyles.normal,
-		fontSize: 14,
-		color: colors.black,
-		marginVertical: 8
-	},
+	// permissionDetails: {
+	// 	...fontStyles.normal,
+	// 	fontSize: 14,
+	// 	color: colors.black,
+	// 	marginVertical: 8
+	// },
 	// viewDetailsWrapper: {
 	// 	flexDirection: 'row',
 	// 	marginTop: 20
 	// },
-	copyIcon: {
-		marginLeft: 8
-	},
+	// copyIcon: {
+	// 	marginLeft: 8
+	// },
 	customGasHeader: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
@@ -826,7 +849,30 @@ class Approve extends PureComponent {
 										<Text style={styles.customGasModalTitleText}>Transaction Details</Text>
 										<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
 									</View>
-									<View style={styles.sectionTitleRow}>
+									{/* Transaction Details */}
+									<View style={styles.transactionDetails}>
+										<View style={styles.transactionDetailsRow}>
+											<Text style={styles.transactionDetailsTextLeft}>Site Url</Text>
+											<Text style={styles.transactionDetailsTextRight}>{host}</Text>
+										</View>
+										<View style={styles.transactionDetailsRow}>
+											<Text style={styles.transactionDetailsTextLeft}>Contract name:</Text>
+											<Text style={styles.transactionDetailsTextRight}>name??</Text>
+										</View>
+										<View style={styles.transactionDetailsRow}>
+											<Text style={styles.transactionDetailsTextLeft}>Contract address:</Text>
+											<Text style={styles.transactionDetailsTextRight}>
+												{renderShortAddress(transaction.to)}
+											</Text>
+										</View>
+										<View style={styles.transactionDetailsRow}>
+											<Text style={styles.transactionDetailsTextLeft}>Allowance:</Text>
+											<Text style={styles.transactionDetailsTextRight}>
+												{amount} {tokenSymbol}
+											</Text>
+										</View>
+									</View>
+									{/*<View style={styles.sectionTitleRow}>
 										<FontAwesome5
 											name={'user-check'}
 											size={20}
@@ -866,9 +912,9 @@ class Approve extends PureComponent {
 											style={styles.copyIcon}
 											onPress={this.copyContractAddress}
 										/>
-									</View>
+									</View>*/}
 								</View>
-								<View style={styles.section}>
+								{/*<View style={styles.section}>
 									<View style={styles.sectionTitleRow}>
 										<FontAwesome5 solid name={'file-alt'} size={20} color={colors.grey500} />
 										<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
@@ -881,7 +927,7 @@ class Approve extends PureComponent {
 										</Text>
 									</View>
 									<Text style={styles.sectionExplanationText}>{transaction.data}</Text>
-								</View>
+								</View>*/}
 							</>
 						) : editPermissionVisible ? (
 							this.renderEditPermission()
@@ -937,10 +983,10 @@ class Approve extends PureComponent {
 									</View>*/}
 									<TouchableOpacity onPress={this.toggleCustomGas}>
 										<View style={styles.networkFee}>
-											<Text style={styles.sectionRight}>
+											<Text style={styles.sectionLeft}>
 												{strings('transaction.transaction_fee')}
 											</Text>
-											<Text style={styles.sectionLeft}>{totalGas}</Text>
+											<Text style={styles.sectionRight}>{totalGas}</Text>
 											<View style={styles.networkFeeArrow}>
 												<IonicIcon name="ios-arrow-forward" size={16} color={colors.grey00} />
 											</View>
