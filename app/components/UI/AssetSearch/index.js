@@ -20,7 +20,6 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100
 	},
 	textInput: {
-		flex: 1,
 		...fontStyles.normal
 	},
 	icon: {
@@ -50,7 +49,8 @@ const fuse = new Fuse(contractList, {
  */
 export default class AssetSearch extends PureComponent {
 	state = {
-		searchQuery: ''
+		searchQuery: '',
+		inputWidth: '85%'
 	};
 
 	static propTypes = {
@@ -59,6 +59,10 @@ export default class AssetSearch extends PureComponent {
 		*/
 		onSearch: PropTypes.func
 	};
+
+	componentDidMount() {
+		setTimeout(() => this.setState({ inputWidth: '86%' }), 100);
+	}
 
 	handleSearch = searchQuery => {
 		this.setState({ searchQuery });
@@ -71,13 +75,13 @@ export default class AssetSearch extends PureComponent {
 	};
 
 	render = () => {
-		const { searchQuery } = this.state;
+		const { searchQuery, inputWidth } = this.state;
 
 		return (
 			<View style={styles.searchSection} testID={'add-searched-token-screen'}>
 				<Icon name="search" size={22} style={styles.icon} />
 				<TextInput
-					style={styles.textInput}
+					style={[styles.textInput, { width: inputWidth }]}
 					value={searchQuery}
 					placeholder={strings('token.search_tokens_placeholder')}
 					placeholderTextColor={colors.grey100}
