@@ -31,6 +31,13 @@ class Analytics {
 	};
 
 	/**
+	 * Identify current user to mixpanel people
+	 */
+	_peopleIdentify = () => {
+		RCTAnalytics.peopleIdentify();
+	};
+
+	/**
 	 * Creates a Analytics instance
 	 */
 	constructor(enabled) {
@@ -39,7 +46,7 @@ class Analytics {
 			this.listeners = [];
 			Analytics.instance = this;
 			RCTAnalytics.optIn(this.enabled);
-			this.peopleIdentify();
+			this._peopleIdentify();
 		}
 		return Analytics.instance;
 	}
@@ -86,13 +93,6 @@ class Analytics {
 	getDistinctId = async () => {
 		const id = await RCTAnalytics.getDistinctId();
 		return id;
-	};
-
-	/**
-	 * Identify current user to mixpanel people
-	 */
-	peopleIdentify = () => {
-		RCTAnalytics.peopleIdentify();
 	};
 
 	/**
