@@ -8,7 +8,7 @@ import {
 	renderFromWei,
 	fromTokenMinimalUnit
 } from '../../../../util/number';
-import { colors, fontStyles, baseStyles } from '../../../../styles/common';
+import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
 import {
@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.beige,
 		padding: 24,
 		paddingTop: 12,
+		paddingBottom: 16,
 		alignItems: 'center'
 	},
 	summaryFiat: {
@@ -168,7 +169,7 @@ class TransactionReviewSummary extends PureComponent {
 		const { actionKey } = this.props;
 		const { assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		return (
-			<View style={baseStyles.flexGrow}>
+			<View>
 				{!!approveTransaction && (
 					<View style={styles.warning}>
 						<WarningMessage warningMessage={this.renderWarning()} />
