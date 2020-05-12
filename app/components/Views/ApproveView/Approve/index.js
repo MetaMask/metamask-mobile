@@ -57,6 +57,16 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		marginVertical: 20
 	},
+	viewData: {
+		borderWidth: 1,
+		borderColor: colors.grey200,
+		borderRadius: 10,
+		padding: 16,
+		marginTop: 20
+	},
+	viewDataTitle: {
+		fontSize: 14
+	},
 	transactionDetails: {
 		borderWidth: 1,
 		borderColor: colors.grey200,
@@ -868,6 +878,9 @@ class Approve extends PureComponent {
 												{amount} {tokenSymbol}
 											</Text>
 										</View>
+									</View>
+									<View style={styles.viewData}>
+										<Text style={styles.viewDataTitle}>View Data</Text>
 									</View>
 									{/*<View style={styles.sectionTitleRow}>
 										<FontAwesome5
