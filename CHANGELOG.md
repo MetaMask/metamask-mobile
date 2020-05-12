@@ -4,7 +4,6 @@
 
 ## v0.2.16 - May 13 2020
 - [#1548](https://github.com/MetaMask/metamask-mobile/pull/1548): Use setTimeout hack (again) to get paste context in token search (#1548)
-- bump
 - [#1465](https://github.com/MetaMask/metamask-mobile/pull/1465): Make send flows consistent (#1465)
 - [#1557](https://github.com/MetaMask/metamask-mobile/pull/1557): Fix day and month numbers in toDateFormat (#1557)
 - [#1556](https://github.com/MetaMask/metamask-mobile/pull/1556): Fix settings everywhere (#1556)
