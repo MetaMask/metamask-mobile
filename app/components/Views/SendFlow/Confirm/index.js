@@ -424,7 +424,11 @@ class Confirm extends PureComponent {
 				transactionTotalAmountFiat
 			},
 			() => {
-				this.validateAmount({ ...this.props.transactionState.transaction, from: fromSelectedAddress });
+				this.validateAmount({
+					...this.props.transactionState.transaction,
+					from: fromSelectedAddress,
+					value: isPaymentChannelTransaction ? readableValue : value
+				});
 			}
 		);
 	};
