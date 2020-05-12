@@ -9,22 +9,30 @@ import {
 	Alert,
 	InteractionManager
 } from 'react-native';
+<<<<<<< HEAD
 import Clipboard from '@react-native-community/clipboard';
+=======
+import IonicIcon from 'react-native-vector-icons/Ionicons';
+>>>>>>> Update headers with Etienne's work
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
-import { colors, fontStyles, baseStyles } from '../../../../styles/common';
+import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../../util/browser';
 import contractMap from 'eth-contract-metadata';
-import { safeToChecksumAddress, renderShortAddress, renderAccountName } from '../../../../util/address';
+import { safeToChecksumAddress, renderShortAddress } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import CustomGas from '../../SendFlow/CustomGas';
+<<<<<<< HEAD
 import ActionModal from '../../../UI/ActionModal';
+=======
+import Modal from 'react-native-modal';
+>>>>>>> Update headers with Etienne's work
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { BNToHex, hexToBN } from 'gaba/dist/util';
-import { renderFromWei, weiToFiatNumber, isBN, renderFromTokenMinimalUnit, isDecimal } from '../../../../util/number';
+import { renderFromWei, weiToFiatNumber, isBN, isDecimal } from '../../../../util/number';
 import {
 	getTicker,
 	decodeTransferData,
@@ -36,7 +44,6 @@ import ErrorMessage from '../../SendFlow/ErrorMessage';
 import { showAlert } from '../../../../actions/alert';
 import Feather from 'react-native-vector-icons/Feather';
 import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
-import Identicon from '../../../UI/Identicon';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Device from '../../../../util/Device';
@@ -153,9 +160,12 @@ const styles = StyleSheet.create({
 	copyIcon: {
 		marginLeft: 8
 	},
-	customGasModalTitle: {
-		borderBottomColor: colors.grey100,
-		borderBottomWidth: 1
+	customGasHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		width: '100%',
+		paddingBottom: 20
 	},
 	customGasModalTitleText: {
 		...fontStyles.bold,
@@ -283,6 +293,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		paddingTop: 24,
 		paddingHorizontal: 24
+	},
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
@@ -314,17 +325,9 @@ class Approve extends PureComponent {
 		 */
 		conversionRate: PropTypes.number,
 		/**
-		 * An object containing token balances for current account and network in the format address => balance
-		 */
-		contractBalances: PropTypes.object,
-		/**
 		 * Currency code of the currently-active currency
 		 */
 		currentCurrency: PropTypes.string,
-		/**
-		/* Identities object required to get account name
-		*/
-		identities: PropTypes.object,
 		/**
 		 * Transaction state
 		 */
@@ -564,44 +567,23 @@ class Approve extends PureComponent {
 		const {
 			host,
 			spendLimitUnlimitedSelected,
-			tokenDecimals,
 			tokenSymbol,
 			spendLimitCustomValue,
 			originalApproveAmount
 		} = this.state;
-		const {
-			identities,
-			transaction: { from, to },
-			contractBalances
-		} = this.props;
-		const checksummedTo = safeToChecksumAddress(to);
-		const tokenBalance =
-			checksummedTo in contractBalances
-				? renderFromTokenMinimalUnit(contractBalances[checksummedTo], tokenDecimals)
-				: 0;
 		return (
 			<View style={styles.section}>
-				<TouchableOpacity onPress={this.toggleEditPermission}>
-					<Text>Back</Text>
-				</TouchableOpacity>
-				<View style={styles.customGasModalTitle}>
+				<View style={styles.customGasHeader}>
+					{/* this needs a better style to actually be hitable */}
+					<TouchableOpacity onPress={this.toggleEditPermission}>
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+					</TouchableOpacity>
 					<Text style={styles.customGasModalTitleText}>{strings('spend_limit_edition.title')}</Text>
+					{/* why is this here? */}
+					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
 				</View>
 
 				<KeyboardAwareScrollView>
-					<View style={styles.fromGraphic}>
-						<Identicon address={from} diameter={18} />
-						<Text style={styles.addressText} numberOfLines={1}>
-							{renderAccountName(from, identities)}
-						</Text>
-						<View style={styles.tokenBalanceWrapper}>
-							<Text
-								style={styles.tokenBalanceText}
-								numberOfLines={1}
-							>{`${tokenBalance} ${tokenSymbol}`}</Text>
-						</View>
-					</View>
-
 					<View style={styles.spendLimitWrapper}>
 						<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
 						<Text style={styles.spendLimitSubtitle}>
@@ -807,9 +789,13 @@ class Approve extends PureComponent {
 						{viewDetails ? (
 							<>
 								<View style={styles.section}>
-									<TouchableOpacity onPress={this.toggleViewDetails}>
-										<Text>Back</Text>
-									</TouchableOpacity>
+									<View style={styles.customGasHeader}>
+										<TouchableOpacity onPress={this.toggleViewDetails}>
+											<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+										</TouchableOpacity>
+										<Text style={styles.customGasModalTitleText}>Transaction Details</Text>
+										<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+									</View>
 									<View style={styles.sectionTitleRow}>
 										<FontAwesome5
 											name={'user-check'}
