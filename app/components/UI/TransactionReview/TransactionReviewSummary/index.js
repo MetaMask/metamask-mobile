@@ -26,30 +26,35 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		alignItems: 'center',
 		borderColor: colors.grey400,
-		borderRadius: 4,
+		borderRadius: 12,
 		borderWidth: 1,
-		color: colors.grey400,
-		fontSize: 12,
-		lineHeight: 22,
-		textAlign: 'center',
-		width: '50%'
+		color: colors.black,
+		fontSize: 10,
+		paddingVertical: 4,
+		paddingHorizontal: 8,
+		textAlign: 'center'
 	},
 	summary: {
 		backgroundColor: colors.beige,
-		padding: 24
+		padding: 24,
+		paddingTop: 12,
+		alignItems: 'center'
 	},
 	summaryFiat: {
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 44,
-		paddingVertical: 4,
-		textTransform: 'uppercase'
+		paddingTop: 16,
+		paddingBottom: 4,
+		textTransform: 'uppercase',
+		textAlign: 'center'
 	},
 	summaryEth: {
 		...fontStyles.normal,
-		color: colors.grey400,
+		color: colors.black,
 		fontSize: 24,
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
+		textAlign: 'center'
 	},
 	warning: {
 		width: '100%',
