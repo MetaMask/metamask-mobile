@@ -3,20 +3,26 @@ import PropTypes from 'prop-types';
 import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
-import TransactionEditor from '../../UI/TransactionEditor';
-import { toBN, BNToHex, hexToBN, fromWei, toTokenMinimalUnit, renderFromTokenMinimalUnit } from '../../../util/number';
+import EditAmount from '../../Views/SendFlow/Amount';
+import ConfirmSend from '../../Views/SendFlow/Confirm';
+import { toBN, BNToHex, hexToBN, fromWei, toTokenMinimalUnit } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { connect } from 'react-redux';
-import { newTransaction, setTransactionObject } from '../../../actions/transaction';
+import { resetTransaction, setTransactionObject } from '../../../actions/transaction';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import NetworkList, { getNetworkTypeById } from '../../../util/networks';
 import contractMap from 'eth-contract-metadata';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { getTransactionReviewActionKey, decodeTransferData } from '../../../util/transactions';
+import {
+	getTransactionReviewActionKey,
+	decodeTransferData,
+	getTransactionToName,
+	generateTransferData
+} from '../../../util/transactions';
 import Logger from '../../../util/Logger';
 import { isENS } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -42,7 +48,7 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Send extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', navigation);
+	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.confirm', navigation);
 
 	static propTypes = {
 		/**
@@ -52,7 +58,7 @@ class Send extends PureComponent {
 		/**
 		 * Action that cleans transaction state
 		 */
-		newTransaction: PropTypes.func.isRequired,
+		resetTransaction: PropTypes.func.isRequired,
 		/**
 		 * A string representing the network name
 		 */
@@ -80,11 +86,19 @@ class Send extends PureComponent {
 		/**
 		 * Network id
 		 */
-		network: PropTypes.string
+		network: PropTypes.string,
+		/**
+		 * List of accounts from the PreferencesController
+		 */
+		identities: PropTypes.object,
+		/**
+		 * Selected address as string
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
-		mode: EDIT,
+		mode: REVIEW,
 		transactionKey: undefined,
 		ready: false,
 		transactionConfirmed: false,
@@ -95,24 +109,23 @@ class Send extends PureComponent {
 	unmountHandled = false;
 
 	/**
-	 * Resets gas and gasPrice of transaction, passing state to 'edit'
+	 * Resets gas and gasPrice of transaction
 	 */
 	async reset() {
-		const { transaction, navigation } = this.props;
+		const { transaction } = this.props;
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
 		this.props.setTransactionObject({
 			gas: hexToBN(gas),
 			gasPrice: hexToBN(gasPrice)
 		});
-		navigation && navigation.setParams({ mode: EDIT });
-		return this.mounted && this.setState({ mode: EDIT, transactionKey: Date.now() });
+		return this.mounted && this.setState({ transactionKey: Date.now() });
 	}
 
 	/**
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
 	clear = () => {
-		this.props.newTransaction();
+		this.props.resetTransaction();
 	};
 
 	/**
@@ -133,7 +146,7 @@ class Send extends PureComponent {
 	 */
 	async componentDidMount() {
 		const { navigation } = this.props;
-		navigation && navigation.setParams({ mode: EDIT, dispatch: this.onModeChange });
+		navigation && navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
@@ -191,37 +204,63 @@ class Send extends PureComponent {
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null
 	}) => {
+		const { addressBook, network, identities, selectedAddress } = this.props;
+
 		if (chain_id) {
 			this.handleNetworkSwitch(chain_id);
 		}
-		let newTxMeta;
+
+		let newTxMeta = {};
 		switch (action) {
 			case 'send-eth':
 				newTxMeta = {
 					symbol: 'ETH',
 					assetType: 'ETH',
 					type: 'ETHER_TRANSACTION',
+					paymentRequest: true,
+					selectedAsset: { symbol: 'ETH', isETH: true },
 					...this.handleNewTxMetaRecipient(target_address)
 				};
 				if (parameters && parameters.value) {
-					newTxMeta.value = toBN(parameters.value);
+					newTxMeta.value = BNToHex(toBN(parameters.value));
+					newTxMeta.transactionValue = newTxMeta.value;
 					newTxMeta.readableValue = fromWei(newTxMeta.value);
 				}
+				newTxMeta.transactionToName = getTransactionToName({
+					addressBook,
+					network,
+					toAddress: newTxMeta.to,
+					identities,
+					ensRecipient: newTxMeta.ensRecipient
+				});
+				newTxMeta.transactionTo = newTxMeta.to;
 				break;
 			case 'send-token': {
 				const selectedAsset = await this.handleTokenDeeplink(target_address);
+				const { ensRecipient, to } = this.handleNewTxMetaRecipient(parameters.address);
+				const tokenAmount = toTokenMinimalUnit(parameters.uint256 || '0', selectedAsset.decimals);
 				newTxMeta = {
 					assetType: 'ERC20',
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
+					paymentRequest: true,
 					selectedAsset,
-					...this.handleNewTxMetaRecipient(parameters.address)
+					ensRecipient,
+					to: selectedAsset.address,
+					transactionTo: to,
+					data: generateTransferData('transfer', {
+						toAddress: parameters.address,
+						amount: BNToHex(tokenAmount)
+					}),
+					value: '0x0',
+					readableValue: parameters.uint256 || '0'
 				};
-				if (parameters && parameters.uint256) {
-					newTxMeta.value = toTokenMinimalUnit(parameters.uint256, selectedAsset.decimals);
-					newTxMeta.readableValue = String(
-						renderFromTokenMinimalUnit(newTxMeta.value, selectedAsset.decimals)
-					);
-				}
+				newTxMeta.transactionToName = getTransactionToName({
+					addressBook,
+					network,
+					toAddress: to,
+					identities,
+					ensRecipient
+				});
 				break;
 			}
 		}
@@ -240,16 +279,19 @@ class Send extends PureComponent {
 		}
 		if (!newTxMeta.gas || !newTxMeta.gasPrice) {
 			const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(this.props.transaction);
-			newTxMeta.gas = gas;
-			newTxMeta.gasPrice = gasPrice;
+			newTxMeta.gas = toBN(gas);
+			newTxMeta.gasPrice = toBN(gasPrice);
 		}
 
 		if (!newTxMeta.value) {
 			newTxMeta.value = toBN(0);
 		}
 
+		newTxMeta.from = selectedAddress;
+		newTxMeta.transactionFromName = identities[selectedAddress].name;
+
 		this.props.setTransactionObject(newTxMeta);
-		this.mounted && this.setState({ ready: true, mode: EDIT, transactionKey: Date.now() });
+		this.mounted && this.setState({ ready: true, transactionKey: Date.now() });
 	};
 
 	/**
@@ -534,6 +576,8 @@ class Send extends PureComponent {
 		});
 	};
 
+	changeToReviewMode = () => this.onModeChange(REVIEW);
+
 	renderLoader() {
 		return (
 			<View style={styles.loader}>
@@ -542,20 +586,23 @@ class Send extends PureComponent {
 		);
 	}
 
+	renderModeComponent() {
+		if (this.state.mode === EDIT) {
+			return (
+				<EditAmount
+					transaction={this.props.transaction}
+					navigation={this.props.navigation}
+					onConfirm={this.changeToReviewMode}
+				/>
+			);
+		} else if (this.state.mode === REVIEW) {
+			return <ConfirmSend transaction={this.props.transaction} navigation={this.props.navigation} />;
+		}
+	}
+
 	render = () => (
 		<SafeAreaView style={styles.wrapper}>
-			{this.state.ready ? (
-				<TransactionEditor
-					navigation={this.props.navigation}
-					mode={this.state.mode}
-					onCancel={this.onCancel}
-					onConfirm={this.onConfirm}
-					onModeChange={this.onModeChange}
-					transactionConfirmed={this.state.transactionConfirmed}
-				/>
-			) : (
-				this.renderLoader()
-			)}
+			{this.state.ready ? this.renderModeComponent() : this.renderLoader()}
 		</SafeAreaView>
 	);
 }
@@ -567,11 +614,13 @@ const mapStateToProps = state => ({
 	transaction: state.transaction,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 const mapDispatchToProps = dispatch => ({
-	newTransaction: () => dispatch(newTransaction()),
+	resetTransaction: () => dispatch(resetTransaction()),
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	showAlert: config => dispatch(showAlert(config))
 });

@@ -202,7 +202,7 @@ const defaultAssets = [
 		address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
 		decimals: 18,
 		erc20: true,
-		logo: 'dai.svg',
+		logo: 'sai.svg',
 		name: 'Sai Stablecoin v1.0',
 		symbol: 'SAI'
 	}

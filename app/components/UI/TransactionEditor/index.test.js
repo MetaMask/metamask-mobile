@@ -30,7 +30,8 @@ describe('TransactionEditor', () => {
 						}
 					}
 				}
-			}
+			},
+			transaction: {}
 		};
 
 		const wrapper = shallow(
