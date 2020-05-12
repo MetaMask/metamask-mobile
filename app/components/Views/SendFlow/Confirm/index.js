@@ -632,7 +632,7 @@ class Confirm extends PureComponent {
 				weiBalance = toWei(Number(selectedAsset.assetBalance));
 				weiInput = toWei(transaction.value);
 				errorMessage = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');
-			} else if (selectedAsset.isETH) {
+			} else if (selectedAsset.isETH || selectedAsset.tokenId) {
 				const totalGas = gas ? gas.mul(gasPrice) : toBN('0x0');
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
 				weiInput = hexToBN(transaction.value).add(totalGas);
