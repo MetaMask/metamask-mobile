@@ -828,8 +828,6 @@ class Approve extends PureComponent {
 					animationOutTiming={600}
 					cancelText={strings('spend_limit_edition.cancel')}
 					confirmText={strings('spend_limit_edition.approve')}
-					// onCancelPress={this.onCancel}
-					// onConfirmPress={this.onConfirm}
 					onBackdropPress={this.onCancel}
 					onBackButtonPress={this.onCancel}
 					onSwipeComplete={this.onCancel}
