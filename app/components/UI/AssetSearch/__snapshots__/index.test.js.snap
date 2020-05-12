@@ -34,11 +34,15 @@ exports[`AssetSearch should render correctly 1`] = `
     placeholderTextColor="#d6d9dc"
     rejectResponderTermination={true}
     style={
-      Object {
-        "flex": 1,
-        "fontFamily": "CircularStd-Medium",
-        "fontWeight": "400",
-      }
+      Array [
+        Object {
+          "fontFamily": "CircularStd-Medium",
+          "fontWeight": "400",
+        },
+        Object {
+          "width": "85%",
+        },
+      ]
     }
     testID="input-search-asset"
     underlineColorAndroid="transparent"
