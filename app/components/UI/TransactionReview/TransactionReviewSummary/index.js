@@ -18,7 +18,7 @@ import {
 	getNormalizedTxState
 } from '../../../../util/transactions';
 import contractMap from 'eth-contract-metadata';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
+import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 import { safeToChecksumAddress } from '../../../../util/address';
 
 const styles = StyleSheet.create({
@@ -52,20 +52,9 @@ const styles = StyleSheet.create({
 		textTransform: 'uppercase'
 	},
 	warning: {
-		flex: 1,
-		flexDirection: 'row',
-		borderColor: colors.grey400,
-		borderBottomWidth: 1,
-		padding: 16,
-		backgroundColor: colors.yellow100
-	},
-	warningText: {
-		flex: 1,
-		...fontStyles.normal,
-		marginHorizontal: 8,
-		color: colors.grey500,
-		textAlign: 'left',
-		fontSize: 12
+		width: '100%',
+		paddingHorizontal: 24,
+		paddingTop: 12
 	}
 });
 
@@ -168,6 +157,8 @@ class TransactionReviewSummary extends PureComponent {
 		return values[assetType] || values.default;
 	};
 
+	renderWarning = () => <Text>{`${strings('transaction.approve_warning')} ${this.state.assetAmount}`}</Text>;
+
 	render = () => {
 		const { actionKey } = this.props;
 		const { assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
@@ -175,10 +166,7 @@ class TransactionReviewSummary extends PureComponent {
 			<View style={baseStyles.flexGrow}>
 				{!!approveTransaction && (
 					<View style={styles.warning}>
-						<IonicIcon name={'ios-alert'} size={28} color={colors.grey500} />
-						<Text style={styles.warningText}>{`${strings(
-							'transaction.approve_warning'
-						)} ${assetAmount}`}</Text>
+						<WarningMessage warningMessage={this.renderWarning()} />
 					</View>
 				)}
 				<View style={styles.summary}>

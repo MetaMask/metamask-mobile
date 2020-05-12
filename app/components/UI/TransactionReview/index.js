@@ -197,7 +197,7 @@ class TransactionReview extends PureComponent {
 						containerStyle={[styles.button, styles.confirm]}
 						disabled={transactionConfirmed || error !== undefined}
 					>
-						{strings('accountApproval.connect')}
+						{strings('transaction.confirm')}
 					</StyledButton>
 				</View>
 			</React.Fragment>
