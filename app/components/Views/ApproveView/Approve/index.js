@@ -810,8 +810,8 @@ class Approve extends PureComponent {
 					animationOutTiming={600}
 					cancelText={strings('spend_limit_edition.cancel')}
 					confirmText={strings('spend_limit_edition.approve')}
-					onCancelPress={this.onCancel}
-					onConfirmPress={this.onConfirm}
+					// onCancelPress={this.onCancel}
+					// onConfirmPress={this.onConfirm}
 					onBackdropPress={this.onCancel}
 					onBackButtonPress={this.onCancel}
 					onSwipeComplete={this.onCancel}
@@ -963,14 +963,14 @@ class Approve extends PureComponent {
 									<View style={styles.actionContainer}>
 										<StyledButton
 											type="cancel"
-											// onPress={onCancelPress}
+											onPress={this.onCancel}
 											containerStyle={[styles.button, styles.cancel]}
 										>
 											Cancel
 										</StyledButton>
 										<StyledButton
 											type="blue"
-											// onPress={onConfirmPress}
+											onPress={this.onConfirm}
 											containerStyle={[styles.button, styles.confirm]}
 										>
 											Approve
