@@ -2,6 +2,25 @@
 
 ## Current Develop Branch
 
+## v0.2.16 - May 13 2020
+- [#1548](https://github.com/MetaMask/metamask-mobile/pull/1548): Use setTimeout hack (again) to get paste context in token search (#1548)
+- bump
+- [#1465](https://github.com/MetaMask/metamask-mobile/pull/1465): Make send flows consistent (#1465)
+- [#1557](https://github.com/MetaMask/metamask-mobile/pull/1557): Fix day and month numbers in toDateFormat (#1557)
+- [#1556](https://github.com/MetaMask/metamask-mobile/pull/1556): Fix settings everywhere (#1556)
+- [#1552](https://github.com/MetaMask/metamask-mobile/pull/1552): Use gaba@1.11.0 (#1552)
+- [#1493](https://github.com/MetaMask/metamask-mobile/pull/1493): Sig request design fixed (#1493)
+- [#1517](https://github.com/MetaMask/metamask-mobile/pull/1517): Add new mobile provider (#1517)
+- [#1539](https://github.com/MetaMask/metamask-mobile/pull/1539): Use "web-search" keyboardType on iOS (#1539)
+- [#1538](https://github.com/MetaMask/metamask-mobile/pull/1538): Detect if site has been added to Favorites (#1538)
+- [#1495](https://github.com/MetaMask/metamask-mobile/pull/1495): Feature/block screenshots (#1495)
+- [#1487](https://github.com/MetaMask/metamask-mobile/pull/1487): Transaction Header Component (#1487)
+- [#1475](https://github.com/MetaMask/metamask-mobile/pull/1475): Improvement/tx status notification (#1475)
+- [#1544](https://github.com/MetaMask/metamask-mobile/pull/1544): Add settings to nav bar (#1544)
+- [#1521](https://github.com/MetaMask/metamask-mobile/pull/1521): update docs link in readme (#1521)
+- [#1545](https://github.com/MetaMask/metamask-mobile/pull/1545): bugfix/check for sai method (#1545)
+- [#1524](https://github.com/MetaMask/metamask-mobile/pull/1524): Loosen nvmrc (#1524)
+
 ## v0.2.15 - May 1 2020
 - [#1529](https://github.com/MetaMask/metamask-mobile/pull/1529): sentry android production (#1529)
 - [#1528](https://github.com/MetaMask/metamask-mobile/pull/1528): Bugfix/sentry in circle ci (#1528)
