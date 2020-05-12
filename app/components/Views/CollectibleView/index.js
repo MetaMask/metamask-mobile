@@ -8,7 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-import { newAssetTransaction } from '../../../actions/newTransaction';
+import { newAssetTransaction } from '../../../actions/transaction';
 
 const styles = StyleSheet.create({
 	root: {

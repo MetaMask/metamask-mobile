@@ -6,12 +6,12 @@ import TransactionEditor from '../../UI/TransactionEditor';
 import { BNToHex, hexToBN } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
-import { newTransaction } from '../../../actions/transaction';
+import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { getTransactionReviewActionKey } from '../../../util/transactions';
+import { getTransactionReviewActionKey, getNormalizedTxState } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { safeToChecksumAddress } from '../../../util/address';
 
@@ -40,7 +40,7 @@ class Approval extends PureComponent {
 		/**
 		 * Action that cleans transaction state
 		 */
-		newTransaction: PropTypes.func.isRequired,
+		resetTransaction: PropTypes.func.isRequired,
 		/**
 		 * Transaction state
 		 */
@@ -137,7 +137,7 @@ class Approval extends PureComponent {
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
 	clear = () => {
-		this.props.newTransaction();
+		this.props.resetTransaction();
 	};
 
 	onCancel = () => {
@@ -259,13 +259,13 @@ class Approval extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	transaction: state.transaction,
+	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
-	newTransaction: () => dispatch(newTransaction())
+	resetTransaction: () => dispatch(resetTransaction())
 });
 
 export default connect(
