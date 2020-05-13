@@ -839,14 +839,14 @@ class Approve extends PureComponent {
 											onPress={this.onCancel}
 											containerStyle={[styles.button, styles.cancel]}
 										>
-											Cancel
+											{strings('spend_limit_edition.cancel')}
 										</StyledButton>
 										<StyledButton
 											type="blue"
 											onPress={this.onConfirm}
 											containerStyle={[styles.button, styles.confirm]}
 										>
-											Approve
+											{strings('spend_limit_edition.approve')}
 										</StyledButton>
 									</View>
 								</View>
