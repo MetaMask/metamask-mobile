@@ -414,6 +414,26 @@ class Amount extends PureComponent {
 		}
 	};
 
+	validateCollectibleOwnership = async () => {
+		const { AssetsContractController } = Engine.context;
+		const {
+			transactionState: {
+				selectedAsset: { address, tokenId }
+			},
+			selectedAddress
+		} = this.props;
+		try {
+			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
+			const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
+			if (!isOwner) {
+				return strings('transaction.invalid_collectible_ownership');
+			}
+			return undefined;
+		} catch (e) {
+			return false;
+		}
+	};
+
 	onNext = async () => {
 		const {
 			navigation,
@@ -425,7 +445,14 @@ class Amount extends PureComponent {
 		} = this.props;
 		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto, hasExchangeRate } = this.state;
 		const value = internalPrimaryCurrencyIsCrypto || !hasExchangeRate ? inputValue : inputValueConversion;
-		if (!selectedAsset.tokenId && this.validateAmount(value)) return;
+		if (!selectedAsset.tokenId && this.validateAmount(value)) {
+			return;
+		} else if (selectedAsset.tokenId) {
+			const invalidCollectibleOwnership = await this.validateCollectibleOwnership();
+			if (invalidCollectibleOwnership) {
+				this.setState({ amountError: invalidCollectibleOwnership });
+			}
+		}
 
 		if (transaction.value !== undefined) {
 			this.updateTransaction(value);
