@@ -568,6 +568,7 @@ const instance = {
 			const tempClient = new PaymentChannelsClient(address);
 			await tempClient.setConnext(provider);
 			await tempClient.pollConnextState();
+			tempClient.stop();
 			hasBalance = parseFloat(tempClient.getBalance()) > 0;
 		} catch (e) {
 			hasBalance = false;
