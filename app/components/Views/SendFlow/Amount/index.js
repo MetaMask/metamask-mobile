@@ -414,6 +414,26 @@ class Amount extends PureComponent {
 		}
 	};
 
+	validateCollectibleOwnership = async () => {
+		const { AssetsContractController } = Engine.context;
+		const {
+			transactionState: {
+				selectedAsset: { address, tokenId }
+			},
+			selectedAddress
+		} = this.props;
+		try {
+			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
+			const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
+			if (!isOwner) {
+				return strings('transaction.invalid_collectible_ownership');
+			}
+			return undefined;
+		} catch (e) {
+			return false;
+		}
+	};
+
 	onNext = async () => {
 		const {
 			navigation,
@@ -425,7 +445,14 @@ class Amount extends PureComponent {
 		} = this.props;
 		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto, hasExchangeRate } = this.state;
 		const value = internalPrimaryCurrencyIsCrypto || !hasExchangeRate ? inputValue : inputValueConversion;
-		if (!selectedAsset.tokenId && this.validateAmount(value)) return;
+		if (!selectedAsset.tokenId && this.validateAmount(value)) {
+			return;
+		} else if (selectedAsset.tokenId) {
+			const invalidCollectibleOwnership = await this.validateCollectibleOwnership();
+			if (invalidCollectibleOwnership) {
+				this.setState({ amountError: invalidCollectibleOwnership });
+			}
+		}
 
 		if (transaction.value !== undefined) {
 			this.updateTransaction(value);
@@ -444,7 +471,37 @@ class Amount extends PureComponent {
 		}
 	};
 
-	updateTransaction = value => {
+	getCollectibleTranferTransactionProperties() {
+		const {
+			selectedAsset,
+			transactionState: { transaction, transactionTo }
+		} = this.props;
+
+		const collectibleTransferTransactionProperties = {};
+
+		const collectibleTransferInformation = collectiblesTransferInformation[selectedAsset.address.toLowerCase()];
+		if (
+			!collectibleTransferInformation ||
+			(collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transferFrom')
+		) {
+			collectibleTransferTransactionProperties.data = generateTransferData('transferFrom', {
+				fromAddress: transaction.from,
+				toAddress: transactionTo,
+				tokenId: selectedAsset.tokenId
+			});
+		} else if (collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transfer') {
+			collectibleTransferTransactionProperties.data = generateTransferData('transfer', {
+				toAddress: transactionTo,
+				amount: selectedAsset.tokenId.toString(16)
+			});
+		}
+		collectibleTransferTransactionProperties.to = selectedAsset.address;
+		collectibleTransferTransactionProperties.value = '0x0';
+
+		return collectibleTransferTransactionProperties;
+	}
+
+	updateTransaction = (value = 0) => {
 		const {
 			selectedAsset,
 			transactionState: { transaction, paymentChannelTransaction, transactionTo },
@@ -466,6 +523,11 @@ class Amount extends PureComponent {
 				amount: BNToHex(tokenAmount)
 			});
 			transactionObject.value = '0x0';
+		} else if (selectedAsset.tokenId) {
+			const collectibleTransferTransactionProperties = this.getCollectibleTranferTransactionProperties();
+			transactionObject.data = collectibleTransferTransactionProperties.data;
+			transactionObject.to = collectibleTransferTransactionProperties.to;
+			transactionObject.value = collectibleTransferTransactionProperties.value;
 		}
 
 		if (paymentChannelTransaction || selectedAsset.erc20) {
@@ -488,27 +550,10 @@ class Amount extends PureComponent {
 			transaction.to = transactionTo;
 			transaction.value = BNToHex(toWei(value));
 		} else if (selectedAsset.tokenId) {
-			const collectibleTransferInformation = collectiblesTransferInformation[selectedAsset.address.toLowerCase()];
-			if (
-				!collectibleTransferInformation ||
-				(collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transferFrom')
-			) {
-				transaction.data = generateTransferData('transferFrom', {
-					fromAddress: transaction.from,
-					toAddress: transactionTo,
-					tokenId: selectedAsset.tokenId
-				});
-			} else if (
-				collectibleTransferInformation.tradable &&
-				collectibleTransferInformation.method === 'transfer'
-			) {
-				transaction.data = generateTransferData('transfer', {
-					toAddress: transactionTo,
-					amount: selectedAsset.tokenId.toString(16)
-				});
-			}
-			transaction.to = selectedAsset.address;
-			transaction.value = '0x0';
+			const collectibleTransferTransactionProperties = this.getCollectibleTranferTransactionProperties();
+			transaction.data = collectibleTransferTransactionProperties.data;
+			transaction.to = collectibleTransferTransactionProperties.to;
+			transaction.value = collectibleTransferTransactionProperties.value;
 		} else {
 			const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
 			transaction.data = generateTransferData('transfer', {
