@@ -185,6 +185,7 @@ function getCollectibleTransfer(args) {
 	} = args;
 	let actionKey;
 	const [, tokenId] = decodeTransferData('transfer', data);
+	const ticker = getTicker(args.ticker);
 	const collectible = collectibleContracts.find(
 		collectible => collectible.address.toLowerCase() === to.toLowerCase()
 	);
@@ -203,6 +204,8 @@ function getCollectibleTransfer(args) {
 	if (primaryCurrency === 'ETH') {
 		transactionDetails = {
 			...transactionDetails,
+			summaryAmount: renderCollectible,
+			summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
 			summaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${strings(
 				'unit.eth'
 			)}`,
@@ -211,6 +214,8 @@ function getCollectibleTransfer(args) {
 	} else {
 		transactionDetails = {
 			...transactionDetails,
+			summaryAmount: renderCollectible,
+			summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
 			summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency),
 			summarySecondaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(
 				totalGas
