@@ -4,6 +4,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	viewData: {
@@ -104,24 +105,34 @@ export default class TransactionReviewDetailsCard extends Component {
 						<TouchableOpacity onPress={toggleViewDetails}>
 							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
 						</TouchableOpacity>
-						<Text style={styles.customGasModalTitleText}>Transaction Details</Text>
+						<Text style={styles.customGasModalTitleText}>
+							{strings('spend_limit_edition.transaction_details')}
+						</Text>
 						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
 					</View>
 					<View style={styles.transactionDetails}>
 						<View style={styles.transactionDetailsRow}>
-							<Text style={styles.transactionDetailsTextLeft}>Site Url</Text>
+							<Text style={styles.transactionDetailsTextLeft}>
+								{strings('spend_limit_edition.site_url')}
+							</Text>
 							<Text style={styles.transactionDetailsTextRight}>{host}</Text>
 						</View>
 						<View style={styles.transactionDetailsRow}>
-							<Text style={styles.transactionDetailsTextLeft}>Contract name:</Text>
+							<Text style={styles.transactionDetailsTextLeft}>
+								{strings('spend_limit_edition.contract_name')}
+							</Text>
 							<Text style={styles.transactionDetailsTextRight}>name??</Text>
 						</View>
 						<View style={styles.transactionDetailsRow}>
-							<Text style={styles.transactionDetailsTextLeft}>Contract address:</Text>
+							<Text style={styles.transactionDetailsTextLeft}>
+								{strings('spend_limit_edition.contract_address')}
+							</Text>
 							<Text style={styles.transactionDetailsTextRight}>{address}</Text>
 						</View>
 						<View style={styles.transactionDetailsRow}>
-							<Text style={styles.transactionDetailsTextLeft}>Allowance:</Text>
+							<Text style={styles.transactionDetailsTextLeft}>
+								{strings('spend_limit_edition.allowance')}
+							</Text>
 							<Text style={styles.transactionDetailsTextRight}>
 								{allowance} {tokenSymbol}
 							</Text>
@@ -129,7 +140,7 @@ export default class TransactionReviewDetailsCard extends Component {
 					</View>
 					<View style={styles.viewData}>
 						<TouchableOpacity style={styles.viewDataRow} onPress={toggleViewData}>
-							<Text style={styles.viewDataTitle}>View Data</Text>
+							<Text style={styles.viewDataTitle}>{strings('spend_limit_edition.view_data')}</Text>
 							<View style={styles.viewDataArrow}>
 								<IonicIcon
 									name={`ios-arrow-${displayViewData ? 'up' : 'down'}`}
