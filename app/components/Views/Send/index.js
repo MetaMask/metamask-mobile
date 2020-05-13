@@ -180,7 +180,11 @@ class Send extends PureComponent {
 
 	componentDidUpdate(prevProps) {
 		const prevNavigation = prevProps.navigation;
-		const { navigation, transaction, contractBalances } = this.props;
+		const {
+			navigation,
+			transaction: { assetType, selectedAsset },
+			contractBalances
+		} = this.props;
 		if (prevNavigation && navigation) {
 			const prevTxMeta = prevNavigation.getParam('txMeta', null);
 			const currentTxMeta = navigation.getParam('txMeta', null);
@@ -192,10 +196,14 @@ class Send extends PureComponent {
 				this.handleNewTxMeta(currentTxMeta);
 			}
 		}
-		if (prevProps.transaction.assetType === undefined && transaction.assetType === 'ERC20') {
+
+		const contractBalance = contractBalances[selectedAsset.address];
+		const contractBalanceChanged = prevProps.contractBalances[selectedAsset.address] !== contractBalance;
+		const assetTypeDefined = prevProps.transaction.assetType === undefined && assetType === 'ERC20';
+		if (assetType === 'ERC20' && (assetTypeDefined || contractBalanceChanged)) {
 			navigation &&
 				navigation.setParams({
-					disableModeChange: contractBalances[transaction.selectedAsset.address] === undefined
+					disableModeChange: contractBalance === undefined
 				});
 		}
 	}
