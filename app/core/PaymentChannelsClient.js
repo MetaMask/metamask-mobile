@@ -564,15 +564,15 @@ const instance = {
 		let hasBalance;
 		const { provider } = Engine.context.NetworkController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) === -1) return false;
+		const tempClient = new PaymentChannelsClient(address);
 		try {
-			const tempClient = new PaymentChannelsClient(address);
 			await tempClient.setConnext(provider);
 			await tempClient.pollConnextState();
-			tempClient.stop();
 			hasBalance = parseFloat(tempClient.getBalance()) > 0;
 		} catch (e) {
 			hasBalance = false;
 		}
+		tempClient.stop();
 		return hasBalance;
 	},
 	/**
