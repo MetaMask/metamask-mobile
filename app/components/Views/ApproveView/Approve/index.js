@@ -121,46 +121,12 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center'
 	},
-	// sectionTitleText: {
-	// 	...fontStyles.bold,
-	// 	color: colors.black,
-	// 	fontSize: 14,
-	// 	marginLeft: 8
-	// },
-	// sectionTitleRow: {
-	// 	flexDirection: 'row',
-	// 	alignItems: 'center',
-	// 	marginBottom: 12
-	// },
 	sectionExplanationText: {
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.grey500,
 		marginVertical: 6
 	},
-	// editText: {
-	// 	...fontStyles.normal,
-	// 	color: colors.blue,
-	// 	fontSize: 12
-	// },
-	// fiatFeeText: {
-	// 	...fontStyles.bold,
-	// 	fontSize: 18,
-	// 	color: colors.black,
-	// 	textTransform: 'uppercase'
-	// },
-	// feeText: {
-	// 	...fontStyles.normal,
-	// 	fontSize: 14,
-	// 	color: colors.grey500
-	// },
-	// row: {
-	// 	flexDirection: 'row',
-	// 	alignItems: 'center'
-	// },
-	// column: {
-	// 	flexDirection: 'column'
-	// },
 	sectionLeft: {
 		...fontStyles.bold,
 		color: colors.black,
@@ -174,19 +140,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		textAlign: 'right'
 	},
-	// permissionDetails: {
-	// 	...fontStyles.normal,
-	// 	fontSize: 14,
-	// 	color: colors.black,
-	// 	marginVertical: 8
-	// },
-	// viewDetailsWrapper: {
-	// 	flexDirection: 'row',
-	// 	marginTop: 20
-	// },
-	// copyIcon: {
-	// 	marginLeft: 8
-	// },
 	customGasHeader: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
@@ -786,7 +739,6 @@ class Approve extends PureComponent {
 		const {
 			transaction,
 			transaction: { data }
-			// currentCurrency
 		} = this.props;
 		const {
 			host,
@@ -795,8 +747,6 @@ class Approve extends PureComponent {
 			viewData,
 			customGasVisible,
 			totalGas,
-			// totalGasFiat,
-			// ticker,
 			gasError,
 			editPermissionVisible
 		} = this.state;
@@ -860,31 +810,6 @@ class Approve extends PureComponent {
 									<AccountInfoCard />
 								</View>
 								<View style={styles.section}>
-									{/*<View style={styles.sectionTitleRow}>
-										<FontAwesome5 name={'tag'} size={20} color={colors.grey500} />
-										<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-											{strings('transaction.transaction_fee')}
-										</Text>
-										<TouchableOpacity
-											style={styles.sectionRight}
-											onPress={this.toggleCustomGas}
-										>
-											<Text style={styles.editText}>{strings('transaction.edit')}</Text>
-										</TouchableOpacity>
-									</View>
-									<View style={styles.row}>
-										<View style={styles.sectionLeft}>
-											<Text style={styles.sectionExplanationText}>
-												{strings('spend_limit_edition.transaction_fee_explanation')}
-											</Text>
-										</View>
-										<View style={[styles.column, styles.sectionRight]}>
-											<Text
-												style={styles.fiatFeeText}
-											>{`${totalGasFiat} ${currentCurrency}`}</Text>
-											<Text style={styles.feeText}>{`${totalGas} ${ticker}`}</Text>
-										</View>
-									</View>*/}
 									<TouchableOpacity onPress={this.toggleCustomGas}>
 										<View style={styles.networkFee}>
 											<Text style={styles.sectionLeft}>

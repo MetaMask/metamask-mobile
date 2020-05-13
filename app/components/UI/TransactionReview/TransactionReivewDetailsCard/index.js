@@ -171,62 +171,7 @@ export default class TransactionReviewDetailsCard extends Component {
 						</TouchableOpacity>
 						{displayViewData ? <Text style={styles.viewDataText}>{data}</Text> : null}
 					</View>
-					{/*<View style={styles.sectionTitleRow}>
-            <FontAwesome5
-              name={'user-check'}
-              size={20}
-              color={colors.grey500}
-              onPress={this.toggleEditPermission}
-            />
-            <Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-              {strings('spend_limit_edition.permission_request')}
-            </Text>
-            <TouchableOpacity
-              style={styles.sectionRight}
-              onPress={this.toggleEditPermission}
-            >
-              <Text style={styles.editText}>{strings('spend_limit_edition.edit')}</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.sectionExplanationText}>
-              {strings('spend_limit_edition.details_explanation', { host })}
-            </Text>
-          </View>
-          <Text style={styles.permissionDetails}>
-            <Text style={fontStyles.bold}>{strings('spend_limit_edition.amount')}</Text>{' '}
-            {`${amount} ${tokenSymbol}`}
-          </Text>
-          <View style={styles.row}>
-            <Text style={styles.permissionDetails}>
-              <Text style={fontStyles.bold}>{strings('spend_limit_edition.to')}</Text>{' '}
-              {strings('spend_limit_edition.contract', {
-                address: renderShortAddress(transaction.to)
-              })}
-            </Text>
-            <Feather
-              name="copy"
-              size={16}
-              color={colors.blue}
-              style={styles.copyIcon}
-              onPress={this.copyContractAddress}
-            />
-          </View>*/}
 				</View>
-				{/*<View style={styles.section}>
-          <View style={styles.sectionTitleRow}>
-            <FontAwesome5 solid name={'file-alt'} size={20} color={colors.grey500} />
-            <Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-              {strings('spend_limit_edition.data')}
-            </Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.sectionExplanationText}>
-              {strings('spend_limit_edition.function_approve')}
-            </Text>
-          </View>
-          <Text style={styles.sectionExplanationText}>{transaction.data}</Text>
-        </View>*/}
 			</>
 		);
 	}
