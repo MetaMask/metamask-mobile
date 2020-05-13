@@ -40,6 +40,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Device from '../../../../util/Device';
 import TransactionHeader from '../../../UI/TransactionHeader';
+import TransactionReviewDetailsCard from '../../../UI/TransactionReview/TransactionReivewDetailsCard';
 import AccountInfoCard from '../../../UI/AccountInfoCard';
 import StyledButton from '../../../UI/StyledButton';
 
@@ -56,54 +57,6 @@ const styles = StyleSheet.create({
 	actionContainer: {
 		flexDirection: 'row',
 		marginVertical: 20
-	},
-	viewData: {
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16,
-		marginTop: 20
-	},
-	viewDataRow: {
-		display: 'flex',
-		flexDirection: 'row',
-		flexWrap: 'wrap'
-	},
-	viewDataTitle: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14
-	},
-	viewDataText: {
-		marginTop: 20
-	},
-	viewDataArrow: {
-		marginLeft: 'auto'
-	},
-	transactionDetails: {
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16
-	},
-	transactionDetailsRow: {
-		display: 'flex',
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		paddingVertical: 4
-	},
-	transactionDetailsTextLeft: {
-		...fontStyles.thin,
-		color: colors.black,
-		fontSize: 14,
-		flex: 1
-	},
-	transactionDetailsTextRight: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		flex: 1,
-		textAlign: 'right'
 	},
 	networkFee: {
 		flexDirection: 'row',
@@ -869,108 +822,16 @@ class Approve extends PureComponent {
 				>
 					<View style={styles.approveView}>
 						{viewDetails ? (
-							<>
-								<View style={styles.section}>
-									<View style={styles.customGasHeader}>
-										<TouchableOpacity onPress={this.toggleViewDetails}>
-											<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
-										</TouchableOpacity>
-										<Text style={styles.customGasModalTitleText}>Transaction Details</Text>
-										<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
-									</View>
-									{/* Transaction Details */}
-									<View style={styles.transactionDetails}>
-										<View style={styles.transactionDetailsRow}>
-											<Text style={styles.transactionDetailsTextLeft}>Site Url</Text>
-											<Text style={styles.transactionDetailsTextRight}>{host}</Text>
-										</View>
-										<View style={styles.transactionDetailsRow}>
-											<Text style={styles.transactionDetailsTextLeft}>Contract name:</Text>
-											<Text style={styles.transactionDetailsTextRight}>name??</Text>
-										</View>
-										<View style={styles.transactionDetailsRow}>
-											<Text style={styles.transactionDetailsTextLeft}>Contract address:</Text>
-											<Text style={styles.transactionDetailsTextRight}>
-												{renderShortAddress(transaction.to)}
-											</Text>
-										</View>
-										<View style={styles.transactionDetailsRow}>
-											<Text style={styles.transactionDetailsTextLeft}>Allowance:</Text>
-											<Text style={styles.transactionDetailsTextRight}>
-												{amount} {tokenSymbol}
-											</Text>
-										</View>
-									</View>
-									<View style={styles.viewData}>
-										<TouchableOpacity style={styles.viewDataRow} onPress={this.toggleViewData}>
-											<Text style={styles.viewDataTitle}>View Data</Text>
-											<View style={styles.viewDataArrow}>
-												<IonicIcon
-													name={`ios-arrow-${viewData ? 'up' : 'down'}`}
-													size={16}
-													color={colors.grey500}
-												/>
-											</View>
-										</TouchableOpacity>
-										{viewData ? <Text style={styles.viewDataText}>{transaction.data}</Text> : null}
-									</View>
-									{/*<View style={styles.sectionTitleRow}>
-										<FontAwesome5
-											name={'user-check'}
-											size={20}
-											color={colors.grey500}
-											onPress={this.toggleEditPermission}
-										/>
-										<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-											{strings('spend_limit_edition.permission_request')}
-										</Text>
-										<TouchableOpacity
-											style={styles.sectionRight}
-											onPress={this.toggleEditPermission}
-										>
-											<Text style={styles.editText}>{strings('spend_limit_edition.edit')}</Text>
-										</TouchableOpacity>
-									</View>
-									<View style={styles.row}>
-										<Text style={styles.sectionExplanationText}>
-											{strings('spend_limit_edition.details_explanation', { host })}
-										</Text>
-									</View>
-									<Text style={styles.permissionDetails}>
-										<Text style={fontStyles.bold}>{strings('spend_limit_edition.amount')}</Text>{' '}
-										{`${amount} ${tokenSymbol}`}
-									</Text>
-									<View style={styles.row}>
-										<Text style={styles.permissionDetails}>
-											<Text style={fontStyles.bold}>{strings('spend_limit_edition.to')}</Text>{' '}
-											{strings('spend_limit_edition.contract', {
-												address: renderShortAddress(transaction.to)
-											})}
-										</Text>
-										<Feather
-											name="copy"
-											size={16}
-											color={colors.blue}
-											style={styles.copyIcon}
-											onPress={this.copyContractAddress}
-										/>
-									</View>*/}
-								</View>
-								{/*<View style={styles.section}>
-									<View style={styles.sectionTitleRow}>
-										<FontAwesome5 solid name={'file-alt'} size={20} color={colors.grey500} />
-										<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-											{strings('spend_limit_edition.data')}
-										</Text>
-									</View>
-									<View style={styles.row}>
-										<Text style={styles.sectionExplanationText}>
-											{strings('spend_limit_edition.function_approve')}
-										</Text>
-									</View>
-									<Text style={styles.sectionExplanationText}>{transaction.data}</Text>
-								</View>*/}
-							</>
+							<TransactionReviewDetailsCard
+								toggleViewDetails={this.toggleViewDetails}
+								toggleViewData={this.toggleViewData}
+								address={renderShortAddress(transaction.to)}
+								host={host}
+								allowance={amount}
+								tokenSymbol={tokenSymbol}
+								data={transaction.data}
+								displayViewData={viewData}
+							/>
 						) : editPermissionVisible ? (
 							this.renderEditPermission()
 						) : customGasVisible ? (
