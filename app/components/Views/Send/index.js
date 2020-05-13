@@ -198,9 +198,10 @@ class Send extends PureComponent {
 		}
 
 		const contractBalance = contractBalances[selectedAsset.address];
-		const contractBalanceChanged = prevProps.contractBalances[selectedAsset.address] !== contractBalance;
+		const erc20ContractBalanceChanged =
+			assetType === 'ERC20' && prevProps.contractBalances[selectedAsset.address] !== contractBalance;
 		const assetTypeDefined = prevProps.transaction.assetType === undefined && assetType === 'ERC20';
-		if (assetType === 'ERC20' && (assetTypeDefined || contractBalanceChanged)) {
+		if (assetTypeDefined || erc20ContractBalanceChanged) {
 			navigation &&
 				navigation.setParams({
 					disableModeChange: contractBalance === undefined
