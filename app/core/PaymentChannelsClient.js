@@ -557,6 +557,24 @@ const instance = {
 	 */
 	getExchangeRate: () => (client && client.state && client.state.exchangeRate) || 0,
 	/**
+	 *	Returns whether the address has balance in channel
+	 */
+	addressHasBalance: async address => {
+		if (client) return true;
+		let hasBalance;
+		const { provider } = Engine.context.NetworkController.state;
+		if (SUPPORTED_NETWORKS.indexOf(provider.type) === -1) return false;
+		try {
+			const tempClient = new PaymentChannelsClient(address);
+			await tempClient.setConnext(provider);
+			await tempClient.pollConnextState();
+			hasBalance = parseFloat(tempClient.getBalance()) > 0;
+		} catch (e) {
+			hasBalance = false;
+		}
+		return hasBalance;
+	},
+	/**
 	 *	Minimum deposit amount in ETH
 	 */
 	MIN_DEPOSIT_ETH,
