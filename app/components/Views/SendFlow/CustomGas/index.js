@@ -209,8 +209,7 @@ const styles = StyleSheet.create({
 	},
 	buttonNext: {
 		flex: 1
-	},
-	radio: {}
+	}
 });
 
 /**
@@ -531,7 +530,7 @@ class CustomGas extends PureComponent {
 		const { warningGasLimit, warningGasPrice } = this.state;
 		const { gasError } = this.props;
 		let gasErrorMessage;
-		if ((warningGasLimit && warningGasPrice) || warningGasPrice) {
+		if (warningGasPrice) {
 			gasErrorMessage = warningGasPrice;
 		} else if (warningGasLimit) {
 			gasErrorMessage = warningGasLimit;
