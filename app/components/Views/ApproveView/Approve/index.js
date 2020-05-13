@@ -65,6 +65,8 @@ const styles = StyleSheet.create({
 		marginTop: 20
 	},
 	viewDataTitle: {
+		...fontStyles.bold,
+		color: colors.black,
 		fontSize: 14
 	},
 	transactionDetails: {
@@ -444,7 +446,8 @@ class Approve extends PureComponent {
 		spendLimitCustomValue: undefined,
 		ticker: getTicker(this.props.ticker),
 		validSpendLimitCustomValue: true,
-		viewDetails: false
+		viewDetails: false,
+		viewData: false
 	};
 
 	customSpendLimitInput = React.createRef();
@@ -493,6 +496,13 @@ class Approve extends PureComponent {
 				network: providerType
 			});
 		});
+	};
+
+	toggleViewData = () => {
+		const { viewData } = this.state;
+		// Do we want analytics for this?
+		// Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
+		this.setState({ viewData: !viewData });
 	};
 
 	toggleViewDetails = () => {
@@ -818,6 +828,7 @@ class Approve extends PureComponent {
 			host,
 			tokenSymbol,
 			viewDetails,
+			viewData,
 			customGasVisible,
 			totalGas,
 			// totalGasFiat,
@@ -880,7 +891,11 @@ class Approve extends PureComponent {
 										</View>
 									</View>
 									<View style={styles.viewData}>
-										<Text style={styles.viewDataTitle}>View Data</Text>
+										<TouchableOpacity onPress={this.toggleViewData}>
+											<Text style={styles.viewDataTitle}>View Data</Text>
+											<IonicIcon name="ios-arrow-down" size={16} color={colors.grey00} />
+										</TouchableOpacity>
+										{viewData ? <Text>{transaction.data}</Text> : null}
 									</View>
 									{/*<View style={styles.sectionTitleRow}>
 										<FontAwesome5
