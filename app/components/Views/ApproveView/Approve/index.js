@@ -64,10 +64,21 @@ const styles = StyleSheet.create({
 		padding: 16,
 		marginTop: 20
 	},
+	viewDataRow: {
+		display: 'flex',
+		flexDirection: 'row',
+		flexWrap: 'wrap'
+	},
 	viewDataTitle: {
 		...fontStyles.bold,
 		color: colors.black,
 		fontSize: 14
+	},
+	viewDataText: {
+		marginTop: 20
+	},
+	viewDataArrow: {
+		marginLeft: 'auto'
 	},
 	transactionDetails: {
 		borderWidth: 1,
@@ -891,11 +902,17 @@ class Approve extends PureComponent {
 										</View>
 									</View>
 									<View style={styles.viewData}>
-										<TouchableOpacity onPress={this.toggleViewData}>
+										<TouchableOpacity style={styles.viewDataRow} onPress={this.toggleViewData}>
 											<Text style={styles.viewDataTitle}>View Data</Text>
-											<IonicIcon name="ios-arrow-down" size={16} color={colors.grey00} />
+											<View style={styles.viewDataArrow}>
+												<IonicIcon
+													name={`ios-arrow-${viewData ? 'up' : 'down'}`}
+													size={16}
+													color={colors.grey500}
+												/>
+											</View>
 										</TouchableOpacity>
-										{viewData ? <Text>{transaction.data}</Text> : null}
+										{viewData ? <Text style={styles.viewDataText}>{transaction.data}</Text> : null}
 									</View>
 									{/*<View style={styles.sectionTitleRow}>
 										<FontAwesome5
