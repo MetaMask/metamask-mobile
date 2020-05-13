@@ -19,7 +19,45 @@ exports[`Browser should render correctly 1`] = `
         "zIndex": 1,
       }
     }
-  />
+  >
+    <WebView
+      allowsInlineMediaPlayback={true}
+      cacheEnabled={true}
+      injectedJavaScript={null}
+      javaScriptEnabled={true}
+      javascriptEnabled={true}
+      onError={[Function]}
+      onLoadEnd={[Function]}
+      onLoadProgress={[Function]}
+      onLoadStart={[Function]}
+      onMessage={[Function]}
+      onNavigationStateChange={[Function]}
+      onShouldStartLoadWithRequest={[Function]}
+      originWhitelist={
+        Array [
+          "http://*",
+          "https://*",
+        ]
+      }
+      renderError={[Function]}
+      sendCookies={true}
+      source={
+        Object {
+          "uri": null,
+        }
+      }
+      style={
+        Object {
+          "flex": 1,
+          "zIndex": 1,
+        }
+      }
+      testID="browser-webview"
+      useSharedProcessPool={true}
+      useWebkit={true}
+      userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 13_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/76.0.3809.123 Mobile/15E148 Safari/605.1"
+    />
+  </View>
   <View
     style={
       Object {
