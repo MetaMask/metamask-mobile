@@ -5,6 +5,7 @@ import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
+import Feather from 'react-native-vector-icons/Feather';
 
 const styles = StyleSheet.create({
 	viewData: {
@@ -45,15 +46,15 @@ const styles = StyleSheet.create({
 	transactionDetailsTextLeft: {
 		...fontStyles.thin,
 		color: colors.black,
-		fontSize: 14,
-		flex: 1
+		fontSize: 14
 	},
 	transactionDetailsTextRight: {
 		...fontStyles.bold,
 		color: colors.black,
 		fontSize: 14,
-		flex: 1,
-		textAlign: 'right'
+		textAlign: 'right',
+		flexDirection: 'row',
+		marginLeft: 'auto'
 	},
 	section: {
 		flexDirection: 'column',
@@ -72,12 +73,21 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		alignSelf: 'center',
 		margin: 16
+	},
+	copyIcon: {
+		marginLeft: 1,
+		marginTop: 2
+	},
+	address: {
+		...fontStyles.bold,
+		color: colors.blue
 	}
 });
 
 export default class TransactionReviewDetailsCard extends Component {
 	static propTypes = {
 		toggleViewDetails: PropTypes.func,
+		copyContractAddress: PropTypes.func,
 		toggleViewData: PropTypes.func,
 		address: PropTypes.string,
 		host: PropTypes.string,
@@ -91,6 +101,7 @@ export default class TransactionReviewDetailsCard extends Component {
 		const {
 			toggleViewDetails,
 			toggleViewData,
+			copyContractAddress,
 			address,
 			host,
 			allowance,
@@ -127,7 +138,16 @@ export default class TransactionReviewDetailsCard extends Component {
 							<Text style={styles.transactionDetailsTextLeft}>
 								{strings('spend_limit_edition.contract_address')}
 							</Text>
-							<Text style={styles.transactionDetailsTextRight}>{address}</Text>
+							<View style={styles.transactionDetailsTextRight}>
+								<Text style={styles.address}>{address}</Text>
+								<Feather
+									name="copy"
+									size={16}
+									color={colors.blue}
+									style={styles.copyIcon}
+									onPress={copyContractAddress}
+								/>
+							</View>
 						</View>
 						<View style={styles.transactionDetailsRow}>
 							<Text style={styles.transactionDetailsTextLeft}>

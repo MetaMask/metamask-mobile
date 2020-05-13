@@ -825,6 +825,7 @@ class Approve extends PureComponent {
 							<TransactionReviewDetailsCard
 								toggleViewDetails={this.toggleViewDetails}
 								toggleViewData={this.toggleViewData}
+								copyContractAddress={this.copyContractAddress}
 								address={renderShortAddress(transaction.to)}
 								host={host}
 								allowance={amount}
