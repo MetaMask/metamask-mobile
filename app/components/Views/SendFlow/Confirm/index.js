@@ -632,7 +632,7 @@ class Confirm extends PureComponent {
 				weiBalance = toWei(Number(selectedAsset.assetBalance));
 				weiInput = toWei(transaction.value);
 				errorMessage = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');
-			} else if (selectedAsset.isETH) {
+			} else if (selectedAsset.isETH || selectedAsset.tokenId) {
 				const totalGas = gas ? gas.mul(gasPrice) : toBN('0x0');
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
 				weiInput = hexToBN(transaction.value).add(totalGas);
@@ -640,7 +640,7 @@ class Confirm extends PureComponent {
 			} else {
 				const [, , amount] = decodeTransferData('transfer', transaction.data);
 				weiBalance = contractBalances[selectedAsset.address];
-				weiInput = toBN(amount);
+				weiInput = hexToBN(amount);
 				errorMessage =
 					weiBalance && weiBalance.gte(weiInput)
 						? undefined
