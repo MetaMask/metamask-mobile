@@ -35,7 +35,6 @@ import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/
 import Engine from '../../../../core/Engine';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import Logger from '../../../../util/Logger';
-import ActionModal from '../../../UI/ActionModal';
 import AccountList from '../../../UI/AccountList';
 import TransactionReviewFeeCard from '../../../UI/TransactionReview/TransactionReviewFeeCard';
 import CustomGas from '../CustomGas';
@@ -245,10 +244,10 @@ class Confirm extends PureComponent {
 		/**
 		 * Resets transaction state
 		 */
-    resetTransaction: PropTypes.func,
-    /**
-     * ETH or fiat, depending on user setting
-     */
+		resetTransaction: PropTypes.func,
+		/**
+		 * ETH or fiat, depending on user setting
+		 */
 		primaryCurrency: PropTypes.string
 	};
 
@@ -274,7 +273,6 @@ class Confirm extends PureComponent {
 		paymentChannelBalance: this.props.selectedAsset.assetBalance,
 		paymentChannelReady: false
 	};
-
 	componentDidMount = async () => {
 		// For analytics
 		const { navigation, providerType } = this.props;
@@ -405,8 +403,8 @@ class Confirm extends PureComponent {
 				fromAccountBalance,
 				transactionValue,
 				transactionValueFiat,
-        transactionFeeFiat,
-        transactionFee,
+				transactionFeeFiat,
+				transactionFee,
 				transactionTo,
 				transactionTotalAmount,
 				transactionTotalAmountFiat
@@ -827,8 +825,8 @@ class Confirm extends PureComponent {
 	};
 
 	render = () => {
-    const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-    const { showHexData, isPaymentChannelTransaction, primaryCurrency } = this.props;
+		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
+		const { showHexData, isPaymentChannelTransaction, primaryCurrency } = this.props;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -836,16 +834,16 @@ class Confirm extends PureComponent {
 			fromSelectedAddress,
 			transactionValue = '',
 			transactionValueFiat = '',
-      transactionFeeFiat = '',
-      transactionFee,
+			transactionFeeFiat = '',
+			transactionFee,
 			transactionTo = '',
 			transactionTotalAmount = '',
 			transactionTotalAmountFiat = '',
 			errorMessage,
 			transactionConfirmed,
 			paymentChannelBalance
-    } = this.state;
-    
+		} = this.state;
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
@@ -887,20 +885,20 @@ class Confirm extends PureComponent {
 								<Text style={styles.collectibleTokenId}>{`#${selectedAsset.tokenId}`}</Text>
 							</View>
 						</View>
-          )}
-          {!isPaymentChannelTransaction && (
-					<TransactionReviewFeeCard
-						totalGasFiat={transactionFeeFiat}
-						totalGasEth={transactionFee}
-						totalFiat={transactionTotalAmountFiat}
-						fiat={transactionValueFiat}
-						totalValue={transactionTotalAmount}
-						transactionValue={transactionValue}
-						primaryCurrency={primaryCurrency}
-						gasEstimationReady={gasEstimationReady}
-						toggleCustomGasModal={this.toggleCustomGasModal}
-          />
-          )}
+					)}
+					{!isPaymentChannelTransaction && (
+						<TransactionReviewFeeCard
+							totalGasFiat={transactionFeeFiat}
+							totalGasEth={transactionFee}
+							totalFiat={transactionTotalAmountFiat}
+							fiat={transactionValueFiat}
+							totalValue={transactionTotalAmount}
+							transactionValue={transactionValue}
+							primaryCurrency={primaryCurrency}
+							gasEstimationReady={gasEstimationReady}
+							toggleCustomGasModal={this.toggleCustomGasModal}
+						/>
+					)}
 					{errorMessage && (
 						<View style={styles.errorMessageWrapper}>
 							<ErrorMessage errorMessage={errorMessage} />
@@ -944,11 +942,10 @@ const mapStateToProps = state => ({
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	showHexData: state.settings.showHexData,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transactionState: state.transaction,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	selectedAsset: state.transaction.selectedAsset,
-	transactionState: state.newTransaction,
+	transactionState: state.transaction,
 	primaryCurrency: state.settings.primaryCurrency
 });
 
