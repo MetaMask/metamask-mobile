@@ -240,9 +240,6 @@ class Deposit extends PureComponent {
 	amountInput = React.createRef();
 
 	componentDidMount = () => {
-		const { navigation } = this.props;
-		navigation && navigation.setParams({ mode: 'edit' });
-
 		if (this.amountInput) {
 			setTimeout(() => {
 				const { current } = this.amountInput;
