@@ -90,7 +90,9 @@ exports[`NetworkSettings should render correctly 1`] = `
               "fontWeight": "400",
               "padding": 10,
             },
-            Object {},
+            Object {
+              "width": "99%",
+            },
           ]
         }
         testID="input-network-name"
@@ -126,7 +128,9 @@ exports[`NetworkSettings should render correctly 1`] = `
               "fontWeight": "400",
               "padding": 10,
             },
-            Object {},
+            Object {
+              "width": "99%",
+            },
           ]
         }
         testID="input-rpc-url"
@@ -163,7 +167,9 @@ exports[`NetworkSettings should render correctly 1`] = `
               "fontWeight": "400",
               "padding": 10,
             },
-            Object {},
+            Object {
+              "width": "99%",
+            },
           ]
         }
       />
@@ -197,7 +203,9 @@ exports[`NetworkSettings should render correctly 1`] = `
               "fontWeight": "400",
               "padding": 10,
             },
-            Object {},
+            Object {
+              "width": "99%",
+            },
           ]
         }
         testID="input-network-symbol"
@@ -232,7 +240,9 @@ exports[`NetworkSettings should render correctly 1`] = `
               "fontWeight": "400",
               "padding": 10,
             },
-            Object {},
+            Object {
+              "width": "99%",
+            },
           ]
         }
       />
