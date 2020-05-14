@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
  */
 class Amount extends PureComponent {
 	static navigationOptions = ({ navigation, screenProps }) =>
-		getSendFlowTitle('send.confirm', navigation, screenProps);
+		getSendFlowTitle('send.amount', navigation, screenProps);
 
 	static propTypes = {
 		/**

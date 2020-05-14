@@ -333,7 +333,7 @@ export function getTransactionOptionsTitle(_title, navigation) {
 	const leftAction = () => modeChange('edit');
 	const rightAction = () => navigation.pop();
 	const rightText = strings('transaction.cancel');
-	const title = transactionMode === 'edit' ? 'transaction.edit' : _title;
+	const title = transactionMode === 'edit' && routeName !== 'PaymentChannelDeposit' ? 'transaction.edit' : _title;
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerLeft:
@@ -355,7 +355,7 @@ export function getTransactionOptionsTitle(_title, navigation) {
 				<View />
 			),
 		headerRight:
-			routeName === 'Send' ? (
+			routeName === 'Send' || routeName === 'PaymentChannelDeposit' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
 					<Text style={styles.closeButtonText}>{rightText}</Text>
