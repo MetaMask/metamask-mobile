@@ -86,8 +86,13 @@ exports[`Confirm should render correctly 1`] = `
       />
     </View>
     <TransactionReviewFeeCard
+      fiat=""
       gasEstimationReady={false}
       toggleCustomGasModal={[Function]}
+      totalFiat=""
+      totalGasFiat=""
+      totalValue=""
+      transactionValue=""
     />
     <View
       style={
@@ -157,9 +162,9 @@ exports[`Confirm should render correctly 1`] = `
   </View>
   <ReactNativeModal
     animationIn="slideInUp"
-    animationInTiming={600}
+    animationInTiming={300}
     animationOut="slideOutDown"
-    animationOutTiming={600}
+    animationOutTiming={300}
     avoidKeyboard={false}
     backdropColor="black"
     backdropOpacity={0.7}
@@ -210,26 +215,36 @@ exports[`Confirm should render correctly 1`] = `
       ticker="ETH"
     />
   </ReactNativeModal>
-  <ActionModal
-    cancelButtonMode="neutral"
-    cancelTestID=""
-    cancelText="Cancel"
-    confirmButtonMode="confirm"
-    confirmDisabled={false}
-    confirmTestID=""
-    confirmText="Set"
-    displayCancelButton={true}
-    displayConfirmButton={true}
-    modalVisible={false}
-    onCancelPress={[Function]}
-    onConfirmPress={[Function]}
-    onRequestClose={[Function]}
-  >
-    <View
-      style={
-        Object {
-          "flex": 1,
-        }
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={600}
+    animationOut="slideOutDown"
+    animationOutTiming={600}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0.7}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    deviceHeight={null}
+    deviceWidth={null}
+    hasBackdrop={true}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onSwipeComplete={[Function]}
+    propagateSwipe={true}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "justifyContent": "flex-end",
+        "margin": 0,
       }
     }
     supportedOrientations={
