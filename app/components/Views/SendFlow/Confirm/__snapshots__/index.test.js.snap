@@ -162,9 +162,9 @@ exports[`Confirm should render correctly 1`] = `
   </View>
   <ReactNativeModal
     animationIn="slideInUp"
-    animationInTiming={600}
+    animationInTiming={300}
     animationOut="slideOutDown"
-    animationOutTiming={600}
+    animationOutTiming={300}
     avoidKeyboard={false}
     backdropColor="black"
     backdropOpacity={0.7}
