@@ -330,7 +330,6 @@ export function getTransactionOptionsTitle(_title, navigation) {
 	const modeChange = navigation.getParam('dispatch', () => {
 		'';
 	});
-	console.log('routeName', routeName);
 	const leftAction = () => modeChange('edit');
 	const rightAction = () => navigation.pop();
 	const rightText = strings('transaction.cancel');
