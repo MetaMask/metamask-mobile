@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
 import TransactionReview from '../TransactionReview';
@@ -12,7 +11,6 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { generateTransferData, getNormalizedTxState } from '../../../util/transactions';
 import { setTransactionObject } from '../../../actions/transaction';
-import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from 'eth-contract-metadata';
@@ -589,26 +587,26 @@ class TransactionEditor extends PureComponent {
 
 		return (
 			<React.Fragment>
-        {mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
-        {mode === EDIT && !transaction.paymentChannelTransaction && (
-          <View style={styles.editRoot}>
-            <TransactionEdit
-              navigation={this.props.navigation}
-              onCancel={this.onCancel}
-              onModeChange={this.props.onModeChange}
-              handleUpdateAmount={this.handleUpdateAmount}
-              handleUpdateData={this.handleUpdateData}
-              handleUpdateFromAddress={this.handleUpdateFromAddress}
-              handleUpdateToAddress={this.handleUpdateToAddress}
-              handleGasFeeSelection={this.handleGasFeeSelection}
-              validateAmount={this.validateAmount}
-              validateGas={this.validateGas}
-              validateToAddress={this.validateToAddress}
-              handleUpdateAsset={this.handleUpdateAsset}
-              checkForAssetAddress={this.checkForAssetAddress}
-              handleUpdateReadableValue={this.handleUpdateReadableValue}
-            />
-          </View>
+				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
+				{mode === EDIT && !transaction.paymentChannelTransaction && (
+					<View style={styles.editRoot}>
+						<TransactionEdit
+							navigation={this.props.navigation}
+							onCancel={this.onCancel}
+							onModeChange={this.props.onModeChange}
+							handleUpdateAmount={this.handleUpdateAmount}
+							handleUpdateData={this.handleUpdateData}
+							handleUpdateFromAddress={this.handleUpdateFromAddress}
+							handleUpdateToAddress={this.handleUpdateToAddress}
+							handleGasFeeSelection={this.handleGasFeeSelection}
+							validateAmount={this.validateAmount}
+							validateGas={this.validateGas}
+							validateToAddress={this.validateToAddress}
+							handleUpdateAsset={this.handleUpdateAsset}
+							checkForAssetAddress={this.checkForAssetAddress}
+							handleUpdateReadableValue={this.handleUpdateReadableValue}
+						/>
+					</View>
 				)}
 				{mode === REVIEW && (
 					<View style={styles.reviewRoot}>
