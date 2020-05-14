@@ -325,15 +325,16 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 export function getTransactionOptionsTitle(_title, navigation) {
 	const transactionMode = navigation.getParam('mode', '');
 	const { routeName } = navigation.state;
-	const leftText = transactionMode === 'edit' ? strings('transaction.edit') : strings('transaction.cancel');
+	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
 	const disableModeChange = navigation.getParam('disableModeChange');
 	const modeChange = navigation.getParam('dispatch', () => {
 		'';
 	});
+	console.log('routeName', routeName);
 	const leftAction = () => modeChange('edit');
 	const rightAction = () => navigation.pop();
 	const rightText = strings('transaction.cancel');
-	const title = transactionMode === 'edit' ? 'transaction.edit' : _title;
+	const title = transactionMode === 'edit' && routeName !== 'PaymentChannelDeposit' ? 'transaction.edit' : _title;
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerLeft:
@@ -355,7 +356,7 @@ export function getTransactionOptionsTitle(_title, navigation) {
 				<View />
 			),
 		headerRight:
-			routeName === 'Send' ? (
+			routeName === 'Send' || routeName === 'PaymentChannelDeposit' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
 					<Text style={styles.closeButtonText}>{rightText}</Text>
