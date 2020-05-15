@@ -15,18 +15,9 @@ import {
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import { getTicker, getNormalizedTxState } from '../../../../util/transactions';
+import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
 
 const styles = StyleSheet.create({
-	overview: {
-		paddingHorizontal: 24,
-		borderTopWidth: 1,
-		borderColor: colors.grey200
-	},
-	overviewRow: {
-		alignItems: 'center',
-		flexDirection: 'row',
-		paddingVertical: 15
-	},
 	overviewAlert: {
 		alignItems: 'center',
 		backgroundColor: colors.red000,
@@ -35,7 +26,9 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		flexDirection: 'row',
 		height: 32,
-		paddingHorizontal: 16
+		paddingHorizontal: 16,
+		marginHorizontal: 24,
+		marginTop: 12
 	},
 	overviewAlertText: {
 		...fontStyles.normal,
@@ -47,18 +40,6 @@ const styles = StyleSheet.create({
 	overviewAlertIcon: {
 		color: colors.red,
 		flex: 0
-	},
-	topOverviewRow: {
-		borderBottomWidth: 1,
-		borderColor: colors.grey200
-	},
-	overviewLabel: {
-		...fontStyles.bold,
-		color: colors.grey500,
-		flex: 1,
-		fontSize: 12,
-		minWidth: 30,
-		textTransform: 'uppercase'
 	},
 	overviewPrimary: {
 		...fontStyles.bold,
@@ -74,14 +55,6 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.grey500,
 		fontSize: 16,
-		textAlign: 'right',
-		textTransform: 'uppercase'
-	},
-	overviewInfo: {
-		...fontStyles.normal,
-		color: colors.grey500,
-		fontSize: 12,
-		marginBottom: 6,
 		textAlign: 'right',
 		textTransform: 'uppercase'
 	},
@@ -126,7 +99,19 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Transaction amount in selected asset before gas
+		 */
+		assetAmount: PropTypes.string,
+		/**
+		 * Transaction amount in fiat before gas
+		 */
+		fiatValue: PropTypes.string,
+		/**
+		 * ETH or fiat, depending on user setting
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -234,32 +219,20 @@ class TransactionReviewInformation extends PureComponent {
 
 	render() {
 		const { amountError, totalGasFiat, totalGasEth, totalFiat, totalValue } = this.state;
-		const gasPrimary = totalGasFiat || totalGasEth;
-		const gasSeconday = totalGasFiat ? totalGasEth : null;
-
+		const { fiatValue, assetAmount, primaryCurrency } = this.props;
 		return (
-			<View style={styles.overview}>
-				<View style={[styles.overviewRow, styles.topOverviewRow]}>
-					<Text style={styles.overviewLabel}>{strings('transaction.gas_fee')}</Text>
-					<View style={styles.overviewContent}>
-						<Text style={styles.overviewPrimary}>{gasPrimary}</Text>
-						{!!gasSeconday && <Text style={styles.overviewEth}>{totalGasEth}</Text>}
-					</View>
-				</View>
-
-				<View style={styles.overviewRow}>
-					<Text style={styles.overviewLabel}>{strings('transaction.total')}</Text>
-					<View style={styles.overviewContent}>
-						<Text style={styles.overviewInfo}>
-							{`${strings('transaction.amount')} + ${strings('transaction.gas_fee')}`}
-						</Text>
-						{!!totalFiat && (
-							<Text style={[styles.overviewPrimary, styles.overviewAccent]}>{totalFiat}</Text>
-						)}
-						{totalValue}
-					</View>
-				</View>
-
+			<React.Fragment>
+				<TransactionReviewFeeCard
+					totalGasFiat={totalGasFiat}
+					totalGasEth={totalGasEth}
+					totalFiat={totalFiat}
+					fiat={fiatValue}
+					totalValue={totalValue}
+					transactionValue={assetAmount}
+					primaryCurrency={primaryCurrency}
+					gasEstimationReady
+					toggleCustomGasModal={this.edit}
+				/>
 				{!!amountError && (
 					<View style={styles.overviewAlert}>
 						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
@@ -268,7 +241,7 @@ class TransactionReviewInformation extends PureComponent {
 						</Text>
 					</View>
 				)}
-			</View>
+			</React.Fragment>
 		);
 	}
 }
@@ -278,7 +251,8 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	transaction: getNormalizedTxState(state),
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 export default connect(mapStateToProps)(TransactionReviewInformation);
