@@ -64,11 +64,11 @@ class TransactionReviewSummary extends PureComponent {
 		/**
 		 * Transaction amount in ETH before gas
 		 */
-		assetAmount: PropTypes.number,
+		assetAmount: PropTypes.string,
 		/**
 		 * Transaction amount in fiat before gas
 		 */
-		fiatValue: PropTypes.number,
+		fiatValue: PropTypes.string,
 		/**
 		 * Approve type transaction or not
 		 */
