@@ -21,10 +21,8 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import contractMap from 'eth-contract-metadata';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
-import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -46,7 +44,8 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	accountInfoCardWrapper: {
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
+		paddingBottom: 12
 	},
 	error: {
 		backgroundColor: colors.red000,
@@ -64,7 +63,8 @@ const styles = StyleSheet.create({
 		flex: 0,
 		flexDirection: 'row',
 		paddingVertical: 16,
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
+		marginBottom: 0
 	},
 	button: {
 		flex: 1
@@ -232,26 +232,6 @@ class TransactionReview extends PureComponent {
 		);
 	}
 
-	renderTransactionDetails = () => {
-		const { showHexData, actionKey } = this.state;
-		const { transaction } = this.props;
-		return (
-			<React.Fragment>
-				{showHexData && transaction.data ? (
-					<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
-						<TransactionReviewInformation
-							edit={this.edit}
-							tabLabel={strings('transaction.review_details')}
-						/>
-						<TransactionReviewData actionKey={actionKey} tabLabel={strings('transaction.review_data')} />
-					</ScrollableTabView>
-				) : (
-					<TransactionReviewInformation edit={this.edit} />
-				)}
-			</React.Fragment>
-		);
-	};
-
 	getUrlFromBrowser() {
 		const { browser } = this.props;
 		let url;
@@ -280,7 +260,12 @@ class TransactionReview extends PureComponent {
 				<View style={styles.accountInfoCardWrapper}>
 					<AccountInfoCard />
 				</View>
-				{this.renderTransactionDetails()}
+				<TransactionReviewInformation
+					edit={this.edit}
+					tabLabel={strings('transaction.review_details')}
+					assetAmount={assetAmount}
+					fiatValue={fiatValue}
+				/>
 				{!!error && <Text style={styles.error}>{error}</Text>}
 				<View style={styles.actionContainer}>
 					<StyledButton
