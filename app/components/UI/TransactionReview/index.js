@@ -140,6 +140,7 @@ class TransactionReview extends PureComponent {
 		toFocused: false,
 		actionKey: strings('transactions.tx_review_confirm'),
 		showHexData: false,
+		dataVisible: false,
 		error: undefined,
 		assetAmount: undefined,
 		conversionRate: undefined,
@@ -232,6 +233,10 @@ class TransactionReview extends PureComponent {
 		);
 	}
 
+	toggleDataView() {
+		this.setState({ dataVisible: !this.state.dataVisible });
+	}
+
 	getUrlFromBrowser() {
 		const { browser } = this.props;
 		let url;
@@ -245,9 +250,17 @@ class TransactionReview extends PureComponent {
 
 	render = () => {
 		const { transactionConfirmed } = this.props;
-		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
+		const {
+			actionKey,
+			error,
+			assetAmount,
+			conversionRate,
+			fiatValue,
+			approveTransaction,
+			dataVisible
+		} = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
-		return (
+		const content = !dataVisible ? (
 			<React.Fragment>
 				<TransactionHeader currentPageInformation={currentPageInformation} />
 				<TransactionReviewSummary
@@ -265,6 +278,7 @@ class TransactionReview extends PureComponent {
 					tabLabel={strings('transaction.review_details')}
 					assetAmount={assetAmount}
 					fiatValue={fiatValue}
+					toggleDataView={this.toggleDataView}
 				/>
 				{!!error && <Text style={styles.error}>{error}</Text>}
 				<View style={styles.actionContainer}>
@@ -286,7 +300,10 @@ class TransactionReview extends PureComponent {
 					</StyledButton>
 				</View>
 			</React.Fragment>
+		) : (
+			<View />
 		);
+		return <>{content}</>;
 	};
 }
 
