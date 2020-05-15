@@ -5,16 +5,12 @@ import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
-	overviewWrapper: {
-		flexDirection: 'row',
-		justifyContent: 'center'
-	},
 	overview: {
-		width: '90%',
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
-		padding: 16
+		padding: 16,
+		marginHorizontal: 24
 	},
 	overviewAccent: {
 		color: colors.blue
@@ -94,7 +90,7 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * Total transaction value in ETH
 		 */
-		totalValue: PropTypes.string,
+		totalValue: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 		/**
 		 * Transaction value in ETH before gas fee
 		 */
@@ -148,42 +144,38 @@ class TransactionReviewFeeCard extends PureComponent {
 			equivalentTotalAmount = totalValue;
 		}
 		return (
-			<View style={styles.overviewWrapper}>
-				<View style={styles.overview}>
-					<View style={[styles.overviewCol, styles.topOverviewCol]}>
-						<View style={[styles.amountRow, styles.amountRowBottomSpace]}>
-							<Text style={styles.overviewText}>{strings('transaction.amount')}</Text>
-							<Text style={styles.overviewText}>{amount}</Text>
-						</View>
-						<View style={styles.amountRow}>
-							<View style={styles.networkTextWrapper}>
-								<Text style={[styles.overviewText, styles.networkFeeText]}>
-									{strings('transaction.gas_fee')}
-								</Text>
-								<TouchableOpacity onPress={toggleCustomGasModal} disabled={!gasEstimationReady}>
-									<Text style={[styles.overviewText, styles.overviewAccent]}>
-										{strings('transaction.edit')}
-									</Text>
-								</TouchableOpacity>
-							</View>
-							{this.renderIfGasEstimationReady(<Text style={styles.overviewText}>{networkFee}</Text>)}
-						</View>
+			<View style={styles.overview}>
+				<View style={[styles.overviewCol, styles.topOverviewCol]}>
+					<View style={[styles.amountRow, styles.amountRowBottomSpace]}>
+						<Text style={styles.overviewText}>{strings('transaction.amount')}</Text>
+						<Text style={styles.overviewText}>{amount}</Text>
 					</View>
-					<View style={[styles.overviewCol, styles.bottomOverviewCol]}>
-						<View style={[styles.amountRow, styles.amountRowBottomSpace]}>
-							<Text style={styles.overviewText}>
-								{strings('transaction.total')} {strings('transaction.amount')}
+					<View style={styles.amountRow}>
+						<View style={styles.networkTextWrapper}>
+							<Text style={[styles.overviewText, styles.networkFeeText]}>
+								{strings('transaction.gas_fee')}
 							</Text>
-							{!!totalFiat &&
-								this.renderIfGasEstimationReady(<Text style={styles.overviewText}>{totalAmount}</Text>)}
-						</View>
-						<View style={[styles.amountRow, styles.totalValueRow]}>
-							{this.renderIfGasEstimationReady(
-								<Text style={[styles.overviewText, styles.totalValueText]}>
-									{equivalentTotalAmount}
+							<TouchableOpacity onPress={toggleCustomGasModal} disabled={!gasEstimationReady}>
+								<Text style={[styles.overviewText, styles.overviewAccent]}>
+									{strings('transaction.edit')}
 								</Text>
-							)}
+							</TouchableOpacity>
 						</View>
+						{this.renderIfGasEstimationReady(<Text style={styles.overviewText}>{networkFee}</Text>)}
+					</View>
+				</View>
+				<View style={[styles.overviewCol, styles.bottomOverviewCol]}>
+					<View style={[styles.amountRow, styles.amountRowBottomSpace]}>
+						<Text style={styles.overviewText}>
+							{strings('transaction.total')} {strings('transaction.amount')}
+						</Text>
+						{!!totalFiat &&
+							this.renderIfGasEstimationReady(<Text style={styles.overviewText}>{totalAmount}</Text>)}
+					</View>
+					<View style={[styles.amountRow, styles.totalValueRow]}>
+						{this.renderIfGasEstimationReady(
+							<Text style={[styles.overviewText, styles.totalValueText]}>{equivalentTotalAmount}</Text>
+						)}
 					</View>
 				</View>
 			</View>
