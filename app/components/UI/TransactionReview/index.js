@@ -233,9 +233,9 @@ class TransactionReview extends PureComponent {
 		);
 	}
 
-	toggleDataView() {
+	toggleDataView = () => {
 		this.setState({ dataVisible: !this.state.dataVisible });
-	}
+	};
 
 	getUrlFromBrowser() {
 		const { browser } = this.props;
