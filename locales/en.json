@@ -527,6 +527,7 @@
 		"transaction_fee": "Network fee",
 		"transaction_fee_less": "No fee",
 		"total_amount": "Total amount",
+		"view_data": "View Data",
 		"adjust_transaction_fee": "Adjust transaction fee",
 		"could_not_resolve_ens": "Couldn't resolve ENS",
 		"asset": "Asset",
