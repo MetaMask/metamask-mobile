@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -68,6 +68,16 @@ const styles = StyleSheet.create({
 	},
 	collectibleName: {
 		maxWidth: '30%'
+	},
+	viewDataWrapper: {
+		paddingTop: 32,
+		paddingBottom: 16
+	},
+	viewDataText: {
+		color: colors.blue,
+		textAlign: 'center',
+		fontSize: 12,
+		...fontStyles.bold
 	}
 });
 
@@ -111,7 +121,11 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * ETH or fiat, depending on user setting
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Hides or shows transaction data
+		 */
+		toggleDataView: PropTypes.func
 	};
 
 	state = {
@@ -219,7 +233,7 @@ class TransactionReviewInformation extends PureComponent {
 
 	render() {
 		const { amountError, totalGasFiat, totalGasEth, totalFiat, totalValue } = this.state;
-		const { fiatValue, assetAmount, primaryCurrency } = this.props;
+		const { fiatValue, assetAmount, primaryCurrency, toggleDataView } = this.props;
 		return (
 			<React.Fragment>
 				<TransactionReviewFeeCard
@@ -241,6 +255,9 @@ class TransactionReviewInformation extends PureComponent {
 						</Text>
 					</View>
 				)}
+				<TouchableOpacity style={styles.viewDataWrapper} onPress={toggleDataView}>
+					<Text style={styles.viewDataText}>{strings('transaction.view_data')}</Text>
+				</TouchableOpacity>
 			</React.Fragment>
 		);
 	}
