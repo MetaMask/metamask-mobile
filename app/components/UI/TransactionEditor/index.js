@@ -25,19 +25,21 @@ const REVIEW = 'review';
 const styles = StyleSheet.create({
 	reviewRoot: {
 		backgroundColor: colors.white,
-		minHeight: 700,
+		minHeight: 200,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		paddingTop: 24,
-		paddingBottom: Device.isIphoneX() ? 24 : 0
+		paddingBottom: Device.isIphoneX() ? 24 : 0,
+		justifyContent: 'flex-end'
 	},
 	editRoot: {
 		backgroundColor: colors.white,
-		minHeight: 700,
+		minHeight: 200,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		paddingTop: 24,
-		paddingBottom: Device.isIphoneX() ? 44 : 24
+		paddingBottom: Device.isIphoneX() ? 44 : 24,
+		justifyContent: 'flex-end'
 	}
 });
 
