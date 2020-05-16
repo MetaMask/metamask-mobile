@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, InteractionManager } from 'react-native';
-import StyledButton from '../StyledButton';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -20,6 +19,7 @@ import {
 	fromTokenMinimalUnit
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
+import Device from '../../../util/Device';
 import contractMap from 'eth-contract-metadata';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
@@ -28,6 +28,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
+import ActionView from '../ActionView';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
@@ -43,37 +44,32 @@ const styles = StyleSheet.create({
 		letterSpacing: 0.5,
 		...fontStyles.bold
 	},
+	actionViewWrapper: {
+		height: Device.isMediumDevice() ? 200 : 385
+	},
+	actionViewChildren: {
+		height: 300
+	},
 	accountInfoCardWrapper: {
 		paddingHorizontal: 24,
 		paddingBottom: 12
 	},
-	error: {
-		backgroundColor: colors.red000,
-		color: colors.red,
-		marginTop: 5,
+	errorWrapper: {
+		marginHorizontal: 24,
+		marginBottom: 12,
+		paddingHorizontal: 10,
 		paddingVertical: 8,
-		paddingHorizontal: 5,
-		textAlign: 'center',
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
+		borderRadius: 8,
+		borderWidth: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	error: {
+		color: colors.red,
 		fontSize: 12,
-		letterSpacing: 0.5,
-		marginHorizontal: 14,
 		...fontStyles.normal
-	},
-	actionContainer: {
-		flex: 0,
-		flexDirection: 'row',
-		paddingVertical: 16,
-		paddingHorizontal: 24,
-		marginBottom: 0
-	},
-	button: {
-		flex: 1
-	},
-	cancel: {
-		marginRight: 8
-	},
-	confirm: {
-		marginLeft: 8
 	}
 });
 
@@ -261,7 +257,7 @@ class TransactionReview extends PureComponent {
 		} = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
 		const content = !dataVisible ? (
-			<React.Fragment>
+			<>
 				<TransactionHeader currentPageInformation={currentPageInformation} />
 				<TransactionReviewSummary
 					actionKey={actionKey}
@@ -270,36 +266,34 @@ class TransactionReview extends PureComponent {
 					fiatValue={fiatValue}
 					approveTransaction={approveTransaction}
 				/>
-				<View style={styles.accountInfoCardWrapper}>
-					<AccountInfoCard />
-				</View>
-				<TransactionReviewInformation
-					edit={this.edit}
-					tabLabel={strings('transaction.review_details')}
-					assetAmount={assetAmount}
-					fiatValue={fiatValue}
-					toggleDataView={this.toggleDataView}
-				/>
-				{!!error && <Text style={styles.error}>{error}</Text>}
-				<View style={styles.actionContainer}>
-					<StyledButton
-						type={'cancel'}
-						onPress={this.props.onCancel}
-						containerStyle={[styles.button, styles.cancel]}
-						disabled={transactionConfirmed}
+				{!!error && (
+					<View style={styles.errorWrapper}>
+						<Text style={styles.error}>{error}</Text>
+					</View>
+				)}
+				<View style={styles.actionViewWrapper}>
+					<ActionView
+						confirmButtonMode="confirm"
+						cancelText={strings('transaction.reject')}
+						onCancelPress={this.props.onCancel}
+						onConfirmPress={this.props.onConfirm}
+						confirmed={transactionConfirmed}
+						confirmDisabled={error !== undefined}
 					>
-						{strings('transaction.reject')}
-					</StyledButton>
-					<StyledButton
-						type={'confirm'}
-						onPress={this.props.onConfirm}
-						containerStyle={[styles.button, styles.confirm]}
-						disabled={transactionConfirmed || error !== undefined}
-					>
-						{strings('transaction.confirm')}
-					</StyledButton>
+						<View style={styles.actionViewChildren}>
+							<View style={styles.accountInfoCardWrapper}>
+								<AccountInfoCard />
+							</View>
+							<TransactionReviewInformation
+								edit={this.edit}
+								assetAmount={assetAmount}
+								fiatValue={fiatValue}
+								toggleDataView={this.toggleDataView}
+							/>
+						</View>
+					</ActionView>
 				</View>
-			</React.Fragment>
+			</>
 		) : (
 			<View />
 		);
