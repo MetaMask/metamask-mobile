@@ -240,8 +240,13 @@ describe('Test Dapp Initiated Transactions', () => {
 		await TestHelpers.tap('hamburger-menu-button-browser');
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on Log Out
-		await TestHelpers.tapByText('Log Out');
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.swipe('drawer-screen', 'up');
+			await TestHelpers.tapByText('Log Out');
+		} else {
+			// Tap on Log Out
+			await TestHelpers.tapByText('Log Out');
+		}
 		// Tap YES
 		await TestHelpers.tapAlertWithButton('YES');
 		// Check that we are on the login screen
