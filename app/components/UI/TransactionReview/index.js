@@ -24,6 +24,7 @@ import contractMap from 'eth-contract-metadata';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
+import TransactionReviewData from './TransactionReviewData';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import TransactionHeader from '../TransactionHeader';
@@ -295,7 +296,7 @@ class TransactionReview extends PureComponent {
 				</View>
 			</>
 		) : (
-			<View />
+			<TransactionReviewData actionKey={actionKey} toggleDataView={this.toggleDataView} />
 		);
 		return <>{content}</>;
 	};
