@@ -1,44 +1,58 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	overview: {
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
+		marginBottom: 24
 	},
-	label: {
-		flex: 0,
-		paddingRight: 18
+	dataHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		width: '100%',
+		marginBottom: 28
 	},
-	labelText: {
+	dataTitleText: {
 		...fontStyles.bold,
-		color: colors.grey400,
-		fontSize: 12
+		color: colors.black,
+		fontSize: 14,
+		alignSelf: 'center'
 	},
-	functionType: {
+	dataDescription: {
+		textAlign: 'center',
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 12,
-		padding: 16
+		fontSize: 14,
+		marginBottom: 28
+	},
+	dataBox: {
+		padding: 12,
+		borderWidth: 1,
+		borderColor: colors.grey200,
+		borderRadius: 8
+	},
+	label: {
+		flexDirection: 'row',
+		justifyContent: 'flex-start'
+	},
+	labelText: {
+		...fontStyles.normal,
+		color: colors.black,
+		fontSize: 14
 	},
 	hexData: {
 		...fontStyles.normal,
 		backgroundColor: colors.white,
 		color: colors.black,
-		flex: 1,
-		fontSize: 12,
+		fontSize: 14,
 		minHeight: 64,
-		padding: 16
-	},
-	topOverviewRow: {
-		borderBottomWidth: 1,
-		borderColor: colors.grey200
-	},
-	overviewRow: {
-		paddingVertical: 15
+		paddingTop: 12
 	}
 });
 
@@ -54,28 +68,36 @@ class TransactionReviewData extends PureComponent {
 		/**
 		 * Transaction corresponding action key
 		 */
-		actionKey: PropTypes.string
+		actionKey: PropTypes.string,
+		/**
+		 * Hides or shows transaction data
+		 */
+		toggleDataView: PropTypes.func
 	};
 
 	render = () => {
 		const {
 			transaction: { data },
-			actionKey
+			actionKey,
+			toggleDataView
 		} = this.props;
 		return (
 			<View style={styles.overview}>
-				{actionKey !== strings('transactions.tx_review_confirm') && (
-					<View style={[styles.overviewRow, styles.topOverviewRow]}>
+				<View style={styles.dataHeader}>
+					<TouchableOpacity onPress={toggleDataView}>
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+					</TouchableOpacity>
+					<Text style={styles.dataTitleText}>{strings('transaction.data')}</Text>
+					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+				</View>
+				<Text style={styles.dataDescription}>{strings('transaction.data_description')}</Text>
+				<View style={styles.dataBox}>
+					{actionKey !== strings('transactions.tx_review_confirm') && (
 						<View style={styles.label}>
-							<Text style={styles.labelText}>{strings('transaction.review_function_type')}</Text>
-							<Text style={styles.functionType}>{actionKey}</Text>
+							<Text style={styles.labelText}>{strings('transaction.review_function')}: </Text>
+							<Text style={styles.labelText}>{actionKey}</Text>
 						</View>
-					</View>
-				)}
-				<View style={styles.overviewRow}>
-					<View style={styles.label}>
-						<Text style={styles.labelText}>{strings('transaction.review_hex_data')}:</Text>
-					</View>
+					)}
 					<TextInput
 						multiline
 						placeholder={strings('transaction.optional')}
