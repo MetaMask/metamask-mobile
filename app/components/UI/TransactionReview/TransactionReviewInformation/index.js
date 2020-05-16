@@ -70,14 +70,18 @@ const styles = StyleSheet.create({
 		maxWidth: '30%'
 	},
 	viewDataWrapper: {
-		paddingTop: 32,
-		paddingBottom: 16
+		marginTop: 32,
+		marginBottom: 16
+	},
+	viewDataButton: {
+		alignSelf: 'center'
 	},
 	viewDataText: {
 		color: colors.blue,
 		textAlign: 'center',
 		fontSize: 12,
-		...fontStyles.bold
+		...fontStyles.bold,
+		alignSelf: 'center'
 	}
 });
 
@@ -255,9 +259,11 @@ class TransactionReviewInformation extends PureComponent {
 						</Text>
 					</View>
 				)}
-				<TouchableOpacity style={styles.viewDataWrapper} onPress={toggleDataView}>
-					<Text style={styles.viewDataText}>{strings('transaction.view_data')}</Text>
-				</TouchableOpacity>
+				<View style={styles.viewDataWrapper}>
+					<TouchableOpacity style={styles.viewDataButton} onPress={toggleDataView}>
+						<Text style={styles.viewDataText}>{strings('transaction.view_data')}</Text>
+					</TouchableOpacity>
+				</View>
 			</React.Fragment>
 		);
 	}
