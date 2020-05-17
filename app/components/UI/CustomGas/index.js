@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import {
 	getRenderableEthGasFee,
@@ -160,6 +160,12 @@ const styles = StyleSheet.create({
 		paddingTop: 8,
 		position: 'relative',
 		marginTop: 5
+	},
+	loaderContainer: {
+		height: 200,
+		backgroundColor: colors.white,
+		alignItems: 'center',
+		justifyContent: 'center'
 	}
 });
 
@@ -513,8 +519,8 @@ class CustomGas extends PureComponent {
 			);
 		}
 		return (
-			<View style={baseStyles.flexGrow}>
-				<Text>{strings('transaction.loading')}</Text>
+			<View style={styles.loaderContainer}>
+				<ActivityIndicator size="small" />
 			</View>
 		);
 	};
