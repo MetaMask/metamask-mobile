@@ -10,35 +10,98 @@ import {
 	apiEstimateModifiedToWEI,
 	getBasicGasEstimates
 } from '../../../util/custom-gas';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
 import Radio from '../Radio';
+import StyledButton from '../../UI/StyledButton';
 
 const styles = StyleSheet.create({
-	labelText: {
+	root: {
+		paddingHorizontal: 24
+	},
+	customGasHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		width: '100%',
+		paddingBottom: 20
+	},
+	customGasModalTitleText: {
 		...fontStyles.bold,
-		color: colors.grey400,
-		fontSize: 16
+		color: colors.black,
+		fontSize: 14,
+		alignSelf: 'center'
+	},
+	optionsContainer: {
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
+		paddingBottom: 20
+	},
+	basicButton: {
+		width: 116,
+		height: 36,
+		padding: 8,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	optionSelected: {
+		backgroundColor: colors.grey000,
+		borderWidth: 1,
+		borderRadius: 20,
+		borderColor: colors.grey100
+	},
+	textOptions: {
+		...fontStyles.normal,
+		fontSize: 14,
+		color: colors.black
+	},
+	message: {
+		...fontStyles.normal,
+		color: colors.black,
+		fontSize: 12,
+		paddingBottom: 20
+	},
+	warningWrapper: {
+		marginBottom: 20,
+		height: 50,
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	warningTextWrapper: {
+		width: '100%',
+		paddingHorizontal: 10,
+		paddingVertical: 8,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
+		borderRadius: 8,
+		borderWidth: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	warningText: {
+		color: colors.red,
+		fontSize: 12,
+		...fontStyles.normal
+	},
+	invisible: {
+		opacity: 0
 	},
 	titleContainer: {
-		flex: 1,
 		width: '100%',
 		flexDirection: 'row',
 		justifyContent: 'space-between'
-	},
-	titleMargin: {
-		marginBottom: 10,
-		alignItems: 'flex-end'
 	},
 	radio: {
 		marginLeft: 'auto'
 	},
 	selectors: {
-		flex: 1,
 		position: 'relative',
 		flexDirection: 'row',
-		justifyContent: 'space-evenly'
+		justifyContent: 'space-evenly',
+		marginBottom: 8
 	},
 	selector: {
 		alignSelf: 'stretch',
@@ -55,10 +118,6 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.blue000,
 		borderColor: colors.blue,
 		zIndex: 1
-	},
-	advancedOptions: {
-		textAlign: 'right',
-		alignItems: 'flex-end'
 	},
 	slow: {
 		borderBottomStartRadius: 6,
@@ -88,10 +147,6 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		textTransform: 'none'
 	},
-	textAdvancedOptions: {
-		color: colors.blue,
-		fontSize: 14
-	},
 	gasInput: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
@@ -105,10 +160,6 @@ const styles = StyleSheet.create({
 		paddingTop: 8,
 		position: 'relative',
 		marginTop: 5
-	},
-	warningText: {
-		color: colors.red,
-		...fontStyles.normal
 	}
 });
 
@@ -148,7 +199,11 @@ class CustomGas extends PureComponent {
 		/**
 		 * Displayed when there is a gas station error
 		 */
-		gasError: PropTypes.string
+		gasError: PropTypes.string,
+		/**
+		 * Changes the mode to 'review'
+		 */
+		review: PropTypes.func
 	};
 
 	state = {
@@ -173,7 +228,7 @@ class CustomGas extends PureComponent {
 
 	onPressGasFast = () => {
 		const { fastGwei } = this.state;
-		const { gas, onPress } = this.props;
+		const { onPress } = this.props;
 		onPress && onPress();
 		this.setState({
 			gasFastSelected: true,
@@ -182,12 +237,11 @@ class CustomGas extends PureComponent {
 			selected: 'fast',
 			customGasPrice: fastGwei
 		});
-		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei));
 	};
 
 	onPressGasAverage = () => {
 		const { averageGwei } = this.state;
-		const { gas, onPress } = this.props;
+		const { onPress } = this.props;
 		onPress && onPress();
 		this.setState({
 			gasFastSelected: false,
@@ -196,12 +250,11 @@ class CustomGas extends PureComponent {
 			selected: 'average',
 			customGasPrice: averageGwei
 		});
-		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
 	};
 
 	onPressGasSlow = () => {
 		const { safeLowGwei } = this.state;
-		const { gas, onPress } = this.props;
+		const { onPress } = this.props;
 		onPress && onPress();
 		this.setState({
 			gasFastSelected: false,
@@ -210,7 +263,6 @@ class CustomGas extends PureComponent {
 			selected: 'slow',
 			customGasPrice: safeLowGwei
 		});
-		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
 	};
 
 	onAdvancedOptions = () => {
@@ -274,6 +326,19 @@ class CustomGas extends PureComponent {
 		const { customGasLimit } = this.state;
 		this.setState({ customGasPrice: value });
 		this.props.handleGasFeeSelection(new BN(customGasLimit, 10), apiEstimateModifiedToWEI(value));
+	};
+
+	saveCustomGasSelection = () => {
+		const { selected, fastGwei, averageGwei, safeLowGwei } = this.state;
+		const { review, gas, handleGasFeeSelection } = this.props;
+		if (selected === 'slow') {
+			handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
+		} else if (selected === 'average') {
+			handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
+		} else if (selected === 'fast') {
+			handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei));
+		}
+		review();
 	};
 
 	renderCustomGasSelector = () => {
@@ -382,28 +447,68 @@ class CustomGas extends PureComponent {
 		);
 	};
 
+	renderGasError = () => {
+		const { warningGasLimit, warningGasPrice } = this.state;
+		const { gasError } = this.props;
+		let gasErrorMessage;
+		if (warningGasPrice) {
+			gasErrorMessage = warningGasPrice;
+		} else if (warningGasLimit) {
+			gasErrorMessage = warningGasLimit;
+		}
+		return (
+			<View style={styles.warningWrapper}>
+				<View style={[styles.warningTextWrapper, !gasError ? styles.invisible : null]}>
+					<Text style={styles.warningText}>{gasErrorMessage}</Text>
+				</View>
+			</View>
+		);
+	};
+
 	render = () => {
 		if (this.state.ready) {
 			const { advancedCustomGas } = this.state;
-			const { gasError } = this.props;
+			const { gasError, review } = this.props;
 			return (
-				<View style={baseStyles.flexGrow}>
-					<View style={[styles.titleContainer, styles.titleMargin]}>
-						<View>
-							<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
-							{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
-						</View>
-						<View style={styles.advancedOptions}>
-							<TouchableOpacity onPress={this.onAdvancedOptions}>
-								<Text style={styles.textAdvancedOptions}>
-									{advancedCustomGas
-										? strings('custom_gas.hide_advanced_options')
-										: strings('custom_gas.advanced_options')}
-								</Text>
-							</TouchableOpacity>
-						</View>
+				<View style={styles.root}>
+					<View style={styles.customGasHeader}>
+						<TouchableOpacity onPress={review}>
+							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+						</TouchableOpacity>
+						<Text style={styles.customGasModalTitleText}>{strings('transaction.edit_network_fee')}</Text>
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
 					</View>
+					<View style={styles.optionsContainer}>
+						<TouchableOpacity
+							style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
+							onPress={this.onAdvancedOptions}
+						>
+							<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
+							onPress={this.onAdvancedOptions}
+						>
+							<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
+						</TouchableOpacity>
+					</View>
+
 					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
+					{!advancedCustomGas ? (
+						<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
+					) : null}
+					{advancedCustomGas ? this.renderGasError() : null}
+					<View style={styles.footerContainer}>
+						<StyledButton
+							disabled={!!gasError}
+							type={'confirm'}
+							containerStyle={styles.buttonNext}
+							onPress={this.saveCustomGasSelection}
+							testID={'custom-gas-save-button'}
+						>
+							{strings('custom_gas.save')}
+						</StyledButton>
+					</View>
 				</View>
 			);
 		}
