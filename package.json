@@ -111,7 +111,7 @@
     "pump": "3.0.0",
     "qs": "6.7.0",
     "react": "16.11.0",
-    "react-native": "0.62.1",
+    "react-native": "0.62.2",
     "react-native-actionsheet": "2.4.2",
     "react-native-aes-crypto": "git+ssh://git@github.com/MetaMask/react-native-aes.git#b73625d7e1ce711ed3c2fbd795eea2bda5a5e9ad",
     "react-native-animated-fox": "git+ssh://git@github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9",
