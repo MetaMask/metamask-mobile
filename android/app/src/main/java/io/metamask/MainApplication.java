@@ -15,6 +15,7 @@ import com.facebook.soloader.SoLoader;
 import cl.json.ShareApplication;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import io.metamask.nativeModules.PreventScreenshotPackage;
 
 import androidx.multidex.MultiDexApplication;
 
@@ -34,6 +35,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 			packages.add(new LottiePackage());
 			packages.add(new RNGestureHandlerPackage());
 			packages.add(new RCTAnalyticsPackage());
+			packages.add(new PreventScreenshotPackage());
 
 			return packages;
 		}

@@ -511,6 +511,7 @@ class Settings extends PureComponent {
 							</Text>
 							<View style={styles.switchElement}>
 								<Switch
+									// eslint-disable-next-line react/jsx-no-bind
 									onValueChange={(
 										biometryChoice // eslint-disable-line react/jsx-no-bind
 									) => this.onSecuritySettingChange(biometryChoice, 'biometrics')}
@@ -530,6 +531,7 @@ class Settings extends PureComponent {
 							</Text>
 							<View style={styles.switchElement}>
 								<Switch
+									// eslint-disable-next-line react/jsx-no-bind
 									onValueChange={(
 										passcodeChoice // eslint-disable-line react/jsx-no-bind
 									) => this.onSecuritySettingChange(passcodeChoice, 'passcode')}

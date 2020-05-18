@@ -303,8 +303,8 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 		headerTintColor: colors.blue,
 		headerLeft: <View />,
 		headerRight: (
-			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity
+				// eslint-disable-next-line react/jsx-no-bind
 				onPress={() => navigation.pop()}
 				style={styles.closeButton}
 				testID={'send-link-close-button'}
@@ -338,9 +338,9 @@ export function getTransactionOptionsTitle(_title, navigation) {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerLeft:
 			transactionMode !== 'edit' ? (
-				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity
 					disabled={disableModeChange}
+					// eslint-disable-next-line react/jsx-no-bind
 					onPress={leftAction}
 					style={styles.closeButton}
 					testID={'confirm-txn-edit-button'}

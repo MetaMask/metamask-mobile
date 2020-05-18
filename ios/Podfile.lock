@@ -248,8 +248,6 @@ PODS:
     - React-cxxreact (= 0.62.1)
     - React-jsi (= 0.62.1)
   - React-jsinspector (0.62.1)
-  - react-native-async-storage (1.2.0):
-    - React
   - react-native-background-timer (2.1.1):
     - React
   - react-native-branch (3.1.1):
@@ -335,6 +333,8 @@ PODS:
     - React-cxxreact (= 0.62.1)
     - React-jsi (= 0.62.1)
     - ReactCommon/callinvoker (= 0.62.1)
+  - RNCAsyncStorage (1.9.0):
+    - React
   - RNDeviceInfo (3.1.4):
     - React
   - RNFS (2.13.3):
@@ -392,7 +392,6 @@ DEPENDENCIES:
   - React-jsi (from `../node_modules/react-native/ReactCommon/jsi`)
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
-  - "react-native-async-storage (from `../node_modules/@react-native-community/async-storage`)"
   - react-native-background-timer (from `../node_modules/react-native-background-timer`)
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
@@ -412,6 +411,7 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/callinvoker (from `../node_modules/react-native/ReactCommon`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
@@ -476,8 +476,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsiexecutor"
   React-jsinspector:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
-  react-native-async-storage:
-    :path: "../node_modules/@react-native-community/async-storage"
   react-native-background-timer:
     :path: "../node_modules/react-native-background-timer"
   react-native-branch:
@@ -514,6 +512,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Vibration"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNCAsyncStorage:
+    :path: "../node_modules/@react-native-community/async-storage"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
   RNFS:
@@ -572,7 +572,6 @@ SPEC CHECKSUMS:
   React-jsi: 600d8e42510c3254fd2abd702f4b9d3f598d8f52
   React-jsiexecutor: e9698dee4fd43ceb44832baf15d5745f455b0157
   React-jsinspector: f74a62727e5604119abd4a1eda52c0a12144bcd5
-  react-native-async-storage: 572b0e6bbb368eeb3d303f2505d642517a9396de
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
   react-native-branch: 6bbb82aef1201f87b28a96e58140fb394b042dff
   react-native-camera: 5d4ee26d19ac5aa9a8d8663b50f53b1c1250597c
@@ -591,6 +590,7 @@ SPEC CHECKSUMS:
   React-RCTText: 239e040f401505001327a109f9188a4e6dad1bd2
   React-RCTVibration: 072c3b427dd29e730c2ee5bfc509cf5054741a50
   ReactCommon: 3585806280c51d5c2c0d3aa5a99014c3badb629d
+  RNCAsyncStorage: 453cd7c335ec9ba3b877e27d02238956b76f3268
   RNDeviceInfo: 88099e84466f053bae3f34c307b506738b2b6946
   RNFS: c9bbde46b0d59619f8e7b735991c60e0f73d22c1
   RNGestureHandler: 5329a942fce3d41c68b84c2c2276ce06a696d8b0

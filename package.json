@@ -8,8 +8,8 @@
     "clean:ios": "rm -rf ios/build",
     "clean:android": "rm -rf android/build",
     "clean:node": "rm -rf node_modules && yarn install",
-    "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn install",
-    "lint": "eslint .",
+    "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn install && (cd ios/ && pod install && cd ..)",
+    "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
     "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
     "format": "prettier '**/*.{js,json}' --write",
     "start:ios": "./scripts/build.sh ios debug",
@@ -132,7 +132,7 @@
     "react-native-keyboard-aware-scroll-view": "0.8.0",
     "react-native-keychain": "git+ssh://git@github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f",
     "react-native-level-fs": "3.0.1",
-    "react-native-modal": "9.0.0",
+    "react-native-modal": "^11.5.6",
     "react-native-os": "git+ssh://git@github.com/MetaMask/react-native-os.git#67cbc5787295f36575c64442e7f74b803b3de8dd",
     "react-native-progress": "3.5.0",
     "react-native-push-notification": "git+ssh://git@github.com/MetaMask/react-native-push-notification.git#androidx",
@@ -169,9 +169,9 @@
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.0",
-    "@babel/runtime": "^7.9.2",
-	"@react-native-community/eslint-config": "^1.0.0",
+    "@babel/core": "^7.6.2",
+    "@babel/runtime": "^7.6.2",
+	"@react-native-community/eslint-config": "^0.0.5",
 	"@metamask/mobile-provider": "^1.2.0",
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",
@@ -182,7 +182,7 @@
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
-    "eslint": "^6.8.0",
+    "eslint": "^6.5.1",
     "eslint-config-react-native": "4.0.0",
     "eslint-plugin-import": "2.18.2",
     "eslint-plugin-react": "7.16.0",
@@ -191,6 +191,7 @@
     "jest": "^25.2.7",
     "jest-serializer": "24.4.0",
     "lint-staged": "8.1.5",
+    "metamask-mobile-provider": "^1.0.2",
     "metro": "^0.59.0",
     "metro-react-native-babel-preset": "^0.59.0",
     "octonode": "0.9.5",
@@ -203,40 +204,6 @@
     "request-promise": "4.2.4",
     "rn-nodeify": "10.0.1",
     "stack-beautifier": "1.0.2"
-  },
-  "eslintConfig": {
-    "parser": "babel-eslint",
-    "extends": [
-      "react-native"
-    ],
-    "globals": {
-      "process": true,
-      "beforeAll": true,
-      "afterAll": true,
-      "describe": true,
-      "expect": true,
-      "it": true,
-      "jasmine": true,
-      "jest": true,
-      "spyOn": true,
-      "element": true,
-      "by": true,
-      "beforeEach": true,
-      "device": true,
-      "waitFor": true,
-      "__DEV__": true
-    },
-    "rules": {
-      "class-methods-use-this": 0,
-      "eol-last": 1,
-      "import/no-named-as-default": 0,
-      "no-invalid-this": 0,
-      "no-new": 0,
-      "react/jsx-handler-names": 0,
-      "react/no-did-mount-set-state": 0,
-      "react/prefer-stateless-function": 0,
-      "require-atomic-updates": 0
-    }
   },
   "detox": {
     "configurations": {
@@ -285,7 +252,7 @@
       "^.+\\.js$": "<rootDir>jest.preprocessor.js"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))"
+		"node_modules/(?!(react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))"
     ],
     "snapshotSerializers": [
       "enzyme-to-json/serializer"
