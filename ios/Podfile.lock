@@ -78,6 +78,9 @@ PODS:
     - OpenSSL-Universal/Static (= 1.0.2.19)
   - OpenSSL-Universal/Static (1.0.2.19)
   - RCTRequired (0.62.1)
+  - RCTSearchApi (1.0.1):
+    - React
+    - React-RCTImage
   - RCTTypeSafety (0.62.1):
     - FBLazyVector (= 0.62.1)
     - Folly (= 2018.10.22.00)
@@ -265,6 +268,8 @@ PODS:
     - React
   - react-native-randombytes (3.5.3):
     - React
+  - react-native-view-shot (3.1.2):
+    - React
   - react-native-viewpager (3.3.0):
     - React
   - react-native-webview (7.0.5):
@@ -337,13 +342,15 @@ PODS:
     - React
   - RNDeviceInfo (3.1.4):
     - React
-  - RNFS (2.13.3):
+  - RNFS (2.16.6):
     - React
-  - RNGestureHandler (1.3.0):
+  - RNGestureHandler (1.6.1):
     - React
   - RNI18n (2.0.15):
     - React
   - RNKeychain (3.0.0):
+    - React
+  - RNOS (1.2.6):
     - React
   - RNReanimated (1.3.0):
     - React
@@ -354,17 +361,18 @@ PODS:
   - RNSentry (1.3.3):
     - React
     - Sentry (~> 4.4.0)
-  - RNShare (1.2.1):
+  - RNShare (3.3.2):
     - React
   - RNSVG (9.13.3):
     - React
   - RNVectorIcons (6.4.2):
     - React
-  - RNViewShot (2.6.0):
-    - React
   - Sentry (4.4.3):
     - Sentry/Core (= 4.4.3)
   - Sentry/Core (4.4.3)
+  - TcpSockets (4.0.0):
+    - CocoaAsyncSocket
+    - React
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -382,6 +390,7 @@ DEPENDENCIES:
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
+  - RCTSearchApi (from `../node_modules/react-native-search-api`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
   - React (from `../node_modules/react-native/`)
   - React-Core (from `../node_modules/react-native/`)
@@ -397,6 +406,7 @@ DEPENDENCIES:
   - react-native-camera (from `../node_modules/react-native-camera`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
+  - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - "react-native-viewpager (from `../node_modules/@react-native-community/viewpager`)"
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -417,6 +427,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNI18n (from `../node_modules/react-native-i18n`)
   - RNKeychain (from `../node_modules/react-native-keychain`)
+  - RNOS (from `../node_modules/react-native-os`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSensors (from `../node_modules/react-native-sensors`)
@@ -424,7 +435,7 @@ DEPENDENCIES:
   - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
-  - RNViewShot (from `../node_modules/react-native-view-shot`)
+  - TcpSockets (from `../node_modules/react-native-tcp`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -460,6 +471,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/lottie-react-native"
   RCTRequired:
     :path: "../node_modules/react-native/Libraries/RCTRequired"
+  RCTSearchApi:
+    :path: "../node_modules/react-native-search-api"
   RCTTypeSafety:
     :path: "../node_modules/react-native/Libraries/TypeSafety"
   React:
@@ -486,6 +499,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-randombytes:
     :path: "../node_modules/react-native-randombytes"
+  react-native-view-shot:
+    :path: "../node_modules/react-native-view-shot"
   react-native-viewpager:
     :path: "../node_modules/@react-native-community/viewpager"
   react-native-webview:
@@ -524,6 +539,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-i18n"
   RNKeychain:
     :path: "../node_modules/react-native-keychain"
+  RNOS:
+    :path: "../node_modules/react-native-os"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -538,8 +555,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-svg"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
-  RNViewShot:
-    :path: "../node_modules/react-native-view-shot"
+  TcpSockets:
+    :path: "../node_modules/react-native-tcp"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -564,6 +581,7 @@ SPEC CHECKSUMS:
   lottie-react-native: 7ca15c46249b61e3f9ffcf114cb4123e907a2156
   OpenSSL-Universal: 8b48cc0d10c1b2923617dfe5c178aa9ed2689355
   RCTRequired: e291538a455f5ad1afc2139a4288990be0cadd46
+  RCTSearchApi: d2d38a5a7bffbfb144e2c770fbb30f51b1053067
   RCTTypeSafety: 8b6237185765dd9a03a3647807e08864105b1f95
   React: 7b33e15fab929c47ac9c3c94c409258b13cfe452
   React-Core: 9a164d53492e2d8a84e7acf87988253dff09cf93
@@ -577,6 +595,7 @@ SPEC CHECKSUMS:
   react-native-camera: 5d4ee26d19ac5aa9a8d8663b50f53b1c1250597c
   react-native-netinfo: 0e563248a4b9a99c33ec29bd03c2d50767db22a6
   react-native-randombytes: 3638d24759d67c68f6ccba60c52a7a8a8faa6a23
+  react-native-view-shot: 4475fde003fe8a210053d1f98fb9e06c1d834e1c
   react-native-viewpager: a7b438ca32c57b2614ece2a123e7fe116f743131
   react-native-webview: 174e0f8f1bf547224a134215607c75c4bb0312b7
   React-RCTActionSheet: af8f28dd82fec89b8fe29637b8c779829e016a88
@@ -592,19 +611,20 @@ SPEC CHECKSUMS:
   ReactCommon: 3585806280c51d5c2c0d3aa5a99014c3badb629d
   RNCAsyncStorage: 453cd7c335ec9ba3b877e27d02238956b76f3268
   RNDeviceInfo: 88099e84466f053bae3f34c307b506738b2b6946
-  RNFS: c9bbde46b0d59619f8e7b735991c60e0f73d22c1
-  RNGestureHandler: 5329a942fce3d41c68b84c2c2276ce06a696d8b0
+  RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
+  RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
   RNKeychain: c2e80f306e4d57e296133051d1e448b5289b3024
+  RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNReanimated: 6abbbae2e5e72609d85aabd92a982a94566885f1
   RNScreens: f28b48b8345f2f5f39ed6195518291515032a788
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: 86baf0c87120cd5eb491d073989f8cbc1a2174c6
-  RNShare: 48cf88cadf9ca2143cdaa557c1ec7f8808040ffc
+  RNShare: bd6518701db274b8ba282b33620885f2225a5bcf
   RNSVG: f6177f8d7c095fada7cfee2e4bb7388ba426064c
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
-  RNViewShot: 05672e0b3c36cd70633466614b4451869a70c6c7
   Sentry: 14bdd673870e8cf64932b149fad5bbbf39a9b390
+  TcpSockets: a8eb6b5867fe643e6cfed5db2e4de62f4d1e8fd0
   Yoga: 50fb6eb13d2152e7363293ff603385db380815b1
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
