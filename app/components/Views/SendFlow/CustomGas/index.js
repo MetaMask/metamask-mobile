@@ -529,15 +529,11 @@ class CustomGas extends PureComponent {
 	renderGasError = () => {
 		const { warningGasLimit, warningGasPrice } = this.state;
 		const { gasError } = this.props;
-		let gasErrorMessage;
-		if (warningGasPrice) {
-			gasErrorMessage = warningGasPrice;
-		} else if (warningGasLimit) {
-			gasErrorMessage = warningGasLimit;
-		}
+		const hideError = !gasError && !warningGasLimit && !warningGasPrice;
+		const gasErrorMessage = warningGasPrice || warningGasLimit;
 		return (
 			<View style={styles.warningWrapper}>
-				<View style={[styles.warningTextWrapper, !gasError ? styles.invisible : null]}>
+				<View style={[styles.warningTextWrapper, hideError ? styles.invisible : null]}>
 					<Text style={styles.warningText}>{gasErrorMessage}</Text>
 				</View>
 			</View>
@@ -546,7 +542,7 @@ class CustomGas extends PureComponent {
 
 	render = () => {
 		if (this.state.ready) {
-			const { advancedCustomGas } = this.state;
+			const { advancedCustomGas, warningGasLimit, warningGasPrice } = this.state;
 			const { toggleCustomGasModal, handleSetGasFee, gasError } = this.props;
 			return (
 				<View style={styles.root}>
@@ -578,7 +574,7 @@ class CustomGas extends PureComponent {
 					{advancedCustomGas ? this.renderGasError() : null}
 					<View style={styles.footerContainer}>
 						<StyledButton
-							disabled={!!gasError}
+							disabled={!!gasError || !!warningGasLimit || !!warningGasPrice}
 							type={'confirm'}
 							containerStyle={styles.buttonNext}
 							onPress={handleSetGasFee}
