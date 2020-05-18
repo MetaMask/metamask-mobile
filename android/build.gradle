@@ -26,13 +26,6 @@ buildscript {
 allprojects {
 	repositories {
 		mavenLocal()
-		maven {		// Replace AAR from original RN with AAR from react-native-v8
-			url("$rootDir/../node_modules/react-native-v8/dist")
-		}
-		maven {
-			// prebuilt libv8android.so
-			url("$rootDir/../node_modules/v8-android/dist")
-		}
 		maven {
 			// All of Detox' artifacts are provided via the npm module
 			url "$rootDir/../node_modules/detox/Detox-android"
