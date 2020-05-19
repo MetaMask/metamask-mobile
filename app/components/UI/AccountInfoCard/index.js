@@ -97,7 +97,7 @@ class AccountInfoCard extends PureComponent {
 		const balance = `(${renderFromWei(weiBalance)} ${getTicker(ticker)})`;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		const address = renderShortAddress(selectedAddress);
-		const dollarBalance = weiToFiat(weiBalance, conversionRate, currentCurrency);
+		const dollarBalance = weiToFiat(weiBalance, conversionRate, currentCurrency, 2);
 		return (
 			<View style={styles.accountInformation}>
 				<Identicon address={selectedAddress} diameter={40} customStyle={styles.identicon} />
