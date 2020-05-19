@@ -35,7 +35,8 @@ describe('TransactionReview', () => {
 				}
 			},
 			settings: {
-				showHexData: true
+				showHexData: true,
+				primaryCurrency: 'ETH'
 			},
 			transaction: {
 				value: '',
