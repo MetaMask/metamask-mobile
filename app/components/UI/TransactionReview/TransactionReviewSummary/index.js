@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 16,
 		alignItems: 'center'
 	},
-	summaryFiat: {
+	summaryPrimary: {
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 44,
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		textTransform: 'uppercase',
 		textAlign: 'center'
 	},
-	summaryEth: {
+	summarySecondary: {
 		...fontStyles.normal,
 		color: colors.black,
 		fontSize: 24,
@@ -72,13 +72,17 @@ class TransactionReviewSummary extends PureComponent {
 		/**
 		 * Approve type transaction or not
 		 */
-		approveTransaction: PropTypes.bool
+		approveTransaction: PropTypes.bool,
+		/**
+		 * ETH or fiat, depending on user setting
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	renderWarning = () => <Text>{`${strings('transaction.approve_warning')} ${this.props.assetAmount}`}</Text>;
 
 	render = () => {
-		const { actionKey, assetAmount, conversionRate, fiatValue, approveTransaction } = this.props;
+		const { actionKey, assetAmount, conversionRate, fiatValue, approveTransaction, primaryCurrency } = this.props;
 		return (
 			<View>
 				{!!approveTransaction && (
@@ -92,11 +96,15 @@ class TransactionReviewSummary extends PureComponent {
 					</Text>
 
 					{!conversionRate ? (
-						<Text style={styles.summaryFiat}>{assetAmount}</Text>
+						<Text style={styles.summaryPrimary}>{assetAmount}</Text>
 					) : (
 						<View>
-							<Text style={styles.summaryFiat}>{fiatValue}</Text>
-							<Text style={styles.summaryEth}>{assetAmount}</Text>
+							<Text style={styles.summaryPrimary}>
+								{primaryCurrency === 'ETH' ? assetAmount : fiatValue}
+							</Text>
+							<Text style={styles.summarySecondary}>
+								{primaryCurrency === 'ETH' ? fiatValue : assetAmount}
+							</Text>
 						</View>
 					)}
 				</View>
