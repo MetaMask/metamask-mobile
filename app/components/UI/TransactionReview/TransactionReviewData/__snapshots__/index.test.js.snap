@@ -4,84 +4,107 @@ exports[`TransactionReviewData should render correctly 1`] = `
 <View
   style={
     Object {
+      "marginBottom": 24,
       "paddingHorizontal": 24,
     }
   }
 >
   <View
     style={
-      Array [
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginBottom": 28,
+        "width": "100%",
+      }
+    }
+  >
+    <TouchableOpacity
+      activeOpacity={0.2}
+    >
+      <Icon
+        allowFontScaling={false}
+        color="#000000"
+        name="ios-arrow-back"
+        size={24}
+      />
+    </TouchableOpacity>
+    <Text
+      style={
         Object {
-          "paddingVertical": 15,
-        },
-        Object {
-          "borderBottomWidth": 1,
-          "borderColor": "#bbc0c5",
-        },
-      ]
+          "alignSelf": "center",
+          "color": "#000000",
+          "fontFamily": "CircularStd-Medium",
+          "fontSize": 14,
+          "fontWeight": "600",
+        }
+      }
+    >
+      Data
+    </Text>
+    <Icon
+      allowFontScaling={false}
+      color="#FFFFFF"
+      name="ios-arrow-back"
+      size={24}
+    />
+  </View>
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "fontFamily": "CircularStd-Medium",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "marginBottom": 28,
+        "textAlign": "center",
+      }
+    }
+  >
+    Data associated to this transaction
+  </Text>
+  <View
+    style={
+      Object {
+        "borderColor": "#bbc0c5",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "padding": 12,
+      }
     }
   >
     <View
       style={
         Object {
-          "flex": 0,
-          "paddingRight": 18,
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
         }
       }
     >
       <Text
         style={
           Object {
-            "color": "#848c96",
+            "color": "#000000",
             "fontFamily": "CircularStd-Medium",
-            "fontSize": 12,
-            "fontWeight": "600",
+            "fontSize": 14,
+            "fontWeight": "400",
           }
         }
       >
-        FUNCTION TYPE
+        Function
+        : 
       </Text>
       <Text
         style={
           Object {
             "color": "#000000",
             "fontFamily": "CircularStd-Medium",
-            "fontSize": 12,
+            "fontSize": 14,
             "fontWeight": "400",
-            "padding": 16,
           }
         }
       />
-    </View>
-  </View>
-  <View
-    style={
-      Object {
-        "paddingVertical": 15,
-      }
-    }
-  >
-    <View
-      style={
-        Object {
-          "flex": 0,
-          "paddingRight": 18,
-        }
-      }
-    >
-      <Text
-        style={
-          Object {
-            "color": "#848c96",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 12,
-            "fontWeight": "600",
-          }
-        }
-      >
-        HEX DATA
-        :
-      </Text>
     </View>
     <TextInput
       editable={false}
@@ -92,12 +115,11 @@ exports[`TransactionReviewData should render correctly 1`] = `
         Object {
           "backgroundColor": "#FFFFFF",
           "color": "#000000",
-          "flex": 1,
           "fontFamily": "CircularStd-Medium",
-          "fontSize": 12,
+          "fontSize": 14,
           "fontWeight": "400",
           "minHeight": 64,
-          "padding": 16,
+          "paddingTop": 12,
         }
       }
       value=""
