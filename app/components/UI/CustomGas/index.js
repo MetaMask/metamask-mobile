@@ -549,6 +549,9 @@ class CustomGas extends PureComponent {
 		if (this.state.ready) {
 			const { advancedCustomGas, warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
 			const { review, gasError } = this.props;
+			const disableButton = advancedCustomGas
+				? !!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError
+				: false;
 			return (
 				<View style={styles.root}>
 					<View style={styles.customGasHeader}>
@@ -580,7 +583,7 @@ class CustomGas extends PureComponent {
 					{advancedCustomGas ? this.renderGasError() : null}
 					<View style={styles.footerContainer}>
 						<StyledButton
-							disabled={!!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError}
+							disabled={disableButton}
 							type={'confirm'}
 							containerStyle={styles.buttonNext}
 							onPress={this.saveCustomGasSelection}
