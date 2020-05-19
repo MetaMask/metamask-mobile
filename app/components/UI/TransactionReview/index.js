@@ -130,7 +130,11 @@ class TransactionReview extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * ETH or fiat, depending on user setting
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -246,7 +250,7 @@ class TransactionReview extends PureComponent {
 	}
 
 	render = () => {
-		const { transactionConfirmed } = this.props;
+		const { transactionConfirmed, primaryCurrency } = this.props;
 		const {
 			actionKey,
 			error,
@@ -266,6 +270,7 @@ class TransactionReview extends PureComponent {
 					conversionRate={conversionRate}
 					fiatValue={fiatValue}
 					approveTransaction={approveTransaction}
+					primaryCurrency={primaryCurrency}
 				/>
 				{!!error && (
 					<View style={styles.errorWrapper}>
@@ -311,7 +316,8 @@ const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	showHexData: state.settings.showHexData,
 	transaction: getNormalizedTxState(state),
-	browser: state.browser
+	browser: state.browser,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 export default connect(mapStateToProps)(TransactionReview);
