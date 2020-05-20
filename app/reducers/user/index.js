@@ -2,7 +2,9 @@ import { REHYDRATE } from 'redux-persist';
 
 const initialState = {
 	passwordSet: false,
-	seedphraseBackedUp: false
+	seedphraseBackedUp: false,
+	onboardingWizardExplored: false,
+	metricsOptIn: null
 };
 
 const userReducer = (state = initialState, action) => {
@@ -31,6 +33,16 @@ const userReducer = (state = initialState, action) => {
 			return {
 				...state,
 				seedphraseBackedUp: true
+			};
+		case 'ONBOARDING_WIZARD_EXPLORED':
+			return {
+				...state,
+				onboardingWizardExplored: action.onboardingWizardExplored
+			};
+		case 'METRICS_OPT_IN':
+			return {
+				...state,
+				metricsOptIn: action.metricsOptIn
 			};
 		default:
 			return state;

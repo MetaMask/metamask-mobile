@@ -10,9 +10,9 @@ import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
 import setOnboardingWizardStep from '../../../actions/wizard';
+import { onboardingWizardExplored } from '../../../actions/user';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../locales/i18n';
-import AsyncStorage from '@react-native-community/async-storage';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 import Device from '../../../util/Device';
@@ -88,7 +88,11 @@ class OnboardingWizard extends PureComponent {
 		/**
 		 * Coachmark ref to get position
 		 */
-		coachmarkRef: PropTypes.object
+		coachmarkRef: PropTypes.object,
+		/**
+		 * Dispatch setting of onboardingWizardExplored
+		 */
+		setOnboardingWizardExplored: PropTypes.func
 	};
 
 	/**
@@ -98,9 +102,10 @@ class OnboardingWizard extends PureComponent {
 		const {
 			setOnboardingWizardStep,
 			navigation,
-			wizard: { step }
+			wizard: { step },
+			setOnboardingWizardExplored
 		} = this.props;
-		await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'explored');
+		setOnboardingWizardExplored();
 		setOnboardingWizardStep && setOnboardingWizardStep(0);
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
 		closing &&
@@ -188,7 +193,8 @@ class OnboardingWizard extends PureComponent {
 }
 
 const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
+	setOnboardingWizardExplored: () => dispatch(onboardingWizardExplored(true))
 });
 
 const mapStateToProps = state => ({

@@ -24,6 +24,7 @@ import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
+import { metricsOptIn } from '../../../actions/user';
 
 const styles = StyleSheet.create({
 	root: {
@@ -117,7 +118,11 @@ class OptinMetrics extends PureComponent {
 		/**
 		 * Action to erase any event stored in onboarding state
 		 */
-		clearOnboardingEvents: PropTypes.func
+		clearOnboardingEvents: PropTypes.func,
+		/**
+		 * Set the state indicating whether a user has opted into metrics
+		 */
+		metricsOptIn: PropTypes.func
 	};
 
 	actionsList = [
@@ -207,7 +212,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
+			this.props.metricsOptIn('denied');
 			Analytics.disableInstance();
 		});
 		this.continue();
@@ -223,7 +228,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
+			this.props.metricsOptIn('agreed');
 		});
 		this.continue();
 	};
@@ -295,7 +300,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
-	clearOnboardingEvents: () => dispatch(clearOnboardingEvents())
+	clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
+	metricsOptIn: optInState => dispatch(metricsOptIn(optInState))
 });
 
 export default connect(

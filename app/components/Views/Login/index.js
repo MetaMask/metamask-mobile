@@ -122,7 +122,15 @@ class Login extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Whether or not the user has completed the onboarding wizard
+		 */
+		onboardingWizardExplored: PropTypes.bool,
+		/**
+		 * Whether or not the user has opted into metrics
+		 */
+		metricsOptIn: PropTypes.bool
 	};
 
 	state = {
@@ -154,6 +162,7 @@ class Login extends PureComponent {
 	}
 
 	onLogin = async () => {
+		const { onboardingWizardExplored, metricsOptIn } = this.props;
 		if (this.state.loading) return;
 		try {
 			this.setState({ loading: true });
@@ -187,17 +196,17 @@ class Login extends PureComponent {
 				} else {
 					await SecureKeychain.resetGenericPassword();
 				}
-				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				AsyncStorage.removeItem('@MetaMask:biometryChoice', error => {
+					if (error) {
+						throw error;
+					}
+				});
 			}
 			this.setState({ loading: false });
 
-			// Get onboarding wizard state
-			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
-			// Check if user passed through metrics opt-in screen
-			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 			if (!metricsOptIn) {
 				this.props.navigation.navigate('OptinMetrics');
-			} else if (onboardingWizard) {
+			} else if (onboardingWizardExplored) {
 				this.props.navigation.navigate('HomeNav');
 			} else {
 				this.props.setOnboardingWizardStep(1);
@@ -342,7 +351,9 @@ class Login extends PureComponent {
 const mapStateToProps = state => ({
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	metricsOptIn: Boolean(state.user.metricsOptIn),
+	onboardingWizardExplored: state.user.onboardingWizardExplored
 });
 
 const mapDispatchToProps = dispatch => ({

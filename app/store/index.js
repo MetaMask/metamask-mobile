@@ -38,15 +38,28 @@ const migrations = {
 		const newState = { ...state };
 		delete newState.newTransaction;
 		return newState;
+	},
+	// Move onboardingWizard and metricsOptIn to redux persistance
+	3: async state => {
+		// Get onboarding wizard state
+		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		// Check if user passed through metrics opt-in screen
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+
+		const newState = { ...state };
+		newState.user.metricsOptIn = metricsOptIn;
+		newState.user.onboardingWizardExplored = onboardingWizard;
+
+		return newState;
 	}
 };
 
 const persistConfig = {
 	key: 'root',
-	version: 1,
+	version: 3,
 	storage: AsyncStorage,
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-	migrate: createMigrate(migrations, { debug: false })
+	migrate: createMigrate(migrations, { debug: true })
 };
 
 const pReducer = persistReducer(persistConfig, rootReducer);

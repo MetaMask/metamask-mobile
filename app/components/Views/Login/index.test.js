@@ -22,7 +22,8 @@ describe('Login', () => {
 						tokens: []
 					}
 				}
-			}
+			},
+			user: {}
 		};
 
 		const wrapper = shallow(<Login />, {

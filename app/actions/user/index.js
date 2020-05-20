@@ -21,3 +21,17 @@ export function seedphraseNotBackedUp() {
 		type: 'SEEDPHRASE_NOT_BACKED_UP'
 	};
 }
+
+export function onboardingWizardExplored(onboardingWizardExplored) {
+	return {
+		type: 'ONBOARDING_WIZARD_EXPLORED',
+		onboardingWizardExplored
+	};
+}
+
+export function metricsOptIn(metricsOptIn) {
+	return {
+		type: 'METRICS_OPT_IN',
+		metricsOptIn
+	};
+}
