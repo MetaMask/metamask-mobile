@@ -217,7 +217,7 @@
       },
       "ios.sim.release": {
         "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app",
-        "build": "yarn build:ios:release && xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath ios/build",
+        "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:release && METAMASK_ENVIRONMENT='production' xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath ios/build",
         "type": "ios.simulator",
         "device": {
           "type": "iPhone 11 Pro"
