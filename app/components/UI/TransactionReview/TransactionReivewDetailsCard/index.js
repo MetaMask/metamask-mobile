@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
 import Feather from 'react-native-vector-icons/Feather';
+import { getMethodData } from '../../../../util/transactions';
 
 const styles = StyleSheet.create({
 	viewData: {
@@ -85,6 +86,11 @@ const styles = StyleSheet.create({
 });
 
 export default class TransactionReviewDetailsCard extends Component {
+	constructor() {
+		super();
+		this.state = { method: undefined };
+	}
+
 	static propTypes = {
 		toggleViewDetails: PropTypes.func,
 		copyContractAddress: PropTypes.func,
@@ -96,6 +102,11 @@ export default class TransactionReviewDetailsCard extends Component {
 		data: PropTypes.string,
 		displayViewData: PropTypes.bool
 	};
+
+	async componentDidMount() {
+		const { data } = this.props;
+		this.setState({ method: await getMethodData(data) });
+	}
 
 	render() {
 		const {
@@ -109,6 +120,10 @@ export default class TransactionReviewDetailsCard extends Component {
 			data,
 			displayViewData
 		} = this.props;
+		const { method } = this.state;
+		const name = method?.name;
+		const capitalized = name && name.charAt(0).toUpperCase() + name.slice(1);
+
 		return (
 			<>
 				<View style={styles.section}>
@@ -169,7 +184,14 @@ export default class TransactionReviewDetailsCard extends Component {
 								/>
 							</View>
 						</TouchableOpacity>
-						{displayViewData ? <Text style={styles.viewDataText}>{data}</Text> : null}
+						{displayViewData ? (
+							<>
+								<Text style={styles.viewDataText}>
+									{strings('spend_limit_edition.function')}: {capitalized}
+								</Text>
+								<Text style={styles.viewDataText}>{data}</Text>
+							</>
+						) : null}
 					</View>
 				</View>
 			</>
