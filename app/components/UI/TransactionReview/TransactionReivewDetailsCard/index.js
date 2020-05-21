@@ -147,12 +147,6 @@ export default class TransactionReviewDetailsCard extends Component {
 						</View>
 						<View style={styles.transactionDetailsRow}>
 							<Text style={styles.transactionDetailsTextLeft}>
-								{strings('spend_limit_edition.contract_name')}
-							</Text>
-							<Text style={styles.transactionDetailsTextRight}>name??</Text>
-						</View>
-						<View style={styles.transactionDetailsRow}>
-							<Text style={styles.transactionDetailsTextLeft}>
 								{strings('spend_limit_edition.contract_address')}
 							</Text>
 							<View style={styles.transactionDetailsTextRight}>
