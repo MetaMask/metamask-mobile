@@ -170,14 +170,14 @@
   "devDependencies": {
     "@babel/core": "^7.6.2",
     "@babel/runtime": "^7.6.2",
-	"@react-native-community/eslint-config": "^0.0.5",
-	"@metamask/mobile-provider": "^1.2.0",
+    "@metamask/mobile-provider": "^1.2.0",
+    "@react-native-community/eslint-config": "^0.0.5",
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.0.3",
     "babel-jest": "^25.2.6",
     "concat-cli": "4.0.0",
-    "detox": "14.7.0",
+    "detox": "^16.5.1",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
@@ -207,16 +207,16 @@
   "detox": {
     "configurations": {
       "ios.sim.debug": {
-        "binaryPath": "ios/build/MetaMask/Build/Products/Debug-iphonesimulator/MetaMask.app",
-        "build": "yarn start:ios",
+        "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app",
+        "build": "yarn start:ios && xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build",
         "type": "ios.simulator",
         "device": {
           "type": "iPhone 11 Pro"
         }
       },
       "ios.sim.release": {
-        "binaryPath": "ios/build/MetaMask/Build/Products/Release-iphonesimulator/MetaMask.app",
-        "build": "yarn build:ios:release",
+        "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app",
+        "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:release && METAMASK_ENVIRONMENT='production' xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath ios/build",
         "type": "ios.simulator",
         "device": {
           "type": "iPhone 11 Pro"
@@ -251,7 +251,7 @@
       "^.+\\.js$": "<rootDir>jest.preprocessor.js"
     },
     "transformIgnorePatterns": [
-		"node_modules/(?!(react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))"
+      "node_modules/(?!(react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))"
     ],
     "snapshotSerializers": [
       "enzyme-to-json/serializer"
