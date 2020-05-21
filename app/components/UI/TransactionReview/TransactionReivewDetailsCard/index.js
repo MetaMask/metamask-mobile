@@ -88,8 +88,10 @@ const styles = StyleSheet.create({
 export default class TransactionReviewDetailsCard extends Component {
 	constructor() {
 		super();
-		this.state = { method: undefined };
+		this.state = { name: undefined };
 	}
+
+	capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
 
 	static propTypes = {
 		toggleViewDetails: PropTypes.func,
@@ -105,7 +107,9 @@ export default class TransactionReviewDetailsCard extends Component {
 
 	async componentDidMount() {
 		const { data } = this.props;
-		this.setState({ method: await getMethodData(data) });
+		const method = await getMethodData(data);
+		const name = method?.name;
+		this.setState({ name: name && this.capitalize(name) });
 	}
 
 	render() {
@@ -120,9 +124,7 @@ export default class TransactionReviewDetailsCard extends Component {
 			data,
 			displayViewData
 		} = this.props;
-		const { method } = this.state;
-		const name = method?.name;
-		const capitalized = name && name.charAt(0).toUpperCase() + name.slice(1);
+		const { name } = this.state;
 
 		return (
 			<>
@@ -187,7 +189,7 @@ export default class TransactionReviewDetailsCard extends Component {
 						{displayViewData ? (
 							<>
 								<Text style={styles.viewDataText}>
-									{strings('spend_limit_edition.function')}: {capitalized}
+									{strings('spend_limit_edition.function')}: {name}
 								</Text>
 								<Text style={styles.viewDataText}>{data}</Text>
 							</>
