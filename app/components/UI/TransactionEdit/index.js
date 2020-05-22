@@ -85,8 +85,8 @@ class TransactionEdit extends PureComponent {
 			if (data && data.substr(0, 2) !== '0x') {
 				this.updateData(addHexPrefix(data));
 			}
-			onModeChange && onModeChange('review');
 		}
+		onModeChange && onModeChange('review');
 	};
 
 	validate = async () => {
