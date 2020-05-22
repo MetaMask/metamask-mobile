@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import {
 	Dimensions,
-	Clipboard,
 	SafeAreaView,
 	View,
 	ScrollView,
@@ -10,6 +9,7 @@ import {
 	InteractionManager,
 	TouchableOpacity
 } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';

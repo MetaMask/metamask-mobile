@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { Clipboard, ScrollView, Text, Image, View, SafeAreaView, StyleSheet, TouchableOpacity } from 'react-native';
+import { ScrollView, Text, Image, View, SafeAreaView, StyleSheet, TouchableOpacity } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Emoji from 'react-native-emoji';

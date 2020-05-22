@@ -6,10 +6,10 @@ import {
 	View,
 	TouchableOpacity,
 	TextInput,
-	Clipboard,
 	Alert,
 	InteractionManager
 } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
