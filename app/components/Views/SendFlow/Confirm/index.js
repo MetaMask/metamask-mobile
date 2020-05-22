@@ -29,7 +29,7 @@ import {
 } from '../../../../util/number';
 import { getTicker, decodeTransferData } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { hexToBN, BNToHex } from 'gaba/dist/util';
+import { hexToBN, BNToHex } from '@metamask/controllers/dist/util';
 import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
 import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';

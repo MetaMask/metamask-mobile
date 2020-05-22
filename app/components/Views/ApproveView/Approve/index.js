@@ -27,7 +27,7 @@ import CustomGas from '../../SendFlow/CustomGas';
 import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
-import { BNToHex, hexToBN } from 'gaba/dist/util';
+import { BNToHex, hexToBN } from '@metamask/controllers/dist/util';
 import { renderFromWei, weiToFiatNumber, isBN, renderFromTokenMinimalUnit, isDecimal } from '../../../../util/number';
 import {
 	getTicker,

@@ -4,7 +4,7 @@ import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress } from './address';
-import { util } from 'gaba';
+import { util } from '@metamask/controllers';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -264,6 +264,14 @@ export async function getTransactionActionKey(transaction) {
  * @returns {string} - Transaction type message
  */
 export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction) {
+	console.log('getActionKeygetActionKey', tx.transferInformation);
+	if (tx.isTransfer) {
+		const selfSent = safeToChecksumAddress(tx.transaction.from) === selectedAddress;
+		if (selfSent) {
+			return strings('transactions.self_sent_unit', { unit: tx.transferInformation.symbol });
+		}
+		return strings('transactions.received_unit', { unit: tx.transferInformation.symbol });
+	}
 	const actionKey = await getTransactionActionKey(tx);
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		ticker = paymentChannelTransaction ? strings('unit.sai') : ticker;

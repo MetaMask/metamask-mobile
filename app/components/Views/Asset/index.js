@@ -153,10 +153,11 @@ class Asset extends PureComponent {
 		const newPendingTxs = [];
 		const confirmedTxs = [];
 		const { networkType, transactions } = this.props;
-
+		console.log('normalizeTransactions, t', transactions);
 		if (transactions.length) {
 			const txs = transactions.filter(tx => {
-				const filerResult = this.filter(tx);
+				// const filerResult = this.filter(tx);
+				const filerResult = true;
 				if (filerResult) {
 					switch (tx.status) {
 						case 'submitted':

@@ -39,7 +39,7 @@ import {
 	handleWeiNumber
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
-import { hexToBN, BNToHex } from 'gaba/dist/util';
+import { hexToBN, BNToHex } from '@metamask/controllers/dist/util';
 import FadeIn from 'react-native-fade-in-image';
 import ErrorMessage from '../ErrorMessage';
 import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
