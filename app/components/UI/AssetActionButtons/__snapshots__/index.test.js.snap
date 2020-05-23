@@ -12,7 +12,6 @@ exports[`AssetActionButtons should render correctly 1`] = `
   }
 >
   <TouchableOpacity
-    activeOpacity={0.2}
     style={
       Object {
         "alignContent": "center",
@@ -75,7 +74,6 @@ exports[`AssetActionButtons should render correctly 1`] = `
     </Text>
   </TouchableOpacity>
   <TouchableOpacity
-    activeOpacity={0.2}
     style={
       Object {
         "alignContent": "center",
@@ -141,7 +139,6 @@ exports[`AssetActionButtons should render correctly 1`] = `
     />
   </TouchableOpacity>
   <TouchableOpacity
-    activeOpacity={0.2}
     style={
       Object {
         "alignContent": "center",

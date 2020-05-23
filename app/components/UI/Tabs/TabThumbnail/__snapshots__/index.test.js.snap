@@ -11,7 +11,6 @@ exports[`TabThumbnail should render correctly 1`] = `
   }
 >
   <TouchableOpacity
-    activeOpacity={0.2}
     onPress={[Function]}
     style={
       Array [
@@ -88,7 +87,6 @@ exports[`TabThumbnail should render correctly 1`] = `
         </Text>
       </View>
       <TouchableOpacity
-        activeOpacity={0.2}
         onPress={[Function]}
         style={
           Object {

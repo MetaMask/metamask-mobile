@@ -1,5 +1,7 @@
 import './shim.js';
 
+import 'react-native-gesture-handler';
+
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
@@ -48,7 +50,12 @@ YellowBox.ignoreWarnings([
 	'Remote debugger is in a background tab',
 	"Can't call setState (or forceUpdate) on an unmounted component",
 	'No stops in gradient',
-	"Cannot read property 'hash' of null"
+	"Cannot read property 'hash' of null",
+	'componentWillUpdate',
+	'componentWillReceiveProps',
+	'getNode()',
+	'cancelTouches',
+	'VirtualizedLists should never be nested inside plain ScrollViews'
 ]);
 
 /**
