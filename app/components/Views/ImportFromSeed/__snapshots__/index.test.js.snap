@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ImportFromSeed should render correctly 1`] = `
-<SafeAreaView
+<ForwardRef(SafeAreaView)
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -50,7 +50,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
         Import from seed
       </Text>
       <TextInput
-        allowFontScaling={true}
         autoCapitalize="none"
         autoCorrect={false}
         blurOnSubmit={true}
@@ -61,7 +60,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
         onSubmitEditing={[Function]}
         placeholder="Enter your seed phrase here"
         placeholderTextColor="#d6d9dc"
-        rejectResponderTermination={true}
         returnKeyType="next"
         style={
           Array [
@@ -86,11 +84,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
           ]
         }
         testID="input-seed-phrase"
-        underlineColorAndroid="transparent"
         value=""
       />
       <TouchableOpacity
-        activeOpacity={0.2}
         onPress={[Function]}
         style={
           Object {
@@ -121,7 +117,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           }
         }
       >
-        <AnimatedComponent
+        <ForwardRef(AnimatedComponentWrapper)
           style={
             Array [
               Object {
@@ -151,9 +147,8 @@ exports[`ImportFromSeed should render correctly 1`] = `
           }
         >
           New Password
-        </AnimatedComponent>
+        </ForwardRef(AnimatedComponentWrapper)>
         <TextInput
-          allowFontScaling={true}
           autoCapitalize="none"
           onBlur={[Function]}
           onChangeText={[Function]}
@@ -161,7 +156,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
           onSubmitEditing={[Function]}
           placeholder=""
           placeholderTextColor="#d6d9dc"
-          rejectResponderTermination={true}
           returnKeyType="next"
           secureTextEntry={true}
           style={
@@ -181,7 +175,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
           value=""
         />
         <TouchableOpacity
-          activeOpacity={0.2}
           onPress={[Function]}
           style={
             Object {
@@ -232,7 +225,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           }
         }
       >
-        <AnimatedComponent
+        <ForwardRef(AnimatedComponentWrapper)
           style={
             Array [
               Object {
@@ -262,9 +255,8 @@ exports[`ImportFromSeed should render correctly 1`] = `
           }
         >
           Confirm Password
-        </AnimatedComponent>
+        </ForwardRef(AnimatedComponentWrapper)>
         <TextInput
-          allowFontScaling={true}
           autoCapitalize="none"
           onBlur={[Function]}
           onChangeText={[Function]}
@@ -272,7 +264,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
           onSubmitEditing={[Function]}
           placeholder=""
           placeholderTextColor="#d6d9dc"
-          rejectResponderTermination={true}
           returnKeyType="done"
           secureTextEntry={true}
           style={
@@ -402,5 +393,5 @@ exports[`ImportFromSeed should render correctly 1`] = `
       </View>
     </View>
   </KeyboardAwareScrollViewMock>
-</SafeAreaView>
+</ForwardRef(SafeAreaView)>
 `;
