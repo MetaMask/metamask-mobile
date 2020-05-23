@@ -53,7 +53,8 @@ YellowBox.ignoreWarnings([
 	"Cannot read property 'hash' of null",
 	'componentWillUpdate',
 	'componentWillReceiveProps',
-	'getNode()'
+	'getNode()',
+	'VirtualizedLists should never be nested inside plain ScrollViews'
 ]);
 
 /**
