@@ -54,7 +54,6 @@ YellowBox.ignoreWarnings([
 	'componentWillUpdate',
 	'componentWillReceiveProps',
 	'getNode()',
-	'cancelTouches',
 	'VirtualizedLists should never be nested inside plain ScrollViews'
 ]);
 
