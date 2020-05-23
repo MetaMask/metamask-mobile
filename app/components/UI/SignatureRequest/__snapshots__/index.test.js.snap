@@ -76,7 +76,6 @@ exports[`SignatureRequest should render correctly 1`] = `
         />
       </View>
       <TouchableOpacity
-        activeOpacity={0.2}
         onPress={null}
         style={
           Object {

@@ -7,9 +7,9 @@ import {
 	Text,
 	TextInput,
 	TouchableOpacity,
-	Clipboard,
 	InteractionManager
 } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';

@@ -2,13 +2,14 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
+import ConfirmSend from '../../Views/SendFlow/Confirm';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
 import { isBN, hexToBN, toBN, isDecimal } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
-import { generateTransferData } from '../../../util/transactions';
+import { generateTransferData, getNormalizedTxState } from '../../../util/transactions';
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
@@ -569,10 +570,12 @@ class TransactionEditor extends PureComponent {
 	};
 
 	render = () => {
-		const { mode, transactionConfirmed } = this.props;
+		const { mode, transactionConfirmed, transaction } = this.props;
+
 		return (
 			<View style={styles.root}>
-				{mode === EDIT && (
+				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
+				{mode === EDIT && !transaction.paymentChannelTransaction && (
 					<TransactionEdit
 						navigation={this.props.navigation}
 						onCancel={this.onCancel}
@@ -611,7 +614,7 @@ const mapStateToProps = state => ({
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	transaction: state.transaction
+	transaction: getNormalizedTxState(state)
 });
 
 const mapDispatchToProps = dispatch => ({

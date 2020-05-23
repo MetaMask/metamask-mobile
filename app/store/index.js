@@ -32,6 +32,12 @@ const migrations = {
 		state.engine.backgroundState.AssetsController.tokens = migratedTokens;
 
 		return state;
+	},
+	// Combine the transactions reducer and newTransaction reducer
+	2: state => {
+		const newState = { ...state };
+		delete newState.newTransaction;
+		return newState;
 	}
 };
 
