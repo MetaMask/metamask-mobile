@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import {
 	Alert,
-	Clipboard,
 	Linking,
 	TouchableOpacity,
 	View,
@@ -11,6 +10,7 @@ import {
 	ScrollView,
 	InteractionManager
 } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
