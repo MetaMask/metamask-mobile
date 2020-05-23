@@ -507,6 +507,29 @@ class Approve extends PureComponent {
 		)
 	}
 
+	renderTransactionReview = () => {
+		const { host, method, viewData, tokenSymbol } = this.state;
+		const {
+			transaction: { to, data }
+		} = this.props;
+		const amount = decodeTransferData('transfer', data)[1];
+
+		return (
+			<TransactionReviewDetailsCard
+				toggleViewDetails={this.toggleViewDetails}
+				toggleViewData={this.toggleViewData}
+				copyContractAddress={this.copyContractAddress}
+				address={renderShortAddress(to)}
+				host={host}
+				allowance={amount}
+				tokenSymbol={tokenSymbol}
+				data={data}
+				method={method}
+				displayViewData={viewData}
+			/>
+		);
+	};
+
 	onPressSpendLimitUnlimitedSelected = () => {
 		this.setState({ spendLimitUnlimitedSelected: true, spendLimitCustomValue: undefined });
 	};
@@ -736,22 +759,17 @@ class Approve extends PureComponent {
 	};
 
 	render = () => {
-		const {
-			transaction,
-			transaction: { data }
-		} = this.props;
+		const { transaction } = this.props;
 		const {
 			host,
-			method,
 			tokenSymbol,
 			viewDetails,
-			viewData,
 			customGasVisible,
 			totalGas,
 			gasError,
 			editPermissionVisible
 		} = this.state;
-		const amount = decodeTransferData('transfer', data)[1];
+
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<Modal
@@ -773,18 +791,7 @@ class Approve extends PureComponent {
 				>
 					<View style={styles.approveView}>
 						{viewDetails ? (
-							<TransactionReviewDetailsCard
-								toggleViewDetails={this.toggleViewDetails}
-								toggleViewData={this.toggleViewData}
-								copyContractAddress={this.copyContractAddress}
-								address={renderShortAddress(transaction.to)}
-								host={host}
-								allowance={amount}
-								tokenSymbol={tokenSymbol}
-								data={transaction.data}
-								method={method}
-								displayViewData={viewData}
-							/>
+							this.renderTransactionReview()
 						) : editPermissionVisible ? (
 							this.renderEditPermission()
 						) : customGasVisible ? (
