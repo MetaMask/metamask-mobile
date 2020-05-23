@@ -27,6 +27,8 @@ export const APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
 export const CONNEXT_DEPOSIT = '0xea682e37';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
+const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
+
 /**
  * Utility class with the single responsibility
  * of caching CollectibleAddresses
@@ -253,6 +255,11 @@ export async function getTransactionActionKey(transaction) {
 		ret = SEND_ETHER_ACTION_KEY;
 	}
 	return ret;
+}
+
+export async function getNormalizedMethodName(data) {
+	const { name: methodName } = await getMethodData(data);
+	return capitalize(methodName);
 }
 
 /**

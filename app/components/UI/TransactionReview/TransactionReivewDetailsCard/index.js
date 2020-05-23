@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
 import Feather from 'react-native-vector-icons/Feather';
-import { getMethodData } from '../../../../util/transactions';
 
 const styles = StyleSheet.create({
 	viewData: {
@@ -91,8 +90,6 @@ export default class TransactionReviewDetailsCard extends Component {
 		this.state = { name: undefined };
 	}
 
-	capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
-
 	static propTypes = {
 		toggleViewDetails: PropTypes.func,
 		copyContractAddress: PropTypes.func,
@@ -102,15 +99,9 @@ export default class TransactionReviewDetailsCard extends Component {
 		allowance: PropTypes.string,
 		tokenSymbol: PropTypes.string,
 		data: PropTypes.string,
-		displayViewData: PropTypes.bool
+		displayViewData: PropTypes.bool,
+		method: PropTypes.string
 	};
-
-	async componentDidMount() {
-		const { data } = this.props;
-		const method = await getMethodData(data);
-		const name = method?.name;
-		this.setState({ name: name && this.capitalize(name) });
-	}
 
 	render() {
 		const {
@@ -122,9 +113,9 @@ export default class TransactionReviewDetailsCard extends Component {
 			allowance,
 			tokenSymbol,
 			data,
+			method,
 			displayViewData
 		} = this.props;
-		const { name } = this.state;
 
 		return (
 			<>
@@ -183,7 +174,7 @@ export default class TransactionReviewDetailsCard extends Component {
 						{displayViewData ? (
 							<>
 								<Text style={styles.viewDataText}>
-									{strings('spend_limit_edition.function')}: {name}
+									{strings('spend_limit_edition.function')}: {method}
 								</Text>
 								<Text style={styles.viewDataText}>{data}</Text>
 							</>
