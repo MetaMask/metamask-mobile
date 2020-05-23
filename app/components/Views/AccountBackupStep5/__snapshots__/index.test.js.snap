@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountBackupStep5 should render correctly 1`] = `
-<SafeAreaView
+<ForwardRef(SafeAreaView)
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -23,7 +23,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
       selected={4}
     />
     <TouchableOpacity
-      activeOpacity={0.2}
       onPress={[Function]}
       style={
         Object {
@@ -128,7 +127,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             }
           >
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_0"
               onPress={[Function]}
             >
@@ -158,7 +156,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_1"
               onPress={[Function]}
             >
@@ -185,7 +182,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_2"
               onPress={[Function]}
             >
@@ -212,7 +208,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_3"
               onPress={[Function]}
             >
@@ -239,7 +234,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_4"
               onPress={[Function]}
             >
@@ -266,7 +260,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_5"
               onPress={[Function]}
             >
@@ -304,7 +297,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             }
           >
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_6"
               onPress={[Function]}
             >
@@ -331,7 +323,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_7"
               onPress={[Function]}
             >
@@ -358,7 +349,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_8"
               onPress={[Function]}
             >
@@ -385,7 +375,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_9"
               onPress={[Function]}
             >
@@ -412,7 +401,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_10"
               onPress={[Function]}
             >
@@ -439,7 +427,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="word_11"
               onPress={[Function]}
             >
@@ -477,7 +464,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
           }
         >
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_0"
             onPress={[Function]}
             style={
@@ -515,7 +501,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_1"
             onPress={[Function]}
             style={
@@ -553,7 +538,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_2"
             onPress={[Function]}
             style={
@@ -591,7 +575,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_3"
             onPress={[Function]}
             style={
@@ -629,7 +612,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_4"
             onPress={[Function]}
             style={
@@ -667,7 +649,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_5"
             onPress={[Function]}
             style={
@@ -705,7 +686,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_6"
             onPress={[Function]}
             style={
@@ -743,7 +723,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_7"
             onPress={[Function]}
             style={
@@ -781,7 +760,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_8"
             onPress={[Function]}
             style={
@@ -819,7 +797,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_9"
             onPress={[Function]}
             style={
@@ -857,7 +834,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_10"
             onPress={[Function]}
             style={
@@ -895,7 +871,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            activeOpacity={0.2}
             key="selectableWord_11"
             onPress={[Function]}
             style={
@@ -996,5 +971,5 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
       </Text>
     </CustomAlert>
   </ScrollViewMock>
-</SafeAreaView>
+</ForwardRef(SafeAreaView)>
 `;

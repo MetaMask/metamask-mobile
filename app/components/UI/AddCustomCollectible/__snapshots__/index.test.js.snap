@@ -42,13 +42,11 @@ exports[`AddCustomCollectible should render correctly 1`] = `
           Address
         </Text>
         <TextInput
-          allowFontScaling={true}
           onBlur={[Function]}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
           placeholderTextColor="#d6d9dc"
-          rejectResponderTermination={true}
           style={
             Array [
               Object {
@@ -63,7 +61,6 @@ exports[`AddCustomCollectible should render correctly 1`] = `
             ]
           }
           testID="input-collectible-address"
-          underlineColorAndroid="transparent"
           value=""
         />
         <Text
@@ -96,14 +93,12 @@ exports[`AddCustomCollectible should render correctly 1`] = `
           ID
         </Text>
         <TextInput
-          allowFontScaling={true}
           keyboardType="numeric"
           onBlur={[Function]}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="Enter the collectible ID"
           placeholderTextColor="#d6d9dc"
-          rejectResponderTermination={true}
           returnKeyType="done"
           style={
             Array [
@@ -119,7 +114,6 @@ exports[`AddCustomCollectible should render correctly 1`] = `
             ]
           }
           testID="input-token-decimals"
-          underlineColorAndroid="transparent"
           value=""
         />
         <Text
