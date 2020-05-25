@@ -244,6 +244,280 @@ exports[`TransactionReviewDetailsCard should render correctly 1`] = `
           <Icon
             allowFontScaling={false}
             color="#6a737d"
+            name="ios-arrow-up"
+            size={16}
+          />
+        </View>
+      </TouchableOpacity>
+      <Text
+        style={
+          Object {
+            "marginTop": 20,
+          }
+        }
+      >
+        Function
+        : 
+        Approve
+      </Text>
+      <Text
+        style={
+          Object {
+            "marginTop": 20,
+          }
+        }
+      >
+        0x095ea7b30000000000000000000000009bc5baf874d2da8d216ae9f137804184ee5afef40000000000000000000000000000000000000000000000000000000000011170
+      </Text>
+    </View>
+  </View>
+</Fragment>
+`;
+
+exports[`TransactionReviewDetailsCard should render correctly if displayViewData is false 1`] = `
+<Fragment>
+  <View
+    style={
+      Object {
+        "flexDirection": "column",
+        "padding": 24,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingBottom": 20,
+          "width": "100%",
+        }
+      }
+    >
+      <TouchableOpacity
+        activeOpacity={0.2}
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#000000"
+          name="ios-arrow-back"
+          size={24}
+        />
+      </TouchableOpacity>
+      <Text
+        style={
+          Object {
+            "alignSelf": "center",
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 18,
+            "fontWeight": "600",
+            "margin": 16,
+          }
+        }
+      >
+        Transaction Details
+      </Text>
+      <Icon
+        allowFontScaling={false}
+        color="#FFFFFF"
+        name="ios-arrow-back"
+        size={24}
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "borderColor": "#bbc0c5",
+          "borderRadius": 10,
+          "borderWidth": 1,
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "flexWrap": "wrap",
+            "paddingVertical": 4,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "100",
+            }
+          }
+        >
+          Site URL
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "flexDirection": "row",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "600",
+              "marginLeft": "auto",
+              "textAlign": "right",
+            }
+          }
+        >
+          metamask.github.io
+        </Text>
+      </View>
+      <View
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "flexWrap": "wrap",
+            "paddingVertical": 4,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "100",
+            }
+          }
+        >
+          Contract address:
+        </Text>
+        <View
+          style={
+            Object {
+              "color": "#000000",
+              "flexDirection": "row",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "600",
+              "marginLeft": "auto",
+              "textAlign": "right",
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#037dd6",
+                "fontFamily": "CircularStd-Medium",
+                "fontWeight": "600",
+              }
+            }
+          >
+            0xcE25...233a
+          </Text>
+          <Icon
+            allowFontScaling={false}
+            color="#037dd6"
+            name="copy"
+            size={16}
+            style={
+              Object {
+                "marginLeft": 1,
+                "marginTop": 2,
+              }
+            }
+          />
+        </View>
+      </View>
+      <View
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "flexWrap": "wrap",
+            "paddingVertical": 4,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "100",
+            }
+          }
+        >
+          Allowance:
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "flexDirection": "row",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "600",
+              "marginLeft": "auto",
+              "textAlign": "right",
+            }
+          }
+        >
+          70000
+           
+          TST
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "borderColor": "#bbc0c5",
+          "borderRadius": 10,
+          "borderWidth": 1,
+          "marginTop": 20,
+          "padding": 16,
+        }
+      }
+    >
+      <TouchableOpacity
+        activeOpacity={0.2}
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "flexWrap": "wrap",
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "600",
+            }
+          }
+        >
+          View Data
+        </Text>
+        <View
+          style={
+            Object {
+              "marginLeft": "auto",
+            }
+          }
+        >
+          <Icon
+            allowFontScaling={false}
+            color="#6a737d"
             name="ios-arrow-down"
             size={16}
           />
