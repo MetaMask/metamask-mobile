@@ -6,29 +6,7 @@ import configureMockStore from 'redux-mock-store';
 describe('TransactionReviewDetailsCard', () => {
 	const mockStore = configureMockStore();
 	it('should render correctly', () => {
-		const initialState = {
-			engine: {
-				backgroundState: {
-					TokenRatesController: {
-						contractExchangeRates: {}
-					},
-					CurrencyRateController: {
-						currentCurrency: 'usd',
-						conversionRate: 0.1
-					}
-				}
-			},
-			transaction: {
-				value: '',
-				data: '',
-				from: '0x1',
-				gas: '',
-				gasPrice: '',
-				to: '0x2',
-				selectedAsset: undefined,
-				assetType: undefined
-			}
-		};
+		const initialState = {};
 
 		const wrapper = shallow(
 			<TransactionReviewDetailsCard
