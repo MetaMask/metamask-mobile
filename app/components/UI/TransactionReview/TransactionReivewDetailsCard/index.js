@@ -85,11 +85,6 @@ const styles = StyleSheet.create({
 });
 
 export default class TransactionReviewDetailsCard extends Component {
-	constructor() {
-		super();
-		this.state = { name: undefined };
-	}
-
 	static propTypes = {
 		toggleViewDetails: PropTypes.func,
 		copyContractAddress: PropTypes.func,
