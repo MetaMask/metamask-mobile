@@ -63,6 +63,7 @@
     "react-native-level-fs/**/bl": "^0.9.5"
   },
   "dependencies": {
+    "@metamask/controllers": "^2.0.0",
     "@react-native-community/async-storage": "1.9.0",
     "@react-native-community/clipboard": "^1.2.2",
     "@react-native-community/netinfo": "4.1.5",
@@ -96,7 +97,6 @@
     "ethjs-unit": "0.1.6",
     "events": "3.0.0",
     "fuse.js": "3.4.4",
-    "gaba": "1.11.0",
     "https-browserify": "0.0.1",
     "json-rpc-engine": "5.1.5",
     "json-rpc-middleware-stream": "2.1.1",
