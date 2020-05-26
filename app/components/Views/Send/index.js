@@ -94,7 +94,11 @@ class Send extends PureComponent {
 		/**
 		 * Selected address as string
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Object containing token balances in the format address => balance
+		 */
+		contractBalances: PropTypes.object
 	};
 
 	state = {
@@ -145,8 +149,17 @@ class Send extends PureComponent {
 	 * Sets state mounted to true, resets transaction and check for deeplinks
 	 */
 	async componentDidMount() {
-		const { navigation } = this.props;
-		navigation && navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
+		const {
+			navigation,
+			transaction: { assetType, selectedAsset },
+			contractBalances
+		} = this.props;
+		navigation &&
+			navigation.setParams({
+				mode: REVIEW,
+				dispatch: this.onModeChange,
+				disableModeChange: assetType === 'ERC20' && contractBalances[selectedAsset.address] === undefined
+			});
 		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
@@ -167,7 +180,11 @@ class Send extends PureComponent {
 
 	componentDidUpdate(prevProps) {
 		const prevNavigation = prevProps.navigation;
-		const { navigation } = this.props;
+		const {
+			navigation,
+			transaction: { assetType, selectedAsset },
+			contractBalances
+		} = this.props;
 		if (prevNavigation && navigation) {
 			const prevTxMeta = prevNavigation.getParam('txMeta', null);
 			const currentTxMeta = navigation.getParam('txMeta', null);
@@ -178,6 +195,17 @@ class Send extends PureComponent {
 			) {
 				this.handleNewTxMeta(currentTxMeta);
 			}
+		}
+
+		const contractBalance = contractBalances[selectedAsset.address];
+		const erc20ContractBalanceChanged =
+			assetType === 'ERC20' && prevProps.contractBalances[selectedAsset.address] !== contractBalance;
+		const assetTypeDefined = prevProps.transaction.assetType === undefined && assetType === 'ERC20';
+		if (assetTypeDefined || erc20ContractBalanceChanged) {
+			navigation &&
+				navigation.setParams({
+					disableModeChange: contractBalance === undefined
+				});
 		}
 	}
 

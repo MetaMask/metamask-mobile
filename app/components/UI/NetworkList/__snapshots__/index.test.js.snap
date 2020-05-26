@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NetworkList should render correctly 1`] = `
-<SafeAreaView
+<ForwardRef(SafeAreaView)
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -45,7 +45,6 @@ exports[`NetworkList should render correctly 1`] = `
   >
     <View>
       <TouchableOpacity
-        activeOpacity={0.2}
         key="network-mainnet"
         onPress={[Function]}
         style={
@@ -178,7 +177,6 @@ exports[`NetworkList should render correctly 1`] = `
       </Text>
     </View>
     <TouchableOpacity
-      activeOpacity={0.2}
       key="network-0"
       onPress={[Function]}
       style={
@@ -239,7 +237,6 @@ exports[`NetworkList should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <TouchableOpacity
-      activeOpacity={0.2}
       key="network-1"
       onPress={[Function]}
       style={
@@ -300,7 +297,6 @@ exports[`NetworkList should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <TouchableOpacity
-      activeOpacity={0.2}
       key="network-2"
       onPress={[Function]}
       style={
@@ -361,7 +357,6 @@ exports[`NetworkList should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <TouchableOpacity
-      activeOpacity={0.2}
       key="network-3"
       onPress={[Function]}
       style={
@@ -422,7 +417,6 @@ exports[`NetworkList should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <TouchableOpacity
-      activeOpacity={0.2}
       key="network-0"
       onPress={[Function]}
       style={
@@ -496,7 +490,6 @@ exports[`NetworkList should render correctly 1`] = `
     }
   >
     <TouchableOpacity
-      activeOpacity={0.2}
       onPress={[Function]}
       style={
         Object {
@@ -522,5 +515,5 @@ exports[`NetworkList should render correctly 1`] = `
       </Text>
     </TouchableOpacity>
   </View>
-</SafeAreaView>
+</ForwardRef(SafeAreaView)>
 `;

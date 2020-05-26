@@ -2,7 +2,13 @@
 
 ## Current Develop Branch
 
-## v0.2.16 - May 13 2020
+## v0.2.16 - May 15 2020
+- [#1582](https://github.com/MetaMask/metamask-mobile/pull/1582): Instapay deposit navbar cancel (#1582)
+- [#1570](https://github.com/MetaMask/metamask-mobile/pull/1570): Disable confirm screen edit button when no tokens of a payment request (#1570)
+- [#1574](https://github.com/MetaMask/metamask-mobile/pull/1574): Ensure collectibles that use 'transfer' method show a fee in tx history list (#1574)
+- [#1565](https://github.com/MetaMask/metamask-mobile/pull/1565): Fix validating of amount when sending a collectible (#1565)
+- [#1572](https://github.com/MetaMask/metamask-mobile/pull/1572): Fix amount validation for large token payment requests (#1572)
+- [#1561](https://github.com/MetaMask/metamask-mobile/pull/1561): V0.2.16 (#1561)
 - [#1548](https://github.com/MetaMask/metamask-mobile/pull/1548): Use setTimeout hack (again) to get paste context in token search (#1548)
 - [#1465](https://github.com/MetaMask/metamask-mobile/pull/1465): Make send flows consistent (#1465)
 - [#1557](https://github.com/MetaMask/metamask-mobile/pull/1557): Fix day and month numbers in toDateFormat (#1557)
