@@ -6,11 +6,11 @@ import modalsReducer from './modals';
 import settingsReducer from './settings';
 import alertReducer from './alert';
 import transactionReducer from './transaction';
-import newTransactionReducer from './newTransaction';
 import userReducer from './user';
 import wizardReducer from './wizard';
 import analyticsReducer from './analytics';
 import onboardingReducer from './onboarding';
+import transactionNotificationReducer from './transactionNotification';
 import { combineReducers } from 'redux';
 
 const rootReducer = combineReducers({
@@ -23,10 +23,10 @@ const rootReducer = combineReducers({
 	settings: settingsReducer,
 	alert: alertReducer,
 	transaction: transactionReducer,
-	newTransaction: newTransactionReducer,
 	user: userReducer,
 	wizard: wizardReducer,
-	onboarding: onboardingReducer
+	onboarding: onboardingReducer,
+	transactionNotification: transactionNotificationReducer
 });
 
 export default rootReducer;

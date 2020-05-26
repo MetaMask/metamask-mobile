@@ -76,4 +76,8 @@ export default class Device {
 	static isSmallDevice() {
 		return this.getDeviceHeight() < 600;
 	}
+
+	static isMediumDevice() {
+		return this.getDeviceHeight() < 736;
+	}
 }
