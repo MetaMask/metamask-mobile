@@ -17,7 +17,7 @@ import {
 	TokenRatesController,
 	TransactionController,
 	TypedMessageManager
-} from 'gaba';
+} from '@metamask/controllers';
 
 import AsyncStorage from '@react-native-community/async-storage';
 

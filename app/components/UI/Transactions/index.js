@@ -18,11 +18,11 @@ import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
-import { CANCEL_RATE, SPEED_UP_RATE } from 'gaba';
+import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
 import { renderFromWei } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/Device';
-import { hexToBN } from 'gaba/dist/util';
+import { hexToBN } from '@metamask/controllers/dist/util';
 import { BN } from 'ethereumjs-util';
 import TransactionActionModal from '../TransactionActionModal';
 
