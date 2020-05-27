@@ -29,7 +29,7 @@ import {
 } from '../../../../util/number';
 import { getTicker, decodeTransferData } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { hexToBN, BNToHex } from '@metamask/controllers/dist/util';
+import { util } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
 import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -51,6 +51,7 @@ import TransactionSummary from '../../TransactionSummary';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
+const { hexToBN, BNToHex } = util;
 const {
 	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
 } = TransactionTypes;

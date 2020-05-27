@@ -27,7 +27,7 @@ import CustomGas from '../../SendFlow/CustomGas';
 import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
-import { BNToHex, hexToBN } from '@metamask/controllers/dist/util';
+import { util } from '@metamask/controllers';
 import { renderFromWei, weiToFiatNumber, isBN, renderFromTokenMinimalUnit, isDecimal } from '../../../../util/number';
 import {
 	getTicker,
@@ -44,6 +44,7 @@ import Identicon from '../../../UI/Identicon';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
+const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,

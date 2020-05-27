@@ -12,14 +12,14 @@ import Device from '../../../util/Device';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
-import { CANCEL_RATE, SPEED_UP_RATE, BN } from '@metamask/controllers';
+import { CANCEL_RATE, SPEED_UP_RATE, BN, util } from '@metamask/controllers';
 import ActionContent from '../ActionModal/ActionContent';
 import TransactionActionContent from '../TransactionActionModal/TransactionActionContent';
 import { renderFromWei } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
-import { hexToBN } from '@metamask/controllers/dist/util';
 
+const { hexToBN } = util;
 const BROWSER_ROUTE = 'BrowserView';
 
 const styles = StyleSheet.create({
