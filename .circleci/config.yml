@@ -11,7 +11,7 @@ aliases:
 
   - &install-node-dependencies
       |
-        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile --network-concurrency 1 && (cd ios/ && pod install && cd ..)
+        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
 
 defaults: &defaults
   working_directory: ~/MetaMask
@@ -23,8 +23,12 @@ jobs:
       - image: circleci/node:10
     steps:
       - checkout
-      - run: curl https://cocoapods-specs.circleci.com/fetch-cocoapods-repo-from-s3.sh | bash -s cf
       - run: *install-node-dependencies
+      - run:
+          name: Install CocoaPods
+          command: |
+            curl https://cocoapods-specs.circleci.com/fetch-cocoapods-repo-from-s3.sh | bash -s cf
+            cd ios && pod install && cd ..
       - persist_to_workspace:
           root: .
           paths:
@@ -36,8 +40,12 @@ jobs:
     steps:
       - checkout
       - restore_cache: *restore-node-cache
-      - run: curl https://cocoapods-specs.circleci.com/fetch-cocoapods-repo-from-s3.sh | bash -s cf
       - run: *install-node-dependencies
+      - run:
+          name: Install CocoaPods
+          command: |
+            curl https://cocoapods-specs.circleci.com/fetch-cocoapods-repo-from-s3.sh | bash -s cf
+            cd ios && pod install && cd ..
       - persist_to_workspace:
           root: .
           paths:
