@@ -787,9 +787,9 @@
 	"accountApproval": {
 		"title": "CONNECT REQUEST",
 		"walletconnect_title": "WALLETCONNECT REQUEST",
-		"action": "would like to",
-		"connect": "CONNECT",
-		"cancel": "CANCEL",
+		"action": "Connect to this site?",
+		"connect": "Connect",
+		"cancel": "Cancel",
 		"permission": "View your",
 		"address": "public address",
 		"sign_messages": "Sign messages",
