@@ -23,6 +23,7 @@ jobs:
       - image: circleci/node:10
     steps:
       - checkout
+      - run: curl https://cocoapods-specs.circleci.com/fetch-cocoapods-repo-from-s3.sh | bash -s cf
       - run: *install-node-dependencies
       - persist_to_workspace:
           root: .
