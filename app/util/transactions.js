@@ -4,7 +4,7 @@ import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress } from './address';
-import { util } from 'gaba';
+import { util } from '@metamask/controllers';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
