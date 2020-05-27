@@ -13,13 +13,17 @@
     "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
     "format": "prettier '**/*.{js,json}' --write",
     "start:ios": "./scripts/build.sh ios debug",
+    "start:ios:e2e": "./scripts/build.sh ios debugE2E",
     "start:ios:device": "./scripts/build.sh ios debug --device",
     "start:android": "./scripts/build.sh android debug",
+    "start:android:e2e": "./scripts/build.sh android debugE2E",
     "build:announce": "node ./scripts/metamask-bot-build-announce.js",
     "build:android:release": "./scripts/build.sh android release",
+    "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
     "build:android:pre-release": "./scripts/build.sh android release --pre",
     "build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
     "build:ios:release": "./scripts/build.sh ios release",
+    "build:ios:release:e2e": "./scripts/build.sh ios releaseE2E",
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
@@ -210,7 +214,7 @@
     "configurations": {
       "ios.sim.debug": {
         "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app",
-        "build": "yarn start:ios && xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build",
+        "build": "yarn start:ios:e2e",
         "type": "ios.simulator",
         "device": {
           "type": "iPhone 11 Pro"
@@ -218,7 +222,7 @@
       },
       "ios.sim.release": {
         "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app",
-        "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:release && METAMASK_ENVIRONMENT='production' xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath ios/build",
+        "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
         "type": "ios.simulator",
         "device": {
           "type": "iPhone 11 Pro"
@@ -226,7 +230,7 @@
       },
       "android.emu.debug": {
         "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
-        "build": "source .android.env && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..",
+        "build": "yarn start:android:e2e",
         "type": "android.emulator",
         "device": {
           "avdName": "Pixel_3_API_29"
@@ -234,7 +238,7 @@
       },
       "android.emu.release": {
         "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
-        "build": "source .android.env && cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..",
+        "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
         "type": "android.emulator",
         "device": {
           "avdName": "Pixel_3_API_29"
