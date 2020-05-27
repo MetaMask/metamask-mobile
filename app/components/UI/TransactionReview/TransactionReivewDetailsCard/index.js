@@ -8,6 +8,9 @@ import { strings } from '../../../../../locales/i18n';
 import Feather from 'react-native-vector-icons/Feather';
 
 const styles = StyleSheet.create({
+	uppercase: {
+		textTransform: 'uppercase'
+	},
 	viewData: {
 		borderWidth: 1,
 		borderColor: colors.grey200,
@@ -168,7 +171,7 @@ export default class TransactionReviewDetailsCard extends Component {
 						</TouchableOpacity>
 						{displayViewData ? (
 							<>
-								<Text style={styles.viewDataText}>
+								<Text style={[styles.viewDataText, styles.uppercase]}>
 									{strings('spend_limit_edition.function')}: {method}
 								</Text>
 								<Text style={styles.viewDataText}>{data}</Text>

@@ -31,7 +31,7 @@ import {
 	decodeTransferData,
 	generateApproveData,
 	getNormalizedTxState,
-	getNormalizedMethodName
+	getMethodName
 } from '../../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ErrorMessage from '../../SendFlow/ErrorMessage';
@@ -388,7 +388,7 @@ class Approve extends PureComponent {
 		const totalGas = gas.mul(gasPrice);
 		this.setState({
 			host,
-			method: await getNormalizedMethodName(data),
+			method: await getMethodName(data),
 			originalApproveAmount,
 			tokenDecimals,
 			tokenSymbol,
