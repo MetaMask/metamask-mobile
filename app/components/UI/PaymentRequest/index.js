@@ -55,7 +55,6 @@ const styles = StyleSheet.create({
 		marginVertical: 8
 	},
 	searchInput: {
-		flex: 1,
 		marginHorizontal: 0,
 		paddingTop: Device.isAndroid() ? 12 : 2,
 		borderRadius: 8,
@@ -63,6 +62,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		backgroundColor: colors.white,
 		height: 40,
+		width: '100%',
 		color: colors.grey400,
 		borderColor: colors.grey100,
 		borderWidth: 1,
@@ -266,7 +266,8 @@ class PaymentRequest extends PureComponent {
 		secondaryAmount: undefined,
 		symbol: undefined,
 		showError: false,
-		chainId: ''
+		chainId: '',
+		inputWidth: { width: '99%' }
 	};
 
 	/**
@@ -276,7 +277,13 @@ class PaymentRequest extends PureComponent {
 		const { primaryCurrency, navigation, networkType } = this.props;
 		const receiveAsset = navigation && navigation.getParam('receiveAsset', undefined);
 		const chainId = Object.keys(NetworkList).indexOf(networkType) > -1 && NetworkList[networkType].networkId;
-		this.setState({ internalPrimaryCurrency: primaryCurrency, chainId });
+		setTimeout(() => {
+			this.setState({
+				internalPrimaryCurrency: primaryCurrency,
+				chainId,
+				inputWidth: { width: '100%' }
+			});
+		}, 100);
 		if (receiveAsset) {
 			this.goToAmountInput(receiveAsset);
 		}
@@ -339,7 +346,7 @@ class PaymentRequest extends PureComponent {
 	 */
 	renderSelectAssets = () => {
 		const { tokens } = this.props;
-		const { chainId } = this.state;
+		const { chainId, inputWidth } = this.state;
 		let results;
 		if (chainId === 1) {
 			results = this.state.searchInputValue ? this.state.results : defaultAssets;
@@ -359,7 +366,7 @@ class PaymentRequest extends PureComponent {
 				{chainId === 1 && (
 					<View style={styles.searchWrapper}>
 						<TextInput
-							style={[styles.searchInput, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							style={[styles.searchInput, inputWidth]}
 							autoCapitalize="none"
 							autoCorrect={false}
 							clearButtonMode="while-editing"
