@@ -326,6 +326,7 @@ exports[`App should render correctly 1`] = `
         "setParams": [Function],
         "state": Object {
           "index": 0,
+          "isTransitioning": false,
           "routes": Array [
             Object {
               "key": "Entry",
@@ -338,6 +339,7 @@ exports[`App should render correctly 1`] = `
               "index": 0,
               "isDrawerIdle": true,
               "isDrawerOpen": false,
+              "isTransitioning": false,
               "key": "HomeNav",
               "openId": 0,
               "params": undefined,
@@ -352,6 +354,7 @@ exports[`App should render correctly 1`] = `
                   "routes": Array [
                     Object {
                       "index": 0,
+                      "isTransitioning": false,
                       "key": "id-123-4",
                       "routeName": "Home",
                       "routes": Array [
@@ -777,6 +780,7 @@ exports[`App should render correctly 1`] = `
           "setParams": [Function],
           "state": Object {
             "index": 0,
+            "isTransitioning": false,
             "routes": Array [
               Object {
                 "key": "Entry",
@@ -789,6 +793,7 @@ exports[`App should render correctly 1`] = `
                 "index": 0,
                 "isDrawerIdle": true,
                 "isDrawerOpen": false,
+                "isTransitioning": false,
                 "key": "HomeNav",
                 "openId": 0,
                 "params": undefined,
@@ -803,6 +808,7 @@ exports[`App should render correctly 1`] = `
                     "routes": Array [
                       Object {
                         "index": 0,
+                        "isTransitioning": false,
                         "key": "id-123-4",
                         "routeName": "Home",
                         "routes": Array [
