@@ -27,7 +27,7 @@ jobs:
       - run:
           name: Install CocoaPods
           command: |
-            sudo gem install cocoapods
+            brew install cocoapods
             cd ios && pod install && cd ..
       - persist_to_workspace:
           root: .
@@ -44,7 +44,7 @@ jobs:
       - run:
           name: Install CocoaPods
           command: |
-            sudo gem install cocoapods
+            brew install cocoapods
             cd ios && pod install && cd ..
       - persist_to_workspace:
           root: .
