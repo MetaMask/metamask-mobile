@@ -6,7 +6,7 @@ import rootReducer from '../reducers';
 import AppConstants from '../core/AppConstants';
 
 const migrations = {
-	// Needed after https://github.com/MetaMask/gaba/pull/152
+	// Needed after https://github.com/MetaMask/controllers/pull/152
 	0: state => {
 		const addressBook = state.engine.backgroundState.AddressBookController.addressBook;
 		const migratedAddressBook = {};
