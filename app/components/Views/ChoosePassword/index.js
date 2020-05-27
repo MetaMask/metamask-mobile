@@ -313,15 +313,8 @@ class ChoosePassword extends PureComponent {
 	getSeedPhrase = async () => {
 		const { KeyringController } = Engine.context;
 		const { password } = this.state;
-		console.log('getSeedPhrase recreateVault password', password);
 		const keychainPassword = this.keyringControllerPasswordSet ? password : '';
-		console.log(
-			'getSeedPhrase recreateVault keychainPassword',
-			this.keyringControllerPasswordSet,
-			keychainPassword
-		);
 		const mnemonic = await KeyringController.exportSeedPhrase(keychainPassword);
-		console.log('getSeedPhrase recreateVault mnemonic', mnemonic);
 		return JSON.stringify(mnemonic).replace(/"/g, '');
 	};
 
