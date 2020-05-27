@@ -6,7 +6,6 @@ exports[`TransactionHeader should render correctly 1`] = `
     Object {
       "alignItems": "center",
       "justifyContent": "center",
-      "paddingVertical": 20,
     }
   }
 >
