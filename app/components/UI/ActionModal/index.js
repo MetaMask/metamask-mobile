@@ -1,46 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
-import { colors } from '../../../styles/common';
-import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
+import ActionContent from './ActionContent';
 
 const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
 		width: '100%'
-	},
-	modalView: {
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginHorizontal: 24
-	},
-	modalContainer: {
-		width: '100%',
-		backgroundColor: colors.white,
-		borderRadius: 10
-	},
-	actionContainer: {
-		borderTopColor: colors.grey200,
-		borderTopWidth: 1,
-		flexDirection: 'row',
-		padding: 16
-	},
-	childrenContainer: {
-		minHeight: 250,
-		flexDirection: 'row',
-		alignItems: 'center'
-	},
-	button: {
-		flex: 1
-	},
-	cancel: {
-		marginRight: 8
-	},
-	confirm: {
-		marginLeft: 8
 	}
 });
 
@@ -72,34 +40,21 @@ export default function ActionModal({
 			onSwipeComplete={onRequestClose}
 			swipeDirection={'down'}
 		>
-			<View style={styles.modalView}>
-				<View style={styles.modalContainer}>
-					<View style={styles.childrenContainer}>{children}</View>
-					<View style={styles.actionContainer}>
-						{displayCancelButton && (
-							<StyledButton
-								testID={cancelTestID}
-								type={cancelButtonMode}
-								onPress={onCancelPress}
-								containerStyle={[styles.button, displayConfirmButton ? styles.cancel : {}]}
-							>
-								{cancelText}
-							</StyledButton>
-						)}
-						{displayConfirmButton && (
-							<StyledButton
-								testID={confirmTestID}
-								type={confirmButtonMode}
-								onPress={onConfirmPress}
-								containerStyle={[styles.button, displayCancelButton ? styles.confirm : {}]}
-								disabled={confirmDisabled}
-							>
-								{confirmText}
-							</StyledButton>
-						)}
-					</View>
-				</View>
-			</View>
+			<ActionContent
+				cancelTestID={cancelTestID}
+				confirmTestID={confirmTestID}
+				cancelText={cancelText}
+				confirmText={confirmText}
+				confirmDisabled={confirmDisabled}
+				cancelButtonMode={cancelButtonMode}
+				confirmButtonMode={confirmButtonMode}
+				displayCancelButton={displayCancelButton}
+				displayConfirmButton={displayConfirmButton}
+				onCancelPress={onCancelPress}
+				onConfirmPress={onConfirmPress}
+			>
+				{children}
+			</ActionContent>
 		</Modal>
 	);
 }

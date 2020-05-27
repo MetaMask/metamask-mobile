@@ -11,6 +11,8 @@ exports[`ActionModal should render correctly 1`] = `
   backdropOpacity={0.7}
   backdropTransitionInTiming={300}
   backdropTransitionOutTiming={300}
+  coverScreen={true}
+  customBackdrop={null}
   deviceHeight={null}
   deviceWidth={null}
   hasBackdrop={true}
@@ -22,6 +24,8 @@ exports[`ActionModal should render correctly 1`] = `
   onModalShow={[Function]}
   onModalWillHide={[Function]}
   onModalWillShow={[Function]}
+  propagateSwipe={false}
+  scrollHorizontal={false}
   scrollOffset={0}
   scrollOffsetMax={0}
   scrollTo={null}
@@ -41,99 +45,16 @@ exports[`ActionModal should render correctly 1`] = `
   swipeThreshold={100}
   useNativeDriver={false}
 >
-  <View
-    style={
-      Object {
-        "alignItems": "center",
-        "flexDirection": "column",
-        "justifyContent": "center",
-        "marginHorizontal": 24,
-      }
-    }
-  >
-    <View
-      style={
-        Object {
-          "backgroundColor": "#FFFFFF",
-          "borderRadius": 10,
-          "width": "100%",
-        }
-      }
-    >
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "minHeight": 250,
-          }
-        }
-      />
-      <View
-        style={
-          Object {
-            "borderTopColor": "#bbc0c5",
-            "borderTopWidth": 1,
-            "flexDirection": "row",
-            "padding": 16,
-          }
-        }
-      >
-        <StyledButton
-          containerStyle={
-            Array [
-              Object {
-                "flex": 1,
-              },
-              Object {
-                "marginRight": 8,
-              },
-            ]
-          }
-          disabledContainerStyle={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          styleDisabled={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          testID=""
-          type="neutral"
-        >
-          Cancel
-        </StyledButton>
-        <StyledButton
-          containerStyle={
-            Array [
-              Object {
-                "flex": 1,
-              },
-              Object {
-                "marginLeft": 8,
-              },
-            ]
-          }
-          disabled={false}
-          disabledContainerStyle={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          styleDisabled={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          testID=""
-          type="warning"
-        >
-          Confirm
-        </StyledButton>
-      </View>
-    </View>
-  </View>
+  <ActionContent
+    cancelButtonMode="neutral"
+    cancelTestID=""
+    cancelText="Cancel"
+    confirmButtonMode="warning"
+    confirmDisabled={false}
+    confirmTestID=""
+    confirmText="Confirm"
+    displayCancelButton={true}
+    displayConfirmButton={true}
+  />
 </ReactNativeModal>
 `;

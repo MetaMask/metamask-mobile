@@ -6,10 +6,10 @@ import {
 	View,
 	TouchableOpacity,
 	TextInput,
-	Clipboard,
 	Alert,
 	InteractionManager
 } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
@@ -29,7 +29,12 @@ import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { BNToHex, hexToBN } from 'gaba/dist/util';
 import { renderFromWei, weiToFiatNumber, isBN, renderFromTokenMinimalUnit, isDecimal } from '../../../../util/number';
-import { getTicker, decodeTransferData, generateApproveData } from '../../../../util/transactions';
+import {
+	getTicker,
+	decodeTransferData,
+	generateApproveData,
+	getNormalizedTxState
+} from '../../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ErrorMessage from '../../SendFlow/ErrorMessage';
 import { showAlert } from '../../../../actions/alert';
@@ -894,7 +899,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: state.transaction,
+	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,

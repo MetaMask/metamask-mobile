@@ -2,14 +2,12 @@ import React from 'react';
 import StyledButton from '../StyledButton';
 import PropTypes from 'prop-types';
 import { Keyboard, StyleSheet, View, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
-import { baseStyles, colors } from '../../../styles/common';
+import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const styles = StyleSheet.create({
 	actionContainer: {
-		borderTopColor: colors.grey200,
-		borderTopWidth: 1,
 		flex: 0,
 		flexDirection: 'row',
 		paddingVertical: 16,
@@ -69,7 +67,7 @@ export default function ActionView({
 				{showCancelButton && (
 					<StyledButton
 						testID={cancelTestID}
-						type={'cancel'}
+						type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
 						onPress={onCancelPress}
 						containerStyle={[styles.button, styles.cancel]}
 						disabled={confirmed}
@@ -124,7 +122,7 @@ ActionView.propTypes = {
 	/**
 	 * Type of button to show as the confirm button
 	 */
-	confirmButtonMode: PropTypes.oneOf(['normal', 'confirm']),
+	confirmButtonMode: PropTypes.oneOf(['normal', 'confirm', 'sign']),
 	/**
 	 * Text to show in the confirm button
 	 */

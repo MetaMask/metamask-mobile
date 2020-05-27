@@ -20,7 +20,7 @@ describe('TransactionDetails', () => {
 					NetworkController: {
 						provider: {
 							rpcTarget: '',
-							type: ''
+							type: 'rpc'
 						}
 					}
 				}
@@ -30,7 +30,11 @@ describe('TransactionDetails', () => {
 		const wrapper = shallow(
 			<TransactionDetails
 				transactionObject={{
-					networkID: '1'
+					networkID: '1',
+					status: 'confirmed',
+					transaction: {
+						nonce: ''
+					}
 				}}
 				transactionDetails={{
 					renderFrom: '0x0',

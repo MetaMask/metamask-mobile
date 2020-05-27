@@ -1,27 +1,23 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, baseStyles, fontStyles } from '../../../styles/common';
-import ElevatedView from 'react-native-elevated-view';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Device from '../../../util/Device';
 import AnimatedSpinner from '../AnimatedSpinner';
-import { hideMessage } from 'react-native-flash-message';
 import { strings } from '../../../../locales/i18n';
-import GestureRecognizer from 'react-native-swipe-gestures';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 const styles = StyleSheet.create({
 	defaultFlashFloating: {
+		flex: 1,
 		backgroundColor: colors.normalAlert,
-		padding: 15,
-		marginTop: 10,
-		marginLeft: 0,
-		marginRight: 0,
-		height: Device.isIphoneX() ? 90 : 70,
-		flexDirection: 'row'
+		padding: 16,
+		marginHorizontal: 8,
+		flexDirection: 'row',
+		borderRadius: 8
 	},
 	flashLabel: {
+		flex: 1,
 		flexDirection: 'column',
 		color: colors.white
 	},
@@ -31,6 +27,7 @@ const styles = StyleSheet.create({
 		color: colors.white
 	},
 	flashTitle: {
+		flex: 1,
 		fontSize: 14,
 		marginBottom: 2,
 		lineHeight: 18,
@@ -39,6 +36,17 @@ const styles = StyleSheet.create({
 	},
 	flashIcon: {
 		marginRight: 15
+	},
+	closeTouchable: {
+		flex: 0.1,
+		flexDirection: 'column',
+		alignItems: 'flex-end'
+	},
+	closeIcon: {
+		flex: 1,
+		color: colors.white,
+		alignItems: 'flex-start',
+		marginTop: -8
 	}
 });
 
@@ -46,18 +54,12 @@ const styles = StyleSheet.create({
  * TransactionNotification component used to render
  * in-app notifications for the transctions
  */
-// eslint-disable-next-line import/prefer-default-export
-export const TransactionNotification = props => {
-	const {
-		message: {
-			type,
-			message: { transaction, callback }
-		}
-	} = props;
-
+export default function TransactionNotification(props) {
+	const { status, transaction, onPress, onHide } = props;
+	console.log('TransactionNotification', status);
 	// eslint-disable-next-line
 	_getIcon = () => {
-		switch (type) {
+		switch (status) {
 			case 'pending':
 			case 'pending_withdrawal':
 			case 'pending_deposit':
@@ -68,7 +70,7 @@ export const TransactionNotification = props => {
 			case 'success':
 			case 'received':
 			case 'received_payment':
-				return <Icon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
+				return <IonicIcon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
 			case 'cancelled':
 			case 'error':
 				return (
@@ -79,7 +81,7 @@ export const TransactionNotification = props => {
 
 	// eslint-disable-next-line no-undef
 	_getTitle = () => {
-		switch (type) {
+		switch (status) {
 			case 'pending':
 				return strings('notifications.pending_title');
 			case 'pending_deposit':
@@ -87,7 +89,7 @@ export const TransactionNotification = props => {
 			case 'pending_withdrawal':
 				return strings('notifications.pending_withdrawal_title');
 			case 'success':
-				return strings('notifications.success_title', { nonce: transaction.nonce });
+				return strings('notifications.success_title', { nonce: parseInt(transaction.nonce) });
 			case 'success_deposit':
 				return strings('notifications.success_deposit_title');
 			case 'success_withdrawal':
@@ -98,7 +100,7 @@ export const TransactionNotification = props => {
 					assetType: transaction.assetType
 				});
 			case 'speedup':
-				return strings('notifications.speedup_title', { nonce: transaction.nonce });
+				return strings('notifications.speedup_title', { nonce: parseInt(transaction.nonce) });
 			case 'received_payment':
 				return strings('notifications.received_payment_title');
 			case 'cancelled':
@@ -111,59 +113,37 @@ export const TransactionNotification = props => {
 	// eslint-disable-next-line no-undef
 	_getDescription = () => {
 		if (transaction && transaction.amount) {
-			return strings(`notifications.${type}_message`, { amount: transaction.amount });
+			return strings(`notifications.${status}_message`, { amount: transaction.amount });
 		}
-		return strings(`notifications.${type}_message`);
-	};
-
-	// eslint-disable-next-line
-	_getContent = () => (
-		<Fragment>
-			<View style={styles.flashIcon}>{this._getIcon()}</View>
-			<View style={styles.flashLabel}>
-				<Text style={styles.flashTitle} testID={'notification-title'}>
-					{this._getTitle()}
-				</Text>
-				<Text style={styles.flashText}>{this._getDescription()}</Text>
-			</View>
-		</Fragment>
-	);
-
-	// eslint-disable-next-line
-	_onPress = () => {
-		if (callback) {
-			hideMessage();
-			setTimeout(() => {
-				callback();
-			}, 300);
-		}
+		return strings(`notifications.${status}_message`);
 	};
 
 	return (
-		<ElevatedView elevation={10} style={baseStyles.flex}>
-			<GestureRecognizer
-				// eslint-disable-next-line react/jsx-no-bind
-				testID={'notification-swipe'}
-				onSwipeDown={() => hideMessage()}
-				config={{
-					velocityThreshold: 0.2,
-					directionalOffsetThreshold: 50
-				}}
-				style={baseStyles.flex}
+		<View style={baseStyles.flexGrow}>
+			<TouchableOpacity
+				style={styles.defaultFlashFloating}
+				testID={'press-notification-button'}
+				onPress={onPress}
+				activeOpacity={0.8}
 			>
-				<TouchableOpacity
-					style={[styles.defaultFlash, styles.defaultFlashFloating]}
-					testID={'press-notification-button'}
-					onPress={this._onPress}
-					activeOpacity={0.8}
-				>
-					{this._getContent()}
+				<View style={styles.flashIcon}>{this._getIcon()}</View>
+				<View style={styles.flashLabel}>
+					<Text style={styles.flashTitle} testID={'notification-title'}>
+						{this._getTitle()}
+					</Text>
+					<Text style={styles.flashText}>{this._getDescription()}</Text>
+				</View>
+				<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
+					<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
 				</TouchableOpacity>
-			</GestureRecognizer>
-		</ElevatedView>
+			</TouchableOpacity>
+		</View>
 	);
-};
+}
 
 TransactionNotification.propTypes = {
-	message: PropTypes.object
+	status: PropTypes.string,
+	transaction: PropTypes.object,
+	onPress: PropTypes.func,
+	onHide: PropTypes.func
 };

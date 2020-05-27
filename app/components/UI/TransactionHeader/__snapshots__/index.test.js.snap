@@ -1,0 +1,105 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionHeader should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "justifyContent": "center",
+      "paddingVertical": 20,
+    }
+  }
+>
+  <WebsiteIcon
+    style={
+      Object {
+        "borderRadius": 32,
+        "height": 64,
+        "width": 64,
+      }
+    }
+    title="url"
+    url="url"
+    viewStyle={
+      Object {
+        "alignItems": "center",
+        "borderRadius": 10,
+        "justifyContent": "center",
+      }
+    }
+  />
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginTop": 10,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="warning"
+      size={15}
+      style={
+        Object {
+          "marginRight": 5,
+        }
+      }
+    />
+    <Text
+      style={
+        Object {
+          "color": "#000000",
+          "fontFamily": "CircularStd-Medium",
+          "fontSize": 14,
+          "fontWeight": "600",
+          "textAlign": "center",
+        }
+      }
+    >
+      url
+    </Text>
+  </View>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "borderRadius": 2.5,
+            "height": 5,
+            "width": 5,
+          },
+          Object {
+            "backgroundColor": "green",
+          },
+        ]
+      }
+    />
+    <Text
+      style={
+        Object {
+          "color": "#000000",
+          "fontFamily": "CircularStd-Medium",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "padding": 5,
+          "textAlign": "center",
+          "textTransform": "capitalize",
+        }
+      }
+    >
+      Ropsten
+    </Text>
+  </View>
+</View>
+`;

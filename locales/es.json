@@ -544,7 +544,6 @@
 		"bookmark": "Marcar",
 		"add_to_favorites": "Agregar a favorites",
 		"error": "Ooops!",
-		"bookmark_already_exists": "Ya agregaste esta url a tus favoritos",
 		"cancel": "Cancelar",
 		"go_back": "Atrás",
 		"go_forward": "Avanzar",
@@ -623,7 +622,7 @@
 		"gas_price": "Precio del gas (GWEI)",
 		"total": "Total",
 		"view_on": "VER EN",
-		"view_on_etherscan": "VER EN ETHERSCAN",
+		"view_on_etherscan": "Ver en Etherscan",
 		"hash_copied_to_clipboard": "El hash de la transacción fue copiado al portapapeles",
 		"address_copied_to_clipboard": "La dirección fue copiada al portapapeles",
 		"transaction_error": "Error de transacción",
@@ -658,7 +657,7 @@
 	"transaction_submitted": {
 		"title": "Transacción Enviada",
 		"your_tx_hash_is": "El has de tu transacción es:",
-		"view_on_etherscan": "VER EN ETHERSCAN"
+		"view_on_etherscan": "Ver en Etherscan"
 	},
 	"sync_with_extension": {
 		"title": "Sincronizar datos con la extensión",
@@ -871,7 +870,7 @@
 		"back_to_safety": "Volver al area segura"
 	},
 	"notifications": {
-		"pending_title": "Transacción enviada!",
+		"pending_title": "Transacción enviada",
 		"pending_deposit_title": "Depósito en progreso!",
 		"pending_withdrawal_title": "Retiro en progreso!",
 		"success_title": "Transacción #{{nonce}} Completa!",
@@ -881,7 +880,7 @@
 		"error_title": "Oops, algo ha salido mal :/",
 		"received_title": "Has recibido {{amount}} {{assetType}}!",
 		"received_payment_title": "Pago instantáneo recibido",
-		"pending_message": "Tu transacción esta en proceso",
+		"pending_message": "Tu transacción está en proceso",
 		"pending_deposit_message": "Esperando que el deposito sea compleado",
 		"pending_withdrawal_message": "Esperando que el retiro sea completado",
 		"error_message": "Presiona para ver esta transacción",
