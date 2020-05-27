@@ -255,11 +255,6 @@ export async function getTransactionActionKey(transaction) {
 	return ret;
 }
 
-export async function getMethodName(data) {
-	const { name: methodName } = await getMethodData(data);
-	return methodName;
-}
-
 /**
  * Returns corresponding transaction type message to show in UI
  *
