@@ -11,7 +11,7 @@ aliases:
 
   - &install-node-dependencies
       |
-        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
+        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile --network-concurrency 1 && (cd ios/ && pod install && cd ..)
 
 defaults: &defaults
   working_directory: ~/MetaMask
