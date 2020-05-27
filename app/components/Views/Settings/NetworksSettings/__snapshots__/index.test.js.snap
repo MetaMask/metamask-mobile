@@ -16,7 +16,6 @@ exports[`NetworksSettings should render correctly 1`] = `
   <ScrollViewMock>
     <View>
       <TouchableOpacity
-        activeOpacity={0.2}
         key="network-mainnet"
         onPress={[Function]}
         style={
@@ -82,7 +81,6 @@ exports[`NetworksSettings should render correctly 1`] = `
       Other Networks
     </Text>
     <TouchableOpacity
-      activeOpacity={0.2}
       key="network-0"
       onLongPress={[Function]}
       onPress={[Function]}
@@ -130,7 +128,6 @@ exports[`NetworksSettings should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <TouchableOpacity
-      activeOpacity={0.2}
       key="network-1"
       onLongPress={[Function]}
       onPress={[Function]}
@@ -178,7 +175,6 @@ exports[`NetworksSettings should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <TouchableOpacity
-      activeOpacity={0.2}
       key="network-2"
       onLongPress={[Function]}
       onPress={[Function]}
@@ -226,7 +222,6 @@ exports[`NetworksSettings should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <TouchableOpacity
-      activeOpacity={0.2}
       key="network-3"
       onLongPress={[Function]}
       onPress={[Function]}
@@ -288,7 +283,6 @@ exports[`NetworksSettings should render correctly 1`] = `
         RPC Networks
       </Text>
       <TouchableOpacity
-        activeOpacity={0.2}
         key="network-0"
         onLongPress={[Function]}
         onPress={[Function]}
