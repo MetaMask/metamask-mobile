@@ -22,6 +22,7 @@
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
     "build:android:pre-release": "./scripts/build.sh android release --pre",
     "build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
+    "build:ios:release": "./scripts/build.sh ios release",
     "build:ios:release:e2e": "./scripts/build.sh ios releaseE2E",
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",

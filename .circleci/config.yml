@@ -36,6 +36,7 @@ jobs:
     steps:
       - checkout
       - restore_cache: *restore-node-cache
+      - run: curl https://cocoapods-specs.circleci.com/fetch-cocoapods-repo-from-s3.sh | bash -s cf
       - run: *install-node-dependencies
       - persist_to_workspace:
           root: .
