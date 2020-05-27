@@ -24,11 +24,6 @@ jobs:
     steps:
       - checkout
       - run: *install-node-dependencies
-      - run:
-          name: Install CocoaPods
-          command: |
-            brew install cocoapods
-            cd ios && pod install && cd ..
       - persist_to_workspace:
           root: .
           paths:
@@ -41,11 +36,6 @@ jobs:
       - checkout
       - restore_cache: *restore-node-cache
       - run: *install-node-dependencies
-      - run:
-          name: Install CocoaPods
-          command: |
-            brew install cocoapods
-            cd ios && pod install && cd ..
       - persist_to_workspace:
           root: .
           paths:
@@ -158,6 +148,11 @@ jobs:
       - run:
           name: Install Sentry CLI
           command: curl -sL https://sentry.io/get-cli/ | bash
+      - run:
+          name: Install CocoaPods
+          command: |
+            brew install cocoapods
+            cd ios && pod install && cd ..
       - run:
           name: pre-release
           command: METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
