@@ -17,6 +17,9 @@ const styles = StyleSheet.create({
 		paddingVertical: 20,
 		height: 80
 	},
+	disabledAccount: {
+		opacity: 0.5
+	},
 	accountInfo: {
 		marginLeft: 15,
 		marginRight: 0,
@@ -28,11 +31,19 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
+	accountBalanceWrapper: {
+		display: 'flex',
+		flexDirection: 'row'
+	},
 	accountBalance: {
 		paddingTop: 5,
 		fontSize: 12,
 		color: colors.fontSecondary,
 		...fontStyles.normal
+	},
+	accountBalanceError: {
+		color: colors.fontError,
+		marginLeft: 4
 	},
 	importedView: {
 		flex: 0.5,
@@ -79,6 +90,10 @@ export default class AccountElement extends PureComponent {
 		 * Current ticker
 		 */
 		ticker: PropTypes.string,
+		/**
+		 * Whether the account element should be disabled (opaque and not clickable)
+		 */
+		disabled: PropTypes.bool,
 		item: PropTypes.object
 	};
 
@@ -95,7 +110,8 @@ export default class AccountElement extends PureComponent {
 	};
 
 	render() {
-		const { address, balance, ticker, name, isSelected, isImported } = this.props.item;
+		const { disabled } = this.props;
+		const { address, balance, ticker, name, isSelected, isImported, balanceError } = this.props.item;
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
 		const imported = isImported ? (
 			<View style={styles.importedWrapper}>
@@ -106,10 +122,11 @@ export default class AccountElement extends PureComponent {
 		) : null;
 		return (
 			<TouchableOpacity
-				style={styles.account}
+				style={[styles.account, disabled ? styles.disabledAccount : null]}
 				key={`account-${address}`}
 				onPress={this.onPress}
 				onLongPress={this.onLongPress}
+				disabled={disabled}
 			>
 				<Identicon address={address} diameter={38} />
 				<View style={styles.accountInfo}>
@@ -117,9 +134,14 @@ export default class AccountElement extends PureComponent {
 						<Text numberOfLines={1} style={[styles.accountLabel]}>
 							{name}
 						</Text>
-						<Text style={styles.accountBalance}>
-							{renderFromWei(balance)} {getTicker(ticker)}
-						</Text>
+						<View style={styles.accountBalanceWrapper}>
+							<Text style={styles.accountBalance}>
+								{renderFromWei(balance)} {getTicker(ticker)}
+							</Text>
+							{!!balanceError && (
+								<Text style={[styles.accountBalance, styles.accountBalanceError]}>{balanceError}</Text>
+							)}
+						</View>
 					</View>
 					{!!imported && <View style={styles.importedView}>{imported}</View>}
 					<View style={styles.selectedWrapper}>{selected}</View>

@@ -4,7 +4,7 @@ import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress } from './address';
-import { util } from 'gaba';
+import { util } from '@metamask/controllers';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -327,4 +327,36 @@ export function getEther(ticker) {
 		logo: '../images/eth-logo.png',
 		isETH: true
 	};
+}
+
+/**
+ * Select the correct tx recipient name from available data
+ *
+ * @param {object} config
+ * @param {object} config.addressBook - Object of address book entries
+ * @param {string} config.network - network id
+ * @param {string} config.toAddress - hex address of tx recipient
+ * @param {object} config.identities - object of identities
+ * @param {string} config.ensRecipient - name of ens recipient
+ * @returns {string} - recipient name
+ */
+export function getTransactionToName({ addressBook, network, toAddress, identities, ensRecipient }) {
+	if (ensRecipient) {
+		return ensRecipient;
+	}
+
+	const networkAddressBook = addressBook[network];
+	const checksummedToAddress = toChecksumAddress(toAddress);
+
+	const transactionToName =
+		(networkAddressBook &&
+			networkAddressBook[checksummedToAddress] &&
+			networkAddressBook[checksummedToAddress].name) ||
+		(identities[checksummedToAddress] && identities[checksummedToAddress].name);
+
+	return transactionToName;
+}
+
+export function getNormalizedTxState(state) {
+	return { ...state.transaction, ...state.transaction.transaction };
 }

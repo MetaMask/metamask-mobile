@@ -105,7 +105,11 @@ class AccountList extends PureComponent {
 		/**
 		 * Whether it will show options to create or import accounts
 		 */
-		enableAccountsAddition: PropTypes.bool
+		enableAccountsAddition: PropTypes.bool,
+		/**
+		 * function to generate an error string based on a passed balance
+		 */
+		getBalanceError: PropTypes.func
 	};
 
 	state = {
@@ -268,13 +272,19 @@ class AccountList extends PureComponent {
 	renderItem = ({ item }) => {
 		const { ticker } = this.props;
 		return (
-			<AccountElement onPress={this.onAccountChange} onLongPress={this.onLongPress} item={item} ticker={ticker} />
+			<AccountElement
+				onPress={this.onAccountChange}
+				onLongPress={this.onLongPress}
+				item={item}
+				ticker={ticker}
+				disabled={Boolean(item.balanceError)}
+			/>
 		);
 	};
 
 	getAccounts() {
-		const { accounts, identities, selectedAddress, keyrings } = this.props;
-		// This is a temporary fix until we can read the state from GABA
+		const { accounts, identities, selectedAddress, keyrings, getBalanceError } = this.props;
+		// This is a temporary fix until we can read the state from @metamask/controllers
 		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
@@ -291,7 +301,17 @@ class AccountList extends PureComponent {
 				if (accounts[identityAddressChecksummed]) {
 					balance = accounts[identityAddressChecksummed].balance;
 				}
-				return { index, name, address: identityAddressChecksummed, balance, isSelected, isImported };
+
+				const balanceError = getBalanceError ? getBalanceError(balance) : null;
+				return {
+					index,
+					name,
+					address: identityAddressChecksummed,
+					balance,
+					isSelected,
+					isImported,
+					balanceError
+				};
 			});
 	}
 

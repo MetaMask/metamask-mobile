@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`EnterPasswordSimple should render correctly 1`] = `
-<_class
+<RCTSafeAreaView
   emulateUnlessSupported={true}
   style={
     Object {
@@ -58,12 +58,10 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
             Please enter your password in order to continue
           </Text>
           <TextInput
-            allowFontScaling={true}
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Password"
             placeholderTextColor="#d6d9dc"
-            rejectResponderTermination={true}
             secureTextEntry={true}
             style={
               Object {
@@ -73,7 +71,6 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
                 "padding": 10,
               }
             }
-            underlineColorAndroid="transparent"
           />
         </View>
         <View
@@ -106,5 +103,5 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
       </View>
     </KeyboardAwareScrollViewMock>
   </View>
-</_class>
+</RCTSafeAreaView>
 `;

@@ -5,6 +5,7 @@ import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress, renderAccountName } from '../../../util/address';
+import { getNormalizedTxState } from '../../../util/transactions';
 import contractMap from 'eth-contract-metadata';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Identicon from '../../UI/Identicon';
@@ -183,7 +184,7 @@ class TransactionDirection extends PureComponent {
 
 const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	transaction: state.transaction
+	transaction: getNormalizedTxState(state)
 });
 
 export default connect(mapStateToProps)(TransactionDirection);

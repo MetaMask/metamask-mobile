@@ -1,86 +1,88 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Clipboard, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
+import NetworkList, {
+	getNetworkTypeById,
+	findBlockExplorerForRpc,
+	getBlockExplorerName
+} from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
 import URL from 'url-parse';
-import Device from '../../../../util/Device';
 import EthereumAddress from '../../EthereumAddress';
-
-const HASH_LENGTH = Device.isSmallDevice() ? 18 : 20;
+import TransactionSummary from '../../../Views/TransactionSummary';
+import { toDateFormat } from '../../../../util/date';
+import StyledButton from '../../StyledButton';
+import { safeToChecksumAddress } from '../../../../util/address';
+import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
-		flex: 1,
-		backgroundColor: colors.grey000,
-		paddingVertical: 10,
-		paddingHorizontal: 15,
-		marginTop: 10
+		paddingHorizontal: 15
 	},
 	detailRowTitle: {
+		fontSize: 10,
+		color: colors.grey500,
+		marginBottom: 8,
+		...fontStyles.normal
+	},
+	flexRow: {
+		flexDirection: 'row'
+	},
+	section: {
+		paddingVertical: 16
+	},
+	sectionBorderBottom: {
+		borderBottomColor: colors.grey100,
+		borderBottomWidth: 1
+	},
+	flexEnd: {
 		flex: 1,
-		paddingVertical: 10,
-		fontSize: 15,
+		alignItems: 'flex-end'
+	},
+	textUppercase: {
+		textTransform: 'uppercase'
+	},
+	detailRowText: {
+		fontSize: 12,
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
-	detailRowInfo: {
-		borderRadius: 5,
-		shadowColor: colors.grey400,
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.5,
-		shadowRadius: 3,
-		backgroundColor: colors.white,
-		padding: 10,
-		marginBottom: 5
-	},
-	detailRowInfoItem: {
-		flex: 1,
-		flexDirection: 'row',
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-		marginBottom: 10,
-		paddingBottom: 5
-	},
-	noBorderBottom: {
-		borderBottomWidth: 0
-	},
-	detailRowText: {
-		flex: 1,
-		fontSize: 12,
-		color: colors.fontSecondary,
-		...fontStyles.normal
-	},
-	alignLeft: {
-		textAlign: 'left',
-		width: '40%'
-	},
-	alignRight: {
-		textAlign: 'right',
-		width: '60%'
-	},
 	viewOnEtherscan: {
-		fontSize: 14,
+		fontSize: 16,
 		color: colors.blue,
 		...fontStyles.normal,
-		textAlign: 'center',
-		marginTop: 15,
-		marginBottom: 10,
-		textTransform: 'uppercase'
+		textAlign: 'center'
 	},
-	hash: {
-		fontSize: 12
+	touchableViewOnEtherscan: {
+		marginVertical: 24
 	},
-	singleRow: {
-		flexDirection: 'row'
+	summaryWrapper: {
+		marginVertical: 8
 	},
-	copyIcon: {
-		paddingRight: 5
+	statusText: {
+		fontSize: 12,
+		...fontStyles.normal
+	},
+	actionContainerStyle: {
+		height: 25,
+		width: 70,
+		padding: 0
+	},
+	speedupActionContainerStyle: {
+		marginRight: 10
+	},
+	actionStyle: {
+		fontSize: 10,
+		padding: 0,
+		paddingHorizontal: 10
+	},
+	transactionActionsContainer: {
+		flexDirection: 'row',
+		paddingTop: 10
 	}
 });
 
@@ -104,26 +106,28 @@ class TransactionDetails extends PureComponent {
 		 */
 		transactionObject: PropTypes.object,
 		/**
-		 * Boolean to determine if this network supports a block explorer
-		 */
-		blockExplorer: PropTypes.bool,
-		/**
-		 * Action that shows the global alert
-		 */
-		showAlert: PropTypes.func,
-		/**
 		 * Object with information to render
 		 */
 		transactionDetails: PropTypes.object,
 		/**
 		 * Frequent RPC list from PreferencesController
 		 */
-		frequentRpcList: PropTypes.array
+		frequentRpcList: PropTypes.array,
+		/**
+		 * Callback to close the view
+		 */
+		close: PropTypes.func,
+		/**
+		 * A string representing the network name
+		 */
+		providerType: PropTypes.string,
+		showSpeedUpModal: PropTypes.func,
+		showCancelModal: PropTypes.func
 	};
 
 	state = {
-		cancelIsOpen: false,
-		rpcBlockExplorer: undefined
+		rpcBlockExplorer: undefined,
+		renderTxActions: true
 	};
 
 	componentDidMount = () => {
@@ -140,77 +144,14 @@ class TransactionDetails extends PureComponent {
 		this.setState({ rpcBlockExplorer: blockExplorer });
 	};
 
-	renderTxHash = transactionHash => {
-		if (!transactionHash) return null;
-		return (
-			<View>
-				<Text style={styles.detailRowTitle}>{strings('transactions.hash')}</Text>
-				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={[styles.detailRowText, styles.hash]}>{`${transactionHash.substr(
-						0,
-						HASH_LENGTH
-					)} ... ${transactionHash.substr(-HASH_LENGTH)}`}</Text>
-					{this.renderCopyIcon()}
-				</View>
-			</View>
-		);
-	};
-
-	copy = async () => {
-		await Clipboard.setString(this.props.transactionDetails.transactionHash);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 1500,
-			content: 'clipboard-alert',
-			data: { msg: strings('transactions.hash_copied_to_clipboard') }
-		});
-	};
-
-	copyFrom = async () => {
-		await Clipboard.setString(this.props.transactionDetails.renderFrom);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 1500,
-			content: 'clipboard-alert',
-			data: { msg: strings('transactions.address_copied_to_clipboard') }
-		});
-	};
-
-	copyTo = async () => {
-		await Clipboard.setString(this.props.transactionDetails.renderTo);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 1500,
-			content: 'clipboard-alert',
-			data: { msg: strings('transactions.address_copied_to_clipboard') }
-		});
-	};
-
-	renderCopyIcon = () => (
-		<TouchableOpacity style={styles.copyIcon} onPress={this.copy}>
-			<Icon name={'copy'} size={15} color={colors.blue} />
-		</TouchableOpacity>
-	);
-
-	renderCopyToIcon = () => (
-		<TouchableOpacity style={styles.copyIcon} onPress={this.copyTo}>
-			<Icon name={'copy'} size={15} color={colors.blue} />
-		</TouchableOpacity>
-	);
-
-	renderCopyFromIcon = () => (
-		<TouchableOpacity style={styles.copyIcon} onPress={this.copyFrom}>
-			<Icon name={'copy'} size={15} color={colors.blue} />
-		</TouchableOpacity>
-	);
-
 	viewOnEtherscan = () => {
 		const {
 			transactionObject: { networkID },
 			transactionDetails: { transactionHash },
 			network: {
 				provider: { type }
-			}
+			},
+			close
 		} = this.props;
 		const { rpcBlockExplorer } = this.state;
 		try {
@@ -230,83 +171,125 @@ class TransactionDetails extends PureComponent {
 					title: etherscan_url
 				});
 			}
+			close && close();
 		} catch (e) {
 			// eslint-disable-next-line no-console
 			Logger.error(e, { message: `can't get a block explorer link for network `, networkID });
 		}
 	};
 
-	showCancelModal = () => {
-		this.setState({ cancelIsOpen: true });
+	renderStatusText = status => {
+		status = status && status.charAt(0).toUpperCase() + status.slice(1);
+		switch (status) {
+			case 'Confirmed':
+				return <Text style={[styles.statusText, { color: colors.green400 }]}>{status}</Text>;
+			case 'Pending':
+			case 'Submitted':
+				return <Text style={[styles.statusText, { color: colors.orange }]}>{status}</Text>;
+			case 'Failed':
+			case 'Cancelled':
+				return <Text style={[styles.statusText, { color: colors.red }]}>{status}</Text>;
+		}
 	};
 
-	hideCancelModal = () => {
-		this.setState({ cancelIsOpen: false });
-	};
+	renderSpeedUpButton = () => (
+		<StyledButton
+			type={'normal'}
+			containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
+			style={styles.actionStyle}
+			onPress={this.props.showSpeedUpModal}
+		>
+			{strings('transaction.speedup')}
+		</StyledButton>
+	);
+
+	renderCancelButton = () => (
+		<StyledButton
+			type={'cancel'}
+			containerStyle={styles.actionContainerStyle}
+			style={styles.actionStyle}
+			onPress={this.props.showCancelModal}
+		>
+			{strings('transaction.cancel')}
+		</StyledButton>
+	);
 
 	render = () => {
-		const { blockExplorer, transactionObject } = this.props;
+		const {
+			transactionObject,
+			transactionObject: {
+				status,
+				time,
+				transaction: { nonce, to }
+			},
+			providerType
+		} = this.props;
+		const networkId = NetworkList[providerType].networkId;
+		const renderTxActions = status === 'submitted' || status === 'approved';
+		const renderSpeedUpAction = safeToChecksumAddress(to) !== AppConstants.CONNEXT.CONTRACTS[networkId];
 		const { rpcBlockExplorer } = this.state;
 		return (
 			<View style={styles.detailRowWrapper}>
-				{this.renderTxHash(this.props.transactionDetails.transactionHash)}
-				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
-				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<EthereumAddress style={styles.detailRowText} address={this.props.transactionDetails.renderFrom} />
-					{this.renderCopyFromIcon()}
-				</View>
-				<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
-				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<EthereumAddress style={styles.detailRowText} address={this.props.transactionDetails.renderTo} />
-					{this.renderCopyToIcon()}
-				</View>
-				<Text style={styles.detailRowTitle}>{strings('transactions.details')}</Text>
-				<View style={styles.detailRowInfo}>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>
-							{this.props.transactionDetails.valueLabel || strings('transactions.amount')}
-						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{this.props.transactionDetails.renderValue}
-						</Text>
-					</View>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>
-							{strings('transactions.gas_limit')}
-						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{this.props.transactionDetails.renderGas}
-						</Text>
-					</View>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>
-							{strings('transactions.gas_price')}
-						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{this.props.transactionDetails.renderGasPrice}
-						</Text>
-					</View>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.total')}</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{this.props.transactionDetails.renderTotalValue}
-						</Text>
-					</View>
-					{this.props.transactionDetails.renderTotalValueFiat ? (
-						<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
-							<Text style={[styles.detailRowText, styles.alignRight]}>
-								{this.props.transactionDetails.renderTotalValueFiat}
-							</Text>
+				<View style={[styles.section, styles.flexRow, styles.sectionBorderBottom]}>
+					<View style={[baseStyles.flexGrow, styles.flexRow]}>
+						<View style={baseStyles.flexRow}>
+							<Text style={styles.detailRowTitle}>{strings('transactions.status')}</Text>
+							{this.renderStatusText(status)}
+							{!!renderTxActions && (
+								<View style={styles.transactionActionsContainer}>
+									{renderSpeedUpAction && this.renderSpeedUpButton()}
+									{this.renderCancelButton()}
+								</View>
+							)}
 						</View>
-					) : null}
+						<View style={styles.flexEnd}>
+							<Text style={styles.detailRowTitle}>{strings('transactions.date')}</Text>
+							<Text style={styles.statusText}>{toDateFormat(time)}</Text>
+						</View>
+					</View>
 				</View>
+				<View style={[styles.section, styles.flexRow, !!nonce && styles.sectionBorderBottom]}>
+					<View style={[baseStyles.flexGrow, styles.flexRow]}>
+						<View style={baseStyles.flexRow}>
+							<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
+							<EthereumAddress
+								type="short"
+								style={styles.detailRowText}
+								address={this.props.transactionDetails.renderFrom}
+							/>
+						</View>
+						<View style={styles.flexEnd}>
+							<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
+							<EthereumAddress
+								type="short"
+								style={styles.detailRowText}
+								address={this.props.transactionDetails.renderTo}
+							/>
+						</View>
+					</View>
+				</View>
+				{!!nonce && (
+					<View style={styles.section}>
+						<Text style={[styles.detailRowTitle, styles.textUppercase]}>
+							{strings('transactions.nonce')}
+						</Text>
+						<Text style={[styles.detailRowText]}>{`#${parseInt(nonce.replace(/^#/, ''), 16)}`}</Text>
+					</View>
+				)}
+				<View style={[styles.summaryWrapper, !nonce && styles.touchableViewOnEtherscan]}>
+					<TransactionSummary
+						amount={this.props.transactionDetails.summaryAmount}
+						fee={this.props.transactionDetails.summaryFee}
+						totalAmount={this.props.transactionDetails.summaryTotalAmount}
+						secondaryTotalAmount={this.props.transactionDetails.summarySecondaryTotalAmount}
+						gasEstimationReady
+					/>
+				</View>
+
 				{this.props.transactionDetails.transactionHash &&
 					transactionObject.status !== 'cancelled' &&
-					blockExplorer &&
 					rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
-						<TouchableOpacity
-							onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
-						>
+						<TouchableOpacity onPress={this.viewOnEtherscan} style={styles.touchableViewOnEtherscan}>
 							<Text style={styles.viewOnEtherscan}>
 								{(rpcBlockExplorer &&
 									`${strings('transactions.view_on')} ${getBlockExplorerName(rpcBlockExplorer)}`) ||
@@ -321,6 +304,7 @@ class TransactionDetails extends PureComponent {
 
 const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController,
-	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 export default connect(mapStateToProps)(TransactionDetails);

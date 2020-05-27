@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Confirm should render correctly 1`] = `
-<SafeAreaView
+<ForwardRef(SafeAreaView)
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -22,9 +22,11 @@ exports[`Confirm should render correctly 1`] = `
   >
     <AddressFrom
       fromAccountAddress="0x1"
+      onPressIcon={null}
     />
     <AddressTo
       addressToReady={true}
+      toSelectedAddress=""
     />
   </View>
   <ScrollViewMock
@@ -86,166 +88,18 @@ exports[`Confirm should render correctly 1`] = `
     <View
       style={
         Object {
-          "borderColor": "#D8D8D8",
-          "borderRadius": 8,
-          "borderWidth": 1,
-          "flexDirection": "column",
           "marginHorizontal": 24,
-          "padding": 16,
         }
       }
     >
-      <View
-        style={
-          Object {
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "marginVertical": 6,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 12,
-              "fontWeight": "400",
-            }
-          }
-        >
-          Amount
-        </Text>
-        <Text
-          style={
-            Array [
-              Object {
-                "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
-                "fontSize": 12,
-                "fontWeight": "400",
-              },
-              Object {
-                "textTransform": "uppercase",
-              },
-            ]
-          }
-        />
-      </View>
-      <View
-        style={
-          Object {
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "marginVertical": 6,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 12,
-              "fontWeight": "400",
-            }
-          }
-        >
-          Transaction fee
-        </Text>
-        <View
-          style={
-            Object {
-              "backgroundColor": "#FFFFFF",
-              "height": 10,
-            }
-          }
-        >
-          <ActivityIndicator
-            animating={true}
-            color="#999999"
-            hidesWhenStopped={true}
-            size="small"
-          />
-        </View>
-      </View>
-      <View
-        style={
-          Object {
-            "borderBottomColor": "#D8D8D8",
-            "borderBottomWidth": 1,
-            "marginVertical": 6,
-          }
-        }
+      <TransactionSummary
+        amount=""
+        fee=""
+        gasEstimationReady={false}
+        onEditPress={[Function]}
+        secondaryTotalAmount=""
+        totalAmount=""
       />
-      <View
-        style={
-          Object {
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "marginVertical": 6,
-          }
-        }
-      >
-        <Text
-          style={
-            Array [
-              Object {
-                "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
-                "fontSize": 12,
-                "fontWeight": "400",
-              },
-              Object {
-                "alignSelf": "flex-end",
-                "fontFamily": "CircularStd-Medium",
-                "fontWeight": "600",
-              },
-            ]
-          }
-        >
-          Total amount
-        </Text>
-        <View
-          style={
-            Object {
-              "backgroundColor": "#FFFFFF",
-              "height": 10,
-            }
-          }
-        >
-          <ActivityIndicator
-            animating={true}
-            color="#999999"
-            hidesWhenStopped={true}
-            size="small"
-          />
-        </View>
-      </View>
-      <View
-        style={
-          Object {
-            "alignItems": "flex-end",
-            "marginTop": 8,
-          }
-        }
-      >
-        <View
-          style={
-            Object {
-              "backgroundColor": "#FFFFFF",
-              "height": 10,
-            }
-          }
-        >
-          <ActivityIndicator
-            animating={true}
-            color="#999999"
-            hidesWhenStopped={true}
-            size="small"
-          />
-        </View>
-      </View>
     </View>
     <View
       style={
@@ -255,31 +109,6 @@ exports[`Confirm should render correctly 1`] = `
       }
     >
       <TouchableOpacity
-        activeOpacity={0.2}
-        disabled={true}
-        onPress={[Function]}
-        style={
-          Object {
-            "padding": 12,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "alignSelf": "center",
-              "color": "#037dd6",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 14,
-              "fontWeight": "400",
-            }
-          }
-        >
-          Adjust transaction fee
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        activeOpacity={0.2}
         onPress={[Function]}
         style={
           Object {
@@ -338,6 +167,61 @@ exports[`Confirm should render correctly 1`] = `
       Send
     </StyledButton>
   </View>
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={300}
+    animationOut="slideOutDown"
+    animationOutTiming={300}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0.7}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    coverScreen={true}
+    customBackdrop={null}
+    deviceHeight={null}
+    deviceWidth={null}
+    hasBackdrop={true}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onSwipeComplete={[Function]}
+    propagateSwipe={true}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "justifyContent": "flex-end",
+        "margin": 0,
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    useNativeDriver={false}
+  >
+    <Connect(AccountList)
+      enableAccountsAddition={false}
+      getBalanceError={[Function]}
+      identities={Object {}}
+      keyrings={Object {}}
+      onAccountChange={[Function]}
+      selectedAddress="0x1"
+      ticker="ETH"
+    />
+  </ReactNativeModal>
   <ActionModal
     cancelButtonMode="neutral"
     cancelTestID=""
@@ -399,6 +283,8 @@ exports[`Confirm should render correctly 1`] = `
     backdropOpacity={0.7}
     backdropTransitionInTiming={300}
     backdropTransitionOutTiming={300}
+    coverScreen={true}
+    customBackdrop={null}
     deviceHeight={null}
     deviceWidth={null}
     hasBackdrop={true}
@@ -412,6 +298,7 @@ exports[`Confirm should render correctly 1`] = `
     onModalWillShow={[Function]}
     onSwipeComplete={[Function]}
     propagateSwipe={true}
+    scrollHorizontal={false}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}
@@ -434,7 +321,6 @@ exports[`Confirm should render correctly 1`] = `
       }
     >
       <TouchableOpacity
-        activeOpacity={0.2}
         onPress={[Function]}
         style={
           Object {
@@ -493,5 +379,5 @@ exports[`Confirm should render correctly 1`] = `
       </View>
     </View>
   </ReactNativeModal>
-</SafeAreaView>
+</ForwardRef(SafeAreaView)>
 `;

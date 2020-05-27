@@ -108,7 +108,7 @@ checkParameters(){
 
 prebuild(){
 	# Import provider
-	cp node_modules/metamask-mobile-provider/dist/index.js app/core/InpageBridgeWeb3.js
+	cp node_modules/@metamask/mobile-provider/dist/index.js app/core/InpageBridgeWeb3.js
 
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then
@@ -257,13 +257,8 @@ checkParameters "$@"
 printTitle
 
 if [ "$MODE" == "release" ]; then
-	if [ "$PRE_RELEASE" = false ]; then
-		checkAuthToken 'sentry.release.properties'
-		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
-	else
-		checkAuthToken 'sentry.debug.properties'
-		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-	fi
+	checkAuthToken 'sentry.release.properties'
+	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
 	if [ -z "$METAMASK_ENVIRONMENT" ]; then
 		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
 		exit 1
