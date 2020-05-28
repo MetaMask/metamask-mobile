@@ -291,6 +291,7 @@ class Confirm extends PureComponent {
 		fromSelectedAddress: this.props.transactionState.transaction.from,
 		hexDataModalVisible: false,
 		gasError: undefined,
+		ready: false,
 		transactionValue: undefined,
 		transactionValueFiat: undefined,
 		transactionFee: undefined,
@@ -527,13 +528,17 @@ class Confirm extends PureComponent {
 		this.setState({ hexDataModalVisible: !hexDataModalVisible });
 	};
 
+	ready = () => {
+		this.setState({ ready: true });
+	};
+
 	renderCustomGasModal = () => {
-		const { customGasModalVisible, currentCustomGasSelected, gasError } = this.state;
+		const { customGasModalVisible, currentCustomGasSelected, gasError, ready } = this.state;
 		const { gas, gasPrice } = this.props.transactionState.transaction;
 		return (
 			<ActionModal
 				confirmText={strings('custom_gas.save')}
-				confirmDisabled={!!gasError}
+				confirmDisabled={!!gasError || !ready}
 				confirmButtonMode={'confirm'}
 				displayCancelButton={false}
 				onConfirmPress={this.handleSetGasFee}
@@ -553,6 +558,7 @@ class Confirm extends PureComponent {
 					gasError={gasError}
 					toggleCustomGasModal={this.toggleCustomGasModal}
 					handleSetGasFee={this.handleSetGasFee}
+					parentStateReady={this.ready}
 				/>
 			</ActionModal>
 		);
