@@ -637,6 +637,7 @@
 		"received_unit": "Received {{unit}}",
 		"sent_collectible": "Sent Collectible",
 		"sent": "Sent",
+		"received": "Received",
 		"contract_deploy": "Contract Deployment",
 		"to_contract": "New Contract",
 		"instant_payment_deposit": "Instant Payment Deposit",

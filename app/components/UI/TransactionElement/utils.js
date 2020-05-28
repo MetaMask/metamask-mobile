@@ -15,7 +15,13 @@ import {
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { renderFullAddress, safeToChecksumAddress } from '../../../util/address';
-import { decodeTransferData, isCollectibleAddress, getTicker, getActionKey } from '../../../util/transactions';
+import {
+	decodeTransferData,
+	isCollectibleAddress,
+	getTicker,
+	getActionKey,
+	TRANSACTION_TYPES
+} from '../../../util/transactions';
 import contractMap from 'eth-contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
 
@@ -45,7 +51,8 @@ function decodeTransferPaymentChannel(args) {
 		currentCurrency,
 		exchangeRate,
 		actionKey,
-		primaryCurrency
+		primaryCurrency,
+		selectedAddress
 	} = args;
 	const totalSAI = hexToBN(value);
 	const readableTotalSAI = renderFromWei(totalSAI);
@@ -77,13 +84,19 @@ function decodeTransferPaymentChannel(args) {
 		};
 	}
 
+	let transactionType;
+	if (renderFrom === selectedAddress) transactionType = TRANSACTION_TYPES.PAYMENT_CHANNEL_SENT;
+	else if (renderTo === selectedAddress) transactionType = TRANSACTION_TYPES.PAYMENT_CHANNEL_RECEIVED;
+	else transactionType = TRANSACTION_TYPES.PAYMENT_CHANNEL_WITHDRAW;
+
 	const transactionElement = {
 		renderFrom,
 		renderTo,
 		actionKey,
 		value: renderTotalSAI,
 		fiatValue: renderTotalSAIFiat,
-		paymentChannelTransaction: true
+		paymentChannelTransaction: true,
+		transactionType
 	};
 
 	return [transactionElement, transactionDetails];
@@ -92,7 +105,7 @@ function decodeTransferPaymentChannel(args) {
 function getTokenTransfer(args) {
 	const {
 		tx: {
-			transaction: { to, data }
+			transaction: { from, to, data }
 		},
 		conversionRate,
 		currentCurrency,
@@ -100,7 +113,8 @@ function getTokenTransfer(args) {
 		contractExchangeRates,
 		totalGas,
 		actionKey,
-		primaryCurrency
+		primaryCurrency,
+		selectedAddress
 	} = args;
 
 	const [, encodedAmount] = decodeTransferData('transfer', data);
@@ -164,10 +178,15 @@ function getTokenTransfer(args) {
 		};
 	}
 
+	let transactionType;
+	if (renderFullAddress(from) === selectedAddress) transactionType = TRANSACTION_TYPES.SENT;
+	else transactionType = TRANSACTION_TYPES.RECEIVED;
+
 	const transactionElement = {
 		actionKey: renderActionKey,
 		value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
-		fiatValue: `- ${renderTokenFiatAmount}`
+		fiatValue: `- ${renderTokenFiatAmount}`,
+		transactionType
 	};
 
 	return [transactionElement, transactionDetails];
@@ -176,13 +195,14 @@ function getTokenTransfer(args) {
 function getCollectibleTransfer(args) {
 	const {
 		tx: {
-			transaction: { to, data }
+			transaction: { from, to, data }
 		},
 		collectibleContracts,
 		totalGas,
 		conversionRate,
 		currentCurrency,
-		primaryCurrency
+		primaryCurrency,
+		selectedAddress
 	} = args;
 	let actionKey;
 	const [, tokenId] = decodeTransferData('transfer', data);
@@ -224,10 +244,15 @@ function getCollectibleTransfer(args) {
 		};
 	}
 
+	let transactionType;
+	if (renderFullAddress(from) === selectedAddress) transactionType = TRANSACTION_TYPES.SENT;
+	else transactionType = TRANSACTION_TYPES.RECEIVED;
+
 	const transactionElement = {
 		actionKey,
 		value: `${strings('unit.token_id')}${tokenId}`,
-		fiatValue: collectible ? collectible.symbol : undefined
+		fiatValue: collectible ? collectible.symbol : undefined,
+		transactionType
 	};
 
 	return [transactionElement, transactionDetails];
@@ -316,7 +341,9 @@ function decodeIncomingTransfer(args) {
 		renderFrom: renderFullAddress(from),
 		renderTo: renderFullAddress(to),
 		value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
-		fiatValue: renderTokenFiatAmount ? `+ ${renderTokenFiatAmount}` : renderTokenFiatAmount
+		fiatValue: renderTokenFiatAmount ? `+ ${renderTokenFiatAmount}` : renderTokenFiatAmount,
+		isIncomingTransfer: true,
+		transactionType: TRANSACTION_TYPES.RECEIVED
 	};
 
 	return [transactionElement, transactionDetails];
@@ -326,7 +353,8 @@ async function decodeTransferTx(args) {
 	const {
 		tx: {
 			transaction: { from, gas, gasPrice, data, to },
-			transactionHash
+			transactionHash,
+			selectedAddress
 		}
 	} = args;
 
@@ -346,10 +374,14 @@ async function decodeTransferTx(args) {
 	const renderGas = parseInt(gas, 16).toString();
 	const renderGasPrice = renderToGwei(gasPrice);
 
+	let transactionType;
+	if (renderFullAddress(from) === selectedAddress) transactionType = TRANSACTION_TYPES.SENT;
+	else transactionType = TRANSACTION_TYPES.RECEIVED;
+
 	let [transactionElement, transactionDetails] = isCollectible
 		? getCollectibleTransfer({ ...args, totalGas })
 		: getTokenTransfer({ ...args, totalGas });
-	transactionElement = { ...transactionElement, renderTo: addressTo };
+	transactionElement = { ...transactionElement, renderTo: addressTo, transactionType };
 	transactionDetails = {
 		...transactionDetails,
 		...{
@@ -372,7 +404,8 @@ function decodeTransferFromTx(args) {
 		collectibleContracts,
 		conversionRate,
 		currentCurrency,
-		primaryCurrency
+		primaryCurrency,
+		selectedAddress
 	} = args;
 	const [addressFrom, addressTo, tokenId] = decodeTransferData('transferFrom', data);
 	const collectible = collectibleContracts.find(
@@ -393,6 +426,10 @@ function decodeTransferFromTx(args) {
 	const renderFrom = renderFullAddress(addressFrom);
 	const renderTo = renderFullAddress(addressTo);
 	const ticker = getTicker(args.ticker);
+
+	let transactionType;
+	if (renderFrom === selectedAddress) transactionType = TRANSACTION_TYPES.SENT;
+	else transactionType = TRANSACTION_TYPES.RECEIVED;
 
 	let transactionDetails = {
 		renderFrom,
@@ -429,7 +466,8 @@ function decodeTransferFromTx(args) {
 		renderFrom,
 		actionKey,
 		value: `${strings('unit.token_id')}${tokenId}`,
-		fiatValue: collectible ? collectible.symbol : undefined
+		fiatValue: collectible ? collectible.symbol : undefined,
+		transactionType
 	};
 
 	return [transactionElement, transactionDetails];
@@ -464,7 +502,8 @@ function decodeDeploymentTx(args) {
 		actionKey,
 		value: renderTotalEth,
 		fiatValue: renderTotalEthFiat,
-		contractDeployment: true
+		contractDeployment: true,
+		transactionType: TRANSACTION_TYPES.SITE_INTERACTION
 	};
 	let transactionDetails = {
 		renderFrom,
@@ -506,7 +545,8 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 		conversionRate,
 		currentCurrency,
 		actionKey,
-		primaryCurrency
+		primaryCurrency,
+		selectedAddress
 	} = args;
 	const ticker = getTicker(args.ticker);
 	const totalEth = hexToBN(value);
@@ -552,14 +592,24 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 	if (renderTo in contractMap) {
 		symbol = contractMap[renderTo].symbol;
 	}
-
+	let transactionType;
+	if (paymentChannelTransaction) transactionType = TRANSACTION_TYPES.PAYMENT_CHANNEL_DEPOSIT;
+	else if (actionKey === strings('transactions.approve')) transactionType = TRANSACTION_TYPES.APPROVE;
+	else if (
+		actionKey === strings('transactions.smart_contract_interaction') ||
+		(!actionKey.includes(strings('transactions.sent')) && !actionKey.includes(strings('transactions.received')))
+	)
+		transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
+	else if (renderFrom === selectedAddress) transactionType = TRANSACTION_TYPES.SENT;
+	else if (renderTo === selectedAddress) transactionType = TRANSACTION_TYPES.RECEIVED;
 	const transactionElement = {
 		renderTo,
 		renderFrom,
 		actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
 		value: renderTotalEth,
 		fiatValue: renderTotalEthFiat,
-		paymentChannelTransaction
+		paymentChannelTransaction,
+		transactionType
 	};
 
 	return [transactionElement, transactionDetails];
@@ -578,7 +628,8 @@ export default async function decodeTransaction(args) {
 		selectedAddress,
 		ticker
 	} = args;
-	const actionKey = tx.actionKey || (await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction));
+
+	const actionKey = await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction);
 	let transactionElement, transactionDetails;
 	if (paymentChannelTransaction) {
 		[transactionElement, transactionDetails] = decodePaymentChannelTx({ ...args, actionKey });

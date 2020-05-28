@@ -27,6 +27,17 @@ export const APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
 export const CONNEXT_DEPOSIT = '0xea682e37';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
+export const TRANSACTION_TYPES = {
+	PAYMENT_CHANNEL_DEPOSIT: 'payment_channel_deposit',
+	PAYMENT_CHANNEL_WITHDRAW: 'payment_channel_withdraw',
+	PAYMENT_CHANNEL_SENT: 'payment_channel_sent',
+	PAYMENT_CHANNEL_RECEIVED: 'payment_channel_received',
+	SENT: 'transaction_sent',
+	RECEIVED: 'transaction_received',
+	SITE_INTERACTION: 'transaction_site_interaction',
+	APPROVE: 'transaction_approve'
+};
+
 /**
  * Utility class with the single responsibility
  * of caching CollectibleAddresses
@@ -271,7 +282,9 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 		}
 		return strings('transactions.received_unit', { unit: tx.transferInformation.symbol });
 	}
+
 	const actionKey = await getTransactionActionKey(tx);
+
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		ticker = paymentChannelTransaction ? strings('unit.sai') : ticker;
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
@@ -289,9 +302,11 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 			: strings('transactions.sent_ether');
 	}
 	const transactionActionKey = actionKeys[actionKey];
+
 	if (transactionActionKey) {
 		return transactionActionKey;
 	}
+
 	return actionKey;
 }
 
