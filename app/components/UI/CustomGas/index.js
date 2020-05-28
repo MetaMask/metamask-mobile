@@ -353,8 +353,6 @@ class CustomGas extends PureComponent {
 		} = this.props;
 		const checksummedFrom = safeToChecksumAddress(from) || '';
 		const fromAccount = this.props.accounts[checksummedFrom];
-		if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice)))
-			return strings('transaction.insufficient');
 		if (hexToBN(fromAccount.balance).lt(gas.mul(gasPrice).add(value))) return strings('transaction.insufficient');
 		return '';
 	};
@@ -534,11 +532,10 @@ class CustomGas extends PureComponent {
 	renderGasError = () => {
 		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
 		const { gasError } = this.props;
-		const hideError = !warningGasLimit && !warningGasPrice && !warningSufficientFunds && !gasError;
 		const gasErrorMessage = warningGasPrice || warningGasLimit || warningSufficientFunds || gasError;
 		return (
 			<View style={styles.warningWrapper}>
-				<View style={[styles.warningTextWrapper, hideError ? styles.invisible : null]}>
+				<View style={[styles.warningTextWrapper, !gasErrorMessage ? styles.invisible : null]}>
 					<Text style={styles.warningText}>{gasErrorMessage}</Text>
 				</View>
 			</View>
