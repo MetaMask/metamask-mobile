@@ -21,7 +21,6 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
-import RNFS from 'react-native-fs';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { connect } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge';
@@ -61,6 +60,8 @@ import { resemblesAddress } from '../../../util/address';
 
 import createAsyncMiddleware from 'json-rpc-engine/src/createAsyncMiddleware';
 import { ethErrors } from 'eth-json-rpc-errors';
+
+import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -734,9 +735,7 @@ export class BrowserTab extends PureComponent {
 		});
 
 	init = async () => {
-		const entryScriptWeb3 = Device.isIos()
-			? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
-			: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
+		const entryScriptWeb3 = await EntryScriptWeb3.get();
 
 		const analyticsEnabled = Analytics.getEnabled();
 
@@ -1137,13 +1136,21 @@ export class BrowserTab extends PureComponent {
 		current && current.reload();
 	};
 
-	forceReload = () => {
+	forceReload = initialReload => {
 		this.isReloading = true;
 
 		this.toggleOptionsIfNeeded();
 		// As we're reloading to other url we should remove this callback
 		this.approvalRequest = undefined;
 		const url2Reload = this.state.inputValue;
+
+		// If it is the first time the component is being mounted, there should be no cache problem and no need for remounting the component
+		if (initialReload) {
+			this.isReloading = false;
+			this.go(url2Reload);
+			return;
+		}
+
 		// Force unmount the webview to avoid caching problems
 		this.setState({ forceReload: true }, () => {
 			// Make sure we're not calling last mounted webview during this time threshold
@@ -1161,17 +1168,12 @@ export class BrowserTab extends PureComponent {
 		if (this.webview && this.webview.current) {
 			this.webview.current.stopLoading();
 		}
-		this.forceReload();
+		this.forceReload(true);
 		this.init();
 	};
 
 	addBookmark = () => {
 		this.toggleOptionsIfNeeded();
-		// Check it doesn't exist already
-		if (this.props.bookmarks.filter(i => i.url === this.state.inputValue).length) {
-			Alert.alert(strings('browser.error'), strings('browser.bookmark_already_exists'));
-			return false;
-		}
 		this.checkForPageMeta(() =>
 			this.props.navigation.push('AddBookmarkView', {
 				title: this.state.currentPageTitle || '',
@@ -1498,14 +1500,16 @@ export class BrowserTab extends PureComponent {
 						{strings('browser.reload')}
 					</Text>
 				</Button>
-				<Button onPress={this.addBookmark} style={styles.option}>
-					<View style={styles.optionIconWrapper}>
-						<Icon name="star" size={16} style={styles.optionIcon} />
-					</View>
-					<Text style={styles.optionText} numberOfLines={1}>
-						{strings('browser.add_to_favorites')}
-					</Text>
-				</Button>
+				{!this.isBookmark() && (
+					<Button onPress={this.addBookmark} style={styles.option}>
+						<View style={styles.optionIconWrapper}>
+							<Icon name="star" size={16} style={styles.optionIcon} />
+						</View>
+						<Text style={styles.optionText} numberOfLines={1}>
+							{strings('browser.add_to_favorites')}
+						</Text>
+					</Button>
+				)}
 				<Button onPress={this.share} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="share" size={15} style={styles.optionIcon} />
@@ -1625,6 +1629,7 @@ export class BrowserTab extends PureComponent {
 			>
 				<View style={styles.urlModalContent} testID={'url-modal'}>
 					<TextInput
+						keyboardType="web-search"
 						ref={this.inputRef}
 						autoCapitalize="none"
 						autoCorrect={false}
@@ -1863,6 +1868,12 @@ export class BrowserTab extends PureComponent {
 	isTabActive = () => {
 		const { activeTab, id } = this.props;
 		return activeTab === id;
+	};
+
+	isBookmark = () => {
+		const { bookmarks, navigation } = this.props;
+		const currentUrl = navigation.getParam('url', null);
+		return bookmarks.some(({ url }) => url === currentUrl);
 	};
 
 	isHomepage = (url = null) => {

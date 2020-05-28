@@ -11,7 +11,12 @@ import {
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
-import { APPROVE_FUNCTION_SIGNATURE, decodeTransferData, getTicker } from '../../../../util/transactions';
+import {
+	APPROVE_FUNCTION_SIGNATURE,
+	decodeTransferData,
+	getTicker,
+	getNormalizedTxState
+} from '../../../../util/transactions';
 import contractMap from 'eth-contract-metadata';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { safeToChecksumAddress } from '../../../../util/address';
@@ -200,7 +205,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	transaction: state.transaction,
+	transaction: getNormalizedTxState(state),
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 

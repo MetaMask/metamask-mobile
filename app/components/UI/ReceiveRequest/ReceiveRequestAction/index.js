@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import { fontStyles, colors } from '../../../../styles/common';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
 /**
  * PureComponent that renders a receive action
  */
-export default class ReceiveRequestAction extends PureComponent {
+class ReceiveRequestAction extends PureComponent {
 	static propTypes = {
 		/**
 		 * The navigator object
@@ -78,3 +79,5 @@ export default class ReceiveRequestAction extends PureComponent {
 		);
 	}
 }
+
+export default connect()(ReceiveRequestAction);

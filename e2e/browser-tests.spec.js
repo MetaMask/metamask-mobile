@@ -87,10 +87,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 			await TestHelpers.delay(1000);
 		}
 		// Tap on personal_sign button
@@ -102,10 +102,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 			await TestHelpers.delay(1000);
 		}
 		// Tap ok in alert box
@@ -123,10 +123,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 			await TestHelpers.delay(1000);
 		}
 		// Scroll to bottom of browser view
@@ -146,10 +146,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 			await TestHelpers.delay(1000);
 		}
 		// Tap on sign typed data button
@@ -161,10 +161,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 			await TestHelpers.delay(1000);
 		}
 		// Tap ok in alert box
@@ -182,10 +182,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 			await TestHelpers.delay(1000);
 		}
 		// Tap ok in alert box
@@ -203,10 +203,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 			await TestHelpers.delay(1000);
 		}
 		// Tap ok in alert box
@@ -224,10 +224,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('SIGN');
+			await TestHelpers.tapByText('Sign');
 			await TestHelpers.delay(1000);
 		}
 	});

@@ -6,7 +6,7 @@ import rootReducer from '../reducers';
 import AppConstants from '../core/AppConstants';
 
 const migrations = {
-	// Needed after https://github.com/MetaMask/gaba/pull/152
+	// Needed after https://github.com/MetaMask/controllers/pull/152
 	0: state => {
 		const addressBook = state.engine.backgroundState.AddressBookController.addressBook;
 		const migratedAddressBook = {};
@@ -32,6 +32,12 @@ const migrations = {
 		state.engine.backgroundState.AssetsController.tokens = migratedTokens;
 
 		return state;
+	},
+	// Combine the transactions reducer and newTransaction reducer
+	2: state => {
+		const newState = { ...state };
+		delete newState.newTransaction;
+		return newState;
 	}
 };
 

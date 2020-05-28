@@ -1,68 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TypedSign should render correctly 1`] = `
-<View
-  style={
+<Connect(SignatureRequest)
+  currentPageInformation={
     Object {
-      "backgroundColor": "#FFFFFF",
-      "borderTopLeftRadius": 10,
-      "borderTopRightRadius": 10,
-      "minHeight": "90%",
-      "paddingBottom": 20,
+      "title": "title",
+      "url": "url",
     }
   }
+  onCancel={[Function]}
+  onConfirm={[Function]}
+  truncateMessage={false}
+  type="typedSign"
 >
-  <View>
-    <Text
-      onPress={[Function]}
-      style={
-        Object {
-          "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 18,
-          "fontWeight": "600",
-          "marginHorizontal": 20,
-          "marginVertical": 12,
-          "textAlign": "center",
-        }
-      }
-    >
-      Signature Request
-    </Text>
-  </View>
-  <Connect(SignatureRequest)
-    currentPageInformation={
-      Object {
-        "title": "title",
-        "url": "url",
-      }
-    }
-    onCancel={[Function]}
-    onConfirm={[Function]}
-    type="typedSign"
-  >
-    <View
-      style={
-        Object {
-          "borderBottomColor": "#bbc0c5",
-          "borderBottomWidth": 1,
-          "padding": 20,
-        }
-      }
-    >
-      <Text
-        style={
-          Object {
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "margin": 5,
-          }
-        }
-      >
-        Message:
-      </Text>
-    </View>
-  </Connect(SignatureRequest)>
-</View>
+  <View
+    onLayout={[Function]}
+    style={Array []}
+  />
+</Connect(SignatureRequest)>
 `;

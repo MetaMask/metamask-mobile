@@ -8,9 +8,9 @@ import {
 	View,
 	SafeAreaView,
 	StyleSheet,
-	ActivityIndicator,
-	Clipboard
+	ActivityIndicator
 } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -474,10 +474,12 @@ class PaymentChannel extends PureComponent {
 		this.props.setPaymentChannelTransaction({
 			address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
 			decimals: 18,
-			logo: 'dai.svg',
-			symbol: 'SAI'
+			logo: 'sai.svg',
+			symbol: 'SAI',
+			assetBalance: this.state.balance
 		});
-		this.props.navigation.navigate('PaymentChannelSend');
+
+		this.props.navigation.navigate('SendFlowView', { isPaymentChannelTransaction: true });
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.INSTAPAY_SEND_FUNDS);
 		});

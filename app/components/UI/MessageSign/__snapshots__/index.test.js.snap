@@ -1,72 +1,31 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`MessageSign should render correctly 1`] = `
-<View
-  style={
+<Connect(SignatureRequest)
+  currentPageInformation={
     Object {
-      "backgroundColor": "#FFFFFF",
-      "borderTopLeftRadius": 10,
-      "borderTopRightRadius": 10,
-      "minHeight": "90%",
-      "paddingBottom": 20,
+      "title": "title",
+      "url": "url",
     }
   }
+  onCancel={[Function]}
+  onConfirm={[Function]}
+  showWarning={true}
+  truncateMessage={false}
+  type="ethSign"
 >
-  <View>
-    <Text
-      onPress={[Function]}
-      style={
-        Object {
-          "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 18,
-          "fontWeight": "600",
-          "marginHorizontal": 20,
-          "marginVertical": 12,
-          "textAlign": "center",
-        }
-      }
-    >
-      Signature Request
-    </Text>
-  </View>
-  <Connect(SignatureRequest)
-    currentPageInformation={
+  <View
+    style={
       Object {
-        "title": "title",
-        "url": "url",
+        "marginBottom": 4,
       }
     }
-    onCancel={[Function]}
-    onConfirm={[Function]}
-    showWarning={true}
-    type="ethSign"
   >
-    <View
-      style={
-        Object {
-          "borderBottomColor": "#bbc0c5",
-          "borderBottomWidth": 1,
-          "padding": 20,
-        }
-      }
+    <Text
+      onTextLayout={[Function]}
     >
-      <Text
-        style={
-          Object {
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "margin": 5,
-          }
-        }
-      >
-        Message:
-      </Text>
-      <Text>
-        message
-      </Text>
-    </View>
-  </Connect(SignatureRequest)>
-</View>
+      message
+    </Text>
+  </View>
+</Connect(SignatureRequest)>
 `;
