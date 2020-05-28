@@ -254,7 +254,6 @@ function decodeIncomingTransfer(args) {
 	const renderTokenAmount = token
 		? `${renderFromTokenMinimalUnit(amount, token.decimals)} ${token.symbol}`
 		: undefined;
-	console.log('contractExchangeRates', contractExchangeRates);
 	const exchangeRate = token ? contractExchangeRates[toChecksumAddress(token.address)] : undefined;
 
 	let renderTokenFiatAmount, renderTokenFiatNumber;
@@ -581,7 +580,6 @@ export default async function decodeTransaction(args) {
 	} = args;
 	const actionKey = tx.actionKey || (await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction));
 	let transactionElement, transactionDetails;
-	console.log('decodeTransaction', isTransfer);
 	if (paymentChannelTransaction) {
 		[transactionElement, transactionDetails] = decodePaymentChannelTx({ ...args, actionKey });
 	} else if (isTransfer) {

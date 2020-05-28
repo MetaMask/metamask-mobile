@@ -57,7 +57,11 @@ class Asset extends PureComponent {
 		/**
 		 * An array that represents the user transactions
 		 */
-		transactions: PropTypes.array
+		transactions: PropTypes.array,
+		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array
 	};
 
 	state = {
@@ -85,11 +89,11 @@ class Asset extends PureComponent {
 			this.normalizeTransactions();
 			this.mounted = true;
 		});
-
 		this.navSymbol = this.props.navigation.getParam('symbol', '').toLowerCase();
 		this.navAddress = this.props.navigation.getParam('address', '').toLowerCase();
 		if (this.navSymbol.toUpperCase() !== 'ETH' && this.navAddress !== '') {
 			this.filter = this.noEthFilter;
+			console.log('aaasff');
 		} else {
 			this.filter = this.ethFilter;
 		}
@@ -122,8 +126,14 @@ class Asset extends PureComponent {
 		const { selectedAddress, networkType } = this.props;
 		const networkId = Networks[networkType].networkId;
 		const {
-			transaction: { from, to }
+			transaction: { from, to },
+			isTransfer,
+			transferInformation
 		} = tx;
+		if (isTransfer)
+			return this.props.tokens.find(
+				({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+			);
 		return (
 			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
 			((networkId && networkId.toString() === tx.networkID) ||
@@ -136,8 +146,11 @@ class Asset extends PureComponent {
 		const { networkType } = this.props;
 		const networkId = Networks[networkType].networkId;
 		const {
-			transaction: { to, from }
+			transaction: { to, from },
+			isTransfer,
+			transferInformation
 		} = tx;
+		if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
 		return (
 			(from & (from.toLowerCase() === this.navAddress) || (to && to.toLowerCase() === this.navAddress)) &&
 			((networkId && networkId.toString() === tx.networkID) ||
@@ -153,11 +166,9 @@ class Asset extends PureComponent {
 		const newPendingTxs = [];
 		const confirmedTxs = [];
 		const { networkType, transactions } = this.props;
-		console.log('normalizeTransactions, t', transactions);
 		if (transactions.length) {
 			const txs = transactions.filter(tx => {
-				// const filerResult = this.filter(tx);
-				const filerResult = true;
+				const filerResult = this.filter(tx);
 				if (filerResult) {
 					switch (tx.status) {
 						case 'submitted':
@@ -280,6 +291,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions
 });
 

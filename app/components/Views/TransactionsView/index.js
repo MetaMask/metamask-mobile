@@ -53,7 +53,11 @@ class TransactionsView extends PureComponent {
 		/**
 		 * A string represeting the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array
 	};
 
 	state = {
@@ -108,8 +112,14 @@ class TransactionsView extends PureComponent {
 		const { selectedAddress, networkType } = this.props;
 		const networkId = Networks[networkType].networkId;
 		const {
-			transaction: { from, to }
+			transaction: { from, to },
+			isTransfer,
+			transferInformation
 		} = tx;
+		if (isTransfer)
+			return this.props.tokens.find(
+				({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+			);
 		return (
 			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
 			((networkId && networkId.toString() === tx.networkID) ||
@@ -229,6 +239,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
 });

@@ -264,7 +264,6 @@ export async function getTransactionActionKey(transaction) {
  * @returns {string} - Transaction type message
  */
 export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction) {
-	console.log('getActionKeygetActionKey', tx.transferInformation);
 	if (tx.isTransfer) {
 		const selfSent = safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		if (selfSent) {

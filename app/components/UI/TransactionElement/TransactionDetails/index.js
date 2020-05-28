@@ -166,7 +166,6 @@ class TransactionDetails extends PureComponent {
 				const network = getNetworkTypeById(networkID);
 				const url = getEtherscanTransactionUrl(network, transactionHash);
 				const etherscan_url = getEtherscanBaseUrl(network).replace('https://', '');
-				console.log('viewOnEtherscan', etherscan_url);
 				this.props.navigation.push('Webview', {
 					url,
 					title: etherscan_url

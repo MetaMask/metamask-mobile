@@ -737,7 +737,6 @@ class Confirm extends PureComponent {
 			}
 
 			InteractionManager.runAfterInteractions(() => {
-				console.log('transactionnnn', { ...transactionMeta, assetType: transactionMeta.transaction.assetType });
 				TransactionsNotificationManager.watchSubmittedTransaction({
 					...transactionMeta,
 					assetType
