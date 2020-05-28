@@ -5,7 +5,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
-import { util } from 'gaba';
+import { util } from '@metamask/controllers';
 
 const styles = StyleSheet.create({
 	messageText: {
