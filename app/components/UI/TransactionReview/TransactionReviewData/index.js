@@ -100,7 +100,6 @@ class TransactionReviewData extends PureComponent {
 					)}
 					<TextInput
 						multiline
-						placeholder={strings('transaction.optional')}
 						placeholderTextColor={colors.grey100}
 						style={styles.hexData}
 						value={data}
