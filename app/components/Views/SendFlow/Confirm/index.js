@@ -49,6 +49,8 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import ActionModal from '../../../UI/ActionModal';
+import Device from '../../../../util/Device';
 
 const { hexToBN, BNToHex } = util;
 const {
@@ -167,6 +169,32 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	actionModal: {
+		justifyContent: 'flex-end',
+		alignItems: 'center',
+		width: '100%'
+	},
+	viewWrapperStyle: {
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		marginHorizontal: 0,
+		backgroundColor: colors.white,
+		paddingBottom: Device.isIphoneX() ? 24 : 0
+	},
+	viewContainerStyle: {
+		borderRadius: 20
+	},
+	actionContainerStyle: {
+		borderTopWidth: 0
+	},
+	childrenContainerStyle: {
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		width: '100%',
+		backgroundColor: colors.white,
+		paddingTop: 24,
+		paddingHorizontal: 24
 	}
 });
 
@@ -504,19 +532,19 @@ class Confirm extends PureComponent {
 		const { customGasModalVisible, currentCustomGasSelected, gasError } = this.state;
 		const { gas, gasPrice } = this.props.transactionState.transaction;
 		return (
-			<Modal
-				isVisible={customGasModalVisible}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-				onBackdropPress={this.toggleCustomGasModal}
-				onBackButtonPress={this.toggleCustomGasModal}
-				onSwipeComplete={this.toggleCustomGasModal}
-				swipeDirection={'down'}
-				propagateSwipe
+			<ActionModal
+				confirmText={strings('custom_gas.save')}
+				confirmDisabled={!!gasError}
+				confirmButtonMode={'confirm'}
+				displayCancelButton={false}
+				onConfirmPress={this.handleSetGasFee}
+				onRequestClose={this.toggleCustomGasModal}
+				modalVisible={customGasModalVisible}
+				modalStyle={styles.actionModal}
+				viewWrapperStyle={styles.viewWrapperStyle}
+				viewContainerStyle={styles.viewContainerStyle}
+				actionContainerStyle={styles.actionContainerStyle}
+				childrenContainerStyle={styles.childrenContainerStyle}
 			>
 				<CustomGas
 					selected={currentCustomGasSelected}
@@ -527,7 +555,7 @@ class Confirm extends PureComponent {
 					toggleCustomGasModal={this.toggleCustomGasModal}
 					handleSetGasFee={this.handleSetGasFee}
 				/>
-			</Modal>
+			</ActionModal>
 		);
 	};
 
@@ -724,7 +752,6 @@ class Confirm extends PureComponent {
 			}
 
 			InteractionManager.runAfterInteractions(() => {
-				console.log('transactionnnn', { ...transactionMeta, assetType: transactionMeta.transaction.assetType });
 				TransactionsNotificationManager.watchSubmittedTransaction({
 					...transactionMeta,
 					assetType
