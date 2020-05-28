@@ -241,7 +241,11 @@ class CustomGas extends PureComponent {
 		/**
 		 * Shows or hides the custom gas modal
 		 */
-		toggleCustomGasModal: PropTypes.func
+		toggleCustomGasModal: PropTypes.func,
+		/**
+		 * Sets ready to 'true' in parent state
+		 */
+		parentStateReady: PropTypes.func
 	};
 
 	state = {
@@ -376,6 +380,7 @@ class CustomGas extends PureComponent {
 		this.setState({ ready: false });
 		const basicGasEstimates = await getBasicGasEstimates();
 		this.setState({ ...basicGasEstimates, ready: true });
+		this.props.parentStateReady();
 	};
 
 	onGasLimitChange = value => {
