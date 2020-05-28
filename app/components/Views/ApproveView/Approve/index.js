@@ -25,7 +25,6 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import CustomGas from '../../SendFlow/CustomGas';
 import ActionModal from '../../../UI/ActionModal';
-import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { util } from '@metamask/controllers';
@@ -44,6 +43,7 @@ import TransactionsNotificationManager from '../../../../core/TransactionsNotifi
 import Identicon from '../../../UI/Identicon';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import Device from '../../../../util/Device';
 
 const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
@@ -267,6 +267,32 @@ const styles = StyleSheet.create({
 		color: colors.grey500,
 		fontSize: 14,
 		lineHeight: 20
+	},
+	actionModal: {
+		justifyContent: 'flex-end',
+		alignItems: 'center',
+		width: '100%'
+	},
+	viewWrapperStyle: {
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		marginHorizontal: 0,
+		backgroundColor: colors.white,
+		paddingBottom: Device.isIphoneX() ? 24 : 0
+	},
+	viewContainerStyle: {
+		borderRadius: 20
+	},
+	actionContainerStyle: {
+		borderTopWidth: 0
+	},
+	childrenContainerStyle: {
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		width: '100%',
+		backgroundColor: colors.white,
+		paddingTop: 24,
+		paddingHorizontal: 24
 	}
 });
 
@@ -351,6 +377,7 @@ class Approve extends PureComponent {
 		totalGasFiat: undefined,
 		tokenSymbol: undefined,
 		tokenDecimals: undefined,
+		ready: false,
 		spendLimitUnlimitedSelected: true,
 		spendLimitCustomValue: undefined,
 		ticker: getTicker(this.props.ticker),
@@ -455,23 +482,27 @@ class Approve extends PureComponent {
 		this.setState({ customGas: gas, customGasPrice: gasPrice, customGasSelected, gasError: error });
 	};
 
+	ready = () => {
+		this.setState({ ready: true });
+	};
+
 	renderCustomGasModal = () => {
-		const { customGasModalVisible, currentCustomGasSelected, gasError } = this.state;
+		const { customGasModalVisible, currentCustomGasSelected, gasError, ready } = this.state;
 		const { gas, gasPrice } = this.props.transaction;
 		return (
-			<Modal
-				isVisible={customGasModalVisible}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-				onBackdropPress={this.toggleCustomGasModal}
-				onBackButtonPress={this.toggleCustomGasModal}
-				onSwipeComplete={this.toggleCustomGasModal}
-				swipeDirection={'down'}
-				propagateSwipe
+			<ActionModal
+				confirmText={strings('custom_gas.save')}
+				confirmDisabled={!!gasError || !ready}
+				confirmButtonMode={'confirm'}
+				displayCancelButton={false}
+				onConfirmPress={this.handleSetGasFee}
+				onRequestClose={this.toggleCustomGasModal}
+				modalVisible={customGasModalVisible}
+				modalStyle={styles.actionModal}
+				viewWrapperStyle={styles.viewWrapperStyle}
+				viewContainerStyle={styles.viewContainerStyle}
+				actionContainerStyle={styles.actionContainerStyle}
+				childrenContainerStyle={styles.childrenContainerStyle}
 			>
 				<CustomGas
 					selected={currentCustomGasSelected}
@@ -481,8 +512,9 @@ class Approve extends PureComponent {
 					gasError={gasError}
 					toggleCustomGasModal={this.toggleCustomGasModal}
 					handleSetGasFee={this.handleSetGasFee}
+					parentStateReady={this.ready}
 				/>
-			</Modal>
+			</ActionModal>
 		);
 	};
 
