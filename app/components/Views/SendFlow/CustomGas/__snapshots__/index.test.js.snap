@@ -7,6 +7,8 @@ exports[`CustomGas should render correctly 1`] = `
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "justifyContent": "center",
+      "minHeight": 200,
+      "width": "100%",
     }
   }
 >
@@ -20,6 +22,8 @@ exports[`CustomGas should render correctly 1`] = `
         "alignItems": "center",
         "backgroundColor": "#FFFFFF",
         "justifyContent": "center",
+        "minHeight": 200,
+        "width": "100%",
       }
     }
   />

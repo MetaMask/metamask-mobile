@@ -30,10 +30,13 @@ exports[`ActionModal should render correctly 1`] = `
   scrollOffsetMax={0}
   scrollTo={null}
   style={
-    Object {
-      "margin": 0,
-      "width": "100%",
-    }
+    Array [
+      Object {
+        "margin": 0,
+        "width": "100%",
+      },
+      undefined,
+    ]
   }
   supportedOrientations={
     Array [
@@ -49,12 +52,15 @@ exports[`ActionModal should render correctly 1`] = `
     cancelButtonMode="neutral"
     cancelTestID=""
     cancelText="Cancel"
+    childrenContainerStyle={null}
     confirmButtonMode="warning"
     confirmDisabled={false}
     confirmTestID=""
     confirmText="Confirm"
     displayCancelButton={true}
     displayConfirmButton={true}
+    viewContainerStyle={null}
+    viewWrapperStyle={null}
   />
 </ReactNativeModal>
 `;
