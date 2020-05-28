@@ -12,21 +12,15 @@ import {
 } from '../../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import StyledButton from '../../../UI/StyledButton';
 import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import Radio from '../../../UI/Radio';
-import Device from '../../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		minHeight: 200,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		paddingTop: 24,
-		paddingHorizontal: 24,
-		paddingBottom: Device.isIphoneX() ? 44 : 24
+		width: '100%'
 	},
 	customGasHeader: {
 		flexDirection: 'row',
@@ -145,7 +139,9 @@ const styles = StyleSheet.create({
 	loader: {
 		backgroundColor: colors.white,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		minHeight: 200,
+		width: '100%'
 	},
 	selectorSelected: {
 		backgroundColor: colors.blue000,
@@ -202,13 +198,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'flex-start'
-	},
-	footerContainer: {
-		flexDirection: 'row',
-		alignItems: 'flex-end'
-	},
-	buttonNext: {
-		flex: 1
 	}
 });
 
@@ -252,11 +241,7 @@ class CustomGas extends PureComponent {
 		/**
 		 * Shows or hides the custom gas modal
 		 */
-		toggleCustomGasModal: PropTypes.func,
-		/**
-		 * Sets the gas fee
-		 */
-		handleSetGasFee: PropTypes.func
+		toggleCustomGasModal: PropTypes.func
 	};
 
 	state = {
@@ -543,8 +528,8 @@ class CustomGas extends PureComponent {
 
 	render = () => {
 		if (this.state.ready) {
-			const { advancedCustomGas, warningGasLimit, warningGasPrice } = this.state;
-			const { toggleCustomGasModal, handleSetGasFee, gasError } = this.props;
+			const { advancedCustomGas } = this.state;
+			const { toggleCustomGasModal } = this.props;
 			return (
 				<View style={styles.root}>
 					<View style={styles.customGasHeader}>
@@ -573,17 +558,6 @@ class CustomGas extends PureComponent {
 						<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
 					) : null}
 					{advancedCustomGas ? this.renderGasError() : null}
-					<View style={styles.footerContainer}>
-						<StyledButton
-							disabled={!!gasError || !!warningGasLimit || !!warningGasPrice}
-							type={'confirm'}
-							containerStyle={styles.buttonNext}
-							onPress={handleSetGasFee}
-							testID={'custom-gas-save-button'}
-						>
-							{strings('custom_gas.save')}
-						</StyledButton>
-					</View>
 				</View>
 			);
 		}
