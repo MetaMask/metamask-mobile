@@ -105,7 +105,7 @@ function decodeTransferPaymentChannel(args) {
 function getTokenTransfer(args) {
 	const {
 		tx: {
-			transaction: { from, to, data }
+			transaction: { from, to, data, nonce }
 		},
 		conversionRate,
 		currentCurrency,
@@ -186,7 +186,8 @@ function getTokenTransfer(args) {
 		actionKey: renderActionKey,
 		value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
 		fiatValue: `- ${renderTokenFiatAmount}`,
-		transactionType
+		transactionType,
+		nonce
 	};
 
 	return [transactionElement, transactionDetails];
@@ -270,7 +271,8 @@ function decodeIncomingTransfer(args) {
 		contractExchangeRates,
 		totalGas,
 		actionKey,
-		primaryCurrency
+		primaryCurrency,
+		selectedAddress
 	} = args;
 
 	const amount = toBN(value);
@@ -336,14 +338,18 @@ function decodeIncomingTransfer(args) {
 		};
 	}
 
+	let transactionType;
+	if (renderFullAddress(from) === selectedAddress) transactionType = TRANSACTION_TYPES.SENT;
+	else transactionType = TRANSACTION_TYPES.RECEIVED;
+
 	const transactionElement = {
 		actionKey,
 		renderFrom: renderFullAddress(from),
 		renderTo: renderFullAddress(to),
 		value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
-		fiatValue: renderTokenFiatAmount ? `+ ${renderTokenFiatAmount}` : renderTokenFiatAmount,
+		fiatValue: renderTokenFiatAmount ? `${renderTokenFiatAmount}` : renderTokenFiatAmount,
 		isIncomingTransfer: true,
-		transactionType: TRANSACTION_TYPES.RECEIVED
+		transactionType
 	};
 
 	return [transactionElement, transactionDetails];
@@ -353,14 +359,12 @@ async function decodeTransferTx(args) {
 	const {
 		tx: {
 			transaction: { from, gas, gasPrice, data, to },
-			transactionHash,
-			selectedAddress
+			transactionHash
 		}
 	} = args;
 
 	const decodedData = decodeTransferData('transfer', data);
 	const addressTo = decodedData[0];
-	// TODO FIX THIS
 	let isCollectible = false;
 	try {
 		isCollectible = await isCollectibleAddress(to, decodedData[1]);
@@ -374,14 +378,10 @@ async function decodeTransferTx(args) {
 	const renderGas = parseInt(gas, 16).toString();
 	const renderGasPrice = renderToGwei(gasPrice);
 
-	let transactionType;
-	if (renderFullAddress(from) === selectedAddress) transactionType = TRANSACTION_TYPES.SENT;
-	else transactionType = TRANSACTION_TYPES.RECEIVED;
-
 	let [transactionElement, transactionDetails] = isCollectible
 		? getCollectibleTransfer({ ...args, totalGas })
 		: getTokenTransfer({ ...args, totalGas });
-	transactionElement = { ...transactionElement, renderTo: addressTo, transactionType };
+	transactionElement = { ...transactionElement, renderTo: addressTo };
 	transactionDetails = {
 		...transactionDetails,
 		...{

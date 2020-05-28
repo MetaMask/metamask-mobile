@@ -606,7 +606,7 @@
 		"sent": "Enviado",
 		"contract_deploy": "Despliegue de contrato",
 		"to_contract": "Nuevo Contrato",
-		"instant_payment_deposit": "Depósito Instant Payment",
+		"instant_payment_deposit": "Depósito InstaPay",
 		"instant_payment_deposit_tx": "Depósito",
 		"instant_payment_withdraw_tx": "Retiro",
 		"tx_details_free": "Gratis",

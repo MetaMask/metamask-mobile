@@ -73,20 +73,6 @@ const styles = StyleSheet.create({
 		width: 28,
 		height: 28
 	},
-	paymentChannelTransactionIconWrapper: {
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderWidth: 1,
-		borderColor: colors.grey100,
-		borderRadius: 12,
-		width: 24,
-		height: 24,
-		backgroundColor: colors.white
-	},
-	paymentChannelTransactionDepositIcon: {
-		marginTop: 2,
-		marginLeft: 1
-	},
 	actionContainerStyle: {
 		height: 25,
 		width: 70,
@@ -144,12 +130,15 @@ const styles = StyleSheet.create({
 	}
 });
 
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
-
 const transactionIconApprove = require('../../../images/transaction-icons/approve.png'); // eslint-disable-line
 const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png'); // eslint-disable-line
 const transactionIconSent = require('../../../images/transaction-icons/send.png'); // eslint-disable-line
 const transactionIconReceived = require('../../../images/transaction-icons/receive.png'); // eslint-disable-line
+
+const transactionIconApproveFailed = require('../../../images/transaction-icons/approve-failed.png'); // eslint-disable-line
+const transactionIconInteractionFailed = require('../../../images/transaction-icons/interaction-failed.png'); // eslint-disable-line
+const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png'); // eslint-disable-line
+const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png'); // eslint-disable-line
 
 /**
  * View that renders a transaction item part of transactions list
@@ -288,57 +277,33 @@ class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderTxElementImage = transactionElement => {
+	renderTxElementIcon = (transactionElement, status) => {
 		const { transactionType } = transactionElement;
-
+		const isFailedTransaction = status === 'cancelled' || status === 'failed';
+		let icon;
 		switch (transactionType) {
 			case TRANSACTION_TYPES.PAYMENT_CHANNEL_DEPOSIT:
-				return (
-					<View style={styles.iconWrapper}>
-						<Ionicons
-							style={styles.paymentChannelTransactionDepositIcon}
-							name={'md-arrow-down'}
-							size={16}
-							color={colors.green500}
-						/>
-					</View>
-				);
-			case TRANSACTION_TYPES.PAYMENT_CHANNEL_WITHDRAW:
-				return (
-					<View style={styles.iconWrapper}>
-						<Ionicons
-							style={styles.paymentChannelTransactionIconWrapper}
-							name={'md-arrow-down'}
-							size={16}
-							color={colors.green500}
-						/>
-					</View>
-				);
+			case TRANSACTION_TYPES.PAYMENT_CHANNEL_SENT:
 			case TRANSACTION_TYPES.SENT:
-				return (
-					<View style={styles.iconWrapper}>
-						<Image source={transactionIconSent} style={styles.ethLogo} />
-					</View>
-				);
+				icon = isFailedTransaction ? transactionIconSentFailed : transactionIconSent;
+				break;
+			case TRANSACTION_TYPES.PAYMENT_CHANNEL_WITHDRAW:
+			case TRANSACTION_TYPES.PAYMENT_CHANNEL_RECEIVED:
 			case TRANSACTION_TYPES.RECEIVED:
-				return (
-					<View style={styles.iconWrapper}>
-						<Image source={transactionIconReceived} style={styles.ethLogo} />
-					</View>
-				);
+				icon = isFailedTransaction ? transactionIconReceivedFailed : transactionIconReceived;
+				break;
 			case TRANSACTION_TYPES.SITE_INTERACTION:
-				return (
-					<View style={styles.iconWrapper}>
-						<Image source={transactionIconInteraction} style={styles.ethLogo} />
-					</View>
-				);
+				icon = isFailedTransaction ? transactionIconInteractionFailed : transactionIconInteraction;
+				break;
 			case TRANSACTION_TYPES.APPROVE:
-				return (
-					<View style={styles.iconWrapper}>
-						<Image source={transactionIconApprove} style={styles.ethLogo} />
-					</View>
-				);
+				icon = isFailedTransaction ? transactionIconApproveFailed : transactionIconApprove;
+				break;
 		}
+		return (
+			<View style={styles.iconWrapper}>
+				<Image source={icon} style={styles.ethLogo} />
+			</View>
+		);
 	};
 
 	renderStatusText = status => {
@@ -376,7 +341,7 @@ class TransactionElement extends PureComponent {
 			<View style={styles.rowOnly}>
 				{this.renderTxTime()}
 				<View style={styles.subRow}>
-					{this.renderTxElementImage(transactionElement)}
+					{this.renderTxElementIcon(transactionElement, status)}
 					<View style={styles.info} numberOfLines={1}>
 						<Text numberOfLines={1} style={styles.address}>
 							{actionKey}
