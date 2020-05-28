@@ -20,9 +20,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={0.2}
-    >
+    <TouchableOpacity>
       <Icon
         allowFontScaling={false}
         color="#000000"
