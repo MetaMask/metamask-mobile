@@ -104,7 +104,7 @@ const HomeNav = createDrawerNavigator(
 	{
 		contentComponent: DrawerView,
 		drawerWidth: 315,
-		overlayColor: 'rgba(0, 0, 0, 0.7)'
+		overlayColor: 'rgba(0, 0, 0, 0.5)'
 	}
 );
 
