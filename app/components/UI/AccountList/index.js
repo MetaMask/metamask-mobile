@@ -284,7 +284,7 @@ class AccountList extends PureComponent {
 
 	getAccounts() {
 		const { accounts, identities, selectedAddress, keyrings, getBalanceError } = this.props;
-		// This is a temporary fix until we can read the state from GABA
+		// This is a temporary fix until we can read the state from @metamask/controllers
 		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);

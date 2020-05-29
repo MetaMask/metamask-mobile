@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ChoosePassword should render correctly 1`] = `
-<SafeAreaView
+<ForwardRef(SafeAreaView)
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -97,7 +97,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             }
           }
         >
-          <AnimatedComponent
+          <ForwardRef(AnimatedComponentWrapper)
             style={
               Array [
                 Object {
@@ -127,16 +127,14 @@ exports[`ChoosePassword should render correctly 1`] = `
             }
           >
             New Password
-          </AnimatedComponent>
+          </ForwardRef(AnimatedComponentWrapper)>
           <TextInput
-            allowFontScaling={true}
             autoCapitalize="none"
             onBlur={[Function]}
             onChangeText={[Function]}
             onFocus={[Function]}
             onSubmitEditing={[Function]}
             placeholder=""
-            rejectResponderTermination={true}
             returnKeyType="next"
             secureTextEntry={true}
             style={
@@ -156,7 +154,6 @@ exports[`ChoosePassword should render correctly 1`] = `
             value=""
           />
           <TouchableOpacity
-            activeOpacity={0.2}
             onPress={[Function]}
             style={
               Object {
@@ -207,7 +204,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             }
           }
         >
-          <AnimatedComponent
+          <ForwardRef(AnimatedComponentWrapper)
             style={
               Array [
                 Object {
@@ -237,9 +234,8 @@ exports[`ChoosePassword should render correctly 1`] = `
             }
           >
             Confirm Password
-          </AnimatedComponent>
+          </ForwardRef(AnimatedComponentWrapper)>
           <TextInput
-            allowFontScaling={true}
             autoCapitalize="none"
             onBlur={[Function]}
             onChangeText={[Function]}
@@ -247,7 +243,6 @@ exports[`ChoosePassword should render correctly 1`] = `
             onSubmitEditing={[Function]}
             placeholder=""
             placeholderTextColor="#d6d9dc"
-            rejectResponderTermination={true}
             returnKeyType="done"
             secureTextEntry={true}
             style={
@@ -361,5 +356,5 @@ exports[`ChoosePassword should render correctly 1`] = `
       </StyledButton>
     </View>
   </View>
-</SafeAreaView>
+</ForwardRef(SafeAreaView)>
 `;

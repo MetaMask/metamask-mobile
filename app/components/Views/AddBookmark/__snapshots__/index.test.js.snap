@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddBookmark should render correctly 1`] = `
-<SafeAreaView
+<ForwardRef(SafeAreaView)
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -41,12 +41,10 @@ exports[`AddBookmark should render correctly 1`] = `
           Name
         </Text>
         <TextInput
-          allowFontScaling={true}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
           placeholderTextColor="#d6d9dc"
-          rejectResponderTermination={true}
           returnKeyType="next"
           style={
             Object {
@@ -59,7 +57,6 @@ exports[`AddBookmark should render correctly 1`] = `
             }
           }
           testID="add-bookmark-title"
-          underlineColorAndroid="transparent"
           value={null}
         />
         <Text
@@ -90,10 +87,8 @@ exports[`AddBookmark should render correctly 1`] = `
           Url
         </Text>
         <TextInput
-          allowFontScaling={true}
           onChangeText={[Function]}
           placeholder=""
-          rejectResponderTermination={true}
           returnKeyType="done"
           style={
             Object {
@@ -106,7 +101,6 @@ exports[`AddBookmark should render correctly 1`] = `
             }
           }
           testID="add-bookmark-url"
-          underlineColorAndroid="transparent"
           value={null}
         />
         <Text
@@ -121,5 +115,5 @@ exports[`AddBookmark should render correctly 1`] = `
       </View>
     </View>
   </ActionView>
-</SafeAreaView>
+</ForwardRef(SafeAreaView)>
 `;

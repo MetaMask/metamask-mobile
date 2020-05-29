@@ -30,7 +30,7 @@ exports[`QrScanner should render correctly 1`] = `
     }
     type="back"
   >
-    <SafeAreaView
+    <ForwardRef(SafeAreaView)
       style={
         Object {
           "flex": 1,
@@ -38,7 +38,6 @@ exports[`QrScanner should render correctly 1`] = `
       }
     >
       <TouchableOpacity
-        activeOpacity={0.2}
         onPress={[Function]}
         style={
           Object {
@@ -87,7 +86,7 @@ exports[`QrScanner should render correctly 1`] = `
       >
         scanning...
       </Text>
-    </SafeAreaView>
+    </ForwardRef(SafeAreaView)>
   </View>
 </View>
 `;
