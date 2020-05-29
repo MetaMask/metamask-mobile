@@ -17,7 +17,6 @@ exports[`PickComponent should render correctly 1`] = `
     }
   >
     <TouchableOpacity
-      activeOpacity={0.2}
       onPress={[Function]}
       style={
         Object {
@@ -61,7 +60,6 @@ exports[`PickComponent should render correctly 1`] = `
     }
   >
     <TouchableOpacity
-      activeOpacity={0.2}
       onPress={[Function]}
       style={
         Object {

@@ -79,7 +79,7 @@ describe('Import seedphrase flow', () => {
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on settings
-		await TestHelpers.tap('settings-button');
+		await TestHelpers.tapByText('Settings');
 		// Tap on the "Security & Privacy" option
 		await TestHelpers.tapByText('Security & Privacy');
 

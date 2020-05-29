@@ -491,6 +491,7 @@
 		"review_function_type": "FUNCTION TYPE",
 		"review_hex_data": "HEX DATA",
 		"insufficient": "Insufficient funds",
+		"insufficient_tokens": "Insufficient {{token}}",
 		"invalid_address": "Invalid address",
 		"invalid_amount": "Invalid amount",
 		"invalid_gas": "Invalid gas amount",
@@ -733,15 +734,17 @@
 	},
 	"signature_request": {
 		"title": "Signature Request",
-		"cancel": "CANCEL",
-		"sign": "SIGN",
+		"cancel": "Cancel",
+		"sign": "Sign",
 		"sign_requested": "Your signature is being requested",
-		"signing": "You are signing:",
+		"signing": "Sign this message?",
 		"account_title": "Account:",
 		"balance_title": "Balance:",
-		"message": "Message:",
+		"message": "Message",
+		"message_from": "Message from",
 		"learn_more": "Learn More",
-		"eth_sign_warning": "Signing this message can have dangerous side effects. Only sign messages from sites you fully trust with your entire account. This dangerous method will be removed in a future version."
+		"read_more": "Read more",
+		"eth_sign_warning": "Proceed with caution. This action can potentially be used to withdraw assets from your account. Make sure you trust this site."
 	},
 	"watch_asset_request": {
 		"title": "Add Suggested Token",
@@ -784,9 +787,9 @@
 	"accountApproval": {
 		"title": "CONNECT REQUEST",
 		"walletconnect_title": "WALLETCONNECT REQUEST",
-		"action": "would like to",
-		"connect": "CONNECT",
-		"cancel": "CANCEL",
+		"action": "Connect to this site?",
+		"connect": "Connect",
+		"cancel": "Cancel",
 		"permission": "View your",
 		"address": "public address",
 		"sign_messages": "Sign messages",
@@ -1062,6 +1065,9 @@
 		"deposit_amount": "Amount to deposit",
 		"load_funds": "Load Funds",
 		"insta_pay": "InstaPay",
+		"insta_pay_send_to": "InstaPay: Send to",
+		"insta_pay_amount": "InstaPay: Amount",
+		"insta_pay_confirm": "InstaPay: Confirm",
 		"welcome": {
 			"title": "Welcome to InstaPay!",
 			"desc_1": "This is an experimental Layer 2 feature to let you send assets to friends without transaction fees.",

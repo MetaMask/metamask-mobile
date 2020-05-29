@@ -23,6 +23,12 @@ The code is built using React-Native and running code locally requires a Mac or 
   - [macOS](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1)
   - [Linux](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-2)
 
+- Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
+
+```bash 
+sudo gem install cocoapods
+```
+
 - _MetaMask Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
 
 - Clone this repo and install our dependencies:
@@ -31,6 +37,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 git clone ...
 cd metamask-mobile
 yarn install # this will run a lengthy postinstall flow
+cd ios && pod install && cd .. # install pods for iOS
 ```
 
 - Then, in one terminal, run:

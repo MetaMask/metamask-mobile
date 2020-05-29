@@ -21,7 +21,6 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
-import RNFS from 'react-native-fs';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { connect } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge';
@@ -61,6 +60,8 @@ import { resemblesAddress } from '../../../util/address';
 
 import createAsyncMiddleware from 'json-rpc-engine/src/createAsyncMiddleware';
 import { ethErrors } from 'eth-json-rpc-errors';
+
+import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -736,9 +737,7 @@ export class BrowserTab extends PureComponent {
 		});
 
 	init = async () => {
-		const entryScriptWeb3 = Device.isIos()
-			? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
-			: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
+		const entryScriptWeb3 = await EntryScriptWeb3.get();
 
 		const analyticsEnabled = Analytics.getEnabled();
 		const disctinctId = await Analytics.getDistinctId();
@@ -1144,13 +1143,21 @@ export class BrowserTab extends PureComponent {
 		current && current.reload();
 	};
 
-	forceReload = () => {
+	forceReload = initialReload => {
 		this.isReloading = true;
 
 		this.toggleOptionsIfNeeded();
 		// As we're reloading to other url we should remove this callback
 		this.approvalRequest = undefined;
 		const url2Reload = this.state.inputValue;
+
+		// If it is the first time the component is being mounted, there should be no cache problem and no need for remounting the component
+		if (initialReload) {
+			this.isReloading = false;
+			this.go(url2Reload);
+			return;
+		}
+
 		// Force unmount the webview to avoid caching problems
 		this.setState({ forceReload: true }, () => {
 			// Make sure we're not calling last mounted webview during this time threshold
@@ -1168,7 +1175,7 @@ export class BrowserTab extends PureComponent {
 		if (this.webview && this.webview.current) {
 			this.webview.current.stopLoading();
 		}
-		this.forceReload();
+		this.forceReload(true);
 		this.init();
 	};
 

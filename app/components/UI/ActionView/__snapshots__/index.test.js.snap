@@ -41,8 +41,6 @@ exports[`ActionView should render correctly 1`] = `
   <View
     style={
       Object {
-        "borderTopColor": "#bbc0c5",
-        "borderTopWidth": 1,
         "flex": 0,
         "flexDirection": "row",
         "paddingHorizontal": 24,

@@ -14,16 +14,17 @@ import Engine from '../../../../core/Engine';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
 import StyledButton from '../../../UI/StyledButton';
-import { setSelectedAsset, setRecipient, newAssetTransaction } from '../../../../actions/newTransaction';
+import { setSelectedAsset, setRecipient, newAssetTransaction } from '../../../../actions/transaction';
 import { isENS } from '../../../../util/address';
 import { getTicker, getEther } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
-import { hexToBN } from 'gaba/dist/util';
+import { util } from '@metamask/controllers';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
+const { hexToBN } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -122,7 +123,8 @@ const dummy = () => true;
  * View that wraps the wraps the "Send" screen
  */
 class SendFlow extends PureComponent {
-	static navigationOptions = ({ navigation }) => getSendFlowTitle('send.send_to', navigation);
+	static navigationOptions = ({ navigation, screenProps }) =>
+		getSendFlowTitle('send.send_to', navigation, screenProps);
 
 	static propTypes = {
 		/**
@@ -168,7 +170,15 @@ class SendFlow extends PureComponent {
 		/**
 		 * Network provider type as mainnet
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		/**
+		 * Indicates whether the current transaction is a payment channel transaction
+		 */
+		isPaymentChannelTransaction: PropTypes.bool,
+		/**
+		 * Selected asset from current transaction state
+		 */
+		selectedAsset: PropTypes.object
 	};
 
 	addressToInputRef = React.createRef();
@@ -191,16 +201,30 @@ class SendFlow extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { addressBook, selectedAddress, accounts, ticker, network, navigation, providerType } = this.props;
+		const {
+			addressBook,
+			selectedAddress,
+			accounts,
+			ticker,
+			network,
+			isPaymentChannelTransaction,
+			selectedAsset,
+			navigation,
+			providerType
+		} = this.props;
 		const { fromAccountName } = this.state;
 		// For analytics
 		navigation.setParams({ providerType });
 		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
+		const fromAccountBalance = isPaymentChannelTransaction
+			? `${selectedAsset.assetBalance} ${selectedAsset.symbol}`
+			: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`;
+
 		setTimeout(() => {
 			this.setState({
 				fromAccountName: ens || fromAccountName,
-				fromAccountBalance: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`,
+				fromAccountBalance,
 				balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero(),
 				inputWidth: { width: '100%' }
 			});
@@ -428,6 +452,7 @@ class SendFlow extends PureComponent {
 	};
 
 	render = () => {
+		const { isPaymentChannelTransaction } = this.props;
 		const {
 			fromSelectedAddress,
 			fromAccountName,
@@ -446,7 +471,7 @@ class SendFlow extends PureComponent {
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
 				<View style={styles.imputWrapper}>
 					<AddressFrom
-						onPressIcon={this.toggleFromAccountModal}
+						onPressIcon={isPaymentChannelTransaction ? null : this.toggleFromAccountModal}
 						fromAccountAddress={fromSelectedAddress}
 						fromAccountName={fromAccountName}
 						fromAccountBalance={fromAccountBalance}
@@ -493,7 +518,7 @@ class SendFlow extends PureComponent {
 								</TouchableOpacity>
 							)}
 							<View style={styles.footerContainer} testID={'no-eth-message'}>
-								{balanceIsZero && (
+								{!isPaymentChannelTransaction && balanceIsZero && (
 									<View style={styles.warningContainer}>
 										<WarningMessage warningMessage={strings('transaction.not_enough_for_gas')} />
 									</View>
@@ -524,12 +549,13 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	selectedAsset: state.newTransaction.selectedAsset,
+	selectedAsset: state.transaction.selectedAsset,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	network: state.engine.backgroundState.NetworkController.network,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction
 });
 
 const mapDispatchToProps = dispatch => ({

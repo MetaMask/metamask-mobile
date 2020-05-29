@@ -13,7 +13,7 @@ import {
 	InteractionManager
 } from 'react-native';
 import { connect } from 'react-redux';
-import { setSelectedAsset, prepareTransaction } from '../../../../actions/newTransaction';
+import { setSelectedAsset, prepareTransaction, setTransactionObject } from '../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -39,7 +39,7 @@ import {
 	handleWeiNumber
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
-import { hexToBN, BNToHex } from 'gaba/dist/util';
+import { util } from '@metamask/controllers';
 import FadeIn from 'react-native-fade-in-image';
 import ErrorMessage from '../ErrorMessage';
 import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
@@ -52,6 +52,8 @@ import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+
+const { hexToBN, BNToHex } = util;
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -284,7 +286,8 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Amount extends PureComponent {
-	static navigationOptions = ({ navigation }) => getSendFlowTitle('send.amount', navigation);
+	static navigationOptions = ({ navigation, screenProps }) =>
+		getSendFlowTitle('send.amount', navigation, screenProps);
 
 	static propTypes = {
 		/**
@@ -354,7 +357,15 @@ class Amount extends PureComponent {
 		/**
 		 * Network provider type as mainnet
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		/**
+		 * Action that sets transaction attributes from object to a transaction
+		 */
+		setTransactionObject: PropTypes.func,
+		/**
+		 * function to call when the 'Next' button is clicked
+		 */
+		onConfirm: PropTypes.func
 	};
 
 	state = {
@@ -373,64 +384,178 @@ class Amount extends PureComponent {
 	collectibles = [];
 
 	componentDidMount = async () => {
-		const { tokens, ticker, selectedAsset, navigation, providerType } = this.props;
+		const {
+			tokens,
+			ticker,
+			selectedAsset,
+			transactionState: { readableValue, paymentRequest, paymentChannelTransaction },
+			navigation,
+			providerType
+		} = this.props;
 		// For analytics
 		navigation.setParams({ providerType });
+
 		this.tokens = [getEther(ticker), ...tokens];
 		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
-		this.onInputChange();
+		this.onInputChange(readableValue);
 		// if collectible don't do this
-		if (!selectedAsset.tokenId) this.handleSelectedAssetBalance(selectedAsset);
-		const estimatedTotalGas = await this.estimateTransactionTotalGas();
 
-		this.setState({ estimatedTotalGas });
+		if (paymentChannelTransaction || paymentRequest || !selectedAsset.tokenId) {
+			this.handleSelectedAssetBalance(
+				selectedAsset,
+				paymentChannelTransaction ? selectedAsset.assetBalance : null
+			);
+		}
+		if (!paymentChannelTransaction) {
+			const estimatedTotalGas = await this.estimateTransactionTotalGas();
+			this.setState({
+				estimatedTotalGas,
+				inputValue: readableValue
+			});
+		}
+	};
+
+	validateCollectibleOwnership = async () => {
+		const { AssetsContractController } = Engine.context;
+		const {
+			transactionState: {
+				selectedAsset: { address, tokenId }
+			},
+			selectedAddress
+		} = this.props;
+		try {
+			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
+			const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
+			if (!isOwner) {
+				return strings('transaction.invalid_collectible_ownership');
+			}
+			return undefined;
+		} catch (e) {
+			return false;
+		}
 	};
 
 	onNext = async () => {
-		const { navigation, selectedAsset, providerType } = this.props;
+		const {
+			navigation,
+			selectedAsset,
+			setSelectedAsset,
+			transactionState: { transaction },
+			providerType,
+			onConfirm
+		} = this.props;
 		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto, hasExchangeRate } = this.state;
 		const value = internalPrimaryCurrencyIsCrypto || !hasExchangeRate ? inputValue : inputValueConversion;
-		if (!selectedAsset.tokenId && this.validateAmount(value)) return;
-		await this.prepareTransaction(value);
+		if (!selectedAsset.tokenId && this.validateAmount(value)) {
+			return;
+		} else if (selectedAsset.tokenId) {
+			const invalidCollectibleOwnership = await this.validateCollectibleOwnership();
+			if (invalidCollectibleOwnership) {
+				this.setState({ amountError: invalidCollectibleOwnership });
+			}
+		}
+
+		if (transaction.value !== undefined) {
+			this.updateTransaction(value);
+		} else {
+			await this.prepareTransaction(value);
+		}
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_AMOUNT, { network: providerType });
 		});
-		navigation.navigate('Confirm');
+
+		setSelectedAsset(selectedAsset);
+		if (onConfirm) {
+			onConfirm();
+		} else {
+			navigation.navigate('Confirm');
+		}
+	};
+
+	getCollectibleTranferTransactionProperties() {
+		const {
+			selectedAsset,
+			transactionState: { transaction, transactionTo }
+		} = this.props;
+
+		const collectibleTransferTransactionProperties = {};
+
+		const collectibleTransferInformation = collectiblesTransferInformation[selectedAsset.address.toLowerCase()];
+		if (
+			!collectibleTransferInformation ||
+			(collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transferFrom')
+		) {
+			collectibleTransferTransactionProperties.data = generateTransferData('transferFrom', {
+				fromAddress: transaction.from,
+				toAddress: transactionTo,
+				tokenId: selectedAsset.tokenId
+			});
+		} else if (collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transfer') {
+			collectibleTransferTransactionProperties.data = generateTransferData('transfer', {
+				toAddress: transactionTo,
+				amount: selectedAsset.tokenId.toString(16)
+			});
+		}
+		collectibleTransferTransactionProperties.to = selectedAsset.address;
+		collectibleTransferTransactionProperties.value = '0x0';
+
+		return collectibleTransferTransactionProperties;
+	}
+
+	updateTransaction = (value = 0) => {
+		const {
+			selectedAsset,
+			transactionState: { transaction, paymentChannelTransaction, transactionTo },
+			setTransactionObject,
+			selectedAddress
+		} = this.props;
+
+		const transactionObject = {
+			...transaction,
+			value: BNToHex(toWei(value)),
+			selectedAsset,
+			from: selectedAddress
+		};
+
+		if (selectedAsset.erc20) {
+			const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
+			transactionObject.data = generateTransferData('transfer', {
+				toAddress: transactionTo,
+				amount: BNToHex(tokenAmount)
+			});
+			transactionObject.value = '0x0';
+		} else if (selectedAsset.tokenId) {
+			const collectibleTransferTransactionProperties = this.getCollectibleTranferTransactionProperties();
+			transactionObject.data = collectibleTransferTransactionProperties.data;
+			transactionObject.to = collectibleTransferTransactionProperties.to;
+			transactionObject.value = collectibleTransferTransactionProperties.value;
+		}
+
+		if (paymentChannelTransaction || selectedAsset.erc20) {
+			transactionObject.readableValue = value;
+		}
+
+		setTransactionObject(transactionObject);
 	};
 
 	prepareTransaction = async value => {
 		const {
 			prepareTransaction,
 			selectedAsset,
-			transactionState: { transaction, transactionTo }
+			transactionState: { transaction, transactionTo, paymentChannelTransaction },
+			setTransactionObject
 		} = this.props;
+
 		if (selectedAsset.isETH) {
 			transaction.data = undefined;
 			transaction.to = transactionTo;
 			transaction.value = BNToHex(toWei(value));
 		} else if (selectedAsset.tokenId) {
-			const collectibleTransferInformation = collectiblesTransferInformation[selectedAsset.address.toLowerCase()];
-			if (
-				!collectibleTransferInformation ||
-				(collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transferFrom')
-			) {
-				transaction.data = generateTransferData('transferFrom', {
-					fromAddress: transaction.from,
-					toAddress: transactionTo,
-					tokenId: selectedAsset.tokenId
-				});
-			} else if (
-				collectibleTransferInformation.tradable &&
-				collectibleTransferInformation.method === 'transfer'
-			) {
-				transaction.data = generateTransferData('transfer', {
-					toAddress: transactionTo,
-					amount: selectedAsset.tokenId.toString(16)
-				});
-			}
-			transaction.to = selectedAsset.address;
-			transaction.value = '0x0';
+			const collectibleTransferTransactionProperties = this.getCollectibleTranferTransactionProperties();
+			transaction.data = collectibleTransferTransactionProperties.data;
+			transaction.to = collectibleTransferTransactionProperties.to;
+			transaction.value = collectibleTransferTransactionProperties.value;
 		} else {
 			const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
 			transaction.data = generateTransferData('transfer', {
@@ -440,7 +565,15 @@ class Amount extends PureComponent {
 			transaction.to = selectedAsset.address;
 			transaction.value = '0x0';
 		}
-		prepareTransaction(transaction);
+
+		if (paymentChannelTransaction) {
+			setTransactionObject({
+				...transaction,
+				readableValue: value
+			});
+		} else {
+			prepareTransaction(transaction);
+		}
 	};
 
 	/**
@@ -451,11 +584,20 @@ class Amount extends PureComponent {
 	 * @returns - Whether there is an error with the amount
 	 */
 	validateAmount = inputValue => {
-		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
+		const {
+			accounts,
+			selectedAddress,
+			contractBalances,
+			selectedAsset,
+			transactionState: { paymentChannelTransaction }
+		} = this.props;
 		const { estimatedTotalGas } = this.state;
 		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
-			if (selectedAsset.isETH) {
+			if (paymentChannelTransaction) {
+				weiBalance = toWei(Number(selectedAsset.assetBalance));
+				weiInput = toWei(inputValue);
+			} else if (selectedAsset.isETH) {
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
 				weiInput = toWei(inputValue).add(estimatedTotalGas);
 			} else {
@@ -505,11 +647,14 @@ class Amount extends PureComponent {
 			contractBalances,
 			selectedAsset,
 			conversionRate,
-			contractExchangeRates
+			contractExchangeRates,
+			transactionState: { paymentChannelTransaction }
 		} = this.props;
 		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
 		let input;
-		if (selectedAsset.isETH) {
+		if (paymentChannelTransaction) {
+			input = selectedAsset.assetBalance;
+		} else if (selectedAsset.isETH) {
 			const balanceBN = hexToBN(accounts[selectedAddress].balance);
 			const realMaxValue = balanceBN.sub(estimatedTotalGas);
 			const maxValue = balanceBN.isZero() || realMaxValue.isNeg() ? new BN(0) : realMaxValue;
@@ -601,11 +746,14 @@ class Amount extends PureComponent {
 		this.setState({ assetsModalVisible: !assetsModalVisible });
 	};
 
-	handleSelectedAssetBalance = selectedAsset => {
+	handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
 		const { accounts, selectedAddress, contractBalances } = this.props;
 		let currentBalance;
+
 		const { address, decimals, symbol, isETH } = selectedAsset;
-		if (isETH) {
+		if (renderableBalance) {
+			currentBalance = `${renderableBalance} ${symbol}`;
+		} else if (isETH) {
 			currentBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${symbol}`;
 		} else {
 			currentBalance = `${renderFromTokenMinimalUnit(contractBalances[address], decimals)} ${symbol}`;
@@ -841,32 +989,42 @@ class Amount extends PureComponent {
 
 	render = () => {
 		const { estimatedTotalGas } = this.state;
-		const { selectedAsset } = this.props;
+		const {
+			selectedAsset,
+			transactionState: { paymentChannelTransaction, isPaymentRequest }
+		} = this.props;
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'amount-screen'}>
 				<View style={styles.inputWrapper}>
 					<View style={styles.actionsWrapper}>
 						<View style={styles.actionBorder} />
 						<View style={styles.action}>
-							<TouchableOpacity style={styles.actionDropdown} onPress={this.toggleAssetsModal}>
+							<TouchableOpacity
+								style={styles.actionDropdown}
+								disabled={paymentChannelTransaction || isPaymentRequest}
+								onPress={this.toggleAssetsModal}
+							>
 								<Text style={styles.textDropdown}>
 									{selectedAsset.symbol || strings('wallet.collectible')}
 								</Text>
-								<View styles={styles.arrow}>
-									<Ionicons
-										name="ios-arrow-down"
-										size={16}
-										color={colors.white}
-										style={styles.iconDropdown}
-									/>
-								</View>
+								{!paymentChannelTransaction && (
+									<View styles={styles.arrow}>
+										<Ionicons
+											name="ios-arrow-down"
+											size={16}
+											color={colors.white}
+											style={styles.iconDropdown}
+										/>
+									</View>
+								)}
 							</TouchableOpacity>
 						</View>
 						<View style={[styles.actionBorder, styles.actionMax]}>
 							{!selectedAsset.tokenId && (
 								<TouchableOpacity
 									style={styles.actionMaxTouchable}
-									disabled={!estimatedTotalGas}
+									disabled={!paymentChannelTransaction && !estimatedTotalGas}
 									onPress={this.useMax}
 								>
 									<Text style={styles.maxText}>{strings('transaction.use_max')}</Text>
@@ -887,7 +1045,7 @@ class Amount extends PureComponent {
 						<StyledButton
 							type={'confirm'}
 							containerStyle={styles.buttonNext}
-							disabled={!estimatedTotalGas}
+							disabled={!paymentChannelTransaction && !estimatedTotalGas}
 							onPress={this.onNext}
 							testID={'txn-amount-next-button'}
 						>
@@ -901,7 +1059,7 @@ class Amount extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state, ownProps) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
@@ -914,11 +1072,12 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	selectedAsset: state.newTransaction.selectedAsset,
-	transactionState: state.newTransaction
+	transactionState: ownProps.transaction || state.transaction,
+	selectedAsset: state.transaction.selectedAsset
 });
 
 const mapDispatchToProps = dispatch => ({
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
 	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
 });

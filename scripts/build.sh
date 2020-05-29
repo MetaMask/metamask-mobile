@@ -108,7 +108,7 @@ checkParameters(){
 
 prebuild(){
 	# Import provider
-	cp node_modules/metamask-mobile-provider/dist/index.js app/core/InpageBridgeWeb3.js
+	cp node_modules/@metamask/mobile-provider/dist/index.js app/core/InpageBridgeWeb3.js
 
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then
@@ -151,9 +151,19 @@ buildAndroidRun(){
 	react-native run-android
 }
 
+buildAndroidRunE2E(){
+	prebuild_android
+	source .android.env && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
+}
+
 buildIosSimulator(){
 	prebuild_ios
 	react-native run-ios --simulator "iPhone 11 Pro"
+}
+
+buildIosSimulatorE2E(){
+	prebuild_ios
+	xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build
 }
 
 buildIosDevice(){
@@ -178,6 +188,26 @@ buildIosRelease(){
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
 		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone 11 Pro"
+	fi
+}
+
+buildIosReleaseE2E(){
+	prebuild_ios
+
+	# Replace release.xcconfig with ENV vars
+	if [ "$PRE_RELEASE" = true ] ; then
+		echo "Setting up env vars...";
+		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
+		echo "Build started..."
+		brew install watchman
+		cd ios && bundle install && bundle exec fastlane prerelease
+		# Generate sourcemaps
+		yarn sourcemaps:ios
+	else
+		if [ ! -f "ios/release.xcconfig" ] ; then
+			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+		fi
+		xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
 	fi
 }
 
@@ -212,9 +242,18 @@ buildAndroidRelease(){
 	fi
 }
 
+buildAndroidReleaseE2E(){
+	prebuild_android
+	source .android.env && cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..
+}
+
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
 		buildAndroidRelease
+	elif [ "$MODE" == "releaseE2E" ] ; then
+		buildAndroidReleaseE2E
+	elif [ "$MODE" == "debugE2E" ] ; then
+		buildAndroidRunE2E
 	else
 		buildAndroidRun
 	fi
@@ -223,6 +262,10 @@ buildAndroid() {
 buildIos() {
 	if [ "$MODE" == "release" ] ; then
 		buildIosRelease
+	elif [ "$MODE" == "releaseE2E" ] ; then
+		buildIosReleaseE2E
+	elif [ "$MODE" == "debugE2E" ] ; then
+		buildIosSimulatorE2E
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
@@ -256,7 +299,7 @@ checkParameters "$@"
 
 printTitle
 
-if [ "$MODE" == "release" ]; then
+if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] ; then
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
 	if [ -z "$METAMASK_ENVIRONMENT" ]; then
