@@ -20,10 +20,11 @@ import { getTicker, getEther } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
-import { hexToBN } from 'gaba/dist/util';
+import { util } from '@metamask/controllers';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
+const { hexToBN } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,

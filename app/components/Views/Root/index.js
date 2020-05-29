@@ -6,6 +6,7 @@ import { store, persistor } from '../../../store/';
 
 import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
+import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 
 /**
  * Top level of the component hierarchy
@@ -15,6 +16,8 @@ export default class Root extends PureComponent {
 	constructor(props) {
 		super(props);
 		SecureKeychain.init(props.foxCode); // eslint-disable-line
+		// Init EntryScriptWeb3 asynchronously on the background
+		EntryScriptWeb3.init();
 	}
 
 	render = () => (

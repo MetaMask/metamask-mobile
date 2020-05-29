@@ -1348,10 +1348,38 @@
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
 
-"@metamask/mobile-provider@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.0.tgz#d28f58f213ca364c9a732b867eef74301542699a"
-  integrity sha512-W4kmc6wXDiEkdh69OmI26IrDNhp5vDfsRBnOWLhQ/c3Prl+jz05D2n9u4Ryx/4FUTUa5G0LpCwR2KS9SMz0ZIw==
+"@metamask/controllers@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-2.0.0.tgz#e57762c213d2722fd178d4c5c288ad98a2ee8bdf"
+  integrity sha512-J2DSoyyPRAilTdohl43O5tZdqOSMvB94Kx1ApRpkPZxQwtDUIzWHRpTXptyCEwkhaOdkNz9BvWMoaRQxjktfKw==
+  dependencies:
+    await-semaphore "^0.1.3"
+    eth-contract-metadata "^1.11.0"
+    eth-ens-namehash "^2.0.8"
+    eth-json-rpc-errors "^2.0.2"
+    eth-json-rpc-infura "^4.0.1"
+    eth-keyring-controller "^5.6.1"
+    eth-method-registry "1.1.0"
+    eth-phishing-detect "^1.1.13"
+    eth-query "^2.1.2"
+    eth-sig-util "^2.3.0"
+    ethereumjs-util "^6.1.0"
+    ethereumjs-wallet "0.6.0"
+    ethjs-query "^0.3.8"
+    human-standard-collectible-abi "^1.0.2"
+    human-standard-token-abi "^2.0.0"
+    isomorphic-fetch "^2.2.1"
+    jsonschema "^1.2.4"
+    percentile "^1.2.1"
+    single-call-balance-checker-abi "^1.0.0"
+    uuid "^3.3.2"
+    web3 "^0.20.7"
+    web3-provider-engine "^15.0.4"
+
+"@metamask/mobile-provider@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.1.tgz#4a8b42d321f1ca4a8e88294b9f5ea56aa052d9e2"
+  integrity sha512-Uso/oFzPywsWYR6OxPpCDYFFqxtmyqeVgT8CJMsBFDyf0QrLt/15A2LsFVPITMUY2Lhd/QsUEzoKX6geUvPpfA==
 
 "@react-native-community/async-storage@1.9.0":
   version "1.9.0"
@@ -4714,14 +4742,14 @@ eth-ens-namehash@^1.0.2:
     idna-uts46 "^1.0.1"
     js-sha3 "^0.5.7"
 
-eth-hd-keyring@^3.4.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/eth-hd-keyring/-/eth-hd-keyring-3.4.0.tgz#288e73041f2b3f047b4151fb4b5ab5ad5710b9a6"
-  integrity sha512-MMKSSwDWuEfItEM/826LHrs2HVjy57qQQfcgSxIYOCJY0vykw++LH8d6QJOBrGFe+xu/gtbHBRMURrFGdqfevw==
+eth-hd-keyring@^3.5.0:
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/eth-hd-keyring/-/eth-hd-keyring-3.5.0.tgz#3976d83a27b24305481c389178f290d9264e839d"
+  integrity sha512-Ix1LcWYxHMxCCSIMz+TLXLtt50zF6ZDd/TRVXthdw91IwOk1ajuf7QHg3bCDcfeUpdf9oEpwIPbL3xjDqEEjYw==
   dependencies:
     bip39 "^2.2.0"
     eth-sig-util "^2.4.4"
-    eth-simple-keyring "^3.4.0"
+    eth-simple-keyring "^3.5.0"
     ethereumjs-abi "^0.6.5"
     ethereumjs-util "^5.1.1"
     ethereumjs-wallet "^0.6.0"
@@ -4802,17 +4830,17 @@ eth-json-rpc-middleware@4.3.0, eth-json-rpc-middleware@^4.0.0, eth-json-rpc-midd
     pify "^3.0.0"
     safe-event-emitter "^1.0.1"
 
-eth-keyring-controller@^5.3.0:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/eth-keyring-controller/-/eth-keyring-controller-5.3.0.tgz#8d85a67b894360ab7d601222ca71df8ed5f456c6"
-  integrity sha512-aoqYjKUbdOSgS1s63IsTp69QAMtLPTCqR4VAbCULps71o3yuaA9JRx2W+GAxqVNBtIdyZllxoOJlvErkO4iWNw==
+eth-keyring-controller@^5.6.1:
+  version "5.6.1"
+  resolved "https://registry.yarnpkg.com/eth-keyring-controller/-/eth-keyring-controller-5.6.1.tgz#7b7268400704c8f5ce98a055910341177dd207ca"
+  integrity sha512-sxJ87bJg7PvvPzj1sY1jJYHQL1HVUhh84Q/a4QPrcnzAAng1yibvvUfww0pCez4XJfHuMkJvUxfF8eAusJM8fQ==
   dependencies:
     bip39 "^2.4.0"
     bluebird "^3.5.0"
     browser-passworder "^2.0.3"
-    eth-hd-keyring "^3.4.0"
+    eth-hd-keyring "^3.5.0"
     eth-sig-util "^1.4.0"
-    eth-simple-keyring "^3.4.0"
+    eth-simple-keyring "^3.5.0"
     ethereumjs-util "^5.1.2"
     loglevel "^1.5.0"
     obs-store "^4.0.3"
@@ -4859,10 +4887,10 @@ eth-sig-util@^2.3.0, eth-sig-util@^2.4.4, eth-sig-util@^2.5.0:
     tweetnacl "^1.0.0"
     tweetnacl-util "^0.15.0"
 
-eth-simple-keyring@^3.4.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/eth-simple-keyring/-/eth-simple-keyring-3.4.0.tgz#01464234b070af42a343a3c451dd58b00ae1a042"
-  integrity sha512-g/ObWqWaTHikrhhm7fNinpkkpEPqBRz02oBXcH81mc3VFkOLb3pjfvNg1Da6Jh+A4wA0kBE4vkiiG7BUwF1zNg==
+eth-simple-keyring@^3.5.0:
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/eth-simple-keyring/-/eth-simple-keyring-3.5.0.tgz#c7fa285ca58d31ef44bc7db678b689f9ffd7b453"
+  integrity sha512-z9IPt9aoMWAw5Zc3Jk/HKbWPJNc7ivZ5ECNtl3ZoQUGRnwoWO71W5+liVPJtXFNacGOOGsBfqTqrXL9C4EnYYQ==
   dependencies:
     eth-sig-util "^2.5.0"
     ethereumjs-abi "^0.6.5"
@@ -5876,34 +5904,6 @@ g-status@^2.0.2:
     arrify "^1.0.1"
     matcher "^1.0.0"
     simple-git "^1.85.0"
-
-gaba@1.11.0:
-  version "1.11.0"
-  resolved "https://registry.yarnpkg.com/gaba/-/gaba-1.11.0.tgz#7ff49cad2f2b95941222121a1984bb63783fe076"
-  integrity sha512-rQcLgR/FHQ8W6oNza/vxFnkbav0vgauBxm6LKqK6BkbjJGB979qoBRVja9fU/H5dUMiYmHJO9CrHjL0ofG/ukA==
-  dependencies:
-    await-semaphore "^0.1.3"
-    eth-contract-metadata "^1.11.0"
-    eth-ens-namehash "^2.0.8"
-    eth-json-rpc-errors "^2.0.2"
-    eth-json-rpc-infura "^4.0.1"
-    eth-keyring-controller "^5.3.0"
-    eth-method-registry "1.1.0"
-    eth-phishing-detect "^1.1.13"
-    eth-query "^2.1.2"
-    eth-sig-util "^2.3.0"
-    ethereumjs-util "^6.1.0"
-    ethereumjs-wallet "0.6.0"
-    ethjs-query "^0.3.8"
-    human-standard-collectible-abi "^1.0.2"
-    human-standard-token-abi "^2.0.0"
-    isomorphic-fetch "^2.2.1"
-    jsonschema "^1.2.4"
-    percentile "^1.2.1"
-    single-call-balance-checker-abi "^1.0.0"
-    uuid "^3.3.2"
-    web3 "^0.20.7"
-    web3-provider-engine "^15.0.4"
 
 gauge@~2.7.3:
   version "2.7.4"

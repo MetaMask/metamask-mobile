@@ -1,149 +1,59 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import StyledButton from '../StyledButton';
 import { StyleSheet, Text, View, InteractionManager } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import ActionView from '../ActionView';
-import ElevatedView from 'react-native-elevated-view';
-import Identicon from '../Identicon';
+import TransactionHeader from '../TransactionHeader';
+import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
-import WebsiteIcon from '../WebsiteIcon';
-import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { getHost } from '../../../util/browser';
 
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		minHeight: '90%',
+		paddingTop: 24,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		minHeight: 200,
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
-	wrapper: {
-		paddingHorizontal: 25
-	},
-	title: {
-		...fontStyles.bold,
-		color: colors.fontPrimary,
-		fontSize: 14,
-		marginVertical: 24,
-		textAlign: 'center'
+	accountCardWrapper: {
+		paddingHorizontal: 24
 	},
 	intro: {
-		...fontStyles.normal,
+		...fontStyles.bold,
 		textAlign: 'center',
 		color: colors.fontPrimary,
 		fontSize: Device.isSmallDevice() ? 16 : 20,
-		marginVertical: 24
-	},
-	dappTitle: {
-		...fontStyles.bold,
-		color: colors.fontPrimary,
-		fontSize: Device.isSmallDevice() ? 16 : 20
-	},
-	permissions: {
-		alignItems: 'center',
-		borderBottomWidth: 1,
-		borderColor: colors.grey100,
-		borderTopWidth: 1,
-		display: 'flex',
-		flexDirection: 'row',
-		paddingHorizontal: 8,
-		paddingVertical: 16
-	},
-	permissionText: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		flexGrow: 1,
-		flexShrink: 1,
-		fontSize: 14
-	},
-	permission: {
-		...fontStyles.bold,
-		color: colors.fontPrimary,
-		fontSize: 14
+		marginBottom: 8,
+		marginTop: 16
 	},
 	warning: {
-		...fontStyles.normal,
+		...fontStyles.thin,
 		color: colors.fontPrimary,
+		paddingHorizontal: 24,
+		marginBottom: 16,
 		fontSize: 14,
-		marginVertical: 24
-	},
-	header: {
-		alignItems: 'flex-start',
-		display: 'flex',
-		flexDirection: 'row',
-		marginBottom: 12
-	},
-	headerTitle: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 16,
-		textAlign: 'center'
-	},
-	selectedAddress: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 16,
-		marginTop: 12,
-		textAlign: 'center'
-	},
-	headerUrl: {
-		...fontStyles.normal,
-		color: colors.fontSecondary,
-		fontSize: 12,
-		textAlign: 'center'
-	},
-	dapp: {
-		alignItems: 'center',
-		paddingHorizontal: 14,
-		width: '50%'
-	},
-	graphic: {
-		alignItems: 'center',
-		position: 'absolute',
-		top: 12,
-		width: '100%'
-	},
-	check: {
-		alignItems: 'center',
-		height: 2,
-		width: '33%'
-	},
-	border: {
-		borderColor: colors.grey400,
-		borderStyle: 'dashed',
-		borderWidth: 1,
-		left: 0,
-		overflow: 'hidden',
-		position: 'absolute',
-		top: 12,
 		width: '100%',
-		zIndex: 1
+		textAlign: 'center'
 	},
-	checkWrapper: {
-		alignItems: 'center',
-		backgroundColor: colors.green500,
-		borderRadius: 12,
-		height: 24,
-		position: 'relative',
-		width: 24,
-		zIndex: 2
+	actionContainer: {
+		flex: 0,
+		flexDirection: 'row',
+		paddingVertical: 16,
+		paddingHorizontal: 24
 	},
-	checkIcon: {
-		color: colors.white,
-		fontSize: 14,
-		lineHeight: 24
+	button: {
+		flex: 1
 	},
-	icon: {
-		borderRadius: 27,
-		marginBottom: 12,
-		height: 54,
-		width: 54
+	cancel: {
+		marginRight: 8
+	},
+	confirm: {
+		marginLeft: 8
 	}
 });
 
@@ -164,14 +74,6 @@ class AccountApproval extends PureComponent {
 		 * Callback triggered on account access rejection
 		 */
 		onCancel: PropTypes.func,
-		/**
-		/* Identities object required to get account name
-		*/
-		identities: PropTypes.object,
-		/**
-		 * A string that represents the selected address
-		 */
-		selectedAddress: PropTypes.string,
 		/**
 		 * Number of tokens
 		 */
@@ -242,78 +144,37 @@ class AccountApproval extends PureComponent {
 	};
 
 	render = () => {
-		const {
-			currentPageInformation: { url },
-			currentPageInformation,
-			selectedAddress,
-			identities
-		} = this.props;
-		const title =
-			typeof currentPageInformation.title === 'string' && currentPageInformation.title !== ''
-				? currentPageInformation.title
-				: getHost(url);
+		const { currentPageInformation } = this.props;
 		return (
 			<View style={styles.root}>
-				<View style={styles.titleWrapper}>
-					<Text style={styles.title} onPress={this.cancelSignature}>
-						<Text>{strings('accountApproval.title')}</Text>
-					</Text>
+				<TransactionHeader currentPageInformation={currentPageInformation} />
+				<Text style={styles.intro}>{strings('accountApproval.action')}</Text>
+				<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
+				<View style={styles.accountCardWrapper}>
+					<AccountInfoCard />
 				</View>
-				<ActionView
-					cancelText={strings('accountApproval.cancel')}
-					confirmText={strings('accountApproval.connect')}
-					onCancelPress={this.onCancel}
-					onConfirmPress={this.onConfirm}
-					confirmButtonMode={'confirm'}
-				>
-					<View style={styles.wrapper}>
-						<View style={styles.header}>
-							<View style={styles.dapp}>
-								<WebsiteIcon style={styles.icon} title={title} url={url} />
-								<Text style={styles.headerTitle} testID={'dapp-name-title'} numberOfLines={1}>
-									{title}
-								</Text>
-								<Text style={styles.headerUrl} testID={'dapp-name-url'} numberOfLines={1}>
-									{url}
-								</Text>
-							</View>
-							<View style={styles.graphic}>
-								<View style={styles.check}>
-									<ElevatedView style={styles.checkWrapper} elevation={8}>
-										<Icon name="check" style={styles.checkIcon} />
-									</ElevatedView>
-									<View style={styles.border} />
-								</View>
-							</View>
-							<View style={styles.dapp}>
-								<Identicon address={selectedAddress} diameter={54} />
-								<Text style={styles.selectedAddress} numberOfLines={1}>
-									{renderAccountName(selectedAddress, identities)}
-								</Text>
-							</View>
-						</View>
-						<Text style={styles.intro}>
-							<Text style={styles.dappTitle}>{title} </Text>
-							{strings('accountApproval.action')}:
-						</Text>
-						<View style={styles.permissions}>
-							<Text style={styles.permissionText} numberOfLines={1}>
-								{strings('accountApproval.permission')}
-								<Text style={styles.permission}> {strings('accountApproval.address')}</Text>
-							</Text>
-							<Icon name="info-circle" color={colors.blue} size={22} />
-						</View>
-						<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
-					</View>
-				</ActionView>
+				<View style={styles.actionContainer}>
+					<StyledButton
+						type={'cancel'}
+						onPress={this.onCancel}
+						containerStyle={[styles.button, styles.cancel]}
+					>
+						{strings('accountApproval.cancel')}
+					</StyledButton>
+					<StyledButton
+						type={'confirm'}
+						onPress={this.onConfirm}
+						containerStyle={[styles.button, styles.confirm]}
+					>
+						{strings('accountApproval.connect')}
+					</StyledButton>
+				</View>
 			</View>
 		);
 	};
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities,
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
 	networkType: state.engine.backgroundState.NetworkController.provider.type

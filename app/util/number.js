@@ -3,7 +3,7 @@
  */
 import { BN } from 'ethereumjs-util';
 import convert from 'ethjs-unit';
-import { util } from 'gaba';
+import { util } from '@metamask/controllers';
 import numberToBN from 'number-to-bn';
 import currencySymbols from '../util/currency-symbols.json';
 
