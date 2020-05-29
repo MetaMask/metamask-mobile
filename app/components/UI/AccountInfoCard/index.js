@@ -8,6 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { getTicker } from '../../../util/transactions';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	accountInformation: {
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-start'
 	},
 	accountName: {
-		maxWidth: '55%',
+		maxWidth: Device.isMediumDevice() ? '35%' : '45%',
 		...fontStyles.bold,
 		fontSize: 16,
 		marginRight: 2
