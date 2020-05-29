@@ -108,6 +108,8 @@ jobs:
           command: echo 'weew - everything passed!'
   publish-pre-release-android:
     working_directory:  ~/MetaMask
+    environment:
+      _JAVA_OPTIONS: -Xmx3g
     docker:
       - image: circleci/android:api-28-node8-alpha
     steps:
@@ -148,6 +150,11 @@ jobs:
       - run:
           name: Install Sentry CLI
           command: curl -sL https://sentry.io/get-cli/ | bash
+      - run:
+          name: Install CocoaPods
+          command: |
+            sudo gem install cocoapods
+            cd ios && pod install && cd ..
       - run:
           name: pre-release
           command: METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release

@@ -1,15 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-	Clipboard,
-	ScrollView,
-	TextInput,
-	StyleSheet,
-	Text,
-	View,
-	TouchableOpacity,
-	InteractionManager
-} from 'react-native';
+import { ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import Identicon from '../Identicon';
 import Engine from '../../../core/Engine';

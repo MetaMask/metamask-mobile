@@ -10,7 +10,6 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	transactionHeader: {
-		paddingVertical: 20,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},

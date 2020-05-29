@@ -39,7 +39,7 @@ import {
 	handleWeiNumber
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
-import { hexToBN, BNToHex } from 'gaba/dist/util';
+import { util } from '@metamask/controllers';
 import FadeIn from 'react-native-fade-in-image';
 import ErrorMessage from '../ErrorMessage';
 import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
@@ -52,6 +52,8 @@ import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+
+const { hexToBN, BNToHex } = util;
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -285,7 +287,7 @@ const styles = StyleSheet.create({
  */
 class Amount extends PureComponent {
 	static navigationOptions = ({ navigation, screenProps }) =>
-		getSendFlowTitle('send.confirm', navigation, screenProps);
+		getSendFlowTitle('send.amount', navigation, screenProps);
 
 	static propTypes = {
 		/**

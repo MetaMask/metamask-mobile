@@ -8,9 +8,9 @@ import {
 	View,
 	SafeAreaView,
 	StyleSheet,
-	ActivityIndicator,
-	Clipboard
+	ActivityIndicator
 } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';

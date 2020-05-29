@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AdvancedSettings should render correctly 1`] = `
-<SafeAreaView
+<ForwardRef(SafeAreaView)
   style={
     Object {
       "flex": 1,
@@ -386,5 +386,5 @@ exports[`AdvancedSettings should render correctly 1`] = `
       </View>
     </View>
   </KeyboardAwareScrollViewMock>
-</SafeAreaView>
+</ForwardRef(SafeAreaView)>
 `;
