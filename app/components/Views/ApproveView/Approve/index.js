@@ -6,10 +6,10 @@ import {
 	View,
 	TouchableOpacity,
 	TextInput,
-	Clipboard,
 	Alert,
 	InteractionManager
 } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
@@ -27,7 +27,7 @@ import CustomGas from '../../SendFlow/CustomGas';
 import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
-import { BNToHex, hexToBN } from 'gaba/dist/util';
+import { util } from '@metamask/controllers';
 import { renderFromWei, weiToFiatNumber, isBN, renderFromTokenMinimalUnit, isDecimal } from '../../../../util/number';
 import {
 	getTicker,
@@ -44,6 +44,7 @@ import Identicon from '../../../UI/Identicon';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
+const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,

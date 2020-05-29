@@ -15,7 +15,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
-import { passwordSet } from '../../../actions/user';
+import { passwordSet, passwordUnset } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -158,6 +158,11 @@ class ChoosePassword extends PureComponent {
 		 */
 		passwordSet: PropTypes.func,
 		/**
+		 * The action to update the password set flag
+		 * in the redux store to false
+		 */
+		passwordUnset: PropTypes.func,
+		/**
 		 * The action to update the lock time
 		 * in the redux store
 		 */
@@ -184,6 +189,8 @@ class ChoosePassword extends PureComponent {
 	mounted = true;
 
 	confirmPasswordInput = React.createRef();
+	// Flag to know if password in keyring was set or not
+	keyringControllerPasswordSet = false;
 
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
@@ -197,91 +204,118 @@ class ChoosePassword extends PureComponent {
 	}
 
 	onPressCreate = async () => {
-		if (this.state.loading) return;
-		let error = null;
-		if (this.state.password.length < 8) {
-			error = strings('choose_password.password_length_error');
-		} else if (this.state.password !== this.state.confirmPassword) {
-			error = strings('choose_password.password_dont_match');
+		const { loading, password, confirmPassword } = this.state;
+		if (loading) return;
+		if (password.length < 8) {
+			Alert.alert('Error', strings('choose_password.password_length_error'));
+			return;
+		} else if (password !== confirmPassword) {
+			Alert.alert('Error', strings('choose_password.password_dont_match'));
+			return;
 		}
-		if (error) {
-			Alert.alert('Error', error);
-		} else {
-			try {
-				this.setState({ loading: true });
-				const { KeyringController, PreferencesController } = Engine.context;
-				const mnemonic = await KeyringController.exportSeedPhrase('');
-				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
-				// Preserve the selected address
-				const selectedAddress = this.props.selectedAddress;
-				// Preserve the keyring before restoring
-				const hdKeyring = KeyringController.state.keyrings[0];
-				// Preserve all the prefs
-				const prefs = PreferencesController.state;
-				const existingAccountCount = hdKeyring.accounts.length;
-				// Recreate keyring
-				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
-				for (let i = 0; i < existingAccountCount - 1; i++) {
-					await KeyringController.addNewAccount();
+		try {
+			this.setState({ loading: true });
+			await this.recreateVault(password);
+
+			// Set state in app as it was with password
+			if (this.state.biometryType && this.state.biometryChoice) {
+				const authOptions = {
+					accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+				};
+				await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
+				// If the user enables biometrics, we're trying to read the password
+				// immediately so we get the permission prompt
+				if (Device.isIos()) {
+					await SecureKeychain.getGenericPassword();
 				}
-
-				// Set prefs again
-				await PreferencesController.update(prefs);
-
-				// Reselect previous selected account if still available
-				if (hdKeyring.accounts.includes(selectedAddress)) {
-					PreferencesController.setSelectedAddress(selectedAddress);
+				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+				await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+				await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
+			} else {
+				if (this.state.rememberMe) {
+					await SecureKeychain.setGenericPassword('metamask-user', password, {
+						accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
+					});
 				} else {
-					PreferencesController.setSelectedAddress(hdKeyring[0]);
+					await SecureKeychain.resetGenericPassword();
 				}
+				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+				await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+			}
+			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			this.props.passwordSet();
+			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
-				if (this.state.biometryType && this.state.biometryChoice) {
-					const authOptions = {
-						accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					};
-
-					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-
-					// If the user enables biometrics, we're trying to read the password
-					// immediately so we get the permission prompt
-					if (Device.isIos()) {
-						await SecureKeychain.getGenericPassword();
-					}
-					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
-					await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
-					await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
-				} else {
-					if (this.state.rememberMe) {
-						await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
-							accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
-						});
-					} else {
-						await SecureKeychain.resetGenericPassword();
-					}
-					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-					await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
-					await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
-				}
-
-				// mark the user as existing so it doesn't see the create password screen again
-				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			this.setState({ loading: false });
+			const seed = await this.getSeedPhrase();
+			this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
+		} catch (error) {
+			await this.recreateVault('');
+			// Set state in app as it was with no password
+			await SecureKeychain.setGenericPassword('metamask-user', '');
+			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
+			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			this.props.passwordUnset();
+			this.props.setLockTime(-1);
+			// Should we force people to enable passcode / biometrics?
+			if (error.toString() === PASSCODE_NOT_SET_ERROR) {
+				Alert.alert(
+					strings('choose_password.security_alert_title'),
+					strings('choose_password.security_alert_message')
+				);
 				this.setState({ loading: false });
-				this.props.passwordSet();
-				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-				this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
-			} catch (error) {
-				// Should we force people to enable passcode / biometrics?
-				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
-					Alert.alert(
-						strings('choose_password.security_alert_title'),
-						strings('choose_password.security_alert_message')
-					);
-					this.setState({ loading: false });
-				} else {
-					this.setState({ loading: false, error: error.toString() });
-				}
+			} else {
+				this.setState({ loading: false, error: error.toString() });
 			}
 		}
+	};
+
+	/**
+	 * Recreates a vault
+	 *
+	 * @param password - Password to recreate and set the vault with
+	 */
+	recreateVault = async password => {
+		const { KeyringController, PreferencesController } = Engine.context;
+		const seedPhrase = await this.getSeedPhrase();
+		// Recreate keyring with password given to this method
+		await KeyringController.createNewVaultAndRestore(password, seedPhrase);
+		// Keyring is set with empty password or not
+		this.keyringControllerPasswordSet = password !== '';
+
+		// Get props to restore vault
+		const hdKeyring = KeyringController.state.keyrings[0];
+		const existingAccountCount = hdKeyring.accounts.length;
+		const preferencesControllerState = PreferencesController.state;
+		const selectedAddress = this.props.selectedAddress;
+
+		// Create previous accounts again
+		for (let i = 0; i < existingAccountCount - 1; i++) {
+			await KeyringController.addNewAccount();
+		}
+		// Set preferencesControllerState again
+		await PreferencesController.update(preferencesControllerState);
+		// Reselect previous selected account if still available
+		if (hdKeyring.accounts.includes(selectedAddress)) {
+			PreferencesController.setSelectedAddress(selectedAddress);
+		} else {
+			PreferencesController.setSelectedAddress(hdKeyring[0]);
+		}
+	};
+
+	/**
+	 * Returns current vault seed phrase
+	 * It does it using an empty password or a password set by the user
+	 * depending on the state the app is currently in
+	 */
+	getSeedPhrase = async () => {
+		const { KeyringController } = Engine.context;
+		const { password } = this.state;
+		const keychainPassword = this.keyringControllerPasswordSet ? password : '';
+		const mnemonic = await KeyringController.exportSeedPhrase(keychainPassword);
+		return JSON.stringify(mnemonic).replace(/"/g, '');
 	};
 
 	jumpToConfirmPassword = () => {
@@ -548,6 +582,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	passwordSet: () => dispatch(passwordSet()),
+	passwordUnset: () => dispatch(passwordUnset()),
 	setLockTime: time => dispatch(setLockTime(time))
 });
 

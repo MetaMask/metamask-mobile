@@ -29,7 +29,7 @@ import {
 } from '../../../../util/number';
 import { getTicker, decodeTransferData } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { hexToBN, BNToHex } from 'gaba/dist/util';
+import { util } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
 import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -51,6 +51,7 @@ import TransactionSummary from '../../TransactionSummary';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
+const { hexToBN, BNToHex } = util;
 const {
 	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
 } = TransactionTypes;
@@ -632,7 +633,7 @@ class Confirm extends PureComponent {
 				weiBalance = toWei(Number(selectedAsset.assetBalance));
 				weiInput = toWei(transaction.value);
 				errorMessage = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');
-			} else if (selectedAsset.isETH) {
+			} else if (selectedAsset.isETH || selectedAsset.tokenId) {
 				const totalGas = gas ? gas.mul(gasPrice) : toBN('0x0');
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
 				weiInput = hexToBN(transaction.value).add(totalGas);
@@ -640,7 +641,7 @@ class Confirm extends PureComponent {
 			} else {
 				const [, , amount] = decodeTransferData('transfer', transaction.data);
 				weiBalance = contractBalances[selectedAsset.address];
-				weiInput = toBN(amount);
+				weiInput = hexToBN(amount);
 				errorMessage =
 					weiBalance && weiBalance.gte(weiInput)
 						? undefined
