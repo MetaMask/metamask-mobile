@@ -17,7 +17,7 @@ import {
 	TokenRatesController,
 	TransactionController,
 	TypedMessageManager
-} from 'gaba';
+} from '@metamask/controllers';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -34,7 +34,7 @@ const OPENSEA_API_KEY = process.env['MM_OPENSEA_KEY']; // eslint-disable-line do
 const encryptor = new Encryptor();
 let refreshing = false;
 /**
- * Core controller responsible for composing other GABA controllers together
+ * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
  */
 class Engine {

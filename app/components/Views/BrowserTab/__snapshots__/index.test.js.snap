@@ -19,7 +19,45 @@ exports[`Browser should render correctly 1`] = `
         "zIndex": 1,
       }
     }
-  />
+  >
+    <WebView
+      allowsInlineMediaPlayback={true}
+      cacheEnabled={true}
+      injectedJavaScript={null}
+      javaScriptEnabled={true}
+      javascriptEnabled={true}
+      onError={[Function]}
+      onLoadEnd={[Function]}
+      onLoadProgress={[Function]}
+      onLoadStart={[Function]}
+      onMessage={[Function]}
+      onNavigationStateChange={[Function]}
+      onShouldStartLoadWithRequest={[Function]}
+      originWhitelist={
+        Array [
+          "http://*",
+          "https://*",
+        ]
+      }
+      renderError={[Function]}
+      sendCookies={true}
+      source={
+        Object {
+          "uri": null,
+        }
+      }
+      style={
+        Object {
+          "flex": 1,
+          "zIndex": 1,
+        }
+      }
+      testID="browser-webview"
+      useSharedProcessPool={true}
+      useWebkit={true}
+      userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 13_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/76.0.3809.123 Mobile/15E148 Safari/605.1"
+    />
+  </View>
   <View
     style={
       Object {
@@ -45,6 +83,8 @@ exports[`Browser should render correctly 1`] = `
     backdropOpacity={0.7}
     backdropTransitionInTiming={300}
     backdropTransitionOutTiming={300}
+    coverScreen={true}
+    customBackdrop={null}
     deviceHeight={null}
     deviceWidth={null}
     hasBackdrop={true}
@@ -56,6 +96,8 @@ exports[`Browser should render correctly 1`] = `
     onModalShow={[Function]}
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
+    propagateSwipe={false}
+    scrollHorizontal={false}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}
@@ -87,7 +129,6 @@ exports[`Browser should render correctly 1`] = `
       testID="url-modal"
     >
       <TextInput
-        allowFontScaling={true}
         autoCapitalize="none"
         autoCorrect={false}
         clearButtonMode="while-editing"
@@ -96,7 +137,6 @@ exports[`Browser should render correctly 1`] = `
         onSubmitEditing={[Function]}
         placeholder="Search or Type URL"
         placeholderTextColor="#848c96"
-        rejectResponderTermination={true}
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
@@ -114,11 +154,9 @@ exports[`Browser should render correctly 1`] = `
           }
         }
         testID="url-input"
-        underlineColorAndroid="transparent"
         value=""
       />
       <TouchableOpacity
-        activeOpacity={0.2}
         onPress={[Function]}
         style={
           Object {
@@ -158,6 +196,8 @@ exports[`Browser should render correctly 1`] = `
     backdropOpacity={0.7}
     backdropTransitionInTiming={300}
     backdropTransitionOutTiming={300}
+    coverScreen={true}
+    customBackdrop={null}
     deviceHeight={null}
     deviceWidth={null}
     hasBackdrop={true}
@@ -170,6 +210,8 @@ exports[`Browser should render correctly 1`] = `
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
     onSwipeComplete={[Function]}
+    propagateSwipe={false}
+    scrollHorizontal={false}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}
@@ -211,6 +253,8 @@ exports[`Browser should render correctly 1`] = `
     backdropOpacity={1}
     backdropTransitionInTiming={300}
     backdropTransitionOutTiming={300}
+    coverScreen={true}
+    customBackdrop={null}
     deviceHeight={null}
     deviceWidth={null}
     hasBackdrop={true}
@@ -222,6 +266,8 @@ exports[`Browser should render correctly 1`] = `
     onModalShow={[Function]}
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
+    propagateSwipe={false}
+    scrollHorizontal={false}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}
@@ -257,6 +303,8 @@ exports[`Browser should render correctly 1`] = `
     backdropOpacity={0.7}
     backdropTransitionInTiming={300}
     backdropTransitionOutTiming={300}
+    coverScreen={true}
+    customBackdrop={null}
     deviceHeight={null}
     deviceWidth={null}
     hasBackdrop={true}
@@ -270,6 +318,7 @@ exports[`Browser should render correctly 1`] = `
     onModalWillShow={[Function]}
     onSwipeComplete={[Function]}
     propagateSwipe={true}
+    scrollHorizontal={false}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}

@@ -16,7 +16,6 @@ exports[`SelectComponent should render correctly 1`] = `
     }
   >
     <TouchableOpacity
-      activeOpacity={0.2}
       onPress={[Function]}
     >
       <View
@@ -69,6 +68,8 @@ exports[`SelectComponent should render correctly 1`] = `
       backdropOpacity={0.7}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
+      coverScreen={true}
+      customBackdrop={null}
       deviceHeight={null}
       deviceWidth={null}
       hasBackdrop={true}
@@ -80,6 +81,8 @@ exports[`SelectComponent should render correctly 1`] = `
       onModalShow={[Function]}
       onModalWillHide={[Function]}
       onModalWillShow={[Function]}
+      propagateSwipe={false}
+      scrollHorizontal={false}
       scrollOffset={0}
       scrollOffsetMax={0}
       scrollTo={null}
@@ -151,7 +154,6 @@ exports[`SelectComponent should render correctly 1`] = `
             }
           >
             <TouchableOpacity
-              activeOpacity={0.2}
               key="key 1"
               onPress={[Function]}
               style={
@@ -179,7 +181,6 @@ exports[`SelectComponent should render correctly 1`] = `
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.2}
               key="key 2"
               onPress={[Function]}
               style={

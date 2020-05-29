@@ -1,33 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ReceiveRequestAction should render correctly 1`] = `
-<AnimatedComponent
-  accessible={true}
-  isTVSelectable={true}
-  onResponderGrant={[Function]}
-  onResponderMove={[Function]}
-  onResponderRelease={[Function]}
-  onResponderTerminate={[Function]}
-  onResponderTerminationRequest={[Function]}
-  onStartShouldSetResponder={[Function]}
+<TouchableOpacity
   style={
     Array [
-      Array [
-        Object {
-          "alignItems": "center",
-          "borderColor": "#037dd6",
-          "borderRadius": 8,
-          "borderWidth": 1,
-          "flexDirection": "column",
-          "justifyContent": "center",
-          "margin": 8,
-          "padding": 10,
-        },
-        undefined,
-      ],
       Object {
-        "opacity": 1,
+        "alignItems": "center",
+        "borderColor": "#037dd6",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "column",
+        "justifyContent": "center",
+        "margin": 8,
+        "padding": 10,
       },
+      undefined,
     ]
   }
 >
@@ -86,5 +73,5 @@ exports[`ReceiveRequestAction should render correctly 1`] = `
       Description
     </Text>
   </View>
-</AnimatedComponent>
+</TouchableOpacity>
 `;

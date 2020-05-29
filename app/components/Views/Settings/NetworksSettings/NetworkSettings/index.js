@@ -108,7 +108,8 @@ class NetworkSettings extends PureComponent {
 		validatedRpcURL: true,
 		validatedChainId: true,
 		initialState: undefined,
-		enableAction: false
+		enableAction: false,
+		inputWidth: { width: '99%' }
 	};
 
 	inputRpcURL = React.createRef();
@@ -146,6 +147,11 @@ class NetworkSettings extends PureComponent {
 		} else {
 			this.setState({ addMode: true });
 		}
+		setTimeout(() => {
+			this.setState({
+				inputWidth: { width: '100%' }
+			});
+		}, 100);
 	};
 
 	/**
@@ -293,7 +299,8 @@ class NetworkSettings extends PureComponent {
 			addMode,
 			warningRpcUrl,
 			warningChainId,
-			enableAction
+			enableAction,
+			inputWidth
 		} = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'new-rpc-screen'}>
@@ -308,7 +315,7 @@ class NetworkSettings extends PureComponent {
 
 						<Text style={styles.label}>{strings('app_settings.network_name_label')}</Text>
 						<TextInput
-							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							style={[styles.input, inputWidth]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
 							value={nickname}
@@ -323,7 +330,7 @@ class NetworkSettings extends PureComponent {
 						<Text style={styles.label}>{strings('app_settings.network_rpc_url_label')}</Text>
 						<TextInput
 							ref={this.inputRpcURL}
-							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							style={[styles.input, inputWidth]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
 							value={rpcUrl}
@@ -344,7 +351,7 @@ class NetworkSettings extends PureComponent {
 						<Text style={styles.label}>{strings('app_settings.network_chain_id_label')}</Text>
 						<TextInput
 							ref={this.inputChainId}
-							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							style={[styles.input, inputWidth]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
 							value={chainId}
@@ -365,7 +372,7 @@ class NetworkSettings extends PureComponent {
 						<Text style={styles.label}>{strings('app_settings.network_symbol_label')}</Text>
 						<TextInput
 							ref={this.inputSymbol}
-							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							style={[styles.input, inputWidth]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
 							value={ticker}
@@ -380,7 +387,7 @@ class NetworkSettings extends PureComponent {
 						<Text style={styles.label}>{strings('app_settings.network_block_explorer_label')}</Text>
 						<TextInput
 							ref={this.inputBlockExplorerURL}
-							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							style={[styles.input, inputWidth]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
 							value={blockExplorerUrl}

@@ -5,291 +5,125 @@ exports[`AccountApproval should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "#FFFFFF",
-      "borderTopLeftRadius": 10,
-      "borderTopRightRadius": 10,
-      "minHeight": "90%",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "minHeight": 200,
       "paddingBottom": 20,
+      "paddingTop": 24,
     }
   }
 >
-  <View>
-    <Text
-      style={
-        Object {
-          "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 14,
-          "fontWeight": "600",
-          "marginVertical": 24,
-          "textAlign": "center",
-        }
+  <Connect(TransactionHeader)
+    currentPageInformation={
+      Object {
+        "icon": "",
+        "title": "",
+        "url": "",
       }
-    >
-      <Text>
-        CONNECT REQUEST
-      </Text>
-    </Text>
-  </View>
-  <ActionView
-    cancelTestID=""
-    cancelText="CANCEL"
-    confirmButtonMode="confirm"
-    confirmTestID=""
-    confirmText="CONNECT"
-    confirmed={false}
-    onCancelPress={[Function]}
-    onConfirmPress={[Function]}
-    showCancelButton={true}
-    showConfirmButton={true}
+    }
+  />
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "fontFamily": "CircularStd-Medium",
+        "fontSize": 20,
+        "fontWeight": "600",
+        "marginBottom": 8,
+        "marginTop": 16,
+        "textAlign": "center",
+      }
+    }
   >
-    <View
-      style={
+    Connect to this site?
+  </Text>
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "fontFamily": "CircularStd-Medium",
+        "fontSize": 14,
+        "fontWeight": "100",
+        "marginBottom": 16,
+        "paddingHorizontal": 24,
+        "textAlign": "center",
+        "width": "100%",
+      }
+    }
+  >
+    By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.
+  </Text>
+  <View
+    style={
+      Object {
+        "paddingHorizontal": 24,
+      }
+    }
+  >
+    <Connect(AccountInfoCard) />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 0,
+        "flexDirection": "row",
+        "paddingHorizontal": 24,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <StyledButton
+      containerStyle={
+        Array [
+          Object {
+            "flex": 1,
+          },
+          Object {
+            "marginRight": 8,
+          },
+        ]
+      }
+      disabledContainerStyle={
         Object {
-          "paddingHorizontal": 25,
+          "opacity": 0.6,
         }
       }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      type="cancel"
     >
-      <View
-        style={
+      Cancel
+    </StyledButton>
+    <StyledButton
+      containerStyle={
+        Array [
           Object {
-            "alignItems": "flex-start",
-            "display": "flex",
-            "flexDirection": "row",
-            "marginBottom": 12,
-          }
-        }
-      >
-        <View
-          style={
-            Object {
-              "alignItems": "center",
-              "paddingHorizontal": 14,
-              "width": "50%",
-            }
-          }
-        >
-          <WebsiteIcon
-            style={
-              Object {
-                "borderRadius": 27,
-                "height": 54,
-                "marginBottom": 12,
-                "width": 54,
-              }
-            }
-            title=""
-            url=""
-          />
-          <Text
-            numberOfLines={1}
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "textAlign": "center",
-              }
-            }
-            testID="dapp-name-title"
-          />
-          <Text
-            numberOfLines={1}
-            style={
-              Object {
-                "color": "#777777",
-                "fontFamily": "CircularStd-Medium",
-                "fontSize": 12,
-                "fontWeight": "400",
-                "textAlign": "center",
-              }
-            }
-            testID="dapp-name-url"
-          />
-        </View>
-        <View
-          style={
-            Object {
-              "alignItems": "center",
-              "position": "absolute",
-              "top": 12,
-              "width": "100%",
-            }
-          }
-        >
-          <View
-            style={
-              Object {
-                "alignItems": "center",
-                "height": 2,
-                "width": "33%",
-              }
-            }
-          >
-            <ElevatedView
-              elevation={8}
-              style={
-                Object {
-                  "alignItems": "center",
-                  "backgroundColor": "#28a745",
-                  "borderRadius": 12,
-                  "height": 24,
-                  "position": "relative",
-                  "width": 24,
-                  "zIndex": 2,
-                }
-              }
-            >
-              <Icon
-                allowFontScaling={false}
-                name="check"
-                size={12}
-                style={
-                  Object {
-                    "color": "#FFFFFF",
-                    "fontSize": 14,
-                    "lineHeight": 24,
-                  }
-                }
-              />
-            </ElevatedView>
-            <View
-              style={
-                Object {
-                  "borderColor": "#848c96",
-                  "borderStyle": "dashed",
-                  "borderWidth": 1,
-                  "left": 0,
-                  "overflow": "hidden",
-                  "position": "absolute",
-                  "top": 12,
-                  "width": "100%",
-                  "zIndex": 1,
-                }
-              }
-            />
-          </View>
-        </View>
-        <View
-          style={
-            Object {
-              "alignItems": "center",
-              "paddingHorizontal": 14,
-              "width": "50%",
-            }
-          }
-        >
-          <Component
-            address="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
-            diameter={54}
-          />
-          <Text
-            numberOfLines={1}
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "marginTop": 12,
-                "textAlign": "center",
-              }
-            }
-          >
-            Account 1
-          </Text>
-        </View>
-      </View>
-      <Text
-        style={
+            "flex": 1,
+          },
           Object {
-            "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "marginVertical": 24,
-            "textAlign": "center",
-          }
+            "marginLeft": 8,
+          },
+        ]
+      }
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
         }
-      >
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 20,
-              "fontWeight": "600",
-            }
-          }
-        >
-           
-        </Text>
-        would like to
-        :
-      </Text>
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "borderBottomWidth": 1,
-            "borderColor": "#d6d9dc",
-            "borderTopWidth": 1,
-            "display": "flex",
-            "flexDirection": "row",
-            "paddingHorizontal": 8,
-            "paddingVertical": 16,
-          }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
         }
-      >
-        <Text
-          numberOfLines={1}
-          style={
-            Object {
-              "color": "#000000",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 14,
-              "fontWeight": "400",
-            }
-          }
-        >
-          View your
-          <Text
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
-                "fontSize": 14,
-                "fontWeight": "600",
-              }
-            }
-          >
-             
-            public address
-          </Text>
-        </Text>
-        <Icon
-          allowFontScaling={false}
-          color="#037dd6"
-          name="info-circle"
-          size={22}
-        />
-      </View>
-      <Text
-        style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "marginVertical": 24,
-          }
-        }
-      >
-        By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.
-      </Text>
-    </View>
-  </ActionView>
+      }
+      type="confirm"
+    >
+      Connect
+    </StyledButton>
+  </View>
 </View>
 `;
