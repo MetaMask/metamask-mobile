@@ -491,7 +491,7 @@
 		"review_details": "DETAILS",
 		"review_data": "DATA",
 		"data": "Data",
-		"data_description": "Data associated to this transaction",
+		"data_description": "This is data associated with this transaction",
 		"review_function_type": "FUNCTION TYPE",
 		"review_function": "Function",
 		"review_hex_data": "HEX DATA",
