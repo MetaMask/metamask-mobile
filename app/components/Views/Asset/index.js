@@ -93,7 +93,6 @@ class Asset extends PureComponent {
 		this.navAddress = this.props.navigation.getParam('address', '').toLowerCase();
 		if (this.navSymbol.toUpperCase() !== 'ETH' && this.navAddress !== '') {
 			this.filter = this.noEthFilter;
-			console.log('aaasff');
 		} else {
 			this.filter = this.ethFilter;
 		}
