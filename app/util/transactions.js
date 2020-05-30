@@ -33,7 +33,11 @@ export const TRANSACTION_TYPES = {
 	PAYMENT_CHANNEL_SENT: 'payment_channel_sent',
 	PAYMENT_CHANNEL_RECEIVED: 'payment_channel_received',
 	SENT: 'transaction_sent',
+	SENT_TOKEN: 'transaction_sent_token',
+	SENT_COLLECTIBLE: 'transaction_sent_collectible',
 	RECEIVED: 'transaction_received',
+	RECEIVED_TOKEN: 'transaction_received_token',
+	RECEIVED_COLLECTIBLE: 'transaction_received_collectible',
 	SITE_INTERACTION: 'transaction_site_interaction',
 	APPROVE: 'transaction_approve'
 };
