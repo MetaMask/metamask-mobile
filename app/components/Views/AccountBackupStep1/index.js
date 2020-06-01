@@ -123,8 +123,8 @@ export default class AccountBackupStep1 extends PureComponent {
 				{
 					text: strings('account_backup_step_1.cancel_backup_ok'),
 					onPress: () => {
-						// We don't want users with password set to go to that flow again
-						this.props.navigation.navigate('BrowserView');
+						this.props.navigation.popToTop();
+						this.props.navigation.goBack(null);
 					}
 				},
 				{
