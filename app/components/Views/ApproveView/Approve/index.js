@@ -222,30 +222,6 @@ const styles = StyleSheet.create({
 	errorMessageWrapper: {
 		marginTop: 16
 	},
-	fromGraphic: {
-		flex: 1,
-		borderColor: colors.grey100,
-		borderBottomWidth: 1,
-		alignItems: 'center',
-		flexDirection: 'row',
-		minHeight: 42,
-		paddingHorizontal: 16
-	},
-	addressText: {
-		...fontStyles.normal,
-		color: colors.black,
-		marginLeft: 8
-	},
-	tokenBalanceWrapper: {
-		flex: 1,
-		alignItems: 'flex-end'
-	},
-	tokenBalanceText: {
-		...fontStyles.normal,
-		color: colors.grey500,
-		fontSize: 14,
-		lineHeight: 20
-	},
 	actionModal: {
 		justifyContent: 'flex-end',
 		alignItems: 'center',
@@ -346,7 +322,7 @@ class Approve extends PureComponent {
 		customGasSelected: 'average',
 		customGas: undefined,
 		customGasPrice: undefined,
-		customGasVisible: false,
+		customGasModalVisible: false,
 		editPermissionVisible: false,
 		gasError: undefined,
 		host: undefined,
@@ -430,10 +406,10 @@ class Approve extends PureComponent {
 		this.setState({ viewDetails: !viewDetails });
 	};
 
-	toggleCustomGas = () => {
-		const { customGasVisible } = this.state;
-		!customGasVisible && this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_FEE);
-		this.setState({ customGasVisible: !customGasVisible, gasError: undefined });
+	toggleCustomGasModal = () => {
+		const { customGasModalVisible } = this.state;
+		!customGasModalVisible && this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_FEE);
+		this.setState({ customGasModalVisible: !customGasModalVisible, gasError: undefined });
 	};
 
 	toggleEditPermission = () => {
@@ -447,7 +423,7 @@ class Approve extends PureComponent {
 		const { setTransactionObject, conversionRate } = this.props;
 
 		if (!customGas || !customGasPrice) {
-			this.toggleCustomGas();
+			this.toggleCustomGasModal();
 			return;
 		}
 		this.setState({ gasEstimationReady: false });
@@ -466,7 +442,7 @@ class Approve extends PureComponent {
 				totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
 			});
 		}, 100);
-		this.toggleCustomGas();
+		this.toggleCustomGasModal();
 	};
 
 	handleGasFeeSelection = ({ gas, gasPrice, customGasSelected, error }) => {
@@ -506,8 +482,8 @@ class Approve extends PureComponent {
 					parentStateReady={this.ready}
 				/>
 			</ActionModal>
-		)
-	}
+		);
+	};
 
 	renderTransactionReview = () => {
 		const { host, method, viewData, tokenSymbol } = this.state;
@@ -766,7 +742,7 @@ class Approve extends PureComponent {
 			host,
 			tokenSymbol,
 			viewDetails,
-			customGasVisible,
+			customGasModalVisible,
 			totalGas,
 			gasError,
 			editPermissionVisible
@@ -796,8 +772,8 @@ class Approve extends PureComponent {
 							this.renderTransactionReview()
 						) : editPermissionVisible ? (
 							this.renderEditPermission()
-						) : customGasVisible ? (
-							this.renderCustomGas()
+						) : customGasModalVisible ? (
+							this.renderCustomGasModal()
 						) : (
 							<>
 								<View style={styles.section} testID={'approve-screen'}>
@@ -821,7 +797,7 @@ class Approve extends PureComponent {
 									<AccountInfoCard />
 								</View>
 								<View style={styles.section}>
-									<TouchableOpacity onPress={this.toggleCustomGas}>
+									<TouchableOpacity onPress={this.toggleCustomGasModal}>
 										<View style={styles.networkFee}>
 											<Text style={styles.sectionLeft}>
 												{strings('transaction.transaction_fee')}
