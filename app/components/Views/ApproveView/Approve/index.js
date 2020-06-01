@@ -797,6 +797,7 @@ class Approve extends PureComponent {
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
 					confirmButtonMode={'confirm'}
+					onRequestClose={this.onCancel}
 					// confirmText={strings('custom_gas.save')}
 					// confirmDisabled={!!gasError || !ready}
 					// confirmButtonMode={'confirm'}
