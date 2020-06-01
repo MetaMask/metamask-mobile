@@ -1,5 +1,7 @@
 import Logger from './Logger';
 
+const REJECTED_TRANSACTION_ERROR = 'User rejected the transaction';
+
 /**
  * Returns a middleware that appends the DApp origin to request
  * @param {{ origin: string }} opts - The middleware options
@@ -29,7 +31,9 @@ export function createLoggerMiddleware(opts) {
 		next((/** @type {Function} */ cb) => {
 			if (res.error) {
 				const { error, ...resWithoutError } = res;
-				Logger.error(error, { message: 'Error in RPC response', res: resWithoutError });
+				if (error && error.message !== REJECTED_TRANSACTION_ERROR) {
+					Logger.error(error, { message: 'Error in RPC response', res: resWithoutError });
+				}
 			}
 			if (req.isMetamaskInternal) {
 				return;
