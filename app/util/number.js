@@ -287,7 +287,7 @@ export function renderToGwei(value, unit = 'ether') {
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
  */
-export function weiToFiat(wei, conversionRate, currencyCode) {
+export function weiToFiat(wei, conversionRate, currencyCode, decimalsToShow = 5) {
 	if (!conversionRate) return undefined;
 	if (!wei || !isBN(wei) || !conversionRate) {
 		if (currencySymbols[currencyCode]) {
@@ -295,7 +295,7 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
 		}
 		return `0.00 ${currencyCode}`;
 	}
-	const value = weiToFiatNumber(wei, conversionRate);
+	const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
 	if (currencySymbols[currencyCode]) {
 		return `${currencySymbols[currencyCode]}${value}`;
 	}
