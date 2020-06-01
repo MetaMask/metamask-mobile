@@ -179,13 +179,12 @@ class Asset extends PureComponent {
 			submittedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 			confirmedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
-			const currentAccountConfirmedTxs = confirmedTxs.filter(
-				tx => tx.transaction.from === this.props.selectedAddress.toLowerCase()
-			);
 			const submittedNonces = [];
 			submittedTxs = submittedTxs.filter(transaction => {
-				const alreadyConfirmed = currentAccountConfirmedTxs.find(
-					tx => tx.transaction.nonce === transaction.transaction.nonce
+				const alreadyConfirmed = confirmedTxs.find(
+					tx =>
+						tx.transaction.nonce === transaction.transaction.nonce &&
+						tx.transaction.from === this.props.selectedAddress.toLowerCase()
 				);
 				if (alreadyConfirmed) {
 					InteractionManager.runAfterInteractions(() => {
