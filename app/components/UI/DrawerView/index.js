@@ -365,7 +365,11 @@ class DrawerView extends PureComponent {
 		/**
 		 * Current provider type
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	state = {
@@ -405,9 +409,13 @@ class DrawerView extends PureComponent {
 				this.currentBalance >= this.previousBalance &&
 				this.currentBalance > 0
 			) {
-				const { selectedAddress, network } = this.props;
+				const { selectedAddress, network, thirdPartyApiMode } = this.props;
 
-				const incomingTransaction = await findFirstIncomingTransaction(network.provider.type, selectedAddress);
+				const incomingTransaction = await findFirstIncomingTransaction(
+					network.provider.type,
+					selectedAddress,
+					thirdPartyApiMode
+				);
 				if (incomingTransaction) {
 					this.processedNewBalance = true;
 					// We need to wait for the notification to dismiss
@@ -1062,7 +1070,8 @@ const mapStateToProps = state => ({
 	wizard: state.wizard,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 
 const mapDispatchToProps = dispatch => ({

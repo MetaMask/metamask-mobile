@@ -438,7 +438,11 @@ class Main extends PureComponent {
 		/**
 		/* Identities object required to get account name
 		*/
-		identities: PropTypes.object
+		identities: PropTypes.object,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	state = {
@@ -463,7 +467,7 @@ class Main extends PureComponent {
 	locale = I18n.locale;
 
 	pollForIncomingTransactions = async () => {
-		await Engine.refreshTransactionHistory();
+		this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
 		// Stop polling if the app is in the background
 		if (!this.backgroundMode) {
 			setTimeout(() => {
@@ -907,9 +911,10 @@ class Main extends PureComponent {
 		// the background timer, which is less intense
 		if (this.backgroundMode) {
 			this.setState({ walletConnectReturnModalVisible: false });
-			BackgroundTimer.runBackgroundTimer(async () => {
-				await Engine.refreshTransactionHistory();
-			}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
+			this.props.thirdPartyApiMode &&
+				BackgroundTimer.runBackgroundTimer(async () => {
+					await Engine.refreshTransactionHistory();
+				}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
 		}
 	};
 
@@ -1156,6 +1161,7 @@ class Main extends PureComponent {
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
