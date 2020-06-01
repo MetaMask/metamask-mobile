@@ -29,7 +29,8 @@ import {
 	getTicker,
 	decodeTransferData,
 	generateApproveData,
-	getNormalizedTxState
+	getNormalizedTxState,
+	getMethodData
 } from '../../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ErrorMessage from '../../SendFlow/ErrorMessage';
@@ -421,8 +422,11 @@ class Approve extends PureComponent {
 		}
 		const originalApproveAmount = decodeTransferData('transfer', data)[1];
 		const totalGas = gas.mul(gasPrice);
+		const { name: method } = await getMethodData(data);
+
 		this.setState({
 			host,
+			method,
 			originalApproveAmount,
 			tokenDecimals,
 			tokenSymbol,
