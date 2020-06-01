@@ -16,7 +16,6 @@ import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
 import { getHost } from '../../../../util/browser';
-import TransactionDirection from '../../TransactionDirection';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress, renderShortAddress, renderAccountName } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
@@ -792,7 +791,6 @@ class Approve extends PureComponent {
 		const amount = decodeTransferData('transfer', data)[1];
 		return (
 			<SafeAreaView style={styles.wrapper}>
-				<TransactionDirection />
 				<ActionModal
 					cancelText={strings('spend_limit_edition.cancel')}
 					confirmText={strings('spend_limit_edition.approve')}
