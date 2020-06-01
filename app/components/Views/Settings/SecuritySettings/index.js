@@ -479,8 +479,8 @@ class Settings extends PureComponent {
 						</View>
 					</View>
 					<View style={styles.setting}>
-						<Text style={styles.title}>{'Third party api'}</Text>
-						<Text style={styles.desc}>{'Third party api mode'}</Text>
+						<Text style={styles.title}>{strings('app_settings.third_party_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.third_party_description')}</Text>
 						<View style={styles.switchElement}>
 							<Switch
 								value={thirdPartyApiMode}
