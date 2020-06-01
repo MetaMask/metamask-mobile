@@ -18,7 +18,6 @@ import { getHost } from '../../../../util/browser';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress, renderShortAddress, renderAccountName } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
-// import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import CustomGas from '../../SendFlow/CustomGas';
 import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
@@ -48,31 +47,6 @@ import TransactionReviewDetailsCard from '../../../UI/TransactionReview/Transact
 
 const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
-	// transactionDetails: {
-	// 	borderWidth: 1,
-	// 	borderColor: colors.grey200,
-	// 	borderRadius: 10,
-	// 	padding: 16
-	// },
-	// transactionDetailsRow: {
-	// 	display: 'flex',
-	// 	flexDirection: 'row',
-	// 	flexWrap: 'wrap',
-	// 	paddingVertical: 4
-	// },
-	// transactionDetailsTextLeft: {
-	// 	...fontStyles.thin,
-	// 	color: colors.black,
-	// 	fontSize: 14,
-	// 	flex: 1
-	// },
-	// transactionDetailsTextRight: {
-	// 	...fontStyles.bold,
-	// 	color: colors.black,
-	// 	fontSize: 14,
-	// 	flex: 1,
-	// 	textAlign: 'right'
-	// },
 	networkFee: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
@@ -136,32 +110,12 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center'
 	},
-	// sectionTitleText: {
-	// 	...fontStyles.bold,
-	// 	color: colors.black,
-	// 	fontSize: 14,
-	// 	marginLeft: 8
-	// },
-	// sectionTitleRow: {
-	// 	flexDirection: 'row',
-	// 	alignItems: 'center',
-	// 	marginBottom: 12
-	// },
 	sectionExplanationText: {
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.grey500,
 		marginVertical: 6
 	},
-	// editText: {
-	// 	...fontStyles.normal,
-	// 	color: colors.blue,
-	// 	fontSize: 12
-	// },
-	// row: {
-	// 	flexDirection: 'row',
-	// 	alignItems: 'center'
-	// },
 	sectionLeft: {
 		...fontStyles.bold,
 		color: colors.black,
@@ -175,15 +129,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		textAlign: 'right'
 	},
-	// permissionDetails: {
-	// 	...fontStyles.normal,
-	// 	fontSize: 14,
-	// 	color: colors.black,
-	// 	marginVertical: 8
-	// },
-	// copyIcon: {
-	// 	marginLeft: 8
-	// },
 	customGasModalTitle: {
 		borderBottomColor: colors.grey100,
 		borderBottomWidth: 1
@@ -858,12 +803,7 @@ class Approve extends PureComponent {
 					onConfirmPress={this.onConfirm}
 					confirmButtonMode={'confirm'}
 					onRequestClose={this.onCancel}
-					// confirmText={strings('custom_gas.save')}
-					// confirmDisabled={!!gasError || !ready}
-					// confirmButtonMode={'confirm'}
 					displayCancelButton={false}
-					// onConfirmPress={this.handleSetGasFee}
-					// onRequestClose={this.toggleCustomGasModal}
 					modalVisible
 					modalStyle={styles.actionModal}
 					viewWrapperStyle={styles.viewWrapperStyle}
@@ -897,33 +837,6 @@ class Approve extends PureComponent {
 									<AccountInfoCard />
 								</View>
 								<View style={styles.section}>
-									{/*<View style={styles.sectionTitleRow}>
-										<FontAwesome5 name={'tag'} size={20} color={colors.grey500} />
-										<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-											{strings('transaction.transaction_fee')}
-										</Text>
-										<TouchableOpacity style={styles.sectionRight} onPress={this.toggleCustomGasModal}>
-											<Text style={styles.editText}>{strings('transaction.edit')}</Text>
-										</TouchableOpacity>
-									</View>}
-									<View style={styles.row}>
-										<View style={styles.sectionLeft}>
-											<Text style={styles.sectionExplanationText}>
-												{strings('spend_limit_edition.transaction_fee_explanation')}
-											</Text>
-										</View>
-										<View style={[styles.column, styles.sectionRight]}>
-											<Text style={styles.fiatFeeText}>{`${totalGasFiat} ${currentCurrency}`}</Text>
-											<Text style={styles.feeText}>{`${totalGas} ${ticker}`}</Text>
-										</View>
-									</View>
-									<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleViewDetails}>
-										<View style={styles.viewDetailsWrapper}>
-											<Text style={styles.viewDetailsText}>
-												{strings('spend_limit_edition.view_details')}
-											</Text>
-										</View>
-									</TouchableOpacity>*/}
 									<TouchableOpacity onPress={this.toggleCustomGasModal}>
 										<View style={styles.networkFee}>
 											<Text style={styles.sectionLeft}>
@@ -949,68 +862,6 @@ class Approve extends PureComponent {
 									)}
 								</View>
 
-								{/* {viewDetails && (
-									<View style={styles.section}>
-										<View style={styles.sectionTitleRow}>
-											<FontAwesome5
-												name={'user-check'}
-												size={20}
-												color={colors.grey500}
-												onPress={this.toggleEditPermissionModal}
-											/>
-											<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-												{strings('spend_limit_edition.permission_request')}
-											</Text>
-											<TouchableOpacity
-												style={styles.sectionRight}
-												onPress={this.toggleEditPermissionModal}
-											>
-												<Text style={styles.editText}>{strings('spend_limit_edition.edit')}</Text>
-											</TouchableOpacity>
-										</View>
-										<View style={styles.row}>
-											<Text style={styles.sectionExplanationText}>
-												{strings('spend_limit_edition.details_explanation', { host })}
-											</Text>
-										</View>
-										<Text style={styles.permissionDetails}>
-											<Text style={fontStyles.bold}>{strings('spend_limit_edition.amount')}</Text>{' '}
-											{`${amount} ${tokenSymbol}`}
-										</Text>
-										<View style={styles.row}>
-											<Text style={styles.permissionDetails}>
-												<Text style={fontStyles.bold}>{strings('spend_limit_edition.to')}</Text>{' '}
-												{strings('spend_limit_edition.contract', {
-													address: renderShortAddress(transaction.to)
-												})}
-											</Text>
-											<Feather
-												name="copy"
-												size={16}
-												color={colors.blue}
-												style={styles.copyIcon}
-												onPress={this.copyContractAddress}
-											/>
-										</View>
-									</View>
-								)} */}
-
-								{/* {viewDetails && (
-									<View style={styles.section}>
-										<View style={styles.sectionTitleRow}>
-											<FontAwesome5 solid name={'file-alt'} size={20} color={colors.grey500} />
-											<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
-												{strings('spend_limit_edition.data')}
-											</Text>
-										</View>
-										<View style={styles.row}>
-											<Text style={styles.sectionExplanationText}>
-												{strings('spend_limit_edition.function_approve')}
-											</Text>
-										</View>
-										<Text style={styles.sectionExplanationText}>{transaction.data}</Text>
-									</View>
-								)} */}
 								{this.renderCustomGasModal()}
 								{this.renderEditPermissionModal()}
 							</>
