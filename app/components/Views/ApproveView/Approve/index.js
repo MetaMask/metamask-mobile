@@ -460,7 +460,7 @@ class Approve extends PureComponent {
 		this.setState({ viewData: !viewData });
 	};
 
-	onViewDetails = () => {
+	toggleViewDetails = () => {
 		const { viewDetails } = this.state;
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
 		this.setState({ viewDetails: !viewDetails });
@@ -916,7 +916,7 @@ class Approve extends PureComponent {
 											<Text style={styles.feeText}>{`${totalGas} ${ticker}`}</Text>
 										</View>
 									</View>
-									<TouchableOpacity style={styles.actionTouchable} onPress={this.onViewDetails}>
+									<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleViewDetails}>
 										<View style={styles.viewDetailsWrapper}>
 											<Text style={styles.viewDetailsText}>
 												{strings('spend_limit_edition.view_details')}
@@ -934,7 +934,7 @@ class Approve extends PureComponent {
 											</View>
 										</View>
 									</TouchableOpacity>
-									<TouchableOpacity style={styles.actionTouchable} onPress={this.onViewDetails}>
+									<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleViewDetails}>
 										<View style={styles.viewDetailsWrapper}>
 											<Text style={styles.viewDetailsText}>
 												{strings('spend_limit_edition.view_details')}
