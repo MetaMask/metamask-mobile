@@ -20,7 +20,6 @@ import TransactionDirection from '../../TransactionDirection';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress, renderShortAddress, renderAccountName } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
-import ActionView from '../../../UI/ActionView';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import CustomGas from '../../SendFlow/CustomGas';
@@ -594,6 +593,11 @@ class Approve extends PureComponent {
 				confirmButtonMode={'confirm'}
 				confirmDisabled={!spendLimitUnlimitedSelected && !validSpendLimitCustomValue}
 				displayCancelButton={false}
+				modalStyle={styles.actionModal}
+				viewWrapperStyle={styles.viewWrapperStyle}
+				viewContainerStyle={styles.viewContainerStyle}
+				actionContainerStyle={styles.actionContainerStyle}
+				childrenContainerStyle={styles.childrenContainerStyle}
 			>
 				<View style={baseStyles.flexGrow}>
 					<View style={styles.customGasModalTitle}>
@@ -789,12 +793,24 @@ class Approve extends PureComponent {
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionDirection />
-				<ActionView
+				<ActionModal
 					cancelText={strings('spend_limit_edition.cancel')}
 					confirmText={strings('spend_limit_edition.approve')}
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
 					confirmButtonMode={'confirm'}
+					// confirmText={strings('custom_gas.save')}
+					// confirmDisabled={!!gasError || !ready}
+					// confirmButtonMode={'confirm'}
+					displayCancelButton={false}
+					// onConfirmPress={this.handleSetGasFee}
+					// onRequestClose={this.toggleCustomGasModal}
+					modalVisible
+					modalStyle={styles.actionModal}
+					viewWrapperStyle={styles.viewWrapperStyle}
+					viewContainerStyle={styles.viewContainerStyle}
+					actionContainerStyle={styles.actionContainerStyle}
+					childrenContainerStyle={styles.childrenContainerStyle}
 				>
 					<View>
 						<View style={styles.section} testID={'approve-screen'}>
@@ -921,7 +937,7 @@ class Approve extends PureComponent {
 						{this.renderCustomGasModal()}
 						{this.renderEditPermissionModal()}
 					</View>
-				</ActionView>
+				</ActionModal>
 			</SafeAreaView>
 		);
 	};
