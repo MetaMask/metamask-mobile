@@ -56,7 +56,6 @@ const styles = StyleSheet.create({
  */
 export default function TransactionNotification(props) {
 	const { status, transaction, onPress, onHide } = props;
-	console.log('TransactionNotification', status);
 	// eslint-disable-next-line
 	_getIcon = () => {
 		switch (status) {
