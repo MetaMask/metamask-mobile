@@ -591,12 +591,12 @@ class Approve extends PureComponent {
 				actionContainerStyle={styles.actionContainerStyle}
 				childrenContainerStyle={styles.childrenContainerStyle}
 			>
-				<View style={baseStyles.flexGrow}>
+				<View style={baseStyles.section}>
 					<View style={styles.customGasModalTitle}>
 						<Text style={styles.customGasModalTitleText}>{strings('spend_limit_edition.title')}</Text>
 					</View>
 
-					<KeyboardAwareScrollView extraScrollHeight={-140}>
+					<KeyboardAwareScrollView>
 						<View style={styles.fromGraphic}>
 							<Identicon address={from} diameter={18} />
 							<Text style={styles.addressText} numberOfLines={1}>
