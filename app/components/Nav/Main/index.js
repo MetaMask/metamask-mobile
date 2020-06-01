@@ -126,14 +126,6 @@ const MainNavigator = createStackNavigator(
 		Home: {
 			screen: createBottomTabNavigator(
 				{
-					BrowserTabHome: createStackNavigator({
-						BrowserView: {
-							screen: Browser,
-							navigationOptions: {
-								gesturesEnabled: false
-							}
-						}
-					}),
 					WalletTabHome: createStackNavigator({
 						WalletView: {
 							screen: Wallet
@@ -152,6 +144,14 @@ const MainNavigator = createStackNavigator(
 						},
 						RevealPrivateCredentialView: {
 							screen: RevealPrivateCredential
+						}
+					}),
+					BrowserTabHome: createStackNavigator({
+						BrowserView: {
+							screen: Browser,
+							navigationOptions: {
+								gesturesEnabled: false
+							}
 						}
 					}),
 					TransactionsHome: createStackNavigator({
