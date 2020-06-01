@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
 	},
 	section: {
 		flexDirection: 'column',
-		padding: 24
+		paddingVertical: 24
 	},
 	title: {
 		...fontStyles.bold,
@@ -100,7 +100,8 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.black,
 		lineHeight: 34,
-		marginVertical: 16
+		marginVertical: 16,
+		marginTop: -20
 	},
 	explanation: {
 		...fontStyles.normal,
