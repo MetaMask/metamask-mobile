@@ -16,14 +16,14 @@ import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../../util/browser';
 import contractMap from 'eth-contract-metadata';
-import { safeToChecksumAddress, renderShortAddress, renderAccountName } from '../../../../util/address';
+import { safeToChecksumAddress, renderShortAddress } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
 import CustomGas from '../../SendFlow/CustomGas';
 import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { util } from '@metamask/controllers';
-import { renderFromWei, weiToFiatNumber, isBN, renderFromTokenMinimalUnit, isDecimal } from '../../../../util/number';
+import { renderFromWei, weiToFiatNumber, isBN, isDecimal } from '../../../../util/number';
 import {
 	getTicker,
 	decodeTransferData,
@@ -214,30 +214,6 @@ const styles = StyleSheet.create({
 	errorMessageWrapper: {
 		marginTop: 16
 	},
-	fromGraphic: {
-		flex: 1,
-		borderColor: colors.grey100,
-		borderBottomWidth: 1,
-		alignItems: 'center',
-		flexDirection: 'row',
-		minHeight: 42,
-		paddingHorizontal: 16
-	},
-	addressText: {
-		...fontStyles.normal,
-		color: colors.black,
-		marginLeft: 8
-	},
-	tokenBalanceWrapper: {
-		flex: 1,
-		alignItems: 'flex-end'
-	},
-	tokenBalanceText: {
-		...fontStyles.normal,
-		color: colors.grey500,
-		fontSize: 14,
-		lineHeight: 20
-	},
 	actionModal: {
 		justifyContent: 'flex-end',
 		alignItems: 'center',
@@ -285,14 +261,6 @@ class Approve extends PureComponent {
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
-		/**
-		 * An object containing token balances for current account and network in the format address => balance
-		 */
-		contractBalances: PropTypes.object,
-		/**
-		/* Identities object required to get account name
-		*/
-		identities: PropTypes.object,
 		/**
 		 * Transaction state
 		 */
@@ -552,22 +520,11 @@ class Approve extends PureComponent {
 			// editPermissionVisible,
 			host,
 			spendLimitUnlimitedSelected,
-			tokenDecimals,
 			tokenSymbol,
 			spendLimitCustomValue,
 			// validSpendLimitCustomValue,
 			originalApproveAmount
 		} = this.state;
-		const {
-			identities,
-			transaction: { from, to },
-			contractBalances
-		} = this.props;
-		const checksummedTo = safeToChecksumAddress(to);
-		const tokenBalance =
-			checksummedTo in contractBalances
-				? renderFromTokenMinimalUnit(contractBalances[checksummedTo], tokenDecimals)
-				: 0;
 		return (
 			<View style={baseStyles.section}>
 				<View style={styles.customGasHeader}>
@@ -578,19 +535,6 @@ class Approve extends PureComponent {
 				</View>
 
 				<KeyboardAwareScrollView>
-					<View style={styles.fromGraphic}>
-						<Identicon address={from} diameter={18} />
-						<Text style={styles.addressText} numberOfLines={1}>
-							{renderAccountName(from, identities)}
-						</Text>
-						<View style={styles.tokenBalanceWrapper}>
-							<Text
-								style={styles.tokenBalanceText}
-								numberOfLines={1}
-							>{`${tokenBalance} ${tokenSymbol}`}</Text>
-						</View>
-					</View>
-
 					<View style={styles.spendLimitWrapper}>
 						<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
 						<Text style={styles.spendLimitSubtitle}>
