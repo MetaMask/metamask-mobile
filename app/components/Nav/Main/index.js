@@ -98,6 +98,7 @@ import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
+import BackupAlert from '../../UI/BackupAlert';
 import TxNotification from '../../UI/TxNotification';
 import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
 
@@ -1122,6 +1123,10 @@ class Main extends PureComponent {
 		);
 	};
 
+	backupAlertPress = () => {
+		this.props.navigation.navigate('AccountBackupStep1');
+	};
+
 	render() {
 		const { isPaymentChannelTransaction, isPaymentRequest } = this.props;
 		const { forceReload } = this.state;
@@ -1138,6 +1143,7 @@ class Main extends PureComponent {
 					)}
 					<GlobalAlert />
 					<FadeOutOverlay />
+					<BackupAlert navigation={this.props.navigation} onPress={this.backupAlertPress} />
 					<TxNotification navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
