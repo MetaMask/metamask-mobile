@@ -14,8 +14,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	domainLogo: {
-		width: 64,
-		height: 64,
+		width: 56,
+		height: 56,
 		borderRadius: 32
 	},
 	assetLogo: {
