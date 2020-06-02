@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 	customGasModalTitleText: {
 		...fontStyles.bold,
 		color: colors.black,
-		fontSize: 18,
+		fontSize: 14,
 		textAlign: 'center'
 	},
 	copyIcon: {

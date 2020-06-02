@@ -23,15 +23,18 @@ const styles = StyleSheet.create({
 	},
 	root: {
 		backgroundColor: colors.white,
-		minHeight: 200,
+		minWidth: '100%',
 		width: '100%'
 	},
 	customGasHeader: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
 		width: '100%',
+		position: 'relative',
 		paddingBottom: 20
+	},
+	back: {
+		position: 'absolute',
+		zIndex: 1,
+		left: 0
 	},
 	selectors: {
 		backgroundColor: colors.white,
@@ -84,7 +87,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		color: colors.black,
 		fontSize: 14,
-		alignSelf: 'center'
+		textAlign: 'center'
 	},
 	totalGasWrapper: {
 		flex: 1,
