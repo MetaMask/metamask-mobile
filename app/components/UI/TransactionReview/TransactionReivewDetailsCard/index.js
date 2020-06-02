@@ -60,22 +60,24 @@ const styles = StyleSheet.create({
 		marginLeft: 'auto'
 	},
 	section: {
-		flexDirection: 'column',
-		padding: 24
+		minWidth: '100%',
+		width: '100%'
 	},
 	customGasHeader: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
 		width: '100%',
+		position: 'relative',
 		paddingBottom: 20
+	},
+	back: {
+		position: 'absolute',
+		zIndex: 1,
+		left: 0
 	},
 	customGasModalTitleText: {
 		...fontStyles.bold,
 		color: colors.black,
 		fontSize: 18,
-		alignSelf: 'center',
-		margin: 16
+		textAlign: 'center'
 	},
 	copyIcon: {
 		marginLeft: 1,
@@ -119,13 +121,12 @@ export default class TransactionReviewDetailsCard extends Component {
 			<>
 				<View style={styles.section}>
 					<View style={styles.customGasHeader}>
-						<TouchableOpacity onPress={toggleViewDetails}>
+						<TouchableOpacity onPress={toggleViewDetails} style={styles.back}>
 							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
 						</TouchableOpacity>
 						<Text style={styles.customGasModalTitleText}>
 							{strings('spend_limit_edition.transaction_details')}
 						</Text>
-						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
 					</View>
 					<View style={styles.transactionDetails}>
 						<View style={styles.transactionDetailsRow}>
