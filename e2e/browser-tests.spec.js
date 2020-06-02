@@ -74,9 +74,9 @@ describe('Browser Tests', () => {
 			await TestHelpers.delay(2000);
 		}
 		// Check that the dapp title is correct
-		await TestHelpers.checkIfHasText('dapp-name-title', 'Eth Sign Tests');
+		await TestHelpers.checkIfElementWithTextIsVisible('danfinlay.github.io', 0);
 		// Tap on CONNECT button
-		await TestHelpers.tapByText('CONNECT');
+		await TestHelpers.tap('connect-approve-button');
 		await TestHelpers.delay(1000);
 		// Tap on eth_sign button
 		if (device.getPlatform() === 'ios') {
@@ -87,10 +87,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 			await TestHelpers.delay(1000);
 		}
 		// Tap on personal_sign button
@@ -102,10 +102,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 			await TestHelpers.delay(1000);
 		}
 		// Tap ok in alert box
@@ -123,10 +123,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 			await TestHelpers.delay(1000);
 		}
 		// Scroll to bottom of browser view
@@ -146,10 +146,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 			await TestHelpers.delay(1000);
 		}
 		// Tap on sign typed data button
@@ -161,10 +161,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 			await TestHelpers.delay(1000);
 		}
 		// Tap ok in alert box
@@ -182,10 +182,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 			await TestHelpers.delay(1000);
 		}
 		// Tap ok in alert box
@@ -203,10 +203,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 			await TestHelpers.delay(1000);
 		}
 		// Tap ok in alert box
@@ -224,10 +224,10 @@ describe('Browser Tests', () => {
 		}
 		// Tap on SIGN button
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 		} else {
 			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('Sign');
+			await TestHelpers.tap('request-signature-confirm-button');
 			await TestHelpers.delay(1000);
 		}
 	});
@@ -246,14 +246,13 @@ describe('Browser Tests', () => {
 			await TestHelpers.replaceTextInField('url-input', ETHEREUM_ENABLE);
 			await element(by.id('url-input')).tapReturnKey();
 		}
-
-		await TestHelpers.checkIfHasText('dapp-name-title', 'brunobar79.github.io');
-
+		// Check that the dapp title is correct
+		await TestHelpers.checkIfElementWithTextIsVisible('brunobar79.github.io', 0);
 		// Tap on CONNECT button
 		if (!device.getPlatform() === 'android') {
 			await TestHelpers.delay(2000);
 		}
-		await TestHelpers.tapByText('CONNECT');
+		await TestHelpers.tap('connect-approve-button');
 		// Dismiss alert box
 		if (device.getPlatform() === 'ios') {
 			await TestHelpers.tapAlertWithButton('Ok');
@@ -306,21 +305,21 @@ describe('Browser Tests', () => {
 		await TestHelpers.tapAtPoint('browser-screen', { x: 50, y: 285 });
 		// Wait for page to load
 		await TestHelpers.delay(1000);
-		// Check that account approval is displayed with correct dapp name
-		await TestHelpers.checkIfHasText('dapp-name-title', 'Uniswap Exchange');
+		// Check that the dapp title is correct
+		await TestHelpers.checkIfElementWithTextIsVisible('uniswap.exchange', 0);
 
 		// There is a yellow warning that pops up in dev mode, when canceling the connection request
 		// go to index.js and add this to the list of warnings
 		// to block in order to get it to work = "Error in RPC response",
 
 		// Tap on CANCEL button
-		await TestHelpers.tapByText('CANCEL');
+		await TestHelpers.tap('connect-cancel-button');
 
 		// THIS SUCKS BUT UNISWAP IS ASKING TO CONNECT TWICE
 		// Tap on CANCEL button
 		// Wait for page to load
 		await TestHelpers.delay(1000);
-		await TestHelpers.tapByText('CANCEL');
+		await TestHelpers.tap('connect-cancel-button');
 
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
@@ -356,9 +355,9 @@ describe('Browser Tests', () => {
 			await TestHelpers.delay(1500);
 		}
 		// Check that account approval is displayed with correct dapp name
-		await TestHelpers.checkIfHasText('dapp-name-title', 'Uniswap Exchange');
+		await TestHelpers.checkIfElementWithTextIsVisible('uniswap.exchange', 0);
 		// Tap on Connect button
-		await TestHelpers.tapByText('CONNECT');
+		await TestHelpers.tap('connect-approve-button');
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
 	});
