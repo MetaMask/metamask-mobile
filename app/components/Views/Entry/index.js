@@ -88,19 +88,16 @@ class Entry extends PureComponent {
 	animationName = React.createRef();
 	opacity = new Animated.Value(1);
 
-	componentDidMount() {
+	async componentDidMount() {
 		DeeplinkManager.init(this.props.navigation);
 		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
-
-		setTimeout(async () => {
-			SplashScreen.hide();
-			const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
-			if (existingUser !== null) {
-				await this.unlockKeychain();
-			} else {
-				this.animateAndGoTo('OnboardingRootNav');
-			}
-		}, 100);
+		SplashScreen.hide();
+		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
+		if (existingUser !== null) {
+			await this.unlockKeychain();
+		} else {
+			this.animateAndGoTo('OnboardingRootNav');
+		}
 	}
 
 	handleDeeplinks = async ({ error, params }) => {
@@ -123,12 +120,8 @@ class Entry extends PureComponent {
 	animateAndGoTo(view) {
 		this.setState({ viewToGo: view }, () => {
 			if (Device.isAndroid()) {
-				setTimeout(() => {
-					this.animation ? this.animation.play(0, 25) : this.onAnimationFinished();
-					setTimeout(() => {
-						this.animationName && this.animationName.play();
-					}, 1);
-				}, 50);
+				this.animation ? this.animation.play(0, 25) : this.onAnimationFinished();
+				this.animationName && this.animationName.play();
 			} else {
 				this.animation.play();
 				this.animationName.play();
@@ -138,30 +131,24 @@ class Entry extends PureComponent {
 
 	onAnimationFinished = () => {
 		const { viewToGo } = this.state;
-		setTimeout(() => {
-			Animated.timing(this.opacity, {
-				toValue: 0,
-				duration: 300,
-				useNativeDriver: true,
-				isInteraction: false
-			}).start(() => {
-				if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
-					this.props.navigation.navigate(viewToGo);
-				} else if (viewToGo === 'Onboarding') {
-					this.props.navigation.navigate(
-						'OnboardingRootNav',
-						{},
-						NavigationActions.navigate({ routeName: 'Oboarding' })
-					);
-				} else {
-					this.props.navigation.navigate(
-						'HomeNav',
-						{},
-						NavigationActions.navigate({ routeName: 'WalletView' })
-					);
-				}
-			});
-		}, 100);
+		Animated.timing(this.opacity, {
+			toValue: 0,
+			duration: 300,
+			useNativeDriver: true,
+			isInteraction: false
+		}).start(() => {
+			if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
+				this.props.navigation.navigate(viewToGo);
+			} else if (viewToGo === 'Onboarding') {
+				this.props.navigation.navigate(
+					'OnboardingRootNav',
+					{},
+					NavigationActions.navigate({ routeName: 'Oboarding' })
+				);
+			} else {
+				this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+			}
+		});
 	};
 
 	async unlockKeychain() {
