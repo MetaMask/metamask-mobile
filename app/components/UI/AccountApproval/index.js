@@ -158,6 +158,7 @@ class AccountApproval extends PureComponent {
 						type={'cancel'}
 						onPress={this.onCancel}
 						containerStyle={[styles.button, styles.cancel]}
+						testID={'connect-cancel-button'}
 					>
 						{strings('accountApproval.cancel')}
 					</StyledButton>
@@ -165,6 +166,7 @@ class AccountApproval extends PureComponent {
 						type={'confirm'}
 						onPress={this.onConfirm}
 						containerStyle={[styles.button, styles.confirm]}
+						testID={'connect-approve-button'}
 					>
 						{strings('accountApproval.connect')}
 					</StyledButton>
