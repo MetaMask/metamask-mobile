@@ -385,6 +385,7 @@ class TxNotification extends PureComponent {
 					inBrowserView ? styles.modalTypeViewBrowser : {},
 					transactionDetailsIsVisible && !paymentChannelTransaction ? styles.modalTypeViewDetailsVisible : {}
 				]}
+				elevation={100}
 			>
 				{transactionDetailsIsVisible && !paymentChannelTransaction && (
 					<View style={styles.detailsContainer}>
