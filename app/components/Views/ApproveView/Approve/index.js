@@ -373,8 +373,6 @@ class Approve extends PureComponent {
 
 	toggleViewData = () => {
 		const { viewData } = this.state;
-		// Do we want analytics for this?
-		// Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
 		this.setState({ viewData: !viewData });
 	};
 
@@ -517,12 +515,10 @@ class Approve extends PureComponent {
 
 	renderEditPermission = () => {
 		const {
-			// editPermissionVisible,
 			host,
 			spendLimitUnlimitedSelected,
 			tokenSymbol,
 			spendLimitCustomValue,
-			// validSpendLimitCustomValue,
 			originalApproveAmount
 		} = this.state;
 		return (
@@ -699,10 +695,7 @@ class Approve extends PureComponent {
 	};
 
 	render = () => {
-		const {
-			transaction
-			// currentCurrency
-		} = this.props;
+		const { transaction } = this.props;
 		const {
 			host,
 			tokenSymbol,
@@ -710,8 +703,6 @@ class Approve extends PureComponent {
 			totalGas,
 			customGasVisible,
 			editPermissionVisible,
-			// totalGasFiat,
-			// ticker,
 			gasError
 		} = this.state;
 
