@@ -133,9 +133,9 @@ jobs:
       - store_artifacts:
           path: sourcemaps/android
           destination: sourcemaps-android
-      - run:
-          name: Announcing pre-release
-          command: yarn build:announce
+      # - run:
+      #     name: Announcing pre-release
+      #     command: yarn build:announce
   publish-pre-release-ios:
     macos:
       xcode: 11.3.1
@@ -170,6 +170,7 @@ workflows:
               only:
                 - master
                 - develop
+                - android-circleci
       - prep-node-deps:
           filters:
             branches:
@@ -194,9 +195,9 @@ workflows:
     #   - upload-coverage:
     #       requires:
     #         - test-unit
-      - publish-pre-release-ios:
-          requires:
-            - prep-deps
+      # - publish-pre-release-ios:
+      #     requires:
+      #       - prep-deps
       - publish-pre-release-android:
           requires:
-            - publish-pre-release-ios
+            - prep-deps

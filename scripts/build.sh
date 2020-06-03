@@ -225,7 +225,7 @@ buildAndroidRelease(){
 	fi
 
 	# GENERATE APK
-	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
+	cd android && ./gradlew --no-daemon assembleRelease --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
