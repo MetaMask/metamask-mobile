@@ -10535,6 +10535,10 @@ react-native-share@^3.2.0:
   resolved "https://registry.yarnpkg.com/react-native-share/-/react-native-share-3.3.2.tgz#06d1d3f14ba8eeb95e7e94e4db6a286e9902bd29"
   integrity sha512-Pvkr62TiCX511RMPL+wvy9Fofre4HQnvUT5zzgPPN3vszP/C8lUb7cmFu/8x5U14t3JQg+xW/svNK5eKNebJKw==
 
+"react-native-splash-screen@git+ssh://git@github.com/MetaMask/react-native-splash-screen.git":
+  version "3.2.0"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee"
+
 react-native-svg@9.13.3:
   version "9.13.3"
   resolved "https://registry.yarnpkg.com/react-native-svg/-/react-native-svg-9.13.3.tgz#6414b337d55af169ac2487ab70f3108404434446"
