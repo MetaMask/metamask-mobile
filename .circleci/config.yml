@@ -114,6 +114,8 @@ jobs:
     working_directory:  ~/MetaMask
     docker:
       - image: circleci/android:api-28-node8-alpha
+    environment:
+      _JAVA_OPTIONS: -Xmx3g
     resource_class: large
     steps:
       - checkout
