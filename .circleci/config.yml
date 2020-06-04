@@ -109,8 +109,8 @@ jobs:
   publish-pre-release-android:
     working_directory:  ~/MetaMask
     environment:
-      _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xms1024m -Xmx2048m"'
+      _JAVA_OPTIONS: "-Xms3800m -3800m"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xms3800m -3800m"'
     docker:
       - image: circleci/android:api-28-node8-alpha
     steps:
