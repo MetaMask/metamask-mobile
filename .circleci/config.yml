@@ -108,12 +108,12 @@ jobs:
           command: echo 'weew - everything passed!'
   publish-pre-release-android:
     working_directory:  ~/MetaMask
-    docker:
-      - image: circleci/android:api-28-node8-alpha
     environment:
       JAVA_OPTS: "-Xms512m -Xmx1024m"
       _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
+    docker:
+      - image: circleci/android:api-28-node8-alpha
     steps:
       - checkout
       - attach_workspace:
@@ -135,9 +135,9 @@ jobs:
       - store_artifacts:
           path: sourcemaps/android
           destination: sourcemaps-android
-    #  - run:
-    #      name: Announcing pre-release
-    #      command: yarn build:announce
+      - run:
+          name: Announcing pre-release
+          command: yarn build:announce
   publish-pre-release-ios:
     macos:
       xcode: 11.3.1
@@ -172,7 +172,6 @@ workflows:
               only:
                 - master
                 - develop
-                - fix-android-circleci
       - prep-node-deps:
           filters:
             branches:
@@ -197,9 +196,9 @@ workflows:
     #   - upload-coverage:
     #       requires:
     #         - test-unit
-    #  - publish-pre-release-ios:
-    #      requires:
-    #        - prep-deps
-      - publish-pre-release-android:
+      - publish-pre-release-ios:
           requires:
             - prep-deps
+      - publish-pre-release-android:
+          requires:
+            - publish-pre-release-ios
