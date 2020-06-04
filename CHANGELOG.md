@@ -3,6 +3,7 @@
 ## Current Develop Branch
 
 ## v0.2.17 - Jun 8 2020
+- [#1578](https://github.com/MetaMask/metamask-mobile/pull/1578): Stops the unintended 'User Rejected...' error caused by buggy submitt… (#1578)
 - [#1615](https://github.com/MetaMask/metamask-mobile/pull/1615): Android circleci fix (#1615)
 - [#1554](https://github.com/MetaMask/metamask-mobile/pull/1554): Splash screen on android (#1554)
 - [#1612](https://github.com/MetaMask/metamask-mobile/pull/1612): Update: add warningTextEmpty, closes #1610 (#1612)
