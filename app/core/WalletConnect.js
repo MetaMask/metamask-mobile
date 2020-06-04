@@ -1,4 +1,4 @@
-import RNWalletConnect from '@walletconnect/react-native';
+import RNWalletConnect from '@walletconnect/client';
 import Engine from './Engine';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -41,7 +41,7 @@ class WalletConnect {
 		if (options.autosign) {
 			this.autosign = true;
 		}
-		this.walletConnector = new RNWalletConnect(options, CLIENT_OPTIONS);
+		this.walletConnector = new RNWalletConnect({ ...options, ...CLIENT_OPTIONS });
 		/**
 		 *  Subscribe to session requests
 		 */
