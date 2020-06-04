@@ -120,11 +120,31 @@ jobs:
       - run:
           name: build:accept-android-licenses
           command: (echo y; echo y; echo y; echo y; echo y; echo y) | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+    #  - run:
+    #      name: build:pre-release
+    #      command:
+    #        |
+    #          METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
       - run:
-          name: build:pre-release
+          name: build:pre-release:pre_build
           command:
             |
-              METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
+              METAMASK_ENVIRONMENT='production' build:android:pre-release:pre-build
+      - run:
+          name: build:pre-release:assemble-release
+          command:
+            |
+              METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:assemble-release
+      - run:
+          name: build:pre-release:assemble-bundle
+          command:
+            |
+              METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:assemble-bundle
+      - run:
+          name: build:pre-release:assemble-sourcemaps
+          command:
+            |
+              METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:assemble-sourcemaps
       - store_artifacts:
           path: android/app/build/outputs/bundle/release
           destination: bundle
@@ -134,9 +154,9 @@ jobs:
       - store_artifacts:
           path: sourcemaps/android
           destination: sourcemaps-android
-      - run:
-          name: Announcing pre-release
-          command: yarn build:announce
+    #  - run:
+    #      name: Announcing pre-release
+    #      command: yarn build:announce
   publish-pre-release-ios:
     macos:
       xcode: 11.3.1
@@ -171,6 +191,7 @@ workflows:
               only:
                 - master
                 - develop
+                - fix-android-circleci
       - prep-node-deps:
           filters:
             branches:
@@ -195,9 +216,9 @@ workflows:
     #   - upload-coverage:
     #       requires:
     #         - test-unit
-      - publish-pre-release-ios:
-          requires:
-            - prep-deps
+    #  - publish-pre-release-ios:
+    #      requires:
+    #        - prep-deps
       - publish-pre-release-android:
           requires:
-            - publish-pre-release-ios
+            - prep-deps
