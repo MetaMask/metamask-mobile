@@ -46,7 +46,11 @@ class TransactionEdit extends PureComponent {
 		/**
 		 * Callback to validate to address in transaction in parent state
 		 */
-		validateToAddress: PropTypes.func
+		validateToAddress: PropTypes.func,
+		/**
+		 * Object containing basic gas estimates
+		 */
+		basicGasEstimates: PropTypes.object
 	};
 
 	state = {
@@ -110,13 +114,15 @@ class TransactionEdit extends PureComponent {
 
 	render() {
 		const {
-			transaction: { gas, gasPrice }
+			transaction: { gas, gasPrice },
+			basicGasEstimates
 		} = this.props;
 		const { gasError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<CustomGas
 				handleGasFeeSelection={this.updateGas}
+				basicGasEstimates={basicGasEstimates}
 				totalGas={totalGas}
 				gas={gas}
 				gasPrice={gasPrice}

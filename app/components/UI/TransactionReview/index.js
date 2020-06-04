@@ -134,7 +134,11 @@ class TransactionReview extends PureComponent {
 		/**
 		 * ETH or fiat, depending on user setting
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Whether or not basic gas estimates have been fetched
+		 */
+		ready: PropTypes.bool
 	};
 
 	state = {
@@ -250,7 +254,7 @@ class TransactionReview extends PureComponent {
 	}
 
 	render = () => {
-		const { transactionConfirmed, primaryCurrency } = this.props;
+		const { transactionConfirmed, primaryCurrency, ready } = this.props;
 		const {
 			actionKey,
 			error,
@@ -292,6 +296,7 @@ class TransactionReview extends PureComponent {
 							</View>
 							<TransactionReviewInformation
 								edit={this.edit}
+								ready={ready}
 								assetAmount={assetAmount}
 								fiatValue={fiatValue}
 								toggleDataView={this.toggleDataView}

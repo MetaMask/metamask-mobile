@@ -10,6 +10,7 @@ import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { generateTransferData, getNormalizedTxState } from '../../../util/transactions';
+import { getBasicGasEstimates } from '../../../util/custom-gas';
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
@@ -112,7 +113,13 @@ class TransactionEditor extends PureComponent {
 
 	state = {
 		toFocused: false,
-		ensRecipient: undefined
+		ensRecipient: undefined,
+		basicGasEstimates: {},
+		ready: false
+	};
+
+	componentDidMount = async () => {
+		await this.handleFetchBasicEstimates();
 	};
 
 	/**
@@ -584,9 +591,15 @@ class TransactionEditor extends PureComponent {
 		return this.props.navigation.pop();
 	};
 
+	handleFetchBasicEstimates = async () => {
+		this.setState({ ready: false });
+		const basicGasEstimates = await getBasicGasEstimates();
+		this.setState({ basicGasEstimates, ready: true });
+	};
+
 	render = () => {
 		const { mode, transactionConfirmed, transaction } = this.props;
-
+		const { basicGasEstimates, ready } = this.state;
 		return (
 			<React.Fragment>
 				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
@@ -594,6 +607,7 @@ class TransactionEditor extends PureComponent {
 					<View style={styles.editRoot}>
 						<TransactionEdit
 							navigation={this.props.navigation}
+							basicGasEstimates={basicGasEstimates}
 							onCancel={this.onCancel}
 							onModeChange={this.props.onModeChange}
 							handleUpdateAmount={this.handleUpdateAmount}
@@ -617,6 +631,7 @@ class TransactionEditor extends PureComponent {
 							onConfirm={this.onConfirm}
 							onModeChange={this.props.onModeChange}
 							validate={this.validate}
+							ready={ready}
 							transactionConfirmed={transactionConfirmed}
 						/>
 					</View>

@@ -129,7 +129,11 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Hides or shows transaction data
 		 */
-		toggleDataView: PropTypes.func
+		toggleDataView: PropTypes.func,
+		/**
+		 * Whether or not basic gas estimates have been fetched
+		 */
+		ready: PropTypes.bool
 	};
 
 	state = {
@@ -237,7 +241,7 @@ class TransactionReviewInformation extends PureComponent {
 
 	render() {
 		const { amountError, totalGasFiat, totalGasEth, totalFiat, totalValue } = this.state;
-		const { fiatValue, assetAmount, primaryCurrency, toggleDataView } = this.props;
+		const { fiatValue, assetAmount, primaryCurrency, toggleDataView, ready } = this.props;
 		return (
 			<React.Fragment>
 				<TransactionReviewFeeCard
@@ -248,6 +252,7 @@ class TransactionReviewInformation extends PureComponent {
 					totalValue={totalValue}
 					transactionValue={assetAmount}
 					primaryCurrency={primaryCurrency}
+					ready={ready}
 					gasEstimationReady
 					toggleCustomGasModal={this.edit}
 				/>
