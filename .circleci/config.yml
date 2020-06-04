@@ -109,8 +109,8 @@ jobs:
   publish-pre-release-android:
     working_directory:  ~/MetaMask
     environment:
-      _JAVA_OPTIONS: "-Xms3800m -Xmx3800m"
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xms3800m -Xmx3800m"'
+      _JAVA_OPTIONS: "-Xmx3g"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx3g -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
       - image: circleci/android:api-28-node8-alpha
     steps:
