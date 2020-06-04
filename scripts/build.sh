@@ -13,7 +13,6 @@ PRE_RELEASE=false
 JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
-PRE_RELEASE_STEP=""
 
 envFileMissing() {
 	FILE="$1"
@@ -98,9 +97,6 @@ checkParameters(){
 			fi
 		elif [ "$3"  == "--pre" ] ; then
 			PRE_RELEASE=true
-			if [ "$4" ] ; then
-				PRE_RELEASE_STEP="$4"
-			fi
 		else
 			printError "Unknown argument: $4"
 			displayHelp
@@ -215,36 +211,6 @@ buildIosReleaseE2E(){
 	fi
 }
 
-assemble_release_android(){
-	if [ "$PRE_RELEASE" = true ] ; then
-		TARGET="android/app/build.gradle"
-		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
-		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
-		echo "$ANDROID_KEYSTORE" | base64 --decode > android/keystores/release.keystore
-	fi
-
-	# GENERATE APK
-	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2 && cd ..
-}
-
-assemble_bundle_android(){
-	if [ "$PRE_RELEASE" = true ] ; then
-		TARGET="android/app/build.gradle"
-		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
-		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
-		echo "$ANDROID_KEYSTORE" | base64 --decode > android/keystores/release.keystore
-	fi
-
-	cd android && ./gradlew bundleRelease && cd ..
-}
-
-assemble_sourcemaps_android(){
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate sourcemaps
-		cd android && yarn sourcemaps:android && cd ..
-	fi
-}
-
 buildAndroidRelease(){
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
@@ -283,26 +249,7 @@ buildAndroidReleaseE2E(){
 
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
-		if [ "$PRE_RELEASE_STEP" ] && [ "$PRE_RELEASE" = true ]  ; then
-			if [ "$PRE_RELEASE_STEP" == "--pre-build" ] ; then
-				echo "PRE RELEASE STEP: prebuild_android"
-				prebuild_android
-			fi
-			if [ "$PRE_RELEASE_STEP" == "--assemble-release" ] ; then
-				echo "PRE RELEASE STEP:assemble_release_android"
-				assemble_release_android
-			fi
-			if [ "$PRE_RELEASE_STEP" == "--assemble-bundle" ] ; then
-				echo "PRE RELEASE STEP: assemble_bundle_android"
-				assemble_bundle_android
-			fi
-			if [ "$PRE_RELEASE_STEP" == "--assemble-sourcemaps" ] ; then
-				echo "PRE RELEASE STEP: assemble_sourcemaps_android"
-				assemble_sourcemaps_android
-			fi
-		else
 		buildAndroidRelease
-		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
 	elif [ "$MODE" == "debugE2E" ] ; then

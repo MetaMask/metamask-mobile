@@ -108,9 +108,7 @@ jobs:
           command: echo 'weew - everything passed!'
   publish-pre-release-android:
     working_directory:  ~/MetaMask
-    environment:
-      _JAVA_OPTIONS: "-Xmx3g"
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx3g -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError"'
+    resource_class: medium+
     docker:
       - image: circleci/android:api-28-node8-alpha
     steps:
@@ -120,31 +118,11 @@ jobs:
       - run:
           name: build:accept-android-licenses
           command: (echo y; echo y; echo y; echo y; echo y; echo y) | $ANDROID_HOME/tools/bin/sdkmanager --licenses
-    #  - run:
-    #      name: build:pre-release
-    #      command:
-    #        |
-    #          METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
       - run:
-          name: build:pre-release:pre_build
+          name: build:pre-release
           command:
             |
-              METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:pre-build
-      - run:
-          name: build:pre-release:assemble-release
-          command:
-            |
-              METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:assemble-release
-      - run:
-          name: build:pre-release:assemble-bundle
-          command:
-            |
-              METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:assemble-bundle
-      - run:
-          name: build:pre-release:assemble-sourcemaps
-          command:
-            |
-              METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:assemble-sourcemaps
+              METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
       - store_artifacts:
           path: android/app/build/outputs/bundle/release
           destination: bundle
