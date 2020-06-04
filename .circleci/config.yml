@@ -129,7 +129,7 @@ jobs:
           name: build:pre-release:pre_build
           command:
             |
-              METAMASK_ENVIRONMENT='production' build:android:pre-release:pre-build
+              METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:pre-build
       - run:
           name: build:pre-release:assemble-release
           command:
