@@ -21,6 +21,7 @@ jobs:
     <<: *defaults
     docker:
       - image: circleci/node:10
+    resource_class: large
     steps:
       - checkout
       - run: *install-node-dependencies
@@ -32,6 +33,7 @@ jobs:
     <<: *defaults
     docker:
       - image: circleci/node:10
+    resource_class: large
     steps:
       - checkout
       - restore_cache: *restore-node-cache
@@ -46,6 +48,7 @@ jobs:
     <<: *defaults
     docker:
       - image: circleci/node:10
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
@@ -57,6 +60,7 @@ jobs:
     parallelism: 3
     docker:
       - image: circleci/node:10
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
@@ -108,9 +112,9 @@ jobs:
           command: echo 'weew - everything passed!'
   publish-pre-release-android:
     working_directory:  ~/MetaMask
-    resource_class: medium+
     docker:
       - image: circleci/android:api-28-node8-alpha
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
