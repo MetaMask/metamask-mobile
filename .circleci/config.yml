@@ -21,7 +21,6 @@ jobs:
     <<: *defaults
     docker:
       - image: circleci/node:10
-    resource_class: large
     steps:
       - checkout
       - run: *install-node-dependencies
@@ -33,7 +32,6 @@ jobs:
     <<: *defaults
     docker:
       - image: circleci/node:10
-    resource_class: large
     steps:
       - checkout
       - restore_cache: *restore-node-cache
@@ -48,7 +46,6 @@ jobs:
     <<: *defaults
     docker:
       - image: circleci/node:10
-    resource_class: large
     steps:
       - checkout
       - attach_workspace:
@@ -60,7 +57,6 @@ jobs:
     parallelism: 3
     docker:
       - image: circleci/node:10
-    resource_class: large
     steps:
       - checkout
       - attach_workspace:
@@ -115,8 +111,8 @@ jobs:
     docker:
       - image: circleci/android:api-28-node8-alpha
     environment:
-      _JAVA_OPTIONS: -Xmx3g
-    resource_class: large
+      _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
     steps:
       - checkout
       - attach_workspace:
