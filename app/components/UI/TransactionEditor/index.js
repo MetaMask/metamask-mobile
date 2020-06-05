@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, Animated } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../../../styles/common';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
@@ -24,7 +24,7 @@ const EDIT = 'edit';
 const REVIEW = 'review';
 
 const styles = StyleSheet.create({
-	reviewRoot: {
+	root: {
 		backgroundColor: colors.white,
 		minHeight: 200,
 		borderTopLeftRadius: 20,
@@ -33,14 +33,11 @@ const styles = StyleSheet.create({
 		paddingBottom: Device.isIphoneX() ? 24 : 0,
 		justifyContent: 'flex-end'
 	},
-	editRoot: {
-		backgroundColor: colors.white,
-		minHeight: 200,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		paddingTop: 24,
-		paddingBottom: Device.isIphoneX() ? 44 : 24,
-		justifyContent: 'flex-end'
+	transactionEdit: {
+		position: 'absolute',
+		top: 24,
+		width: '100%',
+		height: '100%'
 	}
 });
 
@@ -115,7 +112,11 @@ class TransactionEditor extends PureComponent {
 		toFocused: false,
 		ensRecipient: undefined,
 		basicGasEstimates: {},
-		ready: false
+		ready: false,
+		position: new Animated.Value(0),
+		width: Device.getDeviceWidth(),
+		rootHeight: null,
+		customGasHeight: null
 	};
 
 	componentDidMount = async () => {
@@ -579,62 +580,98 @@ class TransactionEditor extends PureComponent {
 		}
 	};
 
-	goToEdit = () => {
-		const { onModeChange } = this.props;
-		onModeChange(EDIT);
-	};
-
-	handleCustomBackPress = () => {
-		if (this.props.mode === REVIEW) {
-			return this.goToEdit();
-		}
-		return this.props.navigation.pop();
-	};
-
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
 		const basicGasEstimates = await getBasicGasEstimates();
 		this.setState({ basicGasEstimates, ready: true });
 	};
 
+	onModeChange = mode => {
+		mode === 'edit' ? this.animation(1) : this.animation(0);
+		this.props.onModeChange(mode);
+	};
+
+	animation = to => {
+		Animated.timing(this.state.position, {
+			toValue: to,
+			duration: 500,
+			useNativeDriver: true
+		}).start();
+	};
+
+	generateTransform = (axis, outRange) => {
+		const { position, rootHeight, customGasHeight } = this.state;
+		if (axis === 'translateY') {
+			Device.isIphoneX()
+				? (outRange[1] = rootHeight - customGasHeight)
+				: (outRange[1] = rootHeight - customGasHeight + 24);
+		}
+		return {
+			transform: [
+				{
+					[axis]: position.interpolate({
+						inputRange: [0, 1],
+						outputRange: outRange
+					})
+				}
+			]
+		};
+	};
+
+	saveRootHeight = event => {
+		!this.state.rootHeight && this.setState({ rootHeight: event.nativeEvent.layout.height });
+	};
+
+	saveCustomGasHeight = event => {
+		!this.state.customGasHeight && this.setState({ customGasHeight: event.nativeEvent.layout.height });
+	};
+
 	render = () => {
 		const { mode, transactionConfirmed, transaction } = this.props;
-		const { basicGasEstimates, ready } = this.state;
+		const { basicGasEstimates, ready, width } = this.state;
 		return (
 			<React.Fragment>
 				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
-				{mode === EDIT && !transaction.paymentChannelTransaction && (
-					<View style={styles.editRoot}>
-						<TransactionEdit
-							navigation={this.props.navigation}
-							basicGasEstimates={basicGasEstimates}
-							onCancel={this.onCancel}
-							onModeChange={this.props.onModeChange}
-							handleUpdateAmount={this.handleUpdateAmount}
-							handleUpdateData={this.handleUpdateData}
-							handleUpdateFromAddress={this.handleUpdateFromAddress}
-							handleUpdateToAddress={this.handleUpdateToAddress}
-							handleGasFeeSelection={this.handleGasFeeSelection}
-							validateAmount={this.validateAmount}
-							validateGas={this.validateGas}
-							validateToAddress={this.validateToAddress}
-							handleUpdateAsset={this.handleUpdateAsset}
-							checkForAssetAddress={this.checkForAssetAddress}
-							handleUpdateReadableValue={this.handleUpdateReadableValue}
-						/>
-					</View>
-				)}
-				{mode === REVIEW && (
-					<View style={styles.reviewRoot}>
-						<TransactionReview
-							onCancel={this.onCancel}
-							onConfirm={this.onConfirm}
-							onModeChange={this.props.onModeChange}
-							validate={this.validate}
-							ready={ready}
-							transactionConfirmed={transactionConfirmed}
-						/>
-					</View>
+				{!transaction.paymentChannelTransaction && (
+					<Animated.View
+						style={[styles.root, this.generateTransform('translateY', [0, 0])]}
+						onLayout={this.saveRootHeight}
+					>
+						<Animated.View style={this.generateTransform('translateX', [0, -width])}>
+							<TransactionReview
+								onCancel={this.onCancel}
+								onConfirm={this.onConfirm}
+								onModeChange={this.onModeChange}
+								validate={this.validate}
+								ready={ready}
+								transactionConfirmed={transactionConfirmed}
+							/>
+						</Animated.View>
+						{ready && (
+							<Animated.View
+								style={[styles.transactionEdit, this.generateTransform('translateX', [width, 0])]}
+							>
+								<TransactionEdit
+									navigation={this.props.navigation}
+									basicGasEstimates={basicGasEstimates}
+									onCancel={this.onCancel}
+									onModeChange={this.onModeChange}
+									handleUpdateAmount={this.handleUpdateAmount}
+									handleUpdateData={this.handleUpdateData}
+									handleUpdateFromAddress={this.handleUpdateFromAddress}
+									handleUpdateToAddress={this.handleUpdateToAddress}
+									handleGasFeeSelection={this.handleGasFeeSelection}
+									validateAmount={this.validateAmount}
+									validateGas={this.validateGas}
+									validateToAddress={this.validateToAddress}
+									handleUpdateAsset={this.handleUpdateAsset}
+									checkForAssetAddress={this.checkForAssetAddress}
+									handleUpdateReadableValue={this.handleUpdateReadableValue}
+									saveCustomGasHeight={this.saveCustomGasHeight}
+								/>
+							</Animated.View>
+						)}
+					</Animated.View>
 				)}
 			</React.Fragment>
 		);
