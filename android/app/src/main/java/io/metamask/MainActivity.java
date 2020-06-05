@@ -16,6 +16,8 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import org.devio.rn.splashscreen.SplashScreen;
+
 public class MainActivity extends ReactFragmentActivity {
 
 	/**
@@ -44,6 +46,7 @@ public class MainActivity extends ReactFragmentActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		SplashScreen.show(this); 
 		super.onCreate(null);
 	}
 	@Override

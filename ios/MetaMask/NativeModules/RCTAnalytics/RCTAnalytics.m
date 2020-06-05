@@ -24,10 +24,22 @@ RCT_EXPORT_METHOD(optIn:(BOOL) val) {
     });
 }
 
-
 RCT_EXPORT_METHOD(trackEvent:(NSDictionary *)event)
 {
   [[Mixpanel sharedInstance] track: [self getCategory:event] properties:[self getInfo:event]];
+}
+
+
+RCT_EXPORT_METHOD(peopleIdentify)
+{
+  [[Mixpanel sharedInstance] identify:[[Mixpanel sharedInstance] distinctId]];
+}
+
+RCT_REMAP_METHOD(getDistinctId,
+                 getDistinctIdWithResolver:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject)
+{
+  resolve([[Mixpanel sharedInstance] distinctId]);
 }
 
 

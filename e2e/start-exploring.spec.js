@@ -63,7 +63,12 @@ describe('Start Exploring', () => {
 		// Clear text
 		await TestHelpers.clearField('account-label-text-input');
 		// Change account name
-		await TestHelpers.typeTextAndHideKeyboard('account-label-text-input', ACCOUNT);
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField('account-label-text-input', ACCOUNT);
+			await element(by.id('account-label-text-input')).tapReturnKey();
+		} else {
+			await TestHelpers.typeTextAndHideKeyboard('account-label-text-input', ACCOUNT);
+		}
 		// Check that Got it! CTA is visible and tap it
 		if (!device.getPlatform() === 'android') {
 			await TestHelpers.tapByText('Got it!');

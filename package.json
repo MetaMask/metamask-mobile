@@ -148,6 +148,7 @@
     "react-native-scrollable-tab-view": "^1.0.0",
     "react-native-search-api": "ombori/react-native-search-api#8/head",
     "react-native-sensors": "5.3.0",
+    "react-native-splash-screen": "git+ssh://git@github.com/MetaMask/react-native-splash-screen.git",
     "react-native-share": "^3.2.0",
     "react-native-svg": "9.13.3",
     "react-native-swipe-gestures": "1.0.3",
