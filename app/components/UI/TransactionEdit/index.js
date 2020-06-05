@@ -50,7 +50,11 @@ class TransactionEdit extends PureComponent {
 		/**
 		 * Object containing basic gas estimates
 		 */
-		basicGasEstimates: PropTypes.object
+		basicGasEstimates: PropTypes.object,
+		/**
+		 * Saves height of root view to TransactionEditor state
+		 */
+		saveCustomGasHeight: PropTypes.func
 	};
 
 	state = {
@@ -115,7 +119,8 @@ class TransactionEdit extends PureComponent {
 	render() {
 		const {
 			transaction: { gas, gasPrice },
-			basicGasEstimates
+			basicGasEstimates,
+			saveCustomGasHeight
 		} = this.props;
 		const { gasError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -128,6 +133,7 @@ class TransactionEdit extends PureComponent {
 				gasPrice={gasPrice}
 				gasError={gasError}
 				review={this.review}
+				saveCustomGasHeight={saveCustomGasHeight}
 			/>
 		);
 	}
