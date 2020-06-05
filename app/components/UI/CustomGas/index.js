@@ -236,7 +236,11 @@ class CustomGas extends PureComponent {
 		/**
 		 * Object containing basic gas estimates
 		 */
-		basicGasEstimates: PropTypes.object
+		basicGasEstimates: PropTypes.object,
+		/**
+		 * Saves height of root view to TransactionEditor state
+		 */
+		saveCustomGasHeight: PropTypes.func
 	};
 
 	state = {
@@ -521,12 +525,12 @@ class CustomGas extends PureComponent {
 
 	render = () => {
 		const { advancedCustomGas, warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
-		const { review, gasError } = this.props;
+		const { review, gasError, saveCustomGasHeight } = this.props;
 		const disableButton = advancedCustomGas
 			? !!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError
 			: false;
 		return (
-			<View style={styles.root}>
+			<View style={styles.root} onLayout={saveCustomGasHeight}>
 				<View style={styles.customGasHeader}>
 					<TouchableOpacity onPress={review}>
 						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
