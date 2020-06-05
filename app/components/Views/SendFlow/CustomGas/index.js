@@ -402,7 +402,7 @@ class CustomGas extends PureComponent {
 
 	onGasPriceChange = value => {
 		let warningGasPrice;
-		const { customGasLimit } = this.state;
+		const { customGasLimit, warningGasLimit } = this.state;
 		if (!value || value === '' || !isDecimal(value)) {
 			warningGasPrice = strings('transaction.invalid_gas_price');
 			this.setState({ customGasPrice: value, warningGasPrice });
@@ -415,7 +415,11 @@ class CustomGas extends PureComponent {
 				customGasPriceBN: apiEstimateModifiedToWEI(value),
 				warningGasPrice
 			});
-			this.props.handleGasFeeSelection({ gas: new BN(customGasLimit, 10), gasPrice: gasPriceBN });
+			this.props.handleGasFeeSelection({
+				gas: new BN(customGasLimit, 10),
+				gasPrice: gasPriceBN,
+				error: warningGasPrice || warningGasLimit
+			});
 		}
 	};
 
