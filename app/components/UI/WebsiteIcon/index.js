@@ -143,7 +143,7 @@ export default class WebsiteIcon extends PureComponent {
 		// fall back to faviconkit if we absolutely have to (meaning there's only a .ico resource)
 		const fallback = `https://api.faviconkit.com/${getHost(url)}/64`;
 		const uri = bestIcon ? this.formatHref(bestIcon) : fallback;
-
+		console.log(uri);
 		return uri;
 	};
 
