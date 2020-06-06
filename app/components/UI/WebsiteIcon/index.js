@@ -148,9 +148,8 @@ export default class WebsiteIcon extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { renderIconUrlError } = this.state;
 		const uri = await this.fetchIcon();
-		this.setState(() => (renderIconUrlError ? { renderIconUrlError: true } : { apiLogoUrl: { uri } }));
+		this.setState(() => ({ apiLogoUrl: { uri } }));
 	};
 
 	/**
