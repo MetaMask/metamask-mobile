@@ -71,16 +71,53 @@ export default class WebsiteIcon extends PureComponent {
 		const html = await response.text();
 
 		return new DOMParser({
-			locator: {},
-			errorHandler: (level, msg) => {
-				console.log(level, msg);
-			}
+			// eslint-disable-next-line no-empty-function
+			errorHandler: (level, msg) => {},
+			locator: {}
 		}).parseFromString(html, 'text/html');
 	};
 
-	componentDidMount = async () => {
-		const { url } = this.props;
+	/**
+	 * parse a size int from string eg: "192x192" -> 192
+	 */
+	parseSize = sizes => {
+		const from = sizes.indexOf('x');
+		return parseInt(sizes.substr(0, from)) || null;
+	};
 
+	/**
+	 * Format href (needed because assets can be relative or absolute)
+	 */
+	formatHref = bestIcon => {
+		const { url } = this.props;
+		const href = bestIcon.getAttribute('href') || false;
+
+		const PROTOCOL = '://';
+
+		const hrefFrom = href.indexOf(PROTOCOL);
+		const protocolFrom = url.indexOf(PROTOCOL);
+		const protocol = url.substr(0, protocolFrom);
+		const host = getHost(url);
+
+		return hrefFrom === -1 ? `${protocol}${PROTOCOL}${host}${href}` : href;
+	};
+
+	/**
+	 * Find the best icon based on sizes attribute
+	 */
+	findBestIcon = (acc, curr) => {
+		const curr_sizes = curr.getAttribute('sizes');
+		const acc_sizes = acc.getAttribute('sizes');
+		const curr_size = this.parseSize(curr_sizes);
+		const acc_size = this.parseSize(acc_sizes);
+		return acc_size > curr_size ? acc : curr;
+	};
+
+	/**
+	 * Attempt to fetch icon from document and fall back to faviconkit if we have to
+	 */
+	fetchIcon = async () => {
+		const { url } = this.props;
 		const doc = await this.getDocument();
 
 		// get all <link> tags
@@ -89,54 +126,31 @@ export default class WebsiteIcon extends PureComponent {
 		// collect all <link>'s into an array for filtering
 		const links = Array.from(nodeList);
 
-		// filter out non icons (like stylesheets)
-		const icons = links.filter(el => {
-			const sizes = el.getAttribute('sizes');
-			const rel = el.getAttribute('rel');
-			return sizes || (/icon/.test(rel) && el);
-		});
+		// icons based on size attribute
+		const sizedIcons = links.filter(el => el.hasAttribute('sizes'));
 
-		const best = this.getBestIcon(icons, url);
+		// all icons (based on rel key containing "icon")
+		const allIcons = links.filter(el => el.hasAttribute('rel') && /icon/.test(el.getAttribute('rel')));
 
-		if (best) {
-			this.setState({ apiLogoUrl: { uri: best } });
-		} else {
-			this.setState({ renderIconUrlError: true });
-		}
+		// since we can't determine what's best, just pick one
+		const anyIcon = allIcons.pop();
+
+		// bestIcon from above based on if there are sizedIcons or not
+		const bestIcon = (sizedIcons.length ? sizedIcons.reduce(this.findBestIcon) : anyIcon) || null;
+
+		// !bestIcon && console.log('no best icon ;(');
+
+		// fall back to faviconkit if we absolutely have to (meaning there's only a .ico resource)
+		const fallback = `https://api.faviconkit.com/${getHost(url)}/64`;
+		const uri = bestIcon ? this.formatHref(bestIcon) : fallback;
+		console.log(uri);
+		return uri;
 	};
 
-	/**
-	 * Get the best favicon available based on size
-	 */
-	getBestIcon = (icons, siteUrl) => {
-		let size = 0;
-		let icon;
-		let href;
-		const host = getHost(siteUrl);
-		const protocol = siteUrl.split('://')[0];
-
-		icons.forEach(_icon => {
-			const sizes = _icon.getAttribute('sizes');
-			const _size = parseInt(sizes.split('x')[0]);
-			if (_size > size) {
-				size = _size;
-				icon = _icon;
-			}
-		});
-
-		// icon is still undefined, likely the site only has a favicon
-		// use favicon as a last resort
-		if (!icon) {
-			href = `https://api.faviconkit.com/${getHost(siteUrl)}/64`;
-		} else {
-			href = icon ? icon.getAttribute('href') : null;
-			// use this to determine if the host and protocol needs to be included
-			if (href && !(href.indexOf('://') >= 0)) {
-				href = `${protocol}://${host}${href}`;
-			}
-		}
-
-		return href;
+	componentDidMount = async () => {
+		const { renderIconUrlError } = this.state;
+		const uri = await this.fetchIcon();
+		this.setState(() => (renderIconUrlError ? { renderIconUrlError: true } : { apiLogoUrl: { uri } }));
 	};
 
 	/**
@@ -146,11 +160,21 @@ export default class WebsiteIcon extends PureComponent {
 		await this.setState({ renderIconUrlError: true });
 	};
 
-	render = () => {
-		const { renderIconUrlError, apiLogoUrl } = this.state;
+	getFormattedTitle = () => {
+		const { url, title } = this.props;
+		const title_host = title || getHost(url);
+		return title_host.substr(0, 1);
+	};
 
-		const { viewStyle, style, textStyle, transparent, url } = this.props;
-		const title = typeof this.props.title === 'string' ? this.props.title.substr(0, 1) : getHost(url).substr(0, 1);
+	render = () => {
+		const {
+			state: { renderIconUrlError, apiLogoUrl },
+			props: { viewStyle, style, textStyle, transparent },
+			getFormattedTitle,
+			onRenderIconUrlError
+		} = this;
+
+		const title = getFormattedTitle();
 
 		if (renderIconUrlError && title) {
 			return (
@@ -165,7 +189,7 @@ export default class WebsiteIcon extends PureComponent {
 		return (
 			<View style={viewStyle}>
 				<FadeIn placeholderStyle={{ backgroundColor: transparent ? colors.transparent : colors.white }}>
-					<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
+					<Image source={apiLogoUrl} style={style} onError={onRenderIconUrlError} />
 				</FadeIn>
 			</View>
 		);
