@@ -81,8 +81,8 @@ export default class WebsiteIcon extends PureComponent {
 	 * parse a size int from string eg: "192x192" -> 192
 	 */
 	parseSize = sizes => {
-		const from = sizes.indexOf('x');
-		return parseInt(sizes.substr(0, from)) || null;
+		const length = sizes.indexOf('x');
+		return parseInt(sizes.substr(0, length)) || null;
 	};
 
 	/**
@@ -94,12 +94,12 @@ export default class WebsiteIcon extends PureComponent {
 
 		const PROTOCOL = '://';
 
-		const hrefFrom = href.indexOf(PROTOCOL);
-		const protocolFrom = url.indexOf(PROTOCOL);
-		const protocol = url.substr(0, protocolFrom);
+		const hrefLength = href.indexOf(PROTOCOL);
+		const protocolLength = url.indexOf(PROTOCOL);
+		const protocol = url.substr(0, protocolLength);
 		const host = getHost(url);
 
-		return hrefFrom === -1 ? `${protocol}${PROTOCOL}${host}${href}` : href;
+		return hrefLength === -1 ? `${protocol}${PROTOCOL}${host}${href}` : href;
 	};
 
 	/**
