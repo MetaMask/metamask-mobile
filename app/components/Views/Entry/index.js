@@ -100,13 +100,13 @@ class Entry extends PureComponent {
 		}
 	}
 
-	handleDeeplinks = async ({ error, params }) => {
+	handleDeeplinks = ({ error, params }) => {
 		if (error) {
 			Logger.error(error, 'Error from Branch');
 			return;
 		}
 		if (params['+non_branch_link']) {
-			DeeplinkManager.setDeeplink(params['+non_branch_link']);
+			DeeplinkManager.parse(params['+non_branch_link']);
 		}
 	};
 

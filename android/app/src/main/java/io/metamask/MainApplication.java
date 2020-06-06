@@ -6,7 +6,6 @@ import com.facebook.react.PackageList;
 import com.facebook.react.ReactInstanceManager;
 import com.airbnb.android.react.lottie.LottiePackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
-import io.branch.rnbranch.RNBranchPackage;
 import io.branch.rnbranch.RNBranchModule;
 import io.metamask.nativeModules.RCTAnalyticsPackage;
 import com.facebook.react.ReactNativeHost;

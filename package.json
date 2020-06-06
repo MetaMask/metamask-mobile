@@ -121,7 +121,7 @@
     "react-native-aes-crypto": "git+ssh://git@github.com/MetaMask/react-native-aes.git#b73625d7e1ce711ed3c2fbd795eea2bda5a5e9ad",
     "react-native-animated-fox": "git+ssh://git@github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9",
     "react-native-background-timer": "2.1.1",
-    "react-native-branch": "git+ssh://git@github.com/MetaMask/react-native-branch-deep-linking-attribution.git#6abb7e34a8f77f624013bb148aed87f50e72bf8f",
+    "react-native-branch": "5.0.0-beta.1",
     "react-native-browser-polyfill": "0.1.2",
     "react-native-button": "git+ssh://git@github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7",
     "react-native-camera": "2.10.0",
