@@ -90,7 +90,7 @@ export default class WebsiteIcon extends PureComponent {
 	 */
 	formatHref = bestIcon => {
 		const { url } = this.props;
-		const href = bestIcon.getAttribute('href') || false;
+		const href = bestIcon.getAttribute('href') || '';
 
 		const PROTOCOL = '://';
 
@@ -124,7 +124,7 @@ export default class WebsiteIcon extends PureComponent {
 		const nodeList = doc.getElementsByTagName('link');
 
 		// collect all <link>'s into an array for filtering
-		const links = Array.from(nodeList);
+		const links = nodeList ? Array.from(nodeList) : [];
 
 		// icons based on size attribute
 		const sizedIcons = links.filter(el => el.hasAttribute('sizes'));
