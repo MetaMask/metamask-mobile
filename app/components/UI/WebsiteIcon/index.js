@@ -106,10 +106,8 @@ export default class WebsiteIcon extends PureComponent {
 	 * Find the best icon based on sizes attribute
 	 */
 	findBestIcon = (acc, curr) => {
-		const curr_sizes = curr.getAttribute('sizes');
-		const acc_sizes = acc.getAttribute('sizes');
-		const curr_size = this.parseSize(curr_sizes);
-		const acc_size = this.parseSize(acc_sizes);
+		const [acc_sizes, curr_sizes] = [acc, curr].map(el => el.getAttribute('sizes'));
+		const [acc_size, curr_size] = [acc_sizes, curr_sizes].map(this.parseSize);
 		return acc_size > curr_size ? acc : curr;
 	};
 
