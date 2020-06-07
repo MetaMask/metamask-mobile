@@ -695,6 +695,7 @@ export function getWalletNavbarOptions(title, navigation) {
 				{ cancelable: false }
 			);
 		} else if (data.walletConnectURI) {
+			console.log('data.walletConnectURI', data.walletConnectURI);
 			setTimeout(() => {
 				DeeplinkManager.parse(data.walletConnectURI);
 			}, 500);
