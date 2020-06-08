@@ -114,7 +114,7 @@ class TransactionEditor extends PureComponent {
 		basicGasEstimates: {},
 		ready: false,
 		advancedCustomGas: false,
-		position: new Animated.Value(0),
+		position: new Animated.Value(1),
 		width: Device.getDeviceWidth(),
 		rootHeight: null,
 		customGasHeight: null
@@ -588,7 +588,7 @@ class TransactionEditor extends PureComponent {
 	};
 
 	onModeChange = mode => {
-		mode === 'edit' ? this.animation(1) : this.animation(0);
+		mode === 'edit' ? this.animation(0) : this.animation(1);
 		this.props.onModeChange(mode);
 	};
 
@@ -608,8 +608,8 @@ class TransactionEditor extends PureComponent {
 		const { position, rootHeight, customGasHeight } = this.state;
 		if (axis === 'translateY') {
 			Device.isIphoneX()
-				? (outRange[1] = rootHeight - customGasHeight)
-				: (outRange[1] = rootHeight - customGasHeight + 24);
+				? (outRange[0] = rootHeight - customGasHeight)
+				: (outRange[0] = rootHeight - customGasHeight + 24);
 		}
 		return {
 			transform: [
@@ -642,7 +642,7 @@ class TransactionEditor extends PureComponent {
 						style={[styles.root, this.generateTransform('translateY', [0, 0])]}
 						onLayout={this.saveRootHeight}
 					>
-						<Animated.View style={this.generateTransform('translateX', [0, -width])}>
+						<Animated.View style={this.generateTransform('translateX', [-width, 0])}>
 							<TransactionReview
 								onCancel={this.onCancel}
 								onConfirm={this.onConfirm}
@@ -654,7 +654,7 @@ class TransactionEditor extends PureComponent {
 						</Animated.View>
 						{ready && (
 							<Animated.View
-								style={[styles.transactionEdit, this.generateTransform('translateX', [width, 0])]}
+								style={[styles.transactionEdit, this.generateTransform('translateX', [0, width])]}
 							>
 								<TransactionEdit
 									navigation={this.props.navigation}
