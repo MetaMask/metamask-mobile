@@ -21,29 +21,46 @@ const ellipsisSize = 20;
 const borderRadius = ellipsisSize / 2;
 
 const styles = StyleSheet.create({
+	row: {
+		display: 'flex',
+		flexDirection: 'row'
+	},
 	onboarding: {
 		justifyContent: 'space-between',
-		display: 'flex',
-		flexDirection: 'row',
-		width: '100%'
+		zIndex: 2
 	},
 	ellipsis: {
 		width: ellipsisSize,
 		height: ellipsisSize,
 		borderWidth: 2,
 		borderColor: colors.grey200,
+		backgroundColor: colors.white,
 		borderRadius
 	},
 	ellipsisText: {
-		fontSize: 10,
+		fontSize: 11,
 		textAlign: 'center',
 		...fontStyles.bold,
-		color: colors.blue,
-		paddingTop: 1
+		color: colors.grey200
 	},
 	ellipsisSelected: {
 		borderColor: colors.blue,
 		color: colors.blue
+	},
+	first: {
+		marginLeft: -1
+	},
+	lines: {
+		zIndex: 1,
+		marginTop: -(ellipsisSize / 2)
+	},
+	line: {
+		width: '50%',
+		height: 2,
+		backgroundColor: colors.grey200
+	},
+	lineSelected: {
+		backgroundColor: colors.blue
 	},
 	scroll: {
 		flexGrow: 1
@@ -103,16 +120,34 @@ class OnboardingProgress extends Component {
 		const { currentStep } = this.props;
 
 		const steps = [1, 2, 3];
+		const lines = steps.filter((step, index) => index !== steps.length - 1);
 		return (
-			<View style={styles.onboarding}>
-				{steps.map((step, key) => {
-					const stepSelected = step === currentStep + 1;
-					return (
-						<View key={key} style={[styles.ellipsis, stepSelected && styles.ellipsisSelected]}>
-							<Text style={styles.ellipsisText}>{step}</Text>
-						</View>
-					);
-				})}
+			<View>
+				<View style={[styles.row, styles.onboarding]}>
+					{steps.map((step, key) => {
+						const isSelected = step <= currentStep;
+						const isFirst = step === steps[0];
+						return (
+							<View key={key} style={[styles.ellipsis, isSelected && styles.ellipsisSelected]}>
+								<Text
+									style={[
+										styles.ellipsisText,
+										isSelected && styles.ellipsisSelected,
+										isFirst && styles.first
+									]}
+								>
+									{step}
+								</Text>
+							</View>
+						);
+					})}
+				</View>
+				<View style={[styles.row, styles.lines]}>
+					{lines.map((step, key) => {
+						const isSelected = step <= currentStep - 1;
+						return <View key={key} style={[styles.line, isSelected && styles.lineSelected]} />;
+					})}
+				</View>
 			</View>
 		);
 	}
@@ -142,7 +177,7 @@ class Onboarding extends PureComponent {
 
 	state = {
 		existingUser: false,
-		currentStep: 0
+		currentStep: 3
 	};
 
 	componentDidMount() {
