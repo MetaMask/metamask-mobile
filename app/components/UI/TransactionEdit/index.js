@@ -54,7 +54,15 @@ class TransactionEdit extends PureComponent {
 		/**
 		 * Saves height of root view to TransactionEditor state
 		 */
-		saveCustomGasHeight: PropTypes.func
+		saveCustomGasHeight: PropTypes.func,
+		/**
+		 * Toggles TransactionEditor advancedCustomGas
+		 */
+		toggleAdvancedCustomGas: PropTypes.func,
+		/**
+		 * Advanced custom gas is shown or hidden
+		 */
+		advancedCustomGas: PropTypes.bool
 	};
 
 	state = {
@@ -120,7 +128,9 @@ class TransactionEdit extends PureComponent {
 		const {
 			transaction: { gas, gasPrice },
 			basicGasEstimates,
-			saveCustomGasHeight
+			saveCustomGasHeight,
+			toggleAdvancedCustomGas,
+			advancedCustomGas
 		} = this.props;
 		const { gasError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -132,6 +142,8 @@ class TransactionEdit extends PureComponent {
 				gas={gas}
 				gasPrice={gasPrice}
 				gasError={gasError}
+				toggleAdvancedCustomGas={toggleAdvancedCustomGas}
+				advancedCustomGas={advancedCustomGas}
 				review={this.review}
 				saveCustomGasHeight={saveCustomGasHeight}
 			/>

@@ -113,6 +113,7 @@ class TransactionEditor extends PureComponent {
 		ensRecipient: undefined,
 		basicGasEstimates: {},
 		ready: false,
+		advancedCustomGas: false,
 		position: new Animated.Value(0),
 		width: Device.getDeviceWidth(),
 		rootHeight: null,
@@ -591,6 +592,10 @@ class TransactionEditor extends PureComponent {
 		this.props.onModeChange(mode);
 	};
 
+	toggleAdvancedCustomGas = (toggle = false) => {
+		this.setState({ advancedCustomGas: toggle ? true : !this.state.advancedCustomGas });
+	};
+
 	animation = to => {
 		Animated.timing(this.state.position, {
 			toValue: to,
@@ -628,7 +633,7 @@ class TransactionEditor extends PureComponent {
 
 	render = () => {
 		const { mode, transactionConfirmed, transaction } = this.props;
-		const { basicGasEstimates, ready, width } = this.state;
+		const { basicGasEstimates, ready, width, advancedCustomGas } = this.state;
 		return (
 			<React.Fragment>
 				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
@@ -668,6 +673,8 @@ class TransactionEditor extends PureComponent {
 									checkForAssetAddress={this.checkForAssetAddress}
 									handleUpdateReadableValue={this.handleUpdateReadableValue}
 									saveCustomGasHeight={this.saveCustomGasHeight}
+									toggleAdvancedCustomGas={this.toggleAdvancedCustomGas}
+									advancedCustomGas={advancedCustomGas}
 								/>
 							</Animated.View>
 						)}

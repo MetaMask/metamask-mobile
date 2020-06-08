@@ -240,7 +240,15 @@ class CustomGas extends PureComponent {
 		/**
 		 * Saves height of root view to TransactionEditor state
 		 */
-		saveCustomGasHeight: PropTypes.func
+		saveCustomGasHeight: PropTypes.func,
+		/**
+		 * Toggles TransactionEditor advancedCustomGas
+		 */
+		toggleAdvancedCustomGas: PropTypes.func,
+		/**
+		 * Advanced custom gas is shown or hidden
+		 */
+		advancedCustomGas: PropTypes.bool
 	};
 
 	state = {
@@ -249,7 +257,6 @@ class CustomGas extends PureComponent {
 		gasSlowSelected: false,
 		selected: 'average',
 		ready: false,
-		advancedCustomGas: false,
 		customGasPrice: '10',
 		customGasLimit: fromWei(this.props.gas, 'wei'),
 		customGasPriceBN: this.props.gasPrice,
@@ -305,8 +312,10 @@ class CustomGas extends PureComponent {
 	};
 
 	toggleAdvancedOptions = () => {
-		const { advancedCustomGas, customGasPrice } = this.state;
-		const { gas } = this.props;
+		const { customGasPrice } = this.state;
+		const { gas, advancedCustomGas, toggleAdvancedCustomGas } = this.props;
+		toggleAdvancedCustomGas();
+
 		if (!advancedCustomGas) {
 			this.setState({ customGasLimit: fromWei(gas, 'wei'), advancedCustomGas: !advancedCustomGas });
 			this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(customGasPrice));
@@ -316,15 +325,16 @@ class CustomGas extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { gas, gasPrice } = this.props;
+		const { gas, gasPrice, toggleAdvancedCustomGas } = this.props;
 		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
 		const { ticker } = this.props;
+		if (ticker && ticker !== 'ETH') toggleAdvancedCustomGas(true);
 		//Applies ISF error if present before any gas modifications
 		this.setState({ warningSufficientFunds, advancedCustomGas: ticker && ticker !== 'ETH' });
 	};
 
 	componentDidUpdate = prevProps => {
-		if (this.state.advancedCustomGas) {
+		if (this.props.advancedCustomGas) {
 			this.handleGasRecalculationForCustomGasInput(prevProps);
 		}
 	};
@@ -384,11 +394,12 @@ class CustomGas extends PureComponent {
 
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
 	saveCustomGasSelection = () => {
-		const { selected, customGasLimit, customGasPrice, advancedCustomGas } = this.state;
+		const { selected, customGasLimit, customGasPrice } = this.state;
 		const {
 			review,
 			gas,
 			handleGasFeeSelection,
+			advancedCustomGas,
 			basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
 		} = this.props;
 		if (advancedCustomGas) {
@@ -524,8 +535,8 @@ class CustomGas extends PureComponent {
 	};
 
 	render = () => {
-		const { advancedCustomGas, warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
-		const { review, gasError, saveCustomGasHeight } = this.props;
+		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
+		const { review, gasError, saveCustomGasHeight, advancedCustomGas } = this.props;
 		const disableButton = advancedCustomGas
 			? !!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError
 			: false;
