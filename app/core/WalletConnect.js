@@ -1,4 +1,5 @@
 import RNWalletConnect from '@walletconnect/client';
+import { parseWalletConnectUri } from '@walletconnect/utils';
 import Engine from './Engine';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -351,6 +352,13 @@ const instance = {
 	shutdown() {
 		Engine.context.TransactionController.hub.removeAllListeners();
 		Engine.context.PreferencesController.unsubscribe();
+	},
+	isValidUri(uri) {
+		const result = parseWalletConnectUri(uri);
+		if (!result.handshakeTopic || !result.bridge || !result.key) {
+			return false;
+		}
+		return true;
 	}
 };
 

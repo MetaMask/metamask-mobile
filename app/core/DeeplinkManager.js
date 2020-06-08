@@ -108,6 +108,7 @@ class DeeplinkManager {
 			// walletconnect related deeplinks
 			// address, transactions, etc
 			case 'wc':
+				if (!WalletConnect.isValidUri(url)) return;
 				// eslint-disable-next-line no-case-declarations
 				const redirect = params && params.redirect;
 				// eslint-disable-next-line no-case-declarations
