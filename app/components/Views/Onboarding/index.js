@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, Component } from 'react';
 import PropTypes from 'prop-types';
 import { Text, View, ScrollView, StyleSheet, Alert, InteractionManager } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -17,7 +17,34 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
 
+const ellipsisSize = 20;
+const borderRadius = ellipsisSize / 2;
+
 const styles = StyleSheet.create({
+	onboarding: {
+		justifyContent: 'space-between',
+		display: 'flex',
+		flexDirection: 'row',
+		width: '100%'
+	},
+	ellipsis: {
+		width: ellipsisSize,
+		height: ellipsisSize,
+		borderWidth: 2,
+		borderColor: colors.grey200,
+		borderRadius
+	},
+	ellipsisText: {
+		fontSize: 10,
+		textAlign: 'center',
+		...fontStyles.bold,
+		color: colors.blue,
+		paddingTop: 1
+	},
+	ellipsisSelected: {
+		borderColor: colors.blue,
+		color: colors.blue
+	},
 	scroll: {
 		flexGrow: 1
 	},
@@ -67,9 +94,34 @@ const styles = StyleSheet.create({
 	}
 });
 
+class OnboardingProgress extends Component {
+	static propTypes = {
+		currentStep: PropTypes.number
+	};
+
+	render() {
+		const { currentStep } = this.props;
+
+		const steps = [1, 2, 3];
+		return (
+			<View style={styles.onboarding}>
+				{steps.map((step, key) => {
+					const stepSelected = step === currentStep + 1;
+					return (
+						<View key={key} style={[styles.ellipsis, stepSelected && styles.ellipsisSelected]}>
+							<Text style={styles.ellipsisText}>{step}</Text>
+						</View>
+					);
+				})}
+			</View>
+		);
+	}
+}
+
 /**
  * View that is displayed to first time (new) users
  */
+// eslint-disable-next-line react/no-multi-comp
 class Onboarding extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransparentBackOnboardingNavbarOptions(navigation);
 
@@ -89,7 +141,8 @@ class Onboarding extends PureComponent {
 	};
 
 	state = {
-		existingUser: false
+		existingUser: false,
+		currentStep: 0
 	};
 
 	componentDidMount() {
@@ -171,6 +224,7 @@ class Onboarding extends PureComponent {
 					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
 							<View style={styles.ctas}>
+								<OnboardingProgress currentStep={this.state.currentStep} />
 								<Text style={styles.title} testID={'onboarding-screen-title'}>
 									{strings('onboarding.title')}
 								</Text>
