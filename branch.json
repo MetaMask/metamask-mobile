@@ -2,5 +2,7 @@
 	"debugMode": true,
 	"useTestInstance": true,
 	"delayInitToCheckForSearchAds": false,
-	"appleSearchAdsDebugMode": false
+	"appleSearchAdsDebugMode": false,
+	"liveKey": "${MM_BRANCH_KEY_LIVE}",
+	"testKey": "${MM_BRANCH_KEY_TEST}"
 }

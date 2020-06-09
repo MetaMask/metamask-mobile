@@ -261,7 +261,7 @@ dependencies {
 	implementation "com.facebook.react:react-native:+"  // From node_modules
 	implementation 'org.chromium:v8-android:+'
 
-	implementation "io.branch.sdk.android:library:4.1.2"
+	implementation "io.branch.sdk.android:library:5.+"
 
 	implementation 'com.mixpanel.android:mixpanel-android:5.+'
 
