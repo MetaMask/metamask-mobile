@@ -26,7 +26,6 @@ const styles = StyleSheet.create({
 	childrenContainer: {
 		minHeight: 250,
 		width: '100%',
-
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
@@ -58,13 +57,17 @@ export default function ActionContent({
 	displayCancelButton,
 	displayConfirmButton,
 	onCancelPress,
-	onConfirmPress
+	onConfirmPress,
+	viewWrapperStyle,
+	viewContainerStyle,
+	actionContainerStyle,
+	childrenContainerStyle
 }) {
 	return (
-		<View style={styles.viewWrapper}>
-			<View style={styles.viewContainer}>
-				<View style={styles.childrenContainer}>{children}</View>
-				<View style={styles.actionContainer}>
+		<View style={[styles.viewWrapper, viewWrapperStyle]}>
+			<View style={[styles.viewContainer, viewContainerStyle]}>
+				<View style={[styles.childrenContainer, childrenContainerStyle]}>{children}</View>
+				<View style={[styles.actionContainer, actionContainerStyle]}>
 					{displayCancelButton && (
 						<StyledButton
 							testID={cancelTestID}
@@ -101,7 +104,10 @@ ActionContent.defaultProps = {
 	confirmText: strings('action_view.confirm'),
 	confirmDisabled: false,
 	displayCancelButton: true,
-	displayConfirmButton: true
+	displayConfirmButton: true,
+	viewWrapperStyle: null,
+	viewContainerStyle: null,
+	childrenContainerStyle: null
 };
 
 ActionContent.propTypes = {
@@ -152,5 +158,21 @@ ActionContent.propTypes = {
 	/**
 	 * Called when the confirm button is clicked
 	 */
-	onConfirmPress: PropTypes.func
+	onConfirmPress: PropTypes.func,
+	/**
+	 * View wrapper style
+	 */
+	viewWrapperStyle: PropTypes.object,
+	/**
+	 * View container style
+	 */
+	viewContainerStyle: PropTypes.object,
+	/**
+	 * Action container style
+	 */
+	actionContainerStyle: PropTypes.object,
+	/**
+	 * Children container style
+	 */
+	childrenContainerStyle: PropTypes.object
 };
