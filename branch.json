@@ -3,6 +3,5 @@
 	"useTestInstance": true,
 	"delayInitToCheckForSearchAds": false,
 	"appleSearchAdsDebugMode": false,
-	"liveKey": "${MM_BRANCH_KEY_LIVE}",
-	"testKey": "${MM_BRANCH_KEY_TEST}"
+	"branchKey": "${MM_BRANCH_KEY_LIVE}"
 }

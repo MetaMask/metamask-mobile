@@ -55,8 +55,9 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		super.onCreate();
 		SoLoader.init(this, /* native exopackage */ false);
 
-		RNBranchModule.getAutoInstance(this);
 		initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
+		RNBranchModule.getAutoInstance(this);
+
     }
     /**
      * Loads Flipper in React Native templates. Call this in the onCreate method with something like
