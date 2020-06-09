@@ -29,12 +29,17 @@ export default function ActionModal({
 	onCancelPress,
 	onConfirmPress,
 	onRequestClose,
-	modalVisible
+	modalVisible,
+	modalStyle,
+	viewWrapperStyle,
+	viewContainerStyle,
+	actionContainerStyle,
+	childrenContainerStyle
 }) {
 	return (
 		<Modal
 			isVisible={modalVisible}
-			style={styles.modal}
+			style={[styles.modal, modalStyle]}
 			onBackdropPress={onRequestClose}
 			onBackButtonPress={onRequestClose}
 			onSwipeComplete={onRequestClose}
@@ -52,6 +57,10 @@ export default function ActionModal({
 				displayConfirmButton={displayConfirmButton}
 				onCancelPress={onCancelPress}
 				onConfirmPress={onConfirmPress}
+				viewWrapperStyle={viewWrapperStyle}
+				viewContainerStyle={viewContainerStyle}
+				actionContainerStyle={actionContainerStyle}
+				childrenContainerStyle={childrenContainerStyle}
 			>
 				{children}
 			</ActionContent>
@@ -127,5 +136,25 @@ ActionModal.propTypes = {
 	/**
 	 * Whether modal is shown
 	 */
-	modalVisible: PropTypes.bool
+	modalVisible: PropTypes.bool,
+	/**
+	 * Modal style
+	 */
+	modalStyle: PropTypes.object,
+	/**
+	 * View wrapper style
+	 */
+	viewWrapperStyle: PropTypes.object,
+	/**
+	 * View container style
+	 */
+	viewContainerStyle: PropTypes.object,
+	/**
+	 * Action container style
+	 */
+	actionContainerStyle: PropTypes.object,
+	/**
+	 * Children container style
+	 */
+	childrenContainerStyle: PropTypes.object
 };
