@@ -1,4 +1,4 @@
-import React, { PureComponent, Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Text, View, ScrollView, StyleSheet, Alert, InteractionManager } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -16,52 +16,9 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
-
-const ellipsisSize = 20;
-const borderRadius = ellipsisSize / 2;
+import OnboardingProgress from '../../UI/OnboardingProgress';
 
 const styles = StyleSheet.create({
-	row: {
-		display: 'flex',
-		flexDirection: 'row'
-	},
-	onboarding: {
-		justifyContent: 'space-between',
-		zIndex: 2
-	},
-	ellipsis: {
-		width: ellipsisSize,
-		height: ellipsisSize,
-		borderWidth: 2,
-		borderColor: colors.grey200,
-		backgroundColor: colors.white,
-		borderRadius
-	},
-	ellipsisText: {
-		fontSize: 11,
-		textAlign: 'center',
-		...fontStyles.bold,
-		color: colors.grey200
-	},
-	ellipsisSelected: {
-		borderColor: colors.blue,
-		color: colors.blue
-	},
-	first: {
-		marginLeft: -1
-	},
-	lines: {
-		zIndex: 1,
-		marginTop: -(ellipsisSize / 2)
-	},
-	line: {
-		width: '50%',
-		height: 2,
-		backgroundColor: colors.grey200
-	},
-	lineSelected: {
-		backgroundColor: colors.blue
-	},
 	scroll: {
 		flexGrow: 1
 	},
@@ -111,52 +68,9 @@ const styles = StyleSheet.create({
 	}
 });
 
-class OnboardingProgress extends Component {
-	static propTypes = {
-		currentStep: PropTypes.number
-	};
-
-	render() {
-		const { currentStep } = this.props;
-
-		const steps = [1, 2, 3];
-		const lines = steps.filter((step, index) => index !== steps.length - 1);
-		return (
-			<View>
-				<View style={[styles.row, styles.onboarding]}>
-					{steps.map((step, key) => {
-						const isSelected = step <= currentStep;
-						const isFirst = step === steps[0];
-						return (
-							<View key={key} style={[styles.ellipsis, isSelected && styles.ellipsisSelected]}>
-								<Text
-									style={[
-										styles.ellipsisText,
-										isSelected && styles.ellipsisSelected,
-										isFirst && styles.first
-									]}
-								>
-									{step}
-								</Text>
-							</View>
-						);
-					})}
-				</View>
-				<View style={[styles.row, styles.lines]}>
-					{lines.map((step, key) => {
-						const isSelected = step <= currentStep - 1;
-						return <View key={key} style={[styles.line, isSelected && styles.lineSelected]} />;
-					})}
-				</View>
-			</View>
-		);
-	}
-}
-
 /**
  * View that is displayed to first time (new) users
  */
-// eslint-disable-next-line react/no-multi-comp
 class Onboarding extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransparentBackOnboardingNavbarOptions(navigation);
 
