@@ -11,29 +11,43 @@ import {
 	getBasicGasEstimates
 } from '../../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import Radio from '../../../UI/Radio';
 
 const styles = StyleSheet.create({
 	root: {
-		margin: 16
+		backgroundColor: colors.white,
+		minHeight: 200,
+		width: '100%'
+	},
+	customGasHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		width: '100%',
+		paddingBottom: 20
 	},
 	selectors: {
 		backgroundColor: colors.white,
-		flexDirection: 'column',
+		flexDirection: 'row',
 		justifyContent: 'space-between',
-		marginVertical: 20
+		paddingBottom: 10
 	},
 	selector: {
+		flex: 1,
 		padding: 12,
 		borderWidth: 1,
-		borderColor: colors.grey100,
-		marginTop: -1
+		borderColor: colors.grey100
 	},
-	advancedOptions: {
-		textAlign: 'right',
-		alignItems: 'center'
+	selectorLeft: {
+		borderTopLeftRadius: 10,
+		borderBottomLeftRadius: 10
+	},
+	selectorRight: {
+		borderTopRightRadius: 10,
+		borderBottomRightRadius: 10
 	},
 	text: {
 		...fontStyles.light,
@@ -41,10 +55,17 @@ const styles = StyleSheet.create({
 		fontSize: 10,
 		textTransform: 'uppercase'
 	},
+	advancedOptionsText: {
+		flex: 1,
+		textAlign: 'left',
+		...fontStyles.light,
+		color: colors.black,
+		fontSize: 16
+	},
 	textTime: {
 		...fontStyles.bold,
 		color: colors.black,
-		marginVertical: 4,
+		marginBottom: 4,
 		fontSize: 18,
 		textTransform: 'none'
 	},
@@ -55,39 +76,72 @@ const styles = StyleSheet.create({
 		fontSize: 10,
 		textTransform: 'uppercase'
 	},
+	customGasModalTitleText: {
+		...fontStyles.bold,
+		color: colors.black,
+		fontSize: 14,
+		alignSelf: 'center'
+	},
+	totalGasWrapper: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'flex-start',
+		paddingVertical: 8,
+		paddingRight: 20
+	},
 	textTotalGas: {
 		...fontStyles.bold,
 		color: colors.black,
-		marginBottom: 8,
-		marginTop: 4
+		fontSize: 14
 	},
-	textAdvancedOptions: {
+	textOptions: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.blue
+		color: colors.black
 	},
 	gasInput: {
+		flex: 1,
 		...fontStyles.bold,
 		backgroundColor: colors.white,
 		borderColor: colors.grey100,
-		borderRadius: 4,
+		borderRadius: 8,
 		borderWidth: 1,
-		fontSize: 16,
+		fontSize: 14,
 		paddingHorizontal: 10,
 		paddingVertical: 8,
-		position: 'relative',
-		marginTop: 4
+		position: 'relative'
+	},
+	warningWrapper: {
+		marginBottom: 20,
+		height: 50,
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	warningTextWrapper: {
+		width: '100%',
+		paddingHorizontal: 10,
+		paddingVertical: 8,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
+		borderRadius: 8,
+		borderWidth: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 	warningText: {
 		color: colors.red,
-		marginVertical: 4,
+		fontSize: 12,
 		...fontStyles.normal
+	},
+	invisible: {
+		opacity: 0
 	},
 	loader: {
 		backgroundColor: colors.white,
-		flex: 1,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		minHeight: 200,
+		width: '100%'
 	},
 	selectorSelected: {
 		backgroundColor: colors.blue000,
@@ -97,37 +151,53 @@ const styles = StyleSheet.create({
 	selectorNotSelected: {
 		backgroundColor: colors.white
 	},
-	selectorTop: {
-		borderTopLeftRadius: 6,
-		borderTopRightRadius: 6
-	},
-	selectorBottom: {
-		borderBottomLeftRadius: 6,
-		borderBottomRightRadius: 6,
-		borderBottomWidth: 1
-	},
 	advancedOptionsContainer: {
-		marginTop: 16
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	valueRow: {
+		width: '100%',
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: 20
+	},
+	optionsContainer: {
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
+		paddingBottom: 20
+	},
+	basicButton: {
+		width: 116,
+		height: 36,
+		padding: 8,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	optionSelected: {
+		backgroundColor: colors.grey000,
+		borderWidth: 1,
+		borderRadius: 20,
+		borderColor: colors.grey100
 	},
 	selectorTitle: {
 		flexDirection: 'row',
-		alignItems: 'center',
+		alignItems: 'flex-start',
 		justifyContent: 'space-between',
 		height: 16
 	},
 	message: {
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 14
+		fontSize: 12,
+		paddingBottom: 20
 	},
 	gasSelectorContainer: {
 		display: 'flex',
 		flexDirection: 'row',
+		justifyContent: 'space-between',
 		alignItems: 'flex-start'
-	},
-	radio: {
-		marginVertical: 4,
-		marginRight: 8
 	}
 });
 
@@ -157,13 +227,25 @@ class CustomGas extends PureComponent {
 		 */
 		gasPrice: PropTypes.object,
 		/**
+		 * Contains the gas error, if any
+		 */
+		gasError: PropTypes.string,
+		/**
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string,
 		/**
 		 * Current selector selected
 		 */
-		selected: PropTypes.string
+		selected: PropTypes.string,
+		/**
+		 * Shows or hides the custom gas modal
+		 */
+		toggleCustomGasModal: PropTypes.func,
+		/**
+		 * Sets ready to 'true' in parent state
+		 */
+		parentStateReady: PropTypes.func
 	};
 
 	state = {
@@ -298,11 +380,13 @@ class CustomGas extends PureComponent {
 		this.setState({ ready: false });
 		const basicGasEstimates = await getBasicGasEstimates();
 		this.setState({ ...basicGasEstimates, ready: true });
+		this.props.parentStateReady();
 	};
 
 	onGasLimitChange = value => {
 		let warningGasLimit;
 		const { customGasPrice } = this.state;
+		const gasPrice = customGasPrice === '' ? '0' : customGasPrice;
 		const bnValue = new BN(value);
 		if (!value || value === '' || !isDecimal(value)) warningGasLimit = strings('transaction.invalid_gas');
 		else if (bnValue && !isBN(bnValue)) warningGasLimit = strings('transaction.invalid_gas');
@@ -311,14 +395,14 @@ class CustomGas extends PureComponent {
 		this.setState({ customGasLimit: value, customGasLimitBN: bnValue, warningGasLimit });
 		this.props.handleGasFeeSelection({
 			gas: bnValue,
-			gasPrice: apiEstimateModifiedToWEI(customGasPrice),
+			gasPrice: apiEstimateModifiedToWEI(gasPrice),
 			error: warningGasLimit
 		});
 	};
 
 	onGasPriceChange = value => {
 		let warningGasPrice;
-		const { customGasLimit } = this.state;
+		const { customGasLimit, warningGasLimit } = this.state;
 		if (!value || value === '' || !isDecimal(value)) {
 			warningGasPrice = strings('transaction.invalid_gas_price');
 			this.setState({ customGasPrice: value, warningGasPrice });
@@ -331,7 +415,11 @@ class CustomGas extends PureComponent {
 				customGasPriceBN: apiEstimateModifiedToWEI(value),
 				warningGasPrice
 			});
-			this.props.handleGasFeeSelection({ gas: new BN(customGasLimit, 10), gasPrice: gasPriceBN });
+			this.props.handleGasFeeSelection({
+				gas: new BN(customGasLimit, 10),
+				gasPrice: gasPriceBN,
+				error: warningGasPrice || warningGasLimit
+			});
 		}
 	};
 
@@ -345,14 +433,11 @@ class CustomGas extends PureComponent {
 				style={[
 					styles.selector,
 					selected ? styles.selectorSelected : styles.selectorNotSelected,
-					name === 'slow' && styles.selectorTop,
-					name === 'fast' && styles.selectorBottom
+					name === 'slow' && styles.selectorLeft,
+					name === 'fast' && styles.selectorRight
 				]}
 			>
 				<View style={styles.gasSelectorContainer}>
-					<View style={styles.radio}>
-						<Radio selected={selected} />
-					</View>
 					<View>
 						<View style={styles.selectorTitle}>
 							<Text style={styles.textTitle}>{strings(`transaction.gas_fee_${name}`)}</Text>
@@ -364,6 +449,9 @@ class CustomGas extends PureComponent {
 						<Text style={styles.text}>
 							{getRenderableFiatGasFee(wei, conversionRate, currentCurrency, gas)}
 						</Text>
+					</View>
+					<View style={styles.radio}>
+						<Radio selected={selected} />
 					</View>
 				</View>
 			</TouchableOpacity>
@@ -398,38 +486,51 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasInput = () => {
-		const {
-			customGasLimit,
-			customGasPrice,
-			warningGasLimit,
-			warningGasPrice,
-			customGasLimitBN,
-			customGasPriceBN
-		} = this.state;
+		const { customGasLimit, customGasPrice, customGasLimitBN, customGasPriceBN } = this.state;
 		const ticker = getTicker(this.props.ticker);
 		const totalGas = customGasLimitBN.mul(customGasPriceBN);
 		return (
 			<View style={styles.advancedOptionsContainer}>
-				<Text style={styles.text}>Total</Text>
-				<Text style={styles.textTotalGas}>
-					{renderFromWei(totalGas)} {ticker}
-				</Text>
-				<Text style={styles.text}>{strings('custom_gas.gas_limit')}</Text>
-				<TextInput
-					keyboardType="numeric"
-					style={styles.gasInput}
-					onChangeText={this.onGasLimitChange}
-					value={customGasLimit}
-				/>
-				<Text style={styles.warningText}>{warningGasLimit}</Text>
-				<Text style={styles.text}>{strings('custom_gas.gas_price')}</Text>
-				<TextInput
-					keyboardType="numeric"
-					style={styles.gasInput}
-					onChangeText={this.onGasPriceChange}
-					value={customGasPrice}
-				/>
-				<Text style={styles.warningText}>{warningGasPrice}</Text>
+				<View style={styles.valueRow}>
+					<Text style={styles.advancedOptionsText}>Total</Text>
+					<View style={styles.totalGasWrapper}>
+						<Text style={styles.textTotalGas}>
+							{renderFromWei(totalGas)} {ticker}
+						</Text>
+					</View>
+				</View>
+				<View style={styles.valueRow}>
+					<Text style={styles.advancedOptionsText}>{strings('custom_gas.gas_limit')}</Text>
+					<TextInput
+						keyboardType="numeric"
+						style={styles.gasInput}
+						onChangeText={this.onGasLimitChange}
+						value={customGasLimit}
+					/>
+				</View>
+				<View style={styles.valueRow}>
+					<Text style={styles.advancedOptionsText}>{strings('custom_gas.gas_price')}</Text>
+					<TextInput
+						keyboardType="numeric"
+						style={styles.gasInput}
+						onChangeText={this.onGasPriceChange}
+						value={customGasPrice}
+					/>
+				</View>
+			</View>
+		);
+	};
+
+	renderGasError = () => {
+		const { warningGasLimit, warningGasPrice } = this.state;
+		const { gasError } = this.props;
+		const hideError = !gasError && !warningGasLimit && !warningGasPrice;
+		const gasErrorMessage = warningGasPrice || warningGasLimit;
+		return (
+			<View style={styles.warningWrapper}>
+				<View style={[styles.warningTextWrapper, hideError ? styles.invisible : null]}>
+					<Text style={styles.warningText}>{gasErrorMessage}</Text>
+				</View>
 			</View>
 		);
 	};
@@ -437,19 +538,35 @@ class CustomGas extends PureComponent {
 	render = () => {
 		if (this.state.ready) {
 			const { advancedCustomGas } = this.state;
+			const { toggleCustomGasModal } = this.props;
 			return (
 				<View style={styles.root}>
-					<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
-					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
-					<View style={styles.advancedOptions}>
-						<TouchableOpacity onPress={this.onAdvancedOptions}>
-							<Text style={styles.textAdvancedOptions}>
-								{advancedCustomGas
-									? strings('custom_gas.hide_advanced_options')
-									: strings('custom_gas.advanced_options')}
-							</Text>
+					<View style={styles.customGasHeader}>
+						<TouchableOpacity onPress={toggleCustomGasModal}>
+							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+						</TouchableOpacity>
+						<Text style={styles.customGasModalTitleText}>{strings('transaction.edit_network_fee')}</Text>
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+					</View>
+					<View style={styles.optionsContainer}>
+						<TouchableOpacity
+							style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
+							onPress={this.onAdvancedOptions}
+						>
+							<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
+							onPress={this.onAdvancedOptions}
+						>
+							<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
 						</TouchableOpacity>
 					</View>
+					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
+					{!advancedCustomGas ? (
+						<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
+					) : null}
+					{advancedCustomGas ? this.renderGasError() : null}
 				</View>
 			);
 		}

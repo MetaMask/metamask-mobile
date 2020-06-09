@@ -35,8 +35,8 @@ import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/
 import Engine from '../../../../core/Engine';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import Logger from '../../../../util/Logger';
-import ActionModal from '../../../UI/ActionModal';
 import AccountList from '../../../UI/AccountList';
+import TransactionReviewFeeCard from '../../../UI/TransactionReview/TransactionReviewFeeCard';
 import CustomGas from '../CustomGas';
 import ErrorMessage from '../ErrorMessage';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
@@ -47,9 +47,10 @@ import CollectibleImage from '../../../UI/CollectibleImage';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
-import TransactionSummary from '../../TransactionSummary';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import ActionModal from '../../../UI/ActionModal';
+import Device from '../../../../util/Device';
 
 const { hexToBN, BNToHex } = util;
 const {
@@ -86,9 +87,6 @@ const styles = StyleSheet.create({
 		fontSize: 44,
 		textAlign: 'center'
 	},
-	summaryWrapper: {
-		marginHorizontal: 24
-	},
 	buttonNext: {
 		flex: 1,
 		marginHorizontal: 24,
@@ -110,21 +108,6 @@ const styles = StyleSheet.create({
 	},
 	actionsWrapper: {
 		margin: 24
-	},
-	loader: {
-		backgroundColor: colors.white,
-		height: 10
-	},
-	customGasModalTitle: {
-		borderBottomColor: colors.grey100,
-		borderBottomWidth: 1
-	},
-	customGasModalTitleText: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 18,
-		alignSelf: 'center',
-		margin: 16
 	},
 	errorMessageWrapper: {
 		marginTop: 16,
@@ -186,6 +169,32 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	actionModal: {
+		justifyContent: 'flex-end',
+		alignItems: 'center',
+		width: '100%'
+	},
+	viewWrapperStyle: {
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		marginHorizontal: 0,
+		backgroundColor: colors.white,
+		paddingBottom: Device.isIphoneX() ? 24 : 0
+	},
+	viewContainerStyle: {
+		borderRadius: 20
+	},
+	actionContainerStyle: {
+		borderTopWidth: 0
+	},
+	childrenContainerStyle: {
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		width: '100%',
+		backgroundColor: colors.white,
+		paddingTop: 24,
+		paddingHorizontal: 24
 	}
 });
 
@@ -264,7 +273,11 @@ class Confirm extends PureComponent {
 		/**
 		 * Resets transaction state
 		 */
-		resetTransaction: PropTypes.func
+		resetTransaction: PropTypes.func,
+		/**
+		 * ETH or fiat, depending on user setting
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -279,6 +292,7 @@ class Confirm extends PureComponent {
 		fromSelectedAddress: this.props.transactionState.transaction.from,
 		hexDataModalVisible: false,
 		gasError: undefined,
+		ready: false,
 		transactionValue: undefined,
 		transactionValueFiat: undefined,
 		transactionFee: undefined,
@@ -289,7 +303,6 @@ class Confirm extends PureComponent {
 		paymentChannelBalance: this.props.selectedAsset.assetBalance,
 		paymentChannelReady: false
 	};
-
 	componentDidMount = async () => {
 		// For analytics
 		const { navigation, providerType } = this.props;
@@ -358,6 +371,7 @@ class Confirm extends PureComponent {
 		const valueBN = hexToBN(value);
 		const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
 		const parsedTicker = getTicker(ticker);
+		const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 
 		if (isPaymentChannelTransaction) {
 			fromAccountBalance = `${selectedAsset.assetBalance} ${selectedAsset.symbol}`;
@@ -420,6 +434,7 @@ class Confirm extends PureComponent {
 				transactionValue,
 				transactionValueFiat,
 				transactionFeeFiat,
+				transactionFee,
 				transactionTo,
 				transactionTotalAmount,
 				transactionTotalAmountFiat
@@ -514,32 +529,38 @@ class Confirm extends PureComponent {
 		this.setState({ hexDataModalVisible: !hexDataModalVisible });
 	};
 
+	ready = () => {
+		this.setState({ ready: true });
+	};
+
 	renderCustomGasModal = () => {
-		const { customGasModalVisible, currentCustomGasSelected, gasError } = this.state;
+		const { customGasModalVisible, currentCustomGasSelected, gasError, ready } = this.state;
 		const { gas, gasPrice } = this.props.transactionState.transaction;
 		return (
 			<ActionModal
-				modalVisible={customGasModalVisible}
-				confirmText={strings('transaction.set_gas')}
-				cancelText={strings('transaction.cancel_gas')}
-				onCancelPress={this.toggleCustomGasModal}
-				onRequestClose={this.toggleCustomGasModal}
-				onConfirmPress={this.handleSetGasFee}
-				confirmDisabled={!!gasError}
-				cancelButtonMode={'neutral'}
+				confirmText={strings('custom_gas.save')}
+				confirmDisabled={!!gasError || !ready}
 				confirmButtonMode={'confirm'}
+				displayCancelButton={false}
+				onConfirmPress={this.handleSetGasFee}
+				onRequestClose={this.toggleCustomGasModal}
+				modalVisible={customGasModalVisible}
+				modalStyle={styles.actionModal}
+				viewWrapperStyle={styles.viewWrapperStyle}
+				viewContainerStyle={styles.viewContainerStyle}
+				actionContainerStyle={styles.actionContainerStyle}
+				childrenContainerStyle={styles.childrenContainerStyle}
 			>
-				<View style={baseStyles.flexGrow}>
-					<View style={styles.customGasModalTitle}>
-						<Text style={styles.customGasModalTitleText}>{strings('transaction.transaction_fee')}</Text>
-					</View>
-					<CustomGas
-						selected={currentCustomGasSelected}
-						handleGasFeeSelection={this.handleGasFeeSelection}
-						gas={gas}
-						gasPrice={gasPrice}
-					/>
-				</View>
+				<CustomGas
+					selected={currentCustomGasSelected}
+					handleGasFeeSelection={this.handleGasFeeSelection}
+					gas={gas}
+					gasPrice={gasPrice}
+					gasError={gasError}
+					toggleCustomGasModal={this.toggleCustomGasModal}
+					handleSetGasFee={this.handleSetGasFee}
+					parentStateReady={this.ready}
+				/>
 			</ActionModal>
 		);
 	};
@@ -737,7 +758,6 @@ class Confirm extends PureComponent {
 			}
 
 			InteractionManager.runAfterInteractions(() => {
-				console.log('transactionnnn', { ...transactionMeta, assetType: transactionMeta.transaction.assetType });
 				TransactionsNotificationManager.watchSubmittedTransaction({
 					...transactionMeta,
 					assetType
@@ -840,7 +860,7 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, isPaymentChannelTransaction } = this.props;
+		const { showHexData, isPaymentChannelTransaction, primaryCurrency } = this.props;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -849,6 +869,7 @@ class Confirm extends PureComponent {
 			transactionValue = '',
 			transactionValueFiat = '',
 			transactionFeeFiat = '',
+			transactionFee,
 			transactionTo = '',
 			transactionTotalAmount = '',
 			transactionTotalAmountFiat = '',
@@ -899,18 +920,19 @@ class Confirm extends PureComponent {
 							</View>
 						</View>
 					)}
-					<View style={styles.summaryWrapper}>
-						{!isPaymentChannelTransaction && (
-							<TransactionSummary
-								amount={transactionValueFiat}
-								fee={transactionFeeFiat}
-								totalAmount={transactionTotalAmountFiat}
-								secondaryTotalAmount={transactionTotalAmount}
-								gasEstimationReady={gasEstimationReady}
-								onEditPress={this.toggleCustomGasModal}
-							/>
-						)}
-					</View>
+					{!isPaymentChannelTransaction && (
+						<TransactionReviewFeeCard
+							totalGasFiat={transactionFeeFiat}
+							totalGasEth={transactionFee}
+							totalFiat={transactionTotalAmountFiat}
+							fiat={transactionValueFiat}
+							totalValue={transactionTotalAmount}
+							transactionValue={transactionValue}
+							primaryCurrency={primaryCurrency}
+							gasEstimationReady={gasEstimationReady}
+							toggleCustomGasModal={this.toggleCustomGasModal}
+						/>
+					)}
 					{errorMessage && (
 						<View style={styles.errorMessageWrapper}>
 							<ErrorMessage errorMessage={errorMessage} />
@@ -954,10 +976,11 @@ const mapStateToProps = state => ({
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	showHexData: state.settings.showHexData,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transactionState: state.transaction,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
-	selectedAsset: state.transaction.selectedAsset
+	selectedAsset: state.transaction.selectedAsset,
+	transactionState: state.transaction,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 const mapDispatchToProps = dispatch => ({
