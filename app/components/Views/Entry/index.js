@@ -7,7 +7,6 @@ import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 import setOnboardingWizardStep from '../../../actions/wizard';
-// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
@@ -100,9 +99,7 @@ class Entry extends PureComponent {
 		}
 	}
 
-	handleDeeplinks = a => {
-		const { error, params, uri } = a;
-		console.log('HANDLEDEEEPPPLINKSSS', a);
+	handleDeeplinks = ({ error, params, uri }) => {
 		if (error) {
 			Logger.error(error, 'Error from Branch');
 			return;
