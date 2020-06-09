@@ -8,7 +8,7 @@
 
 #import <React/RCTPushNotificationManager.h>
 
-#import <react-native-branch/RNBranch.h>
+#import <RNBranch/RNBranch.h>
 
 #if DEBUG
 #import <FlipperKit/FlipperClient.h>
