@@ -782,9 +782,8 @@ export class BrowserTab extends PureComponent {
 			Logger.error(error, 'Error from Branch');
 			return;
 		}
-		if (params['+non_branch_link']) {
-			this.handleBranchDeeplink(params['+non_branch_link']);
-		} else if (params.spotlight_identifier) {
+		// QA THIS
+		if (params.spotlight_identifier) {
 			setTimeout(() => {
 				this.props.navigation.setParams({
 					url: params.spotlight_identifier,
