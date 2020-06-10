@@ -8,7 +8,7 @@ const borderRadius = ellipsisSize / 2;
 
 const styles = StyleSheet.create({
 	onboardingContainer: {
-		marginBottom: 40
+		marginBottom: 60
 	},
 	step: {
 		display: 'flex',
