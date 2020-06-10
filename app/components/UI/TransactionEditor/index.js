@@ -119,7 +119,8 @@ class TransactionEditor extends PureComponent {
 		editToAdvancedValue: new Animated.Value(0),
 		width: Device.getDeviceWidth(),
 		rootHeight: null,
-		customGasHeight: null
+		customGasHeight: null,
+		hideGasSelectors: false
 	};
 
 	componentDidMount = async () => {
@@ -607,6 +608,7 @@ class TransactionEditor extends PureComponent {
 
 	animate = ({ modalEndValue, reviewToEditEndValue, editToAdvancedEndValue }) => {
 		const { modalValue, reviewToEditValue, editToAdvancedValue } = this.state;
+		editToAdvancedEndValue === 0 && this.setState({ hideGasSelectors: false });
 		Animated.parallel([
 			Animated.timing(modalValue, {
 				toValue: modalEndValue,
@@ -624,7 +626,7 @@ class TransactionEditor extends PureComponent {
 					useNativeDriver: true
 				}
 			)
-		]).start();
+		]).start(() => editToAdvancedEndValue === 1 && this.setState({ hideGasSelectors: true }));
 	};
 
 	generateTransform = (valueType, outRange) => {
@@ -674,7 +676,7 @@ class TransactionEditor extends PureComponent {
 
 	render = () => {
 		const { mode, transactionConfirmed, transaction } = this.props;
-		const { basicGasEstimates, ready, width, advancedCustomGas } = this.state;
+		const { basicGasEstimates, ready, width, advancedCustomGas, hideGasSelectors } = this.state;
 		return (
 			<React.Fragment>
 				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
@@ -720,6 +722,7 @@ class TransactionEditor extends PureComponent {
 									animate={this.animate}
 									generateTransform={this.generateTransform}
 									getAnimatedModalValueForAdvancedCG={this.getAnimatedModalValueForAdvancedCG}
+									hideGasSelectors={hideGasSelectors}
 								/>
 							</Animated.View>
 						)}

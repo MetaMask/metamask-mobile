@@ -93,6 +93,12 @@ const styles = StyleSheet.create({
 	radio: {
 		marginLeft: 'auto'
 	},
+	gasSelectorWrapper: {
+		position: 'absolute',
+		alignSelf: 'center',
+		width: '100%',
+		height: '100%'
+	},
 	selectors: {
 		position: 'relative',
 		flexDirection: 'row',
@@ -264,7 +270,11 @@ class CustomGas extends PureComponent {
 		/**
 		 * Computes end value for modal animation when switching to advanced custom gas
 		 */
-		getAnimatedModalValueForAdvancedCG: PropTypes.func
+		getAnimatedModalValueForAdvancedCG: PropTypes.func,
+		/**
+		 * gas selectors are hidden or not
+		 */
+		hideGasSelectors: PropTypes.bool
 	};
 
 	state = {
@@ -279,7 +289,8 @@ class CustomGas extends PureComponent {
 		customGasLimitBN: this.props.gas,
 		warningGasLimit: '',
 		warningGasPrice: '',
-		warningSufficientFunds: ''
+		warningSufficientFunds: '',
+		headerHeight: null
 	};
 
 	onPressGasFast = () => {
@@ -435,75 +446,88 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasSelector = () => {
-		const { gasSlowSelected, gasAverageSelected, gasFastSelected } = this.state;
+		const { gasSlowSelected, gasAverageSelected, gasFastSelected, headerHeight } = this.state;
 		const {
 			conversionRate,
 			currentCurrency,
 			gas,
 			width,
 			generateTransform,
+			hideGasSelectors,
 			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei, averageWait, safeLowWait, fastWait }
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
+		const topOffset = { top: headerHeight };
+		const hideSelectors = hideGasSelectors && { opacity: 0, height: 0 };
 		return (
-			<Animated.View style={[styles.selectors, generateTransform('editToAdvanced', [0, -width])]}>
-				<TouchableOpacity
-					key={'safeLow'}
-					onPress={this.onPressGasSlow}
-					style={[styles.selector, styles.slow, gasSlowSelected && styles.selectorSelected]}
-				>
-					<View style={styles.titleContainer}>
-						<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
-						<View style={styles.radio}>
-							<Radio selected={gasSlowSelected} />
+			<Animated.View
+				style={[
+					styles.gasSelectorWrapper,
+					generateTransform('editToAdvanced', [0, -width]),
+					topOffset,
+					hideSelectors
+				]}
+			>
+				<View style={styles.selectors}>
+					<TouchableOpacity
+						key={'safeLow'}
+						onPress={this.onPressGasSlow}
+						style={[styles.selector, styles.slow, gasSlowSelected && styles.selectorSelected]}
+					>
+						<View style={styles.titleContainer}>
+							<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
+							<View style={styles.radio}>
+								<Radio selected={gasSlowSelected} />
+							</View>
 						</View>
-					</View>
-					<Text style={styles.textTime}>{safeLowWait}</Text>
-					<Text style={styles.text}>
-						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
-					</Text>
-					<Text style={styles.text}>
-						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
-					</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					key={'average'}
-					onPress={this.onPressGasAverage}
-					style={[styles.selector, gasAverageSelected && styles.selectorSelected]}
-				>
-					<View style={styles.titleContainer}>
-						<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
-						<View style={styles.radio}>
-							<Radio selected={gasAverageSelected} />
+						<Text style={styles.textTime}>{safeLowWait}</Text>
+						<Text style={styles.text}>
+							{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
+						</Text>
+						<Text style={styles.text}>
+							{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
+						</Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						key={'average'}
+						onPress={this.onPressGasAverage}
+						style={[styles.selector, gasAverageSelected && styles.selectorSelected]}
+					>
+						<View style={styles.titleContainer}>
+							<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
+							<View style={styles.radio}>
+								<Radio selected={gasAverageSelected} />
+							</View>
 						</View>
-					</View>
-					<Text style={styles.textTime}>{averageWait}</Text>
-					<Text style={styles.text}>
-						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
-					</Text>
-					<Text style={styles.text}>
-						{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
-					</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					key={'fast'}
-					onPress={this.onPressGasFast}
-					style={[styles.selector, styles.fast, gasFastSelected && styles.selectorSelected]}
-				>
-					<View style={styles.titleContainer}>
-						<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
-						<View style={styles.radio}>
-							<Radio selected={gasFastSelected} />
+						<Text style={styles.textTime}>{averageWait}</Text>
+						<Text style={styles.text}>
+							{getRenderableEthGasFee(averageGwei, gas)} {ticker}
+						</Text>
+						<Text style={styles.text}>
+							{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
+						</Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						key={'fast'}
+						onPress={this.onPressGasFast}
+						style={[styles.selector, styles.fast, gasFastSelected && styles.selectorSelected]}
+					>
+						<View style={styles.titleContainer}>
+							<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
+							<View style={styles.radio}>
+								<Radio selected={gasFastSelected} />
+							</View>
 						</View>
-					</View>
-					<Text style={styles.textTime}>{fastWait}</Text>
-					<Text style={styles.text}>
-						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
-					</Text>
-					<Text style={styles.text}>
-						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
-					</Text>
-				</TouchableOpacity>
+						<Text style={styles.textTime}>{fastWait}</Text>
+						<Text style={styles.text}>
+							{getRenderableEthGasFee(fastGwei, gas)} {ticker}
+						</Text>
+						<Text style={styles.text}>
+							{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
+						</Text>
+					</TouchableOpacity>
+				</View>
+				<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
 			</Animated.View>
 		);
 	};
@@ -559,6 +583,9 @@ class CustomGas extends PureComponent {
 		);
 	};
 
+	saveHeaderHeight = event =>
+		!this.state.headerHeight && this.setState({ headerHeight: event.nativeEvent.layout.height });
+
 	render = () => {
 		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
 		const { review, gasError, saveCustomGasHeight, advancedCustomGas } = this.props;
@@ -567,32 +594,32 @@ class CustomGas extends PureComponent {
 			: false;
 		return (
 			<View style={styles.root} onLayout={saveCustomGasHeight}>
-				<View style={styles.customGasHeader}>
-					<TouchableOpacity onPress={review}>
-						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
-					</TouchableOpacity>
-					<Text style={styles.customGasModalTitleText}>{strings('transaction.edit_network_fee')}</Text>
-					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
-				</View>
-				<View style={styles.optionsContainer}>
-					<TouchableOpacity
-						style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
-						onPress={this.toggleAdvancedOptions}
-					>
-						<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
-						onPress={this.toggleAdvancedOptions}
-					>
-						<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
-					</TouchableOpacity>
+				<View onLayout={this.saveHeaderHeight}>
+					<View style={styles.customGasHeader}>
+						<TouchableOpacity onPress={review}>
+							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+						</TouchableOpacity>
+						<Text style={styles.customGasModalTitleText}>{strings('transaction.edit_network_fee')}</Text>
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+					</View>
+					<View style={styles.optionsContainer}>
+						<TouchableOpacity
+							style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
+							onPress={this.toggleAdvancedOptions}
+						>
+							<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
+							onPress={this.toggleAdvancedOptions}
+						>
+							<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
+						</TouchableOpacity>
+					</View>
 				</View>
 
-				{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
-				{!advancedCustomGas ? (
-					<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
-				) : null}
+				{this.renderCustomGasSelector()}
+				{this.renderCustomGasInput()}
 				{advancedCustomGas ? this.renderGasError() : null}
 				<View style={styles.footerContainer}>
 					<StyledButton
