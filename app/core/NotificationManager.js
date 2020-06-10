@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import AppConstants from './AppConstants';
 
 /**
- * Singleton class responsible for managing all the transaction
+ * Singleton class responsible for managing all the
  * related notifications, which could be in-app or push
  * depending on the state of the app
  */
@@ -132,6 +132,13 @@ class NotificationManager {
 			if (id) {
 				this._transactionToView.push(id);
 			}
+		} else if (data.notificationType === 'simple') {
+			this._showSimpleNotification({
+				autodismiss: data.duration,
+				title: data.title,
+				description: data.description,
+				status: data.type
+			});
 		} else {
 			this._showTransactionNotification({
 				autodismiss: data.duration,
@@ -238,11 +245,12 @@ class NotificationManager {
 	/**
 	 * Creates a NotificationManager instance
 	 */
-	constructor(_navigation, _showTransactionNotification, _hideTransactionNotification) {
+	constructor(_navigation, _showTransactionNotification, _hideTransactionNotification, _showSimpleNotification) {
 		if (!NotificationManager.instance) {
 			this._navigation = _navigation;
 			this._showTransactionNotification = _showTransactionNotification;
 			this._hideTransactionNotification = _hideTransactionNotification;
+			this._showSimpleNotification = _showSimpleNotification;
 			this._transactionToView = [];
 			this._backgroundMode = false;
 			NotificationManager.instance = this;
@@ -396,8 +404,13 @@ class NotificationManager {
 let instance;
 
 export default {
-	init(_navigation, _showTransactionNotification, _hideTransactionNotification) {
-		instance = new NotificationManager(_navigation, _showTransactionNotification, _hideTransactionNotification);
+	init(_navigation, _showTransactionNotification, _hideTransactionNotification, _showSimpleNotification) {
+		instance = new NotificationManager(
+			_navigation,
+			_showTransactionNotification,
+			_hideTransactionNotification,
+			_showSimpleNotification
+		);
 		return instance;
 	},
 	watchSubmittedTransaction(transaction) {

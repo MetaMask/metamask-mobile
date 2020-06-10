@@ -1,8 +1,11 @@
 const initialState = {
+	type: undefined,
 	isVisible: false,
 	autodismiss: null,
 	status: undefined,
-	transaction: undefined
+	transaction: undefined,
+	title: undefined,
+	description: undefined
 };
 
 const transactionNotificationReducer = (state = initialState, action) => {
@@ -10,6 +13,7 @@ const transactionNotificationReducer = (state = initialState, action) => {
 		case 'SHOW_TRANSACTION_NOTIFICATION':
 			return {
 				...state,
+				type: 'transaction',
 				isVisible: true,
 				autodismiss: action.autodismiss,
 				transaction: action.transaction,
@@ -21,6 +25,17 @@ const transactionNotificationReducer = (state = initialState, action) => {
 				isVisible: false,
 				autodismiss: null
 			};
+		case 'SHOW_SIMPLE_NOTIFICATION': {
+			return {
+				...state,
+				type: 'simple',
+				isVisible: true,
+				autodismiss: action.autodismiss,
+				title: action.title,
+				description: action.description,
+				status: action.status
+			};
+		}
 		default:
 			return state;
 	}

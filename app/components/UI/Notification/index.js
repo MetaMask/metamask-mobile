@@ -8,11 +8,10 @@ import BasicNotification from './BasicNotification';
  */
 export default function Notification(props) {
 	const { type } = props;
-	console.log('TRANSACTION', type);
 	switch (type) {
 		case 'transaction':
 			return <TransactionNotification props={props} />;
-		case 'basic':
+		case 'simple':
 			return <BasicNotification props={props} />;
 	}
 }

@@ -424,6 +424,10 @@ class Main extends PureComponent {
 		 */
 		showTransactionNotification: PropTypes.func,
 		/**
+		 * Dispatch showing a simple notification
+		 */
+		showSimpleNotification: PropTypes.func,
+		/**
 		 * Dispatch hiding a transaction notification
 		 */
 		hideTransactionNotification: PropTypes.func,
@@ -542,7 +546,8 @@ class Main extends PureComponent {
 				NotificationManager.init(
 					this.props.navigation,
 					this.props.showTransactionNotification,
-					this.props.hideTransactionNotification
+					this.props.hideTransactionNotification,
+					this.props.showSimpleNotification
 				);
 				this.pollForIncomingTransactions();
 
@@ -1171,6 +1176,7 @@ const mapDispatchToProps = dispatch => ({
 	setEtherTransaction: transaction => dispatch(setEtherTransaction(transaction)),
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
+	showSimpleNotification: args => dispatch(showTransactionNotification(args)),
 	hideTransactionNotification: () => dispatch(hideTransactionNotification())
 });
 

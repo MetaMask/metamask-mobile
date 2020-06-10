@@ -178,7 +178,19 @@ class TransactionNotification extends PureComponent {
 		 * Primary currency, either ETH or Fiat
 		 */
 		// eslint-disable-next-line react/no-unused-prop-types
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Title for notification if defined
+		 */
+		notificationTitle: PropTypes.string,
+		/**
+		 * Description for notification if defined
+		 */
+		notificationDescription: PropTypes.string,
+		/**
+		 * Type of notification, transaction or simple
+		 */
+		notificationType: PropTypes.string
 	};
 
 	state = {
@@ -234,13 +246,19 @@ class TransactionNotification extends PureComponent {
 				setTimeout(() => {
 					this.props.hideTransactionNotification();
 				}, this.props.autodismiss);
-			const { paymentChannelTransaction } = this.props.transaction;
-			const tx = paymentChannelTransaction
-				? { paymentChannelTransaction, transaction: {} }
-				: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
-			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
-			const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
-			this.existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+
+			let tx, transactionElement, transactionDetails;
+			if (this.props.notificationType === 'transaction') {
+				const { paymentChannelTransaction } = this.props.transaction;
+				tx = paymentChannelTransaction
+					? { paymentChannelTransaction, transaction: {} }
+					: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
+				const decoded = await decodeTransaction({ ...this.props, tx });
+				transactionElement = decoded[0];
+				transactionDetails = decoded[1];
+				const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+				this.existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+			}
 			// eslint-disable-next-line react/no-did-update-set-state
 			await this.setState({
 				tx,
@@ -440,10 +458,9 @@ class TransactionNotification extends PureComponent {
 		);
 	};
 
-	render = () => {
+	handleTransactionNotification = () => {
 		const { status } = this.props;
-		const { tx, transactionDetailsIsVisible, internalIsVisible, inBrowserView } = this.state;
-		if (!internalIsVisible) return null;
+		const { tx, transactionDetailsIsVisible, inBrowserView } = this.state;
 		const { paymentChannelTransaction } = tx;
 		return (
 			<ElevatedView
@@ -470,6 +487,36 @@ class TransactionNotification extends PureComponent {
 			</ElevatedView>
 		);
 	};
+
+	handleSimpleNotification = () => {
+		const { inBrowserView } = this.state;
+		const { notificationTitle, notificationDescription } = this.props;
+		return (
+			<ElevatedView
+				style={[styles.modalTypeView, inBrowserView ? styles.modalTypeViewBrowser : {}]}
+				elevation={100}
+			>
+				<Animated.View
+					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
+				>
+					<View style={styles.notificationWrapper}>
+						<BaseNotification
+							status={'simple_notification'}
+							data={{ title: notificationTitle, description: notificationDescription }}
+							onHide={this.onClose}
+						/>
+					</View>
+				</Animated.View>
+			</ElevatedView>
+		);
+	};
+
+	render = () => {
+		if (!this.state.internalIsVisible) return null;
+		if (this.props.notificationType === 'transaction') return this.handleTransactionNotification();
+		if (this.props.notificationType === 'simple') return this.handleSimpleNotification();
+		return null;
+	};
 }
 
 const mapStateToProps = state => ({
@@ -477,6 +524,9 @@ const mapStateToProps = state => ({
 	isVisible: state.transactionNotification.isVisible,
 	autodismiss: state.transactionNotification.autodismiss,
 	transaction: state.transactionNotification.transaction,
+	notificationTitle: state.transactionNotification.title,
+	notificationDescription: state.transactionNotification.description,
+	notificationType: state.transactionNotification.type,
 	status: state.transactionNotification.status,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	transactions: state.engine.backgroundState.TransactionController.transactions,

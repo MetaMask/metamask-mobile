@@ -6,13 +6,14 @@ import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AnimatedSpinner from '../../AnimatedSpinner';
 import { strings } from '../../../../../locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import AntIcon from 'react-native-vector-icons/AntDesign';
 
 const styles = StyleSheet.create({
 	defaultFlashFloating: {
 		flex: 1,
 		backgroundColor: colors.normalAlert,
 		padding: 16,
-		marginHorizontal: 8,
+		marginHorizontal: 16,
 		flexDirection: 'row',
 		borderRadius: 8
 	},
@@ -69,6 +70,8 @@ export default function BaseNotification(props) {
 			case 'received':
 			case 'received_payment':
 				return <IonicIcon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
+			case 'simple_notification':
+				return <AntIcon color={colors.green500} size={36} name="checkcircleo" style={styles.checkIcon} />;
 			case 'cancelled':
 			case 'error':
 				return (
@@ -79,6 +82,7 @@ export default function BaseNotification(props) {
 
 	// eslint-disable-next-line no-undef
 	_getTitle = () => {
+		if (data.title) return data.title;
 		switch (status) {
 			case 'pending':
 				return strings('notifications.pending_title');
@@ -110,6 +114,7 @@ export default function BaseNotification(props) {
 
 	// eslint-disable-next-line no-undef
 	_getDescription = () => {
+		if (data.description) return data.description;
 		if (data && data.amount) {
 			return strings(`notifications.${status}_message`, { amount: data.amount });
 		}
