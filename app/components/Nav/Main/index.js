@@ -98,7 +98,7 @@ import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
 import BackupAlert from '../../UI/BackupAlert';
-import Notification from '../../UI/Notification/TransactionNotification';
+import Notification from '../../UI/Notification';
 import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
 import AccountApproval from '../../UI/AccountApproval';
 
