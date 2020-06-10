@@ -29,7 +29,7 @@
 	"onboarding": {
 		"title": "Get started!",
 		"sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
-		"create_desc": "New to crypto? Set up your first wallet and start exploring decentralized apps.",
+		"create_desc": "Set up your first wallet and start exploring decentralized apps.",
 		"import_wallet_button": "Sync or import wallet",
 		"start_exploring_now": "Create wallet",
 		"login": "Log in",
