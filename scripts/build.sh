@@ -110,6 +110,7 @@ prebuild(){
 	# Import provider
 	cp node_modules/@metamask/mobile-provider/dist/index.js app/core/InpageBridgeWeb3.js
 
+	source $ANDROID_ENV_FILE
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $JS_ENV_FILE ]
@@ -126,6 +127,8 @@ prebuild_ios(){
 		echo "" > ios/debug.xcconfig
 		echo "" > ios/release.xcconfig
 	fi
+	echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+	echo "$IOS_ENV" | tr "|" "\n" > ios/debug.xcconfig
 	# Required to install mixpanel dep
 	git submodule update --init --recursive
 }
@@ -138,6 +141,7 @@ prebuild_android(){
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
+	source $ANDROID_ENV_FILE
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $ANDROID_ENV_FILE ]
 		then
