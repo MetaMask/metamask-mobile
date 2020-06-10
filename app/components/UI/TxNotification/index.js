@@ -7,7 +7,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TransactionDetails from '../TransactionElement/TransactionDetails';
 import decodeTransaction from '../TransactionElement/utils';
-import TransactionNotification from '../TransactionNotification';
+import BaseNotification from '../Notification/BaseNotification';
 import Device from '../../../util/Device';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
@@ -363,8 +363,6 @@ class TxNotification extends PureComponent {
 	};
 
 	notificationOverlay = () => {
-		// const isActionCancel = transactionAction === ACTION_CANCEL;
-		const isActionCancel = false;
 		const { navigation } = this.props;
 		const {
 			transactionElement,
@@ -374,6 +372,7 @@ class TxNotification extends PureComponent {
 			transactionAction,
 			transactionActionDisabled
 		} = this.state;
+		const isActionCancel = transactionAction === ACTION_CANCEL;
 		return (
 			<View style={styles.detailsContainer}>
 				<Animated.View
@@ -444,7 +443,6 @@ class TxNotification extends PureComponent {
 	render = () => {
 		const { status } = this.props;
 		const { tx, transactionDetailsIsVisible, internalIsVisible, inBrowserView } = this.state;
-
 		if (!internalIsVisible) return null;
 		const { paymentChannelTransaction } = tx;
 		return (
@@ -461,9 +459,9 @@ class TxNotification extends PureComponent {
 					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
 				>
 					<View style={styles.notificationWrapper}>
-						<TransactionNotification
+						<BaseNotification
 							status={status}
-							transaction={{ ...tx.transaction, ...this.props.transaction }}
+							data={tx.transaction || {}}
 							onPress={this.onNotificationPress}
 							onHide={this.onClose}
 						/>

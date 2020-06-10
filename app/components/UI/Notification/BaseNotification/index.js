@@ -1,10 +1,10 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import AnimatedSpinner from '../AnimatedSpinner';
-import { strings } from '../../../../locales/i18n';
+import AnimatedSpinner from '../../AnimatedSpinner';
+import { strings } from '../../../../../locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 const styles = StyleSheet.create({
@@ -51,11 +51,10 @@ const styles = StyleSheet.create({
 });
 
 /**
- * TransactionNotification component used to render
- * in-app notifications for the transctions
+ * BaseNotification component used to render in-app notifications
  */
-export default function TransactionNotification(props) {
-	const { status, transaction, onPress, onHide } = props;
+export default function BaseNotification(props) {
+	const { status, data, onPress, onHide } = props;
 	// eslint-disable-next-line
 	_getIcon = () => {
 		switch (status) {
@@ -88,18 +87,18 @@ export default function TransactionNotification(props) {
 			case 'pending_withdrawal':
 				return strings('notifications.pending_withdrawal_title');
 			case 'success':
-				return strings('notifications.success_title', { nonce: parseInt(transaction.nonce) });
+				return strings('notifications.success_title', { nonce: parseInt(data.nonce) });
 			case 'success_deposit':
 				return strings('notifications.success_deposit_title');
 			case 'success_withdrawal':
 				return strings('notifications.success_withdrawal_title');
 			case 'received':
 				return strings('notifications.received_title', {
-					amount: transaction.amount,
-					assetType: transaction.assetType
+					amount: data.amount,
+					assetType: data.assetType
 				});
 			case 'speedup':
-				return strings('notifications.speedup_title', { nonce: parseInt(transaction.nonce) });
+				return strings('notifications.speedup_title', { nonce: parseInt(data.nonce) });
 			case 'received_payment':
 				return strings('notifications.received_payment_title');
 			case 'cancelled':
@@ -111,8 +110,8 @@ export default function TransactionNotification(props) {
 
 	// eslint-disable-next-line no-undef
 	_getDescription = () => {
-		if (transaction && transaction.amount) {
-			return strings(`notifications.${status}_message`, { amount: transaction.amount });
+		if (data && data.amount) {
+			return strings(`notifications.${status}_message`, { amount: data.amount });
 		}
 		return strings(`notifications.${status}_message`);
 	};
@@ -140,9 +139,9 @@ export default function TransactionNotification(props) {
 	);
 }
 
-TransactionNotification.propTypes = {
+BaseNotification.propTypes = {
 	status: PropTypes.string,
-	transaction: PropTypes.object,
+	data: PropTypes.object,
 	onPress: PropTypes.func,
 	onHide: PropTypes.func
 };
