@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import { Text, View, StyleSheet } from 'react-native';
+import { strings } from '../../../../locales/i18n';
 
 const ellipsisSize = 20;
 const borderRadius = ellipsisSize / 2;
@@ -81,7 +82,7 @@ export default class OnboardingProgress extends Component {
 	render() {
 		const { currentStep } = this.props;
 
-		const steps = ['Wallet setup', 'Create Password', 'Secure wallet'];
+		const steps = [strings('onboarding.step1'), strings('onboarding.step2'), strings('onboarding.step3')];
 		const lines = steps.filter((step, index) => index !== steps.length - 1);
 		return (
 			<View style={styles.onboardingContainer}>

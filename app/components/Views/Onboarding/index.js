@@ -186,11 +186,8 @@ class Onboarding extends PureComponent {
 								</Text>
 								<View style={styles.importWrapper}>
 									<Text style={styles.buttonDescription}>{strings('onboarding.sync_desc')}</Text>
-									<Text style={styles.subTitle}>Already have a wallet?</Text>
-									<Text style={styles.buttonDescription}>
-										Sync your existing MetaMask wallet from the browser extension or import
-										mannually.
-									</Text>
+									<Text style={styles.subTitle}>{strings('onboarding.already_have')}</Text>
+									<Text style={styles.buttonDescription}>{strings('onboarding.sync_existing')}</Text>
 									<View style={styles.buttonWrapper}>
 										<StyledButton
 											type={'normal'}
