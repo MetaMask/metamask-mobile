@@ -73,7 +73,6 @@ import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
-import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDeposit';
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
@@ -101,6 +100,7 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import BackupAlert from '../../UI/BackupAlert';
 import TxNotification from '../../UI/TxNotification';
 import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
+import AccountApproval from '../../UI/AccountApproval';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -1074,14 +1074,13 @@ class Main extends PureComponent {
 				onBackButtonPress={this.onWalletConnectSessionRejected}
 				swipeDirection={'down'}
 			>
-				<WalletConnectSessionApproval
+				<AccountApproval
 					onCancel={this.onWalletConnectSessionRejected}
 					onConfirm={this.onWalletConnectSessionApproval}
 					currentPageInformation={{
 						title: meta && meta.name,
 						url: meta && meta.url
 					}}
-					autosign={false}
 				/>
 			</Modal>
 		);

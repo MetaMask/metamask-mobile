@@ -362,22 +362,91 @@ class TxNotification extends PureComponent {
 		});
 	};
 
-	render = () => {
-		const { navigation, status } = this.props;
+	notificationOverlay = () => {
+		// const isActionCancel = transactionAction === ACTION_CANCEL;
+		const isActionCancel = false;
+		const { navigation } = this.props;
 		const {
 			transactionElement,
 			transactionDetails,
 			tx,
-			transactionDetailsIsVisible,
-			internalIsVisible,
 			inBrowserView,
 			transactionAction,
 			transactionActionDisabled
 		} = this.state;
+		return (
+			<View style={styles.detailsContainer}>
+				<Animated.View
+					style={[
+						styles.modalView,
+						{ opacity: this.detailsAnimated },
+						inBrowserView ? styles.modalViewInBrowserView : {},
+						{ transform: [{ translateX: this.detailsYAnimated }] }
+					]}
+				>
+					<View style={styles.modalContainer}>
+						<View style={styles.titleWrapper}>
+							<Text style={styles.title} onPress={this.onCloseDetails}>
+								{transactionElement.actionKey}
+							</Text>
+							<Ionicons
+								onPress={this.onCloseDetails}
+								name={'ios-close'}
+								size={38}
+								style={styles.closeIcon}
+							/>
+						</View>
+						<TransactionDetails
+							transactionObject={tx}
+							transactionDetails={transactionDetails}
+							navigation={navigation}
+							close={this.onClose}
+							showSpeedUpModal={this.onSpeedUpPress}
+							showCancelModal={this.onCancelPress}
+						/>
+					</View>
+				</Animated.View>
+
+				<Animated.View
+					style={[
+						styles.modalView,
+						{ opacity: this.detailsAnimated },
+						inBrowserView ? styles.modalViewInBrowserView : {},
+						{ transform: [{ translateX: this.actionXAnimated }] }
+					]}
+				>
+					<View style={styles.transactionAction}>
+						<ActionContent
+							onCancelPress={this.onActionFinish}
+							onConfirmPress={isActionCancel ? this.cancelTransaction : this.speedUpTransaction}
+							confirmText={strings('transaction.lets_try')}
+							cancelText={strings('transaction.nevermind')}
+							confirmDisabled={transactionActionDisabled}
+						>
+							<TransactionActionContent
+								confirmDisabled={transactionActionDisabled}
+								feeText={`${renderFromWei(
+									Math.floor(
+										this.existingGasPriceDecimal * isActionCancel ? CANCEL_RATE : SPEED_UP_RATE
+									)
+								)} ${strings('unit.eth')}`}
+								titleText={strings(`transaction.${transactionAction}_tx_title`)}
+								gasTitleText={strings(`transaction.gas_${transactionAction}_fee`)}
+								descriptionText={strings(`transaction.${transactionAction}_tx_message`)}
+							/>
+						</ActionContent>
+					</View>
+				</Animated.View>
+			</View>
+		);
+	};
+
+	render = () => {
+		const { status } = this.props;
+		const { tx, transactionDetailsIsVisible, internalIsVisible, inBrowserView } = this.state;
 
 		if (!internalIsVisible) return null;
 		const { paymentChannelTransaction } = tx;
-		const isActionCancel = transactionAction === ACTION_CANCEL;
 		return (
 			<ElevatedView
 				style={[
@@ -387,74 +456,7 @@ class TxNotification extends PureComponent {
 				]}
 				elevation={100}
 			>
-				{transactionDetailsIsVisible && !paymentChannelTransaction && (
-					<View style={styles.detailsContainer}>
-						<Animated.View
-							style={[
-								styles.modalView,
-								{ opacity: this.detailsAnimated },
-								inBrowserView ? styles.modalViewInBrowserView : {},
-								{ transform: [{ translateX: this.detailsYAnimated }] }
-							]}
-						>
-							<View style={styles.modalContainer}>
-								<View style={styles.titleWrapper}>
-									<Text style={styles.title} onPress={this.onCloseDetails}>
-										{transactionElement.actionKey}
-									</Text>
-									<Ionicons
-										onPress={this.onCloseDetails}
-										name={'ios-close'}
-										size={38}
-										style={styles.closeIcon}
-									/>
-								</View>
-								<TransactionDetails
-									transactionObject={tx}
-									transactionDetails={transactionDetails}
-									navigation={navigation}
-									close={this.onClose}
-									showSpeedUpModal={this.onSpeedUpPress}
-									showCancelModal={this.onCancelPress}
-								/>
-							</View>
-						</Animated.View>
-
-						<Animated.View
-							style={[
-								styles.modalView,
-								{ opacity: this.detailsAnimated },
-								inBrowserView ? styles.modalViewInBrowserView : {},
-								{ transform: [{ translateX: this.actionXAnimated }] }
-							]}
-						>
-							<View style={styles.transactionAction}>
-								<ActionContent
-									onCancelPress={this.onActionFinish}
-									onConfirmPress={isActionCancel ? this.cancelTransaction : this.speedUpTransaction}
-									confirmText={strings('transaction.lets_try')}
-									cancelText={strings('transaction.nevermind')}
-									confirmDisabled={transactionActionDisabled}
-								>
-									<TransactionActionContent
-										confirmDisabled={transactionActionDisabled}
-										feeText={`${renderFromWei(
-											Math.floor(
-												this.existingGasPriceDecimal * isActionCancel
-													? CANCEL_RATE
-													: SPEED_UP_RATE
-											)
-										)} ${strings('unit.eth')}`}
-										titleText={strings(`transaction.${transactionAction}_tx_title`)}
-										gasTitleText={strings(`transaction.gas_${transactionAction}_fee`)}
-										descriptionText={strings(`transaction.${transactionAction}_tx_message`)}
-									/>
-								</ActionContent>
-							</View>
-						</Animated.View>
-					</View>
-				)}
-
+				{transactionDetailsIsVisible && !paymentChannelTransaction && this.notificationOverlay()}
 				<Animated.View
 					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
 				>
