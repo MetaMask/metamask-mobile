@@ -2,7 +2,11 @@
 
 ## Current Develop Branch
 
-## v0.2.17 - Jun 8 2020
+## v0.2.17 - Jun 12 2020
+- [#1621](https://github.com/MetaMask/metamask-mobile/pull/1621): Fix branch (#1621)
+- [#1512](https://github.com/MetaMask/metamask-mobile/pull/1512): Transaction components (#1512)
+- [#1619](https://github.com/MetaMask/metamask-mobile/pull/1619): Fix aab link on slack (#1619)
+- [#1618](https://github.com/MetaMask/metamask-mobile/pull/1618): Fix android circleci (#1618)
 - [#1578](https://github.com/MetaMask/metamask-mobile/pull/1578): Stops the unintended 'User Rejected...' error caused by buggy submitt… (#1578)
 - [#1615](https://github.com/MetaMask/metamask-mobile/pull/1615): Android circleci fix (#1615)
 - [#1554](https://github.com/MetaMask/metamask-mobile/pull/1554): Splash screen on android (#1554)
