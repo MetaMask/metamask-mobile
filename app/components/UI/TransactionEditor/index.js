@@ -114,7 +114,9 @@ class TransactionEditor extends PureComponent {
 		basicGasEstimates: {},
 		ready: false,
 		advancedCustomGas: false,
-		position: new Animated.Value(1),
+		modalValue: new Animated.Value(1),
+		reviewToEditValue: new Animated.Value(0),
+		editToAdvancedValue: new Animated.Value(0),
 		width: Device.getDeviceWidth(),
 		rootHeight: null,
 		customGasHeight: null
@@ -588,7 +590,9 @@ class TransactionEditor extends PureComponent {
 	};
 
 	onModeChange = mode => {
-		mode === 'edit' ? this.animation(0) : this.animation(1);
+		mode === 'edit'
+			? this.animate({ modalTo: 0, reviewToEditTo: 1 })
+			: this.animate({ modalTo: 1, reviewToEditTo: 0 });
 		this.props.onModeChange(mode);
 	};
 
@@ -596,31 +600,51 @@ class TransactionEditor extends PureComponent {
 		this.setState({ advancedCustomGas: toggle ? true : !this.state.advancedCustomGas });
 	};
 
-	animation = to => {
-		Animated.timing(this.state.position, {
-			toValue: to,
-			duration: 500,
-			useNativeDriver: true
-		}).start();
+	animate = ({ modalTo, reviewToEditTo, editToAdvancedTo }) => {
+		console.log(modalTo, reviewToEditTo);
+		const { modalValue, reviewToEditValue, editToAdvancedValue } = this.state;
+		Animated.parallel([
+			Animated.timing(modalValue, {
+				toValue: modalTo,
+				duration: 500,
+				useNativeDriver: true
+			}),
+			Animated.timing(reviewToEditTo || reviewToEditTo === 0 ? reviewToEditValue : editToAdvancedValue, {
+				toValue: reviewToEditTo || reviewToEditTo === 0 ? reviewToEditTo : editToAdvancedTo,
+				duration: 500,
+				useNativeDriver: true
+			})
+		]).start();
 	};
 
-	generateTransform = (axis, outRange) => {
-		const { position, rootHeight, customGasHeight } = this.state;
-		if (axis === 'translateY') {
+	generateTransform = (valueType, outRange) => {
+		const { modalValue, reviewToEditValue, rootHeight, customGasHeight } = this.state;
+		if (valueType === 'modal') {
 			Device.isIphoneX()
 				? (outRange[0] = rootHeight - customGasHeight)
 				: (outRange[0] = rootHeight - customGasHeight + 24);
+			return {
+				transform: [
+					{
+						translateY: modalValue.interpolate({
+							inputRange: [0, 1],
+							outputRange: outRange
+						})
+					}
+				]
+			};
+		} else if (valueType === 'reviewToEdit') {
+			return {
+				transform: [
+					{
+						translateX: reviewToEditValue.interpolate({
+							inputRange: [0, 1],
+							outputRange: outRange
+						})
+					}
+				]
+			};
 		}
-		return {
-			transform: [
-				{
-					[axis]: position.interpolate({
-						inputRange: [0, 1],
-						outputRange: outRange
-					})
-				}
-			]
-		};
 	};
 
 	saveRootHeight = event => {
@@ -639,10 +663,10 @@ class TransactionEditor extends PureComponent {
 				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
 				{!transaction.paymentChannelTransaction && (
 					<Animated.View
-						style={[styles.root, this.generateTransform('translateY', [0, 0])]}
+						style={[styles.root, this.generateTransform('modal', [0, 0])]}
 						onLayout={this.saveRootHeight}
 					>
-						<Animated.View style={this.generateTransform('translateX', [-width, 0])}>
+						<Animated.View style={this.generateTransform('reviewToEdit', [0, -width])}>
 							<TransactionReview
 								onCancel={this.onCancel}
 								onConfirm={this.onConfirm}
@@ -654,7 +678,7 @@ class TransactionEditor extends PureComponent {
 						</Animated.View>
 						{ready && (
 							<Animated.View
-								style={[styles.transactionEdit, this.generateTransform('translateX', [0, width])]}
+								style={[styles.transactionEdit, this.generateTransform('reviewToEdit', [width, 0])]}
 							>
 								<TransactionEdit
 									navigation={this.props.navigation}
