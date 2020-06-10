@@ -31,11 +31,17 @@ const styles = StyleSheet.create({
 		paddingVertical: 30
 	},
 	title: {
-		fontSize: 28,
+		fontSize: 24,
 		color: colors.fontPrimary,
 		...fontStyles.bold,
-		justifyContent: 'center',
 		textAlign: 'center'
+	},
+	subTitle: {
+		fontSize: 16,
+		color: colors.fontPrimary,
+		...fontStyles.bold,
+		textAlign: 'center',
+		marginBottom: 10
 	},
 	ctas: {
 		flex: 1
@@ -180,6 +186,11 @@ class Onboarding extends PureComponent {
 								</Text>
 								<View style={styles.importWrapper}>
 									<Text style={styles.buttonDescription}>{strings('onboarding.sync_desc')}</Text>
+									<Text style={styles.subTitle}>Already have a wallet?</Text>
+									<Text style={styles.buttonDescription}>
+										Sync your existing MetaMask wallet from the browser extension or import
+										mannually.
+									</Text>
 									<View style={styles.buttonWrapper}>
 										<StyledButton
 											type={'normal'}
@@ -191,6 +202,7 @@ class Onboarding extends PureComponent {
 									</View>
 								</View>
 								<View style={styles.createWrapper}>
+									<Text style={styles.subTitle}>New to crypto?</Text>
 									<Text style={styles.buttonDescription}>{strings('onboarding.create_desc')}</Text>
 									<View style={styles.buttonWrapper}>
 										<StyledButton
