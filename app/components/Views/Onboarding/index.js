@@ -54,7 +54,8 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		textAlign: 'center',
 		marginBottom: 16,
-		color: colors.fontSecondary
+		color: colors.fontSecondary,
+		lineHeight: 20
 	},
 	importWrapper: {
 		marginVertical: 24
