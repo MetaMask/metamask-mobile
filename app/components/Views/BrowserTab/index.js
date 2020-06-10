@@ -1125,20 +1125,13 @@ export class BrowserTab extends PureComponent {
 		current && current.reload();
 	};
 
-	forceReload = initialReload => {
+	forceReload = () => {
 		this.isReloading = true;
 
 		this.toggleOptionsIfNeeded();
 		// As we're reloading to other url we should remove this callback
 		this.approvalRequest = undefined;
 		const url2Reload = this.state.inputValue;
-
-		// If it is the first time the component is being mounted, there should be no cache problem and no need for remounting the component
-		if (initialReload) {
-			this.isReloading = false;
-			this.go(url2Reload);
-			return;
-		}
 
 		// Force unmount the webview to avoid caching problems
 		this.setState({ forceReload: true }, () => {
@@ -1157,7 +1150,7 @@ export class BrowserTab extends PureComponent {
 		if (this.webview && this.webview.current) {
 			this.webview.current.stopLoading();
 		}
-		this.forceReload(true);
+		this.forceReload();
 		this.init();
 	};
 
