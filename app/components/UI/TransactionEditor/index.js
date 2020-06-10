@@ -591,8 +591,8 @@ class TransactionEditor extends PureComponent {
 
 	onModeChange = mode => {
 		mode === 'edit'
-			? this.animate({ modalTo: 0, reviewToEditTo: 1 })
-			: this.animate({ modalTo: 1, reviewToEditTo: 0 });
+			? this.animate({ modalEndValue: 0, reviewToEditEndValue: 1 })
+			: this.animate({ modalEndValue: 1, reviewToEditEndValue: 0 });
 		this.props.onModeChange(mode);
 	};
 
@@ -600,25 +600,30 @@ class TransactionEditor extends PureComponent {
 		this.setState({ advancedCustomGas: toggle ? true : !this.state.advancedCustomGas });
 	};
 
-	animate = ({ modalTo, reviewToEditTo, editToAdvancedTo }) => {
-		console.log(modalTo, reviewToEditTo);
+	animate = ({ modalEndValue, reviewToEditEndValue, editToAdvancedEndValue }) => {
 		const { modalValue, reviewToEditValue, editToAdvancedValue } = this.state;
 		Animated.parallel([
 			Animated.timing(modalValue, {
-				toValue: modalTo,
+				toValue: modalEndValue,
 				duration: 500,
 				useNativeDriver: true
 			}),
-			Animated.timing(reviewToEditTo || reviewToEditTo === 0 ? reviewToEditValue : editToAdvancedValue, {
-				toValue: reviewToEditTo || reviewToEditTo === 0 ? reviewToEditTo : editToAdvancedTo,
-				duration: 500,
-				useNativeDriver: true
-			})
+			Animated.timing(
+				reviewToEditEndValue || reviewToEditEndValue === 0 ? reviewToEditValue : editToAdvancedValue,
+				{
+					toValue:
+						reviewToEditEndValue || reviewToEditEndValue === 0
+							? reviewToEditEndValue
+							: editToAdvancedEndValue,
+					duration: 500,
+					useNativeDriver: true
+				}
+			)
 		]).start();
 	};
 
 	generateTransform = (valueType, outRange) => {
-		const { modalValue, reviewToEditValue, rootHeight, customGasHeight } = this.state;
+		const { modalValue, reviewToEditValue, editToAdvancedValue, rootHeight, customGasHeight } = this.state;
 		if (valueType === 'modal') {
 			Device.isIphoneX()
 				? (outRange[0] = rootHeight - customGasHeight)
@@ -633,18 +638,25 @@ class TransactionEditor extends PureComponent {
 					}
 				]
 			};
-		} else if (valueType === 'reviewToEdit') {
-			return {
-				transform: [
-					{
-						translateX: reviewToEditValue.interpolate({
-							inputRange: [0, 1],
-							outputRange: outRange
-						})
-					}
-				]
-			};
 		}
+		const value = valueType === 'reviewToEdit' ? reviewToEditValue : editToAdvancedValue;
+		return {
+			transform: [
+				{
+					translateX: value.interpolate({
+						inputRange: [0, 1],
+						outputRange: outRange
+					})
+				}
+			]
+		};
+	};
+
+	getAnimatedModalValueForChild = () => {
+		const { rootHeight, customGasHeight } = this.state;
+		//70 is the fixed height + margin of the error message in advanced custom gas. It expands 70 units vertically to accomodate it
+		const value = 70 / (rootHeight - customGasHeight);
+		return value;
 	};
 
 	saveRootHeight = event => {
@@ -699,6 +711,10 @@ class TransactionEditor extends PureComponent {
 									saveCustomGasHeight={this.saveCustomGasHeight}
 									toggleAdvancedCustomGas={this.toggleAdvancedCustomGas}
 									advancedCustomGas={advancedCustomGas}
+									width={width}
+									animate={this.animate}
+									generateTransform={this.generateTransform}
+									getAnimatedModalValueForChild={this.getAnimatedModalValueForChild}
 								/>
 							</Animated.View>
 						)}

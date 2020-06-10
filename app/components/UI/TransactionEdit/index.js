@@ -62,7 +62,23 @@ class TransactionEdit extends PureComponent {
 		/**
 		 * Advanced custom gas is shown or hidden
 		 */
-		advancedCustomGas: PropTypes.bool
+		advancedCustomGas: PropTypes.bool,
+		/**
+		 * Width of the device
+		 */
+		width: PropTypes.number,
+		/**
+		 * Drives animated values
+		 */
+		animate: PropTypes.func,
+		/**
+		 * Generates a transform style unique to the component
+		 */
+		generateTransform: PropTypes.func,
+		/**
+		 * Computes end value for modal animation when switching to advanced custom gas
+		 */
+		getAnimatedModalValueForChild: PropTypes.func
 	};
 
 	state = {
@@ -130,7 +146,11 @@ class TransactionEdit extends PureComponent {
 			basicGasEstimates,
 			saveCustomGasHeight,
 			toggleAdvancedCustomGas,
-			advancedCustomGas
+			advancedCustomGas,
+			width,
+			animate,
+			generateTransform,
+			getAnimatedModalValueForChild
 		} = this.props;
 		const { gasError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -146,6 +166,10 @@ class TransactionEdit extends PureComponent {
 				advancedCustomGas={advancedCustomGas}
 				review={this.review}
 				saveCustomGasHeight={saveCustomGasHeight}
+				width={width}
+				animate={animate}
+				generateTransform={generateTransform}
+				getAnimatedModalValueForChild={getAnimatedModalValueForChild}
 			/>
 		);
 	}

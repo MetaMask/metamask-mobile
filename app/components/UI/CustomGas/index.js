@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Animated } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getRenderableEthGasFee, getRenderableFiatGasFee, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
@@ -248,7 +248,23 @@ class CustomGas extends PureComponent {
 		/**
 		 * Advanced custom gas is shown or hidden
 		 */
-		advancedCustomGas: PropTypes.bool
+		advancedCustomGas: PropTypes.bool,
+		/**
+		 * Width of the device
+		 */
+		width: PropTypes.number,
+		/**
+		 * Drives animated values
+		 */
+		animate: PropTypes.func,
+		/**
+		 * Generates a transform style unique to the component
+		 */
+		generateTransform: PropTypes.func,
+		/**
+		 * Computes end value for modal animation when switching to advanced custom gas
+		 */
+		getAnimatedModalValueForChild: PropTypes.func
 	};
 
 	state = {
@@ -313,14 +329,14 @@ class CustomGas extends PureComponent {
 
 	toggleAdvancedOptions = () => {
 		const { customGasPrice } = this.state;
-		const { gas, advancedCustomGas, toggleAdvancedCustomGas } = this.props;
+		const { gas, advancedCustomGas, toggleAdvancedCustomGas, animate, getAnimatedModalValueForChild } = this.props;
 		toggleAdvancedCustomGas();
-
 		if (!advancedCustomGas) {
-			this.setState({ customGasLimit: fromWei(gas, 'wei'), advancedCustomGas: !advancedCustomGas });
+			animate({ modalEndValue: getAnimatedModalValueForChild(), editToAdvancedEndValue: 1 });
+			this.setState({ customGasLimit: fromWei(gas, 'wei') });
 			this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(customGasPrice));
 		} else {
-			this.setState({ advancedCustomGas: !advancedCustomGas });
+			animate({ modalEndValue: 0, editToAdvancedEndValue: 0 });
 		}
 	};
 
@@ -418,11 +434,13 @@ class CustomGas extends PureComponent {
 			conversionRate,
 			currentCurrency,
 			gas,
+			width,
+			generateTransform,
 			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei, averageWait, safeLowWait, fastWait }
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
 		return (
-			<View style={styles.selectors}>
+			<Animated.View style={[styles.selectors, generateTransform('editToAdvanced', [0, -width])]}>
 				<TouchableOpacity
 					key={'safeLow'}
 					onPress={this.onPressGasSlow}
@@ -480,16 +498,17 @@ class CustomGas extends PureComponent {
 						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
 					</Text>
 				</TouchableOpacity>
-			</View>
+			</Animated.View>
 		);
 	};
 
 	renderCustomGasInput = () => {
 		const { customGasPrice, customGasLimitBN, customGasPriceBN } = this.state;
+		const { width, generateTransform } = this.props;
 		const totalGas = customGasLimitBN.mul(customGasPriceBN);
 		const ticker = getTicker(this.props.ticker);
 		return (
-			<View style={styles.advancedOptionsContainer}>
+			<Animated.View style={[styles.advancedOptionsContainer, generateTransform('editToAdvanced', [width, 0])]}>
 				<View style={styles.valueRow}>
 					<Text style={styles.advancedOptionsText}>{strings('custom_gas.total')}</Text>
 					<View style={styles.totalGasWrapper}>
@@ -517,7 +536,7 @@ class CustomGas extends PureComponent {
 						value={customGasPrice.toString()}
 					/>
 				</View>
-			</View>
+			</Animated.View>
 		);
 	};
 
