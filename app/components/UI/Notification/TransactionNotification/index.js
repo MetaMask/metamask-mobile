@@ -1,23 +1,23 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, Dimensions, InteractionManager } from 'react-native';
-import { hideTransactionNotification } from '../../../actions/transactionNotification';
+import { hideTransactionNotification } from '../../../../actions/transactionNotification';
 import { connect } from 'react-redux';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../../styles/common';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import TransactionDetails from '../TransactionElement/TransactionDetails';
-import decodeTransaction from '../TransactionElement/utils';
-import BaseNotification from '../Notification/BaseNotification';
-import Device from '../../../util/Device';
+import TransactionDetails from '../../TransactionElement/TransactionDetails';
+import decodeTransaction from '../../TransactionElement/utils';
+import BaseNotification from '../BaseNotification';
+import Device from '../../../../util/Device';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '../../../../../locales/i18n';
 import { CANCEL_RATE, SPEED_UP_RATE, BN, util } from '@metamask/controllers';
-import ActionContent from '../ActionModal/ActionContent';
-import TransactionActionContent from '../TransactionActionModal/TransactionActionContent';
-import { renderFromWei } from '../../../util/number';
-import Engine from '../../../core/Engine';
-import { safeToChecksumAddress } from '../../../util/address';
+import ActionContent from '../../ActionModal/ActionContent';
+import TransactionActionContent from '../../TransactionActionModal/TransactionActionContent';
+import { renderFromWei } from '../../../../util/number';
+import Engine from '../../../../core/Engine';
+import { safeToChecksumAddress } from '../../../../util/address';
 
 const { hexToBN } = util;
 const BROWSER_ROUTE = 'BrowserView';
@@ -100,7 +100,7 @@ const ACTION_SPEEDUP = 'speedup';
  * Wrapper component for a global alert
  * connected to redux
  */
-class TxNotification extends PureComponent {
+class TransactionNotification extends PureComponent {
 	static propTypes = {
 		/**
 		 * Map of accounts to information objects including balances
@@ -499,4 +499,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(TxNotification);
+)(TransactionNotification);

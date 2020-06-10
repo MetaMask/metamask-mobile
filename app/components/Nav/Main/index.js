@@ -98,7 +98,7 @@ import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
 import BackupAlert from '../../UI/BackupAlert';
-import TxNotification from '../../UI/TxNotification';
+import Notification from '../../UI/Notification/TransactionNotification';
 import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
 import AccountApproval from '../../UI/AccountApproval';
 
@@ -1143,7 +1143,7 @@ class Main extends PureComponent {
 					<GlobalAlert />
 					<FadeOutOverlay />
 					<BackupAlert navigation={this.props.navigation} onPress={this.backupAlertPress} />
-					<TxNotification navigation={this.props.navigation} />
+					<Notification navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
