@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
 
 export default class OnboardingProgress extends Component {
 	static propTypes = {
-		currentStep: PropTypes.number
+		currentStep: PropTypes.number.isRequired
 	};
 
 	render() {
