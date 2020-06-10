@@ -7,6 +7,21 @@ const ellipsisSize = 20;
 const borderRadius = ellipsisSize / 2;
 
 const styles = StyleSheet.create({
+	onboardingContainer: {
+		marginBottom: 40
+	},
+	step: {
+		display: 'flex',
+		alignItems: 'center'
+	},
+	stepText: {
+		marginTop: 4,
+		fontSize: 11,
+		color: colors.black
+	},
+	stepTextSelected: {
+		color: colors.blue
+	},
 	row: {
 		display: 'flex',
 		flexDirection: 'row'
@@ -45,7 +60,8 @@ const styles = StyleSheet.create({
 	},
 	lines: {
 		zIndex: 1,
-		marginTop: -(ellipsisSize / 2)
+		marginTop: -30,
+		marginHorizontal: 24
 	},
 	line: {
 		width: '50%',
@@ -65,34 +81,38 @@ export default class OnboardingProgress extends Component {
 	render() {
 		const { currentStep } = this.props;
 
-		const steps = [1, 2, 3];
+		const steps = ['Wallet setup', 'Create Password', 'Secure wallet'];
 		const lines = steps.filter((step, index) => index !== steps.length - 1);
 		return (
-			<View>
+			<View style={styles.onboardingContainer}>
 				<View style={[styles.row, styles.onboarding]}>
 					{steps.map((step, key) => {
-						const isSelected = step === currentStep;
-						const isCompleted = step < currentStep;
+						const isSelected = key + 1 === currentStep;
+						const isCompleted = key + 1 < currentStep;
 
-						const isFirst = step === steps[0];
+						const isFirst = key === 0;
 						return (
-							<View
-								key={key}
-								style={[
-									styles.ellipsis,
-									isSelected && styles.ellipsisSelected,
-									isCompleted && styles.ellipsisCompleted
-								]}
-							>
-								<Text
+							<View key={key} style={styles.step}>
+								<View
 									style={[
-										styles.ellipsisText,
+										styles.ellipsis,
 										isSelected && styles.ellipsisSelected,
-										isCompleted && styles.ellipsisTextCompleted,
-										isFirst && styles.first
+										isCompleted && styles.ellipsisCompleted
 									]}
 								>
-									{step}
+									<Text
+										style={[
+											styles.ellipsisText,
+											isSelected && styles.ellipsisSelected,
+											isCompleted && styles.ellipsisTextCompleted,
+											isFirst && styles.first
+										]}
+									>
+										{key + 1}
+									</Text>
+								</View>
+								<Text style={[styles.stepText, (isSelected || isCompleted) && styles.stepTextSelected]}>
+									{steps[key]}
 								</Text>
 							</View>
 						);
@@ -100,7 +120,7 @@ export default class OnboardingProgress extends Component {
 				</View>
 				<View style={[styles.row, styles.lines]}>
 					{lines.map((step, key) => {
-						const isSelected = step <= currentStep - 1;
+						const isSelected = key + 1 < currentStep;
 						return <View key={key} style={[styles.line, isSelected && styles.lineSelected]} />;
 					})}
 				</View>

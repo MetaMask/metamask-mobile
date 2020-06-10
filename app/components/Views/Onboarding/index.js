@@ -91,7 +91,7 @@ class Onboarding extends PureComponent {
 
 	state = {
 		existingUser: false,
-		currentStep: 3
+		currentStep: 1
 	};
 
 	componentDidMount() {
