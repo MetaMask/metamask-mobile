@@ -78,7 +78,7 @@ class TransactionEdit extends PureComponent {
 		/**
 		 * Computes end value for modal animation when switching to advanced custom gas
 		 */
-		getAnimatedModalValueForChild: PropTypes.func
+		getAnimatedModalValueForAdvancedCG: PropTypes.func
 	};
 
 	state = {
@@ -150,7 +150,7 @@ class TransactionEdit extends PureComponent {
 			width,
 			animate,
 			generateTransform,
-			getAnimatedModalValueForChild
+			getAnimatedModalValueForAdvancedCG
 		} = this.props;
 		const { gasError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -169,7 +169,7 @@ class TransactionEdit extends PureComponent {
 				width={width}
 				animate={animate}
 				generateTransform={generateTransform}
-				getAnimatedModalValueForChild={getAnimatedModalValueForChild}
+				getAnimatedModalValueForAdvancedCG={getAnimatedModalValueForAdvancedCG}
 			/>
 		);
 	}

@@ -589,12 +589,17 @@ class TransactionEditor extends PureComponent {
 		this.setState({ basicGasEstimates, ready: true });
 	};
 
+	/* eslint-disable */
 	onModeChange = mode => {
 		mode === 'edit'
-			? this.animate({ modalEndValue: 0, reviewToEditEndValue: 1 })
+			? this.animate({
+					modalEndValue: this.state.advancedCustomGas ? this.getAnimatedModalValueForAdvancedCG() : 0,
+					reviewToEditEndValue: 1
+			  })
 			: this.animate({ modalEndValue: 1, reviewToEditEndValue: 0 });
 		this.props.onModeChange(mode);
 	};
+	/* eslint-enable */
 
 	toggleAdvancedCustomGas = (toggle = false) => {
 		this.setState({ advancedCustomGas: toggle ? true : !this.state.advancedCustomGas });
@@ -652,7 +657,7 @@ class TransactionEditor extends PureComponent {
 		};
 	};
 
-	getAnimatedModalValueForChild = () => {
+	getAnimatedModalValueForAdvancedCG = () => {
 		const { rootHeight, customGasHeight } = this.state;
 		//70 is the fixed height + margin of the error message in advanced custom gas. It expands 70 units vertically to accomodate it
 		const value = 70 / (rootHeight - customGasHeight);
@@ -714,7 +719,7 @@ class TransactionEditor extends PureComponent {
 									width={width}
 									animate={this.animate}
 									generateTransform={this.generateTransform}
-									getAnimatedModalValueForChild={this.getAnimatedModalValueForChild}
+									getAnimatedModalValueForAdvancedCG={this.getAnimatedModalValueForAdvancedCG}
 								/>
 							</Animated.View>
 						)}

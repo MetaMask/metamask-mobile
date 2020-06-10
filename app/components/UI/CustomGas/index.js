@@ -264,7 +264,7 @@ class CustomGas extends PureComponent {
 		/**
 		 * Computes end value for modal animation when switching to advanced custom gas
 		 */
-		getAnimatedModalValueForChild: PropTypes.func
+		getAnimatedModalValueForAdvancedCG: PropTypes.func
 	};
 
 	state = {
@@ -329,10 +329,16 @@ class CustomGas extends PureComponent {
 
 	toggleAdvancedOptions = () => {
 		const { customGasPrice } = this.state;
-		const { gas, advancedCustomGas, toggleAdvancedCustomGas, animate, getAnimatedModalValueForChild } = this.props;
+		const {
+			gas,
+			advancedCustomGas,
+			toggleAdvancedCustomGas,
+			animate,
+			getAnimatedModalValueForAdvancedCG
+		} = this.props;
 		toggleAdvancedCustomGas();
 		if (!advancedCustomGas) {
-			animate({ modalEndValue: getAnimatedModalValueForChild(), editToAdvancedEndValue: 1 });
+			animate({ modalEndValue: getAnimatedModalValueForAdvancedCG(), editToAdvancedEndValue: 1 });
 			this.setState({ customGasLimit: fromWei(gas, 'wei') });
 			this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(customGasPrice));
 		} else {
