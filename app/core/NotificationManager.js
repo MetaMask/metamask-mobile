@@ -16,7 +16,7 @@ import AppConstants from './AppConstants';
  * related notifications, which could be in-app or push
  * depending on the state of the app
  */
-class TransactionsNotificationManager {
+class NotificationManager {
 	/**
 	 * Navigation object from react-navigation
 	 */
@@ -236,20 +236,20 @@ class TransactionsNotificationManager {
 	};
 
 	/**
-	 * Creates a TransactionsNotificationManager instance
+	 * Creates a NotificationManager instance
 	 */
 	constructor(_navigation, _showTransactionNotification, _hideTransactionNotification) {
-		if (!TransactionsNotificationManager.instance) {
+		if (!NotificationManager.instance) {
 			this._navigation = _navigation;
 			this._showTransactionNotification = _showTransactionNotification;
 			this._hideTransactionNotification = _hideTransactionNotification;
 			this._transactionToView = [];
 			this._backgroundMode = false;
-			TransactionsNotificationManager.instance = this;
+			NotificationManager.instance = this;
 			AppState.addEventListener('change', this._handleAppStateChange);
 		}
 
-		return TransactionsNotificationManager.instance;
+		return NotificationManager.instance;
 	}
 
 	/**
@@ -397,11 +397,7 @@ let instance;
 
 export default {
 	init(_navigation, _showTransactionNotification, _hideTransactionNotification) {
-		instance = new TransactionsNotificationManager(
-			_navigation,
-			_showTransactionNotification,
-			_hideTransactionNotification
-		);
+		instance = new NotificationManager(_navigation, _showTransactionNotification, _hideTransactionNotification);
 		return instance;
 	},
 	watchSubmittedTransaction(transaction) {

@@ -58,7 +58,7 @@ import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
@@ -489,7 +489,7 @@ class Main extends PureComponent {
 					}
 					if (data && data.action === 'tx') {
 						if (data.id) {
-							TransactionsNotificationManager.setTransactionToView(data.id);
+							NotificationManager.setTransactionToView(data.id);
 						}
 						this.props.navigation.navigate('TransactionsHome');
 					}
@@ -539,7 +539,7 @@ class Main extends PureComponent {
 			});
 
 			setTimeout(() => {
-				TransactionsNotificationManager.init(
+				NotificationManager.init(
 					this.props.navigation,
 					this.props.showTransactionNotification,
 					this.props.hideTransactionNotification
@@ -790,7 +790,7 @@ class Main extends PureComponent {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
 					this.props.navigation.pop();
-					TransactionsNotificationManager.watchSubmittedTransaction({
+					NotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
 						assetType: transactionMeta.transaction.assetType
 					});

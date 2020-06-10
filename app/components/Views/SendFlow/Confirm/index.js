@@ -40,7 +40,7 @@ import TransactionReviewFeeCard from '../../../UI/TransactionReview/TransactionR
 import CustomGas from '../CustomGas';
 import ErrorMessage from '../ErrorMessage';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
-import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
+import NotificationManager from '../../../../core/NotificationManager';
 import { strings } from '../../../../../locales/i18n';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import CollectibleImage from '../../../UI/CollectibleImage';
@@ -758,7 +758,7 @@ class Confirm extends PureComponent {
 			}
 
 			InteractionManager.runAfterInteractions(() => {
-				TransactionsNotificationManager.watchSubmittedTransaction({
+				NotificationManager.watchSubmittedTransaction({
 					...transactionMeta,
 					assetType
 				});
