@@ -190,6 +190,10 @@ class Notification extends PureComponent {
 		 */
 		notificationDescription: PropTypes.string,
 		/**
+		 * Status for notification if defined
+		 */
+		notificationStatus: PropTypes.string,
+		/**
 		 * Type of notification, transaction or simple
 		 */
 		notificationType: PropTypes.string
@@ -492,7 +496,7 @@ class Notification extends PureComponent {
 
 	handleSimpleNotification = () => {
 		const { inBrowserView } = this.state;
-		const { notificationTitle, notificationDescription } = this.props;
+		const { notificationTitle, notificationDescription, notificationStatus } = this.props;
 		return (
 			<ElevatedView
 				style={[styles.modalTypeView, inBrowserView ? styles.modalTypeViewBrowser : {}]}
@@ -503,7 +507,7 @@ class Notification extends PureComponent {
 				>
 					<View style={styles.notificationWrapper}>
 						<BaseNotification
-							status={'simple_notification'}
+							status={notificationStatus}
 							data={{ title: notificationTitle, description: notificationDescription }}
 							onHide={this.onClose}
 						/>
@@ -527,6 +531,7 @@ const mapStateToProps = state => ({
 	autodismiss: state.transactionNotification.autodismiss,
 	transaction: state.transactionNotification.transaction,
 	notificationTitle: state.transactionNotification.title,
+	notificationStatus: state.transactionNotification.status,
 	notificationDescription: state.transactionNotification.description,
 	notificationType: state.transactionNotification.type,
 	status: state.transactionNotification.status,

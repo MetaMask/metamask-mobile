@@ -146,6 +146,7 @@ class Approval extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			transaction.origin === WALLET_CONNECT_ORIGIN &&
 				NotificationManager.showSimpleNotification({
+					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
 					duration: 5000,
 					title: confirmation
 						? strings('notifications.wc_sent_tx_title')

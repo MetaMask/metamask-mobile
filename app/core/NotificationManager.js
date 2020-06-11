@@ -317,7 +317,7 @@ class NotificationManager {
 			autodismiss: data.duration,
 			title: data.title,
 			description: data.description,
-			status: data.type
+			status: data.status
 		});
 	};
 

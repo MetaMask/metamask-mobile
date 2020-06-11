@@ -70,13 +70,14 @@ export default function BaseNotification(props) {
 			case 'received':
 			case 'received_payment':
 				return <IonicIcon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
-			case 'simple_notification':
-				return <AntIcon color={colors.green500} size={36} name="checkcircleo" style={styles.checkIcon} />;
 			case 'cancelled':
+			case 'simple_notification_rejected':
 			case 'error':
 				return (
 					<MaterialIcon color={colors.red} size={36} name="alert-circle-outline" style={styles.checkIcon} />
 				);
+			case 'simple_notification':
+				return <AntIcon color={colors.green500} size={36} name="checkcircleo" style={styles.checkIcon} />;
 		}
 	};
 

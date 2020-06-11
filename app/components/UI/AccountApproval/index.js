@@ -110,6 +110,7 @@ class AccountApproval extends PureComponent {
 			const title = this.props.currentPageInformation.title;
 			InteractionManager.runAfterInteractions(() => {
 				NotificationManager.showSimpleNotification({
+					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
 					duration: 5000,
 					title: confirmation
 						? strings('notifications.wc_connected_title', { title })
