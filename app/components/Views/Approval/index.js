@@ -141,14 +141,16 @@ class Approval extends PureComponent {
 		this.props.resetTransaction();
 	};
 
-	showWalletConnectNotification = () => {
+	showWalletConnectNotification = (confirmation = false) => {
 		const { transaction } = this.props;
 		InteractionManager.runAfterInteractions(() => {
 			transaction.origin === WALLET_CONNECT_ORIGIN &&
 				NotificationManager.showSimpleNotification({
 					duration: 5000,
-					title: strings('notifications.wallet_connect_title'),
-					description: strings('notifications.wallet_connect_description')
+					title: confirmation
+						? strings('notifications.wc_sent_tx_title')
+						: strings('notifications.wc_request_rejection'),
+					description: strings('notifications.wc_description')
 				});
 		});
 	};
@@ -193,7 +195,7 @@ class Approval extends PureComponent {
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
-			this.showWalletConnectNotification();
+			this.showWalletConnectNotification(true);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
 				{ text: strings('navigation.ok') }

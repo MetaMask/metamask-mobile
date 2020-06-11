@@ -59,15 +59,15 @@ export default class MessageSign extends PureComponent {
 		truncateMessage: false
 	};
 
-	showWalletConnectNotification = messageParams => {
+	showWalletConnectNotification = (messageParams, confirmation = false) => {
 		InteractionManager.runAfterInteractions(() => {
 			messageParams.origin === WALLET_CONNECT_ORIGIN &&
 				NotificationManager.showSimpleNotification({
 					duration: 5000,
-					title: strings('notifications.wallet_connect_title', {
-						title: this.props.currentPageInformation.title
-					}),
-					description: strings('notifications.wallet_connect_description')
+					title: confirmation
+						? strings('notifications.wc_signed_title')
+						: strings('notifications.wc_request_rejection'),
+					description: strings('notifications.wc_description')
 				});
 		});
 	};
@@ -79,7 +79,7 @@ export default class MessageSign extends PureComponent {
 		const cleanMessageParams = await MessageManager.approveMessage(messageParams);
 		const rawSig = await KeyringController.signMessage(cleanMessageParams);
 		MessageManager.setMessageStatusSigned(messageId, rawSig);
-		this.showWalletConnectNotification(messageParams);
+		this.showWalletConnectNotification(messageParams, true);
 	};
 
 	rejectMessage = () => {
