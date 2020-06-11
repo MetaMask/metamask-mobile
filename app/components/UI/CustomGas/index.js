@@ -286,10 +286,6 @@ class CustomGas extends PureComponent {
 		 */
 		hideGasSelectors: PropTypes.bool,
 		/**
-		 * Distance between root and custom gas selector modal height
-		 */
-		heightDifference: PropTypes.number,
-		/**
 		 * review or edit
 		 */
 		mode: PropTypes.string,
@@ -625,7 +621,6 @@ class CustomGas extends PureComponent {
 			saveCustomGasHeight,
 			advancedCustomGas,
 			generateTransform,
-			heightDifference,
 			mode,
 			toAdvancedFrom
 		} = this.props;
@@ -636,10 +631,10 @@ class CustomGas extends PureComponent {
 		if (advancedCustomGas) {
 			buttonStyle = styles.buttonTransform;
 			if (toAdvancedFrom === 'edit' && mode === 'edit') {
-				buttonStyle = generateTransform('saveButton', [0, heightDifference]);
+				buttonStyle = generateTransform('saveButton', [0, 0]);
 			}
 		} else if (toAdvancedFrom === 'edit' && mode === 'edit') {
-			buttonStyle = generateTransform('saveButton', [0, heightDifference]);
+			buttonStyle = generateTransform('saveButton', [0, 0]);
 		}
 
 		return (
@@ -672,7 +667,7 @@ class CustomGas extends PureComponent {
 				{this.renderCustomGasInput()}
 				{advancedCustomGas && this.renderGasError()}
 
-				<Animated.View style={[styles.footerContainer, buttonStyle]}>
+				<Animated.View style={buttonStyle}>
 					<StyledButton
 						disabled={disableButton}
 						type={'confirm'}

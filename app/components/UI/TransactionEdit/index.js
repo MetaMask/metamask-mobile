@@ -84,10 +84,6 @@ class TransactionEdit extends PureComponent {
 		 */
 		hideGasSelectors: PropTypes.bool,
 		/**
-		 * Distance between root and custom gas selector modal height
-		 */
-		heightDifference: PropTypes.number,
-		/**
 		 * review or edit
 		 */
 		mode: PropTypes.string,
@@ -168,7 +164,6 @@ class TransactionEdit extends PureComponent {
 			generateTransform,
 			getAnimatedModalValueForAdvancedCG,
 			hideGasSelectors,
-			heightDifference,
 			mode,
 			toAdvancedFrom
 		} = this.props;
@@ -191,7 +186,6 @@ class TransactionEdit extends PureComponent {
 				generateTransform={generateTransform}
 				getAnimatedModalValueForAdvancedCG={getAnimatedModalValueForAdvancedCG}
 				hideGasSelectors={hideGasSelectors}
-				heightDifference={heightDifference}
 				mode={mode}
 				toAdvancedFrom={toAdvancedFrom}
 			/>

@@ -639,7 +639,12 @@ class TransactionEditor extends PureComponent {
 				Device.isIphoneX()
 					? (outRange[0] = rootHeight - customGasHeight)
 					: (outRange[0] = rootHeight - customGasHeight + 24);
+			} else {
+				Device.isIphoneX()
+					? (outRange[1] = rootHeight - customGasHeight)
+					: (outRange[1] = rootHeight - customGasHeight + 24);
 			}
+
 			return {
 				transform: [
 					{
@@ -667,7 +672,9 @@ class TransactionEditor extends PureComponent {
 	getAnimatedModalValueForAdvancedCG = () => {
 		const { rootHeight, customGasHeight } = this.state;
 		//70 is the fixed height + margin of the error message in advanced custom gas. It expands 70 units vertically to accomodate it
-		const value = 70 / (rootHeight - customGasHeight);
+		const value = Device.isIphoneX()
+			? 70 / (rootHeight - customGasHeight)
+			: 70 / (rootHeight - customGasHeight + 24);
 		return value;
 	};
 
@@ -687,8 +694,6 @@ class TransactionEditor extends PureComponent {
 			width,
 			advancedCustomGas,
 			hideGasSelectors,
-			rootHeight,
-			customGasHeight,
 			modalValue,
 			toAdvancedFrom
 		} = this.state;
@@ -738,7 +743,6 @@ class TransactionEditor extends PureComponent {
 									generateTransform={this.generateTransform}
 									getAnimatedModalValueForAdvancedCG={this.getAnimatedModalValueForAdvancedCG}
 									hideGasSelectors={hideGasSelectors}
-									heightDifference={rootHeight - customGasHeight}
 									mode={mode}
 									modalValue={modalValue}
 									toAdvancedFrom={toAdvancedFrom}
