@@ -951,7 +951,9 @@
 		"prompt_title": "Enable Push Notifications",
 		"prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
 		"prompt_ok": "Yes",
-		"prompt_cancel": "No, thanks"
+		"prompt_cancel": "No, thanks",
+		"wallet_connect_title": "Connected to {{title}}",
+		"wallet_connect_description": "Go to back to the browser."
 	},
 	"secure_your_wallet_modal": {
 		"title": "Secure your wallet",

@@ -131,7 +131,7 @@ export default function BaseNotification(props) {
 			>
 				<View style={styles.flashIcon}>{this._getIcon()}</View>
 				<View style={styles.flashLabel}>
-					<Text style={styles.flashTitle} testID={'notification-title'}>
+					<Text style={styles.flashTitle} numberOfLines={1} testID={'notification-title'}>
 						{this._getTitle()}
 					</Text>
 					<Text style={styles.flashText}>{this._getDescription()}</Text>

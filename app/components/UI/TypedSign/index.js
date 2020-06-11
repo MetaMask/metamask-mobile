@@ -1,11 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/Device';
+import NotificationManager from '../../../core/NotificationManager';
+import { strings } from '../../../../locales/i18n';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const styles = StyleSheet.create({
 	messageText: {
@@ -78,6 +81,16 @@ export default class TypedSign extends PureComponent {
 		const cleanMessageParams = await TypedMessageManager.approveMessage(messageParams);
 		const rawSig = await KeyringController.signTypedMessage(cleanMessageParams, version);
 		TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
+		InteractionManager.runAfterInteractions(() => {
+			messageParams.origin === WALLET_CONNECT_ORIGIN &&
+				NotificationManager.showSimpleNotification({
+					duration: 5000,
+					title: strings('notifications.wallet_connect_title', {
+						title: this.props.currentPageInformation.title
+					}),
+					description: strings('notifications.wallet_connect_description')
+				});
+		});
 	};
 
 	rejectMessage = () => {

@@ -5,20 +5,10 @@ import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import AsyncStorage from '@react-native-community/async-storage';
+import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 
 const hub = new EventEmitter();
 let connectors = [];
-
-const CLIENT_OPTIONS = {
-	clientMeta: {
-		// Required
-		description: 'MetaMask Mobile app',
-		url: 'https://metamask.io',
-		icons: ['https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg'],
-		name: 'MetaMask',
-		ssl: true
-	}
-};
 
 const persistSessions = async () => {
 	const sessions = connectors
@@ -95,8 +85,8 @@ class WalletConnect {
 						txParams.gasLimit = payload.params[0].gasLimit;
 						txParams.gasPrice = payload.params[0].gasPrice;
 						txParams.data = payload.params[0].data;
-
-						const hash = await (await TransactionController.addTransaction(txParams)).result;
+						const hash = await (await TransactionController.addTransaction(txParams, WALLET_CONNECT_ORIGIN))
+							.result;
 						this.walletConnector.approveRequest({
 							id: payload.id,
 							result: hash
@@ -130,7 +120,8 @@ class WalletConnect {
 									title: meta && meta.name,
 									url: meta && meta.url,
 									icon: meta && meta.icons && meta.icons[0]
-								}
+								},
+								origin: WALLET_CONNECT_ORIGIN
 							});
 						}
 						this.walletConnector.approveRequest({
@@ -166,7 +157,8 @@ class WalletConnect {
 									title: meta && meta.name,
 									url: meta && meta.url,
 									icon: meta && meta.icons && meta.icons[0]
-								}
+								},
+								origin: WALLET_CONNECT_ORIGIN
 							});
 						}
 						this.walletConnector.approveRequest({
@@ -190,7 +182,8 @@ class WalletConnect {
 									title: meta && meta.name,
 									url: meta && meta.url,
 									icon: meta && meta.icons && meta.icons[0]
-								}
+								},
+								origin: WALLET_CONNECT_ORIGIN
 							},
 							'V3'
 						);

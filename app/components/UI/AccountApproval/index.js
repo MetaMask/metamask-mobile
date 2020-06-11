@@ -86,7 +86,11 @@ class AccountApproval extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Whether it was a request coming through wallet connect
+		 */
+		walletConnectRequest: PropTypes.bool
 	};
 
 	state = {
@@ -105,20 +109,23 @@ class AccountApproval extends PureComponent {
 	 * Calls onConfirm callback and analytics to track connect confirmed event
 	 */
 	onConfirm = () => {
-		const { currentPageInformation } = this.props;
-		// FIXCXXXX
-		console.log('currentPageInformation', currentPageInformation);
-		NotificationManager.showSimpleNotification({
-			duration: 5000,
-			title: `Connected to ${currentPageInformation.title}`,
-			description: 'Go to back to the browser.'
-		});
-
-		Analytics.trackEventWithParameters(
-			ANALYTICS_EVENT_OPTS.AUTHENTICATION_CONNECT_CONFIRMED,
-			this.getTrackingParams()
-		);
 		this.props.onConfirm();
+
+		if (this.props.walletConnectRequest) {
+			const title = this.props.currentPageInformation.title;
+			InteractionManager.runAfterInteractions(() => {
+				NotificationManager.showSimpleNotification({
+					duration: 5000,
+					title: strings('notifications.wallet_connect_title', { title }),
+					description: strings('notifications.wallet_connect_description')
+				});
+
+				Analytics.trackEventWithParameters(
+					ANALYTICS_EVENT_OPTS.AUTHENTICATION_CONNECT_CONFIRMED,
+					this.getTrackingParams()
+				);
+			});
+		}
 	};
 
 	/**
