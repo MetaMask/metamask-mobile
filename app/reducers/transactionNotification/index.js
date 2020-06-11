@@ -1,3 +1,6 @@
+import notificationTypes from '../../util/notifications';
+const { TRANSACTION, SIMPLE } = notificationTypes;
+
 const initialState = {
 	type: undefined,
 	isVisible: false,
@@ -13,7 +16,7 @@ const transactionNotificationReducer = (state = initialState, action) => {
 		case 'SHOW_TRANSACTION_NOTIFICATION':
 			return {
 				...state,
-				type: 'transaction',
+				type: TRANSACTION,
 				isVisible: true,
 				autodismiss: action.autodismiss,
 				transaction: action.transaction,
@@ -28,7 +31,7 @@ const transactionNotificationReducer = (state = initialState, action) => {
 		case 'SHOW_SIMPLE_NOTIFICATION': {
 			return {
 				...state,
-				type: 'simple',
+				type: SIMPLE,
 				isVisible: true,
 				autodismiss: action.autodismiss,
 				title: action.title,

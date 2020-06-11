@@ -18,6 +18,9 @@ import TransactionActionContent from '../TransactionActionModal/TransactionActio
 import { renderFromWei } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
+import notificationTypes from '../../../util/notifications';
+
+const { TRANSACTION, SIMPLE } = notificationTypes;
 
 const { hexToBN } = util;
 const BROWSER_ROUTE = 'BrowserView';
@@ -247,7 +250,7 @@ class Notification extends PureComponent {
 				}, this.props.autodismiss);
 
 			let tx, transactionElement, transactionDetails;
-			if (this.props.notificationType === 'transaction') {
+			if (this.props.notificationType === TRANSACTION) {
 				const { paymentChannelTransaction } = this.props.transaction;
 				tx = paymentChannelTransaction
 					? { paymentChannelTransaction, transaction: {} }
@@ -512,8 +515,8 @@ class Notification extends PureComponent {
 
 	render = () => {
 		if (!this.state.internalIsVisible) return null;
-		if (this.props.notificationType === 'transaction') return this.handleTransactionNotification();
-		if (this.props.notificationType === 'simple') return this.handleSimpleNotification();
+		if (this.props.notificationType === TRANSACTION) return this.handleTransactionNotification();
+		if (this.props.notificationType === SIMPLE) return this.handleSimpleNotification();
 		return null;
 	};
 }

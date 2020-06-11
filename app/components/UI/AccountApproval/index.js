@@ -105,12 +105,15 @@ class AccountApproval extends PureComponent {
 	 * Calls onConfirm callback and analytics to track connect confirmed event
 	 */
 	onConfirm = () => {
+		const { currentPageInformation } = this.props;
 		// FIXCXXXX
+		console.log('currentPageInformation', currentPageInformation);
 		NotificationManager.showSimpleNotification({
 			duration: 5000,
-			title: 'Approval',
-			description: 'Description'
+			title: `Connected to ${currentPageInformation.title}`,
+			description: 'Go to back to the browser.'
 		});
+
 		Analytics.trackEventWithParameters(
 			ANALYTICS_EVENT_OPTS.AUTHENTICATION_CONNECT_CONFIRMED,
 			this.getTrackingParams()
