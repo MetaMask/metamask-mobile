@@ -1,11 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/Device';
+import NotificationManager from '../../../core/NotificationManager';
+import { strings } from '../../../../locales/i18n';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const styles = StyleSheet.create({
 	messageText: {
@@ -70,6 +73,20 @@ export default class TypedSign extends PureComponent {
 		truncateMessage: false
 	};
 
+	showWalletConnectNotification = (messageParams, confirmation = false) => {
+		InteractionManager.runAfterInteractions(() => {
+			messageParams.origin === WALLET_CONNECT_ORIGIN &&
+				NotificationManager.showSimpleNotification({
+					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
+					duration: 5000,
+					title: confirmation
+						? strings('notifications.wc_signed_title')
+						: strings('notifications.wc_signed_rejected_title'),
+					description: strings('notifications.wc_description')
+				});
+		});
+	};
+
 	signMessage = async () => {
 		const { messageParams } = this.props;
 		const { KeyringController, TypedMessageManager } = Engine.context;
@@ -78,6 +95,7 @@ export default class TypedSign extends PureComponent {
 		const cleanMessageParams = await TypedMessageManager.approveMessage(messageParams);
 		const rawSig = await KeyringController.signTypedMessage(cleanMessageParams, version);
 		TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
+		this.showWalletConnectNotification(messageParams, true);
 	};
 
 	rejectMessage = () => {
@@ -85,6 +103,7 @@ export default class TypedSign extends PureComponent {
 		const { TypedMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
 		TypedMessageManager.rejectMessage(messageId);
+		this.showWalletConnectNotification(messageParams);
 	};
 
 	cancelSignature = () => {

@@ -1,23 +1,14 @@
-import RNWalletConnect from '@walletconnect/react-native';
+import RNWalletConnect from '@walletconnect/client';
+import { parseWalletConnectUri } from '@walletconnect/utils';
 import Engine from './Engine';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import AsyncStorage from '@react-native-community/async-storage';
+import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 
 const hub = new EventEmitter();
 let connectors = [];
-
-const CLIENT_OPTIONS = {
-	clientMeta: {
-		// Required
-		description: 'MetaMask Mobile app',
-		url: 'https://metamask.io',
-		icons: ['https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg'],
-		name: 'MetaMask',
-		ssl: true
-	}
-};
 
 const persistSessions = async () => {
 	const sessions = connectors
@@ -41,7 +32,7 @@ class WalletConnect {
 		if (options.autosign) {
 			this.autosign = true;
 		}
-		this.walletConnector = new RNWalletConnect(options, CLIENT_OPTIONS);
+		this.walletConnector = new RNWalletConnect({ ...options, ...CLIENT_OPTIONS });
 		/**
 		 *  Subscribe to session requests
 		 */
@@ -94,8 +85,8 @@ class WalletConnect {
 						txParams.gasLimit = payload.params[0].gasLimit;
 						txParams.gasPrice = payload.params[0].gasPrice;
 						txParams.data = payload.params[0].data;
-
-						const hash = await (await TransactionController.addTransaction(txParams)).result;
+						const hash = await (await TransactionController.addTransaction(txParams, WALLET_CONNECT_ORIGIN))
+							.result;
 						this.walletConnector.approveRequest({
 							id: payload.id,
 							result: hash
@@ -129,7 +120,8 @@ class WalletConnect {
 									title: meta && meta.name,
 									url: meta && meta.url,
 									icon: meta && meta.icons && meta.icons[0]
-								}
+								},
+								origin: WALLET_CONNECT_ORIGIN
 							});
 						}
 						this.walletConnector.approveRequest({
@@ -165,7 +157,8 @@ class WalletConnect {
 									title: meta && meta.name,
 									url: meta && meta.url,
 									icon: meta && meta.icons && meta.icons[0]
-								}
+								},
+								origin: WALLET_CONNECT_ORIGIN
 							});
 						}
 						this.walletConnector.approveRequest({
@@ -189,7 +182,8 @@ class WalletConnect {
 									title: meta && meta.name,
 									url: meta && meta.url,
 									icon: meta && meta.icons && meta.icons[0]
-								}
+								},
+								origin: WALLET_CONNECT_ORIGIN
 							},
 							'V3'
 						);
@@ -351,6 +345,13 @@ const instance = {
 	shutdown() {
 		Engine.context.TransactionController.hub.removeAllListeners();
 		Engine.context.PreferencesController.unsubscribe();
+	},
+	isValidUri(uri) {
+		const result = parseWalletConnectUri(uri);
+		if (!result.handshakeTopic || !result.bridge || !result.key) {
+			return false;
+		}
+		return true;
 	}
 };
 

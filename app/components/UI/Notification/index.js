@@ -1,13 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, Dimensions, InteractionManager } from 'react-native';
-import { hideTransactionNotification } from '../../../actions/transactionNotification';
+import { hideTransactionNotification } from '../../../actions/notification';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TransactionDetails from '../TransactionElement/TransactionDetails';
 import decodeTransaction from '../TransactionElement/utils';
-import TransactionNotification from '../TransactionNotification';
+import BaseNotification from './BaseNotification';
 import Device from '../../../util/Device';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
@@ -18,6 +18,9 @@ import TransactionActionContent from '../TransactionActionModal/TransactionActio
 import { renderFromWei } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
+import notificationTypes from '../../../util/notifications';
+
+const { TRANSACTION, SIMPLE } = notificationTypes;
 
 const { hexToBN } = util;
 const BROWSER_ROUTE = 'BrowserView';
@@ -78,10 +81,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'flex-end'
 	},
-	notificationWrapper: {
-		height: 70,
-		width: '100%'
-	},
 	detailsContainer: {
 		flex: 1,
 		width: '200%',
@@ -97,10 +96,9 @@ const ACTION_CANCEL = 'cancel';
 const ACTION_SPEEDUP = 'speedup';
 
 /**
- * Wrapper component for a global alert
- * connected to redux
+ * Wrapper component for a global Notification
  */
-class TxNotification extends PureComponent {
+class Notification extends PureComponent {
 	static propTypes = {
 		/**
 		 * Map of accounts to information objects including balances
@@ -178,7 +176,23 @@ class TxNotification extends PureComponent {
 		 * Primary currency, either ETH or Fiat
 		 */
 		// eslint-disable-next-line react/no-unused-prop-types
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Title for notification if defined
+		 */
+		notificationTitle: PropTypes.string,
+		/**
+		 * Description for notification if defined
+		 */
+		notificationDescription: PropTypes.string,
+		/**
+		 * Status for notification if defined
+		 */
+		notificationStatus: PropTypes.string,
+		/**
+		 * Type of notification, transaction or simple
+		 */
+		notificationType: PropTypes.string
 	};
 
 	state = {
@@ -234,13 +248,19 @@ class TxNotification extends PureComponent {
 				setTimeout(() => {
 					this.props.hideTransactionNotification();
 				}, this.props.autodismiss);
-			const { paymentChannelTransaction } = this.props.transaction;
-			const tx = paymentChannelTransaction
-				? { paymentChannelTransaction, transaction: {} }
-				: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
-			const [transactionElement, transactionDetails] = await decodeTransaction({ ...this.props, tx });
-			const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
-			this.existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+
+			let tx, transactionElement, transactionDetails;
+			if (this.props.notificationType === TRANSACTION) {
+				const { paymentChannelTransaction } = this.props.transaction;
+				tx = paymentChannelTransaction
+					? { paymentChannelTransaction, transaction: {} }
+					: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
+				const decoded = await decodeTransaction({ ...this.props, tx });
+				transactionElement = decoded[0];
+				transactionDetails = decoded[1];
+				const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+				this.existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+			}
 			// eslint-disable-next-line react/no-did-update-set-state
 			await this.setState({
 				tx,
@@ -362,22 +382,88 @@ class TxNotification extends PureComponent {
 		});
 	};
 
-	render = () => {
-		const { navigation, status } = this.props;
+	notificationOverlay = () => {
+		const { navigation } = this.props;
 		const {
 			transactionElement,
 			transactionDetails,
 			tx,
-			transactionDetailsIsVisible,
-			internalIsVisible,
 			inBrowserView,
 			transactionAction,
 			transactionActionDisabled
 		} = this.state;
-
-		if (!internalIsVisible) return null;
-		const { paymentChannelTransaction } = tx;
 		const isActionCancel = transactionAction === ACTION_CANCEL;
+		return (
+			<View style={styles.detailsContainer}>
+				<Animated.View
+					style={[
+						styles.modalView,
+						{ opacity: this.detailsAnimated },
+						inBrowserView ? styles.modalViewInBrowserView : {},
+						{ transform: [{ translateX: this.detailsYAnimated }] }
+					]}
+				>
+					<View style={styles.modalContainer}>
+						<View style={styles.titleWrapper}>
+							<Text style={styles.title} onPress={this.onCloseDetails}>
+								{transactionElement.actionKey}
+							</Text>
+							<Ionicons
+								onPress={this.onCloseDetails}
+								name={'ios-close'}
+								size={38}
+								style={styles.closeIcon}
+							/>
+						</View>
+						<TransactionDetails
+							transactionObject={tx}
+							transactionDetails={transactionDetails}
+							navigation={navigation}
+							close={this.onClose}
+							showSpeedUpModal={this.onSpeedUpPress}
+							showCancelModal={this.onCancelPress}
+						/>
+					</View>
+				</Animated.View>
+
+				<Animated.View
+					style={[
+						styles.modalView,
+						{ opacity: this.detailsAnimated },
+						inBrowserView ? styles.modalViewInBrowserView : {},
+						{ transform: [{ translateX: this.actionXAnimated }] }
+					]}
+				>
+					<View style={styles.transactionAction}>
+						<ActionContent
+							onCancelPress={this.onActionFinish}
+							onConfirmPress={isActionCancel ? this.cancelTransaction : this.speedUpTransaction}
+							confirmText={strings('transaction.lets_try')}
+							cancelText={strings('transaction.nevermind')}
+							confirmDisabled={transactionActionDisabled}
+						>
+							<TransactionActionContent
+								confirmDisabled={transactionActionDisabled}
+								feeText={`${renderFromWei(
+									Math.floor(
+										this.existingGasPriceDecimal * isActionCancel ? CANCEL_RATE : SPEED_UP_RATE
+									)
+								)} ${strings('unit.eth')}`}
+								titleText={strings(`transaction.${transactionAction}_tx_title`)}
+								gasTitleText={strings(`transaction.gas_${transactionAction}_fee`)}
+								descriptionText={strings(`transaction.${transactionAction}_tx_message`)}
+							/>
+						</ActionContent>
+					</View>
+				</Animated.View>
+			</View>
+		);
+	};
+
+	handleTransactionNotification = () => {
+		const { status } = this.props;
+		const { tx, transactionDetailsIsVisible, inBrowserView } = this.state;
+		const { paymentChannelTransaction } = tx;
 		return (
 			<ElevatedView
 				style={[
@@ -387,97 +473,60 @@ class TxNotification extends PureComponent {
 				]}
 				elevation={100}
 			>
-				{transactionDetailsIsVisible && !paymentChannelTransaction && (
-					<View style={styles.detailsContainer}>
-						<Animated.View
-							style={[
-								styles.modalView,
-								{ opacity: this.detailsAnimated },
-								inBrowserView ? styles.modalViewInBrowserView : {},
-								{ transform: [{ translateX: this.detailsYAnimated }] }
-							]}
-						>
-							<View style={styles.modalContainer}>
-								<View style={styles.titleWrapper}>
-									<Text style={styles.title} onPress={this.onCloseDetails}>
-										{transactionElement.actionKey}
-									</Text>
-									<Ionicons
-										onPress={this.onCloseDetails}
-										name={'ios-close'}
-										size={38}
-										style={styles.closeIcon}
-									/>
-								</View>
-								<TransactionDetails
-									transactionObject={tx}
-									transactionDetails={transactionDetails}
-									navigation={navigation}
-									close={this.onClose}
-									showSpeedUpModal={this.onSpeedUpPress}
-									showCancelModal={this.onCancelPress}
-								/>
-							</View>
-						</Animated.View>
-
-						<Animated.View
-							style={[
-								styles.modalView,
-								{ opacity: this.detailsAnimated },
-								inBrowserView ? styles.modalViewInBrowserView : {},
-								{ transform: [{ translateX: this.actionXAnimated }] }
-							]}
-						>
-							<View style={styles.transactionAction}>
-								<ActionContent
-									onCancelPress={this.onActionFinish}
-									onConfirmPress={isActionCancel ? this.cancelTransaction : this.speedUpTransaction}
-									confirmText={strings('transaction.lets_try')}
-									cancelText={strings('transaction.nevermind')}
-									confirmDisabled={transactionActionDisabled}
-								>
-									<TransactionActionContent
-										confirmDisabled={transactionActionDisabled}
-										feeText={`${renderFromWei(
-											Math.floor(
-												this.existingGasPriceDecimal * isActionCancel
-													? CANCEL_RATE
-													: SPEED_UP_RATE
-											)
-										)} ${strings('unit.eth')}`}
-										titleText={strings(`transaction.${transactionAction}_tx_title`)}
-										gasTitleText={strings(`transaction.gas_${transactionAction}_fee`)}
-										descriptionText={strings(`transaction.${transactionAction}_tx_message`)}
-									/>
-								</ActionContent>
-							</View>
-						</Animated.View>
-					</View>
-				)}
-
+				{transactionDetailsIsVisible && !paymentChannelTransaction && this.notificationOverlay()}
 				<Animated.View
 					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
 				>
-					<View style={styles.notificationWrapper}>
-						<TransactionNotification
-							status={status}
-							transaction={{ ...tx.transaction, ...this.props.transaction }}
-							onPress={this.onNotificationPress}
-							onHide={this.onClose}
-						/>
-					</View>
+					<BaseNotification
+						status={status}
+						data={tx.transaction || {}}
+						onPress={this.onNotificationPress}
+						onHide={this.onClose}
+					/>
 				</Animated.View>
 			</ElevatedView>
 		);
+	};
+
+	handleSimpleNotification = () => {
+		const { inBrowserView } = this.state;
+		const { notificationTitle, notificationDescription, notificationStatus } = this.props;
+		return (
+			<ElevatedView
+				style={[styles.modalTypeView, inBrowserView ? styles.modalTypeViewBrowser : {}]}
+				elevation={100}
+			>
+				<Animated.View
+					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
+				>
+					<BaseNotification
+						status={notificationStatus}
+						data={{ title: notificationTitle, description: notificationDescription }}
+						onHide={this.onClose}
+					/>
+				</Animated.View>
+			</ElevatedView>
+		);
+	};
+
+	render = () => {
+		if (!this.state.internalIsVisible) return null;
+		if (this.props.notificationType === TRANSACTION) return this.handleTransactionNotification();
+		if (this.props.notificationType === SIMPLE) return this.handleSimpleNotification();
+		return null;
 	};
 }
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	isVisible: state.transactionNotification.isVisible,
-	autodismiss: state.transactionNotification.autodismiss,
-	transaction: state.transactionNotification.transaction,
-	status: state.transactionNotification.status,
+	isVisible: state.notification.isVisible,
+	autodismiss: state.notification.autodismiss,
+	transaction: state.notification.transaction,
+	notificationTitle: state.notification.title,
+	notificationStatus: state.notification.status,
+	notificationDescription: state.notification.description,
+	notificationType: state.notification.type,
+	status: state.notification.status,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
@@ -499,4 +548,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(TxNotification);
+)(Notification);

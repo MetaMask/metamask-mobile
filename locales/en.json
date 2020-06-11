@@ -951,7 +951,14 @@
 		"prompt_title": "Enable Push Notifications",
 		"prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
 		"prompt_ok": "Yes",
-		"prompt_cancel": "No, thanks"
+		"prompt_cancel": "No, thanks",
+		"wc_connected_title": "Connected to {{title}}",
+		"wc_signed_title": "Signed",
+		"wc_sent_tx_title": "Sent transaction",
+		"wc_connected_rejected_title": "You’ve rejected the connect request",
+		"wc_signed_rejected_title": "You’ve rejected the sign request",
+		"wc_sent_tx_rejected_title": "You’ve rejected the transaction request",
+		"wc_description": "Go back to the browser"
 	},
 	"secure_your_wallet_modal": {
 		"title": "Secure your wallet",

@@ -16,7 +16,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
-import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
+import { showTransactionNotification, hideTransactionNotification } from '../../../actions/notification';
 
 const styles = StyleSheet.create({
 	wrapper: {
