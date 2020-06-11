@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, Dimensions, InteractionManager } from 'react-native';
-import { hideTransactionNotification } from '../../../actions/transactionNotification';
+import { hideTransactionNotification } from '../../../actions/notification';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -527,14 +527,14 @@ class Notification extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	isVisible: state.transactionNotification.isVisible,
-	autodismiss: state.transactionNotification.autodismiss,
-	transaction: state.transactionNotification.transaction,
-	notificationTitle: state.transactionNotification.title,
-	notificationStatus: state.transactionNotification.status,
-	notificationDescription: state.transactionNotification.description,
-	notificationType: state.transactionNotification.type,
-	status: state.transactionNotification.status,
+	isVisible: state.notification.isVisible,
+	autodismiss: state.notification.autodismiss,
+	transaction: state.notification.transaction,
+	notificationTitle: state.notification.title,
+	notificationStatus: state.notification.status,
+	notificationDescription: state.notification.description,
+	notificationType: state.notification.type,
+	status: state.notification.status,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,

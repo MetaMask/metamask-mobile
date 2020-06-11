@@ -102,7 +102,7 @@ import {
 	showTransactionNotification,
 	hideTransactionNotification,
 	showSimpleNotification
-} from '../../../actions/transactionNotification';
+} from '../../../actions/notification';
 import AccountApproval from '../../UI/AccountApproval';
 
 const styles = StyleSheet.create({

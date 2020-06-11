@@ -11,7 +11,7 @@ const initialState = {
 	description: undefined
 };
 
-const transactionNotificationReducer = (state = initialState, action) => {
+const notificationReducer = (state = initialState, action) => {
 	switch (action.type) {
 		case 'SHOW_TRANSACTION_NOTIFICATION':
 			return {
@@ -43,4 +43,4 @@ const transactionNotificationReducer = (state = initialState, action) => {
 			return state;
 	}
 };
-export default transactionNotificationReducer;
+export default notificationReducer;
