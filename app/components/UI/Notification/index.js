@@ -81,10 +81,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'flex-end'
 	},
-	notificationWrapper: {
-		height: 70,
-		width: '100%'
-	},
 	detailsContainer: {
 		flex: 1,
 		width: '200%',
@@ -505,13 +501,11 @@ class Notification extends PureComponent {
 				<Animated.View
 					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
 				>
-					<View style={styles.notificationWrapper}>
-						<BaseNotification
-							status={notificationStatus}
-							data={{ title: notificationTitle, description: notificationDescription }}
-							onHide={this.onClose}
-						/>
-					</View>
+					<BaseNotification
+						status={notificationStatus}
+						data={{ title: notificationTitle, description: notificationDescription }}
+						onHide={this.onClose}
+					/>
 				</Animated.View>
 			</ElevatedView>
 		);
