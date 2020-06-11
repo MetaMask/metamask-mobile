@@ -71,11 +71,11 @@ class DeeplinkManager {
 
 					switch (action) {
 						case 'wc':
-							if (params && params.uri && params.redirectUrl) {
+							params &&
+								params.uri &&
 								setTimeout(() => {
 									WalletConnect.newSession(params.uri, params.redirectUrl, false);
 								}, 1500);
-							}
 							break;
 						case 'dapp':
 							this.handleBrowserUrl(
@@ -108,6 +108,7 @@ class DeeplinkManager {
 			// walletconnect related deeplinks
 			// address, transactions, etc
 			case 'wc':
+				if (!WalletConnect.isValidUri(url)) return;
 				// eslint-disable-next-line no-case-declarations
 				const redirect = params && params.redirect;
 				// eslint-disable-next-line no-case-declarations
