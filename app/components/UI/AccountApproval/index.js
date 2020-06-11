@@ -10,6 +10,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import NotificationManager from '../../../core/NotificationManager';
 
 const styles = StyleSheet.create({
 	root: {
@@ -85,7 +86,11 @@ class AccountApproval extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Whether it was a request coming through wallet connect
+		 */
+		walletConnectRequest: PropTypes.bool
 	};
 
 	state = {
@@ -100,15 +105,32 @@ class AccountApproval extends PureComponent {
 		});
 	};
 
+	showWalletConnectNotification = (confirmation = false) => {
+		if (this.props.walletConnectRequest) {
+			const title = this.props.currentPageInformation.title;
+			InteractionManager.runAfterInteractions(() => {
+				NotificationManager.showSimpleNotification({
+					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
+					duration: 5000,
+					title: confirmation
+						? strings('notifications.wc_connected_title', { title })
+						: strings('notifications.wc_connected_rejected_title'),
+					description: strings('notifications.wc_description')
+				});
+			});
+		}
+	};
+
 	/**
 	 * Calls onConfirm callback and analytics to track connect confirmed event
 	 */
 	onConfirm = () => {
+		this.props.onConfirm();
 		Analytics.trackEventWithParameters(
 			ANALYTICS_EVENT_OPTS.AUTHENTICATION_CONNECT_CONFIRMED,
 			this.getTrackingParams()
 		);
-		this.props.onConfirm();
+		this.showWalletConnectNotification(true);
 	};
 
 	/**
@@ -120,6 +142,7 @@ class AccountApproval extends PureComponent {
 			this.getTrackingParams()
 		);
 		this.props.onCancel();
+		this.showWalletConnectNotification();
 	};
 
 	/**

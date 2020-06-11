@@ -39,7 +39,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import ErrorMessage from '../../SendFlow/ErrorMessage';
 import { showAlert } from '../../../../actions/alert';
 import Feather from 'react-native-vector-icons/Feather';
-import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
+import NotificationManager from '../../../../core/NotificationManager';
 import Identicon from '../../../UI/Identicon';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
@@ -742,7 +742,7 @@ class Approve extends PureComponent {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ approved: true });
 					this.props.navigation.pop();
-					TransactionsNotificationManager.watchSubmittedTransaction({
+					NotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
 						assetType: 'ETH'
 					});
