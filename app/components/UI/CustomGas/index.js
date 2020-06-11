@@ -64,7 +64,10 @@ const styles = StyleSheet.create({
 		marginBottom: 20,
 		height: 50,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		alignSelf: 'center',
+		position: 'absolute',
+		width: '100%'
 	},
 	warningTextWrapper: {
 		width: '100%',
@@ -187,6 +190,13 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 10,
 		paddingVertical: 8,
 		position: 'relative'
+	},
+	buttonTransform: {
+		transform: [
+			{
+				translateY: 70
+			}
+		]
 	}
 });
 
@@ -274,7 +284,19 @@ class CustomGas extends PureComponent {
 		/**
 		 * gas selectors are hidden or not
 		 */
-		hideGasSelectors: PropTypes.bool
+		hideGasSelectors: PropTypes.bool,
+		/**
+		 * Distance between root and custom gas selector modal height
+		 */
+		heightDifference: PropTypes.number,
+		/**
+		 * review or edit
+		 */
+		mode: PropTypes.string,
+		/**
+		 * review or edit
+		 */
+		toAdvancedFrom: PropTypes.string
 	};
 
 	state = {
@@ -290,7 +312,8 @@ class CustomGas extends PureComponent {
 		warningGasLimit: '',
 		warningGasPrice: '',
 		warningSufficientFunds: '',
-		headerHeight: null
+		headerHeight: null,
+		gasInputHeight: null
 	};
 
 	onPressGasFast = () => {
@@ -538,7 +561,10 @@ class CustomGas extends PureComponent {
 		const totalGas = customGasLimitBN.mul(customGasPriceBN);
 		const ticker = getTicker(this.props.ticker);
 		return (
-			<Animated.View style={[styles.advancedOptionsContainer, generateTransform('editToAdvanced', [width, 0])]}>
+			<Animated.View
+				style={[styles.advancedOptionsContainer, generateTransform('editToAdvanced', [width, 0])]}
+				onLayout={this.saveGasInputHeight}
+			>
 				<View style={styles.valueRow}>
 					<Text style={styles.advancedOptionsText}>{strings('custom_gas.total')}</Text>
 					<View style={styles.totalGasWrapper}>
@@ -571,11 +597,12 @@ class CustomGas extends PureComponent {
 	};
 
 	renderGasError = () => {
-		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
+		const { warningGasLimit, warningGasPrice, warningSufficientFunds, headerHeight, gasInputHeight } = this.state;
 		const { gasError } = this.props;
 		const gasErrorMessage = warningGasPrice || warningGasLimit || warningSufficientFunds || gasError;
+		const topOffset = { top: headerHeight + gasInputHeight };
 		return (
-			<View style={styles.warningWrapper}>
+			<View style={[styles.warningWrapper, topOffset]}>
 				<View style={[styles.warningTextWrapper, !gasErrorMessage ? styles.invisible : null]}>
 					<Text style={styles.warningText}>{gasErrorMessage}</Text>
 				</View>
@@ -586,12 +613,35 @@ class CustomGas extends PureComponent {
 	saveHeaderHeight = event =>
 		!this.state.headerHeight && this.setState({ headerHeight: event.nativeEvent.layout.height });
 
+	saveGasInputHeight = event => {
+		!this.state.gasInputHeight && this.setState({ gasInputHeight: event.nativeEvent.layout.height });
+	};
+
 	render = () => {
 		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
-		const { review, gasError, saveCustomGasHeight, advancedCustomGas } = this.props;
+		const {
+			review,
+			gasError,
+			saveCustomGasHeight,
+			advancedCustomGas,
+			generateTransform,
+			heightDifference,
+			mode,
+			toAdvancedFrom
+		} = this.props;
 		const disableButton = advancedCustomGas
 			? !!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError
 			: false;
+		let buttonStyle;
+		if (advancedCustomGas) {
+			buttonStyle = styles.buttonTransform;
+			if (toAdvancedFrom === 'edit' && mode === 'edit') {
+				buttonStyle = generateTransform('saveButton', [0, heightDifference]);
+			}
+		} else if (toAdvancedFrom === 'edit' && mode === 'edit') {
+			buttonStyle = generateTransform('saveButton', [0, heightDifference]);
+		}
+
 		return (
 			<View style={styles.root} onLayout={saveCustomGasHeight}>
 				<View onLayout={this.saveHeaderHeight}>
@@ -620,8 +670,9 @@ class CustomGas extends PureComponent {
 
 				{this.renderCustomGasSelector()}
 				{this.renderCustomGasInput()}
-				{advancedCustomGas ? this.renderGasError() : null}
-				<View style={styles.footerContainer}>
+				{advancedCustomGas && this.renderGasError()}
+
+				<Animated.View style={[styles.footerContainer, buttonStyle]}>
 					<StyledButton
 						disabled={disableButton}
 						type={'confirm'}
@@ -631,7 +682,7 @@ class CustomGas extends PureComponent {
 					>
 						{strings('custom_gas.save')}
 					</StyledButton>
-				</View>
+				</Animated.View>
 			</View>
 		);
 	};

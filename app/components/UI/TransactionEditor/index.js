@@ -120,7 +120,8 @@ class TransactionEditor extends PureComponent {
 		width: Device.getDeviceWidth(),
 		rootHeight: null,
 		customGasHeight: null,
-		hideGasSelectors: false
+		hideGasSelectors: false,
+		toAdvancedFrom: 'edit'
 	};
 
 	componentDidMount = async () => {
@@ -590,20 +591,22 @@ class TransactionEditor extends PureComponent {
 		this.setState({ basicGasEstimates, ready: true });
 	};
 
-	/* eslint-disable */
 	onModeChange = mode => {
-		mode === 'edit'
-			? this.animate({
-					modalEndValue: this.state.advancedCustomGas ? this.getAnimatedModalValueForAdvancedCG() : 0,
-					reviewToEditEndValue: 1
-			  })
-			: this.animate({ modalEndValue: 1, reviewToEditEndValue: 0 });
+		if (mode === 'edit') {
+			this.setState({ toAdvancedFrom: 'review' });
+			this.animate({
+				modalEndValue: this.state.advancedCustomGas ? this.getAnimatedModalValueForAdvancedCG() : 0,
+				reviewToEditEndValue: 1
+			});
+		} else {
+			this.animate({ modalEndValue: 1, reviewToEditEndValue: 0 });
+		}
 		this.props.onModeChange(mode);
 	};
-	/* eslint-enable */
 
 	toggleAdvancedCustomGas = (toggle = false) => {
-		this.setState({ advancedCustomGas: toggle ? true : !this.state.advancedCustomGas });
+		const { advancedCustomGas } = this.state;
+		this.setState({ advancedCustomGas: toggle ? true : !advancedCustomGas, toAdvancedFrom: 'edit' });
 	};
 
 	animate = ({ modalEndValue, reviewToEditEndValue, editToAdvancedEndValue }) => {
@@ -631,10 +634,12 @@ class TransactionEditor extends PureComponent {
 
 	generateTransform = (valueType, outRange) => {
 		const { modalValue, reviewToEditValue, editToAdvancedValue, rootHeight, customGasHeight } = this.state;
-		if (valueType === 'modal') {
-			Device.isIphoneX()
-				? (outRange[0] = rootHeight - customGasHeight)
-				: (outRange[0] = rootHeight - customGasHeight + 24);
+		if (valueType === 'modal' || valueType === 'saveButton') {
+			if (valueType === 'modal') {
+				Device.isIphoneX()
+					? (outRange[0] = rootHeight - customGasHeight)
+					: (outRange[0] = rootHeight - customGasHeight + 24);
+			}
 			return {
 				transform: [
 					{
@@ -676,7 +681,17 @@ class TransactionEditor extends PureComponent {
 
 	render = () => {
 		const { mode, transactionConfirmed, transaction } = this.props;
-		const { basicGasEstimates, ready, width, advancedCustomGas, hideGasSelectors } = this.state;
+		const {
+			basicGasEstimates,
+			ready,
+			width,
+			advancedCustomGas,
+			hideGasSelectors,
+			rootHeight,
+			customGasHeight,
+			modalValue,
+			toAdvancedFrom
+		} = this.state;
 		return (
 			<React.Fragment>
 				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
@@ -723,6 +738,10 @@ class TransactionEditor extends PureComponent {
 									generateTransform={this.generateTransform}
 									getAnimatedModalValueForAdvancedCG={this.getAnimatedModalValueForAdvancedCG}
 									hideGasSelectors={hideGasSelectors}
+									heightDifference={rootHeight - customGasHeight}
+									mode={mode}
+									modalValue={modalValue}
+									toAdvancedFrom={toAdvancedFrom}
 								/>
 							</Animated.View>
 						)}
