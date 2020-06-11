@@ -10,7 +10,6 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 
 const styles = StyleSheet.create({
 	defaultFlashFloating: {
-		flex: 1,
 		backgroundColor: colors.normalAlert,
 		padding: 16,
 		marginHorizontal: 16,
@@ -85,7 +84,6 @@ export default function BaseNotification(props) {
 
 	// eslint-disable-next-line no-undef
 	_getTitle = () => {
-		if (data.title) return data.title;
 		switch (status) {
 			case 'pending':
 				return strings('notifications.pending_title');
@@ -117,7 +115,6 @@ export default function BaseNotification(props) {
 
 	// eslint-disable-next-line no-undef
 	_getDescription = () => {
-		if (data.description) return data.description;
 		if (data && data.amount) {
 			return strings(`notifications.${status}_message`, { amount: data.amount });
 		}
@@ -135,9 +132,9 @@ export default function BaseNotification(props) {
 				<View style={styles.flashIcon}>{this._getIcon()}</View>
 				<View style={styles.flashLabel}>
 					<Text style={styles.flashTitle} testID={'notification-title'}>
-						{this._getTitle()}
+						{!data.title ? this._getTitle() : data.title}
 					</Text>
-					<Text style={styles.flashText}>{this._getDescription()}</Text>
+					<Text style={styles.flashText}>{!data.title ? this._getDescription() : data.description}</Text>
 				</View>
 				<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
 					<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />

@@ -477,14 +477,12 @@ class Notification extends PureComponent {
 				<Animated.View
 					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
 				>
-					<View style={styles.notificationWrapper}>
-						<BaseNotification
-							status={status}
-							data={tx.transaction || {}}
-							onPress={this.onNotificationPress}
-							onHide={this.onClose}
-						/>
-					</View>
+					<BaseNotification
+						status={status}
+						data={tx.transaction || {}}
+						onPress={this.onNotificationPress}
+						onHide={this.onClose}
+					/>
 				</Animated.View>
 			</ElevatedView>
 		);
