@@ -59,13 +59,7 @@ export default class MessageSign extends PureComponent {
 		truncateMessage: false
 	};
 
-	signMessage = async () => {
-		const { messageParams } = this.props;
-		const { KeyringController, MessageManager } = Engine.context;
-		const messageId = messageParams.metamaskId;
-		const cleanMessageParams = await MessageManager.approveMessage(messageParams);
-		const rawSig = await KeyringController.signMessage(cleanMessageParams);
-		MessageManager.setMessageStatusSigned(messageId, rawSig);
+	showWalletConnectNotification = messageParams => {
 		InteractionManager.runAfterInteractions(() => {
 			messageParams.origin === WALLET_CONNECT_ORIGIN &&
 				NotificationManager.showSimpleNotification({
@@ -78,11 +72,22 @@ export default class MessageSign extends PureComponent {
 		});
 	};
 
+	signMessage = async () => {
+		const { messageParams } = this.props;
+		const { KeyringController, MessageManager } = Engine.context;
+		const messageId = messageParams.metamaskId;
+		const cleanMessageParams = await MessageManager.approveMessage(messageParams);
+		const rawSig = await KeyringController.signMessage(cleanMessageParams);
+		MessageManager.setMessageStatusSigned(messageId, rawSig);
+		this.showWalletConnectNotification(messageParams);
+	};
+
 	rejectMessage = () => {
 		const { messageParams } = this.props;
 		const { MessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
 		MessageManager.rejectMessage(messageId);
+		this.showWalletConnectNotification(messageParams);
 	};
 
 	cancelSignature = () => {

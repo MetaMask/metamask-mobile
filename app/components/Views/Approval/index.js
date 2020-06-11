@@ -14,6 +14,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTransactionReviewActionKey, getNormalizedTxState } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { safeToChecksumAddress } from '../../../util/address';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -140,9 +141,22 @@ class Approval extends PureComponent {
 		this.props.resetTransaction();
 	};
 
+	showWalletConnectNotification = () => {
+		const { transaction } = this.props;
+		InteractionManager.runAfterInteractions(() => {
+			transaction.origin === WALLET_CONNECT_ORIGIN &&
+				NotificationManager.showSimpleNotification({
+					duration: 5000,
+					title: strings('notifications.wallet_connect_title'),
+					description: strings('notifications.wallet_connect_description')
+				});
+		});
+	};
+
 	onCancel = () => {
 		this.props.navigation.pop();
 		this.state.mode === REVIEW && this.trackOnCancel();
+		this.showWalletConnectNotification();
 	};
 
 	/**
@@ -179,6 +193,7 @@ class Approval extends PureComponent {
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
+			this.showWalletConnectNotification();
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
 				{ text: strings('navigation.ok') }

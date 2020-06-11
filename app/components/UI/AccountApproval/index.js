@@ -105,12 +105,7 @@ class AccountApproval extends PureComponent {
 		});
 	};
 
-	/**
-	 * Calls onConfirm callback and analytics to track connect confirmed event
-	 */
-	onConfirm = () => {
-		this.props.onConfirm();
-
+	showWalletConnectNotification = () => {
 		if (this.props.walletConnectRequest) {
 			const title = this.props.currentPageInformation.title;
 			InteractionManager.runAfterInteractions(() => {
@@ -119,13 +114,20 @@ class AccountApproval extends PureComponent {
 					title: strings('notifications.wallet_connect_title', { title }),
 					description: strings('notifications.wallet_connect_description')
 				});
-
-				Analytics.trackEventWithParameters(
-					ANALYTICS_EVENT_OPTS.AUTHENTICATION_CONNECT_CONFIRMED,
-					this.getTrackingParams()
-				);
 			});
 		}
+	};
+
+	/**
+	 * Calls onConfirm callback and analytics to track connect confirmed event
+	 */
+	onConfirm = () => {
+		this.props.onConfirm();
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.AUTHENTICATION_CONNECT_CONFIRMED,
+			this.getTrackingParams()
+		);
+		this.showWalletConnectNotification();
 	};
 
 	/**
@@ -137,6 +139,7 @@ class AccountApproval extends PureComponent {
 			this.getTrackingParams()
 		);
 		this.props.onCancel();
+		this.showWalletConnectNotification();
 	};
 
 	/**

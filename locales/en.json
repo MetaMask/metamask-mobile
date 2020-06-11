@@ -953,7 +953,7 @@
 		"prompt_ok": "Yes",
 		"prompt_cancel": "No, thanks",
 		"wallet_connect_title": "Connected to {{title}}",
-		"wallet_connect_description": "Go to back to the browser."
+		"wallet_connect_description": "Go back to the browser."
 	},
 	"secure_your_wallet_modal": {
 		"title": "Secure your wallet",
