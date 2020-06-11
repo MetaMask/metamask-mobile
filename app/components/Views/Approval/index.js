@@ -150,7 +150,7 @@ class Approval extends PureComponent {
 					duration: 5000,
 					title: confirmation
 						? strings('notifications.wc_sent_tx_title')
-						: strings('notifications.wc_request_rejection'),
+						: strings('notifications.wc_sent_tx_rejected_title'),
 					description: strings('notifications.wc_description')
 				});
 		});

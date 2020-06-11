@@ -954,10 +954,11 @@
 		"prompt_cancel": "No, thanks",
 		"wc_connected_title": "Connected to {{title}}",
 		"wc_signed_title": "Signed",
-		"wc_approved_title": "Approved",
 		"wc_sent_tx_title": "Sent transaction",
-		"wc_request_rejection": "Request rejected",
-		"wc_description": "Go back to the browser."
+		"wc_connected_rejected_title": "You’ve rejected the Connect request",
+		"wc_signed_rejected_title": "You’ve rejected the Sign request",
+		"wc_sent_tx_rejected_title": "You’ve rejected the Transaction request",
+		"wc_description": "Go back to the browser"
 	},
 	"secure_your_wallet_modal": {
 		"title": "Secure your wallet",

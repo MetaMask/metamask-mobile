@@ -114,7 +114,7 @@ class AccountApproval extends PureComponent {
 					duration: 5000,
 					title: confirmation
 						? strings('notifications.wc_connected_title', { title })
-						: strings('notifications.wc_request_rejection'),
+						: strings('notifications.wc_connected_rejected_title'),
 					description: strings('notifications.wc_description')
 				});
 			});
