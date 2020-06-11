@@ -99,7 +99,11 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
-import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
+import {
+	showTransactionNotification,
+	hideTransactionNotification,
+	showSimpleNotification
+} from '../../../actions/transactionNotification';
 import AccountApproval from '../../UI/AccountApproval';
 
 const styles = StyleSheet.create({
@@ -1176,7 +1180,7 @@ const mapDispatchToProps = dispatch => ({
 	setEtherTransaction: transaction => dispatch(setEtherTransaction(transaction)),
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
-	showSimpleNotification: args => dispatch(showTransactionNotification(args)),
+	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
 	hideTransactionNotification: () => dispatch(hideTransactionNotification())
 });
 

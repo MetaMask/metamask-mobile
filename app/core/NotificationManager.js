@@ -132,13 +132,6 @@ class NotificationManager {
 			if (id) {
 				this._transactionToView.push(id);
 			}
-		} else if (data.notificationType === 'simple') {
-			this._showSimpleNotification({
-				autodismiss: data.duration,
-				title: data.title,
-				description: data.description,
-				status: data.type
-			});
 		} else {
 			this._showTransactionNotification({
 				autodismiss: data.duration,
@@ -317,6 +310,18 @@ class NotificationManager {
 	};
 
 	/**
+	 * Shows a notification with title and description
+	 */
+	showSimpleNotification = data => {
+		this._showSimpleNotification({
+			autodismiss: data.duration,
+			title: data.title,
+			description: data.description,
+			status: data.type
+		});
+	};
+
+	/**
 	 * Listen for events of a submitted transaction
 	 * and generates the corresponding notification
 	 * based on the status of the transaction (failed or confirmed)
@@ -427,6 +432,9 @@ export default {
 	},
 	requestPushNotificationsPermission() {
 		return instance.requestPushNotificationsPermission();
+	},
+	showSimpleNotification(data) {
+		return instance.showSimpleNotification(data);
 	},
 	showInstantPaymentNotification(type) {
 		setTimeout(() => {

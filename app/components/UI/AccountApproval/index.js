@@ -10,6 +10,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import NotificationManager from '../../../core/NotificationManager';
 
 const styles = StyleSheet.create({
 	root: {
@@ -104,6 +105,12 @@ class AccountApproval extends PureComponent {
 	 * Calls onConfirm callback and analytics to track connect confirmed event
 	 */
 	onConfirm = () => {
+		// FIXCXXXX
+		NotificationManager.showSimpleNotification({
+			duration: 5000,
+			title: 'Approval',
+			description: 'Description'
+		});
 		Analytics.trackEventWithParameters(
 			ANALYTICS_EVENT_OPTS.AUTHENTICATION_CONNECT_CONFIRMED,
 			this.getTrackingParams()
