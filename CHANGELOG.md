@@ -4,6 +4,7 @@
 
 ## v0.2.17 - Jun 12 2020
 - [#1621](https://github.com/MetaMask/metamask-mobile/pull/1624): Wallet connect update + Support for simple notifications (#1624)
+- [#1621](https://github.com/MetaMask/metamask-mobile/pull/1623): Fix browser intial load (#1623)
 - [#1621](https://github.com/MetaMask/metamask-mobile/pull/1621): Fix branch (#1621)
 - [#1512](https://github.com/MetaMask/metamask-mobile/pull/1512): Transaction components (#1512)
 - [#1619](https://github.com/MetaMask/metamask-mobile/pull/1619): Fix aab link on slack (#1619)
