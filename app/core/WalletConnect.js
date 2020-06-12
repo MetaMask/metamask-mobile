@@ -23,7 +23,6 @@ const waitForInitialization = async () => {
 	let i = 0;
 	while (!initialized) {
 		await new Promise(res => setTimeout(() => res(), 1000));
-		console.log('initialized', initialized);
 		if (i++ > 5) initialized = true;
 	}
 };
