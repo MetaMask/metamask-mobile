@@ -80,7 +80,7 @@ class TransactionHeader extends PureComponent {
 	 */
 	renderNetworkStatusIndicator = () => {
 		const { networkType } = this.props;
-		const networkStatusIndicatorColor = (networkList[networkType] && networkList[networkType].color) || null;
+		const networkStatusIndicatorColor = (networkList[networkType] && networkList[networkType].color) || colors.red;
 		const networkStatusIndicator = (
 			<View style={[styles.networkStatusIndicator, { backgroundColor: networkStatusIndicatorColor }]} />
 		);
