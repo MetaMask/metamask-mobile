@@ -477,9 +477,9 @@ class Main extends PureComponent {
 			}, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
 		}
 	};
-
 	componentDidMount = async () => {
 		InteractionManager.runAfterInteractions(() => {
+			this.initializeWalletConnect();
 			AppState.addEventListener('change', this.handleAppStateChange);
 			this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 			PushNotification.configure({
@@ -552,8 +552,6 @@ class Main extends PureComponent {
 					this.props.showSimpleNotification
 				);
 				this.pollForIncomingTransactions();
-
-				this.initializeWalletConnect();
 
 				// Only if enabled under settings
 				if (this.props.paymentChannelsEnabled) {
