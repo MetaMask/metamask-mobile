@@ -1,21 +1,18 @@
 import Logger from './../util/Logger';
 // eslint-disable-next-line import/no-namespace
 import * as connext from '@connext/client';
-import { ConnextStore } from '@connext/store';
+import { ERC20 } from '@connext/contracts';
+import { getAsyncStore } from '@connext/store';
 import {
-	StoreTypes,
 	RECEIVE_TRANSFER_STARTED_EVENT,
 	RECEIVE_TRANSFER_FINISHED_EVENT,
 	RECEIVE_TRANSFER_FAILED_EVENT
 } from '@connext/types';
-import tokenAbi from 'human-standard-token-abi';
 import interval from 'interval-promise';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import AppConstants from './AppConstants';
-import { Contract, ethers as eth } from 'ethers';
-import { AddressZero, Zero } from 'ethers/constants';
-import { formatEther, hexlify, randomBytes } from 'ethers/utils';
+import { Contract, Wallet, constants, utils } from 'ethers';
 
 import Engine from './Engine';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -24,6 +21,9 @@ import { renderFromWei, toWei, fromWei, BNToHex } from './../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from './../util/networks';
 import PaymentChannelsClient from './PaymentChannelsClient';
+
+const { AddressZero, Zero } = constants;
+const { formatEther, hexlify, randomBytes } = utils;
 
 const { Currency, minBN, toBN, tokenToWei, delay, inverse } = connext.utils;
 
@@ -110,14 +110,13 @@ class InstaPay {
 		const { KeyringController } = Engine.context;
 		const data = await KeyringController.exportSeedPhrase(pwd);
 		const mnemonic = JSON.stringify(data).replace(/"/g, '');
-		const wallet = eth.Wallet.fromMnemonic(mnemonic, INSTA_PAY_PATH + '/0');
+		const wallet = Wallet.fromMnemonic(mnemonic, INSTA_PAY_PATH + '/0');
 		this.setState({ network, walletAddress: wallet.address });
 
 		Logger.log('InstaPay :: about to connect');
 
 		const signer = wallet.privateKey;
-		const store = new ConnextStore(StoreTypes.AsyncStorage, {
-			storage: AsyncStorage,
+		const store = getAsyncStore(AsyncStorage, {
 			asyncStorageKey: '@MetaMask:InstaPay'
 		});
 
@@ -127,7 +126,7 @@ class InstaPay {
 
 		TransactionsNotificationManager.setInstaPayWalletAddress(wallet.address);
 
-		const token = new Contract(channel.config.contractAddresses.Token, tokenAbi, channel.ethProvider);
+		const token = new Contract(channel.config.contractAddresses.Token, ERC20.abi, channel.ethProvider);
 
 		const swapRate = await channel.getLatestSwapRate(AddressZero, token.address);
 
