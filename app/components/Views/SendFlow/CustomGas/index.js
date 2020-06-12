@@ -15,6 +15,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import Radio from '../../../UI/Radio';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const styles = StyleSheet.create({
 	root: {
@@ -541,32 +542,36 @@ class CustomGas extends PureComponent {
 			const { toggleCustomGasModal } = this.props;
 			return (
 				<View style={styles.root}>
-					<View style={styles.customGasHeader}>
-						<TouchableOpacity onPress={toggleCustomGasModal}>
-							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
-						</TouchableOpacity>
-						<Text style={styles.customGasModalTitleText}>{strings('transaction.edit_network_fee')}</Text>
-						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
-					</View>
-					<View style={styles.optionsContainer}>
-						<TouchableOpacity
-							style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
-							onPress={this.onAdvancedOptions}
-						>
-							<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
-							style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
-							onPress={this.onAdvancedOptions}
-						>
-							<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
-						</TouchableOpacity>
-					</View>
-					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
-					{!advancedCustomGas ? (
-						<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
-					) : null}
-					{advancedCustomGas ? this.renderGasError() : null}
+					<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
+						<View style={styles.customGasHeader}>
+							<TouchableOpacity onPress={toggleCustomGasModal}>
+								<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+							</TouchableOpacity>
+							<Text style={styles.customGasModalTitleText}>
+								{strings('transaction.edit_network_fee')}
+							</Text>
+							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+						</View>
+						<View style={styles.optionsContainer}>
+							<TouchableOpacity
+								style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
+								onPress={this.onAdvancedOptions}
+							>
+								<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
+								onPress={this.onAdvancedOptions}
+							>
+								<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
+							</TouchableOpacity>
+						</View>
+						{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
+						{!advancedCustomGas ? (
+							<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
+						) : null}
+						{advancedCustomGas ? this.renderGasError() : null}
+					</KeyboardAwareScrollView>
 				</View>
 			);
 		}
