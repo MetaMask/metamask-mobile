@@ -30,7 +30,8 @@ import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
-import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
+import fetchIcon from '../../../util/icon';
+import onUrlSubmit, { getUrlObj } from '../../../util/browser';
 import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
@@ -1168,12 +1169,13 @@ export class BrowserTab extends PureComponent {
 				onAddBookmark: async ({ name, url }) => {
 					this.props.addBookmark({ name, url });
 					if (Device.isIos()) {
+						const uri = await fetchIcon(url);
 						const item = {
 							uniqueIdentifier: url,
 							title: name || url,
 							contentDescription: `Launch ${name || url} on MetaMask`,
 							keywords: [name.split(' '), url, 'dapp'],
-							thumbnail: { uri: `https://api.faviconkit.com/${getHost(url)}/256` }
+							thumbnail: { uri }
 						};
 						try {
 							SearchApi.indexSpotlightItem(item);
