@@ -21,10 +21,10 @@ const persistSessions = async () => {
 
 const waitForInitialization = async () => {
 	let i = 0;
-	// eslint-disable-next-line no-unmodified-loop-condition
-	while (!initialized || i > 5) {
+	while (!initialized) {
 		await new Promise(res => setTimeout(() => res(), 1000));
-		i++;
+		console.log('initialized', initialized);
+		if (i++ > 5) initialized = true;
 	}
 };
 
