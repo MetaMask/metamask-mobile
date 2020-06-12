@@ -60,7 +60,6 @@ class DeeplinkManager {
 			params = qs.parse(urlObj.query.substring(1));
 		}
 		const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
-
 		switch (urlObj.protocol.replace(':', '')) {
 			case 'http':
 			case 'https':
@@ -71,11 +70,7 @@ class DeeplinkManager {
 
 					switch (action) {
 						case 'wc':
-							params &&
-								params.uri &&
-								setTimeout(() => {
-									WalletConnect.newSession(params.uri, params.redirectUrl, false);
-								}, 1500);
+							params && params.uri && WalletConnect.newSession(params.uri, params.redirectUrl, false);
 							break;
 						case 'dapp':
 							this.handleBrowserUrl(
