@@ -116,18 +116,7 @@ class InstaPay {
 			asyncStorageKey: '@MetaMask:InstaPay'
 		});
 
-		let opts = { signer, store, logLevel: 0 };
-
-		if (__DEV__) {
-			const baseUrl = 'staging.indra.connext.network/api';
-			opts = {
-				...opts,
-				ethProviderUrl: `https://${baseUrl}/ethprovider`,
-				nodeUrl: `https://${baseUrl}`
-			};
-		}
-
-		const channel = await connext.connect(network, opts);
+		const channel = await connext.connect(network, { signer, store, logLevel: 0 });
 
 		Logger.log('InstaPay :: connect complete ');
 
