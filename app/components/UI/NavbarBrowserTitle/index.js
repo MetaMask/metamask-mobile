@@ -119,12 +119,7 @@ class NavbarBrowserTitle extends PureComponent {
 					</Text>
 				</View>
 				<View style={styles.network}>
-					<View
-						style={[
-							styles.networkIcon,
-							color ? { backgroundColor: color } : { backgroundColor: colors.red }
-						]}
-					/>
+					<View style={[styles.networkIcon, { backgroundColor: color || colors.red }]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
 						{name}
 					</Text>
