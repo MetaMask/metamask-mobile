@@ -478,8 +478,8 @@ class Main extends PureComponent {
 		}
 	};
 	componentDidMount = async () => {
-		this.initializeWalletConnect();
 		InteractionManager.runAfterInteractions(() => {
+			this.initializeWalletConnect();
 			AppState.addEventListener('change', this.handleAppStateChange);
 			this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 			PushNotification.configure({
