@@ -3,11 +3,7 @@ import Logger from './../util/Logger';
 import * as connext from '@connext/client';
 import { ERC20 } from '@connext/contracts';
 import { getAsyncStore } from '@connext/store';
-import {
-	RECEIVE_TRANSFER_STARTED_EVENT,
-	RECEIVE_TRANSFER_FINISHED_EVENT,
-	RECEIVE_TRANSFER_FAILED_EVENT
-} from '@connext/types';
+import { EventNames, ConditionalTransferTypes } from '@connext/types';
 import interval from 'interval-promise';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
@@ -120,7 +116,18 @@ class InstaPay {
 			asyncStorageKey: '@MetaMask:InstaPay'
 		});
 
-		const channel = await connext.connect(network, { signer, store, logLevel: 0 });
+		let opts = { signer, store, logLevel: 0 };
+
+		if (__DEV__) {
+			const baseUrl = 'staging.indra.connext.network/api';
+			opts = {
+				...opts,
+				ethProviderUrl: `https://${baseUrl}/ethprovider`,
+				nodeUrl: `https://${baseUrl}`
+			};
+		}
+
+		const channel = await connext.connect(network, opts);
 
 		Logger.log('InstaPay :: connect complete ');
 
@@ -143,18 +150,18 @@ class InstaPay {
 			this.setState({ swapRate: res.swapRate });
 		});
 
-		channel.on(RECEIVE_TRANSFER_STARTED_EVENT, data => {
-			Logger.log(`Received ${RECEIVE_TRANSFER_STARTED_EVENT} event: `, data);
+		channel.on(EventNames.RECEIVE_TRANSFER_STARTED_EVENT, data => {
+			Logger.log(`Received ${EventNames.RECEIVE_TRANSFER_STARTED_EVENT} event: `, data);
 			this.setState({ receivingTransferStarted: true });
 		});
 
-		channel.on(RECEIVE_TRANSFER_FINISHED_EVENT, data => {
-			Logger.log(`Received ${RECEIVE_TRANSFER_FINISHED_EVENT} event: `, data);
+		channel.on(EventNames.RECEIVE_TRANSFER_FINISHED_EVENT, data => {
+			Logger.log(`Received ${EventNames.RECEIVE_TRANSFER_FINISHED_EVENT} event: `, data);
 			this.setState({ receivingTransferCompleted: true });
 		});
 
-		channel.on(RECEIVE_TRANSFER_FAILED_EVENT, data => {
-			Logger.log(`Received ${RECEIVE_TRANSFER_FAILED_EVENT} event: `, data);
+		channel.on(EventNames.RECEIVE_TRANSFER_FAILED_EVENT, data => {
+			Logger.log(`Received ${EventNames.RECEIVE_TRANSFER_FAILED_EVENT} event: `, data);
 			this.setState({ receivingTransferFailed: true });
 		});
 
@@ -328,11 +335,11 @@ class InstaPay {
 			Logger.error('InstaPay :: error in autoSwap', e);
 		}
 
-		try {
-			await this.checkPaymentHistory();
-		} catch (e) {
-			Logger.error('InstaPay :: error in checkPaymentHistory', e);
-		}
+		// try {
+		// 	await this.checkPaymentHistory();
+		// } catch (e) {
+		// 	Logger.error('InstaPay :: error in checkPaymentHistory', e);
+		// }
 	};
 
 	startPoller = async () => {
@@ -600,7 +607,7 @@ class InstaPay {
 					const data = {
 						assetId: token.address,
 						amount: amount.wad.toString(),
-						conditionType: 'LINKED_TRANSFER_TO_RECIPIENT',
+						conditionType: ConditionalTransferTypes.LinkedTransfer,
 						paymentId: hexlify(randomBytes(32)),
 						preImage: hexlify(randomBytes(32)),
 						recipient: sendRecipient,
