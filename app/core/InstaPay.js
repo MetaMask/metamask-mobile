@@ -141,6 +141,7 @@ class InstaPay {
 		Logger.log(` - Public Identifier: ${channel.publicIdentifier}`);
 		Logger.log(` - Multisig address: ${channel.multisigAddress}`);
 		Logger.log(` - Signer address: ${channel.signerAddress}`);
+		Logger.log(` - Node URL: ${channel.nodeUrl}`);
 		Logger.log(` - Token address: ${token.address}`);
 		Logger.log(` - Swap rate: ${swapRate}`);
 
