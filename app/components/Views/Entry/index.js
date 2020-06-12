@@ -86,9 +86,10 @@ class Entry extends PureComponent {
 	animation = React.createRef();
 	animationName = React.createRef();
 	opacity = new Animated.Value(1);
-	mounted = false;
 
 	async componentDidMount() {
+		DeeplinkManager.init(this.props.navigation);
+		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
 		SplashScreen.hide();
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 		if (existingUser !== null) {
@@ -96,23 +97,9 @@ class Entry extends PureComponent {
 		} else {
 			this.animateAndGoTo('OnboardingRootNav');
 		}
-		DeeplinkManager.init(this.props.navigation);
-		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
-		this.mounted = true;
 	}
 
-	waitUntilMounted = async () => {
-		if (this.mounted) return;
-		await new Promise(resolve => {
-			setTimeout(() => {
-				if (this.mounted) resolve();
-				else this.waitUntilMounted();
-			}, 2000);
-		});
-	};
-
-	handleDeeplinks = async ({ error, params, uri }) => {
-		await this.waitUntilMounted();
+	handleDeeplinks = ({ error, params, uri }) => {
 		if (error) {
 			Logger.error(error, 'Error from Branch');
 			return;
