@@ -71,11 +71,7 @@ class DeeplinkManager {
 
 					switch (action) {
 						case 'wc':
-							params &&
-								params.uri &&
-								setTimeout(() => {
-									WalletConnect.newSession(params.uri, params.redirectUrl, false);
-								}, 1500);
+							params && params.uri && WalletConnect.newSession(params.uri, params.redirectUrl, false);
 							break;
 						case 'dapp':
 							this.handleBrowserUrl(

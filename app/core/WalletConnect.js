@@ -9,6 +9,7 @@ import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 
 const hub = new EventEmitter();
 let connectors = [];
+let initialized = false;
 
 const persistSessions = async () => {
 	const sessions = connectors
@@ -16,6 +17,14 @@ const persistSessions = async () => {
 		.map(connector => connector.walletConnector.session);
 
 	await AsyncStorage.setItem('@MetaMask:walletconnectSessions', JSON.stringify(sessions));
+};
+
+const waitForInitialization = async () => {
+	let i = 0;
+	while (!initialized) {
+		await new Promise(res => setTimeout(() => res(), 1000));
+		if (i++ > 5) initialized = true;
+	}
 };
 
 class WalletConnect {
@@ -46,7 +55,10 @@ class WalletConnect {
 					...payload.params[0],
 					autosign: this.autosign
 				};
+
 				Logger.log('requesting session with', sessionData);
+
+				await waitForInitialization();
 				await this.sessionRequest(sessionData);
 
 				const { network } = Engine.context.NetworkController.state;
@@ -300,6 +312,7 @@ const instance = {
 				connectors.push(new WalletConnect({ session }));
 			});
 		}
+		initialized = true;
 	},
 	connectors() {
 		return connectors;
