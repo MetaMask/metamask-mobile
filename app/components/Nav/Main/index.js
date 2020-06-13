@@ -98,6 +98,10 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
+import FiatOrders from '../../UI/FiatOrders';
+import PaymentMethodSelector from '../../UI/FiatOrders/PaymentMethodSelector';
+import PaymentMethodApplePay from '../../UI/FiatOrders/PaymentMethodApplePay';
+import TransakWebView from '../../UI/FiatOrders/TransakWebView';
 import {
 	showTransactionNotification,
 	hideTransactionNotification,
@@ -329,6 +333,15 @@ const MainNavigator = createStackNavigator(
 				}
 			)
 		},
+
+		FiatOnRamp: {
+			screen: createStackNavigator({
+				PaymentMethodSelector: { screen: PaymentMethodSelector },
+				PaymentMethodApplePay: { screen: PaymentMethodApplePay },
+				TransakFlow: { screen: TransakWebView }
+			})
+		},
+
 		SetPasswordFlow: {
 			screen: createStackNavigator(
 				{
@@ -1142,6 +1155,7 @@ class Main extends PureComponent {
 					<FadeOutOverlay />
 					<BackupAlert navigation={this.props.navigation} onPress={this.backupAlertPress} />
 					<Notification navigation={this.props.navigation} />
+					<FiatOrders />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
