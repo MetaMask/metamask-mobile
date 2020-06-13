@@ -3,43 +3,88 @@ import React, {
 	useCallback
 } from 'react';
 import PropTypes from 'prop-types';
+import { View, StyleSheet, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
-import { Text } from 'react-native';
-import useInterval from './hooks/useInterval';
+
+import Text from './components/Text';
 
 import { createPendingOrder, FIAT_ORDER_STATES, FIAT_ORDER_PROVIDERS } from '../../../reducers/fiatOrders';
+import useInterval from './hooks/useInterval';
 import processOrder from './orderProcessor';
+import { colors } from '../../../styles/common';
+import NotificationManager from '../../../core/NotificationManager';
+
+const POLLING_TIME = 10000;
+const NOTIFICATION_DURATION = 5000;
+const SHOW_DEBUG = true;
+
+const styles = StyleSheet.create({
+	bottomView: {
+		padding: 10,
+		paddingBottom: 20,
+		backgroundColor: colors.grey000
+	}
+});
+
+/**
+ * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
+ */
+
+/**
+ * @param {FiatOrder} fiatOrder
+ */
+const getNotificationDetails = fiatOrder => {
+	switch (fiatOrder.state) {
+		case FIAT_ORDER_STATES.FAILED: {
+			return { title: 'Your purchase failed', description: 'Failed :(', status: 'error' };
+		}
+		case FIAT_ORDER_STATES.CANCELLED: {
+			return { title: 'Your purchase was cancelled', description: 'Cancelled :(', status: 'cancelled' };
+		}
+		case FIAT_ORDER_STATES.COMPLETED: {
+			return {
+				title: `Your purchase of ${fiatOrder.cryptoAmount} ${fiatOrder.cryptocurrency} successful`,
+				description: `Your ${fiatOrder.cryptocurrency} is now available`,
+				status: 'success'
+			};
+		}
+		case FIAT_ORDER_STATES.PENDING:
+		default: {
+			return {
+				title: `Processing purchase of ${fiatOrder.currency}`,
+				description: 'Your deposit is in progress',
+				status: 'pending'
+			};
+		}
+	}
+};
 
 function FiatOrders({ orders, selectedAddress, network, createFakeOrder, clearOrders, dispatch }) {
-	// console.log(orders);
-
 	// Pending orders depend on selectedAddress and selectedNetworks
 	const pendingOrders = orders.filter(
 		order =>
 			order.account === selectedAddress && order.network === network && order.state === FIAT_ORDER_STATES.PENDING
-	); // selectedAddress
-
-	// console.log(pendingOrders);
-
-	// useEffect(() => {
-	// 	console.log('cdM!');
-	// 	console.log('orders', orders);
-	// 	console.log('pending', pendingOrders);
-	// 	return () => console.log('cWU!');
-	// }, [selectedAddress, network, orders, pendingOrders]);
+	);
 
 	useInterval(
 		async () => {
 			await Promise.all(
 				pendingOrders.map(async order => {
-					const proccesed = await processOrder(order);
-					// Check if status has changed
-					dispatch({ type: 'FIAT_UPDATE_ORDER', payload: proccesed });
-					// dispatch(showTransactionNotification({}));
+					const updatedOrder = await processOrder(order);
+					if (updatedOrder.state !== order.state) {
+						// console.log(`Order updated:`, order.provider, order.id);
+						dispatch({ type: 'FIAT_UPDATE_ORDER', payload: updatedOrder });
+						InteractionManager.runAfterInteractions(() =>
+							NotificationManager.showSimpleNotification({
+								duration: NOTIFICATION_DURATION,
+								...getNotificationDetails(updatedOrder)
+							})
+						);
+					}
 				})
 			);
 		},
-		pendingOrders.length ? 2000 : null
+		pendingOrders.length ? POLLING_TIME : null
 	);
 
 	const onPressAdd = useCallback(() => createFakeOrder(selectedAddress, network), [
@@ -48,11 +93,20 @@ function FiatOrders({ orders, selectedAddress, network, createFakeOrder, clearOr
 		network
 	]);
 
+	if (!SHOW_DEBUG) {
+		return null;
+	}
+
 	return (
-		<Text>
-			<Text onPress={onPressAdd}>Add</Text>;<Text onPress={clearOrders}>Clear</Text>;
-			<Text>network:{network}</Text>
-		</Text>
+		<View style={styles.bottomView}>
+			<Text centered>
+				<Text>Pending: {pendingOrders.length}</Text> <Text>Total: {orders.length}</Text>
+			</Text>
+			<Text centered>
+				<Text onPress={onPressAdd}>Add</Text> <Text onPress={clearOrders}>Clear</Text>{' '}
+				<Text>Network: {network}</Text>
+			</Text>
+		</View>
 	);
 }
 
