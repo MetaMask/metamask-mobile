@@ -16,7 +16,7 @@ import NotificationManager from '../../../core/NotificationManager';
 
 const POLLING_TIME = 10000;
 const NOTIFICATION_DURATION = 5000;
-const SHOW_DEBUG = true;
+const SHOW_DEBUG = false;
 
 const styles = StyleSheet.create({
 	bottomView: {
@@ -36,7 +36,11 @@ const styles = StyleSheet.create({
 const getNotificationDetails = fiatOrder => {
 	switch (fiatOrder.state) {
 		case FIAT_ORDER_STATES.FAILED: {
-			return { title: 'Your purchase failed', description: 'Failed :(', status: 'error' };
+			return {
+				title: `Purchase of ${fiatOrder.cryptocurrency} failed! Please try again, sorry for the inconvenience!`,
+				description: 'Error :(',
+				status: 'error'
+			};
 		}
 		case FIAT_ORDER_STATES.CANCELLED: {
 			return { title: 'Your purchase was cancelled', description: 'Cancelled :(', status: 'cancelled' };
