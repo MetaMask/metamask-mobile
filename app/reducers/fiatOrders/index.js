@@ -2,15 +2,18 @@
  * @typedef FiatOrder
  * @type {object}
  * @property {string} id - Original id given by Provider. Orders are identified by (provider, id)
- * @property {FIAT_ORDER_PROVIDERS}	provider : FIAT_PROVIDER,
- * @property {string} amount : 0.343
- * @property {string} fee : 0.3
- * @property {}	currency : "USD"
- * @property {FIAT_ORDER_STATES} state
+ * @property {FIAT_ORDER_PROVIDERS}	provider Fiat Provider
+ * @property {string} amount Fiat amount
+ * @property {string} fee Fiat fee
+ * @property {string} cryptoAmount Crypto currency amount
+ * @property {string} cryptoFee Crypto currency fee
+ * @property {string} currency : "USD"
+ * @property {string} cryptocurrency : "ETH"
+ * @property {FIAT_ORDER_STATES} state Order state
  * @property {string} account : <account wallet address>
  * @property {string} network : <network>
- * @property {string|null} txHash : <transaction hash | null>
- * @property {}	data : original provider data
+ * @property {?string} txHash : <transaction hash | null>
+ * @property {TransakRedirectOrder | TransakOrder | WyreOrder }	data : original provider data
  */
 
 /**

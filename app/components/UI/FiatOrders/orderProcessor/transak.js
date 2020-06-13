@@ -7,7 +7,9 @@ import {
 	TRANSAK_API_URL_STAGING,
 	TRANSAK_API_URL_PRODUCTION,
 	TRANSAK_API_KEY_STAGING,
-	TRANSAK_API_KEY_PRODUCTION
+	TRANSAK_API_KEY_SECRET_STAGING,
+	TRANSAK_API_KEY_PRODUCTION,
+	TRANSAK_API_KEY_SECRET_PRODUCTION
 } from 'react-native-dotenv';
 import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
 // import Logger from '../../../../util/Logger';
@@ -20,6 +22,38 @@ import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fi
 
 /**
  * @typedef TransakOrder
+ * @type {object}
+ * @property {string} id
+ * @property {string} createdAt
+ * @property {string} updatedAt
+ * @property {string} completedAt
+ * @property {string} fiatCurrency
+ * @property {string} cryptocurrency
+ * @property {number} fiatAmount
+ * @property {string} walletLink
+ * @property {string} paymentOptionId
+ * @property {boolean} addressAdditionalData
+ * @property {string} network this is NOT ethernet networks id
+ * @property {string} amountPaid
+ * @property {number} referenceCode
+ * @property {string} redirectURL Our redirect URL
+ * @property {number} conversionPrice
+ * @property {number} cryptoAmount
+ * @property {number} totalFeeInCrypto
+ * @property {number} totalFeeInFiat
+ * @property {array} paymentOption
+ * @property {TRANSAK_ORDER_STATES} status
+ * @property {string} walletAddress
+ * @property {string} autoExpiresAt
+ * @property {string} fromWalletAddress
+ * @property {string} transactionHash
+ * @property {string} transactionLink
+ */
+
+/**
+ * Query params added by Transak when redirecting after completing flow
+ * https://integrate.transak.com/Query-Parameters-9ec523df3b874ec58cef4fa3a906f238?p=d3edbf3a682d403daceee3249e8aea49
+ * @typedef TransakRedirectOrder
  * @type {object}
  * @property {} orderId
  * @property {} fiatCurrency
@@ -42,6 +76,7 @@ export const TRANSAK_REDIRECT_URL = 'https://metamask.io/';
 
 const TRANSAK_API_BASE_URL = `${isDevelopment ? TRANSAK_API_URL_STAGING : TRANSAK_API_URL_PRODUCTION}api/v1/`;
 const TRANSAK_API_KEY = isDevelopment ? TRANSAK_API_KEY_STAGING : TRANSAK_API_KEY_PRODUCTION;
+const TRANSAK_API_KEY_SECRET = isDevelopment ? TRANSAK_API_KEY_SECRET_STAGING : TRANSAK_API_KEY_SECRET_PRODUCTION;
 
 /**
  * @enum {string}
@@ -49,8 +84,11 @@ const TRANSAK_API_KEY = isDevelopment ? TRANSAK_API_KEY_STAGING : TRANSAK_API_KE
 export const TRANSAK_ORDER_STATES = {
 	AWAITING_PAYMENT_FROM_USER: 'AWAITING_PAYMENT_FROM_USER',
 	PAYMENT_DONE_MARKED_BY_USER: 'PAYMENT_DONE_MARKED_BY_USER',
+	PROCESSING: 'PROCESSING',
 	PENDING_DELIVERY_FROM_TRANSAK: 'PENDING_DELIVERY_FROM_TRANSAK',
 	COMPLETED: 'COMPLETED',
+	EXPIRED: 'EXPIRED',
+	FAILED: 'FAILED',
 	CANCELLED: 'CANCELLED'
 };
 
@@ -60,10 +98,10 @@ const transakApi = axios.create({
 	baseURL: TRANSAK_API_BASE_URL
 });
 
-/* eslint-disable no-unused-vars */
+// eslint-disable-next-line no-unused-vars
 const getPartnerStatus = () => transakApi.get(`partners/${TRANSAK_API_KEY}`);
-const getOrderStatus = orderId => transakApi.get(`orders/${orderId}`);
-/* eslint-enable no-unused-vars */
+const getOrderStatus = orderId =>
+	transakApi.get(`partners/order/${orderId}`, { params: { partnerAPISecret: TRANSAK_API_KEY_SECRET } });
 
 //* Helpers
 
@@ -75,12 +113,15 @@ const transakOrderStateToFiatOrderState = transakOrderState => {
 	switch (transakOrderState) {
 		case TRANSAK_ORDER_STATES.AWAITING_PAYMENT_FROM_USER:
 		case TRANSAK_ORDER_STATES.PAYMENT_DONE_MARKED_BY_USER:
+		case TRANSAK_ORDER_STATES.PROCESSING:
 		case TRANSAK_ORDER_STATES.PENDING_DELIVERY_FROM_TRANSAK: {
 			return FIAT_ORDER_STATES.PENDING;
 		}
 		case TRANSAK_ORDER_STATES.COMPLETED: {
 			return FIAT_ORDER_STATES.COMPLETED;
 		}
+		case TRANSAK_ORDER_STATES.EXPIRED:
+		case TRANSAK_ORDER_STATES.FAILED:
 		case TRANSAK_ORDER_STATES.CANCELLED: {
 			return FIAT_ORDER_STATES.CANCELLED;
 		}
@@ -96,14 +137,34 @@ const transakOrderStateToFiatOrderState = transakOrderState => {
  * @returns {FiatOrder} Fiat order object to store in the state
  */
 const transakOrderToFiatOrder = transakOrder => ({
-	id: transakOrder.orderId,
+	id: transakOrder.id,
 	provider: FIAT_ORDER_PROVIDERS.TRANSAK,
 	amount: transakOrder.fiatAmount,
-	fee: transakOrder.totalFee,
+	fee: transakOrder.totalFeeInFiat,
+	cryptoAmount: transakOrder.cryptoAmount,
+	cryptoFee: transakOrder.totalFeeInCrypto,
 	currency: transakOrder.fiatCurrency,
-	state: transakOrderStateToFiatOrderState(transakOrder),
+	cryptocurrency: transakOrder.cryptocurrency,
+	state: transakOrderStateToFiatOrderState(transakOrder.status),
 	account: transakOrder.walletAddress,
+	txHash: transakOrder.transactionHash || null,
 	data: transakOrder
+});
+
+/**
+ * Transforms Transak rorder object into a Fiat order object used in the state.
+ * @param {TransakRedirectOrder} transakRedirectOrder Transak order object
+ * @returns {FiatOrder} Fiat order object to store in the state
+ */
+const transakCallbackOrderToFiatOrder = transakRedirectOrder => ({
+	id: transakRedirectOrder.orderId,
+	provider: FIAT_ORDER_PROVIDERS.TRANSAK,
+	amount: transakRedirectOrder.fiatAmount,
+	fee: transakRedirectOrder.totalFee,
+	currency: transakRedirectOrder.fiatCurrency,
+	state: transakOrderStateToFiatOrderState(transakRedirectOrder.status),
+	account: transakRedirectOrder.walletAddress,
+	data: transakRedirectOrder
 });
 
 //* Handlers
@@ -115,29 +176,14 @@ const transakOrderToFiatOrder = transakOrder => ({
  * `cryptoAmount`, `isBuyOrSell`, `status`, `walletAddress`,
  * `totalFee`, `partnerCustomerId`, `partnerOrderId`.
  * @param {String} network Current network selected in the app
+ * @returns {FiatOrder}
  */
 export const handleTransakRedirect = (url, network) => {
-	// Order created from Transak flow, needs to be added to the polling.
+	/** @type {TransakRedirectOrder} */
 	const data = qs.parse(url.split(TRANSAK_REDIRECT_URL)[1]);
-	/* const actualOrder = {
-		cryptoAmount: '0.18065827',
-		cryptocurrency: 'ETH',
-		fiatAmount: '35',
-		fiatCurrency: 'GBP',
-		isBuyOrSell: 'BUY',
-		orderId: '11aaf266-4ee9-4cdb-8dbf-420a8f4f2193',
-		status: 'PENDING_DELIVERY_FROM_TRANSAK',
-		totalFeeInFiat: '1.37',
-		walletAddress: '0x33C04960375BBB2373e9Dd28C17CE125B08EC74f'
-	};*/
-	const order = { ...transakOrderToFiatOrder(data), network };
-
-	// TODO: add to fiatOrder state
+	const order = { ...transakCallbackOrderToFiatOrder(data), network };
+	return order;
 };
-
-// handleTransakRedirect(
-// 	'https://metamask.io/?orderId=%22071c9aa3-e03a-4e88-afba-c108d05c3ec4%22&fiatCurrency=%22USD%22&cryptocurrency=%22ETH%22&fiatAmount=35&cryptoAmount=0.1369118&isBuyOrSell=%22BUY%22&status=%22PROCESSING%22&walletAddress=%220x33C04960375BBB2373e9Dd28C17CE125B08EC74f%22&totalFee=undefined'
-// );
 
 /**
  * Function used to poll and update the order
@@ -146,17 +192,21 @@ export const handleTransakRedirect = (url, network) => {
  * @returns {FiatOrder} Fiat order to update in the state
  */
 export async function processTransakOrder(order) {
-	console.log('processTransakOrder');
-	// try {
-	// 	const { data } = await getOrderStatus(order.id);
-	// /* TODO: Check order status and update order object. */
-	// 	console.log({ data });
-	// } catch (error) {
-	// 	console.error(error);
-	// }
-
-	// Return updated order
-	return order;
+	try {
+		const {
+			data: { response }
+		} = await getOrderStatus(order.id);
+		if (!response) {
+			return order;
+		}
+		return {
+			...order,
+			...transakOrderToFiatOrder(response)
+		};
+	} catch (error) {
+		console.error(error);
+		return order;
+	}
 }
 
 //* Hooks
