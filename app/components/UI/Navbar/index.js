@@ -812,3 +812,71 @@ export function getWebviewNavbar(navigation) {
 		)
 	};
 }
+
+export function getPaymentSelectorMethodNavbar(title, navigation) {
+	const rightAction = navigation.dismiss;
+
+	return {
+		title,
+		headerTitleStyle: {
+			fontSize: 20,
+			color: colors.fontPrimary,
+			...fontStyles.normal
+		},
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>Cancel</Text>
+			</TouchableOpacity>
+		),
+		headerLeft: <View />
+	};
+}
+
+export function getPaymentMethodApplePayNavbar(title, navigation) {
+	const rightAction = navigation.dismiss;
+
+	return {
+		title,
+		headerTitleStyle: {
+			fontSize: 20,
+			color: colors.fontPrimary,
+			...fontStyles.normal
+		},
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>Cancel</Text>
+			</TouchableOpacity>
+		),
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{'Back'}</Text>
+			</TouchableOpacity>
+		)
+	};
+}
+
+export function getTransakWebviewNavbar(navigation) {
+	const title = navigation.getParam('title', '');
+	return {
+		title,
+		headerTitleStyle: {
+			fontSize: 20,
+			color: colors.fontPrimary,
+			...fontStyles.normal
+		},
+		headerLeft: Device.isAndroid() ? (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+			</TouchableOpacity>
+		) : (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+			</TouchableOpacity>
+		)
+	};
+}

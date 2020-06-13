@@ -138,13 +138,15 @@ class ReceiveRequest extends PureComponent {
 	 * Shows an alert message with a coming soon message
 	 */
 	onBuy = () => {
-		InteractionManager.runAfterInteractions(() => {
-			this.setState({ buyModalVisible: true });
-			setTimeout(() => {
-				this.setState({ buyModalVisible: false });
-			}, 1500);
-			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_BUY);
-		});
+		this.props.toggleReceiveModal();
+		this.props.navigation.navigate('PaymentMethodSelector');
+		// InteractionManager.runAfterInteractions(() => {
+		// 	this.setState({ buyModalVisible: true });
+		// 	setTimeout(() => {
+		// 		this.setState({ buyModalVisible: false });
+		// 	}, 1500);
+		// 	Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_BUY);
+		// });
 	};
 
 	/**
