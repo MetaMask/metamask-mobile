@@ -935,7 +935,7 @@
 		"success_deposit_title": "Deposit Complete!",
 		"success_withdrawal_title": "Withdrawal Complete!",
 		"error_title": "Oops, something went wrong :/",
-		"received_title": "You received {{amount}} {{assetType}}!",
+		"received_title": "You received {{amount}} {{assetType}}",
 		"received_payment_title": "Instant payment received",
 		"pending_message": "Waiting for confirmation",
 		"pending_deposit_message": "Waiting for deposit to complete",
