@@ -12,7 +12,6 @@ import {
 	TRANSAK_API_KEY_SECRET_PRODUCTION
 } from 'react-native-dotenv';
 import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
-// import Logger from '../../../../util/Logger';
 
 //* typedefs
 
@@ -31,7 +30,7 @@ import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fi
  * @property {string} cryptocurrency
  * @property {number} fiatAmount
  * @property {string} walletLink
- * @property {string} paymentOptionId
+ * @property {string} paymentOptionId Paymenth method ID, see: https://integrate.transak.com/Coverage-Payment-Methods-Fees-Limits-30c0954fbdf04beca68622d9734c59f9
  * @property {boolean} addressAdditionalData
  * @property {string} network this is NOT ethernet networks id
  * @property {string} amountPaid
@@ -55,17 +54,17 @@ import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fi
  * https://integrate.transak.com/Query-Parameters-9ec523df3b874ec58cef4fa3a906f238?p=d3edbf3a682d403daceee3249e8aea49
  * @typedef TransakRedirectOrder
  * @type {object}
- * @property {} orderId
- * @property {} fiatCurrency
- * @property {} cryptocurrency
- * @property {} fiatAmount
- * @property {} cryptoAmount
- * @property {} isBuyOrSell
- * @property {} status
- * @property {} walletAddress
- * @property {} totalFee
- * @property {} partnerCustomerId
- * @property {} partnerOrderId
+ * @property {string} orderId
+ * @property {string} fiatCurrency
+ * @property {string} cryptocurrency
+ * @property {string} fiatAmount
+ * @property {string} cryptoAmount
+ * @property {string} isBuyOrSell
+ * @property {string} status
+ * @property {string} walletAddress
+ * @property {string} totalFee
+ * @property {string} partnerCustomerId
+ * @property {string} partnerOrderId
  */
 
 //* Constants
@@ -79,6 +78,7 @@ const TRANSAK_API_KEY = isDevelopment ? TRANSAK_API_KEY_STAGING : TRANSAK_API_KE
 const TRANSAK_API_KEY_SECRET = isDevelopment ? TRANSAK_API_KEY_SECRET_STAGING : TRANSAK_API_KEY_SECRET_PRODUCTION;
 
 /**
+ * https://integrate.transak.com/69a2474c8d8d40daa04bd5bbe804fb6d?v=48a0c9fd98854078a4eaf5ec9a0a4f65
  * @enum {string}
  */
 export const TRANSAK_ORDER_STATES = {
@@ -98,8 +98,7 @@ const transakApi = axios.create({
 	baseURL: TRANSAK_API_BASE_URL
 });
 
-// eslint-disable-next-line no-unused-vars
-const getPartnerStatus = () => transakApi.get(`partners/${TRANSAK_API_KEY}`);
+// const getPartnerStatus = () => transakApi.get(`partners/${TRANSAK_API_KEY}`);
 const getOrderStatus = orderId =>
 	transakApi.get(`partners/order/${orderId}`, { params: { partnerAPISecret: TRANSAK_API_KEY_SECRET } });
 
