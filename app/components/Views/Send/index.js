@@ -11,7 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import { resetTransaction, setTransactionObject } from '../../../actions/transaction';
-import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import NotificationManager from '../../../core/NotificationManager';
 import NetworkList, { getNetworkTypeById } from '../../../util/networks';
 import contractMap from 'eth-contract-metadata';
 import { showAlert } from '../../../actions/alert';
@@ -513,7 +513,7 @@ class Send extends PureComponent {
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 			this.props.navigation.pop();
 			InteractionManager.runAfterInteractions(() => {
-				TransactionsNotificationManager.watchSubmittedTransaction({
+				NotificationManager.watchSubmittedTransaction({
 					...transactionMeta,
 					assetType: transaction.assetType
 				});

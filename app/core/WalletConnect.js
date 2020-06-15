@@ -1,23 +1,15 @@
-import RNWalletConnect from '@walletconnect/react-native';
+import RNWalletConnect from '@walletconnect/client';
+import { parseWalletConnectUri } from '@walletconnect/utils';
 import Engine from './Engine';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import AsyncStorage from '@react-native-community/async-storage';
+import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 
 const hub = new EventEmitter();
 let connectors = [];
-
-const CLIENT_OPTIONS = {
-	clientMeta: {
-		// Required
-		description: 'MetaMask Mobile app',
-		url: 'https://metamask.io',
-		icons: ['https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg'],
-		name: 'MetaMask',
-		ssl: true
-	}
-};
+let initialized = false;
 
 const persistSessions = async () => {
 	const sessions = connectors
@@ -25,6 +17,14 @@ const persistSessions = async () => {
 		.map(connector => connector.walletConnector.session);
 
 	await AsyncStorage.setItem('@MetaMask:walletconnectSessions', JSON.stringify(sessions));
+};
+
+const waitForInitialization = async () => {
+	let i = 0;
+	while (!initialized) {
+		await new Promise(res => setTimeout(() => res(), 1000));
+		if (i++ > 5) initialized = true;
+	}
 };
 
 class WalletConnect {
@@ -41,7 +41,7 @@ class WalletConnect {
 		if (options.autosign) {
 			this.autosign = true;
 		}
-		this.walletConnector = new RNWalletConnect(options, CLIENT_OPTIONS);
+		this.walletConnector = new RNWalletConnect({ ...options, ...CLIENT_OPTIONS });
 		/**
 		 *  Subscribe to session requests
 		 */
@@ -55,7 +55,10 @@ class WalletConnect {
 					...payload.params[0],
 					autosign: this.autosign
 				};
+
 				Logger.log('requesting session with', sessionData);
+
+				await waitForInitialization();
 				await this.sessionRequest(sessionData);
 
 				const { network } = Engine.context.NetworkController.state;
@@ -94,8 +97,8 @@ class WalletConnect {
 						txParams.gasLimit = payload.params[0].gasLimit;
 						txParams.gasPrice = payload.params[0].gasPrice;
 						txParams.data = payload.params[0].data;
-
-						const hash = await (await TransactionController.addTransaction(txParams)).result;
+						const hash = await (await TransactionController.addTransaction(txParams, WALLET_CONNECT_ORIGIN))
+							.result;
 						this.walletConnector.approveRequest({
 							id: payload.id,
 							result: hash
@@ -129,7 +132,8 @@ class WalletConnect {
 									title: meta && meta.name,
 									url: meta && meta.url,
 									icon: meta && meta.icons && meta.icons[0]
-								}
+								},
+								origin: WALLET_CONNECT_ORIGIN
 							});
 						}
 						this.walletConnector.approveRequest({
@@ -165,7 +169,8 @@ class WalletConnect {
 									title: meta && meta.name,
 									url: meta && meta.url,
 									icon: meta && meta.icons && meta.icons[0]
-								}
+								},
+								origin: WALLET_CONNECT_ORIGIN
 							});
 						}
 						this.walletConnector.approveRequest({
@@ -189,7 +194,8 @@ class WalletConnect {
 									title: meta && meta.name,
 									url: meta && meta.url,
 									icon: meta && meta.icons && meta.icons[0]
-								}
+								},
+								origin: WALLET_CONNECT_ORIGIN
 							},
 							'V3'
 						);
@@ -306,6 +312,7 @@ const instance = {
 				connectors.push(new WalletConnect({ session }));
 			});
 		}
+		initialized = true;
 	},
 	connectors() {
 		return connectors;
@@ -351,6 +358,13 @@ const instance = {
 	shutdown() {
 		Engine.context.TransactionController.hub.removeAllListeners();
 		Engine.context.PreferencesController.unsubscribe();
+	},
+	isValidUri(uri) {
+		const result = parseWalletConnectUri(uri);
+		if (!result.handshakeTopic || !result.bridge || !result.key) {
+			return false;
+		}
+		return true;
 	}
 };
 
