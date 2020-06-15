@@ -79,7 +79,7 @@ exports[`TransactionHeader should render correctly 1`] = `
             "width": 5,
           },
           Object {
-            "backgroundColor": "green",
+            "backgroundColor": "#ff4a8d",
           },
         ]
       }
