@@ -2,6 +2,12 @@
 
 ## Current Develop Branch
 
+## v0.2.18 - Jun 15 2020
+- [#1636](https://github.com/MetaMask/metamask-mobile/pull/1636): Add padding to CustomGas back button (#1636)
+- bump
+- [#1637](https://github.com/MetaMask/metamask-mobile/pull/1637): Bugfix/incoming notifications (#1637)
+- [#1628](https://github.com/MetaMask/metamask-mobile/pull/1628): Fix network color indicator on transactionHeader for connect screens (#1628)
+
 ## v0.2.17 - Jun 12 2020
 
 - [#1629](https://github.com/MetaMask/metamask-mobile/pull/1629): bugfix/custom gas modal (#1629)
