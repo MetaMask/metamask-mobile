@@ -18,6 +18,9 @@ import Radio from '../../../UI/Radio';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const styles = StyleSheet.create({
+	back: {
+		padding: 10
+	},
 	root: {
 		backgroundColor: colors.white,
 		minHeight: 200,
@@ -544,7 +547,7 @@ class CustomGas extends PureComponent {
 				<View style={styles.root}>
 					<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
 						<View style={styles.customGasHeader}>
-							<TouchableOpacity onPress={toggleCustomGasModal}>
+							<TouchableOpacity style={styles.back} onPress={toggleCustomGasModal}>
 								<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
 							</TouchableOpacity>
 							<Text style={styles.customGasModalTitleText}>
