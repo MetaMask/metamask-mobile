@@ -235,7 +235,8 @@ function PaymentMethodApplePay(props) {
 		hasZerosAsDecimals.test(amount) || hasZeroAsFirstDecimal.test(amount) || hasPeriodWithoutDecimal.test(amount)
 			? amount.split('.')[0]
 			: amount;
-	const isUnderMinimum = Number(roundAmount) !== 0 && Number(roundAmount) < minAmount;
+	const isUnderMinimum = (amount !== '0' || Number(roundAmount) !== 0) && Number(roundAmount) < minAmount;
+
 	const isOverMaximum = Number(roundAmount) > maxAmount;
 	const disabledButton = amount === '0' || isUnderMinimum || isOverMaximum;
 
