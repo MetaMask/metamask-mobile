@@ -18,9 +18,6 @@ import Radio from '../../../UI/Radio';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const styles = StyleSheet.create({
-	back: {
-		padding: 10
-	},
 	root: {
 		backgroundColor: colors.white,
 		minWidth: '100%',
@@ -33,6 +30,7 @@ const styles = StyleSheet.create({
 	},
 	back: {
 		position: 'absolute',
+		padding: 10,
 		zIndex: 1,
 		left: 0
 	},
@@ -168,25 +166,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		marginBottom: 20
-	},
-	optionsContainer: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-		paddingBottom: 20
-	},
-	basicButton: {
-		width: 116,
-		height: 36,
-		padding: 8,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	optionSelected: {
-		backgroundColor: colors.grey000,
-		borderWidth: 1,
-		borderRadius: 20,
-		borderColor: colors.grey100
 	},
 	optionsContainer: {
 		flexDirection: 'row',
