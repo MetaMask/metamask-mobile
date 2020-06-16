@@ -216,6 +216,7 @@
 		AA8ED01123E475340098CEC2 /* CircularStd-BookItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "CircularStd-BookItalic.otf"; path = "../app/fonts/CircularStd-BookItalic.otf"; sourceTree = "<group>"; };
 		AA8ED01223E475340098CEC2 /* CircularStd-BoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "CircularStd-BoldItalic.otf"; path = "../app/fonts/CircularStd-BoldItalic.otf"; sourceTree = "<group>"; };
 		AA8ED01323E475340098CEC2 /* CircularStd-BlackItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "CircularStd-BlackItalic.otf"; path = "../app/fonts/CircularStd-BlackItalic.otf"; sourceTree = "<group>"; };
+		AA9EDF17249955C7005D89EE /* MetaMaskDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MetaMaskDebug.entitlements; path = MetaMask/MetaMaskDebug.entitlements; sourceTree = "<group>"; };
 		B069442EBFA83EF178D30B2E /* libPods-MetaMask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B6684830E1789B9B249D040C /* Pods-MetaMask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.release.xcconfig"; sourceTree = "<group>"; };
 		BB8BA2D3C0354D6090B56A8A /* Roboto-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Light.ttf"; path = "../app/fonts/Roboto-Light.ttf"; sourceTree = "<group>"; };
@@ -272,6 +273,7 @@
 		13B07FAE1A68108700A75B9A /* MetaMask */ = {
 			isa = PBXGroup;
 			children = (
+				AA9EDF17249955C7005D89EE /* MetaMaskDebug.entitlements */,
 				15F7796222A1BC1E00B1DF8C /* NativeModules */,
 				15205D6221596AD90049EA93 /* MetaMask.entitlements */,
 				158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */,
@@ -834,7 +836,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_OPTIMIZATION = time;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
+				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
