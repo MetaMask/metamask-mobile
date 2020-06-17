@@ -51,8 +51,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
-		padding: 16,
-		marginTop: -32
+		padding: 16
 	},
 	networkFeeArrow: {
 		paddingLeft: 20,
@@ -65,7 +64,7 @@ const styles = StyleSheet.create({
 	section: {
 		minWidth: '100%',
 		width: '100%',
-		paddingVertical: 24
+		paddingVertical: 10
 	},
 	customGasHeader: {
 		width: '100%',
