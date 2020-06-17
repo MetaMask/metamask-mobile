@@ -3,6 +3,7 @@ import { ScrollView, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
+import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import FeatherIcons from 'react-native-vector-icons/Feather';
@@ -19,10 +20,7 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		padding: 32,
-		paddingTop: 0
-	},
-	content: {
-		alignItems: 'center',
+		paddingTop: 0,
 		justifyContent: 'flex-end'
 	},
 	action: {
@@ -35,7 +33,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	infoWrapper: {
-		marginBottom: 16,
+		marginBottom: 55,
 		justifyContent: 'center'
 	},
 	info: {
@@ -94,7 +92,8 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		flexDirection: 'row',
 		borderColor: colors.grey100,
-		borderWidth: 1
+		borderWidth: 1,
+		marginBottom: 24
 	},
 	colLeft: {
 		flex: 1,
@@ -125,10 +124,7 @@ const styles = StyleSheet.create({
 		lineHeight: 14
 	},
 
-	buttonWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end'
-	}
+	buttonWrapper: {}
 });
 
 /**
@@ -162,7 +158,8 @@ export default class ManualBackupStep1 extends PureComponent {
 	}
 
 	state = {
-		seedPhraseHidden: true
+		seedPhraseHidden: true,
+		currentStep: 1
 	};
 
 	tryExportSeedPhrase = async password => {
@@ -210,29 +207,28 @@ export default class ManualBackupStep1 extends PureComponent {
 					testID={'manual_backup_step_1-screen'}
 				>
 					<View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
-						<View style={styles.content}>
-							<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
-							<View style={styles.infoWrapper}>
-								<Text style={[styles.info]}>{strings('manual_backup_step_1.info')}</Text>
+						<OnboardingProgress currentStep={this.state.currentStep} />
+						<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
+						<View style={styles.infoWrapper}>
+							<Text style={[styles.info]}>{strings('manual_backup_step_1.info')}</Text>
+						</View>
+						<View style={styles.seedPhraseWrapper}>
+							<View style={styles.colLeft}>
+								{this.words.slice(0, 6).map((word, i) => (
+									<Text key={`word_${i}`} style={styles.word}>
+										{`${i + 1}. ${word}`}
+									</Text>
+								))}
 							</View>
-							<View style={styles.seedPhraseWrapper}>
-								<View style={styles.colLeft}>
-									{this.words.slice(0, 6).map((word, i) => (
-										<Text key={`word_${i}`} style={styles.word}>
-											{`${i + 1}. ${word}`}
-										</Text>
-									))}
-								</View>
-								<View style={styles.colRight}>
-									{this.words.slice(-6).map((word, i) => (
-										<Text key={`word_${i}`} style={styles.word}>
-											{`${i + 7}. ${word}`}
-										</Text>
-									))}
-								</View>
+							<View style={styles.colRight}>
+								{this.words.slice(-6).map((word, i) => (
+									<Text key={`word_${i}`} style={styles.word}>
+										{`${i + 7}. ${word}`}
+									</Text>
+								))}
+							</View>
 
-								{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
-							</View>
+							{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
 						</View>
 						<View style={styles.buttonWrapper}>
 							<StyledButton
