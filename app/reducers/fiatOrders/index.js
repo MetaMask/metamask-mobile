@@ -7,13 +7,15 @@
  * @property {string} fee Fiat fee
  * @property {string} cryptoAmount Crypto currency amount
  * @property {string} cryptoFee Crypto currency fee
- * @property {string} currency : "USD"
- * @property {string} cryptocurrency : "ETH"
+ * @property {string} currency "USD"
+ * @property {string} cryptocurrency "ETH"
  * @property {FIAT_ORDER_STATES} state Order state
- * @property {string} account : <account wallet address>
- * @property {string} network : <network>
- * @property {?string} txHash : <transaction hash | null>
- * @property {TransakRedirectOrder | TransakOrder | WyreOrder }	data : original provider data
+ * @property {string} account <account wallet address>
+ * @property {string} network <network>
+ * @property {?string} txHash <transaction hash | null>
+ * @property {object} data original provider data
+ * @property {object} data.order : Wyre order response
+ * @property {object} data.transfer : Wyre transfer response
  */
 
 /**
