@@ -25,7 +25,6 @@ const styles = StyleSheet.create({
 	},
 	action: {
 		fontSize: 18,
-		marginTop: 140,
 		marginBottom: 16,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
@@ -122,9 +121,7 @@ const styles = StyleSheet.create({
 		borderRadius: 13,
 		textAlign: 'center',
 		lineHeight: 14
-	},
-
-	buttonWrapper: {}
+	}
 });
 
 /**
@@ -172,7 +169,7 @@ export default class ManualBackupStep1 extends PureComponent {
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('AccountBackupStep4', { ...this.props.navigation.state.params });
+		this.props.navigation.navigate('ManualBackupStep2', { ...this.props.navigation.state.params });
 	};
 
 	revealSeedPhrase = () => this.setState({ seedPhraseHidden: false });
@@ -210,7 +207,7 @@ export default class ManualBackupStep1 extends PureComponent {
 						<OnboardingProgress currentStep={this.state.currentStep} />
 						<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
 						<View style={styles.infoWrapper}>
-							<Text style={[styles.info]}>{strings('manual_backup_step_1.info')}</Text>
+							<Text style={styles.info}>{strings('manual_backup_step_1.info')}</Text>
 						</View>
 						<View style={styles.seedPhraseWrapper}>
 							<View style={styles.colLeft}>
@@ -230,17 +227,15 @@ export default class ManualBackupStep1 extends PureComponent {
 
 							{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
 						</View>
-						<View style={styles.buttonWrapper}>
-							<StyledButton
-								containerStyle={styles.button}
-								type={'confirm'}
-								onPress={this.goNext}
-								testID={'submit-button'}
-								disabled={this.state.seedPhraseHidden}
-							>
-								{strings('manual_backup_step_1.continue')}
-							</StyledButton>
-						</View>
+						<StyledButton
+							containerStyle={styles.button}
+							type={'confirm'}
+							onPress={this.goNext}
+							testID={'submit-button'}
+							disabled={this.state.seedPhraseHidden}
+						>
+							{strings('manual_backup_step_1.continue')}
+						</StyledButton>
 					</View>
 				</ScrollView>
 			</SafeAreaView>
