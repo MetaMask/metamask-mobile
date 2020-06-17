@@ -518,14 +518,14 @@ class Approve extends PureComponent {
 		} = this.state;
 		return (
 			<View style={baseStyles.section}>
-				<View style={styles.customGasHeader}>
-					<TouchableOpacity onPress={this.toggleEditPermission} style={styles.back}>
-						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
-					</TouchableOpacity>
-					<Text style={styles.customGasModalTitleText}>{strings('spend_limit_edition.title')}</Text>
-				</View>
+				<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
+					<View style={styles.customGasHeader}>
+						<TouchableOpacity onPress={this.toggleEditPermission} style={styles.back}>
+							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+						</TouchableOpacity>
+						<Text style={styles.customGasModalTitleText}>{strings('spend_limit_edition.title')}</Text>
+					</View>
 
-				<KeyboardAwareScrollView>
 					<View>
 						<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
 						<Text style={styles.spendLimitSubtitle}>
