@@ -8,7 +8,9 @@ import Text from '../components/Text';
 import StyledButton from '../../StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
 import { NavigationContext } from 'react-navigation';
-import { useWyreTerms } from '../orderProcessor/wyreApplePay';
+import { useWyreTerms, useWyreApplePay } from '../orderProcessor/wyreApplePay';
+import { connect } from 'react-redux';
+import { setLockTime } from '../../../../actions/settings';
 
 //* styles and components  */
 
@@ -228,7 +230,7 @@ const handleNewAmountInput = (currentAmount, newInput) => {
 	}
 };
 
-function PaymentMethodApplePay(props) {
+function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress }) {
 	const navigation = useContext(NavigationContext);
 	const [amount, setAmount] = useState('0');
 	const roundAmount =
@@ -241,6 +243,21 @@ function PaymentMethodApplePay(props) {
 	const disabledButton = amount === '0' || isUnderMinimum || isOverMaximum;
 
 	const handleWyreTerms = useWyreTerms(navigation);
+
+	const [showApplePayRequest, percentFee, flatFee, , fee] = useWyreApplePay(roundAmount, selectedAddress);
+	const handlePressApplePay = useCallback(async () => {
+		const prevLockTime = lockTime;
+		setLockTime(-1);
+		try {
+			const fiatOrder = await showApplePayRequest();
+			// TODO: add order and show notification
+		} catch (error) {
+			// TODO: show error notification
+		} finally {
+			setLockTime(prevLockTime);
+		}
+	}, [lockTime, setLockTime, showApplePayRequest]);
+
 	const handleQuickAmountPress = useCallback(amount => setAmount(amount), []);
 	const handleKeypadPress = useCallback(
 		newInput => {
@@ -325,7 +342,12 @@ function PaymentMethodApplePay(props) {
 				</Keypad>
 
 				<View style={styles.buttonContainer}>
-					<StyledButton type="blue" disabled={disabledButton} containerStyle={styles.applePayButton}>
+					<StyledButton
+						type="blue"
+						disabled={disabledButton}
+						containerStyle={styles.applePayButton}
+						onPress={handlePressApplePay}
+					>
 						<Text
 							centered
 							bold
@@ -336,7 +358,22 @@ function PaymentMethodApplePay(props) {
 						<ApplePay disabled={disabledButton} />
 					</StyledButton>
 					<Text centered>
-						<Text bold>Fee ~2.9% + $0.30</Text> (0.35% goes to MetaMask)
+						{percentFee === '0.00' && flatFee === '0.00' && <Text>0% fee (limited time)</Text>}
+						{(percentFee !== '0.00' || flatFee !== '0.00') && (
+							<>
+								{disabledButton ? (
+									<Text>
+										<Text bold>
+											Fee ~{percentFee}% + ${flatFee}
+										</Text>
+									</Text>
+								) : (
+									<Text>
+										<Text bold>Plus a ${fee} fee</Text>
+									</Text>
+								)}
+							</>
+						)}
 					</Text>
 					<TouchableOpacity onPress={handleWyreTerms}>
 						<Text centered link>
@@ -349,7 +386,25 @@ function PaymentMethodApplePay(props) {
 	);
 }
 
+PaymentMethodApplePay.propTypes = {
+	lockTime: PropTypes.number.isRequired,
+	setLockTime: PropTypes.func.isRequired,
+	selectedAddress: PropTypes.string.isRequired
+};
+
 PaymentMethodApplePay.navigationOptions = ({ navigation }) =>
 	getPaymentMethodApplePayNavbar('Amount to buy', navigation);
 
-export default PaymentMethodApplePay;
+const mapStateToProps = state => ({
+	lockTime: state.settings.lockTime,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+});
+
+const mapDispatchToProps = dispatch => ({
+	setLockTime: time => dispatch(setLockTime(time)),
+	dispatch
+});
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(PaymentMethodApplePay);

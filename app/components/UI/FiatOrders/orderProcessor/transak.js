@@ -203,7 +203,8 @@ export async function processTransakOrder(order) {
 			...transakOrderToFiatOrder(response)
 		};
 	} catch (error) {
-		console.error(error);
+		// TODO: report error
+		// console.error(error);
 		return order;
 	}
 }

@@ -55,7 +55,7 @@ const getNotificationDetails = fiatOrder => {
 		case FIAT_ORDER_STATES.PENDING:
 		default: {
 			return {
-				title: `Processing purchase of ${fiatOrder.currency}`,
+				title: `Processing purchase of ${fiatOrder.cryptocurrency}`,
 				description: 'Your deposit is in progress',
 				status: 'pending'
 			};
@@ -65,6 +65,7 @@ const getNotificationDetails = fiatOrder => {
 
 function FiatOrders({ orders, selectedAddress, network, createFakeOrder, clearOrders, dispatch }) {
 	// Pending orders depend on selectedAddress and selectedNetworks
+
 	const pendingOrders = orders.filter(
 		order =>
 			order.account === selectedAddress && order.network === network && order.state === FIAT_ORDER_STATES.PENDING
