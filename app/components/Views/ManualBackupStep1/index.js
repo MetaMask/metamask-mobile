@@ -5,6 +5,8 @@ import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
+import FeatherIcons from 'react-native-vector-icons/Feather';
+import { BlurView } from '@react-native-community/blur';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -20,7 +22,8 @@ const styles = StyleSheet.create({
 		paddingTop: 0
 	},
 	content: {
-		alignItems: 'center'
+		alignItems: 'center',
+		justifyContent: 'flex-end'
 	},
 	action: {
 		fontSize: 18,
@@ -39,24 +42,72 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		...fontStyles.normal
+		...fontStyles.normal,
+		paddingHorizontal: 6
+	},
+	seedPhraseConcealer: {
+		position: 'absolute',
+		width: '100%',
+		height: '100%',
+		backgroundColor: colors.grey700,
+		opacity: 0.7,
+		paddingTop: 34,
+		paddingBottom: 43,
+		alignItems: 'center',
+		borderRadius: 8
+	},
+	blurView: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		bottom: 0,
+		right: 0,
+		borderRadius: 8
+	},
+	icon: {
+		width: 24,
+		height: 24,
+		color: colors.white,
+		textAlign: 'center',
+		marginBottom: 21
+	},
+	reveal: {
+		fontSize: 16,
+		...fontStyles.extraBold,
+		color: colors.white,
+		lineHeight: 22,
+		marginHorizontal: 42,
+		textAlign: 'center'
+	},
+	watching: {
+		fontSize: 12,
+		color: colors.white,
+		lineHeight: 17,
+		marginBottom: 38
+	},
+	viewButtonContainer: {
+		width: 155,
+		padding: 12
 	},
 	seedPhraseWrapper: {
 		backgroundColor: colors.white,
 		borderRadius: 8,
-		paddingTop: 18,
-		paddingBottom: 4,
-		paddingHorizontal: 27,
 		flexDirection: 'row',
 		borderColor: colors.grey100,
 		borderWidth: 1
 	},
 	colLeft: {
 		flex: 1,
+		paddingTop: 18,
+		paddingLeft: 27,
+		paddingBottom: 4,
 		alignItems: 'flex-start'
 	},
 	colRight: {
 		flex: 1,
+		paddingTop: 18,
+		paddingRight: 27,
+		paddingBottom: 4,
 		alignItems: 'flex-end'
 	},
 	word: {
@@ -73,6 +124,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		lineHeight: 14
 	},
+
 	buttonWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end'
@@ -110,7 +162,7 @@ export default class ManualBackupStep1 extends PureComponent {
 	}
 
 	state = {
-		seedPhraseRevealed: false
+		seedPhraseHidden: true
 	};
 
 	tryExportSeedPhrase = async password => {
@@ -125,6 +177,29 @@ export default class ManualBackupStep1 extends PureComponent {
 	goNext = () => {
 		this.props.navigation.navigate('AccountBackupStep4', { ...this.props.navigation.state.params });
 	};
+
+	revealSeedPhrase = () => this.setState({ seedPhraseHidden: false });
+
+	renderSeedPhraseConcealer = () => (
+		<React.Fragment>
+			<BlurView blurType="light" blurAmount={5} style={styles.blurView} />
+			<View style={styles.seedPhraseConcealer}>
+				<FeatherIcons name="eye-off" size={24} style={styles.icon} />
+				<Text style={styles.reveal}>{strings('manual_backup_step_1.reveal')}</Text>
+				<Text style={styles.watching}>{strings('manual_backup_step_1.watching')}</Text>
+				<View style={styles.viewButtonWrapper}>
+					<StyledButton
+						type={'view'}
+						onPress={this.revealSeedPhrase}
+						testID={'view-button'}
+						containerStyle={styles.viewButtonContainer}
+					>
+						{strings('manual_backup_step_1.view')}
+					</StyledButton>
+				</View>
+			</View>
+		</React.Fragment>
+	);
 
 	render() {
 		return (
@@ -155,6 +230,8 @@ export default class ManualBackupStep1 extends PureComponent {
 										</Text>
 									))}
 								</View>
+
+								{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
 							</View>
 						</View>
 						<View style={styles.buttonWrapper}>
