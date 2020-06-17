@@ -127,20 +127,24 @@ class Onboarding extends PureComponent {
 		}
 	};
 
+	track = key => {
+		InteractionManager.runAfterInteractions(async () => {
+			if (Analytics.getEnabled()) {
+				Analytics.trackEvent(key);
+				return;
+			}
+			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			if (!metricsOptIn) {
+				this.props.saveOnboardingEvent(key);
+			}
+		});
+	};
+
 	onPressCreate = () => {
 		const { existingUser } = this.state;
 		const action = () => {
 			this.props.navigation.navigate('CreateWallet');
-			InteractionManager.runAfterInteractions(async () => {
-				if (Analytics.getEnabled()) {
-					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-					return;
-				}
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-				if (!metricsOptIn) {
-					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-				}
-			});
+			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
 		};
 		if (existingUser) {
 			this.alertExistingUser(action);
@@ -151,16 +155,7 @@ class Onboarding extends PureComponent {
 
 	onPressImport = () => {
 		this.props.navigation.push('ImportWallet');
-		InteractionManager.runAfterInteractions(async () => {
-			if (Analytics.getEnabled()) {
-				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
-				return;
-			}
-			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-			if (!metricsOptIn) {
-				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
-			}
-		});
+		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
 	};
 
 	alertExistingUser = callback => {
