@@ -236,6 +236,7 @@ export default class ManualBackupStep1 extends PureComponent {
 								type={'confirm'}
 								onPress={this.goNext}
 								testID={'submit-button'}
+								disabled={this.state.seedPhraseHidden}
 							>
 								{strings('manual_backup_step_1.continue')}
 							</StyledButton>
