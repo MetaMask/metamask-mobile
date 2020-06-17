@@ -141,16 +141,18 @@ class Onboarding extends PureComponent {
 	};
 
 	onPressCreate = () => {
-		const { existingUser } = this.state;
-		const action = () => {
-			this.props.navigation.navigate('CreateWallet');
-			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-		};
-		if (existingUser) {
-			this.alertExistingUser(action);
-		} else {
-			action();
-		}
+		// const { existingUser } = this.state;
+		// const action = () => {
+		// 	this.props.navigation.navigate('CreateWallet');
+		// 	this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
+		// };
+		// if (existingUser) {
+		// 	this.alertExistingUser(action);
+		// } else {
+		// 	action();
+		// }
+		this.props.navigation.navigate('ChoosePassword');
+		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
 	};
 
 	onPressImport = () => {
