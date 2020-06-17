@@ -927,6 +927,10 @@
 		"watching": "Make sure no one is watching your screen.",
 		"view": "View"
 	},
+	"manual_backup_step_2": {
+		"action": "Confirm seed phrase",
+		"info": "Select each word in the order it was presented to you."
+	},
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",
 		"ethereum_phishing_detector": "Ethereum Phishing Detector",
