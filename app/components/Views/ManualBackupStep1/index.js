@@ -1,9 +1,10 @@
 import React, { PureComponent } from 'react';
-import { ScrollView, Alert, Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -15,7 +16,7 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		padding: 30,
+		padding: 32,
 		paddingTop: 0
 	},
 	content: {
@@ -30,8 +31,8 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		...fontStyles.bold
 	},
-	text: {
-		marginBottom: 55,
+	infoWrapper: {
+		marginBottom: 16,
 		justifyContent: 'center'
 	},
 	info: {
@@ -39,6 +40,38 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		...fontStyles.normal
+	},
+	seedPhraseWrapper: {
+		backgroundColor: colors.white,
+		borderRadius: 8,
+		paddingTop: 18,
+		paddingBottom: 4,
+		paddingHorizontal: 27,
+		flexDirection: 'row',
+		borderColor: colors.grey100,
+		borderWidth: 1
+	},
+	colLeft: {
+		flex: 1,
+		alignItems: 'flex-start'
+	},
+	colRight: {
+		flex: 1,
+		alignItems: 'flex-end'
+	},
+	word: {
+		paddingHorizontal: 8,
+		paddingVertical: 6,
+		fontSize: 14,
+		color: colors.fontPrimary,
+		width: 95,
+		backgroundColor: colors.white,
+		borderColor: colors.blue,
+		borderWidth: 1,
+		marginBottom: 14,
+		borderRadius: 13,
+		textAlign: 'center',
+		lineHeight: 14
 	},
 	buttonWrapper: {
 		flex: 1,
@@ -50,7 +83,7 @@ const styles = StyleSheet.create({
  * View that's shown during the second step of
  * the backup seed phrase flow
  */
-export default class AccountBackupStep2 extends PureComponent {
+export default class ManualBackupStep1 extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
@@ -58,30 +91,39 @@ export default class AccountBackupStep2 extends PureComponent {
 		navigation: PropTypes.object
 	};
 
-	dismiss = () => {
-		Alert.alert(
-			strings('account_backup_step_2.cancel_backup_title'),
-			strings('account_backup_step_2.cancel_backup_message'),
-			[
-				{
-					text: strings('account_backup_step_2.cancel_backup_ok'),
-					onPress: () => {
-						this.props.navigation.popToTop();
-						this.props.navigation.goBack(null);
-					}
-				},
-				{
-					text: strings('account_backup_step_2.cancel_backup_no'),
-					onPress: () => null,
-					style: 'cancel'
-				}
-			],
-			{ cancelable: false }
-		);
+	constructor(props) {
+		super(props);
+		this.words = [
+			'One',
+			'Two',
+			'Three',
+			'Four',
+			'Five',
+			'Six',
+			'Seven',
+			'Eight',
+			'Nine',
+			'Ten',
+			'Eleven',
+			'Twelve'
+		];
+	}
+
+	state = {
+		seedPhraseRevealed: false
+	};
+
+	tryExportSeedPhrase = async password => {
+		const { KeyringController } = Engine.context;
+		const mnemonic = await KeyringController.exportSeedPhrase(password);
+		const seed = JSON.stringify(mnemonic)
+			.replace(/"/g, '')
+			.split(' ');
+		return seed;
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('AccountBackupStep3', { ...this.props.navigation.state.params });
+		this.props.navigation.navigate('AccountBackupStep4', { ...this.props.navigation.state.params });
 	};
 
 	render() {
@@ -95,8 +137,24 @@ export default class AccountBackupStep2 extends PureComponent {
 					<View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
 						<View style={styles.content}>
 							<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
-							<View style={styles.text}>
+							<View style={styles.infoWrapper}>
 								<Text style={[styles.info]}>{strings('manual_backup_step_1.info')}</Text>
+							</View>
+							<View style={styles.seedPhraseWrapper}>
+								<View style={styles.colLeft}>
+									{this.words.slice(0, 6).map((word, i) => (
+										<Text key={`word_${i}`} style={styles.word}>
+											{`${i + 1}. ${word}`}
+										</Text>
+									))}
+								</View>
+								<View style={styles.colRight}>
+									{this.words.slice(-6).map((word, i) => (
+										<Text key={`word_${i}`} style={styles.word}>
+											{`${i + 7}. ${word}`}
+										</Text>
+									))}
+								</View>
 							</View>
 						</View>
 						<View style={styles.buttonWrapper}>
