@@ -70,6 +70,7 @@
   "dependencies": {
     "@metamask/controllers": "^2.0.0",
     "@react-native-community/async-storage": "1.9.0",
+    "@react-native-community/blur": "^3.6.0",
     "@react-native-community/clipboard": "^1.2.2",
     "@react-native-community/netinfo": "4.1.5",
     "@react-native-community/viewpager": "^3.3.0",
@@ -150,8 +151,8 @@
     "react-native-scrollable-tab-view": "^1.0.0",
     "react-native-search-api": "ombori/react-native-search-api#8/head",
     "react-native-sensors": "5.3.0",
-    "react-native-splash-screen": "git+ssh://git@github.com/MetaMask/react-native-splash-screen.git",
     "react-native-share": "^3.2.0",
+    "react-native-splash-screen": "git+ssh://git@github.com/MetaMask/react-native-splash-screen.git",
     "react-native-svg": "9.13.3",
     "react-native-swipe-gestures": "1.0.3",
     "react-native-tcp": "aprock/react-native-tcp#11/head",
