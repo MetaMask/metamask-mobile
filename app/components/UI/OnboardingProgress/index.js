@@ -8,8 +8,9 @@ const ellipsisSize = 20;
 const borderRadius = ellipsisSize / 2;
 
 const styles = StyleSheet.create({
-	onboardingContainer: {
-		marginBottom: 60
+	container: {
+		position: 'relative',
+		marginBottom: 30
 	},
 	step: {
 		display: 'flex',
@@ -61,7 +62,8 @@ const styles = StyleSheet.create({
 	},
 	lines: {
 		zIndex: 1,
-		marginTop: -30,
+		position: 'absolute',
+		top: borderRadius,
 		marginHorizontal: 24
 	},
 	line: {
@@ -85,7 +87,7 @@ export default class OnboardingProgress extends Component {
 		const steps = [strings('onboarding.step1'), strings('onboarding.step2'), strings('onboarding.step3')];
 		const lines = steps.filter((step, index) => index !== steps.length - 1);
 		return (
-			<View style={styles.onboardingContainer}>
+			<View style={styles.container}>
 				<View style={[styles.row, styles.onboarding]}>
 					{steps.map((step, key) => {
 						const isSelected = key + 1 === currentStep;

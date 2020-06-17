@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 		marginVertical: 24
 	},
 	createWrapper: {
-		marginVertical: 24
+		// marginVertical: 24
 	},
 	buttonWrapper: {
 		flexGrow: 1,
