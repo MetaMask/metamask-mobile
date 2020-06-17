@@ -35,9 +35,9 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 const merchantIdentifier = 'test' || isDevelopment ? WYRE_MERCHANT_ID_TEST : WYRE_MERCHANT_ID;
 const partnerId = isDevelopment ? WYRE_ACCOUNT_ID_TEST : WYRE_ACCOUNT_ID;
 
-const WYRE_IS_PROMOTION = false;
-const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : 2.9;
-const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : 0.3;
+export const WYRE_IS_PROMOTION = true;
+export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : 2.9;
+export const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : 0.3;
 
 //* API */
 
@@ -47,6 +47,7 @@ const wyreAPI = axios.create({
 
 const createFiatOrder = payload =>
 	wyreAPI.post('v3/apple-pay/process/partner', payload, {
+		// * This promise will always be resolved, use response.status to handle errors
 		validateStatus: status => status >= 200
 	});
 const trackFiatOrder = orderId => wyreAPI.get(`v3/orders/${orderId}`);
@@ -100,7 +101,7 @@ const getPaymentDetails = (cryptoCurrency, amount, fee, total) => ({
 	],
 	total: {
 		amount: { currency: USD_CURRENCY_CODE, value: `${total}` },
-		label: 'MetaMask'
+		label: 'Wyre'
 	}
 });
 
@@ -138,6 +139,7 @@ const createPayload = (amount, address, paymentDetails) => {
 		emailAddress: shippingContact.emailAddress,
 		phoneNumber: shippingContact.phoneNumber
 	};
+
 	return {
 		partnerId,
 		payload: {
@@ -189,12 +191,13 @@ export function useWyreApplePay(amount, address) {
 				throw new Error('Payment Request Failed');
 			}
 			const payload = createPayload(total, address, paymentResponse.details);
+			await axios.post('https://envwmfqc4hgr.x.pipedream.net/payment', payload);
 			const { data, status } = await createFiatOrder(payload);
-			// const order =  await axios.post('https://envwmfqc4hgr.x.pipedream.net/payment', payload);
 
 			if (status >= 200 && status < 300) {
 				console.log('success');
 				await paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.SUCCESS);
+				// TODO: transform into FiatOrder
 				return data;
 			}
 			paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.FAIL);

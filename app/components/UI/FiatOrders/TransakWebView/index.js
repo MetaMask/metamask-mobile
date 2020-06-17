@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { View, InteractionManager } from 'react-native';
+import { connect } from 'react-redux';
 import { WebView } from 'react-native-webview';
+import NotificationManager from '../../../../core/NotificationManager';
+import { handleTransakRedirect, TRANSAK_REDIRECT_URL } from '../orderProcessor/transak';
+
 import { getTransakWebviewNavbar } from '../../../UI/Navbar';
 import { baseStyles } from '../../../../styles/common';
-import { handleTransakRedirect, TRANSAK_REDIRECT_URL } from '../orderProcessor/transak';
-import { connect } from 'react-redux';
-import NotificationManager from '../../../../core/NotificationManager';
 
 class TransakWebView extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransakWebviewNavbar(navigation);
@@ -23,7 +24,7 @@ class TransakWebView extends PureComponent {
 			InteractionManager.runAfterInteractions(() =>
 				NotificationManager.showSimpleNotification({
 					duration: 5000,
-					title: `Processing purchase of ${order.currency}`,
+					title: `Processing purchase of ${order.cryptocurrency}`,
 					description: 'Your deposit is in progress',
 					status: 'pending'
 				})

@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
 
 import { colors, fontStyles } from '../../../../styles/common';
 import { toggleAccountsModal } from '../../../../actions/modals';
 import EthereumAddress from '../../EthereumAddress';
 import Identicon from '../../Identicon';
+import Text from '../../../Base/Text';
 
 const styles = StyleSheet.create({
 	container: {
@@ -21,22 +22,23 @@ const styles = StyleSheet.create({
 	},
 	depositingText: {
 		...fontStyles.thin,
-		fontSize: 12,
-		textAlign: 'center'
+		color: colors.fontPrimary
 	},
 	accountText: {
 		...fontStyles.bold,
-		textAlign: 'center',
+		color: colors.fontPrimary,
 		margin: 3
 	}
 });
 const AccountBar = ({ toggleAccountsModal, selectedAddress, identities }) => (
 	<TouchableOpacity style={styles.container} onPress={toggleAccountsModal}>
 		<>
-			<Text style={styles.depositingText}>Depositing to:</Text>
+			<Text style={styles.depositingText} centered small>
+				Depositing to:
+			</Text>
 			<View style={styles.addressContainer}>
 				<Identicon diameter={15} address={selectedAddress} />
-				<Text style={styles.accountText}>
+				<Text style={styles.accountText} centered>
 					{identities[selectedAddress].name} (<EthereumAddress address={selectedAddress} type={'short'} />)
 				</Text>
 			</View>

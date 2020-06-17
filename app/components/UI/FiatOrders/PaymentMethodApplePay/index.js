@@ -1,16 +1,18 @@
 import React, { useContext, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { NavigationContext } from 'react-navigation';
+import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+
+import { useWyreTerms, useWyreApplePay, WYRE_IS_PROMOTION } from '../orderProcessor/wyreApplePay';
+import { setLockTime } from '../../../../actions/settings';
+
 import { getPaymentMethodApplePayNavbar } from '../../Navbar';
 import AccountBar from '../components/AccountBar';
-import Text from '../components/Text';
 import StyledButton from '../../StyledButton';
+import Text from '../../../Base/Text';
 import { colors, fontStyles } from '../../../../styles/common';
-import { NavigationContext } from 'react-navigation';
-import { useWyreTerms, useWyreApplePay } from '../orderProcessor/wyreApplePay';
-import { connect } from 'react-redux';
-import { setLockTime } from '../../../../actions/settings';
 
 //* styles and components  */
 
@@ -358,8 +360,8 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress }) {
 						<ApplePay disabled={disabledButton} />
 					</StyledButton>
 					<Text centered>
-						{percentFee === '0.00' && flatFee === '0.00' && <Text>0% fee (limited time)</Text>}
-						{(percentFee !== '0.00' || flatFee !== '0.00') && (
+						{WYRE_IS_PROMOTION && <Text>0% fee (limited time)</Text>}
+						{!WYRE_IS_PROMOTION && (
 							<>
 								{disabledButton ? (
 									<Text>
@@ -377,7 +379,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress }) {
 					</Text>
 					<TouchableOpacity onPress={handleWyreTerms}>
 						<Text centered link>
-							Wyre terms of service
+							Wyre Terms of Service
 						</Text>
 					</TouchableOpacity>
 				</View>

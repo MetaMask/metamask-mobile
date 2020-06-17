@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import { View, StyleSheet, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 
-import Text from './components/Text';
+import Text from '../../Base/Text';
 
 import { createPendingOrder, FIAT_ORDER_STATES, FIAT_ORDER_PROVIDERS } from '../../../reducers/fiatOrders';
 import useInterval from './hooks/useInterval';

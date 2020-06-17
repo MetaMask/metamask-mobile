@@ -161,6 +161,7 @@ const transakCallbackOrderToFiatOrder = transakRedirectOrder => ({
 	amount: transakRedirectOrder.fiatAmount,
 	fee: transakRedirectOrder.totalFee,
 	currency: transakRedirectOrder.fiatCurrency,
+	cryptocurrency: transakRedirectOrder.cryptocurrency,
 	state: transakOrderStateToFiatOrderState(transakRedirectOrder.status),
 	account: transakRedirectOrder.walletAddress,
 	data: transakRedirectOrder

@@ -5,16 +5,17 @@ import { NavigationContext } from 'react-navigation';
 import { connect } from 'react-redux';
 
 import { useTransakFlowURL } from '../orderProcessor/transak';
-import { useWyreTerms } from '../orderProcessor/wyreApplePay';
+import { useWyreTerms, WYRE_IS_PROMOTION, WYRE_FEE_PERCENT, WYRE_FEE_FLAT } from '../orderProcessor/wyreApplePay';
 import { getPaymentSelectorMethodNavbar } from '../../Navbar';
-
-import Title from '../components/Title';
-import Text from '../components/Text';
-import Heading from '../components/Heading';
-import SubHeader from '../components/SubHeader';
-import PaymentMethod from '../components/PaymentMethod';
-import ScreenView from '../components/ScreenView';
 import ModalHandler from '../components/ModalHandler';
+
+import ScreenView from '../components/ScreenView';
+import Heading from '../components/Heading';
+import PaymentMethod from '../components/PaymentMethod';
+
+import Text from '../../../Base/Text';
+import Title from '../components/Title';
+import SubHeader from '../components/SubHeader';
 
 const logosStyle = StyleSheet.create({
 	applePay: {
@@ -53,11 +54,21 @@ function PaymentMethodSelectorView({ selectedAddress, ...props }) {
 		<ScreenView>
 			<Heading>
 				<Title centered hero>
-					<Text reset>0% fee when you use</Text>
-					{'\n'}
-					<Text reset>Apple Pay.</Text>
+					{WYRE_IS_PROMOTION ? (
+						<>
+							<Text reset>0% fee when you use</Text>
+							{'\n'}
+							<Text reset>Apple Pay.</Text>
+						</>
+					) : (
+						<>
+							<Text reset>How do you want to make</Text>
+							{'\n'}
+							<Text reset>your purchase?</Text>
+						</>
+					)}
 				</Title>
-				<SubHeader centered>Valid until July 1st, 2020</SubHeader>
+				{WYRE_IS_PROMOTION && <SubHeader centered>Valid until July 1st, 2020</SubHeader>}
 			</Heading>
 
 			<PaymentMethod onPress={onPressApplePay}>
@@ -66,7 +77,23 @@ function PaymentMethodSelectorView({ selectedAddress, ...props }) {
 					<Text reset>
 						<Title>Apple Pay</Title> <Text>via</Text> <WyreLogo />
 					</Text>
-					<Text bold>0% fee (limited time)</Text>
+					<Text>
+						{WYRE_IS_PROMOTION ? (
+							<>
+								<Text bold strikethrough>
+									2.9%
+								</Text>{' '}
+								<Text bold green>
+									0% fee
+								</Text>{' '}
+								<Text>(limited time)</Text>
+							</>
+						) : (
+							<Text bold>
+								Fee ~{WYRE_FEE_PERCENT.toFixed(2)}% + ${WYRE_FEE_FLAT.toFixed(2)}
+							</Text>
+						)}
+					</Text>
 					<Text>1 - 2 minutes</Text>
 					<Text>Max $450 weekly</Text>
 					<Text>Requires debit card</Text>

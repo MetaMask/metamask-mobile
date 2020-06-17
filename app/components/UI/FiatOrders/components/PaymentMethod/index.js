@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../../../styles/common';
 
-import Text from '../Text';
+import Text from '../../../../Base/Text';
 import InfoIcon from '../InfoIcon';
 import Modal from './Modal';
 
@@ -37,12 +37,13 @@ const style = StyleSheet.create({
 		...fontStyles.bold
 	},
 	details: {
-		flex: 4
+		flex: 2
 	},
 	terms: {
-		flex: 3,
+		flex: 1,
 		alignItems: 'flex-end',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
+		marginLeft: 20
 	},
 	infoIconLine: {
 		alignItems: 'center',

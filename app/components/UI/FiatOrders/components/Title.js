@@ -1,36 +1,26 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Text, StyleSheet } from 'react-native';
-import { fontStyles } from '../../../../styles/common';
+import { StyleSheet } from 'react-native';
+import BaseTitle from '../../../Base/Title';
 
 const style = StyleSheet.create({
-	text: {
-		fontSize: 18,
-		marginTop: 3,
-		marginBottom: 3,
-		...fontStyles.bold
-	},
-	centered: {
-		textAlign: 'center'
-	},
 	hero: {
-		fontSize: 22,
 		margin: 5
 	}
 });
 
-const Title = ({ centered, hero, ...props }) => (
-	<Text style={[style.text, centered && style.centered, hero && style.hero]} {...props} />
+const Title = ({ style: externalStyle, ...props }) => (
+	<BaseTitle style={[props.hero && style.hero, externalStyle]} {...props} />
 );
 
 Title.defaultProps = {
-	centered: false,
-	hero: false
+	hero: false,
+	style: undefined
 };
 
 Title.propTypes = {
-	centered: PropTypes.bool,
-	hero: PropTypes.bool
+	hero: PropTypes.bool,
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
 };
 
 export default Title;
