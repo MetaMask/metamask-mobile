@@ -199,7 +199,7 @@ class Onboarding extends PureComponent {
 									</View>
 								</View>
 								<View style={styles.createWrapper}>
-									<Text style={styles.subTitle}>New to crypto?</Text>
+									<Text style={styles.subTitle}>{strings('onboarding.new_to_crypto')}</Text>
 									<Text style={styles.buttonDescription}>{strings('onboarding.create_desc')}</Text>
 									<View style={styles.buttonWrapper}>
 										<StyledButton
