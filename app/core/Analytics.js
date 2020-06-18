@@ -176,7 +176,7 @@ class Analytics {
 	 */
 	trackEventWithParameters = (event, params) => {
 		if (!this.enabled) return;
-		if (__DEV__) {
+		if (!__DEV__) {
 			RCTAnalytics.trackEvent({
 				...event,
 				...params
