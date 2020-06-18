@@ -27,9 +27,9 @@ const logosStyle = StyleSheet.create({
 });
 
 /* eslint-disable import/no-commonjs */
-const ApplePayMarkIcon = require('../images/ApplePayMark.png');
-const TransakLogoIcon = require('../images/TransakLogo.png');
-const WyreLogoIcon = require('../images/WyreLogo.png');
+const ApplePayMarkIcon = require('../../../../images/ApplePayMark.png');
+const TransakLogoIcon = require('../../../../images/TransakLogo.png');
+const WyreLogoIcon = require('../../../../images/WyreLogo.png');
 /* eslint-enable import/no-commonjs */
 
 const ApplePayMark = () => <Image source={ApplePayMarkIcon} style={logosStyle.applePay} />;

@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
 });
 
 /* eslint-disable import/no-commonjs */
-const ApplePayLogo = require('../images/ApplePayLogo.png');
+const ApplePayLogo = require('../../../../images/ApplePayLogo.png');
 const ApplePay = ({ disabled }) => (
 	<Image source={ApplePayLogo} style={[styles.applePayLogo, disabled && styles.applePayLogoDisabled]} />
 );
