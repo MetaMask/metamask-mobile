@@ -342,6 +342,8 @@ PODS:
     - ReactCommon/callinvoker (= 0.62.2)
   - RNCAsyncStorage (1.9.0):
     - React
+  - RNCCheckbox (0.4.2):
+    - React
   - RNCClipboard (1.2.2):
     - React
   - RNDeviceInfo (3.1.4):
@@ -441,6 +443,7 @@ DEPENDENCIES:
   - ReactCommon/callinvoker (from `../node_modules/react-native/ReactCommon`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
+  - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFS (from `../node_modules/react-native-fs`)
@@ -551,6 +554,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-community/async-storage"
+  RNCCheckbox:
+    :path: "../node_modules/@react-native-community/checkbox"
   RNCClipboard:
     :path: "../node_modules/@react-native-community/clipboard"
   RNDeviceInfo:
@@ -635,6 +640,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: 4356114dbcba4ce66991096e51a66e61eda51256
   ReactCommon: ed4e11d27609d571e7eee8b65548efc191116eb3
   RNCAsyncStorage: 453cd7c335ec9ba3b877e27d02238956b76f3268
+  RNCCheckbox: 357578d3b42652c78ee9a1bb9bcfc3195af6e161
   RNCClipboard: 8148e21ac347c51fd6cd4b683389094c216bb543
   RNDeviceInfo: 88099e84466f053bae3f34c307b506738b2b6946
   RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df

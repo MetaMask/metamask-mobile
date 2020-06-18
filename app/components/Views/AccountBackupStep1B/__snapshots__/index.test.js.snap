@@ -1,0 +1,280 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountBackupStep1 should render correctly 1`] = `
+<ForwardRef(SafeAreaView)
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <ScrollViewMock
+    contentContainerStyle={
+      Object {
+        "flexGrow": 1,
+      }
+    }
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+    testID="account-backup-step-1-screen"
+  >
+    <Pager
+      pages={5}
+    />
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        Object {
+          "alignSelf": "flex-end",
+          "paddingHorizontal": 28,
+          "paddingVertical": 20,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#037dd6",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 18,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Skip
+      </Text>
+    </TouchableOpacity>
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "padding": 20,
+          "paddingBottom": 0,
+          "paddingTop": 0,
+        }
+      }
+      testID="protect-your-account-screen"
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "flex-start",
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 32,
+              "fontWeight": "400",
+              "justifyContent": "center",
+              "marginBottom": 25,
+              "marginLeft": 10,
+              "marginTop": 0,
+              "textAlign": "left",
+            }
+          }
+        >
+          Save your wallet's seed phrase
+        </Text>
+        <View
+          style={
+            Object {
+              "alignSelf": "center",
+              "backgroundColor": "#FFD33D",
+              "borderRadius": 8,
+              "marginBottom": 35,
+              "paddingHorizontal": 17,
+              "paddingVertical": 9,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "CircularStd-Medium",
+                "fontSize": 12,
+                "fontWeight": "400",
+              }
+            }
+          >
+            HIGHLY RECOMMENDED
+          </Text>
+        </View>
+        <View
+          style={
+            Object {
+              "justifyContent": "center",
+              "marginBottom": 10,
+              "marginLeft": 10,
+              "marginRight": 20,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "CircularStd-Medium",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 23,
+                "marginBottom": 20,
+                "textAlign": "left",
+              }
+            }
+          >
+            Your wallet's seed phrase is:
+          </Text>
+          <View
+            style={
+              Object {
+                "flexDirection": "row",
+                "marginBottom": 15,
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "marginRight": 5,
+                }
+              }
+            >
+              •
+            </Text>
+            <Text
+              style={
+                Object {
+                  "color": "#000000",
+                  "fontFamily": "CircularStd-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 23,
+                  "marginBottom": 20,
+                  "textAlign": "left",
+                }
+              }
+            >
+              A 
+              <Text
+                style={
+                  Object {
+                    "fontFamily": "CircularStd-Medium",
+                    "fontWeight": "600",
+                    "lineHeight": 25,
+                  }
+                }
+              >
+                secret
+              </Text>
+               code that you do NOT share with anyone.
+            </Text>
+          </View>
+          <View
+            style={
+              Object {
+                "flexDirection": "row",
+                "marginBottom": 15,
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "marginRight": 5,
+                }
+              }
+            >
+              •
+            </Text>
+            <Text
+              style={
+                Object {
+                  "color": "#000000",
+                  "fontFamily": "CircularStd-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 23,
+                  "marginBottom": 20,
+                  "textAlign": "left",
+                }
+              }
+            >
+              used to 
+              <Text
+                style={
+                  Object {
+                    "fontFamily": "CircularStd-Medium",
+                    "fontWeight": "600",
+                    "lineHeight": 25,
+                  }
+                }
+              >
+                recover your wallet
+              </Text>
+               in case you lose your device, forget your password, have to re-install the MetaMask app or want to access your wallet on another device.
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "justifyContent": "flex-end",
+          }
+        }
+      >
+        <StyledButton
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID="submit-button"
+          type="confirm"
+        >
+          YEAH, LET'S SAVE IT
+        </StyledButton>
+        <Button
+          onPress={[Function]}
+          style={
+            Object {
+              "backgroundColor": "transparent",
+              "flex": 0,
+              "height": 60,
+            }
+          }
+          testID="learn-more-button"
+        >
+          <Text
+            style={
+              Object {
+                "color": "#037dd6",
+                "fontSize": 18,
+              }
+            }
+          >
+            Learn More
+          </Text>
+        </Button>
+      </View>
+    </View>
+  </ScrollViewMock>
+</ForwardRef(SafeAreaView)>
+`;
