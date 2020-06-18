@@ -532,6 +532,7 @@
 		"not_enough_for_gas": "You have 0 ETH in your account to pay for transaction fees. Buy some ETH or deposit from another account."
 	},
 	"custom_gas": {
+		"total": "Total",
 		"advanced_options": "Advanced",
 		"basic_options": "Basic",
 		"hide_advanced_options": "Hide advanced",

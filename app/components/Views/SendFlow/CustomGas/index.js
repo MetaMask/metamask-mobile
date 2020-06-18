@@ -497,7 +497,7 @@ class CustomGas extends PureComponent {
 		return (
 			<View style={styles.advancedOptionsContainer}>
 				<View style={styles.valueRow}>
-					<Text style={styles.advancedOptionsText}>Total</Text>
+					<Text style={styles.advancedOptionsText}>{strings('custom_gas.total')}</Text>
 					<View style={styles.totalGasWrapper}>
 						<Text style={styles.textTotalGas}>
 							{renderFromWei(totalGas)} {ticker}
