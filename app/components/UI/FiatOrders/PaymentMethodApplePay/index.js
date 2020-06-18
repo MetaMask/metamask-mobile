@@ -1,6 +1,6 @@
 import React, { useContext, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, Image, TouchableOpacity, InteractionManager } from 'react-native';
+import { View, ScrollView, StyleSheet, Image, TouchableOpacity, InteractionManager } from 'react-native';
 import { NavigationContext } from 'react-navigation';
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -14,14 +14,18 @@ import StyledButton from '../../StyledButton';
 import Text from '../../../Base/Text';
 import { colors, fontStyles } from '../../../../styles/common';
 import NotificationManager from '../../../../core/NotificationManager';
+import Device from '../../../../util/Device';
 
 //* styles and components  */
 
 const styles = StyleSheet.create({
-	screen: { flex: 1 },
+	screen: {
+		flexGrow: 1,
+		justifyContent: 'space-between'
+	},
 	amountContainer: {
 		margin: 10,
-		padding: 15,
+		padding: Device.isMediumDevice() ? 10 : 15,
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
@@ -70,7 +74,7 @@ const styles = StyleSheet.create({
 	},
 	keypadButton: {
 		paddingHorizontal: 20,
-		paddingVertical: 15,
+		paddingVertical: Device.isMediumDevice() ? 10 : 15,
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center'
@@ -306,7 +310,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 	const handleKeypadPressBack = useCallback(() => handleKeypadPress('BACK'), [handleKeypadPress]);
 
 	return (
-		<View style={styles.screen}>
+		<ScrollView contentContainerStyle={styles.screen}>
 			<View>
 				<AccountBar />
 				<View style={styles.amountContainer}>
@@ -401,7 +405,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 					</TouchableOpacity>
 				</View>
 			</View>
-		</View>
+		</ScrollView>
 	);
 }
 

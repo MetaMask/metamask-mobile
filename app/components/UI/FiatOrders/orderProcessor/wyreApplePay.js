@@ -196,7 +196,7 @@ const wyreOrderToFiatOrder = wyreOrder => ({
  * Returns fields present in a WyreTransfer which are not
  * present in a WyreOrder to be assigned in a FiatOrder
  * @param {WyreTransfer} wyreTransfer Wyre transfer object
- * @returns {FiatOrder} Fiat order object to store in the state
+ * @returns {FiatOrder} Partial fiat order object to store in the state
  */
 const wyreTransferToFiatOrder = wyreTransfer => ({
 	fee: wyreTransfer.fee,
