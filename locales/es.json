@@ -878,7 +878,7 @@
 		"success_deposit_title": "Depósito Completo!",
 		"success_withdrawal_title": "Retiro Completo!",
 		"error_title": "Oops, algo ha salido mal :/",
-		"received_title": "Has recibido {{amount}} {{assetType}}!",
+		"received_title": "Has recibido {{amount}} {{assetType}}",
 		"received_payment_title": "Pago instantáneo recibido",
 		"pending_message": "Tu transacción está en proceso",
 		"pending_deposit_message": "Esperando que el deposito sea compleado",

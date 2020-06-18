@@ -282,26 +282,26 @@ exports[`Main should render correctly 1`] = `
                 Object {
                   "index": 0,
                   "isTransitioning": false,
-                  "key": "BrowserTabHome",
+                  "key": "WalletTabHome",
                   "params": undefined,
-                  "routeName": "BrowserTabHome",
+                  "routeName": "WalletTabHome",
                   "routes": Array [
                     Object {
                       "key": "id-123-0",
-                      "routeName": "BrowserView",
+                      "routeName": "WalletView",
                     },
                   ],
                 },
                 Object {
                   "index": 0,
                   "isTransitioning": false,
-                  "key": "WalletTabHome",
+                  "key": "BrowserTabHome",
                   "params": undefined,
-                  "routeName": "WalletTabHome",
+                  "routeName": "BrowserTabHome",
                   "routes": Array [
                     Object {
                       "key": "id-123-1",
-                      "routeName": "WalletView",
+                      "routeName": "BrowserView",
                     },
                   ],
                 },
@@ -616,26 +616,26 @@ exports[`Main should render correctly 1`] = `
                   Object {
                     "index": 0,
                     "isTransitioning": false,
-                    "key": "BrowserTabHome",
+                    "key": "WalletTabHome",
                     "params": undefined,
-                    "routeName": "BrowserTabHome",
+                    "routeName": "WalletTabHome",
                     "routes": Array [
                       Object {
                         "key": "id-123-0",
-                        "routeName": "BrowserView",
+                        "routeName": "WalletView",
                       },
                     ],
                   },
                   Object {
                     "index": 0,
                     "isTransitioning": false,
-                    "key": "WalletTabHome",
+                    "key": "BrowserTabHome",
                     "params": undefined,
-                    "routeName": "WalletTabHome",
+                    "routeName": "BrowserTabHome",
                     "routes": Array [
                       Object {
                         "key": "id-123-1",
-                        "routeName": "WalletView",
+                        "routeName": "BrowserView",
                       },
                     ],
                   },

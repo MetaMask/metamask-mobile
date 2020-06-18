@@ -13,8 +13,8 @@ exports[`TransactionHeader should render correctly 1`] = `
     style={
       Object {
         "borderRadius": 32,
-        "height": 64,
-        "width": 64,
+        "height": 56,
+        "width": 56,
       }
     }
     title="url"
@@ -79,7 +79,7 @@ exports[`TransactionHeader should render correctly 1`] = `
             "width": 5,
           },
           Object {
-            "backgroundColor": "green",
+            "backgroundColor": "#ff4a8d",
           },
         ]
       }
