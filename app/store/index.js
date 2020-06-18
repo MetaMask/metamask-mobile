@@ -5,6 +5,8 @@ import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import AppConstants from '../core/AppConstants';
 
+const PERSIST_TIMEOUT = 30000;
+
 const migrations = {
 	// Needed after https://github.com/MetaMask/controllers/pull/152
 	0: state => {
@@ -46,7 +48,8 @@ const persistConfig = {
 	version: 1,
 	storage: AsyncStorage,
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-	migrate: createMigrate(migrations, { debug: false })
+	migrate: createMigrate(migrations, { debug: false }),
+	timeout: PERSIST_TIMEOUT
 };
 
 const pReducer = persistReducer(persistConfig, rootReducer);
