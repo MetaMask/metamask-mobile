@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { connect } from 'react-redux';
 
 import { colors, fontStyles } from '../../../../styles/common';
@@ -27,7 +28,12 @@ const styles = StyleSheet.create({
 	accountText: {
 		...fontStyles.bold,
 		color: colors.fontPrimary,
-		margin: 3
+		marginVertical: 3,
+		marginHorizontal: 5
+	},
+	caretDown: {
+		textAlign: 'right',
+		color: colors.grey600
 	}
 });
 const AccountBar = ({ toggleAccountsModal, selectedAddress, identities }) => (
@@ -41,6 +47,7 @@ const AccountBar = ({ toggleAccountsModal, selectedAddress, identities }) => (
 				<Text style={styles.accountText} centered>
 					{identities[selectedAddress].name} (<EthereumAddress address={selectedAddress} type={'short'} />)
 				</Text>
+				<Icon name="caret-down" size={18} style={styles.caretDown} />
 			</View>
 		</>
 	</TouchableOpacity>

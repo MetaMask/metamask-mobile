@@ -813,11 +813,11 @@ export function getWebviewNavbar(navigation) {
 	};
 }
 
-export function getPaymentSelectorMethodNavbar(title, navigation) {
+export function getPaymentSelectorMethodNavbar(navigation) {
 	const rightAction = navigation.dismiss;
 
 	return {
-		title,
+		title: 'Purchase Method',
 		headerTitleStyle: {
 			fontSize: 20,
 			color: colors.fontPrimary,
@@ -828,8 +828,7 @@ export function getPaymentSelectorMethodNavbar(title, navigation) {
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>Cancel</Text>
 			</TouchableOpacity>
-		),
-		headerLeft: <View />
+		)
 	};
 }
 

@@ -1,6 +1,6 @@
 import React, { useContext, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { View, ScrollView, StyleSheet, Image, TouchableOpacity, InteractionManager } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity, InteractionManager } from 'react-native';
 import { NavigationContext } from 'react-navigation';
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -15,6 +15,7 @@ import Text from '../../../Base/Text';
 import { colors, fontStyles } from '../../../../styles/common';
 import NotificationManager from '../../../../core/NotificationManager';
 import Device from '../../../../util/Device';
+import ScreenView from '../components/ScreenView';
 
 //* styles and components  */
 
@@ -310,7 +311,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 	const handleKeypadPressBack = useCallback(() => handleKeypadPress('BACK'), [handleKeypadPress]);
 
 	return (
-		<ScrollView contentContainerStyle={styles.screen}>
+		<ScreenView contentContainerStyle={styles.screen}>
 			<View>
 				<AccountBar />
 				<View style={styles.amountContainer}>
@@ -405,7 +406,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 					</TouchableOpacity>
 				</View>
 			</View>
-		</ScrollView>
+		</ScreenView>
 	);
 }
 

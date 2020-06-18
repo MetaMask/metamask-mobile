@@ -1,13 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Text, StyleSheet } from 'react-native';
-import { fontStyles } from '../../styles/common';
+import { StyleSheet } from 'react-native';
+import { fontStyles, colors } from '../../styles/common';
+import Text from './Text.js';
 
 const style = StyleSheet.create({
 	text: {
 		fontSize: 18,
 		marginTop: 3,
 		marginBottom: 3,
+		color: colors.fontPrimary,
 		...fontStyles.bold
 	},
 	hero: {

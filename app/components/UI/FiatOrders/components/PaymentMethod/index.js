@@ -15,7 +15,9 @@ const style = StyleSheet.create({
 		paddingVertical: 15,
 		paddingHorizontal: 20,
 		marginHorizontal: 25,
-		marginVertical: 12,
+		marginVertical: 12
+	},
+	content: {
 		flexDirection: 'row'
 	},
 	badgeWrapper: {
@@ -75,6 +77,7 @@ const Badge = props => (
 	</View>
 );
 
+const Content = props => <View style={style.content} {...props} />;
 const Details = props => <View style={style.details} {...props} />;
 const Terms = props => <View style={style.terms} {...props} />;
 const InfoIconLine = props => <View style={style.infoIconLine} {...props} />;
@@ -86,6 +89,7 @@ const PaymentMethodInfoIcon = props => (
 );
 
 PaymentMethod.Badge = Badge;
+PaymentMethod.Content = Content;
 PaymentMethod.Details = Details;
 PaymentMethod.Terms = Terms;
 PaymentMethod.InfoIconLine = InfoIconLine;
