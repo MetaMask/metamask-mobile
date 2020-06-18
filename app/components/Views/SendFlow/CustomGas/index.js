@@ -30,7 +30,6 @@ const styles = StyleSheet.create({
 	},
 	back: {
 		position: 'absolute',
-		padding: 10,
 		zIndex: 1,
 		left: 0
 	},
