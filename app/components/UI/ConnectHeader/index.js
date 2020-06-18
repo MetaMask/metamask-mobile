@@ -27,8 +27,8 @@ const styles = StyleSheet.create({
 
 class ConnectHeader extends Component {
 	static propTypes = {
-		action: PropTypes.func,
-		title: PropTypes.string
+		action: PropTypes.func.isRequired,
+		title: PropTypes.string.isRequired
 	};
 
 	render() {
