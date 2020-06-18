@@ -9,7 +9,7 @@ exports[`OfflineMode should render correctly 1`] = `
     }
   }
 >
-  <SafeAreaView
+  <ForwardRef(SafeAreaView)
     style={
       Object {
         "flex": 1,
@@ -93,6 +93,6 @@ exports[`OfflineMode should render correctly 1`] = `
         Try again
       </StyledButton>
     </View>
-  </SafeAreaView>
+  </ForwardRef(SafeAreaView)>
 </View>
 `;

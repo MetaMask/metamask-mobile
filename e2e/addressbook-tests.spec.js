@@ -53,13 +53,23 @@ describe('Addressbook Tests', () => {
 
 	it('should input a valid address to send to', async () => {
 		// Input incorrect address
-		await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', INVALID_ADDRESS);
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField('txn-to-address-input', INVALID_ADDRESS);
+			await element(by.id('txn-to-address-input')).tapReturnKey();
+		} else {
+			await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', INVALID_ADDRESS);
+		}
 		// Check that the error is displayed
 		await TestHelpers.checkIfVisible('address-error');
-		// Clear text
-		await TestHelpers.clearField('txn-to-address-input');
 		// Input valid myth address
-		await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', MYTH_ADDRESS);
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField('txn-to-address-input', MYTH_ADDRESS);
+			await TestHelpers.delay(1000);
+		} else {
+			// Clear text
+			await TestHelpers.clearField('txn-to-address-input');
+			await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', MYTH_ADDRESS);
+		}
 		// Check that the warning appears at the bottom of the screen
 		await TestHelpers.checkIfVisible('no-eth-message');
 	});
@@ -70,7 +80,12 @@ describe('Addressbook Tests', () => {
 		// Make sure address book modal is displayed
 		await TestHelpers.checkIfExists('add-address-modal');
 		// Input alias
-		await TestHelpers.typeTextAndHideKeyboard('address-alias-input', 'Myth');
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField('address-alias-input', 'Myth');
+			await element(by.id('address-alias-input')).tapReturnKey();
+		} else {
+			await TestHelpers.typeTextAndHideKeyboard('address-alias-input', 'Myth');
+		}
 		// Save contact
 		await TestHelpers.tapByText('Save');
 		// Clear address
@@ -91,7 +106,7 @@ describe('Addressbook Tests', () => {
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on settings
-		await TestHelpers.tap('settings-button');
+		await TestHelpers.tapByText('Settings');
 		// Tap on the "Contacts" option
 		await TestHelpers.tapByText('Contacts');
 		// Check that we are on the contacts screen
@@ -106,7 +121,12 @@ describe('Addressbook Tests', () => {
 		// Check that we are on the add contact screen
 		await TestHelpers.checkIfVisible('add-contact-screen');
 		// Input a name
-		await TestHelpers.typeTextAndHideKeyboard('contact-name-input', 'Ibrahim');
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField('contact-name-input', 'Ibrahim');
+			await element(by.id('contact-name-input')).tapReturnKey();
+		} else {
+			await TestHelpers.typeTextAndHideKeyboard('contact-name-input', 'Ibrahim');
+		}
 		// Input invalid address
 		await TestHelpers.replaceTextInField('contact-address-input', INVALID_ADDRESS);
 		// Check that warning is shown
@@ -118,11 +138,15 @@ describe('Addressbook Tests', () => {
 		// Replace address with valid ENS address
 		await TestHelpers.replaceTextInField('contact-address-input', 'ibrahim.team.mask.eth');
 		// Add a memo
-		await TestHelpers.typeTextAndHideKeyboard('contact-memo-input', MEMO);
+		await TestHelpers.replaceTextInField('contact-memo-input', MEMO);
 		// Tap add contact button
-		await TestHelpers.tap('contact-add-contact-button');
-		// Tap add contact button
-		await TestHelpers.tap('contact-add-contact-button');
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.tapByText('Add contact');
+			await TestHelpers.delay(1000);
+		} else {
+			await TestHelpers.tap('contact-add-contact-button');
+			await TestHelpers.tap('contact-add-contact-button');
+		}
 		// Check that we are on the contacts screen
 		await TestHelpers.checkIfVisible('contacts-screen');
 		// Check that Ibrahim address is saved in the address book

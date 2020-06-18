@@ -236,7 +236,7 @@ export function getEditableOptions(title, navigation) {
 			</TouchableOpacity>
 		),
 		headerRight: !addMode ? (
-			<TouchableOpacity onPress={() => rightAction()} style={styles.backButton}>
+			<TouchableOpacity onPress={rightAction} style={styles.backButton}>
 				<Text style={styles.closeButtonText}>
 					{editMode ? strings('address_book.edit') : strings('address_book.cancel')}
 				</Text>
@@ -303,8 +303,8 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 		headerTintColor: colors.blue,
 		headerLeft: <View />,
 		headerRight: (
-			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity
+				// eslint-disable-next-line react/jsx-no-bind
 				onPress={() => navigation.pop()}
 				style={styles.closeButton}
 				testID={'send-link-close-button'}
@@ -322,22 +322,47 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getTransactionOptionsTitle(title, navigation) {
+export function getTransactionOptionsTitle(_title, navigation) {
 	const transactionMode = navigation.getParam('mode', '');
+	const { routeName } = navigation.state;
 	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
-	const toEditLeftAction = navigation.getParam('dispatch', () => {
+	const disableModeChange = navigation.getParam('disableModeChange');
+	const modeChange = navigation.getParam('dispatch', () => {
 		'';
 	});
-	const leftAction = transactionMode === 'edit' ? () => navigation.pop() : () => toEditLeftAction('edit');
+	const leftAction = () => modeChange('edit');
+	const rightAction = () => navigation.pop();
+	const rightText = strings('transaction.cancel');
+	const title = transactionMode === 'edit' && routeName !== 'PaymentChannelDeposit' ? 'transaction.edit' : _title;
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
-		headerLeft: (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.closeButton} testID={'confirm-txn-edit-button'}>
-				<Text style={styles.closeButtonText}>{leftText}</Text>
-			</TouchableOpacity>
-		),
-		headerRight: <View />
+		headerLeft:
+			transactionMode !== 'edit' ? (
+				<TouchableOpacity
+					disabled={disableModeChange}
+					// eslint-disable-next-line react/jsx-no-bind
+					onPress={leftAction}
+					style={styles.closeButton}
+					testID={'confirm-txn-edit-button'}
+				>
+					<Text
+						style={disableModeChange ? [styles.closeButtonText, styles.disabled] : [styles.closeButtonText]}
+					>
+						{leftText}
+					</Text>
+				</TouchableOpacity>
+			) : (
+				<View />
+			),
+		headerRight:
+			routeName === 'Send' || routeName === 'PaymentChannelDeposit' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
+					<Text style={styles.closeButtonText}>{rightText}</Text>
+				</TouchableOpacity>
+			) : (
+				<View />
+			)
 	};
 }
 
@@ -349,6 +374,12 @@ export function getApproveNavbar(title) {
 	};
 }
 
+const sendTitleToPaymentChannelTitleMap = {
+	'send.send_to': 'payment_channel.insta_pay_send_to',
+	'send.amount': 'payment_channel.insta_pay_amount',
+	'send.confirm': 'payment_channel.insta_pay_confirm'
+};
+
 /**
  * Function that returns the navigation options
  * This is used by views in send flow
@@ -356,7 +387,7 @@ export function getApproveNavbar(title) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getSendFlowTitle(title, navigation) {
+export function getSendFlowTitle(title, navigation, screenProps) {
 	const rightAction = () => {
 		const providerType = navigation.getParam('providerType', '');
 		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
@@ -365,13 +396,20 @@ export function getSendFlowTitle(title, navigation) {
 		});
 		navigation.dismiss();
 	};
-	const leftAction = () => navigation.pop();
-	const canGoBack = title !== 'send.send_to';
+	const { routeName } = navigation.state;
+	const leftAction =
+		screenProps.isPaymentChannelTransaction && routeName === 'Confirm'
+			? () => navigation.navigate('Amount')
+			: () => navigation.pop();
+	const canGoBack = title !== 'send.send_to' && !screenProps.isPaymentRequest;
+
+	const titleToRender = screenProps.isPaymentChannelTransaction ? sendTitleToPaymentChannelTitleMap[title] : title;
+
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork />,
+		headerTitle: <NavbarTitle title={titleToRender} disableNetwork />,
 		headerRight: (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+			<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-cancel-button'}>
 				<Text style={styles.closeButtonText}>{strings('transaction.cancel')}</Text>
 			</TouchableOpacity>
 		),

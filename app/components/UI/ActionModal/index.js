@@ -1,46 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
-import { colors } from '../../../styles/common';
-import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
+import ActionContent from './ActionContent';
 
 const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
 		width: '100%'
-	},
-	modalView: {
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginHorizontal: 24
-	},
-	modalContainer: {
-		width: '100%',
-		backgroundColor: colors.white,
-		borderRadius: 10
-	},
-	actionContainer: {
-		borderTopColor: colors.grey200,
-		borderTopWidth: 1,
-		flexDirection: 'row',
-		padding: 16
-	},
-	childrenContainer: {
-		minHeight: 250,
-		flexDirection: 'row',
-		alignItems: 'center'
-	},
-	button: {
-		flex: 1
-	},
-	cancel: {
-		marginRight: 8
-	},
-	confirm: {
-		marginLeft: 8
 	}
 });
 
@@ -61,45 +29,41 @@ export default function ActionModal({
 	onCancelPress,
 	onConfirmPress,
 	onRequestClose,
-	modalVisible
+	modalVisible,
+	modalStyle,
+	viewWrapperStyle,
+	viewContainerStyle,
+	actionContainerStyle,
+	childrenContainerStyle
 }) {
 	return (
 		<Modal
 			isVisible={modalVisible}
-			style={styles.modal}
+			style={[styles.modal, modalStyle]}
 			onBackdropPress={onRequestClose}
 			onBackButtonPress={onRequestClose}
 			onSwipeComplete={onRequestClose}
 			swipeDirection={'down'}
 		>
-			<View style={styles.modalView}>
-				<View style={styles.modalContainer}>
-					<View style={styles.childrenContainer}>{children}</View>
-					<View style={styles.actionContainer}>
-						{displayCancelButton && (
-							<StyledButton
-								testID={cancelTestID}
-								type={cancelButtonMode}
-								onPress={onCancelPress}
-								containerStyle={[styles.button, displayConfirmButton ? styles.cancel : {}]}
-							>
-								{cancelText}
-							</StyledButton>
-						)}
-						{displayConfirmButton && (
-							<StyledButton
-								testID={confirmTestID}
-								type={confirmButtonMode}
-								onPress={onConfirmPress}
-								containerStyle={[styles.button, displayCancelButton ? styles.confirm : {}]}
-								disabled={confirmDisabled}
-							>
-								{confirmText}
-							</StyledButton>
-						)}
-					</View>
-				</View>
-			</View>
+			<ActionContent
+				cancelTestID={cancelTestID}
+				confirmTestID={confirmTestID}
+				cancelText={cancelText}
+				confirmText={confirmText}
+				confirmDisabled={confirmDisabled}
+				cancelButtonMode={cancelButtonMode}
+				confirmButtonMode={confirmButtonMode}
+				displayCancelButton={displayCancelButton}
+				displayConfirmButton={displayConfirmButton}
+				onCancelPress={onCancelPress}
+				onConfirmPress={onConfirmPress}
+				viewWrapperStyle={viewWrapperStyle}
+				viewContainerStyle={viewContainerStyle}
+				actionContainerStyle={actionContainerStyle}
+				childrenContainerStyle={childrenContainerStyle}
+			>
+				{children}
+			</ActionContent>
 		</Modal>
 	);
 }
@@ -172,5 +136,25 @@ ActionModal.propTypes = {
 	/**
 	 * Whether modal is shown
 	 */
-	modalVisible: PropTypes.bool
+	modalVisible: PropTypes.bool,
+	/**
+	 * Modal style
+	 */
+	modalStyle: PropTypes.object,
+	/**
+	 * View wrapper style
+	 */
+	viewWrapperStyle: PropTypes.object,
+	/**
+	 * View container style
+	 */
+	viewContainerStyle: PropTypes.object,
+	/**
+	 * Action container style
+	 */
+	actionContainerStyle: PropTypes.object,
+	/**
+	 * Children container style
+	 */
+	childrenContainerStyle: PropTypes.object
 };

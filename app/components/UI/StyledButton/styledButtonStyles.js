@@ -65,6 +65,14 @@ const styles = StyleSheet.create({
 	cancelText: {
 		color: colors.grey400
 	},
+	signingCancel: {
+		backgroundColor: colors.white,
+		borderWidth: 1,
+		borderColor: colors.blue
+	},
+	signingCancelText: {
+		color: colors.blue
+	},
 	warning: {
 		backgroundColor: colors.red
 	},
@@ -76,6 +84,9 @@ const styles = StyleSheet.create({
 	warningText: {
 		color: colors.white
 	},
+	warningTextEmpty: {
+		color: colors.red
+	},
 	neutral: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
@@ -83,6 +94,14 @@ const styles = StyleSheet.create({
 	},
 	neutralText: {
 		color: colors.grey500
+	},
+	sign: {
+		backgroundColor: colors.blue,
+		borderWidth: 1,
+		borderColor: colors.blue
+	},
+	signText: {
+		color: colors.white
 	},
 	danger: {
 		backgroundColor: colors.red,
@@ -122,6 +141,10 @@ function getStyles(type) {
 			fontStyle = styles.cancelText;
 			containerStyle = styles.cancel;
 			break;
+		case 'signingCancel':
+			fontStyle = styles.signingCancelText;
+			containerStyle = styles.signingCancel;
+			break;
 		case 'transparent':
 			fontStyle = styles.whiteText;
 			containerStyle = styles.transparent;
@@ -135,7 +158,7 @@ function getStyles(type) {
 			containerStyle = styles.warning;
 			break;
 		case 'warning-empty':
-			fontStyle = styles.warningText;
+			fontStyle = styles.warningTextEmpty;
 			containerStyle = styles.transparent;
 			break;
 		case 'info':
@@ -149,6 +172,10 @@ function getStyles(type) {
 		case 'danger':
 			fontStyle = styles.confirmText;
 			containerStyle = styles.danger;
+			break;
+		case 'sign':
+			fontStyle = styles.signText;
+			containerStyle = styles.sign;
 			break;
 		default:
 			throw new Error('Unknown button type');

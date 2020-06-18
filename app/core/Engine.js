@@ -17,7 +17,7 @@ import {
 	TokenRatesController,
 	TransactionController,
 	TypedMessageManager
-} from 'gaba';
+} from '@metamask/controllers';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -27,14 +27,14 @@ import Networks from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
-import TransactionsNotificationManager from './TransactionsNotificationManager';
+import NotificationManager from './NotificationManager';
 import contractMap from 'eth-contract-metadata';
 
 const OPENSEA_API_KEY = process.env['MM_OPENSEA_KEY']; // eslint-disable-line dot-notation
 const encryptor = new Encryptor();
 let refreshing = false;
 /**
- * Core controller responsible for composing other GABA controllers together
+ * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
  */
 class Engine {
@@ -204,7 +204,7 @@ class Engine {
 					lastCheck: Date.now()
 				};
 
-				TransactionsNotificationManager.gotIncomingTransaction(newlastIncomingTxBlock);
+				NotificationManager.gotIncomingTransaction(newlastIncomingTxBlock);
 			} else {
 				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] = {
 					...allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`],

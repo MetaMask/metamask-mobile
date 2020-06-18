@@ -1,46 +1,33 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
-import { strings } from '../../../../locales/i18n';
+import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/Device';
+import NotificationManager from '../../../core/NotificationManager';
+import { strings } from '../../../../locales/i18n';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		minHeight: '90%',
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		paddingBottom: Device.isIphoneX() ? 20 : 0
-	},
-	informationRow: {
-		borderBottomColor: colors.grey200,
-		borderBottomWidth: 1,
-		padding: 20
-	},
-	messageLabelText: {
-		...fontStyles.normal,
-		margin: 5,
-		fontSize: 16
-	},
 	messageText: {
-		margin: 5,
 		color: colors.black,
 		...fontStyles.normal,
 		fontFamily: Device.isIos() ? 'Courier' : 'Roboto'
 	},
-	title: {
-		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 20,
-		color: colors.fontPrimary,
-		...fontStyles.bold
-	},
 	message: {
-		marginLeft: 20
+		marginLeft: 10
+	},
+	truncatedMessageWrapper: {
+		marginBottom: 4,
+		overflow: 'hidden'
+	},
+	iosHeight: {
+		height: 70
+	},
+	androidHeight: {
+		height: 97
 	},
 	msgKey: {
 		fontWeight: 'bold'
@@ -48,7 +35,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * PureComponent that supports eth_signTypedData and eth_signTypedData_v3
+ * Component that supports eth_signTypedData and eth_signTypedData_v3
  */
 export default class TypedSign extends PureComponent {
 	static propTypes = {
@@ -71,7 +58,33 @@ export default class TypedSign extends PureComponent {
 		/**
 		 * Object containing current page title and url
 		 */
-		currentPageInformation: PropTypes.object
+		currentPageInformation: PropTypes.object,
+		/**
+		 * Hides or shows the expanded signing message
+		 */
+		toggleExpandedMessage: PropTypes.func,
+		/**
+		 * Indicated whether or not the expanded message is shown
+		 */
+		showExpandedMessage: PropTypes.bool
+	};
+
+	state = {
+		truncateMessage: false
+	};
+
+	showWalletConnectNotification = (messageParams, confirmation = false) => {
+		InteractionManager.runAfterInteractions(() => {
+			messageParams.origin === WALLET_CONNECT_ORIGIN &&
+				NotificationManager.showSimpleNotification({
+					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
+					duration: 5000,
+					title: confirmation
+						? strings('notifications.wc_signed_title')
+						: strings('notifications.wc_signed_rejected_title'),
+					description: strings('notifications.wc_description')
+				});
+		});
 	};
 
 	signMessage = async () => {
@@ -82,6 +95,7 @@ export default class TypedSign extends PureComponent {
 		const cleanMessageParams = await TypedMessageManager.approveMessage(messageParams);
 		const rawSig = await KeyringController.signTypedMessage(cleanMessageParams, version);
 		TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
+		this.showWalletConnectNotification(messageParams, true);
 	};
 
 	rejectMessage = () => {
@@ -89,6 +103,7 @@ export default class TypedSign extends PureComponent {
 		const { TypedMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
 		TypedMessageManager.rejectMessage(messageId);
+		this.showWalletConnectNotification(messageParams);
 	};
 
 	cancelSignature = () => {
@@ -99,6 +114,17 @@ export default class TypedSign extends PureComponent {
 	confirmSignature = () => {
 		this.signMessage();
 		this.props.onConfirm();
+	};
+
+	shouldTruncateMessage = e => {
+		if (
+			(Device.isIos() && e.nativeEvent.layout.height > 70) ||
+			(Device.isAndroid() && e.nativeEvent.layout.height > 100)
+		) {
+			this.setState({ truncateMessage: true });
+			return;
+		}
+		this.setState({ truncateMessage: false });
 	};
 
 	renderTypedMessageV3 = obj =>
@@ -141,32 +167,44 @@ export default class TypedSign extends PureComponent {
 	};
 
 	render() {
-		const { messageParams, currentPageInformation } = this.props;
+		const { messageParams, currentPageInformation, showExpandedMessage, toggleExpandedMessage } = this.props;
+		const { truncateMessage } = this.state;
+		const messageWrapperStyles = [];
 		let domain;
 		if (messageParams.version === 'V3') {
 			domain = JSON.parse(messageParams.data).domain;
 		}
-		return (
-			<View style={styles.root}>
-				<View style={styles.titleWrapper}>
-					<Text style={styles.title} onPress={this.cancelSignature}>
-						{strings('signature_request.title')}
-					</Text>
+		if (truncateMessage) {
+			messageWrapperStyles.push(styles.truncatedMessageWrapper);
+			if (Device.isIos()) {
+				messageWrapperStyles.push(styles.iosHeight);
+			} else {
+				messageWrapperStyles.push(styles.androidHeight);
+			}
+		}
+
+		const rootView = showExpandedMessage ? (
+			<ExpandedMessage
+				currentPageInformation={currentPageInformation}
+				renderMessage={this.renderTypedMessage}
+				toggleExpandedMessage={toggleExpandedMessage}
+			/>
+		) : (
+			<SignatureRequest
+				navigation={this.props.navigation}
+				onCancel={this.cancelSignature}
+				onConfirm={this.confirmSignature}
+				toggleExpandedMessage={toggleExpandedMessage}
+				domain={domain}
+				currentPageInformation={currentPageInformation}
+				truncateMessage={truncateMessage}
+				type="typedSign"
+			>
+				<View style={messageWrapperStyles} onLayout={truncateMessage ? null : this.shouldTruncateMessage}>
+					{this.renderTypedMessage()}
 				</View>
-				<SignatureRequest
-					navigation={this.props.navigation}
-					onCancel={this.cancelSignature}
-					onConfirm={this.confirmSignature}
-					domain={domain}
-					currentPageInformation={currentPageInformation}
-					type="typedSign"
-				>
-					<View style={styles.informationRow}>
-						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						{this.renderTypedMessage()}
-					</View>
-				</SignatureRequest>
-			</View>
+			</SignatureRequest>
 		);
+		return rootView;
 	}
 }

@@ -6,10 +6,10 @@ import {
 	View,
 	TouchableOpacity,
 	TextInput,
-	Clipboard,
 	Alert,
 	InteractionManager
 } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
@@ -27,18 +27,25 @@ import CustomGas from '../../SendFlow/CustomGas';
 import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
-import { BNToHex, hexToBN } from 'gaba/dist/util';
+import { util } from '@metamask/controllers';
 import { renderFromWei, weiToFiatNumber, isBN, renderFromTokenMinimalUnit, isDecimal } from '../../../../util/number';
-import { getTicker, decodeTransferData, generateApproveData } from '../../../../util/transactions';
+import {
+	getTicker,
+	decodeTransferData,
+	generateApproveData,
+	getNormalizedTxState
+} from '../../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ErrorMessage from '../../SendFlow/ErrorMessage';
 import { showAlert } from '../../../../actions/alert';
 import Feather from 'react-native-vector-icons/Feather';
-import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
+import NotificationManager from '../../../../core/NotificationManager';
 import Identicon from '../../../UI/Identicon';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import Device from '../../../../util/Device';
 
+const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
@@ -260,6 +267,32 @@ const styles = StyleSheet.create({
 		color: colors.grey500,
 		fontSize: 14,
 		lineHeight: 20
+	},
+	actionModal: {
+		justifyContent: 'flex-end',
+		alignItems: 'center',
+		width: '100%'
+	},
+	viewWrapperStyle: {
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		marginHorizontal: 0,
+		backgroundColor: colors.white,
+		paddingBottom: Device.isIphoneX() ? 24 : 0
+	},
+	viewContainerStyle: {
+		borderRadius: 20
+	},
+	actionContainerStyle: {
+		borderTopWidth: 0
+	},
+	childrenContainerStyle: {
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		width: '100%',
+		backgroundColor: colors.white,
+		paddingTop: 24,
+		paddingHorizontal: 24
 	}
 });
 
@@ -344,6 +377,7 @@ class Approve extends PureComponent {
 		totalGasFiat: undefined,
 		tokenSymbol: undefined,
 		tokenDecimals: undefined,
+		ready: false,
 		spendLimitUnlimitedSelected: true,
 		spendLimitCustomValue: undefined,
 		ticker: getTicker(this.props.ticker),
@@ -448,32 +482,38 @@ class Approve extends PureComponent {
 		this.setState({ customGas: gas, customGasPrice: gasPrice, customGasSelected, gasError: error });
 	};
 
+	ready = () => {
+		this.setState({ ready: true });
+	};
+
 	renderCustomGasModal = () => {
-		const { customGasModalVisible, currentCustomGasSelected, gasError } = this.state;
+		const { customGasModalVisible, currentCustomGasSelected, gasError, ready } = this.state;
 		const { gas, gasPrice } = this.props.transaction;
 		return (
 			<ActionModal
-				modalVisible={customGasModalVisible}
-				confirmText={strings('transaction.set_gas')}
-				cancelText={strings('transaction.cancel_gas')}
-				confirmDisabled={!!gasError}
-				onCancelPress={this.toggleCustomGasModal}
-				onRequestClose={this.toggleCustomGasModal}
-				onConfirmPress={this.handleSetGasFee}
-				cancelButtonMode={'neutral'}
+				confirmText={strings('custom_gas.save')}
+				confirmDisabled={!!gasError || !ready}
 				confirmButtonMode={'confirm'}
+				displayCancelButton={false}
+				onConfirmPress={this.handleSetGasFee}
+				onRequestClose={this.toggleCustomGasModal}
+				modalVisible={customGasModalVisible}
+				modalStyle={styles.actionModal}
+				viewWrapperStyle={styles.viewWrapperStyle}
+				viewContainerStyle={styles.viewContainerStyle}
+				actionContainerStyle={styles.actionContainerStyle}
+				childrenContainerStyle={styles.childrenContainerStyle}
 			>
-				<View style={baseStyles.flexGrow}>
-					<View style={styles.customGasModalTitle}>
-						<Text style={styles.customGasModalTitleText}>{strings('transaction.transaction_fee')}</Text>
-					</View>
-					<CustomGas
-						selected={currentCustomGasSelected}
-						handleGasFeeSelection={this.handleGasFeeSelection}
-						gas={gas}
-						gasPrice={gasPrice}
-					/>
-				</View>
+				<CustomGas
+					selected={currentCustomGasSelected}
+					handleGasFeeSelection={this.handleGasFeeSelection}
+					gas={gas}
+					gasPrice={gasPrice}
+					gasError={gasError}
+					toggleCustomGasModal={this.toggleCustomGasModal}
+					handleSetGasFee={this.handleSetGasFee}
+					parentStateReady={this.ready}
+				/>
 			</ActionModal>
 		);
 	};
@@ -702,7 +742,7 @@ class Approve extends PureComponent {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ approved: true });
 					this.props.navigation.pop();
-					TransactionsNotificationManager.watchSubmittedTransaction({
+					NotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
 						assetType: 'ETH'
 					});
@@ -894,7 +934,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: state.transaction,
+	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,

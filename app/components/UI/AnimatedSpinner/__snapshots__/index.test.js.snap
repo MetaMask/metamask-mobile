@@ -12,7 +12,7 @@ exports[`AnimatedSpinner should render correctly 1`] = `
     }
   }
 >
-  <AnimatedComponent
+  <ForwardRef(AnimatedComponentWrapper)
     style={
       Array [
         Object {
@@ -34,10 +34,10 @@ exports[`AnimatedSpinner should render correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      color="#F758AC"
+      color="#037DD6"
       name="loading"
       size={36}
     />
-  </AnimatedComponent>
+  </ForwardRef(AnimatedComponentWrapper)>
 </View>
 `;

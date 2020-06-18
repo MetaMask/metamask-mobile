@@ -1,7 +1,7 @@
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
-import TransactionsNotificationManager from '../core/TransactionsNotificationManager';
+import NotificationManager from '../core/NotificationManager';
 import { NativeModules, View } from 'react-native';
 import mockAsyncStorage from '../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';
 
@@ -56,10 +56,10 @@ jest.mock('react-native-fs', () => ({
 
 Date.now = jest.fn(() => 123);
 
-jest.mock('../core/TransactionsNotificationManager', () => ({
-	init: () => TransactionsNotificationManager.init({}),
+jest.mock('../core/NotificationManager', () => ({
+	init: () => NotificationManager.init({}),
 	getTransactionToView: () => null,
-	setTransactionToView: id => TransactionsNotificationManager.setTransactionToView(id),
+	setTransactionToView: id => NotificationManager.setTransactionToView(id),
 	gotIncomingTransaction: () => null
 }));
 
@@ -123,4 +123,8 @@ NativeModules.PlatformConstants = {
 	forceTouchAvailable: false
 };
 
-jest.mock('NativeAnimatedHelper');
+jest.mock('react-native/Libraries/Components/Touchable/TouchableOpacity', () => 'TouchableOpacity');
+jest.mock('react-native/Libraries/Components/Touchable/TouchableHighlight', () => 'TouchableHighlight');
+jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => 'TextInput');
+
+jest.mock('react-native/Libraries/Animated/src/NativeAnimatedHelper');

@@ -1,4 +1,21 @@
 {
+	"date": {
+		"months": {
+			"0": "Jan",
+			"1": "Feb",
+			"2": "Mar",
+			"3": "Apr",
+			"4": "May",
+			"5": "Jun",
+			"6": "Jul",
+			"7": "Aug",
+			"8": "Sept",
+			"9": "Oct",
+			"10": "Nov",
+			"11": "Dec"
+		},
+		"connector": "at"
+	},
 	"autocomplete": {
 		"placeholder": "Search or Type URL"
 	},
@@ -464,7 +481,7 @@
 		"cancel": "Cancel",
 		"speedup": "Speed up",
 		"from": "From",
-		"gas_fee": "Transaction Fee",
+		"gas_fee": "Network fee",
 		"gas_fee_fast": "FAST",
 		"gas_fee_average": "AVERAGE",
 		"gas_fee_slow": "SLOW",
@@ -474,6 +491,7 @@
 		"review_function_type": "FUNCTION TYPE",
 		"review_hex_data": "HEX DATA",
 		"insufficient": "Insufficient funds",
+		"insufficient_tokens": "Insufficient {{token}}",
 		"invalid_address": "Invalid address",
 		"invalid_amount": "Invalid amount",
 		"invalid_gas": "Invalid gas amount",
@@ -498,12 +516,14 @@
 		"speedup_tx_title": "Attempt to speed up?",
 		"speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
 		"nevermind": "Nevermind",
+		"edit_network_fee": "Edit Network Fee",
 		"gas_cancel_fee": "Gas Cancellation Fee",
 		"gas_speedup_fee": "Gas Speed Up fee",
 		"use_max": "Use max",
 		"set_gas": "Set",
 		"cancel_gas": "Cancel",
 		"transaction_fee": "Transaction fee",
+		"transaction_fee_less": "No fee",
 		"total_amount": "Total amount",
 		"adjust_transaction_fee": "Adjust transaction fee",
 		"could_not_resolve_ens": "Couldn't resolve ENS",
@@ -513,11 +533,13 @@
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced",
+		"basic_options": "Basic",
 		"hide_advanced_options": "Hide advanced",
 		"gas_limit": "Gas Limit:",
 		"gas_price": "Gas Price: (GWEI)",
+		"save": "Save",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
-		"cost_explanation": "This is the cost for processing this payment on the blockchain."
+		"cost_explanation": "Select the network fee you are willing to pay. The higher the fee, the better chances and faster your transaction will go through."
 	},
 	"spend_limit_edition": {
 		"save": "Save",
@@ -557,7 +579,6 @@
 		"bookmark": "Bookmark",
 		"add_to_favorites": "Add to Favorites",
 		"error": "Ooops!",
-		"bookmark_already_exists": "You already bookmarked this url",
 		"cancel": "Cancel",
 		"go_back": "Go back",
 		"go_forward": "Go forward",
@@ -637,12 +658,15 @@
 		"gas_price": "Gas Price (GWEI)",
 		"total": "Total",
 		"view_on": "VIEW ON",
-		"view_on_etherscan": "VIEW ON ETHERSCAN",
+		"view_on_etherscan": "View on Etherscan",
 		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
 		"address_copied_to_clipboard": "Address copied to clipboard",
 		"transaction_error": "Transaction error",
 		"address_to_placeholder": "Search, public address (0x), or ENS",
-		"address_from_balance": "Balance:"
+		"address_from_balance": "Balance:",
+		"status": "Status",
+		"date": "Date",
+		"nonce": "Nonce"
 	},
 	"address_book": {
 		"recents": "Recents",
@@ -672,7 +696,7 @@
 	"transaction_submitted": {
 		"title": "Transaction Submitted",
 		"your_tx_hash_is": "Your transaction hash is:",
-		"view_on_etherscan": "VIEW ON ETHERSCAN"
+		"view_on_etherscan": "View on Etherscan"
 	},
 	"sync_with_extension": {
 		"title": "Sync data from Extension",
@@ -713,15 +737,17 @@
 	},
 	"signature_request": {
 		"title": "Signature Request",
-		"cancel": "CANCEL",
-		"sign": "SIGN",
+		"cancel": "Cancel",
+		"sign": "Sign",
 		"sign_requested": "Your signature is being requested",
-		"signing": "You are signing:",
+		"signing": "Sign this message?",
 		"account_title": "Account:",
 		"balance_title": "Balance:",
-		"message": "Message:",
+		"message": "Message",
+		"message_from": "Message from",
 		"learn_more": "Learn More",
-		"eth_sign_warning": "Signing this message can have dangerous side effects. Only sign messages from sites you fully trust with your entire account. This dangerous method will be removed in a future version."
+		"read_more": "Read more",
+		"eth_sign_warning": "Proceed with caution. This action can potentially be used to withdraw assets from your account. Make sure you trust this site."
 	},
 	"watch_asset_request": {
 		"title": "Add Suggested Token",
@@ -764,9 +790,9 @@
 	"accountApproval": {
 		"title": "CONNECT REQUEST",
 		"walletconnect_title": "WALLETCONNECT REQUEST",
-		"action": "would like to",
-		"connect": "CONNECT",
-		"cancel": "CANCEL",
+		"action": "Connect to this site?",
+		"connect": "Connect",
+		"cancel": "Cancel",
 		"permission": "View your",
 		"address": "public address",
 		"sign_messages": "Sign messages",
@@ -900,7 +926,7 @@
 		"back_to_safety": "Back to safety"
 	},
 	"notifications": {
-		"pending_title": "Transaction submitted!",
+		"pending_title": "Transaction submitted",
 		"pending_deposit_title": "Deposit in progress!",
 		"pending_withdrawal_title": "Withdrawal in progress!",
 		"cancelled_title": "Transaction cancelled!",
@@ -909,9 +935,9 @@
 		"success_deposit_title": "Deposit Complete!",
 		"success_withdrawal_title": "Withdrawal Complete!",
 		"error_title": "Oops, something went wrong :/",
-		"received_title": "You received {{amount}} {{assetType}}!",
+		"received_title": "You received {{amount}} {{assetType}}",
 		"received_payment_title": "Instant payment received",
-		"pending_message": "Waiting for confirmation...",
+		"pending_message": "Waiting for confirmation",
 		"pending_deposit_message": "Waiting for deposit to complete",
 		"pending_withdrawal_message": "Waiting for withdrawal to complete",
 		"error_message": "Tap to view this transaction",
@@ -925,7 +951,14 @@
 		"prompt_title": "Enable Push Notifications",
 		"prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
 		"prompt_ok": "Yes",
-		"prompt_cancel": "No, thanks"
+		"prompt_cancel": "No, thanks",
+		"wc_connected_title": "Connected to {{title}}",
+		"wc_signed_title": "Signed",
+		"wc_sent_tx_title": "Sent transaction",
+		"wc_connected_rejected_title": "You’ve rejected the connect request",
+		"wc_signed_rejected_title": "You’ve rejected the sign request",
+		"wc_sent_tx_rejected_title": "You’ve rejected the transaction request",
+		"wc_description": "Go back to the browser"
 	},
 	"secure_your_wallet_modal": {
 		"title": "Secure your wallet",
@@ -1042,6 +1075,9 @@
 		"deposit_amount": "Amount to deposit",
 		"load_funds": "Load Funds",
 		"insta_pay": "InstaPay",
+		"insta_pay_send_to": "InstaPay: Send to",
+		"insta_pay_amount": "InstaPay: Amount",
+		"insta_pay_confirm": "InstaPay: Confirm",
 		"welcome": {
 			"title": "Welcome to InstaPay!",
 			"desc_1": "This is an experimental Layer 2 feature to let you send assets to friends without transaction fees.",

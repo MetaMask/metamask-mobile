@@ -31,13 +31,19 @@ describe('Confirm', () => {
 					},
 					TokenBalancesController: {
 						contractBalances: {}
+					},
+					PreferencesController: {
+						identities: {}
+					},
+					KeyringController: {
+						keyrings: {}
 					}
 				}
 			},
 			settings: {
 				showHexData: true
 			},
-			newTransaction: {
+			transaction: {
 				selectedAsset: {},
 				transaction: {
 					from: '0x1',

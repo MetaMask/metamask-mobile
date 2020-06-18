@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import {
 	Alert,
-	Clipboard,
 	Linking,
 	TouchableOpacity,
 	View,
@@ -11,6 +10,7 @@ import {
 	ScrollView,
 	InteractionManager
 } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -49,7 +49,7 @@ import EthereumAddress from '../EthereumAddress';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
-import { newAssetTransaction } from '../../../actions/newTransaction';
+import { newAssetTransaction } from '../../../actions/transaction';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -63,16 +63,6 @@ const styles = StyleSheet.create({
 		height: Device.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0
-	},
-	settings: {
-		paddingHorizontal: 12,
-		alignSelf: 'flex-end',
-		alignItems: 'center',
-		marginRight: 3,
-		marginTop: Device.isAndroid() ? -3 : -10
-	},
-	settingsIcon: {
-		marginBottom: 12
 	},
 	metamaskLogo: {
 		flexDirection: 'row',
@@ -592,7 +582,7 @@ class DrawerView extends PureComponent {
 	};
 	handleURL = url => {
 		const handleError = error => {
-			console.log(error);
+			console.warn(error);
 			this.closeSubmitFeedback();
 		};
 		if (USE_EXTERNAL_LINKS) {
@@ -765,15 +755,23 @@ class DrawerView extends PureComponent {
 			],
 			[
 				{
+					name: strings('drawer.settings'),
+					icon: this.getFeatherIcon('settings'),
+					action: this.showSettings
+				},
+				{
 					name: strings('drawer.help'),
+					icon: this.getFeatherIcon('help-circle'),
 					action: this.showHelp
 				},
 				{
 					name: strings('drawer.submit_feedback'),
+					icon: this.getFeatherIcon('message-square'),
 					action: this.submitFeedback
 				},
 				{
 					name: strings('drawer.logout'),
+					icon: this.getFeatherIcon('log-out'),
 					action: this.logout
 				}
 			]
@@ -848,13 +846,6 @@ class DrawerView extends PureComponent {
 							<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
 							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 						</View>
-						<TouchableOpacity
-							style={styles.settings}
-							testID={`settings-button`}
-							onPress={this.showSettings}
-						>
-							<FeatherIcon name="settings" size={22} style={styles.settingsIcon} />
-						</TouchableOpacity>
 					</View>
 					<View style={styles.account}>
 						<View style={styles.accountBgOverlay}>

@@ -124,7 +124,6 @@ exports[`TransactionEdit should render correctly 1`] = `
             :
           </Text>
           <TouchableOpacity
-            activeOpacity={0.2}
             onPress={[Function]}
           >
             <Text
@@ -271,12 +270,10 @@ exports[`TransactionEdit should render correctly 1`] = `
           </Text>
         </View>
         <TextInput
-          allowFontScaling={true}
           multiline={true}
           onChangeText={[Function]}
           placeholder="Optional"
           placeholderTextColor="#d6d9dc"
-          rejectResponderTermination={true}
           style={
             Object {
               "backgroundColor": "#FFFFFF",
@@ -292,7 +289,6 @@ exports[`TransactionEdit should render correctly 1`] = `
               "paddingVertical": 6,
             }
           }
-          underlineColorAndroid="transparent"
         />
       </View>
     </View>

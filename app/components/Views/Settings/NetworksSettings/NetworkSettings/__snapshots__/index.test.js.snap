@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NetworkSettings should render correctly 1`] = `
-<SafeAreaView
+<ForwardRef(SafeAreaView)
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -74,14 +74,12 @@ exports[`NetworkSettings should render correctly 1`] = `
         Network Name
       </Text>
       <TextInput
-        allowFontScaling={true}
         autoCapitalize="none"
         autoCorrect={false}
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Network Name (optional)"
         placeholderTextColor="#d6d9dc"
-        rejectResponderTermination={true}
         style={
           Array [
             Object {
@@ -92,11 +90,12 @@ exports[`NetworkSettings should render correctly 1`] = `
               "fontWeight": "400",
               "padding": 10,
             },
-            Object {},
+            Object {
+              "width": "99%",
+            },
           ]
         }
         testID="input-network-name"
-        underlineColorAndroid="transparent"
       />
       <Text
         style={
@@ -112,7 +111,6 @@ exports[`NetworkSettings should render correctly 1`] = `
         RPC Url
       </Text>
       <TextInput
-        allowFontScaling={true}
         autoCapitalize="none"
         autoCorrect={false}
         onBlur={[Function]}
@@ -120,7 +118,6 @@ exports[`NetworkSettings should render correctly 1`] = `
         onSubmitEditing={[Function]}
         placeholder="New RPC Network"
         placeholderTextColor="#d6d9dc"
-        rejectResponderTermination={true}
         style={
           Array [
             Object {
@@ -131,11 +128,12 @@ exports[`NetworkSettings should render correctly 1`] = `
               "fontWeight": "400",
               "padding": 10,
             },
-            Object {},
+            Object {
+              "width": "99%",
+            },
           ]
         }
         testID="input-rpc-url"
-        underlineColorAndroid="transparent"
       />
       <Text
         style={
@@ -151,7 +149,6 @@ exports[`NetworkSettings should render correctly 1`] = `
         Chain ID
       </Text>
       <TextInput
-        allowFontScaling={true}
         autoCapitalize="none"
         autoCorrect={false}
         keyboardType="numeric"
@@ -160,7 +157,6 @@ exports[`NetworkSettings should render correctly 1`] = `
         onSubmitEditing={[Function]}
         placeholder="Chain ID (optional)"
         placeholderTextColor="#d6d9dc"
-        rejectResponderTermination={true}
         style={
           Array [
             Object {
@@ -171,10 +167,11 @@ exports[`NetworkSettings should render correctly 1`] = `
               "fontWeight": "400",
               "padding": 10,
             },
-            Object {},
+            Object {
+              "width": "99%",
+            },
           ]
         }
-        underlineColorAndroid="transparent"
       />
       <Text
         style={
@@ -190,14 +187,12 @@ exports[`NetworkSettings should render correctly 1`] = `
         Symbol
       </Text>
       <TextInput
-        allowFontScaling={true}
         autoCapitalize="none"
         autoCorrect={false}
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Symbol (optional)"
         placeholderTextColor="#d6d9dc"
-        rejectResponderTermination={true}
         style={
           Array [
             Object {
@@ -208,11 +203,12 @@ exports[`NetworkSettings should render correctly 1`] = `
               "fontWeight": "400",
               "padding": 10,
             },
-            Object {},
+            Object {
+              "width": "99%",
+            },
           ]
         }
         testID="input-network-symbol"
-        underlineColorAndroid="transparent"
       />
       <Text
         style={
@@ -228,14 +224,12 @@ exports[`NetworkSettings should render correctly 1`] = `
         Block Explorer URL
       </Text>
       <TextInput
-        allowFontScaling={true}
         autoCapitalize="none"
         autoCorrect={false}
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Block Explorer URL (optional)"
         placeholderTextColor="#d6d9dc"
-        rejectResponderTermination={true}
         style={
           Array [
             Object {
@@ -246,10 +240,11 @@ exports[`NetworkSettings should render correctly 1`] = `
               "fontWeight": "400",
               "padding": 10,
             },
-            Object {},
+            Object {
+              "width": "99%",
+            },
           ]
         }
-        underlineColorAndroid="transparent"
       />
     </View>
     <View
@@ -291,5 +286,5 @@ exports[`NetworkSettings should render correctly 1`] = `
       </View>
     </View>
   </KeyboardAwareScrollViewMock>
-</SafeAreaView>
+</ForwardRef(SafeAreaView)>
 `;

@@ -21,7 +21,6 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
-import RNFS from 'react-native-fs';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { connect } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge';
@@ -55,15 +54,17 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
-import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import { resemblesAddress } from '../../../util/address';
 
 import createAsyncMiddleware from 'json-rpc-engine/src/createAsyncMiddleware';
 import { ethErrors } from 'eth-json-rpc-errors';
 
+import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
+
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
+const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -219,13 +220,6 @@ const styles = StyleSheet.create({
 	},
 	fullScreenModal: {
 		flex: 1
-	},
-	backupAlert: {
-		zIndex: 99999999,
-		position: 'absolute',
-		bottom: Device.isIos() ? (Device.isIphoneX() ? 100 : 90) : 70,
-		left: 16,
-		right: 16
 	}
 });
 
@@ -349,15 +343,6 @@ export class BrowserTab extends PureComponent {
 		 */
 		wizardStep: PropTypes.number,
 		/**
-		 * redux flag that indicates if the user set a password
-		 */
-		passwordSet: PropTypes.bool,
-		/**
-		 * redux flag that indicates if the user
-		 * completed the seed phrase backup flow
-		 */
-		seedphraseBackedUp: PropTypes.bool,
-		/**
 		 * the current version of the app
 		 */
 		app_version: PropTypes.string
@@ -407,6 +392,7 @@ export class BrowserTab extends PureComponent {
 	wizardScrollAdjusted = false;
 	isReloading = false;
 	approvalRequest;
+	analyticsDistinctId;
 
 	/**
 	 * Check that page metadata is available and call callback
@@ -734,17 +720,18 @@ export class BrowserTab extends PureComponent {
 		});
 
 	init = async () => {
-		const entryScriptWeb3 = Device.isIos()
-			? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
-			: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
+		const entryScriptWeb3 = await EntryScriptWeb3.get();
 
 		const analyticsEnabled = Analytics.getEnabled();
+		const disctinctId = await Analytics.getDistinctId();
 
 		const homepageScripts = `
       window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
       window.__mmSearchEngine = "${this.props.searchEngine}";
       window.__mmMetametrics = ${analyticsEnabled};
-    `;
+	  window.__mmDistinctId = "${disctinctId}";
+      window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+	  `;
 
 		await this.setState({ entryScriptWeb3: entryScriptWeb3 + SPA_urlChangeListener, homepageScripts });
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
@@ -795,9 +782,8 @@ export class BrowserTab extends PureComponent {
 			Logger.error(error, 'Error from Branch');
 			return;
 		}
-		if (params['+non_branch_link']) {
-			this.handleBranchDeeplink(params['+non_branch_link']);
-		} else if (params.spotlight_identifier) {
+		// QA THIS
+		if (params.spotlight_identifier) {
 			setTimeout(() => {
 				this.props.navigation.setParams({
 					url: params.spotlight_identifier,
@@ -837,22 +823,24 @@ export class BrowserTab extends PureComponent {
 		}
 	}
 
-	refreshHomeScripts() {
+	refreshHomeScripts = async () => {
 		const analyticsEnabled = Analytics.getEnabled();
-
+		const disctinctId = await Analytics.getDistinctId();
 		const homepageScripts = `
       window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
       window.__mmSearchEngine="${this.props.searchEngine}";
-      window.__mmMetametrics = ${analyticsEnabled};
-      window.postMessage('updateFavorites', '*');
-    `;
+	  window.__mmMetametrics = ${analyticsEnabled};
+	  window.__mmDistinctId = "${disctinctId}";
+	  window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+	  window.postMessage('updateFavorites', '*');
+	`;
 		this.setState({ homepageScripts }, () => {
 			const { current } = this.webview;
 			if (current) {
 				current.injectJavaScript(homepageScripts);
 			}
 		});
-	}
+	};
 
 	setTabActive() {
 		this.setState({ activated: true });
@@ -1144,6 +1132,7 @@ export class BrowserTab extends PureComponent {
 		// As we're reloading to other url we should remove this callback
 		this.approvalRequest = undefined;
 		const url2Reload = this.state.inputValue;
+
 		// Force unmount the webview to avoid caching problems
 		this.setState({ forceReload: true }, () => {
 			// Make sure we're not calling last mounted webview during this time threshold
@@ -1167,11 +1156,6 @@ export class BrowserTab extends PureComponent {
 
 	addBookmark = () => {
 		this.toggleOptionsIfNeeded();
-		// Check it doesn't exist already
-		if (this.props.bookmarks.filter(i => i.url === this.state.inputValue).length) {
-			Alert.alert(strings('browser.error'), strings('browser.bookmark_already_exists'));
-			return false;
-		}
 		this.checkForPageMeta(() =>
 			this.props.navigation.push('AddBookmarkView', {
 				title: this.state.currentPageTitle || '',
@@ -1193,16 +1177,19 @@ export class BrowserTab extends PureComponent {
 						}
 					}
 					const analyticsEnabled = Analytics.getEnabled();
-
+					const disctinctId = await Analytics.getDistinctId();
 					const homepageScripts = `
             window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
             window.__mmSearchEngine="${this.props.searchEngine}";
-            window.__mmMetametrics = ${analyticsEnabled};
+			window.__mmMetametrics = ${analyticsEnabled};
+			window.__mmDistinctId = "${disctinctId}";
+			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
           `;
 					this.setState({ homepageScripts });
 				}
 			})
 		);
+
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
 	};
 
@@ -1498,14 +1485,16 @@ export class BrowserTab extends PureComponent {
 						{strings('browser.reload')}
 					</Text>
 				</Button>
-				<Button onPress={this.addBookmark} style={styles.option}>
-					<View style={styles.optionIconWrapper}>
-						<Icon name="star" size={16} style={styles.optionIcon} />
-					</View>
-					<Text style={styles.optionText} numberOfLines={1}>
-						{strings('browser.add_to_favorites')}
-					</Text>
-				</Button>
+				{!this.isBookmark() && (
+					<Button onPress={this.addBookmark} style={styles.option}>
+						<View style={styles.optionIconWrapper}>
+							<Icon name="star" size={16} style={styles.optionIcon} />
+						</View>
+						<Text style={styles.optionText} numberOfLines={1}>
+							{strings('browser.add_to_favorites')}
+						</Text>
+					</Button>
+				)}
 				<Button onPress={this.share} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="share" size={15} style={styles.optionIcon} />
@@ -1625,6 +1614,7 @@ export class BrowserTab extends PureComponent {
 			>
 				<View style={styles.urlModalContent} testID={'url-modal'}>
 					<TextInput
+						keyboardType="web-search"
 						ref={this.inputRef}
 						autoCapitalize="none"
 						autoCorrect={false}
@@ -1865,6 +1855,12 @@ export class BrowserTab extends PureComponent {
 		return activeTab === id;
 	};
 
+	isBookmark = () => {
+		const { bookmarks, navigation } = this.props;
+		const currentUrl = navigation.getParam('url', null);
+		return bookmarks.some(({ url }) => url === currentUrl);
+	};
+
 	isHomepage = (url = null) => {
 		const currentPage = url || this.state.inputValue;
 		const { host: currentHost, pathname: currentPathname } = getUrlObj(currentPage);
@@ -1933,9 +1929,6 @@ export class BrowserTab extends PureComponent {
 				{!isHidden && this.renderOptions()}
 				{!isHidden && this.renderBottomBar()}
 				{!isHidden && this.renderOnboardingWizard()}
-				{!isHidden && this.props.passwordSet && !this.props.seedphraseBackedUp && (
-					<BackupAlert onPress={this.backupAlertPress} style={styles.backupAlert} />
-				)}
 			</View>
 		);
 	}
@@ -1952,9 +1945,7 @@ const mapStateToProps = state => ({
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
 	activeTab: state.browser.activeTab,
-	wizardStep: state.wizard.step,
-	seedphraseBackedUp: state.user.seedphraseBackedUp,
-	passwordSet: state.user.passwordSet
+	wizardStep: state.wizard.step
 });
 
 const mapDispatchToProps = dispatch => ({

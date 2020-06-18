@@ -42,6 +42,7 @@ yarn-error.log
 buck-out/
 \.buckd/
 *.keystore
+!debug.keystore
 
 # fastlane
 */fastlane/report.xml
@@ -69,3 +70,6 @@ coverage
 
 # editor
 .vscode
+
+# CocoaPods
+/ios/Pods/

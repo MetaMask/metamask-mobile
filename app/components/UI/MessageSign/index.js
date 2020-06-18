@@ -1,42 +1,27 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
+import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
+import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/Device';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		minHeight: '90%',
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		paddingBottom: Device.isIphoneX() ? 20 : 0
-	},
-	informationRow: {
-		borderBottomColor: colors.grey200,
-		borderBottomWidth: 1,
-		padding: 20
-	},
-	messageLabelText: {
-		...fontStyles.normal,
-		margin: 5,
-		fontSize: 16
-	},
-	title: {
+	expandedMessage: {
 		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 20,
-		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.regular,
+		fontSize: 14
+	},
+	messageWrapper: {
+		marginBottom: 4
 	}
 });
 
 /**
- * PureComponent that supports eth_sign
+ * Component that supports eth_sign
  */
 export default class MessageSign extends PureComponent {
 	static propTypes = {
@@ -59,7 +44,33 @@ export default class MessageSign extends PureComponent {
 		/**
 		 * Object containing current page title and url
 		 */
-		currentPageInformation: PropTypes.object
+		currentPageInformation: PropTypes.object,
+		/**
+		 * Hides or shows the expanded signing message
+		 */
+		toggleExpandedMessage: PropTypes.func,
+		/**
+		 * Indicated whether or not the expanded message is shown
+		 */
+		showExpandedMessage: PropTypes.bool
+	};
+
+	state = {
+		truncateMessage: false
+	};
+
+	showWalletConnectNotification = (messageParams, confirmation = false) => {
+		InteractionManager.runAfterInteractions(() => {
+			messageParams.origin === WALLET_CONNECT_ORIGIN &&
+				NotificationManager.showSimpleNotification({
+					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
+					duration: 5000,
+					title: confirmation
+						? strings('notifications.wc_signed_title')
+						: strings('notifications.wc_signed_rejected_title'),
+					description: strings('notifications.wc_description')
+				});
+		});
 	};
 
 	signMessage = async () => {
@@ -69,6 +80,7 @@ export default class MessageSign extends PureComponent {
 		const cleanMessageParams = await MessageManager.approveMessage(messageParams);
 		const rawSig = await KeyringController.signMessage(cleanMessageParams);
 		MessageManager.setMessageStatusSigned(messageId, rawSig);
+		this.showWalletConnectNotification(messageParams, true);
 	};
 
 	rejectMessage = () => {
@@ -76,6 +88,7 @@ export default class MessageSign extends PureComponent {
 		const { MessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
 		MessageManager.rejectMessage(messageId);
+		this.showWalletConnectNotification(messageParams);
 	};
 
 	cancelSignature = () => {
@@ -88,29 +101,56 @@ export default class MessageSign extends PureComponent {
 		this.props.onConfirm();
 	};
 
+	renderMessageText = () => {
+		const { messageParams, showExpandedMessage } = this.props;
+		const { truncateMessage } = this.state;
+
+		let messageText;
+		if (showExpandedMessage) {
+			messageText = <Text style={styles.expandedMessage}>{messageParams.data}</Text>;
+		} else {
+			messageText = truncateMessage ? (
+				<Text numberOfLines={5} ellipsizeMode={'tail'}>
+					{messageParams.data}
+				</Text>
+			) : (
+				<Text onTextLayout={this.shouldTruncateMessage}>{messageParams.data}</Text>
+			);
+		}
+		return messageText;
+	};
+
+	shouldTruncateMessage = e => {
+		if (e.nativeEvent.lines.length > 5) {
+			this.setState({ truncateMessage: true });
+			return;
+		}
+		this.setState({ truncateMessage: false });
+	};
+
 	render() {
-		const { messageParams, currentPageInformation, navigation } = this.props;
-		return (
-			<View style={styles.root}>
-				<View style={styles.titleWrapper}>
-					<Text style={styles.title} onPress={this.cancelSignature}>
-						{strings('signature_request.title')}
-					</Text>
-				</View>
-				<SignatureRequest
-					navigation={navigation}
-					onCancel={this.cancelSignature}
-					onConfirm={this.confirmSignature}
-					currentPageInformation={currentPageInformation}
-					type="ethSign"
-					showWarning
-				>
-					<View style={styles.informationRow}>
-						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						<Text>{messageParams.data}</Text>
-					</View>
-				</SignatureRequest>
-			</View>
+		const { currentPageInformation, navigation, showExpandedMessage, toggleExpandedMessage } = this.props;
+		const rootView = showExpandedMessage ? (
+			<ExpandedMessage
+				currentPageInformation={currentPageInformation}
+				renderMessage={this.renderMessageText}
+				toggleExpandedMessage={toggleExpandedMessage}
+			/>
+		) : (
+			<SignatureRequest
+				navigation={navigation}
+				onCancel={this.cancelSignature}
+				onConfirm={this.confirmSignature}
+				currentPageInformation={currentPageInformation}
+				truncateMessage={this.state.truncateMessage}
+				showExpandedMessage={showExpandedMessage}
+				toggleExpandedMessage={toggleExpandedMessage}
+				type="ethSign"
+				showWarning
+			>
+				<View style={styles.messageWrapper}>{this.renderMessageText()}</View>
+			</SignatureRequest>
 		);
+		return rootView;
 	}
 }

@@ -26,7 +26,8 @@ const styles = StyleSheet.create({
 	},
 	iconWrapper: {
 		alignItems: 'center',
-		flexDirection: 'row'
+		flexDirection: 'row',
+		alignSelf: 'flex-start'
 	}
 });
 
@@ -46,5 +47,5 @@ WarningMessage.propTypes = {
 	/**
 	 * Warning message to display
 	 */
-	warningMessage: PropTypes.string
+	warningMessage: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
 };

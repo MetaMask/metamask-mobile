@@ -1,5 +1,15 @@
 import React, { PureComponent } from 'react';
-import { Dimensions, SafeAreaView, StyleSheet, View, Text, TextInput, TouchableOpacity, Clipboard } from 'react-native';
+import {
+	Dimensions,
+	SafeAreaView,
+	StyleSheet,
+	View,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	InteractionManager
+} from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
@@ -14,6 +24,7 @@ import { showAlert } from '../../../actions/alert';
 import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import PreventScreenshot from '../../../core/PreventScreenshot';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -169,7 +180,16 @@ class RevealPrivateCredential extends PureComponent {
 				}
 			}
 		}
+		InteractionManager.runAfterInteractions(() => {
+			PreventScreenshot.forbid();
+		});
 	}
+
+	componentWillUnmount = () => {
+		InteractionManager.runAfterInteractions(() => {
+			PreventScreenshot.allow();
+		});
+	};
 
 	cancel = () => {
 		const { navigation } = this.props;

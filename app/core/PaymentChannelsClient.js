@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import * as Connext from 'connext';
 import EthQuery from 'ethjs-query';
 
-import TransactionsNotificationManager from './TransactionsNotificationManager';
+import NotificationManager from './NotificationManager';
 import { hideMessage } from 'react-native-flash-message';
 import { toWei, toBN, renderFromWei, BNToHex } from '../util/number';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -141,7 +141,7 @@ class PaymentChannelsClient {
 									`${signedTx.transactionMeta.id}:confirmed`
 								);
 								setTimeout(() => {
-									TransactionsNotificationManager.showInstantPaymentNotification('pending_deposit');
+									NotificationManager.showInstantPaymentNotification('pending_deposit');
 								}, 1000);
 								resolve({
 									hash,
@@ -248,7 +248,7 @@ class PaymentChannelsClient {
 				if (lastKnownPaymentID < latestPaymentID) {
 					const amountToken = renderFromWei(latestPayment.amount.amountToken);
 					setTimeout(() => {
-						TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
+						NotificationManager.showIncomingPaymentNotification(amountToken);
 					}, 300);
 					await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
 				}
@@ -358,7 +358,7 @@ class PaymentChannelsClient {
 					.join('_');
 				hideMessage();
 				setTimeout(() => {
-					TransactionsNotificationManager.showInstantPaymentNotification(notification_type);
+					NotificationManager.showInstantPaymentNotification(notification_type);
 				}, 300);
 			}
 		}

@@ -21,7 +21,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ElevatedView from 'react-native-elevated-view';
 import CollectibleImage from '../CollectibleImage';
 import SelectableAsset from './SelectableAsset';
-import { getTicker } from '../../../util/transactions';
+import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
 
@@ -695,7 +695,7 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	transaction: state.transaction,
+	transaction: getNormalizedTxState(state),
 	primaryCurrency: state.settings.primaryCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });

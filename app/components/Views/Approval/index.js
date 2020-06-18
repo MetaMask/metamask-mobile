@@ -6,14 +6,15 @@ import TransactionEditor from '../../UI/TransactionEditor';
 import { BNToHex, hexToBN } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
-import { newTransaction } from '../../../actions/transaction';
+import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
-import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import NotificationManager from '../../../core/NotificationManager';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { getTransactionReviewActionKey } from '../../../util/transactions';
+import { getTransactionReviewActionKey, getNormalizedTxState } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { safeToChecksumAddress } from '../../../util/address';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -40,7 +41,7 @@ class Approval extends PureComponent {
 		/**
 		 * Action that cleans transaction state
 		 */
-		newTransaction: PropTypes.func.isRequired,
+		resetTransaction: PropTypes.func.isRequired,
 		/**
 		 * Transaction state
 		 */
@@ -137,12 +138,28 @@ class Approval extends PureComponent {
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
 	clear = () => {
-		this.props.newTransaction();
+		this.props.resetTransaction();
+	};
+
+	showWalletConnectNotification = (confirmation = false) => {
+		const { transaction } = this.props;
+		InteractionManager.runAfterInteractions(() => {
+			transaction.origin === WALLET_CONNECT_ORIGIN &&
+				NotificationManager.showSimpleNotification({
+					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
+					duration: 5000,
+					title: confirmation
+						? strings('notifications.wc_sent_tx_title')
+						: strings('notifications.wc_sent_tx_rejected_title'),
+					description: strings('notifications.wc_description')
+				});
+		});
 	};
 
 	onCancel = () => {
 		this.props.navigation.pop();
 		this.state.mode === REVIEW && this.trackOnCancel();
+		this.showWalletConnectNotification();
 	};
 
 	/**
@@ -166,7 +183,7 @@ class Approval extends PureComponent {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
 					this.props.navigation.pop();
-					TransactionsNotificationManager.watchSubmittedTransaction({
+					NotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
 						assetType: transaction.assetType
 					});
@@ -179,6 +196,7 @@ class Approval extends PureComponent {
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
+			this.showWalletConnectNotification(true);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
 				{ text: strings('navigation.ok') }
@@ -259,13 +277,13 @@ class Approval extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	transaction: state.transaction,
+	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
-	newTransaction: () => dispatch(newTransaction())
+	resetTransaction: () => dispatch(resetTransaction())
 });
 
 export default connect(

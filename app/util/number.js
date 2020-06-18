@@ -3,7 +3,7 @@
  */
 import { BN } from 'ethereumjs-util';
 import convert from 'ethjs-unit';
-import { util } from 'gaba';
+import { util } from '@metamask/controllers';
 import numberToBN from 'number-to-bn';
 import currencySymbols from '../util/currency-symbols.json';
 
@@ -287,12 +287,29 @@ export function renderToGwei(value, unit = 'ether') {
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
  */
-export function weiToFiat(wei, conversionRate, currencyCode) {
+export function weiToFiat(wei, conversionRate, currencyCode, decimalsToShow = 5) {
 	if (!conversionRate) return undefined;
 	if (!wei || !isBN(wei) || !conversionRate) {
+		if (currencySymbols[currencyCode]) {
+			return `${currencySymbols[currencyCode]}${0.0}`;
+		}
 		return `0.00 ${currencyCode}`;
 	}
-	const value = weiToFiatNumber(wei, conversionRate);
+	const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
+	if (currencySymbols[currencyCode]) {
+		return `${currencySymbols[currencyCode]}${value}`;
+	}
+	return `${value} ${currencyCode}`;
+}
+
+/**
+ * Adds currency symbol to a value
+ *
+ * @param {number} wei - BN corresponding to an amount of wei
+ * @param {string} currencyCode - Current currency code to display
+ * @returns {string} - Currency-formatted string
+ */
+export function addCurrencySymbol(value, currencyCode) {
 	if (currencySymbols[currencyCode]) {
 		return `${currencySymbols[currencyCode]}${value}`;
 	}

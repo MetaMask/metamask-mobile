@@ -1,56 +1,48 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
+import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
-import ActionView from '../ActionView';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { renderFromWei } from '../../../util/number';
-import Identicon from '../Identicon';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import WebsiteIcon from '../WebsiteIcon';
-import { renderAccountName } from '../../../util/address';
+import ActionView from '../ActionView';
+import AccountInfoCard from '../AccountInfoCard';
+import TransactionHeader from '../TransactionHeader';
+import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import Device from '../../../util/Device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { getHost } from '../../../util/browser';
 
 const styles = StyleSheet.create({
-	wrapper: {
+	root: {
 		backgroundColor: colors.white,
-		flex: 1
+		paddingTop: 24,
+		minHeight: Device.isIos() ? '72%' : '80%',
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
-	text: {
-		...fontStyles.normal,
-		fontSize: 16,
-		padding: 5
+	expandedHeight2: {
+		minHeight: '80%'
 	},
-	accountInformation: {
-		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		margin: 20,
-		marginBottom: 40
-	},
-	accountInfoCol: {
-		flex: 1,
-		height: 40
+	expandedHeight1: {
+		minHeight: '75%'
 	},
 	signingInformation: {
-		margin: 10
+		alignItems: 'center',
+		marginVertical: 24
 	},
-	account: {
-		flex: 1,
-		flexDirection: 'row'
+	domainLogo: {
+		width: 40,
+		height: 40,
+		marginRight: 8,
+		borderRadius: 20
 	},
-	identicon: {
-		padding: 5
-	},
-	warningText: {
-		...fontStyles.normal,
-		color: colors.red,
-		textAlign: 'center',
-		paddingTop: 10,
-		paddingHorizontal: 10
+	messageColumn: {
+		width: '75%',
+		justifyContent: 'space-between'
 	},
 	warningLink: {
 		...fontStyles.normal,
@@ -61,44 +53,48 @@ const styles = StyleSheet.create({
 		textDecorationLine: 'underline'
 	},
 	signText: {
-		...fontStyles.normal,
-		fontSize: 16,
-		padding: 5,
+		...fontStyles.bold,
+		fontSize: 20,
 		textAlign: 'center'
 	},
-	domainText: {
-		...fontStyles.normal,
-		textAlign: 'center',
-		fontSize: 12,
-		padding: 5,
-		color: colors.black
-	},
-	domainTitle: {
+	messageLabelText: {
 		...fontStyles.bold,
-		textAlign: 'center',
 		fontSize: 16,
-		padding: 5,
-		color: colors.black
+		marginBottom: 4
+	},
+	readMore: {
+		color: colors.blue,
+		fontSize: 14,
+		...fontStyles.bold
+	},
+	warningWrapper: {
+		width: '100%',
+		paddingHorizontal: 24,
+		paddingTop: 24
+	},
+	actionViewChild: {
+		paddingHorizontal: 24
+	},
+	accountInfoCardWrapper: {
+		marginBottom: 20,
+		width: '100%'
 	},
 	children: {
-		flex: 1,
-		borderTopColor: colors.grey200,
-		borderTopWidth: 1,
-		height: '100%'
+		alignSelf: 'center',
+		flexDirection: 'row',
+		justifyContent: 'flex-start',
+		width: '100%',
+		borderWidth: 1,
+		borderColor: colors.grey200,
+		borderRadius: 10,
+		padding: 16
 	},
-	domainLogo: {
-		marginTop: 15,
-		width: 64,
-		height: 64,
-		borderRadius: 32
+	arrowIconWrapper: {
+		flexGrow: 1,
+		alignItems: 'flex-end'
 	},
-	assetLogo: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 10
-	},
-	domainWrapper: {
-		margin: 10
+	arrowIcon: {
+		color: colors.grey200
 	}
 });
 
@@ -112,14 +108,6 @@ class SignatureRequest extends PureComponent {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * Map of accounts to information objects including balances
-		 */
-		accounts: PropTypes.object,
-		/**
-		 * List of accounts from the PreferencesController
-		 */
-		identities: PropTypes.object,
-		/**
 		 * Callback triggered when this message signature is rejected
 		 */
 		onCancel: PropTypes.func,
@@ -128,17 +116,9 @@ class SignatureRequest extends PureComponent {
 		 */
 		onConfirm: PropTypes.func,
 		/**
-		 * A string that represents the selected address
-		 */
-		selectedAddress: PropTypes.string,
-		/**
 		 * Content to display above the action buttons
 		 */
 		children: PropTypes.node,
-		/**
-		 * Object containing domain information for the signature request for EIP712
-		 */
-		domain: PropTypes.object,
 		/**
 		 * Object containing current page title and url
 		 */
@@ -148,31 +128,21 @@ class SignatureRequest extends PureComponent {
 		 */
 		type: PropTypes.string,
 		/**
-		 * String representing the selected the selected network
+		 * String representing the selected network
 		 */
 		networkType: PropTypes.string,
 		/**
 		 * Whether it should display the warning message
 		 */
-		showWarning: PropTypes.bool
-	};
-
-	renderPageInformation = () => {
-		const {
-			domain,
-			currentPageInformation: { url },
-			currentPageInformation
-		} = this.props;
-		const title = typeof currentPageInformation.title === 'string' ? currentPageInformation.title : getHost(url);
-		const name = domain && typeof domain.name === 'string';
-		return (
-			<View style={styles.domainWrapper}>
-				<WebsiteIcon style={styles.domainLogo} viewStyle={styles.assetLogo} title={title} url={url} />
-				<Text style={styles.domainTitle}>{title}</Text>
-				<Text style={styles.domainText}>{url}</Text>
-				{!!name && <Text style={styles.domainText}>{name}</Text>}
-			</View>
-		);
+		showWarning: PropTypes.bool,
+		/**
+		 * Whether it should render the expand arrow icon
+		 */
+		truncateMessage: PropTypes.bool,
+		/**
+		 * Expands the message box on press.
+		 */
+		toggleExpandedMessage: PropTypes.func
 	};
 
 	/**
@@ -218,52 +188,63 @@ class SignatureRequest extends PureComponent {
 		});
 	};
 
-	showWarning = () => (
-		<TouchableOpacity onPress={this.goToWarning}>
-			<Text style={styles.warningText}>
-				{strings('signature_request.eth_sign_warning')}
-				{` `}
-				<Text style={styles.warningLink}>{strings('signature_request.learn_more')}</Text>
-			</Text>
-		</TouchableOpacity>
+	renderWarning = () => (
+		<Text>
+			{strings('signature_request.eth_sign_warning')}
+			{` `}
+			<Text style={styles.warningLink}>{strings('signature_request.learn_more')}</Text>
+		</Text>
+	);
+
+	renderActionViewChildren = () => {
+		const { children, currentPageInformation, truncateMessage, toggleExpandedMessage } = this.props;
+		const url = currentPageInformation.url;
+		const title = getHost(url);
+		const arrowIcon = truncateMessage ? this.renderArrowIcon() : null;
+		return (
+			<View style={styles.actionViewChild}>
+				<View style={styles.accountInfoCardWrapper}>
+					<AccountInfoCard operation="signing" />
+				</View>
+				<TouchableOpacity style={styles.children} onPress={truncateMessage ? toggleExpandedMessage : null}>
+					<WebsiteIcon style={styles.domainLogo} title={title} url={url} />
+					<View style={styles.messageColumn}>
+						<Text style={styles.messageLabelText}>{strings('signature_request.message')}:</Text>
+						{children}
+						{truncateMessage ? (
+							<Text style={styles.readMore}>{strings('signature_request.read_more')}</Text>
+						) : null}
+					</View>
+					<View style={styles.arrowIconWrapper}>{arrowIcon}</View>
+				</TouchableOpacity>
+			</View>
+		);
+	};
+
+	renderArrowIcon = () => (
+		<View style={styles.arrowIconWrapper}>
+			<Ionicons name={'ios-arrow-forward'} size={20} style={styles.arrowIcon} />
+		</View>
 	);
 
 	render() {
-		const { children, showWarning, accounts, selectedAddress, identities } = this.props;
-		const balance = renderFromWei(accounts[selectedAddress].balance);
-		const accountLabel = renderAccountName(selectedAddress, identities);
+		const { showWarning, currentPageInformation, type } = this.props;
+		let expandedHeight;
+		if (Device.isMediumDevice()) {
+			expandedHeight = styles.expandedHeight2;
+		} else if (type === 'ethSign' && Device.isMediumDevice()) {
+			expandedHeight = styles.expandedHeight1;
+		}
 		return (
-			<View style={styles.wrapper}>
-				<View style={styles.header}>
-					<View style={styles.accountInformation}>
-						<View style={styles.accountInfoCol}>
-							<Text>{strings('signature_request.account_title')}</Text>
-							<View style={[styles.account, baseStyles.flexGrow]}>
-								<View style={[styles.identicon]}>
-									<Identicon address={selectedAddress} diameter={20} />
-								</View>
-								<View style={baseStyles.flexGrow}>
-									<Text numberOfLines={1} style={styles.text}>
-										{accountLabel}
-									</Text>
-								</View>
-							</View>
-						</View>
-						<View style={styles.accountInfoCol}>
-							<Text>{strings('signature_request.balance_title')}</Text>
-							<Text style={styles.text}>
-								{balance} {strings('unit.eth')}
-							</Text>
-						</View>
-					</View>
-					{this.renderPageInformation()}
-					<View style={styles.signingInformation}>
-						{showWarning ? (
-							this.showWarning()
-						) : (
-							<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
-						)}
-					</View>
+			<View style={[styles.root, expandedHeight]}>
+				<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
+				<View style={styles.signingInformation}>
+					<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
+					{showWarning ? (
+						<TouchableOpacity style={styles.warningWrapper} onPress={this.goToWarning}>
+							<WarningMessage warningMessage={this.renderWarning()} />
+						</TouchableOpacity>
+					) : null}
 				</View>
 				<ActionView
 					cancelTestID={'request-signature-cancel-button'}
@@ -272,10 +253,9 @@ class SignatureRequest extends PureComponent {
 					confirmText={strings('signature_request.sign')}
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
+					confirmButtonMode="sign"
 				>
-					<View style={styles.children}>
-						<KeyboardAwareScrollView>{children}</KeyboardAwareScrollView>
-					</View>
+					{this.renderActionViewChildren()}
 				</ActionView>
 			</View>
 		);
@@ -283,9 +263,6 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 

@@ -1,50 +1,32 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
+import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
+import { util } from '@metamask/controllers';
+import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
-import { util } from 'gaba';
-import Device from '../../../util/Device';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		minHeight: '90%',
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		paddingBottom: Device.isIphoneX() ? 20 : 0
-	},
-	informationRow: {
-		borderBottomColor: colors.grey200,
-		borderBottomWidth: 1,
-		padding: 20
-	},
-	messageLabelText: {
-		...fontStyles.normal,
-		margin: 5,
-		fontSize: 16
-	},
 	messageText: {
-		flex: 1,
-		margin: 5,
 		fontSize: 14,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
+		textAlign: 'center'
 	},
-	title: {
-		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 20,
-		color: colors.fontPrimary,
-		...fontStyles.bold
+	textLeft: {
+		textAlign: 'left'
+	},
+	messageWrapper: {
+		marginBottom: 4
 	}
 });
 
 /**
- * PureComponent that supports personal_sign
+ * Component that supports personal_sign
  */
 export default class PersonalSign extends PureComponent {
 	static propTypes = {
@@ -67,7 +49,33 @@ export default class PersonalSign extends PureComponent {
 		/**
 		 * Object containing current page title and url
 		 */
-		currentPageInformation: PropTypes.object
+		currentPageInformation: PropTypes.object,
+		/**
+		 * Hides or shows the expanded signing message
+		 */
+		toggleExpandedMessage: PropTypes.func,
+		/**
+		 * Indicated whether or not the expanded message is shown
+		 */
+		showExpandedMessage: PropTypes.bool
+	};
+
+	state = {
+		truncateMessage: false
+	};
+
+	showWalletConnectNotification = (messageParams, confirmation = false) => {
+		InteractionManager.runAfterInteractions(() => {
+			messageParams.origin === WALLET_CONNECT_ORIGIN &&
+				NotificationManager.showSimpleNotification({
+					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
+					duration: 5000,
+					title: confirmation
+						? strings('notifications.wc_signed_title')
+						: strings('notifications.wc_signed_rejected_title'),
+					description: strings('notifications.wc_description')
+				});
+		});
 	};
 
 	signMessage = async () => {
@@ -77,6 +85,7 @@ export default class PersonalSign extends PureComponent {
 		const cleanMessageParams = await PersonalMessageManager.approveMessage(messageParams);
 		const rawSig = await KeyringController.signPersonalMessage(cleanMessageParams);
 		PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
+		this.showWalletConnectNotification(messageParams, true);
 	};
 
 	rejectMessage = () => {
@@ -84,6 +93,7 @@ export default class PersonalSign extends PureComponent {
 		const { PersonalMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
 		PersonalMessageManager.rejectMessage(messageId);
+		this.showWalletConnectNotification(messageParams);
 	};
 
 	cancelSignature = () => {
@@ -96,35 +106,62 @@ export default class PersonalSign extends PureComponent {
 		this.props.onConfirm();
 	};
 
+	renderMessageText = () => {
+		const { messageParams, showExpandedMessage } = this.props;
+		const { truncateMessage } = this.state;
+		const textChild = util
+			.hexToText(messageParams.data)
+			.split('\n')
+			.map((line, i) => (
+				<Text key={`txt_${i}`} style={[styles.messageText, !showExpandedMessage ? styles.textLeft : null]}>
+					{line}
+				</Text>
+			));
+		let messageText;
+		if (showExpandedMessage) {
+			messageText = textChild;
+		} else {
+			messageText = truncateMessage ? (
+				<Text numberOfLines={5} ellipsizeMode={'tail'}>
+					{textChild}
+				</Text>
+			) : (
+				<Text onTextLayout={this.shouldTruncateMessage}>{textChild}</Text>
+			);
+		}
+		return messageText;
+	};
+
+	shouldTruncateMessage = e => {
+		if (e.nativeEvent.lines.length > 5) {
+			this.setState({ truncateMessage: true });
+			return;
+		}
+		this.setState({ truncateMessage: false });
+	};
+
 	render() {
-		const { messageParams, currentPageInformation } = this.props;
-		return (
-			<View style={styles.root}>
-				<View style={styles.titleWrapper}>
-					<Text style={styles.title} onPress={this.cancelSignature}>
-						{strings('signature_request.title')}
-					</Text>
-				</View>
-				<SignatureRequest
-					navigation={this.props.navigation}
-					onCancel={this.cancelSignature}
-					onConfirm={this.confirmSignature}
-					currentPageInformation={currentPageInformation}
-					type="personalSign"
-				>
-					<View style={styles.informationRow}>
-						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						{util
-							.hexToText(messageParams.data)
-							.split('\n')
-							.map((line, i) => (
-								<Text key={`txt_${i}`} style={styles.messageText}>
-									{line}
-								</Text>
-							))}
-					</View>
-				</SignatureRequest>
-			</View>
+		const { currentPageInformation, toggleExpandedMessage, showExpandedMessage } = this.props;
+		const rootView = showExpandedMessage ? (
+			<ExpandedMessage
+				currentPageInformation={currentPageInformation}
+				renderMessage={this.renderMessageText}
+				toggleExpandedMessage={toggleExpandedMessage}
+			/>
+		) : (
+			<SignatureRequest
+				navigation={this.props.navigation}
+				onCancel={this.cancelSignature}
+				onConfirm={this.confirmSignature}
+				currentPageInformation={currentPageInformation}
+				showExpandedMessage={showExpandedMessage}
+				toggleExpandedMessage={toggleExpandedMessage}
+				truncateMessage={this.state.truncateMessage}
+				type="personalSign"
+			>
+				<View style={styles.messageWrapper}>{this.renderMessageText()}</View>
+			</SignatureRequest>
 		);
+		return rootView;
 	}
 }

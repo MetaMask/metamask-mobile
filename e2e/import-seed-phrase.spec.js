@@ -30,7 +30,12 @@ describe('Import seedphrase flow', () => {
 		// Check that we are on the import from seed screen
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input incorrect seed phrase
-		await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Incorrect_Seed_Words);
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField(`input-seed-phrase`, Incorrect_Seed_Words);
+			await element(by.id('input-seed-phrase')).tapReturnKey();
+		} else {
+			await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Incorrect_Seed_Words);
+		}
 		// Input short password
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Incorrect_Password);
 		// Input short password confirm
@@ -48,7 +53,12 @@ describe('Import seedphrase flow', () => {
 		// Clear field content
 		await TestHelpers.clearField('input-seed-phrase');
 		// Input correct seed phrase
-		await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Correct_Seed_Words);
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField(`input-seed-phrase`, Correct_Seed_Words);
+			await element(by.id('input-seed-phrase')).tapReturnKey();
+		} else {
+			await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Correct_Seed_Words);
+		}
 
 		// Input Correct password and Submit
 		if (device.getPlatform() === 'android') {
@@ -79,7 +89,7 @@ describe('Import seedphrase flow', () => {
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on settings
-		await TestHelpers.tap('settings-button');
+		await TestHelpers.tapByText('Settings');
 		// Tap on the "Security & Privacy" option
 		await TestHelpers.tapByText('Security & Privacy');
 
