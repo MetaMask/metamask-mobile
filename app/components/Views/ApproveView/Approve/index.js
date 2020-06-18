@@ -721,7 +721,7 @@ class Approve extends PureComponent {
 						{viewDetails ? (
 							this.renderTransactionReview()
 						) : customGasVisible ? (
-							this.renderCustomGas()
+							<View style={styles.section}>{this.renderCustomGas()}</View>
 						) : editPermissionVisible ? (
 							this.renderEditPermission()
 						) : (
