@@ -4,9 +4,9 @@
  * @property {string} id - Original id given by Provider. Orders are identified by (provider, id)
  * @property {FIAT_ORDER_PROVIDERS}	provider Fiat Provider
  * @property {string} amount Fiat amount
- * @property {string} fee Fiat fee
- * @property {string} cryptoAmount Crypto currency amount
- * @property {string} cryptoFee Crypto currency fee
+ * @property {string?} fee Fiat fee
+ * @property {string?} cryptoAmount Crypto currency amount
+ * @property {string?} cryptoFee Crypto currency fee
  * @property {string} currency "USD"
  * @property {string} cryptocurrency "ETH"
  * @property {FIAT_ORDER_STATES} state Order state

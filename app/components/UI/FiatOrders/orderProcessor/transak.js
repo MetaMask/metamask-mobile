@@ -105,7 +105,7 @@ const getOrderStatus = orderId =>
 //* Helpers
 
 /**
- * Transforms a Transak order state into a fiat order state
+ * Transforms a TransakOrder state into a FiatOrder state
  * @param {TRANSAK_ORDER_STATES} transakOrderState
  */
 const transakOrderStateToFiatOrderState = transakOrderState => {

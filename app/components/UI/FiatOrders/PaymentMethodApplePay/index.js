@@ -1,11 +1,11 @@
 import React, { useContext, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity, InteractionManager } from 'react-native';
 import { NavigationContext } from 'react-navigation';
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
-import { useWyreTerms, useWyreApplePay, WYRE_IS_PROMOTION } from '../orderProcessor/wyreApplePay';
+import { useWyreTerms, useWyreApplePay, WYRE_IS_PROMOTION, WyreException } from '../orderProcessor/wyreApplePay';
 import { setLockTime } from '../../../../actions/settings';
 
 import { getPaymentMethodApplePayNavbar } from '../../Navbar';
@@ -13,6 +13,7 @@ import AccountBar from '../components/AccountBar';
 import StyledButton from '../../StyledButton';
 import Text from '../../../Base/Text';
 import { colors, fontStyles } from '../../../../styles/common';
+import NotificationManager from '../../../../core/NotificationManager';
 
 //* styles and components  */
 
@@ -232,7 +233,7 @@ const handleNewAmountInput = (currentAmount, newInput) => {
 	}
 };
 
-function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress }) {
+function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network, addOrder }) {
 	const navigation = useContext(NavigationContext);
 	const [amount, setAmount] = useState('0');
 	const roundAmount =
@@ -246,19 +247,35 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress }) {
 
 	const handleWyreTerms = useWyreTerms(navigation);
 
-	const [showApplePayRequest, percentFee, flatFee, , fee] = useWyreApplePay(roundAmount, selectedAddress);
+	const [showApplePayRequest, percentFee, flatFee, , fee] = useWyreApplePay(roundAmount, selectedAddress, network);
 	const handlePressApplePay = useCallback(async () => {
 		const prevLockTime = lockTime;
 		setLockTime(-1);
 		try {
-			const fiatOrder = await showApplePayRequest();
-			// TODO: add order and show notification
+			const order = await showApplePayRequest();
+			if (order) {
+				addOrder(order);
+				navigation.dismiss();
+				InteractionManager.runAfterInteractions(() =>
+					NotificationManager.showSimpleNotification({
+						duration: 5000,
+						title: `Processing purchase of ${order.cryptocurrency}`,
+						description: 'Your deposit is in progress',
+						status: 'pending'
+					})
+				);
+			}
 		} catch (error) {
-			// TODO: show error notification
+			NotificationManager.showSimpleNotification({
+				duration: 5000,
+				title: `Purchase of ETH failed! Please try again, sorry for the inconvenience!`,
+				description: `${error instanceof WyreException ? 'Wyre: ' : ''}${error.message}`,
+				status: 'error'
+			});
 		} finally {
 			setLockTime(prevLockTime);
 		}
-	}, [lockTime, setLockTime, showApplePayRequest]);
+	}, [addOrder, lockTime, navigation, setLockTime, showApplePayRequest]);
 
 	const handleQuickAmountPress = useCallback(amount => setAmount(amount), []);
 	const handleKeypadPress = useCallback(
@@ -391,7 +408,9 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress }) {
 PaymentMethodApplePay.propTypes = {
 	lockTime: PropTypes.number.isRequired,
 	setLockTime: PropTypes.func.isRequired,
-	selectedAddress: PropTypes.string.isRequired
+	selectedAddress: PropTypes.string.isRequired,
+	network: PropTypes.string.isRequired,
+	addOrder: PropTypes.func.isRequired
 };
 
 PaymentMethodApplePay.navigationOptions = ({ navigation }) =>
@@ -399,12 +418,13 @@ PaymentMethodApplePay.navigationOptions = ({ navigation }) =>
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	network: state.engine.backgroundState.NetworkController.network
 });
 
 const mapDispatchToProps = dispatch => ({
 	setLockTime: time => dispatch(setLockTime(time)),
-	dispatch
+	addOrder: order => dispatch({ type: 'FIAT_ADD_ORDER', payload: order })
 });
 export default connect(
 	mapStateToProps,
