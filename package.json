@@ -3,8 +3,8 @@
   "version": "0.2.18",
   "private": true,
   "scripts": {
-    "watch": "react-native start",
-    "watch:clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && yarn watch -- --reset-cache",
+    "watch": "./scripts/build.sh watcher watch",
+    "watch:clean": "./scripts/build.sh watcher clean",
     "clean:ios": "rm -rf ios/build",
     "clean:android": "rm -rf android/app/build",
     "clean:node": "rm -rf node_modules && yarn install",
