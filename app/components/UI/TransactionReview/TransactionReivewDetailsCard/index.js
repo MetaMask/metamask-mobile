@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
 import Feather from 'react-native-vector-icons/Feather';
+import ConnectHeader from '../../../UI/ConnectHeader';
 
 const styles = StyleSheet.create({
 	uppercase: {
@@ -63,22 +64,6 @@ const styles = StyleSheet.create({
 		minWidth: '100%',
 		width: '100%'
 	},
-	customGasHeader: {
-		width: '100%',
-		position: 'relative',
-		paddingBottom: 20
-	},
-	back: {
-		position: 'absolute',
-		zIndex: 1,
-		left: 0
-	},
-	customGasModalTitleText: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		textAlign: 'center'
-	},
 	copyIcon: {
 		marginLeft: 1,
 		marginTop: 2
@@ -120,14 +105,10 @@ export default class TransactionReviewDetailsCard extends Component {
 		return (
 			<>
 				<View style={styles.section}>
-					<View style={styles.customGasHeader}>
-						<TouchableOpacity onPress={toggleViewDetails} style={styles.back}>
-							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
-						</TouchableOpacity>
-						<Text style={styles.customGasModalTitleText}>
-							{strings('spend_limit_edition.transaction_details')}
-						</Text>
-					</View>
+					<ConnectHeader
+						action={toggleViewDetails}
+						title={strings('spend_limit_edition.transaction_details')}
+					/>
 					<View style={styles.transactionDetails}>
 						<View style={styles.transactionDetailsRow}>
 							<Text style={styles.transactionDetailsTextLeft}>

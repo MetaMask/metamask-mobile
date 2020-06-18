@@ -39,6 +39,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Device from '../../../../util/Device';
 import TransactionHeader from '../../../UI/TransactionHeader';
+import ConnectHeader from '../../../UI/ConnectHeader';
 import AccountInfoCard from '../../../UI/AccountInfoCard';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionReviewDetailsCard from '../../../UI/TransactionReview/TransactionReivewDetailsCard';
@@ -65,16 +66,6 @@ const styles = StyleSheet.create({
 		minWidth: '100%',
 		width: '100%',
 		paddingVertical: 10
-	},
-	customGasHeader: {
-		width: '100%',
-		position: 'relative',
-		paddingBottom: 20
-	},
-	back: {
-		position: 'absolute',
-		zIndex: 1,
-		left: 0
 	},
 	title: {
 		...fontStyles.bold,
@@ -134,12 +125,6 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		flex: 1,
 		textAlign: 'right'
-	},
-	customGasModalTitleText: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		textAlign: 'center'
 	},
 	option: {
 		flexDirection: 'row',
@@ -518,13 +503,7 @@ class Approve extends PureComponent {
 		return (
 			<View style={baseStyles.section}>
 				<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
-					<View style={styles.customGasHeader}>
-						<TouchableOpacity onPress={this.toggleEditPermission} style={styles.back}>
-							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
-						</TouchableOpacity>
-						<Text style={styles.customGasModalTitleText}>{strings('spend_limit_edition.title')}</Text>
-					</View>
-
+					<ConnectHeader action={this.toggleEditPermission} title={strings('spend_limit_edition.title')} />
 					<View>
 						<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
 						<Text style={styles.spendLimitSubtitle}>

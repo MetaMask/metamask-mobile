@@ -11,27 +11,17 @@ import {
 	getBasicGasEstimates
 } from '../../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import Radio from '../../../UI/Radio';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import ConnectHeader from '../../../UI/ConnectHeader';
 
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		minWidth: '100%',
 		width: '100%'
-	},
-	customGasHeader: {
-		width: '100%',
-		position: 'relative',
-		paddingBottom: 20
-	},
-	back: {
-		position: 'absolute',
-		zIndex: 1,
-		left: 0
 	},
 	selectors: {
 		backgroundColor: colors.white,
@@ -79,12 +69,6 @@ const styles = StyleSheet.create({
 		letterSpacing: 1,
 		fontSize: 10,
 		textTransform: 'uppercase'
-	},
-	customGasModalTitleText: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		textAlign: 'center'
 	},
 	totalGasWrapper: {
 		flex: 1,
@@ -546,15 +530,7 @@ class CustomGas extends PureComponent {
 			return (
 				<View style={styles.root}>
 					<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
-						<View style={styles.customGasHeader}>
-							<TouchableOpacity style={styles.back} onPress={toggleCustomGasModal}>
-								<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
-							</TouchableOpacity>
-							<Text style={styles.customGasModalTitleText}>
-								{strings('transaction.edit_network_fee')}
-							</Text>
-							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
-						</View>
+						<ConnectHeader action={toggleCustomGasModal} title={strings('transaction.edit_network_fee')} />
 						<View style={styles.optionsContainer}>
 							<TouchableOpacity
 								style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
