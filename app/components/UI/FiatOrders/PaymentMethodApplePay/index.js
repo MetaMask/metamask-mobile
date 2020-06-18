@@ -252,12 +252,12 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 
 	const handleWyreTerms = useWyreTerms(navigation);
 
-	const [showApplePayRequest, percentFee, flatFee, , fee] = useWyreApplePay(roundAmount, selectedAddress, network);
+	const [pay, percentFee, flatFee, , fee] = useWyreApplePay(roundAmount, selectedAddress, network);
 	const handlePressApplePay = useCallback(async () => {
 		const prevLockTime = lockTime;
 		setLockTime(-1);
 		try {
-			const order = await showApplePayRequest();
+			const order = await pay();
 			if (order) {
 				addOrder(order);
 				navigation.dismiss();
@@ -280,7 +280,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 		} finally {
 			setLockTime(prevLockTime);
 		}
-	}, [addOrder, lockTime, navigation, setLockTime, showApplePayRequest]);
+	}, [addOrder, lockTime, navigation, pay, setLockTime]);
 
 	const handleQuickAmountPress = useCallback(amount => setAmount(amount), []);
 	const handleKeypadPress = useCallback(

@@ -108,9 +108,8 @@ export const WYRE_ORDER_STATES = {
 
 //* Constants */
 
-const isDevelopment = process.env.NODE_ENV !== 'production';
-const merchantIdentifier = 'test' || isDevelopment ? WYRE_MERCHANT_ID_TEST : WYRE_MERCHANT_ID;
-const partnerId = isDevelopment ? WYRE_ACCOUNT_ID_TEST : WYRE_ACCOUNT_ID;
+const getMerchantIdentifier = network => (network === '1' ? WYRE_MERCHANT_ID : WYRE_MERCHANT_ID_TEST);
+const getPartnerId = network => (network === '1' ? WYRE_ACCOUNT_ID : WYRE_ACCOUNT_ID_TEST);
 
 export const WYRE_IS_PROMOTION = true;
 export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : 2.9;
@@ -119,18 +118,23 @@ export const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : 0.3;
 //* API */
 
 const wyreAPI = axios.create({
-	baseURL: isDevelopment ? WYRE_API_ENDPOINT_TEST : WYRE_API_ENDPOINT
+	baseURL: WYRE_API_ENDPOINT
 });
 
-const createFiatOrder = payload =>
-	wyreAPI.post('v3/apple-pay/process/partner', payload, {
+const wyreTestAPI = axios.create({
+	baseURL: WYRE_API_ENDPOINT_TEST
+});
+
+const createFiatOrder = (network, payload) =>
+	(network === '1' ? wyreAPI : wyreTestAPI).post('v3/apple-pay/process/partner', payload, {
 		// * This promise will always be resolved, use response.status to handle errors
 		validateStatus: status => status >= 200,
 		// * Apple Pay timeouts at ~30s without throwing error, we want to catch that before and throw
 		timeout: 25000
 	});
-const getOrderStatus = orderId => wyreAPI.get(`v3/orders/${orderId}`);
-const getTransferStatus = transferId => wyreAPI.get(`v2/transfer/${transferId}/track`);
+const getOrderStatus = (network, orderId) => (network === '1' ? wyreAPI : wyreTestAPI).get(`v3/orders/${orderId}`);
+const getTransferStatus = (network, transferId) =>
+	(network === '1' ? wyreAPI : wyreTestAPI).get(`v2/transfer/${transferId}/track`);
 
 //* Helpers
 
@@ -209,7 +213,7 @@ const wyreTransferToFiatOrder = wyreTransfer => ({
 
 export async function processWyreApplePayOrder(order) {
 	try {
-		const { data } = await getOrderStatus(order.id);
+		const { data } = await getOrderStatus(order.network, order.id);
 		if (!data) {
 			return order;
 		}
@@ -217,7 +221,7 @@ export async function processWyreApplePayOrder(order) {
 		const { transferId } = data;
 
 		if (transferId) {
-			const transfer = await getTransferStatus(transferId);
+			const transfer = await getTransferStatus(order.network, transferId);
 			return {
 				...order,
 				...wyreOrderToFiatOrder(data),
@@ -250,7 +254,7 @@ const PAYMENT_REQUEST_COMPLETE = {
 	FAIL: 'fail'
 };
 
-const methodData = [
+const getMethodData = network => [
 	{
 		supportedMethods: ['apple-pay'],
 		supportedTypes: ['debit'],
@@ -258,7 +262,7 @@ const methodData = [
 			countryCode: 'US',
 			currencyCode: USD_CURRENCY_CODE,
 			supportedNetworks: ['visa', 'mastercard', 'discover'],
-			merchantIdentifier
+			merchantIdentifier: getMerchantIdentifier(network)
 		}
 	}
 ];
@@ -286,7 +290,7 @@ const paymentOptions = {
 	requestBilling: true
 };
 
-const createPayload = (amount, address, paymentDetails) => {
+const createPayload = (network, amount, address, paymentDetails) => {
 	const {
 		billingContact: { postalAddress, name },
 		paymentData,
@@ -314,6 +318,8 @@ const createPayload = (amount, address, paymentDetails) => {
 		emailAddress: shippingContact.emailAddress,
 		phoneNumber: shippingContact.phoneNumber
 	};
+
+	const partnerId = getPartnerId(network);
 
 	return {
 		partnerId,
@@ -352,6 +358,7 @@ export function useWyreApplePay(amount, address, network) {
 	]);
 	const fee = useMemo(() => (Number(percentFeeAmount) + Number(flatFee)).toFixed(2), [flatFee, percentFeeAmount]);
 	const total = useMemo(() => Number(amount) + Number(fee), [amount, fee]);
+	const methodData = useMemo(() => getMethodData(network), [network]);
 	const paymentDetails = useMemo(() => getPaymentDetails(ETH_CURRENCY_CODE, amount, fee, total), [
 		amount,
 		fee,
@@ -365,8 +372,8 @@ export function useWyreApplePay(amount, address, network) {
 			if (!paymentResponse) {
 				throw new Error('Payment Request Failed');
 			}
-			const payload = createPayload(total, address, paymentResponse.details);
-			const { data, status } = await createFiatOrder(payload);
+			const payload = createPayload(network, total, address, paymentResponse.details);
+			const { data, status } = await createFiatOrder(network, payload);
 			if (status >= 200 && status < 300) {
 				await paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.SUCCESS);
 				return { ...wyreOrderToFiatOrder(data), network };
@@ -383,7 +390,7 @@ export function useWyreApplePay(amount, address, network) {
 			}
 			throw error;
 		}
-	}, [address, network, paymentDetails, total]);
+	}, [address, methodData, network, paymentDetails, total]);
 
 	return [showRequest, percentFee, flatFee, percentFeeAmount, fee, total];
 }
