@@ -41,7 +41,7 @@ export const getNotificationDetails = fiatOrder => {
 			return {
 				...baseNotificationDetails,
 				title: strings('fiat_on_ramp.notifications.purchase_failed_title', {
-					cryptocurrency: fiatOrder.cryptocurrency
+					currency: fiatOrder.cryptocurrency
 				}),
 				status: 'error'
 			};

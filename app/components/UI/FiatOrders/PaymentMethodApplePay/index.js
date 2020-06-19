@@ -277,7 +277,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 			NotificationManager.showSimpleNotification({
 				duration: 5000,
 				title: strings('fiat_on_ramp.notifications.purchase_failed_title', {
-					cryptocurrency: 'ETH'
+					currency: 'ETH'
 				}),
 				description: `${error instanceof WyreException ? 'Wyre: ' : ''}${error.message}`,
 				status: 'error'

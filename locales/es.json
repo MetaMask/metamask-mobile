@@ -1099,7 +1099,7 @@
 		"buy_with": "Comprar con",
 		"plus_fee": "Más {{fee}} de comisión",
 		"notifications": {
-			"purchase_failed_title": "'Su compra de {{currency}} ha fallado! Lo sentimos, por favor intente de nuevo",
+			"purchase_failed_title": "¡Su compra de {{currency}} ha fallado! Lo sentimos, por favor intente de nuevo",
 			"purchase_cancelled_title": "Su compra fue cancelada",
 			"purchase_completed_title": "¡Su compra de {{amount}} {{currency}} fue exitosa!",
 			"purchase_completed_description": "Su {{currency}} está disponible",
