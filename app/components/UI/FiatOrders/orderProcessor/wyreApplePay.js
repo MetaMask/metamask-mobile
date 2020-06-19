@@ -5,14 +5,12 @@ import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fi
 
 //* env vars
 
-const {
-	WYRE_API_ENDPOINT,
-	WYRE_API_ENDPOINT_TEST,
-	WYRE_ACCOUNT_ID,
-	WYRE_ACCOUNT_ID_TEST,
-	WYRE_MERCHANT_ID,
-	WYRE_MERCHANT_ID_TEST
-} = process.env;
+const WYRE_API_ENDPOINT = process.env.WYRE_API_ENDPOINT;
+const WYRE_API_ENDPOINT_TEST = process.env.WYRE_API_ENDPOINT_TEST;
+const WYRE_ACCOUNT_ID = process.env.WYRE_ACCOUNT_ID;
+const WYRE_ACCOUNT_ID_TEST = process.env.WYRE_ACCOUNT_ID_TEST;
+const WYRE_MERCHANT_ID = process.env.WYRE_MERCHANT_ID;
+const WYRE_MERCHANT_ID_TEST = process.env.WYRE_MERCHANT_ID_TEST;
 
 //* typedefs
 
