@@ -1,15 +1,18 @@
-import {
+import { useCallback, useMemo } from 'react';
+import { PaymentRequest } from 'react-native-payments';
+import axios from 'axios';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
+
+//* env vars
+
+const {
 	WYRE_API_ENDPOINT,
 	WYRE_API_ENDPOINT_TEST,
 	WYRE_ACCOUNT_ID,
 	WYRE_ACCOUNT_ID_TEST,
 	WYRE_MERCHANT_ID,
 	WYRE_MERCHANT_ID_TEST
-} from 'react-native-dotenv';
-import { useCallback, useMemo } from 'react';
-import { PaymentRequest } from 'react-native-payments';
-import axios from 'axios';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
+} = process.env;
 
 //* typedefs
 

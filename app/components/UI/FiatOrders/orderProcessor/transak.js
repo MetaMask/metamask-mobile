@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
 import axios from 'axios';
 import qs from 'query-string';
-import {
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
+
+//* env vars
+
+const {
 	TRANSAK_URL,
 	TRANSAK_URL_STAGING,
 	TRANSAK_API_URL_STAGING,
@@ -10,8 +14,7 @@ import {
 	TRANSAK_API_KEY_SECRET_STAGING,
 	TRANSAK_API_KEY_PRODUCTION,
 	TRANSAK_API_KEY_SECRET_PRODUCTION
-} from 'react-native-dotenv';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
+} = process.env;
 
 //* typedefs
 
