@@ -8,6 +8,7 @@ import { handleTransakRedirect, TRANSAK_REDIRECT_URL } from '../orderProcessor/t
 
 import { getTransakWebviewNavbar } from '../../../UI/Navbar';
 import { baseStyles } from '../../../../styles/common';
+import { getNotificationDetails } from '..';
 
 class TransakWebView extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransakWebviewNavbar(navigation);
@@ -22,12 +23,7 @@ class TransakWebView extends PureComponent {
 			this.props.addOrder(order);
 			this.props.navigation.dismiss();
 			InteractionManager.runAfterInteractions(() =>
-				NotificationManager.showSimpleNotification({
-					duration: 5000,
-					title: `Processing purchase of ${order.cryptocurrency}`,
-					description: 'Your deposit is in progress',
-					status: 'pending'
-				})
+				NotificationManager.showSimpleNotification(getNotificationDetails(order))
 			);
 		}
 	};

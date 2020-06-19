@@ -1,18 +1,16 @@
-import React, {
-	// useEffect,
-	useCallback
-} from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
-
-import Text from '../../Base/Text';
+import NotificationManager from '../../../core/NotificationManager';
+import { strings } from '../../../../locales/i18n';
 
 import { createPendingOrder, FIAT_ORDER_STATES, FIAT_ORDER_PROVIDERS } from '../../../reducers/fiatOrders';
 import useInterval from './hooks/useInterval';
 import processOrder from './orderProcessor';
+
+import Text from '../../Base/Text';
 import { colors } from '../../../styles/common';
-import NotificationManager from '../../../core/NotificationManager';
 
 const POLLING_TIME = 10000;
 const NOTIFICATION_DURATION = 5000;
@@ -30,33 +28,52 @@ const styles = StyleSheet.create({
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
  */
 
+const baseNotificationDetails = {
+	duration: NOTIFICATION_DURATION
+};
+
 /**
  * @param {FiatOrder} fiatOrder
  */
-const getNotificationDetails = fiatOrder => {
+export const getNotificationDetails = fiatOrder => {
 	switch (fiatOrder.state) {
 		case FIAT_ORDER_STATES.FAILED: {
 			return {
-				title: `Purchase of ${fiatOrder.cryptocurrency} failed! Please try again, sorry for the inconvenience!`,
-				description: 'Error :(',
+				...baseNotificationDetails,
+				title: strings('fiat_on_ramp.notifications.purchase_failed_title', {
+					cryptocurrency: fiatOrder.cryptocurrency
+				}),
 				status: 'error'
 			};
 		}
 		case FIAT_ORDER_STATES.CANCELLED: {
-			return { title: 'Your purchase was cancelled', description: 'Cancelled :(', status: 'cancelled' };
+			return {
+				...baseNotificationDetails,
+				title: strings('fiat_on_ramp.notifications.purchase_cancelled_title'),
+				status: 'cancelled'
+			};
 		}
 		case FIAT_ORDER_STATES.COMPLETED: {
 			return {
-				title: `Your purchase of ${fiatOrder.cryptoAmount} ${fiatOrder.cryptocurrency} successful`,
-				description: `Your ${fiatOrder.cryptocurrency} is now available`,
+				...baseNotificationDetails,
+				title: strings('fiat_on_ramp.notifications.purchase_completed_title', {
+					amount: fiatOrder.cryptoAmount,
+					currency: fiatOrder.cryptocurrency
+				}),
+				description: strings('fiat_on_ramp.notifications.purchase_completed_description', {
+					currency: fiatOrder.cryptocurrency
+				}),
 				status: 'success'
 			};
 		}
 		case FIAT_ORDER_STATES.PENDING:
 		default: {
 			return {
-				title: `Processing purchase of ${fiatOrder.cryptocurrency}`,
-				description: 'Your deposit is in progress',
+				...baseNotificationDetails,
+				title: strings('fiat_on_ramp.notifications.purchase_pending_title', {
+					currency: fiatOrder.cryptocurrency
+				}),
+				description: strings('fiat_on_ramp.notifications.purchase_pending_description'),
 				status: 'pending'
 			};
 		}
@@ -80,10 +97,7 @@ function FiatOrders({ orders, selectedAddress, network, createFakeOrder, clearOr
 						// console.log(`Order updated:`, order.provider, order.id);
 						dispatch({ type: 'FIAT_UPDATE_ORDER', payload: updatedOrder });
 						InteractionManager.runAfterInteractions(() =>
-							NotificationManager.showSimpleNotification({
-								duration: NOTIFICATION_DURATION,
-								...getNotificationDetails(updatedOrder)
-							})
+							NotificationManager.showSimpleNotification(getNotificationDetails(updatedOrder))
 						);
 					}
 				})

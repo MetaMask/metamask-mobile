@@ -418,8 +418,7 @@ PaymentMethodApplePay.propTypes = {
 	addOrder: PropTypes.func.isRequired
 };
 
-PaymentMethodApplePay.navigationOptions = ({ navigation }) =>
-	getPaymentMethodApplePayNavbar('Amount to buy', navigation);
+PaymentMethodApplePay.navigationOptions = ({ navigation }) => getPaymentMethodApplePayNavbar(navigation);
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,

@@ -817,7 +817,7 @@ export function getPaymentSelectorMethodNavbar(navigation) {
 	const rightAction = navigation.dismiss;
 
 	return {
-		title: 'Purchase Method',
+		title: strings('fiat_on_ramp.purchase_method'),
 		headerTitleStyle: {
 			fontSize: 20,
 			color: colors.fontPrimary,
@@ -826,17 +826,15 @@ export function getPaymentSelectorMethodNavbar(navigation) {
 		headerRight: (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>Cancel</Text>
+				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		)
 	};
 }
 
-export function getPaymentMethodApplePayNavbar(title, navigation) {
-	const rightAction = navigation.dismiss;
-
+export function getPaymentMethodApplePayNavbar(navigation) {
 	return {
-		title,
+		title: strings('fiat_on_ramp.amount_to_buy'),
 		headerTitleStyle: {
 			fontSize: 20,
 			color: colors.fontPrimary,
@@ -844,14 +842,19 @@ export function getPaymentMethodApplePayNavbar(title, navigation) {
 		},
 		headerRight: (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>Cancel</Text>
+			<TouchableOpacity onPress={() => navigation.dismiss()} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
-		headerLeft: (
+		headerLeft: Device.isAndroid() ? (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+			</TouchableOpacity>
+		) : (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{'Back'}</Text>
+				<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
 			</TouchableOpacity>
 		)
 	};

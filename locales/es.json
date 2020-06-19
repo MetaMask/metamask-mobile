@@ -1055,5 +1055,51 @@
 		"message": "Parece que tienes Dai en una de tus cuentas. Necesitas migrarlo a su nueva version o será abandonado.",
 		"learn_more": "Mas información",
 		"lets_do_it": "Continuar"
+	},
+	"account_bar": {
+		"depositing_to": "Depositando a:"
+	},
+	"fiat_on_ramp": {
+		"purchase_method": "Método de pago",
+		"amount_to_buy": "Monto a comprar",
+		"transak_webview_title": "Transak",
+		"wyre_user_agreement": "Acuerdo de Usuario de Wyre",
+		"best_deal": "Mejor oferta",
+		"purchase_method_title": {
+			"wyre_first_line": "0% de comisión al",
+			"wyre_second_line": "pagar con Apple Pay.",
+			"wyre_sub_header": "Válido hasta 1 Jul, 2020",
+			"first_line": "¿Cómo quiere pagar",
+			"second_line": "su compra?"
+		},
+		"bank_transfer_debit": "Transferencia bancaria o tarjeta de débito",
+		"requires_registration": "Requiere registro",
+		"options_fees_vary": "Opciones y comisiones varían según ubicación",
+		"countries": "países",
+		"some_states_excluded": "Algunos estados excluídos",
+		"purchase_method_modal_close": "Cerrar",
+		"modal_transak_support": "Disponibilidad de Transak",
+		"modal_wyre_support": "Disponibilidad de Wyre",
+		"transak_cta": "Comprar ETH con Transak",
+		"transak_modal_text": "Métodos de pago y comisiones varían dependiendo de la ubicación. Países disponibles:",
+		"apple_pay": "Apple Pay",
+		"via": "via",
+		"fee": "comisión",
+		"Fee": "Comisión",
+		"limited_time": "tiempo limitado",
+		"wyre_minutes": "1 - 2 minutos",
+		"wyre_max": "Máx. $450 semanal",
+		"wyre_requires_debit_card": "Requiere tarjeta de débito",
+		"wyre_us_only": "🇺🇸 solo EUA",
+		"wyre_modal_text": "El pago con Apple Pay, provisto por Wyre es aceptado en los Estados Unidos 🇺🇸 a excepción de CT, HI, NC, NH, NY, VA y VT.",
+		"wyre_modal_terms_of_service_apply": "Rige Acuerdo de Usuario de Wyre.",
+		"notifications": {
+			"purchase_failed_title": "'Su compra de {{currency}} ha fallado! Lo sentimos, por favor intente de nuevo",
+			"purchase_cancelled_title": "Su compra fue cancelada",
+			"purchase_completed_title": "¡Su compra de {{amount}} {{currency}} fue exitosa!",
+			"purchase_completed_description": "Su {{currency}} está disponible",
+			"purchase_pending_title": "Procesando su compra de {{currency}}",
+			"purchase_pending_description": "Su depósito está en progreso"
+		}
 	}
 }

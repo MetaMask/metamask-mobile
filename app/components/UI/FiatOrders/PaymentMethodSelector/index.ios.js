@@ -2,6 +2,7 @@ import React, { useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { NavigationContext } from 'react-navigation';
 import { connect } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
 
 import { useTransakFlowURL } from '../orderProcessor/transak';
 import { WYRE_IS_PROMOTION } from '../orderProcessor/wyreApplePay';
@@ -25,7 +26,7 @@ function PaymentMethodSelectorView({ selectedAddress, ...props }) {
 	const onPressTransak = useCallback(() => {
 		navigation.navigate('TransakFlow', {
 			url: transakURL,
-			title: 'Transak'
+			title: strings('fiat_on_ramp.transak_webview_title')
 		});
 	}, [navigation, transakURL]);
 
@@ -35,19 +36,21 @@ function PaymentMethodSelectorView({ selectedAddress, ...props }) {
 				<Title centered hero>
 					{WYRE_IS_PROMOTION ? (
 						<>
-							<Text reset>0% fee when you use</Text>
+							<Text reset>{strings('fiat_on_ramp.purchase_method_title.wyre_first_line')}</Text>
 							{'\n'}
-							<Text reset>Apple Pay.</Text>
+							<Text reset>{strings('fiat_on_ramp.purchase_method_title.wyre_second_line')}</Text>
 						</>
 					) : (
 						<>
-							<Text reset>How do you want to make</Text>
+							<Text reset>{strings('fiat_on_ramp.purchase_method_title.first_line')}</Text>
 							{'\n'}
-							<Text reset>your purchase?</Text>
+							<Text reset>{strings('fiat_on_ramp.purchase_method_title.second_line')}</Text>
 						</>
 					)}
 				</Title>
-				{WYRE_IS_PROMOTION && <SubHeader centered>Valid until July 1st, 2020</SubHeader>}
+				{WYRE_IS_PROMOTION && (
+					<SubHeader centered>{strings('fiat_on_ramp.purchase_method_title.wyre_sub_header')}</SubHeader>
+				)}
 			</Heading>
 
 			<WyreApplePayPaymentMethod onPress={onPressWyreApplePay} />

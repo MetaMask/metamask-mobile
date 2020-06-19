@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Title from '../Title';
+import { strings } from '../../../../../../locales/i18n';
 
+import Title from '../Title';
 import { colors } from '../../../../../styles/common';
 import StyledButton from '../../../StyledButton';
 
@@ -85,7 +86,7 @@ const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => (
 			<View style={styles.body}>{children}</View>
 			<View style={styles.action}>
 				<StyledButton type="blue" onPress={dismiss} containerStyle={[styles.button]}>
-					Close
+					{strings('fiat_on_ramp.purchase_method_modal_close')}
 				</StyledButton>
 			</View>
 		</View>

@@ -1124,5 +1124,51 @@
 		"message": "It looks like you have some Dai in your account. You need to migrate this Dai to its new version or it will be deprecated.",
 		"learn_more": "Learn More",
 		"lets_do_it": "Let's do it!"
+	},
+	"account_bar": {
+		"depositing_to": "Depositing to:"
+	},
+	"fiat_on_ramp": {
+		"purchase_method": "Purchase Method",
+		"amount_to_buy": "Amount to buy",
+		"transak_webview_title": "Transak",
+		"wyre_user_agreement": "Wyre User Agreement",
+		"best_deal": "Best deal",
+		"purchase_method_title": {
+			"wyre_first_line": "0% fee when you use",
+			"wyre_second_line": "Apple Pay.",
+			"wyre_sub_header": "Valid until July 1st, 2020",
+			"first_line": "How do you want to make",
+			"second_line": "your purchase?"
+		},
+		"bank_transfer_debit": "Bank transfer or debit card",
+		"requires_registration": "Requires registration",
+		"options_fees_vary": "Options and fees vary based on location",
+		"countries": "countries",
+		"some_states_excluded": "Some states excluded",
+		"purchase_method_modal_close": "Close",
+		"modal_transak_support": "Transak Support",
+		"modal_wyre_support": "Wyre Support",
+		"transak_cta": "But ETH with Transak",
+		"transak_modal_text": "Exact payment methods and fees vary depending on location. Supported countries are:",
+		"apple_pay": "Apple Pay",
+		"via": "via",
+		"fee": "fee",
+		"Fee": "Fee",
+		"limited_time": "limited time",
+		"wyre_minutes": "1 - 2 minutes",
+		"wyre_max": "Max $450 weekly",
+		"wyre_requires_debit_card": "Requires debit card",
+		"wyre_us_only": "🇺🇸 U.S. only",
+		"wyre_modal_text": "Paying with Apple Pay, powered by Wyre is supported in the United Sates 🇺🇸 except for CT, HI, NC, NH, NY, VA and VT.",
+		"wyre_modal_terms_of_service_apply": "Wyre terms of service apply.",
+		"notifications": {
+			"purchase_failed_title": "Purchase of {{currency}} failed! Please try again, sorry for the inconvenience!",
+			"purchase_cancelled_title": "Your purchase was cancelled",
+			"purchase_completed_title": "Your purchase of {{amount}} {{currency}} was successful!",
+			"purchase_completed_description": "Your {{currency}} is now available",
+			"purchase_pending_title": "Processing your purchase of {{currency}}",
+			"purchase_pending_description": "Your deposit is in progress"
+		}
 	}
 }

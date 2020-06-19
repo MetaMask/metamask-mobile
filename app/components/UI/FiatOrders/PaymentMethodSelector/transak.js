@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, Image, StyleSheet, View } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
+
 import PaymentMethod from '../components/PaymentMethod';
 import Title from '../../../Base/Title';
 import Text from '../../../Base/Text';
@@ -27,9 +29,9 @@ const TransakPaymentMethod = ({ onPress }) => (
 	<PaymentMethod onPress={onPress}>
 		<PaymentMethod.Content>
 			<PaymentMethod.Details>
-				<Title>Bank transfer or debit card</Title>
-				<Text bold>Requires registration</Text>
-				<Text disclaimer>Options and fees vary based on location</Text>
+				<Title>{strings('fiat_on_ramp.bank_transfer_debit')}</Title>
+				<Text bold>{strings('fiat_on_ramp.requires_registration')}</Text>
+				<Text disclaimer>{strings('fiat_on_ramp.options_fees_vary')}</Text>
 			</PaymentMethod.Details>
 			<PaymentMethod.Terms>
 				<TransakLogo />
@@ -39,18 +41,20 @@ const TransakPaymentMethod = ({ onPress }) => (
 							<TouchableOpacity onPress={toggleModal}>
 								<PaymentMethod.InfoIconLine>
 									<Text bold small>
-										32+ countries
+										32+ {strings('fiat_on_ramp.countries')}
 									</Text>
 									<PaymentMethod.InfoIcon />
 								</PaymentMethod.InfoIconLine>
 							</TouchableOpacity>
-							<PaymentMethod.Modal isVisible={isVisible} dismiss={toggleModal} title="Transak Support">
-								<Text modal>
-									Exact payment methods and fees vary depending on location. Supported countries are:
-								</Text>
+							<PaymentMethod.Modal
+								isVisible={isVisible}
+								dismiss={toggleModal}
+								title={strings('fiat_on_ramp.modal_transak_support')}
+							>
+								<Text modal>{strings('fiat_on_ramp.transak_modal_text')}</Text>
 								<Text modal>
 									Austria 🇦🇹, Belgium 🇧🇪, Cyprus 🇨🇾, Czechia 🇨🇿, Estonia 🇪🇪, Finland 🇫🇮, France 🇫🇷,
-									Germany 🇩🇪, Greece 🇬🇷, Ireland 🇮🇪, Italy 🇮🇹, Latvia 🇱🇻, Luxembourg 🇱🇺, Malta 🇹,
+									Germany 🇩🇪, Greece 🇬🇷, Ireland 🇮🇪, Italy 🇮🇹, Latvia 🇱🇻, Luxembourg 🇱🇺, Malta 🇲🇹,
 									Netherlands 🇳🇱, Portugal 🇵🇹, Romania 🇷🇴, Slovakia 🇸🇰, Slovenia 🇸🇮, Spain 🇪🇸, United
 									Kingdom 🇬🇧
 								</Text>
@@ -63,7 +67,7 @@ const TransakPaymentMethod = ({ onPress }) => (
 		{Device.isAndroid() && (
 			<View>
 				<StyledButton type={'blue'} containerStyle={style.cta} onPress={onPress}>
-					Buy ETH with Transak
+					{strings('fiat_on_ramp.transak_cta')}
 				</StyledButton>
 			</View>
 		)}

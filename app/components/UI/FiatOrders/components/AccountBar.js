@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { connect } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
 
 import { colors, fontStyles } from '../../../../styles/common';
 import { toggleAccountsModal } from '../../../../actions/modals';
@@ -40,7 +41,7 @@ const AccountBar = ({ toggleAccountsModal, selectedAddress, identities }) => (
 	<TouchableOpacity style={styles.container} onPress={toggleAccountsModal}>
 		<>
 			<Text style={styles.depositingText} centered small>
-				Depositing to:
+				{strings('account_bar.depositing_to')}
 			</Text>
 			<View style={styles.addressContainer}>
 				<Identicon diameter={15} address={selectedAddress} />

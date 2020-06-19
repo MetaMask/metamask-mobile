@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { PaymentRequest } from 'react-native-payments';
 import axios from 'axios';
 import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
+import { strings } from '../../../../../locales/i18n';
 
 //* env vars
 
@@ -113,8 +114,10 @@ const getMerchantIdentifier = network => (network === '1' ? WYRE_MERCHANT_ID : W
 const getPartnerId = network => (network === '1' ? WYRE_ACCOUNT_ID : WYRE_ACCOUNT_ID_TEST);
 
 export const WYRE_IS_PROMOTION = true;
-export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : 2.9;
-export const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : 0.3;
+export const WYRE_REGULAR_FEE_PERCENT = 2.9;
+export const WYRE_REGULAR_FEE_FLAT = 0.3;
+export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_PERCENT;
+export const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_FLAT;
 
 //* API */
 
@@ -165,7 +168,7 @@ const wyreOrderStateToFiatState = wyreOrderState => {
 			return FIAT_ORDER_STATES.COMPLETED;
 		}
 		case WYRE_ORDER_STATES.FAILED: {
-			return FIAT_ORDER_STATES.CANCELLED;
+			return FIAT_ORDER_STATES.FAILED;
 		}
 		case WYRE_ORDER_STATES.RUNNING_CHECKS:
 		case WYRE_ORDER_STATES.PROCESSING:
@@ -401,7 +404,7 @@ export function useWyreTerms(navigation) {
 		() =>
 			navigation.navigate('Webview', {
 				url: 'https://www.sendwyre.com/user-agreement/',
-				title: 'Wyre User Agreement'
+				title: strings('fiat_on_ramp.wyre_user_agreement')
 			}),
 		[navigation]
 	);

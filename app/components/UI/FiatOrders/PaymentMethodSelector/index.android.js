@@ -2,6 +2,7 @@ import React, { useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { NavigationContext } from 'react-navigation';
 import { connect } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
 
 import { useTransakFlowURL } from '../orderProcessor/transak';
 import { getPaymentSelectorMethodNavbar } from '../../Navbar';
@@ -17,7 +18,7 @@ function PaymentMethodSelectorView({ selectedAddress, ...props }) {
 	const onPressTransak = useCallback(() => {
 		navigation.navigate('TransakFlow', {
 			url: transakURL,
-			title: 'Transak'
+			title: strings('fiat_on_ramp.transak_webview_title')
 		});
 	}, [navigation, transakURL]);
 
