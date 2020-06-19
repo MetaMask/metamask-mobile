@@ -1133,6 +1133,7 @@
 		"amount_to_buy": "Amount to buy",
 		"transak_webview_title": "Transak",
 		"wyre_user_agreement": "Wyre User Agreement",
+		"wyre_terms_of_service": "Wyre Terms of Service",
 		"best_deal": "Best deal",
 		"purchase_method_title": {
 			"wyre_first_line": "0% fee when you use",
@@ -1162,8 +1163,12 @@
 		"wyre_us_only": "🇺🇸 U.S. only",
 		"wyre_modal_text": "Paying with Apple Pay, powered by Wyre is supported in the United Sates 🇺🇸 except for CT, HI, NC, NH, NY, VA and VT.",
 		"wyre_modal_terms_of_service_apply": "Wyre terms of service apply.",
+		"wyre_minimum_deposit": "Minimum deposit is {{amount}}",
+		"wyre_maximum_deposit": "Maximum deposit is {{amount}}",
+		"buy_with": "Buy with",
+		"plus_fee": "Plus a {{fee}} fee",
 		"notifications": {
-			"purchase_failed_title": "Purchase of {{currency}} failed! Please try again, sorry for the inconvenience!",
+			"purchase_failed_title": "Purchase of {{currency}} has failed! Please try again, sorry for the inconvenience!",
 			"purchase_cancelled_title": "Your purchase was cancelled",
 			"purchase_completed_title": "Your purchase of {{amount}} {{currency}} was successful!",
 			"purchase_completed_description": "Your {{currency}} is now available",

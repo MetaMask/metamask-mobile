@@ -1064,6 +1064,7 @@
 		"amount_to_buy": "Monto a comprar",
 		"transak_webview_title": "Transak",
 		"wyre_user_agreement": "Acuerdo de Usuario de Wyre",
+		"wyre_terms_of_service": "Términos de Uso de Wyre",
 		"best_deal": "Mejor oferta",
 		"purchase_method_title": {
 			"wyre_first_line": "0% de comisión al",
@@ -1093,6 +1094,10 @@
 		"wyre_us_only": "🇺🇸 solo EUA",
 		"wyre_modal_text": "El pago con Apple Pay, provisto por Wyre es aceptado en los Estados Unidos 🇺🇸 a excepción de CT, HI, NC, NH, NY, VA y VT.",
 		"wyre_modal_terms_of_service_apply": "Rige Acuerdo de Usuario de Wyre.",
+		"wyre_minimum_deposit": "El monto mínimo es {{amount}}",
+		"wyre_maximum_deposit": "El monto máximo es {{amount}}",
+		"buy_with": "Comprar con",
+		"plus_fee": "Más {{fee}} de comisión",
 		"notifications": {
 			"purchase_failed_title": "'Su compra de {{currency}} ha fallado! Lo sentimos, por favor intente de nuevo",
 			"purchase_cancelled_title": "Su compra fue cancelada",

@@ -4,18 +4,26 @@ import { View, StyleSheet, Image, TouchableOpacity, InteractionManager } from 'r
 import { NavigationContext } from 'react-navigation';
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-
-import { useWyreTerms, useWyreApplePay, WYRE_IS_PROMOTION, WyreException } from '../orderProcessor/wyreApplePay';
-import { setLockTime } from '../../../../actions/settings';
-
-import { getPaymentMethodApplePayNavbar } from '../../Navbar';
-import AccountBar from '../components/AccountBar';
-import StyledButton from '../../StyledButton';
-import Text from '../../../Base/Text';
-import { colors, fontStyles } from '../../../../styles/common';
 import NotificationManager from '../../../../core/NotificationManager';
 import Device from '../../../../util/Device';
+import { setLockTime } from '../../../../actions/settings';
+import { strings } from '../../../../../locales/i18n';
+import { getNotificationDetails } from '..';
+
+import {
+	useWyreTerms,
+	useWyreApplePay,
+	WyreException,
+	WYRE_IS_PROMOTION,
+	WYRE_FEE_PERCENT
+} from '../orderProcessor/wyreApplePay';
+
 import ScreenView from '../components/ScreenView';
+import { getPaymentMethodApplePayNavbar } from '../../Navbar';
+import AccountBar from '../components/AccountBar';
+import Text from '../../../Base/Text';
+import StyledButton from '../../StyledButton';
+import { colors, fontStyles } from '../../../../styles/common';
 
 //* styles and components  */
 
@@ -262,18 +270,15 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 				addOrder(order);
 				navigation.dismiss();
 				InteractionManager.runAfterInteractions(() =>
-					NotificationManager.showSimpleNotification({
-						duration: 5000,
-						title: `Processing purchase of ${order.cryptocurrency}`,
-						description: 'Your deposit is in progress',
-						status: 'pending'
-					})
+					NotificationManager.showSimpleNotification(getNotificationDetails(order))
 				);
 			}
 		} catch (error) {
 			NotificationManager.showSimpleNotification({
 				duration: 5000,
-				title: `Purchase of ETH failed! Please try again, sorry for the inconvenience!`,
+				title: strings('fiat_on_ramp.notifications.purchase_failed_title', {
+					cryptocurrency: 'ETH'
+				}),
 				description: `${error instanceof WyreException ? 'Wyre: ' : ''}${error.message}`,
 				status: 'error'
 			});
@@ -324,8 +329,14 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 						${amount}
 					</Text>
 					{!(isUnderMinimum || isOverMaximum) && <Text>= 0 ETH</Text>}
-					{isUnderMinimum && <Text>Minimum deposit is ${minAmount}</Text>}
-					{isOverMaximum && <Text style={styles.amountError}>Maximum deposit is ${maxAmount}</Text>}
+					{isUnderMinimum && (
+						<Text>{strings('fiat_on_ramp.wyre_minimum_deposit', { amount: `$${minAmount}` })}</Text>
+					)}
+					{isOverMaximum && (
+						<Text style={styles.amountError}>
+							{strings('fiat_on_ramp.wyre_maximum_deposit', { amount: `$${maxAmount}` })}
+						</Text>
+					)}
 				</View>
 				{quickAmounts.length > 0 && (
 					<View style={styles.quickAmounts}>
@@ -377,23 +388,28 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 							bold
 							style={[styles.applePayButtonText, disabledButton && styles.applePayButtonTextDisabled]}
 						>
-							Buy with
+							{strings('fiat_on_ramp.buy_with')}
 						</Text>
 						<ApplePay disabled={disabledButton} />
 					</StyledButton>
 					<Text centered>
-						{WYRE_IS_PROMOTION && <Text>0% fee (limited time)</Text>}
+						{WYRE_IS_PROMOTION && (
+							<Text>
+								{WYRE_FEE_PERCENT}% {strings('fiat_on_ramp.fee')} (
+								{strings('fiat_on_ramp.limited_time')})
+							</Text>
+						)}
 						{!WYRE_IS_PROMOTION && (
 							<>
 								{disabledButton ? (
 									<Text>
 										<Text bold>
-											Fee ~{percentFee}% + ${flatFee}
+											{strings('fiat_on_ramp.Fee')} ~{percentFee}% + ${flatFee}
 										</Text>
 									</Text>
 								) : (
 									<Text>
-										<Text bold>Plus a ${fee} fee</Text>
+										<Text bold>{strings('fiat_on_ramp.plus_fee', { fee: `$${fee}` })}</Text>
 									</Text>
 								)}
 							</>
@@ -401,7 +417,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 					</Text>
 					<TouchableOpacity onPress={handleWyreTerms}>
 						<Text centered link>
-							Wyre Terms of Service
+							{strings('fiat_on_ramp.wyre_terms_of_service')}
 						</Text>
 					</TouchableOpacity>
 				</View>

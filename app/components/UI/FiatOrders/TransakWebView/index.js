@@ -5,10 +5,10 @@ import { connect } from 'react-redux';
 import { WebView } from 'react-native-webview';
 import NotificationManager from '../../../../core/NotificationManager';
 import { handleTransakRedirect, TRANSAK_REDIRECT_URL } from '../orderProcessor/transak';
+import { getNotificationDetails } from '..';
 
 import { getTransakWebviewNavbar } from '../../../UI/Navbar';
 import { baseStyles } from '../../../../styles/common';
-import { getNotificationDetails } from '..';
 
 class TransakWebView extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransakWebviewNavbar(navigation);
