@@ -221,7 +221,8 @@
 		"private_key_detected": "Private key detected",
 		"do_you_want_to_import_this_account": "Do you want to import this account?",
 		"error": "Error",
-		"logout_to_import_seed": "You need to log out first in order to import a seed phrase."
+		"logout_to_import_seed": "You need to log out first in order to import a seed phrase.",
+		"ready_to_explore": "Ready to start exploring blockchain applications?"
 	},
 	"transactions_view": {
 		"title": "Transactions"
@@ -1129,6 +1130,7 @@
 		"depositing_to": "Depositing to:"
 	},
 	"fiat_on_ramp": {
+		"buy_eth": "Buy ETH",
 		"purchase_method": "Purchase Method",
 		"amount_to_buy": "Amount to buy",
 		"transak_webview_title": "Transak",
@@ -1150,7 +1152,7 @@
 		"purchase_method_modal_close": "Close",
 		"modal_transak_support": "Transak Support",
 		"modal_wyre_support": "Wyre Support",
-		"transak_cta": "But ETH with Transak",
+		"transak_cta": "Buy ETH with Transak",
 		"transak_modal_text": "Exact payment methods and fees vary depending on location. Supported countries are:",
 		"apple_pay": "Apple Pay",
 		"via": "via",

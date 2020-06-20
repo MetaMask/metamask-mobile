@@ -15,6 +15,7 @@ import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import StyledButton from '../StyledButton';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -27,6 +28,22 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginTop: 50
+	},
+	homeGraphic: {
+		justifyContent: 'center',
+		alignItems: 'center',
+		marginVertical: 20,
+		marginHorizontal: 50
+	},
+	homeGraphicText: {
+		...fontStyles.normal,
+		margin: 15,
+		fontSize: 18,
+		color: colors.fontPrimary,
+		textAlign: 'center'
+	},
+	homeGraphicButton: {
+		width: '100%'
 	},
 	text: {
 		fontSize: 20,
@@ -73,6 +90,7 @@ const styles = StyleSheet.create({
 });
 
 const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
+const homeGraphic = require('../../../images/HomeGraphic.png'); // eslint-disable-line
 
 /**
  * View that renders a list of ERC-20 Tokens
@@ -183,12 +201,31 @@ class Tokens extends PureComponent {
 		);
 	};
 
+	goToBuy = () => this.props.navigation.navigate('PaymentMethodSelector');
+
+	renderBuyEth(tokens) {
+		if (tokens.length === 0 || tokens.length > 1 || (tokens[0] && !tokens[0].isETH) || tokens[0].balance !== '0') {
+			return;
+		}
+
+		return (
+			<View style={styles.homeGraphic}>
+				<Image source={homeGraphic} />
+				<Text style={styles.homeGraphicText}>{strings('wallet.ready_to_explore')}</Text>
+				<StyledButton type="blue" onPress={this.goToBuy} containerStyle={styles.homeGraphicButton}>
+					{strings('fiat_on_ramp.buy_eth')}
+				</StyledButton>
+			</View>
+		);
+	}
+
 	renderList() {
 		const { tokens } = this.props;
 
 		return (
 			<View>
 				{tokens.map(item => this.renderItem(item))}
+				{this.renderBuyEth(tokens)}
 				{this.renderFooter()}
 			</View>
 		);

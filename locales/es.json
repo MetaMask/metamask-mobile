@@ -196,7 +196,8 @@
 		"private_key_detected": "Llave privada detectada",
 		"do_you_want_to_import_this_account": "Deseas importar esta cuenta?",
 		"error": "Error",
-		"logout_to_import_seed": "Primero debes cerrar la sesión para poder importar una nueva frase semilla."
+		"logout_to_import_seed": "Primero debes cerrar la sesión para poder importar una nueva frase semilla.",
+		"ready_to_explore": "¿Listo para explorar aplicaciones blockchain?"
 	},
 	"transactions_view": {
 		"title": "Transacciones"
@@ -1060,6 +1061,7 @@
 		"depositing_to": "Depositando a:"
 	},
 	"fiat_on_ramp": {
+		"buy_eth": "Comprar ETH",
 		"purchase_method": "Método de pago",
 		"amount_to_buy": "Monto a comprar",
 		"transak_webview_title": "Transak",
