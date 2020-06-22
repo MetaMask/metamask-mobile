@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import NotificationManager from '../../../../core/NotificationManager';
 import Device from '../../../../util/Device';
+import Logger from '../../../../util/Logger';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import { getNotificationDetails } from '..';
@@ -272,6 +273,8 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 				InteractionManager.runAfterInteractions(() =>
 					NotificationManager.showSimpleNotification(getNotificationDetails(order))
 				);
+			} else {
+				Logger.log('FiatOrders::WyreApplePayProcessor empty order response', order);
 			}
 		} catch (error) {
 			NotificationManager.showSimpleNotification({

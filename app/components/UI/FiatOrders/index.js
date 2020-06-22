@@ -94,7 +94,6 @@ function FiatOrders({ orders, selectedAddress, network, createFakeOrder, clearOr
 				pendingOrders.map(async order => {
 					const updatedOrder = await processOrder(order);
 					if (updatedOrder.state !== order.state) {
-						// console.log(`Order updated:`, order.provider, order.id);
 						dispatch({ type: 'FIAT_UPDATE_ORDER', payload: updatedOrder });
 						InteractionManager.runAfterInteractions(() =>
 							NotificationManager.showSimpleNotification(getNotificationDetails(updatedOrder))

@@ -1,6 +1,7 @@
 import { FIAT_ORDER_PROVIDERS } from '../../../../reducers/fiatOrders';
 import { processWyreApplePayOrder } from './wyreApplePay';
 import { processTransakOrder } from './transak';
+import Logger from '../../../../util/Logger';
 
 function processOrder(order) {
 	switch (order.provider) {
@@ -11,6 +12,7 @@ function processOrder(order) {
 			return processTransakOrder(order);
 		}
 		default: {
+			Logger.log('FiatOrders::ProcessOrder unrecognized provider', order);
 			return order;
 		}
 	}

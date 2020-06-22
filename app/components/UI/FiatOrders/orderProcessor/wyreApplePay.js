@@ -1,8 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { PaymentRequest } from 'react-native-payments';
 import axios from 'axios';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
+import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
 
 //* env vars
 
@@ -219,22 +220,30 @@ export async function processWyreApplePayOrder(order) {
 	try {
 		const { data } = await getOrderStatus(order.network, order.id);
 		if (!data) {
+			Logger.log('FiatOrders::WyreApplePayProcessor empty data', order);
 			return order;
 		}
 
 		const { transferId } = data;
 
 		if (transferId) {
-			const transfer = await getTransferStatus(order.network, transferId);
-			return {
-				...order,
-				...wyreOrderToFiatOrder(data),
-				...wyreTransferToFiatOrder(transfer),
-				data: {
-					order: data,
-					transfer
-				}
-			};
+			try {
+				const transferResponse = await getTransferStatus(order.network, transferId);
+				return {
+					...order,
+					...wyreOrderToFiatOrder(data),
+					...wyreTransferToFiatOrder(transferResponse.data),
+					data: {
+						order: data,
+						transfer: transferResponse.data
+					}
+				};
+			} catch (error) {
+				Logger.error(error, {
+					message: 'FiatOrders::WyreApplePayProcessor error while processing transfer',
+					order
+				});
+			}
 		}
 
 		return {
@@ -242,7 +251,7 @@ export async function processWyreApplePayOrder(order) {
 			...wyreOrderToFiatOrder(data)
 		};
 	} catch (error) {
-		// TODO: report error
+		Logger.error(error, { message: 'FiatOrders::WyreApplePayProcessor error while processing order', order });
 		return order;
 	}
 }
@@ -374,16 +383,18 @@ export function useWyreApplePay(amount, address, network) {
 		try {
 			const paymentResponse = await paymentRequest.show();
 			if (!paymentResponse) {
-				throw new Error('Payment Request Failed');
+				throw new Error('Payment Request Failed: empty apple pay response');
 			}
 			const payload = createPayload(network, total, address, paymentResponse.details);
 			const { data, status } = await createFiatOrder(network, payload);
 			if (status >= 200 && status < 300) {
 				await paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.SUCCESS);
-				return { ...wyreOrderToFiatOrder(data), network };
+				const order = { ...wyreOrderToFiatOrder(data), network };
+				Logger.log('FiatOrders::WyreApplePayPayment order created', order);
+				return order;
 			}
-			paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.FAIL);
 
+			paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.FAIL);
 			throw new WyreException(data.message, data.type, data.exceptionId);
 		} catch (error) {
 			if (error.message.includes('AbortError')) {
@@ -392,6 +403,7 @@ export function useWyreApplePay(amount, address, network) {
 			if (paymentRequest && paymentRequest.abort) {
 				paymentRequest.abort();
 			}
+			Logger.error(error, { message: 'FiatOrders::WyreApplePayPayment error while creating order' });
 			throw error;
 		}
 	}, [address, methodData, network, paymentDetails, total]);

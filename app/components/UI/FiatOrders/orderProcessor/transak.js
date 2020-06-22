@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import axios from 'axios';
 import qs from 'query-string';
 import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
+import Logger from '../../../../util/Logger';
 
 //* env vars
 
@@ -198,15 +199,14 @@ export async function processTransakOrder(order) {
 			data: { response }
 		} = await getOrderStatus(order.id);
 		if (!response) {
-			return order;
+			throw new Error('Payment Request Failed: empty transak response');
 		}
 		return {
 			...order,
 			...transakOrderToFiatOrder(response)
 		};
 	} catch (error) {
-		// TODO: report error
-		// console.error(error);
+		Logger.error(error, { message: 'FiatOrders::TransakProcessor error while processing order', order });
 		return order;
 	}
 }
