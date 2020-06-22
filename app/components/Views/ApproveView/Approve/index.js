@@ -412,16 +412,18 @@ class Approve extends PureComponent {
 		const { currentCustomGasSelected, gasError } = this.state;
 		const { gas, gasPrice } = this.props.transaction;
 		return (
-			<CustomGas
-				selected={currentCustomGasSelected}
-				handleGasFeeSelection={this.handleGasFeeSelection}
-				gas={gas}
-				gasPrice={gasPrice}
-				gasError={gasError}
-				toggleCustomGasModal={this.toggleCustomGasModal}
-				handleSetGasFee={this.handleSetGasFee}
-				parentStateReady={this.ready}
-			/>
+			<View style={styles.section}>
+				<CustomGas
+					selected={currentCustomGasSelected}
+					handleGasFeeSelection={this.handleGasFeeSelection}
+					gas={gas}
+					gasPrice={gasPrice}
+					gasError={gasError}
+					toggleCustomGasModal={this.toggleCustomGasModal}
+					handleSetGasFee={this.handleSetGasFee}
+					parentStateReady={this.ready}
+				/>
+			</View>
 		);
 	};
 
@@ -700,7 +702,7 @@ class Approve extends PureComponent {
 						{viewDetails ? (
 							this.renderTransactionReview()
 						) : customGasVisible ? (
-							<View style={styles.section}>{this.renderCustomGas()}</View>
+							this.renderCustomGas()
 						) : editPermissionVisible ? (
 							this.renderEditPermission()
 						) : (
