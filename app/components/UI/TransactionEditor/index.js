@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Animated } from 'react-native';
+import { StyleSheet, Animated, Easing } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../../../styles/common';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
@@ -615,7 +615,8 @@ class TransactionEditor extends PureComponent {
 		Animated.parallel([
 			Animated.timing(modalValue, {
 				toValue: modalEndValue,
-				duration: 500,
+				duration: 250,
+				easing: Easing.ease,
 				useNativeDriver: true
 			}),
 			Animated.timing(
@@ -625,7 +626,8 @@ class TransactionEditor extends PureComponent {
 						reviewToEditEndValue || reviewToEditEndValue === 0
 							? reviewToEditEndValue
 							: editToAdvancedEndValue,
-					duration: 500,
+					duration: 250,
+					easing: Easing.ease,
 					useNativeDriver: true
 				}
 			)
