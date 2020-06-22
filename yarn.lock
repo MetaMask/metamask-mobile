@@ -1028,6 +1028,14 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
+"@exodus/react-native-payments@https://github.com/wachunei/react-native-payments.git#package-json-hack":
+  version "1.5.0"
+  resolved "https://github.com/wachunei/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5"
+  dependencies:
+    es6-error "^4.0.2"
+    uuid "3.3.2"
+    validator "^7.0.0"
+
 "@hapi/address@2.x.x":
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/@hapi/address/-/address-2.1.4.tgz#5d67ed43f3fd41a69d4b9ff7b56e7c0d1d0a81e5"
@@ -10474,14 +10482,6 @@ react-native-os@^1.2.6:
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/react-native-os/-/react-native-os-1.2.6.tgz#1bb16d78ccad1143972183a04f443cf1af9fbefa"
   integrity sha512-OlT+xQAcvkcnf7imgXiu+myMkqDt4xw2bP5SlVo19hEn5XHBkPMLX7dk3sSGxxncH/ToMDsf1KLyrPabNVtadA==
-
-"react-native-payments@file:react-native-payments-v1.1.5.tgz":
-  version "1.1.5"
-  resolved "file:react-native-payments-v1.1.5.tgz#4b2e57db7e1eea1b002d9968423016c6b10e7132"
-  dependencies:
-    es6-error "^4.0.2"
-    uuid "3.3.2"
-    validator "^7.0.0"
 
 react-native-progress@3.5.0:
   version "3.5.0"

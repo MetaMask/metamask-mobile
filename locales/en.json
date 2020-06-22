@@ -1159,6 +1159,8 @@
 		"fee": "fee",
 		"Fee": "Fee",
 		"limited_time": "limited time",
+		"wyre_loading_rates": " ",
+		"wyre_estimated": "Estimated {{amount}} {{currency}}",
 		"wyre_minutes": "1 - 2 minutes",
 		"wyre_max": "Max $450 weekly",
 		"wyre_requires_debit_card": "Requires debit card",

@@ -13,6 +13,7 @@ import { getNotificationDetails } from '..';
 
 import {
 	useWyreTerms,
+	useWyreRates,
 	useWyreApplePay,
 	WyreException,
 	WYRE_IS_PROMOTION,
@@ -260,8 +261,9 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 	const disabledButton = amount === '0' || isUnderMinimum || isOverMaximum;
 
 	const handleWyreTerms = useWyreTerms(navigation);
-
+	const rates = useWyreRates(network, 'USDETH');
 	const [pay, ABORTED, percentFee, flatFee, , fee] = useWyreApplePay(roundAmount, selectedAddress, network);
+
 	const handlePressApplePay = useCallback(async () => {
 		const prevLockTime = lockTime;
 		setLockTime(-1);
@@ -333,7 +335,23 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 					>
 						${amount}
 					</Text>
-					{!(isUnderMinimum || isOverMaximum) && <Text>= 0 ETH</Text>}
+					{!(isUnderMinimum || isOverMaximum) &&
+						(rates ? (
+							<Text>
+								{roundAmount === '0' ? (
+									`$${rates.USD.toFixed(2)} ≈ 1 ETH`
+								) : (
+									<>
+										{strings('fiat_on_ramp.wyre_estimated', {
+											currency: 'ETH',
+											amount: (amount * rates.ETH).toFixed(5)
+										})}
+									</>
+								)}
+							</Text>
+						) : (
+							<Text>{strings('fiat_on_ramp.wyre_loading_rates')}</Text>
+						))}
 					{isUnderMinimum && (
 						<Text>{strings('fiat_on_ramp.wyre_minimum_deposit', { amount: `$${minAmount}` })}</Text>
 					)}

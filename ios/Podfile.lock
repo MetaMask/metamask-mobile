@@ -340,7 +340,7 @@ PODS:
     - React-cxxreact (= 0.62.2)
     - React-jsi (= 0.62.2)
     - ReactCommon/callinvoker (= 0.62.2)
-  - ReactNativePayments (1.1.5):
+  - ReactNativePayments (1.5.0):
     - React
   - RNCAsyncStorage (1.9.0):
     - React
@@ -442,7 +442,7 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/callinvoker (from `../node_modules/react-native/ReactCommon`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - ReactNativePayments (from `../node_modules/react-native-payments/lib/ios`)
+  - "ReactNativePayments (from `../node_modules/@exodus/react-native-payments/lib/ios`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
@@ -553,7 +553,7 @@ EXTERNAL SOURCES:
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativePayments:
-    :path: "../node_modules/react-native-payments/lib/ios"
+    :path: "../node_modules/@exodus/react-native-payments/lib/ios"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-community/async-storage"
   RNCClipboard:
@@ -639,7 +639,7 @@ SPEC CHECKSUMS:
   React-RCTText: fae545b10cfdb3d247c36c56f61a94cfd6dba41d
   React-RCTVibration: 4356114dbcba4ce66991096e51a66e61eda51256
   ReactCommon: ed4e11d27609d571e7eee8b65548efc191116eb3
-  ReactNativePayments: 40a266450628c05db440fe219b631210e4358a49
+  ReactNativePayments: a4e3ac915256a4e759c8a04338b558494a63a0f5
   RNCAsyncStorage: 453cd7c335ec9ba3b877e27d02238956b76f3268
   RNCClipboard: 8148e21ac347c51fd6cd4b683389094c216bb543
   RNDeviceInfo: 88099e84466f053bae3f34c307b506738b2b6946

@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { PaymentRequest } from 'react-native-payments';
+import { useCallback, useMemo, useState, useEffect } from 'react';
+import { PaymentRequest } from '@exodus/react-native-payments';
 import axios from 'axios';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
@@ -130,6 +130,7 @@ const wyreTestAPI = axios.create({
 	baseURL: WYRE_API_ENDPOINT_TEST
 });
 
+const getRates = network => (network === '1' ? wyreAPI : wyreTestAPI).get(`v3/rates`, { params: { as: 'PRICED' } });
 const createFiatOrder = (network, payload) =>
 	(network === '1' ? wyreAPI : wyreTestAPI).post('v3/apple-pay/process/partner', payload, {
 		// * This promise will always be resolved, use response.status to handle errors
@@ -363,6 +364,25 @@ const createPayload = (network, amount, address, paymentDetails) => {
 };
 
 // * Hooks */
+
+export function useWyreRates(network, currencies) {
+	const [rates, setRates] = useState(null);
+
+	useEffect(() => {
+		async function getWyreRates() {
+			try {
+				const { data } = await getRates(network);
+				const rates = data[currencies];
+				setRates(rates);
+			} catch (error) {
+				Logger.error(error, 'FiatOrders::WyreAppleyPay error while fetching wyre rates');
+			}
+		}
+		getWyreRates();
+	}, [currencies, network]);
+
+	return rates;
+}
 
 export function useWyreApplePay(amount, address, network) {
 	const flatFee = useMemo(() => WYRE_FEE_FLAT.toFixed(2), []);
