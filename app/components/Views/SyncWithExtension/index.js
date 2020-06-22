@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-notation
+const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 /**
  *

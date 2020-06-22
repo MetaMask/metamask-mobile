@@ -30,7 +30,7 @@ import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from
 import NotificationManager from './NotificationManager';
 import contractMap from 'eth-contract-metadata';
 
-const OPENSEA_API_KEY = process.env['MM_OPENSEA_KEY']; // eslint-disable-line dot-notation
+const OPENSEA_API_KEY = process.env.MM_OPENSEA_KEY;
 const encryptor = new Encryptor();
 let refreshing = false;
 /**
