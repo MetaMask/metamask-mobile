@@ -62,8 +62,8 @@ const styles = StyleSheet.create({
 	lines: {
 		zIndex: 1,
 		position: 'absolute',
-		top: borderRadius,
-		marginHorizontal: 24
+		top: borderRadius
+		// marginHorizontal: 42
 	},
 	line: {
 		width: '50%',
@@ -77,12 +77,13 @@ const styles = StyleSheet.create({
 
 export default class OnboardingProgress extends Component {
 	static propTypes = {
+		marginHorizontal: PropTypes.number.isRequired,
 		currentStep: PropTypes.number.isRequired,
 		steps: PropTypes.array.isRequired
 	};
 
 	render() {
-		const { currentStep, steps } = this.props;
+		const { currentStep, steps, marginHorizontal } = this.props;
 		const lines = steps.filter((step, index) => index !== steps.length - 1);
 		return (
 			<View style={styles.container}>
@@ -119,7 +120,7 @@ export default class OnboardingProgress extends Component {
 						);
 					})}
 				</View>
-				<View style={[styles.row, styles.lines]}>
+				<View style={[styles.row, styles.lines, { marginHorizontal }]}>
 					{lines.map((step, key) => {
 						const isSelected = key + 1 < currentStep;
 						return <View key={key} style={[styles.line, isSelected && styles.lineSelected]} />;
