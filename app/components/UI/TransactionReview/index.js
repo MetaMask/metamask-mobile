@@ -171,7 +171,7 @@ class TransactionReview extends PureComponent {
 		/**
 		 * Hides or shows TransactionReviewData
 		 */
-		hideData: PropTypes.func
+		hideData: PropTypes.bool
 	};
 
 	state = {
