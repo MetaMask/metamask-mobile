@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, InteractionManager } from 'react-native';
+import { StyleSheet, Text, View, InteractionManager, Animated } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -71,6 +71,15 @@ const styles = StyleSheet.create({
 		color: colors.red,
 		fontSize: 12,
 		...fontStyles.normal
+	},
+	transactionData: {
+		position: 'absolute',
+		width: '100%',
+		height: '100%'
+	},
+	hidden: {
+		opacity: 0,
+		height: 0
 	}
 });
 
@@ -138,7 +147,31 @@ class TransactionReview extends PureComponent {
 		/**
 		 * Whether or not basic gas estimates have been fetched
 		 */
-		ready: PropTypes.bool
+		ready: PropTypes.bool,
+		/**
+		 * Height of custom gas and data modal
+		 */
+		customGasHeight: PropTypes.number,
+		/**
+		 * Width of the device
+		 */
+		width: PropTypes.number,
+		/**
+		 * Drives animated values
+		 */
+		animate: PropTypes.func,
+		/**
+		 * Generates a transform style unique to the component
+		 */
+		generateTransform: PropTypes.func,
+		/**
+		 * Saves the height of TransactionReviewData
+		 */
+		saveTransactionReviewDataHeight: PropTypes.func,
+		/**
+		 * Hides or shows TransactionReviewData
+		 */
+		hideData: PropTypes.func
 	};
 
 	state = {
@@ -239,7 +272,14 @@ class TransactionReview extends PureComponent {
 	}
 
 	toggleDataView = () => {
-		this.setState({ dataVisible: !this.state.dataVisible });
+		const { animate } = this.props;
+		if (this.state.dataVisible) {
+			animate({ modalEndValue: 1, xTranslationName: 'reviewToData', xTranslationEndValue: 0 });
+			this.setState({ dataVisible: false });
+			return;
+		}
+		animate({ modalEndValue: 0, xTranslationName: 'reviewToData', xTranslationEndValue: 1 });
+		this.setState({ dataVisible: true });
 	};
 
 	getUrlFromBrowser() {
@@ -254,61 +294,75 @@ class TransactionReview extends PureComponent {
 	}
 
 	render = () => {
-		const { transactionConfirmed, primaryCurrency, ready } = this.props;
 		const {
-			actionKey,
-			error,
-			assetAmount,
-			conversionRate,
-			fiatValue,
-			approveTransaction,
-			dataVisible
-		} = this.state;
+			transactionConfirmed,
+			primaryCurrency,
+			ready,
+			width,
+			generateTransform,
+			hideData,
+			saveTransactionReviewDataHeight,
+			customGasHeight
+		} = this.props;
+		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
-		const content = !dataVisible ? (
+		return (
 			<>
-				<TransactionHeader currentPageInformation={currentPageInformation} />
-				<TransactionReviewSummary
-					actionKey={actionKey}
-					assetAmount={assetAmount}
-					conversionRate={conversionRate}
-					fiatValue={fiatValue}
-					approveTransaction={approveTransaction}
-					primaryCurrency={primaryCurrency}
-				/>
-				{!!error && (
-					<View style={styles.errorWrapper}>
-						<Text style={styles.error}>{error}</Text>
-					</View>
-				)}
-				<View style={styles.actionViewWrapper}>
-					<ActionView
-						confirmButtonMode="confirm"
-						cancelText={strings('transaction.reject')}
-						onCancelPress={this.props.onCancel}
-						onConfirmPress={this.props.onConfirm}
-						confirmed={transactionConfirmed}
-						confirmDisabled={error !== undefined}
-					>
-						<View style={styles.actionViewChildren}>
-							<View style={styles.accountInfoCardWrapper}>
-								<AccountInfoCard />
-							</View>
-							<TransactionReviewInformation
-								edit={this.edit}
-								ready={ready}
-								assetAmount={assetAmount}
-								fiatValue={fiatValue}
-								toggleDataView={this.toggleDataView}
-							/>
+				<Animated.View style={generateTransform('reviewToData', [0, -width])}>
+					<TransactionHeader currentPageInformation={currentPageInformation} />
+					<TransactionReviewSummary
+						actionKey={actionKey}
+						assetAmount={assetAmount}
+						conversionRate={conversionRate}
+						fiatValue={fiatValue}
+						approveTransaction={approveTransaction}
+						primaryCurrency={primaryCurrency}
+					/>
+					{!!error && (
+						<View style={styles.errorWrapper}>
+							<Text style={styles.error}>{error}</Text>
 						</View>
-					</ActionView>
-				</View>
+					)}
+					<View style={styles.actionViewWrapper}>
+						<ActionView
+							confirmButtonMode="confirm"
+							cancelText={strings('transaction.reject')}
+							onCancelPress={this.props.onCancel}
+							onConfirmPress={this.props.onConfirm}
+							confirmed={transactionConfirmed}
+							confirmDisabled={error !== undefined}
+						>
+							<View style={styles.actionViewChildren}>
+								<View style={styles.accountInfoCardWrapper}>
+									<AccountInfoCard />
+								</View>
+								<TransactionReviewInformation
+									edit={this.edit}
+									ready={ready}
+									assetAmount={assetAmount}
+									fiatValue={fiatValue}
+									toggleDataView={this.toggleDataView}
+								/>
+							</View>
+						</ActionView>
+					</View>
+				</Animated.View>
+				<Animated.View
+					style={[
+						styles.transactionData,
+						generateTransform('reviewToData', [width, 0]),
+						hideData && styles.hidden
+					]}
+				>
+					<TransactionReviewData
+						actionKey={actionKey}
+						toggleDataView={this.toggleDataView}
+						saveTransactionReviewDataHeight={saveTransactionReviewDataHeight}
+						customGasHeight={customGasHeight}
+					/>
+				</Animated.View>
 			</>
-		) : (
-			<TransactionReviewData actionKey={actionKey} toggleDataView={this.toggleDataView} />
 		);
-		return <>{content}</>;
 	};
 }
 
