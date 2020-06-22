@@ -12,6 +12,7 @@ import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import { safeToChecksumAddress } from '../../../util/address';
 import Radio from '../Radio';
 import StyledButton from '../../UI/StyledButton';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
@@ -197,6 +198,10 @@ const styles = StyleSheet.create({
 				translateY: 70
 			}
 		]
+	},
+	hidden: {
+		opacity: 0,
+		height: 0
 	}
 });
 
@@ -292,7 +297,15 @@ class CustomGas extends PureComponent {
 		/**
 		 * review or edit
 		 */
-		toAdvancedFrom: PropTypes.string
+		toAdvancedFrom: PropTypes.string,
+		/**
+		 * Height of custom gas and data modal
+		 */
+		customGasHeight: PropTypes.number,
+		/**
+		 * Height of root modal
+		 */
+		rootHeight: PropTypes.number
 	};
 
 	state = {
@@ -368,11 +381,19 @@ class CustomGas extends PureComponent {
 		} = this.props;
 		toggleAdvancedCustomGas();
 		if (!advancedCustomGas) {
-			animate({ modalEndValue: getAnimatedModalValueForAdvancedCG(), editToAdvancedEndValue: 1 });
+			animate({
+				modalEndValue: getAnimatedModalValueForAdvancedCG(),
+				xTranslationName: 'editToAdvanced',
+				xTranslationEndValue: 1
+			});
 			this.setState({ customGasLimit: fromWei(gas, 'wei') });
 			this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(customGasPrice));
 		} else {
-			animate({ modalEndValue: 0, editToAdvancedEndValue: 0 });
+			animate({
+				modalEndValue: 0,
+				xTranslationName: 'editToAdvanced',
+				xTranslationEndValue: 0
+			});
 		}
 	};
 
@@ -477,14 +498,13 @@ class CustomGas extends PureComponent {
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
 		const topOffset = { top: headerHeight };
-		const hideSelectors = hideGasSelectors && { opacity: 0, height: 0 };
 		return (
 			<Animated.View
 				style={[
 					styles.gasSelectorWrapper,
 					generateTransform('editToAdvanced', [0, -width]),
 					topOffset,
-					hideSelectors
+					hideGasSelectors && styles.hidden
 				]}
 			>
 				<View style={styles.selectors}>
@@ -621,6 +641,8 @@ class CustomGas extends PureComponent {
 			saveCustomGasHeight,
 			advancedCustomGas,
 			generateTransform,
+			rootHeight,
+			customGasHeight,
 			mode,
 			toAdvancedFrom
 		} = this.props;
@@ -631,10 +653,16 @@ class CustomGas extends PureComponent {
 		if (advancedCustomGas) {
 			buttonStyle = styles.buttonTransform;
 			if (toAdvancedFrom === 'edit' && mode === 'edit') {
-				buttonStyle = generateTransform('saveButton', [0, 0]);
+				buttonStyle = generateTransform('saveButton', [
+					0,
+					Device.isIphoneX() ? rootHeight - customGasHeight : rootHeight - customGasHeight + 24
+				]);
 			}
 		} else if (toAdvancedFrom === 'edit' && mode === 'edit') {
-			buttonStyle = generateTransform('saveButton', [0, 0]);
+			buttonStyle = generateTransform('saveButton', [
+				0,
+				Device.isIphoneX() ? rootHeight - customGasHeight : rootHeight - customGasHeight + 24
+			]);
 		}
 
 		return (
