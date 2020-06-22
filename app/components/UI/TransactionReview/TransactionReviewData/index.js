@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 const styles = StyleSheet.create({
 	overview: {
 		paddingHorizontal: 24,
-		marginBottom: 24
+		marginBottom: 12
 	},
 	dataHeader: {
 		flexDirection: 'row',
@@ -76,8 +76,20 @@ class TransactionReviewData extends PureComponent {
 		/**
 		 * Hides or shows transaction data
 		 */
-		toggleDataView: PropTypes.func
+		toggleDataView: PropTypes.func,
+		/**
+		 * Height of custom gas and data modal
+		 */
+		customGasHeight: PropTypes.number
 	};
+
+	state = {
+		headerHeight: null
+	};
+
+	saveHeaderHeight = event => this.setState({ headerHeight: event.nativeEvent.layout.height });
+
+	getDataBoxHeight = () => ({ minHeight: this.props.customGasHeight - this.state.headerHeight });
 
 	render = () => {
 		const {
@@ -87,15 +99,17 @@ class TransactionReviewData extends PureComponent {
 		} = this.props;
 		return (
 			<View style={styles.overview}>
-				<View style={styles.dataHeader}>
-					<TouchableOpacity onPress={toggleDataView}>
-						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
-					</TouchableOpacity>
-					<Text style={styles.dataTitleText}>{strings('transaction.data')}</Text>
-					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+				<View onLayout={this.saveHeaderHeight}>
+					<View style={styles.dataHeader}>
+						<TouchableOpacity onPress={toggleDataView}>
+							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+						</TouchableOpacity>
+						<Text style={styles.dataTitleText}>{strings('transaction.data')}</Text>
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+					</View>
+					<Text style={styles.dataDescription}>{strings('transaction.data_description')}</Text>
 				</View>
-				<Text style={styles.dataDescription}>{strings('transaction.data_description')}</Text>
-				<View style={styles.dataBox}>
+				<View style={[styles.dataBox, this.state.headerHeight && this.getDataBoxHeight()]}>
 					{actionKey !== strings('transactions.tx_review_confirm') && (
 						<View style={styles.label}>
 							<Text style={[styles.labelText, styles.boldLabel]}>
