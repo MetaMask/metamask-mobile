@@ -261,6 +261,8 @@ export async function processWyreApplePayOrder(order) {
 const USD_CURRENCY_CODE = 'USD';
 const ETH_CURRENCY_CODE = 'ETH';
 
+const ABORTED = 'ABORTED';
+
 const PAYMENT_REQUEST_COMPLETE = {
 	SUCCESS: 'success',
 	UNKNOWN: 'unknown',
@@ -398,7 +400,7 @@ export function useWyreApplePay(amount, address, network) {
 			throw new WyreException(data.message, data.type, data.exceptionId);
 		} catch (error) {
 			if (error.message.includes('AbortError')) {
-				return null;
+				return ABORTED;
 			}
 			if (paymentRequest && paymentRequest.abort) {
 				paymentRequest.abort();
@@ -408,7 +410,7 @@ export function useWyreApplePay(amount, address, network) {
 		}
 	}, [address, methodData, network, paymentDetails, total]);
 
-	return [showRequest, percentFee, flatFee, percentFeeAmount, fee, total];
+	return [showRequest, ABORTED, percentFee, flatFee, percentFeeAmount, fee, total];
 }
 
 export function useWyreTerms(navigation) {

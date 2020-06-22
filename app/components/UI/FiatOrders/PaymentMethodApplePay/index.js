@@ -261,20 +261,22 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 
 	const handleWyreTerms = useWyreTerms(navigation);
 
-	const [pay, percentFee, flatFee, , fee] = useWyreApplePay(roundAmount, selectedAddress, network);
+	const [pay, ABORTED, percentFee, flatFee, , fee] = useWyreApplePay(roundAmount, selectedAddress, network);
 	const handlePressApplePay = useCallback(async () => {
 		const prevLockTime = lockTime;
 		setLockTime(-1);
 		try {
 			const order = await pay();
-			if (order) {
-				addOrder(order);
-				navigation.dismiss();
-				InteractionManager.runAfterInteractions(() =>
-					NotificationManager.showSimpleNotification(getNotificationDetails(order))
-				);
-			} else {
-				Logger.log('FiatOrders::WyreApplePayProcessor empty order response', order);
+			if (order !== ABORTED) {
+				if (order) {
+					addOrder(order);
+					navigation.dismiss();
+					InteractionManager.runAfterInteractions(() =>
+						NotificationManager.showSimpleNotification(getNotificationDetails(order))
+					);
+				} else {
+					Logger.log('FiatOrders::WyreApplePayProcessor empty order response', order);
+				}
 			}
 		} catch (error) {
 			NotificationManager.showSimpleNotification({
@@ -288,7 +290,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 		} finally {
 			setLockTime(prevLockTime);
 		}
-	}, [addOrder, lockTime, navigation, pay, setLockTime]);
+	}, [ABORTED, addOrder, lockTime, navigation, pay, setLockTime]);
 
 	const handleQuickAmountPress = useCallback(amount => setAmount(amount), []);
 	const handleKeypadPress = useCallback(
