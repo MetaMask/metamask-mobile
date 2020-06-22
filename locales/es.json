@@ -1090,6 +1090,8 @@
 		"fee": "comisión",
 		"Fee": "Comisión",
 		"limited_time": "tiempo limitado",
+		"wyre_loading_rates": " ",
+		"wyre_estimated": "Estimado {{amount}} {{currency}}",
 		"wyre_minutes": "1 - 2 minutos",
 		"wyre_max": "Máx. $450 semanal",
 		"wyre_requires_debit_card": "Requiere tarjeta de débito",
