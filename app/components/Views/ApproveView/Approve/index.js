@@ -271,7 +271,8 @@ class Approve extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		activeTabUrl: PropTypes.string
 	};
 
 	state = {
@@ -670,7 +671,8 @@ class Approve extends PureComponent {
 	};
 
 	render = () => {
-		const { transaction } = this.props;
+		const { activeTabUrl } = this.props;
+
 		const {
 			host,
 			tokenSymbol,
@@ -708,9 +710,7 @@ class Approve extends PureComponent {
 						) : (
 							<>
 								<View style={styles.section} testID={'approve-screen'}>
-									<TransactionHeader
-										currentPageInformation={{ title: host, url: transaction.origin }}
-									/>
+									<TransactionHeader currentPageInformation={{ title: host, url: activeTabUrl }} />
 									<Text style={styles.title} testID={'allow-access'}>
 										{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
 									</Text>
@@ -772,7 +772,8 @@ const mapStateToProps = state => ({
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	activeTabUrl: state.browser.tabs.find(({ id }) => id === state.browser.activeTab).url
 });
 
 const mapDispatchToProps = dispatch => ({
