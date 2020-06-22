@@ -116,11 +116,14 @@ class TransactionEditor extends PureComponent {
 		advancedCustomGas: false,
 		modalValue: new Animated.Value(1),
 		reviewToEditValue: new Animated.Value(0),
+		reviewToDataValue: new Animated.Value(0),
 		editToAdvancedValue: new Animated.Value(0),
 		width: Device.getDeviceWidth(),
 		rootHeight: null,
 		customGasHeight: null,
+		transactionReviewDataHeight: null,
 		hideGasSelectors: false,
+		hideData: true,
 		toAdvancedFrom: 'edit'
 	};
 
@@ -596,10 +599,15 @@ class TransactionEditor extends PureComponent {
 			this.setState({ toAdvancedFrom: 'review' });
 			this.animate({
 				modalEndValue: this.state.advancedCustomGas ? this.getAnimatedModalValueForAdvancedCG() : 0,
-				reviewToEditEndValue: 1
+				xTranslationName: 'reviewToEdit',
+				xTranslationEndValue: 1
 			});
 		} else {
-			this.animate({ modalEndValue: 1, reviewToEditEndValue: 0 });
+			this.animate({
+				modalEndValue: 1,
+				xTranslationName: 'reviewToEdit',
+				xTranslationEndValue: 0
+			});
 		}
 		this.props.onModeChange(mode);
 	};
@@ -609,9 +617,17 @@ class TransactionEditor extends PureComponent {
 		this.setState({ advancedCustomGas: toggle ? true : !advancedCustomGas, toAdvancedFrom: 'edit' });
 	};
 
-	animate = ({ modalEndValue, reviewToEditEndValue, editToAdvancedEndValue }) => {
-		const { modalValue, reviewToEditValue, editToAdvancedValue } = this.state;
-		editToAdvancedEndValue === 0 && this.setState({ hideGasSelectors: false });
+	animate = ({ modalEndValue, xTranslationName, xTranslationEndValue }) => {
+		const { modalValue, reviewToEditValue, editToAdvancedValue, reviewToDataValue } = this.state;
+		xTranslationName === 'editToAdvanced' &&
+			xTranslationEndValue === 0 &&
+			this.setState({ hideGasSelectors: false });
+		//data view is hidden by default because when we switch from review to edit, since view is nested in review, it also gets transformed. It's shown if it's the animation's destination.
+		xTranslationName === 'reviewToData' && xTranslationEndValue === 1 && this.setState({ hideData: false });
+		let xTranslationValue;
+		if (xTranslationName === 'reviewToEdit') xTranslationValue = reviewToEditValue;
+		else if (xTranslationName === 'editToAdvanced') xTranslationValue = editToAdvancedValue;
+		else if (xTranslationName === 'reviewToData') xTranslationValue = reviewToDataValue;
 		Animated.parallel([
 			Animated.timing(modalValue, {
 				toValue: modalEndValue,
@@ -619,34 +635,27 @@ class TransactionEditor extends PureComponent {
 				easing: Easing.ease,
 				useNativeDriver: true
 			}),
-			Animated.timing(
-				reviewToEditEndValue || reviewToEditEndValue === 0 ? reviewToEditValue : editToAdvancedValue,
-				{
-					toValue:
-						reviewToEditEndValue || reviewToEditEndValue === 0
-							? reviewToEditEndValue
-							: editToAdvancedEndValue,
-					duration: 250,
-					easing: Easing.ease,
-					useNativeDriver: true
-				}
-			)
-		]).start(() => editToAdvancedEndValue === 1 && this.setState({ hideGasSelectors: true }));
+			Animated.timing(xTranslationValue, {
+				toValue: xTranslationEndValue,
+				duration: 250,
+				easing: Easing.ease,
+				useNativeDriver: true
+			})
+		]).start(() => {
+			xTranslationName === 'editToAdvanced' &&
+				xTranslationEndValue === 1 &&
+				this.setState({ hideGasSelectors: true });
+			xTranslationName === 'reviewToData' &&
+				xTranslationEndValue === 0 &&
+				this.setState({
+					hideData: true
+				});
+		});
 	};
 
 	generateTransform = (valueType, outRange) => {
-		const { modalValue, reviewToEditValue, editToAdvancedValue, rootHeight, customGasHeight } = this.state;
+		const { modalValue, reviewToEditValue, editToAdvancedValue, reviewToDataValue } = this.state;
 		if (valueType === 'modal' || valueType === 'saveButton') {
-			if (valueType === 'modal') {
-				Device.isIphoneX()
-					? (outRange[0] = rootHeight - customGasHeight)
-					: (outRange[0] = rootHeight - customGasHeight + 24);
-			} else {
-				Device.isIphoneX()
-					? (outRange[1] = rootHeight - customGasHeight)
-					: (outRange[1] = rootHeight - customGasHeight + 24);
-			}
-
 			return {
 				transform: [
 					{
@@ -658,7 +667,10 @@ class TransactionEditor extends PureComponent {
 				]
 			};
 		}
-		const value = valueType === 'reviewToEdit' ? reviewToEditValue : editToAdvancedValue;
+		let value;
+		if (valueType === 'reviewToEdit') value = reviewToEditValue;
+		else if (valueType === 'editToAdvanced') value = editToAdvancedValue;
+		else if (valueType === 'reviewToData') value = reviewToDataValue;
 		return {
 			transform: [
 				{
@@ -680,13 +692,14 @@ class TransactionEditor extends PureComponent {
 		return value;
 	};
 
-	saveRootHeight = event => {
-		!this.state.rootHeight && this.setState({ rootHeight: event.nativeEvent.layout.height });
-	};
+	saveRootHeight = event => !this.state.rootHeight && this.setState({ rootHeight: event.nativeEvent.layout.height });
 
-	saveCustomGasHeight = event => {
+	saveCustomGasHeight = event =>
 		!this.state.customGasHeight && this.setState({ customGasHeight: event.nativeEvent.layout.height });
-	};
+
+	saveTransactionReviewDataHeight = event =>
+		!this.state.transactionReviewDataHeight &&
+		this.setState({ transactionReviewDataHeight: event.nativeEvent.layout.height });
 
 	render = () => {
 		const { mode, transactionConfirmed, transaction } = this.props;
@@ -697,14 +710,23 @@ class TransactionEditor extends PureComponent {
 			advancedCustomGas,
 			hideGasSelectors,
 			modalValue,
-			toAdvancedFrom
+			toAdvancedFrom,
+			hideData,
+			rootHeight,
+			customGasHeight
 		} = this.state;
 		return (
 			<React.Fragment>
 				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
 				{!transaction.paymentChannelTransaction && (
 					<Animated.View
-						style={[styles.root, this.generateTransform('modal', [0, 0])]}
+						style={[
+							styles.root,
+							this.generateTransform('modal', [
+								Device.isIphoneX() ? rootHeight - customGasHeight : rootHeight - customGasHeight + 24,
+								0
+							])
+						]}
 						onLayout={this.saveRootHeight}
 					>
 						<Animated.View style={this.generateTransform('reviewToEdit', [0, -width])}>
@@ -715,6 +737,12 @@ class TransactionEditor extends PureComponent {
 								validate={this.validate}
 								ready={ready}
 								transactionConfirmed={transactionConfirmed}
+								width={width}
+								generateTransform={this.generateTransform}
+								animate={this.animate}
+								hideData={hideData}
+								saveTransactionReviewDataHeight={this.saveTransactionReviewDataHeight}
+								customGasHeight={customGasHeight}
 							/>
 						</Animated.View>
 						{ready && (
@@ -748,6 +776,8 @@ class TransactionEditor extends PureComponent {
 									mode={mode}
 									modalValue={modalValue}
 									toAdvancedFrom={toAdvancedFrom}
+									rootHeight={rootHeight}
+									customGasHeight={customGasHeight}
 								/>
 							</Animated.View>
 						)}
