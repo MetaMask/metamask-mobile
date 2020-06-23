@@ -221,7 +221,7 @@ export async function processWyreApplePayOrder(order) {
 	try {
 		const { data } = await getOrderStatus(order.network, order.id);
 		if (!data) {
-			Logger.log('FiatOrders::WyreApplePayProcessor empty data', order);
+			Logger.message('FiatOrders::WyreApplePayProcessor empty data', order);
 			return order;
 		}
 
@@ -412,7 +412,7 @@ export function useWyreApplePay(amount, address, network) {
 			if (status >= 200 && status < 300) {
 				await paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.SUCCESS);
 				const order = { ...wyreOrderToFiatOrder(data), network };
-				Logger.log('FiatOrders::WyreApplePayPayment order created', order);
+				Logger.message('FiatOrders::WyreApplePayPayment order created', order);
 				return order;
 			}
 
