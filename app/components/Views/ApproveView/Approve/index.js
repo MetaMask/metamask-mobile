@@ -707,7 +707,8 @@ class Approve extends PureComponent {
 		} = this.state;
 
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
-		const symbol = currencySymbols[currentCurrency];
+		const currencySymbol = currencySymbols[currentCurrency];
+		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
 
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -761,8 +762,8 @@ class Approve extends PureComponent {
 												{strings('transaction.transaction_fee')}
 											</Text>
 											<Text style={styles.sectionRight}>
-												{isFiat && symbol}
-												{isFiat ? totalGasFiat : totalGas} {!isFiat && ticker}
+												{isFiat && currencySymbol}
+												{isFiat ? totalGasFiatRounded : totalGas} {!isFiat && ticker}
 											</Text>
 											<View style={styles.networkFeeArrow}>
 												<IonicIcon name="ios-arrow-forward" size={16} color={colors.grey00} />
