@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		fontSize: 14,
 		flex: 1,
+		textTransform: 'uppercase',
 		textAlign: 'right'
 	},
 	option: {
@@ -241,6 +242,10 @@ class Approve extends PureComponent {
 		 */
 		conversionRate: PropTypes.number,
 		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
 		 * Transaction state
 		 */
 		transaction: PropTypes.object.isRequired,
@@ -272,6 +277,7 @@ class Approve extends PureComponent {
 		 * A string representing the network name
 		 */
 		providerType: PropTypes.string,
+		primaryCurrency: PropTypes.string,
 		activeTabUrl: PropTypes.string
 	};
 
@@ -671,17 +677,21 @@ class Approve extends PureComponent {
 	};
 
 	render = () => {
-		const { activeTabUrl } = this.props;
+		const { activeTabUrl, currentCurrency, primaryCurrency } = this.props;
 
 		const {
 			host,
 			tokenSymbol,
 			viewDetails,
 			totalGas,
+			totalGasFiat,
 			customGasVisible,
 			editPermissionVisible,
+			ticker,
 			gasError
 		} = this.state;
+
+		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
 
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -733,7 +743,9 @@ class Approve extends PureComponent {
 											<Text style={styles.sectionLeft}>
 												{strings('transaction.transaction_fee')}
 											</Text>
-											<Text style={styles.sectionRight}>{totalGas}</Text>
+											<Text style={styles.sectionRight}>
+												{isFiat ? totalGasFiat : totalGas} {isFiat ? currentCurrency : ticker}
+											</Text>
 											<View style={styles.networkFeeArrow}>
 												<IonicIcon name="ios-arrow-forward" size={16} color={colors.grey00} />
 											</View>
@@ -764,7 +776,6 @@ class Approve extends PureComponent {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
@@ -773,6 +784,7 @@ const mapStateToProps = state => ({
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	primaryCurrency: state.settings.primaryCurrency,
 	activeTabUrl: state.browser.tabs.find(({ id }) => id === state.browser.activeTab).url
 });
 
