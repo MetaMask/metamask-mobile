@@ -76,7 +76,6 @@ const styles = StyleSheet.create({
 });
 
 const steps = [strings('onboarding.step1'), strings('onboarding.step2'), strings('onboarding.step3')];
-// const steps = ['Create password', 'Secure wallet', 'Confirm seed phrase'];
 
 /**
  * View that is displayed to first time (new) users
@@ -180,11 +179,7 @@ class Onboarding extends PureComponent {
 					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
 							<View style={styles.ctas}>
-								<OnboardingProgress
-									marginHorizontal={24}
-									steps={steps}
-									currentStep={this.state.currentStep}
-								/>
+								<OnboardingProgress steps={steps} currentStep={this.state.currentStep} />
 								<Text style={styles.title} testID={'onboarding-screen-title'}>
 									{strings('onboarding.title')}
 								</Text>

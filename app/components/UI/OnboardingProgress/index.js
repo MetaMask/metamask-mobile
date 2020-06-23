@@ -63,7 +63,6 @@ const styles = StyleSheet.create({
 		zIndex: 1,
 		position: 'absolute',
 		top: borderRadius
-		// marginHorizontal: 42
 	},
 	line: {
 		width: '50%',
@@ -76,14 +75,34 @@ const styles = StyleSheet.create({
 });
 
 export default class OnboardingProgress extends Component {
+	constructor() {
+		super();
+		this.marker = undefined;
+		this.state = {
+			offset: 0
+		};
+	}
+
 	static propTypes = {
-		marginHorizontal: PropTypes.number.isRequired,
 		currentStep: PropTypes.number.isRequired,
 		steps: PropTypes.array.isRequired
 	};
 
+	onLayout = ({ nativeEvent }) => {
+		if (this.marker) {
+			this.marker.measure((x, y, width, height, pageX, pageY) => {
+				this.setState({
+					offset: Math.floor(width / 2)
+				});
+			});
+		}
+	};
+
+	defineRef = ref => (this.marker = ref);
+
 	render() {
-		const { currentStep, steps, marginHorizontal } = this.props;
+		const { offset } = this.state;
+		const { currentStep, steps } = this.props;
 		const lines = steps.filter((step, index) => index !== steps.length - 1);
 		return (
 			<View style={styles.container}>
@@ -94,7 +113,7 @@ export default class OnboardingProgress extends Component {
 
 						const isFirst = key === 0;
 						return (
-							<View key={key} style={styles.step}>
+							<View key={key} style={styles.step} ref={this.defineRef} onLayout={this.onLayout}>
 								<View
 									style={[
 										styles.ellipsis,
@@ -120,7 +139,7 @@ export default class OnboardingProgress extends Component {
 						);
 					})}
 				</View>
-				<View style={[styles.row, styles.lines, { marginHorizontal }]}>
+				<View style={[styles.row, styles.lines, { marginHorizontal: offset }]}>
 					{lines.map((step, key) => {
 						const isSelected = key + 1 < currentStep;
 						return <View key={key} style={[styles.line, isSelected && styles.lineSelected]} />;
