@@ -1,15 +1,12 @@
 import { useMemo } from 'react';
 import axios from 'axios';
 import qs from 'query-string';
+import AppConstants from '../../../../core/AppConstants';
 import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
 
 //* env vars
 
-const TRANSAK_URL = process.env.TRANSAK_URL;
-const TRANSAK_URL_STAGING = process.env.TRANSAK_URL_STAGING;
-const TRANSAK_API_URL_STAGING = process.env.TRANSAK_API_URL_STAGING;
-const TRANSAK_API_URL_PRODUCTION = process.env.TRANSAK_API_URL_PRODUCTION;
 const TRANSAK_API_KEY_STAGING = process.env.TRANSAK_API_KEY_STAGING;
 const TRANSAK_API_KEY_SECRET_STAGING = process.env.TRANSAK_API_KEY_SECRET_STAGING;
 const TRANSAK_API_KEY_PRODUCTION = process.env.TRANSAK_API_KEY_PRODUCTION;
@@ -71,9 +68,15 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
 
 //* Constants
 
-const isDevelopment = process.env.NODE_ENV !== 'production';
+const {
+	TRANSAK_URL,
+	TRANSAK_URL_STAGING,
+	TRANSAK_API_URL_STAGING,
+	TRANSAK_API_URL_PRODUCTION,
+	TRANSAK_REDIRECT_URL
+} = AppConstants.FIAT_ORDERS;
 
-export const TRANSAK_REDIRECT_URL = 'https://metamask.io/';
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const TRANSAK_API_BASE_URL = `${isDevelopment ? TRANSAK_API_URL_STAGING : TRANSAK_API_URL_PRODUCTION}api/v1/`;
 const TRANSAK_API_KEY = isDevelopment ? TRANSAK_API_KEY_STAGING : TRANSAK_API_KEY_PRODUCTION;
