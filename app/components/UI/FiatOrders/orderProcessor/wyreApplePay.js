@@ -1,18 +1,15 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import { PaymentRequest } from '@exodus/react-native-payments';
 import axios from 'axios';
+import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
 
 //* env vars
 
-const WYRE_API_ENDPOINT = process.env.WYRE_API_ENDPOINT;
-const WYRE_API_ENDPOINT_TEST = process.env.WYRE_API_ENDPOINT_TEST;
 const WYRE_ACCOUNT_ID = process.env.WYRE_ACCOUNT_ID;
 const WYRE_ACCOUNT_ID_TEST = process.env.WYRE_ACCOUNT_ID_TEST;
-const WYRE_MERCHANT_ID = process.env.WYRE_MERCHANT_ID;
-const WYRE_MERCHANT_ID_TEST = process.env.WYRE_MERCHANT_ID_TEST;
 
 //* typedefs
 
@@ -111,14 +108,15 @@ export const WYRE_ORDER_STATES = {
 
 //* Constants */
 
-const getMerchantIdentifier = network => (network === '1' ? WYRE_MERCHANT_ID : WYRE_MERCHANT_ID_TEST);
-const getPartnerId = network => (network === '1' ? WYRE_ACCOUNT_ID : WYRE_ACCOUNT_ID_TEST);
-
+const { WYRE_MERCHANT_ID, WYRE_MERCHANT_ID_TEST, WYRE_API_ENDPOINT, WYRE_API_ENDPOINT_TEST } = AppConstants.FIAT_ORDERS;
 export const WYRE_IS_PROMOTION = true;
 export const WYRE_REGULAR_FEE_PERCENT = 2.9;
 export const WYRE_REGULAR_FEE_FLAT = 0.3;
 export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_PERCENT;
 export const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_FLAT;
+
+const getMerchantIdentifier = network => (network === '1' ? WYRE_MERCHANT_ID : WYRE_MERCHANT_ID_TEST);
+const getPartnerId = network => (network === '1' ? WYRE_ACCOUNT_ID : WYRE_ACCOUNT_ID_TEST);
 
 //* API */
 
