@@ -10,11 +10,7 @@ exports[`Approve should render correctly 1`] = `
     }
   }
   accountsLength={1}
-  contractBalances={
-    Object {
-      "0x2": "0",
-    }
-  }
+  activeTabUrl="https://metamask.github.io/test-dapp/"
   conversionRate={100}
   currentCurrency="USD"
   identities={
@@ -24,6 +20,7 @@ exports[`Approve should render correctly 1`] = `
       },
     }
   }
+  primaryCurrency="Fiat"
   setTransactionObject={[Function]}
   showAlert={[Function]}
   ticker="ETH"
