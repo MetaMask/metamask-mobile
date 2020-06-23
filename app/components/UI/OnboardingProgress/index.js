@@ -77,6 +77,7 @@ const styles = StyleSheet.create({
 export default class OnboardingProgress extends Component {
 	constructor() {
 		super();
+		this.ranOnce = false;
 		this.marker = undefined;
 		this.state = {
 			offset: 0
@@ -91,9 +92,16 @@ export default class OnboardingProgress extends Component {
 	onLayout = ({ nativeEvent }) => {
 		if (this.marker) {
 			this.marker.measure((x, y, width, height, pageX, pageY) => {
-				this.setState({
-					offset: Math.floor(width / 2)
-				});
+				if (!this.ranOnce) {
+					this.setState(
+						{
+							offset: Math.floor(width / 2)
+						},
+						() => {
+							this.ranOnce = true;
+						}
+					);
+				}
 			});
 		}
 	};
