@@ -43,6 +43,7 @@ import ConnectHeader from '../../../UI/ConnectHeader';
 import AccountInfoCard from '../../../UI/AccountInfoCard';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionReviewDetailsCard from '../../../UI/TransactionReview/TransactionReivewDetailsCard';
+import StyledButton from '../../../UI/StyledButton';
 
 const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
@@ -427,9 +428,15 @@ class Approve extends PureComponent {
 					gasPrice={gasPrice}
 					gasError={gasError}
 					toggleCustomGasModal={this.toggleCustomGasModal}
-					handleSetGasFee={this.handleSetGasFee}
 					parentStateReady={this.ready}
 				/>
+				<StyledButton
+					// testID={cancelTestID}
+					type="confirm"
+					onPress={this.handleSetGasFee}
+				>
+					{strings('custom_gas.save')}
+				</StyledButton>
 			</View>
 		);
 	};
@@ -700,9 +707,10 @@ class Approve extends PureComponent {
 					confirmText={strings('spend_limit_edition.approve')}
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
-					confirmButtonMode={'confirm'}
+					confirmButtonMode="confirm"
 					onRequestClose={this.onCancel}
 					displayCancelButton={false}
+					displayConfirmButton={!customGasVisible}
 					modalVisible
 					modalStyle={styles.actionModal}
 					viewWrapperStyle={styles.viewWrapperStyle}
