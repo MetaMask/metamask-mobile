@@ -4,18 +4,629 @@ exports[`CustomGas should render correctly 1`] = `
 <View
   style={
     Object {
-      "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
-      "height": 200,
-      "justifyContent": "center",
+      "paddingHorizontal": 24,
     }
   }
 >
-  <ActivityIndicator
-    animating={true}
-    color="#999999"
-    hidesWhenStopped={true}
-    size="small"
-  />
+  <View
+    onLayout={[Function]}
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingBottom": 20,
+          "width": "100%",
+        }
+      }
+    >
+      <TouchableOpacity>
+        <Icon
+          allowFontScaling={false}
+          color="#000000"
+          name="ios-arrow-back"
+          size={24}
+        />
+      </TouchableOpacity>
+      <Text
+        style={
+          Object {
+            "alignSelf": "center",
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "600",
+          }
+        }
+      >
+        Edit Network Fee
+      </Text>
+      <Icon
+        allowFontScaling={false}
+        color="#FFFFFF"
+        name="ios-arrow-back"
+        size={24}
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "paddingBottom": 20,
+        }
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Array [
+            Object {
+              "alignItems": "center",
+              "height": 36,
+              "justifyContent": "center",
+              "padding": 8,
+              "width": 116,
+            },
+            Object {
+              "backgroundColor": "#f2f3f4",
+              "borderColor": "#d6d9dc",
+              "borderRadius": 20,
+              "borderWidth": 1,
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Basic
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Array [
+            Object {
+              "alignItems": "center",
+              "height": 36,
+              "justifyContent": "center",
+              "padding": 8,
+              "width": 116,
+            },
+            null,
+          ]
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Advanced
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <ForwardRef(AnimatedComponentWrapper)
+    style={
+      Array [
+        Object {
+          "alignSelf": "center",
+          "height": "100%",
+          "position": "absolute",
+          "width": "100%",
+        },
+        undefined,
+        Object {
+          "top": null,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "justifyContent": "space-evenly",
+          "marginBottom": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <TouchableOpacity
+        key="safeLow"
+        onPress={[Function]}
+        style={
+          Array [
+            Object {
+              "alignItems": "flex-start",
+              "alignSelf": "stretch",
+              "borderColor": "#d6d9dc",
+              "borderWidth": 1,
+              "marginLeft": -2,
+              "paddingHorizontal": 12,
+              "paddingVertical": 10,
+              "textAlign": "center",
+              "width": "33.333333333%",
+            },
+            Object {
+              "borderBottomStartRadius": 6,
+              "borderTopStartRadius": 6,
+            },
+            false,
+          ]
+        }
+      >
+        <View
+          style={
+            Object {
+              "flexDirection": "row",
+              "justifyContent": "space-between",
+              "width": "100%",
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "CircularStd-Medium",
+                "fontSize": 10,
+                "fontWeight": "600",
+              }
+            }
+          >
+            SLOW
+          </Text>
+          <View
+            style={
+              Object {
+                "marginLeft": "auto",
+              }
+            }
+          >
+            <Radio
+              selected={false}
+            />
+          </View>
+        </View>
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 18,
+              "fontWeight": "600",
+              "marginVertical": 4,
+              "textTransform": "none",
+            }
+          }
+        />
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 10,
+              "fontWeight": "400",
+            }
+          }
+        >
+          0
+           
+          ETH
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 10,
+              "fontWeight": "400",
+            }
+          }
+        >
+          $0
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        key="average"
+        onPress={[Function]}
+        style={
+          Array [
+            Object {
+              "alignItems": "flex-start",
+              "alignSelf": "stretch",
+              "borderColor": "#d6d9dc",
+              "borderWidth": 1,
+              "marginLeft": -2,
+              "paddingHorizontal": 12,
+              "paddingVertical": 10,
+              "textAlign": "center",
+              "width": "33.333333333%",
+            },
+            Object {
+              "backgroundColor": "#eaf6ff",
+              "borderColor": "#037dd6",
+              "zIndex": 1,
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            Object {
+              "flexDirection": "row",
+              "justifyContent": "space-between",
+              "width": "100%",
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "CircularStd-Medium",
+                "fontSize": 10,
+                "fontWeight": "600",
+              }
+            }
+          >
+            AVERAGE
+          </Text>
+          <View
+            style={
+              Object {
+                "marginLeft": "auto",
+              }
+            }
+          >
+            <Radio
+              selected={true}
+            />
+          </View>
+        </View>
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 18,
+              "fontWeight": "600",
+              "marginVertical": 4,
+              "textTransform": "none",
+            }
+          }
+        />
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 10,
+              "fontWeight": "400",
+            }
+          }
+        >
+          0
+           
+          ETH
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 10,
+              "fontWeight": "400",
+            }
+          }
+        >
+          $0
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        key="fast"
+        onPress={[Function]}
+        style={
+          Array [
+            Object {
+              "alignItems": "flex-start",
+              "alignSelf": "stretch",
+              "borderColor": "#d6d9dc",
+              "borderWidth": 1,
+              "marginLeft": -2,
+              "paddingHorizontal": 12,
+              "paddingVertical": 10,
+              "textAlign": "center",
+              "width": "33.333333333%",
+            },
+            Object {
+              "borderBottomEndRadius": 6,
+              "borderTopEndRadius": 6,
+            },
+            false,
+          ]
+        }
+      >
+        <View
+          style={
+            Object {
+              "flexDirection": "row",
+              "justifyContent": "space-between",
+              "width": "100%",
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "CircularStd-Medium",
+                "fontSize": 10,
+                "fontWeight": "600",
+              }
+            }
+          >
+            FAST
+          </Text>
+          <View
+            style={
+              Object {
+                "marginLeft": "auto",
+              }
+            }
+          >
+            <Radio
+              selected={false}
+            />
+          </View>
+        </View>
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 18,
+              "fontWeight": "600",
+              "marginVertical": 4,
+              "textTransform": "none",
+            }
+          }
+        />
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 10,
+              "fontWeight": "400",
+            }
+          }
+        >
+          0
+           
+          ETH
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 10,
+              "fontWeight": "400",
+            }
+          }
+        >
+          $0
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <Text
+      style={
+        Object {
+          "color": "#000000",
+          "fontFamily": "CircularStd-Medium",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "paddingBottom": 20,
+        }
+      }
+    >
+      Select the network fee you are willing to pay. The higher the fee, the better chances and faster your transaction will go through.
+    </Text>
+  </ForwardRef(AnimatedComponentWrapper)>
+  <ForwardRef(AnimatedComponentWrapper)
+    onLayout={[Function]}
+    style={
+      Array [
+        Object {
+          "alignItems": "center",
+          "flexDirection": "column",
+          "justifyContent": "center",
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "marginBottom": 20,
+          "width": "100%",
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "flex": 1,
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 16,
+            "fontWeight": "300",
+            "textAlign": "left",
+          }
+        }
+      >
+        Total
+      </Text>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingRight": 20,
+            "paddingVertical": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "600",
+            }
+          }
+        >
+          0
+           
+          ETH
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "marginBottom": 20,
+          "width": "100%",
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "flex": 1,
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 16,
+            "fontWeight": "300",
+            "textAlign": "left",
+          }
+        }
+      >
+        Gas Limit:
+      </Text>
+      <TextInput
+        keyboardType="numeric"
+        onChangeText={[Function]}
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#d6d9dc",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flex": 1,
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingHorizontal": 10,
+            "paddingVertical": 8,
+            "position": "relative",
+          }
+        }
+        value="0"
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "marginBottom": 20,
+          "width": "100%",
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "flex": 1,
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 16,
+            "fontWeight": "300",
+            "textAlign": "left",
+          }
+        }
+      >
+        Gas Price: (GWEI)
+      </Text>
+      <TextInput
+        keyboardType="numeric"
+        onChangeText={[Function]}
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#d6d9dc",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flex": 1,
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingHorizontal": 10,
+            "paddingVertical": 8,
+            "position": "relative",
+          }
+        }
+        value="10"
+      />
+    </View>
+  </ForwardRef(AnimatedComponentWrapper)>
+  <ForwardRef(AnimatedComponentWrapper)>
+    <StyledButton
+      disabled={false}
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      testID="custom-gas-save-button"
+      type="confirm"
+    >
+      Save
+    </StyledButton>
+  </ForwardRef(AnimatedComponentWrapper)>
 </View>
 `;

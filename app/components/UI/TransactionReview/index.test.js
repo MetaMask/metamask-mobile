@@ -4,6 +4,7 @@ import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 
 const mockStore = configureMockStore();
+const generateTransform = jest.fn();
 
 describe('TransactionReview', () => {
 	it('should render correctly', () => {
@@ -57,6 +58,7 @@ describe('TransactionReview', () => {
 			<TransactionReview
 				navigation={{ state: { params: {} } }}
 				transactionData={{ amount: 0, gas: 0, gasPrice: 1, from: '0x0' }}
+				generateTransform={generateTransform}
 			/>,
 			{
 				context: { store: mockStore(initialState) }
