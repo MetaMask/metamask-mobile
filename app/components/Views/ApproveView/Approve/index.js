@@ -606,6 +606,13 @@ class Approve extends PureComponent {
 							</View>
 						</View>
 					</View>
+					<StyledButton
+						// testID={cancelTestID}
+						type="confirm"
+						onPress={this.toggleEditPermission}
+					>
+						{strings('transaction.set_gas')}
+					</StyledButton>
 				</KeyboardAwareScrollView>
 			</View>
 		);
@@ -710,7 +717,7 @@ class Approve extends PureComponent {
 					confirmButtonMode="confirm"
 					onRequestClose={this.onCancel}
 					displayCancelButton={false}
-					displayConfirmButton={!customGasVisible}
+					displayConfirmButton={!editPermissionVisible && !customGasVisible}
 					modalVisible
 					modalStyle={styles.actionModal}
 					viewWrapperStyle={styles.viewWrapperStyle}
