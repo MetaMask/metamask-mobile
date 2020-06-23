@@ -44,6 +44,7 @@ import AccountInfoCard from '../../../UI/AccountInfoCard';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionReviewDetailsCard from '../../../UI/TransactionReview/TransactionReivewDetailsCard';
 import StyledButton from '../../../UI/StyledButton';
+import currencySymbols from '../../../../util/currency-symbols.json';
 
 const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
@@ -706,6 +707,7 @@ class Approve extends PureComponent {
 		} = this.state;
 
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
+		const symbol = currencySymbols[currentCurrency];
 
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -759,7 +761,8 @@ class Approve extends PureComponent {
 												{strings('transaction.transaction_fee')}
 											</Text>
 											<Text style={styles.sectionRight}>
-												{isFiat ? totalGasFiat : totalGas} {isFiat ? currentCurrency : ticker}
+												{isFiat && symbol}
+												{isFiat ? totalGasFiat : totalGas} {!isFiat && ticker}
 											</Text>
 											<View style={styles.networkFeeArrow}>
 												<IonicIcon name="ios-arrow-forward" size={16} color={colors.grey00} />
