@@ -273,7 +273,7 @@ const PAYMENT_REQUEST_COMPLETE = {
 const getMethodData = network => [
 	{
 		supportedMethods: ['apple-pay'],
-		supportedTypes: ['debit'],
+
 		data: {
 			countryCode: 'US',
 			currencyCode: USD_CURRENCY_CODE,
@@ -303,7 +303,8 @@ const getPaymentDetails = (cryptoCurrency, amount, fee, total) => ({
 const paymentOptions = {
 	requestPayerPhone: true,
 	requestPayerEmail: true,
-	requestBilling: true
+	requestBilling: true,
+	merchantCapabilities: ['debit']
 };
 
 const createPayload = (network, amount, address, paymentDetails) => {
