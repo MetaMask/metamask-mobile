@@ -29,6 +29,7 @@ import {
 	decodeTransferData,
 	generateApproveData,
 	getNormalizedTxState,
+	getActiveTabUrl,
 	getMethodData
 } from '../../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -804,10 +805,7 @@ const mapStateToProps = state => ({
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	primaryCurrency: state.settings.primaryCurrency,
-	activeTabUrl:
-		state.browser.tabs && state.browser.activeTab
-			? state.browser.tabs.find(({ id }) => id === state.browser.activeTab).url
-			: ''
+	activeTabUrl: getActiveTabUrl(state)
 });
 
 const mapDispatchToProps = dispatch => ({
