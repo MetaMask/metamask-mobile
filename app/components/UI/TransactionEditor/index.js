@@ -127,6 +127,12 @@ class TransactionEditor extends PureComponent {
 		toAdvancedFrom: 'edit'
 	};
 
+	xTranslationMappings = {
+		reviewToEdit: this.state.reviewToEditValue,
+		editToAdvanced: this.state.editToAdvancedValue,
+		reviewToData: this.state.reviewToDataValue
+	};
+
 	componentDidMount = async () => {
 		await this.handleFetchBasicEstimates();
 	};
@@ -619,16 +625,12 @@ class TransactionEditor extends PureComponent {
 	};
 
 	animate = ({ modalEndValue, xTranslationName, xTranslationEndValue }) => {
-		const { modalValue, reviewToEditValue, editToAdvancedValue, reviewToDataValue } = this.state;
+		const { modalValue } = this.state;
 		xTranslationName === 'editToAdvanced' &&
 			xTranslationEndValue === 0 &&
 			this.setState({ hideGasSelectors: false });
 		//data view is hidden by default because when we switch from review to edit, since view is nested in review, it also gets transformed. It's shown if it's the animation's destination.
 		xTranslationName === 'reviewToData' && xTranslationEndValue === 1 && this.setState({ hideData: false });
-		let xTranslationValue;
-		if (xTranslationName === 'reviewToEdit') xTranslationValue = reviewToEditValue;
-		else if (xTranslationName === 'editToAdvanced') xTranslationValue = editToAdvancedValue;
-		else if (xTranslationName === 'reviewToData') xTranslationValue = reviewToDataValue;
 		Animated.parallel([
 			Animated.timing(modalValue, {
 				toValue: modalEndValue,
@@ -636,7 +638,7 @@ class TransactionEditor extends PureComponent {
 				easing: Easing.ease,
 				useNativeDriver: true
 			}),
-			Animated.timing(xTranslationValue, {
+			Animated.timing(this.xTranslationMappings[xTranslationName], {
 				toValue: xTranslationEndValue,
 				duration: 250,
 				easing: Easing.ease,
