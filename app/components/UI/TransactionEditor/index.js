@@ -624,13 +624,24 @@ class TransactionEditor extends PureComponent {
 		this.setState({ advancedCustomGas: toggle ? true : !advancedCustomGas, toAdvancedFrom: 'edit' });
 	};
 
+	hideComponents = (xTranslationName, xTranslationEndValue, animationTime) => {
+		//data view is hidden by default because when we switch from review to edit, since view is nested in review, it also gets transformed. It's shown if it's the animation's destination.
+		if (xTranslationName === 'editToAdvanced') {
+			this.setState({
+				hideGasSelectors: xTranslationEndValue === 1 && animationTime === 'end'
+			});
+			return;
+		}
+		if (xTranslationName === 'reviewToData') {
+			this.setState({
+				hideData: xTranslationEndValue === 0
+			});
+		}
+	};
+
 	animate = ({ modalEndValue, xTranslationName, xTranslationEndValue }) => {
 		const { modalValue } = this.state;
-		xTranslationName === 'editToAdvanced' &&
-			xTranslationEndValue === 0 &&
-			this.setState({ hideGasSelectors: false });
-		//data view is hidden by default because when we switch from review to edit, since view is nested in review, it also gets transformed. It's shown if it's the animation's destination.
-		xTranslationName === 'reviewToData' && xTranslationEndValue === 1 && this.setState({ hideData: false });
+		this.hideComponents(xTranslationName, xTranslationEndValue, 'start');
 		Animated.parallel([
 			Animated.timing(modalValue, {
 				toValue: modalEndValue,
@@ -645,14 +656,7 @@ class TransactionEditor extends PureComponent {
 				useNativeDriver: true
 			})
 		]).start(() => {
-			xTranslationName === 'editToAdvanced' &&
-				xTranslationEndValue === 1 &&
-				this.setState({ hideGasSelectors: true });
-			xTranslationName === 'reviewToData' &&
-				xTranslationEndValue === 0 &&
-				this.setState({
-					hideData: true
-				});
+			this.hideComponents(xTranslationName, xTranslationEndValue, 'end');
 		});
 	};
 
