@@ -437,7 +437,7 @@ export function renderWei(value) {
 	return renderWei.toString();
 }
 /**
- * Formatc a string number in an string number with at most 5 decimal places
+ * Format a string number in an string number with at most 5 decimal places
  *
  * @param {string} number - String containing a number
  * @returns {string} - String number with none or at most 5 decimal places

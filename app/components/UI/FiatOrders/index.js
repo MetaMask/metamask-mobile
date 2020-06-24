@@ -4,6 +4,7 @@ import { View, StyleSheet, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
+import { renderNumber } from '../../../util/number';
 
 import { createPendingOrder, FIAT_ORDER_STATES, FIAT_ORDER_PROVIDERS } from '../../../reducers/fiatOrders';
 import useInterval from './hooks/useInterval';
@@ -57,7 +58,7 @@ export const getNotificationDetails = fiatOrder => {
 			return {
 				...baseNotificationDetails,
 				title: strings('fiat_on_ramp.notifications.purchase_completed_title', {
-					amount: fiatOrder.cryptoAmount,
+					amount: renderNumber(String(fiatOrder.cryptoAmount)),
 					currency: fiatOrder.cryptocurrency
 				}),
 				description: strings('fiat_on_ramp.notifications.purchase_completed_description', {
