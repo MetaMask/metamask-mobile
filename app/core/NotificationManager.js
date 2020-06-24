@@ -12,11 +12,11 @@ import AsyncStorage from '@react-native-community/async-storage';
 import AppConstants from './AppConstants';
 
 /**
- * Singleton class responsible for managing all the transaction
+ * Singleton class responsible for managing all the
  * related notifications, which could be in-app or push
  * depending on the state of the app
  */
-class TransactionsNotificationManager {
+class NotificationManager {
 	/**
 	 * Navigation object from react-navigation
 	 */
@@ -236,20 +236,21 @@ class TransactionsNotificationManager {
 	};
 
 	/**
-	 * Creates a TransactionsNotificationManager instance
+	 * Creates a NotificationManager instance
 	 */
-	constructor(_navigation, _showTransactionNotification, _hideTransactionNotification) {
-		if (!TransactionsNotificationManager.instance) {
+	constructor(_navigation, _showTransactionNotification, _hideTransactionNotification, _showSimpleNotification) {
+		if (!NotificationManager.instance) {
 			this._navigation = _navigation;
 			this._showTransactionNotification = _showTransactionNotification;
 			this._hideTransactionNotification = _hideTransactionNotification;
+			this._showSimpleNotification = _showSimpleNotification;
 			this._transactionToView = [];
 			this._backgroundMode = false;
-			TransactionsNotificationManager.instance = this;
+			NotificationManager.instance = this;
 			AppState.addEventListener('change', this._handleAppStateChange);
 		}
 
-		return TransactionsNotificationManager.instance;
+		return NotificationManager.instance;
 	}
 
 	/**
@@ -306,6 +307,18 @@ class TransactionsNotificationManager {
 	 */
 	setTransactionToView = id => {
 		this._transactionToView.push(id);
+	};
+
+	/**
+	 * Shows a notification with title and description
+	 */
+	showSimpleNotification = data => {
+		this._showSimpleNotification({
+			autodismiss: data.duration,
+			title: data.title,
+			description: data.description,
+			status: data.status
+		});
 	};
 
 	/**
@@ -396,11 +409,12 @@ class TransactionsNotificationManager {
 let instance;
 
 export default {
-	init(_navigation, _showTransactionNotification, _hideTransactionNotification) {
-		instance = new TransactionsNotificationManager(
+	init(_navigation, _showTransactionNotification, _hideTransactionNotification, _showSimpleNotification) {
+		instance = new NotificationManager(
 			_navigation,
 			_showTransactionNotification,
-			_hideTransactionNotification
+			_hideTransactionNotification,
+			_showSimpleNotification
 		);
 		return instance;
 	},
@@ -418,6 +432,9 @@ export default {
 	},
 	requestPushNotificationsPermission() {
 		return instance.requestPushNotificationsPermission();
+	},
+	showSimpleNotification(data) {
+		return instance.showSimpleNotification(data);
 	},
 	showInstantPaymentNotification(type) {
 		setTimeout(() => {

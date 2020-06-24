@@ -8,6 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { getTicker } from '../../../util/transactions';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	accountInformation: {
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-start'
 	},
 	accountName: {
-		maxWidth: '55%',
+		maxWidth: Device.isMediumDevice() ? '35%' : '45%',
 		...fontStyles.bold,
 		fontSize: 16,
 		marginRight: 2
@@ -96,7 +97,7 @@ class AccountInfoCard extends PureComponent {
 		const balance = `(${renderFromWei(weiBalance)} ${getTicker(ticker)})`;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		const address = renderShortAddress(selectedAddress);
-		const dollarBalance = weiToFiat(weiBalance, conversionRate, currentCurrency);
+		const dollarBalance = weiToFiat(weiBalance, conversionRate, currentCurrency, 2);
 		return (
 			<View style={styles.accountInformation}>
 				<Identicon address={selectedAddress} diameter={40} customStyle={styles.identicon} />

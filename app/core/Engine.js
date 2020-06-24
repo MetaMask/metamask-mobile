@@ -27,10 +27,10 @@ import Networks from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
-import TransactionsNotificationManager from './TransactionsNotificationManager';
+import NotificationManager from './NotificationManager';
 import contractMap from 'eth-contract-metadata';
 
-const OPENSEA_API_KEY = process.env['MM_OPENSEA_KEY']; // eslint-disable-line dot-notation
+const OPENSEA_API_KEY = process.env.MM_OPENSEA_KEY;
 const encryptor = new Encryptor();
 let refreshing = false;
 /**
@@ -204,7 +204,7 @@ class Engine {
 					lastCheck: Date.now()
 				};
 
-				TransactionsNotificationManager.gotIncomingTransaction(newlastIncomingTxBlock);
+				NotificationManager.gotIncomingTransaction(newlastIncomingTxBlock);
 			} else {
 				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] = {
 					...allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`],

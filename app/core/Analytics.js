@@ -1,6 +1,7 @@
 'use strict';
 
 import { NativeModules } from 'react-native';
+import Logger from '../util/Logger';
 const RCTAnalytics = NativeModules.Analytics;
 
 /**
@@ -31,6 +32,13 @@ class Analytics {
 	};
 
 	/**
+	 * Identify current user to mixpanel people
+	 */
+	_peopleIdentify = () => {
+		RCTAnalytics.peopleIdentify();
+	};
+
+	/**
 	 * Creates a Analytics instance
 	 */
 	constructor(enabled) {
@@ -38,7 +46,10 @@ class Analytics {
 			this.enabled = enabled;
 			this.listeners = [];
 			Analytics.instance = this;
-			RCTAnalytics.optIn(this.enabled);
+			if (!__DEV__) {
+				RCTAnalytics.optIn(this.enabled);
+				this._peopleIdentify();
+			}
 		}
 		return Analytics.instance;
 	}
@@ -48,7 +59,7 @@ class Analytics {
 	 */
 	enable = () => {
 		this.enabled = true;
-		RCTAnalytics.optIn(this.enabled);
+		!__DEV__ && RCTAnalytics.optIn(this.enabled);
 		this._notify();
 	};
 
@@ -57,7 +68,7 @@ class Analytics {
 	 */
 	disable = () => {
 		this.enabled = false;
-		RCTAnalytics.optIn(this.enabled);
+		!__DEV__ && RCTAnalytics.optIn(this.enabled);
 		this._notify();
 	};
 
@@ -80,16 +91,24 @@ class Analytics {
 	};
 
 	/**
+	 * Get current tracking id
+	 */
+	getDistinctId = async () => {
+		const id = await RCTAnalytics.getDistinctId();
+		return id;
+	};
+
+	/**
 	 * Track event
 	 *
 	 * @param {object} event - Object containing event category, action and name
 	 */
 	trackEvent = event => {
 		if (!this.enabled) return;
-		console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
-		RCTAnalytics.trackEvent(event);
-		if (__DEV__) {
-			console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
+		if (!__DEV__) {
+			RCTAnalytics.trackEvent(event);
+		} else {
+			Logger.log(`Analytics 'trackEvent' - `, event);
 		}
 	};
 
@@ -101,12 +120,13 @@ class Analytics {
 	 */
 	trackEventWithValue = (event, value) => {
 		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			value
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithValue' -`, event, value); // eslint-disable-line no-console
+		if (!__DEV__) {
+			RCTAnalytics.trackEvent({
+				...event,
+				value
+			});
+		} else {
+			Logger.log(`Analytics 'trackEventWithValue' -`, event, value);
 		}
 	};
 
@@ -118,12 +138,13 @@ class Analytics {
 	 */
 	trackEventWithInfo = (event, info) => {
 		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			info
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithInfo' -`, event, info); // eslint-disable-line no-console
+		if (!__DEV__) {
+			RCTAnalytics.trackEvent({
+				...event,
+				info
+			});
+		} else {
+			Logger.log(`Analytics 'trackEventWithInfo' -`, event, info);
 		}
 	};
 
@@ -136,13 +157,14 @@ class Analytics {
 	 */
 	trackEventWithValueAndInfo = (event, value, info) => {
 		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			value,
-			info
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithValueAndInfo' - `, event, value, info); // eslint-disable-line no-console
+		if (!__DEV__) {
+			RCTAnalytics.trackEvent({
+				...event,
+				value,
+				info
+			});
+		} else {
+			Logger.log(`Analytics 'trackEventWithValueAndInfo' - `, event, value, info);
 		}
 	};
 
@@ -154,12 +176,13 @@ class Analytics {
 	 */
 	trackEventWithParameters = (event, params) => {
 		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			...params
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithParameters' -`, event, params); // eslint-disable-line no-console
+		if (!__DEV__) {
+			RCTAnalytics.trackEvent({
+				...event,
+				...params
+			});
+		} else {
+			Logger.log(`Analytics 'trackEventWithParameters' -`, event, params);
 		}
 	};
 
@@ -172,13 +195,14 @@ class Analytics {
 	 */
 	trackEventWithValueAndParameters = (event, value, params) => {
 		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			...params,
-			value
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithValueAndParameters' -`, event, value, params); // eslint-disable-line no-console
+		if (!__DEV__) {
+			RCTAnalytics.trackEvent({
+				...event,
+				...params,
+				value
+			});
+		} else {
+			Logger.log(`Analytics 'trackEventWithValueAndParameters' -`, event, value, params);
 		}
 	};
 
@@ -192,14 +216,15 @@ class Analytics {
 	 */
 	trackEventWithValueAndInfoAndParameters = (event, value, info, params) => {
 		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			...params,
-			value,
-			info
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithValueAndParameters' - `, event, value, info, params); // eslint-disable-line no-console
+		if (!__DEV__) {
+			RCTAnalytics.trackEvent({
+				...event,
+				...params,
+				value,
+				info
+			});
+		} else {
+			Logger.log(`Analytics 'trackEventWithValueAndParameters' - `, event, value, info, params);
 		}
 	};
 }
@@ -227,10 +252,16 @@ export default {
 		return instance && instance.disableInstance();
 	},
 	getEnabled() {
+		if (__DEV__) {
+			return false;
+		}
 		return instance && instance.enabled;
 	},
 	subscribe(listener) {
 		return instance && instance.subscribe(listener);
+	},
+	getDistinctId() {
+		return instance && instance.getDistinctId();
 	},
 	trackEvent(event) {
 		return instance && instance.trackEvent(event);
