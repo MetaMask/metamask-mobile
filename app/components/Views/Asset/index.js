@@ -186,7 +186,9 @@ class Asset extends PureComponent {
 			const submittedNonces = [];
 			submittedTxs = submittedTxs.filter(transaction => {
 				const alreadyConfirmed = confirmedTxs.find(
-					tx => tx.transaction.nonce === transaction.transaction.nonce
+					tx =>
+						tx.transaction.nonce === transaction.transaction.nonce &&
+						tx.transaction.from === this.props.selectedAddress.toLowerCase()
 				);
 				if (alreadyConfirmed) {
 					InteractionManager.runAfterInteractions(() => {

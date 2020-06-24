@@ -7,13 +7,13 @@ import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 import setOnboardingWizardStep from '../../../actions/wizard';
-// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
+import SplashScreen from 'react-native-splash-screen';
 
 /**
  * Entry Screen that decides which screen to show
@@ -90,6 +90,7 @@ class Entry extends PureComponent {
 	async componentDidMount() {
 		DeeplinkManager.init(this.props.navigation);
 		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
+		SplashScreen.hide();
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 		if (existingUser !== null) {
 			await this.unlockKeychain();
@@ -98,13 +99,15 @@ class Entry extends PureComponent {
 		}
 	}
 
-	handleDeeplinks = async ({ error, params }) => {
+	handleDeeplinks = ({ error, params, uri }) => {
 		if (error) {
 			Logger.error(error, 'Error from Branch');
 			return;
 		}
 		if (params['+non_branch_link']) {
-			DeeplinkManager.setDeeplink(params['+non_branch_link']);
+			DeeplinkManager.parse(params['+non_branch_link']);
+		} else if (uri) {
+			DeeplinkManager.parse(uri);
 		}
 	};
 

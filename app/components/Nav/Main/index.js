@@ -58,7 +58,7 @@ import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
@@ -73,7 +73,6 @@ import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
-import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDeposit';
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
@@ -91,7 +90,6 @@ import { isENS, safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
-import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
 import AsyncStorage from '@react-native-community/async-storage';
 import Approve from '../../Views/ApproveView/Approve';
 import Amount from '../../Views/SendFlow/Amount';
@@ -99,8 +97,13 @@ import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
 import BackupAlert from '../../UI/BackupAlert';
-import TxNotification from '../../UI/TxNotification';
-import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
+import Notification from '../../UI/Notification';
+import {
+	showTransactionNotification,
+	hideTransactionNotification,
+	showSimpleNotification
+} from '../../../actions/notification';
+import AccountApproval from '../../UI/AccountApproval';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -127,14 +130,6 @@ const MainNavigator = createStackNavigator(
 		Home: {
 			screen: createBottomTabNavigator(
 				{
-					BrowserTabHome: createStackNavigator({
-						BrowserView: {
-							screen: Browser,
-							navigationOptions: {
-								gesturesEnabled: false
-							}
-						}
-					}),
 					WalletTabHome: createStackNavigator({
 						WalletView: {
 							screen: Wallet
@@ -153,6 +148,14 @@ const MainNavigator = createStackNavigator(
 						},
 						RevealPrivateCredentialView: {
 							screen: RevealPrivateCredential
+						}
+					}),
+					BrowserTabHome: createStackNavigator({
+						BrowserView: {
+							screen: Browser,
+							navigationOptions: {
+								gesturesEnabled: false
+							}
 						}
 					}),
 					TransactionsHome: createStackNavigator({
@@ -424,6 +427,10 @@ class Main extends PureComponent {
 		 */
 		showTransactionNotification: PropTypes.func,
 		/**
+		 * Dispatch showing a simple notification
+		 */
+		showSimpleNotification: PropTypes.func,
+		/**
 		 * Dispatch hiding a transaction notification
 		 */
 		hideTransactionNotification: PropTypes.func,
@@ -453,7 +460,6 @@ class Main extends PureComponent {
 		signType: '',
 		walletConnectRequest: false,
 		walletConnectRequestInfo: {},
-		walletConnectReturnModalVisible: false,
 		paymentChannelRequest: false,
 		paymentChannelRequestLoading: false,
 		paymentChannelRequestCompleted: false,
@@ -475,9 +481,9 @@ class Main extends PureComponent {
 			}, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
 		}
 	};
-
 	componentDidMount = async () => {
 		InteractionManager.runAfterInteractions(() => {
+			this.initializeWalletConnect();
 			AppState.addEventListener('change', this.handleAppStateChange);
 			this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 			PushNotification.configure({
@@ -493,7 +499,7 @@ class Main extends PureComponent {
 					}
 					if (data && data.action === 'tx') {
 						if (data.id) {
-							TransactionsNotificationManager.setTransactionToView(data.id);
+							NotificationManager.setTransactionToView(data.id);
 						}
 						this.props.navigation.navigate('TransactionsHome');
 					}
@@ -543,14 +549,13 @@ class Main extends PureComponent {
 			});
 
 			setTimeout(() => {
-				TransactionsNotificationManager.init(
+				NotificationManager.init(
 					this.props.navigation,
 					this.props.showTransactionNotification,
-					this.props.hideTransactionNotification
+					this.props.hideTransactionNotification,
+					this.props.showSimpleNotification
 				);
 				this.pollForIncomingTransactions();
-
-				this.initializeWalletConnect();
 
 				// Only if enabled under settings
 				if (this.props.paymentChannelsEnabled) {
@@ -641,9 +646,6 @@ class Main extends PureComponent {
 	initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
 			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
-		});
-		WalletConnect.hub.on('walletconnect:return', () => {
-			this.setState({ walletConnectReturnModalVisible: true });
 		});
 		WalletConnect.init();
 	};
@@ -794,7 +796,7 @@ class Main extends PureComponent {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
 					this.props.navigation.pop();
-					TransactionsNotificationManager.watchSubmittedTransaction({
+					NotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
 						assetType: transactionMeta.transaction.assetType
 					});
@@ -910,11 +912,9 @@ class Main extends PureComponent {
 		// If the app is now in background, we need to start
 		// the background timer, which is less intense
 		if (this.backgroundMode) {
-			this.setState({ walletConnectReturnModalVisible: false });
-			this.props.thirdPartyApiMode &&
-				BackgroundTimer.runBackgroundTimer(async () => {
-					await Engine.refreshTransactionHistory();
-				}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
+			BackgroundTimer.runBackgroundTimer(async () => {
+				await Engine.refreshTransactionHistory();
+			}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
 		}
 	};
 
@@ -1079,22 +1079,18 @@ class Main extends PureComponent {
 				onBackButtonPress={this.onWalletConnectSessionRejected}
 				swipeDirection={'down'}
 			>
-				<WalletConnectSessionApproval
+				<AccountApproval
 					onCancel={this.onWalletConnectSessionRejected}
 					onConfirm={this.onWalletConnectSessionApproval}
 					currentPageInformation={{
 						title: meta && meta.name,
 						url: meta && meta.url
 					}}
-					autosign={false}
+					walletConnectRequest
 				/>
 			</Modal>
 		);
 	};
-
-	renderWalletConnectReturnModal = () => (
-		<WalletConnectReturnToBrowserModal modalVisible={this.state.walletConnectReturnModalVisible} />
-	);
 
 	renderPaymentChannelRequestApproval = () => {
 		const {
@@ -1149,11 +1145,10 @@ class Main extends PureComponent {
 					<GlobalAlert />
 					<FadeOutOverlay />
 					<BackupAlert navigation={this.props.navigation} onPress={this.backupAlertPress} />
-					<TxNotification navigation={this.props.navigation} />
+					<Notification navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
-				{this.renderWalletConnectReturnModal()}
 			</React.Fragment>
 		);
 	}
@@ -1178,6 +1173,7 @@ const mapDispatchToProps = dispatch => ({
 	setEtherTransaction: transaction => dispatch(setEtherTransaction(transaction)),
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
+	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
 	hideTransactionNotification: () => dispatch(hideTransactionNotification())
 });
 

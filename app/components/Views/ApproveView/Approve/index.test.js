@@ -10,6 +10,13 @@ describe('Approve', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			transaction: {},
+			settings: {
+				primaryCurrency: 'Fiat'
+			},
+			browser: {
+				activeTab: 1592878266671,
+				tabs: [{ id: 1592878266671, url: 'https://metamask.github.io/test-dapp/' }]
+			},
 			engine: {
 				backgroundState: {
 					AccountTrackerController: {

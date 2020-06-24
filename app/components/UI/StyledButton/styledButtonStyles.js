@@ -84,6 +84,9 @@ const styles = StyleSheet.create({
 	warningText: {
 		color: colors.white
 	},
+	warningTextEmpty: {
+		color: colors.red
+	},
 	neutral: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
@@ -155,7 +158,7 @@ function getStyles(type) {
 			containerStyle = styles.warning;
 			break;
 		case 'warning-empty':
-			fontStyle = styles.warningText;
+			fontStyle = styles.warningTextEmpty;
 			containerStyle = styles.transparent;
 			break;
 		case 'info':

@@ -111,8 +111,8 @@ export default class TestHelpers {
 		return expect(element(by.id(elementId))).toHaveText(text);
 	}
 
-	static checkIfElementWithTextIsVisible(text) {
-		return expect(element(by.text(text)).atIndex(0)).toBeVisible();
+	static checkIfElementWithTextIsVisible(text, index) {
+		return expect(element(by.text(text)).atIndex(index || 0)).toBeVisible();
 	}
 
 	static checkIfElementByTextIsVisible(text) {

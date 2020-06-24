@@ -13,3 +13,14 @@ export function showTransactionNotification({ autodismiss, transaction, status }
 		status
 	};
 }
+
+export function showSimpleNotification({ autodismiss, title, description, status }) {
+	return {
+		type: 'SHOW_SIMPLE_NOTIFICATION',
+		isVisible: true,
+		autodismiss,
+		title,
+		description,
+		status
+	};
+}
