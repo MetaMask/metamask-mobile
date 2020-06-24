@@ -228,15 +228,17 @@ export async function processWyreApplePayOrder(order) {
 		if (transferId) {
 			try {
 				const transferResponse = await getTransferStatus(order.network, transferId);
-				return {
-					...order,
-					...wyreOrderToFiatOrder(data),
-					...wyreTransferToFiatOrder(transferResponse.data),
-					data: {
-						order: data,
-						transfer: transferResponse.data
-					}
-				};
+				if (transferResponse.data) {
+					return {
+						...order,
+						...wyreOrderToFiatOrder(data),
+						...wyreTransferToFiatOrder(transferResponse.data),
+						data: {
+							order: data,
+							transfer: transferResponse.data
+						}
+					};
+				}
 			} catch (error) {
 				Logger.error(error, {
 					message: 'FiatOrders::WyreApplePayProcessor error while processing transfer',
@@ -406,16 +408,13 @@ export function useWyreApplePay(amount, address, network) {
 				throw new Error('Payment Request Failed: empty apple pay response');
 			}
 			const payload = createPayload(network, total, address, paymentResponse.details);
-			await axios.post('https://envwmfqc4hgr.x.pipedream.net/payload', payload);
 			const { data, status } = await createFiatOrder(network, payload);
 			if (status >= 200 && status < 300) {
-				await axios.post('https://envwmfqc4hgr.x.pipedream.net/response', { data, status });
-				await paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.SUCCESS);
+				paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.SUCCESS);
 				const order = { ...wyreOrderToFiatOrder(data), network };
 				Logger.message('FiatOrders::WyreApplePayPayment order created', order);
 				return order;
 			}
-			await axios.post('https://envwmfqc4hgr.x.pipedream.net/error', { data, status });
 			paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.FAIL);
 			throw new WyreException(data.message, data.type, data.exceptionId);
 		} catch (error) {

@@ -4,7 +4,8 @@ import { View, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import { WebView } from 'react-native-webview';
 import NotificationManager from '../../../../core/NotificationManager';
-import { handleTransakRedirect, TRANSAK_REDIRECT_URL } from '../orderProcessor/transak';
+import { handleTransakRedirect } from '../orderProcessor/transak';
+import AppConstants from '../../../../core/AppConstants';
 import { getNotificationDetails } from '..';
 
 import { getTransakWebviewNavbar } from '../../../UI/Navbar';
@@ -18,7 +19,7 @@ class TransakWebView extends PureComponent {
 	};
 
 	handleNavigationStateChange = async navState => {
-		if (navState.url.indexOf(TRANSAK_REDIRECT_URL) > -1) {
+		if (navState.url.indexOf(AppConstants.FIAT_ORDERS.TRANSAK_REDIRECT_URL) > -1) {
 			const order = handleTransakRedirect(navState.url, this.props.network);
 			this.props.addOrder(order);
 			this.props.navigation.dismiss();
