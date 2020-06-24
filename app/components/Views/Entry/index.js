@@ -3,10 +3,7 @@ import PropTypes from 'prop-types';
 import { Animated, Dimensions, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import Branch from 'react-native-branch';
-import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
-import SecureKeychain from '../../../core/SecureKeychain';
-import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
@@ -72,11 +69,7 @@ class Entry extends PureComponent {
 		/**
 		 * Boolean flag that determines if password has been set
 		 */
-		passwordSet: PropTypes.bool,
-		/**
-		 * Action to set onboarding wizard step
-		 */
-		setOnboardingWizardStep: PropTypes.func
+		passwordSet: PropTypes.bool
 	};
 
 	state = {
@@ -153,33 +146,10 @@ class Entry extends PureComponent {
 	};
 
 	async unlockKeychain() {
-		try {
-			// Retreive the credentials
-			const credentials = await SecureKeychain.getGenericPassword();
-			if (credentials) {
-				// Restore vault with existing credentials
-				const { KeyringController } = Engine.context;
-				await KeyringController.submitPassword(credentials.password);
-				// Get onboarding wizard state
-				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
-				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-				if (!metricsOptIn) {
-					this.animateAndGoTo('OptinMetrics');
-				} else if (onboardingWizard) {
-					this.animateAndGoTo('HomeNav');
-				} else {
-					this.props.setOnboardingWizardStep(1);
-					this.animateAndGoTo('WalletView');
-				}
-			} else if (this.props.passwordSet) {
-				this.animateAndGoTo('Login');
-			} else {
-				this.animateAndGoTo('Onboarding');
-			}
-		} catch (error) {
-			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
+		if (this.props.passwordSet) {
 			this.animateAndGoTo('Login');
+		} else {
+			this.animateAndGoTo('Onboarding');
 		}
 	}
 
@@ -224,15 +194,8 @@ class Entry extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
-});
-
 const mapStateToProps = state => ({
 	passwordSet: state.user.passwordSet
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Entry);
+export default connect(mapStateToProps)(Entry);

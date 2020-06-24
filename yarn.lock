@@ -10005,7 +10005,7 @@ prop-types-exact@^1.2.0:
     object.assign "^4.1.0"
     reflect.ownkeys "^0.2.0"
 
-prop-types@15.7.2, prop-types@^15.5.10, prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
+prop-types@15.7.2, prop-types@^15.5.10, prop-types@^15.5.8, prop-types@^15.5.9, prop-types@^15.6.0, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
@@ -10433,6 +10433,13 @@ react-native-level-fs@3.0.1:
   dependencies:
     level-filesystem "^1.0.1"
     levelup "^0.18.2"
+
+react-native-material-textfield@^0.16.1:
+  version "0.16.1"
+  resolved "https://registry.yarnpkg.com/react-native-material-textfield/-/react-native-material-textfield-0.16.1.tgz#649e71344bb8a7225d5cea7c7b51cd38bcb2bbfc"
+  integrity sha512-pcV/ic3i6vYEODS7pvAMUYJ+evkzIB8cjXtSzkab9rBtYNGRpAlM0Yp8QNnjZ7foZqkj9Ynav0nguWcuJST10A==
+  dependencies:
+    prop-types "^15.5.9"
 
 react-native-modal@^11.5.6:
   version "11.5.6"
