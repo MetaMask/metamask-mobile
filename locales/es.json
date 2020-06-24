@@ -165,7 +165,10 @@
 	"send": {
 		"title": "Enviar",
 		"deeplink_failure": "Ooops! Algo ha salido mal, por favor intėntalo de nuevo",
-		"warn_network_change": "La red ha sido cambiada a "
+		"warn_network_change": "La red ha sido cambiada a ",
+		"send_to": "Enviar a",
+		"confirm": "Confirmar",
+		"amount": "Monto"
 	},
 	"receive": {
 		"title": "Recibir"
@@ -500,7 +503,8 @@
 		"could_not_resolve_ens": "No se pudo resolver nombre ENS",
 		"asset": "Activo",
 		"balance": "Balance",
-		"not_enough_for_gas": "Tienes 0 ETH en tu cuenta para pagar por la tarifa de transacción. Compra ETH o depositalo desde otra cuenta."
+		"not_enough_for_gas": "Tienes 0 ETH en tu cuenta para pagar por la tarifa de transacción. Compra ETH o depositalo desde otra cuenta.",
+		"send": "Enviar"
 	},
 	"custom_gas": {
 		"advanced_options": "Mostrar opciones avanzadas",

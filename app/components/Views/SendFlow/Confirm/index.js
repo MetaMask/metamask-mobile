@@ -954,7 +954,11 @@ class Confirm extends PureComponent {
 						onPress={isPaymentChannelTransaction ? this.onPaymentChannelSend : this.onNext}
 						testID={'txn-confirm-send-button'}
 					>
-						{transactionConfirmed ? <ActivityIndicator size="small" color="white" /> : 'Send'}
+						{transactionConfirmed ? (
+							<ActivityIndicator size="small" color="white" />
+						) : (
+							strings('transaction.send')
+						)}
 					</StyledButton>
 				</View>
 				{this.renderFromAccountModal()}
