@@ -26,7 +26,6 @@ import AccountBar from '../components/AccountBar';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
-import Axios from 'axios';
 
 //* styles and components  */
 
@@ -270,7 +269,6 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 		setLockTime(-1);
 		try {
 			const order = await pay();
-			await Axios.post('https://envwmfqc4hgr.x.pipedream.net/order', order);
 			if (order !== ABORTED) {
 				if (order) {
 					addOrder(order);

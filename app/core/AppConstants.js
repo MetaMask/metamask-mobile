@@ -39,6 +39,7 @@ export default {
 		TRANSAK_URL_STAGING: 'https://staging-global.transak.com/',
 		TRANSAK_API_URL_PRODUCTION: 'https://api.transak.com/',
 		TRANSAK_API_URL_STAGING: 'https://staging-api.transak.com/',
+		TRANSAK_REDIRECT_URL: 'https://metamask.io/',
 		WYRE_API_ENDPOINT: 'https://api.sendwyre.com/',
 		WYRE_API_ENDPOINT_TEST: 'https://api.testwyre.com/',
 		WYRE_MERCHANT_ID: 'merchant.io.metamask',
