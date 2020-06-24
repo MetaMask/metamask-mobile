@@ -139,27 +139,7 @@ class TransactionReviewInformation extends PureComponent {
 	state = {
 		toFocused: false,
 		amountError: '',
-		actionKey: strings('transactions.tx_review_confirm'),
-		totalGas: undefined,
-		totalGasFiat: undefined,
-		totalGasEth: undefined,
-		totalFiat: undefined,
-		totalValue: undefined
-	};
-
-	componentDidMount = () => {
-		const {
-			transaction: { gas, gasPrice },
-			currentCurrency,
-			conversionRate,
-			ticker
-		} = this.props;
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
-		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
-
-		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
-		this.setState({ totalGas, totalGasFiat, totalGasEth, totalFiat, totalValue });
+		actionKey: strings('transactions.tx_review_confirm')
 	};
 
 	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountToken) => {
@@ -240,8 +220,22 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	render() {
-		const { amountError, totalGasFiat, totalGasEth, totalFiat, totalValue } = this.state;
-		const { fiatValue, assetAmount, primaryCurrency, toggleDataView, ready } = this.props;
+		const { amountError } = this.state;
+		const {
+			fiatValue,
+			assetAmount,
+			primaryCurrency,
+			toggleDataView,
+			ready,
+			transaction: { gas, gasPrice },
+			currentCurrency,
+			conversionRate,
+			ticker
+		} = this.props;
+		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
+		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
+		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
+		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
 		return (
 			<React.Fragment>
 				<TransactionReviewFeeCard
