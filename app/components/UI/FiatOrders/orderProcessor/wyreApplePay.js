@@ -209,7 +209,7 @@ const wyreOrderToFiatOrder = wyreOrder => ({
 const wyreTransferToFiatOrder = wyreTransfer => ({
 	fee: wyreTransfer.fee,
 	cryptoAmount: wyreTransfer.destAmount,
-	cryptoFee: wyreTransfer.fee ? wyreTransfer.fee[wyreTransfer.destCurrency] : null,
+	cryptoFee: wyreTransfer.fees ? wyreTransfer.fees[wyreTransfer.destCurrency] : null,
 	txHash: wyreTransfer.blockchainNetworkTx
 });
 
@@ -273,7 +273,6 @@ const PAYMENT_REQUEST_COMPLETE = {
 const getMethodData = network => [
 	{
 		supportedMethods: ['apple-pay'],
-
 		data: {
 			countryCode: 'US',
 			currencyCode: USD_CURRENCY_CODE,
