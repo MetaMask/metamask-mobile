@@ -804,7 +804,10 @@ const mapStateToProps = state => ({
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	primaryCurrency: state.settings.primaryCurrency,
-	activeTabUrl: state.browser.tabs.find(({ id }) => id === state.browser.activeTab).url
+	activeTabUrl:
+		state.browser.tabs && state.browser.activeTab
+			? state.browser.tabs.find(({ id }) => id === state.browser.activeTab).url
+			: ''
 });
 
 const mapDispatchToProps = dispatch => ({
