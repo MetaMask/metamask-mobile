@@ -12,7 +12,6 @@ import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import { safeToChecksumAddress } from '../../../util/address';
 import Radio from '../Radio';
 import StyledButton from '../../UI/StyledButton';
-import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
@@ -299,13 +298,9 @@ class CustomGas extends PureComponent {
 		 */
 		toAdvancedFrom: PropTypes.string,
 		/**
-		 * Height of custom gas and data modal
+		 * gets the value for the transform
 		 */
-		customGasHeight: PropTypes.number,
-		/**
-		 * Height of root modal
-		 */
-		rootHeight: PropTypes.number
+		getTransformValue: PropTypes.func
 	};
 
 	state = {
@@ -647,10 +642,9 @@ class CustomGas extends PureComponent {
 			saveCustomGasHeight,
 			advancedCustomGas,
 			generateTransform,
-			rootHeight,
-			customGasHeight,
 			mode,
-			toAdvancedFrom
+			toAdvancedFrom,
+			getTransformValue
 		} = this.props;
 		const disableButton = advancedCustomGas
 			? !!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError
@@ -659,16 +653,10 @@ class CustomGas extends PureComponent {
 		if (advancedCustomGas) {
 			buttonStyle = styles.buttonTransform;
 			if (toAdvancedFrom === 'edit' && mode === 'edit') {
-				buttonStyle = generateTransform('saveButton', [
-					0,
-					Device.isIphoneX() ? rootHeight - customGasHeight : rootHeight - customGasHeight + 24
-				]);
+				buttonStyle = generateTransform('saveButton', [0, getTransformValue()]);
 			}
 		} else if (toAdvancedFrom === 'edit' && mode === 'edit') {
-			buttonStyle = generateTransform('saveButton', [
-				0,
-				Device.isIphoneX() ? rootHeight - customGasHeight : rootHeight - customGasHeight + 24
-			]);
+			buttonStyle = generateTransform('saveButton', [0, getTransformValue()]);
 		}
 
 		return (

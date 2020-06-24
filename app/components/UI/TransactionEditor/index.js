@@ -630,7 +630,6 @@ class TransactionEditor extends PureComponent {
 			this.setState({
 				hideGasSelectors: xTranslationEndValue === 1 && animationTime === 'end'
 			});
-			return;
 		}
 		if (xTranslationName === 'reviewToData') {
 			this.setState({
@@ -708,6 +707,10 @@ class TransactionEditor extends PureComponent {
 		!this.state.transactionReviewDataHeight &&
 		this.setState({ transactionReviewDataHeight: event.nativeEvent.layout.height });
 
+	getTransformValue = () => {
+		const { rootHeight, customGasHeight } = this.state;
+		return Device.isIphoneX() ? rootHeight - customGasHeight : rootHeight - customGasHeight + 24;
+	};
 	render = () => {
 		const { mode, transactionConfirmed, transaction } = this.props;
 		const {
@@ -719,7 +722,6 @@ class TransactionEditor extends PureComponent {
 			modalValue,
 			toAdvancedFrom,
 			hideData,
-			rootHeight,
 			customGasHeight
 		} = this.state;
 		return (
@@ -727,13 +729,7 @@ class TransactionEditor extends PureComponent {
 				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
 				{!transaction.paymentChannelTransaction && (
 					<Animated.View
-						style={[
-							styles.root,
-							this.generateTransform('modal', [
-								Device.isIphoneX() ? rootHeight - customGasHeight : rootHeight - customGasHeight + 24,
-								0
-							])
-						]}
+						style={[styles.root, this.generateTransform('modal', [this.getTransformValue(), 0])]}
 						onLayout={this.saveRootHeight}
 					>
 						<Animated.View style={this.generateTransform('reviewToEdit', [0, -width])}>
@@ -783,8 +779,7 @@ class TransactionEditor extends PureComponent {
 									mode={mode}
 									modalValue={modalValue}
 									toAdvancedFrom={toAdvancedFrom}
-									rootHeight={rootHeight}
-									customGasHeight={customGasHeight}
+									getTransformValue={this.getTransformValue}
 								/>
 							</Animated.View>
 						)}
