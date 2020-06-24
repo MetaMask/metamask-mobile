@@ -80,8 +80,7 @@ class ExperimentalSettings extends PureComponent {
 
 	componentDidMount = async () => {
 		const paymentChannelHasBalance = await PaymentChannelsClient.addressHasBalance(this.props.selectedAddress);
-		if (paymentChannelHasBalance) this.setState({ paymentChannelHasBalance });
-		this.setState({ paymentChannelHasBalance: true });
+		this.setState({ paymentChannelHasBalance });
 	};
 
 	goToWalletConnectSessions = () => {
