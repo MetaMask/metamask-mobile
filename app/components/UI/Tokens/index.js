@@ -129,7 +129,11 @@ class Tokens extends PureComponent {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string
 	};
 
 	actionSheet = null;
@@ -203,7 +207,11 @@ class Tokens extends PureComponent {
 
 	goToBuy = () => this.props.navigation.navigate('PaymentMethodSelector');
 
-	renderBuyEth(tokens) {
+	renderBuyEth() {
+		const { tokens, network } = this.props;
+		if (network !== '1' && network !== '42') {
+			return null;
+		}
 		if (tokens.length === 0 || tokens.length > 1 || (tokens[0] && !tokens[0].isETH) || tokens[0].balance !== '0') {
 			return;
 		}
@@ -225,7 +233,7 @@ class Tokens extends PureComponent {
 		return (
 			<View>
 				{tokens.map(item => this.renderItem(item))}
-				{this.renderBuyEth(tokens)}
+				{this.renderBuyEth()}
 				{this.renderFooter()}
 			</View>
 		);
@@ -274,6 +282,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController.network,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	primaryCurrency: state.settings.primaryCurrency,

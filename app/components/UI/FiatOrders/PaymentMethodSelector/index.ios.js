@@ -18,7 +18,7 @@ import SubHeader from '../components/SubHeader';
 import TransakPaymentMethod from './transak';
 import WyreApplePayPaymentMethod from './wyreApplePay';
 
-function PaymentMethodSelectorView({ selectedAddress, ...props }) {
+function PaymentMethodSelectorView({ selectedAddress, network, ...props }) {
 	const navigation = useContext(NavigationContext);
 	const transakURL = useTransakFlowURL(selectedAddress);
 
@@ -54,19 +54,21 @@ function PaymentMethodSelectorView({ selectedAddress, ...props }) {
 			</Heading>
 
 			<WyreApplePayPaymentMethod onPress={onPressWyreApplePay} />
-			<TransakPaymentMethod onPress={onPressTransak} />
+			{network === '1' && <TransakPaymentMethod onPress={onPressTransak} />}
 		</ScreenView>
 	);
 }
 
 PaymentMethodSelectorView.propTypes = {
-	selectedAddress: PropTypes.string.isRequired
+	selectedAddress: PropTypes.string.isRequired,
+	network: PropTypes.string.isRequired
 };
 
 PaymentMethodSelectorView.navigationOptions = ({ navigation }) => getPaymentSelectorMethodNavbar(navigation);
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	network: state.engine.backgroundState.NetworkController.network
 });
 
 export default connect(mapStateToProps)(PaymentMethodSelectorView);

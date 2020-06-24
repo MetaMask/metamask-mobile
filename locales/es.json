@@ -1062,6 +1062,9 @@
 	},
 	"fiat_on_ramp": {
 		"buy_eth": "Comprar ETH",
+		"network_not_supported": "La red actual no esta soportada",
+		"switch_network": "Por favor cambiar a Mainnet",
+		"switch": "Cambiar",
 		"purchase_method": "Método de pago",
 		"amount_to_buy": "Monto a comprar",
 		"transak_webview_title": "Transak",

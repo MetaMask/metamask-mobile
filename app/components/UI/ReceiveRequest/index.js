@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { InteractionManager, SafeAreaView, Dimensions, StyleSheet, View, Text } from 'react-native';
+import { InteractionManager, SafeAreaView, Dimensions, StyleSheet, View, Text, Alert } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import ReceiveRequestAction from './ReceiveRequestAction';
 import Logger from '../../../util/Logger';
@@ -111,7 +111,11 @@ class ReceiveRequest extends PureComponent {
 		/**
 		 * Action that toggles the receive modal
 		 */
-		toggleReceiveModal: PropTypes.func
+		toggleReceiveModal: PropTypes.func,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string
 	};
 
 	state = {
@@ -137,16 +141,23 @@ class ReceiveRequest extends PureComponent {
 	/**
 	 * Shows an alert message with a coming soon message
 	 */
-	onBuy = () => {
-		this.props.toggleReceiveModal();
-		this.props.navigation.navigate('PaymentMethodSelector');
-		// InteractionManager.runAfterInteractions(() => {
-		// 	this.setState({ buyModalVisible: true });
-		// 	setTimeout(() => {
-		// 		this.setState({ buyModalVisible: false });
-		// 	}, 1500);
-		// 	Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_BUY);
-		// });
+	onBuy = async () => {
+		const { navigation, toggleReceiveModal, network } = this.props;
+		if (network !== '1' && network !== '42') {
+			Alert.alert(
+				strings('fiat_on_ramp.network_not_supported'),
+				strings('fiat_on_ramp.switch_network')
+				// [
+				// 	{ text: strings('navigation.cancel'), onPress: () => {} },
+				// 	{ text: strings('fiat_on_ramp.switch'), onPress: () => {
+				// 		// TODO: switch to mainnet
+				// 	} }
+				// ]
+			);
+		} else {
+			toggleReceiveModal();
+			navigation.navigate('PaymentMethodSelector');
+		}
 	};
 
 	/**
@@ -283,6 +294,7 @@ class ReceiveRequest extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController.network,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	receiveAsset: state.modals.receiveAsset
 });
