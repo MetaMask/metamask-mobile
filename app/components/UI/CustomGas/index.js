@@ -331,12 +331,14 @@ class CustomGas extends PureComponent {
 			basicGasEstimates: { fastGwei }
 		} = this.props;
 		onPress && onPress();
+		const gasPriceBN = apiEstimateModifiedToWEI(fastGwei);
 		this.setState({
 			gasFastSelected: true,
 			gasAverageSelected: false,
 			gasSlowSelected: false,
 			selected: 'fast',
-			customGasPrice: fastGwei
+			customGasPrice: fastGwei,
+			customGasPriceBN: gasPriceBN
 		});
 	};
 
@@ -346,12 +348,14 @@ class CustomGas extends PureComponent {
 			basicGasEstimates: { averageGwei }
 		} = this.props;
 		onPress && onPress();
+		const gasPriceBN = apiEstimateModifiedToWEI(averageGwei);
 		this.setState({
 			gasFastSelected: false,
 			gasAverageSelected: true,
 			gasSlowSelected: false,
 			selected: 'average',
-			customGasPrice: averageGwei
+			customGasPrice: averageGwei,
+			customGasPriceBN: gasPriceBN
 		});
 	};
 
@@ -361,12 +365,14 @@ class CustomGas extends PureComponent {
 			basicGasEstimates: { safeLowGwei }
 		} = this.props;
 		onPress && onPress();
+		const gasPriceBN = apiEstimateModifiedToWEI(safeLowGwei);
 		this.setState({
 			gasFastSelected: false,
 			gasAverageSelected: false,
 			gasSlowSelected: true,
 			selected: 'slow',
-			customGasPrice: safeLowGwei
+			customGasPrice: safeLowGwei,
+			customGasPriceBN: gasPriceBN
 		});
 	};
 
