@@ -155,6 +155,41 @@ exports[`TransactionReviewData should render correctly 1`] = `
         }
       />
     </View>
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Hex data
+        : 
+      </Text>
+      <Text
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "color": "#000000",
+            "flex": 1,
+            "flexWrap": "wrap",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "paddingTop": 0,
+          }
+        }
+      />
+    </View>
   </View>
 </View>
 `;
