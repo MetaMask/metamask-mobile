@@ -32,12 +32,13 @@ const styles = StyleSheet.create({
 	tokensHome: {
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginVertical: 20,
+		marginTop: 35,
 		marginHorizontal: 50
 	},
 	tokensHomeText: {
 		...fontStyles.normal,
-		margin: 15,
+		marginBottom: 15,
+		marginHorizontal: 15,
 		fontSize: 18,
 		color: colors.fontPrimary,
 		textAlign: 'center'
