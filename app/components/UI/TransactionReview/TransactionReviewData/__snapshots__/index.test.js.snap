@@ -77,6 +77,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
         Object {
           "flexDirection": "row",
           "justifyContent": "flex-start",
+          "marginBottom": 12,
         }
       }
     >
@@ -104,23 +105,41 @@ exports[`TransactionReviewData should render correctly 1`] = `
         }
       />
     </View>
-    <TextInput
-      editable={false}
-      multiline={true}
-      placeholderTextColor="#d6d9dc"
+    <View
       style={
         Object {
-          "backgroundColor": "#FFFFFF",
-          "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "minHeight": 64,
-          "paddingTop": 12,
+          "flexDirection": "row",
         }
       }
-      value=""
-    />
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Hex data
+        : 
+      </Text>
+      <Text
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "color": "#000000",
+            "flex": 1,
+            "flexWrap": "wrap",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "paddingTop": 0,
+          }
+        }
+      />
+    </View>
   </View>
 </View>
 `;
