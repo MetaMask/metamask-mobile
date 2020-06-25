@@ -29,20 +29,20 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginTop: 50
 	},
-	homeGraphic: {
+	tokensHome: {
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginVertical: 20,
 		marginHorizontal: 50
 	},
-	homeGraphicText: {
+	tokensHomeText: {
 		...fontStyles.normal,
 		margin: 15,
 		fontSize: 18,
 		color: colors.fontPrimary,
 		textAlign: 'center'
 	},
-	homeGraphicButton: {
+	tokensHomeButton: {
 		width: '100%'
 	},
 	text: {
@@ -90,7 +90,6 @@ const styles = StyleSheet.create({
 });
 
 const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
-const homeGraphic = require('../../../images/HomeGraphic.png'); // eslint-disable-line
 
 /**
  * View that renders a list of ERC-20 Tokens
@@ -208,19 +207,25 @@ class Tokens extends PureComponent {
 	goToBuy = () => this.props.navigation.navigate('PaymentMethodSelector');
 
 	renderBuyEth() {
-		const { tokens, network } = this.props;
+		const { tokens, network, tokenBalances } = this.props;
 		if (network !== '1' && network !== '42') {
 			return null;
 		}
-		if (tokens.length === 0 || tokens.length > 1 || (tokens[0] && !tokens[0].isETH) || tokens[0].balance !== '0') {
-			return;
-		}
+		const eth = tokens.find(token => token.isETH);
+		const ethBalance = eth && eth.balance !== '0';
+		const hasTokens = eth ? tokens.length > 1 : tokens.length > 0;
+		const hasTokensBalance =
+			hasTokens &&
+			tokens.some(
+				token => !token.isETH && tokenBalances[token.address] && !tokenBalances[token.address].isZero()
+			);
 
 		return (
-			<View style={styles.homeGraphic}>
-				<Image source={homeGraphic} />
-				<Text style={styles.homeGraphicText}>{strings('wallet.ready_to_explore')}</Text>
-				<StyledButton type="blue" onPress={this.goToBuy} containerStyle={styles.homeGraphicButton}>
+			<View style={styles.tokensHome}>
+				{!ethBalance && !hasTokensBalance && (
+					<Text style={styles.tokensHomeText}>{strings('wallet.ready_to_explore')}</Text>
+				)}
+				<StyledButton type="blue" onPress={this.goToBuy} containerStyle={styles.tokensHomeButton}>
 					{strings('fiat_on_ramp.buy_eth')}
 				</StyledButton>
 			</View>
