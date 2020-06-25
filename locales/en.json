@@ -1126,11 +1126,5 @@
 	"walletconnect_return_modal": {
 		"title": "You're all set!",
 		"text": "You can now return to your browser"
-	},
-	"sai_migration": {
-		"title": "A message from MakerDAO",
-		"message": "It looks like you have some Dai in your account. You need to migrate this Dai to its new version or it will be deprecated.",
-		"learn_more": "Learn More",
-		"lets_do_it": "Let's do it!"
 	}
 }
