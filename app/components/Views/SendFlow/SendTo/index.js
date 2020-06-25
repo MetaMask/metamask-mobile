@@ -114,6 +114,11 @@ const styles = StyleSheet.create({
 	warningContainer: {
 		marginHorizontal: 24,
 		marginBottom: 32
+	},
+	buyEth: {
+		...fontStyles.bold,
+		color: colors.black,
+		textDecorationLine: 'underline'
 	}
 });
 
@@ -451,6 +456,22 @@ class SendFlow extends PureComponent {
 		this.setState({ toInputHighlighted: !toInputHighlighted });
 	};
 
+	renderBuyEth = () => {
+		const { navigation, network } = this.props;
+		if (network !== '1' && network !== '42') {
+			return null;
+		}
+
+		return (
+			<>
+				{'\n'}
+				<Text style={styles.buyEth} onPress={() => navigation.navigate('PaymentMethodSelector')}>
+					{strings('fiat_on_ramp.buy_eth')}
+				</Text>
+			</>
+		);
+	};
+
 	render = () => {
 		const { isPaymentChannelTransaction } = this.props;
 		const {
@@ -520,7 +541,15 @@ class SendFlow extends PureComponent {
 							<View style={styles.footerContainer} testID={'no-eth-message'}>
 								{!isPaymentChannelTransaction && balanceIsZero && (
 									<View style={styles.warningContainer}>
-										<WarningMessage warningMessage={strings('transaction.not_enough_for_gas')} />
+										<WarningMessage
+											warningMessage={
+												<>
+													{strings('transaction.not_enough_for_gas')}
+
+													{this.renderBuyEth()}
+												</>
+											}
+										/>
 									</View>
 								)}
 								<View style={styles.buttonNextWrapper}>

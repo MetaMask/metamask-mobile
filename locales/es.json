@@ -503,7 +503,7 @@
 		"could_not_resolve_ens": "No se pudo resolver nombre ENS",
 		"asset": "Activo",
 		"balance": "Balance",
-		"not_enough_for_gas": "Tienes 0 ETH en tu cuenta para pagar por la tarifa de transacción. Compra ETH o depositalo desde otra cuenta.",
+		"not_enough_for_gas": "Tienes 0 ETH en tu cuenta para pagar por la tarifa de transacción. Compra ETH o deposítalo desde otra cuenta.",
 		"send": "Enviar"
 	},
 	"custom_gas": {
