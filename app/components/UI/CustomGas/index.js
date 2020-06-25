@@ -311,10 +311,11 @@ class CustomGas extends PureComponent {
 	toggleAdvancedOptions = () => {
 		const { advancedCustomGas, customGasPrice } = this.state;
 		const { gas } = this.props;
-		this.setState({ advancedCustomGas: !advancedCustomGas });
 		if (!advancedCustomGas) {
-			this.setState({ customGasLimit: fromWei(gas, 'wei') });
+			this.setState({ customGasLimit: fromWei(gas, 'wei'), advancedCustomGas: !advancedCustomGas });
 			this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(customGasPrice));
+		} else {
+			this.setState({ advancedCustomGas: !advancedCustomGas });
 		}
 	};
 
@@ -323,9 +324,8 @@ class CustomGas extends PureComponent {
 		await this.handleFetchBasicEstimates();
 		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
 		const { ticker } = this.props;
-		if (ticker && ticker !== 'ETH') this.setState({ advancedCustomGas: true });
 		//Applies ISF error if present before any gas modifications
-		this.setState({ warningSufficientFunds });
+		this.setState({ warningSufficientFunds, advancedCustomGas: ticker && ticker !== 'ETH' });
 	};
 
 	componentDidUpdate = prevProps => {
