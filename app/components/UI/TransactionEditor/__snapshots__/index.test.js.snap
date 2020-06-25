@@ -2,54 +2,69 @@
 
 exports[`TransactionEditor should render correctly 1`] = `
 <Fragment>
-  <ForwardRef(AnimatedComponentWrapper)
-    onLayout={[Function]}
-    style={
-      Array [
-        Object {
-          "backgroundColor": "#FFFFFF",
-          "borderTopLeftRadius": 20,
-          "borderTopRightRadius": 20,
-          "justifyContent": "flex-end",
-          "minHeight": 200,
-          "paddingBottom": 24,
-          "paddingTop": 24,
-        },
-        Object {
-          "transform": Array [
-            Object {
-              "translateY": 0,
-            },
-          ],
-        },
-      ]
+  <KeyboardAwareScrollViewMock
+    contentContainerStyle={
+      Object {
+        "flex": 1,
+        "justifyContent": "flex-end",
+      }
     }
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
+    viewIsInsideTabBar={false}
   >
     <ForwardRef(AnimatedComponentWrapper)
+      onLayout={[Function]}
       style={
-        Object {
-          "transform": Array [
-            Object {
-              "translateX": 0,
-            },
-          ],
-        }
+        Array [
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderTopLeftRadius": 20,
+            "borderTopRightRadius": 20,
+            "justifyContent": "flex-end",
+            "minHeight": 200,
+            "paddingBottom": 24,
+            "paddingTop": 24,
+          },
+          Object {
+            "transform": Array [
+              Object {
+                "translateY": 0,
+              },
+            ],
+          },
+        ]
       }
     >
-      <Connect(TransactionReview)
-        animate={[Function]}
-        customGasHeight={null}
-        generateTransform={[Function]}
-        hideData={true}
-        onCancel={[Function]}
-        onConfirm={[Function]}
-        onModeChange={[Function]}
-        ready={false}
-        saveTransactionReviewDataHeight={[Function]}
-        validate={[Function]}
-        width={750}
-      />
+      <ForwardRef(AnimatedComponentWrapper)
+        style={
+          Object {
+            "transform": Array [
+              Object {
+                "translateX": 0,
+              },
+            ],
+          }
+        }
+      >
+        <Connect(TransactionReview)
+          animate={[Function]}
+          customGasHeight={null}
+          generateTransform={[Function]}
+          hideData={true}
+          onCancel={[Function]}
+          onConfirm={[Function]}
+          onModeChange={[Function]}
+          ready={false}
+          saveTransactionReviewDataHeight={[Function]}
+          validate={[Function]}
+        />
+      </ForwardRef(AnimatedComponentWrapper)>
     </ForwardRef(AnimatedComponentWrapper)>
-  </ForwardRef(AnimatedComponentWrapper)>
+  </KeyboardAwareScrollViewMock>
 </Fragment>
 `;
