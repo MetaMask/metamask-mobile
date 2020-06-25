@@ -39,6 +39,23 @@ class Analytics {
 	};
 
 	/**
+	 * Track event if enabled and not DEV mode
+	 */
+	_trackEvent(name, { event, params = {}, value, info }) {
+		if (!this.enabled) return;
+		if (!__DEV__) {
+			RCTAnalytics.trackEvent({
+				...event,
+				...params,
+				value,
+				info
+			});
+		} else {
+			Logger.log(`Analytics '${name}' -`, event, params, value, info);
+		}
+	}
+
+	/**
 	 * Creates a Analytics instance
 	 */
 	constructor(enabled) {
@@ -104,12 +121,7 @@ class Analytics {
 	 * @param {object} event - Object containing event category, action and name
 	 */
 	trackEvent = event => {
-		if (!this.enabled) return;
-		if (!__DEV__) {
-			RCTAnalytics.trackEvent(event);
-		} else {
-			Logger.log(`Analytics 'trackEvent' - `, event);
-		}
+		this._trackEvent('trackEvent', { event });
 	};
 
 	/**
@@ -119,15 +131,7 @@ class Analytics {
 	 * @param {number} value - Value number to send with event
 	 */
 	trackEventWithValue = (event, value) => {
-		if (!this.enabled) return;
-		if (!__DEV__) {
-			RCTAnalytics.trackEvent({
-				...event,
-				value
-			});
-		} else {
-			Logger.log(`Analytics 'trackEventWithValue' -`, event, value);
-		}
+		this._trackEvent('trackEventWithValue', { event, value });
 	};
 
 	/**
@@ -137,15 +141,7 @@ class Analytics {
 	 * @param {string} info - Information string to send with event
 	 */
 	trackEventWithInfo = (event, info) => {
-		if (!this.enabled) return;
-		if (!__DEV__) {
-			RCTAnalytics.trackEvent({
-				...event,
-				info
-			});
-		} else {
-			Logger.log(`Analytics 'trackEventWithInfo' -`, event, info);
-		}
+		this._trackEvent('trackEventWithInfo', { event, info });
 	};
 
 	/**
@@ -156,16 +152,7 @@ class Analytics {
 	 * @param {string} info - Information string to send with event
 	 */
 	trackEventWithValueAndInfo = (event, value, info) => {
-		if (!this.enabled) return;
-		if (!__DEV__) {
-			RCTAnalytics.trackEvent({
-				...event,
-				value,
-				info
-			});
-		} else {
-			Logger.log(`Analytics 'trackEventWithValueAndInfo' - `, event, value, info);
-		}
+		this._trackEvent('trackEventWithValueAndInfo', { event, value, info });
 	};
 
 	/**
@@ -175,15 +162,7 @@ class Analytics {
 	 * @param {object} params - Object containing other params to send with event
 	 */
 	trackEventWithParameters = (event, params) => {
-		if (!this.enabled) return;
-		if (!__DEV__) {
-			RCTAnalytics.trackEvent({
-				...event,
-				...params
-			});
-		} else {
-			Logger.log(`Analytics 'trackEventWithParameters' -`, event, params);
-		}
+		this._trackEvent('trackEventWithParameters', { event, params });
 	};
 
 	/**
@@ -194,16 +173,7 @@ class Analytics {
 	 * @param {object} params - Object containing other params to send with event
 	 */
 	trackEventWithValueAndParameters = (event, value, params) => {
-		if (!this.enabled) return;
-		if (!__DEV__) {
-			RCTAnalytics.trackEvent({
-				...event,
-				...params,
-				value
-			});
-		} else {
-			Logger.log(`Analytics 'trackEventWithValueAndParameters' -`, event, value, params);
-		}
+		this._trackEvent('trackEventWithValueAndParameters', { event, value, params });
 	};
 
 	/**
@@ -215,17 +185,7 @@ class Analytics {
 	 * @param {object} params - Object containing other params to send with event
 	 */
 	trackEventWithValueAndInfoAndParameters = (event, value, info, params) => {
-		if (!this.enabled) return;
-		if (!__DEV__) {
-			RCTAnalytics.trackEvent({
-				...event,
-				...params,
-				value,
-				info
-			});
-		} else {
-			Logger.log(`Analytics 'trackEventWithValueAndParameters' - `, event, value, info, params);
-		}
+		this._trackEvent('trackEventWithValueAndInfoAndParameters', { event, value, info, params });
 	};
 }
 
