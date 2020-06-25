@@ -455,6 +455,7 @@ class CustomGas extends PureComponent {
 		const gasPriceBN = apiEstimateModifiedToWEI(gasPrice);
 		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBN);
 		let warningGasPrice;
+		if (value < this.props.basicGasEstimates.safeLowGwei) warningGasPrice = strings('transaction.low_gas_price');
 		if (!value || value === '' || !isDecimal(value) || value <= 0)
 			warningGasPrice = strings('transaction.invalid_gas_price');
 		if (gasPriceBN && !isBN(gasPriceBN)) warningGasPrice = strings('transaction.invalid_gas_price');
@@ -646,9 +647,6 @@ class CustomGas extends PureComponent {
 			toAdvancedFrom,
 			getTransformValue
 		} = this.props;
-		const disableButton = advancedCustomGas
-			? !!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError
-			: false;
 		let buttonStyle;
 		if (advancedCustomGas) {
 			buttonStyle = styles.buttonTransform;
@@ -691,7 +689,14 @@ class CustomGas extends PureComponent {
 
 				<Animated.View style={buttonStyle}>
 					<StyledButton
-						disabled={disableButton}
+						disabled={
+							/*eslint-disable */
+							advancedCustomGas
+								? (!!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError) &&
+								  warningGasPrice !== strings('transaction.low_gas_price')
+								: false
+							/*eslint-enable */
+						}
 						type={'confirm'}
 						containerStyle={styles.buttonNext}
 						onPress={this.saveCustomGasSelection}
