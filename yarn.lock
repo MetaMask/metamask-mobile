@@ -1304,10 +1304,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^15.0.4"
 
-"@metamask/mobile-provider@^1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.1.tgz#4a8b42d321f1ca4a8e88294b9f5ea56aa052d9e2"
-  integrity sha512-Uso/oFzPywsWYR6OxPpCDYFFqxtmyqeVgT8CJMsBFDyf0QrLt/15A2LsFVPITMUY2Lhd/QsUEzoKX6geUvPpfA==
+"@metamask/mobile-provider@1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.2.tgz#7d8f2b48a361799953b279ea79428985de558554"
+  integrity sha512-q62+aVlN6Xgd7BzSE46EU5FLGcTC+lrInb5vPNHRgLekuU9UcaWRPRNqpLwjGw7/TLjeV6OKGw4fC9Sc6/scJQ==
 
 "@react-native-community/async-storage@1.9.0":
   version "1.9.0"
