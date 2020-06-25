@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
@@ -37,9 +37,13 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey200,
 		borderRadius: 8
 	},
+	hexDataContainer: {
+		flexDirection: 'row'
+	},
 	label: {
 		flexDirection: 'row',
-		justifyContent: 'flex-start'
+		justifyContent: 'flex-start',
+		marginBottom: 12
 	},
 	labelText: {
 		...fontStyles.normal,
@@ -51,8 +55,9 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		color: colors.black,
 		fontSize: 14,
-		minHeight: 64,
-		paddingTop: 12
+		paddingTop: 0,
+		flex: 1,
+		flexWrap: 'wrap'
 	}
 });
 
@@ -98,13 +103,10 @@ class TransactionReviewData extends PureComponent {
 							<Text style={styles.labelText}>{actionKey}</Text>
 						</View>
 					)}
-					<TextInput
-						multiline
-						placeholderTextColor={colors.grey100}
-						style={styles.hexData}
-						value={data}
-						editable={false}
-					/>
+					<View style={styles.hexDataContainer}>
+						<Text style={styles.labelText}>{strings('transaction.review_hex_data')}: </Text>
+						<Text style={styles.hexData}>{data}</Text>
+					</View>
 				</View>
 			</View>
 		);
