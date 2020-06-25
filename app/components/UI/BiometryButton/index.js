@@ -57,8 +57,17 @@ const BiometryButton = ({ onPress, hidden, type }) => {
 };
 
 BiometryButton.propTypes = {
+	/**
+	 * Callback for when the button is pressed
+	 */
 	onPress: PropTypes.func,
+	/**
+	 * If this button should not appear
+	 */
 	hidden: PropTypes.bool,
+	/**
+	 * Type of biometry icon
+	 */
 	type: PropTypes.string
 };
 
