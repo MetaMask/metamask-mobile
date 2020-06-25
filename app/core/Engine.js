@@ -307,8 +307,10 @@ class Engine {
 		}
 
 		// Recreate imported accounts
-		for (let i = 0; i < importedAccounts.length; i++) {
-			await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
+		if (importedAccounts) {
+			for (let i = 0; i < importedAccounts.length; i++) {
+				await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
+			}
 		}
 		// Sync tokens
 		const allTokens = {};
