@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
-import Pager from '../../UI/Pager';
+import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/Device';
@@ -127,21 +127,25 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		marginBottom: 8,
 		lineHeight: 17,
+		color: colors.fontPrimary,
 		...fontStyles.bold
 	},
 	paragraph: {
 		lineHeight: 17,
 		marginBottom: 20,
-		fontSize: 12
+		fontSize: 12,
+		color: colors.fontPrimary
 	},
 	smallParagraph: {
 		lineHeight: 17,
-		fontSize: 12
+		fontSize: 12,
+		color: colors.fontPrimary
 	},
 	barsTitle: {
 		lineHeight: 17,
 		marginBottom: 8,
-		fontSize: 12
+		fontSize: 12,
+		color: colors.fontPrimary
 	},
 	barsContainer: {
 		lineHeight: 17,
@@ -212,8 +216,11 @@ const AccountBackupStep1B = props => {
 				style={styles.mainWrapper}
 				testID={'account-backup-step-1-screen'}
 			>
-				<Pager pages={5} />
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
+					<OnboardingProgress
+						steps={['Create password', 'Secure wallet', 'Confirm seed phrase']}
+						currentStep={2}
+					/>
 					<View style={styles.content}>
 						<Text style={styles.titleIcon}>🔒</Text>
 						<Text style={styles.title}>{strings('account_backup_step_1B.title')}</Text>

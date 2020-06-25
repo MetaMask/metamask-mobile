@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import CheckBox from '@react-native-community/checkbox';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
-import Pager from '../../UI/Pager';
+import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/Device';
@@ -184,8 +184,11 @@ const AccountBackupStep1 = props => {
 				style={styles.mainWrapper}
 				testID={'account-backup-step-1-screen'}
 			>
-				<Pager pages={5} />
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
+					<OnboardingProgress
+						steps={['Create password', 'Secure wallet', 'Confirm seed phrase']}
+						currentStep={2}
+					/>
 					<View style={styles.content}>
 						<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
 						<Image
@@ -239,7 +242,7 @@ const AccountBackupStep1 = props => {
 				confirmText={strings('account_backup_step_1.skip_button_confirm')}
 				cancelText={strings('account_backup_step_1.skip_button_cancel')}
 				confirmButtonMode={'confirm'}
-				cancelButtonMode={'signingCancel'}
+				cancelButtonMode={'normal'}
 				displayCancelButton
 				modalVisible={showRemindLaterModal}
 				actionContainerStyle={styles.modalNoBorder}
@@ -268,6 +271,7 @@ const AccountBackupStep1 = props => {
 							value={skipCheckbox}
 							onValueChange={toggleSkipCheckbox}
 							boxType={'square'}
+							tintColors={{ true: colors.blue }}
 						/>
 						<Text onPress={toggleSkipCheckbox} style={styles.skipModalText}>
 							{strings('account_backup_step_1.skip_check')}
