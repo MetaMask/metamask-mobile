@@ -740,7 +740,6 @@ class TransactionEditor extends PureComponent {
 								validate={this.validate}
 								ready={ready}
 								transactionConfirmed={transactionConfirmed}
-								width={width}
 								generateTransform={this.generateTransform}
 								animate={this.animate}
 								hideData={hideData}
@@ -771,7 +770,6 @@ class TransactionEditor extends PureComponent {
 									saveCustomGasHeight={this.saveCustomGasHeight}
 									toggleAdvancedCustomGas={this.toggleAdvancedCustomGas}
 									advancedCustomGas={advancedCustomGas}
-									width={width}
 									animate={this.animate}
 									generateTransform={this.generateTransform}
 									getAnimatedModalValueForAdvancedCG={this.getAnimatedModalValueForAdvancedCG}

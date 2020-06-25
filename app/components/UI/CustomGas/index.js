@@ -12,6 +12,7 @@ import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import { safeToChecksumAddress } from '../../../util/address';
 import Radio from '../Radio';
 import StyledButton from '../../UI/StyledButton';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
@@ -270,10 +271,6 @@ class CustomGas extends PureComponent {
 		 */
 		advancedCustomGas: PropTypes.bool,
 		/**
-		 * Width of the device
-		 */
-		width: PropTypes.number,
-		/**
 		 * Drives animated values
 		 */
 		animate: PropTypes.func,
@@ -493,7 +490,6 @@ class CustomGas extends PureComponent {
 			conversionRate,
 			currentCurrency,
 			gas,
-			width,
 			generateTransform,
 			hideGasSelectors,
 			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei, averageWait, safeLowWait, fastWait }
@@ -504,7 +500,7 @@ class CustomGas extends PureComponent {
 			<Animated.View
 				style={[
 					styles.gasSelectorWrapper,
-					generateTransform('editToAdvanced', [0, -width]),
+					generateTransform('editToAdvanced', [0, -Device.getDeviceWidth()]),
 					topOffset,
 					hideGasSelectors && styles.hidden
 				]}
@@ -575,12 +571,15 @@ class CustomGas extends PureComponent {
 
 	renderCustomGasInput = () => {
 		const { customGasPrice, customGasLimitBN, customGasPriceBN } = this.state;
-		const { width, generateTransform } = this.props;
+		const { generateTransform } = this.props;
 		const totalGas = customGasLimitBN.mul(customGasPriceBN);
 		const ticker = getTicker(this.props.ticker);
 		return (
 			<Animated.View
-				style={[styles.advancedOptionsContainer, generateTransform('editToAdvanced', [width, 0])]}
+				style={[
+					styles.advancedOptionsContainer,
+					generateTransform('editToAdvanced', [Device.getDeviceWidth(), 0])
+				]}
 				onLayout={this.saveGasInputHeight}
 			>
 				<View style={styles.valueRow}>

@@ -153,10 +153,6 @@ class TransactionReview extends PureComponent {
 		 */
 		customGasHeight: PropTypes.number,
 		/**
-		 * Width of the device
-		 */
-		width: PropTypes.number,
-		/**
 		 * Drives animated values
 		 */
 		animate: PropTypes.func,
@@ -298,7 +294,6 @@ class TransactionReview extends PureComponent {
 			transactionConfirmed,
 			primaryCurrency,
 			ready,
-			width,
 			generateTransform,
 			hideData,
 			saveTransactionReviewDataHeight,
@@ -308,7 +303,7 @@ class TransactionReview extends PureComponent {
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
 		return (
 			<>
-				<Animated.View style={generateTransform('reviewToData', [0, -width])}>
+				<Animated.View style={generateTransform('reviewToData', [0, -Device.getDeviceWidth()])}>
 					<TransactionHeader currentPageInformation={currentPageInformation} />
 					<TransactionReviewSummary
 						actionKey={actionKey}
@@ -350,7 +345,7 @@ class TransactionReview extends PureComponent {
 				<Animated.View
 					style={[
 						styles.transactionData,
-						generateTransform('reviewToData', [width, 0]),
+						generateTransform('reviewToData', [Device.getDeviceWidth(), 0]),
 						hideData && styles.hidden
 					]}
 				>

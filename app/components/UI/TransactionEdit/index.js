@@ -64,10 +64,6 @@ class TransactionEdit extends PureComponent {
 		 */
 		advancedCustomGas: PropTypes.bool,
 		/**
-		 * Width of the device
-		 */
-		width: PropTypes.number,
-		/**
 		 * Drives animated values
 		 */
 		animate: PropTypes.func,
@@ -163,7 +159,6 @@ class TransactionEdit extends PureComponent {
 			saveCustomGasHeight,
 			toggleAdvancedCustomGas,
 			advancedCustomGas,
-			width,
 			animate,
 			generateTransform,
 			getAnimatedModalValueForAdvancedCG,
@@ -186,7 +181,6 @@ class TransactionEdit extends PureComponent {
 				advancedCustomGas={advancedCustomGas}
 				review={this.review}
 				saveCustomGasHeight={saveCustomGasHeight}
-				width={width}
 				animate={animate}
 				generateTransform={generateTransform}
 				getAnimatedModalValueForAdvancedCG={getAnimatedModalValueForAdvancedCG}
