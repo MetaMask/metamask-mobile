@@ -9,6 +9,7 @@ import { isBN, hexToBN, toBN, isDecimal } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { generateTransferData, getNormalizedTxState } from '../../../util/transactions';
 import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 import { setTransactionObject } from '../../../actions/transaction';
@@ -38,6 +39,10 @@ const styles = StyleSheet.create({
 		top: 24,
 		width: '100%',
 		height: '100%'
+	},
+	keyboardAwareWrapper: {
+		flex: 1,
+		justifyContent: 'flex-end'
 	}
 });
 
@@ -728,60 +733,62 @@ class TransactionEditor extends PureComponent {
 			<React.Fragment>
 				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
 				{!transaction.paymentChannelTransaction && (
-					<Animated.View
-						style={[styles.root, this.generateTransform('modal', [this.getTransformValue(), 0])]}
-						onLayout={this.saveRootHeight}
-					>
-						<Animated.View style={this.generateTransform('reviewToEdit', [0, -width])}>
-							<TransactionReview
-								onCancel={this.onCancel}
-								onConfirm={this.onConfirm}
-								onModeChange={this.onModeChange}
-								validate={this.validate}
-								ready={ready}
-								transactionConfirmed={transactionConfirmed}
-								generateTransform={this.generateTransform}
-								animate={this.animate}
-								hideData={hideData}
-								saveTransactionReviewDataHeight={this.saveTransactionReviewDataHeight}
-								customGasHeight={customGasHeight}
-							/>
-						</Animated.View>
-						{ready && (
-							<Animated.View
-								style={[styles.transactionEdit, this.generateTransform('reviewToEdit', [width, 0])]}
-							>
-								<TransactionEdit
-									navigation={this.props.navigation}
-									basicGasEstimates={basicGasEstimates}
+					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+						<Animated.View
+							style={[styles.root, this.generateTransform('modal', [this.getTransformValue(), 0])]}
+							onLayout={this.saveRootHeight}
+						>
+							<Animated.View style={this.generateTransform('reviewToEdit', [0, -width])}>
+								<TransactionReview
 									onCancel={this.onCancel}
+									onConfirm={this.onConfirm}
 									onModeChange={this.onModeChange}
-									handleUpdateAmount={this.handleUpdateAmount}
-									handleUpdateData={this.handleUpdateData}
-									handleUpdateFromAddress={this.handleUpdateFromAddress}
-									handleUpdateToAddress={this.handleUpdateToAddress}
-									handleGasFeeSelection={this.handleGasFeeSelection}
-									validateAmount={this.validateAmount}
-									validateGas={this.validateGas}
-									validateToAddress={this.validateToAddress}
-									handleUpdateAsset={this.handleUpdateAsset}
-									checkForAssetAddress={this.checkForAssetAddress}
-									handleUpdateReadableValue={this.handleUpdateReadableValue}
-									saveCustomGasHeight={this.saveCustomGasHeight}
-									toggleAdvancedCustomGas={this.toggleAdvancedCustomGas}
-									advancedCustomGas={advancedCustomGas}
-									animate={this.animate}
+									validate={this.validate}
+									ready={ready}
+									transactionConfirmed={transactionConfirmed}
 									generateTransform={this.generateTransform}
-									getAnimatedModalValueForAdvancedCG={this.getAnimatedModalValueForAdvancedCG}
-									hideGasSelectors={hideGasSelectors}
-									mode={mode}
-									modalValue={modalValue}
-									toAdvancedFrom={toAdvancedFrom}
-									getTransformValue={this.getTransformValue}
+									animate={this.animate}
+									hideData={hideData}
+									saveTransactionReviewDataHeight={this.saveTransactionReviewDataHeight}
+									customGasHeight={customGasHeight}
 								/>
 							</Animated.View>
-						)}
-					</Animated.View>
+							{ready && (
+								<Animated.View
+									style={[styles.transactionEdit, this.generateTransform('reviewToEdit', [width, 0])]}
+								>
+									<TransactionEdit
+										navigation={this.props.navigation}
+										basicGasEstimates={basicGasEstimates}
+										onCancel={this.onCancel}
+										onModeChange={this.onModeChange}
+										handleUpdateAmount={this.handleUpdateAmount}
+										handleUpdateData={this.handleUpdateData}
+										handleUpdateFromAddress={this.handleUpdateFromAddress}
+										handleUpdateToAddress={this.handleUpdateToAddress}
+										handleGasFeeSelection={this.handleGasFeeSelection}
+										validateAmount={this.validateAmount}
+										validateGas={this.validateGas}
+										validateToAddress={this.validateToAddress}
+										handleUpdateAsset={this.handleUpdateAsset}
+										checkForAssetAddress={this.checkForAssetAddress}
+										handleUpdateReadableValue={this.handleUpdateReadableValue}
+										saveCustomGasHeight={this.saveCustomGasHeight}
+										toggleAdvancedCustomGas={this.toggleAdvancedCustomGas}
+										advancedCustomGas={advancedCustomGas}
+										animate={this.animate}
+										generateTransform={this.generateTransform}
+										getAnimatedModalValueForAdvancedCG={this.getAnimatedModalValueForAdvancedCG}
+										hideGasSelectors={hideGasSelectors}
+										mode={mode}
+										modalValue={modalValue}
+										toAdvancedFrom={toAdvancedFrom}
+										getTransformValue={this.getTransformValue}
+									/>
+								</Animated.View>
+							)}
+						</Animated.View>
+					</KeyboardAwareScrollView>
 				)}
 			</React.Fragment>
 		);
