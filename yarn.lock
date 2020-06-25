@@ -10434,7 +10434,7 @@ react-native-level-fs@3.0.1:
     level-filesystem "^1.0.1"
     levelup "^0.18.2"
 
-react-native-material-textfield@^0.16.1:
+react-native-material-textfield@0.16.1:
   version "0.16.1"
   resolved "https://registry.yarnpkg.com/react-native-material-textfield/-/react-native-material-textfield-0.16.1.tgz#649e71344bb8a7225d5cea7c7b51cd38bcb2bbfc"
   integrity sha512-pcV/ic3i6vYEODS7pvAMUYJ+evkzIB8cjXtSzkab9rBtYNGRpAlM0Yp8QNnjZ7foZqkj9Ynav0nguWcuJST10A==
