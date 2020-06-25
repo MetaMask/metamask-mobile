@@ -633,7 +633,7 @@ class TransactionEditor extends PureComponent {
 		}
 		if (xTranslationName === 'reviewToData') {
 			this.setState({
-				hideData: xTranslationEndValue === 0
+				hideData: xTranslationEndValue === 0 && animationTime === 'end'
 			});
 		}
 	};
