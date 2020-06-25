@@ -494,7 +494,7 @@
 		"data_description": "This is data associated with this transaction",
 		"review_function_type": "FUNCTION TYPE",
 		"review_function": "Function",
-		"review_hex_data": "HEX DATA",
+		"review_hex_data": "Hex data",
 		"insufficient": "Insufficient funds",
 		"insufficient_tokens": "Insufficient {{token}}",
 		"invalid_address": "Invalid address",
