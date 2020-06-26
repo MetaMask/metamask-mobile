@@ -16,6 +16,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import StyledButton from '../StyledButton';
+import { allowedToBuy } from '../FiatOrders';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -209,7 +210,7 @@ class Tokens extends PureComponent {
 
 	renderBuyEth() {
 		const { tokens, network, tokenBalances } = this.props;
-		if (network !== '1' && network !== '42') {
+		if (!allowedToBuy(network)) {
 			return null;
 		}
 		const eth = tokens.find(token => token.isETH);

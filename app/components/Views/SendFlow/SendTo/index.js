@@ -23,6 +23,7 @@ import WarningMessage from '../WarningMessage';
 import { util } from '@metamask/controllers';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { allowedToBuy } from '../../../UI/FiatOrders';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -458,7 +459,7 @@ class SendFlow extends PureComponent {
 
 	renderBuyEth = () => {
 		const { navigation, network } = this.props;
-		if (network !== '1' && network !== '42') {
+		if (!allowedToBuy(network)) {
 			return null;
 		}
 

@@ -19,6 +19,7 @@ import { generateUniversalLinkAddress } from '../../../util/payment-link-generat
 import AddressQRCode from '../../Views/AddressQRCode';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { allowedToBuy } from '../FiatOrders';
 
 const TOTAL_PADDING = 64;
 const ACTION_WIDTH = (Dimensions.get('window').width - TOTAL_PADDING) / 2;
@@ -143,7 +144,7 @@ class ReceiveRequest extends PureComponent {
 	 */
 	onBuy = async () => {
 		const { navigation, toggleReceiveModal, network } = this.props;
-		if (network !== '1' && network !== '42') {
+		if (!allowedToBuy(network)) {
 			Alert.alert(
 				strings('fiat_on_ramp.network_not_supported'),
 				strings('fiat_on_ramp.switch_network')

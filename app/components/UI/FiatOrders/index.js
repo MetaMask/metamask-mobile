@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
+import Device from '../../../util/Device';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
@@ -13,21 +14,15 @@ import processOrder from './orderProcessor';
 import Text from '../../Base/Text';
 import { colors } from '../../../styles/common';
 
+/**
+ * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
+ */
+
 const POLLING_TIME = 10000;
 const NOTIFICATION_DURATION = 5000;
 const SHOW_DEBUG = false;
 
-const styles = StyleSheet.create({
-	bottomView: {
-		padding: 10,
-		paddingBottom: 20,
-		backgroundColor: colors.grey000
-	}
-});
-
-/**
- * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
- */
+export const allowedToBuy = network => network === '1' || (network === '42' && Device.isIos());
 
 const baseNotificationDetails = {
 	duration: NOTIFICATION_DURATION
@@ -80,6 +75,14 @@ export const getNotificationDetails = fiatOrder => {
 		}
 	}
 };
+
+const styles = StyleSheet.create({
+	bottomView: {
+		padding: 10,
+		paddingBottom: 20,
+		backgroundColor: colors.grey000
+	}
+});
 
 function FiatOrders({ orders, selectedAddress, network, createFakeOrder, clearOrders, dispatch }) {
 	// Pending orders depend on selectedAddress and selectedNetworks
