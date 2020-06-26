@@ -158,6 +158,9 @@ class ReceiveRequest extends PureComponent {
 		} else {
 			toggleReceiveModal();
 			navigation.navigate('PaymentMethodSelector');
+			InteractionManager.runAfterInteractions(() => {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			});
 		}
 	};
 

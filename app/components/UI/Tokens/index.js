@@ -206,7 +206,12 @@ class Tokens extends PureComponent {
 		);
 	};
 
-	goToBuy = () => this.props.navigation.navigate('PaymentMethodSelector');
+	goToBuy = () => {
+		this.props.navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+		});
+	};
 
 	renderBuyEth() {
 		const { tokens, network, tokenBalances } = this.props;

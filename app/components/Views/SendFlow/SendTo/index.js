@@ -457,16 +457,22 @@ class SendFlow extends PureComponent {
 		this.setState({ toInputHighlighted: !toInputHighlighted });
 	};
 
+	goToBuy = () => {
+		this.props.navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+		});
+	};
+
 	renderBuyEth = () => {
-		const { navigation, network } = this.props;
-		if (!allowedToBuy(network)) {
+		if (!allowedToBuy(this.props.network)) {
 			return null;
 		}
 
 		return (
 			<>
 				{'\n'}
-				<Text style={styles.buyEth} onPress={() => navigation.navigate('PaymentMethodSelector')}>
+				<Text style={styles.buyEth} onPress={this.goToBuy}>
 					{strings('fiat_on_ramp.buy_eth')}
 				</Text>
 			</>

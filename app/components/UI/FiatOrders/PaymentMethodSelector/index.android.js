@@ -1,8 +1,11 @@
 import React, { useContext, useCallback } from 'react';
+import { InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { NavigationContext } from 'react-navigation';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
+import Analytics from '../../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 import { useTransakFlowURL } from '../orderProcessor/transak';
 import { getPaymentSelectorMethodNavbar } from '../../Navbar';
@@ -19,6 +22,9 @@ function PaymentMethodSelectorView({ selectedAddress, ...props }) {
 		navigation.navigate('TransakFlow', {
 			url: transakURL,
 			title: strings('fiat_on_ramp.transak_webview_title')
+		});
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_DEBIT_OR_ACH);
 		});
 	}, [navigation, transakURL]);
 
