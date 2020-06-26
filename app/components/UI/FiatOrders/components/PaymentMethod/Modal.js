@@ -8,12 +8,15 @@ import { strings } from '../../../../../../locales/i18n';
 import Title from '../Title';
 import { colors } from '../../../../../styles/common';
 import StyledButton from '../../../StyledButton';
+import { SafeAreaView } from 'react-navigation';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	modalView: {
 		backgroundColor: colors.white,
 		justifyContent: 'center',
 		alignItems: 'center',
+		marginVertical: 25,
 		borderRadius: 10,
 		shadowColor: colors.black,
 		shadowOffset: {
@@ -43,10 +46,7 @@ const styles = StyleSheet.create({
 		color: colors.black
 	},
 	body: {
-		borderColor: colors.red,
-		borderWidth: 0,
 		width: '100%',
-
 		paddingVertical: 5,
 		paddingHorizontal: 20
 	},
@@ -76,20 +76,20 @@ const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => (
 		style={styles.modal}
 		useNativeDriver
 	>
-		<View style={styles.modalView}>
+		<SafeAreaView style={styles.modalView}>
 			<View style={styles.title}>
 				<Title>{title}</Title>
 				<TouchableOpacity onPress={dismiss}>
 					<CloseIcon />
 				</TouchableOpacity>
 			</View>
-			<View style={styles.body}>{children}</View>
+			<ScrollView style={styles.body}>{children}</ScrollView>
 			<View style={styles.action}>
 				<StyledButton type="blue" onPress={dismiss} containerStyle={[styles.button]}>
 					{strings('fiat_on_ramp.purchase_method_modal_close')}
 				</StyledButton>
 			</View>
-		</View>
+		</SafeAreaView>
 	</Modal>
 );
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, Image, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, Image, StyleSheet, ScrollView, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 
 import PaymentMethod from '../components/PaymentMethod';
@@ -17,6 +17,12 @@ const style = StyleSheet.create({
 	cta: {
 		marginTop: 25,
 		marginBottom: 5
+	},
+	countryList: {
+		flexDirection: 'row'
+	},
+	countryCol: {
+		width: '50%'
 	}
 });
 
@@ -52,12 +58,35 @@ const TransakPaymentMethod = ({ onPress }) => (
 								title={strings('fiat_on_ramp.modal_transak_support')}
 							>
 								<Text modal>{strings('fiat_on_ramp.transak_modal_text')}</Text>
-								<Text modal>
-									Austria 🇦🇹, Belgium 🇧🇪, Cyprus 🇨🇾, Czechia 🇨🇿, Estonia 🇪🇪, Finland 🇫🇮, France 🇫🇷,
-									Germany 🇩🇪, Greece 🇬🇷, Ireland 🇮🇪, Italy 🇮🇹, Latvia 🇱🇻, Luxembourg 🇱🇺, Malta 🇲🇹,
-									Netherlands 🇳🇱, Portugal 🇵🇹, Romania 🇷🇴, Slovakia 🇸🇰, Slovenia 🇸🇮, Spain 🇪🇸, United
-									Kingdom 🇬🇧
-								</Text>
+								<View style={style.countryList}>
+									<ScrollView contentContainerStyle={style.countryList}>
+										<View style={style.countryCol}>
+											<Text modal>Austria 🇦🇹</Text>
+											<Text modal>Belgium 🇧🇪</Text>
+											<Text modal>Cyprus 🇨🇾</Text>
+											<Text modal>Czechia 🇨🇿</Text>
+											<Text modal>Estonia 🇪🇪</Text>
+											<Text modal>Finland 🇫🇮</Text>
+											<Text modal>France 🇫🇷</Text>
+											<Text modal>Germany 🇩🇪</Text>
+											<Text modal>Greece 🇬🇷</Text>
+											<Text modal>Ireland 🇮🇪</Text>
+											<Text modal>Italy 🇮🇹</Text>
+										</View>
+										<View style={style.countryCol}>
+											<Text modal>Latvia 🇱🇻</Text>
+											<Text modal>Luxembourg 🇱🇺</Text>
+											<Text modal>Malta 🇲🇹</Text>
+											<Text modal>Netherlands 🇳🇱</Text>
+											<Text modal>Portugal 🇵🇹</Text>
+											<Text modal>Romania 🇷🇴</Text>
+											<Text modal>Slovakia 🇸🇰</Text>
+											<Text modal>Slovenia 🇸🇮</Text>
+											<Text modal>Spain 🇪🇸</Text>
+											<Text modal>United Kingdom 🇬🇧</Text>
+										</View>
+									</ScrollView>
+								</View>
 							</PaymentMethod.Modal>
 						</>
 					)}
