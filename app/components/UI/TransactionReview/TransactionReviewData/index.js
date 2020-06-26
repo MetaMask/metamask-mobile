@@ -37,13 +37,14 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey200,
 		borderRadius: 8
 	},
-	hexDataContainer: {
-		flexDirection: 'row'
-	},
+	hexDataContainer: {},
 	label: {
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
 		marginBottom: 12
+	},
+	boldLabel: {
+		...fontStyles.bold
 	},
 	labelText: {
 		...fontStyles.normal,
@@ -55,9 +56,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		color: colors.black,
 		fontSize: 14,
-		paddingTop: 0,
-		flex: 1,
-		flexWrap: 'wrap'
+		paddingTop: 0
 	}
 });
 
@@ -99,12 +98,16 @@ class TransactionReviewData extends PureComponent {
 				<View style={styles.dataBox}>
 					{actionKey !== strings('transactions.tx_review_confirm') && (
 						<View style={styles.label}>
-							<Text style={styles.labelText}>{strings('transaction.review_function')}: </Text>
+							<Text style={[styles.labelText, styles.boldLabel]}>
+								{strings('transaction.review_function')}:{' '}
+							</Text>
 							<Text style={styles.labelText}>{actionKey}</Text>
 						</View>
 					)}
 					<View style={styles.hexDataContainer}>
-						<Text style={styles.labelText}>{strings('transaction.review_hex_data')}: </Text>
+						<Text style={[styles.labelText, styles.boldLabel]}>
+							{strings('transaction.review_hex_data')}:{' '}
+						</Text>
 						<Text style={styles.hexData}>{data}</Text>
 					</View>
 				</View>
