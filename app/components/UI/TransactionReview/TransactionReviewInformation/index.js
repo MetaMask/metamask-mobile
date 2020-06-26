@@ -53,8 +53,8 @@ const styles = StyleSheet.create({
 	},
 	overviewEth: {
 		...fontStyles.normal,
-		color: colors.grey500,
-		fontSize: 16,
+		color: colors.fontPrimary,
+		fontSize: 14,
 		textAlign: 'right',
 		textTransform: 'uppercase'
 	},

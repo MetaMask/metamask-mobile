@@ -23,10 +23,10 @@ const styles = StyleSheet.create({
 	topOverviewCol: {
 		borderBottomWidth: 1,
 		borderColor: colors.grey200,
-		paddingBottom: 10
+		paddingBottom: 12
 	},
 	bottomOverviewCol: {
-		paddingTop: 10
+		paddingTop: 12
 	},
 	amountRow: {
 		width: '100%',
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	amountRowBottomSpace: {
-		paddingBottom: 10
+		paddingBottom: 12
 	},
 	totalValueRow: {
 		justifyContent: 'flex-end'
@@ -54,7 +54,8 @@ const styles = StyleSheet.create({
 		paddingRight: 5
 	},
 	totalValueText: {
-		color: colors.fontSecondary
+		color: colors.fontSecondary,
+		textTransform: 'uppercase'
 	},
 	loader: {
 		backgroundColor: colors.white,
@@ -169,8 +170,7 @@ class TransactionReviewFeeCard extends PureComponent {
 						<Text style={styles.overviewText}>
 							{strings('transaction.total')} {strings('transaction.amount')}
 						</Text>
-						{!!totalFiat &&
-							this.renderIfGasEstimationReady(<Text style={styles.overviewText}>{totalAmount}</Text>)}
+						{!!totalFiat && this.renderIfGasEstimationReady(totalAmount)}
 					</View>
 					<View style={[styles.amountRow, styles.totalValueRow]}>
 						{this.renderIfGasEstimationReady(
