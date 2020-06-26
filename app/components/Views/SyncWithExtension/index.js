@@ -93,6 +93,7 @@ class SyncWithExtension extends PureComponent {
 
 	seedwords = null;
 	channelName = null;
+	importedAccounts = null;
 	incomingDataStr = '';
 	dataToSync = null;
 	mounted = false;
@@ -207,9 +208,10 @@ class SyncWithExtension extends PureComponent {
 				return false;
 			},
 			data => {
-				const { pwd, seed } = data.udata;
+				const { pwd, seed, importedAccounts } = data.udata;
 				this.password = pwd;
 				this.seedWords = seed;
+				this.importedAccounts = importedAccounts;
 				delete data.udata;
 				this.dataToSync = { ...data };
 				this.pubnubWrapper.endSync(() => this.disconnect());
@@ -272,7 +274,12 @@ class SyncWithExtension extends PureComponent {
 		try {
 			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 			await Engine.resetState();
-			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
+			await Engine.sync({
+				...this.dataToSync,
+				seed: this.seedWords,
+				pass: password,
+				importedAccounts: this.importedAccounts
+			});
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);

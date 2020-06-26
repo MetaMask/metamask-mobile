@@ -288,7 +288,7 @@ class Engine {
 		});
 	};
 
-	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
+	sync = async ({ accounts, preferences, network, transactions, seed, pass, importedAccounts }) => {
 		const {
 			KeyringController,
 			PreferencesController,
@@ -306,6 +306,12 @@ class Engine {
 			await KeyringController.addNewAccount();
 		}
 
+		// Recreate imported accounts
+		if (importedAccounts) {
+			for (let i = 0; i < importedAccounts.length; i++) {
+				await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
+			}
+		}
 		// Sync tokens
 		const allTokens = {};
 		Object.keys(preferences.accountTokens).forEach(address => {
@@ -331,11 +337,12 @@ class Engine {
 		const updatedPref = { ...preferences, identities: {} };
 		Object.keys(preferences.identities).forEach(address => {
 			const checksummedAddress = toChecksumAddress(address);
-			if (accounts.hd.includes(checksummedAddress)) {
+			if (accounts.hd.includes(checksummedAddress) || accounts.simpleKeyPair.includes(checksummedAddress)) {
 				updatedPref.identities[checksummedAddress] = preferences.identities[address];
 			}
 		});
 		await PreferencesController.update(updatedPref);
+
 		if (accounts.hd.includes(toChecksumAddress(updatedPref.selectedAddress))) {
 			PreferencesController.setSelectedAddress(updatedPref.selectedAddress);
 		} else {
