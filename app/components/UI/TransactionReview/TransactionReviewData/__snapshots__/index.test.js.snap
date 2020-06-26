@@ -60,7 +60,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
       }
     }
   >
-    This is data associated with this transaction
+    Data associated with this transaction
   </Text>
   <View
     style={
@@ -83,16 +83,23 @@ exports[`TransactionReviewData should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 14,
-            "fontWeight": "400",
-          }
+          Array [
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "400",
+            },
+            Object {
+              "fontFamily": "CircularStd-Medium",
+              "fontWeight": "600",
+            },
+          ]
         }
       >
         Function
-        : 
+        :
+         
       </Text>
       <Text
         style={
@@ -106,32 +113,33 @@ exports[`TransactionReviewData should render correctly 1`] = `
       />
     </View>
     <View
-      style={
-        Object {
-          "flexDirection": "row",
-        }
-      }
+      style={Object {}}
     >
       <Text
         style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 14,
-            "fontWeight": "400",
-          }
+          Array [
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "400",
+            },
+            Object {
+              "fontFamily": "CircularStd-Medium",
+              "fontWeight": "600",
+            },
+          ]
         }
       >
         Hex data
-        : 
+        :
+         
       </Text>
       <Text
         style={
           Object {
             "backgroundColor": "#FFFFFF",
             "color": "#000000",
-            "flex": 1,
-            "flexWrap": "wrap",
             "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",

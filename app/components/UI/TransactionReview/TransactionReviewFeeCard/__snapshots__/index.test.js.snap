@@ -23,7 +23,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
         Object {
           "borderBottomWidth": 1,
           "borderColor": "#bbc0c5",
-          "paddingBottom": 10,
+          "paddingBottom": 12,
         },
       ]
     }
@@ -38,7 +38,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
             "width": "100%",
           },
           Object {
-            "paddingBottom": 10,
+            "paddingBottom": 12,
           },
         ]
       }
@@ -150,7 +150,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
           "justifyContent": "center",
         },
         Object {
-          "paddingTop": 10,
+          "paddingTop": 12,
         },
       ]
     }
@@ -165,7 +165,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
             "width": "100%",
           },
           Object {
-            "paddingBottom": 10,
+            "paddingBottom": 12,
           },
         ]
       }
