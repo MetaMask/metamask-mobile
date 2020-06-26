@@ -362,7 +362,8 @@ class AccountList extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	keyrings: state.engine.backgroundState.KeyringController.keyrings
 });
 
 export default connect(mapStateToProps)(AccountList);
