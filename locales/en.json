@@ -929,7 +929,9 @@
 	},
 	"manual_backup_step_2": {
 		"action": "Confirm seed phrase",
-		"info": "Select each word in the order it was presented to you."
+		"info": "Select each word in the order it was presented to you.",
+		"complete": "Complete Backup",
+		"success": "Success"
 	},
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",

@@ -53,6 +53,8 @@ import AccountBackupStep3 from '../../Views/AccountBackupStep3';
 import AccountBackupStep4 from '../../Views/AccountBackupStep4';
 import AccountBackupStep5 from '../../Views/AccountBackupStep5';
 import AccountBackupStep6 from '../../Views/AccountBackupStep6';
+import ManualBackupStep1 from '../../Views/ManualBackupStep1';
+import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
@@ -129,6 +131,19 @@ const MainNavigator = createStackNavigator(
 		Home: {
 			screen: createBottomTabNavigator(
 				{
+					testManualSeed: createStackNavigator(
+						{
+							ManualBackupStep1: {
+								screen: ManualBackupStep1
+							},
+							ManualBackupStep2: {
+								screen: ManualBackupStep2
+							}
+						},
+						{
+							headerMode: 'none'
+						}
+					),
 					WalletTabHome: createStackNavigator({
 						WalletView: {
 							screen: Wallet
@@ -357,6 +372,9 @@ const MainNavigator = createStackNavigator(
 						navigationOptions: {
 							gesturesEnabled: false
 						}
+					},
+					ManualBackupStep1: {
+						screen: ManualBackupStep1
 					}
 				},
 				{

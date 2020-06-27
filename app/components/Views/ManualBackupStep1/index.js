@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	infoWrapper: {
-		marginBottom: 55,
+		marginBottom: 16,
 		justifyContent: 'center'
 	},
 	info: {
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		borderColor: colors.grey100,
 		borderWidth: 1,
-		marginBottom: 24
+		marginBottom: 64
 	},
 	colLeft: {
 		flex: 1,
@@ -156,7 +156,7 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	state = {
 		seedPhraseHidden: true,
-		currentStep: 1
+		currentStep: 2
 	};
 
 	tryExportSeedPhrase = async password => {
@@ -169,7 +169,7 @@ export default class ManualBackupStep1 extends PureComponent {
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('ManualBackupStep2', { ...this.props.navigation.state.params });
+		this.props.navigation.navigate('ManualBackupStep2', { words: this.words });
 	};
 
 	revealSeedPhrase = () => this.setState({ seedPhraseHidden: false });

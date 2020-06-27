@@ -18,6 +18,7 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
 import CustomAlert from '../../UI/CustomAlert';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	info: {
-		fontSize: 14,
+		fontSize: 16,
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		...fontStyles.normal,
@@ -56,6 +57,12 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		borderWidth: 1,
 		marginBottom: 24
+	},
+	seedPhraseWrapperComplete: {
+		borderColor: colors.green500
+	},
+	seedPhraseWrapperError: {
+		borderColor: colors.red
 	},
 	colLeft: {
 		flex: 1,
@@ -71,6 +78,15 @@ const styles = StyleSheet.create({
 		paddingBottom: 4,
 		alignItems: 'flex-end'
 	},
+	wordBoxWrapper: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		marginBottom: 14
+	},
+	wordBoxWrapperSuccess: {
+		marginBottom: 8
+	},
 	wordWrapper: {
 		paddingHorizontal: 8,
 		paddingVertical: 6,
@@ -78,9 +94,9 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderColor: colors.grey050,
 		borderWidth: 1,
-		marginBottom: 14,
 		borderRadius: 34,
-		borderStyle: 'dashed'
+		borderStyle: 'dashed',
+		marginLeft: 4
 	},
 	word: {
 		fontSize: 14,
@@ -111,6 +127,17 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		marginBottom: 20
 	},
+	successRow: {
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
+		marginBottom: 86
+	},
+	successText: {
+		fontSize: 12,
+		color: colors.green500,
+		marginLeft: 4
+	},
 	selectedWord: {
 		backgroundColor: colors.grey400,
 		borderWidth: 1,
@@ -122,6 +149,11 @@ const styles = StyleSheet.create({
 	currentWord: {
 		borderWidth: 1,
 		borderColor: colors.blue
+	},
+	confirmedWord: {
+		borderWidth: 1,
+		borderColor: colors.blue,
+		borderStyle: 'solid'
 	},
 	succesModalText: {
 		textAlign: 'center',
@@ -176,7 +208,7 @@ class ManualBackupStep2 extends PureComponent {
 		wordsDict: {},
 		currentIndex: 0,
 		seedPhraseReady: false,
-		currentStep: 2
+		currentStep: 3
 	};
 
 	componentDidMount = () => {
@@ -237,9 +269,7 @@ class ManualBackupStep2 extends PureComponent {
 	};
 
 	goNext = () => {
-		const words = this.props.navigation.getParam('words', []);
-		const confirmedWords = this.state.confirmedWords.map(confirmedWord => confirmedWord.word);
-		if (words.join('') === confirmedWords.join('')) {
+		if (this.validateWords()) {
 			this.props.seedphraseBackedUp();
 			this.setState({ showSuccessModal: true });
 		} else {
@@ -260,21 +290,51 @@ class ManualBackupStep2 extends PureComponent {
 		});
 	};
 
-	renderWordBox = (word, i) => {
-		const { currentIndex } = this.state;
-		let wordText = '';
-		if (word) wordText = `${i + 1}. ${word}`;
+	validateWords = () => {
+		const words = this.props.navigation.getParam('words', []);
+		const confirmedWords = this.state.confirmedWords.map(confirmedWord => confirmedWord.word);
+		if (words.join('') === confirmedWords.join('')) {
+			return true;
+		}
+		return false;
+	};
+
+	renderWords = () => {
+		const { wordsDict } = this.state;
 		return (
-			<TouchableOpacity
-				key={`word_${i}`}
-				// eslint-disable-next-line react/jsx-no-bind
-				onPress={() => {
-					this.clearConfirmedWordAt(i);
-				}}
-				style={[styles.wordWrapper, i === currentIndex ? styles.currentWord : null]}
-			>
-				<Text style={styles.word}>{wordText}</Text>
-			</TouchableOpacity>
+			<View style={styles.words}>
+				{Object.keys(wordsDict).map((key, i) => this.renderWordSelectableBox(key, i))}
+			</View>
+		);
+	};
+
+	renderSuccess = () => (
+		<View style={styles.successRow}>
+			<MaterialIcon name="check-circle" size={15} color={colors.green500} />
+			<Text style={styles.successText}>{strings('manual_backup_step_2.success')}</Text>
+		</View>
+	);
+
+	renderWordBox = (word, i) => {
+		const { currentIndex, confirmedWords } = this.state;
+		return (
+			<View style={[styles.wordBoxWrapper, this.validateWords() && styles.wordBoxWrapperSuccess]}>
+				<Text>{i + 1}.</Text>
+				<TouchableOpacity
+					key={`word_${i}`}
+					// eslint-disable-next-line react/jsx-no-bind
+					onPress={() => {
+						this.clearConfirmedWordAt(i);
+					}}
+					style={[
+						styles.wordWrapper,
+						i === currentIndex && styles.currentWord,
+						confirmedWords[i].word && styles.confirmedWord
+					]}
+				>
+					<Text style={styles.word}>{word}</Text>
+				</TouchableOpacity>
+			</View>
 		);
 	};
 
@@ -295,7 +355,7 @@ class ManualBackupStep2 extends PureComponent {
 	};
 
 	render = () => {
-		const { confirmedWords, wordsDict, seedPhraseReady } = this.state;
+		const { confirmedWords, seedPhraseReady } = this.state;
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<ScrollView
@@ -310,7 +370,13 @@ class ManualBackupStep2 extends PureComponent {
 							<Text style={styles.info}>{strings('manual_backup_step_2.info')}</Text>
 						</View>
 
-						<View style={styles.seedPhraseWrapper}>
+						<View
+							style={[
+								styles.seedPhraseWrapper,
+								seedPhraseReady && styles.seedPhraseWrapperError,
+								this.validateWords() && styles.seedPhraseWrapperComplete
+							]}
+						>
 							<View style={styles.colLeft}>
 								{confirmedWords.slice(0, 6).map(({ word }, i) => this.renderWordBox(word, i))}
 							</View>
@@ -318,18 +384,15 @@ class ManualBackupStep2 extends PureComponent {
 								{confirmedWords.slice(-6).map(({ word }, i) => this.renderWordBox(word, i + 6))}
 							</View>
 						</View>
-
-						<View style={styles.words}>
-							{Object.keys(wordsDict).map((key, i) => this.renderWordSelectableBox(key, i))}
-						</View>
+						{this.validateWords() ? this.renderSuccess() : this.renderWords()}
 						<StyledButton
 							containerStyle={styles.button}
 							type={'confirm'}
 							onPress={this.goNext}
 							testID={'submit-button'}
-							disabled={!seedPhraseReady}
+							disabled={!seedPhraseReady || !this.validateWords()}
 						>
-							{strings('account_backup_step_5.cta_text')}
+							{strings('manual_backup_step_2.complete')}
 						</StyledButton>
 					</View>
 					<CustomAlert
