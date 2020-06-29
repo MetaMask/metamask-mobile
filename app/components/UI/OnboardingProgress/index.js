@@ -8,15 +8,18 @@ const borderRadius = ellipsisSize / 2;
 
 const styles = StyleSheet.create({
 	onboardingContainer: {
-		marginBottom: 40
+		height: 40,
+		marginBottom: 18
 	},
 	step: {
 		display: 'flex',
-		alignItems: 'center'
+		alignItems: 'center',
+		flex: 1
 	},
 	stepText: {
 		marginTop: 4,
 		fontSize: 11,
+		textAlign: 'center',
 		color: colors.black
 	},
 	stepTextSelected: {
@@ -40,8 +43,8 @@ const styles = StyleSheet.create({
 	},
 	ellipsisText: {
 		fontSize: 11,
-		textAlign: 'center',
 		...fontStyles.bold,
+		textAlign: 'center',
 		color: colors.grey200
 	},
 	ellipsisSelected: {
@@ -61,7 +64,7 @@ const styles = StyleSheet.create({
 	lines: {
 		zIndex: 1,
 		marginTop: -30,
-		marginHorizontal: 24
+		marginHorizontal: 48
 	},
 	line: {
 		width: '50%',
@@ -75,13 +78,14 @@ const styles = StyleSheet.create({
 
 export default class OnboardingProgress extends Component {
 	static propTypes = {
-		currentStep: PropTypes.number
+		currentStep: PropTypes.number,
+		stepWords: PropTypes.array
 	};
 
 	render() {
-		const { currentStep } = this.props;
+		const { currentStep, stepWords } = this.props;
 
-		const steps = ['Wallet setup', 'Create Password', 'Secure wallet'];
+		const steps = stepWords || ['Wallet setup', 'Create Password', 'Secure wallet'];
 		const lines = steps.filter((step, index) => index !== steps.length - 1);
 		return (
 			<View style={styles.onboardingContainer}>
