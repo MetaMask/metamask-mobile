@@ -919,6 +919,11 @@
 		"modal_button": "DONE",
 		"copy_seed_phrase": "COPY SEED PHRASE TO CLIPBOARD"
 	},
+	"manual_backup": {
+		"progressOne": "Create Password",
+		"progressTwo": "Secure wallet",
+		"progressThree": "Confirm seed phrase"
+	},
 	"manual_backup_step_1": {
 		"action": "Write down your seed phrase",
 		"info": "This is your seed phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
