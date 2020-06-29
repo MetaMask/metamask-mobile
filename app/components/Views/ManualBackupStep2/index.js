@@ -10,14 +10,12 @@ import {
 	StyleSheet
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Icon from 'react-native-vector-icons/Feather';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
-import CustomAlert from '../../UI/CustomAlert';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const styles = StyleSheet.create({
@@ -154,11 +152,6 @@ const styles = StyleSheet.create({
 		borderColor: colors.blue,
 		borderStyle: 'solid'
 	},
-	succesModalText: {
-		textAlign: 'center',
-		fontSize: 13,
-		...fontStyles.normal
-	},
 	buttonWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end'
@@ -194,7 +187,6 @@ class ManualBackupStep2 extends PureComponent {
 
 	state = {
 		confirmedWords: Array(12).fill({ word: undefined, originalPosition: undefined }),
-		showSuccessModal: false,
 		wordsDict: {},
 		currentIndex: 0,
 		seedPhraseReady: false,
@@ -260,25 +252,15 @@ class ManualBackupStep2 extends PureComponent {
 	};
 
 	goNext = () => {
+		const { seedphraseBackedUp, navigation } = this.props;
 		if (this.validateWords()) {
-			this.props.seedphraseBackedUp();
-			this.setState({ showSuccessModal: true });
+			seedphraseBackedUp();
+			InteractionManager.runAfterInteractions(() => {
+				navigation.navigate('ManualBackupStep3');
+			});
 		} else {
 			Alert.alert(strings('account_backup_step_5.error_title'), strings('account_backup_step_5.error_message'));
 		}
-	};
-
-	onSuccesModalAction = () => {
-		this.setState({ showSuccessModal: false });
-		InteractionManager.runAfterInteractions(() => {
-			const words = this.props.navigation.getParam('words', []);
-			this.props.navigation.navigate('AccountBackupStep6', { words });
-			// Clean up
-			setTimeout(() => {
-				this.setState({ confirmedWords: [] });
-				this.words = null;
-			}, 1000);
-		});
 	};
 
 	validateWords = () => {
@@ -389,16 +371,6 @@ class ManualBackupStep2 extends PureComponent {
 							</StyledButton>
 						</View>
 					</View>
-					<CustomAlert
-						headerStyle={{ backgroundColor: colors.green500 }}
-						headerContent={<Icon color={colors.white} name={'check'} size={100} />}
-						titleText={strings('account_backup_step_5.modal_title')}
-						buttonText={strings('account_backup_step_5.modal_button')}
-						onPress={this.onSuccesModalAction}
-						isVisible={this.state.showSuccessModal}
-					>
-						<Text style={styles.succesModalText}>{strings('account_backup_step_5.modal_text')}</Text>
-					</CustomAlert>
 				</ScrollView>
 			</SafeAreaView>
 		);
