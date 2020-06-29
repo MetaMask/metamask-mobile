@@ -424,6 +424,18 @@ class ChoosePassword extends PureComponent {
 		const endX = 0;
 		const endY = 50;
 
+		const {
+			labelsScaleNew,
+			password,
+			confirmPassword,
+			secureTextEntry,
+			labelsScaleConfirm,
+			error,
+			loading
+		} = this.state;
+
+		const isDisabled = !(password !== '' && password === confirmPassword);
+
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<View style={styles.wrapper} testID={'choose-password-screen'}>
@@ -442,10 +454,10 @@ class ChoosePassword extends PureComponent {
 										{
 											transform: [
 												{
-													scale: this.state.labelsScaleNew
+													scale: labelsScaleNew
 												},
 												{
-													translateX: this.state.labelsScaleNew.interpolate({
+													translateX: labelsScaleNew.interpolate({
 														inputRange: [0, 1],
 														outputRange: [
 															startX - width / 2 - (width * initialScale) / 2,
@@ -454,7 +466,7 @@ class ChoosePassword extends PureComponent {
 													})
 												},
 												{
-													translateY: this.state.labelsScaleNew.interpolate({
+													translateY: labelsScaleNew.interpolate({
 														inputRange: [0, 1],
 														outputRange: [
 															startY - height / 2 - (height * initialScale) / 2,
@@ -470,9 +482,9 @@ class ChoosePassword extends PureComponent {
 								</Animated.Text>
 								<TextInput
 									style={styles.input}
-									value={this.state.password}
+									value={password}
 									onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
-									secureTextEntry={this.state.secureTextEntry}
+									secureTextEntry={secureTextEntry}
 									placeholder={''}
 									underlineColorAndroid={colors.grey100}
 									testID={'input-password'}
@@ -484,10 +496,10 @@ class ChoosePassword extends PureComponent {
 								/>
 								<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
 									<Text style={styles.passwordStrengthLabel}>
-										{strings(`choose_password.${this.state.secureTextEntry ? 'show' : 'hide'}`)}
+										{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
 									</Text>
 								</TouchableOpacity>
-								{(this.state.password !== '' && (
+								{(password !== '' && (
 									<Text style={styles.passwordStrengthLabel}>
 										{strings('choose_password.password_strength')}
 										<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
@@ -504,10 +516,10 @@ class ChoosePassword extends PureComponent {
 										{
 											transform: [
 												{
-													scale: this.state.labelsScaleConfirm
+													scale: labelsScaleConfirm
 												},
 												{
-													translateX: this.state.labelsScaleConfirm.interpolate({
+													translateX: labelsScaleConfirm.interpolate({
 														inputRange: [0, 1],
 														outputRange: [
 															startX - width / 2 - (width * initialScale) / 2,
@@ -516,7 +528,7 @@ class ChoosePassword extends PureComponent {
 													})
 												},
 												{
-													translateY: this.state.labelsScaleConfirm.interpolate({
+													translateY: labelsScaleConfirm.interpolate({
 														inputRange: [0, 1],
 														outputRange: [
 															startY - height / 2 - (height * initialScale) / 2,
@@ -533,9 +545,9 @@ class ChoosePassword extends PureComponent {
 								<TextInput
 									ref={this.confirmPasswordInput}
 									style={styles.input}
-									value={this.state.confirmPassword}
+									value={confirmPassword}
 									onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
-									secureTextEntry={this.state.secureTextEntry}
+									secureTextEntry={secureTextEntry}
 									placeholder={''}
 									placeholderTextColor={colors.grey100}
 									underlineColorAndroid={colors.grey100}
@@ -547,8 +559,7 @@ class ChoosePassword extends PureComponent {
 									autoCapitalize="none"
 								/>
 								<View style={styles.showMatchingPasswords}>
-									{this.state.password !== '' &&
-									this.state.password === this.state.confirmPassword ? (
+									{password !== '' && password === confirmPassword ? (
 										<Icon name="check" size={12} color={colors.green300} />
 									) : null}
 								</View>
@@ -559,7 +570,7 @@ class ChoosePassword extends PureComponent {
 
 							{this.renderSwitch()}
 
-							{!!this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+							{!!error && <Text style={styles.errorMsg}>{error}</Text>}
 						</View>
 					</KeyboardAwareScrollView>
 					<View style={styles.ctaWrapper}>
@@ -567,11 +578,9 @@ class ChoosePassword extends PureComponent {
 							type={'blue'}
 							onPress={this.onPressCreate}
 							testID={'submit-button'}
-							disabled={
-								!(this.state.password !== '' && this.state.password === this.state.confirmPassword)
-							}
+							disabled={isDisabled}
 						>
-							{this.state.loading ? (
+							{loading ? (
 								<ActivityIndicator size="small" color="white" />
 							) : (
 								strings('choose_password.create_button')
