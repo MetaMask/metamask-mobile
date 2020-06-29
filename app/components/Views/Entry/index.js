@@ -157,7 +157,13 @@ class Entry extends PureComponent {
 			// Retreive the credentials
 			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
+				if (credentials.password === '') {
+					this.animateAndGoTo('Onboarding');
+					return;
+				}
+
 				// Restore vault with existing credentials
+
 				const { KeyringController } = Engine.context;
 				await KeyringController.submitPassword(credentials.password);
 				// Get onboarding wizard state
@@ -178,7 +184,7 @@ class Entry extends PureComponent {
 				this.animateAndGoTo('Onboarding');
 			}
 		} catch (error) {
-			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
+			Logger.log(`Keychain couldn't be accessed`, error);
 			this.animateAndGoTo('Login');
 		}
 	}
