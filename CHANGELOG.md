@@ -2,6 +2,9 @@
 
 ## Current Develop Branch
 
+## v0.2.19 - Jun 29 2020
+- [#1653](https://github.com/MetaMask/metamask-mobile/pull/1653): Add ETH_GAS_STATION_API_KEY (#1653)
+
 ## v0.2.18 - Jun 15 2020
 - [#1636](https://github.com/MetaMask/metamask-mobile/pull/1636): Add padding to CustomGas back button (#1636)
 - bump
