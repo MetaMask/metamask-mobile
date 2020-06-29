@@ -132,7 +132,9 @@ class SyncWithExtensionSuccess extends PureComponent {
 				<View>
 					<Text style={styles.text}>{strings('sync_with_extension_success.sync_complete')}</Text>
 					<View style={styles.passwordTipContainer}>
-						<Text style={styles.passwordTipText}>{strings('sync_with_extension_success.passwordTip')}</Text>
+						<Text style={styles.passwordTipText}>
+							{strings('sync_with_extension_success.password_tip')}
+						</Text>
 					</View>
 					<StyledButton type="blue" onPress={this.continue} containerStyle={styles.button}>
 						{strings('sync_with_extension_success.button_continue')}

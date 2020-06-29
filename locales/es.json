@@ -680,7 +680,8 @@
 	"sync_with_extension_success": {
 		"title": "Sincronización completa",
 		"sync_complete": "Hemos sincronizado toda la información desde la extensión de MetaMask y ahora puedes continuar!",
-		"button_continue": "Continuar"
+		"button_continue": "Continuar",
+		"password_tip": "La contraseña para aceder a tu billetera es la misma que configuraste para la extensión?"
 	},
 	"networks": {
 		"title": "Redes",
