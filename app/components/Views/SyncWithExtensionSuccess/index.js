@@ -48,6 +48,19 @@ const styles = StyleSheet.create({
 	},
 	termsAndConditions: {
 		padding: 30
+	},
+	passwordTipContainer: {
+		padding: 16,
+		backgroundColor: colors.blue000,
+		borderWidth: 1,
+		borderColor: colors.blue200,
+		borderRadius: 8,
+		marginTop: 29
+	},
+	passwordTipText: {
+		fontSize: 12,
+		lineHeight: 17,
+		color: colors.blue600
 	}
 });
 
@@ -118,6 +131,9 @@ class SyncWithExtensionSuccess extends PureComponent {
 				</Animated.View>
 				<View>
 					<Text style={styles.text}>{strings('sync_with_extension_success.sync_complete')}</Text>
+					<View style={styles.passwordTipContainer}>
+						<Text style={styles.passwordTipText}>{strings('sync_with_extension_success.passwordTip')}</Text>
+					</View>
 					<StyledButton type="blue" onPress={this.continue} containerStyle={styles.button}>
 						{strings('sync_with_extension_success.button_continue')}
 					</StyledButton>
