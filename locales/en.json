@@ -938,6 +938,14 @@
 		"complete": "Complete Backup",
 		"success": "Success"
 	},
+	"manual_backup_step_3": {
+		"congratulations": "Congratulations",
+		"success": "You’ve successfully protected your wallet. Remember to keep your seed phrase safe, it's your responsibility!",
+		"hint": "Leave yourself a hint?",
+		"recover": "MetaMask cannot recover your wallet should you loose it. You can find your seedphrase in settings > security & privacy.",
+		"learn": "Learn more",
+		"done": "Done"
+	},
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",
 		"ethereum_phishing_detector": "Ethereum Phishing Detector",
