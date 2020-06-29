@@ -25,11 +25,16 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1
 	},
+	scrollviewWrapper: {
+		flex: 1,
+		paddingTop: 12
+	},
 	wrapper: {
 		flex: 1,
-		padding: 32,
-		paddingTop: 0,
-		justifyContent: 'flex-end'
+		paddingHorizontal: 32
+	},
+	onBoardingWrapper: {
+		paddingHorizontal: 20
 	},
 	action: {
 		fontSize: 18,
@@ -54,6 +59,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderRadius: 8,
 		flexDirection: 'row',
+		justifyContent: 'space-between',
 		borderColor: colors.grey100,
 		borderWidth: 1,
 		marginBottom: 24
@@ -65,14 +71,12 @@ const styles = StyleSheet.create({
 		borderColor: colors.red
 	},
 	colLeft: {
-		flex: 1,
 		paddingTop: 18,
 		paddingLeft: 27,
 		paddingBottom: 4,
 		alignItems: 'flex-start'
 	},
 	colRight: {
-		flex: 1,
 		paddingTop: 18,
 		paddingRight: 27,
 		paddingBottom: 4,
@@ -83,9 +87,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		marginBottom: 14
-	},
-	wordBoxWrapperSuccess: {
-		marginBottom: 8
 	},
 	wordWrapper: {
 		paddingHorizontal: 8,
@@ -124,14 +125,12 @@ const styles = StyleSheet.create({
 	words: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		justifyContent: 'space-between',
-		marginBottom: 20
+		justifyContent: 'space-between'
 	},
 	successRow: {
 		flexDirection: 'row',
 		justifyContent: 'center',
-		alignItems: 'center',
-		marginBottom: 86
+		alignItems: 'center'
 	},
 	successText: {
 		fontSize: 12,
@@ -159,6 +158,10 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 13,
 		...fontStyles.normal
+	},
+	buttonWrapper: {
+		flex: 1,
+		justifyContent: 'flex-end'
 	}
 });
 
@@ -181,20 +184,7 @@ class ManualBackupStep2 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		const words = [
-			'One',
-			'Two',
-			'Three',
-			'Four',
-			'Five',
-			'Six',
-			'Seven',
-			'Eight',
-			'Nine',
-			'Ten',
-			'Eleven',
-			'Twelve'
-		];
+		const words = props.navigation.getParam('words');
 		if (process.env.JEST_WORKER_ID === undefined) {
 			this.words = [...words].sort(() => 0.5 - Math.random());
 		} else {
@@ -213,6 +203,7 @@ class ManualBackupStep2 extends PureComponent {
 
 	componentDidMount = () => {
 		this.createWordsDictionary();
+		this.steps = this.props.navigation.getParam('steps');
 	};
 
 	createWordsDictionary = () => {
@@ -318,10 +309,9 @@ class ManualBackupStep2 extends PureComponent {
 	renderWordBox = (word, i) => {
 		const { currentIndex, confirmedWords } = this.state;
 		return (
-			<View style={[styles.wordBoxWrapper, this.validateWords() && styles.wordBoxWrapperSuccess]}>
+			<View key={`word_${i}`} style={styles.wordBoxWrapper}>
 				<Text>{i + 1}.</Text>
 				<TouchableOpacity
-					key={`word_${i}`}
 					// eslint-disable-next-line react/jsx-no-bind
 					onPress={() => {
 						this.clearConfirmedWordAt(i);
@@ -360,11 +350,13 @@ class ManualBackupStep2 extends PureComponent {
 			<SafeAreaView style={styles.mainWrapper}>
 				<ScrollView
 					style={styles.mainWrapper}
-					contentContainerStyle={styles.mainWrapper}
+					contentContainerStyle={styles.scrollviewWrapper}
 					testID={'account-backup-step-5-screen'}
 				>
+					<View style={styles.onBoardingWrapper}>
+						<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
+					</View>
 					<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-						<OnboardingProgress currentStep={this.state.currentStep} />
 						<Text style={styles.action}>{strings('manual_backup_step_2.action')}</Text>
 						<View style={styles.infoWrapper}>
 							<Text style={styles.info}>{strings('manual_backup_step_2.info')}</Text>
@@ -385,15 +377,17 @@ class ManualBackupStep2 extends PureComponent {
 							</View>
 						</View>
 						{this.validateWords() ? this.renderSuccess() : this.renderWords()}
-						<StyledButton
-							containerStyle={styles.button}
-							type={'confirm'}
-							onPress={this.goNext}
-							testID={'submit-button'}
-							disabled={!seedPhraseReady || !this.validateWords()}
-						>
-							{strings('manual_backup_step_2.complete')}
-						</StyledButton>
+						<View style={styles.buttonWrapper}>
+							<StyledButton
+								containerStyle={styles.button}
+								type={'confirm'}
+								onPress={this.goNext}
+								testID={'submit-button'}
+								disabled={!seedPhraseReady || !this.validateWords()}
+							>
+								{strings('manual_backup_step_2.complete')}
+							</StyledButton>
+						</View>
 					</View>
 					<CustomAlert
 						headerStyle={{ backgroundColor: colors.green500 }}

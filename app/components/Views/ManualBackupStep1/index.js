@@ -15,13 +15,15 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	scrollviewWrapper: {
-		flex: 1
+		flex: 1,
+		paddingTop: 12
 	},
 	wrapper: {
 		flex: 1,
-		padding: 32,
-		paddingTop: 0,
-		justifyContent: 'flex-end'
+		paddingHorizontal: 32
+	},
+	onBoardingWrapper: {
+		paddingHorizontal: 20
 	},
 	action: {
 		fontSize: 18,
@@ -121,6 +123,10 @@ const styles = StyleSheet.create({
 		borderRadius: 13,
 		textAlign: 'center',
 		lineHeight: 14
+	},
+	buttonWrapper: {
+		flex: 1,
+		justifyContent: 'flex-end'
 	}
 });
 
@@ -152,6 +158,11 @@ export default class ManualBackupStep1 extends PureComponent {
 			'Eleven',
 			'Twelve'
 		];
+		this.steps = [
+			strings('manual_backup.progressOne'),
+			strings('manual_backup.progressTwo'),
+			strings('manual_backup.progressThree')
+		];
 	}
 
 	state = {
@@ -169,7 +180,7 @@ export default class ManualBackupStep1 extends PureComponent {
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('ManualBackupStep2', { words: this.words });
+		this.props.navigation.navigate('ManualBackupStep2', { words: this.words, steps: this.steps });
 	};
 
 	revealSeedPhrase = () => this.setState({ seedPhraseHidden: false });
@@ -203,8 +214,10 @@ export default class ManualBackupStep1 extends PureComponent {
 					style={styles.mainWrapper}
 					testID={'manual_backup_step_1-screen'}
 				>
+					<View style={styles.onBoardingWrapper}>
+						<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
+					</View>
 					<View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
-						<OnboardingProgress currentStep={this.state.currentStep} />
 						<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
 						<View style={styles.infoWrapper}>
 							<Text style={styles.info}>{strings('manual_backup_step_1.info')}</Text>
@@ -227,15 +240,17 @@ export default class ManualBackupStep1 extends PureComponent {
 
 							{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
 						</View>
-						<StyledButton
-							containerStyle={styles.button}
-							type={'confirm'}
-							onPress={this.goNext}
-							testID={'submit-button'}
-							disabled={this.state.seedPhraseHidden}
-						>
-							{strings('manual_backup_step_1.continue')}
-						</StyledButton>
+						<View style={styles.buttonWrapper}>
+							<StyledButton
+								containerStyle={styles.button}
+								type={'confirm'}
+								onPress={this.goNext}
+								testID={'submit-button'}
+								disabled={this.state.seedPhraseHidden}
+							>
+								{strings('manual_backup_step_1.continue')}
+							</StyledButton>
+						</View>
 					</View>
 				</ScrollView>
 			</SafeAreaView>
