@@ -147,7 +147,7 @@ export default class OnboardingProgress extends Component {
 						);
 					})}
 				</View>
-				<View style={[styles.row, styles.lines, { marginHorizontal: offset }]}>
+				<View style={[styles.row, styles.lines, { marginHorizontal: offset || 0 }]}>
 					{lines.map((step, key) => {
 						const isSelected = key + 1 < currentStep;
 						return <View key={key} style={[styles.line, isSelected && styles.lineSelected]} />;

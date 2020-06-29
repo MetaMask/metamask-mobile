@@ -177,7 +177,8 @@ const styles = StyleSheet.create({
 	},
 	whySecureText: {
 		textAlign: 'center',
-		lineHeight: 20
+		lineHeight: 20,
+		color: colors.fontPrimary
 	}
 });
 
@@ -226,7 +227,7 @@ const AccountBackupStep1B = props => {
 						<Text style={styles.title}>{strings('account_backup_step_1B.title')}</Text>
 						<View style={styles.text}>
 							<Text style={styles.label}>
-								{strings('account_backup_step_1B.subtitle_1')}
+								{strings('account_backup_step_1B.subtitle_1')}{' '}
 								<Text style={styles.blue} onPress={showWhatIsSeedphrase}>
 									{strings('account_backup_step_1B.subtitle_2')}
 								</Text>
@@ -249,14 +250,14 @@ const AccountBackupStep1B = props => {
 							<View style={styles.bar} />
 						</View>
 						<Text style={styles.smallParagraph}>{strings('account_backup_step_1B.risks_title')}</Text>
-						<Text style={styles.smallParagraph}>{strings('account_backup_step_1B.risks_1')}</Text>
-						<Text style={styles.smallParagraph}>{strings('account_backup_step_1B.risks_2')}</Text>
-						<Text style={styles.paragraph}>{strings('account_backup_step_1B.risks_3')}</Text>
+						<Text style={styles.smallParagraph}>• {strings('account_backup_step_1B.risks_1')}</Text>
+						<Text style={styles.smallParagraph}>• {strings('account_backup_step_1B.risks_2')}</Text>
+						<Text style={styles.paragraph}>• {strings('account_backup_step_1B.risks_3')}</Text>
 						<Text style={styles.paragraph}>{strings('account_backup_step_1B.other_options')}</Text>
 						<Text style={styles.smallParagraph}>{strings('account_backup_step_1B.tips_title')}</Text>
-						<Text style={styles.smallParagraph}>{strings('account_backup_step_1B.tips_1')}</Text>
-						<Text style={styles.smallParagraph}>{strings('account_backup_step_1B.tips_2')}</Text>
-						<Text style={styles.paragraph}>{strings('account_backup_step_1B.tips_3')}</Text>
+						<Text style={styles.smallParagraph}>• {strings('account_backup_step_1B.tips_1')}</Text>
+						<Text style={styles.smallParagraph}>• {strings('account_backup_step_1B.tips_2')}</Text>
+						<Text style={styles.paragraph}>• {strings('account_backup_step_1B.tips_3')}</Text>
 
 						<StyledButton
 							containerStyle={styles.button}

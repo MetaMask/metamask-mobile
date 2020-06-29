@@ -37,7 +37,10 @@ const styles = {
 	explanationText: {
 		fontSize: 14,
 		marginTop: 16,
-		textAlign: 'center'
+		textAlign: 'center',
+		...fontStyles.normal,
+		color: colors.fontPrimary,
+		lineHeight: 20
 	},
 	modalXIcon: {
 		fontSize: 16

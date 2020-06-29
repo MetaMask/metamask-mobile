@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 	},
 	label: {
 		lineHeight: 20,
-		fontSize: 15,
+		fontSize: 14,
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		...fontStyles.normal
@@ -199,11 +199,11 @@ const AccountBackupStep1 = props => {
 						/>
 						<View style={styles.text}>
 							<Text style={styles.label}>
-								{strings('account_backup_step_1.info_text_1_1')}
+								{strings('account_backup_step_1.info_text_1_1')}{' '}
 								<Text style={styles.blue} onPress={showWhatIsSeedphrase}>
 									{strings('account_backup_step_1.info_text_1_2')}
-								</Text>
-								{strings('account_backup_step_1.info_text_1_3')}
+								</Text>{' '}
+								{strings('account_backup_step_1.info_text_1_3')}{' '}
 								<Text style={styles.bold}>{strings('account_backup_step_1.info_text_1_4')}</Text>
 							</Text>
 						</View>
