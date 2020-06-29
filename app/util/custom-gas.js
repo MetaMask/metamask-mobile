@@ -103,7 +103,8 @@ export function parseWaitTime(min) {
  * @returns {Object} - Object containing basic estimates
  */
 export async function fetchBasicGasEstimates() {
-	return await fetch('https://ethgasstation.info/json/ethgasAPI.json', {
+	const apiKey = process.env.ETH_GAS_STATION_API_KEY ? `?api-key=${process.env.ETH_GAS_STATION_API_KEY}` : '';
+	return await fetch(`https://ethgasstation.info/json/predictTable.json${apiKey}`, {
 		headers: {},
 		referrer: 'http://ethgasstation.info/json/',
 		referrerPolicy: 'no-referrer-when-downgrade',
