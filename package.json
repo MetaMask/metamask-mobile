@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "private": true,
   "scripts": {
     "watch": "react-native start",
