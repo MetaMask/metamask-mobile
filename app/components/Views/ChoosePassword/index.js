@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
 	Animated,
+	CheckBox,
 	Switch,
 	ActivityIndicator,
 	Alert,
@@ -9,8 +10,8 @@ import {
 	View,
 	TextInput,
 	SafeAreaView,
-	StyleSheet,
-	TouchableOpacity
+	StyleSheet
+	// TouchableOpacity
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -26,7 +27,10 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
+import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
+
+const steps = ['Create password', 'Secure wallet', 'Confirm seed phrase'];
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -35,51 +39,65 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		padding: 20
+		paddingHorizontal: 20,
+		paddingBottom: 20
 	},
 	content: {
-		alignItems: 'flex-start'
+		textAlign: 'center',
+		alignItems: 'center'
 	},
 	title: {
-		fontSize: 32,
+		fontSize: 24,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
-		textAlign: 'left',
+		textAlign: 'center',
 		...fontStyles.normal
 	},
 	subtitle: {
 		fontSize: 16,
 		lineHeight: 23,
 		color: colors.fontPrimary,
-		textAlign: 'left',
+		textAlign: 'center',
 		...fontStyles.normal
 	},
 	text: {
 		marginBottom: 10,
 		justifyContent: 'center'
 	},
-
-	label: {
-		position: 'absolute',
-		marginTop: -35,
-		marginLeft: 5,
-		fontSize: 16,
-		color: colors.fontSecondary,
-		textAlign: 'left',
-		...fontStyles.normal
+	checkboxContainer: {
+		marginHorizontal: 10,
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
+		flexDirection: 'row'
 	},
+	label: {
+		color: colors.black,
+		paddingHorizontal: 10
+	},
+
+	// label: {
+	// 	position: 'absolute',
+	// 	marginTop: -35,
+	// 	marginLeft: 5,
+	// 	fontSize: 16,
+	// 	color: colors.fontSecondary,
+	// 	textAlign: 'left',
+	// 	...fontStyles.normal
+	// },
 	field: {
 		marginTop: 20,
 		marginBottom: 10
 	},
 	input: {
-		borderBottomWidth: Device.isAndroid() ? 0 : 1,
-		borderBottomColor: colors.grey100,
-		paddingLeft: 0,
-		paddingVertical: 10,
-		borderRadius: 4,
+		// borderBottomWidth: Device.isAndroid() ? 0 : 1,
+		// borderBottomColor: colors.grey100,
+		borderWidth: 1,
+		borderColor: colors.grey500,
+		padding: 10,
+		borderRadius: 6,
 		fontSize: Device.isAndroid() ? 14 : 20,
 		...fontStyles.normal
 	},
@@ -126,12 +144,12 @@ const styles = StyleSheet.create({
 	strength_strong: {
 		color: colors.green300
 	},
-	showHideToggle: {
-		backgroundColor: colors.white,
-		position: 'absolute',
-		marginTop: 8,
-		alignSelf: 'flex-end'
-	},
+	// showHideToggle: {
+	// 	backgroundColor: colors.white,
+	// 	position: 'absolute',
+	// 	marginTop: 8,
+	// 	alignSelf: 'flex-end'
+	// },
 	showMatchingPasswords: {
 		position: 'absolute',
 		marginTop: 8,
@@ -174,6 +192,7 @@ class ChoosePassword extends PureComponent {
 	};
 
 	state = {
+		isSelected: false,
 		password: '',
 		confirmPassword: '',
 		secureTextEntry: true,
@@ -202,6 +221,11 @@ class ChoosePassword extends PureComponent {
 	componentWillUnmount() {
 		this.mounted = false;
 	}
+
+	setSelection = () => {
+		const { isSelected } = this.state;
+		this.setState(() => ({ isSelected: !isSelected }));
+	};
 
 	onPressCreate = async () => {
 		const { loading, password, confirmPassword } = this.state;
@@ -416,30 +440,32 @@ class ChoosePassword extends PureComponent {
 	};
 
 	render() {
-		const startX = 0;
-		const startY = 0;
-		const width = 100;
-		const height = 24;
-		const initialScale = 1;
-		const endX = 0;
-		const endY = 50;
+		// const startX = 0;
+		// const startY = 0;
+		// const width = 100;
+		// const height = 24;
+		// const initialScale = 1;
+		// const endX = 0;
+		// const endY = 50;
 
 		const {
-			labelsScaleNew,
+			// labelsScaleNew,
+			isSelected,
 			password,
 			confirmPassword,
 			secureTextEntry,
-			labelsScaleConfirm,
+			// labelsScaleConfirm,
 			error,
 			loading
 		} = this.state;
 
-		const isDisabled = !(password !== '' && password === confirmPassword);
+		const isDisabled = !(password !== '' && password === confirmPassword && isSelected);
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<View style={styles.wrapper} testID={'choose-password-screen'}>
 					<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
+						<OnboardingProgress steps={steps} currentStep={1} />
 						<View testID={'create-password-screen'}>
 							<View style={styles.content}>
 								<Text style={styles.title}>{strings('choose_password.title')}</Text>
@@ -448,7 +474,7 @@ class ChoosePassword extends PureComponent {
 								</View>
 							</View>
 							<View style={styles.field}>
-								<Animated.Text
+								{/*<Animated.Text
 									style={[
 										styles.label,
 										{
@@ -479,26 +505,26 @@ class ChoosePassword extends PureComponent {
 									]}
 								>
 									{strings('choose_password.password')}
-								</Animated.Text>
+								</Animated.Text>*/}
 								<TextInput
 									style={styles.input}
 									value={password}
 									onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
 									secureTextEntry={secureTextEntry}
 									placeholder={''}
-									underlineColorAndroid={colors.grey100}
+									// underlineColorAndroid={colors.grey100}
 									testID={'input-password'}
 									onSubmitEditing={this.jumpToConfirmPassword}
 									returnKeyType={'next'}
-									onFocus={() => this.animateOutLabel('new')} // eslint-disable-line  react/jsx-no-bind
-									onBlur={() => this.animateInLabel('new')} // eslint-disable-line  react/jsx-no-bind
+									// onFocus={() => this.animateOutLabel('new')} // eslint-disable-line  react/jsx-no-bind
+									// onBlur={() => this.animateInLabel('new')} // eslint-disable-line  react/jsx-no-bind
 									autoCapitalize="none"
 								/>
-								<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
+								{/*<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
 									<Text style={styles.passwordStrengthLabel}>
 										{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
 									</Text>
-								</TouchableOpacity>
+							</TouchableOpacity>*/}
 								{(password !== '' && (
 									<Text style={styles.passwordStrengthLabel}>
 										{strings('choose_password.password_strength')}
@@ -510,7 +536,7 @@ class ChoosePassword extends PureComponent {
 								)) || <Text style={styles.passwordStrengthLabel} />}
 							</View>
 							<View style={styles.field}>
-								<Animated.Text
+								{/*<Animated.Text
 									style={[
 										styles.label,
 										{
@@ -541,7 +567,7 @@ class ChoosePassword extends PureComponent {
 									]}
 								>
 									{strings('choose_password.confirm_password')}
-								</Animated.Text>
+								</Animated.Text>*/}
 								<TextInput
 									ref={this.confirmPasswordInput}
 									style={styles.input}
@@ -550,12 +576,12 @@ class ChoosePassword extends PureComponent {
 									secureTextEntry={secureTextEntry}
 									placeholder={''}
 									placeholderTextColor={colors.grey100}
-									underlineColorAndroid={colors.grey100}
+									// underlineColorAndroid={colors.grey100}
 									testID={'input-password-confirm'}
 									onSubmitEditing={this.onPressCreate}
 									returnKeyType={'done'}
-									onFocus={() => this.animateOutLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
-									onBlur={() => this.animateInLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
+									// onFocus={() => this.animateOutLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
+									// onBlur={() => this.animateInLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
 									autoCapitalize="none"
 								/>
 								<View style={styles.showMatchingPasswords}>
@@ -567,8 +593,17 @@ class ChoosePassword extends PureComponent {
 									{strings('choose_password.must_be_at_least', { number: 8 })}
 								</Text>
 							</View>
-
-							{this.renderSwitch()}
+							<View style={styles.checkboxContainer}>
+								<CheckBox
+									value={isSelected}
+									onValueChange={this.setSelection}
+									style={styles.checkbox}
+								/>
+								<Text style={styles.label}>
+									I understand that MetaMask cannot recover this password for me. Learn more.
+								</Text>
+							</View>
+							{/*this.renderSwitch()*/}
 
 							{!!error && <Text style={styles.errorMsg}>{error}</Text>}
 						</View>

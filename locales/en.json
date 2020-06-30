@@ -124,7 +124,7 @@
 	},
 	"choose_password": {
 		"title": "Create password",
-		"subtitle": "You'll use this password to unlock your MetaMask wallet only on this device.",
+		"subtitle": "This password will unlock your MetaMask wallet only on this device.",
 		"password": "New Password",
 		"confirm_password": "Confirm Password",
 		"create_button": "NEXT",
