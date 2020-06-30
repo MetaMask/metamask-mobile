@@ -10,6 +10,7 @@
 - [#1640](https://github.com/MetaMask/metamask-mobile/pull/1640): enable-apple-pay (#1640)
 
 ## v0.2.19 - Jun 29 2020
+- [#1661](https://github.com/MetaMask/metamask-mobile/pull/1661): bugfix/Use eth gas API
 - [#1653](https://github.com/MetaMask/metamask-mobile/pull/1653): Add ETH_GAS_STATION_API_KEY (#1653)
 
 ## v0.2.18 - Jun 15 2020
