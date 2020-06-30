@@ -144,20 +144,6 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		this.words = [
-			'One',
-			'Two',
-			'Three',
-			'Four',
-			'Five',
-			'Six',
-			'Seven',
-			'Eight',
-			'Nine',
-			'Ten',
-			'Eleven',
-			'Twelve'
-		];
 		this.steps = [
 			strings('manual_backup.progressOne'),
 			strings('manual_backup.progressTwo'),
@@ -169,6 +155,10 @@ export default class ManualBackupStep1 extends PureComponent {
 		seedPhraseHidden: true,
 		currentStep: 2
 	};
+
+	componentDidMount() {
+		this.words = this.props.navigation.getParam('words');
+	}
 
 	tryExportSeedPhrase = async password => {
 		const { KeyringController } = Engine.context;

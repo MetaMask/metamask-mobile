@@ -249,7 +249,7 @@ class ChoosePassword extends PureComponent {
 
 			this.setState({ loading: false });
 			const seed = await this.getSeedPhrase();
-			this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
+			this.props.navigation.navigate('ManualBackupStep1', { words: seed.split(' ') });
 		} catch (error) {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
