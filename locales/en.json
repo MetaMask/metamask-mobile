@@ -944,7 +944,13 @@
 		"hint": "Leave yourself a hint?",
 		"recover": "MetaMask cannot recover your wallet should you loose it. You can find your seedphrase in settings > security & privacy.",
 		"learn": "Learn more",
-		"done": "Done"
+		"done": "Done",
+		"recovery_hint": "Recovery hint",
+		"leave_hint": "Leave yourself a hint. Write the location / where you saved it to remind yourself how you can access it. This information does not leave your device.",
+		"no_seedphrase": "Do not use this to write your seed phrase.",
+		"example": "e.g. Mom's house",
+		"save": "Save",
+		"cancel": "Cancel"
 	},
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",
