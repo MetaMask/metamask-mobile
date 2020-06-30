@@ -13,6 +13,7 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import ActionModal from '../../UI/ActionModal';
 import Device from '../../../util/Device';
 import Icon from 'react-native-vector-icons/Octicons';
+import Confetti from 'react-native-confetti';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -128,6 +129,12 @@ class ManualBackupStep3 extends PureComponent {
 
 	componentDidMount() {
 		this.steps = this.props.navigation.getParam('steps');
+		if (this._confettiView) {
+			this._confettiView.startConfetti();
+			setTimeout(() => {
+				this._confettiView.stopConfetti();
+			}, 5000);
+		}
 	}
 
 	toggleHint = () => {
@@ -190,6 +197,13 @@ class ManualBackupStep3 extends PureComponent {
 						style={styles.mainWrapper}
 						testID={'account-backup-step-6-screen'}
 					>
+						<Confetti
+							ref={node => (this._confettiView = node)}
+							timeout={10}
+							untilStopped
+							duration={5000}
+							bsize={0}
+						/>
 						<View style={styles.onBoardingWrapper}>
 							<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
 						</View>
