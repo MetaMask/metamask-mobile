@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import Emoji from 'react-native-emoji';
+import AsyncStorage from '@react-native-community/async-storage';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
@@ -133,6 +134,19 @@ class ManualBackupStep3 extends PureComponent {
 		this.setState({ showHint: !this.state.showHint });
 	};
 
+	learnMore = () =>
+		this.props.navigation.navigate('Webview', {
+			url: 'https://support.metamask.io',
+			title: strings('drawer.metamask_support')
+		});
+
+	done = async () => {
+		this.toggleHint();
+		await AsyncStorage.setItem('seedphraseHint', this.state.hintText);
+		this.props.navigation.popToTop();
+		this.props.navigation.goBack(null);
+	};
+
 	handleChangeText = text => this.setState({ hintText: text });
 
 	renderHint = () => {
@@ -142,6 +156,7 @@ class ManualBackupStep3 extends PureComponent {
 				confirmText={strings('manual_backup_step_3.save')}
 				confirmButtonMode={'confirm'}
 				onCancelPress={this.toggleHint}
+				onConfirmPress={this.done}
 				modalVisible={showHint}
 			>
 				<View style={[styles.hintWrapper]}>
@@ -164,17 +179,6 @@ class ManualBackupStep3 extends PureComponent {
 				</View>
 			</ActionModal>
 		);
-	};
-
-	learnMore = () =>
-		this.props.navigation.navigate('Webview', {
-			url: 'https://support.metamask.io',
-			title: strings('drawer.metamask_support')
-		});
-
-	done = () => {
-		this.props.navigation.popToTop();
-		this.props.navigation.goBack(null);
 	};
 
 	render() {
