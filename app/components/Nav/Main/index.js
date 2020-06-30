@@ -90,7 +90,6 @@ import { isENS, safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
-import AsyncStorage from '@react-native-community/async-storage';
 import Approve from '../../Views/ApproveView/Approve';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
@@ -419,15 +418,6 @@ class Main extends PureComponent {
 		 */
 		tokens: PropTypes.array,
 		/**
-		 * List of all tracked tokens
-		 */
-		allTokens: PropTypes.object,
-		/**
-		/**
-		 * List of all the balances of each contract tracked
-		 */
-		contractBalances: PropTypes.object,
-		/**
 		 * List of transactions
 		 */
 		transactions: PropTypes.array,
@@ -571,76 +561,9 @@ class Main extends PureComponent {
 					this.initializePaymentChannels();
 				}
 
-				setTimeout(() => {
-					this.checkForSai();
-				}, 3500);
-
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 			}, 1000);
 		});
-	};
-
-	checkForSai = async () => {
-		let hasSAI = false;
-		Object.keys(this.props.allTokens).forEach(account => {
-			const tokens = this.props.allTokens[account].mainnet;
-			tokens &&
-				tokens.forEach(token => {
-					if (token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
-						if (this.props.contractBalances[AppConstants.SAI_ADDRESS]) {
-							const balance = this.props.contractBalances[AppConstants.SAI_ADDRESS];
-							if (!balance.isZero()) {
-								hasSAI = true;
-							}
-						}
-					}
-				});
-		});
-
-		if (hasSAI) {
-			const previousReminder = await AsyncStorage.getItem('@MetaMask:nextMakerReminder');
-			if (!previousReminder || parseInt(previousReminder, 10) < Date.now()) {
-				Alert.alert(
-					strings('sai_migration.title'),
-					strings('sai_migration.message'),
-					[
-						{
-							text: strings('sai_migration.lets_do_it'),
-							onPress: async () => {
-								this.props.navigation.navigate('BrowserTabHome');
-								InteractionManager.runAfterInteractions(() => {
-									setTimeout(() => {
-										this.props.navigation.navigate('BrowserView', {
-											newTabUrl: 'https://migrate.makerdao.com'
-										});
-										const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
-										AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
-									}, 300);
-								});
-							},
-							style: 'cancel'
-						},
-						{
-							text: strings('sai_migration.learn_more'),
-							onPress: () => {
-								this.props.navigation.navigate('BrowserTabHome');
-								InteractionManager.runAfterInteractions(() => {
-									setTimeout(() => {
-										this.props.navigation.navigate('BrowserView', {
-											newTabUrl:
-												'https://blog.makerdao.com/what-to-expect-with-the-launch-of-multi-collateral-dai/'
-										});
-										const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
-										AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
-									}, 300);
-								});
-							}
-						}
-					],
-					{ cancelable: false }
-				);
-			}
-		}
 	};
 
 	connectionChangeHandler = state => {
@@ -1171,8 +1094,6 @@ const mapStateToProps = state => ({
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	allTokens: state.engine.backgroundState.AssetsController.allTokens,
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	isPaymentRequest: state.transaction.paymentRequest,
 	identities: state.engine.backgroundState.PreferencesController.identities

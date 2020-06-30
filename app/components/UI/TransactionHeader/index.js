@@ -94,12 +94,13 @@ class TransactionHeader extends PureComponent {
 	 */
 	renderSecureIcon = () => {
 		const { url } = this.props.currentPageInformation;
-		const secureIcon =
-			getUrlObj(url).protocol === 'https:' ? (
-				<FontAwesome name={'lock'} size={15} style={styles.secureIcon} />
-			) : (
-				<FontAwesome name={'warning'} size={15} style={styles.secureIcon} />
-			);
+		const secureIcon = (
+			<FontAwesome
+				name={getUrlObj(url).protocol === 'https:' ? 'lock' : 'warning'}
+				size={15}
+				style={styles.secureIcon}
+			/>
+		);
 		return secureIcon;
 	};
 
