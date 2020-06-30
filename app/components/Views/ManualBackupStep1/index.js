@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { ScrollView, Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { Text, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -8,15 +8,12 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import { BlurView } from '@react-native-community/blur';
+import ActionView from '../../UI/ActionView';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
 		flex: 1
-	},
-	scrollviewWrapper: {
-		flex: 1,
-		paddingTop: 12
 	},
 	wrapper: {
 		flex: 1,
@@ -123,10 +120,6 @@ const styles = StyleSheet.create({
 		borderRadius: 13,
 		textAlign: 'center',
 		lineHeight: 14
-	},
-	buttonWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end'
 	}
 });
 
@@ -144,6 +137,7 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	constructor(props) {
 		super(props);
+		this.words = props.navigation.getParam('words');
 		this.steps = [
 			strings('manual_backup.progressOne'),
 			strings('manual_backup.progressTwo'),
@@ -155,10 +149,6 @@ export default class ManualBackupStep1 extends PureComponent {
 		seedPhraseHidden: true,
 		currentStep: 2
 	};
-
-	componentDidMount() {
-		this.words = this.props.navigation.getParam('words');
-	}
 
 	tryExportSeedPhrase = async password => {
 		const { KeyringController } = Engine.context;
@@ -199,14 +189,17 @@ export default class ManualBackupStep1 extends PureComponent {
 	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<ScrollView
-					contentContainerStyle={styles.scrollviewWrapper}
-					style={styles.mainWrapper}
-					testID={'manual_backup_step_1-screen'}
+				<View style={styles.onBoardingWrapper}>
+					<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
+				</View>
+				<ActionView
+					confirmTestID={'manual-backup-step-1-continue-button'}
+					confirmText={strings('manual_backup_step_1.continue')}
+					onConfirmPress={this.goNext}
+					confirmDisabled={this.state.seedPhraseHidden}
+					showCancelButton={false}
+					confirmButtonMode={'confirm'}
 				>
-					<View style={styles.onBoardingWrapper}>
-						<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
-					</View>
 					<View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
 						<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
 						<View style={styles.infoWrapper}>
@@ -227,22 +220,10 @@ export default class ManualBackupStep1 extends PureComponent {
 									</Text>
 								))}
 							</View>
-
 							{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
 						</View>
-						<View style={styles.buttonWrapper}>
-							<StyledButton
-								containerStyle={styles.button}
-								type={'confirm'}
-								onPress={this.goNext}
-								testID={'submit-button'}
-								disabled={this.state.seedPhraseHidden}
-							>
-								{strings('manual_backup_step_1.continue')}
-							</StyledButton>
-						</View>
 					</View>
-				</ScrollView>
+				</ActionView>
 			</SafeAreaView>
 		);
 	}

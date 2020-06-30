@@ -1,12 +1,12 @@
 import React, { PureComponent } from 'react';
-import { ScrollView, Text, View, SafeAreaView, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { Text, View, SafeAreaView, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import Emoji from 'react-native-emoji';
 import AsyncStorage from '@react-native-community/async-storage';
 import OnboardingProgress from '../../UI/OnboardingProgress';
-import StyledButton from '../../UI/StyledButton';
+import ActionView from '../../UI/ActionView';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
 import AndroidBackHandler from '../AndroidBackHandler';
@@ -19,10 +19,6 @@ const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
 		flex: 1
-	},
-	scrollviewWrapper: {
-		flex: 1,
-		paddingTop: 12
 	},
 	wrapper: {
 		flex: 1,
@@ -101,11 +97,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 65,
 		marginBottom: 16
-	},
-	buttonWrapper: {
-		flexShrink: 1,
-		justifyContent: 'flex-end',
-		paddingHorizontal: 32
 	}
 });
 
@@ -192,21 +183,23 @@ class ManualBackupStep3 extends PureComponent {
 		return (
 			<>
 				<SafeAreaView style={styles.mainWrapper}>
-					<ScrollView
-						contentContainerStyle={styles.scrollviewWrapper}
-						style={styles.mainWrapper}
-						testID={'account-backup-step-6-screen'}
+					<Confetti
+						ref={node => (this._confettiView = node)}
+						timeout={10}
+						untilStopped
+						duration={5000}
+						bsize={0}
+					/>
+					<View style={styles.onBoardingWrapper}>
+						<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
+					</View>
+					<ActionView
+						confirmTestID={'manual-backup-step-3-done-button'}
+						confirmText={strings('manual_backup_step_3.done')}
+						onConfirmPress={this.done}
+						showCancelButton={false}
+						confirmButtonMode={'confirm'}
 					>
-						<Confetti
-							ref={node => (this._confettiView = node)}
-							timeout={10}
-							untilStopped
-							duration={5000}
-							bsize={0}
-						/>
-						<View style={styles.onBoardingWrapper}>
-							<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
-						</View>
 						<View style={styles.wrapper}>
 							<Emoji name="tada" style={styles.emoji} />
 							<Text style={styles.congratulations}>
@@ -229,17 +222,7 @@ class ManualBackupStep3 extends PureComponent {
 								</Text>
 							</TouchableOpacity>
 						</View>
-					</ScrollView>
-					<View style={styles.buttonWrapper}>
-						<StyledButton
-							containerStyle={styles.button}
-							type={'confirm'}
-							testID={'submit-button'}
-							onPress={this.done}
-						>
-							{strings('manual_backup_step_3.done')}
-						</StyledButton>
-					</View>
+					</ActionView>
 					{Device.isAndroid() && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
 				</SafeAreaView>
 				{this.renderHint()}

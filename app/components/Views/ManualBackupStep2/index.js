@@ -1,18 +1,9 @@
 import React, { PureComponent } from 'react';
-import {
-	InteractionManager,
-	ScrollView,
-	Alert,
-	Text,
-	TouchableOpacity,
-	View,
-	SafeAreaView,
-	StyleSheet
-} from 'react-native';
+import { InteractionManager, Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { colors, fontStyles } from '../../../styles/common';
-import StyledButton from '../../UI/StyledButton';
+import ActionView from '../../UI/ActionView';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
@@ -22,10 +13,6 @@ const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
 		flex: 1
-	},
-	scrollviewWrapper: {
-		flex: 1,
-		paddingTop: 12
 	},
 	wrapper: {
 		flex: 1,
@@ -151,10 +138,6 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.blue,
 		borderStyle: 'solid'
-	},
-	buttonWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end'
 	}
 });
 
@@ -330,14 +313,17 @@ class ManualBackupStep2 extends PureComponent {
 		const { confirmedWords, seedPhraseReady } = this.state;
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<ScrollView
-					style={styles.mainWrapper}
-					contentContainerStyle={styles.scrollviewWrapper}
-					testID={'account-backup-step-5-screen'}
+				<View style={styles.onBoardingWrapper}>
+					<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
+				</View>
+				<ActionView
+					confirmTestID={'manual-backup-step-2-continue-button'}
+					confirmText={strings('manual_backup_step_2.complete')}
+					onConfirmPress={this.goNext}
+					confirmDisabled={!seedPhraseReady || !this.validateWords()}
+					showCancelButton={false}
+					confirmButtonMode={'confirm'}
 				>
-					<View style={styles.onBoardingWrapper}>
-						<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
-					</View>
 					<View style={styles.wrapper} testID={'protect-your-account-screen'}>
 						<Text style={styles.action}>{strings('manual_backup_step_2.action')}</Text>
 						<View style={styles.infoWrapper}>
@@ -359,19 +345,8 @@ class ManualBackupStep2 extends PureComponent {
 							</View>
 						</View>
 						{this.validateWords() ? this.renderSuccess() : this.renderWords()}
-						<View style={styles.buttonWrapper}>
-							<StyledButton
-								containerStyle={styles.button}
-								type={'confirm'}
-								onPress={this.goNext}
-								testID={'submit-button'}
-								disabled={!seedPhraseReady || !this.validateWords()}
-							>
-								{strings('manual_backup_step_2.complete')}
-							</StyledButton>
-						</View>
 					</View>
-				</ScrollView>
+				</ActionView>
 			</SafeAreaView>
 		);
 	};
