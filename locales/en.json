@@ -1011,7 +1011,10 @@
 		"buy_description": "Buy crypto with debit card or bank transfer",
 		"public_address": "Public Address",
 		"public_address_qr_code": "Public Address",
-		"coming_soon": "Coming soon..."
+		"coming_soon": "Coming soon...",
+		"request_payment": "Request Payment",
+		"copy": "Copy",
+		"scan_address": "Scan address to receive payment"
 	},
 	"experimental_settings": {
 		"payment_channels": "Payment Channels",

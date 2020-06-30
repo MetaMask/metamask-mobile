@@ -13,8 +13,8 @@ import {
 } from '../orderProcessor/wyreApplePay';
 
 import PaymentMethod from '../components/PaymentMethod';
-import ModalHandler from '../components/ModalHandler';
 
+import ModalHandler from '../../../Base/ModalHandler';
 import Text from '../../../Base/Text';
 import Title from '../components/Title';
 

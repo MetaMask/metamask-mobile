@@ -6,7 +6,7 @@ import { strings } from '../../../../../locales/i18n';
 import PaymentMethod from '../components/PaymentMethod';
 import Title from '../../../Base/Title';
 import Text from '../../../Base/Text';
-import ModalHandler from '../components/ModalHandler';
+import ModalHandler from '../../../Base/ModalHandler';
 import StyledButton from '../../StyledButton';
 import Device from '../../../../util/Device';
 
