@@ -16,6 +16,11 @@ exports[`BiometryButton should render correctly 1`] = `
     color="#000000"
     name="ios-finger-print"
     size={28}
+    style={
+      Object {
+        "marginBottom": -3,
+      }
+    }
   />
 </TouchableOpacity>
 `;
