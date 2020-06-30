@@ -104,7 +104,7 @@ export function parseWaitTime(min) {
  */
 export async function fetchBasicGasEstimates() {
 	const apiKey = process.env.ETH_GAS_STATION_API_KEY ? `?api-key=${process.env.ETH_GAS_STATION_API_KEY}` : '';
-	return await fetch(`https://ethgasstation.info/json/predictTable.json${apiKey}`, {
+	return await fetch(`https://ethgasstation.info/api/ethgasAPI.json${apiKey}`, {
 		headers: {},
 		referrer: 'http://ethgasstation.info/json/',
 		referrerPolicy: 'no-referrer-when-downgrade',
