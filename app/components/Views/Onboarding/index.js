@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		textAlign: 'center',
 		marginBottom: 16,
-		color: colors.fontSecondary,
+		color: colors.fontPrimary,
 		lineHeight: 20
 	},
 	importWrapper: {
