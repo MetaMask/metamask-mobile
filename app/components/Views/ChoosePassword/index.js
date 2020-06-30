@@ -74,8 +74,14 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	label: {
+		fontSize: 14,
 		color: colors.black,
 		paddingHorizontal: 10
+	},
+	learnMore: {
+		color: colors.blue,
+		textDecorationLine: 'underline',
+		textDecorationColor: colors.blue
 	},
 
 	// label: {
@@ -600,7 +606,8 @@ class ChoosePassword extends PureComponent {
 									style={styles.checkbox}
 								/>
 								<Text style={styles.label}>
-									I understand that MetaMask cannot recover this password for me. Learn more.
+									I understand that MetaMask cannot recover this password for me.{' '}
+									<Text style={styles.learnMore}>Learn more.</Text>
 								</Text>
 							</View>
 							{/*this.renderSwitch()*/}
