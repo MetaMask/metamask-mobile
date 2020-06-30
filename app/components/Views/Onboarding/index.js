@@ -224,7 +224,7 @@ class Onboarding extends PureComponent {
 	};
 
 	onPressImport = () => {
-		this.props.navigation.push('ImportWallet');
+		this.props.navigation.push('ImportFromSeed');
 		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
 	};
 
@@ -268,6 +268,15 @@ class Onboarding extends PureComponent {
 								<View style={styles.createWrapper}>
 									{/*<Text style={styles.subTitle}>{strings('onboarding.new_to_crypto')}</Text>
 									<Text style={styles.buttonDescription}>{strings('onboarding.create_desc')}</Text>*/}
+									<View style={styles.buttonWrapper}>
+										<StyledButton
+											type={'normal'}
+											onPress={this.onPressImport}
+											testID={'import-wallet-import-from-seed-button'}
+										>
+											{strings('import_wallet.import_from_seed_button')}
+										</StyledButton>
+									</View>
 									<View style={styles.buttonWrapper}>
 										<StyledButton
 											style={styles.button}
