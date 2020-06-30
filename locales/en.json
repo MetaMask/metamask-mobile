@@ -36,7 +36,14 @@
 		"new_to_metamask": "New to MetaMask?",
 		"already_have_wallet": "Already have a wallet?",
 		"optin_back_title": "Heads up!",
-		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings."
+		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings.",
+		"warning_title": "Warning",
+		"warning_text_1": "Your current wallet and accounts will be",
+		"warning_text_2": "removed",
+		"warning_text_3": "if you proceed.",
+		"warning_text_4": "You can ONLY recover them with your wallet’s seed phrase. MetaMask cannot help you recover it.",
+		"warning_proceed": "Remove wallet & proceed",
+		"warning_cancel": "Cancel"
 	},
 	"onboarding_carousel": {
 		"title1": "Welcome to MetaMask",

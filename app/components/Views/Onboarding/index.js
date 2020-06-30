@@ -247,8 +247,8 @@ class Onboarding extends PureComponent {
 				<FadeOutOverlay />
 				<ActionModal
 					modalVisible={this.state.warningModalVisible}
-					cancelText={'Remove wallet & proceed'}
-					confirmText={'Cancel'}
+					cancelText={strings('onboarding.warning_proceed')}
+					confirmText={strings('onboarding.warning_cancel')}
 					onCancelPress={this.warningCallback}
 					onRequestClose={this.toggleWarningModal}
 					onConfirmPress={this.toggleWarningModal}
@@ -257,18 +257,16 @@ class Onboarding extends PureComponent {
 					verticalButtons
 				>
 					<View style={styles.warningModalView}>
-						<Text style={styles.warningModalTitle}>{'Warning'}</Text>
+						<Text style={styles.warningModalTitle}>{strings('onboarding.warning_title')}</Text>
 						<Text style={styles.warningModalText}>
-							{'Your current wallet and accounts will be'}
-							<Text style={styles.warningModalTextBold}>{' removed '}</Text>
-							{'if you proceed.'}
+							{strings('onboarding.warning_text_1')}
+							<Text style={styles.warningModalTextBold}>{` ${strings(
+								'onboarding.warning_text_2'
+							)} `}</Text>
+							{strings('onboarding.warning_text_3')}
 						</Text>
 						<Text />
-						<Text style={styles.warningModalText}>
-							{
-								'You can ONLY recover them with your wallet’s seed phrase. MetaMask cannot help you recover it.'
-							}
-						</Text>
+						<Text style={styles.warningModalText}>{strings('onboarding.warning_text_4')}</Text>
 					</View>
 				</ActionModal>
 			</View>
