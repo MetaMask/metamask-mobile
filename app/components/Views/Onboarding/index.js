@@ -16,7 +16,9 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
-import OnboardingProgress from '../../UI/OnboardingProgress';
+import PubNubWrapper from '../../../util/syncWithExtension';
+
+const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -36,15 +38,16 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		textAlign: 'center'
 	},
-	subTitle: {
-		fontSize: 16,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-		textAlign: 'center',
-		marginBottom: 10
-	},
+	// subTitle: {
+	// 	fontSize: 16,
+	// 	color: colors.fontPrimary,
+	// 	...fontStyles.bold,
+	// 	textAlign: 'center',
+	// 	marginBottom: 10
+	// },
 	ctas: {
-		flex: 1
+		flex: 1,
+		position: 'relative'
 	},
 	footer: {
 		marginTop: -20,
@@ -67,15 +70,17 @@ const styles = StyleSheet.create({
 		marginVertical: 24
 	},
 	createWrapper: {
+		position: 'absolute',
+		width: '100%',
+		bottom: 0
 		// marginVertical: 24
 	},
 	buttonWrapper: {
 		flexGrow: 1,
-		marginHorizontal: 50
+		marginBottom: 16
+		// marginHorizontal: 50
 	}
 });
-
-const steps = [strings('onboarding.step1'), strings('onboarding.step2'), strings('onboarding.step3')];
 
 /**
  * View that is displayed to first time (new) users
@@ -95,12 +100,75 @@ class Onboarding extends PureComponent {
 		/**
 		 * Save onboarding event to state
 		 */
-		saveOnboardingEvent: PropTypes.func
+		saveOnboardingEvent: PropTypes.func,
+		/**
+		 * Selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
 		existingUser: false,
 		currentStep: 1
+	};
+
+	safeSync = () => {
+		const { existingUser } = this.state;
+		const action = () => this.onPressSync();
+		if (existingUser) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
+	};
+
+	onPressSync = () => {
+		if (!PUB_KEY) {
+			// Dev message
+			Alert.alert(
+				'This feature has been disabled',
+				`Because you did not set the .js.env file. Look at .js.env.example for more information`
+			);
+			return false;
+		}
+		InteractionManager.runAfterInteractions(async () => {
+			if (Analytics.getEnabled()) {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
+				return;
+			}
+			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			if (!metricsOptIn) {
+				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
+			}
+		});
+		this.showQrCode();
+	};
+
+	showQrCode = () => {
+		this.props.navigation.push('QRScanner', {
+			onStartScan: async data => {
+				if (data.content && data.content.search('metamask-sync:') !== -1) {
+					const [channelName, cipherKey] = data.content.replace('metamask-sync:', '').split('|@|');
+					this.pubnubWrapper = new PubNubWrapper(channelName, cipherKey);
+					await this.pubnubWrapper.establishConnection(this.props.selectedAddress);
+				} else {
+					Alert.alert(
+						strings('sync_with_extension.invalid_qr_code'),
+						strings('sync_with_extension.invalid_qr_code_desc')
+					);
+				}
+			},
+			onScanSuccess: async data => {
+				if (data.content && data.content.search('metamask-sync:') !== -1) {
+					(await this.startSync(true)) || (await this.startSync(false));
+				} else {
+					Alert.alert(
+						strings('sync_with_extension.invalid_qr_code'),
+						strings('sync_with_extension.invalid_qr_code_desc')
+					);
+				}
+			}
+		});
 	};
 
 	componentDidMount() {
@@ -179,13 +247,13 @@ class Onboarding extends PureComponent {
 					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
 							<View style={styles.ctas}>
-								<OnboardingProgress steps={steps} currentStep={this.state.currentStep} />
+								{/*<OnboardingProgress steps={steps} currentStep={this.state.currentStep} />*/}
 								<Text style={styles.title} testID={'onboarding-screen-title'}>
 									{strings('onboarding.title')}
 								</Text>
 								<View style={styles.importWrapper}>
-									<Text style={styles.buttonDescription}>{strings('onboarding.sync_desc')}</Text>
-									<Text style={styles.subTitle}>{strings('onboarding.already_have')}</Text>
+									<Text style={styles.buttonDescription}>{strings('onboarding.import')}</Text>
+									{/*<Text style={styles.subTitle}>{strings('onboarding.already_have')}</Text>
 									<Text style={styles.buttonDescription}>{strings('onboarding.sync_existing')}</Text>
 									<View style={styles.buttonWrapper}>
 										<StyledButton
@@ -195,13 +263,24 @@ class Onboarding extends PureComponent {
 										>
 											{strings('onboarding.import_wallet_button')}
 										</StyledButton>
-									</View>
+									</View>*/}
 								</View>
 								<View style={styles.createWrapper}>
-									<Text style={styles.subTitle}>{strings('onboarding.new_to_crypto')}</Text>
-									<Text style={styles.buttonDescription}>{strings('onboarding.create_desc')}</Text>
+									{/*<Text style={styles.subTitle}>{strings('onboarding.new_to_crypto')}</Text>
+									<Text style={styles.buttonDescription}>{strings('onboarding.create_desc')}</Text>*/}
 									<View style={styles.buttonWrapper}>
 										<StyledButton
+											style={styles.button}
+											type={'normal'}
+											onPress={this.safeSync}
+											testID={'onboarding-import-button'}
+										>
+											{strings('import_wallet.sync_from_browser_extension_button')}
+										</StyledButton>
+									</View>
+									<View style={styles.buttonWrapper}>
+										<StyledButton
+											style={styles.button}
 											type={'blue'}
 											onPress={this.onPressCreate}
 											testID={'start-exploring-button'}
@@ -232,6 +311,7 @@ class Onboarding extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	passwordSet: state.user.passwordSet
 });
 

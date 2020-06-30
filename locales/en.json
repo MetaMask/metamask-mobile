@@ -27,9 +27,10 @@
 		"ok": "OK"
 	},
 	"onboarding": {
-		"title": "Get started!",
+		"title": "Wallet setup",
 		"sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
 		"create_desc": "Set up your first wallet and start exploring decentralized apps.",
+		"import": "Import an existing wallet or create a new one",
 		"import_wallet_button": "Sync or import wallet",
 		"new_to_crypto": "New to crypto?",
 		"start_exploring_now": "Create wallet",
@@ -104,7 +105,7 @@
 		"sync_help_step_two": "2. Go to Settings > Advanced",
 		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
 		"sync_help_step_four": "4. Scan the QR Code to start syncing",
-		"sync_from_browser_extension_button": "Scan the QR code",
+		"sync_from_browser_extension_button": "Scan QR code",
 		"or": "OR",
 		"import_from_seed_button": "Import using seed phrase"
 	},
