@@ -25,7 +25,6 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 50
 	},
 	hintWrapper: {
-		height: 270,
 		alignSelf: 'center',
 		backgroundColor: colors.white,
 		borderRadius: 16,
@@ -63,11 +62,10 @@ const styles = StyleSheet.create({
 		paddingTop: 16
 	},
 	onBoardingWrapper: {
-		paddingHorizontal: 20,
-		marginBottom: 12
+		paddingHorizontal: 20
 	},
 	congratulations: {
-		fontSize: 32,
+		fontSize: Device.isMediumDevice() ? 28 : 32,
 		marginBottom: 12,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
@@ -142,9 +140,12 @@ class ManualBackupStep3 extends PureComponent {
 			title: strings('drawer.metamask_support')
 		});
 
-	done = async () => {
+	saveSeedphrase = async () => {
 		this.toggleHint();
 		await AsyncStorage.setItem('seedphraseHint', this.state.hintText);
+	};
+
+	done = async () => {
 		this.props.navigation.popToTop();
 		this.props.navigation.goBack(null);
 	};
@@ -158,10 +159,10 @@ class ManualBackupStep3 extends PureComponent {
 				confirmText={strings('manual_backup_step_3.save')}
 				confirmButtonMode={'confirm'}
 				onCancelPress={this.toggleHint}
-				onConfirmPress={this.done}
+				onConfirmPress={this.saveSeedphrase}
 				modalVisible={showHint}
 			>
-				<View style={[styles.hintWrapper]}>
+				<View style={styles.hintWrapper}>
 					<View style={styles.hintHeader}>
 						<Text style={styles.recovery}>{strings('manual_backup_step_3.recovery_hint')}</Text>
 						<TouchableOpacity onPress={this.toggleHint}>

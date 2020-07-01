@@ -8,6 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
 	wordWrapper: {
 		paddingHorizontal: 8,
 		paddingVertical: 6,
-		width: 95,
+		width: Device.isMediumDevice() ? 75 : 95,
 		backgroundColor: colors.white,
 		borderColor: colors.grey050,
 		borderWidth: 1,
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
 	words: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		justifyContent: 'space-between'
+		justifyContent: Device.isMediumDevice() ? 'space-around' : 'space-between'
 	},
 	successRow: {
 		flexDirection: 'row',

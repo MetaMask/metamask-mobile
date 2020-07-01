@@ -47,8 +47,7 @@ const styles = StyleSheet.create({
 		height: '100%',
 		backgroundColor: colors.grey700,
 		opacity: 0.7,
-		paddingTop: 34,
-		paddingBottom: 43,
+		paddingVertical: 45,
 		alignItems: 'center',
 		borderRadius: 8
 	},
@@ -65,21 +64,22 @@ const styles = StyleSheet.create({
 		height: 24,
 		color: colors.white,
 		textAlign: 'center',
-		marginBottom: 21
+		marginBottom: 32
 	},
 	reveal: {
 		fontSize: 16,
 		...fontStyles.extraBold,
 		color: colors.white,
 		lineHeight: 22,
-		marginHorizontal: 42,
+		marginHorizontal: 38,
+		marginBottom: 8,
 		textAlign: 'center'
 	},
 	watching: {
 		fontSize: 12,
 		color: colors.white,
 		lineHeight: 17,
-		marginBottom: 38
+		marginBottom: 32
 	},
 	viewButtonContainer: {
 		width: 155,
@@ -137,7 +137,7 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		this.words = props.navigation.getParam('words');
+		this.words = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 		this.steps = [
 			strings('manual_backup.progressOne'),
 			strings('manual_backup.progressTwo'),
