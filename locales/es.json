@@ -941,7 +941,10 @@
 		"buy_description": "Compre con tarjeta de dédito o transferencia bancaria",
 		"public_address": "Dirección Pública",
 		"public_address_qr_code": "Dirección Pública",
-		"coming_soon": "Pronto..."
+		"coming_soon": "Pronto...",
+		"request_payment": "Solicitar Pago",
+		"copy": "Copiar",
+		"scan_address": "Escanee dirección para recibir pago"
 	},
 	"experimental_settings": {
 		"payment_channels": "Canales de Pago",
