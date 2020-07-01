@@ -110,7 +110,7 @@ class Onboarding extends PureComponent {
 			// Restore vault with empty password
 			await KeyringController.submitPassword('');
 			await SecureKeychain.resetGenericPassword();
-			this.props.navigation.navigate('ChoosePassword');
+			this.props.navigation.navigate('HomeNav');
 		} else {
 			this.props.navigation.navigate('Login');
 		}
