@@ -137,7 +137,7 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		this.words = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+		this.words = props.navigation.getParam('words');
 		this.steps = [
 			strings('manual_backup.progressOne'),
 			strings('manual_backup.progressTwo'),
