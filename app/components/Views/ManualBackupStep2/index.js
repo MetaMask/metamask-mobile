@@ -166,6 +166,7 @@ class ManualBackupStep2 extends PureComponent {
 		} else {
 			this.words = words;
 		}
+		this.steps = props.navigation.getParam('steps');
 	}
 
 	state = {
@@ -178,7 +179,6 @@ class ManualBackupStep2 extends PureComponent {
 
 	componentDidMount = () => {
 		this.createWordsDictionary();
-		this.steps = this.props.navigation.getParam('steps');
 	};
 
 	createWordsDictionary = () => {
@@ -239,7 +239,7 @@ class ManualBackupStep2 extends PureComponent {
 		if (this.validateWords()) {
 			seedphraseBackedUp();
 			InteractionManager.runAfterInteractions(() => {
-				navigation.navigate('ManualBackupStep3');
+				navigation.navigate('ManualBackupStep3', { steps: this.steps });
 			});
 		} else {
 			Alert.alert(strings('account_backup_step_5.error_title'), strings('account_backup_step_5.error_message'));
@@ -314,7 +314,7 @@ class ManualBackupStep2 extends PureComponent {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<View style={styles.onBoardingWrapper}>
-					<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
+					<OnboardingProgress currentStep={this.state.currentStep} steps={this.steps} />
 				</View>
 				<ActionView
 					confirmTestID={'manual-backup-step-2-continue-button'}

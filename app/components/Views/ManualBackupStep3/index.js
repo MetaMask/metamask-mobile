@@ -105,6 +105,11 @@ const styles = StyleSheet.create({
  * the backup seed phrase flow
  */
 class ManualBackupStep3 extends PureComponent {
+	constructor(props) {
+		super(props);
+		this.steps = props.navigation.getParam('steps');
+	}
+
 	state = {
 		currentStep: 4,
 		showHint: false,
@@ -119,7 +124,6 @@ class ManualBackupStep3 extends PureComponent {
 	};
 
 	componentDidMount() {
-		this.steps = this.props.navigation.getParam('steps');
 		if (this._confettiView) {
 			this._confettiView.startConfetti();
 			setTimeout(() => {
@@ -191,7 +195,7 @@ class ManualBackupStep3 extends PureComponent {
 						bsize={0}
 					/>
 					<View style={styles.onBoardingWrapper}>
-						<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
+						<OnboardingProgress currentStep={this.state.currentStep} steps={this.steps} />
 					</View>
 					<ActionView
 						confirmTestID={'manual-backup-step-3-done-button'}

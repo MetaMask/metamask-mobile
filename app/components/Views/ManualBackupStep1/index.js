@@ -190,7 +190,7 @@ export default class ManualBackupStep1 extends PureComponent {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<View style={styles.onBoardingWrapper}>
-					<OnboardingProgress currentStep={this.state.currentStep} stepWords={this.steps} />
+					<OnboardingProgress currentStep={this.state.currentStep} steps={this.steps} />
 				</View>
 				<ActionView
 					confirmTestID={'manual-backup-step-1-continue-button'}
