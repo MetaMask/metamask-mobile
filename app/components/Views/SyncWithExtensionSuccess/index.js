@@ -10,6 +10,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
+import Confetti from 'react-native-confetti';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -100,6 +101,12 @@ class SyncWithExtensionSuccess extends PureComponent {
 
 	componentDidMount() {
 		this.animateIcon();
+		if (this._confettiView) {
+			this._confettiView.startConfetti();
+			setTimeout(() => {
+				this._confettiView.stopConfetti();
+			}, 5000);
+		}
 	}
 
 	animateIcon() {
@@ -133,8 +140,13 @@ class SyncWithExtensionSuccess extends PureComponent {
 		});
 	};
 
+	setRef = node => {
+		this._confettiView = node;
+	};
+
 	render = () => (
 		<SafeAreaView style={styles.mainWrapper}>
+			<Confetti ref={this.setRef} timeout={10} untilStopped duration={5000} bsize={0} />
 			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
 				<Animated.View
 					style={[
@@ -167,6 +179,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 					</StyledButton>
 				</View>
 			</View>
+			<Confetti />
 		</SafeAreaView>
 	);
 }
