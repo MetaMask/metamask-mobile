@@ -23,7 +23,6 @@ import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
-import CustomAlert from '../CustomAlert';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
@@ -46,7 +45,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import EthereumAddress from '../EthereumAddress';
-// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -232,18 +230,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		...fontStyles.bold
 	},
-	secureModalText: {
-		textAlign: 'center',
-		fontSize: 13,
-		...fontStyles.normal
-	},
-	bold: {
-		...fontStyles.bold
-	},
-	secureModalImage: {
-		width: 100,
-		height: 100
-	},
 	importedWrapper: {
 		marginTop: 10,
 		width: 73,
@@ -261,7 +247,38 @@ const styles = StyleSheet.create({
 	instapayLogo: {
 		width: 24,
 		height: 24
-	}
+	},
+	protectWalletContainer: {
+		backgroundColor: colors.white,
+		paddingTop: 24,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		paddingVertical: 16,
+		paddingBottom: Device.isIphoneX() ? 20 : 0,
+		paddingHorizontal: 40
+	},
+	protectWalletIconContainer: {
+		alignSelf: 'center',
+		width: 56,
+		height: 56,
+		borderRadius: 28,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
+		borderWidth: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	protectWalletIcon: { alignSelf: 'center', color: colors.red },
+	protectWalletTitle: { textAlign: 'center', fontSize: 18, marginVertical: 8, ...fontStyles.bold },
+	protectWalletContent: {
+		textAlign: 'center',
+		fontSize: 14,
+		marginVertical: 8,
+		justifyContent: 'center',
+		...fontStyles.normal
+	},
+	protectWalletButtonWrapper: { marginVertical: 8 }
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
@@ -270,7 +287,6 @@ const ICON_IMAGES = {
 	wallet: require('../../../images/wallet-icon.png'),
 	'selected-wallet': require('../../../images/selected-wallet-icon.png')
 };
-const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-line
 const instapay_logo_selected = require('../../../images/mm-instapay-selected.png'); // eslint-disable-line
 const instapay_logo = require('../../../images/mm-instapay.png'); // eslint-disable-line
 
@@ -370,7 +386,7 @@ class DrawerView extends PureComponent {
 
 	state = {
 		submitFeedback: false,
-		showSecureWalletModal: false
+		showSecureWalletModal: true
 	};
 
 	browserSectionRef = React.createRef();
@@ -827,6 +843,38 @@ class DrawerView extends PureComponent {
 		);
 	};
 
+	renderProtectModal = () => {
+		const { passwordSet, showSecureWalletModal } = this.state;
+		const passwordText = 'Protect your wallet by setting a password and saving your seed phrase (required).';
+		const secureWallet =
+			'Now that value was added to your wallet, protect your wallet by setting a password and saving your seed phrase (required).';
+
+		return (
+			<Modal
+				isVisible={!passwordSet || showSecureWalletModal}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+			>
+				<View style={styles.protectWalletContainer}>
+					<View style={styles.protectWalletIconContainer}>
+						<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
+					</View>
+					<Text style={styles.protectWalletTitle}>{'Protect your wallet'}</Text>
+					<Text style={styles.protectWalletContent}>{!passwordSet ? passwordText : secureWallet}</Text>
+					<View style={styles.protectWalletButtonWrapper}>
+						<StyledButton type={'confirm'} onPress={this.onSecureWalletModalAction}>
+							Protect wallet
+						</StyledButton>
+					</View>
+				</View>
+			</Modal>
+		);
+	};
+
 	render() {
 		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency, ticker } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
@@ -1021,27 +1069,7 @@ class DrawerView extends PureComponent {
 				>
 					<ReceiveRequest navigation={this.props.navigation} showReceiveModal={this.showReceiveModal} />
 				</Modal>
-				{!this.props.passwordSet && (
-					<CustomAlert
-						headerStyle={{ backgroundColor: colors.red }}
-						headerContent={
-							<Image
-								source={require('../../../images/lock.png')}
-								style={styles.secureModalImage}
-								resizeMethod={'auto'}
-							/>
-						}
-						titleText={strings('secure_your_wallet_modal.title')}
-						buttonText={strings('secure_your_wallet_modal.button')}
-						onPress={this.onSecureWalletModalAction}
-						isVisible={this.state.showSecureWalletModal}
-					>
-						<Text style={styles.secureModalText}>
-							{strings('secure_your_wallet_modal.body')}
-							<Text style={styles.bold}>{strings('secure_your_wallet_modal.required')}</Text>
-						</Text>
-					</CustomAlert>
-				)}
+				{this.renderProtectModal()}
 			</View>
 		);
 	}
