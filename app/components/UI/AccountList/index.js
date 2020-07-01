@@ -368,7 +368,8 @@ class AccountList extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	thirdPartyApiMode: state.privacy.thirdPartyApiMode
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+	keyrings: state.engine.backgroundState.KeyringController.keyrings
 });
 
 export default connect(mapStateToProps)(AccountList);
