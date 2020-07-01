@@ -895,11 +895,11 @@
 		"prompt_ok": "Si",
 		"prompt_cancel": "No, gracias"
 	},
-	"secure_your_wallet_modal": {
+	"protect_your_wallet_modal": {
 		"title": "Protege tu billetera",
-		"body": "Ahora que tienes valor en tu billetera, crea la contraseña y guarda la frase semilla de tu billetera ",
-		"required": "(requerido)",
-		"button": "CONTINUAR"
+		"body_for_password": "Protege tu billetera seteando una contraseña y guardando tu frase semilla (requerido).",
+		"body_for_seedphrase": "Ahora que tienes valor en tu billetera, protege tu billetera seteando una contraseña y guardando tu frase semilla (requerido).",
+		"button": "Proteger"
 	},
 	"payment_request": {
 		"title": "Solicitud",

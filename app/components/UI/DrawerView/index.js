@@ -845,10 +845,6 @@ class DrawerView extends PureComponent {
 
 	renderProtectModal = () => {
 		const { passwordSet, showSecureWalletModal } = this.state;
-		const passwordText = 'Protect your wallet by setting a password and saving your seed phrase (required).';
-		const secureWallet =
-			'Now that value was added to your wallet, protect your wallet by setting a password and saving your seed phrase (required).';
-
 		return (
 			<Modal
 				isVisible={!passwordSet || showSecureWalletModal}
@@ -863,11 +859,15 @@ class DrawerView extends PureComponent {
 					<View style={styles.protectWalletIconContainer}>
 						<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
 					</View>
-					<Text style={styles.protectWalletTitle}>{'Protect your wallet'}</Text>
-					<Text style={styles.protectWalletContent}>{!passwordSet ? passwordText : secureWallet}</Text>
+					<Text style={styles.protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
+					<Text style={styles.protectWalletContent}>
+						{!passwordSet
+							? strings('protect_your_wallet_modal.body_for_password')
+							: strings('protect_your_wallet_modal.body_for_seedphrase')}
+					</Text>
 					<View style={styles.protectWalletButtonWrapper}>
 						<StyledButton type={'confirm'} onPress={this.onSecureWalletModalAction}>
-							Protect wallet
+							{strings('protect_your_wallet_modal.button')}
 						</StyledButton>
 					</View>
 				</View>
