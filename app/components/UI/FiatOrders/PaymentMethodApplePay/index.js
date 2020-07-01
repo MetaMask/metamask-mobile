@@ -277,7 +277,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 						NotificationManager.showSimpleNotification(getNotificationDetails(order))
 					);
 				} else {
-					Logger.message('FiatOrders::WyreApplePayProcessor empty order response', order);
+					Logger.error('FiatOrders::WyreApplePayProcessor empty order response', order);
 				}
 			}
 		} catch (error) {

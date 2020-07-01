@@ -12,7 +12,7 @@ function processOrder(order) {
 			return processTransakOrder(order);
 		}
 		default: {
-			Logger.message('FiatOrders::ProcessOrder unrecognized provider', order);
+			Logger.error('FiatOrders::ProcessOrder unrecognized provider', order);
 			return order;
 		}
 	}
