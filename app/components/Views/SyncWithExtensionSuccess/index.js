@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { Animated, SafeAreaView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
@@ -11,7 +10,6 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
-import TermsAndConditions from '../TermsAndConditions';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -32,6 +30,9 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		...fontStyles.bold
 	},
+	textContainer: {
+		flex: 1
+	},
 	text: {
 		marginTop: 20,
 		fontSize: 16,
@@ -39,15 +40,15 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
+	bold: {
+		...fontStyles.bold
+	},
 	button: {
-		marginTop: 40
+		marginTop: 40,
+		flex: 1
 	},
-	icon: {
-		color: colors.green500,
-		marginBottom: 30
-	},
-	termsAndConditions: {
-		padding: 30
+	check: {
+		fontSize: 45
 	},
 	passwordTipContainer: {
 		padding: 16,
@@ -61,6 +62,16 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		lineHeight: 17,
 		color: colors.blue600
+	},
+	learnMoreText: {
+		marginTop: 29,
+		textAlign: 'center',
+		fontSize: 16,
+		color: colors.blue,
+		...fontStyles.normal
+	},
+	buttonContainer: {
+		flexDirection: 'row'
 	}
 });
 
@@ -115,10 +126,16 @@ class SyncWithExtensionSuccess extends PureComponent {
 		}
 	};
 
+	learnMore = () => {
+		this.props.navigation.navigate('Webview', {
+			url: 'https://support.metamask.io',
+			title: strings('drawer.metamask_support')
+		});
+	};
+
 	render = () => (
 		<SafeAreaView style={styles.mainWrapper}>
 			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
-				<Text style={styles.title}>{strings('sync_with_extension_success.title')}</Text>
 				<Animated.View
 					style={[
 						styles.iconWrapper,
@@ -127,24 +144,27 @@ class SyncWithExtensionSuccess extends PureComponent {
 						}
 					]}
 				>
-					<Icon name="check-circle" size={150} style={styles.icon} />
+					<Text style={styles.check}>✅</Text>
 				</Animated.View>
-				<View>
-					<Text style={styles.text}>{strings('sync_with_extension_success.sync_complete')}</Text>
+				<Text style={styles.title}>{strings('sync_with_extension_success.title')}</Text>
+				<View style={styles.textContainer}>
+					<Text style={styles.text}>
+						{strings('sync_with_extension_success.sync_complete_1')}{' '}
+						<Text style={styles.bold}>{strings('sync_with_extension_success.sync_complete_2')}</Text>
+					</Text>
+					<TouchableOpacity onPress={this.learnMore} hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}>
+						<Text style={styles.learnMoreText}>{strings('sync_with_extension_success.learn_more')}</Text>
+					</TouchableOpacity>
 					<View style={styles.passwordTipContainer}>
 						<Text style={styles.passwordTipText}>
 							{strings('sync_with_extension_success.password_tip')}
 						</Text>
 					</View>
+				</View>
+				<View style={styles.buttonContainer}>
 					<StyledButton type="blue" onPress={this.continue} containerStyle={styles.button}>
 						{strings('sync_with_extension_success.button_continue')}
 					</StyledButton>
-				</View>
-				<View style={styles.termsAndConditions}>
-					<TermsAndConditions
-						navigation={this.props.navigation}
-						action={strings('sync_with_extension_success.button_continue')}
-					/>
 				</View>
 			</View>
 		</SafeAreaView>
