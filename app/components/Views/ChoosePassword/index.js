@@ -11,7 +11,6 @@ import {
 	TextInput,
 	SafeAreaView,
 	StyleSheet
-	// TouchableOpacity
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -83,23 +82,11 @@ const styles = StyleSheet.create({
 		textDecorationLine: 'underline',
 		textDecorationColor: colors.blue
 	},
-
-	// label: {
-	// 	position: 'absolute',
-	// 	marginTop: -35,
-	// 	marginLeft: 5,
-	// 	fontSize: 16,
-	// 	color: colors.fontSecondary,
-	// 	textAlign: 'left',
-	// 	...fontStyles.normal
-	// },
 	field: {
 		marginTop: 20,
 		marginBottom: 10
 	},
 	input: {
-		// borderBottomWidth: Device.isAndroid() ? 0 : 1,
-		// borderBottomColor: colors.grey100,
 		borderWidth: 1,
 		borderColor: colors.grey500,
 		padding: 10,
@@ -150,12 +137,6 @@ const styles = StyleSheet.create({
 	strength_strong: {
 		color: colors.green300
 	},
-	// showHideToggle: {
-	// 	backgroundColor: colors.white,
-	// 	position: 'absolute',
-	// 	marginTop: 8,
-	// 	alignSelf: 'flex-end'
-	// },
 	showMatchingPasswords: {
 		position: 'absolute',
 		marginTop: 8,
@@ -245,7 +226,6 @@ class ChoosePassword extends PureComponent {
 		}
 		try {
 			this.setState({ loading: true });
-			// await this.recreateVault(password);
 
 			const { KeyringController } = Engine.context;
 			await Engine.resetState();
@@ -446,24 +426,7 @@ class ChoosePassword extends PureComponent {
 	};
 
 	render() {
-		// const startX = 0;
-		// const startY = 0;
-		// const width = 100;
-		// const height = 24;
-		// const initialScale = 1;
-		// const endX = 0;
-		// const endY = 50;
-
-		const {
-			// labelsScaleNew,
-			isSelected,
-			password,
-			confirmPassword,
-			secureTextEntry,
-			// labelsScaleConfirm,
-			error,
-			loading
-		} = this.state;
+		const { isSelected, password, confirmPassword, secureTextEntry, error, loading } = this.state;
 
 		const isDisabled = !(password !== '' && password === confirmPassword && isSelected);
 
@@ -480,57 +443,17 @@ class ChoosePassword extends PureComponent {
 								</View>
 							</View>
 							<View style={styles.field}>
-								{/*<Animated.Text
-									style={[
-										styles.label,
-										{
-											transform: [
-												{
-													scale: labelsScaleNew
-												},
-												{
-													translateX: labelsScaleNew.interpolate({
-														inputRange: [0, 1],
-														outputRange: [
-															startX - width / 2 - (width * initialScale) / 2,
-															endX
-														]
-													})
-												},
-												{
-													translateY: labelsScaleNew.interpolate({
-														inputRange: [0, 1],
-														outputRange: [
-															startY - height / 2 - (height * initialScale) / 2,
-															endY
-														]
-													})
-												}
-											]
-										}
-									]}
-								>
-									{strings('choose_password.password')}
-								</Animated.Text>*/}
 								<TextInput
 									style={styles.input}
 									value={password}
 									onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
 									secureTextEntry={secureTextEntry}
 									placeholder={''}
-									// underlineColorAndroid={colors.grey100}
 									testID={'input-password'}
 									onSubmitEditing={this.jumpToConfirmPassword}
 									returnKeyType={'next'}
-									// onFocus={() => this.animateOutLabel('new')} // eslint-disable-line  react/jsx-no-bind
-									// onBlur={() => this.animateInLabel('new')} // eslint-disable-line  react/jsx-no-bind
 									autoCapitalize="none"
 								/>
-								{/*<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
-									<Text style={styles.passwordStrengthLabel}>
-										{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
-									</Text>
-							</TouchableOpacity>*/}
 								{(password !== '' && (
 									<Text style={styles.passwordStrengthLabel}>
 										{strings('choose_password.password_strength')}
@@ -542,38 +465,6 @@ class ChoosePassword extends PureComponent {
 								)) || <Text style={styles.passwordStrengthLabel} />}
 							</View>
 							<View style={styles.field}>
-								{/*<Animated.Text
-									style={[
-										styles.label,
-										{
-											transform: [
-												{
-													scale: labelsScaleConfirm
-												},
-												{
-													translateX: labelsScaleConfirm.interpolate({
-														inputRange: [0, 1],
-														outputRange: [
-															startX - width / 2 - (width * initialScale) / 2,
-															endX
-														]
-													})
-												},
-												{
-													translateY: labelsScaleConfirm.interpolate({
-														inputRange: [0, 1],
-														outputRange: [
-															startY - height / 2 - (height * initialScale) / 2,
-															endY
-														]
-													})
-												}
-											]
-										}
-									]}
-								>
-									{strings('choose_password.confirm_password')}
-								</Animated.Text>*/}
 								<TextInput
 									ref={this.confirmPasswordInput}
 									style={styles.input}
@@ -582,12 +473,9 @@ class ChoosePassword extends PureComponent {
 									secureTextEntry={secureTextEntry}
 									placeholder={''}
 									placeholderTextColor={colors.grey100}
-									// underlineColorAndroid={colors.grey100}
 									testID={'input-password-confirm'}
 									onSubmitEditing={this.onPressCreate}
 									returnKeyType={'done'}
-									// onFocus={() => this.animateOutLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
-									// onBlur={() => this.animateInLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
 									autoCapitalize="none"
 								/>
 								<View style={styles.showMatchingPasswords}>
@@ -610,7 +498,6 @@ class ChoosePassword extends PureComponent {
 									<Text style={styles.learnMore}>Learn more.</Text>
 								</Text>
 							</View>
-							{/*this.renderSwitch()*/}
 
 							{!!error && <Text style={styles.errorMsg}>{error}</Text>}
 						</View>

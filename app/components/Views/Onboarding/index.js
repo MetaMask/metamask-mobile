@@ -38,13 +38,6 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		textAlign: 'center'
 	},
-	// subTitle: {
-	// 	fontSize: 16,
-	// 	color: colors.fontPrimary,
-	// 	...fontStyles.bold,
-	// 	textAlign: 'center',
-	// 	marginBottom: 10
-	// },
 	ctas: {
 		flex: 1,
 		position: 'relative'
@@ -73,12 +66,10 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		width: '100%',
 		bottom: 0
-		// marginVertical: 24
 	},
 	buttonWrapper: {
 		flexGrow: 1,
 		marginBottom: 16
-		// marginHorizontal: 50
 	}
 });
 
@@ -131,16 +122,7 @@ class Onboarding extends PureComponent {
 			);
 			return false;
 		}
-		InteractionManager.runAfterInteractions(async () => {
-			if (Analytics.getEnabled()) {
-				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
-				return;
-			}
-			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-			if (!metricsOptIn) {
-				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
-			}
-		});
+		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
 		this.showQrCode();
 	};
 
@@ -209,16 +191,6 @@ class Onboarding extends PureComponent {
 	};
 
 	onPressCreate = () => {
-		// const { existingUser } = this.state;
-		// const action = () => {
-		// 	this.props.navigation.navigate('CreateWallet');
-		// 	this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-		// };
-		// if (existingUser) {
-		// 	this.alertExistingUser(action);
-		// } else {
-		// 	action();
-		// }
 		this.props.navigation.navigate('ChoosePassword');
 		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
 	};
@@ -247,27 +219,13 @@ class Onboarding extends PureComponent {
 					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
 							<View style={styles.ctas}>
-								{/*<OnboardingProgress steps={steps} currentStep={this.state.currentStep} />*/}
 								<Text style={styles.title} testID={'onboarding-screen-title'}>
 									{strings('onboarding.title')}
 								</Text>
 								<View style={styles.importWrapper}>
 									<Text style={styles.buttonDescription}>{strings('onboarding.import')}</Text>
-									{/*<Text style={styles.subTitle}>{strings('onboarding.already_have')}</Text>
-									<Text style={styles.buttonDescription}>{strings('onboarding.sync_existing')}</Text>
-									<View style={styles.buttonWrapper}>
-										<StyledButton
-											type={'normal'}
-											onPress={this.onPressImport}
-											testID={'onboarding-import-button'}
-										>
-											{strings('onboarding.import_wallet_button')}
-										</StyledButton>
-									</View>*/}
 								</View>
 								<View style={styles.createWrapper}>
-									{/*<Text style={styles.subTitle}>{strings('onboarding.new_to_crypto')}</Text>
-									<Text style={styles.buttonDescription}>{strings('onboarding.create_desc')}</Text>*/}
 									<View style={styles.buttonWrapper}>
 										<StyledButton
 											type={'normal'}
