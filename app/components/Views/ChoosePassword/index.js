@@ -29,7 +29,11 @@ import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
 
-const steps = ['Create password', 'Secure wallet', 'Confirm seed phrase'];
+const steps = [
+	strings('choose_password.create'),
+	strings('choose_password.secure'),
+	strings('choose_password.confirm')
+];
 
 const styles = StyleSheet.create({
 	mainWrapper: {

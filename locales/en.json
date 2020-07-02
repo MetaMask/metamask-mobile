@@ -143,7 +143,10 @@
 		"security_alert_title": "Security Alert",
 		"security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
 		"i_understand": "I understand that MetaMask cannot recover this password for me.",
-		"learn_more": "Learn more."
+		"learn_more": "Learn more.",
+		"create": "Create password",
+		"secure": "Secure wallet",
+		"confirm": "Confirm seed phrase"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",
