@@ -275,6 +275,7 @@ exports[`App should render correctly 1`] = `
               "childRouters": Object {
                 "OnboardingNav": Object {
                   "childRouters": Object {
+                    "ChoosePassword": null,
                     "CreateWallet": null,
                     "ImportFromSeed": null,
                     "ImportWallet": null,
@@ -729,6 +730,7 @@ exports[`App should render correctly 1`] = `
                 "childRouters": Object {
                   "OnboardingNav": Object {
                     "childRouters": Object {
+                      "ChoosePassword": null,
                       "CreateWallet": null,
                       "ImportFromSeed": null,
                       "ImportWallet": null,
