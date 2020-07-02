@@ -353,7 +353,7 @@ const mapStateToProps = state => ({
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	metricsOptIn: Boolean(state.user.metricsOptIn),
-	onboardingWizardExplored: state.user.onboardingWizardExplored
+	onboardingWizardExplored: Boolean(state.user.onboardingWizardExplored)
 });
 
 const mapDispatchToProps = dispatch => ({
