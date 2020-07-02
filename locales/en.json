@@ -398,6 +398,8 @@
 		"clear_history_desc": "Choose this option to clear your entire browsing history.",
 		"metametrics_title": "Participate in MetaMetrics",
 		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
+		"third_party_title": "Get incoming transactions",
+		"third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
 		"metametrics_opt_out": "MetaMetrics Opt-out",
 		"metrametrics_restart_required": "You need to restart the app for the changes to take effect.",
 		"create_password": "Create Password",
