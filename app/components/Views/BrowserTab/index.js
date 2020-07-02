@@ -471,6 +471,13 @@ export class BrowserTab extends PureComponent {
 	getRpcMethodMiddleware = ({ hostname }) =>
 		// all user facing RPC calls not implemented by the provider
 		createAsyncMiddleware(async (req, res, next) => {
+			const getAccounts = async () => {
+				const { approvedHosts, privacyMode, selectedAddress } = this.props;
+				const isEnabled = !privacyMode || approvedHosts[hostname];
+
+				return isEnabled ? [selectedAddress.toLowerCase()] : [];
+			};
+
 			const rpcMethods = {
 				eth_requestAccounts: async () => {
 					const { params } = req;
@@ -504,14 +511,12 @@ export class BrowserTab extends PureComponent {
 				},
 
 				eth_accounts: async () => {
-					const { approvedHosts, privacyMode, selectedAddress } = this.props;
-					const isEnabled = !privacyMode || approvedHosts[hostname];
+					res.result = await getAccounts();
+				},
 
-					if (isEnabled) {
-						res.result = [selectedAddress.toLowerCase()];
-					} else {
-						res.result = [];
-					}
+				eth_coinbase: async () => {
+					const accounts = await getAccounts();
+					res.result = accounts.length > 0 ? accounts[0] : null;
 				},
 
 				eth_sign: async () => {
