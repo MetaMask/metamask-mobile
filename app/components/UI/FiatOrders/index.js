@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { View, StyleSheet, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import Device from '../../../util/Device';
+import AppConstants from '../../../core/AppConstants';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
@@ -18,7 +19,7 @@ import { colors } from '../../../styles/common';
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
  */
 
-const POLLING_TIME = 10000;
+const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
 const SHOW_DEBUG = false;
 
@@ -106,7 +107,7 @@ function FiatOrders({ orders, selectedAddress, network, createFakeOrder, clearOr
 				})
 			);
 		},
-		pendingOrders.length ? POLLING_TIME : null
+		pendingOrders.length ? POLLING_FREQUENCY : null
 	);
 
 	const onPressAdd = useCallback(() => createFakeOrder(selectedAddress, network), [
