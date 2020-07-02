@@ -193,6 +193,16 @@ class PaymentChannelsClient {
 		return ret.toFixed(2).toString();
 	};
 
+	async startConnext() {
+		const { connext } = this.state;
+		try {
+			await connext.start();
+		} catch (e) {
+			this.logCurrentState('PC::start');
+			Logger.error(e, 'PC::start');
+		}
+	}
+
 	async pollConnextState() {
 		Logger.log('PC::createClient success');
 		const { connext } = this.state;
@@ -453,6 +463,7 @@ class PaymentChannelsClient {
 	}
 
 	logCurrentState = prefix => {
+		if (!__DEV__) return;
 		Logger.log(`${prefix}:error - channelState:`, this.state.channelState);
 		Logger.log(`${prefix}:error - connextState:`, this.state.connextState);
 		Logger.log(`${prefix}:error - runtime:`, this.state.runtime);
@@ -557,9 +568,9 @@ const instance = {
 	 */
 	getExchangeRate: () => (client && client.state && client.state.exchangeRate) || 0,
 	/**
-	 *	Returns whether the address has balance in channel
+	 *	Returns whether the address has transactions in channel
 	 */
-	addressHasBalance: async address => {
+	addressHasTransactions: async address => {
 		if (client) return true;
 		let hasBalance;
 		const { provider } = Engine.context.NetworkController.state;
@@ -567,8 +578,9 @@ const instance = {
 		const tempClient = new PaymentChannelsClient(address);
 		try {
 			await tempClient.setConnext(provider);
-			await tempClient.pollConnextState();
-			hasBalance = parseFloat(tempClient.getBalance()) > 0;
+			await tempClient.startConnext();
+			const paymentHistory = await tempClient.state.connext.getPaymentHistory();
+			hasBalance = paymentHistory.length > 0;
 		} catch (e) {
 			hasBalance = false;
 		}

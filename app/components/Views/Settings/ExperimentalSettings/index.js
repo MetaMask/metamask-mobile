@@ -35,13 +35,10 @@ const styles = StyleSheet.create({
 		marginTop: 12
 	},
 	setting: {
-		marginTop: 50
+		marginVertical: 18
 	},
 	clearHistoryConfirm: {
 		marginTop: 18
-	},
-	inner: {
-		paddingBottom: 112
 	},
 	switchElement: {
 		marginVertical: 20
@@ -79,7 +76,7 @@ class ExperimentalSettings extends PureComponent {
 		getNavigationOptionsTitle(strings('app_settings.experimental_title'), navigation);
 
 	componentDidMount = async () => {
-		const paymentChannelHasBalance = await PaymentChannelsClient.addressHasBalance(this.props.selectedAddress);
+		const paymentChannelHasBalance = await PaymentChannelsClient.addressHasTransactions(this.props.selectedAddress);
 		this.setState({ paymentChannelHasBalance });
 	};
 
@@ -118,7 +115,7 @@ class ExperimentalSettings extends PureComponent {
 
 		return (
 			<ScrollView style={styles.wrapper}>
-				<View style={styles.inner}>
+				<View style={styles.setting}>
 					<View>
 						<Text style={styles.title}>{strings('experimental_settings.wallet_connect_dapps')}</Text>
 						<Text style={styles.desc}>{strings('experimental_settings.wallet_connect_dapps_desc')}</Text>
