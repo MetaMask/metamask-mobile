@@ -1,9 +1,8 @@
 import PubNub from 'pubnub';
 import Logger from './Logger';
 
-const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-notation
-const SUB_KEY = process.env['MM_PUBNUB_SUB_KEY']; // eslint-disable-line dot-notation
-
+const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
+const SUB_KEY = process.env.MM_PUBNUB_SUB_KEY;
 const EXPIRED_CODE_TIMEOUT = 30000;
 
 export default class PubNubWrapper {
