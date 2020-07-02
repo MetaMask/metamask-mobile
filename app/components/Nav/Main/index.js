@@ -102,6 +102,7 @@ import {
 	hideTransactionNotification,
 	showSimpleNotification
 } from '../../../actions/notification';
+import { toggleDappTransactionModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
 
 const styles = StyleSheet.create({
@@ -439,7 +440,15 @@ class Main extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+    thirdPartyApiMode: PropTypes.bool,
+    /**
+		/* Hides or shows dApp transaction modal
+		*/
+		toggleDappTransactionModal: PropTypes.func,
+		/**
+		/* dApp transaction modal visible or not
+		*/
+		dappTransactionModalVisible: PropTypes.bool
 	};
 
 	state = {
@@ -456,8 +465,7 @@ class Main extends PureComponent {
 		paymentChannelRequestInfo: {},
 		showExpandedMessage: false,
 		paymentChannelBalance: null,
-		paymentChannelReady: false,
-		dappTransactionModalVisible: false
+		paymentChannelReady: false
 	};
 
 	backgroundMode = false;
@@ -817,7 +825,7 @@ class Main extends PureComponent {
 			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
 				this.props.navigation.push('ApproveView');
 			} else {
-				this.toggleDappTransactionModal();
+				this.props.toggleDappTransactionModal();
 			}
 		}
 	};
@@ -893,10 +901,6 @@ class Main extends PureComponent {
 
 	toggleExpandedMessage = () => {
 		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
-	};
-
-	toggleDappTransactionModal = () => {
-		this.setState({ dappTransactionModalVisible: !this.state.dappTransactionModalVisible });
 	};
 
 	renderSigningModal = () => {
@@ -1057,8 +1061,8 @@ class Main extends PureComponent {
 	};
 	renderDappTransactionModal = () => (
 		<Approval
-			dappTransactionModalVisible={this.state.dappTransactionModalVisible}
-			toggleDappTransactionModal={this.toggleDappTransactionModal}
+			dappTransactionModalVisible={this.props.dappTransactionModalVisible}
+			toggleDappTransactionModal={this.props.toggleDappTransactionModal}
 		/>
 	);
 
@@ -1083,7 +1087,7 @@ class Main extends PureComponent {
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
-				{this.state.dappTransactionModalVisible && this.renderDappTransactionModal()}
+				{this.props.dappTransactionModalVisible && this.renderDappTransactionModal()}
 			</React.Fragment>
 		);
 	}
@@ -1099,7 +1103,8 @@ const mapStateToProps = state => ({
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	isPaymentRequest: state.transaction.paymentRequest,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	dappTransactionModalVisible: state.modals.dappTransactionModalVisible
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -1107,7 +1112,8 @@ const mapDispatchToProps = dispatch => ({
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
 	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
-	hideTransactionNotification: () => dispatch(hideTransactionNotification())
+	hideTransactionNotification: () => dispatch(hideTransactionNotification()),
+	toggleDappTransactionModal: () => dispatch(toggleDappTransactionModal())
 });
 
 export default connect(
