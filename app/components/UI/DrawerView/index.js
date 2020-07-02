@@ -32,7 +32,6 @@ import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Engine from '../../../core/Engine';
-import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
 import { getVersion, getBuildNumber, getSystemName, getApiLevel, getSystemVersion } from 'react-native-device-info';
 import Logger from '../../../util/Logger';
@@ -381,12 +380,29 @@ class DrawerView extends PureComponent {
 		/**
 		 * Current provider type
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array,
+		/**
+		 * Array of ERC721 assets
+		 */
+		collectibles: PropTypes.array,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		seedphraseBackedUp: PropTypes.bool,
+		/**
+		 * An object containing token balances for current account and network in the format address => balance
+		 */
+		tokenBalances: PropTypes.object
 	};
 
 	state = {
 		submitFeedback: false,
-		showSecureWalletModal: true
+		showProtectWalletModal: false
 	};
 
 	browserSectionRef = React.createRef();
@@ -413,27 +429,19 @@ class DrawerView extends PureComponent {
 	}
 
 	componentDidUpdate() {
-		setTimeout(async () => {
-			if (
-				!this.isCurrentAccountImported() &&
-				!this.props.passwordSet &&
-				!this.processedNewBalance &&
-				this.currentBalance >= this.previousBalance &&
-				this.currentBalance > 0
-			) {
-				const { selectedAddress, network } = this.props;
-
-				const incomingTransaction = await findFirstIncomingTransaction(network.provider.type, selectedAddress);
-				if (incomingTransaction) {
-					this.processedNewBalance = true;
-					// We need to wait for the notification to dismiss
-					// before attempting to show the secure wallet modal
-					setTimeout(() => {
-						this.setState({ showSecureWalletModal: true });
-					}, 8000);
+		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
+			const route = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
+			if (route === 'SetPasswordFlow') return;
+			let tokenFound = false;
+			this.props.tokens.forEach(token => {
+				if (!this.props.tokenBalances[token.address].isZero()) {
+					tokenFound = true;
 				}
-			}
-		}, 1000);
+			});
+			if (!this.props.passwordSet || this.currentBalance > 0 || tokenFound || this.props.collectibles.length > 0)
+				// eslint-disable-next-line react/no-did-update-set-state
+				this.setState({ showProtectWalletModal: true });
+		}
 	}
 
 	toggleAccountsModal = () => {
@@ -818,17 +826,22 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
 	};
 
-	onSecureWalletModalAction = () => {
-		this.setState({ showSecureWalletModal: false });
-		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('SetPasswordFlow');
-		});
-	};
-
 	findRouteNameFromNavigatorState({ routes }) {
 		let route = routes[routes.length - 1];
-		while (route.index !== undefined) route = route.routes[route.index];
+		while (route.index !== undefined) {
+			route = route.routes[route.index];
+		}
 		return route.routeName;
+	}
+
+	findBottomTabRouteNameFromNavigatorState({ routes }) {
+		let route = routes[routes.length - 1];
+		let routeName;
+		while (route.index !== undefined) {
+			routeName = route.routeName;
+			route = route.routes[route.index];
+		}
+		return routeName;
 	}
 
 	/**
@@ -843,37 +856,39 @@ class DrawerView extends PureComponent {
 		);
 	};
 
-	renderProtectModal = () => {
-		const { passwordSet, showSecureWalletModal } = this.state;
-		return (
-			<Modal
-				isVisible={!passwordSet || showSecureWalletModal}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-			>
-				<View style={styles.protectWalletContainer}>
-					<View style={styles.protectWalletIconContainer}>
-						<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
-					</View>
-					<Text style={styles.protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
-					<Text style={styles.protectWalletContent}>
-						{!passwordSet
-							? strings('protect_your_wallet_modal.body_for_password')
-							: strings('protect_your_wallet_modal.body_for_seedphrase')}
-					</Text>
-					<View style={styles.protectWalletButtonWrapper}>
-						<StyledButton type={'confirm'} onPress={this.onSecureWalletModalAction}>
-							{strings('protect_your_wallet_modal.button')}
-						</StyledButton>
-					</View>
-				</View>
-			</Modal>
-		);
+	onSecureWalletModalAction = () => {
+		this.setState({ showProtectWalletModal: false });
+		this.props.navigation.navigate('SetPasswordFlow');
 	};
+
+	renderProtectModal = () => (
+		<Modal
+			isVisible={this.state.showProtectWalletModal}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={600}
+			animationOutTiming={600}
+		>
+			<View style={styles.protectWalletContainer}>
+				<View style={styles.protectWalletIconContainer}>
+					<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
+				</View>
+				<Text style={styles.protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
+				<Text style={styles.protectWalletContent}>
+					{!this.props.passwordSet
+						? strings('protect_your_wallet_modal.body_for_password')
+						: strings('protect_your_wallet_modal.body_for_seedphrase')}
+				</Text>
+				<View style={styles.protectWalletButtonWrapper}>
+					<StyledButton type={'confirm'} onPress={this.onSecureWalletModalAction}>
+						{strings('protect_your_wallet_modal.button')}
+					</StyledButton>
+				</View>
+			</View>
+		</Modal>
+	);
 
 	render() {
 		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency, ticker } = this.props;
@@ -1090,7 +1105,11 @@ const mapStateToProps = state => ({
 	wizard: state.wizard,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	seedphraseBackedUp: state.user.seedphraseBackedUp
 });
 
 const mapDispatchToProps = dispatch => ({
