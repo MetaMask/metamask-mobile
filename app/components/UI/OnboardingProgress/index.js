@@ -77,10 +77,20 @@ const styles = StyleSheet.create({
 export default class OnboardingProgress extends Component {
 	constructor() {
 		super();
+		/**
+		 * Use this to reduce setState calls
+		 */
 		this.ranOnce = false;
+		/**
+		 * Marker used for onLayout calls
+		 */
 		this.marker = undefined;
 		this.state = {
-			offset: 0
+			offset: 0,
+			/**
+			 * Use this to ensure we only align after onLayout has been called
+			 */
+			showLines: false
 		};
 	}
 
@@ -95,7 +105,8 @@ export default class OnboardingProgress extends Component {
 				if (!this.ranOnce) {
 					this.setState(
 						{
-							offset: Math.floor(width / 2) || 0
+							offset: Math.floor(width / 2),
+							showLines: true
 						},
 						() => {
 							this.ranOnce = true;
@@ -109,7 +120,7 @@ export default class OnboardingProgress extends Component {
 	defineRef = ref => (this.marker = ref);
 
 	render() {
-		const { offset } = this.state;
+		const { offset, showLines } = this.state;
 		const { currentStep, steps } = this.props;
 		const lines = steps.filter((step, index) => index !== steps.length - 1);
 		return (
@@ -148,10 +159,11 @@ export default class OnboardingProgress extends Component {
 					})}
 				</View>
 				<View style={[styles.row, styles.lines, { marginHorizontal: offset }]}>
-					{lines.map((step, key) => {
-						const isSelected = key + 1 < currentStep;
-						return <View key={key} style={[styles.line, isSelected && styles.lineSelected]} />;
-					})}
+					{showLines &&
+						lines.map((step, key) => {
+							const isSelected = key + 1 < currentStep;
+							return <View key={key} style={[styles.line, isSelected && styles.lineSelected]} />;
+						})}
 				</View>
 			</View>
 		);
