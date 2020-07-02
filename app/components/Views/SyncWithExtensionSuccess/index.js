@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, SafeAreaView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Animated, SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
@@ -147,7 +147,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 	render = () => (
 		<SafeAreaView style={styles.mainWrapper}>
 			<Confetti ref={this.setRef} timeout={10} untilStopped duration={5000} bsize={0} />
-			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
+			<ScrollView contentContainerStyle={styles.wrapper} testID={'sync-with-extension-screen'}>
 				<Animated.View
 					style={[
 						styles.iconWrapper,
@@ -178,7 +178,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 						{strings('sync_with_extension_success.button_continue')}
 					</StyledButton>
 				</View>
-			</View>
+			</ScrollView>
 			<Confetti />
 		</SafeAreaView>
 	);
