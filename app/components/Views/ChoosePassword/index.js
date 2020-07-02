@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
 		textDecorationColor: colors.blue
 	},
 	field: {
+		position: 'relative',
 		marginTop: 20,
 		marginBottom: 10
 	},
@@ -145,7 +146,8 @@ const styles = StyleSheet.create({
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
-		marginTop: 8,
+		top: 17,
+		right: 17,
 		alignSelf: 'flex-end'
 	}
 });
@@ -493,7 +495,7 @@ class ChoosePassword extends PureComponent {
 									autoCapitalize="none"
 								/>
 								<View style={styles.showMatchingPasswords}>
-									{passwordsMatch ? <Icon name="check" size={12} color={colors.green300} /> : null}
+									{passwordsMatch ? <Icon name="check" size={16} color={colors.green300} /> : null}
 								</View>
 								<Text style={styles.passwordStrengthLabel}>
 									{strings('choose_password.must_be_at_least', { number: 8 })}
