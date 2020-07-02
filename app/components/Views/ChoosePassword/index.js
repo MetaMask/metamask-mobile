@@ -493,8 +493,8 @@ class ChoosePassword extends PureComponent {
 									style={styles.checkbox}
 								/>
 								<Text style={styles.label}>
-									I understand that MetaMask cannot recover this password for me.{' '}
-									<Text style={styles.learnMore}>Learn more.</Text>
+									{strings('choose_password.i_understand')}{' '}
+									<Text style={styles.learnMore}>{strings('choose_password.learn_more')}</Text>
 								</Text>
 							</View>
 
