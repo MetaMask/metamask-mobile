@@ -371,6 +371,8 @@
 		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación.",
 		"metametrics_title": "Participa en MetaMetrics",
 		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask.",
+		"third_party_title": "Obtener transacciones entrantes",
+		"third_party_description": "Las API de terceros (Etherscan) se utilizan para mostrar sus transacciones entrantes en el historial. Desactívala si no deseas que extraigamos datos de esos servicios.",
 		"metametrics_opt_out": "MetaMetrics Deshabilitado",
 		"metrametrics_restart_required": "Necesitas reiniciar la app para que los entren en efecto.",
 		"create_password": "Crear Contraseña",
