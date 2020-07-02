@@ -31,11 +31,7 @@ import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
 
-const steps = [
-	strings('choose_password.create'),
-	strings('choose_password.secure'),
-	strings('choose_password.confirm')
-];
+const steps = [strings('choose_password.title'), strings('choose_password.secure'), strings('choose_password.confirm')];
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -72,6 +68,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	checkboxContainer: {
+		marginTop: 10,
 		marginHorizontal: 10,
 		flex: 1,
 		alignItems: 'center',
@@ -123,14 +120,18 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 		flex: 0
 	},
-	passwordStrengthLabel: {
+	hintLabel: {
 		height: 20,
-		marginLeft: 5,
 		marginTop: 10,
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.grey700,
 		textAlign: 'left',
 		...fontStyles.normal
+	},
+	showPassword: {
+		position: 'absolute',
+		top: 0,
+		right: 0
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_weak: {
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
-		top: 17,
+		top: 47,
 		right: 17,
 		alignSelf: 'flex-end'
 	}
@@ -434,7 +435,6 @@ class ChoosePassword extends PureComponent {
 	};
 
 	learnMore = () => {
-		// should make this a constant?
 		const URL = 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-';
 		return Linking.openURL(URL).catch(error => {
 			Logger.log('Error while trying to open external link: ${url}', error);
@@ -459,28 +459,33 @@ class ChoosePassword extends PureComponent {
 								</View>
 							</View>
 							<View style={styles.field}>
+								<Text style={styles.hintLabel}>{strings('choose_password.password')}</Text>
+								<Text onPress={this.toggleShowHide} style={[styles.hintLabel, styles.showPassword]}>
+									{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
+								</Text>
 								<TextInput
 									style={styles.input}
 									value={password}
 									onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
 									secureTextEntry={secureTextEntry}
-									placeholder={''}
-									testID={'input-password'}
+									placeholder=""
+									testID="input-password"
 									onSubmitEditing={this.jumpToConfirmPassword}
-									returnKeyType={'next'}
+									returnKeyType="next"
 									autoCapitalize="none"
 								/>
 								{(password !== '' && (
-									<Text style={styles.passwordStrengthLabel}>
+									<Text style={styles.hintLabel}>
 										{strings('choose_password.password_strength')}
 										<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
 											{' '}
 											{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}
 										</Text>
 									</Text>
-								)) || <Text style={styles.passwordStrengthLabel} />}
+								)) || <Text style={styles.hintLabel} />}
 							</View>
 							<View style={styles.field}>
+								<Text style={styles.hintLabel}>{strings('choose_password.confirm_password')}</Text>
 								<TextInput
 									ref={this.confirmPasswordInput}
 									style={styles.input}
@@ -497,7 +502,7 @@ class ChoosePassword extends PureComponent {
 								<View style={styles.showMatchingPasswords}>
 									{passwordsMatch ? <Icon name="check" size={16} color={colors.green300} /> : null}
 								</View>
-								<Text style={styles.passwordStrengthLabel}>
+								<Text style={styles.hintLabel}>
 									{strings('choose_password.must_be_at_least', { number: 8 })}
 								</Text>
 							</View>
