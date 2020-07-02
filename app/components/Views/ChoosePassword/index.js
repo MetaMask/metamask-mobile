@@ -428,7 +428,8 @@ class ChoosePassword extends PureComponent {
 	render() {
 		const { isSelected, password, confirmPassword, secureTextEntry, error, loading } = this.state;
 
-		const isDisabled = !(password !== '' && password === confirmPassword && isSelected);
+		const passwordsMatch = password !== '' && password === confirmPassword;
+		const isDisabled = !(passwordsMatch && isSelected);
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -479,9 +480,7 @@ class ChoosePassword extends PureComponent {
 									autoCapitalize="none"
 								/>
 								<View style={styles.showMatchingPasswords}>
-									{password !== '' && password === confirmPassword ? (
-										<Icon name="check" size={12} color={colors.green300} />
-									) : null}
+									{passwordsMatch ? <Icon name="check" size={12} color={colors.green300} /> : null}
 								</View>
 								<Text style={styles.passwordStrengthLabel}>
 									{strings('choose_password.must_be_at_least', { number: 8 })}
