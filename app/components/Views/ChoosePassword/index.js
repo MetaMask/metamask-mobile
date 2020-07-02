@@ -430,10 +430,10 @@ class ChoosePassword extends PureComponent {
 		this.setState({ secureTextEntry: !this.state.secureTextEntry });
 	};
 
-	learnMore = () => {
+	learnMore = async () => {
 		// should make this a constant?
 		const url = 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-';
-		Linking.openURL(url);
+		return await Linking.openURL(url);
 	};
 
 	render() {
@@ -505,7 +505,7 @@ class ChoosePassword extends PureComponent {
 								/>
 								<Text style={styles.label}>
 									{strings('choose_password.i_understand')}{' '}
-									<Text onClick={this.learnMore} style={styles.learnMore}>
+									<Text onPress={this.learnMore} style={styles.learnMore}>
 										{strings('choose_password.learn_more')}
 									</Text>
 								</Text>
