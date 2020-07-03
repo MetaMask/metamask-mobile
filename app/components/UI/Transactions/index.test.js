@@ -26,6 +26,9 @@ describe('Transactions', () => {
 						conversionRate: 1
 					}
 				}
+			},
+			privacy: {
+				thirdPartyApiMode: true
 			}
 		};
 
