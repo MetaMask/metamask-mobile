@@ -81,7 +81,7 @@ export const fontStyles = {
 		fontWeight: '100'
 	},
 	bold: {
-		fontFamily: 'CircularStd-Bold',
+		fontFamily: 'CircularStd-Medium',
 		fontWeight: '600'
 	}
 };
