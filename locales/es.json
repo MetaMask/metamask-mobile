@@ -678,10 +678,12 @@
 		"allow_biometrics_desc": "Puedes utilizar {{biometrics}} para autenticarte en MetaMask"
 	},
 	"sync_with_extension_success": {
-		"title": "Sincronización completa",
-		"sync_complete": "Hemos sincronizado toda la información desde la extensión de MetaMask y ahora puedes continuar!",
-		"button_continue": "Continuar",
-		"password_tip": "La contraseña para aceder a tu billetera es la misma que configuraste para la extensión?"
+		"title": "Billetera importado",
+		"sync_complete_1": "Solo recuerda, MetaMask no puede recuperar tu frase semilla si la pierdes. Puedes encontrar la frase semilla en",
+		"sync_complete_2": "configuración> seguridad y privacidad",
+		"button_continue": "Listo",
+		"password_tip": "La contraseña para desbloquear tu billetera es la misma que configuraste para la extensión",
+		"learn_more": "Más información"
 	},
 	"networks": {
 		"title": "Redes",
