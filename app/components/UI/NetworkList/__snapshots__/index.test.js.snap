@@ -23,7 +23,7 @@ exports[`NetworkList should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "CircularStd-Bold",
           "fontSize": 18,
           "fontWeight": "600",
           "marginHorizontal": 20,
@@ -163,7 +163,7 @@ exports[`NetworkList should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontSize": 13,
             "fontWeight": "600",
             "marginHorizontal": 20,

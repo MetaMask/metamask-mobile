@@ -26,7 +26,7 @@ exports[`AccountApproval should render correctly 1`] = `
     style={
       Object {
         "color": "#000000",
-        "fontFamily": "CircularStd-Medium",
+        "fontFamily": "CircularStd-Bold",
         "fontSize": 20,
         "fontWeight": "600",
         "marginBottom": 8,

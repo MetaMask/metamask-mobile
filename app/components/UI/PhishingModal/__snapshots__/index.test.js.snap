@@ -61,7 +61,7 @@ exports[`PhishingModal should render correctly 1`] = `
         style={
           Object {
             "color": "#D73A49",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontWeight": "600",
             "textAlign": "center",
           }
@@ -98,7 +98,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "CircularStd-Bold",
               "fontWeight": "600",
             }
           }

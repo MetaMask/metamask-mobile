@@ -127,7 +127,7 @@ exports[`SelectComponent should render correctly 1`] = `
             style={
               Object {
                 "flex": 1,
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "CircularStd-Bold",
                 "fontSize": 17,
                 "fontWeight": "600",
                 "paddingVertical": 10,

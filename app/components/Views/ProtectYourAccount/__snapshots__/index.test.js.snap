@@ -104,7 +104,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
                 "textAlign": "left",
               },
               Object {
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "CircularStd-Bold",
                 "fontSize": 23,
                 "fontWeight": "600",
                 "marginBottom": 20,
@@ -160,7 +160,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
                 "textAlign": "left",
               },
               Object {
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "CircularStd-Bold",
                 "fontSize": 23,
                 "fontWeight": "600",
                 "marginBottom": 20,

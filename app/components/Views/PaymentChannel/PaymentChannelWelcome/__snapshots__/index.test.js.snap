@@ -38,7 +38,7 @@ exports[`PaymentChannelWelcome should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "CircularStd-Bold",
           "fontSize": 24,
           "fontWeight": "600",
           "marginBottom": 10,

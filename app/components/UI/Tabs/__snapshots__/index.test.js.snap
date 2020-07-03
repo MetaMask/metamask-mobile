@@ -159,7 +159,7 @@ exports[`Tabs should render correctly 1`] = `
               "fontWeight": "400",
             },
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "CircularStd-Bold",
               "fontWeight": "600",
             },
             null,

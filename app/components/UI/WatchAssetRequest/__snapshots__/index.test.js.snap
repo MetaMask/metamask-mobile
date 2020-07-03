@@ -17,7 +17,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "CircularStd-Bold",
           "fontSize": 18,
           "fontWeight": "600",
           "marginHorizontal": 20,
@@ -98,7 +98,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "CircularStd-Bold",
                   "fontWeight": "600",
                 }
               }
@@ -173,7 +173,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "CircularStd-Bold",
                   "fontWeight": "600",
                 }
               }

@@ -40,7 +40,7 @@ exports[`ReceiveRequestAction should render correctly 1`] = `
     <Text
       style={
         Object {
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "CircularStd-Bold",
           "fontSize": 14,
           "fontWeight": "600",
           "padding": 5,

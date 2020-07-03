@@ -549,7 +549,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "CircularStd-Bold",
               "fontSize": 22,
               "fontWeight": "600",
               "marginBottom": 20,
@@ -602,7 +602,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "CircularStd-Bold",
               "fontSize": 22,
               "fontWeight": "600",
               "marginBottom": 20,

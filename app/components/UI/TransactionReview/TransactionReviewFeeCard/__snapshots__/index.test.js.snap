@@ -55,7 +55,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "CircularStd-Bold",
               "fontSize": 14,
               "fontWeight": "600",
             }
@@ -67,7 +67,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "CircularStd-Bold",
               "fontSize": 14,
               "fontWeight": "600",
             }
@@ -98,7 +98,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
               Array [
                 Object {
                   "color": "#000000",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "CircularStd-Bold",
                   "fontSize": 14,
                   "fontWeight": "600",
                 },
@@ -118,7 +118,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
                 Array [
                   Object {
                     "color": "#000000",
-                    "fontFamily": "CircularStd-Medium",
+                    "fontFamily": "CircularStd-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                   },
@@ -182,7 +182,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "CircularStd-Bold",
               "fontSize": 14,
               "fontWeight": "600",
             }

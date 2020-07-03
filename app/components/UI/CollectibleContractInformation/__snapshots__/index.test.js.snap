@@ -23,7 +23,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "CircularStd-Bold",
           "fontSize": 18,
           "fontWeight": "600",
           "marginHorizontal": 20,
@@ -54,7 +54,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
         style={
           Object {
             "borderColor": "#d6d9dc",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontWeight": "600",
             "marginTop": 0,
           }
@@ -87,7 +87,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
         style={
           Object {
             "borderColor": "#d6d9dc",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontWeight": "600",
             "marginTop": 0,
           }
@@ -120,7 +120,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
         style={
           Object {
             "borderColor": "#d6d9dc",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontWeight": "600",
             "marginTop": 0,
           }

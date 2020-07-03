@@ -168,7 +168,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               <Text
                 style={
                   Object {
-                    "fontFamily": "CircularStd-Medium",
+                    "fontFamily": "CircularStd-Bold",
                     "fontWeight": "600",
                     "lineHeight": 25,
                   }
@@ -213,7 +213,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               <Text
                 style={
                   Object {
-                    "fontFamily": "CircularStd-Medium",
+                    "fontFamily": "CircularStd-Bold",
                     "fontWeight": "600",
                     "lineHeight": 25,
                   }

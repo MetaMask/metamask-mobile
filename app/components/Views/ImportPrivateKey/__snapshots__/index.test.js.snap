@@ -159,7 +159,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         <View
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "CircularStd-Bold",
               "fontSize": 18,
               "fontWeight": "600",
             }
@@ -168,7 +168,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           <Text
             style={
               Object {
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "CircularStd-Bold",
                 "fontSize": 18,
                 "fontWeight": "600",
               }

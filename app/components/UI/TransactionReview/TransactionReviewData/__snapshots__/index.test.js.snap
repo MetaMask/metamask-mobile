@@ -33,7 +33,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
         style={
           Object {
             "color": "#848c96",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontSize": 12,
             "fontWeight": "600",
           }
@@ -73,7 +73,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
         style={
           Object {
             "color": "#848c96",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontSize": 12,
             "fontWeight": "600",
           }

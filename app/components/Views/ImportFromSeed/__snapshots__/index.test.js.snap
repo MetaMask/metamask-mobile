@@ -37,7 +37,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontSize": 25,
             "fontWeight": "600",
             "justifyContent": "center",

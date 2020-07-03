@@ -143,7 +143,7 @@ exports[`AccountBackupStep2 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "CircularStd-Bold",
                   "fontWeight": "600",
                 }
               }

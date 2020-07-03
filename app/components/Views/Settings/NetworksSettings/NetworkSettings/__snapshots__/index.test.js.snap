@@ -38,7 +38,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontSize": 20,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -64,7 +64,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -101,7 +101,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -139,7 +139,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -177,7 +177,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -214,7 +214,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "CircularStd-Bold",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,

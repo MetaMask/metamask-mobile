@@ -356,7 +356,7 @@ exports[`Confirm should render correctly 1`] = `
             Object {
               "alignItems": "center",
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "CircularStd-Bold",
               "fontSize": 16,
               "fontWeight": "600",
               "justifyContent": "center",
