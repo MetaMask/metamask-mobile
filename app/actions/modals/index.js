@@ -24,8 +24,9 @@ export function toggleReceiveModal(asset) {
 	};
 }
 
-export function toggleDappTransactionModal() {
+export function toggleDappTransactionModal(show) {
 	return {
-		type: 'TOGGLE_DAPP_TRANSACTION_MODAL'
+		type: 'TOGGLE_DAPP_TRANSACTION_MODAL',
+		show
 	};
 }
