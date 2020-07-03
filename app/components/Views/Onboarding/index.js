@@ -85,7 +85,11 @@ class Onboarding extends PureComponent {
 		/**
 		 * Save onboarding event to state
 		 */
-		saveOnboardingEvent: PropTypes.func
+		saveOnboardingEvent: PropTypes.func,
+		/**
+		 * Whether the user has opted into metrics
+		 */
+		metricsOptedIn: PropTypes.bool
 	};
 
 	state = {
@@ -125,7 +129,7 @@ class Onboarding extends PureComponent {
 					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
 					return;
 				}
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				const metricsOptIn = this.props.metricsOptedIn;
 				if (!metricsOptIn) {
 					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
 				}
@@ -145,7 +149,7 @@ class Onboarding extends PureComponent {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
 				return;
 			}
-			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			const metricsOptIn = this.props.metricsOptedIn;
 			if (!metricsOptIn) {
 				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
 			}
@@ -220,6 +224,7 @@ class Onboarding extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	metricsOptedIn: state.user.metricsOptedIn,
 	passwordSet: state.user.passwordSet
 });
 

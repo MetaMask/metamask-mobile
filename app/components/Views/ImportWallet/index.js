@@ -134,7 +134,11 @@ class ImportWallet extends PureComponent {
 		/**
 		 * Save onboarding event to state
 		 */
-		saveOnboardingEvent: PropTypes.func
+		saveOnboardingEvent: PropTypes.func,
+		/**
+		 * Whether the user has opted into metrics
+		 */
+		metricsOptedIn: PropTypes.bool
 	};
 
 	seedwords = null;
@@ -378,7 +382,7 @@ class ImportWallet extends PureComponent {
 					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WITH_SEEDPHRASE);
 					return;
 				}
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				const metricsOptIn = this.props.metricsOptedIn;
 				if (!metricsOptIn) {
 					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WITH_SEEDPHRASE);
 				}
@@ -415,7 +419,7 @@ class ImportWallet extends PureComponent {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
 				return;
 			}
-			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			const metricsOptIn = this.props.metricsOptedIn;
 			if (!metricsOptIn) {
 				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
 			}
@@ -509,7 +513,8 @@ class ImportWallet extends PureComponent {
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	metricsOptedIn: state.user.metricsOptedIn
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -42,7 +42,7 @@ const userReducer = (state = initialState, action) => {
 		case 'METRICS_OPT_IN':
 			return {
 				...state,
-				metricsOptIn: action.metricsOptIn
+				metricsOptedIn: action.metricsOptedIn
 			};
 		default:
 			return state;

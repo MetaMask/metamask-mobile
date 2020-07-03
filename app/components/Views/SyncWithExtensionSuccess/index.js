@@ -6,7 +6,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import AsyncStorage from '@react-native-community/async-storage';
 import setOnboardingWizardStep from '../../../actions/wizard';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
@@ -64,7 +63,15 @@ class SyncWithExtensionSuccess extends PureComponent {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Whether the user has completed (including dismissal of) the onboarding wizard
+		 */
+		onboardingWizardExplored: PropTypes.bool,
+		/**
+		 * Whether the user has opted into metrics
+		 */
+		metricsOptedIn: PropTypes.bool
 	};
 
 	static navigationOptions = ({ navigation }) => ({
@@ -89,9 +96,9 @@ class SyncWithExtensionSuccess extends PureComponent {
 
 	continue = async () => {
 		// Get onboarding wizard state
-		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		const onboardingWizard = this.props.onboardingWizardExplored;
 		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		const metricsOptIn = this.props.metricsOptedIn;
 		if (!metricsOptIn) {
 			this.props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {
@@ -133,11 +140,15 @@ class SyncWithExtensionSuccess extends PureComponent {
 	);
 }
 
+const mapStateToProps = state => ({
+	metricsOptedIn: state.user.metricsOptedIn
+});
+
 const mapDispatchToProps = dispatch => ({
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
 });
 
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(SyncWithExtensionSuccess);

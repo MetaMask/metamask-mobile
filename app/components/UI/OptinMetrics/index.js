@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
-import AsyncStorage from '@react-native-community/async-storage';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -122,7 +121,11 @@ class OptinMetrics extends PureComponent {
 		/**
 		 * Set the state indicating whether a user has opted into metrics
 		 */
-		metricsOptIn: PropTypes.func
+		metricsOptIn: PropTypes.func,
+		/**
+		 * Whether the user has completed (including dismissal of) the onboarding wizard
+		 */
+		onboardingWizardExplored: PropTypes.bool
 	};
 
 	actionsList = [
@@ -176,7 +179,7 @@ class OptinMetrics extends PureComponent {
 	 */
 	continue = async () => {
 		// Get onboarding wizard state
-		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		const onboardingWizard = this.props.onboardingWizardExplored;
 		if (onboardingWizard) {
 			this.props.navigation.navigate('HomeNav');
 		} else {
@@ -212,7 +215,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
-			this.props.metricsOptIn('denied');
+			this.props.metricsOptIn(false);
 			Analytics.disableInstance();
 		});
 		this.continue();
@@ -228,7 +231,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();
-			this.props.metricsOptIn('agreed');
+			this.props.metricsOptIn(true);
 		});
 		this.continue();
 	};
@@ -295,7 +298,8 @@ class OptinMetrics extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	events: state.onboarding.events
+	events: state.onboarding.events,
+	onboardingWizardExplored: state.user.onboardingWizardExplored
 });
 
 const mapDispatchToProps = dispatch => ({

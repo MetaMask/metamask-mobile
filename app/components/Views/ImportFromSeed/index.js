@@ -190,7 +190,15 @@ class ImportFromSeed extends PureComponent {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Whether the user has completed (including dismissal of) the onboarding wizard
+		 */
+		onboardingWizardExplored: PropTypes.bool,
+		/**
+		 * Whether the user has opted into metrics
+		 */
+		metricsOptedIn: PropTypes.bool
 	};
 
 	state = {
@@ -285,9 +293,9 @@ class ImportFromSeed extends PureComponent {
 					await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
 				}
 				// Get onboarding wizard state
-				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+				const onboardingWizard = this.props.onboardingWizardExplored;
 				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				const metricsOptIn = this.props.metricsOptedIn;
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
@@ -629,6 +637,11 @@ class ImportFromSeed extends PureComponent {
 	}
 }
 
+const mapStateToProps = state => ({
+	events: state.onboarding.events,
+	onboardingWizardExplored: state.user.onboardingWizardExplored
+});
+
 const mapDispatchToProps = dispatch => ({
 	setLockTime: time => dispatch(setLockTime(time)),
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
@@ -637,6 +650,6 @@ const mapDispatchToProps = dispatch => ({
 });
 
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(ImportFromSeed);

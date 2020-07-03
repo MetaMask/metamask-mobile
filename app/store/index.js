@@ -47,8 +47,8 @@ const migrations = {
 		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 
 		const newState = { ...state };
-		newState.user.metricsOptIn = metricsOptIn;
-		newState.user.onboardingWizardExplored = onboardingWizard;
+		newState.user.metricsOptedIn = metricsOptIn === 'agreed';
+		newState.user.onboardingWizardExplored = onboardingWizard === 'explored';
 
 		return newState;
 	}

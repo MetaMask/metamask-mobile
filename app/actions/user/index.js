@@ -29,9 +29,9 @@ export function onboardingWizardExplored(onboardingWizardExplored) {
 	};
 }
 
-export function metricsOptIn(metricsOptIn) {
+export function metricsOptIn(metricsOptedIn) {
 	return {
 		type: 'METRICS_OPT_IN',
-		metricsOptIn
+		metricsOptedIn
 	};
 }

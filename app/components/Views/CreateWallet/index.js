@@ -98,7 +98,15 @@ class CreateWallet extends PureComponent {
 		/**
 		 * React navigation prop to know if this view is focused
 		 */
-		isFocused: PropTypes.bool
+		isFocused: PropTypes.bool,
+		/**
+		 * Whether the user has completed (including dismissal of) the onboarding wizard
+		 */
+		onboardingWizardExplored: PropTypes.bool,
+		/**
+		 * Whether the user has opted into metrics
+		 */
+		metricsOptedIn: PropTypes.bool
 	};
 
 	// Temporary disabling the back button so users can't go back
@@ -121,9 +129,9 @@ class CreateWallet extends PureComponent {
 			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			// Get onboarding wizard state
-			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+			const onboardingWizard = this.props.onboardingWizardExplored;
 			// Check if user passed through metrics opt-in screen
-			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			const metricsOptIn = this.props.metricsOptedIn;
 			// Making sure we reset the flag while going to
 			// the first time flow
 			this.props.passwordUnset();
@@ -178,6 +186,11 @@ class CreateWallet extends PureComponent {
 	}
 }
 
+const mapStateToProps = state => ({
+	metricsOptedIn: state.user.metricsOptedIn,
+	onboardingWizardExplored: state.user.onboardingWizardExplored
+});
+
 const mapDispatchToProps = dispatch => ({
 	setLockTime: time => dispatch(setLockTime(time)),
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
@@ -186,6 +199,6 @@ const mapDispatchToProps = dispatch => ({
 });
 
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(withNavigationFocus(CreateWallet));

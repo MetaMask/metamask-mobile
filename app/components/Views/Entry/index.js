@@ -76,7 +76,15 @@ class Entry extends PureComponent {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Whether the user has completed (including dismissal of) the onboarding wizard
+		 */
+		onboardingWizardExplored: PropTypes.bool,
+		/**
+		 * Whether the user has opted into metrics
+		 */
+		metricsOptedIn: PropTypes.bool
 	};
 
 	state = {
@@ -161,9 +169,9 @@ class Entry extends PureComponent {
 				const { KeyringController } = Engine.context;
 				await KeyringController.submitPassword(credentials.password);
 				// Get onboarding wizard state
-				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+				const onboardingWizard = this.props.onboardingWizardExplored;
 				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				const metricsOptIn = this.props.metricsOptedIn;
 				if (!metricsOptIn) {
 					this.animateAndGoTo('OptinMetrics');
 				} else if (onboardingWizard) {
@@ -229,7 +237,9 @@ const mapDispatchToProps = dispatch => ({
 });
 
 const mapStateToProps = state => ({
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	metricsOptedIn: state.user.metricsOptedIn,
+	onboardingWizardExplored: state.user.onboardingWizardExplored
 });
 
 export default connect(
