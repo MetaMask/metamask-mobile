@@ -2,7 +2,7 @@
 
 exports[`Entry should render correctly 1`] = `
 <Entry
-  dispatch={[Function]}
   passwordSet={false}
+  setOnboardingWizardStep={[Function]}
 />
 `;
