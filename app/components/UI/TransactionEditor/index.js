@@ -30,15 +30,15 @@ const styles = StyleSheet.create({
 		minHeight: 200,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
-		paddingTop: 24,
-		paddingBottom: Device.isIphoneX() ? 24 : 0,
-		justifyContent: 'flex-end'
+		paddingBottom: Device.isIphoneX() ? 24 : 0
 	},
 	transactionEdit: {
 		position: 'absolute',
-		top: 24,
 		width: '100%',
 		height: '100%'
+	},
+	transactionReview: {
+		paddingTop: 24
 	},
 	keyboardAwareWrapper: {
 		flex: 1,
@@ -671,7 +671,7 @@ class TransactionEditor extends PureComponent {
 				transform: [
 					{
 						translateY: modalValue.interpolate({
-							inputRange: [0, 1],
+							inputRange: [0, valueType === 'saveButton' ? this.getAnimatedModalValueForAdvancedCG() : 1],
 							outputRange: outRange
 						})
 					}
@@ -697,13 +697,10 @@ class TransactionEditor extends PureComponent {
 	getAnimatedModalValueForAdvancedCG = () => {
 		const { rootHeight, customGasHeight } = this.state;
 		//70 is the fixed height + margin of the error message in advanced custom gas. It expands 70 units vertically to accomodate it
-		const value = Device.isIphoneX()
-			? 70 / (rootHeight - customGasHeight)
-			: 70 / (rootHeight - customGasHeight + 24);
-		return value;
+		return 70 / (rootHeight - customGasHeight);
 	};
 
-	saveRootHeight = event => !this.state.rootHeight && this.setState({ rootHeight: event.nativeEvent.layout.height });
+	saveRootHeight = event => this.setState({ rootHeight: event.nativeEvent.layout.height });
 
 	saveCustomGasHeight = event =>
 		!this.state.customGasHeight && this.setState({ customGasHeight: event.nativeEvent.layout.height });
@@ -714,7 +711,7 @@ class TransactionEditor extends PureComponent {
 
 	getTransformValue = () => {
 		const { rootHeight, customGasHeight } = this.state;
-		return Device.isIphoneX() ? rootHeight - customGasHeight : rootHeight - customGasHeight + 24;
+		return Device.isIphoneX() ? rootHeight - customGasHeight : rootHeight - customGasHeight;
 	};
 	render = () => {
 		const { mode, transactionConfirmed, transaction } = this.props;
@@ -738,7 +735,9 @@ class TransactionEditor extends PureComponent {
 							style={[styles.root, this.generateTransform('modal', [this.getTransformValue(), 0])]}
 							onLayout={this.saveRootHeight}
 						>
-							<Animated.View style={this.generateTransform('reviewToEdit', [0, -width])}>
+							<Animated.View
+								style={[this.generateTransform('reviewToEdit', [0, -width]), styles.transactionReview]}
+							>
 								<TransactionReview
 									onCancel={this.onCancel}
 									onConfirm={this.onConfirm}
@@ -783,7 +782,6 @@ class TransactionEditor extends PureComponent {
 										mode={mode}
 										modalValue={modalValue}
 										toAdvancedFrom={toAdvancedFrom}
-										getTransformValue={this.getTransformValue}
 									/>
 								</Animated.View>
 							)}

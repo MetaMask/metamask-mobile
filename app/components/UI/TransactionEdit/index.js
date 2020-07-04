@@ -86,11 +86,7 @@ class TransactionEdit extends PureComponent {
 		/**
 		 * review or edit
 		 */
-		toAdvancedFrom: PropTypes.string,
-		/**
-		 * gets the value for the transform
-		 */
-		getTransformValue: PropTypes.func
+		toAdvancedFrom: PropTypes.string
 	};
 
 	state = {
@@ -164,8 +160,7 @@ class TransactionEdit extends PureComponent {
 			getAnimatedModalValueForAdvancedCG,
 			hideGasSelectors,
 			mode,
-			toAdvancedFrom,
-			getTransformValue
+			toAdvancedFrom
 		} = this.props;
 		const { gasError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -185,7 +180,6 @@ class TransactionEdit extends PureComponent {
 				generateTransform={generateTransform}
 				getAnimatedModalValueForAdvancedCG={getAnimatedModalValueForAdvancedCG}
 				hideGasSelectors={hideGasSelectors}
-				getTransformValue={getTransformValue}
 				mode={mode}
 				toAdvancedFrom={toAdvancedFrom}
 			/>

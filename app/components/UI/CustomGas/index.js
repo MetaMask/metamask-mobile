@@ -16,7 +16,9 @@ import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
+		paddingTop: 24,
+		paddingBottom: Device.isIphoneX() ? 48 : 24
 	},
 	customGasHeader: {
 		flexDirection: 'row',
@@ -62,13 +64,13 @@ const styles = StyleSheet.create({
 		paddingBottom: 20
 	},
 	warningWrapper: {
-		marginBottom: 20,
 		height: 50,
 		alignItems: 'center',
 		justifyContent: 'center',
 		alignSelf: 'center',
+		width: '100%',
 		position: 'absolute',
-		width: '100%'
+		marginTop: 24
 	},
 	warningTextWrapper: {
 		width: '100%',
@@ -101,7 +103,8 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		alignSelf: 'center',
 		width: '100%',
-		height: '100%'
+		height: '100%',
+		paddingTop: 24
 	},
 	selectors: {
 		position: 'relative',
@@ -293,11 +296,7 @@ class CustomGas extends PureComponent {
 		/**
 		 * review or edit
 		 */
-		toAdvancedFrom: PropTypes.string,
-		/**
-		 * gets the value for the transform
-		 */
-		getTransformValue: PropTypes.func
+		toAdvancedFrom: PropTypes.string
 	};
 
 	state = {
@@ -643,17 +642,14 @@ class CustomGas extends PureComponent {
 			advancedCustomGas,
 			generateTransform,
 			mode,
-			toAdvancedFrom,
-			getTransformValue
+			toAdvancedFrom
 		} = this.props;
 		let buttonStyle;
-		if (advancedCustomGas) {
+
+		if (toAdvancedFrom === 'edit' && mode === 'edit') {
+			buttonStyle = generateTransform('saveButton', [0, 70]);
+		} else if (advancedCustomGas) {
 			buttonStyle = styles.buttonTransform;
-			if (toAdvancedFrom === 'edit' && mode === 'edit') {
-				buttonStyle = generateTransform('saveButton', [0, getTransformValue()]);
-			}
-		} else if (toAdvancedFrom === 'edit' && mode === 'edit') {
-			buttonStyle = generateTransform('saveButton', [0, getTransformValue()]);
 		}
 
 		return (
