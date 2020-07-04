@@ -21,7 +21,8 @@ const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		minWidth: '100%',
-		width: '100%'
+		width: '100%',
+		paddingHorizontal: 24
 	},
 	selectors: {
 		backgroundColor: colors.white,

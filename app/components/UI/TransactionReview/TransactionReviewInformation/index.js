@@ -246,8 +246,7 @@ class TransactionReviewInformation extends PureComponent {
 					totalValue={totalValue}
 					transactionValue={assetAmount}
 					primaryCurrency={primaryCurrency}
-					ready={ready}
-					gasEstimationReady
+					gasEstimationReady={ready}
 					toggleCustomGasModal={this.edit}
 				/>
 				{!!amountError && (
