@@ -711,7 +711,7 @@ class TransactionEditor extends PureComponent {
 
 	getTransformValue = () => {
 		const { rootHeight, customGasHeight } = this.state;
-		return Device.isIphoneX() ? rootHeight - customGasHeight : rootHeight - customGasHeight;
+		return rootHeight - customGasHeight;
 	};
 	render = () => {
 		const { mode, transactionConfirmed, transaction } = this.props;
