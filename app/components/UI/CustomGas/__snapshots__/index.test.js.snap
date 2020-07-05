@@ -4,7 +4,9 @@ exports[`CustomGas should render correctly 1`] = `
 <View
   style={
     Object {
+      "paddingBottom": 48,
       "paddingHorizontal": 24,
+      "paddingTop": 24,
     }
   }
 >
@@ -129,6 +131,7 @@ exports[`CustomGas should render correctly 1`] = `
         Object {
           "alignSelf": "center",
           "height": "100%",
+          "paddingTop": 24,
           "position": "absolute",
           "width": "100%",
         },

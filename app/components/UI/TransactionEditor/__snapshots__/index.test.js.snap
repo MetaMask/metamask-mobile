@@ -25,10 +25,8 @@ exports[`TransactionEditor should render correctly 1`] = `
             "backgroundColor": "#FFFFFF",
             "borderTopLeftRadius": 20,
             "borderTopRightRadius": 20,
-            "justifyContent": "flex-end",
             "minHeight": 200,
             "paddingBottom": 24,
-            "paddingTop": 24,
           },
           Object {
             "transform": Array [
@@ -42,13 +40,18 @@ exports[`TransactionEditor should render correctly 1`] = `
     >
       <ForwardRef(AnimatedComponentWrapper)
         style={
-          Object {
-            "transform": Array [
-              Object {
-                "translateX": 0,
-              },
-            ],
-          }
+          Array [
+            Object {
+              "transform": Array [
+                Object {
+                  "translateX": 0,
+                },
+              ],
+            },
+            Object {
+              "paddingTop": 24,
+            },
+          ]
         }
       >
         <Connect(TransactionReview)
