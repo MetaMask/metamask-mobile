@@ -3,15 +3,19 @@
 exports[`TransactionReviewData should render correctly 1`] = `
 <View
   style={
-    Object {
-      "marginBottom": 12,
-      "paddingHorizontal": 24,
-    }
+    Array [
+      Object {
+        "paddingBottom": 48,
+        "paddingHorizontal": 24,
+        "paddingTop": 24,
+      },
+      Object {
+        "height": undefined,
+      },
+    ]
   }
 >
-  <View
-    onLayout={[Function]}
-  >
+  <View>
     <View
       style={
         Object {
@@ -63,20 +67,18 @@ exports[`TransactionReviewData should render correctly 1`] = `
         }
       }
     >
-      This is data associated with this transaction
+      Data associated with this transaction
     </Text>
   </View>
   <View
     style={
-      Array [
-        Object {
-          "borderColor": "#bbc0c5",
-          "borderRadius": 8,
-          "borderWidth": 1,
-          "padding": 12,
-        },
-        null,
-      ]
+      Object {
+        "borderColor": "#bbc0c5",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flex": 1,
+        "padding": 12,
+      }
     }
   >
     <View
@@ -119,69 +121,31 @@ exports[`TransactionReviewData should render correctly 1`] = `
         }
       />
     </View>
-    <View
-      style={Object {}}
-    >
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 14,
-              "fontWeight": "400",
-            },
-            Object {
-              "fontFamily": "CircularStd-Medium",
-              "fontWeight": "600",
-            },
-          ]
-        }
-      >
-        Hex data
-        :
-         
-      </Text>
-      <Text
-        style={
+    <Text
+      style={
+        Array [
           Object {
-            "backgroundColor": "#FFFFFF",
             "color": "#000000",
             "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
-            "paddingTop": 0,
-          }
-        }
-      />
-    </View>
-    <View
-      style={
-        Object {
-          "flexDirection": "row",
-        }
+          },
+          Object {
+            "fontFamily": "CircularStd-Medium",
+            "fontWeight": "600",
+          },
+        ]
       }
     >
-      <Text
-        style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 14,
-            "fontWeight": "400",
-          }
-        }
-      >
-        Hex data
-        : 
-      </Text>
+      Hex data
+      : 
+    </Text>
+    <ScrollViewMock>
       <Text
         style={
           Object {
             "backgroundColor": "#FFFFFF",
             "color": "#000000",
-            "flex": 1,
-            "flexWrap": "wrap",
             "fontFamily": "CircularStd-Medium",
             "fontSize": 14,
             "fontWeight": "400",
@@ -189,7 +153,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
           }
         }
       />
-    </View>
+    </ScrollViewMock>
   </View>
 </View>
 `;
