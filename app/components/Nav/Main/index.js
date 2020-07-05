@@ -440,8 +440,8 @@ class Main extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-    thirdPartyApiMode: PropTypes.bool,
-    /**
+		thirdPartyApiMode: PropTypes.bool,
+		/**
 		/* Hides or shows dApp transaction modal
 		*/
 		toggleDappTransactionModal: PropTypes.func,
@@ -450,7 +450,6 @@ class Main extends PureComponent {
 		*/
 		dappTransactionModalVisible: PropTypes.bool
 	};
-
 	state = {
 		connected: true,
 		forceReload: false,
