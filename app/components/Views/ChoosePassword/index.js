@@ -350,30 +350,6 @@ class ChoosePassword extends PureComponent {
 		current && current.focus();
 	};
 
-	animateInLabel = label => {
-		if (
-			(label === 'new' && this.state.password !== '') ||
-			(label === 'confirm' && this.state.confirmPassword !== '')
-		) {
-			return;
-		}
-		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
-			toValue: 1,
-			duration: 200,
-			useNativeDriver: true,
-			isInteraction: false
-		}).start();
-	};
-
-	animateOutLabel = label => {
-		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
-			toValue: 0.66,
-			duration: 200,
-			useNativeDriver: true,
-			isInteraction: false
-		}).start();
-	};
-
 	getPasswordStrengthWord() {
 		// this.state.passwordStrength is calculated by zxcvbn
 		// which returns a score based on "entropy to crack time"
