@@ -61,7 +61,15 @@ class ProtectYourWalletModal extends PureComponent {
 	};
 
 	goToBackupFlow = () => {
-		this.props.navigation.navigate('AccountBackupStep1');
+		this.props.navigation.navigate('SetPasswordFlow');
+	};
+
+	onLearnMore = () => {
+		this.props.protectWalletModalNotVisible();
+		this.props.navigation.navigate('Webview', {
+			url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
+			title: 'Protect wallet'
+		});
 	};
 
 	render() {
@@ -102,7 +110,7 @@ class ProtectYourWalletModal extends PureComponent {
 							}
 						</Text>
 					</Text>
-					<TouchableOpacity onPress={this.props.protectWalletModalNotVisible}>
+					<TouchableOpacity onPress={this.onLearnMore}>
 						<Text style={styles.learnMoreText}>{'Learn more'}</Text>
 					</TouchableOpacity>
 				</View>
