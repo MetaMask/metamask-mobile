@@ -613,7 +613,7 @@
 		"remove_bookmark_title": "Remove favorite",
 		"remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
 		"yes": "Yes",
-		"backup_alert_title": "Protect your funds",
+		"backup_alert_title": "Protect your wallet",
 		"backup_alert_message": "Tap to save your seed phrase"
 	},
 	"add_favorite": {

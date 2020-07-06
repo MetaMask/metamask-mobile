@@ -569,7 +569,7 @@
 		"remove_bookmark_title": "Eliminar favorito",
 		"remove_bookmark_msg": "Realmente deseas eliminar este sitio de tus favoritos?",
 		"yes": "Si",
-		"backup_alert_title": "Proteje tus fondos",
+		"backup_alert_title": "Proteje tu billetera",
 		"backup_alert_message": "Presiona para salvar tu frase semilla"
 	},
 	"add_favorite": {

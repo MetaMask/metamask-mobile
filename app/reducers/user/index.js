@@ -2,7 +2,8 @@ import { REHYDRATE } from 'redux-persist';
 
 const initialState = {
 	passwordSet: false,
-	seedphraseBackedUp: false
+	seedphraseBackedUp: false,
+	backUpSeedphraseVisible: false
 };
 
 const userReducer = (state = initialState, action) => {
@@ -31,6 +32,16 @@ const userReducer = (state = initialState, action) => {
 			return {
 				...state,
 				seedphraseBackedUp: true
+			};
+		case 'BACK_UP_SEEDPHRASE_VISIBLE':
+			return {
+				...state,
+				backUpSeedphraseVisible: true
+			};
+		case 'BACK_UP_SEEDPHRASE_NOT_VISIBLE':
+			return {
+				...state,
+				backUpSeedphraseVisible: false
 			};
 		default:
 			return state;

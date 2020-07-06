@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react';
 import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
 import { connect } from 'react-redux';
+import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -20,25 +21,26 @@ const styles = StyleSheet.create({
 		left: 16,
 		right: 16,
 		borderRadius: 8,
-		padding: 8
+		padding: 14
 	},
 	backupAlertIconWrapper: {
-		marginRight: 13
+		marginRight: 10
 	},
 	backupAlertIcon: {
 		fontSize: 22,
-		color: colors.yellow700
+		...fontStyles.bold,
+		color: colors.black
 	},
 	backupAlertTitle: {
-		fontSize: 12,
-		lineHeight: 17,
-		color: colors.yellow700,
+		fontSize: 14,
+		marginBottom: 14,
+		color: colors.black,
 		...fontStyles.bold
 	},
 	backupAlertMessage: {
-		fontSize: 10,
-		lineHeight: 14,
-		color: colors.yellow700,
+		fontSize: 12,
+		color: colors.blue,
+		marginLeft: 14,
 		...fontStyles.normal
 	},
 	touchableView: {
@@ -49,7 +51,8 @@ const styles = StyleSheet.create({
 	},
 	modalViewNotInBrowserView: {
 		bottom: Device.isIphoneX() ? 20 : 10
-	}
+	},
+	buttonsWrapper: { flexDirection: 'row-reverse', alignContent: 'flex-end' }
 });
 
 const BLOCKED_LIST = [
@@ -86,7 +89,15 @@ class BackupAlert extends PureComponent {
 		/**
 		 * redux flag that indicates if the user set a password
 		 */
-		passwordSet: PropTypes.bool
+		passwordSet: PropTypes.bool,
+		/**
+		 * redux flag that indicates if the alert should be shown
+		 */
+		backUpSeedphraseVisible: PropTypes.bool,
+		/**
+		 * Dismisses the alert
+		 */
+		backUpSeedphraseAlertNotVisible: PropTypes.func
 	};
 
 	state = {
@@ -111,9 +122,10 @@ class BackupAlert extends PureComponent {
 	}
 
 	render() {
-		const { onPress, seedphraseBackedUp, passwordSet } = this.props;
+		const { onPress, seedphraseBackedUp, passwordSet, backUpSeedphraseVisible } = this.props;
 		const { inBrowserView, blockedView } = this.state;
-		if (!passwordSet || seedphraseBackedUp || blockedView) return null;
+		if (!passwordSet || seedphraseBackedUp || blockedView || !backUpSeedphraseVisible) return null;
+		// if (!backUpSeedphraseVisible) return null;
 		return (
 			<ElevatedView
 				elevation={99}
@@ -122,15 +134,22 @@ class BackupAlert extends PureComponent {
 					inBrowserView ? styles.modalViewInBrowserView : styles.modalViewNotInBrowserView
 				]}
 			>
-				<TouchableOpacity onPress={onPress} style={styles.touchableView}>
+				<View style={styles.touchableView}>
 					<View style={styles.backupAlertIconWrapper}>
-						<Icon name="info-outline" style={styles.backupAlertIcon} />
+						<EvilIcons name="bell" style={styles.backupAlertIcon} />
 					</View>
-					<View>
+					<View style={baseStyles.flexGrow}>
 						<Text style={styles.backupAlertTitle}>{strings('browser.backup_alert_title')}</Text>
-						<Text style={styles.backupAlertMessage}>{strings('browser.backup_alert_message')}</Text>
+						<View style={styles.buttonsWrapper}>
+							<TouchableOpacity onPress={onPress}>
+								<Text style={[styles.backupAlertMessage, fontStyles.bold]}>Protect wallet</Text>
+							</TouchableOpacity>
+							<TouchableOpacity onPress={this.props.backUpSeedphraseAlertNotVisible}>
+								<Text style={styles.backupAlertMessage}>Remind me later</Text>
+							</TouchableOpacity>
+						</View>
 					</View>
-				</TouchableOpacity>
+				</View>
 			</ElevatedView>
 		);
 	}
@@ -138,7 +157,15 @@ class BackupAlert extends PureComponent {
 
 const mapStateToProps = state => ({
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	backUpSeedphraseVisible: state.user.backUpSeedphraseVisible
 });
 
-export default connect(mapStateToProps)(BackupAlert);
+const mapDispatchToProps = dispatch => ({
+	backUpSeedphraseAlertNotVisible: enable => dispatch(backUpSeedphraseAlertNotVisible())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(BackupAlert);
