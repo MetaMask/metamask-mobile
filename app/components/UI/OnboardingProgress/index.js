@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import { Text, View, StyleSheet } from 'react-native';
@@ -74,15 +74,12 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class OnboardingProgress extends Component {
-	constructor() {
-		super();
-		this.ranOnce = false;
-		this.marker = undefined;
-		this.state = {
-			offset: 0
-		};
-	}
+export default class OnboardingProgress extends PureComponent {
+	ranOnce = false;
+	marker = undefined;
+	state = {
+		offset: 0
+	};
 
 	static propTypes = {
 		currentStep: PropTypes.number.isRequired,
