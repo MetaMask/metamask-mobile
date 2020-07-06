@@ -1061,5 +1061,13 @@
 	"walletconnect_return_modal": {
 		"title": "Listo!",
 		"text": "Ahora puedes volver a tu navegador"
+	},
+	"protect_wallet_modal": {
+		"title": "Protege tu billetera",
+		"top_button": "Proteger billetera",
+		"bottom_button": "Recuérdame más tarde",
+		"text": "No te arriesgues a perder tus fondos. Protege tu billetera guardando tu frase semilla en un lugar en el que confíes.",
+		"text_bold": "Es la única forma de recuperar tu billetera si se bloquea la aplicación u obtienes un nuevo dispositivo.",
+		"action": "Saber más"
 	}
 }

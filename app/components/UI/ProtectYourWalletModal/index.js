@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import { protectWalletModalNotVisible } from '../../../actions/user';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { strings } from '../../../../locales/i18n';
 
 const protectWalletImage = require('../../../images/protect-wallet.jpg'); // eslint-disable-line
 
@@ -68,7 +69,7 @@ class ProtectYourWalletModal extends PureComponent {
 		this.props.protectWalletModalNotVisible();
 		this.props.navigation.navigate('Webview', {
 			url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
-			title: 'Protect wallet'
+			title: strings('protect_wallet_modal.title')
 		});
 	};
 
@@ -76,8 +77,8 @@ class ProtectYourWalletModal extends PureComponent {
 		return (
 			<ActionModal
 				modalVisible={this.props.protectWalletModalVisible}
-				cancelText={'Protect wallet'}
-				confirmText={'Remind me later'}
+				cancelText={strings('protect_wallet_modal.top_button')}
+				confirmText={strings('protect_wallet_modal.bottom_button')}
 				onCancelPress={this.goToBackupFlow}
 				onRequestClose={this.props.protectWalletModalNotVisible}
 				onConfirmPress={this.props.protectWalletModalNotVisible}
@@ -87,7 +88,7 @@ class ProtectYourWalletModal extends PureComponent {
 			>
 				<View style={styles.wrapper}>
 					<View style={styles.titleWrapper}>
-						<Text style={styles.title}>{'Protect your wallet'}</Text>
+						<Text style={styles.title}>{strings('protect_wallet_modal.title')}</Text>
 
 						<Ionicons
 							onPress={this.props.protectWalletModalNotVisible}
@@ -101,17 +102,11 @@ class ProtectYourWalletModal extends PureComponent {
 					</View>
 
 					<Text style={styles.text}>
-						{
-							'Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.'
-						}
-						<Text style={{ ...fontStyles.bold }}>
-							{
-								' It’s the only way to recover your wallet if you get locked out of the app or get a new device.'
-							}
-						</Text>
+						{strings('protect_wallet_modal.text')}
+						<Text style={{ ...fontStyles.bold }}>{' ' + strings('protect_wallet_modal.text')}</Text>
 					</Text>
 					<TouchableOpacity onPress={this.onLearnMore}>
-						<Text style={styles.learnMoreText}>{'Learn more'}</Text>
+						<Text style={styles.learnMoreText}>{strings('protect_wallet_modal.action')}</Text>
 					</TouchableOpacity>
 				</View>
 			</ActionModal>

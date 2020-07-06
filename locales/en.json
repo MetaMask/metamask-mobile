@@ -1138,5 +1138,13 @@
 	"walletconnect_return_modal": {
 		"title": "You're all set!",
 		"text": "You can now return to your browser"
+	},
+	"protect_wallet_modal": {
+		"title": "Protect your wallet",
+		"top_button": "Protect wallet",
+		"bottom_button": "Remind me later",
+		"text": "Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"text_bold": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
+		"action": "Learn more"
 	}
 }
