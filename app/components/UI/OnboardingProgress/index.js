@@ -89,7 +89,7 @@ export default class OnboardingProgress extends PureComponent {
 	onLayout = ({ nativeEvent }) => {
 		if (this.marker) {
 			this.marker.measure((x, y, width, height, pageX, pageY) => {
-				if (!this.ranOnce) {
+				if (!this.ranOnce && width) {
 					this.setState(
 						{
 							offset: Math.floor(width / 2) || 0,
