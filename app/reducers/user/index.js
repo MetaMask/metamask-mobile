@@ -45,10 +45,13 @@ const userReducer = (state = initialState, action) => {
 				backUpSeedphraseVisible: false
 			};
 		case 'PROTECT_MODAL_VISIBLE':
-			return {
-				...state,
-				protectWalletModalVisible: true
-			};
+			if (!state.seedphraseBackedUp) {
+				return {
+					...state,
+					protectWalletModalVisible: true
+				};
+			}
+			return state;
 		case 'PROTECT_MODAL_NOT_VISIBLE':
 			return {
 				...state,
