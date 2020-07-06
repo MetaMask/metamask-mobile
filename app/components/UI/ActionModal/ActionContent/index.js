@@ -17,12 +17,11 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderRadius: 10
 	},
-	actionContainer: {
-		borderTopColor: colors.grey200
-	},
 	actionHorizontalContainer: {
 		flexDirection: 'row',
-		padding: 16
+		padding: 16,
+		borderTopWidth: 1,
+		borderTopColor: colors.grey200
 	},
 	actionVerticalContainer: {
 		flexDirection: 'column',
@@ -71,7 +70,6 @@ export default function ActionContent({
 				<View style={[styles.childrenContainer, childrenContainerStyle]}>{children}</View>
 				<View
 					style={[
-						styles.actionContainer,
 						verticalButtons ? styles.actionVerticalContainer : styles.actionHorizontalContainer,
 						actionContainerStyle
 					]}
