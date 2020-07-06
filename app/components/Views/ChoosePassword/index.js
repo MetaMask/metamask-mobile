@@ -407,7 +407,7 @@ class ChoosePassword extends PureComponent {
 	};
 
 	toggleShowHide = () => {
-		this.setState({ secureTextEntry: !this.state.secureTextEntry });
+		this.setState(state => ({ secureTextEntry: !state.secureTextEntry }));
 	};
 
 	learnMore = () => {
