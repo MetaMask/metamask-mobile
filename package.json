@@ -128,7 +128,7 @@
     "react-native-browser-polyfill": "0.1.2",
     "react-native-button": "git+ssh://git@github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7",
     "react-native-camera": "2.10.0",
-    "react-native-confetti": "^0.1.0",
+    "react-native-confetti-cannon": "^1.5.0",
     "react-native-crypto": "2.1.2",
     "react-native-device-info": "3.1.4",
     "react-native-elevated-view": "0.0.6",

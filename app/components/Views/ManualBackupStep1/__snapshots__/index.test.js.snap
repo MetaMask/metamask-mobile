@@ -94,6 +94,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
+            "height": 275,
             "marginBottom": 64,
           }
         }
@@ -101,278 +102,362 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
         <View
           style={
             Object {
-              "alignItems": "flex-start",
+              "alignItems": "center",
               "flex": 1,
-              "paddingBottom": 4,
-              "paddingLeft": 27,
-              "paddingTop": 18,
+              "justifyContent": "space-between",
+              "paddingHorizontal": 24,
+              "paddingVertical": 18,
             }
           }
         >
-          <Text
+          <View
             key="word_0"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            1. abstract
-          </Text>
-          <Text
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              1. abstract
+            </Text>
+          </View>
+          <View
             key="word_1"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            2. accident
-          </Text>
-          <Text
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              2. accident
+            </Text>
+          </View>
+          <View
             key="word_2"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            3. acoustic
-          </Text>
-          <Text
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              3. acoustic
+            </Text>
+          </View>
+          <View
             key="word_3"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            4. announce
-          </Text>
-          <Text
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              4. announce
+            </Text>
+          </View>
+          <View
             key="word_4"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            5. artefact
-          </Text>
-          <Text
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              5. artefact
+            </Text>
+          </View>
+          <View
             key="word_5"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            6. attitude
-          </Text>
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              6. attitude
+            </Text>
+          </View>
         </View>
         <View
           style={
             Object {
-              "alignItems": "flex-end",
+              "alignItems": "center",
               "flex": 1,
-              "paddingBottom": 4,
-              "paddingRight": 27,
-              "paddingTop": 18,
+              "justifyContent": "space-between",
+              "paddingHorizontal": 24,
+              "paddingVertical": 18,
             }
           }
         >
-          <Text
+          <View
             key="word_0"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            7. bachelor
-          </Text>
-          <Text
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              7. bachelor
+            </Text>
+          </View>
+          <View
             key="word_1"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            8. broccoli
-          </Text>
-          <Text
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              8. broccoli
+            </Text>
+          </View>
+          <View
             key="word_2"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            9. business
-          </Text>
-          <Text
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              9. business
+            </Text>
+          </View>
+          <View
             key="word_3"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            10. category
-          </Text>
-          <Text
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              10. category
+            </Text>
+          </View>
+          <View
             key="word_4"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            11. champion
-          </Text>
-          <Text
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              11. champion
+            </Text>
+          </View>
+          <View
             key="word_5"
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#037dd6",
-                "borderRadius": 13,
-                "borderWidth": 1,
-                "color": "#000000",
-                "fontSize": 14,
-                "lineHeight": 14,
-                "marginBottom": 14,
-                "paddingHorizontal": 8,
-                "paddingVertical": 6,
-                "textAlign": "center",
-                "width": 95,
+                "flexDirection": "row",
               }
             }
           >
-            12. cinnamon
-          </Text>
+            <Text
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#037dd6",
+                  "borderRadius": 13,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 6,
+                  "textAlign": "center",
+                }
+              }
+            >
+              12. cinnamon
+            </Text>
+          </View>
         </View>
         <BlurView
           blurAmount={5}
@@ -396,6 +481,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               "borderRadius": 8,
               "height": "100%",
               "opacity": 0.7,
+              "paddingHorizontal": 24,
               "paddingVertical": 45,
               "position": "absolute",
               "width": "100%",
@@ -425,7 +511,6 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                 "fontWeight": "bold",
                 "lineHeight": 22,
                 "marginBottom": 8,
-                "marginHorizontal": 38,
                 "textAlign": "center",
               }
             }
@@ -439,6 +524,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                 "fontSize": 12,
                 "lineHeight": 17,
                 "marginBottom": 32,
+                "textAlign": "center",
               }
             }
           >
