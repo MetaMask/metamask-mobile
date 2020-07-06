@@ -5,10 +5,10 @@ import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import { BlurView } from '@react-native-community/blur';
 import ActionView from '../../UI/ActionView';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -47,9 +47,10 @@ const styles = StyleSheet.create({
 		height: '100%',
 		backgroundColor: colors.grey700,
 		opacity: 0.7,
-		paddingVertical: 45,
 		alignItems: 'center',
-		borderRadius: 8
+		borderRadius: 8,
+		paddingHorizontal: 24,
+		paddingVertical: 45
 	},
 	blurView: {
 		position: 'absolute',
@@ -67,19 +68,19 @@ const styles = StyleSheet.create({
 		marginBottom: 32
 	},
 	reveal: {
-		fontSize: 16,
+		fontSize: Device.isMediumDevice() ? 13 : 16,
 		...fontStyles.extraBold,
 		color: colors.white,
 		lineHeight: 22,
-		marginHorizontal: 38,
 		marginBottom: 8,
 		textAlign: 'center'
 	},
 	watching: {
-		fontSize: 12,
+		fontSize: Device.isMediumDevice() ? 10 : 12,
 		color: colors.white,
 		lineHeight: 17,
-		marginBottom: 32
+		marginBottom: 32,
+		textAlign: 'center'
 	},
 	viewButtonContainer: {
 		width: 155,
@@ -91,35 +92,31 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		borderColor: colors.grey100,
 		borderWidth: 1,
-		marginBottom: 64
+		marginBottom: 64,
+		height: 275
 	},
-	colLeft: {
+	wordColumn: {
 		flex: 1,
-		paddingTop: 18,
-		paddingLeft: 27,
-		paddingBottom: 4,
-		alignItems: 'flex-start'
+		alignItems: 'center',
+		paddingHorizontal: Device.isMediumDevice() ? 18 : 24,
+		paddingVertical: 18,
+		justifyContent: 'space-between'
 	},
-	colRight: {
-		flex: 1,
-		paddingTop: 18,
-		paddingRight: 27,
-		paddingBottom: 4,
-		alignItems: 'flex-end'
+	wordWrapper: {
+		flexDirection: 'row'
 	},
 	word: {
 		paddingHorizontal: 8,
 		paddingVertical: 6,
 		fontSize: 14,
 		color: colors.fontPrimary,
-		width: 95,
 		backgroundColor: colors.white,
 		borderColor: colors.blue,
 		borderWidth: 1,
-		marginBottom: 14,
 		borderRadius: 13,
 		textAlign: 'center',
-		lineHeight: 14
+		lineHeight: 14,
+		flex: 1
 	}
 });
 
@@ -134,29 +131,19 @@ export default class ManualBackupStep1 extends PureComponent {
 		*/
 		navigation: PropTypes.object
 	};
-
 	constructor(props) {
 		super(props);
 		this.words = props.navigation.getParam('words');
-		this.steps = [
-			strings('manual_backup.progressOne'),
-			strings('manual_backup.progressTwo'),
-			strings('manual_backup.progressThree')
-		];
 	}
+	steps = [
+		strings('manual_backup.progressOne'),
+		strings('manual_backup.progressTwo'),
+		strings('manual_backup.progressThree')
+	];
 
 	state = {
 		seedPhraseHidden: true,
 		currentStep: 2
-	};
-
-	tryExportSeedPhrase = async password => {
-		const { KeyringController } = Engine.context;
-		const mnemonic = await KeyringController.exportSeedPhrase(password);
-		const seed = JSON.stringify(mnemonic)
-			.replace(/"/g, '')
-			.split(' ');
-		return seed;
 	};
 
 	goNext = () => {
@@ -206,18 +193,18 @@ export default class ManualBackupStep1 extends PureComponent {
 							<Text style={styles.info}>{strings('manual_backup_step_1.info')}</Text>
 						</View>
 						<View style={styles.seedPhraseWrapper}>
-							<View style={styles.colLeft}>
+							<View style={styles.wordColumn}>
 								{this.words.slice(0, 6).map((word, i) => (
-									<Text key={`word_${i}`} style={styles.word}>
-										{`${i + 1}. ${word}`}
-									</Text>
+									<View key={`word_${i}`} style={styles.wordWrapper}>
+										<Text style={styles.word}>{`${i + 1}. ${word}`}</Text>
+									</View>
 								))}
 							</View>
-							<View style={styles.colRight}>
+							<View style={styles.wordColumn}>
 								{this.words.slice(-6).map((word, i) => (
-									<Text key={`word_${i}`} style={styles.word}>
-										{`${i + 7}. ${word}`}
-									</Text>
+									<View key={`word_${i}`} style={styles.wordWrapper}>
+										<Text style={styles.word}>{`${i + 7}. ${word}`}</Text>
+									</View>
 								))}
 							</View>
 							{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
