@@ -50,6 +50,7 @@ import EthereumAddress from '../EthereumAddress';
 import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
+import { protectWalletModalVisible } from '../../../actions/user';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -369,7 +370,11 @@ class DrawerView extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * Prompts protect wallet modal
+		 */
+		protectWalletModalVisible: PropTypes.func
 	};
 
 	state = {
@@ -804,9 +809,11 @@ class DrawerView extends PureComponent {
 		const { selectedAddress } = this.props;
 		Share.open({
 			message: generateUniversalLinkAddress(selectedAddress)
-		}).catch(err => {
-			Logger.log('Error while trying to share address', err);
-		});
+		})
+			.then(() => this.props.protectWalletModalVisible())
+			.catch(err => {
+				Logger.log('Error while trying to share address', err);
+			});
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
 	};
 
@@ -1079,7 +1086,8 @@ const mapDispatchToProps = dispatch => ({
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
 	showAlert: config => dispatch(showAlert(config)),
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
+	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 
 export default connect(
