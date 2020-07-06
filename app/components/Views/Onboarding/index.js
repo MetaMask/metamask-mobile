@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, ScrollView, StyleSheet, Alert, InteractionManager } from 'react-native';
+import { Text, View, ScrollView, StyleSheet, InteractionManager } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -16,6 +16,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
+import ActionModal from '../../UI/ActionModal';
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -64,6 +65,25 @@ const styles = StyleSheet.create({
 	buttonWrapper: {
 		flexGrow: 1,
 		marginHorizontal: 50
+	},
+	warningModalView: {
+		margin: 24
+	},
+	warningModalTitle: {
+		...fontStyles.bold,
+		color: colors.red,
+		textAlign: 'center',
+		fontSize: 20,
+		marginBottom: 16
+	},
+	warningModalText: {
+		...fontStyles.normal,
+		color: colors.black,
+		textAlign: 'center',
+		fontSize: 14
+	},
+	warningModalTextBold: {
+		...fontStyles.bold
 	}
 });
 
@@ -89,8 +109,12 @@ class Onboarding extends PureComponent {
 	};
 
 	state = {
-		existingUser: false
+		existingUser: false,
+		warningModalVisible: false
 	};
+
+	// eslint-disable-next-line no-empty-function
+	warningCallback = () => {};
 
 	componentDidMount() {
 		this.checkIfExistingUser();
@@ -116,8 +140,15 @@ class Onboarding extends PureComponent {
 		}
 	};
 
+	handleExistingUser = action => {
+		if (this.state.existingUser) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
+	};
+
 	onPressCreate = () => {
-		const { existingUser } = this.state;
 		const action = () => {
 			this.props.navigation.navigate('CreateWallet');
 			InteractionManager.runAfterInteractions(async () => {
@@ -131,37 +162,37 @@ class Onboarding extends PureComponent {
 				}
 			});
 		};
-		if (existingUser) {
-			this.alertExistingUser(action);
-		} else {
-			action();
-		}
+		this.handleExistingUser(action);
 	};
 
 	onPressImport = () => {
-		this.props.navigation.push('ImportWallet');
-		InteractionManager.runAfterInteractions(async () => {
-			if (Analytics.getEnabled()) {
-				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
-				return;
-			}
-			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-			if (!metricsOptIn) {
-				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
-			}
-		});
+		const action = () => {
+			this.props.navigation.push('ImportWallet');
+			InteractionManager.runAfterInteractions(async () => {
+				if (Analytics.getEnabled()) {
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+					return;
+				}
+				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				if (!metricsOptIn) {
+					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+				}
+			});
+		};
+		this.handleExistingUser(action);
 	};
 
 	alertExistingUser = callback => {
-		Alert.alert(
-			strings('sync_with_extension.warning_title'),
-			strings('sync_with_extension.warning_message'),
-			[
-				{ text: strings('sync_with_extension.warning_cancel_button'), onPress: () => false, style: 'cancel' },
-				{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => callback() }
-			],
-			{ cancelable: false }
-		);
+		this.warningCallback = () => {
+			callback();
+			this.toggleWarningModal();
+		};
+		this.toggleWarningModal();
+	};
+
+	toggleWarningModal = () => {
+		const warningModalVisible = this.state.warningModalVisible;
+		this.setState({ warningModalVisible: !warningModalVisible });
 	};
 
 	render() {
@@ -214,6 +245,30 @@ class Onboarding extends PureComponent {
 					</View>
 				</OnboardingScreenWithBg>
 				<FadeOutOverlay />
+				<ActionModal
+					modalVisible={this.state.warningModalVisible}
+					cancelText={strings('onboarding.warning_proceed')}
+					confirmText={strings('onboarding.warning_cancel')}
+					onCancelPress={this.warningCallback}
+					onRequestClose={this.toggleWarningModal}
+					onConfirmPress={this.toggleWarningModal}
+					cancelButtonMode={'warning'}
+					confirmButtonMode={'neutral'}
+					verticalButtons
+				>
+					<View style={styles.warningModalView}>
+						<Text style={styles.warningModalTitle}>{strings('onboarding.warning_title')}</Text>
+						<Text style={styles.warningModalText}>
+							{strings('onboarding.warning_text_1')}
+							<Text style={styles.warningModalTextBold}>{` ${strings(
+								'onboarding.warning_text_2'
+							)} `}</Text>
+							{strings('onboarding.warning_text_3')}
+						</Text>
+						<Text />
+						<Text style={styles.warningModalText}>{strings('onboarding.warning_text_4')}</Text>
+					</View>
+				</ActionModal>
 			</View>
 		);
 	}
