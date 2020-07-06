@@ -532,11 +532,12 @@ export function getOnboardingNavbarOptions() {
 			borderBottomWidth: 0
 		},
 		headerTitle: (
-			<View style={styles.metamaskNameWrapper}>
+			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
-		headerBackTitle: strings('navigation.back')
+		headerBackTitle: strings('navigation.back'),
+		headerRight: <View />
 	};
 }
 
