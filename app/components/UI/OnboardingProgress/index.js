@@ -105,7 +105,7 @@ export default class OnboardingProgress extends Component {
 				if (!this.ranOnce) {
 					this.setState(
 						{
-							offset: Math.floor(width / 2),
+							offset: Math.floor(width / 2) || 0,
 							showLines: true
 						},
 						() => {
