@@ -78,10 +78,6 @@ class BackupAlert extends PureComponent {
 	static propTypes = {
 		navigation: PropTypes.object,
 		/**
-		 * The action that will be triggered onPress
-		 */
-		onPress: PropTypes.any,
-		/**
 		 * redux flag that indicates if the user
 		 * completed the seed phrase backup flow
 		 */
@@ -117,8 +113,12 @@ class BackupAlert extends PureComponent {
 		return route.routeName;
 	}
 
+	goToBackupFlow = () => {
+		this.props.navigation.navigate('AccountBackupStep1');
+	};
+
 	render() {
-		const { onPress, seedphraseBackedUp, backUpSeedphraseVisible } = this.props;
+		const { seedphraseBackedUp, backUpSeedphraseVisible } = this.props;
 		const { inBrowserView, blockedView } = this.state;
 		if (seedphraseBackedUp || blockedView || !backUpSeedphraseVisible) return null;
 		return (
@@ -136,7 +136,7 @@ class BackupAlert extends PureComponent {
 					<View style={baseStyles.flexGrow}>
 						<Text style={styles.backupAlertTitle}>{strings('backup_alert.title')}</Text>
 						<View style={styles.buttonsWrapper}>
-							<TouchableOpacity onPress={onPress}>
+							<TouchableOpacity onPress={this.goToBackupFlow}>
 								<Text style={[styles.backupAlertMessage, fontStyles.bold]}>
 									{strings('backup_alert.right_button')}
 								</Text>

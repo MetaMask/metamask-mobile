@@ -103,6 +103,7 @@ import {
 	showSimpleNotification
 } from '../../../actions/notification';
 import AccountApproval from '../../UI/AccountApproval';
+import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -1047,10 +1048,6 @@ class Main extends PureComponent {
 		);
 	};
 
-	backupAlertPress = () => {
-		this.props.navigation.navigate('AccountBackupStep1');
-	};
-
 	render() {
 		const { isPaymentChannelTransaction, isPaymentRequest } = this.props;
 		const { forceReload } = this.state;
@@ -1067,8 +1064,9 @@ class Main extends PureComponent {
 					)}
 					<GlobalAlert />
 					<FadeOutOverlay />
-					<BackupAlert navigation={this.props.navigation} onPress={this.backupAlertPress} />
 					<Notification navigation={this.props.navigation} />
+					<BackupAlert navigation={this.props.navigation} />
+					<ProtectYourWalletModal navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
