@@ -1034,7 +1034,11 @@ class DrawerView extends PureComponent {
 					propagateSwipe
 					style={styles.bottomModal}
 				>
-					<ReceiveRequest navigation={this.props.navigation} showReceiveModal={this.showReceiveModal} />
+					<ReceiveRequest
+						navigation={this.props.navigation}
+						hideModal={this.toggleReceiveModal}
+						showReceiveModal={this.showReceiveModal}
+					/>
 				</Modal>
 				{!this.props.passwordSet && (
 					<CustomAlert

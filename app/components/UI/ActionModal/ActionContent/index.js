@@ -18,8 +18,7 @@ const styles = StyleSheet.create({
 		borderRadius: 10
 	},
 	actionContainer: {
-		borderTopColor: colors.grey200,
-		borderTopWidth: 1
+		borderTopColor: colors.grey200
 	},
 	actionHorizontalContainer: {
 		flexDirection: 'row',
@@ -139,11 +138,11 @@ ActionContent.propTypes = {
 	/**
 	 * Type of button to show as the cancel button
 	 */
-	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'confirm', 'normal', 'warning']),
+	cancelButtonMode: PropTypes.string,
 	/**
 	 * Type of button to show as the confirm button
 	 */
-	confirmButtonMode: PropTypes.oneOf(['normal', 'neutral', 'confirm', 'warning']),
+	confirmButtonMode: PropTypes.string,
 	/**
 	 * Whether confirm button is disabled
 	 */

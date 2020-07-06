@@ -19,6 +19,7 @@ import { generateUniversalLinkAddress } from '../../../util/payment-link-generat
 import AddressQRCode from '../../Views/AddressQRCode';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { protectWalletModalVisible } from '../../../actions/user';
 
 const TOTAL_PADDING = 64;
 const ACTION_WIDTH = (Dimensions.get('window').width - TOTAL_PADDING) / 2;
@@ -111,7 +112,15 @@ class ReceiveRequest extends PureComponent {
 		/**
 		 * Action that toggles the receive modal
 		 */
-		toggleReceiveModal: PropTypes.func
+		toggleReceiveModal: PropTypes.func,
+		/**
+		 * Prompts protect wallet modal
+		 */
+		protectWalletModalVisible: PropTypes.func,
+		/**
+		 * Hides the modal that contains the component
+		 */
+		hideModal: PropTypes.func
 	};
 
 	state = {
@@ -126,9 +135,14 @@ class ReceiveRequest extends PureComponent {
 		const { selectedAddress } = this.props;
 		Share.open({
 			message: generateUniversalLinkAddress(selectedAddress)
-		}).catch(err => {
-			Logger.log('Error while trying to share address', err);
-		});
+		})
+			.then(() => {
+				this.props.hideModal();
+				setTimeout(() => this.props.protectWalletModalVisible(), 1000);
+			})
+			.catch(err => {
+				Logger.log('Error while trying to share address', err);
+			});
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_SHARE_ADDRESS);
 		});
@@ -286,7 +300,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	toggleReceiveModal: () => dispatch(toggleReceiveModal())
+	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 
 export default connect(

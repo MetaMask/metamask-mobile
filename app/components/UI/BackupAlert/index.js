@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 	backupAlertWrapper: {
 		flex: 1,
 		backgroundColor: colors.orange000,
-		borderColor: colors.yellow150,
+		borderColor: colors.yellow300,
 		borderWidth: 1,
 		position: 'absolute',
 		left: 16,
@@ -100,12 +100,25 @@ class BackupAlert extends PureComponent {
 	componentDidUpdate = async prevProps => {
 		if (prevProps.navigation.state !== this.props.navigation.state) {
 			const currentRouteName = this.findRouteNameFromNavigatorState(this.props.navigation.state);
+			const currentTabRouteName = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
+
 			const inBrowserView = currentRouteName === BROWSER_ROUTE;
-			const blockedView = BLOCKED_LIST.find(path => currentRouteName.includes(path));
+			const blockedView =
+				BLOCKED_LIST.find(path => currentRouteName.includes(path)) || currentTabRouteName === 'SetPasswordFlow';
 			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({ inBrowserView, blockedView });
 		}
 	};
+
+	findBottomTabRouteNameFromNavigatorState({ routes }) {
+		let route = routes[routes.length - 1];
+		let routeName;
+		while (route.index !== undefined) {
+			routeName = route.routeName;
+			route = route.routes[route.index];
+		}
+		return routeName;
+	}
 
 	findRouteNameFromNavigatorState({ routes }) {
 		let route = routes[routes.length - 1];
@@ -114,7 +127,7 @@ class BackupAlert extends PureComponent {
 	}
 
 	goToBackupFlow = () => {
-		this.props.navigation.navigate('AccountBackupStep1');
+		this.props.navigation.navigate('SetPasswordFlow');
 	};
 
 	render() {
