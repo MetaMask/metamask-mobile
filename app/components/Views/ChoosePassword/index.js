@@ -237,12 +237,18 @@ class ChoosePassword extends PureComponent {
 			this.setState({ loading: true });
 
 			const { KeyringController } = Engine.context;
-			await Engine.resetState();
-			await KeyringController.createNewVaultAndKeychain('');
-			await SecureKeychain.setGenericPassword('metamask-user', password);
-			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
-			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			const accounts = await KeyringController.getAccounts();
+			if (!accounts.length) {
+				await Engine.resetState();
+				await KeyringController.createNewVaultAndKeychain(password);
+				this.keyringControllerPasswordSet = true;
+				await SecureKeychain.setGenericPassword('metamask-user', password);
+				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
+				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			} else {
+				await this.recreateVault(password);
+			}
 
 			// Set state in app as it was with password
 			if (this.state.biometryType && this.state.biometryChoice) {
