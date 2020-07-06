@@ -5,6 +5,7 @@ import ActionModal from '../ActionModal';
 import { fontStyles, colors } from '../../../styles/common';
 import { connect } from 'react-redux';
 import StyledButton from '../StyledButton';
+import { protectWalletModalNotVisible } from '../../../actions/user';
 
 const protectWalletImage = require('../../../images/protect-wallet.jpg'); // eslint-disable-line
 
@@ -32,25 +33,30 @@ const styles = StyleSheet.create({
  */
 class ProtectYourWalletModal extends PureComponent {
 	static propTypes = {
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Hide this modal
+		 */
+		protectWalletModalNotVisible: PropTypes.func,
+		/**
+		 * Whether this modal is visible
+		 */
+		protectWalletModalVisible: PropTypes.bool
 	};
 
 	goToBackupFlow = () => {
 		this.props.navigation.navigate('AccountBackupStep1');
 	};
 
-	// eslint-disable-next-line no-empty-function
-	hideModal = () => {};
-
 	render() {
 		return (
 			<ActionModal
-				modalVisible
+				modalVisible={this.props.protectWalletModalVisible}
 				cancelText={'Protect wallet'}
 				confirmText={'Remind me later'}
 				onCancelPress={this.goToBackupFlow}
-				onRequestClose={this.hideModal}
-				onConfirmPress={this.hideModal}
+				onRequestClose={this.props.protectWalletModalNotVisible}
+				onConfirmPress={this.props.protectWalletModalNotVisible}
 				cancelButtonMode={'sign'}
 				confirmButtonMode={'transparent-blue'}
 				verticalButtons
@@ -84,6 +90,15 @@ class ProtectYourWalletModal extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({});
+const mapStateToProps = state => ({
+	protectWalletModalVisible: state.user.protectWalletModalVisible
+});
 
-export default connect(mapStateToProps)(ProtectYourWalletModal);
+const mapDispatchToProps = dispatch => ({
+	protectWalletModalNotVisible: enable => dispatch(protectWalletModalNotVisible())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(ProtectYourWalletModal);
