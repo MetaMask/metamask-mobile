@@ -105,8 +105,7 @@ const styles = StyleSheet.create({
 class ManualBackupStep3 extends PureComponent {
 	constructor(props) {
 		super(props);
-		// this.steps = props.navigation.getParam('steps');
-		this.steps = ['1', '2', '3'];
+		this.steps = props.navigation.getParam('steps');
 	}
 
 	state = {
@@ -143,7 +142,7 @@ class ManualBackupStep3 extends PureComponent {
 
 	saveSeedphrase = async () => {
 		this.toggleHint();
-		await AsyncStorage.setItem('seedphraseHint', this.state.hintText);
+		await AsyncStorage.setItem('seedphraseHints', { manualBackup: this.state.hintText });
 	};
 
 	done = async () => {
