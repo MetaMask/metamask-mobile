@@ -14,7 +14,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
   <View
     style={
       Object {
-        "paddingBottom": 112,
+        "marginVertical": 18,
       }
     }
   >
