@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 	backupAlertWrapper: {
 		flex: 1,
 		backgroundColor: colors.orange000,
-		borderColor: colors.yellow200,
+		borderColor: colors.yellow150,
 		borderWidth: 1,
 		position: 'absolute',
 		left: 16,
@@ -87,10 +87,6 @@ class BackupAlert extends PureComponent {
 		 */
 		seedphraseBackedUp: PropTypes.bool,
 		/**
-		 * redux flag that indicates if the user set a password
-		 */
-		passwordSet: PropTypes.bool,
-		/**
 		 * redux flag that indicates if the alert should be shown
 		 */
 		backUpSeedphraseVisible: PropTypes.bool,
@@ -122,10 +118,9 @@ class BackupAlert extends PureComponent {
 	}
 
 	render() {
-		const { onPress, seedphraseBackedUp, passwordSet, backUpSeedphraseVisible } = this.props;
+		const { onPress, seedphraseBackedUp, backUpSeedphraseVisible } = this.props;
 		const { inBrowserView, blockedView } = this.state;
-		if (!passwordSet || seedphraseBackedUp || blockedView || !backUpSeedphraseVisible) return null;
-		// if (!backUpSeedphraseVisible) return null;
+		if (seedphraseBackedUp || blockedView || !backUpSeedphraseVisible) return null;
 		return (
 			<ElevatedView
 				elevation={99}
@@ -139,13 +134,15 @@ class BackupAlert extends PureComponent {
 						<EvilIcons name="bell" style={styles.backupAlertIcon} />
 					</View>
 					<View style={baseStyles.flexGrow}>
-						<Text style={styles.backupAlertTitle}>{strings('browser.backup_alert_title')}</Text>
+						<Text style={styles.backupAlertTitle}>{strings('backup_alert.title')}</Text>
 						<View style={styles.buttonsWrapper}>
 							<TouchableOpacity onPress={onPress}>
-								<Text style={[styles.backupAlertMessage, fontStyles.bold]}>Protect wallet</Text>
+								<Text style={[styles.backupAlertMessage, fontStyles.bold]}>
+									{strings('backup_alert.right_button')}
+								</Text>
 							</TouchableOpacity>
 							<TouchableOpacity onPress={this.props.backUpSeedphraseAlertNotVisible}>
-								<Text style={styles.backupAlertMessage}>Remind me later</Text>
+								<Text style={styles.backupAlertMessage}>{strings('backup_alert.left_button')}</Text>
 							</TouchableOpacity>
 						</View>
 					</View>
@@ -157,7 +154,6 @@ class BackupAlert extends PureComponent {
 
 const mapStateToProps = state => ({
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
-	passwordSet: state.user.passwordSet,
 	backUpSeedphraseVisible: state.user.backUpSeedphraseVisible
 });
 

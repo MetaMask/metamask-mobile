@@ -612,9 +612,12 @@
 		"failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
 		"remove_bookmark_title": "Remove favorite",
 		"remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
-		"yes": "Yes",
-		"backup_alert_title": "Protect your wallet",
-		"backup_alert_message": "Tap to save your seed phrase"
+		"yes": "Yes"
+	},
+	"backup_alert": {
+		"title": "Protect your wallet",
+		"left_button": "Remind me later",
+		"right_button": "Protect wallet"
 	},
 	"add_favorite": {
 		"title": "Add Favorite",

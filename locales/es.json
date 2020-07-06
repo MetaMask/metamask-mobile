@@ -568,9 +568,12 @@
 		"failed_to_resolve_ens_name": "No pudimos resolver ese nombre ENS",
 		"remove_bookmark_title": "Eliminar favorito",
 		"remove_bookmark_msg": "Realmente deseas eliminar este sitio de tus favoritos?",
-		"yes": "Si",
-		"backup_alert_title": "Proteje tu billetera",
-		"backup_alert_message": "Presiona para salvar tu frase semilla"
+		"yes": "Si"
+	},
+	"backup_alert": {
+		"title": "Protege tu billetera",
+		"left_button": "Recuérdame más tarde",
+		"right_button": "Proteger billetera"
 	},
 	"add_favorite": {
 		"title": "Agregar Favorito",
