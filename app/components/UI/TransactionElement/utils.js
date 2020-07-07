@@ -178,10 +178,8 @@ function getTokenTransfer(args) {
 		};
 	}
 
-	const { SENT_TOKEN, RECEIVED_TOKEN } = TRANSACTION_TYPES
-	const transactionType = (renderFullAddress(from) === selectedAddress)
-		? SENT_TOKEN
-		: RECEIVED_TOKEN
+	const { SENT_TOKEN, RECEIVED_TOKEN } = TRANSACTION_TYPES;
+	const transactionType = renderFullAddress(from) === selectedAddress ? SENT_TOKEN : RECEIVED_TOKEN;
 	const transactionElement = {
 		actionKey: renderActionKey,
 		value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
@@ -306,9 +304,9 @@ function decodeIncomingTransfer(args) {
 		: weiToFiatNumber(totalGas, conversionRate);
 
 	const ticker = getTicker(args.ticker);
-	let transactionType;
-	if (renderFullAddress(from) === selectedAddress) transactionType = TRANSACTION_TYPES.SENT_TOKEN;
-	else transactionType = TRANSACTION_TYPES.RECEIVED_TOKEN;
+
+	const { SENT_TOKEN, RECEIVED_TOKEN } = TRANSACTION_TYPES;
+	const transactionType = renderFullAddress(from) === selectedAddress ? SENT_TOKEN : RECEIVED_TOKEN;
 
 	let transactionDetails = {
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
@@ -427,9 +425,8 @@ function decodeTransferFromTx(args) {
 	const renderTo = renderFullAddress(addressTo);
 	const ticker = getTicker(args.ticker);
 
-	let transactionType;
-	if (renderFrom === selectedAddress) transactionType = TRANSACTION_TYPES.SENT_COLLECTIBLE;
-	else transactionType = TRANSACTION_TYPES.RECEIVED_COLLECTIBLE;
+	const { SENT_COLLECTIBLE, RECEIVED_COLLECTIBLE } = TRANSACTION_TYPES;
+	const transactionType = renderFrom === selectedAddress ? SENT_COLLECTIBLE : RECEIVED_COLLECTIBLE;
 
 	let transactionDetails = {
 		renderFrom,
