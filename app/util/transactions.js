@@ -283,7 +283,6 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 		const selfSent = safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		const translationKey = selfSent ? 'transactions.self_sent_unit' : 'transactions.received_unit';
 		return strings(translationKey, { unit: tx.transferInformation.symbol });
-		
 	}
 
 	const actionKey = await getTransactionActionKey(tx);

@@ -88,7 +88,6 @@ export default class TransactionSummary extends PureComponent {
 
 	render = () => {
 		const { amount, fee, totalAmount, secondaryTotalAmount, gasEstimationReady, onEditPress } = this.props;
-		console.log('this.props.transactionType', this.props.transactionType);
 		if (
 			this.props.transactionType === TRANSACTION_TYPES.RECEIVED_TOKEN ||
 			this.props.transactionType === TRANSACTION_TYPES.RECEIVED
