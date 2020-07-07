@@ -397,7 +397,11 @@ class DrawerView extends PureComponent {
 		/**
 		 * An object containing token balances for current account and network in the format address => balance
 		 */
-		tokenBalances: PropTypes.object
+		tokenBalances: PropTypes.object,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	state = {
@@ -1109,7 +1113,8 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	seedphraseBackedUp: state.user.seedphraseBackedUp
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 
 const mapDispatchToProps = dispatch => ({
