@@ -17,12 +17,21 @@ describe('CustomGas', () => {
 						currentCurrency: 'usd',
 						conversionRate: 0.1
 					},
+					AccountTrackerController: {
+						accounts: {
+							'0x': '0x'
+						}
+					},
 					NetworkController: {
 						provider: {
 							ticker: 'ETH'
 						}
 					}
 				}
+			},
+			transaction: {
+				from: '0x',
+				value: 100
 			}
 		};
 
