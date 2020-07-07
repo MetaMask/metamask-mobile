@@ -14,8 +14,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	domainLogo: {
-		width: 64,
-		height: 64,
+		width: 56,
+		height: 56,
 		borderRadius: 32
 	},
 	assetLogo: {
@@ -70,11 +70,7 @@ class TransactionHeader extends PureComponent {
 		/**
 		 * String representing the selected network
 		 */
-		networkType: PropTypes.string,
-		/**
-		 * Object representing the status of infura networks
-		 */
-		networkStatus: PropTypes.object
+		networkType: PropTypes.string
 	};
 
 	/**
@@ -83,8 +79,8 @@ class TransactionHeader extends PureComponent {
 	 * @return {element} - JSX view element
 	 */
 	renderNetworkStatusIndicator = () => {
-		const { networkType, networkStatus } = this.props;
-		const networkStatusIndicatorColor = networkStatus[networkType] === 'ok' ? 'green' : 'red';
+		const { networkType } = this.props;
+		const networkStatusIndicatorColor = (networkList[networkType] && networkList[networkType].color) || colors.red;
 		const networkStatusIndicator = (
 			<View style={[styles.networkStatusIndicator, { backgroundColor: networkStatusIndicatorColor }]} />
 		);
@@ -98,12 +94,13 @@ class TransactionHeader extends PureComponent {
 	 */
 	renderSecureIcon = () => {
 		const { url } = this.props.currentPageInformation;
-		const secureIcon =
-			getUrlObj(url).protocol === 'https:' ? (
-				<FontAwesome name={'lock'} size={15} style={styles.secureIcon} />
-			) : (
-				<FontAwesome name={'warning'} size={15} style={styles.secureIcon} />
-			);
+		const secureIcon = (
+			<FontAwesome
+				name={getUrlObj(url).protocol === 'https:' ? 'lock' : 'warning'}
+				size={15}
+				style={styles.secureIcon}
+			/>
+		);
 		return secureIcon;
 	};
 

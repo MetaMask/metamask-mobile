@@ -166,8 +166,8 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 29
-		versionName "0.2.16"
+		versionCode 32
+		versionName "0.2.19"
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
 		missingDimensionStrategy "minReactNative", "minReactNative46"
@@ -261,7 +261,7 @@ dependencies {
 	implementation "com.facebook.react:react-native:+"  // From node_modules
 	implementation 'org.chromium:v8-android:+'
 
-	implementation "io.branch.sdk.android:library:4.1.2"
+	implementation "io.branch.sdk.android:library:5.+"
 
 	implementation 'com.mixpanel.android:mixpanel-android:5.+'
 

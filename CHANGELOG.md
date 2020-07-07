@@ -1,6 +1,59 @@
 # Changelog
 
 ## Current Develop Branch
+- [#1591](https://github.com/MetaMask/metamask-mobile/pull/1591): feature/sync imported accounts from extension (#1591)
+- [#1645](https://github.com/MetaMask/metamask-mobile/pull/1645): Fix env vars (#1645)
+- [#1649](https://github.com/MetaMask/metamask-mobile/pull/1649): remove sai message (#1649)
+- [#1648](https://github.com/MetaMask/metamask-mobile/pull/1648): bump mobile provider (#1648)
+- [#1643](https://github.com/MetaMask/metamask-mobile/pull/1643): Use @metamask/controllers@2.0.1 (#1643)
+- [#1558](https://github.com/MetaMask/metamask-mobile/pull/1558): Complete redesigns for approval flow (#1558)
+- [#1640](https://github.com/MetaMask/metamask-mobile/pull/1640): enable-apple-pay (#1640)
+
+## v0.2.19 - Jun 29 2020
+- [#1661](https://github.com/MetaMask/metamask-mobile/pull/1661): bugfix/Use eth gas API
+- [#1653](https://github.com/MetaMask/metamask-mobile/pull/1653): Add ETH_GAS_STATION_API_KEY (#1653)
+
+## v0.2.18 - Jun 15 2020
+- [#1636](https://github.com/MetaMask/metamask-mobile/pull/1636): Add padding to CustomGas back button (#1636)
+- [#1637](https://github.com/MetaMask/metamask-mobile/pull/1637): Bugfix/incoming notifications (#1637)
+- [#1628](https://github.com/MetaMask/metamask-mobile/pull/1628): Fix network color indicator on transactionHeader for connect screens (#1628)
+
+## v0.2.17 - Jun 12 2020
+
+- [#1629](https://github.com/MetaMask/metamask-mobile/pull/1629): bugfix/custom gas modal (#1629)
+- [#1625](https://github.com/MetaMask/metamask-mobile/pull/1625): Bugfix/wc connect on app closed (#1625)
+- [#1624](https://github.com/MetaMask/metamask-mobile/pull/1624): Wallet connect update + Support for simple notifications (#1624)
+- [#1623](https://github.com/MetaMask/metamask-mobile/pull/1623): Fix browser intial load (#1623)
+- [#1621](https://github.com/MetaMask/metamask-mobile/pull/1621): Fix branch (#1621)
+- [#1512](https://github.com/MetaMask/metamask-mobile/pull/1512): Transaction components (#1512)
+- [#1619](https://github.com/MetaMask/metamask-mobile/pull/1619): Fix aab link on slack (#1619)
+- [#1618](https://github.com/MetaMask/metamask-mobile/pull/1618): Fix android circleci (#1618)
+- [#1578](https://github.com/MetaMask/metamask-mobile/pull/1578): Stops the unintended 'User Rejected...' error caused by buggy submitt… (#1578)
+- [#1615](https://github.com/MetaMask/metamask-mobile/pull/1615): Android circleci fix (#1615)
+- [#1554](https://github.com/MetaMask/metamask-mobile/pull/1554): Splash screen on android (#1554)
+- [#1612](https://github.com/MetaMask/metamask-mobile/pull/1612): Update: add warningTextEmpty, closes #1610 (#1612)
+- [#1560](https://github.com/MetaMask/metamask-mobile/pull/1560): Mixpanel migration (#1560)
+- [#1606](https://github.com/MetaMask/metamask-mobile/pull/1606): Default to wallet when app re-opens (#1606)
+- [#1608](https://github.com/MetaMask/metamask-mobile/pull/1608): remove log from TransactionNotification (#1608)
+- [#1611](https://github.com/MetaMask/metamask-mobile/pull/1611): make detox great again (#1611)
+- [#1514](https://github.com/MetaMask/metamask-mobile/pull/1514): Improvement/protect funds everywhere (#1514)
+- [#1580](https://github.com/MetaMask/metamask-mobile/pull/1580): filter sentry tx rejected errors (#1580)
+- [#1555](https://github.com/MetaMask/metamask-mobile/pull/1555): remove set timeouts (#1555)
+- [#1604](https://github.com/MetaMask/metamask-mobile/pull/1604): Connect design qa (#1604)
+- [#1602](https://github.com/MetaMask/metamask-mobile/pull/1602): Bugfix/rn upgrade circleci and e2e (#1602)
+- [#1568](https://github.com/MetaMask/metamask-mobile/pull/1568): Fix browser initial loading performance (#1568)
+- [#1601](https://github.com/MetaMask/metamask-mobile/pull/1601): Add overlayColor (#1601)
+- [#1600](https://github.com/MetaMask/metamask-mobile/pull/1600): Fix circle ci and improve e2e (#1600)
+- [#1599](https://github.com/MetaMask/metamask-mobile/pull/1599): Update @metamask/mobile-provider (#1599)
+- [#1550](https://github.com/MetaMask/metamask-mobile/pull/1550): Bugfix/choose password lockout (#1550)
+- [#1598](https://github.com/MetaMask/metamask-mobile/pull/1598): Use @metamask/controllers (#1598)
+- [#1508](https://github.com/MetaMask/metamask-mobile/pull/1508): Connect Screen Designs (#1508)
+- [#1577](https://github.com/MetaMask/metamask-mobile/pull/1577): Fix last two paste context issues on Android (#1577)
+- [#1597](https://github.com/MetaMask/metamask-mobile/pull/1597): fix builds (#1597)
+- [#1588](https://github.com/MetaMask/metamask-mobile/pull/1588): React native 0.62.1 libraries upgraded rebased (#1588)
+- [#1586](https://github.com/MetaMask/metamask-mobile/pull/1586): React native upgrade 0.62.2 rebased (#1586)
+- [#1590](https://github.com/MetaMask/metamask-mobile/pull/1590): Add CODEOWNERS (#1590)
+- [#1584](https://github.com/MetaMask/metamask-mobile/pull/1584): make sign tests great again (#1584)
 
 ## v0.2.16 - May 15 2020
 - [#1582](https://github.com/MetaMask/metamask-mobile/pull/1582): Instapay deposit navbar cancel (#1582)

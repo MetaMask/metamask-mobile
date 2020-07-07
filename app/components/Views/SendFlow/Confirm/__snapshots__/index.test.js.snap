@@ -85,22 +85,15 @@ exports[`Confirm should render correctly 1`] = `
         }
       />
     </View>
-    <View
-      style={
-        Object {
-          "marginHorizontal": 24,
-        }
-      }
-    >
-      <TransactionSummary
-        amount=""
-        fee=""
-        gasEstimationReady={false}
-        onEditPress={[Function]}
-        secondaryTotalAmount=""
-        totalAmount=""
-      />
-    </View>
+    <TransactionReviewFeeCard
+      fiat=""
+      gasEstimationReady={false}
+      toggleCustomGasModal={[Function]}
+      totalFiat=""
+      totalGasFiat=""
+      totalValue={<Text />}
+      transactionValue=""
+    />
     <View
       style={
         Object {
@@ -223,55 +216,61 @@ exports[`Confirm should render correctly 1`] = `
     />
   </ReactNativeModal>
   <ActionModal
+    actionContainerStyle={
+      Object {
+        "borderTopWidth": 0,
+      }
+    }
     cancelButtonMode="neutral"
     cancelTestID=""
     cancelText="Cancel"
+    childrenContainerStyle={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderTopLeftRadius": 20,
+        "borderTopRightRadius": 20,
+        "paddingTop": 24,
+        "width": "100%",
+      }
+    }
     confirmButtonMode="confirm"
-    confirmDisabled={false}
+    confirmDisabled={true}
     confirmTestID=""
-    confirmText="Set"
-    displayCancelButton={true}
+    confirmText="Save"
+    displayCancelButton={false}
     displayConfirmButton={true}
+    modalStyle={
+      Object {
+        "alignItems": "center",
+        "justifyContent": "flex-end",
+        "width": "100%",
+      }
+    }
     modalVisible={false}
-    onCancelPress={[Function]}
     onConfirmPress={[Function]}
     onRequestClose={[Function]}
-  >
-    <View
-      style={
-        Object {
-          "flex": 1,
-        }
+    viewContainerStyle={
+      Object {
+        "borderRadius": 20,
       }
-    >
-      <View
-        style={
-          Object {
-            "borderBottomColor": "#d6d9dc",
-            "borderBottomWidth": 1,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "alignSelf": "center",
-              "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 18,
-              "fontWeight": "600",
-              "margin": 16,
-            }
-          }
-        >
-          Transaction fee
-        </Text>
-      </View>
-      <Connect(CustomGas)
-        handleGasFeeSelection={[Function]}
-        selected="average"
-      />
-    </View>
+    }
+    viewWrapperStyle={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderTopLeftRadius": 20,
+        "borderTopRightRadius": 20,
+        "marginHorizontal": 0,
+        "paddingBottom": 24,
+      }
+    }
+  >
+    <Connect(CustomGas)
+      handleGasFeeSelection={[Function]}
+      handleSetGasFee={[Function]}
+      parentStateReady={[Function]}
+      selected="average"
+      toggleCustomGasModal={[Function]}
+    />
   </ActionModal>
   <ReactNativeModal
     animationIn="slideInUp"

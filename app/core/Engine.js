@@ -27,10 +27,10 @@ import Networks from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
-import TransactionsNotificationManager from './TransactionsNotificationManager';
+import NotificationManager from './NotificationManager';
 import contractMap from 'eth-contract-metadata';
 
-const OPENSEA_API_KEY = process.env['MM_OPENSEA_KEY']; // eslint-disable-line dot-notation
+const OPENSEA_API_KEY = process.env.MM_OPENSEA_KEY;
 const encryptor = new Encryptor();
 let refreshing = false;
 /**
@@ -204,7 +204,7 @@ class Engine {
 					lastCheck: Date.now()
 				};
 
-				TransactionsNotificationManager.gotIncomingTransaction(newlastIncomingTxBlock);
+				NotificationManager.gotIncomingTransaction(newlastIncomingTxBlock);
 			} else {
 				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] = {
 					...allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`],
@@ -288,7 +288,7 @@ class Engine {
 		});
 	};
 
-	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
+	sync = async ({ accounts, preferences, network, transactions, seed, pass, importedAccounts }) => {
 		const {
 			KeyringController,
 			PreferencesController,
@@ -306,6 +306,12 @@ class Engine {
 			await KeyringController.addNewAccount();
 		}
 
+		// Recreate imported accounts
+		if (importedAccounts) {
+			for (let i = 0; i < importedAccounts.length; i++) {
+				await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
+			}
+		}
 		// Sync tokens
 		const allTokens = {};
 		Object.keys(preferences.accountTokens).forEach(address => {
@@ -331,11 +337,12 @@ class Engine {
 		const updatedPref = { ...preferences, identities: {} };
 		Object.keys(preferences.identities).forEach(address => {
 			const checksummedAddress = toChecksumAddress(address);
-			if (accounts.hd.includes(checksummedAddress)) {
+			if (accounts.hd.includes(checksummedAddress) || accounts.simpleKeyPair.includes(checksummedAddress)) {
 				updatedPref.identities[checksummedAddress] = preferences.identities[address];
 			}
 		});
 		await PreferencesController.update(updatedPref);
+
 		if (accounts.hd.includes(toChecksumAddress(updatedPref.selectedAddress))) {
 			PreferencesController.setSelectedAddress(updatedPref.selectedAddress);
 		} else {

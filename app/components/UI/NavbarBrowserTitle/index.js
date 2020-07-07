@@ -74,7 +74,11 @@ class NavbarBrowserTitle extends PureComponent {
 		/**
 		 * Boolean that specifies if it is a secure website
 		 */
-		https: PropTypes.bool
+		https: PropTypes.bool,
+		/**
+		 * Boolean that specifies if there is an error
+		 */
+		error: PropTypes.bool
 	};
 
 	onTitlePress = () => {
@@ -103,23 +107,24 @@ class NavbarBrowserTitle extends PureComponent {
 	}
 
 	render = () => {
-		const { https, network, hostname } = this.props;
+		const { https, network, hostname, error } = this.props;
 		const color = (Networks[network.provider.type] && Networks[network.provider.type].color) || null;
 		const name = this.getNetworkName(network);
 
 		return (
 			<TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
 				<View style={styles.currentUrlWrapper}>
-					{https ? <Icon name="lock" size={14} style={styles.lockIcon} /> : null}
+					{https && !error ? <Icon name="lock" size={14} style={styles.lockIcon} /> : null}
 					<Text
 						numberOfLines={1}
+						ellipsizeMode={'head'}
 						style={[styles.currentUrl, Device.isAndroid() ? styles.currentUrlAndroid : {}]}
 					>
 						{hostname}
 					</Text>
 				</View>
 				<View style={styles.network}>
-					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
+					<View style={[styles.networkIcon, { backgroundColor: color || colors.red }]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
 						{name}
 					</Text>

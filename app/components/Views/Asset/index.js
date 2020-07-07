@@ -61,7 +61,11 @@ class Asset extends PureComponent {
 		/**
 		 * Array of ERC20 assets
 		 */
-		tokens: PropTypes.array
+		tokens: PropTypes.array,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	state = {
@@ -193,7 +197,9 @@ class Asset extends PureComponent {
 			const submittedNonces = [];
 			submittedTxs = submittedTxs.filter(transaction => {
 				const alreadyConfirmed = confirmedTxs.find(
-					tx => tx.transaction.nonce === transaction.transaction.nonce
+					tx =>
+						tx.transaction.nonce === transaction.transaction.nonce &&
+						tx.transaction.from === this.props.selectedAddress.toLowerCase()
 				);
 				if (alreadyConfirmed) {
 					InteractionManager.runAfterInteractions(() => {
@@ -239,7 +245,7 @@ class Asset extends PureComponent {
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
-		await Engine.refreshTransactionHistory();
+		this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
 		this.setState({ refreshing: false });
 	};
 
@@ -291,7 +297,8 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	transactions: state.engine.backgroundState.TransactionController.transactions
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 
 export default connect(mapStateToProps)(Asset);

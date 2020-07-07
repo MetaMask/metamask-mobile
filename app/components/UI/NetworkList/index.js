@@ -138,7 +138,11 @@ export class NetworkList extends PureComponent {
 		/**
 		 * Networks status object
 		 */
-		networkStatus: PropTypes.object
+		networkStatus: PropTypes.object,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
@@ -151,9 +155,10 @@ export class NetworkList extends PureComponent {
 				const { NetworkController, CurrencyRateController } = Engine.context;
 				CurrencyRateController.configure({ nativeCurrency: 'ETH' });
 				NetworkController.setProviderType(type);
-				setTimeout(() => {
-					Engine.refreshTransactionHistory();
-				}, 1000);
+				this.props.thirdPartyApiMode &&
+					setTimeout(() => {
+						Engine.refreshTransactionHistory();
+					}, 1000);
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.COMMON_SWITCHED_NETWORKS, {
 					'From Network': provider.type,
 					'To Network': type
@@ -274,7 +279,8 @@ export class NetworkList extends PureComponent {
 const mapStateToProps = state => ({
 	provider: state.engine.backgroundState.NetworkController.provider,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
-	networkStatus: state.engine.backgroundState.NetworkStatusController.networkStatus
+	networkStatus: state.engine.backgroundState.NetworkStatusController.networkStatus,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 
 export default connect(mapStateToProps)(NetworkList);

@@ -200,7 +200,12 @@ describe('Wallet Tests', () => {
 		// Check that we are on the add collectible asset screen
 		await TestHelpers.checkIfVisible('add-custom-token-screen');
 		// Input incorrect contract address
-		await TestHelpers.typeTextAndHideKeyboard('input-collectible-address', COLLECTIBLE_CONTRACT_ADDRESS);
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField(`input-collectible-address`, COLLECTIBLE_CONTRACT_ADDRESS);
+			await element(by.id('input-collectible-address')).tapReturnKey();
+		} else {
+			await TestHelpers.typeTextAndHideKeyboard(`input-collectible-address`, COLLECTIBLE_CONTRACT_ADDRESS);
+		}
 		// Input correct identifier
 		await TestHelpers.typeTextAndHideKeyboard('input-token-decimals', COLLECTIBLE_IDENTIFIER);
 		// Check that we are on the wallet screen
@@ -288,15 +293,20 @@ describe('Wallet Tests', () => {
 		// Check that we are on the custom token screen
 		await TestHelpers.checkIfVisible('add-custom-token-screen');
 		// Type correct token address
-		await TestHelpers.typeText('input-token-address', TOKEN_ADDRESS);
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.replaceTextInField(`input-token-address`, TOKEN_ADDRESS);
+			await element(by.id('input-token-address')).tapReturnKey();
+		} else {
+			await TestHelpers.typeText('input-token-address', TOKEN_ADDRESS);
+		}
 		// Add token
 		if (device.getPlatform() === 'android') {
 			await TestHelpers.tapByText('Token Address');
-			await TestHelpers.tap('input-token-decimals');
-			await element(by.id('input-token-decimals')).tapReturnKey();
+			await TestHelpers.delay(1500);
+			await TestHelpers.tap('add-custom-asset-confirm-button');
 		} else {
 			await TestHelpers.tapByText('Token Address');
-			await TestHelpers.tapByText('ADD TOKEN');
+			await TestHelpers.tap('add-custom-asset-confirm-button');
 		}
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');

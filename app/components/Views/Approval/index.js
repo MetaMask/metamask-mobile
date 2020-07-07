@@ -1,28 +1,29 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Alert, InteractionManager } from 'react-native';
+import { StyleSheet, Alert, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
+import Modal from 'react-native-modal';
 import { BNToHex, hexToBN } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
-import { colors } from '../../../styles/common';
 import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
-import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import NotificationManager from '../../../core/NotificationManager';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTransactionReviewActionKey, getNormalizedTxState } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { safeToChecksumAddress } from '../../../util/address';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
 const APPROVAL = 'Approval';
 
 const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1
+	bottomModal: {
+		justifyContent: 'flex-end',
+		margin: 0
 	}
 });
 
@@ -52,7 +53,15 @@ class Approval extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Hides or shows the dApp transaction modal
+		 */
+		toggleDappTransactionModal: PropTypes.func,
+		/**
+		 * Tells whether or not dApp transaction modal is visible
+		 */
+		dappTransactionModalVisible: PropTypes.bool
 	};
 
 	state = {
@@ -140,9 +149,25 @@ class Approval extends PureComponent {
 		this.props.resetTransaction();
 	};
 
+	showWalletConnectNotification = (confirmation = false) => {
+		const { transaction } = this.props;
+		InteractionManager.runAfterInteractions(() => {
+			transaction.origin === WALLET_CONNECT_ORIGIN &&
+				NotificationManager.showSimpleNotification({
+					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
+					duration: 5000,
+					title: confirmation
+						? strings('notifications.wc_sent_tx_title')
+						: strings('notifications.wc_sent_tx_rejected_title'),
+					description: strings('notifications.wc_description')
+				});
+		});
+	};
+
 	onCancel = () => {
-		this.props.navigation.pop();
+		this.props.toggleDappTransactionModal();
 		this.state.mode === REVIEW && this.trackOnCancel();
+		this.showWalletConnectNotification();
 	};
 
 	/**
@@ -165,8 +190,8 @@ class Approval extends PureComponent {
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
-					this.props.navigation.pop();
-					TransactionsNotificationManager.watchSubmittedTransaction({
+					this.props.toggleDappTransactionModal();
+					NotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
 						assetType: transaction.assetType
 					});
@@ -179,6 +204,7 @@ class Approval extends PureComponent {
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
+			this.showWalletConnectNotification(true);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
 				{ text: strings('navigation.ok') }
@@ -240,10 +266,23 @@ class Approval extends PureComponent {
 	}
 
 	render = () => {
-		const { transaction } = this.props;
+		const { transaction, dappTransactionModalVisible } = this.props;
 		const { mode } = this.state;
 		return (
-			<SafeAreaView style={styles.wrapper} testID={'confirm-transaction-screen'}>
+			<Modal
+				isVisible={dappTransactionModalVisible}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.onCancel}
+				onBackButtonPress={this.onCancel}
+				onSwipeComplete={this.onCancel}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
 				<TransactionEditor
 					promptedFromApproval
 					mode={mode}
@@ -252,8 +291,9 @@ class Approval extends PureComponent {
 					onModeChange={this.onModeChange}
 					transaction={transaction}
 					navigation={this.props.navigation}
+					dappTransactionModalVisible={dappTransactionModalVisible}
 				/>
-			</SafeAreaView>
+			</Modal>
 		);
 	};
 }

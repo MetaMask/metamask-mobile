@@ -58,7 +58,7 @@ import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
@@ -73,7 +73,6 @@ import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
-import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDeposit';
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
@@ -91,15 +90,20 @@ import { isENS, safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
-import WalletConnectReturnToBrowserModal from '../../UI/WalletConnectReturnToBrowserModal';
-import AsyncStorage from '@react-native-community/async-storage';
 import Approve from '../../Views/ApproveView/Approve';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
-import TxNotification from '../../UI/TxNotification';
-import { showTransactionNotification, hideTransactionNotification } from '../../../actions/transactionNotification';
+import BackupAlert from '../../UI/BackupAlert';
+import Notification from '../../UI/Notification';
+import {
+	showTransactionNotification,
+	hideTransactionNotification,
+	showSimpleNotification
+} from '../../../actions/notification';
+import { toggleDappTransactionModal } from '../../../actions/modals';
+import AccountApproval from '../../UI/AccountApproval';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -126,14 +130,6 @@ const MainNavigator = createStackNavigator(
 		Home: {
 			screen: createBottomTabNavigator(
 				{
-					BrowserTabHome: createStackNavigator({
-						BrowserView: {
-							screen: Browser,
-							navigationOptions: {
-								gesturesEnabled: false
-							}
-						}
-					}),
 					WalletTabHome: createStackNavigator({
 						WalletView: {
 							screen: Wallet
@@ -152,6 +148,14 @@ const MainNavigator = createStackNavigator(
 						},
 						RevealPrivateCredentialView: {
 							screen: RevealPrivateCredential
+						}
+					}),
+					BrowserTabHome: createStackNavigator({
+						BrowserView: {
+							screen: Browser,
+							navigationOptions: {
+								gesturesEnabled: false
+							}
 						}
 					}),
 					TransactionsHome: createStackNavigator({
@@ -402,15 +406,6 @@ class Main extends PureComponent {
 		 */
 		tokens: PropTypes.array,
 		/**
-		 * List of all tracked tokens
-		 */
-		allTokens: PropTypes.object,
-		/**
-		/**
-		 * List of all the balances of each contract tracked
-		 */
-		contractBalances: PropTypes.object,
-		/**
 		 * List of transactions
 		 */
 		transactions: PropTypes.array,
@@ -422,6 +417,10 @@ class Main extends PureComponent {
 		 * Dispatch showing a transaction notification
 		 */
 		showTransactionNotification: PropTypes.func,
+		/**
+		 * Dispatch showing a simple notification
+		 */
+		showSimpleNotification: PropTypes.func,
 		/**
 		 * Dispatch hiding a transaction notification
 		 */
@@ -437,9 +436,20 @@ class Main extends PureComponent {
 		/**
 		/* Identities object required to get account name
 		*/
-		identities: PropTypes.object
+		identities: PropTypes.object,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		/* Hides or shows dApp transaction modal
+		*/
+		toggleDappTransactionModal: PropTypes.func,
+		/**
+		/* dApp transaction modal visible or not
+		*/
+		dappTransactionModalVisible: PropTypes.bool
 	};
-
 	state = {
 		connected: true,
 		forceReload: false,
@@ -448,7 +458,6 @@ class Main extends PureComponent {
 		signType: '',
 		walletConnectRequest: false,
 		walletConnectRequestInfo: {},
-		walletConnectReturnModalVisible: false,
 		paymentChannelRequest: false,
 		paymentChannelRequestLoading: false,
 		paymentChannelRequestCompleted: false,
@@ -462,7 +471,7 @@ class Main extends PureComponent {
 	locale = I18n.locale;
 
 	pollForIncomingTransactions = async () => {
-		await Engine.refreshTransactionHistory();
+		this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
 		// Stop polling if the app is in the background
 		if (!this.backgroundMode) {
 			setTimeout(() => {
@@ -470,9 +479,10 @@ class Main extends PureComponent {
 			}, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
 		}
 	};
-
 	componentDidMount = async () => {
+		this.props.toggleDappTransactionModal(false);
 		InteractionManager.runAfterInteractions(() => {
+			this.initializeWalletConnect();
 			AppState.addEventListener('change', this.handleAppStateChange);
 			this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 			PushNotification.configure({
@@ -488,7 +498,7 @@ class Main extends PureComponent {
 					}
 					if (data && data.action === 'tx') {
 						if (data.id) {
-							TransactionsNotificationManager.setTransactionToView(data.id);
+							NotificationManager.setTransactionToView(data.id);
 						}
 						this.props.navigation.navigate('TransactionsHome');
 					}
@@ -538,90 +548,22 @@ class Main extends PureComponent {
 			});
 
 			setTimeout(() => {
-				TransactionsNotificationManager.init(
+				NotificationManager.init(
 					this.props.navigation,
 					this.props.showTransactionNotification,
-					this.props.hideTransactionNotification
+					this.props.hideTransactionNotification,
+					this.props.showSimpleNotification
 				);
 				this.pollForIncomingTransactions();
-
-				this.initializeWalletConnect();
 
 				// Only if enabled under settings
 				if (this.props.paymentChannelsEnabled) {
 					this.initializePaymentChannels();
 				}
 
-				setTimeout(() => {
-					this.checkForSai();
-				}, 3500);
-
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 			}, 1000);
 		});
-	};
-
-	checkForSai = async () => {
-		let hasSAI = false;
-		Object.keys(this.props.allTokens).forEach(account => {
-			const tokens = this.props.allTokens[account].mainnet;
-			tokens &&
-				tokens.forEach(token => {
-					if (token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
-						if (this.props.contractBalances[AppConstants.SAI_ADDRESS]) {
-							const balance = this.props.contractBalances[AppConstants.SAI_ADDRESS];
-							if (!balance.isZero()) {
-								hasSAI = true;
-							}
-						}
-					}
-				});
-		});
-
-		if (hasSAI) {
-			const previousReminder = await AsyncStorage.getItem('@MetaMask:nextMakerReminder');
-			if (!previousReminder || parseInt(previousReminder, 10) < Date.now()) {
-				Alert.alert(
-					strings('sai_migration.title'),
-					strings('sai_migration.message'),
-					[
-						{
-							text: strings('sai_migration.lets_do_it'),
-							onPress: async () => {
-								this.props.navigation.navigate('BrowserTabHome');
-								InteractionManager.runAfterInteractions(() => {
-									setTimeout(() => {
-										this.props.navigation.navigate('BrowserView', {
-											newTabUrl: 'https://migrate.makerdao.com'
-										});
-										const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
-										AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
-									}, 300);
-								});
-							},
-							style: 'cancel'
-						},
-						{
-							text: strings('sai_migration.learn_more'),
-							onPress: () => {
-								this.props.navigation.navigate('BrowserTabHome');
-								InteractionManager.runAfterInteractions(() => {
-									setTimeout(() => {
-										this.props.navigation.navigate('BrowserView', {
-											newTabUrl:
-												'https://blog.makerdao.com/what-to-expect-with-the-launch-of-multi-collateral-dai/'
-										});
-										const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
-										AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
-									}, 300);
-								});
-							}
-						}
-					],
-					{ cancelable: false }
-				);
-			}
-		}
 	};
 
 	connectionChangeHandler = state => {
@@ -636,9 +578,6 @@ class Main extends PureComponent {
 	initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
 			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
-		});
-		WalletConnect.hub.on('walletconnect:return', () => {
-			this.setState({ walletConnectReturnModalVisible: true });
 		});
 		WalletConnect.init();
 	};
@@ -789,7 +728,7 @@ class Main extends PureComponent {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
 					this.props.navigation.pop();
-					TransactionsNotificationManager.watchSubmittedTransaction({
+					NotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
 						assetType: transactionMeta.transaction.assetType
 					});
@@ -886,7 +825,7 @@ class Main extends PureComponent {
 			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
 				this.props.navigation.push('ApproveView');
 			} else {
-				this.props.navigation.push('ApprovalView');
+				this.props.toggleDappTransactionModal();
 			}
 		}
 	};
@@ -905,7 +844,6 @@ class Main extends PureComponent {
 		// If the app is now in background, we need to start
 		// the background timer, which is less intense
 		if (this.backgroundMode) {
-			this.setState({ walletConnectReturnModalVisible: false });
 			BackgroundTimer.runBackgroundTimer(async () => {
 				await Engine.refreshTransactionHistory();
 			}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
@@ -1073,22 +1011,18 @@ class Main extends PureComponent {
 				onBackButtonPress={this.onWalletConnectSessionRejected}
 				swipeDirection={'down'}
 			>
-				<WalletConnectSessionApproval
+				<AccountApproval
 					onCancel={this.onWalletConnectSessionRejected}
 					onConfirm={this.onWalletConnectSessionApproval}
 					currentPageInformation={{
 						title: meta && meta.name,
 						url: meta && meta.url
 					}}
-					autosign={false}
+					walletConnectRequest
 				/>
 			</Modal>
 		);
 	};
-
-	renderWalletConnectReturnModal = () => (
-		<WalletConnectReturnToBrowserModal modalVisible={this.state.walletConnectReturnModalVisible} />
-	);
 
 	renderPaymentChannelRequestApproval = () => {
 		const {
@@ -1122,6 +1056,16 @@ class Main extends PureComponent {
 		);
 	};
 
+	backupAlertPress = () => {
+		this.props.navigation.navigate('AccountBackupStep1');
+	};
+	renderDappTransactionModal = () => (
+		<Approval
+			dappTransactionModalVisible={this.props.dappTransactionModalVisible}
+			toggleDappTransactionModal={this.props.toggleDappTransactionModal}
+		/>
+	);
+
 	render() {
 		const { isPaymentChannelTransaction, isPaymentRequest } = this.props;
 		const { forceReload } = this.state;
@@ -1138,11 +1082,12 @@ class Main extends PureComponent {
 					)}
 					<GlobalAlert />
 					<FadeOutOverlay />
-					<TxNotification navigation={this.props.navigation} />
+					<BackupAlert navigation={this.props.navigation} onPress={this.backupAlertPress} />
+					<Notification navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
-				{this.renderWalletConnectReturnModal()}
+				{this.props.dappTransactionModalVisible && this.renderDappTransactionModal()}
 			</React.Fragment>
 		);
 	}
@@ -1150,23 +1095,25 @@ class Main extends PureComponent {
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	allTokens: state.engine.backgroundState.AssetsController.allTokens,
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	isPaymentRequest: state.transaction.paymentRequest,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	dappTransactionModalVisible: state.modals.dappTransactionModalVisible
 });
 
 const mapDispatchToProps = dispatch => ({
 	setEtherTransaction: transaction => dispatch(setEtherTransaction(transaction)),
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
-	hideTransactionNotification: () => dispatch(hideTransactionNotification())
+	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
+	hideTransactionNotification: () => dispatch(hideTransactionNotification()),
+	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show))
 });
 
 export default connect(

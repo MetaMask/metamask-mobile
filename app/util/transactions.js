@@ -386,3 +386,7 @@ export function getTransactionToName({ addressBook, network, toAddress, identiti
 export function getNormalizedTxState(state) {
 	return { ...state.transaction, ...state.transaction.transaction };
 }
+
+export function getActiveTabUrl({ browser = {} }) {
+	return browser.tabs && browser.activeTab ? browser.tabs.find(({ id }) => id === browser.activeTab).url : '';
+}

@@ -17,7 +17,7 @@ import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
-import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import NotificationManager from '../../../core/NotificationManager';
 import { CANCEL_RATE, SPEED_UP_RATE, util } from '@metamask/controllers';
 import { renderFromWei } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
@@ -115,7 +115,11 @@ class Transactions extends PureComponent {
 		 * Optional header height
 		 */
 		headerHeight: PropTypes.number,
-		exchangeRate: PropTypes.number
+		exchangeRate: PropTypes.number,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	static defaultProps = {
@@ -151,7 +155,7 @@ class Transactions extends PureComponent {
 
 	init() {
 		this.mounted && this.setState({ ready: true });
-		const txToView = TransactionsNotificationManager.getTransactionToView();
+		const txToView = NotificationManager.getTransactionToView();
 		if (txToView) {
 			setTimeout(() => {
 				const index = this.props.transactions.findIndex(tx => txToView === tx.id);
@@ -204,7 +208,7 @@ class Transactions extends PureComponent {
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
-		await Engine.refreshTransactionHistory();
+		this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
 		this.setState({ refreshing: false });
 	};
 
@@ -394,7 +398,8 @@ const mapStateToProps = state => ({
 	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -108,6 +108,10 @@ jobs:
           command: echo 'weew - everything passed!'
   publish-pre-release-android:
     working_directory:  ~/MetaMask
+    environment:
+      JAVA_OPTS: "-Xms512m -Xmx1024m"
+      _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
       - image: circleci/android:api-28-node8-alpha
     steps:
@@ -148,6 +152,11 @@ jobs:
       - run:
           name: Install Sentry CLI
           command: curl -sL https://sentry.io/get-cli/ | bash
+      - run:
+          name: Install CocoaPods
+          command: |
+            sudo gem install cocoapods
+            cd ios && pod install && cd ..
       - run:
           name: pre-release
           command: METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release

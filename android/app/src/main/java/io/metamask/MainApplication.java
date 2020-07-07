@@ -6,7 +6,6 @@ import com.facebook.react.PackageList;
 import com.facebook.react.ReactInstanceManager;
 import com.airbnb.android.react.lottie.LottiePackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
-import io.branch.rnbranch.RNBranchPackage;
 import io.branch.rnbranch.RNBranchModule;
 import io.metamask.nativeModules.RCTAnalyticsPackage;
 import com.facebook.react.ReactNativeHost;
@@ -56,8 +55,9 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		super.onCreate();
 		SoLoader.init(this, /* native exopackage */ false);
 
-		RNBranchModule.getAutoInstance(this);
 		initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
+		RNBranchModule.getAutoInstance(this);
+
     }
     /**
      * Loads Flipper in React Native templates. Call this in the onCreate method with something like

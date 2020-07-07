@@ -1,6 +1,7 @@
 'use strict';
 
 import { NativeModules } from 'react-native';
+import Logger from '../util/Logger';
 const RCTAnalytics = NativeModules.Analytics;
 
 /**
@@ -31,6 +32,30 @@ class Analytics {
 	};
 
 	/**
+	 * Identify current user to mixpanel people
+	 */
+	_peopleIdentify = () => {
+		RCTAnalytics.peopleIdentify();
+	};
+
+	/**
+	 * Track event if enabled and not DEV mode
+	 */
+	_trackEvent(name, { event, params = {}, value, info }) {
+		if (!this.enabled) return;
+		if (!__DEV__) {
+			RCTAnalytics.trackEvent({
+				...event,
+				...params,
+				value,
+				info
+			});
+		} else {
+			Logger.log(`Analytics '${name}' -`, event, params, value, info);
+		}
+	}
+
+	/**
 	 * Creates a Analytics instance
 	 */
 	constructor(enabled) {
@@ -38,7 +63,10 @@ class Analytics {
 			this.enabled = enabled;
 			this.listeners = [];
 			Analytics.instance = this;
-			RCTAnalytics.optIn(this.enabled);
+			if (!__DEV__) {
+				RCTAnalytics.optIn(this.enabled);
+				this._peopleIdentify();
+			}
 		}
 		return Analytics.instance;
 	}
@@ -48,7 +76,7 @@ class Analytics {
 	 */
 	enable = () => {
 		this.enabled = true;
-		RCTAnalytics.optIn(this.enabled);
+		!__DEV__ && RCTAnalytics.optIn(this.enabled);
 		this._notify();
 	};
 
@@ -57,7 +85,7 @@ class Analytics {
 	 */
 	disable = () => {
 		this.enabled = false;
-		RCTAnalytics.optIn(this.enabled);
+		!__DEV__ && RCTAnalytics.optIn(this.enabled);
 		this._notify();
 	};
 
@@ -80,17 +108,20 @@ class Analytics {
 	};
 
 	/**
+	 * Get current tracking id
+	 */
+	getDistinctId = async () => {
+		const id = await RCTAnalytics.getDistinctId();
+		return id;
+	};
+
+	/**
 	 * Track event
 	 *
 	 * @param {object} event - Object containing event category, action and name
 	 */
 	trackEvent = event => {
-		if (!this.enabled) return;
-		console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
-		RCTAnalytics.trackEvent(event);
-		if (__DEV__) {
-			console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
-		}
+		this._trackEvent('trackEvent', { event });
 	};
 
 	/**
@@ -100,14 +131,7 @@ class Analytics {
 	 * @param {number} value - Value number to send with event
 	 */
 	trackEventWithValue = (event, value) => {
-		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			value
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithValue' -`, event, value); // eslint-disable-line no-console
-		}
+		this._trackEvent('trackEventWithValue', { event, value });
 	};
 
 	/**
@@ -117,14 +141,7 @@ class Analytics {
 	 * @param {string} info - Information string to send with event
 	 */
 	trackEventWithInfo = (event, info) => {
-		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			info
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithInfo' -`, event, info); // eslint-disable-line no-console
-		}
+		this._trackEvent('trackEventWithInfo', { event, info });
 	};
 
 	/**
@@ -135,15 +152,7 @@ class Analytics {
 	 * @param {string} info - Information string to send with event
 	 */
 	trackEventWithValueAndInfo = (event, value, info) => {
-		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			value,
-			info
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithValueAndInfo' - `, event, value, info); // eslint-disable-line no-console
-		}
+		this._trackEvent('trackEventWithValueAndInfo', { event, value, info });
 	};
 
 	/**
@@ -153,14 +162,7 @@ class Analytics {
 	 * @param {object} params - Object containing other params to send with event
 	 */
 	trackEventWithParameters = (event, params) => {
-		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			...params
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithParameters' -`, event, params); // eslint-disable-line no-console
-		}
+		this._trackEvent('trackEventWithParameters', { event, params });
 	};
 
 	/**
@@ -171,15 +173,7 @@ class Analytics {
 	 * @param {object} params - Object containing other params to send with event
 	 */
 	trackEventWithValueAndParameters = (event, value, params) => {
-		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			...params,
-			value
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithValueAndParameters' -`, event, value, params); // eslint-disable-line no-console
-		}
+		this._trackEvent('trackEventWithValueAndParameters', { event, value, params });
 	};
 
 	/**
@@ -191,16 +185,7 @@ class Analytics {
 	 * @param {object} params - Object containing other params to send with event
 	 */
 	trackEventWithValueAndInfoAndParameters = (event, value, info, params) => {
-		if (!this.enabled) return;
-		RCTAnalytics.trackEvent({
-			...event,
-			...params,
-			value,
-			info
-		});
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithValueAndParameters' - `, event, value, info, params); // eslint-disable-line no-console
-		}
+		this._trackEvent('trackEventWithValueAndInfoAndParameters', { event, value, info, params });
 	};
 }
 
@@ -227,10 +212,16 @@ export default {
 		return instance && instance.disableInstance();
 	},
 	getEnabled() {
+		if (__DEV__) {
+			return false;
+		}
 		return instance && instance.enabled;
 	},
 	subscribe(listener) {
 		return instance && instance.subscribe(listener);
+	},
+	getDistinctId() {
+		return instance && instance.getDistinctId();
 	},
 	trackEvent(event) {
 		return instance && instance.trackEvent(event);
