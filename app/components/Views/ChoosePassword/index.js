@@ -236,9 +236,10 @@ class ChoosePassword extends PureComponent {
 		try {
 			this.setState({ loading: true });
 
-			const { KeyringController } = Engine.context;
-			const accounts = await KeyringController.getAccounts();
-			if (!accounts.length) {
+			const existing = await AsyncStorage.getItem('@MetaMask:existingUser');
+			if (!existing) {
+				// if user does not exist createNewVaultAndKeychain with password
+				const { KeyringController } = Engine.context;
 				await Engine.resetState();
 				await KeyringController.createNewVaultAndKeychain(password);
 				this.keyringControllerPasswordSet = true;
@@ -247,6 +248,7 @@ class ChoosePassword extends PureComponent {
 				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			} else {
+				// else recreateVault with password like we did previously
 				await this.recreateVault(password);
 			}
 
