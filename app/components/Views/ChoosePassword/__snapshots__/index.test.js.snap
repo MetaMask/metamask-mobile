@@ -105,8 +105,6 @@ exports[`ChoosePassword should render correctly 1`] = `
         <View
           style={
             Object {
-              "marginBottom": 10,
-              "marginTop": 20,
               "position": "relative",
             }
           }
@@ -119,7 +117,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
-                "marginTop": 10,
+                "marginTop": 14,
                 "textAlign": "left",
               }
             }
@@ -136,7 +134,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                   "fontSize": 12,
                   "fontWeight": "400",
                   "height": 20,
-                  "marginTop": 10,
+                  "marginTop": 14,
                   "textAlign": "left",
                 },
                 Object {
@@ -178,7 +176,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
-                "marginTop": 10,
+                "marginTop": 14,
                 "textAlign": "left",
               }
             }
@@ -187,8 +185,6 @@ exports[`ChoosePassword should render correctly 1`] = `
         <View
           style={
             Object {
-              "marginBottom": 10,
-              "marginTop": 20,
               "position": "relative",
             }
           }
@@ -201,7 +197,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
-                "marginTop": 10,
+                "marginTop": 14,
                 "textAlign": "left",
               }
             }
@@ -236,7 +232,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "alignSelf": "flex-end",
                 "position": "absolute",
                 "right": 17,
-                "top": 47,
+                "top": 50,
               }
             }
           />
@@ -248,13 +244,52 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
-                "marginTop": 10,
+                "marginTop": 14,
                 "textAlign": "left",
               }
             }
           >
             Must be at least 8 characters
           </Text>
+        </View>
+        <View>
+          <View
+            style={
+              Object {
+                "marginVertical": 20,
+                "position": "relative",
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "color": "#000000",
+                  "fontSize": 14,
+                }
+              }
+            >
+              Remember me
+            </Text>
+            <Switch
+              ios_backgroundColor="#9fa6ae"
+              onValueChange={[Function]}
+              style={
+                Object {
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+              trackColor={
+                Object {
+                  "false": "#9fa6ae",
+                  "true": "#86e29b",
+                }
+              }
+              value={false}
+            />
+          </View>
         </View>
         <View
           style={
