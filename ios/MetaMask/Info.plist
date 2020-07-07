@@ -99,6 +99,16 @@
 		<string>FontAwesome5_Brands.ttf</string>
 		<string>FontAwesome5_Regular.ttf</string>
 		<string>FontAwesome5_Solid.ttf</string>
+		<string>EuclidCircularB-Bold-WebXL.ttf</string>
+		<string>EuclidCircularB-BoldItalic-WebXL.ttf</string>
+		<string>EuclidCircularB-Light-WebXL.ttf</string>
+		<string>EuclidCircularB-LightItalic-WebXL.ttf</string>
+		<string>EuclidCircularB-Medium-WebXL.ttf</string>
+		<string>EuclidCircularB-MediumItalic-WebXL.ttf</string>
+		<string>EuclidCircularB-Regular-WebXL.ttf</string>
+		<string>EuclidCircularB-RegularItalic-WebXL.ttf</string>
+		<string>EuclidCircularB-Semibold-WebXL.ttf</string>
+		<string>EuclidCircularB-SemiboldItalic-WebXL.ttf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
