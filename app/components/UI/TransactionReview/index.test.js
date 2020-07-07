@@ -15,11 +15,28 @@ describe('TransactionReview', () => {
 					},
 					AccountTrackerController: {
 						accounts: []
+					},
+					AssetsController: {
+						tokens: []
+					},
+					CurrencyRateController: {
+						currentCurrency: 'usd'
+					},
+					TokenRatesController: {
+						contractExchangeRates: {
+							'0x': '0.1'
+						}
+					},
+					NetworkController: {
+						provider: {
+							ticker: 'ETH'
+						}
 					}
 				}
 			},
 			settings: {
-				showHexData: true
+				showHexData: true,
+				primaryCurrency: 'ETH'
 			},
 			transaction: {
 				value: '',
@@ -30,6 +47,9 @@ describe('TransactionReview', () => {
 				to: '0x2',
 				selectedAsset: undefined,
 				assetType: undefined
+			},
+			browser: {
+				tabs: []
 			}
 		};
 

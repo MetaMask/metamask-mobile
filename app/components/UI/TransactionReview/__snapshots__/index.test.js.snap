@@ -1,50 +1,59 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionReview should render correctly 1`] = `
-<View
-  style={
-    Object {
-      "backgroundColor": "#FFFFFF",
-      "flex": 1,
+<Fragment>
+  <Connect(TransactionHeader)
+    currentPageInformation={
+      Object {
+        "url": undefined,
+      }
     }
-  }
->
-  <Connect(TransactionDirection) />
-  <ActionView
-    cancelTestID=""
-    cancelText="Reject"
-    confirmButtonMode="confirm"
-    confirmDisabled={false}
-    confirmTestID=""
-    confirmText="Confirm"
-    confirmed={false}
-    showCancelButton={true}
-    showConfirmButton={true}
+  />
+  <TransactionReviewSummary
+    actionKey="CONFIRM"
+    primaryCurrency="ETH"
+  />
+  <View
+    style={
+      Object {
+        "height": 385,
+      }
+    }
   >
-    <View>
-      <Connect(TransactionReviewSummary)
-        actionKey="CONFIRM"
-      />
+    <ActionView
+      cancelTestID=""
+      cancelText="Reject"
+      confirmButtonMode="confirm"
+      confirmDisabled={false}
+      confirmTestID=""
+      confirmText="Confirm"
+      confirmed={false}
+      showCancelButton={true}
+      showConfirmButton={true}
+    >
       <View
         style={
           Object {
-            "flex": 1,
+            "height": 300,
           }
         }
       >
         <View
           style={
             Object {
-              "flex": 1,
+              "paddingBottom": 12,
+              "paddingHorizontal": 24,
             }
           }
         >
-          <Connect(TransactionReviewInformation)
-            edit={[Function]}
-          />
+          <Connect(AccountInfoCard) />
         </View>
+        <Connect(TransactionReviewInformation)
+          edit={[Function]}
+          toggleDataView={[Function]}
+        />
       </View>
-    </View>
-  </ActionView>
-</View>
+    </ActionView>
+  </View>
+</Fragment>
 `;

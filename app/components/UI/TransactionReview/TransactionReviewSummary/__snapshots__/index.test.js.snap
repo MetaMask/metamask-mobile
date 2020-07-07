@@ -1,18 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionReviewSummary should render correctly 1`] = `
-<View
-  style={
-    Object {
-      "flex": 1,
-    }
-  }
->
+<View>
   <View
     style={
       Object {
+        "alignItems": "center",
         "backgroundColor": undefined,
         "padding": 24,
+        "paddingBottom": 16,
+        "paddingTop": 12,
       }
     }
   >
@@ -22,15 +19,15 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
         Object {
           "alignItems": "center",
           "borderColor": "#848c96",
-          "borderRadius": 4,
+          "borderRadius": 12,
           "borderWidth": 1,
-          "color": "#848c96",
+          "color": "#000000",
           "fontFamily": "CircularStd-Medium",
-          "fontSize": 12,
+          "fontSize": 10,
           "fontWeight": "400",
-          "lineHeight": 22,
+          "paddingHorizontal": 8,
+          "paddingVertical": 4,
           "textAlign": "center",
-          "width": "50%",
         }
       }
     />
@@ -41,7 +38,9 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
           "fontFamily": "CircularStd-Medium",
           "fontSize": 44,
           "fontWeight": "400",
-          "paddingVertical": 4,
+          "paddingBottom": 4,
+          "paddingTop": 16,
+          "textAlign": "center",
           "textTransform": "uppercase",
         }
       }

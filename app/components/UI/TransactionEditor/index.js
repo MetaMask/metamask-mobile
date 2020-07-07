@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
+import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
 import TransactionReview from '../TransactionReview';
@@ -17,14 +17,29 @@ import contractMap from 'eth-contract-metadata';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
+import Device from '../../../util/Device';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
 
 const styles = StyleSheet.create({
-	root: {
+	reviewRoot: {
 		backgroundColor: colors.white,
-		flex: 1
+		minHeight: 200,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		paddingTop: 24,
+		paddingBottom: Device.isIphoneX() ? 24 : 0,
+		justifyContent: 'flex-end'
+	},
+	editRoot: {
+		backgroundColor: colors.white,
+		minHeight: 200,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		paddingTop: 24,
+		paddingBottom: Device.isIphoneX() ? 44 : 24,
+		justifyContent: 'flex-end'
 	}
 });
 
@@ -573,36 +588,40 @@ class TransactionEditor extends PureComponent {
 		const { mode, transactionConfirmed, transaction } = this.props;
 
 		return (
-			<View style={styles.root}>
+			<React.Fragment>
 				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
 				{mode === EDIT && !transaction.paymentChannelTransaction && (
-					<TransactionEdit
-						navigation={this.props.navigation}
-						onCancel={this.onCancel}
-						onModeChange={this.props.onModeChange}
-						handleUpdateAmount={this.handleUpdateAmount}
-						handleUpdateData={this.handleUpdateData}
-						handleUpdateFromAddress={this.handleUpdateFromAddress}
-						handleUpdateToAddress={this.handleUpdateToAddress}
-						handleGasFeeSelection={this.handleGasFeeSelection}
-						validateAmount={this.validateAmount}
-						validateGas={this.validateGas}
-						validateToAddress={this.validateToAddress}
-						handleUpdateAsset={this.handleUpdateAsset}
-						checkForAssetAddress={this.checkForAssetAddress}
-						handleUpdateReadableValue={this.handleUpdateReadableValue}
-					/>
+					<View style={styles.editRoot}>
+						<TransactionEdit
+							navigation={this.props.navigation}
+							onCancel={this.onCancel}
+							onModeChange={this.props.onModeChange}
+							handleUpdateAmount={this.handleUpdateAmount}
+							handleUpdateData={this.handleUpdateData}
+							handleUpdateFromAddress={this.handleUpdateFromAddress}
+							handleUpdateToAddress={this.handleUpdateToAddress}
+							handleGasFeeSelection={this.handleGasFeeSelection}
+							validateAmount={this.validateAmount}
+							validateGas={this.validateGas}
+							validateToAddress={this.validateToAddress}
+							handleUpdateAsset={this.handleUpdateAsset}
+							checkForAssetAddress={this.checkForAssetAddress}
+							handleUpdateReadableValue={this.handleUpdateReadableValue}
+						/>
+					</View>
 				)}
 				{mode === REVIEW && (
-					<TransactionReview
-						onCancel={this.onCancel}
-						onConfirm={this.onConfirm}
-						onModeChange={this.props.onModeChange}
-						validate={this.validate}
-						transactionConfirmed={transactionConfirmed}
-					/>
+					<View style={styles.reviewRoot}>
+						<TransactionReview
+							onCancel={this.onCancel}
+							onConfirm={this.onConfirm}
+							onModeChange={this.props.onModeChange}
+							validate={this.validate}
+							transactionConfirmed={transactionConfirmed}
+						/>
+					</View>
 				)}
-			</View>
+			</React.Fragment>
 		);
 	};
 }

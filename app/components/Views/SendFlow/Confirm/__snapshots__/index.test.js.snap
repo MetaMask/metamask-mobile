@@ -91,7 +91,7 @@ exports[`Confirm should render correctly 1`] = `
       toggleCustomGasModal={[Function]}
       totalFiat=""
       totalGasFiat=""
-      totalValue=""
+      totalValue={<Text />}
       transactionValue=""
     />
     <View
