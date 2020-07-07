@@ -1,15 +1,17 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
+import Device from '../../../../util/Device';
 
 const styles = StyleSheet.create({
-	overview: {
+	root: {
 		paddingHorizontal: 24,
-		marginBottom: 24
+		paddingTop: 24,
+		paddingBottom: Device.isIphoneX() ? 48 : 24
 	},
 	dataHeader: {
 		flexDirection: 'row',
@@ -35,9 +37,9 @@ const styles = StyleSheet.create({
 		padding: 12,
 		borderWidth: 1,
 		borderColor: colors.grey200,
-		borderRadius: 8
+		borderRadius: 8,
+		flex: 1
 	},
-	hexDataContainer: {},
 	label: {
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
@@ -76,8 +78,14 @@ class TransactionReviewData extends PureComponent {
 		/**
 		 * Hides or shows transaction data
 		 */
-		toggleDataView: PropTypes.func
+		toggleDataView: PropTypes.func,
+		/**
+		 * Height of custom gas and data modal
+		 */
+		customGasHeight: PropTypes.number
 	};
+
+	applyRootHeight = () => ({ height: this.props.customGasHeight });
 
 	render = () => {
 		const {
@@ -86,15 +94,17 @@ class TransactionReviewData extends PureComponent {
 			toggleDataView
 		} = this.props;
 		return (
-			<View style={styles.overview}>
-				<View style={styles.dataHeader}>
-					<TouchableOpacity onPress={toggleDataView}>
-						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
-					</TouchableOpacity>
-					<Text style={styles.dataTitleText}>{strings('transaction.data')}</Text>
-					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+			<View style={[styles.root, this.applyRootHeight()]}>
+				<View>
+					<View style={styles.dataHeader}>
+						<TouchableOpacity onPress={toggleDataView}>
+							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+						</TouchableOpacity>
+						<Text style={styles.dataTitleText}>{strings('transaction.data')}</Text>
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+					</View>
+					<Text style={styles.dataDescription}>{strings('transaction.data_description')}</Text>
 				</View>
-				<Text style={styles.dataDescription}>{strings('transaction.data_description')}</Text>
 				<View style={styles.dataBox}>
 					{actionKey !== strings('transactions.tx_review_confirm') && (
 						<View style={styles.label}>
@@ -104,12 +114,10 @@ class TransactionReviewData extends PureComponent {
 							<Text style={styles.labelText}>{actionKey}</Text>
 						</View>
 					)}
-					<View style={styles.hexDataContainer}>
-						<Text style={[styles.labelText, styles.boldLabel]}>
-							{strings('transaction.review_hex_data')}:{' '}
-						</Text>
+					<Text style={[styles.labelText, styles.boldLabel]}>{strings('transaction.review_hex_data')}: </Text>
+					<ScrollView style={styles.scrollView}>
 						<Text style={styles.hexData}>{data}</Text>
-					</View>
+					</ScrollView>
 				</View>
 			</View>
 		);
