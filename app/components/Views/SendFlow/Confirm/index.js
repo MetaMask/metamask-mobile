@@ -193,8 +193,7 @@ const styles = StyleSheet.create({
 		borderTopRightRadius: 20,
 		width: '100%',
 		backgroundColor: colors.white,
-		paddingTop: 24,
-		paddingHorizontal: 24
+		paddingTop: 24
 	},
 	totalAmount: {
 		...fontStyles.normal,

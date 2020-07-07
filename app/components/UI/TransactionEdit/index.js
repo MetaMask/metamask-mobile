@@ -46,7 +46,47 @@ class TransactionEdit extends PureComponent {
 		/**
 		 * Callback to validate to address in transaction in parent state
 		 */
-		validateToAddress: PropTypes.func
+		validateToAddress: PropTypes.func,
+		/**
+		 * Object containing basic gas estimates
+		 */
+		basicGasEstimates: PropTypes.object,
+		/**
+		 * Saves height of root view to TransactionEditor state
+		 */
+		saveCustomGasHeight: PropTypes.func,
+		/**
+		 * Toggles TransactionEditor advancedCustomGas
+		 */
+		toggleAdvancedCustomGas: PropTypes.func,
+		/**
+		 * Advanced custom gas is shown or hidden
+		 */
+		advancedCustomGas: PropTypes.bool,
+		/**
+		 * Drives animated values
+		 */
+		animate: PropTypes.func,
+		/**
+		 * Generates a transform style unique to the component
+		 */
+		generateTransform: PropTypes.func,
+		/**
+		 * Computes end value for modal animation when switching to advanced custom gas
+		 */
+		getAnimatedModalValueForAdvancedCG: PropTypes.func,
+		/**
+		 * gas selectors are hidden or not
+		 */
+		hideGasSelectors: PropTypes.bool,
+		/**
+		 * review or edit
+		 */
+		mode: PropTypes.string,
+		/**
+		 * review or edit
+		 */
+		toAdvancedFrom: PropTypes.string
 	};
 
 	state = {
@@ -110,18 +150,38 @@ class TransactionEdit extends PureComponent {
 
 	render() {
 		const {
-			transaction: { gas, gasPrice }
+			transaction: { gas, gasPrice },
+			basicGasEstimates,
+			saveCustomGasHeight,
+			toggleAdvancedCustomGas,
+			advancedCustomGas,
+			animate,
+			generateTransform,
+			getAnimatedModalValueForAdvancedCG,
+			hideGasSelectors,
+			mode,
+			toAdvancedFrom
 		} = this.props;
 		const { gasError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<CustomGas
 				handleGasFeeSelection={this.updateGas}
+				basicGasEstimates={basicGasEstimates}
 				totalGas={totalGas}
 				gas={gas}
 				gasPrice={gasPrice}
 				gasError={gasError}
+				toggleAdvancedCustomGas={toggleAdvancedCustomGas}
+				advancedCustomGas={advancedCustomGas}
 				review={this.review}
+				saveCustomGasHeight={saveCustomGasHeight}
+				animate={animate}
+				generateTransform={generateTransform}
+				getAnimatedModalValueForAdvancedCG={getAnimatedModalValueForAdvancedCG}
+				hideGasSelectors={hideGasSelectors}
+				mode={mode}
+				toAdvancedFrom={toAdvancedFrom}
 			/>
 		);
 	}

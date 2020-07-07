@@ -34,7 +34,7 @@ const modalsReducer = (state = initialState, action) => {
 		case 'TOGGLE_DAPP_TRANSACTION_MODAL':
 			return {
 				...state,
-				dappTransactionModalVisible: !state.dappTransactionModalVisible
+				dappTransactionModalVisible: action.show === null ? !state.dappTransactionModalVisible : action.show
 			};
 		default:
 			return state;

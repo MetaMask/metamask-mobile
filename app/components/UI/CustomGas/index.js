@@ -1,15 +1,10 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Animated } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import {
-	getRenderableEthGasFee,
-	getRenderableFiatGasFee,
-	apiEstimateModifiedToWEI,
-	getBasicGasEstimates
-} from '../../../util/custom-gas';
+import { getRenderableEthGasFee, getRenderableFiatGasFee, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { BN } from 'ethereumjs-util';
 import { fromWei, renderWei, hexToBN, isDecimal, isBN } from '../../../util/number';
@@ -17,10 +12,13 @@ import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import { safeToChecksumAddress } from '../../../util/address';
 import Radio from '../Radio';
 import StyledButton from '../../UI/StyledButton';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
+		paddingTop: 24,
+		paddingBottom: Device.isIphoneX() ? 48 : 24
 	},
 	customGasHeader: {
 		flexDirection: 'row',
@@ -66,10 +64,13 @@ const styles = StyleSheet.create({
 		paddingBottom: 20
 	},
 	warningWrapper: {
-		marginBottom: 20,
 		height: 50,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		alignSelf: 'center',
+		width: '100%',
+		position: 'absolute',
+		marginTop: 24
 	},
 	warningTextWrapper: {
 		width: '100%',
@@ -97,6 +98,13 @@ const styles = StyleSheet.create({
 	},
 	radio: {
 		marginLeft: 'auto'
+	},
+	gasSelectorWrapper: {
+		position: 'absolute',
+		alignSelf: 'center',
+		width: '100%',
+		height: '100%',
+		paddingTop: 24
 	},
 	selectors: {
 		position: 'relative',
@@ -145,12 +153,6 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		textTransform: 'none'
 	},
-	loaderContainer: {
-		height: 200,
-		backgroundColor: colors.white,
-		alignItems: 'center',
-		justifyContent: 'center'
-	},
 	advancedOptionsContainer: {
 		flexDirection: 'column',
 		justifyContent: 'center',
@@ -192,6 +194,17 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 10,
 		paddingVertical: 8,
 		position: 'relative'
+	},
+	buttonTransform: {
+		transform: [
+			{
+				translateY: 70
+			}
+		]
+	},
+	hidden: {
+		opacity: 0,
+		height: 0
 	}
 });
 
@@ -243,93 +256,155 @@ class CustomGas extends PureComponent {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transaction: PropTypes.object
+		transaction: PropTypes.object,
+		/**
+		 * Object containing basic gas estimates
+		 */
+		basicGasEstimates: PropTypes.object,
+		/**
+		 * Saves height of root view to TransactionEditor state
+		 */
+		saveCustomGasHeight: PropTypes.func,
+		/**
+		 * Toggles TransactionEditor advancedCustomGas
+		 */
+		toggleAdvancedCustomGas: PropTypes.func,
+		/**
+		 * Advanced custom gas is shown or hidden
+		 */
+		advancedCustomGas: PropTypes.bool,
+		/**
+		 * Drives animated values
+		 */
+		animate: PropTypes.func,
+		/**
+		 * Generates a transform style unique to the component
+		 */
+		generateTransform: PropTypes.func,
+		/**
+		 * Computes end value for modal animation when switching to advanced custom gas
+		 */
+		getAnimatedModalValueForAdvancedCG: PropTypes.func,
+		/**
+		 * gas selectors are hidden or not
+		 */
+		hideGasSelectors: PropTypes.bool,
+		/**
+		 * review or edit
+		 */
+		mode: PropTypes.string,
+		/**
+		 * review or edit
+		 */
+		toAdvancedFrom: PropTypes.string
 	};
 
 	state = {
-		basicGasEstimates: {},
 		gasFastSelected: false,
 		gasAverageSelected: true,
 		gasSlowSelected: false,
-		averageGwei: 0,
-		averageWait: undefined,
-		fastGwei: 0,
-		fastWait: undefined,
-		safeLowGwei: 0,
-		safeLowWait: undefined,
 		selected: 'average',
 		ready: false,
-		advancedCustomGas: false,
-		customGasPrice: '10',
+		customGasPrice: Math.round(this.props.basicGasEstimates.averageGwei),
 		customGasLimit: fromWei(this.props.gas, 'wei'),
 		customGasPriceBN: this.props.gasPrice,
 		customGasLimitBN: this.props.gas,
 		warningGasLimit: '',
 		warningGasPrice: '',
-		warningSufficientFunds: ''
+		warningSufficientFunds: '',
+		headerHeight: null,
+		gasInputHeight: null
 	};
 
 	onPressGasFast = () => {
-		const { fastGwei } = this.state;
-		const { onPress } = this.props;
+		const {
+			onPress,
+			basicGasEstimates: { fastGwei }
+		} = this.props;
 		onPress && onPress();
+		const gasPriceBN = apiEstimateModifiedToWEI(fastGwei);
 		this.setState({
 			gasFastSelected: true,
 			gasAverageSelected: false,
 			gasSlowSelected: false,
 			selected: 'fast',
-			customGasPrice: fastGwei
+			customGasPrice: fastGwei,
+			customGasPriceBN: gasPriceBN
 		});
 	};
 
 	onPressGasAverage = () => {
-		const { averageGwei } = this.state;
-		const { onPress } = this.props;
+		const {
+			onPress,
+			basicGasEstimates: { averageGwei }
+		} = this.props;
 		onPress && onPress();
+		const gasPriceBN = apiEstimateModifiedToWEI(averageGwei);
 		this.setState({
 			gasFastSelected: false,
 			gasAverageSelected: true,
 			gasSlowSelected: false,
 			selected: 'average',
-			customGasPrice: averageGwei
+			customGasPrice: averageGwei,
+			customGasPriceBN: gasPriceBN
 		});
 	};
 
 	onPressGasSlow = () => {
-		const { safeLowGwei } = this.state;
-		const { onPress } = this.props;
+		const {
+			onPress,
+			basicGasEstimates: { safeLowGwei }
+		} = this.props;
 		onPress && onPress();
+		const gasPriceBN = apiEstimateModifiedToWEI(safeLowGwei);
 		this.setState({
 			gasFastSelected: false,
 			gasAverageSelected: false,
 			gasSlowSelected: true,
 			selected: 'slow',
-			customGasPrice: safeLowGwei
+			customGasPrice: safeLowGwei,
+			customGasPriceBN: gasPriceBN
 		});
 	};
 
 	toggleAdvancedOptions = () => {
-		const { advancedCustomGas, customGasPrice } = this.state;
-		const { gas } = this.props;
+		const { customGasPrice } = this.state;
+		const {
+			gas,
+			advancedCustomGas,
+			toggleAdvancedCustomGas,
+			animate,
+			getAnimatedModalValueForAdvancedCG
+		} = this.props;
+		toggleAdvancedCustomGas();
 		if (!advancedCustomGas) {
-			this.setState({ customGasLimit: fromWei(gas, 'wei'), advancedCustomGas: !advancedCustomGas });
+			animate({
+				modalEndValue: getAnimatedModalValueForAdvancedCG(),
+				xTranslationName: 'editToAdvanced',
+				xTranslationEndValue: 1
+			});
+			this.setState({ customGasLimit: fromWei(gas, 'wei') });
 			this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(customGasPrice));
 		} else {
-			this.setState({ advancedCustomGas: !advancedCustomGas });
+			animate({
+				modalEndValue: 0,
+				xTranslationName: 'editToAdvanced',
+				xTranslationEndValue: 0
+			});
 		}
 	};
 
 	componentDidMount = async () => {
-		const { gas, gasPrice } = this.props;
-		await this.handleFetchBasicEstimates();
+		const { gas, gasPrice, toggleAdvancedCustomGas } = this.props;
 		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
 		const { ticker } = this.props;
+		if (ticker && ticker !== 'ETH') toggleAdvancedCustomGas(true);
 		//Applies ISF error if present before any gas modifications
 		this.setState({ warningSufficientFunds, advancedCustomGas: ticker && ticker !== 'ETH' });
 	};
 
 	componentDidUpdate = prevProps => {
-		if (this.state.advancedCustomGas) {
+		if (this.props.advancedCustomGas) {
 			this.handleGasRecalculationForCustomGasInput(prevProps);
 		}
 	};
@@ -338,12 +413,6 @@ class CustomGas extends PureComponent {
 		const actualGasLimitWei = renderWei(hexToBN(this.props.gas));
 		if (renderWei(hexToBN(prevProps.gas)) !== actualGasLimitWei)
 			this.setState({ customGasLimit: actualGasLimitWei });
-	};
-
-	handleFetchBasicEstimates = async () => {
-		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimates();
-		this.setState({ ...basicGasEstimates, ready: true });
 	};
 
 	//Validate locally instead of in TransactionEditor, otherwise cannot change back to review mode if insufficient funds
@@ -382,6 +451,7 @@ class CustomGas extends PureComponent {
 		const gasPriceBN = apiEstimateModifiedToWEI(gasPrice);
 		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBN);
 		let warningGasPrice;
+		if (value < this.props.basicGasEstimates.safeLowGwei) warningGasPrice = strings('transaction.low_gas_price');
 		if (!value || value === '' || !isDecimal(value) || value <= 0)
 			warningGasPrice = strings('transaction.invalid_gas_price');
 		if (gasPriceBN && !isBN(gasPriceBN)) warningGasPrice = strings('transaction.invalid_gas_price');
@@ -395,16 +465,14 @@ class CustomGas extends PureComponent {
 
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
 	saveCustomGasSelection = () => {
+		const { selected, customGasLimit, customGasPrice } = this.state;
 		const {
-			selected,
-			fastGwei,
-			averageGwei,
-			safeLowGwei,
-			customGasLimit,
-			customGasPrice,
-			advancedCustomGas
-		} = this.state;
-		const { review, gas, handleGasFeeSelection } = this.props;
+			review,
+			gas,
+			handleGasFeeSelection,
+			advancedCustomGas,
+			basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
+		} = this.props;
 		if (advancedCustomGas) {
 			handleGasFeeSelection(new BN(customGasLimit), apiEstimateModifiedToWEI(customGasPrice));
 		} else {
@@ -416,88 +484,103 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasSelector = () => {
+		const { gasSlowSelected, gasAverageSelected, gasFastSelected, headerHeight } = this.state;
 		const {
-			averageGwei,
-			fastGwei,
-			safeLowGwei,
-			averageWait,
-			safeLowWait,
-			fastWait,
-			gasSlowSelected,
-			gasAverageSelected,
-			gasFastSelected
-		} = this.state;
-		const { conversionRate, currentCurrency, gas } = this.props;
+			conversionRate,
+			currentCurrency,
+			gas,
+			generateTransform,
+			hideGasSelectors,
+			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei, averageWait, safeLowWait, fastWait }
+		} = this.props;
 		const ticker = getTicker(this.props.ticker);
+		const topOffset = { top: headerHeight };
 		return (
-			<View style={styles.selectors}>
-				<TouchableOpacity
-					key={'safeLow'}
-					onPress={this.onPressGasSlow}
-					style={[styles.selector, styles.slow, gasSlowSelected && styles.selectorSelected]}
-				>
-					<View style={styles.titleContainer}>
-						<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
-						<View style={styles.radio}>
-							<Radio selected={gasSlowSelected} />
+			<Animated.View
+				style={[
+					styles.gasSelectorWrapper,
+					generateTransform('editToAdvanced', [0, -Device.getDeviceWidth()]),
+					topOffset,
+					hideGasSelectors && styles.hidden
+				]}
+			>
+				<View style={styles.selectors}>
+					<TouchableOpacity
+						key={'safeLow'}
+						onPress={this.onPressGasSlow}
+						style={[styles.selector, styles.slow, gasSlowSelected && styles.selectorSelected]}
+					>
+						<View style={styles.titleContainer}>
+							<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
+							<View style={styles.radio}>
+								<Radio selected={gasSlowSelected} />
+							</View>
 						</View>
-					</View>
-					<Text style={styles.textTime}>{safeLowWait}</Text>
-					<Text style={styles.text}>
-						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
-					</Text>
-					<Text style={styles.text}>
-						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
-					</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					key={'average'}
-					onPress={this.onPressGasAverage}
-					style={[styles.selector, gasAverageSelected && styles.selectorSelected]}
-				>
-					<View style={styles.titleContainer}>
-						<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
-						<View style={styles.radio}>
-							<Radio selected={gasAverageSelected} />
+						<Text style={styles.textTime}>{safeLowWait}</Text>
+						<Text style={styles.text}>
+							{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
+						</Text>
+						<Text style={styles.text}>
+							{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
+						</Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						key={'average'}
+						onPress={this.onPressGasAverage}
+						style={[styles.selector, gasAverageSelected && styles.selectorSelected]}
+					>
+						<View style={styles.titleContainer}>
+							<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
+							<View style={styles.radio}>
+								<Radio selected={gasAverageSelected} />
+							</View>
 						</View>
-					</View>
-					<Text style={styles.textTime}>{averageWait}</Text>
-					<Text style={styles.text}>
-						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
-					</Text>
-					<Text style={styles.text}>
-						{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
-					</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					key={'fast'}
-					onPress={this.onPressGasFast}
-					style={[styles.selector, styles.fast, gasFastSelected && styles.selectorSelected]}
-				>
-					<View style={styles.titleContainer}>
-						<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
-						<View style={styles.radio}>
-							<Radio selected={gasFastSelected} />
+						<Text style={styles.textTime}>{averageWait}</Text>
+						<Text style={styles.text}>
+							{getRenderableEthGasFee(averageGwei, gas)} {ticker}
+						</Text>
+						<Text style={styles.text}>
+							{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
+						</Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						key={'fast'}
+						onPress={this.onPressGasFast}
+						style={[styles.selector, styles.fast, gasFastSelected && styles.selectorSelected]}
+					>
+						<View style={styles.titleContainer}>
+							<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
+							<View style={styles.radio}>
+								<Radio selected={gasFastSelected} />
+							</View>
 						</View>
-					</View>
-					<Text style={styles.textTime}>{fastWait}</Text>
-					<Text style={styles.text}>
-						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
-					</Text>
-					<Text style={styles.text}>
-						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
-					</Text>
-				</TouchableOpacity>
-			</View>
+						<Text style={styles.textTime}>{fastWait}</Text>
+						<Text style={styles.text}>
+							{getRenderableEthGasFee(fastGwei, gas)} {ticker}
+						</Text>
+						<Text style={styles.text}>
+							{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
+						</Text>
+					</TouchableOpacity>
+				</View>
+				<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
+			</Animated.View>
 		);
 	};
 
 	renderCustomGasInput = () => {
 		const { customGasPrice, customGasLimitBN, customGasPriceBN } = this.state;
+		const { generateTransform } = this.props;
 		const totalGas = customGasLimitBN.mul(customGasPriceBN);
 		const ticker = getTicker(this.props.ticker);
 		return (
-			<View style={styles.advancedOptionsContainer}>
+			<Animated.View
+				style={[
+					styles.advancedOptionsContainer,
+					generateTransform('editToAdvanced', [Device.getDeviceWidth(), 0])
+				]}
+				onLayout={this.saveGasInputHeight}
+			>
 				<View style={styles.valueRow}>
 					<Text style={styles.advancedOptionsText}>{strings('custom_gas.total')}</Text>
 					<View style={styles.totalGasWrapper}>
@@ -525,16 +608,17 @@ class CustomGas extends PureComponent {
 						value={customGasPrice.toString()}
 					/>
 				</View>
-			</View>
+			</Animated.View>
 		);
 	};
 
 	renderGasError = () => {
-		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
+		const { warningGasLimit, warningGasPrice, warningSufficientFunds, headerHeight, gasInputHeight } = this.state;
 		const { gasError } = this.props;
 		const gasErrorMessage = warningGasPrice || warningGasLimit || warningSufficientFunds || gasError;
+		const topOffset = { top: headerHeight + gasInputHeight };
 		return (
-			<View style={styles.warningWrapper}>
+			<View style={[styles.warningWrapper, topOffset]}>
 				<View style={[styles.warningTextWrapper, !gasErrorMessage ? styles.invisible : null]}>
 					<Text style={styles.warningText}>{gasErrorMessage}</Text>
 				</View>
@@ -542,15 +626,35 @@ class CustomGas extends PureComponent {
 		);
 	};
 
+	saveHeaderHeight = event =>
+		!this.state.headerHeight && this.setState({ headerHeight: event.nativeEvent.layout.height });
+
+	saveGasInputHeight = event => {
+		!this.state.gasInputHeight && this.setState({ gasInputHeight: event.nativeEvent.layout.height });
+	};
+
 	render = () => {
-		if (this.state.ready) {
-			const { advancedCustomGas, warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
-			const { review, gasError } = this.props;
-			const disableButton = advancedCustomGas
-				? !!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError
-				: false;
-			return (
-				<View style={styles.root}>
+		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
+		const {
+			review,
+			gasError,
+			saveCustomGasHeight,
+			advancedCustomGas,
+			generateTransform,
+			mode,
+			toAdvancedFrom
+		} = this.props;
+		let buttonStyle;
+
+		if (toAdvancedFrom === 'edit' && mode === 'edit') {
+			buttonStyle = generateTransform('saveButton', [0, 70]);
+		} else if (advancedCustomGas) {
+			buttonStyle = styles.buttonTransform;
+		}
+
+		return (
+			<View style={styles.root} onLayout={saveCustomGasHeight}>
+				<View onLayout={this.saveHeaderHeight}>
 					<View style={styles.customGasHeader}>
 						<TouchableOpacity onPress={review}>
 							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
@@ -572,29 +676,30 @@ class CustomGas extends PureComponent {
 							<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
 						</TouchableOpacity>
 					</View>
-
-					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
-					{!advancedCustomGas ? (
-						<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
-					) : null}
-					{advancedCustomGas ? this.renderGasError() : null}
-					<View style={styles.footerContainer}>
-						<StyledButton
-							disabled={disableButton}
-							type={'confirm'}
-							containerStyle={styles.buttonNext}
-							onPress={this.saveCustomGasSelection}
-							testID={'custom-gas-save-button'}
-						>
-							{strings('custom_gas.save')}
-						</StyledButton>
-					</View>
 				</View>
-			);
-		}
-		return (
-			<View style={styles.loaderContainer}>
-				<ActivityIndicator size="small" />
+
+				{this.renderCustomGasSelector()}
+				{this.renderCustomGasInput()}
+				{advancedCustomGas && this.renderGasError()}
+
+				<Animated.View style={buttonStyle}>
+					<StyledButton
+						disabled={
+							/*eslint-disable */
+							advancedCustomGas
+								? (!!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError) &&
+								  warningGasPrice !== strings('transaction.low_gas_price')
+								: false
+							/*eslint-enable */
+						}
+						type={'confirm'}
+						containerStyle={styles.buttonNext}
+						onPress={this.saveCustomGasSelection}
+						testID={'custom-gas-save-button'}
+					>
+						{strings('custom_gas.save')}
+					</StyledButton>
+				</Animated.View>
 			</View>
 		);
 	};
