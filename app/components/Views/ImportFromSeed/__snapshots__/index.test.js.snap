@@ -37,7 +37,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Bold",
+            "fontFamily": "EuclidCircularB-Bold-WebXL",
             "fontSize": 25,
             "fontWeight": "600",
             "justifyContent": "center",
@@ -68,7 +68,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
               "borderColor": "#d6d9dc",
               "borderRadius": 10,
               "borderWidth": 0.5,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontSize": 20,
               "fontWeight": "400",
               "height": "auto",
@@ -122,7 +122,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
             Array [
               Object {
                 "color": "#777777",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular-WebXL",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "marginLeft": 5,
@@ -163,7 +163,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
               "borderBottomColor": "#d6d9dc",
               "borderBottomWidth": 1,
               "borderRadius": 4,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontSize": 20,
               "fontWeight": "400",
               "paddingLeft": 0,
@@ -189,7 +189,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
             style={
               Object {
                 "color": "#777777",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular-WebXL",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
@@ -206,7 +206,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           style={
             Object {
               "color": "#777777",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontSize": 12,
               "fontWeight": "400",
               "height": 20,
@@ -230,7 +230,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
             Array [
               Object {
                 "color": "#777777",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular-WebXL",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "marginLeft": 5,
@@ -271,7 +271,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
               "borderBottomColor": "#d6d9dc",
               "borderBottomWidth": 1,
               "borderRadius": 4,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontSize": 20,
               "fontWeight": "400",
               "paddingLeft": 0,
@@ -295,7 +295,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           style={
             Object {
               "color": "#777777",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontSize": 12,
               "fontWeight": "400",
               "height": 20,
@@ -321,7 +321,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           style={
             Object {
               "flex": 1,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontSize": 16,
               "fontWeight": "400",
             }

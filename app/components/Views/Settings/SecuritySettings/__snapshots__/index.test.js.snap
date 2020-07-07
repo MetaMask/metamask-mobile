@@ -35,7 +35,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -48,7 +48,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -89,7 +89,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -102,7 +102,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -143,7 +143,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -156,7 +156,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -197,7 +197,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -210,7 +210,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -254,7 +254,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -267,7 +267,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -312,7 +312,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -325,7 +325,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -407,7 +407,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -421,7 +421,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Array [
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -468,7 +468,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -483,7 +483,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Array [
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -549,7 +549,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Bold",
+              "fontFamily": "EuclidCircularB-Bold-WebXL",
               "fontSize": 22,
               "fontWeight": "600",
               "marginBottom": 20,
@@ -562,7 +562,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontSize": 18,
               "fontWeight": "400",
               "textAlign": "center",
@@ -602,7 +602,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Bold",
+              "fontFamily": "EuclidCircularB-Bold-WebXL",
               "fontSize": 22,
               "fontWeight": "600",
               "marginBottom": 20,
@@ -615,7 +615,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontSize": 18,
               "fontWeight": "400",
               "textAlign": "center",

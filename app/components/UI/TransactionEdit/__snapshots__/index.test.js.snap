@@ -65,7 +65,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             style={
               Object {
                 "color": "#848c96",
-                "fontFamily": "CircularStd-Bold",
+                "fontFamily": "EuclidCircularB-Bold-WebXL",
                 "fontSize": 16,
                 "fontWeight": "600",
               }
@@ -114,7 +114,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             style={
               Object {
                 "color": "#848c96",
-                "fontFamily": "CircularStd-Bold",
+                "fontFamily": "EuclidCircularB-Bold-WebXL",
                 "fontSize": 16,
                 "fontWeight": "600",
               }
@@ -130,7 +130,7 @@ exports[`TransactionEdit should render correctly 1`] = `
               style={
                 Object {
                   "color": "#037dd6",
-                  "fontFamily": "CircularStd-Bold",
+                  "fontFamily": "EuclidCircularB-Bold-WebXL",
                   "fontSize": 12,
                   "fontWeight": "600",
                   "paddingTop": 6,
@@ -179,7 +179,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             style={
               Object {
                 "color": "#848c96",
-                "fontFamily": "CircularStd-Bold",
+                "fontFamily": "EuclidCircularB-Bold-WebXL",
                 "fontSize": 16,
                 "fontWeight": "600",
               }
@@ -259,7 +259,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             style={
               Object {
                 "color": "#848c96",
-                "fontFamily": "CircularStd-Bold",
+                "fontFamily": "EuclidCircularB-Bold-WebXL",
                 "fontSize": 16,
                 "fontWeight": "600",
               }
@@ -281,7 +281,7 @@ exports[`TransactionEdit should render correctly 1`] = `
               "borderRadius": 4,
               "borderWidth": 1,
               "flex": 1,
-              "fontFamily": "CircularStd-Bold",
+              "fontFamily": "EuclidCircularB-Bold-WebXL",
               "fontSize": 16,
               "fontWeight": "600",
               "minHeight": 64,

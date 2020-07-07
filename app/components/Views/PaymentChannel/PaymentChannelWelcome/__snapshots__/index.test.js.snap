@@ -38,7 +38,7 @@ exports[`PaymentChannelWelcome should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Bold",
+          "fontFamily": "EuclidCircularB-Bold-WebXL",
           "fontSize": 24,
           "fontWeight": "600",
           "marginBottom": 10,
@@ -52,7 +52,7 @@ exports[`PaymentChannelWelcome should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular-WebXL",
           "fontSize": 14,
           "fontWeight": "400",
         }
@@ -65,7 +65,7 @@ exports[`PaymentChannelWelcome should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular-WebXL",
           "fontSize": 14,
           "fontWeight": "400",
         }

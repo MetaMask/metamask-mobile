@@ -62,7 +62,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
       style={
         Object {
           "color": "#037dd6",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular-WebXL",
           "fontSize": 11,
           "fontWeight": "400",
           "marginTop": 12,
@@ -129,7 +129,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
       style={
         Object {
           "color": "#037dd6",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular-WebXL",
           "fontSize": 11,
           "fontWeight": "400",
           "marginTop": 12,
@@ -183,7 +183,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
       style={
         Object {
           "color": "#037dd6",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular-WebXL",
           "fontSize": 11,
           "fontWeight": "400",
           "marginTop": 12,

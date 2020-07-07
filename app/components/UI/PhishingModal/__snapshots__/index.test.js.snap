@@ -61,7 +61,7 @@ exports[`PhishingModal should render correctly 1`] = `
         style={
           Object {
             "color": "#D73A49",
-            "fontFamily": "CircularStd-Bold",
+            "fontFamily": "EuclidCircularB-Bold-WebXL",
             "fontWeight": "600",
             "textAlign": "center",
           }
@@ -88,7 +88,7 @@ exports[`PhishingModal should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 11,
             "fontWeight": "400",
             "marginBottom": 15,
@@ -98,7 +98,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Bold",
+              "fontFamily": "EuclidCircularB-Bold-WebXL",
               "fontWeight": "600",
             }
           }
@@ -109,7 +109,7 @@ exports[`PhishingModal should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 11,
             "fontWeight": "400",
             "marginBottom": 15,
@@ -134,7 +134,7 @@ exports[`PhishingModal should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 11,
             "fontWeight": "400",
             "marginBottom": 15,
@@ -157,7 +157,7 @@ exports[`PhishingModal should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 11,
             "fontWeight": "400",
             "marginBottom": 15,
@@ -180,7 +180,7 @@ exports[`PhishingModal should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 11,
             "fontWeight": "400",
             "marginBottom": 15,

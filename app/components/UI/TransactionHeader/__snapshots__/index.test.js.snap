@@ -51,7 +51,7 @@ exports[`TransactionHeader should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Bold",
+          "fontFamily": "EuclidCircularB-Bold-WebXL",
           "fontSize": 14,
           "fontWeight": "600",
           "textAlign": "center",
@@ -88,7 +88,7 @@ exports[`TransactionHeader should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular-WebXL",
           "fontSize": 12,
           "fontWeight": "400",
           "padding": 5,

@@ -46,7 +46,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
         Object {
           "alignSelf": "center",
           "flexDirection": "row",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular-WebXL",
           "fontSize": 18,
           "fontWeight": "400",
         }
@@ -286,7 +286,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
         style={
           Object {
             "color": "#FFFFFF",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 16,
             "fontWeight": "400",
             "textAlign": "center",

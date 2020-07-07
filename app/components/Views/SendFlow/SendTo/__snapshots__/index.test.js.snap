@@ -171,7 +171,7 @@ exports[`SendTo should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular-WebXL",
                 "fontSize": 24,
                 "fontWeight": "400",
                 "marginBottom": 24,
@@ -184,7 +184,7 @@ exports[`SendTo should render correctly 1`] = `
             style={
               Object {
                 "color": "#5B5D67",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular-WebXL",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "marginBottom": 24,
@@ -228,7 +228,7 @@ exports[`SendTo should render correctly 1`] = `
                 style={
                   Object {
                     "color": "#000000",
-                    "fontFamily": "CircularStd-Medium",
+                    "fontFamily": "EuclidCircularB-Regular-WebXL",
                     "fontSize": 20,
                     "fontWeight": "400",
                     "width": "100%",

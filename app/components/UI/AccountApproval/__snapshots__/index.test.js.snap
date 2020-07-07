@@ -26,7 +26,7 @@ exports[`AccountApproval should render correctly 1`] = `
     style={
       Object {
         "color": "#000000",
-        "fontFamily": "CircularStd-Bold",
+        "fontFamily": "EuclidCircularB-Bold-WebXL",
         "fontSize": 20,
         "fontWeight": "600",
         "marginBottom": 8,
@@ -41,7 +41,7 @@ exports[`AccountApproval should render correctly 1`] = `
     style={
       Object {
         "color": "#000000",
-        "fontFamily": "CircularStd-Medium",
+        "fontFamily": "EuclidCircularB-Regular-WebXL",
         "fontSize": 14,
         "fontWeight": "100",
         "marginBottom": 16,

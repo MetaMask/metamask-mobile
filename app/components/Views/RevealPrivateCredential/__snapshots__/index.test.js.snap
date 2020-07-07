@@ -33,7 +33,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
             Object {
               "borderBottomColor": "#848c96",
               "borderBottomWidth": 1,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontWeight": "400",
             },
           ]
@@ -79,7 +79,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
           <Text
             style={
               Object {
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular-WebXL",
                 "fontWeight": "400",
                 "marginLeft": 10,
                 "marginRight": 40,
@@ -127,7 +127,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
             style={
               Object {
                 "color": "#D73A49",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular-WebXL",
                 "fontWeight": "400",
                 "marginTop": 10,
               }

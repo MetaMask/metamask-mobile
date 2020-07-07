@@ -46,7 +46,7 @@ exports[`AccountInfoCard should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Bold",
+            "fontFamily": "EuclidCircularB-Bold-WebXL",
             "fontSize": 16,
             "fontWeight": "600",
             "marginRight": 2,
@@ -62,7 +62,7 @@ exports[`AccountInfoCard should render correctly 1`] = `
           Object {
             "color": "#000000",
             "flexGrow": 1,
-            "fontFamily": "CircularStd-Bold",
+            "fontFamily": "EuclidCircularB-Bold-WebXL",
             "fontSize": 16,
             "fontWeight": "600",
           }
@@ -79,7 +79,7 @@ exports[`AccountInfoCard should render correctly 1`] = `
         Object {
           "alignSelf": "flex-start",
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular-WebXL",
           "fontSize": 14,
           "fontWeight": "100",
         }

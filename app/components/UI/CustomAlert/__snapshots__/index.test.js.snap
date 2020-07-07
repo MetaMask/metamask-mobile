@@ -76,7 +76,7 @@ exports[`CustomAlert should render correctly 1`] = `
       <Text
         style={
           Object {
-            "fontFamily": "CircularStd-Bold",
+            "fontFamily": "EuclidCircularB-Bold-WebXL",
             "fontSize": 16,
             "fontWeight": "600",
             "marginBottom": 15,

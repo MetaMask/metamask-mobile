@@ -38,7 +38,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Bold",
+            "fontFamily": "EuclidCircularB-Bold-WebXL",
             "fontSize": 20,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -52,7 +52,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular-WebXL",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -64,7 +64,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Bold",
+            "fontFamily": "EuclidCircularB-Bold-WebXL",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -86,7 +86,7 @@ exports[`NetworkSettings should render correctly 1`] = `
               "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontWeight": "400",
               "padding": 10,
             },
@@ -101,7 +101,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Bold",
+            "fontFamily": "EuclidCircularB-Bold-WebXL",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -124,7 +124,7 @@ exports[`NetworkSettings should render correctly 1`] = `
               "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontWeight": "400",
               "padding": 10,
             },
@@ -139,7 +139,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Bold",
+            "fontFamily": "EuclidCircularB-Bold-WebXL",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -163,7 +163,7 @@ exports[`NetworkSettings should render correctly 1`] = `
               "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontWeight": "400",
               "padding": 10,
             },
@@ -177,7 +177,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Bold",
+            "fontFamily": "EuclidCircularB-Bold-WebXL",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -199,7 +199,7 @@ exports[`NetworkSettings should render correctly 1`] = `
               "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontWeight": "400",
               "padding": 10,
             },
@@ -214,7 +214,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Bold",
+            "fontFamily": "EuclidCircularB-Bold-WebXL",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -236,7 +236,7 @@ exports[`NetworkSettings should render correctly 1`] = `
               "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular-WebXL",
               "fontWeight": "400",
               "padding": 10,
             },
