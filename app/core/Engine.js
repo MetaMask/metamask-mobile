@@ -29,6 +29,7 @@ import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import NotificationManager from './NotificationManager';
 import contractMap from 'eth-contract-metadata';
+import Logger from '../util/Logger';
 
 const OPENSEA_API_KEY = process.env.MM_OPENSEA_KEY;
 const encryptor = new Encryptor();
@@ -213,7 +214,7 @@ class Engine {
 			}
 			await AsyncStorage.setItem('@MetaMask:lastIncomingTxBlockInfo', JSON.stringify(allLastIncomingTxBlocks));
 		} catch (e) {
-			console.log('Error while fetching all txs', e); // eslint-disable-line
+			Logger.log('Error while fetching all txs', e);
 		}
 	};
 

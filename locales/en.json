@@ -497,14 +497,18 @@
 		"hex_data": "Hex Data",
 		"review_details": "DETAILS",
 		"review_data": "DATA",
+		"data": "Data",
+		"data_description": "Data associated with this transaction",
 		"review_function_type": "FUNCTION TYPE",
-		"review_hex_data": "HEX DATA",
+		"review_function": "Function",
+		"review_hex_data": "Hex data",
 		"insufficient": "Insufficient funds",
 		"insufficient_tokens": "Insufficient {{token}}",
 		"invalid_address": "Invalid address",
 		"invalid_amount": "Invalid amount",
 		"invalid_gas": "Invalid gas amount",
 		"invalid_gas_price": "Invalid gas price",
+		"low_gas_price": "Gas price extremely low",
 		"invalid_collectible_ownership": "You don't own this collectible",
 		"known_asset_contract": "Known asset contract address",
 		"max": "Max",
@@ -534,6 +538,7 @@
 		"transaction_fee": "Network fee",
 		"transaction_fee_less": "No fee",
 		"total_amount": "Total amount",
+		"view_data": "View Data",
 		"adjust_transaction_fee": "Adjust transaction fee",
 		"could_not_resolve_ens": "Couldn't resolve ENS",
 		"asset": "Asset",
@@ -548,6 +553,7 @@
 		"gas_limit": "Gas Limit:",
 		"gas_price": "Gas Price: (GWEI)",
 		"save": "Save",
+		"total": "Total",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
 		"cost_explanation": "Select the network fee you are willing to pay. The higher the fee, the better chances and faster your transaction will go through."
 	},
@@ -980,11 +986,11 @@
 		"wc_sent_tx_rejected_title": "You’ve rejected the transaction request",
 		"wc_description": "Go back to the browser"
 	},
-	"secure_your_wallet_modal": {
-		"title": "Secure your wallet",
-		"body": "Now that you have value in your wallet, create password & save your wallet's seed phrase ",
-		"required": "(required)",
-		"button": "PROCEED NOW"
+	"protect_your_wallet_modal": {
+		"title": "Protect your wallet",
+		"body_for_password": "Protect your wallet by setting a password and saving your seed phrase (required).",
+		"body_for_seedphrase": "Now that value was added to your wallet, protect your wallet by setting a password and saving your seed phrase (required).",
+		"button": "Protect wallet"
 	},
 	"payment_request": {
 		"title": "Request",

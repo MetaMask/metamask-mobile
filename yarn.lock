@@ -10587,9 +10587,9 @@ react-native-view-shot@^3.1.2:
   resolved "https://registry.yarnpkg.com/react-native-view-shot/-/react-native-view-shot-3.1.2.tgz#8c8e84c67a4bc8b603e697dbbd59dbc9b4f84825"
   integrity sha512-9u9fPtp6a52UMoZ/UCPrCjKZk8tnkI9To0Eh6yYnLKFEGkRZ7Chm6DqwDJbYJHeZrheCCopaD5oEOnRqhF4L2Q==
 
-"react-native-webview@git+ssh://git@github.com/MetaMask/react-native-webview.git#408df176e6fe7c00aa05c2fddb4054968330e8a1":
+"react-native-webview@git+ssh://git@github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7":
   version "7.0.5"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-webview.git#408df176e6fe7c00aa05c2fddb4054968330e8a1"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7"
   dependencies:
     escape-string-regexp "1.0.5"
     invariant "2.2.4"

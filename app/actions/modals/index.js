@@ -23,3 +23,10 @@ export function toggleReceiveModal(asset) {
 		asset
 	};
 }
+
+export function toggleDappTransactionModal(show) {
+	return {
+		type: 'TOGGLE_DAPP_TRANSACTION_MODAL',
+		show
+	};
+}
