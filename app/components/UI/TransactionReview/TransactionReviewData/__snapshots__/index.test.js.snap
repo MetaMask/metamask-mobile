@@ -3,71 +3,80 @@
 exports[`TransactionReviewData should render correctly 1`] = `
 <View
   style={
-    Object {
-      "marginBottom": 24,
-      "paddingHorizontal": 24,
-    }
+    Array [
+      Object {
+        "paddingBottom": 48,
+        "paddingHorizontal": 24,
+        "paddingTop": 24,
+      },
+      Object {
+        "height": undefined,
+      },
+    ]
   }
 >
-  <View
-    style={
-      Object {
-        "alignItems": "center",
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "marginBottom": 28,
-        "width": "100%",
-      }
-    }
-  >
-    <TouchableOpacity>
-      <Icon
-        allowFontScaling={false}
-        color="#000000"
-        name="ios-arrow-back"
-        size={24}
-      />
-    </TouchableOpacity>
-    <Text
+  <View>
+    <View
       style={
         Object {
-          "alignSelf": "center",
-          "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 14,
-          "fontWeight": "600",
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "marginBottom": 28,
+          "width": "100%",
         }
       }
     >
-      Data
-    </Text>
-    <Icon
-      allowFontScaling={false}
-      color="#FFFFFF"
-      name="ios-arrow-back"
-      size={24}
-    />
-  </View>
-  <Text
-    style={
-      Object {
-        "color": "#000000",
-        "fontFamily": "CircularStd-Medium",
-        "fontSize": 14,
-        "fontWeight": "400",
-        "marginBottom": 28,
-        "textAlign": "center",
+      <TouchableOpacity>
+        <Icon
+          allowFontScaling={false}
+          color="#000000"
+          name="ios-arrow-back"
+          size={24}
+        />
+      </TouchableOpacity>
+      <Text
+        style={
+          Object {
+            "alignSelf": "center",
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "600",
+          }
+        }
+      >
+        Data
+      </Text>
+      <Icon
+        allowFontScaling={false}
+        color="#FFFFFF"
+        name="ios-arrow-back"
+        size={24}
+      />
+    </View>
+    <Text
+      style={
+        Object {
+          "color": "#000000",
+          "fontFamily": "CircularStd-Medium",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "marginBottom": 28,
+          "textAlign": "center",
+        }
       }
-    }
-  >
-    Data associated with this transaction
-  </Text>
+    >
+      Data associated with this transaction
+    </Text>
+  </View>
   <View
     style={
       Object {
         "borderColor": "#bbc0c5",
         "borderRadius": 8,
         "borderWidth": 1,
+        "flex": 1,
         "padding": 12,
       }
     }
@@ -112,29 +121,26 @@ exports[`TransactionReviewData should render correctly 1`] = `
         }
       />
     </View>
-    <View
-      style={Object {}}
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "400",
+          },
+          Object {
+            "fontFamily": "CircularStd-Medium",
+            "fontWeight": "600",
+          },
+        ]
+      }
     >
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 14,
-              "fontWeight": "400",
-            },
-            Object {
-              "fontFamily": "CircularStd-Medium",
-              "fontWeight": "600",
-            },
-          ]
-        }
-      >
-        Hex data
-        :
-         
-      </Text>
+      Hex data
+      : 
+    </Text>
+    <ScrollViewMock>
       <Text
         style={
           Object {
@@ -147,7 +153,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
           }
         }
       />
-    </View>
+    </ScrollViewMock>
   </View>
 </View>
 `;

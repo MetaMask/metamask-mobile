@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, Animated, Easing } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../../../styles/common';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
@@ -9,7 +9,9 @@ import { isBN, hexToBN, toBN, isDecimal } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { generateTransferData, getNormalizedTxState } from '../../../util/transactions';
+import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
@@ -23,22 +25,23 @@ const EDIT = 'edit';
 const REVIEW = 'review';
 
 const styles = StyleSheet.create({
-	reviewRoot: {
+	root: {
 		backgroundColor: colors.white,
 		minHeight: 200,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
-		paddingTop: 24,
-		paddingBottom: Device.isIphoneX() ? 24 : 0,
-		justifyContent: 'flex-end'
+		paddingBottom: Device.isIphoneX() ? 24 : 0
 	},
-	editRoot: {
-		backgroundColor: colors.white,
-		minHeight: 200,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		paddingTop: 24,
-		paddingBottom: Device.isIphoneX() ? 44 : 24,
+	transactionEdit: {
+		position: 'absolute',
+		width: '100%',
+		height: '100%'
+	},
+	transactionReview: {
+		paddingTop: 24
+	},
+	keyboardAwareWrapper: {
+		flex: 1,
 		justifyContent: 'flex-end'
 	}
 });
@@ -112,7 +115,31 @@ class TransactionEditor extends PureComponent {
 
 	state = {
 		toFocused: false,
-		ensRecipient: undefined
+		ensRecipient: undefined,
+		basicGasEstimates: {},
+		ready: false,
+		advancedCustomGas: false,
+		modalValue: new Animated.Value(1),
+		reviewToEditValue: new Animated.Value(0),
+		reviewToDataValue: new Animated.Value(0),
+		editToAdvancedValue: new Animated.Value(0),
+		width: Device.getDeviceWidth(),
+		rootHeight: null,
+		customGasHeight: null,
+		transactionReviewDataHeight: null,
+		hideGasSelectors: false,
+		hideData: true,
+		toAdvancedFrom: 'edit'
+	};
+
+	xTranslationMappings = {
+		reviewToEdit: this.state.reviewToEditValue,
+		editToAdvanced: this.state.editToAdvancedValue,
+		reviewToData: this.state.reviewToDataValue
+	};
+
+	componentDidMount = async () => {
+		await this.handleFetchBasicEstimates();
 	};
 
 	/**
@@ -572,54 +599,194 @@ class TransactionEditor extends PureComponent {
 		}
 	};
 
-	goToEdit = () => {
-		const { onModeChange } = this.props;
-		onModeChange(EDIT);
+	handleFetchBasicEstimates = async () => {
+		this.setState({ ready: false });
+		const basicGasEstimates = await getBasicGasEstimates();
+		this.handleGasFeeSelection(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
+		this.setState({ basicGasEstimates, ready: true });
 	};
 
-	handleCustomBackPress = () => {
-		if (this.props.mode === REVIEW) {
-			return this.goToEdit();
+	onModeChange = mode => {
+		if (mode === 'edit') {
+			this.setState({ toAdvancedFrom: 'review' });
+			this.animate({
+				modalEndValue: this.state.advancedCustomGas ? this.getAnimatedModalValueForAdvancedCG() : 0,
+				xTranslationName: 'reviewToEdit',
+				xTranslationEndValue: 1
+			});
+		} else {
+			this.animate({
+				modalEndValue: 1,
+				xTranslationName: 'reviewToEdit',
+				xTranslationEndValue: 0
+			});
 		}
-		return this.props.navigation.pop();
+		this.props.onModeChange(mode);
 	};
 
+	toggleAdvancedCustomGas = (toggle = false) => {
+		const { advancedCustomGas } = this.state;
+		this.setState({ advancedCustomGas: toggle ? true : !advancedCustomGas, toAdvancedFrom: 'edit' });
+	};
+
+	hideComponents = (xTranslationName, xTranslationEndValue, animationTime) => {
+		//data view is hidden by default because when we switch from review to edit, since view is nested in review, it also gets transformed. It's shown if it's the animation's destination.
+		if (xTranslationName === 'editToAdvanced') {
+			this.setState({
+				hideGasSelectors: xTranslationEndValue === 1 && animationTime === 'end'
+			});
+		}
+		if (xTranslationName === 'reviewToData') {
+			this.setState({
+				hideData: xTranslationEndValue === 0 && animationTime === 'end'
+			});
+		}
+	};
+
+	animate = ({ modalEndValue, xTranslationName, xTranslationEndValue }) => {
+		const { modalValue } = this.state;
+		this.hideComponents(xTranslationName, xTranslationEndValue, 'start');
+		Animated.parallel([
+			Animated.timing(modalValue, {
+				toValue: modalEndValue,
+				duration: 250,
+				easing: Easing.ease,
+				useNativeDriver: true
+			}),
+			Animated.timing(this.xTranslationMappings[xTranslationName], {
+				toValue: xTranslationEndValue,
+				duration: 250,
+				easing: Easing.ease,
+				useNativeDriver: true
+			})
+		]).start(() => {
+			this.hideComponents(xTranslationName, xTranslationEndValue, 'end');
+		});
+	};
+
+	generateTransform = (valueType, outRange) => {
+		const { modalValue, reviewToEditValue, editToAdvancedValue, reviewToDataValue } = this.state;
+		if (valueType === 'modal' || valueType === 'saveButton') {
+			return {
+				transform: [
+					{
+						translateY: modalValue.interpolate({
+							inputRange: [0, valueType === 'saveButton' ? this.getAnimatedModalValueForAdvancedCG() : 1],
+							outputRange: outRange
+						})
+					}
+				]
+			};
+		}
+		let value;
+		if (valueType === 'reviewToEdit') value = reviewToEditValue;
+		else if (valueType === 'editToAdvanced') value = editToAdvancedValue;
+		else if (valueType === 'reviewToData') value = reviewToDataValue;
+		return {
+			transform: [
+				{
+					translateX: value.interpolate({
+						inputRange: [0, 1],
+						outputRange: outRange
+					})
+				}
+			]
+		};
+	};
+
+	getAnimatedModalValueForAdvancedCG = () => {
+		const { rootHeight, customGasHeight } = this.state;
+		//70 is the fixed height + margin of the error message in advanced custom gas. It expands 70 units vertically to accomodate it
+		return 70 / (rootHeight - customGasHeight);
+	};
+
+	saveRootHeight = event => this.setState({ rootHeight: event.nativeEvent.layout.height });
+
+	saveCustomGasHeight = event =>
+		!this.state.customGasHeight && this.setState({ customGasHeight: event.nativeEvent.layout.height });
+
+	saveTransactionReviewDataHeight = event =>
+		!this.state.transactionReviewDataHeight &&
+		this.setState({ transactionReviewDataHeight: event.nativeEvent.layout.height });
+
+	getTransformValue = () => {
+		const { rootHeight, customGasHeight } = this.state;
+		return rootHeight - customGasHeight;
+	};
 	render = () => {
 		const { mode, transactionConfirmed, transaction } = this.props;
-
+		const {
+			basicGasEstimates,
+			ready,
+			width,
+			advancedCustomGas,
+			hideGasSelectors,
+			modalValue,
+			toAdvancedFrom,
+			hideData,
+			customGasHeight
+		} = this.state;
 		return (
 			<React.Fragment>
 				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
-				{mode === EDIT && !transaction.paymentChannelTransaction && (
-					<View style={styles.editRoot}>
-						<TransactionEdit
-							navigation={this.props.navigation}
-							onCancel={this.onCancel}
-							onModeChange={this.props.onModeChange}
-							handleUpdateAmount={this.handleUpdateAmount}
-							handleUpdateData={this.handleUpdateData}
-							handleUpdateFromAddress={this.handleUpdateFromAddress}
-							handleUpdateToAddress={this.handleUpdateToAddress}
-							handleGasFeeSelection={this.handleGasFeeSelection}
-							validateAmount={this.validateAmount}
-							validateGas={this.validateGas}
-							validateToAddress={this.validateToAddress}
-							handleUpdateAsset={this.handleUpdateAsset}
-							checkForAssetAddress={this.checkForAssetAddress}
-							handleUpdateReadableValue={this.handleUpdateReadableValue}
-						/>
-					</View>
-				)}
-				{mode === REVIEW && (
-					<View style={styles.reviewRoot}>
-						<TransactionReview
-							onCancel={this.onCancel}
-							onConfirm={this.onConfirm}
-							onModeChange={this.props.onModeChange}
-							validate={this.validate}
-							transactionConfirmed={transactionConfirmed}
-						/>
-					</View>
+				{!transaction.paymentChannelTransaction && (
+					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+						<Animated.View
+							style={[styles.root, this.generateTransform('modal', [this.getTransformValue(), 0])]}
+							onLayout={this.saveRootHeight}
+						>
+							<Animated.View
+								style={[this.generateTransform('reviewToEdit', [0, -width]), styles.transactionReview]}
+							>
+								<TransactionReview
+									onCancel={this.onCancel}
+									onConfirm={this.onConfirm}
+									onModeChange={this.onModeChange}
+									validate={this.validate}
+									ready={ready}
+									transactionConfirmed={transactionConfirmed}
+									generateTransform={this.generateTransform}
+									animate={this.animate}
+									hideData={hideData}
+									saveTransactionReviewDataHeight={this.saveTransactionReviewDataHeight}
+									customGasHeight={customGasHeight}
+								/>
+							</Animated.View>
+							{ready && (
+								<Animated.View
+									style={[styles.transactionEdit, this.generateTransform('reviewToEdit', [width, 0])]}
+								>
+									<TransactionEdit
+										navigation={this.props.navigation}
+										basicGasEstimates={basicGasEstimates}
+										onCancel={this.onCancel}
+										onModeChange={this.onModeChange}
+										handleUpdateAmount={this.handleUpdateAmount}
+										handleUpdateData={this.handleUpdateData}
+										handleUpdateFromAddress={this.handleUpdateFromAddress}
+										handleUpdateToAddress={this.handleUpdateToAddress}
+										handleGasFeeSelection={this.handleGasFeeSelection}
+										validateAmount={this.validateAmount}
+										validateGas={this.validateGas}
+										validateToAddress={this.validateToAddress}
+										handleUpdateAsset={this.handleUpdateAsset}
+										checkForAssetAddress={this.checkForAssetAddress}
+										handleUpdateReadableValue={this.handleUpdateReadableValue}
+										saveCustomGasHeight={this.saveCustomGasHeight}
+										toggleAdvancedCustomGas={this.toggleAdvancedCustomGas}
+										advancedCustomGas={advancedCustomGas}
+										animate={this.animate}
+										generateTransform={this.generateTransform}
+										getAnimatedModalValueForAdvancedCG={this.getAnimatedModalValueForAdvancedCG}
+										hideGasSelectors={hideGasSelectors}
+										mode={mode}
+										modalValue={modalValue}
+										toAdvancedFrom={toAdvancedFrom}
+									/>
+								</Animated.View>
+							)}
+						</Animated.View>
+					</KeyboardAwareScrollView>
 				)}
 			</React.Fragment>
 		);

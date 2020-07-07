@@ -229,7 +229,6 @@ exports[`Confirm should render correctly 1`] = `
         "backgroundColor": "#FFFFFF",
         "borderTopLeftRadius": 20,
         "borderTopRightRadius": 20,
-        "paddingHorizontal": 24,
         "paddingTop": 24,
         "width": "100%",
       }

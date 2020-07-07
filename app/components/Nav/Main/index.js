@@ -480,6 +480,7 @@ class Main extends PureComponent {
 		}
 	};
 	componentDidMount = async () => {
+		this.props.toggleDappTransactionModal(false);
 		InteractionManager.runAfterInteractions(() => {
 			this.initializeWalletConnect();
 			AppState.addEventListener('change', this.handleAppStateChange);
@@ -1112,7 +1113,7 @@ const mapDispatchToProps = dispatch => ({
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
 	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
 	hideTransactionNotification: () => dispatch(hideTransactionNotification()),
-	toggleDappTransactionModal: () => dispatch(toggleDappTransactionModal())
+	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show))
 });
 
 export default connect(

@@ -1,3 +1,73 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TransactionEditor should render correctly 1`] = `<Fragment />`;
+exports[`TransactionEditor should render correctly 1`] = `
+<Fragment>
+  <KeyboardAwareScrollViewMock
+    contentContainerStyle={
+      Object {
+        "flex": 1,
+        "justifyContent": "flex-end",
+      }
+    }
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
+    viewIsInsideTabBar={false}
+  >
+    <ForwardRef(AnimatedComponentWrapper)
+      onLayout={[Function]}
+      style={
+        Array [
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderTopLeftRadius": 20,
+            "borderTopRightRadius": 20,
+            "minHeight": 200,
+            "paddingBottom": 24,
+          },
+          Object {
+            "transform": Array [
+              Object {
+                "translateY": 0,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <ForwardRef(AnimatedComponentWrapper)
+        style={
+          Array [
+            Object {
+              "transform": Array [
+                Object {
+                  "translateX": 0,
+                },
+              ],
+            },
+            Object {
+              "paddingTop": 24,
+            },
+          ]
+        }
+      >
+        <Connect(TransactionReview)
+          animate={[Function]}
+          customGasHeight={null}
+          generateTransform={[Function]}
+          hideData={true}
+          onCancel={[Function]}
+          onConfirm={[Function]}
+          onModeChange={[Function]}
+          ready={false}
+          saveTransactionReviewDataHeight={[Function]}
+          validate={[Function]}
+        />
+      </ForwardRef(AnimatedComponentWrapper)>
+    </ForwardRef(AnimatedComponentWrapper)>
+  </KeyboardAwareScrollViewMock>
+</Fragment>
+`;
