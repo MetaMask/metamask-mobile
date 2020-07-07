@@ -983,11 +983,11 @@
 		"wc_sent_tx_rejected_title": "You’ve rejected the transaction request",
 		"wc_description": "Go back to the browser"
 	},
-	"secure_your_wallet_modal": {
-		"title": "Secure your wallet",
-		"body": "Now that you have value in your wallet, create password & save your wallet's seed phrase ",
-		"required": "(required)",
-		"button": "PROCEED NOW"
+	"protect_your_wallet_modal": {
+		"title": "Protect your wallet",
+		"body_for_password": "Protect your wallet by setting a password and saving your seed phrase (required).",
+		"body_for_seedphrase": "Now that value was added to your wallet, protect your wallet by setting a password and saving your seed phrase (required).",
+		"button": "Protect wallet"
 	},
 	"payment_request": {
 		"title": "Request",
