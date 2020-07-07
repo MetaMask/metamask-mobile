@@ -34,7 +34,8 @@ export default function ActionModal({
 	viewWrapperStyle,
 	viewContainerStyle,
 	actionContainerStyle,
-	childrenContainerStyle
+	childrenContainerStyle,
+	verticalButtons
 }) {
 	return (
 		<Modal
@@ -61,6 +62,7 @@ export default function ActionModal({
 				viewContainerStyle={viewContainerStyle}
 				actionContainerStyle={actionContainerStyle}
 				childrenContainerStyle={childrenContainerStyle}
+				verticalButtons={verticalButtons}
 			>
 				{children}
 			</ActionContent>
@@ -100,11 +102,11 @@ ActionModal.propTypes = {
 	/**
 	 * Type of button to show as the cancel button
 	 */
-	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'confirm', 'normal']),
+	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'confirm', 'normal', 'warning']),
 	/**
 	 * Type of button to show as the confirm button
 	 */
-	confirmButtonMode: PropTypes.oneOf(['normal', 'confirm', 'warning']),
+	confirmButtonMode: PropTypes.oneOf(['normal', 'neutral', 'confirm', 'warning']),
 	/**
 	 * Whether confirm button is disabled
 	 */
@@ -153,6 +155,10 @@ ActionModal.propTypes = {
 	 * Action container style
 	 */
 	actionContainerStyle: PropTypes.object,
+	/**
+	 * Whether buttons are rendered vertically
+	 */
+	verticalButtons: PropTypes.bool,
 	/**
 	 * Children container style
 	 */
