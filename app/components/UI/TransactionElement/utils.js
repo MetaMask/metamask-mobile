@@ -178,10 +178,10 @@ function getTokenTransfer(args) {
 		};
 	}
 
-	let transactionType;
-	if (renderFullAddress(from) === selectedAddress) transactionType = TRANSACTION_TYPES.SENT_TOKEN;
-	else transactionType = TRANSACTION_TYPES.RECEIVED_TOKEN;
-
+	const { SENT_TOKEN, RECEIVED_TOKEN } = TRANSACTION_TYPES
+	const transactionType = (renderFullAddress(from) === selectedAddress)
+		? SENT_TOKEN
+		: RECEIVED_TOKEN
 	const transactionElement = {
 		actionKey: renderActionKey,
 		value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
