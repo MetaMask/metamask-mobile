@@ -195,6 +195,13 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		paddingTop: 24,
 		paddingHorizontal: 24
+	},
+	totalAmount: {
+		...fontStyles.normal,
+		color: colors.fontPrimary,
+		fontSize: 14,
+		textAlign: 'right',
+		textTransform: 'uppercase'
 	}
 });
 
@@ -382,7 +389,11 @@ class Confirm extends PureComponent {
 			transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
-			transactionTotalAmount = `${renderFromWei(transactionTotalAmountBN)} ${parsedTicker}`;
+			transactionTotalAmount = (
+				<Text style={styles.totalAmount}>
+					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
+				</Text>
+			);
 			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
 			transactionTo = to;
 		} else if (selectedAsset.tokenId) {
@@ -403,7 +414,11 @@ class Confirm extends PureComponent {
 			}
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
-			transactionTotalAmount = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+			transactionTotalAmount = (
+				<Text style={styles.totalAmount}>
+					{renderFromWei(weiTransactionFee)} {parsedTicker}
+				</Text>
+			);
 			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
 		} else {
 			let amount;
@@ -420,7 +435,11 @@ class Confirm extends PureComponent {
 			transactionValueFiat =
 				balanceToFiat(transferValue, conversionRate, exchangeRate, currentCurrency) || `0 ${currentCurrency}`;
 			const transactionValueFiatNumber = balanceToFiatNumber(transferValue, conversionRate, exchangeRate);
-			transactionTotalAmount = `${transactionValue} + ${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+			transactionTotalAmount = (
+				<Text style={styles.totalAmount}>
+					{transactionValue} + ${renderFromWei(weiTransactionFee)} {parsedTicker}
+				</Text>
+			);
 			transactionTotalAmountFiat = renderFiatAddition(
 				transactionValueFiatNumber,
 				transactionFeeFiatNumber,
@@ -871,7 +890,7 @@ class Confirm extends PureComponent {
 			transactionFeeFiat = '',
 			transactionFee,
 			transactionTo = '',
-			transactionTotalAmount = '',
+			transactionTotalAmount = <Text />,
 			transactionTotalAmountFiat = '',
 			errorMessage,
 			transactionConfirmed,

@@ -374,6 +374,7 @@ class CustomGas extends PureComponent {
 	onGasLimitChange = value => {
 		let warningGasLimit;
 		const { customGasPrice } = this.state;
+		//Added because apiEstimateModifiedToWEI doesn't like empty strings
 		const gasPrice = customGasPrice === '' ? '0' : customGasPrice;
 		const bnValue = new BN(value);
 		if (!value || value === '' || !isDecimal(value)) warningGasLimit = strings('transaction.invalid_gas');

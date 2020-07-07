@@ -4,12 +4,18 @@ exports[`CustomGas should render correctly 1`] = `
 <View
   style={
     Object {
-      "flex": 1,
+      "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
+      "height": 200,
+      "justifyContent": "center",
     }
   }
 >
-  <Text>
-    Loading...
-  </Text>
+  <ActivityIndicator
+    animating={true}
+    color="#999999"
+    hidesWhenStopped={true}
+    size="small"
+  />
 </View>
 `;
