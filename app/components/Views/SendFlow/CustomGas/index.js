@@ -20,7 +20,6 @@ import ConnectHeader from '../../../UI/ConnectHeader';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		minWidth: '100%',
 		width: '100%',
 		paddingHorizontal: 24
 	},
