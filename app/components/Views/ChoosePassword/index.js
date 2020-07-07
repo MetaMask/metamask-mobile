@@ -495,6 +495,7 @@ class ChoosePassword extends PureComponent {
 									{strings('choose_password.must_be_at_least', { number: 8 })}
 								</Text>
 							</View>
+							<View>{this.renderSwitch()}</View>
 							<View style={styles.checkboxContainer}>
 								<CheckBox
 									value={isSelected}
