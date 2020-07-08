@@ -142,7 +142,12 @@ class ManualBackupStep3 extends PureComponent {
 
 	saveSeedphrase = async () => {
 		this.toggleHint();
-		await AsyncStorage.setItem('seedphraseHints', { manualBackup: this.state.hintText });
+		const currentSeedphraseHints = await AsyncStorage.getItem('seedphraseHints');
+		const parsedHints = JSON.parse(currentSeedphraseHints);
+		await AsyncStorage.setItem(
+			'seedphraseHints',
+			JSON.stringify({ ...parsedHints, manualBackup: this.state.hintText })
+		);
 	};
 
 	done = async () => {
