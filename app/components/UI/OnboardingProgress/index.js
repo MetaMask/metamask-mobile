@@ -81,8 +81,18 @@ export default class OnboardingProgress extends PureComponent {
 		offset: 0
 	};
 
+	static defaultProps = {
+		currentStep: 1
+	};
+
 	static propTypes = {
-		currentStep: PropTypes.number.isRequired,
+		/**
+		 * int specifying the currently selected step
+		 */
+		currentStep: PropTypes.number,
+		/**
+		 * array of text strings representing each step
+		 */
 		steps: PropTypes.array.isRequired
 	};
 
