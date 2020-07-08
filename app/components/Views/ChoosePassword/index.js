@@ -439,7 +439,7 @@ class ChoosePassword extends PureComponent {
 			<SafeAreaView style={styles.mainWrapper}>
 				<View style={styles.wrapper} testID={'choose-password-screen'}>
 					<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-						<OnboardingProgress steps={steps} currentStep={1} />
+						<OnboardingProgress steps={steps} />
 						<View testID={'create-password-screen'}>
 							<View style={styles.content}>
 								<Text style={styles.title}>{strings('choose_password.title')}</Text>
