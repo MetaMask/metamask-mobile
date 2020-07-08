@@ -12,17 +12,16 @@ import Device from '../../../util/Device';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
-import { CANCEL_RATE, SPEED_UP_RATE, BN, util } from '@metamask/controllers';
+import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
 import ActionContent from '../ActionModal/ActionContent';
 import TransactionActionContent from '../TransactionActionModal/TransactionActionContent';
 import { renderFromWei } from '../../../util/number';
 import Engine from '../../../core/Engine';
-import { safeToChecksumAddress } from '../../../util/address';
 import notificationTypes from '../../../util/notifications';
+import { validateTransactionActionBalance } from '../../../util/transactions';
 
 const { TRANSACTION, SIMPLE } = notificationTypes;
 
-const { hexToBN } = util;
 const BROWSER_ROUTE = 'BrowserView';
 
 const styles = StyleSheet.create({
@@ -325,35 +324,26 @@ class Notification extends PureComponent {
 	};
 
 	onSpeedUpPress = () => {
-		const transactionActionDisabled = this.validateBalance(this.state.tx, SPEED_UP_RATE);
+		const transactionActionDisabled = validateTransactionActionBalance(
+			this.state.tx,
+			SPEED_UP_RATE,
+			this.props.accounts
+		);
 		this.setState({ transactionAction: ACTION_SPEEDUP, transactionActionDisabled });
 		this.animateActionTo(-WINDOW_WIDTH);
 	};
 
 	onCancelPress = () => {
-		const transactionActionDisabled = this.validateBalance(this.state.tx, CANCEL_RATE);
+		const transactionActionDisabled = validateTransactionActionBalance(
+			this.state.tx,
+			CANCEL_RATE,
+			this.props.accounts
+		);
 		this.setState({ transactionAction: ACTION_CANCEL, transactionActionDisabled });
 		this.animateActionTo(-WINDOW_WIDTH);
 	};
 
 	onActionFinish = () => this.animateActionTo(0);
-
-	validateBalance = (tx, rate) => {
-		const { accounts } = this.props;
-		try {
-			const checksummedFrom = safeToChecksumAddress(tx.transaction.from);
-			const balance = accounts[checksummedFrom].balance;
-			return hexToBN(balance).lt(
-				hexToBN(tx.transaction.gasPrice)
-					.mul(new BN(rate * 10))
-					.mul(new BN(10))
-					.mul(hexToBN(tx.transaction.gas))
-					.add(hexToBN(tx.transaction.value))
-			);
-		} catch (e) {
-			return false;
-		}
-	};
 
 	animateActionTo = position => {
 		this.animatedTimingStart(this.detailsYAnimated, position);
