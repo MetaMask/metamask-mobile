@@ -517,7 +517,7 @@
 		"spend_limit": "Editar límite de gasto",
 		"allow": "Permitir",
 		"allow_explanation": "para retirar y gastar hasta la siguiente cantidad:",
-		"unlimited": "Ilimitado",
+		"proposed": "Límite de gasto propuesto",
 		"requested_by": "Límite de gasto requerido por",
 		"custom_spend_limit": "Límite de gasto personalizado",
 		"max_spend_limit": "Ingrese un límite de gasto máximo",
