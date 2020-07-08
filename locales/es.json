@@ -575,9 +575,12 @@
 		"failed_to_resolve_ens_name": "No pudimos resolver ese nombre ENS",
 		"remove_bookmark_title": "Eliminar favorito",
 		"remove_bookmark_msg": "Realmente deseas eliminar este sitio de tus favoritos?",
-		"yes": "Si",
-		"backup_alert_title": "Proteje tus fondos",
-		"backup_alert_message": "Presiona para salvar tu frase semilla"
+		"yes": "Si"
+	},
+	"backup_alert": {
+		"title": "Protege tu billetera",
+		"left_button": "Recuérdame más tarde",
+		"right_button": "Proteger billetera"
 	},
 	"add_favorite": {
 		"title": "Agregar Favorito",
@@ -1058,5 +1061,13 @@
 	"walletconnect_return_modal": {
 		"title": "Listo!",
 		"text": "Ahora puedes volver a tu navegador"
+	},
+	"protect_wallet_modal": {
+		"title": "Protege tu billetera",
+		"top_button": "Proteger billetera",
+		"bottom_button": "Recuérdame más tarde",
+		"text": "No te arriesgues a perder tus fondos. Protege tu billetera guardando tu frase semilla en un lugar en el que confíes.",
+		"text_bold": "Es la única forma de recuperar tu billetera si se bloquea la aplicación u obtienes un nuevo dispositivo.",
+		"action": "Saber más"
 	}
 }

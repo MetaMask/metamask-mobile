@@ -102,11 +102,11 @@ ActionModal.propTypes = {
 	/**
 	 * Type of button to show as the cancel button
 	 */
-	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'confirm', 'normal', 'warning']),
+	cancelButtonMode: PropTypes.string,
 	/**
 	 * Type of button to show as the confirm button
 	 */
-	confirmButtonMode: PropTypes.oneOf(['normal', 'neutral', 'confirm', 'warning']),
+	confirmButtonMode: PropTypes.string,
 	/**
 	 * Whether confirm button is disabled
 	 */

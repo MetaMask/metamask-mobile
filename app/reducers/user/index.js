@@ -2,7 +2,9 @@ import { REHYDRATE } from 'redux-persist';
 
 const initialState = {
 	passwordSet: false,
-	seedphraseBackedUp: false
+	seedphraseBackedUp: false,
+	backUpSeedphraseVisible: false,
+	protectWalletModalVisible: true
 };
 
 const userReducer = (state = initialState, action) => {
@@ -25,12 +27,37 @@ const userReducer = (state = initialState, action) => {
 		case 'SEEDPHRASE_NOT_BACKED_UP':
 			return {
 				...state,
-				seedphraseBackedUp: false
+				seedphraseBackedUp: false,
+				backUpSeedphraseVisible: true
 			};
 		case 'SEEDPHRASE_BACKED_UP':
 			return {
 				...state,
-				seedphraseBackedUp: true
+				seedphraseBackedUp: true,
+				backUpSeedphraseVisible: false
+			};
+		case 'BACK_UP_SEEDPHRASE_VISIBLE':
+			return {
+				...state,
+				backUpSeedphraseVisible: true
+			};
+		case 'BACK_UP_SEEDPHRASE_NOT_VISIBLE':
+			return {
+				...state,
+				backUpSeedphraseVisible: false
+			};
+		case 'PROTECT_MODAL_VISIBLE':
+			if (!state.seedphraseBackedUp) {
+				return {
+					...state,
+					protectWalletModalVisible: true
+				};
+			}
+			return state;
+		case 'PROTECT_MODAL_NOT_VISIBLE':
+			return {
+				...state,
+				protectWalletModalVisible: false
 			};
 		default:
 			return state;
