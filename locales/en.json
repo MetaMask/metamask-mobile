@@ -417,10 +417,10 @@
 		"email_us": "Email Us at support@metamask.io!"
 	},
 	"reveal_credential": {
-		"seed_phrase_title": "Reveal Seed Phrase",
-		"private_key_title": "Show Private Key",
-		"show_private_key": "Show Private Key",
-		"private_key_title_for_account": "Show Private Key for \"{{accountName}}\"",
+		"seed_phrase_title": "Reveal seed phrase",
+		"private_key_title": "Show private key",
+		"show_private_key": "Show private key",
+		"private_key_title_for_account": "Show private key for \"{{accountName}}\"",
 		"cancel": "Cancel",
 		"confirm": "Next",
 		"seed_phrase_explanation": "If you ever change browsers or move computers, you will need this seed phrase to access your accounts. Save them somewhere safe and secret.",

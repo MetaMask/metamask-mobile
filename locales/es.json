@@ -390,7 +390,7 @@
 		"email_us": "¡Envíanos un correo a support@metamask.io!"
 	},
 	"reveal_credential": {
-		"seed_phrase_title": "Revelar Frase Semilla",
+		"seed_phrase_title": "Revelar frase semilla",
 		"private_key_title": "Mostrar dirección privada",
 		"private_key_title_for_account": "Mostrar dirección privada para la cuenta \"{{accountName}}\"",
 		"cancel": "Cancelar",
