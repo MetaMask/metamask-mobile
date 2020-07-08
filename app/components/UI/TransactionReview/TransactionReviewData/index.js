@@ -1,44 +1,64 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
+import Device from '../../../../util/Device';
 
 const styles = StyleSheet.create({
-	overview: {
-		paddingHorizontal: 24
+	root: {
+		paddingHorizontal: 24,
+		paddingTop: 24,
+		paddingBottom: Device.isIphoneX() ? 48 : 24
 	},
-	label: {
-		flex: 0,
-		paddingRight: 18
+	dataHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		width: '100%',
+		marginBottom: 28
 	},
-	labelText: {
+	dataTitleText: {
 		...fontStyles.bold,
-		color: colors.grey400,
-		fontSize: 12
+		color: colors.black,
+		fontSize: 14,
+		alignSelf: 'center'
 	},
-	functionType: {
+	dataDescription: {
+		textAlign: 'center',
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 12,
-		padding: 16
+		fontSize: 14,
+		marginBottom: 28
+	},
+	dataBox: {
+		padding: 12,
+		borderWidth: 1,
+		borderColor: colors.grey200,
+		borderRadius: 8,
+		flex: 1
+	},
+	label: {
+		flexDirection: 'row',
+		justifyContent: 'flex-start',
+		marginBottom: 12
+	},
+	boldLabel: {
+		...fontStyles.bold
+	},
+	labelText: {
+		...fontStyles.normal,
+		color: colors.black,
+		fontSize: 14
 	},
 	hexData: {
 		...fontStyles.normal,
 		backgroundColor: colors.white,
 		color: colors.black,
-		flex: 1,
-		fontSize: 12,
-		minHeight: 64,
-		padding: 16
-	},
-	topOverviewRow: {
-		borderBottomWidth: 1,
-		borderColor: colors.grey200
-	},
-	overviewRow: {
-		paddingVertical: 15
+		fontSize: 14,
+		paddingTop: 0
 	}
 });
 
@@ -54,36 +74,50 @@ class TransactionReviewData extends PureComponent {
 		/**
 		 * Transaction corresponding action key
 		 */
-		actionKey: PropTypes.string
+		actionKey: PropTypes.string,
+		/**
+		 * Hides or shows transaction data
+		 */
+		toggleDataView: PropTypes.func,
+		/**
+		 * Height of custom gas and data modal
+		 */
+		customGasHeight: PropTypes.number
 	};
+
+	applyRootHeight = () => ({ height: this.props.customGasHeight });
 
 	render = () => {
 		const {
 			transaction: { data },
-			actionKey
+			actionKey,
+			toggleDataView
 		} = this.props;
 		return (
-			<View style={styles.overview}>
-				{actionKey !== strings('transactions.tx_review_confirm') && (
-					<View style={[styles.overviewRow, styles.topOverviewRow]}>
+			<View style={[styles.root, this.applyRootHeight()]}>
+				<View>
+					<View style={styles.dataHeader}>
+						<TouchableOpacity onPress={toggleDataView}>
+							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+						</TouchableOpacity>
+						<Text style={styles.dataTitleText}>{strings('transaction.data')}</Text>
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+					</View>
+					<Text style={styles.dataDescription}>{strings('transaction.data_description')}</Text>
+				</View>
+				<View style={styles.dataBox}>
+					{actionKey !== strings('transactions.tx_review_confirm') && (
 						<View style={styles.label}>
-							<Text style={styles.labelText}>{strings('transaction.review_function_type')}</Text>
-							<Text style={styles.functionType}>{actionKey}</Text>
+							<Text style={[styles.labelText, styles.boldLabel]}>
+								{strings('transaction.review_function')}:{' '}
+							</Text>
+							<Text style={styles.labelText}>{actionKey}</Text>
 						</View>
-					</View>
-				)}
-				<View style={styles.overviewRow}>
-					<View style={styles.label}>
-						<Text style={styles.labelText}>{strings('transaction.review_hex_data')}:</Text>
-					</View>
-					<TextInput
-						multiline
-						placeholder={strings('transaction.optional')}
-						placeholderTextColor={colors.grey100}
-						style={styles.hexData}
-						value={data}
-						editable={false}
-					/>
+					)}
+					<Text style={[styles.labelText, styles.boldLabel]}>{strings('transaction.review_hex_data')}: </Text>
+					<ScrollView style={styles.scrollView}>
+						<Text style={styles.hexData}>{data}</Text>
+					</ScrollView>
 				</View>
 			</View>
 		);
