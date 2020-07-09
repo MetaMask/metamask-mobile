@@ -3,7 +3,7 @@ import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, Int
 import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
+import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -16,7 +16,7 @@ import NetworkList from '../NetworkList';
 import CustomAlert from '../CustomAlert';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
+import { DrawerActions } from 'react-navigation-drawer';
 import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
@@ -34,7 +34,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import EthereumAddress from '../EthereumAddress';
-// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
