@@ -11,8 +11,10 @@ import {
 	TextInput,
 	SafeAreaView,
 	StyleSheet,
-	Linking
+	Linking,
+	Image
 } from 'react-native';
+import AnimatedFox from 'react-native-animated-fox';
 import Logger from '../../../util/Logger';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -42,6 +44,18 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingHorizontal: 20,
 		paddingBottom: 20
+	},
+	loadingWrapper: {
+		paddingHorizontal: 40,
+		paddingBottom: 30,
+		alignItems: 'center',
+		flex: 1
+	},
+	foxWrapper: {
+		width: Device.isIos() ? 90 : 80,
+		height: Device.isIos() ? 90 : 80,
+		marginTop: 30,
+		marginBottom: 30
 	},
 	content: {
 		textAlign: 'center',
@@ -441,97 +455,114 @@ class ChoosePassword extends PureComponent {
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<View style={styles.wrapper} testID={'choose-password-screen'}>
-					<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-						<OnboardingProgress steps={steps} />
-						<View testID={'create-password-screen'}>
-							<View style={styles.content}>
-								<Text style={styles.title}>{strings('choose_password.title')}</Text>
-								<View style={styles.text}>
-									<Text style={styles.subtitle}>{strings('choose_password.subtitle')}</Text>
-								</View>
-							</View>
-							<View style={styles.field}>
-								<Text style={styles.hintLabel}>{strings('choose_password.password')}</Text>
-								<Text onPress={this.toggleShowHide} style={[styles.hintLabel, styles.showPassword]}>
-									{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
-								</Text>
-								<TextInput
-									style={styles.input}
-									value={password}
-									onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
-									secureTextEntry={secureTextEntry}
-									placeholder=""
-									testID="input-password"
-									onSubmitEditing={this.jumpToConfirmPassword}
-									returnKeyType="next"
-									autoCapitalize="none"
+				{loading ? (
+					<View style={styles.loadingWrapper}>
+						<View style={styles.foxWrapper}>
+							{Device.isAndroid() ? (
+								<Image
+									source={require('../../../images/fox.png')}
+									style={styles.image}
+									resizeMethod={'auto'}
 								/>
-								{(password !== '' && (
+							) : (
+								<AnimatedFox />
+							)}
+						</View>
+						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.blue : colors.grey} />
+						<Text style={styles.title}>{strings('create_wallet.title')}</Text>
+						<Text style={styles.subtitle}>{strings('create_wallet.subtitle')}</Text>
+					</View>
+				) : (
+					<View style={styles.wrapper} testID={'choose-password-screen'}>
+						<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
+							<OnboardingProgress steps={steps} />
+							<View testID={'create-password-screen'}>
+								<View style={styles.content}>
+									<Text style={styles.title}>{strings('choose_password.title')}</Text>
+									<View style={styles.text}>
+										<Text style={styles.subtitle}>{strings('choose_password.subtitle')}</Text>
+									</View>
+								</View>
+								<View style={styles.field}>
+									<Text style={styles.hintLabel}>{strings('choose_password.password')}</Text>
+									<Text onPress={this.toggleShowHide} style={[styles.hintLabel, styles.showPassword]}>
+										{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
+									</Text>
+									<TextInput
+										style={styles.input}
+										value={password}
+										onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
+										secureTextEntry={secureTextEntry}
+										placeholder=""
+										testID="input-password"
+										onSubmitEditing={this.jumpToConfirmPassword}
+										returnKeyType="next"
+										autoCapitalize="none"
+									/>
+									{(password !== '' && (
+										<Text style={styles.hintLabel}>
+											{strings('choose_password.password_strength')}
+											<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
+												{' '}
+												{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}
+											</Text>
+										</Text>
+									)) || <Text style={styles.hintLabel} />}
+								</View>
+								<View style={styles.field}>
+									<Text style={styles.hintLabel}>{strings('choose_password.confirm_password')}</Text>
+									<TextInput
+										ref={this.confirmPasswordInput}
+										style={styles.input}
+										value={confirmPassword}
+										onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
+										secureTextEntry={secureTextEntry}
+										placeholder={''}
+										placeholderTextColor={colors.grey100}
+										testID={'input-password-confirm'}
+										onSubmitEditing={this.onPressCreate}
+										returnKeyType={'done'}
+										autoCapitalize="none"
+									/>
+									<View style={styles.showMatchingPasswords}>
+										{passwordsMatch ? (
+											<Icon name="check" size={16} color={colors.green300} />
+										) : null}
+									</View>
 									<Text style={styles.hintLabel}>
-										{strings('choose_password.password_strength')}
-										<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
-											{' '}
-											{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}
+										{strings('choose_password.must_be_at_least', { number: 8 })}
+									</Text>
+								</View>
+								<View>{this.renderSwitch()}</View>
+								<View style={styles.checkboxContainer}>
+									<CheckBox
+										value={isSelected}
+										onValueChange={this.setSelection}
+										style={styles.checkbox}
+									/>
+									<Text style={styles.label}>
+										{strings('choose_password.i_understand')}{' '}
+										<Text onPress={this.learnMore} style={styles.learnMore}>
+											{strings('choose_password.learn_more')}
 										</Text>
 									</Text>
-								)) || <Text style={styles.hintLabel} />}
-							</View>
-							<View style={styles.field}>
-								<Text style={styles.hintLabel}>{strings('choose_password.confirm_password')}</Text>
-								<TextInput
-									ref={this.confirmPasswordInput}
-									style={styles.input}
-									value={confirmPassword}
-									onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
-									secureTextEntry={secureTextEntry}
-									placeholder={''}
-									placeholderTextColor={colors.grey100}
-									testID={'input-password-confirm'}
-									onSubmitEditing={canSubmit && this.onPressCreate}
-									returnKeyType={'done'}
-									autoCapitalize="none"
-								/>
-								<View style={styles.showMatchingPasswords}>
-									{passwordsMatch ? <Icon name="check" size={16} color={colors.green300} /> : null}
 								</View>
-								<Text style={styles.hintLabel}>
-									{strings('choose_password.must_be_at_least', { number: 8 })}
-								</Text>
-							</View>
-							<View>{this.renderSwitch()}</View>
-							<View style={styles.checkboxContainer}>
-								<CheckBox
-									value={isSelected}
-									onValueChange={this.setSelection}
-									style={styles.checkbox}
-								/>
-								<Text style={styles.label}>
-									{strings('choose_password.i_understand')}{' '}
-									<Text onPress={this.learnMore} style={styles.learnMore}>
-										{strings('choose_password.learn_more')}
-									</Text>
-								</Text>
-							</View>
 
-							{!!error && <Text style={styles.errorMsg}>{error}</Text>}
+								{!!error && <Text style={styles.errorMsg}>{error}</Text>}
+							</View>
+						</KeyboardAwareScrollView>
+						<View style={styles.ctaWrapper}>
+							<StyledButton
+								type={'blue'}
+								onPress={this.onPressCreate}
+								testID={'submit-button'}
+								disabled={!canSubmit}
+							>
+								{strings('choose_password.create_button')}
+							</StyledButton>
 						</View>
-					</KeyboardAwareScrollView>
-					<View style={styles.ctaWrapper}>
-						<StyledButton
-							type={'blue'}
-							onPress={canSubmit && this.onPressCreate}
-							testID={'submit-button'}
-							disabled={!canSubmit}
-						>
-							{loading ? (
-								<ActivityIndicator size="small" color="white" />
-							) : (
-								strings('choose_password.create_button')
-							)}
-						</StyledButton>
 					</View>
-				</View>
+				)}
 			</SafeAreaView>
 		);
 	}
