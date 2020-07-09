@@ -303,8 +303,21 @@ exports[`ChoosePassword should render correctly 1`] = `
             }
           }
         >
-          <UnimplementedView
+          <ForwardRef(CheckBoxWithRef)
             onValueChange={[Function]}
+            style={
+              Object {
+                "height": 18,
+                "margin": 10,
+                "marginLeft": -6,
+                "width": 18,
+              }
+            }
+            tintColors={
+              Object {
+                "true": "#037dd6",
+              }
+            }
             value={false}
           />
           <Text
