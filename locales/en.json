@@ -546,7 +546,6 @@
 		"gas_limit": "Gas Limit:",
 		"gas_price": "Gas Price: (GWEI)",
 		"save": "Save",
-		"total": "Total",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
 		"cost_explanation": "Select the network fee you are willing to pay. The higher the fee, the better chances and faster your transaction will go through."
 	},
@@ -556,7 +555,7 @@
 		"spend_limit": "Spend limit permission",
 		"allow": "Allow",
 		"allow_explanation": "to withdraw and spend up to the following amount:",
-		"unlimited": "Unlimited",
+		"proposed": "Proposed approval limit",
 		"requested_by": "Spend limit requested by",
 		"custom_spend_limit": "Custom spend limit",
 		"max_spend_limit": "Enter a max spend limit",
