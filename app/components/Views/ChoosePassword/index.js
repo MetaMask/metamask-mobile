@@ -131,11 +131,15 @@ const styles = StyleSheet.create({
 	},
 	biometrics: {
 		position: 'relative',
-		marginVertical: 20
+		marginTop: 20,
+		marginBottom: 30
 	},
 	biometryLabel: {
 		fontSize: 14,
-		color: colors.fontPrimary
+		color: colors.fontPrimary,
+		position: 'absolute',
+		top: 0,
+		left: 0
 	},
 	biometrySwitch: {
 		position: 'absolute',
