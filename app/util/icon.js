@@ -5,8 +5,6 @@ import { DOMParser } from 'react-native-html-parser';
  * Get and parse HTML
  */
 const getDocument = async url => {
-	// const { url } = this.props;
-
 	const response = await fetch(url);
 	const html = await response.text();
 
@@ -29,7 +27,6 @@ const parseSize = sizes => {
  * Format href (needed because assets can be relative or absolute)
  */
 const formatHref = (bestIcon, url) => {
-	// const { url } = this.props;
 	const href = bestIcon.getAttribute('href') || '';
 
 	const PROTOCOL = '://';
@@ -55,7 +52,6 @@ const findBestIcon = (acc, curr) => {
  * Attempt to fetch icon from document and fall back to faviconkit if we have to
  */
 export default async url => {
-	// const { url } = this.props;
 	const doc = await getDocument(url);
 
 	// get all <link> tags
