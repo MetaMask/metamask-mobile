@@ -226,7 +226,11 @@ class ChoosePassword extends PureComponent {
 	};
 
 	onPressCreate = async () => {
-		const { loading, password, confirmPassword } = this.state;
+		const { loading, isSelected, password, confirmPassword } = this.state;
+		const passwordsMatch = password !== '' && password === confirmPassword;
+		const canSubmit = passwordsMatch && isSelected;
+
+		if (!canSubmit) return;
 		if (loading) return;
 		if (password.length < 8) {
 			Alert.alert('Error', strings('choose_password.password_length_error'));
@@ -433,7 +437,7 @@ class ChoosePassword extends PureComponent {
 	render() {
 		const { isSelected, password, confirmPassword, secureTextEntry, error, loading } = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
-		const isDisabled = !(passwordsMatch && isSelected);
+		const canSubmit = passwordsMatch && isSelected;
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -484,7 +488,7 @@ class ChoosePassword extends PureComponent {
 									placeholder={''}
 									placeholderTextColor={colors.grey100}
 									testID={'input-password-confirm'}
-									onSubmitEditing={this.onPressCreate}
+									onSubmitEditing={canSubmit && this.onPressCreate}
 									returnKeyType={'done'}
 									autoCapitalize="none"
 								/>
@@ -516,9 +520,9 @@ class ChoosePassword extends PureComponent {
 					<View style={styles.ctaWrapper}>
 						<StyledButton
 							type={'blue'}
-							onPress={this.onPressCreate}
+							onPress={canSubmit && this.onPressCreate}
 							testID={'submit-button'}
-							disabled={isDisabled}
+							disabled={!canSubmit}
 						>
 							{loading ? (
 								<ActivityIndicator size="small" color="white" />
