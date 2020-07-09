@@ -137,11 +137,6 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: colors.fontPrimary
 	},
-	biometricsContainer: {
-		display: 'none',
-		borderWidth: 10,
-		borderColor: colors.red
-	},
 	biometrySwitch: {
 		position: 'absolute',
 		top: 0,
@@ -426,7 +421,7 @@ class ChoosePassword extends PureComponent {
 						<Text style={styles.biometryLabel}>
 							{strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
 						</Text>
-						<View style={styles.biometricsContainer}>
+						<View>
 							<Switch
 								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
 								value={biometryChoice}
