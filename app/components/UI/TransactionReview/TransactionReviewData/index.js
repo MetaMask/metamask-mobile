@@ -89,7 +89,9 @@ class TransactionReviewData extends PureComponent {
 
 	render = () => {
 		const {
-			transaction: { data },
+			transaction: {
+				transaction: { data }
+			},
 			actionKey,
 			toggleDataView
 		} = this.props;
