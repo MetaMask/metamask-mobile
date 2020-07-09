@@ -560,6 +560,7 @@ class ChoosePassword extends PureComponent {
 										onValueChange={this.setSelection}
 										style={styles.checkbox}
 										tintColors={{ true: colors.blue }}
+										boxType="square"
 									/>
 									<Text style={styles.label}>
 										{strings('choose_password.i_understand')}{' '}
