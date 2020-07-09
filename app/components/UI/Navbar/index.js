@@ -523,7 +523,8 @@ export function getModalNavbarOptions(title) {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getOnboardingNavbarOptions() {
+export function getOnboardingNavbarOptions(navigation) {
+	const headerLeft = navigation.getParam('headerLeft');
 	return {
 		headerStyle: {
 			shadowColor: colors.transparent,
@@ -537,7 +538,8 @@ export function getOnboardingNavbarOptions() {
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
-		headerRight: <View />
+		headerRight: <View />,
+		headerLeft
 	};
 }
 

@@ -232,6 +232,18 @@ class ChoosePassword extends PureComponent {
 		}
 	}
 
+	componentDidUpdate(prevProps, prevState) {
+		const prevLoading = prevState.loading;
+		const { loading } = this.state;
+		const { navigation } = this.props;
+		if (!prevLoading && loading) {
+			// update navigationOptions
+			navigation.setParams({
+				headerLeft: <View />
+			});
+		}
+	}
+
 	componentWillUnmount() {
 		this.mounted = false;
 	}
