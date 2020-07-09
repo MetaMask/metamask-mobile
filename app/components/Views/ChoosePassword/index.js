@@ -93,6 +93,12 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		flexDirection: 'row'
 	},
+	checkbox: {
+		width: 18,
+		height: 18,
+		margin: 10,
+		marginLeft: -6
+	},
 	label: {
 		fontSize: 14,
 		color: colors.black,
@@ -553,6 +559,7 @@ class ChoosePassword extends PureComponent {
 										value={isSelected}
 										onValueChange={this.setSelection}
 										style={styles.checkbox}
+										tintColors={{ true: colors.blue }}
 									/>
 									<Text style={styles.label}>
 										{strings('choose_password.i_understand')}{' '}
