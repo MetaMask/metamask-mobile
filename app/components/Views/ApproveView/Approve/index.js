@@ -269,6 +269,9 @@ class Approve extends PureComponent {
 		 * Whether the modal is visible
 		 */
 		modalVisible: PropTypes.bool,
+		/**
+		/* Token approve modal visible or not
+		*/
 		toggleApproveModal: PropTypes.func
 	};
 

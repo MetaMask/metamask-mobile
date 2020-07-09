@@ -453,6 +453,9 @@ class Main extends PureComponent {
 		/* dApp transaction modal visible or not
 		*/
 		dappTransactionModalVisible: PropTypes.bool,
+		/**
+		/* Token approve modal visible or not
+		*/
 		approveModalVisible: PropTypes.bool
 	};
 	state = {
@@ -827,7 +830,6 @@ class Main extends PureComponent {
 			}
 
 			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
-				// this.props.navigation.push('ApproveView');
 				this.props.toggleApproveModal();
 			} else {
 				this.props.toggleDappTransactionModal();
