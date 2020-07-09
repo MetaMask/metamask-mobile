@@ -140,7 +140,7 @@
 	"drawer": {
 		"payment_channel": "Pagos Instantáneos",
 		"send_button": "Enviar",
-		"receive_button": "Recibir",
+		"receive_button": "Agregar",
 		"coming_soon": "Disponible muy pronto...",
 		"wallet": "Billetera",
 		"transaction_history": "Historial de Transacciones",

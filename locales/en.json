@@ -158,7 +158,7 @@
 	"drawer": {
 		"payment_channel": "Instant Payments",
 		"send_button": "Send",
-		"receive_button": "Receive",
+		"receive_button": "Add funds",
 		"coming_soon": "Coming soon...",
 		"wallet": "Wallet",
 		"insta_pay": "InstaPay",
