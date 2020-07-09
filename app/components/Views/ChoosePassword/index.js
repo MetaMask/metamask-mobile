@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-	CheckBox,
 	Switch,
 	ActivityIndicator,
 	Alert,
@@ -13,6 +12,8 @@ import {
 	Linking,
 	Image
 } from 'react-native';
+// eslint-disable-next-line import/no-unresolved
+import CheckBox from '@react-native-community/checkbox';
 import AnimatedFox from 'react-native-animated-fox';
 import Logger from '../../../util/Logger';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
