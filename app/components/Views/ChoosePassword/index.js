@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-	Animated,
 	CheckBox,
 	Switch,
 	ActivityIndicator,
@@ -216,8 +215,6 @@ class ChoosePassword extends PureComponent {
 		biometryType: null,
 		biometryChoice: false,
 		rememberMe: false,
-		labelsScaleNew: new Animated.Value(1),
-		labelsScaleConfirm: new Animated.Value(1),
 		loading: false,
 		error: null
 	};
