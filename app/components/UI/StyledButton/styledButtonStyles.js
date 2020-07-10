@@ -111,6 +111,15 @@ const styles = StyleSheet.create({
 	whiteText: {
 		...fontStyles.bold,
 		color: colors.white
+	},
+	viewText: {
+		fontSize: 18,
+		...fontStyles.extraBold,
+		color: colors.white
+	},
+	view: {
+		borderWidth: 1,
+		borderColor: colors.white
 	}
 });
 
@@ -176,6 +185,10 @@ function getStyles(type) {
 		case 'sign':
 			fontStyle = styles.signText;
 			containerStyle = styles.sign;
+			break;
+		case 'view':
+			fontStyle = styles.viewText;
+			containerStyle = styles.view;
 			break;
 		default:
 			throw new Error('Unknown button type');
