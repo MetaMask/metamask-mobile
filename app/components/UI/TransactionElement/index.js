@@ -69,10 +69,7 @@ const styles = StyleSheet.create({
 	subRow: {
 		flexDirection: 'row'
 	},
-	ethLogo: {
-		width: 28,
-		height: 28
-	},
+
 	actionContainerStyle: {
 		height: 25,
 		width: 70,
@@ -123,6 +120,10 @@ const styles = StyleSheet.create({
 	iconWrapper: {
 		flexDirection: 'row',
 		alignItems: 'center'
+	},
+	icon: {
+		width: 28,
+		height: 28
 	},
 	statusText: {
 		fontSize: 12,
@@ -305,7 +306,7 @@ class TransactionElement extends PureComponent {
 		}
 		return (
 			<View style={styles.iconWrapper}>
-				<Image source={icon} style={styles.ethLogo} />
+				<Image source={icon} style={styles.icon} resizeMode="stretch" />
 			</View>
 		);
 	};
