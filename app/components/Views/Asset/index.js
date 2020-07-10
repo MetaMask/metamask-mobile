@@ -252,29 +252,27 @@ class Asset extends PureComponent {
 
 		return (
 			<View style={styles.wrapper}>
-				<View style={styles.wrapper}>
-					{this.state.loading ? (
-						this.renderLoader()
-					) : (
-						<Transactions
-							header={
-								<View style={styles.assetOverviewWrapper}>
-									<AssetOverview navigation={navigation} asset={navigation && params} />
-								</View>
-							}
-							navigation={navigation}
-							transactions={this.state.transactions}
-							submittedTransactions={this.state.submittedTxs}
-							confirmedTransactions={this.state.confirmedTxs}
-							selectedAddress={selectedAddress}
-							conversionRate={conversionRate}
-							currentCurrency={currentCurrency}
-							networkType={networkType}
-							loading={!this.state.transactionsUpdated}
-							headerHeight={280}
-						/>
-					)}
-				</View>
+				{this.state.loading ? (
+					this.renderLoader()
+				) : (
+					<Transactions
+						header={
+							<View style={styles.assetOverviewWrapper}>
+								<AssetOverview navigation={navigation} asset={navigation && params} />
+							</View>
+						}
+						navigation={navigation}
+						transactions={this.state.transactions}
+						submittedTransactions={this.state.submittedTxs}
+						confirmedTransactions={this.state.confirmedTxs}
+						selectedAddress={selectedAddress}
+						conversionRate={conversionRate}
+						currentCurrency={currentCurrency}
+						networkType={networkType}
+						loading={!this.state.transactionsUpdated}
+						headerHeight={280}
+					/>
+				)}
 			</View>
 		);
 	};
