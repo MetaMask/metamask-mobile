@@ -6,7 +6,8 @@ import {
 	StyleSheet,
 	View,
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
-	Alert
+	Alert,
+	Image
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -47,12 +48,9 @@ import ProtectYourAccount from '../../Views/ProtectYourAccount';
 import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
-import AccountBackupStep1 from '../../Views/AccountBackupStep1';
-import AccountBackupStep2 from '../../Views/AccountBackupStep2';
-import AccountBackupStep3 from '../../Views/AccountBackupStep3';
-import AccountBackupStep4 from '../../Views/AccountBackupStep4';
-import AccountBackupStep5 from '../../Views/AccountBackupStep5';
-import AccountBackupStep6 from '../../Views/AccountBackupStep6';
+import ManualBackupStep1 from '../../Views/ManualBackupStep1';
+import ManualBackupStep2 from '../../Views/ManualBackupStep2';
+import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
@@ -118,8 +116,18 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	headerLogo: {
+		width: 125,
+		height: 50
 	}
 });
+
+function HeaderLogo() {
+	return (
+		<Image style={styles.headerLogo} source={require('../../../images/metamask-name.png')} resizeMode={'contain'} />
+	);
+}
 
 /**
  * Navigator component that wraps
@@ -338,30 +346,24 @@ const MainNavigator = createStackNavigator(
 					ChoosePassword: {
 						screen: ChoosePassword
 					},
-					AccountBackupStep1: {
-						screen: AccountBackupStep1
+					ManualBackupStep1: {
+						screen: ManualBackupStep1
 					},
-					AccountBackupStep2: {
-						screen: AccountBackupStep2
+					ManualBackupStep2: {
+						screen: ManualBackupStep2
 					},
-					AccountBackupStep3: {
-						screen: AccountBackupStep3
-					},
-					AccountBackupStep4: {
-						screen: AccountBackupStep4
-					},
-					AccountBackupStep5: {
-						screen: AccountBackupStep5
-					},
-					AccountBackupStep6: {
-						screen: AccountBackupStep6,
-						navigationOptions: {
-							gesturesEnabled: false
-						}
+					ManualBackupStep3: {
+						screen: ManualBackupStep3
 					}
 				},
 				{
-					headerMode: 'none'
+					defaultNavigationOptions: {
+						// eslint-disable-next-line
+						headerTitle: () => <HeaderLogo />,
+						headerStyle: {
+							borderBottomWidth: 0
+						}
+					}
 				}
 			)
 		}

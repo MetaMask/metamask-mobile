@@ -1316,6 +1316,13 @@
   dependencies:
     deep-assign "^3.0.0"
 
+"@react-native-community/blur@^3.6.0":
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/blur/-/blur-3.6.0.tgz#31c9e0f2770519c9b5c4f99418f192246f0d4db8"
+  integrity sha512-GtDBhpX2pQcjl4VopOC8FktrVufrEfYRwVeMQ2WWckqKIv2BdwvlvWvj88L1WmEdBr9UNcm3rtgz+d+YXkmirA==
+  dependencies:
+    prop-types "^15.5.10"
+
 "@react-native-community/checkbox@^0.4.2":
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/@react-native-community/checkbox/-/checkbox-0.4.2.tgz#109214058610200fcbb97e8761cf0cba8df5abd5"
@@ -10339,6 +10346,11 @@ react-native-cli@2.0.1:
     minimist "^1.2.0"
     prompt "^0.2.14"
     semver "^5.0.3"
+
+react-native-confetti-cannon@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/react-native-confetti-cannon/-/react-native-confetti-cannon-1.5.0.tgz#8d3c306f785481d8fec48a83195cc908f7550652"
+  integrity sha512-5Z/s6G6cUU8aMJTgBCvladzjEJAgTPbEmu5kYfeWbigu0ru8XAeLzMYN9JDLfAoGkF3WRqW5roOFXaM5L2oIfA==
 
 react-native-crypto@2.1.2:
   version "2.1.2"

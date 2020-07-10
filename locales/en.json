@@ -937,6 +937,42 @@
 		"modal_button": "DONE",
 		"copy_seed_phrase": "COPY SEED PHRASE TO CLIPBOARD"
 	},
+	"manual_backup": {
+		"progressOne": "Create Password",
+		"progressTwo": "Secure wallet",
+		"progressThree": "Confirm seed phrase"
+	},
+	"manual_backup_step_1": {
+		"action": "Write down your seed phrase",
+		"info": "This is your seed phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
+		"continue": "Continue",
+		"reveal": "Tap to reveal your seed phrase",
+		"watching": "Make sure no one is watching your screen.",
+		"view": "View",
+		"confirm_password": "Confirm your password",
+		"before_continiuing": "Before continuing we need you to confirm your password",
+		"confirm": "CONFIRM"
+	},
+	"manual_backup_step_2": {
+		"action": "Confirm seed phrase",
+		"info": "Select each word in the order it was presented to you.",
+		"complete": "Complete Backup",
+		"success": "Success"
+	},
+	"manual_backup_step_3": {
+		"congratulations": "Congratulations",
+		"success": "You’ve successfully protected your wallet. Remember to keep your seed phrase safe, it's your responsibility!",
+		"hint": "Leave yourself a hint?",
+		"recover": "MetaMask cannot recover your wallet should you loose it. You can find your seedphrase in settings > security & privacy.",
+		"learn": "Learn more",
+		"done": "Done",
+		"recovery_hint": "Recovery hint",
+		"leave_hint": "Leave yourself a hint. Write the location / where you saved it to remind yourself how you can access it. This information does not leave your device.",
+		"no_seedphrase": "Do not use this to write your seed phrase.",
+		"example": "e.g. Mom's house",
+		"save": "Save",
+		"cancel": "Cancel"
+	},
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",
 		"ethereum_phishing_detector": "Ethereum Phishing Detector",

@@ -15,7 +15,8 @@ export const colors = {
 	black: '#000000',
 	white: '#FFFFFF',
 	white100: '#F9FAFB',
-	grey700: '#8E8E93',
+	grey450: '#8E8E93',
+	grey700: '#3C3F42',
 	grey600: '#5B5D67',
 	grey500: '#6a737d',
 	grey400: '#848c96',
@@ -84,5 +85,9 @@ export const fontStyles = {
 	bold: {
 		fontFamily: 'CircularStd-Medium',
 		fontWeight: '600'
+	},
+	extraBold: {
+		fontFamily: 'CircularStd-Medium',
+		fontWeight: 'bold'
 	}
 };

@@ -253,6 +253,8 @@ PODS:
   - React-jsinspector (0.62.2)
   - react-native-background-timer (2.1.1):
     - React
+  - react-native-blur (0.8.0):
+    - React
   - react-native-branch (5.0.0-beta.1):
     - Branch (= 0.32.0)
     - React
@@ -420,6 +422,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - react-native-background-timer (from `../node_modules/react-native-background-timer`)
+  - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
@@ -511,6 +514,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   react-native-background-timer:
     :path: "../node_modules/react-native-background-timer"
+  react-native-blur:
+    :path: "../node_modules/@react-native-community/blur"
   react-native-branch:
     :path: "../node_modules/react-native-branch"
   react-native-camera:
@@ -615,6 +620,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 1540d1c01bb493ae3124ed83351b1b6a155db7da
   React-jsinspector: 512e560d0e985d0e8c479a54a4e5c147a9c83493
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
+  react-native-blur: cad4d93b364f91e7b7931b3fa935455487e5c33c
   react-native-branch: ed90b087f2ff6a2f81643ead0b321531877f2e69
   react-native-camera: 5d4ee26d19ac5aa9a8d8663b50f53b1c1250597c
   react-native-netinfo: 0e563248a4b9a99c33ec29bd03c2d50767db22a6
