@@ -23,7 +23,7 @@ import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { util } from '@metamask/controllers';
-import { renderFromWei, weiToFiatNumber, isBN, isDecimal } from '../../../../util/number';
+import { renderFromWei, weiToFiatNumber, isBN, isDecimal, fromTokenMinimalUnit } from '../../../../util/number';
 import {
 	getTicker,
 	decodeTransferData,
@@ -327,14 +327,15 @@ class Approve extends PureComponent {
 			tokenSymbol = contract.symbol;
 			tokenDecimals = contract.decimals;
 		}
-		const originalApproveAmount = decodeTransferData('transfer', data)[1];
+		const originalApproveAmount = decodeTransferData('transfer', data)[2];
+		const approveAmount = fromTokenMinimalUnit(hexToBN(originalApproveAmount), tokenDecimals);
 		const totalGas = gas.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
 		this.setState({
 			host,
 			method,
-			originalApproveAmount,
+			originalApproveAmount: approveAmount,
 			tokenDecimals,
 			tokenSymbol,
 			totalGas: renderFromWei(totalGas),
@@ -550,7 +551,7 @@ class Approve extends PureComponent {
 										spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
 									]}
 								>
-									{strings('spend_limit_edition.unlimited')}
+									{strings('spend_limit_edition.proposed')}
 								</Text>
 								<Text style={styles.sectionExplanationText}>
 									{strings('spend_limit_edition.requested_by')}
