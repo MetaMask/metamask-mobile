@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
@@ -59,6 +60,9 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		fontSize: 14,
 		paddingTop: 0
+	},
+	scrollView: {
+		flex: 1
 	}
 });
 
@@ -97,16 +101,14 @@ class TransactionReviewData extends PureComponent {
 		} = this.props;
 		return (
 			<View style={[styles.root, this.applyRootHeight()]}>
-				<View>
-					<View style={styles.dataHeader}>
-						<TouchableOpacity onPress={toggleDataView}>
-							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
-						</TouchableOpacity>
-						<Text style={styles.dataTitleText}>{strings('transaction.data')}</Text>
-						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
-					</View>
-					<Text style={styles.dataDescription}>{strings('transaction.data_description')}</Text>
+				<View style={styles.dataHeader}>
+					<TouchableOpacity onPress={toggleDataView}>
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+					</TouchableOpacity>
+					<Text style={styles.dataTitleText}>{strings('transaction.data')}</Text>
+					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
 				</View>
+				<Text style={styles.dataDescription}>{strings('transaction.data_description')}</Text>
 				<View style={styles.dataBox}>
 					{actionKey !== strings('transactions.tx_review_confirm') && (
 						<View style={styles.label}>
@@ -117,9 +119,13 @@ class TransactionReviewData extends PureComponent {
 						</View>
 					)}
 					<Text style={[styles.labelText, styles.boldLabel]}>{strings('transaction.review_hex_data')}: </Text>
-					<ScrollView style={styles.scrollView}>
-						<Text style={styles.hexData}>{data}</Text>
-					</ScrollView>
+					<View style={styles.scrollView}>
+						<KeyboardAwareScrollView style={styles.scrollView}>
+							<TouchableWithoutFeedback style={styles.scrollView}>
+								<Text style={styles.hexData}>{data}</Text>
+							</TouchableWithoutFeedback>
+						</KeyboardAwareScrollView>
+					</View>
 				</View>
 			</View>
 		);
