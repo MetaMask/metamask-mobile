@@ -225,7 +225,11 @@ export default class ManualBackupStep1 extends PureComponent {
 		}
 		this.setState({ ready: true });
 		InteractionManager.runAfterInteractions(() => PreventScreenshot.forbid());
-	}
+  }
+  
+  onPasswordChange = password => {
+    this.setState({ password });
+  };
 
 	goNext = () => {
 		this.props.navigation.navigate('ManualBackupStep2', { words: this.words, steps: this.steps });
