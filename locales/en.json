@@ -380,7 +380,7 @@
 		"cancel_remove_network": "Cancel",
 		"info_title": "About MetaMask",
 		"experimental_title": "Experimental",
-		"experimental_desc": "Payment Channels, WalletConnect & more...",
+		"experimental_desc": "WalletConnect & more...",
 		"legal_title": "Legal",
 		"conversion_title": "Currency conversion",
 		"conversion_desc": "Display fiat values in using a specific currency throughout the application.",
