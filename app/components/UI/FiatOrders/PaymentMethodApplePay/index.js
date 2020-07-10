@@ -113,21 +113,18 @@ const styles = StyleSheet.create({
 	applePayButtonText: {
 		color: colors.white
 	},
-	applePayButtonTextDisabled: {
+	applePayButtonContentDisabled: {
 		opacity: 0.6
 	},
 	applePayLogo: {
 		marginLeft: 4
-	},
-	applePayLogoDisabled: {
-		opacity: 0.6
 	}
 });
 
 /* eslint-disable import/no-commonjs */
 const ApplePayLogo = require('../../../../images/ApplePayLogo.png');
 const ApplePay = ({ disabled }) => (
-	<Image source={ApplePayLogo} style={[styles.applePayLogo, disabled && styles.applePayLogoDisabled]} />
+	<Image source={ApplePayLogo} style={[styles.applePayLogo, disabled && styles.applePayButtonContentDisabled]} />
 );
 
 ApplePay.propTypes = {
@@ -409,7 +406,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 						<Text
 							centered
 							bold
-							style={[styles.applePayButtonText, disabledButton && styles.applePayButtonTextDisabled]}
+							style={[styles.applePayButtonText, disabledButton && styles.applePayButtonContentDisabled]}
 						>
 							{strings('fiat_on_ramp.buy_with')}
 						</Text>
