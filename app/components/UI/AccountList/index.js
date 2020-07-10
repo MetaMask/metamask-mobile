@@ -109,7 +109,11 @@ class AccountList extends PureComponent {
 		/**
 		 * function to generate an error string based on a passed balance
 		 */
-		getBalanceError: PropTypes.func
+		getBalanceError: PropTypes.func,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	state = {
@@ -178,11 +182,12 @@ class AccountList extends PureComponent {
 
 				this.props.onAccountChange();
 
-				InteractionManager.runAfterInteractions(async () => {
-					setTimeout(() => {
-						Engine.refreshTransactionHistory();
-					}, 1000);
-				});
+				this.props.thirdPartyApiMode &&
+					InteractionManager.runAfterInteractions(async () => {
+						setTimeout(() => {
+							Engine.refreshTransactionHistory();
+						}, 1000);
+					});
 			} catch (e) {
 				// Restore to the previous index in case anything goes wrong
 				this.mounted && this.setState({ selectedAccountIndex: previousIndex });
@@ -363,6 +368,7 @@ class AccountList extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings
 });
 

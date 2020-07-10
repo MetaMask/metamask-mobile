@@ -132,6 +132,14 @@ const styles = StyleSheet.create({
 	},
 	metamaskNameWrapper: {
 		marginLeft: Device.isAndroid() ? 20 : 0
+	},
+	webviewTitle: {
+		fontSize: 20,
+		color: colors.fontPrimary,
+		textAlign: 'center',
+		...fontStyles.normal,
+		alignItems: 'center',
+		flex: 1
 	}
 });
 
@@ -460,15 +468,16 @@ export function getBrowserViewNavbarOptions(navigation) {
 	let isHttps = false;
 
 	const isHomepage = url => getHost(url) === getHost(HOMEPAGE_URL);
+	const error = navigation.getParam('error', '');
 
 	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
-		hostname = urlObj.hostname.toLowerCase().replace('www.', '');
+		hostname = urlObj.hostname.toLowerCase().replace(/^www./, '');
 		if (isGatewayUrl(urlObj) && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			const ensUrl = navigation.getParam('currentEnsName', '');
 			if (ensUrl) {
-				hostname = ensUrl.toLowerCase().replace('www.', '');
+				hostname = ensUrl.toLowerCase().replace(/^www./, '');
 			}
 		}
 	} else {
@@ -491,7 +500,9 @@ export function getBrowserViewNavbarOptions(navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerTitle: <NavbarBrowserTitle navigation={navigation} url={url} hostname={hostname} https={isHttps} />,
+		headerTitle: (
+			<NavbarBrowserTitle error={!!error} navigation={navigation} url={url} hostname={hostname} https={isHttps} />
+		),
 		headerRight: (
 			<View style={styles.browserRightButton}>
 				<AccountRightButton />
@@ -782,12 +793,7 @@ export function getWebviewNavbar(navigation) {
 		'';
 	});
 	return {
-		title,
-		headerTitleStyle: {
-			fontSize: 20,
-			color: colors.fontPrimary,
-			...fontStyles.normal
-		},
+		headerTitle: <Text style={styles.webviewTitle}>{title}</Text>,
 		headerLeft: Device.isAndroid() ? (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>

@@ -13,6 +13,9 @@ describe('NetworksSettings', () => {
 					},
 					PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] }
 				}
+			},
+			privacy: {
+				thirdPartyApiMode: true
 			}
 		};
 		const wrapper = shallow(

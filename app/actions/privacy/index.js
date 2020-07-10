@@ -22,3 +22,10 @@ export function setPrivacyMode(enabled) {
 		enabled
 	};
 }
+
+export function setThirdPartyApiMode(enabled) {
+	return {
+		type: 'SET_THIRD_PARTY_API_MODE',
+		enabled
+	};
+}
