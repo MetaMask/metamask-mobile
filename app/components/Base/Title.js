@@ -7,8 +7,7 @@ import Text from './Text.js';
 const style = StyleSheet.create({
 	text: {
 		fontSize: 18,
-		marginTop: 3,
-		marginBottom: 3,
+		marginVertical: 3,
 		color: colors.fontPrimary,
 		...fontStyles.bold
 	},
@@ -31,8 +30,17 @@ Title.defaultProps = {
 };
 
 Title.propTypes = {
+	/**
+	 * Aligns title to center
+	 */
 	centered: PropTypes.bool,
+	/**
+	 * Makes title bigger
+	 */
 	hero: PropTypes.bool,
+	/**
+	 * Any other external style defined in props will be applied
+	 */
 	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
 };
 
