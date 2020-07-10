@@ -1192,6 +1192,7 @@
 		"wyre_modal_terms_of_service_apply": "Wyre terms of service apply.",
 		"wyre_minimum_deposit": "Minimum deposit is {{amount}}",
 		"wyre_maximum_deposit": "Maximum deposit is {{amount}}",
+		"wyre_purchase": "{{currency}} Purchase",
 		"buy_with": "Buy with",
 		"plus_fee": "Plus a {{fee}} fee",
 		"notifications": {
