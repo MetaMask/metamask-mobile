@@ -196,6 +196,7 @@ exports[`App should render correctly 1`] = `
                     "SetPasswordFlow": Object {
                       "childRouters": Object {
                         "AccountBackupStep1": null,
+                        "AccountBackupStep1B": null,
                         "AccountBackupStep2": null,
                         "AccountBackupStep3": null,
                         "AccountBackupStep4": null,
@@ -650,6 +651,7 @@ exports[`App should render correctly 1`] = `
                       "SetPasswordFlow": Object {
                         "childRouters": Object {
                           "AccountBackupStep1": null,
+                          "AccountBackupStep1B": null,
                           "AccountBackupStep2": null,
                           "AccountBackupStep3": null,
                           "AccountBackupStep4": null,
