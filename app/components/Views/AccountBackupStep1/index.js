@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ScrollView, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, Image, Dimensions } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import AsyncStorage from '@react-native-community/async-storage';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import { colors, fontStyles } from '../../../styles/common';
@@ -167,10 +168,20 @@ const AccountBackupStep1 = props => {
 		setRemindLaterModal(false);
 	};
 
-	const skip = () => {
+	const skip = async () => {
 		hideRemindLaterModal();
-		props.navigation.popToTop();
-		props.navigation.goBack(null);
+		// Get onboarding wizard state
+		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		// Check if user passed through metrics opt-in screen
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		if (!metricsOptIn) {
+			props.navigation.navigate('OptinMetrics');
+		} else if (onboardingWizard) {
+			props.navigation.popToTop();
+			props.navigation.goBack(null);
+		} else {
+			props.navigation.navigate('HomeNav');
+		}
 	};
 
 	const showWhatIsSeedphrase = () => setWhatIsSeedphraseModal(true);
