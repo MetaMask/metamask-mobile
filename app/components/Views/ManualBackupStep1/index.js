@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { Text, View, SafeAreaView, StyleSheet, ActivityIndicator, InteractionManager, TextInput } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -9,6 +9,9 @@ import FeatherIcons from 'react-native-vector-icons/Feather';
 import { BlurView } from '@react-native-community/blur';
 import ActionView from '../../UI/ActionView';
 import Device from '../../../util/Device';
+import Engine from '../../../core/Engine';
+import PreventScreenshot from '../../../core/PreventScreenshot';
+import SecureKeychain from '../../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -21,6 +24,13 @@ const styles = StyleSheet.create({
 	},
 	onBoardingWrapper: {
 		paddingHorizontal: 20
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		minHeight: 300,
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 	action: {
 		fontSize: 18,
@@ -117,8 +127,60 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		lineHeight: 14,
 		flex: 1
+	},
+	confirmPasswordWrapper: {
+		flex: 1,
+		padding: 30,
+		paddingTop: 0
+	},
+	passwordRequiredContent: {
+		marginBottom: 20
+	},
+	content: {
+		alignItems: 'flex-start'
+	},
+	title: {
+		fontSize: 32,
+		marginTop: 10,
+		marginBottom: 10,
+		color: colors.fontPrimary,
+		justifyContent: 'center',
+		textAlign: 'left',
+		...fontStyles.normal
+	},
+	text: {
+		marginBottom: 10,
+		justifyContent: 'center'
+	},
+	label: {
+		fontSize: 16,
+		lineHeight: 23,
+		color: colors.fontPrimary,
+		textAlign: 'left',
+		...fontStyles.normal
+	},
+	buttonWrapper: {
+		flex: 1,
+		justifyContent: 'flex-end'
+	},
+	input: {
+		borderWidth: 2,
+		borderRadius: 5,
+		width: '100%',
+		borderColor: colors.grey000,
+		padding: 10,
+		height: 40
+	},
+	warningMessageText: {
+		paddingVertical: 10,
+		color: colors.red,
+		...fontStyles.normal
 	}
 });
+
+const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
+const SEED_PHRASE = 'seed_phrase';
+const CONFIRM_PASSWORD = 'confirm_password';
 
 /**
  * View that's shown during the second step of
@@ -131,10 +193,7 @@ export default class ManualBackupStep1 extends PureComponent {
 		*/
 		navigation: PropTypes.object
 	};
-	constructor(props) {
-		super(props);
-		this.words = props.navigation.getParam('words');
-	}
+
 	steps = [
 		strings('manual_backup.progressOne'),
 		strings('manual_backup.progressTwo'),
@@ -143,14 +202,73 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	state = {
 		seedPhraseHidden: true,
-		currentStep: 2
+		currentStep: 2,
+		password: undefined,
+		warningIncorrectPassword: undefined,
+		ready: false,
+		view: SEED_PHRASE
 	};
+
+	async componentDidMount() {
+		this.words = this.props.navigation.getParam('words', []);
+		if (!this.words.length) {
+			try {
+				const credentials = await SecureKeychain.getGenericPassword();
+				if (credentials) {
+					this.words = await this.tryExportSeedPhrase(credentials.password);
+				} else {
+					this.setState({ view: CONFIRM_PASSWORD });
+				}
+			} catch (e) {
+				this.setState({ view: CONFIRM_PASSWORD });
+			}
+		}
+		this.setState({ ready: true });
+		InteractionManager.runAfterInteractions(() => PreventScreenshot.forbid());
+	}
 
 	goNext = () => {
 		this.props.navigation.navigate('ManualBackupStep2', { words: this.words, steps: this.steps });
 	};
 
 	revealSeedPhrase = () => this.setState({ seedPhraseHidden: false });
+
+	tryExportSeedPhrase = async password => {
+		const { KeyringController } = Engine.context;
+		const mnemonic = await KeyringController.exportSeedPhrase(password);
+		const seed = JSON.stringify(mnemonic)
+			.replace(/"/g, '')
+			.split(' ');
+		return seed;
+	};
+
+	tryUnlockWithPassword = async password => {
+		this.setState({ ready: false });
+		try {
+			this.words = await this.tryExportSeedPhrase(password);
+			this.setState({ view: SEED_PHRASE, ready: true });
+		} catch (e) {
+			let msg = strings('reveal_credential.warning_incorrect_password');
+			if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
+				msg = strings('reveal_credential.unknown_error');
+			}
+			this.setState({
+				warningIncorrectPassword: msg,
+				ready: true
+			});
+		}
+	};
+
+	tryUnlock = () => {
+		const { password } = this.state;
+		this.tryUnlockWithPassword(password);
+	};
+
+	renderLoader = () => (
+		<View style={styles.loader}>
+			<ActivityIndicator size="small" />
+		</View>
+	);
 
 	renderSeedPhraseConcealer = () => (
 		<React.Fragment>
@@ -173,44 +291,86 @@ export default class ManualBackupStep1 extends PureComponent {
 		</React.Fragment>
 	);
 
+	renderConfirmPassword() {
+		const { warningIncorrectPassword } = this.state;
+		return (
+			<View style={styles.confirmPasswordWrapper}>
+				<View style={[styles.content, styles.passwordRequiredContent]}>
+					<Text style={styles.title}>{strings('manual_backup_step_1.confirm_password')}</Text>
+					<View style={styles.text}>
+						<Text style={styles.label}>{strings('manual_backup_step_1.before_continiuing')}</Text>
+					</View>
+					<TextInput
+						style={styles.input}
+						placeholder={'Password'}
+						placeholderTextColor={colors.grey100}
+						onChangeText={this.onPasswordChange}
+						secureTextEntry
+						onSubmitEditing={this.tryUnlock}
+						testID={'private-credential-password-text-input'}
+					/>
+					{warningIncorrectPassword && (
+						<Text style={styles.warningMessageText}>{warningIncorrectPassword}</Text>
+					)}
+				</View>
+				<View style={styles.buttonWrapper}>
+					<StyledButton
+						containerStyle={styles.button}
+						type={'confirm'}
+						onPress={this.tryUnlock}
+						testID={'submit-button'}
+					>
+						{strings('manual_backup_step_1.confirm')}
+					</StyledButton>
+				</View>
+			</View>
+		);
+	}
+
+	renderSeedphraseView = () => (
+		<ActionView
+			confirmTestID={'manual-backup-step-1-continue-button'}
+			confirmText={strings('manual_backup_step_1.continue')}
+			onConfirmPress={this.goNext}
+			confirmDisabled={this.state.seedPhraseHidden}
+			showCancelButton={false}
+			confirmButtonMode={'confirm'}
+		>
+			<View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
+				<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
+				<View style={styles.infoWrapper}>
+					<Text style={styles.info}>{strings('manual_backup_step_1.info')}</Text>
+				</View>
+				<View style={styles.seedPhraseWrapper}>
+					<View style={styles.wordColumn}>
+						{this.words.slice(0, 6).map((word, i) => (
+							<View key={`word_${i}`} style={styles.wordWrapper}>
+								<Text style={styles.word}>{`${i + 1}. ${word}`}</Text>
+							</View>
+						))}
+					</View>
+					<View style={styles.wordColumn}>
+						{this.words.slice(-6).map((word, i) => (
+							<View key={`word_${i}`} style={styles.wordWrapper}>
+								<Text style={styles.word}>{`${i + 7}. ${word}`}</Text>
+							</View>
+						))}
+					</View>
+					{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
+				</View>
+			</View>
+		</ActionView>
+	);
+
 	render() {
+		const { ready, currentStep, view } = this.state;
+		if (!ready) return this.renderLoader();
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<View style={styles.onBoardingWrapper}>
-					<OnboardingProgress currentStep={this.state.currentStep} steps={this.steps} />
+					<OnboardingProgress currentStep={currentStep} steps={this.steps} />
 				</View>
-				<ActionView
-					confirmTestID={'manual-backup-step-1-continue-button'}
-					confirmText={strings('manual_backup_step_1.continue')}
-					onConfirmPress={this.goNext}
-					confirmDisabled={this.state.seedPhraseHidden}
-					showCancelButton={false}
-					confirmButtonMode={'confirm'}
-				>
-					<View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
-						<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
-						<View style={styles.infoWrapper}>
-							<Text style={styles.info}>{strings('manual_backup_step_1.info')}</Text>
-						</View>
-						<View style={styles.seedPhraseWrapper}>
-							<View style={styles.wordColumn}>
-								{this.words.slice(0, 6).map((word, i) => (
-									<View key={`word_${i}`} style={styles.wordWrapper}>
-										<Text style={styles.word}>{`${i + 1}. ${word}`}</Text>
-									</View>
-								))}
-							</View>
-							<View style={styles.wordColumn}>
-								{this.words.slice(-6).map((word, i) => (
-									<View key={`word_${i}`} style={styles.wordWrapper}>
-										<Text style={styles.word}>{`${i + 7}. ${word}`}</Text>
-									</View>
-								))}
-							</View>
-							{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
-						</View>
-					</View>
-				</ActionView>
+				{view === SEED_PHRASE ? this.renderSeedphraseView() : this.renderConfirmPassword()}
 			</SafeAreaView>
 		);
 	}
