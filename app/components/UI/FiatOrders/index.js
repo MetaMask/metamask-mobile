@@ -1,6 +1,5 @@
-import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, InteractionManager } from 'react-native';
+import { InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
@@ -8,12 +7,9 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
 
-import { createPendingOrder, FIAT_ORDER_STATES, FIAT_ORDER_PROVIDERS } from '../../../reducers/fiatOrders';
+import { FIAT_ORDER_STATES } from '../../../reducers/fiatOrders';
 import useInterval from './hooks/useInterval';
 import processOrder from './orderProcessor';
-
-import Text from '../../Base/Text';
-import { colors } from '../../../styles/common';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -21,7 +17,6 @@ import { colors } from '../../../styles/common';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
-const SHOW_DEBUG = false;
 
 export const allowedToBuy = network => network === '1' || (network === '42' && Device.isIos());
 
@@ -77,15 +72,7 @@ export const getNotificationDetails = fiatOrder => {
 	}
 };
 
-const styles = StyleSheet.create({
-	bottomView: {
-		padding: 10,
-		paddingBottom: 20,
-		backgroundColor: colors.grey000
-	}
-});
-
-function FiatOrders({ orders, selectedAddress, network, createFakeOrder, clearOrders, dispatch }) {
+function FiatOrders({ orders, selectedAddress, network, dispatch }) {
 	// Pending orders depend on selectedAddress and selectedNetworks
 
 	const pendingOrders = orders.filter(
@@ -110,35 +97,13 @@ function FiatOrders({ orders, selectedAddress, network, createFakeOrder, clearOr
 		pendingOrders.length ? POLLING_FREQUENCY : null
 	);
 
-	const onPressAdd = useCallback(() => createFakeOrder(selectedAddress, network), [
-		createFakeOrder,
-		selectedAddress,
-		network
-	]);
-
-	if (!SHOW_DEBUG) {
-		return null;
-	}
-
-	return (
-		<View style={styles.bottomView}>
-			<Text centered>
-				<Text>Pending: {pendingOrders.length}</Text> <Text>Total: {orders.length}</Text>
-			</Text>
-			<Text centered>
-				<Text onPress={onPressAdd}>Add</Text> <Text onPress={clearOrders}>Clear</Text>{' '}
-				<Text>Network: {network}</Text>
-			</Text>
-		</View>
-	);
+	return null;
 }
 
 FiatOrders.propTypes = {
 	orders: PropTypes.array,
 	selectedAddress: PropTypes.string,
 	network: PropTypes.string,
-	createFakeOrder: PropTypes.func,
-	clearOrders: PropTypes.func,
 	dispatch: PropTypes.func
 };
 
@@ -148,26 +113,4 @@ const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController.network
 });
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-	createFakeOrder: (address, network) =>
-		dispatch({
-			type: 'FIAT_ADD_ORDER',
-			payload: createPendingOrder(
-				Math.random(),
-				FIAT_ORDER_PROVIDERS.TRANSAK,
-				0.3,
-				1,
-				'USD',
-				address,
-				network,
-				{}
-			)
-		}),
-	clearOrders: () => dispatch({ type: 'FIAT_RESET' }),
-	dispatch
-});
-
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(FiatOrders);
+export default connect(mapStateToProps)(FiatOrders);

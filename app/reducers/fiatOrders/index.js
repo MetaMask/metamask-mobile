@@ -37,19 +37,6 @@ export const FIAT_ORDER_STATES = {
 	CANCELLED: 'CANCELLED'
 };
 
-export const createPendingOrder = (id, provider, amount, fee, currency, account, network, data) => ({
-	id,
-	provider,
-	amount,
-	fee,
-	currency,
-	account,
-	network,
-	data,
-	txHash: null,
-	state: FIAT_ORDER_STATES.PENDING
-});
-
 const initialState = {
 	orders: []
 };
