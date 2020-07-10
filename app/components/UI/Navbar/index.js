@@ -132,6 +132,14 @@ const styles = StyleSheet.create({
 	},
 	metamaskNameWrapper: {
 		marginLeft: Device.isAndroid() ? 20 : 0
+	},
+	webviewTitle: {
+		fontSize: 20,
+		color: colors.fontPrimary,
+		textAlign: 'center',
+		...fontStyles.normal,
+		alignItems: 'center',
+		flex: 1
 	}
 });
 
@@ -788,12 +796,7 @@ export function getWebviewNavbar(navigation) {
 		'';
 	});
 	return {
-		title,
-		headerTitleStyle: {
-			fontSize: 20,
-			color: colors.fontPrimary,
-			...fontStyles.normal
-		},
+		headerTitle: <Text style={styles.webviewTitle}>{title}</Text>,
 		headerLeft: Device.isAndroid() ? (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
