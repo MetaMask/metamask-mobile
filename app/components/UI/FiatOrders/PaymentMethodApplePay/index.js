@@ -447,10 +447,25 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 }
 
 PaymentMethodApplePay.propTypes = {
+	/**
+	 * Current time to lock screen set in settings
+	 */
 	lockTime: PropTypes.number.isRequired,
+	/**
+	 * Function to change lock screen time setting
+	 */
 	setLockTime: PropTypes.func.isRequired,
+	/**
+	 * Currently selected wallet address
+	 */
 	selectedAddress: PropTypes.string.isRequired,
+	/**
+	 * Currently selected network
+	 */
 	network: PropTypes.string.isRequired,
+	/**
+	 * Function to dispatch adding a new fiat order to the state
+	 */
 	addOrder: PropTypes.func.isRequired
 };
 
