@@ -7,8 +7,7 @@ const style = StyleSheet.create({
 	text: {
 		...fontStyles.normal,
 		color: colors.grey600,
-		marginBottom: 2,
-		marginTop: 2,
+		marginVertical: 2,
 		fontSize: 14
 	},
 	centered: {
@@ -88,16 +87,51 @@ Text.defaultProps = {
 };
 
 Text.propTypes = {
+	/**
+	 * Removes teh default style
+	 */
 	reset: PropTypes.bool,
+	/**
+	 * Align text to center
+	 */
 	centered: PropTypes.bool,
+	/**
+	 * Align text to right
+	 */
 	right: PropTypes.bool,
+	/**
+	 * Makes text bold
+	 */
 	bold: PropTypes.bool,
+	/**
+	 * Makes text green
+	 */
 	green: PropTypes.bool,
+	/**
+	 * Makes text italic and tight
+	 * used in disclaimers
+	 */
 	disclaimer: PropTypes.bool,
+	/**
+	 * Makes text black and bigger
+	 * Used in modals
+	 */
 	modal: PropTypes.bool,
+	/**
+	 * Makes text small
+	 */
 	small: PropTypes.bool,
+	/**
+	 * Applies a link style
+	 */
 	link: PropTypes.bool,
+	/**
+	 * Applies a strikethrough decoration
+	 */
 	strikethrough: PropTypes.bool,
+	/**
+	 * Any other external style defined in props will be applied
+	 */
 	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
 };
 
