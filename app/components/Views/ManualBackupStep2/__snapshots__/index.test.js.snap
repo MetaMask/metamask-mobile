@@ -735,7 +735,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            announce
+            abstract
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -771,7 +771,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            acoustic
+            accident
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -807,7 +807,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            cinnamon
+            acoustic
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -843,7 +843,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            champion
+            announce
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -951,7 +951,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            category
+            bachelor
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -987,7 +987,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            abstract
+            broccoli
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -1023,7 +1023,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            broccoli
+            business
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -1059,7 +1059,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            bachelor
+            category
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -1095,7 +1095,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            business
+            champion
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -1131,7 +1131,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            accident
+            cinnamon
           </Text>
         </TouchableOpacity>
       </View>

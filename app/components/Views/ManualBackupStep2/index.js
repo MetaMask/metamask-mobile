@@ -162,7 +162,11 @@ class ManualBackupStep2 extends PureComponent {
 	constructor(props) {
 		super(props);
 		const words = props.navigation.getParam('words');
-		this.words = [...words].sort(() => 0.5 - Math.random());
+		if (process.env.JEST_WORKER_ID === undefined) {
+			this.words = [...words].sort(() => 0.5 - Math.random());
+		} else {
+			this.words = words;
+		}
 		this.steps = props.navigation.getParam('steps');
 	}
 
