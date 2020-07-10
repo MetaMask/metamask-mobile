@@ -1,27 +1,37 @@
 diff --git a/node_modules/react-native-step-indicator/src/index.tsx b/node_modules/react-native-step-indicator/src/index.tsx
-index 222aeb6..398a3fa 100644
+index 222aeb6..5d08f41 100644
 --- a/node_modules/react-native-step-indicator/src/index.tsx
 +++ b/node_modules/react-native-step-indicator/src/index.tsx
-@@ -251,6 +251,9 @@ const StepIndicator = ({
+@@ -49,6 +49,8 @@ interface DefaultStepIndicatorStyles {
+     | undefined;
+   currentStepLabelColor: string;
+   labelFontFamily?: string;
++  finishedStepLabelColor: string;
++  stepIndicatorLabelFontFamily: string;
+ }
+ 
+ const defaultStyles: DefaultStepIndicatorStyles = {
+@@ -251,7 +253,9 @@ const StepIndicator = ({
      }
      var labelViews = labels.map((label, index) => {
        const selectedStepLabelStyle =
+-        index === currentPosition
 +        index < currentPosition
 +          ? { color: customStyles.finishedStepLabelColor }
-+          :
-         index === currentPosition
++          : index === currentPosition
            ? { color: customStyles.currentStepLabelColor }
            : { color: customStyles.labelColor };
-@@ -356,6 +359,7 @@ const StepIndicator = ({
+       return (
+@@ -356,6 +360,7 @@ const StepIndicator = ({
            overflow: 'hidden',
            fontSize: customStyles.stepIndicatorLabelFontSize,
            color: customStyles.stepIndicatorLabelUnFinishedColor,
-+          fontFamily: customStyles.stepIndicatorLabelFontFamily
++          fontFamily: customStyles.stepIndicatorLabelFontFamily,
          };
          break;
        }
 diff --git a/node_modules/react-native-step-indicator/src/types.ts b/node_modules/react-native-step-indicator/src/types.ts
-index e7f7c06..a9e1502 100644
+index e7f7c06..507daed 100644
 --- a/node_modules/react-native-step-indicator/src/types.ts
 +++ b/node_modules/react-native-step-indicator/src/types.ts
 @@ -204,6 +204,15 @@ export interface StepIndicatorStyles {
@@ -45,7 +55,7 @@ index e7f7c06..a9e1502 100644
     */
    labelFontFamily?: string;
 +
-+    /**
++  /**
 +   * stepIndicator fontFamily for custom fonts
 +   *
 +   * @type {string}
@@ -56,3 +66,6 @@ index e7f7c06..a9e1502 100644
  }
  
  export interface StepIndicatorProps {
+diff --git a/node_modules/react-native-step-indicator/src/types.tsx b/node_modules/react-native-step-indicator/src/types.tsx
+new file mode 100644
+index 0000000..e69de29
