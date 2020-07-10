@@ -10,6 +10,7 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/Device';
 import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -79,7 +80,8 @@ const styles = StyleSheet.create({
 		shadowRadius: 2.62,
 
 		elevation: 4,
-		padding: 16
+		padding: 16,
+		marginBottom: 20
 	},
 
 	modalNoBorder: {
@@ -191,7 +193,7 @@ const AccountBackupStep1B = props => {
 	const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 
 	const goNext = () => {
-		props.navigation.navigate('AccountBackupStep2', { ...props.navigation.state.params });
+		props.navigation.navigate('ManualBackupStep1', { ...props.navigation.state.params });
 	};
 
 	const learnMore = () => {
@@ -325,5 +327,7 @@ AccountBackupStep1B.propTypes = {
 	*/
 	navigation: PropTypes.object
 };
+
+AccountBackupStep1B.navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 export default AccountBackupStep1B;

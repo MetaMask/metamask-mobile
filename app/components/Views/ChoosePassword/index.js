@@ -324,7 +324,7 @@ class ChoosePassword extends PureComponent {
 
 			this.setState({ loading: false });
 			const seed = await this.getSeedPhrase();
-			this.props.navigation.navigate('ManualBackupStep1', { words: seed.split(' ') });
+			this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
 		} catch (error) {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
@@ -562,7 +562,7 @@ class ChoosePassword extends PureComponent {
 										tintColors={{ true: colors.blue }}
 										boxType="square"
 									/>
-									<Text style={styles.label}>
+									<Text style={styles.label} onPress={this.setSelection}>
 										{strings('choose_password.i_understand')}{' '}
 										<Text onPress={this.learnMore} style={styles.learnMore}>
 											{strings('choose_password.learn_more')}

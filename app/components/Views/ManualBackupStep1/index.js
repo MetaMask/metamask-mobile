@@ -12,6 +12,7 @@ import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -187,6 +188,8 @@ const CONFIRM_PASSWORD = 'confirm_password';
  * the backup seed phrase flow
  */
 export default class ManualBackupStep1 extends PureComponent {
+	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views

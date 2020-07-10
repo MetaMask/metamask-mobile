@@ -44,14 +44,11 @@ import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
 import LockScreen from '../../Views/LockScreen';
-import ProtectYourAccount from '../../Views/ProtectYourAccount';
 import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
-import AccountBackupStep2 from '../../Views/AccountBackupStep2';
-import AccountBackupStep3 from '../../Views/AccountBackupStep3';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
@@ -344,9 +341,6 @@ const MainNavigator = createStackNavigator(
 		SetPasswordFlow: {
 			screen: createStackNavigator(
 				{
-					ProtectYourAccount: {
-						screen: ProtectYourAccount
-					},
 					ChoosePassword: {
 						screen: ChoosePassword
 					},
@@ -355,12 +349,6 @@ const MainNavigator = createStackNavigator(
 					},
 					AccountBackupStep1B: {
 						screen: AccountBackupStep1B
-					},
-					AccountBackupStep2: {
-						screen: AccountBackupStep2
-					},
-					AccountBackupStep3: {
-						screen: AccountBackupStep3
 					},
 					ManualBackupStep1: {
 						screen: ManualBackupStep1

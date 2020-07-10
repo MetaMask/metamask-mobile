@@ -14,6 +14,7 @@ import ActionModal from '../../UI/ActionModal';
 import Device from '../../../util/Device';
 import Icon from 'react-native-vector-icons/Octicons';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -103,6 +104,8 @@ const styles = StyleSheet.create({
  * the backup seed phrase flow
  */
 class ManualBackupStep3 extends PureComponent {
+	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+
 	constructor(props) {
 		super(props);
 		this.steps = props.navigation.getParam('steps');
@@ -120,15 +123,6 @@ class ManualBackupStep3 extends PureComponent {
 		*/
 		navigation: PropTypes.object
 	};
-
-	componentDidMount() {
-		if (this._confettiView) {
-			this._confettiView.startConfetti();
-			setTimeout(() => {
-				this._confettiView.stopConfetti();
-			}, 5000);
-		}
-	}
 
 	toggleHint = () => {
 		this.setState({ showHint: !this.state.showHint });
@@ -151,8 +145,17 @@ class ManualBackupStep3 extends PureComponent {
 	};
 
 	done = async () => {
-		this.props.navigation.popToTop();
-		this.props.navigation.goBack(null);
+		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		// Check if user passed through metrics opt-in screen
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		if (!metricsOptIn) {
+			this.props.navigation.navigate('OptinMetrics');
+		} else if (onboardingWizard) {
+			this.props.navigation.popToTop();
+			this.props.navigation.goBack(null);
+		} else {
+			this.props.navigation.navigate('HomeNav');
+		}
 	};
 
 	handleChangeText = text => this.setState({ hintText: text });

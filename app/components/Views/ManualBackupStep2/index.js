@@ -9,6 +9,7 @@ import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/Device';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -147,6 +148,8 @@ const styles = StyleSheet.create({
  * the backup seed phrase flow
  */
 class ManualBackupStep2 extends PureComponent {
+	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
