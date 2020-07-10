@@ -144,16 +144,7 @@ class ReceiveRequest extends PureComponent {
 	onBuy = async () => {
 		const { navigation, toggleReceiveModal, network } = this.props;
 		if (!allowedToBuy(network)) {
-			Alert.alert(
-				strings('fiat_on_ramp.network_not_supported'),
-				strings('fiat_on_ramp.switch_network')
-				// [
-				// 	{ text: strings('navigation.cancel'), onPress: () => {} },
-				// 	{ text: strings('fiat_on_ramp.switch'), onPress: () => {
-				// 		// TODO: switch to mainnet
-				// 	} }
-				// ]
-			);
+			Alert.alert(strings('fiat_on_ramp.network_not_supported'), strings('fiat_on_ramp.switch_network'));
 		} else {
 			toggleReceiveModal();
 			navigation.navigate('PaymentMethodSelector');
