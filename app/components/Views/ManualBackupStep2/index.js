@@ -161,7 +161,8 @@ class ManualBackupStep2 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		this.words = props.navigation.getParam('words');
+		const words = props.navigation.getParam('words');
+		this.words = [...words].sort(() => 0.5 - Math.random());
 		this.steps = props.navigation.getParam('steps');
 	}
 
