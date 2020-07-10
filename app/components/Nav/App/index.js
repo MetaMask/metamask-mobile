@@ -68,13 +68,19 @@ const OnboardingNav = createStackNavigator(
 const OnboardingRootNav = createStackNavigator(
 	{
 		OnboardingNav: {
-			screen: OnboardingNav
+			screen: OnboardingNav,
+			navigationOptions: {
+				header: null
+			}
 		},
 		SyncWithExtensionSuccess: {
 			screen: SyncWithExtensionSuccess
 		},
 		QRScanner: {
-			screen: QRScanner
+			screen: QRScanner,
+			navigationOptions: {
+				header: null
+			}
 		},
 		Webview: {
 			screen: createStackNavigator(
@@ -86,11 +92,13 @@ const OnboardingRootNav = createStackNavigator(
 				{
 					mode: 'modal'
 				}
-			)
+			),
+			navigationOptions: {
+				header: null
+			}
 		}
 	},
 	{
-		headerMode: 'none',
 		mode: 'modal'
 	}
 );

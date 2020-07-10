@@ -31,6 +31,8 @@ export const colors = {
 	red000: '#fcf2f3',
 	blue: '#037dd6',
 	blue000: '#eaf6ff',
+	blue200: '#75C4FD',
+	blue600: '#0260A4',
 	green600: '#1e7e34',
 	green500: '#28a745',
 	green400: '#28A745',
