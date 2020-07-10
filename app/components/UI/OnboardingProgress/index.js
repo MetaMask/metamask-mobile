@@ -41,9 +41,11 @@ export default class OnboardingProgress extends PureComponent {
 		stepIndicatorLabelFinishedColor: colors.white,
 		stepIndicatorLabelUnFinishedColor: colors.grey100,
 		labelColor: colors.grey100,
+		stepIndicatorLabelFontFamily: fontStyles.normal.fontFamily,
 		labelFontFamily: fontStyles.normal.fontFamily,
 		labelSize: 10,
-		currentStepLabelColor: colors.blue
+		currentStepLabelColor: colors.blue,
+		finishedStepLabelColor: colors.blue
 	};
 
 	render() {
