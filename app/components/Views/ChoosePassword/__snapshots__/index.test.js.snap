@@ -326,6 +326,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             value={false}
           />
           <Text
+            onPress={[Function]}
             style={
               Object {
                 "color": "#000000",

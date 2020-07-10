@@ -153,6 +153,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             "borderRadius": 10,
             "borderWidth": 1,
             "elevation": 4,
+            "marginBottom": 20,
             "padding": 16,
             "shadowColor": "#000000",
             "shadowOffset": Object {
