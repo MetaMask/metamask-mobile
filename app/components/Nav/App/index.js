@@ -12,6 +12,7 @@ import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import CreateWallet from '../../Views/CreateWallet';
+import ChoosePassword from '../../Views/ChoosePassword';
 import ImportWallet from '../../Views/ImportWallet';
 import ImportFromSeed from '../../Views/ImportFromSeed';
 import SyncWithExtension from '../../Views/SyncWithExtension';
@@ -38,6 +39,9 @@ const OnboardingNav = createStackNavigator(
 		},
 		CreateWallet: {
 			screen: CreateWallet
+		},
+		ChoosePassword: {
+			screen: ChoosePassword
 		},
 		ImportWallet: {
 			screen: ImportWallet

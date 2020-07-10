@@ -6,7 +6,8 @@ import {
 	StyleSheet,
 	View,
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
-	Alert
+	Alert,
+	Image
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -48,11 +49,12 @@ import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
+import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import AccountBackupStep2 from '../../Views/AccountBackupStep2';
 import AccountBackupStep3 from '../../Views/AccountBackupStep3';
-import AccountBackupStep4 from '../../Views/AccountBackupStep4';
-import AccountBackupStep5 from '../../Views/AccountBackupStep5';
-import AccountBackupStep6 from '../../Views/AccountBackupStep6';
+import ManualBackupStep1 from '../../Views/ManualBackupStep1';
+import ManualBackupStep2 from '../../Views/ManualBackupStep2';
+import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
@@ -102,6 +104,7 @@ import {
 	hideTransactionNotification,
 	showSimpleNotification
 } from '../../../actions/notification';
+import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
 
 const styles = StyleSheet.create({
@@ -117,8 +120,18 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	headerLogo: {
+		width: 125,
+		height: 50
 	}
 });
+
+function HeaderLogo() {
+	return (
+		<Image style={styles.headerLogo} source={require('../../../images/metamask-name.png')} resizeMode={'contain'} />
+	);
+}
 
 /**
  * Navigator component that wraps
@@ -340,27 +353,33 @@ const MainNavigator = createStackNavigator(
 					AccountBackupStep1: {
 						screen: AccountBackupStep1
 					},
+					AccountBackupStep1B: {
+						screen: AccountBackupStep1B
+					},
 					AccountBackupStep2: {
 						screen: AccountBackupStep2
 					},
 					AccountBackupStep3: {
 						screen: AccountBackupStep3
 					},
-					AccountBackupStep4: {
-						screen: AccountBackupStep4
+					ManualBackupStep1: {
+						screen: ManualBackupStep1
 					},
-					AccountBackupStep5: {
-						screen: AccountBackupStep5
+					ManualBackupStep2: {
+						screen: ManualBackupStep2
 					},
-					AccountBackupStep6: {
-						screen: AccountBackupStep6,
-						navigationOptions: {
-							gesturesEnabled: false
-						}
+					ManualBackupStep3: {
+						screen: ManualBackupStep3
 					}
 				},
 				{
-					headerMode: 'none'
+					defaultNavigationOptions: {
+						// eslint-disable-next-line
+						headerTitle: () => <HeaderLogo />,
+						headerStyle: {
+							borderBottomWidth: 0
+						}
+					}
 				}
 			)
 		}
@@ -439,9 +458,24 @@ class Main extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		/* Hides or shows dApp transaction modal
+		*/
+		toggleDappTransactionModal: PropTypes.func,
+		/**
+		/* Hides or shows approve modal
+		*/
+		toggleApproveModal: PropTypes.func,
+		/**
+		/* dApp transaction modal visible or not
+		*/
+		dappTransactionModalVisible: PropTypes.bool,
+		/**
+		/* Token approve modal visible or not
+		*/
+		approveModalVisible: PropTypes.bool
 	};
-
 	state = {
 		connected: true,
 		forceReload: false,
@@ -814,9 +848,9 @@ class Main extends PureComponent {
 			}
 
 			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
-				this.props.navigation.push('ApproveView');
+				this.props.toggleApproveModal();
 			} else {
-				this.props.navigation.push('ApprovalView');
+				this.props.toggleDappTransactionModal();
 			}
 		}
 	};
@@ -1051,6 +1085,14 @@ class Main extends PureComponent {
 		this.props.navigation.navigate('AccountBackupStep1');
 	};
 
+	renderDappTransactionModal = () =>
+		this.props.dappTransactionModalVisible && (
+			<Approval dappTransactionModalVisible toggleDappTransactionModal={this.props.toggleDappTransactionModal} />
+		);
+
+	renderApproveModal = () =>
+		this.props.approveModalVisible && <Approve modalVisible toggleApproveModal={this.props.toggleApproveModal} />;
+
 	render() {
 		const { isPaymentChannelTransaction, isPaymentRequest } = this.props;
 		const { forceReload } = this.state;
@@ -1072,6 +1114,8 @@ class Main extends PureComponent {
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
+				{this.renderDappTransactionModal()}
+				{this.renderApproveModal()}
 			</React.Fragment>
 		);
 	}
@@ -1087,7 +1131,9 @@ const mapStateToProps = state => ({
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	isPaymentRequest: state.transaction.paymentRequest,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
+	approveModalVisible: state.modals.approveModalVisible
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -1095,7 +1141,9 @@ const mapDispatchToProps = dispatch => ({
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
 	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
-	hideTransactionNotification: () => dispatch(hideTransactionNotification())
+	hideTransactionNotification: () => dispatch(hideTransactionNotification()),
+	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
+	toggleApproveModal: show => dispatch(toggleApproveModal(show))
 });
 
 export default connect(

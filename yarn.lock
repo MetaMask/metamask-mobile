@@ -1304,10 +1304,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^15.0.4"
 
-"@metamask/mobile-provider@1.2.3":
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.3.tgz#e9ac0dfa2ef7e8f9cd1cc7a008c014280f1256f4"
-  integrity sha512-C/JJ8vqRzN43Pn5+NogmVZ0SZWt7ufYcZNFeSn4PwN5v6V8K0hOemPDargQajFRE0GfsMDOqXSFZKMvhYPgxag==
+"@metamask/mobile-provider@1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.4.tgz#67186bcaea3cce207c4b9d16a28978fb2bfcbe5b"
+  integrity sha512-U/vewx8wP2qo52subq8qzRAiINXr4NOwZ7OAkNkwBI336Hft/V+RVy0BRq0kWRpRANoXOhxdrde2tk0zzeh9Dw==
 
 "@react-native-community/async-storage@1.9.0":
   version "1.9.0"
@@ -1315,6 +1315,18 @@
   integrity sha512-TlGMr02JcmY4huH1P7Mt7p6wJecosPpW+09+CwCFLn875IhpRqU2XiVA+BQppZOYfQdHUfUzIKyCBeXOlCEbEg==
   dependencies:
     deep-assign "^3.0.0"
+
+"@react-native-community/blur@^3.6.0":
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/blur/-/blur-3.6.0.tgz#31c9e0f2770519c9b5c4f99418f192246f0d4db8"
+  integrity sha512-GtDBhpX2pQcjl4VopOC8FktrVufrEfYRwVeMQ2WWckqKIv2BdwvlvWvj88L1WmEdBr9UNcm3rtgz+d+YXkmirA==
+  dependencies:
+    prop-types "^15.5.10"
+
+"@react-native-community/checkbox@^0.4.2":
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/@react-native-community/checkbox/-/checkbox-0.4.2.tgz#109214058610200fcbb97e8761cf0cba8df5abd5"
+  integrity sha512-vGetj36fOD+o3xCx8AGg56HqopetKQAWCEslD3oj8cs0xaGyRLQh3Febu13wMBOdaAQP85kITpaIET9DF4Apaw==
 
 "@react-native-community/cli-debugger-ui@^4.6.3":
   version "4.6.3"
@@ -10535,6 +10547,11 @@ react-native-share@^3.2.0:
   version "3.2.0"
   resolved "git+ssh://git@github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee"
 
+react-native-step-indicator@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/react-native-step-indicator/-/react-native-step-indicator-1.0.3.tgz#d136ec88639485a338c8ce281035aefd9d169f8f"
+  integrity sha512-WwTb6lpJl0T7MV59sus1utoEQuqbuWHq6V0R0iDWmlPRFjM0qirhTNTS5on1+V9Qmc9dsUCT380/mRgDF+U6zw==
+
 react-native-svg@9.13.3:
   version "9.13.3"
   resolved "https://registry.yarnpkg.com/react-native-svg/-/react-native-svg-9.13.3.tgz#6414b337d55af169ac2487ab70f3108404434446"
@@ -10592,9 +10609,9 @@ react-native-view-shot@^3.1.2:
   resolved "https://registry.yarnpkg.com/react-native-view-shot/-/react-native-view-shot-3.1.2.tgz#8c8e84c67a4bc8b603e697dbbd59dbc9b4f84825"
   integrity sha512-9u9fPtp6a52UMoZ/UCPrCjKZk8tnkI9To0Eh6yYnLKFEGkRZ7Chm6DqwDJbYJHeZrheCCopaD5oEOnRqhF4L2Q==
 
-"react-native-webview@git+ssh://git@github.com/MetaMask/react-native-webview.git#408df176e6fe7c00aa05c2fddb4054968330e8a1":
+"react-native-webview@git+ssh://git@github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7":
   version "7.0.5"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-webview.git#408df176e6fe7c00aa05c2fddb4054968330e8a1"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7"
   dependencies:
     escape-string-regexp "1.0.5"
     invariant "2.2.4"
