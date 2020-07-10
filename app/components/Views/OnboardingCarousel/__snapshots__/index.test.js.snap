@@ -249,7 +249,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   }
                 }
               >
-                Use your MetaMask to login to decentralized apps – no signup needed.
+                Use your MetaMask to login to decentralized apps – no sign-up needed.
               </Text>
             </View>
             <View

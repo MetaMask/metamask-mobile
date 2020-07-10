@@ -203,6 +203,9 @@ exports[`App should render correctly 1`] = `
                         "AccountBackupStep5": null,
                         "AccountBackupStep6": null,
                         "ChoosePassword": null,
+                        "ManualBackupStep1": null,
+                        "ManualBackupStep2": null,
+                        "ManualBackupStep3": null,
                         "ProtectYourAccount": null,
                       },
                       "getActionCreators": [Function],
@@ -276,6 +279,7 @@ exports[`App should render correctly 1`] = `
               "childRouters": Object {
                 "OnboardingNav": Object {
                   "childRouters": Object {
+                    "ChoosePassword": null,
                     "CreateWallet": null,
                     "ImportFromSeed": null,
                     "ImportWallet": null,
@@ -658,6 +662,9 @@ exports[`App should render correctly 1`] = `
                           "AccountBackupStep5": null,
                           "AccountBackupStep6": null,
                           "ChoosePassword": null,
+                          "ManualBackupStep1": null,
+                          "ManualBackupStep2": null,
+                          "ManualBackupStep3": null,
                           "ProtectYourAccount": null,
                         },
                         "getActionCreators": [Function],
@@ -731,6 +738,7 @@ exports[`App should render correctly 1`] = `
                 "childRouters": Object {
                   "OnboardingNav": Object {
                     "childRouters": Object {
+                      "ChoosePassword": null,
                       "CreateWallet": null,
                       "ImportFromSeed": null,
                       "ImportWallet": null,

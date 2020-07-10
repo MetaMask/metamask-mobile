@@ -13,11 +13,22 @@ exports[`ChoosePassword should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
-        "padding": 20,
+        "paddingBottom": 20,
+        "paddingHorizontal": 20,
       }
     }
     testID="choose-password-screen"
   >
+    <OnboardingProgress
+      currentStep={0}
+      steps={
+        Array [
+          "Create password",
+          "Secure wallet",
+          "Confirm seed phrase",
+        ]
+      }
+    />
     <KeyboardAwareScrollViewMock
       enableAutomaticScroll={true}
       enableOnAndroid={false}
@@ -34,7 +45,8 @@ exports[`ChoosePassword should render correctly 1`] = `
       style={
         Object {
           "flex": 1,
-          "padding": 20,
+          "paddingBottom": 20,
+          "paddingHorizontal": 20,
         }
       }
       viewIsInsideTabBar={false}
@@ -45,7 +57,8 @@ exports[`ChoosePassword should render correctly 1`] = `
         <View
           style={
             Object {
-              "alignItems": "flex-start",
+              "alignItems": "center",
+              "textAlign": "center",
             }
           }
         >
@@ -54,12 +67,12 @@ exports[`ChoosePassword should render correctly 1`] = `
               Object {
                 "color": "#000000",
                 "fontFamily": "CircularStd-Medium",
-                "fontSize": 32,
+                "fontSize": 24,
                 "fontWeight": "400",
                 "justifyContent": "center",
                 "marginBottom": 20,
                 "marginTop": 20,
-                "textAlign": "left",
+                "textAlign": "center",
               }
             }
           >
@@ -81,116 +94,89 @@ exports[`ChoosePassword should render correctly 1`] = `
                   "fontSize": 16,
                   "fontWeight": "400",
                   "lineHeight": 23,
-                  "textAlign": "left",
+                  "textAlign": "center",
                 }
               }
             >
-              You'll use this password to unlock your MetaMask wallet only on this device.
+              This password will unlock your MetaMask wallet only on this device.
             </Text>
           </View>
         </View>
         <View
           style={
             Object {
-              "marginBottom": 10,
-              "marginTop": 20,
+              "position": "relative",
             }
           }
         >
-          <ForwardRef(AnimatedComponentWrapper)
+          <Text
+            style={
+              Object {
+                "color": "#8E8E93",
+                "fontFamily": "CircularStd-Medium",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "height": 20,
+                "marginTop": 14,
+                "textAlign": "left",
+              }
+            }
+          >
+            New Password
+          </Text>
+          <Text
+            onPress={[Function]}
             style={
               Array [
                 Object {
-                  "color": "#777777",
+                  "color": "#8E8E93",
                   "fontFamily": "CircularStd-Medium",
-                  "fontSize": 16,
+                  "fontSize": 12,
                   "fontWeight": "400",
-                  "marginLeft": 5,
-                  "marginTop": -35,
-                  "position": "absolute",
+                  "height": 20,
+                  "marginTop": 14,
                   "textAlign": "left",
                 },
                 Object {
-                  "transform": Array [
-                    Object {
-                      "scale": 1,
-                    },
-                    Object {
-                      "translateX": 0,
-                    },
-                    Object {
-                      "translateY": 50,
-                    },
-                  ],
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
                 },
               ]
             }
           >
-            New Password
-          </ForwardRef(AnimatedComponentWrapper)>
+            Show
+          </Text>
           <TextInput
             autoCapitalize="none"
-            onBlur={[Function]}
             onChangeText={[Function]}
-            onFocus={[Function]}
             onSubmitEditing={[Function]}
             placeholder=""
             returnKeyType="next"
             secureTextEntry={true}
             style={
               Object {
-                "borderBottomColor": "#d6d9dc",
-                "borderBottomWidth": 1,
-                "borderRadius": 4,
+                "borderColor": "#6a737d",
+                "borderRadius": 6,
+                "borderWidth": 1,
                 "fontFamily": "CircularStd-Medium",
                 "fontSize": 20,
                 "fontWeight": "400",
-                "paddingLeft": 0,
-                "paddingVertical": 10,
+                "padding": 10,
               }
             }
             testID="input-password"
-            underlineColorAndroid="#d6d9dc"
             value=""
           />
-          <TouchableOpacity
-            onPress={[Function]}
-            style={
-              Object {
-                "alignSelf": "flex-end",
-                "backgroundColor": "#FFFFFF",
-                "marginTop": 8,
-                "position": "absolute",
-              }
-            }
-          >
-            <Text
-              style={
-                Object {
-                  "color": "#777777",
-                  "fontFamily": "CircularStd-Medium",
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "height": 20,
-                  "marginLeft": 5,
-                  "marginTop": 10,
-                  "textAlign": "left",
-                }
-              }
-            >
-              Show
-            </Text>
-          </TouchableOpacity>
           <Text
             style={
               Object {
-                "color": "#777777",
+                "color": "#8E8E93",
                 "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
-                "marginLeft": 5,
-                "marginTop": 10,
+                "marginTop": 14,
                 "textAlign": "left",
               }
             }
@@ -199,47 +185,28 @@ exports[`ChoosePassword should render correctly 1`] = `
         <View
           style={
             Object {
-              "marginBottom": 10,
-              "marginTop": 20,
+              "position": "relative",
             }
           }
         >
-          <ForwardRef(AnimatedComponentWrapper)
+          <Text
             style={
-              Array [
-                Object {
-                  "color": "#777777",
-                  "fontFamily": "CircularStd-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "marginLeft": 5,
-                  "marginTop": -35,
-                  "position": "absolute",
-                  "textAlign": "left",
-                },
-                Object {
-                  "transform": Array [
-                    Object {
-                      "scale": 1,
-                    },
-                    Object {
-                      "translateX": 0,
-                    },
-                    Object {
-                      "translateY": 50,
-                    },
-                  ],
-                },
-              ]
+              Object {
+                "color": "#8E8E93",
+                "fontFamily": "CircularStd-Medium",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "height": 20,
+                "marginTop": 14,
+                "textAlign": "left",
+              }
             }
           >
             Confirm Password
-          </ForwardRef(AnimatedComponentWrapper)>
+          </Text>
           <TextInput
             autoCapitalize="none"
-            onBlur={[Function]}
             onChangeText={[Function]}
-            onFocus={[Function]}
             onSubmitEditing={[Function]}
             placeholder=""
             placeholderTextColor="#d6d9dc"
@@ -247,39 +214,37 @@ exports[`ChoosePassword should render correctly 1`] = `
             secureTextEntry={true}
             style={
               Object {
-                "borderBottomColor": "#d6d9dc",
-                "borderBottomWidth": 1,
-                "borderRadius": 4,
+                "borderColor": "#6a737d",
+                "borderRadius": 6,
+                "borderWidth": 1,
                 "fontFamily": "CircularStd-Medium",
                 "fontSize": 20,
                 "fontWeight": "400",
-                "paddingLeft": 0,
-                "paddingVertical": 10,
+                "padding": 10,
               }
             }
             testID="input-password-confirm"
-            underlineColorAndroid="#d6d9dc"
             value=""
           />
           <View
             style={
               Object {
                 "alignSelf": "flex-end",
-                "marginTop": 8,
                 "position": "absolute",
+                "right": 17,
+                "top": 50,
               }
             }
           />
           <Text
             style={
               Object {
-                "color": "#777777",
+                "color": "#8E8E93",
                 "fontFamily": "CircularStd-Medium",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
-                "marginLeft": 5,
-                "marginTop": 10,
+                "marginTop": 14,
                 "textAlign": "left",
               }
             }
@@ -287,44 +252,103 @@ exports[`ChoosePassword should render correctly 1`] = `
             Must be at least 8 characters
           </Text>
         </View>
-        <View
-          style={
-            Object {
-              "alignItems": "flex-start",
-              "marginBottom": 30,
-              "marginTop": 30,
-            }
-          }
-        >
-          <Text
+        <View>
+          <View
             style={
               Object {
-                "flex": 1,
-                "fontFamily": "CircularStd-Medium",
-                "fontSize": 16,
-                "fontWeight": "400",
+                "marginBottom": 30,
+                "marginTop": 20,
+                "position": "relative",
               }
             }
           >
-            Remember me
-          </Text>
-          <Switch
-            ios_backgroundColor="#9fa6ae"
+            <Text
+              style={
+                Object {
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "left": 0,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              Remember me
+            </Text>
+            <Switch
+              ios_backgroundColor="#9fa6ae"
+              onValueChange={[Function]}
+              style={
+                Object {
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+              trackColor={
+                Object {
+                  "false": "#9fa6ae",
+                  "true": "#86e29b",
+                }
+              }
+              value={false}
+            />
+          </View>
+        </View>
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "marginHorizontal": 10,
+              "marginTop": 10,
+            }
+          }
+        >
+          <ForwardRef(CheckBoxWithRef)
+            boxType="square"
             onValueChange={[Function]}
             style={
               Object {
-                "flex": 0,
-                "marginTop": 10,
+                "height": 18,
+                "margin": 10,
+                "marginLeft": -6,
+                "width": 18,
               }
             }
-            trackColor={
+            tintColors={
               Object {
-                "false": "#9fa6ae",
-                "true": "#86e29b",
+                "true": "#037dd6",
               }
             }
             value={false}
           />
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontSize": 14,
+                "paddingHorizontal": 10,
+              }
+            }
+          >
+            I understand that MetaMask cannot recover this password for me.
+             
+            <Text
+              onPress={[Function]}
+              style={
+                Object {
+                  "color": "#037dd6",
+                  "textDecorationColor": "#037dd6",
+                  "textDecorationLine": "underline",
+                }
+              }
+            >
+              Learn more.
+            </Text>
+          </Text>
         </View>
       </View>
     </KeyboardAwareScrollViewMock>
