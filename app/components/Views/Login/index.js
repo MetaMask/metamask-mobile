@@ -144,10 +144,7 @@ class Login extends PureComponent {
 			if (previouslyDisabled && previouslyDisabled === 'true') {
 				enabled = false;
 			}
-			this.setState(
-				{ biometryType, biometryChoice: enabled, biometryPreviouslyDisabled: !!previouslyDisabled },
-				() => enabled && this.tryBiometric()
-			);
+			this.setState({ biometryType, biometryChoice: enabled, biometryPreviouslyDisabled: !!previouslyDisabled });
 		}
 	}
 

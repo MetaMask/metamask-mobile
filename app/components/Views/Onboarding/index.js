@@ -123,7 +123,7 @@ class Onboarding extends PureComponent {
 			return false;
 		}
 		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
-		this.showQrCode();
+		this.props.navigation.navigate('ImportWallet');
 	};
 
 	showQrCode = () => {
