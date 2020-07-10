@@ -48,6 +48,7 @@ import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
+import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import AccountBackupStep2 from '../../Views/AccountBackupStep2';
 import AccountBackupStep3 from '../../Views/AccountBackupStep3';
 import AccountBackupStep4 from '../../Views/AccountBackupStep4';
@@ -340,6 +341,9 @@ const MainNavigator = createStackNavigator(
 					},
 					AccountBackupStep1: {
 						screen: AccountBackupStep1
+					},
+					AccountBackupStep1B: {
+						screen: AccountBackupStep1B
 					},
 					AccountBackupStep2: {
 						screen: AccountBackupStep2
