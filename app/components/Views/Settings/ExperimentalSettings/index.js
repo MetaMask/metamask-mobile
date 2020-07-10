@@ -12,6 +12,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Device from '../../../../util/Device';
 import Analytics from '../../../../core/Analytics';
+import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -34,16 +35,10 @@ const styles = StyleSheet.create({
 		marginTop: 12
 	},
 	setting: {
-		marginTop: 50
-	},
-	firstSetting: {
-		marginTop: 0
+		marginVertical: 18
 	},
 	clearHistoryConfirm: {
 		marginTop: 18
-	},
-	inner: {
-		paddingBottom: 112
 	},
 	switchElement: {
 		marginVertical: 20
@@ -64,13 +59,26 @@ class ExperimentalSettings extends PureComponent {
 		*/
 		setEnablePaymentChannels: PropTypes.func,
 		/**
+		 * Selected address
+		 */
+		selectedAddress: PropTypes.string,
+		/**
 		/* Flag that determines the state of payment channels
 		*/
 		paymentChannelsEnabled: PropTypes.bool
 	};
 
+	state = {
+		paymentChannelHasBalance: false
+	};
+
 	static navigationOptions = ({ navigation }) =>
 		getNavigationOptionsTitle(strings('app_settings.experimental_title'), navigation);
+
+	componentDidMount = async () => {
+		const paymentChannelHasBalance = await PaymentChannelsClient.addressHasTransactions(this.props.selectedAddress);
+		this.setState({ paymentChannelHasBalance });
+	};
 
 	goToWalletConnectSessions = () => {
 		this.props.navigation.navigate('WalletConnectSessionsView');
@@ -103,11 +111,25 @@ class ExperimentalSettings extends PureComponent {
 
 	render = () => {
 		const { paymentChannelsEnabled } = this.props;
+		const { paymentChannelHasBalance } = this.state;
 
 		return (
 			<ScrollView style={styles.wrapper}>
-				<View style={styles.inner}>
-					<View style={[styles.setting, styles.firstSetting]}>
+				<View style={styles.setting}>
+					<View>
+						<Text style={styles.title}>{strings('experimental_settings.wallet_connect_dapps')}</Text>
+						<Text style={styles.desc}>{strings('experimental_settings.wallet_connect_dapps_desc')}</Text>
+						<StyledButton
+							type="normal"
+							onPress={this.goToWalletConnectSessions}
+							containerStyle={styles.clearHistoryConfirm}
+						>
+							{strings('experimental_settings.wallet_connect_dapps_cta')}
+						</StyledButton>
+					</View>
+				</View>
+				{paymentChannelHasBalance && (
+					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('experimental_settings.payment_channels')}</Text>
 						<Text style={styles.desc}>{strings('experimental_settings.enable_payment_channels_desc')}</Text>
 						<View style={styles.switchElement}>
@@ -125,29 +147,18 @@ class ExperimentalSettings extends PureComponent {
 							containerStyle={styles.clearHistoryConfirm}
 							disabled={!paymentChannelsEnabled}
 						>
-							{strings('experimental_settings.payment_channels_cta').toUpperCase()}
+							{strings('experimental_settings.payment_channels_cta')}
 						</StyledButton>
 					</View>
-
-					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('experimental_settings.wallet_connect_dapps')}</Text>
-						<Text style={styles.desc}>{strings('experimental_settings.wallet_connect_dapps_desc')}</Text>
-						<StyledButton
-							type="normal"
-							onPress={this.goToWalletConnectSessions}
-							containerStyle={styles.clearHistoryConfirm}
-						>
-							{strings('experimental_settings.wallet_connect_dapps_cta').toUpperCase()}
-						</StyledButton>
-					</View>
-				</View>
+				)}
 			</ScrollView>
 		);
 	};
 }
 
 const mapStateToProps = state => ({
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 const mapDispatchToProps = dispatch => ({

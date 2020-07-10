@@ -1277,9 +1277,9 @@
     chalk "^3.0.0"
 
 "@metamask/controllers@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-2.0.0.tgz#e57762c213d2722fd178d4c5c288ad98a2ee8bdf"
-  integrity sha512-J2DSoyyPRAilTdohl43O5tZdqOSMvB94Kx1ApRpkPZxQwtDUIzWHRpTXptyCEwkhaOdkNz9BvWMoaRQxjktfKw==
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-2.0.1.tgz#33b0e2826fb6d4aa582acaff6b347e6abe0f54f5"
+  integrity sha512-xioh4h+4D2pUSJ9H2CaffxKGmlg0kUK2bbRJ8c9GXPVTo8KhRHryvNKfkVCyoSt35FLROzzwTEdVJ4dmUFuELQ==
   dependencies:
     await-semaphore "^0.1.3"
     eth-contract-metadata "^1.11.0"
@@ -1304,10 +1304,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^15.0.4"
 
-"@metamask/mobile-provider@^1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.1.tgz#4a8b42d321f1ca4a8e88294b9f5ea56aa052d9e2"
-  integrity sha512-Uso/oFzPywsWYR6OxPpCDYFFqxtmyqeVgT8CJMsBFDyf0QrLt/15A2LsFVPITMUY2Lhd/QsUEzoKX6geUvPpfA==
+"@metamask/mobile-provider@1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.4.tgz#67186bcaea3cce207c4b9d16a28978fb2bfcbe5b"
+  integrity sha512-U/vewx8wP2qo52subq8qzRAiINXr4NOwZ7OAkNkwBI336Hft/V+RVy0BRq0kWRpRANoXOhxdrde2tk0zzeh9Dw==
 
 "@react-native-community/async-storage@1.9.0":
   version "1.9.0"
@@ -10592,9 +10592,9 @@ react-native-view-shot@^3.1.2:
   resolved "https://registry.yarnpkg.com/react-native-view-shot/-/react-native-view-shot-3.1.2.tgz#8c8e84c67a4bc8b603e697dbbd59dbc9b4f84825"
   integrity sha512-9u9fPtp6a52UMoZ/UCPrCjKZk8tnkI9To0Eh6yYnLKFEGkRZ7Chm6DqwDJbYJHeZrheCCopaD5oEOnRqhF4L2Q==
 
-"react-native-webview@git+ssh://git@github.com/MetaMask/react-native-webview.git#408df176e6fe7c00aa05c2fddb4054968330e8a1":
+"react-native-webview@git+ssh://git@github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7":
   version "7.0.5"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-webview.git#408df176e6fe7c00aa05c2fddb4054968330e8a1"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7"
   dependencies:
     escape-string-regexp "1.0.5"
     invariant "2.2.4"

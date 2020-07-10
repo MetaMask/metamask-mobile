@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-notation
+const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 /**
  * View where users can decide how to import their wallet
@@ -138,6 +138,7 @@ class ImportWallet extends PureComponent {
 	};
 
 	seedwords = null;
+	importedAccounts = null;
 	channelName = null;
 	incomingDataStr = '';
 	dataToSync = null;
@@ -236,9 +237,10 @@ class ImportWallet extends PureComponent {
 			},
 			data => {
 				this.incomingDataStr = null;
-				const { pwd, seed } = data.udata;
+				const { pwd, seed, importedAccounts } = data.udata;
 				this.password = pwd;
 				this.seedWords = seed;
+				this.importedAccounts = importedAccounts;
 				delete data.udata;
 				this.dataToSync = { ...data };
 				this.pubnubWrapper.endSync(() => this.disconnect());
@@ -334,7 +336,12 @@ class ImportWallet extends PureComponent {
 		try {
 			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 			await Engine.resetState();
-			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: opts.password });
+			await Engine.sync({
+				...this.dataToSync,
+				seed: this.seedWords,
+				importedAccounts: this.importedAccounts,
+				pass: opts.password
+			});
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);

@@ -138,6 +138,59 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Get incoming transactions
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 18,
+          }
+        }
+      >
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
       testID="clear-privacy-section"
     >
       <Text
@@ -187,7 +240,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         type="normal"
       >
-        CLEAR PRIVACY DATA
+        Clear privacy data
       </StyledButton>
     </View>
     <View
@@ -244,7 +297,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         type="normal"
       >
-        CLEAR BROWSER HISTORY
+        Clear browser history
       </StyledButton>
     </View>
     <View
@@ -361,7 +414,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Show Private Key for "Account 1"
+        Show private key for "Account 1"
       </Text>
       <Text
         style={
@@ -401,7 +454,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         type="danger"
       >
-        SHOW PRIVATE KEY
+        Show private key
       </StyledButton>
     </View>
     <View
@@ -423,7 +476,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         testID="reveal-seed-title"
       >
-        Reveal Seed Phrase
+        Reveal seed phrase
       </Text>
       <Text
         style={
@@ -464,7 +517,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         testID="reveal-seedphrase-button"
         type="danger"
       >
-        REVEAL SEED PHRASE
+        Reveal seed phrase
       </StyledButton>
     </View>
     <ActionModal

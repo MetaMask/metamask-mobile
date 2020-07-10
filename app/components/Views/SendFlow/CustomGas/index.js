@@ -11,27 +11,17 @@ import {
 	getBasicGasEstimates
 } from '../../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { fromWei, renderWei, hexToBN, renderFromWei, isBN, isDecimal } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import Radio from '../../../UI/Radio';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import ConnectHeader from '../../../UI/ConnectHeader';
 
 const styles = StyleSheet.create({
-	back: {
-		padding: 10
-	},
 	root: {
 		backgroundColor: colors.white,
-		minHeight: 200,
-		width: '100%'
-	},
-	customGasHeader: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
 		width: '100%',
-		paddingBottom: 20
+		paddingHorizontal: 24
 	},
 	selectors: {
 		backgroundColor: colors.white,
@@ -79,12 +69,6 @@ const styles = StyleSheet.create({
 		letterSpacing: 1,
 		fontSize: 10,
 		textTransform: 'uppercase'
-	},
-	customGasModalTitleText: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		alignSelf: 'center'
 	},
 	totalGasWrapper: {
 		flex: 1,
@@ -390,6 +374,7 @@ class CustomGas extends PureComponent {
 	onGasLimitChange = value => {
 		let warningGasLimit;
 		const { customGasPrice } = this.state;
+		//Added because apiEstimateModifiedToWEI doesn't like empty strings
 		const gasPrice = customGasPrice === '' ? '0' : customGasPrice;
 		const bnValue = new BN(value);
 		if (!value || value === '' || !isDecimal(value)) warningGasLimit = strings('transaction.invalid_gas');
@@ -496,7 +481,7 @@ class CustomGas extends PureComponent {
 		return (
 			<View style={styles.advancedOptionsContainer}>
 				<View style={styles.valueRow}>
-					<Text style={styles.advancedOptionsText}>Total</Text>
+					<Text style={styles.advancedOptionsText}>{strings('custom_gas.total')}</Text>
 					<View style={styles.totalGasWrapper}>
 						<Text style={styles.textTotalGas}>
 							{renderFromWei(totalGas)} {ticker}
@@ -546,15 +531,7 @@ class CustomGas extends PureComponent {
 			return (
 				<View style={styles.root}>
 					<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
-						<View style={styles.customGasHeader}>
-							<TouchableOpacity style={styles.back} onPress={toggleCustomGasModal}>
-								<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
-							</TouchableOpacity>
-							<Text style={styles.customGasModalTitleText}>
-								{strings('transaction.edit_network_fee')}
-							</Text>
-							<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
-						</View>
+						<ConnectHeader action={toggleCustomGasModal} title={strings('transaction.edit_network_fee')} />
 						<View style={styles.optionsContainer}>
 							<TouchableOpacity
 								style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}

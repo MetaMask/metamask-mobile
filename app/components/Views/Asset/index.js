@@ -57,7 +57,11 @@ class Asset extends PureComponent {
 		/**
 		 * An array that represents the user transactions
 		 */
-		transactions: PropTypes.array
+		transactions: PropTypes.array,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	state = {
@@ -230,7 +234,7 @@ class Asset extends PureComponent {
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
-		await Engine.refreshTransactionHistory();
+		this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
 		this.setState({ refreshing: false });
 	};
 
@@ -248,29 +252,27 @@ class Asset extends PureComponent {
 
 		return (
 			<View style={styles.wrapper}>
-				<View style={styles.wrapper}>
-					{this.state.loading ? (
-						this.renderLoader()
-					) : (
-						<Transactions
-							header={
-								<View style={styles.assetOverviewWrapper}>
-									<AssetOverview navigation={navigation} asset={navigation && params} />
-								</View>
-							}
-							navigation={navigation}
-							transactions={this.state.transactions}
-							submittedTransactions={this.state.submittedTxs}
-							confirmedTransactions={this.state.confirmedTxs}
-							selectedAddress={selectedAddress}
-							conversionRate={conversionRate}
-							currentCurrency={currentCurrency}
-							networkType={networkType}
-							loading={!this.state.transactionsUpdated}
-							headerHeight={280}
-						/>
-					)}
-				</View>
+				{this.state.loading ? (
+					this.renderLoader()
+				) : (
+					<Transactions
+						header={
+							<View style={styles.assetOverviewWrapper}>
+								<AssetOverview navigation={navigation} asset={navigation && params} />
+							</View>
+						}
+						navigation={navigation}
+						transactions={this.state.transactions}
+						submittedTransactions={this.state.submittedTxs}
+						confirmedTransactions={this.state.confirmedTxs}
+						selectedAddress={selectedAddress}
+						conversionRate={conversionRate}
+						currentCurrency={currentCurrency}
+						networkType={networkType}
+						loading={!this.state.transactionsUpdated}
+						headerHeight={280}
+					/>
+				)}
 			</View>
 		);
 	};
@@ -281,7 +283,8 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	transactions: state.engine.backgroundState.TransactionController.transactions
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 
 export default connect(mapStateToProps)(Asset);
