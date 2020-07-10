@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
 		height: 20,
 		marginTop: 14,
 		fontSize: 12,
-		color: colors.grey700,
+		color: colors.grey450,
 		textAlign: 'left',
 		...fontStyles.normal
 	},
