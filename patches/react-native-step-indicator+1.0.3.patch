@@ -1,0 +1,58 @@
+diff --git a/node_modules/react-native-step-indicator/src/index.tsx b/node_modules/react-native-step-indicator/src/index.tsx
+index 222aeb6..398a3fa 100644
+--- a/node_modules/react-native-step-indicator/src/index.tsx
++++ b/node_modules/react-native-step-indicator/src/index.tsx
+@@ -251,6 +251,9 @@ const StepIndicator = ({
+     }
+     var labelViews = labels.map((label, index) => {
+       const selectedStepLabelStyle =
++        index < currentPosition
++          ? { color: customStyles.finishedStepLabelColor }
++          :
+         index === currentPosition
+           ? { color: customStyles.currentStepLabelColor }
+           : { color: customStyles.labelColor };
+@@ -356,6 +359,7 @@ const StepIndicator = ({
+           overflow: 'hidden',
+           fontSize: customStyles.stepIndicatorLabelFontSize,
+           color: customStyles.stepIndicatorLabelUnFinishedColor,
++          fontFamily: customStyles.stepIndicatorLabelFontFamily
+         };
+         break;
+       }
+diff --git a/node_modules/react-native-step-indicator/src/types.ts b/node_modules/react-native-step-indicator/src/types.ts
+index e7f7c06..a9e1502 100644
+--- a/node_modules/react-native-step-indicator/src/types.ts
++++ b/node_modules/react-native-step-indicator/src/types.ts
+@@ -204,6 +204,15 @@ export interface StepIndicatorStyles {
+    */
+   currentStepLabelColor?: string;
+ 
++  /**
++   * Color of the finished step label
++   *
++   * @default '#4aae4f'
++   * @type {string}
++   * @memberof StepIndicatorStyles
++   */
++  finishedStepLabelColor?: string;
++
+   /**
+    * Font size for the labels
+    *
+@@ -237,6 +246,15 @@ export interface StepIndicatorStyles {
+    *
+    */
+   labelFontFamily?: string;
++
++    /**
++   * stepIndicator fontFamily for custom fonts
++   *
++   * @type {string}
++   * @memberof StepIndicatorStyles
++   *
++   */
++  stepIndicatorLabelFontFamily?: string;
+ }
+ 
+ export interface StepIndicatorProps {

@@ -19,6 +19,16 @@ exports[`ChoosePassword should render correctly 1`] = `
     }
     testID="choose-password-screen"
   >
+    <OnboardingProgress
+      currentStep={0}
+      steps={
+        Array [
+          "Create password",
+          "Secure wallet",
+          "Confirm seed phrase",
+        ]
+      }
+    />
     <KeyboardAwareScrollViewMock
       enableAutomaticScroll={true}
       enableOnAndroid={false}
@@ -41,16 +51,6 @@ exports[`ChoosePassword should render correctly 1`] = `
       }
       viewIsInsideTabBar={false}
     >
-      <OnboardingProgress
-        currentStep={1}
-        steps={
-          Array [
-            "Create password",
-            "Secure wallet",
-            "Confirm seed phrase",
-          ]
-        }
-      />
       <View
         testID="create-password-screen"
       >
