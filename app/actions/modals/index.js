@@ -30,3 +30,10 @@ export function toggleDappTransactionModal(show) {
 		show
 	};
 }
+
+export function toggleApproveModal(show) {
+	return {
+		type: 'TOGGLE_APPROVE_MODAL',
+		show
+	};
+}
