@@ -73,6 +73,12 @@ const styles = StyleSheet.create({
 	},
 	buttonContainer: {
 		flexDirection: 'row'
+	},
+	hitSlopLearnMore: {
+		top: 10,
+		left: 10,
+		bottom: 10,
+		right: 10
 	}
 });
 
@@ -135,7 +141,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 
 	learnMore = () => {
 		this.props.navigation.navigate('Webview', {
-			url: 'https://support.metamask.io',
+			url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
 			title: strings('drawer.metamask_support')
 		});
 	};
@@ -164,7 +170,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 						{strings('sync_with_extension_success.sync_complete_1')}{' '}
 						<Text style={styles.bold}>{strings('sync_with_extension_success.sync_complete_2')}</Text>
 					</Text>
-					<TouchableOpacity onPress={this.learnMore} hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}>
+					<TouchableOpacity onPress={this.learnMore} hitSlop={styles.hitSlopLearnMore}>
 						<Text style={styles.learnMoreText}>{strings('sync_with_extension_success.learn_more')}</Text>
 					</TouchableOpacity>
 					<View style={styles.passwordTipContainer}>
