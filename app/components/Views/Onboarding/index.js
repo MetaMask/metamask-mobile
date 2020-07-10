@@ -16,7 +16,9 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
-import OnboardingProgress from '../../UI/OnboardingProgress';
+import PubNubWrapper from '../../../util/syncWithExtension';
+
+const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -31,14 +33,14 @@ const styles = StyleSheet.create({
 		paddingVertical: 30
 	},
 	title: {
-		fontSize: 28,
+		fontSize: 24,
 		color: colors.fontPrimary,
 		...fontStyles.bold,
-		justifyContent: 'center',
 		textAlign: 'center'
 	},
 	ctas: {
-		flex: 1
+		flex: 1,
+		position: 'relative'
 	},
 	footer: {
 		marginTop: -20,
@@ -54,17 +56,20 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		textAlign: 'center',
 		marginBottom: 16,
-		color: colors.fontSecondary
+		color: colors.fontPrimary,
+		lineHeight: 20
 	},
 	importWrapper: {
 		marginVertical: 24
 	},
 	createWrapper: {
-		marginVertical: 24
+		position: 'absolute',
+		width: '100%',
+		bottom: 0
 	},
 	buttonWrapper: {
 		flexGrow: 1,
-		marginHorizontal: 50
+		marginBottom: 16
 	}
 });
 
@@ -86,12 +91,66 @@ class Onboarding extends PureComponent {
 		/**
 		 * Save onboarding event to state
 		 */
-		saveOnboardingEvent: PropTypes.func
+		saveOnboardingEvent: PropTypes.func,
+		/**
+		 * Selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
 		existingUser: false,
 		currentStep: 1
+	};
+
+	safeSync = () => {
+		const { existingUser } = this.state;
+		const action = () => this.onPressSync();
+		if (existingUser) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
+	};
+
+	onPressSync = () => {
+		if (!PUB_KEY) {
+			// Dev message
+			Alert.alert(
+				'This feature has been disabled',
+				`Because you did not set the .js.env file. Look at .js.env.example for more information`
+			);
+			return false;
+		}
+		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
+		this.showQrCode();
+	};
+
+	showQrCode = () => {
+		this.props.navigation.push('QRScanner', {
+			onStartScan: async data => {
+				if (data.content && data.content.search('metamask-sync:') !== -1) {
+					const [channelName, cipherKey] = data.content.replace('metamask-sync:', '').split('|@|');
+					this.pubnubWrapper = new PubNubWrapper(channelName, cipherKey);
+					await this.pubnubWrapper.establishConnection(this.props.selectedAddress);
+				} else {
+					Alert.alert(
+						strings('sync_with_extension.invalid_qr_code'),
+						strings('sync_with_extension.invalid_qr_code_desc')
+					);
+				}
+			},
+			onScanSuccess: async data => {
+				if (data.content && data.content.search('metamask-sync:') !== -1) {
+					(await this.startSync(true)) || (await this.startSync(false));
+				} else {
+					Alert.alert(
+						strings('sync_with_extension.invalid_qr_code'),
+						strings('sync_with_extension.invalid_qr_code_desc')
+					);
+				}
+			}
+		});
 	};
 
 	componentDidMount() {
@@ -118,40 +177,27 @@ class Onboarding extends PureComponent {
 		}
 	};
 
-	onPressCreate = () => {
-		const { existingUser } = this.state;
-		const action = () => {
-			this.props.navigation.navigate('CreateWallet');
-			InteractionManager.runAfterInteractions(async () => {
-				if (Analytics.getEnabled()) {
-					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-					return;
-				}
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-				if (!metricsOptIn) {
-					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-				}
-			});
-		};
-		if (existingUser) {
-			this.alertExistingUser(action);
-		} else {
-			action();
-		}
-	};
-
-	onPressImport = () => {
-		this.props.navigation.push('ImportWallet');
+	track = key => {
 		InteractionManager.runAfterInteractions(async () => {
 			if (Analytics.getEnabled()) {
-				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+				Analytics.trackEvent(key);
 				return;
 			}
 			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 			if (!metricsOptIn) {
-				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+				this.props.saveOnboardingEvent(key);
 			}
 		});
+	};
+
+	onPressCreate = () => {
+		this.props.navigation.navigate('ChoosePassword');
+		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
+	};
+
+	onPressImport = () => {
+		this.props.navigation.push('ImportFromSeed');
+		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
 	};
 
 	alertExistingUser = callback => {
@@ -173,26 +219,35 @@ class Onboarding extends PureComponent {
 					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
 							<View style={styles.ctas}>
-								<OnboardingProgress currentStep={this.state.currentStep} />
 								<Text style={styles.title} testID={'onboarding-screen-title'}>
 									{strings('onboarding.title')}
 								</Text>
 								<View style={styles.importWrapper}>
-									<Text style={styles.buttonDescription}>{strings('onboarding.sync_desc')}</Text>
+									<Text style={styles.buttonDescription}>{strings('onboarding.import')}</Text>
+								</View>
+								<View style={styles.createWrapper}>
 									<View style={styles.buttonWrapper}>
 										<StyledButton
 											type={'normal'}
 											onPress={this.onPressImport}
-											testID={'onboarding-import-button'}
+											testID={'import-wallet-import-from-seed-button'}
 										>
-											{strings('onboarding.import_wallet_button')}
+											{strings('import_wallet.import_from_seed_button')}
 										</StyledButton>
 									</View>
-								</View>
-								<View style={styles.createWrapper}>
-									<Text style={styles.buttonDescription}>{strings('onboarding.create_desc')}</Text>
 									<View style={styles.buttonWrapper}>
 										<StyledButton
+											style={styles.button}
+											type={'normal'}
+											onPress={this.safeSync}
+											testID={'onboarding-import-button'}
+										>
+											{strings('import_wallet.sync_from_browser_extension_button')}
+										</StyledButton>
+									</View>
+									<View style={styles.buttonWrapper}>
+										<StyledButton
+											style={styles.button}
 											type={'blue'}
 											onPress={this.onPressCreate}
 											testID={'start-exploring-button'}
@@ -223,6 +278,7 @@ class Onboarding extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	passwordSet: state.user.passwordSet
 });
 

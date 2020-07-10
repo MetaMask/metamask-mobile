@@ -27,16 +27,23 @@
 		"ok": "OK"
 	},
 	"onboarding": {
-		"title": "Get started!",
+		"title": "Wallet setup",
 		"sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
-		"create_desc": "New to crypto? Set up your first wallet and start exploring decentralized apps.",
+		"create_desc": "Set up your first wallet and start exploring decentralized apps.",
+		"import": "Import an existing wallet or create a new one",
 		"import_wallet_button": "Sync or import wallet",
+		"new_to_crypto": "New to crypto?",
 		"start_exploring_now": "Create wallet",
 		"login": "Log in",
 		"new_to_metamask": "New to MetaMask?",
 		"already_have_wallet": "Already have a wallet?",
 		"optin_back_title": "Heads up!",
-		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings."
+		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings.",
+		"step1": "Wallet setup",
+		"step2": "Create password",
+		"step3": "Secure wallet",
+		"already_have": "Already have a wallet?",
+		"sync_existing": "Sync your existing MetaMask wallet from the browser extension or import manually."
 	},
 	"onboarding_carousel": {
 		"title1": "Welcome to MetaMask",
@@ -44,7 +51,7 @@
 		"title3": "Explore decentralized apps",
 		"subtitle1": "A secure browser – and so much more. Swipe to see what’s possible.",
 		"subtitle2": "Store, spend and send crypto currencies and assets.",
-		"subtitle3": "Use your MetaMask to login to decentralized apps – no signup needed.",
+		"subtitle3": "Use your MetaMask to login to decentralized apps – no sign-up needed.",
 		"get_started": "Get started"
 	},
 	"onboarding_wizard": {
@@ -98,7 +105,7 @@
 		"sync_help_step_two": "2. Go to Settings > Advanced",
 		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
 		"sync_help_step_four": "4. Scan the QR Code to start syncing",
-		"sync_from_browser_extension_button": "Scan the QR code",
+		"sync_from_browser_extension_button": "Scan QR code",
 		"or": "OR",
 		"import_from_seed_button": "Import using seed phrase"
 	},
@@ -118,7 +125,7 @@
 	},
 	"choose_password": {
 		"title": "Create password",
-		"subtitle": "You'll use this password to unlock your MetaMask wallet only on this device.",
+		"subtitle": "This password will unlock your MetaMask wallet only on this device.",
 		"password": "New Password",
 		"confirm_password": "Confirm Password",
 		"create_button": "NEXT",
@@ -134,7 +141,11 @@
 		"must_be_at_least": "Must be at least {{number}} characters",
 		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
-		"security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
+		"security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
+		"i_understand": "I understand that MetaMask cannot recover this password for me.",
+		"learn_more": "Learn more.",
+		"secure": "Secure wallet",
+		"confirm": "Confirm seed phrase"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",
@@ -789,9 +800,9 @@
 		"empty_data": "0x"
 	},
 	"biometrics": {
-		"enable_touchid": "Sign In with Touch ID?",
-		"enable_faceid": "Sign In with Face ID?",
-		"enable_fingerprint": "Sign In with Fingerprint?",
+		"enable_touchid": "Sign in with Touch ID?",
+		"enable_faceid": "Sign in with Face ID?",
+		"enable_fingerprint": "Sign in with Fingerprint?",
 		"enable_device_passcode_ios": "Sign in with device passcode?",
 		"enable_device_passcode_android": "Sign in with device PIN?"
 	},
