@@ -1,11 +1,11 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Alert, InteractionManager } from 'react-native';
+import { StyleSheet, Alert, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
+import Modal from 'react-native-modal';
 import { BNToHex, hexToBN } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
-import { colors } from '../../../styles/common';
 import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
@@ -21,9 +21,9 @@ const EDIT = 'edit';
 const APPROVAL = 'Approval';
 
 const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1
+	bottomModal: {
+		justifyContent: 'flex-end',
+		margin: 0
 	}
 });
 
@@ -53,7 +53,15 @@ class Approval extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Hides or shows the dApp transaction modal
+		 */
+		toggleDappTransactionModal: PropTypes.func,
+		/**
+		 * Tells whether or not dApp transaction modal is visible
+		 */
+		dappTransactionModalVisible: PropTypes.bool
 	};
 
 	state = {
@@ -157,7 +165,7 @@ class Approval extends PureComponent {
 	};
 
 	onCancel = () => {
-		this.props.navigation.pop();
+		this.props.toggleDappTransactionModal();
 		this.state.mode === REVIEW && this.trackOnCancel();
 		this.showWalletConnectNotification();
 	};
@@ -182,7 +190,7 @@ class Approval extends PureComponent {
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
-					this.props.navigation.pop();
+					this.props.toggleDappTransactionModal();
 					NotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
 						assetType: transaction.assetType
@@ -258,10 +266,23 @@ class Approval extends PureComponent {
 	}
 
 	render = () => {
-		const { transaction } = this.props;
+		const { transaction, dappTransactionModalVisible } = this.props;
 		const { mode } = this.state;
 		return (
-			<SafeAreaView style={styles.wrapper} testID={'confirm-transaction-screen'}>
+			<Modal
+				isVisible={dappTransactionModalVisible}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.onCancel}
+				onBackButtonPress={this.onCancel}
+				onSwipeComplete={this.onCancel}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
 				<TransactionEditor
 					promptedFromApproval
 					mode={mode}
@@ -270,8 +291,9 @@ class Approval extends PureComponent {
 					onModeChange={this.onModeChange}
 					transaction={transaction}
 					navigation={this.props.navigation}
+					dappTransactionModalVisible={dappTransactionModalVisible}
 				/>
-			</SafeAreaView>
+			</Modal>
 		);
 	};
 }
