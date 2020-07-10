@@ -10,6 +10,7 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/Device';
 import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -325,5 +326,7 @@ AccountBackupStep1B.propTypes = {
 	*/
 	navigation: PropTypes.object
 };
+
+AccountBackupStep1B.navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 export default AccountBackupStep1B;
