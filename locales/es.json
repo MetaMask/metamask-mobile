@@ -140,7 +140,7 @@
 	"drawer": {
 		"payment_channel": "Pagos Instantáneos",
 		"send_button": "Enviar",
-		"receive_button": "Recibir",
+		"receive_button": "Agregar",
 		"coming_soon": "Disponible muy pronto...",
 		"wallet": "Billetera",
 		"transaction_history": "Historial de Transacciones",
@@ -353,7 +353,7 @@
 		"cancel_remove_network": "Cancelar",
 		"info_title": "Acerca de MetaMask",
 		"experimental_title": "Experimental",
-		"experimental_desc": "Canales de Pago, WalletConnect & más...",
+		"experimental_desc": "WalletConnect & más...",
 		"legal_title": "Legal",
 		"conversion_title": "Conversión de moneda",
 		"conversion_desc": "Mostrar valores en fiat usando una moneda específica en toda la aplicación.",
@@ -390,7 +390,7 @@
 		"email_us": "¡Envíanos un correo a support@metamask.io!"
 	},
 	"reveal_credential": {
-		"seed_phrase_title": "Revelar Frase Semilla",
+		"seed_phrase_title": "Revelar frase semilla",
 		"private_key_title": "Mostrar dirección privada",
 		"private_key_title_for_account": "Mostrar dirección privada para la cuenta \"{{accountName}}\"",
 		"cancel": "Cancelar",
@@ -517,7 +517,7 @@
 		"spend_limit": "Editar límite de gasto",
 		"allow": "Permitir",
 		"allow_explanation": "para retirar y gastar hasta la siguiente cantidad:",
-		"unlimited": "Ilimitado",
+		"proposed": "Límite de gasto propuesto",
 		"requested_by": "Límite de gasto requerido por",
 		"custom_spend_limit": "Límite de gasto personalizado",
 		"max_spend_limit": "Ingrese un límite de gasto máximo",

@@ -37,7 +37,7 @@ exports[`Settings should render correctly 1`] = `
     title="Networks"
   />
   <SettingsDrawer
-    description="Payment Channels, WalletConnect & more..."
+    description="WalletConnect & more..."
     onPress={[Function]}
     title="Experimental"
   />
