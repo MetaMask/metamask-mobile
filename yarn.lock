@@ -1312,10 +1312,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^15.0.4"
 
-"@metamask/mobile-provider@1.2.3":
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.3.tgz#e9ac0dfa2ef7e8f9cd1cc7a008c014280f1256f4"
-  integrity sha512-C/JJ8vqRzN43Pn5+NogmVZ0SZWt7ufYcZNFeSn4PwN5v6V8K0hOemPDargQajFRE0GfsMDOqXSFZKMvhYPgxag==
+"@metamask/mobile-provider@1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.4.tgz#67186bcaea3cce207c4b9d16a28978fb2bfcbe5b"
+  integrity sha512-U/vewx8wP2qo52subq8qzRAiINXr4NOwZ7OAkNkwBI336Hft/V+RVy0BRq0kWRpRANoXOhxdrde2tk0zzeh9Dw==
 
 "@react-native-community/async-storage@1.9.0":
   version "1.9.0"
@@ -10623,9 +10623,9 @@ react-native-view-shot@^3.1.2:
   resolved "https://registry.yarnpkg.com/react-native-view-shot/-/react-native-view-shot-3.1.2.tgz#8c8e84c67a4bc8b603e697dbbd59dbc9b4f84825"
   integrity sha512-9u9fPtp6a52UMoZ/UCPrCjKZk8tnkI9To0Eh6yYnLKFEGkRZ7Chm6DqwDJbYJHeZrheCCopaD5oEOnRqhF4L2Q==
 
-"react-native-webview@git+ssh://git@github.com/MetaMask/react-native-webview.git#408df176e6fe7c00aa05c2fddb4054968330e8a1":
+"react-native-webview@git+ssh://git@github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7":
   version "7.0.5"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-webview.git#408df176e6fe7c00aa05c2fddb4054968330e8a1"
+  resolved "git+ssh://git@github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7"
   dependencies:
     escape-string-regexp "1.0.5"
     invariant "2.2.4"
