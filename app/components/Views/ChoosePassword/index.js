@@ -283,8 +283,6 @@ class ChoosePassword extends PureComponent {
 				await Engine.resetState();
 				await KeyringController.createNewVaultAndKeychain(password);
 				this.keyringControllerPasswordSet = true;
-				await SecureKeychain.setGenericPassword('metamask-user', password);
-				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			} else {
