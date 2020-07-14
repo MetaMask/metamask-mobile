@@ -158,7 +158,7 @@
 	"drawer": {
 		"payment_channel": "Instant Payments",
 		"send_button": "Send",
-		"receive_button": "Receive",
+		"receive_button": "Add funds",
 		"coming_soon": "Coming soon...",
 		"wallet": "Wallet",
 		"insta_pay": "InstaPay",
@@ -417,10 +417,10 @@
 		"email_us": "Email Us at support@metamask.io!"
 	},
 	"reveal_credential": {
-		"seed_phrase_title": "Reveal Seed Phrase",
-		"private_key_title": "Show Private Key",
-		"show_private_key": "Show Private Key",
-		"private_key_title_for_account": "Show Private Key for \"{{accountName}}\"",
+		"seed_phrase_title": "Reveal seed phrase",
+		"private_key_title": "Show private key",
+		"show_private_key": "Show private key",
+		"private_key_title_for_account": "Show private key for \"{{accountName}}\"",
 		"cancel": "Cancel",
 		"confirm": "Next",
 		"seed_phrase_explanation": "If you ever change browsers or move computers, you will need this seed phrase to access your accounts. Save them somewhere safe and secret.",
@@ -546,7 +546,6 @@
 		"gas_limit": "Gas Limit:",
 		"gas_price": "Gas Price: (GWEI)",
 		"save": "Save",
-		"total": "Total",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
 		"cost_explanation": "Select the network fee you are willing to pay. The higher the fee, the better chances and faster your transaction will go through."
 	},
@@ -556,7 +555,7 @@
 		"spend_limit": "Spend limit permission",
 		"allow": "Allow",
 		"allow_explanation": "to withdraw and spend up to the following amount:",
-		"unlimited": "Unlimited",
+		"proposed": "Proposed approval limit",
 		"requested_by": "Spend limit requested by",
 		"custom_spend_limit": "Custom spend limit",
 		"max_spend_limit": "Enter a max spend limit",
