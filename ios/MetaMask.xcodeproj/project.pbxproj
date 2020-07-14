@@ -43,14 +43,6 @@
 		813214A2220E40C7BBB5ED9E /* Roboto-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A783D1CD7D27456796FE2E1B /* Roboto-Bold.ttf */; };
 		887E75FB64A54509A08D6C50 /* Roboto-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E020F42F788744B3BCE17F05 /* Roboto-LightItalic.ttf */; };
 		8DEB44A7E7EF48E1B3298910 /* EuclidCircularB-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = CE0434C5FB7C4C6F9FEBDCE2 /* EuclidCircularB-Medium.otf */; };
-		AA8ED01423E475440098CEC2 /* CircularStd-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = AA8ED00F23E475340098CEC2 /* CircularStd-Black.otf */; };
-		AA8ED01523E475460098CEC2 /* CircularStd-BlackItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = AA8ED01323E475340098CEC2 /* CircularStd-BlackItalic.otf */; };
-		AA8ED01623E475490098CEC2 /* CircularStd-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = AA8ED00D23E475330098CEC2 /* CircularStd-Bold.otf */; };
-		AA8ED01723E4754C0098CEC2 /* CircularStd-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = AA8ED01223E475340098CEC2 /* CircularStd-BoldItalic.otf */; };
-		AA8ED01823E4754E0098CEC2 /* CircularStd-Book.otf in Resources */ = {isa = PBXBuildFile; fileRef = AA8ED01023E475340098CEC2 /* CircularStd-Book.otf */; };
-		AA8ED01923E475510098CEC2 /* CircularStd-BookItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = AA8ED01123E475340098CEC2 /* CircularStd-BookItalic.otf */; };
-		AA8ED01A23E475530098CEC2 /* CircularStd-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = AA8ED00E23E475340098CEC2 /* CircularStd-Medium.otf */; };
-		AA8ED01B23E475550098CEC2 /* CircularStd-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = AA8ECFB923E475330098CEC2 /* CircularStd-MediumItalic.otf */; };
 		BF39E5BAE0F34F9091FF6AC0 /* EuclidCircularB-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8DE9C5BC0714D648276E123 /* EuclidCircularB-Semibold.otf */; };
 		CD13D926E1E84D9ABFE672C0 /* Roboto-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */; };
 		D171C39A8BD44DBEB6B68480 /* EuclidCircularB-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 42CBA652072F4BE2A8B815C1 /* EuclidCircularB-MediumItalic.otf */; };
@@ -225,14 +217,6 @@
 		A8DE9C5BC0714D648276E123 /* EuclidCircularB-Semibold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Semibold.otf"; path = "../app/fonts/EuclidCircularB-Semibold.otf"; sourceTree = "<group>"; };
 		A98029A3662F4C1391489A6B /* EuclidCircularB-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Light.otf"; path = "../app/fonts/EuclidCircularB-Light.otf"; sourceTree = "<group>"; };
 		A98DB430A7DA47EFB97EDF8B /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
-		AA8ECFB923E475330098CEC2 /* CircularStd-MediumItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "CircularStd-MediumItalic.otf"; path = "../app/fonts/CircularStd-MediumItalic.otf"; sourceTree = "<group>"; };
-		AA8ED00D23E475330098CEC2 /* CircularStd-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "CircularStd-Bold.otf"; path = "../app/fonts/CircularStd-Bold.otf"; sourceTree = "<group>"; };
-		AA8ED00E23E475340098CEC2 /* CircularStd-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "CircularStd-Medium.otf"; path = "../app/fonts/CircularStd-Medium.otf"; sourceTree = "<group>"; };
-		AA8ED00F23E475340098CEC2 /* CircularStd-Black.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "CircularStd-Black.otf"; path = "../app/fonts/CircularStd-Black.otf"; sourceTree = "<group>"; };
-		AA8ED01023E475340098CEC2 /* CircularStd-Book.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "CircularStd-Book.otf"; path = "../app/fonts/CircularStd-Book.otf"; sourceTree = "<group>"; };
-		AA8ED01123E475340098CEC2 /* CircularStd-BookItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "CircularStd-BookItalic.otf"; path = "../app/fonts/CircularStd-BookItalic.otf"; sourceTree = "<group>"; };
-		AA8ED01223E475340098CEC2 /* CircularStd-BoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "CircularStd-BoldItalic.otf"; path = "../app/fonts/CircularStd-BoldItalic.otf"; sourceTree = "<group>"; };
-		AA8ED01323E475340098CEC2 /* CircularStd-BlackItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "CircularStd-BlackItalic.otf"; path = "../app/fonts/CircularStd-BlackItalic.otf"; sourceTree = "<group>"; };
 		AA9EDF17249955C7005D89EE /* MetaMaskDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MetaMaskDebug.entitlements; path = MetaMask/MetaMaskDebug.entitlements; sourceTree = "<group>"; };
 		B069442EBFA83EF178D30B2E /* libPods-MetaMask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B6684830E1789B9B249D040C /* Pods-MetaMask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.release.xcconfig"; sourceTree = "<group>"; };
@@ -388,14 +372,6 @@
 				BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */,
 				E9629905BA1940ADA4189921 /* Feather.ttf */,
 				5E32A09A7BDC431FA403BA73 /* FontAwesome.ttf */,
-				AA8ED00F23E475340098CEC2 /* CircularStd-Black.otf */,
-				AA8ED00E23E475340098CEC2 /* CircularStd-Medium.otf */,
-				AA8ED01323E475340098CEC2 /* CircularStd-BlackItalic.otf */,
-				AA8ED00D23E475330098CEC2 /* CircularStd-Bold.otf */,
-				AA8ED01223E475340098CEC2 /* CircularStd-BoldItalic.otf */,
-				AA8ED01023E475340098CEC2 /* CircularStd-Book.otf */,
-				AA8ED01123E475340098CEC2 /* CircularStd-BookItalic.otf */,
-				AA8ECFB923E475330098CEC2 /* CircularStd-MediumItalic.otf */,
 				42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */,
 				4A2D27104599412CA00C35EF /* Ionicons.ttf */,
 				42C239E9FAA64BD9A34B8D8A /* MaterialCommunityIcons.ttf */,
@@ -660,13 +636,10 @@
 			files = (
 				15205D6321596BAA0049EA93 /* MetaMask.entitlements in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
-				AA8ED01623E475490098CEC2 /* CircularStd-Bold.otf in Resources */,
 				158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */,
-				AA8ED01B23E475550098CEC2 /* CircularStd-MediumItalic.otf in Resources */,
 				15D158ED210BD912006982B5 /* Metamask.ttf in Resources */,
 				48AD4B0AABCB447B99B85DC4 /* Roboto-Black.ttf in Resources */,
 				CD13D926E1E84D9ABFE672C0 /* Roboto-BlackItalic.ttf in Resources */,
-				AA8ED01923E475510098CEC2 /* CircularStd-BookItalic.otf in Resources */,
 				813214A2220E40C7BBB5ED9E /* Roboto-Bold.ttf in Resources */,
 				15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */,
 				298242C958524BB38FB44CAE /* Roboto-BoldItalic.ttf in Resources */,
@@ -676,16 +649,11 @@
 				15AD28A921B7CFD9005DEB23 /* release.xcconfig in Resources */,
 				EF65C42EA15B4774B1947A12 /* Roboto-Medium.ttf in Resources */,
 				DC6A024F56DD43E1A83B47B1 /* Roboto-MediumItalic.ttf in Resources */,
-				AA8ED01723E4754C0098CEC2 /* CircularStd-BoldItalic.otf in Resources */,
-				AA8ED01523E475460098CEC2 /* CircularStd-BlackItalic.otf in Resources */,
 				34CEE49BC79D411687B42FA9 /* Roboto-Regular.ttf in Resources */,
 				7E08FB90F3754D47994208B4 /* Roboto-Thin.ttf in Resources */,
 				7C0226ABD9694AEDBAF3016F /* Roboto-ThinItalic.ttf in Resources */,
-				AA8ED01423E475440098CEC2 /* CircularStd-Black.otf in Resources */,
 				15ACC9FB226555820063978B /* LaunchScreen.xib in Resources */,
-				AA8ED01823E4754E0098CEC2 /* CircularStd-Book.otf in Resources */,
 				49D8E62C506F4A63889EEC7F /* branch.json in Resources */,
-				AA8ED01A23E475530098CEC2 /* CircularStd-Medium.otf in Resources */,
 				2A27FC9EEF1F4FD18E658544 /* config.json in Resources */,
 				FF0F3B13A5354C41913F766D /* EuclidCircularB-Bold.otf in Resources */,
 				E34DE917F6FC4438A6E88402 /* EuclidCircularB-BoldItalic.otf in Resources */,

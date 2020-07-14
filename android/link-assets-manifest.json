@@ -2,36 +2,44 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "app/fonts/CircularStd-Black.otf",
-      "sha1": "c3151c999f79358f3a091222ebefcd4d436cbe8e"
+      "path": "app/fonts/EuclidCircularB-Bold.otf",
+      "sha1": "7c2a5137fdc62618d404ac0cb54f8e732cc43161"
     },
     {
-      "path": "app/fonts/CircularStd-BlackItalic.otf",
-      "sha1": "2e263d71f8fcbd12f3a02e7c01df6a865f68acce"
+      "path": "app/fonts/EuclidCircularB-BoldItalic.otf",
+      "sha1": "77ee92e4787cdf77c2226b9d68fe5374505bd1d0"
     },
     {
-      "path": "app/fonts/CircularStd-Bold.otf",
-      "sha1": "2a36de6df85e4da5c22d26a427fd7390ad32840f"
+      "path": "app/fonts/EuclidCircularB-Light.otf",
+      "sha1": "21fd3c7c27918511ef81a5e695ce93e6ff631c0b"
     },
     {
-      "path": "app/fonts/CircularStd-BoldItalic.otf",
-      "sha1": "1496c0d9ea9622abc43231fbc83bf08099053926"
+      "path": "app/fonts/EuclidCircularB-LightItalic.otf",
+      "sha1": "6f4e697f65c6d82caf50a31fed1539f3aef733b7"
     },
     {
-      "path": "app/fonts/CircularStd-Book.otf",
-      "sha1": "a67856765459bf64a0a1259b6621613edd717ff9"
+      "path": "app/fonts/EuclidCircularB-Medium.otf",
+      "sha1": "0a2cdb45ab1ce34570c534738f651ac7c57f6030"
     },
     {
-      "path": "app/fonts/CircularStd-BookItalic.otf",
-      "sha1": "6ba07b4856b40f621a080196730051ee4d921ae8"
+      "path": "app/fonts/EuclidCircularB-MediumItalic.otf",
+      "sha1": "fe33bcd91e81d7af20132b4ce1ac5918a11a6626"
     },
     {
-      "path": "app/fonts/CircularStd-Medium.otf",
-      "sha1": "29b0a9af2e480ffb9d45de38a44f1c21a002adc9"
+      "path": "app/fonts/EuclidCircularB-Regular.otf",
+      "sha1": "53316f985467975048f477e4afb784ef64b32e84"
     },
     {
-      "path": "app/fonts/CircularStd-MediumItalic.otf",
-      "sha1": "fdce946f1649c046388806513c4eed1c45852da2"
+      "path": "app/fonts/EuclidCircularB-RegularItalic.otf",
+      "sha1": "d9f41cb3b281386fc07d8210a8d32b6a8965b91c"
+    },
+    {
+      "path": "app/fonts/EuclidCircularB-Semibold.otf",
+      "sha1": "bc129f9126a356707aa8a50e585cb075fd1740e9"
+    },
+    {
+      "path": "app/fonts/EuclidCircularB-SemiboldItalic.otf",
+      "sha1": "77f2e0212711cc8e043acabdc4bd4a264dfeeeb7"
     },
     {
       "path": "app/fonts/Metamask.ttf",
