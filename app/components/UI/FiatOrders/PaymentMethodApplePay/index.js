@@ -41,11 +41,10 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	amount: {
-		fontFamily: 'Roboto-Light',
-		fontWeight: fontStyles.light.fontWeight,
+		...fontStyles.light,
 		color: colors.black,
-		fontSize: 44,
-		height: 52
+		fontSize: 48,
+		height: 60
 	},
 	amountError: {
 		color: colors.red
@@ -91,7 +90,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	keypadButtonText: {
-		fontFamily: 'Roboto',
 		color: colors.black,
 		textAlign: 'center',
 		fontSize: 30
