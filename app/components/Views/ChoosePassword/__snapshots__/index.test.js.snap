@@ -53,7 +53,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 32,
                 "fontWeight": "400",
                 "justifyContent": "center",
@@ -77,7 +77,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               style={
                 Object {
                   "color": "#000000",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "lineHeight": 23,
@@ -102,7 +102,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               Array [
                 Object {
                   "color": "#777777",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "marginLeft": 5,
@@ -142,7 +142,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "borderBottomColor": "#d6d9dc",
                 "borderBottomWidth": 1,
                 "borderRadius": 4,
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 20,
                 "fontWeight": "400",
                 "paddingLeft": 0,
@@ -168,7 +168,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               style={
                 Object {
                   "color": "#777777",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "height": 20,
@@ -185,7 +185,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               Object {
                 "color": "#777777",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
@@ -209,7 +209,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               Array [
                 Object {
                   "color": "#777777",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "marginLeft": 5,
@@ -250,7 +250,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "borderBottomColor": "#d6d9dc",
                 "borderBottomWidth": 1,
                 "borderRadius": 4,
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 20,
                 "fontWeight": "400",
                 "paddingLeft": 0,
@@ -274,7 +274,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               Object {
                 "color": "#777777",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
@@ -300,7 +300,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               Object {
                 "flex": 1,
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
               }

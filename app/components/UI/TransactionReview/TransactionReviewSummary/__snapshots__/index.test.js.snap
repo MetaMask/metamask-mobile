@@ -22,7 +22,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
           "borderRadius": 12,
           "borderWidth": 1,
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 10,
           "fontWeight": "400",
           "paddingHorizontal": 8,
@@ -35,7 +35,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 44,
           "fontWeight": "400",
           "paddingBottom": 4,
