@@ -1276,10 +1276,9 @@
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
 
-"@metamask/controllers@^2.0.0":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-2.0.1.tgz#33b0e2826fb6d4aa582acaff6b347e6abe0f54f5"
-  integrity sha512-xioh4h+4D2pUSJ9H2CaffxKGmlg0kUK2bbRJ8c9GXPVTo8KhRHryvNKfkVCyoSt35FLROzzwTEdVJ4dmUFuELQ==
+"@metamask/controllers@./metamask-controllers-v2.0.2.tgz":
+  version "2.0.2"
+  resolved "./metamask-controllers-v2.0.2.tgz#4b9699da40ca96b728e6e04a22c0ac46d0f80f37"
   dependencies:
     await-semaphore "^0.1.3"
     eth-contract-metadata "^1.11.0"
