@@ -4,20 +4,28 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
 <View
   style={
     Object {
-      "flexDirection": "row",
-      "justifyContent": "center",
+      "borderColor": "#bbc0c5",
+      "borderRadius": 10,
+      "borderWidth": 1,
+      "marginHorizontal": 24,
+      "padding": 16,
     }
   }
 >
   <View
     style={
-      Object {
-        "borderColor": "#bbc0c5",
-        "borderRadius": 10,
-        "borderWidth": 1,
-        "padding": 16,
-        "width": "90%",
-      }
+      Array [
+        Object {
+          "alignItems": "center",
+          "flexDirection": "column",
+          "justifyContent": "center",
+        },
+        Object {
+          "borderBottomWidth": 1,
+          "borderColor": "#bbc0c5",
+          "paddingBottom": 12,
+        },
+      ]
     }
   >
     <View
@@ -25,73 +33,77 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
         Array [
           Object {
             "alignItems": "center",
-            "flexDirection": "column",
-            "justifyContent": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "width": "100%",
           },
           Object {
-            "borderBottomWidth": 1,
-            "borderColor": "#bbc0c5",
-            "paddingBottom": 10,
+            "paddingBottom": 12,
           },
         ]
       }
     >
-      <View
+      <Text
         style={
-          Array [
-            Object {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "width": "100%",
-            },
-            Object {
-              "paddingBottom": 10,
-            },
-          ]
+          Object {
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "600",
+          }
         }
       >
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 14,
-              "fontWeight": "600",
-            }
+        Amount
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "600",
           }
-        >
-          Amount
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 14,
-              "fontWeight": "600",
-            }
-          }
-        />
-      </View>
+        }
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "width": "100%",
+        }
+      }
+    >
       <View
         style={
           Object {
             "alignItems": "center",
             "flexDirection": "row",
-            "justifyContent": "space-between",
-            "width": "100%",
+            "justifyContent": "flex-start",
           }
         }
       >
-        <View
+        <Text
           style={
-            Object {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-            }
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "CircularStd-Medium",
+                "fontSize": 14,
+                "fontWeight": "600",
+              },
+              Object {
+                "paddingRight": 5,
+              },
+            ]
           }
+        >
+          Network fee
+        </Text>
+        <TouchableOpacity
+          disabled={true}
         >
           <Text
             style={
@@ -103,126 +115,105 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
                   "fontWeight": "600",
                 },
                 Object {
-                  "paddingRight": 5,
+                  "color": "#037dd6",
                 },
               ]
             }
           >
-            Network fee
+            Edit
           </Text>
-          <TouchableOpacity
-            disabled={true}
-          >
-            <Text
-              style={
-                Array [
-                  Object {
-                    "color": "#000000",
-                    "fontFamily": "CircularStd-Medium",
-                    "fontSize": 14,
-                    "fontWeight": "600",
-                  },
-                  Object {
-                    "color": "#037dd6",
-                  },
-                ]
-              }
-            >
-              Edit
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View
-          style={
-            Object {
-              "backgroundColor": "#FFFFFF",
-              "height": 10,
-            }
-          }
-        >
-          <ActivityIndicator
-            animating={true}
-            color="#999999"
-            hidesWhenStopped={true}
-            size="small"
-          />
-        </View>
+        </TouchableOpacity>
       </View>
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "height": 10,
+          }
+        }
+      >
+        <ActivityIndicator
+          animating={true}
+          color="#999999"
+          hidesWhenStopped={true}
+          size="small"
+        />
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      Array [
+        Object {
+          "alignItems": "center",
+          "flexDirection": "column",
+          "justifyContent": "center",
+        },
+        Object {
+          "paddingTop": 12,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "width": "100%",
+          },
+          Object {
+            "paddingBottom": 12,
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 14,
+            "fontWeight": "600",
+          }
+        }
+      >
+        Total
+         
+        Amount
+      </Text>
     </View>
     <View
       style={
         Array [
           Object {
             "alignItems": "center",
-            "flexDirection": "column",
-            "justifyContent": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "width": "100%",
           },
           Object {
-            "paddingTop": 10,
+            "justifyContent": "flex-end",
           },
         ]
       }
     >
       <View
         style={
-          Array [
-            Object {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "width": "100%",
-            },
-            Object {
-              "paddingBottom": 10,
-            },
-          ]
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "height": 10,
+          }
         }
       >
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 14,
-              "fontWeight": "600",
-            }
-          }
-        >
-          Total
-           
-          Amount
-        </Text>
-      </View>
-      <View
-        style={
-          Array [
-            Object {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "width": "100%",
-            },
-            Object {
-              "justifyContent": "flex-end",
-            },
-          ]
-        }
-      >
-        <View
-          style={
-            Object {
-              "backgroundColor": "#FFFFFF",
-              "height": 10,
-            }
-          }
-        >
-          <ActivityIndicator
-            animating={true}
-            color="#999999"
-            hidesWhenStopped={true}
-            size="small"
-          />
-        </View>
+        <ActivityIndicator
+          animating={true}
+          color="#999999"
+          hidesWhenStopped={true}
+          size="small"
+        />
       </View>
     </View>
   </View>

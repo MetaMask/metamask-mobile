@@ -1,50 +1,79 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionReview should render correctly 1`] = `
-<View
-  style={
-    Object {
-      "backgroundColor": "#FFFFFF",
-      "flex": 1,
-    }
-  }
->
-  <Connect(TransactionDirection) />
-  <ActionView
-    cancelTestID=""
-    cancelText="Reject"
-    confirmButtonMode="confirm"
-    confirmDisabled={false}
-    confirmTestID=""
-    confirmText="Confirm"
-    confirmed={false}
-    showCancelButton={true}
-    showConfirmButton={true}
-  >
-    <View>
-      <Connect(TransactionReviewSummary)
-        actionKey="Confirm"
-      />
-      <View
-        style={
-          Object {
-            "flex": 1,
-          }
+<Fragment>
+  <ForwardRef(AnimatedComponentWrapper)>
+    <Connect(TransactionHeader)
+      currentPageInformation={
+        Object {
+          "url": undefined,
         }
+      }
+    />
+    <TransactionReviewSummary
+      actionKey="Confirm"
+      primaryCurrency="ETH"
+    />
+    <View
+      style={
+        Object {
+          "height": 385,
+        }
+      }
+    >
+      <ActionView
+        cancelTestID=""
+        cancelText="Reject"
+        confirmButtonMode="confirm"
+        confirmDisabled={false}
+        confirmTestID=""
+        confirmText="Confirm"
+        confirmed={false}
+        showCancelButton={true}
+        showConfirmButton={true}
       >
         <View
           style={
             Object {
-              "flex": 1,
+              "height": 300,
             }
           }
         >
+          <View
+            style={
+              Object {
+                "paddingBottom": 12,
+                "paddingHorizontal": 24,
+              }
+            }
+          >
+            <Connect(AccountInfoCard) />
+          </View>
           <Connect(TransactionReviewInformation)
             edit={[Function]}
+            toggleDataView={[Function]}
           />
         </View>
-      </View>
+      </ActionView>
     </View>
-  </ActionView>
-</View>
+  </ForwardRef(AnimatedComponentWrapper)>
+  <ForwardRef(AnimatedComponentWrapper)
+    style={
+      Array [
+        Object {
+          "height": "100%",
+          "position": "absolute",
+          "width": "100%",
+        },
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    <Connect(TransactionReviewData)
+      actionKey="Confirm"
+      toggleDataView={[Function]}
+    />
+  </ForwardRef(AnimatedComponentWrapper)>
+</Fragment>
 `;

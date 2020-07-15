@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -15,18 +15,9 @@ import {
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import { getTicker, getNormalizedTxState } from '../../../../util/transactions';
+import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
 
 const styles = StyleSheet.create({
-	overview: {
-		paddingHorizontal: 24,
-		borderTopWidth: 1,
-		borderColor: colors.grey200
-	},
-	overviewRow: {
-		alignItems: 'center',
-		flexDirection: 'row',
-		paddingVertical: 15
-	},
 	overviewAlert: {
 		alignItems: 'center',
 		backgroundColor: colors.red000,
@@ -35,7 +26,9 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		flexDirection: 'row',
 		height: 32,
-		paddingHorizontal: 16
+		paddingHorizontal: 16,
+		marginHorizontal: 24,
+		marginTop: 12
 	},
 	overviewAlertText: {
 		...fontStyles.normal,
@@ -47,18 +40,6 @@ const styles = StyleSheet.create({
 	overviewAlertIcon: {
 		color: colors.red,
 		flex: 0
-	},
-	topOverviewRow: {
-		borderBottomWidth: 1,
-		borderColor: colors.grey200
-	},
-	overviewLabel: {
-		...fontStyles.bold,
-		color: colors.grey500,
-		flex: 1,
-		fontSize: 12,
-		minWidth: 30,
-		textTransform: 'uppercase'
 	},
 	overviewPrimary: {
 		...fontStyles.bold,
@@ -72,16 +53,8 @@ const styles = StyleSheet.create({
 	},
 	overviewEth: {
 		...fontStyles.normal,
-		color: colors.grey500,
-		fontSize: 16,
-		textAlign: 'right',
-		textTransform: 'uppercase'
-	},
-	overviewInfo: {
-		...fontStyles.normal,
-		color: colors.grey500,
-		fontSize: 12,
-		marginBottom: 6,
+		color: colors.fontPrimary,
+		fontSize: 14,
 		textAlign: 'right',
 		textTransform: 'uppercase'
 	},
@@ -95,6 +68,20 @@ const styles = StyleSheet.create({
 	},
 	collectibleName: {
 		maxWidth: '30%'
+	},
+	viewDataWrapper: {
+		marginTop: 32,
+		marginBottom: 16
+	},
+	viewDataButton: {
+		alignSelf: 'center'
+	},
+	viewDataText: {
+		color: colors.blue,
+		textAlign: 'center',
+		fontSize: 12,
+		...fontStyles.bold,
+		alignSelf: 'center'
 	}
 });
 
@@ -126,33 +113,33 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Transaction amount in selected asset before gas
+		 */
+		assetAmount: PropTypes.string,
+		/**
+		 * Transaction amount in fiat before gas
+		 */
+		fiatValue: PropTypes.string,
+		/**
+		 * ETH or fiat, depending on user setting
+		 */
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Hides or shows transaction data
+		 */
+		toggleDataView: PropTypes.func,
+		/**
+		 * Whether or not basic gas estimates have been fetched
+		 */
+		ready: PropTypes.bool
 	};
 
 	state = {
 		toFocused: false,
 		amountError: '',
-		actionKey: strings('transactions.tx_review_confirm'),
-		totalGas: undefined,
-		totalGasFiat: undefined,
-		totalGasEth: undefined,
-		totalFiat: undefined,
-		totalValue: undefined
-	};
-
-	componentDidMount = () => {
-		const {
-			transaction: { gas, gasPrice },
-			currentCurrency,
-			conversionRate,
-			ticker
-		} = this.props;
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
-		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
-
-		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
-		this.setState({ totalGas, totalGasFiat, totalGasEth, totalFiat, totalValue });
+		actionKey: strings('transactions.tx_review_confirm')
 	};
 
 	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountToken) => {
@@ -233,33 +220,35 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	render() {
-		const { amountError, totalGasFiat, totalGasEth, totalFiat, totalValue } = this.state;
-		const gasPrimary = totalGasFiat || totalGasEth;
-		const gasSeconday = totalGasFiat ? totalGasEth : null;
-
+		const { amountError } = this.state;
+		const {
+			fiatValue,
+			assetAmount,
+			primaryCurrency,
+			toggleDataView,
+			ready,
+			transaction: { gas, gasPrice },
+			currentCurrency,
+			conversionRate,
+			ticker
+		} = this.props;
+		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
+		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
+		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
+		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
 		return (
-			<View style={styles.overview}>
-				<View style={[styles.overviewRow, styles.topOverviewRow]}>
-					<Text style={styles.overviewLabel}>{strings('transaction.gas_fee')}</Text>
-					<View style={styles.overviewContent}>
-						<Text style={styles.overviewPrimary}>{gasPrimary}</Text>
-						{!!gasSeconday && <Text style={styles.overviewEth}>{totalGasEth}</Text>}
-					</View>
-				</View>
-
-				<View style={styles.overviewRow}>
-					<Text style={styles.overviewLabel}>{strings('transaction.total')}</Text>
-					<View style={styles.overviewContent}>
-						<Text style={styles.overviewInfo}>
-							{`${strings('transaction.amount')} + ${strings('transaction.gas_fee')}`}
-						</Text>
-						{!!totalFiat && (
-							<Text style={[styles.overviewPrimary, styles.overviewAccent]}>{totalFiat}</Text>
-						)}
-						{totalValue}
-					</View>
-				</View>
-
+			<React.Fragment>
+				<TransactionReviewFeeCard
+					totalGasFiat={totalGasFiat}
+					totalGasEth={totalGasEth}
+					totalFiat={totalFiat}
+					fiat={fiatValue}
+					totalValue={totalValue}
+					transactionValue={assetAmount}
+					primaryCurrency={primaryCurrency}
+					gasEstimationReady={ready}
+					toggleCustomGasModal={this.edit}
+				/>
 				{!!amountError && (
 					<View style={styles.overviewAlert}>
 						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
@@ -268,7 +257,12 @@ class TransactionReviewInformation extends PureComponent {
 						</Text>
 					</View>
 				)}
-			</View>
+				<View style={styles.viewDataWrapper}>
+					<TouchableOpacity style={styles.viewDataButton} onPress={toggleDataView}>
+						<Text style={styles.viewDataText}>{strings('transaction.view_data')}</Text>
+					</TouchableOpacity>
+				</View>
+			</React.Fragment>
 		);
 	}
 }
@@ -278,7 +272,8 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	transaction: getNormalizedTxState(state),
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 export default connect(mapStateToProps)(TransactionReviewInformation);

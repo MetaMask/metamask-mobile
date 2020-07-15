@@ -11,6 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import { resetTransaction, setTransactionObject } from '../../../actions/transaction';
+import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
 import NetworkList, { getNetworkTypeById } from '../../../util/networks';
 import contractMap from 'eth-contract-metadata';
@@ -98,7 +99,15 @@ class Send extends PureComponent {
 		/**
 		 * Object containing token balances in the format address => balance
 		 */
-		contractBalances: PropTypes.object
+		contractBalances: PropTypes.object,
+		/**
+		/* Hides or shows dApp transaction modal
+		*/
+		toggleDappTransactionModal: PropTypes.func,
+		/**
+		/* dApp transaction modal visible or not
+		*/
+		dappTransactionModalVisible: PropTypes.bool
 	};
 
 	state = {
@@ -152,7 +161,9 @@ class Send extends PureComponent {
 		const {
 			navigation,
 			transaction: { assetType, selectedAsset },
-			contractBalances
+			contractBalances,
+			dappTransactionModalVisible,
+			toggleDappTransactionModal
 		} = this.props;
 		navigation &&
 			navigation.setParams({
@@ -160,6 +171,7 @@ class Send extends PureComponent {
 				dispatch: this.onModeChange,
 				disableModeChange: assetType === 'ERC20' && contractBalances[selectedAsset.address] === undefined
 			});
+		dappTransactionModalVisible && toggleDappTransactionModal();
 		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
@@ -644,13 +656,15 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	network: state.engine.backgroundState.NetworkController.network,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	dappTransactionModalVisible: state.modals.dappTransactionModalVisible
 });
 
 const mapDispatchToProps = dispatch => ({
 	resetTransaction: () => dispatch(resetTransaction()),
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
-	showAlert: config => dispatch(showAlert(config))
+	showAlert: config => dispatch(showAlert(config)),
+	toggleDappTransactionModal: () => dispatch(toggleDappTransactionModal())
 });
 
 export default connect(

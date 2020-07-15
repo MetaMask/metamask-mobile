@@ -36,6 +36,9 @@ describe('TransactionReviewInformation', () => {
 				to: '0x2',
 				selectedAsset: undefined,
 				assetType: undefined
+			},
+			settings: {
+				primaryCurrency: 'ETH'
 			}
 		};
 
