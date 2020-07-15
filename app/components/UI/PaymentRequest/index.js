@@ -36,6 +36,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { generateETHLink, generateERC20Link, generateUniversalLinkRequest } from '../../../util/payment-link-generator';
 import NetworkList from '../../../util/networks';
 import Device from '../../../util/Device';
+import currencySymbols from '../../../util/currency-symbols.json';
 
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
@@ -167,6 +168,17 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 16,
 		marginBottom: 8
+	},
+	secondaryAmount: {
+		flexDirection: 'row'
+	},
+	currencySymbol: {
+		...fontStyles.normal,
+		fontSize: 32
+	},
+	currencySymbolSmall: {
+		...fontStyles.normal,
+		fontSize: 18
 	}
 });
 
@@ -479,7 +491,8 @@ class PaymentRequest extends PureComponent {
 	 */
 	updateAmount = amount => {
 		const { internalPrimaryCurrency, selectedAsset } = this.state;
-		const { conversionRate, contractExchangeRates } = this.props;
+		const { conversionRate, contractExchangeRates, currentCurrency } = this.props;
+		const currencySymbol = currencySymbols[currentCurrency];
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		let res;
 		// If primary currency is not crypo we need to know if there are conversion and exchange rates to handle0,
@@ -489,8 +502,12 @@ class PaymentRequest extends PureComponent {
 		} else {
 			res = this.handleETHPrimaryCurrency(amount && amount.replace(',', '.'));
 		}
-		const { cryptoAmount, secondaryAmount, symbol } = res;
-		this.setState({ amount, cryptoAmount, secondaryAmount, symbol, showError: false });
+		const { cryptoAmount, symbol } = res;
+		if (amount && amount[0] === currencySymbol) amount = amount.substr(1);
+		if (res.secondaryAmount && res.secondaryAmount[0] === currencySymbol)
+			res.secondaryAmount = res.secondaryAmount.substr(1);
+		if (amount && amount === '0') amount = undefined;
+		this.setState({ amount, cryptoAmount, secondaryAmount: res.secondaryAmount, symbol, showError: false });
 	};
 
 	/**
@@ -547,8 +564,17 @@ class PaymentRequest extends PureComponent {
 	 * Renders a view that allows user to set payment request amount
 	 */
 	renderEnterAmount = () => {
-		const { conversionRate, contractExchangeRates } = this.props;
-		const { amount, secondaryAmount, symbol, cryptoAmount, showError, selectedAsset } = this.state;
+		const { conversionRate, contractExchangeRates, currentCurrency } = this.props;
+		const {
+			amount,
+			secondaryAmount,
+			symbol,
+			cryptoAmount,
+			showError,
+			selectedAsset,
+			internalPrimaryCurrency
+		} = this.state;
+		const currencySymbol = currencySymbols[currentCurrency];
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		let switchable = true;
 		if (!conversionRate) {
@@ -566,6 +592,9 @@ class PaymentRequest extends PureComponent {
 						<View style={styles.ethContainer}>
 							<View style={styles.amounts}>
 								<View style={styles.split}>
+									{internalPrimaryCurrency !== 'ETH' && (
+										<Text style={styles.currencySymbol}>{currencySymbol}</Text>
+									)}
 									<TextInput
 										autoCapitalize="none"
 										autoCorrect={false}
@@ -585,11 +614,16 @@ class PaymentRequest extends PureComponent {
 										{symbol}
 									</Text>
 								</View>
-								{secondaryAmount && (
-									<Text style={styles.fiatValue} numberOfLines={1}>
-										{secondaryAmount}
-									</Text>
-								)}
+								<View style={styles.secondaryAmount}>
+									{internalPrimaryCurrency === 'ETH' && (
+										<Text style={styles.currencySymbolSmall}>{currencySymbol}</Text>
+									)}
+									{secondaryAmount && (
+										<Text style={styles.fiatValue} numberOfLines={1}>
+											{secondaryAmount}
+										</Text>
+									)}
+								</View>
 							</View>
 							{switchable && (
 								<View style={styles.switchContainer}>
