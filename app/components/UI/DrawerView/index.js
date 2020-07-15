@@ -38,7 +38,7 @@ import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 
-const ANDROID_OFFSET = 30;
+const ANDROID_OFFSET = 38;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
