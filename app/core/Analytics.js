@@ -76,7 +76,7 @@ class Analytics {
 	 */
 	enable = () => {
 		this.enabled = true;
-		!__DEV__ && RCTAnalytics.optIn(this.enabled);
+		RCTAnalytics.optIn(this.enabled);
 		this._notify();
 	};
 
@@ -85,7 +85,7 @@ class Analytics {
 	 */
 	disable = () => {
 		this.enabled = false;
-		!__DEV__ && RCTAnalytics.optIn(this.enabled);
+		RCTAnalytics.optIn(this.enabled);
 		this._notify();
 	};
 
@@ -212,9 +212,6 @@ export default {
 		return instance && instance.disableInstance();
 	},
 	getEnabled() {
-		if (__DEV__) {
-			return false;
-		}
 		return instance && instance.enabled;
 	},
 	subscribe(listener) {

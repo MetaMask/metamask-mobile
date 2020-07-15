@@ -369,7 +369,7 @@ export class BrowserTab extends PureComponent {
 			showApprovalDialog: false,
 			showPhishingModal: false,
 			timeout: false,
-			url: null,
+			url: props.initialUrl || HOMEPAGE_URL,
 			contentHeight: 0,
 			forwardEnabled: false,
 			forceReload: false,
