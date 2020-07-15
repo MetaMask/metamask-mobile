@@ -588,7 +588,7 @@
 		"tx_review_transfer": "Transferir",
 		"tx_review_contract_deployment": "Contrato Desplegado",
 		"tx_review_transfer_from": "Transferir Desde",
-		"tx_review_unknown": "Interacción con Contrato",
+		"tx_review_unknown": "Método Desconocido",
 		"tx_review_approve": "Aprobar",
 		"tx_review_instant_payment_deposit": "Depósito InstaPay",
 		"sent_ether": "Enviaste Ether",

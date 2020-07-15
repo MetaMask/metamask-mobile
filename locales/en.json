@@ -632,7 +632,7 @@
 		"tx_review_transfer": "Transfer",
 		"tx_review_contract_deployment": "Contract Deployment",
 		"tx_review_transfer_from": "Transfer From",
-		"tx_review_unknown": "Contract Interaction",
+		"tx_review_unknown": "Unknown Method",
 		"tx_review_approve": "Approve",
 		"tx_review_instant_payment_deposit": "InstaPay Deposit",
 		"sent_ether": "Sent Ether",
