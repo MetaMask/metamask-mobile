@@ -5,6 +5,8 @@ import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
+import AppConstants from '../core/AppConstants';
+const { SAI_ADDRESS } = AppConstants;
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -282,6 +284,8 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 	if (tx.isTransfer) {
 		const selfSent = safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		const translationKey = selfSent ? 'transactions.self_sent_unit' : 'transactions.received_unit';
+		// Third party sending wrong token symbol
+		if (tx.transferInformation.contractAddress === SAI_ADDRESS.toLowerCase()) tx.transferInformation.symbol = 'SAI';
 		return strings(translationKey, { unit: tx.transferInformation.symbol });
 	}
 
