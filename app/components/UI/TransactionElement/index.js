@@ -4,12 +4,8 @@ import { TouchableHighlight, StyleSheet, Text, View, Image } from 'react-native'
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
-import Identicon from '../Identicon';
 import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
-import FadeIn from 'react-native-fade-in-image';
-import TokenImage from '../TokenImage';
-import contractMap from 'eth-contract-metadata';
 import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -18,10 +14,7 @@ import Networks from '../../../util/networks';
 import Device from '../../../util/Device';
 import Modal from 'react-native-modal';
 import decodeTransaction from './utils';
-
-const {
-	CONNEXT: { CONTRACTS }
-} = AppConstants;
+import { TRANSACTION_TYPES } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	row: {
@@ -53,16 +46,9 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	status: {
-		marginTop: 5,
-		paddingVertical: 3,
-		paddingHorizontal: 5,
-		textAlign: 'center',
-		backgroundColor: colors.grey000,
-		color: colors.grey400,
-		fontSize: 9,
+		marginTop: 4,
+		fontSize: 12,
 		letterSpacing: 0.5,
-		width: 75,
-		textTransform: 'uppercase',
 		...fontStyles.bold
 	},
 	amount: {
@@ -83,46 +69,7 @@ const styles = StyleSheet.create({
 	subRow: {
 		flexDirection: 'row'
 	},
-	statusConfirmed: {
-		backgroundColor: colors.green100,
-		color: colors.green500
-	},
-	statusSubmitted: {
-		backgroundColor: colors.orange000,
-		color: colors.orange300
-	},
-	statusFailed: {
-		backgroundColor: colors.red000,
-		color: colors.red
-	},
-	ethLogo: {
-		width: 24,
-		height: 24
-	},
-	tokenImageStyle: {
-		width: 24,
-		height: 24,
-		borderRadius: 12
-	},
-	paymentChannelTransactionIconWrapper: {
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderWidth: 1,
-		borderColor: colors.grey100,
-		borderRadius: 12,
-		width: 24,
-		height: 24,
-		backgroundColor: colors.white
-	},
-	paymentChannelTransactionDepositIcon: {
-		marginTop: 2,
-		marginLeft: 1
-	},
-	paymentChannelTransactionWithdrawIcon: {
-		marginBottom: 2,
-		marginRight: 1,
-		transform: [{ rotate: '180deg' }]
-	},
+
 	actionContainerStyle: {
 		height: 25,
 		width: 70,
@@ -169,10 +116,30 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		...fontStyles.bold
 	},
-	closeIcon: { paddingTop: 4, position: 'absolute', right: 16 }
+	closeIcon: { paddingTop: 4, position: 'absolute', right: 16 },
+	iconWrapper: {
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	icon: {
+		width: 28,
+		height: 28
+	},
+	statusText: {
+		fontSize: 12,
+		...fontStyles.normal
+	}
 });
 
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
+const transactionIconApprove = require('../../../images/transaction-icons/approve.png'); // eslint-disable-line
+const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png'); // eslint-disable-line
+const transactionIconSent = require('../../../images/transaction-icons/send.png'); // eslint-disable-line
+const transactionIconReceived = require('../../../images/transaction-icons/receive.png'); // eslint-disable-line
+
+const transactionIconApproveFailed = require('../../../images/transaction-icons/approve-failed.png'); // eslint-disable-line
+const transactionIconInteractionFailed = require('../../../images/transaction-icons/interaction-failed.png'); // eslint-disable-line
+const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png'); // eslint-disable-line
+const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png'); // eslint-disable-line
 
 /**
  * View that renders a transaction item part of transactions list
@@ -276,12 +243,15 @@ class TransactionElement extends PureComponent {
 	}
 
 	getStatusStyle(status) {
-		if (status === 'confirmed') {
-			return styles.statusConfirmed;
-		} else if (status === 'submitted' || status === 'approved') {
-			return styles.statusSubmitted;
-		} else if (status === 'failed') {
-			return styles.statusFailed;
+		switch (status) {
+			case 'confirmed':
+				return [styles.statusText, { color: colors.green400 }];
+			case 'pending':
+			case 'submitted':
+				return [styles.statusText, { color: colors.orange }];
+			case 'failed':
+			case 'cancelled':
+				return [styles.statusText, { color: colors.red }];
 		}
 		return null;
 	}
@@ -308,67 +278,51 @@ class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderTxElementImage = transactionElement => {
-		const {
-			renderTo,
-			renderFrom,
-			actionKey,
-			contractDeployment = false,
-			paymentChannelTransaction
-		} = transactionElement;
-		const {
-			tx: { networkID }
-		} = this.props;
-		let logo;
-
-		if (contractDeployment) {
-			return (
-				<FadeIn>
-					<Image source={ethLogo} style={styles.ethLogo} />
-				</FadeIn>
-			);
-		} else if (actionKey === strings('transactions.smart_contract_interaction')) {
-			if (renderTo in contractMap) {
-				logo = contractMap[renderTo].logo;
-			}
-			return (
-				<TokenImage
-					asset={{ address: renderTo, logo }}
-					containerStyle={styles.tokenImageStyle}
-					iconStyle={styles.tokenImageStyle}
-					logoDefined
-				/>
-			);
-		} else if (paymentChannelTransaction) {
-			const contract = CONTRACTS[networkID];
-			const isDeposit = contract && renderTo.toLowerCase() === contract.toLowerCase();
-			if (isDeposit) {
-				return (
-					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
-						<Ionicons
-							style={styles.paymentChannelTransactionDepositIcon}
-							name={'md-arrow-down'}
-							size={16}
-							color={colors.green500}
-						/>
-					</FadeIn>
-				);
-			}
-			const isWithdraw = renderFrom === CONTRACTS[networkID];
-			if (isWithdraw) {
-				return (
-					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
-						<Ionicons
-							style={styles.paymentChannelTransactionWithdrawIcon}
-							name={'md-arrow-down'}
-							size={16}
-							color={colors.grey500}
-						/>
-					</FadeIn>
-				);
-			}
+	renderTxElementIcon = (transactionElement, status) => {
+		const { transactionType } = transactionElement;
+		const isFailedTransaction = status === 'cancelled' || status === 'failed';
+		let icon;
+		switch (transactionType) {
+			case TRANSACTION_TYPES.PAYMENT_CHANNEL_DEPOSIT:
+			case TRANSACTION_TYPES.PAYMENT_CHANNEL_SENT:
+			case TRANSACTION_TYPES.SENT_TOKEN:
+			case TRANSACTION_TYPES.SENT_COLLECTIBLE:
+			case TRANSACTION_TYPES.SENT:
+				icon = isFailedTransaction ? transactionIconSentFailed : transactionIconSent;
+				break;
+			case TRANSACTION_TYPES.PAYMENT_CHANNEL_WITHDRAW:
+			case TRANSACTION_TYPES.PAYMENT_CHANNEL_RECEIVED:
+			case TRANSACTION_TYPES.RECEIVED_TOKEN:
+			case TRANSACTION_TYPES.RECEIVED_COLLECTIBLE:
+			case TRANSACTION_TYPES.RECEIVED:
+				icon = isFailedTransaction ? transactionIconReceivedFailed : transactionIconReceived;
+				break;
+			case TRANSACTION_TYPES.SITE_INTERACTION:
+				icon = isFailedTransaction ? transactionIconInteractionFailed : transactionIconInteraction;
+				break;
+			case TRANSACTION_TYPES.APPROVE:
+				icon = isFailedTransaction ? transactionIconApproveFailed : transactionIconApprove;
+				break;
 		}
-		return <Identicon address={renderTo} diameter={24} />;
+		return (
+			<View style={styles.iconWrapper}>
+				<Image source={icon} style={styles.icon} resizeMode="stretch" />
+			</View>
+		);
+	};
+
+	renderStatusText = status => {
+		status = status && status.charAt(0).toUpperCase() + status.slice(1);
+		switch (status) {
+			case 'Confirmed':
+				return <Text style={[styles.status, { color: colors.green400 }]}>{status}</Text>;
+			case 'Pending':
+			case 'Submitted':
+				return <Text style={[styles.status, { color: colors.orange }]}>{status}</Text>;
+			case 'Failed':
+			case 'Cancelled':
+				return <Text style={[styles.status, { color: colors.red }]}>{status}</Text>;
+		}
 	};
 
 	/**
@@ -392,12 +346,12 @@ class TransactionElement extends PureComponent {
 			<View style={styles.rowOnly}>
 				{this.renderTxTime()}
 				<View style={styles.subRow}>
-					{this.renderTxElementImage(transactionElement)}
+					{this.renderTxElementIcon(transactionElement, status)}
 					<View style={styles.info} numberOfLines={1}>
 						<Text numberOfLines={1} style={styles.address}>
 							{actionKey}
 						</Text>
-						<Text style={[styles.status, this.getStatusStyle(status)]}>{status}</Text>
+						{this.renderStatusText(status)}
 					</View>
 					<View style={styles.amounts}>
 						<Text style={styles.amount}>{value}</Text>
