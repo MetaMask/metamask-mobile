@@ -143,6 +143,7 @@ const transakOrderStateToFiatOrderState = transakOrderState => {
 const transakOrderToFiatOrder = transakOrder => ({
 	id: transakOrder.id,
 	provider: FIAT_ORDER_PROVIDERS.TRANSAK,
+	createdAt: new Date(transakOrder.createdAt).getTime(),
 	amount: transakOrder.fiatAmount,
 	fee: transakOrder.totalFeeInFiat,
 	cryptoAmount: transakOrder.cryptoAmount,
@@ -156,13 +157,14 @@ const transakOrderToFiatOrder = transakOrder => ({
 });
 
 /**
- * Transforms Transak rorder object into a Fiat order object used in the state.
+ * Transforms Transak order object into a Fiat order object used in the state.
  * @param {TransakRedirectOrder} transakRedirectOrder Transak order object
  * @returns {FiatOrder} Fiat order object to store in the state
  */
 const transakCallbackOrderToFiatOrder = transakRedirectOrder => ({
 	id: transakRedirectOrder.orderId,
 	provider: FIAT_ORDER_PROVIDERS.TRANSAK,
+	createdAt: Date.now(),
 	amount: transakRedirectOrder.fiatAmount,
 	fee: transakRedirectOrder.totalFee,
 	currency: transakRedirectOrder.fiatCurrency,

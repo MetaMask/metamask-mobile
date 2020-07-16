@@ -3,6 +3,7 @@
  * @type {object}
  * @property {string} id - Original id given by Provider. Orders are identified by (provider, id)
  * @property {FIAT_ORDER_PROVIDERS}	provider Fiat Provider
+ * @property {number} createdAt Fiat amount
  * @property {string} amount Fiat amount
  * @property {string?} fee Fiat fee
  * @property {string?} cryptoAmount Crypto currency amount

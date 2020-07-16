@@ -186,6 +186,7 @@ const wyreOrderStateToFiatState = wyreOrderState => {
 const wyreOrderToFiatOrder = wyreOrder => ({
 	id: wyreOrder.id,
 	provider: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
+	createdAt: wyreOrder.createdAt,
 	amount: wyreOrder.sourceAmount,
 	fee: null,
 	cryptoAmount: null,
