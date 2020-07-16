@@ -429,6 +429,7 @@ class Notification extends PureComponent {
 							onCancelPress={this.onActionFinish}
 							onConfirmPress={isActionCancel ? this.cancelTransaction : this.speedUpTransaction}
 							confirmText={strings('transaction.lets_try')}
+							confirmButtonMode={'confirm'}
 							cancelText={strings('transaction.nevermind')}
 							confirmDisabled={transactionActionDisabled}
 						>
