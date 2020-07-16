@@ -1,0 +1,51 @@
+diff --git a/node_modules/web3-provider-engine/dist/ZeroClientProvider.js b/node_modules/web3-provider-engine/dist/ZeroClientProvider.js
+index 7f82704..20a9e2b 100755
+--- a/node_modules/web3-provider-engine/dist/ZeroClientProvider.js
++++ b/node_modules/web3-provider-engine/dist/ZeroClientProvider.js
+@@ -22389,30 +22389,15 @@ async function performFetch(network, req, res, source){
+ function fetchConfigFromReq({ network, req, source }) {
+   const requestOrigin = req.origin || 'internal'
+   const cleanReq = normalizeReq(req)
+-  const { method, params } = cleanReq
+-
+   const fetchParams = {}
+-  let fetchUrl = `https://api.infura.io/v1/jsonrpc/${network}`
+-  const isPostMethod = POST_METHODS.includes(method)
+-  if (isPostMethod) {
+-    fetchParams.method = 'POST'
+-    fetchParams.headers = {
+-      'Accept': 'application/json',
+-      'Content-Type': 'application/json'
+-    }
+-    if (source) fetchParams.headers['Infura-Source'] = `${source}/${requestOrigin}`
+-    fetchParams.body = JSON.stringify(cleanReq)
+-  } else {
+-    fetchParams.method = 'GET'
+-    if (source) {
+-      fetchParams.headers = {
+-        'Infura-Source': `${source}/${requestOrigin}`
+-      }
+-    }
+-    const paramsString = encodeURIComponent(JSON.stringify(params))
+-    fetchUrl += `/${method}?params=${paramsString}`
+-  }
+-
++  let fetchUrl = `https://${network}.infura.io/v3/${process.env.MM_INFURA_KEY}`
++  fetchParams.method = 'POST'
++  fetchParams.headers = {
++    'Accept': 'application/json',
++    'Content-Type': 'application/json'
++  }
++  if (source) fetchParams.headers['Infura-Source'] = `${source}/${requestOrigin}`
++  fetchParams.body = JSON.stringify(cleanReq)
+   return { fetchUrl, fetchParams }
+ }
+ 
+@@ -26710,7 +26695,6 @@ EventEmitter.prototype.emit = function emit(type) {
+       err.context = er;
+       throw err;
+     }
+-    return false;
+   }
+ 
+   handler = events[type];
