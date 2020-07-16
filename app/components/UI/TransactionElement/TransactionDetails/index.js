@@ -58,7 +58,8 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	touchableViewOnEtherscan: {
-		marginVertical: 24
+		marginBottom: 24,
+		marginTop: 12
 	},
 	summaryWrapper: {
 		marginVertical: 8
@@ -283,6 +284,7 @@ class TransactionDetails extends PureComponent {
 						totalAmount={this.props.transactionDetails.summaryTotalAmount}
 						secondaryTotalAmount={this.props.transactionDetails.summarySecondaryTotalAmount}
 						gasEstimationReady
+						transactionType={this.props.transactionDetails.transactionType}
 					/>
 				</View>
 
