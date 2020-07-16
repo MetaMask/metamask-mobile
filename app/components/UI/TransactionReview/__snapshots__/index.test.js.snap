@@ -11,7 +11,7 @@ exports[`TransactionReview should render correctly 1`] = `
       }
     />
     <TransactionReviewSummary
-      actionKey="CONFIRM"
+      actionKey="Confirm"
       primaryCurrency="ETH"
     />
     <View
@@ -71,7 +71,7 @@ exports[`TransactionReview should render correctly 1`] = `
     }
   >
     <Connect(TransactionReviewData)
-      actionKey="CONFIRM"
+      actionKey="Confirm"
       toggleDataView={[Function]}
     />
   </ForwardRef(AnimatedComponentWrapper)>
