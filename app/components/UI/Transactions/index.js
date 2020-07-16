@@ -339,7 +339,6 @@ class Transactions extends PureComponent {
 			submittedTransactions && submittedTransactions.length
 				? submittedTransactions.concat(confirmedTransactions)
 				: this.props.transactions;
-
 		return (
 			<View style={styles.wrapper} testID={'transactions-screen'}>
 				<FlatList
