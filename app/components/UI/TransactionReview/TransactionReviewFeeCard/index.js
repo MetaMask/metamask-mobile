@@ -50,6 +50,9 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		fontSize: 14
 	},
+	amountText: {
+		textTransform: 'uppercase'
+	},
 	networkFeeText: {
 		paddingRight: 5
 	},
@@ -83,7 +86,7 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * Total transaction value in fiat
 		 */
-		totalFiat: PropTypes.string,
+		totalFiat: PropTypes.object,
 		/**
 		 * Transaction value in fiat before gas fee
 		 */
@@ -91,7 +94,7 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * Total transaction value in ETH
 		 */
-		totalValue: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+		totalValue: PropTypes.object,
 		/**
 		 * Transaction value in ETH before gas fee
 		 */
@@ -149,7 +152,7 @@ class TransactionReviewFeeCard extends PureComponent {
 				<View style={[styles.overviewCol, styles.topOverviewCol]}>
 					<View style={[styles.amountRow, styles.amountRowBottomSpace]}>
 						<Text style={styles.overviewText}>{strings('transaction.amount')}</Text>
-						<Text style={styles.overviewText}>{amount}</Text>
+						<Text style={[styles.overviewText, styles.amountText]}>{amount}</Text>
 					</View>
 					<View style={styles.amountRow}>
 						<View style={styles.networkTextWrapper}>
