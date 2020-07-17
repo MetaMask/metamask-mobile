@@ -1,19 +1,9 @@
 import React, { PureComponent } from 'react';
-import {
-	Alert,
-	Linking,
-	TouchableOpacity,
-	View,
-	Image,
-	StyleSheet,
-	Text,
-	ScrollView,
-	InteractionManager
-} from 'react-native';
+import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, InteractionManager } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
+import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -26,7 +16,7 @@ import NetworkList from '../NetworkList';
 import CustomAlert from '../CustomAlert';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
+import { DrawerActions } from 'react-navigation-drawer';
 import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
@@ -34,8 +24,6 @@ import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Engine from '../../../core/Engine';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
-import ActionModal from '../ActionModal';
-import { getVersion, getBuildNumber, getSystemName, getApiLevel, getSystemVersion } from 'react-native-device-info';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import OnboardingWizard from '../OnboardingWizard';
@@ -46,12 +34,11 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import EthereumAddress from '../EthereumAddress';
-// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 
-const ANDROID_OFFSET = 30;
+const ANDROID_OFFSET = 38;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -214,24 +201,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 		margin: 0
 	},
-	modalView: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		padding: 20,
-		flexDirection: 'column'
-	},
-	modalText: {
-		fontSize: 18,
-		textAlign: 'center',
-		...fontStyles.normal
-	},
-	modalTitle: {
-		fontSize: 22,
-		marginBottom: 15,
-		textAlign: 'center',
-		...fontStyles.bold
-	},
 	secureModalText: {
 		textAlign: 'center',
 		fontSize: 13,
@@ -270,11 +239,8 @@ const ICON_IMAGES = {
 	wallet: require('../../../images/wallet-icon.png'),
 	'selected-wallet': require('../../../images/selected-wallet-icon.png')
 };
-const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-line
 const instapay_logo_selected = require('../../../images/mm-instapay-selected.png'); // eslint-disable-line
 const instapay_logo = require('../../../images/mm-instapay.png'); // eslint-disable-line
-
-const USE_EXTERNAL_LINKS = Device.isAndroid() || false;
 
 /**
  * View component that displays the MetaMask fox
@@ -373,7 +339,6 @@ class DrawerView extends PureComponent {
 	};
 
 	state = {
-		submitFeedback: false,
 		showSecureWalletModal: false
 	};
 
@@ -582,43 +547,7 @@ class DrawerView extends PureComponent {
 
 	submitFeedback = () => {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND_FEEDBACK);
-		this.setState({ submitFeedback: true });
-	};
-
-	closeSubmitFeedback = () => {
-		this.setState({ submitFeedback: false });
-	};
-	handleURL = url => {
-		const handleError = error => {
-			console.warn(error);
-			this.closeSubmitFeedback();
-		};
-		if (USE_EXTERNAL_LINKS) {
-			Linking.openURL(url)
-				.then(this.closeSubmitFeedback)
-				.catch(handleError);
-		} else {
-			this.goToBrowserUrl(url, strings('drawer.submit_bug'));
-			this.closeSubmitFeedback();
-		}
-	};
-	goToBugFeedback = () => {
-		this.handleURL('https://metamask.zendesk.com/hc/en-us/requests/new');
-	};
-
-	goToGeneralFeedback = () => {
-		const formId = '1FAIpQLSecHcnnn84-m01guIbv7Nh93mCj_G8IVdDn96dKFcXgNx0fKg';
-		this.goToFeedback(formId);
-	};
-
-	goToFeedback = async formId => {
-		const appVersion = await getVersion();
-		const buildNumber = await getBuildNumber();
-		const systemName = await getSystemName();
-		const systemVersion = systemName === 'Android' ? await getApiLevel() : await getSystemVersion();
-		this.handleURL(
-			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`
-		);
+		this.goToBrowserUrl('https://metamask.zendesk.com/hc/en-us/requests/new', strings('drawer.metamask_support'));
 	};
 
 	showHelp = () => {
@@ -1003,21 +932,6 @@ class DrawerView extends PureComponent {
 					/>
 				</Modal>
 				{this.renderOnboardingWizard()}
-				<ActionModal
-					modalVisible={this.state.submitFeedback}
-					confirmText={strings('drawer.submit_bug')}
-					cancelText={strings('drawer.submit_general_feedback')}
-					onCancelPress={this.goToGeneralFeedback}
-					onRequestClose={this.closeSubmitFeedback}
-					onConfirmPress={this.goToBugFeedback}
-					cancelButtonMode={'confirm'}
-					confirmButtonMode={'confirm'}
-				>
-					<View style={styles.modalView}>
-						<Text style={styles.modalTitle}>{strings('drawer.submit_feedback')}</Text>
-						<Text style={styles.modalText}>{strings('drawer.submit_feedback_message')}</Text>
-					</View>
-				</ActionModal>
 				<Modal
 					isVisible={this.props.receiveModalVisible}
 					onBackdropPress={this.toggleReceiveModal}

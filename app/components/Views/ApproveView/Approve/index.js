@@ -1,14 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-	SafeAreaView,
-	StyleSheet,
-	Text,
-	View,
-	TouchableOpacity,
-	TextInput,
-	Alert,
-	InteractionManager
-} from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, InteractionManager } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
@@ -23,7 +14,7 @@ import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { util } from '@metamask/controllers';
-import { renderFromWei, weiToFiatNumber, isBN, isDecimal } from '../../../../util/number';
+import { renderFromWei, weiToFiatNumber, isBN, isDecimal, fromTokenMinimalUnit } from '../../../../util/number';
 import {
 	getTicker,
 	decodeTransferData,
@@ -60,10 +51,6 @@ const styles = StyleSheet.create({
 	networkFeeArrow: {
 		paddingLeft: 20,
 		marginTop: 2
-	},
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1
 	},
 	section: {
 		minWidth: '100%',
@@ -237,10 +224,6 @@ class Approve extends PureComponent {
 		 */
 		accounts: PropTypes.object,
 		/**
-		 * Object that represents the navigator
-		 */
-		navigation: PropTypes.object,
-		/**
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
@@ -281,7 +264,15 @@ class Approve extends PureComponent {
 		 */
 		providerType: PropTypes.string,
 		primaryCurrency: PropTypes.string,
-		activeTabUrl: PropTypes.string
+		activeTabUrl: PropTypes.string,
+		/**
+		 * Whether the modal is visible
+		 */
+		modalVisible: PropTypes.bool,
+		/**
+		/* Token approve modal visible or not
+		*/
+		toggleApproveModal: PropTypes.func
 	};
 
 	state = {
@@ -327,14 +318,15 @@ class Approve extends PureComponent {
 			tokenSymbol = contract.symbol;
 			tokenDecimals = contract.decimals;
 		}
-		const originalApproveAmount = decodeTransferData('transfer', data)[1];
+		const originalApproveAmount = decodeTransferData('transfer', data)[2];
+		const approveAmount = fromTokenMinimalUnit(hexToBN(originalApproveAmount), tokenDecimals);
 		const totalGas = gas.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
 		this.setState({
 			host,
 			method,
-			originalApproveAmount,
+			originalApproveAmount: approveAmount,
 			tokenDecimals,
 			tokenSymbol,
 			totalGas: renderFromWei(totalGas),
@@ -550,7 +542,7 @@ class Approve extends PureComponent {
 										spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
 									]}
 								>
-									{strings('spend_limit_edition.unlimited')}
+									{strings('spend_limit_edition.proposed')}
 								</Text>
 								<Text style={styles.sectionExplanationText}>
 									{strings('spend_limit_edition.requested_by')}
@@ -655,7 +647,7 @@ class Approve extends PureComponent {
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ approved: true });
-					this.props.navigation.pop();
+					this.props.toggleApproveModal();
 					NotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
 						assetType: 'ETH'
@@ -678,7 +670,7 @@ class Approve extends PureComponent {
 
 	onCancel = () => {
 		this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_CANCEL);
-		this.props.navigation.pop();
+		this.props.toggleApproveModal();
 	};
 
 	copyContractAddress = async () => {
@@ -712,83 +704,76 @@ class Approve extends PureComponent {
 		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
 
 		return (
-			<SafeAreaView style={styles.wrapper}>
-				<ActionModal
-					cancelText={strings('spend_limit_edition.cancel')}
-					confirmText={strings('spend_limit_edition.approve')}
-					onCancelPress={this.onCancel}
-					onConfirmPress={this.onConfirm}
-					confirmButtonMode="confirm"
-					onRequestClose={this.onCancel}
-					displayCancelButton={false}
-					displayConfirmButton={!editPermissionVisible && !customGasVisible}
-					modalVisible
-					modalStyle={styles.actionModal}
-					viewWrapperStyle={styles.viewWrapperStyle}
-					viewContainerStyle={styles.viewContainerStyle}
-					actionContainerStyle={styles.actionContainerStyle}
-					childrenContainerStyle={styles.childrenContainerStyle}
-				>
-					<View>
-						{viewDetails ? (
-							this.renderTransactionReview()
-						) : customGasVisible ? (
-							this.renderCustomGas()
-						) : editPermissionVisible ? (
-							this.renderEditPermission()
-						) : (
-							<>
-								<View style={styles.section} testID={'approve-screen'}>
-									<TransactionHeader currentPageInformation={{ title: host, url: activeTabUrl }} />
-									<Text style={styles.title} testID={'allow-access'}>
-										{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
+			<ActionModal
+				modalVisible={this.props.modalVisible}
+				cancelText={strings('spend_limit_edition.cancel')}
+				confirmText={strings('spend_limit_edition.approve')}
+				onCancelPress={this.onCancel}
+				onConfirmPress={this.onConfirm}
+				confirmButtonMode="confirm"
+				onRequestClose={this.onCancel}
+				displayCancelButton={false}
+				displayConfirmButton={!editPermissionVisible && !customGasVisible}
+				modalStyle={styles.actionModal}
+				viewWrapperStyle={styles.viewWrapperStyle}
+				viewContainerStyle={styles.viewContainerStyle}
+				actionContainerStyle={styles.actionContainerStyle}
+				childrenContainerStyle={styles.childrenContainerStyle}
+			>
+				<View>
+					{viewDetails ? (
+						this.renderTransactionReview()
+					) : customGasVisible ? (
+						this.renderCustomGas()
+					) : editPermissionVisible ? (
+						this.renderEditPermission()
+					) : (
+						<>
+							<View style={styles.section} testID={'approve-screen'}>
+								<TransactionHeader currentPageInformation={{ title: host, url: activeTabUrl }} />
+								<Text style={styles.title} testID={'allow-access'}>
+									{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
+								</Text>
+								<Text style={styles.explanation}>
+									{strings('spend_limit_edition.you_trust_this_site')}
+								</Text>
+								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
+									<Text style={styles.editPermissionText}>
+										{strings('spend_limit_edition.edit_permission')}
 									</Text>
-									<Text style={styles.explanation}>
-										{strings('spend_limit_edition.you_trust_this_site')}
-									</Text>
-									<TouchableOpacity
-										style={styles.actionTouchable}
-										onPress={this.toggleEditPermission}
-									>
-										<Text style={styles.editPermissionText}>
-											{strings('spend_limit_edition.edit_permission')}
+								</TouchableOpacity>
+								<AccountInfoCard />
+							</View>
+							<View style={styles.section}>
+								<TouchableOpacity onPress={this.toggleCustomGasModal}>
+									<View style={styles.networkFee}>
+										<Text style={styles.sectionLeft}>{strings('transaction.transaction_fee')}</Text>
+										<Text style={styles.sectionRight}>
+											{isFiat && currencySymbol}
+											{isFiat ? totalGasFiatRounded : totalGas} {!isFiat && ticker}
 										</Text>
-									</TouchableOpacity>
-									<AccountInfoCard />
-								</View>
-								<View style={styles.section}>
-									<TouchableOpacity onPress={this.toggleCustomGasModal}>
-										<View style={styles.networkFee}>
-											<Text style={styles.sectionLeft}>
-												{strings('transaction.transaction_fee')}
-											</Text>
-											<Text style={styles.sectionRight}>
-												{isFiat && currencySymbol}
-												{isFiat ? totalGasFiatRounded : totalGas} {!isFiat && ticker}
-											</Text>
-											<View style={styles.networkFeeArrow}>
-												<IonicIcon name="ios-arrow-forward" size={16} color={colors.grey00} />
-											</View>
+										<View style={styles.networkFeeArrow}>
+											<IonicIcon name="ios-arrow-forward" size={16} color={colors.grey00} />
 										</View>
-									</TouchableOpacity>
-									<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleViewDetails}>
-										<View style={styles.viewDetailsWrapper}>
-											<Text style={styles.viewDetailsText}>
-												{strings('spend_limit_edition.view_details')}
-											</Text>
-										</View>
-									</TouchableOpacity>
-									{gasError && (
-										<View style={styles.errorMessageWrapper}>
-											<ErrorMessage errorMessage={gasError} />
-										</View>
-									)}
-								</View>
-							</>
-						)}
-					</View>
-				</ActionModal>
-			</SafeAreaView>
+									</View>
+								</TouchableOpacity>
+								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleViewDetails}>
+									<View style={styles.viewDetailsWrapper}>
+										<Text style={styles.viewDetailsText}>
+											{strings('spend_limit_edition.view_details')}
+										</Text>
+									</View>
+								</TouchableOpacity>
+								{gasError && (
+									<View style={styles.errorMessageWrapper}>
+										<ErrorMessage errorMessage={gasError} />
+									</View>
+								)}
+							</View>
+						</>
+					)}
+				</View>
+			</ActionModal>
 		);
 	};
 }
