@@ -356,6 +356,7 @@ export class BrowserTab extends PureComponent {
 			approvedOrigin: false,
 			currentEnsName: null,
 			currentPageTitle: '',
+			currentPageHead: '',
 			currentPageUrl: '',
 			currentPageIcon: undefined,
 			entryScriptWeb3: null,
@@ -735,7 +736,7 @@ export class BrowserTab extends PureComponent {
       window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
       window.__mmSearchEngine = "${this.props.searchEngine}";
       window.__mmMetametrics = ${analyticsEnabled};
-	  window.__mmDistinctId = "${disctinctId}";
+		window.__mmDistinctId = "${disctinctId}";
       window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
 	  `;
 
@@ -835,11 +836,11 @@ export class BrowserTab extends PureComponent {
 		const homepageScripts = `
       window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
       window.__mmSearchEngine="${this.props.searchEngine}";
-	  window.__mmMetametrics = ${analyticsEnabled};
-	  window.__mmDistinctId = "${disctinctId}";
-	  window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
-	  window.postMessage('updateFavorites', '*');
-	`;
+			window.__mmMetametrics = ${analyticsEnabled};
+			window.__mmDistinctId = "${disctinctId}";
+			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+			window.postMessage('updateFavorites', '*');
+		`;
 		this.setState({ homepageScripts }, () => {
 			const { current } = this.webview;
 			if (current) {
@@ -1188,9 +1189,9 @@ export class BrowserTab extends PureComponent {
 					const homepageScripts = `
             window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
             window.__mmSearchEngine="${this.props.searchEngine}";
-			window.__mmMetametrics = ${analyticsEnabled};
-			window.__mmDistinctId = "${disctinctId}";
-			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+						window.__mmMetametrics = ${analyticsEnabled};
+						window.__mmDistinctId = "${disctinctId}";
+						window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
           `;
 					this.setState({ homepageScripts });
 				}
@@ -1282,6 +1283,14 @@ export class BrowserTab extends PureComponent {
 			}
 
 			switch (data.type) {
+				case 'DOM_READY': {
+					const { head } = data.payload;
+					this.setState({
+						currentPageHead: head
+					});
+					break;
+				}
+
 				case 'FRAME_READY': {
 					const { url } = data.payload;
 					this.onFrameLoadStarted(url);
@@ -1407,7 +1416,8 @@ export class BrowserTab extends PureComponent {
 		setTimeout(() => {
 			this.props.addToBrowserHistory({
 				name: this.state.currentPageTitle,
-				url: this.state.inputValue
+				url: this.state.inputValue,
+				head: this.state.currentPageHead
 			});
 		}, 500);
 
