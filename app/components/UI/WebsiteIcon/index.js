@@ -4,7 +4,8 @@ import { StyleSheet, View, Text, Image } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 import { colors, fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
-import fetchIcon from '../../../util/icon';
+import parseIcon from '../../../util/icon';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	fallback: {
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders a website logo depending of the context
  */
-export default class WebsiteIcon extends PureComponent {
+class WebsiteIcon extends PureComponent {
 	static propTypes = {
 		/**
 		 * Style object for image
@@ -53,7 +54,8 @@ export default class WebsiteIcon extends PureComponent {
 		 * Flag that determines if the background
 		 * should be transaparent or not
 		 */
-		transparent: PropTypes.bool
+		transparent: PropTypes.bool,
+		history: PropTypes.array
 	};
 
 	state = {
@@ -62,9 +64,14 @@ export default class WebsiteIcon extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { url } = this.props;
-		const uri = await fetchIcon(url);
-		this.setState(() => ({ apiLogoUrl: { uri } }));
+		const { url, history } = this.props;
+		const match = history.find(element => element.url.indexOf(url) !== -1);
+		if (match) {
+			const uri = await parseIcon(url, match.head);
+			this.setState(() => ({ apiLogoUrl: { uri } }));
+		} else {
+			this.setState(() => ({ apiLogoUrl: { uri: `https://api.faviconkit.com/${getHost(url)}/64` } }));
+		}
 	};
 
 	/**
@@ -109,3 +116,7 @@ export default class WebsiteIcon extends PureComponent {
 		);
 	};
 }
+
+const mapStateToProps = (state, ownProps) => ({ history: state.browser.history });
+
+export default connect(mapStateToProps)(WebsiteIcon);

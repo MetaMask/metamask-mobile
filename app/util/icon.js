@@ -2,20 +2,6 @@ import { getHost } from './browser';
 import { DOMParser } from 'react-native-html-parser';
 
 /**
- * Get and parse HTML
- */
-const getDocument = async url => {
-	const response = await fetch(url);
-	const html = await response.text();
-
-	return new DOMParser({
-		// eslint-disable-next-line no-empty-function
-		errorHandler: (level, msg) => {},
-		locator: {}
-	}).parseFromString(html, 'text/html');
-};
-
-/**
  * parse a size int from string eg: "192x192" -> 192
  */
 const parseSize = sizes => {
@@ -51,8 +37,9 @@ const findBestIcon = (acc, curr) => {
 /**
  * Attempt to fetch icon from document and fall back to faviconkit if we have to
  */
-export default async url => {
-	const doc = await getDocument(url);
+export default async (url, head) => {
+	// const doc = await getDocument(url);
+	const doc = await new DOMParser().parseFromString(head, 'text/html');
 
 	// get all <link> tags
 	const nodeList = doc.getElementsByTagName('link');

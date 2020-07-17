@@ -5,11 +5,12 @@
  * @param {string} website.url - The website's url
  * @param {string} website.name - The website name
  */
-export function addToHistory({ url, name }) {
+export function addToHistory({ url, name, head }) {
 	return {
 		type: 'ADD_TO_BROWSER_HISTORY',
 		url,
-		name
+		name,
+		head
 	};
 }
 

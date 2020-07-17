@@ -1285,9 +1285,7 @@ export class BrowserTab extends PureComponent {
 			switch (data.type) {
 				case 'DOM_READY': {
 					const { head } = data.payload;
-					this.setState({
-						currentPageHead: head
-					});
+					this.setState({ currentPageHead: head });
 					break;
 				}
 
@@ -1984,7 +1982,7 @@ const mapDispatchToProps = dispatch => ({
 	approveHost: hostname => dispatch(approveHost(hostname)),
 	addBookmark: bookmark => dispatch(addBookmark(bookmark)),
 	removeBookmark: bookmark => dispatch(removeBookmark(bookmark)),
-	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
+	addToBrowserHistory: ({ url, name, head }) => dispatch(addToHistory({ url, name, head })),
 	addToWhitelist: url => dispatch(addToWhitelist(url)),
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))

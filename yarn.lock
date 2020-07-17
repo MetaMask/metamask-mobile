@@ -1024,10 +1024,8 @@
     web3 "^0.20.7"
     web3-provider-engine "^15.0.4"
 
-"@metamask/mobile-provider@1.2.4":
+"@metamask/mobile-provider@file:../mobile-provider":
   version "1.2.4"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.2.4.tgz#67186bcaea3cce207c4b9d16a28978fb2bfcbe5b"
-  integrity sha512-U/vewx8wP2qo52subq8qzRAiINXr4NOwZ7OAkNkwBI336Hft/V+RVy0BRq0kWRpRANoXOhxdrde2tk0zzeh9Dw==
 
 "@react-native-community/async-storage@1.9.0":
   version "1.9.0"
