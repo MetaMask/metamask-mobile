@@ -98,47 +98,45 @@ class TransactionReviewFeeCard extends PureComponent {
 			equivalentTotalAmount = totalValue;
 		}
 		return (
-			<>
-				<Summary style={styles.overview}>
-					<Summary.Row>
+			<Summary style={styles.overview}>
+				<Summary.Row>
+					<Text primary bold>
+						{strings('transaction.amount')}
+					</Text>
+					<Text primary bold>
+						{amount}
+					</Text>
+				</Summary.Row>
+				<Summary.Row>
+					<Summary.Col>
 						<Text primary bold>
-							{strings('transaction.amount')}
+							{strings('transaction.gas_fee')}
 						</Text>
-						<Text primary bold>
-							{amount}
-						</Text>
-					</Summary.Row>
-					<Summary.Row>
-						<Summary.Col>
-							<Text primary bold>
-								{strings('transaction.gas_fee')}
+						<TouchableOpacity onPress={toggleCustomGasModal} disabled={!gasEstimationReady}>
+							<Text link bold>
+								{'  '}
+								{strings('transaction.edit')}
 							</Text>
-							<TouchableOpacity onPress={toggleCustomGasModal} disabled={!gasEstimationReady}>
-								<Text link bold>
-									{'  '}
-									{strings('transaction.edit')}
-								</Text>
-							</TouchableOpacity>
-						</Summary.Col>
+						</TouchableOpacity>
+					</Summary.Col>
 
-						{this.renderIfGasEstimationReady(
-							<Text primary bold>
-								{networkFee}
-							</Text>
-						)}
-					</Summary.Row>
-					<Summary.Separator />
-					<Summary.Row>
+					{this.renderIfGasEstimationReady(
 						<Text primary bold>
-							{strings('transaction.total')} {strings('transaction.amount')}
+							{networkFee}
 						</Text>
-						{!!totalFiat && this.renderIfGasEstimationReady(totalAmount)}
-					</Summary.Row>
-					<Summary.Row end last>
-						{this.renderIfGasEstimationReady(<Text bold>{equivalentTotalAmount}</Text>)}
-					</Summary.Row>
-				</Summary>
-			</>
+					)}
+				</Summary.Row>
+				<Summary.Separator />
+				<Summary.Row>
+					<Text primary bold>
+						{strings('transaction.total')} {strings('transaction.amount')}
+					</Text>
+					{!!totalFiat && this.renderIfGasEstimationReady(totalAmount)}
+				</Summary.Row>
+				<Summary.Row end last>
+					{this.renderIfGasEstimationReady(<Text bold>{equivalentTotalAmount}</Text>)}
+				</Summary.Row>
+			</Summary>
 		);
 	}
 }
