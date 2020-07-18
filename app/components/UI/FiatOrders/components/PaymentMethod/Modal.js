@@ -74,7 +74,6 @@ const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => (
 		onSwipeComplete={dismiss}
 		swipeDirection="down"
 		style={styles.modal}
-		useNativeDriver
 	>
 		<SafeAreaView style={styles.modalView}>
 			<View style={styles.title}>

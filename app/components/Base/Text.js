@@ -20,8 +20,14 @@ const style = StyleSheet.create({
 	green: {
 		color: colors.green400
 	},
+	primary: {
+		color: colors.fontPrimary
+	},
 	small: {
 		fontSize: 12
+	},
+	upper: {
+		textTransform: 'uppercase'
 	},
 	disclaimer: {
 		fontStyle: 'italic',
@@ -46,7 +52,9 @@ const Text = ({
 	right,
 	bold,
 	green,
+	primary,
 	small,
+	upper,
 	modal,
 	disclaimer,
 	link,
@@ -61,8 +69,10 @@ const Text = ({
 			right && style.right,
 			bold && style.bold,
 			green && style.green,
+			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
 			small && style.small,
+			upper && style.upper,
 			modal && style.modal,
 			link && style.link,
 			strikethrough && style.strikethrough,
@@ -78,9 +88,11 @@ Text.defaultProps = {
 	right: false,
 	bold: false,
 	green: false,
+	primary: false,
 	disclaimer: false,
 	modal: false,
 	small: false,
+	upper: false,
 	link: false,
 	strikethrough: false,
 	style: undefined
@@ -108,6 +120,10 @@ Text.propTypes = {
 	 */
 	green: PropTypes.bool,
 	/**
+	 * Makes text fontPrimary color
+	 */
+	primary: PropTypes.bool,
+	/**
 	 * Makes text italic and tight
 	 * used in disclaimers
 	 */
@@ -121,6 +137,10 @@ Text.propTypes = {
 	 * Makes text small
 	 */
 	small: PropTypes.bool,
+	/**
+	 * Makes text uppercase
+	 */
+	upper: PropTypes.bool,
 	/**
 	 * Applies a link style
 	 */

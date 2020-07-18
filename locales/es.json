@@ -140,7 +140,7 @@
 	"drawer": {
 		"payment_channel": "Pagos Instantáneos",
 		"send_button": "Enviar",
-		"receive_button": "Recibir",
+		"receive_button": "Agregar",
 		"coming_soon": "Disponible muy pronto...",
 		"wallet": "Billetera",
 		"transaction_history": "Historial de Transacciones",
@@ -201,6 +201,9 @@
 		"error": "Error",
 		"logout_to_import_seed": "Primero debes cerrar la sesión para poder importar una nueva frase semilla.",
 		"ready_to_explore": "¿Listo para explorar aplicaciones blockchain?"
+	},
+	"activity_view": {
+		"title": "Actividad"
 	},
 	"transactions_view": {
 		"title": "Transacciones"
@@ -394,7 +397,7 @@
 		"email_us": "¡Envíanos un correo a support@metamask.io!"
 	},
 	"reveal_credential": {
-		"seed_phrase_title": "Revelar Frase Semilla",
+		"seed_phrase_title": "Revelar frase semilla",
 		"private_key_title": "Mostrar dirección privada",
 		"private_key_title_for_account": "Mostrar dirección privada para la cuenta \"{{accountName}}\"",
 		"cancel": "Cancelar",
@@ -506,7 +509,12 @@
 		"asset": "Activo",
 		"balance": "Balance",
 		"not_enough_for_gas": "Tienes 0 ETH en tu cuenta para pagar por la tarifa de transacción. Compra ETH o deposítalo desde otra cuenta.",
-		"send": "Enviar"
+		"send": "Enviar",
+		"confirmed": "Confirmada",
+		"pending": "Pendiente",
+		"submitted": "Enviada",
+		"failed": "Fallida",
+		"cancelled": "Cancelada"
 	},
 	"custom_gas": {
 		"advanced_options": "Mostrar opciones avanzadas",
@@ -522,7 +530,7 @@
 		"spend_limit": "Editar límite de gasto",
 		"allow": "Permitir",
 		"allow_explanation": "para retirar y gastar hasta la siguiente cantidad:",
-		"unlimited": "Ilimitado",
+		"proposed": "Límite de gasto propuesto",
 		"requested_by": "Límite de gasto requerido por",
 		"custom_spend_limit": "Límite de gasto personalizado",
 		"max_spend_limit": "Ingrese un límite de gasto máximo",
@@ -613,7 +621,7 @@
 		"sent": "Enviado",
 		"contract_deploy": "Despliegue de contrato",
 		"to_contract": "Nuevo Contrato",
-		"instant_payment_deposit": "Depósito Instant Payment",
+		"instant_payment_deposit": "Depósito InstaPay",
 		"instant_payment_deposit_tx": "Depósito",
 		"instant_payment_withdraw_tx": "Retiro",
 		"tx_details_free": "Gratis",
@@ -634,7 +642,10 @@
 		"address_copied_to_clipboard": "La dirección fue copiada al portapapeles",
 		"transaction_error": "Error de transacción",
 		"address_to_placeholder": "Buscar, dirección pública (0x), o ENS",
-		"address_from_balance": "Balance:"
+		"address_from_balance": "Balance:",
+		"status": "Estado",
+		"date": "Fecha",
+		"nonce": "Nonce"
 	},
 	"address_book": {
 		"recents": "Recientes",
@@ -1071,9 +1082,11 @@
 	},
 	"fiat_on_ramp": {
 		"buy_eth": "Comprar ETH",
+		"purchased_currency": "Compra de {{currency}}",
 		"network_not_supported": "La red actual no esta soportada",
 		"switch_network": "Por favor cambiar a Mainnet",
 		"switch": "Cambiar",
+		"purchases": "Compras",
 		"purchase_method": "Método de pago",
 		"amount_to_buy": "Monto a comprar",
 		"transak_webview_title": "Transak",
@@ -1122,6 +1135,16 @@
 			"purchase_completed_description": "Su {{currency}} está disponible",
 			"purchase_pending_title": "Procesando su compra de {{currency}}",
 			"purchase_pending_description": "Su depósito está en progreso"
-		}
+		},
+		"date": "Fecha",
+		"from": "Desde",
+		"to": "Para",
+		"status": "Estado",
+		"completed": "Realizada",
+		"pending": "Pendiente",
+		"failed": "Fallida",
+		"cancelled": "Cancelada",
+		"amount": "Cantidad",
+		"total_amount": "Cantidad total"
 	}
 }

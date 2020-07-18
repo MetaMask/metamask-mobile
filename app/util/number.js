@@ -303,17 +303,24 @@ export function weiToFiat(wei, conversionRate, currencyCode, decimalsToShow = 5)
 }
 
 /**
- * Adds currency symbol to a value
+ * Renders fiat amount with currency symbol if exists
  *
- * @param {number} wei - BN corresponding to an amount of wei
- * @param {string} currencyCode - Current currency code to display
+ * @param {number|string} amount  Number corresponding to a currency amount
+ * @param {string} currencyCode Current currency code to display
  * @returns {string} - Currency-formatted string
  */
-export function addCurrencySymbol(value, currencyCode) {
+export function addCurrencySymbol(amount, currencyCode) {
 	if (currencySymbols[currencyCode]) {
-		return `${currencySymbols[currencyCode]}${value}`;
+		return `${currencySymbols[currencyCode]}${amount}`;
 	}
-	return `${value} ${currencyCode}`;
+
+	const lowercaseCurrencyCode = currencyCode.toLowerCase();
+
+	if (currencySymbols[lowercaseCurrencyCode]) {
+		return `${currencySymbols[lowercaseCurrencyCode]}${amount}`;
+	}
+
+	return `${amount} ${currencyCode}`;
 }
 
 /**
@@ -377,10 +384,7 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
 		return undefined;
 	}
 	const fiatFixed = balanceToFiatNumber(balance, conversionRate, exchangeRate);
-	if (currencySymbols[currencyCode]) {
-		return `${currencySymbols[currencyCode]}${fiatFixed}`;
-	}
-	return `${fiatFixed} ${currencyCode}`;
+	return addCurrencySymbol(fiatFixed, currencyCode);
 }
 
 /**

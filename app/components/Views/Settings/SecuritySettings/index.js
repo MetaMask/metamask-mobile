@@ -499,7 +499,7 @@ class Settings extends PureComponent {
 							disabled={Object.keys(approvedHosts).length === 0}
 							containerStyle={styles.clearApprovedConfirm}
 						>
-							{strings('app_settings.clear_privacy_title').toUpperCase()}
+							{strings('app_settings.clear_privacy_title')}
 						</StyledButton>
 					</View>
 					<View style={styles.setting}>
@@ -511,7 +511,7 @@ class Settings extends PureComponent {
 							disabled={browserHistory.length === 0}
 							containerStyle={styles.clearHistoryConfirm}
 						>
-							{strings('app_settings.clear_browser_history_desc').toUpperCase()}
+							{strings('app_settings.clear_browser_history_desc')}
 						</StyledButton>
 					</View>
 					<View style={styles.setting} testID={'auto-lock-section'}>
@@ -578,7 +578,7 @@ class Settings extends PureComponent {
 							onPress={this.goToExportPrivateKey}
 							containerStyle={styles.clearHistoryConfirm}
 						>
-							{strings('reveal_credential.show_private_key').toUpperCase()}
+							{strings('reveal_credential.show_private_key')}
 						</StyledButton>
 					</View>
 					<View style={styles.setting}>
@@ -592,7 +592,7 @@ class Settings extends PureComponent {
 							onPress={this.goToRevealPrivateCredential}
 							containerStyle={styles.clearHistoryConfirm}
 						>
-							{strings('reveal_credential.seed_phrase_title').toUpperCase()}
+							{strings('reveal_credential.seed_phrase_title')}
 						</StyledButton>
 					</View>
 					<ActionModal

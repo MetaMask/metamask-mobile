@@ -12,7 +12,7 @@ import {
 	Dimensions,
 	InteractionManager
 } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
@@ -339,7 +339,6 @@ class Transactions extends PureComponent {
 			submittedTransactions && submittedTransactions.length
 				? submittedTransactions.concat(confirmedTransactions)
 				: this.props.transactions;
-
 		return (
 			<View style={styles.wrapper} testID={'transactions-screen'}>
 				<FlatList
@@ -354,6 +353,8 @@ class Transactions extends PureComponent {
 					maxToRenderPerBatch={2}
 					onEndReachedThreshold={0.5}
 					ListHeaderComponent={header}
+					style={baseStyles.flexGrow}
+					scrollIndicatorInsets={{ right: 1 }}
 				/>
 
 				<TransactionActionModal

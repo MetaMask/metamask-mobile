@@ -30,7 +30,6 @@ import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettin
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
-import TransactionsView from '../../Views/TransactionsView';
 import SyncWithExtension from '../../Views/SyncWithExtension';
 import Asset from '../../Views/Asset';
 import AddAsset from '../../Views/AddAsset';
@@ -106,8 +105,9 @@ import {
 	hideTransactionNotification,
 	showSimpleNotification
 } from '../../../actions/notification';
-import { toggleDappTransactionModal } from '../../../actions/modals';
+import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
+import ActivityView from '../../Views/ActivityView';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -164,7 +164,7 @@ const MainNavigator = createStackNavigator(
 					}),
 					TransactionsHome: createStackNavigator({
 						TransactionsView: {
-							screen: TransactionsView
+							screen: ActivityView
 						}
 					}),
 					PaymentChannelHome: createStackNavigator({
@@ -459,9 +459,17 @@ class Main extends PureComponent {
 		*/
 		toggleDappTransactionModal: PropTypes.func,
 		/**
+		/* Hides or shows approve modal
+		*/
+		toggleApproveModal: PropTypes.func,
+		/**
 		/* dApp transaction modal visible or not
 		*/
-		dappTransactionModalVisible: PropTypes.bool
+		dappTransactionModalVisible: PropTypes.bool,
+		/**
+		/* Token approve modal visible or not
+		*/
+		approveModalVisible: PropTypes.bool
 	};
 	state = {
 		connected: true,
@@ -493,7 +501,6 @@ class Main extends PureComponent {
 		}
 	};
 	componentDidMount = async () => {
-		this.props.toggleDappTransactionModal(false);
 		InteractionManager.runAfterInteractions(() => {
 			this.initializeWalletConnect();
 			AppState.addEventListener('change', this.handleAppStateChange);
@@ -836,7 +843,7 @@ class Main extends PureComponent {
 			}
 
 			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
-				this.props.navigation.push('ApproveView');
+				this.props.toggleApproveModal();
 			} else {
 				this.props.toggleDappTransactionModal();
 			}
@@ -1072,12 +1079,14 @@ class Main extends PureComponent {
 	backupAlertPress = () => {
 		this.props.navigation.navigate('AccountBackupStep1');
 	};
-	renderDappTransactionModal = () => (
-		<Approval
-			dappTransactionModalVisible={this.props.dappTransactionModalVisible}
-			toggleDappTransactionModal={this.props.toggleDappTransactionModal}
-		/>
-	);
+
+	renderDappTransactionModal = () =>
+		this.props.dappTransactionModalVisible && (
+			<Approval dappTransactionModalVisible toggleDappTransactionModal={this.props.toggleDappTransactionModal} />
+		);
+
+	renderApproveModal = () =>
+		this.props.approveModalVisible && <Approve modalVisible toggleApproveModal={this.props.toggleApproveModal} />;
 
 	render() {
 		const { isPaymentChannelTransaction, isPaymentRequest } = this.props;
@@ -1101,7 +1110,8 @@ class Main extends PureComponent {
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
-				{this.props.dappTransactionModalVisible && this.renderDappTransactionModal()}
+				{this.renderDappTransactionModal()}
+				{this.renderApproveModal()}
 			</React.Fragment>
 		);
 	}
@@ -1118,7 +1128,8 @@ const mapStateToProps = state => ({
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	isPaymentRequest: state.transaction.paymentRequest,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	dappTransactionModalVisible: state.modals.dappTransactionModalVisible
+	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
+	approveModalVisible: state.modals.approveModalVisible
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -1127,7 +1138,8 @@ const mapDispatchToProps = dispatch => ({
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
 	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
 	hideTransactionNotification: () => dispatch(hideTransactionNotification()),
-	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show))
+	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
+	toggleApproveModal: show => dispatch(toggleApproveModal(show))
 });
 
 export default connect(

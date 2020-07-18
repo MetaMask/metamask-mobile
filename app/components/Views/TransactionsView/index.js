@@ -2,18 +2,17 @@ import React, { PureComponent } from 'react';
 import { ActivityIndicator, InteractionManager, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { withNavigation } from 'react-navigation';
+import Engine from '../../../core/Engine';
+import { showAlert } from '../../../actions/alert';
 import { colors } from '../../../styles/common';
 import Transactions from '../../UI/Transactions';
-import getNavbarOptions from '../../UI/Navbar';
 import Networks, { isKnownNetwork } from '../../../util/networks';
-import { showAlert } from '../../../actions/alert';
 import { safeToChecksumAddress } from '../../../util/address';
-import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1,
-		backgroundColor: colors.white
+		flex: 1
 	},
 	loader: {
 		backgroundColor: colors.white,
@@ -27,8 +26,6 @@ const styles = StyleSheet.create({
  * Main view for the Transaction history
  */
 class TransactionsView extends PureComponent {
-	static navigationOptions = ({ navigation }) => getNavbarOptions('transactions_view.title', navigation);
-
 	static propTypes = {
 		/**
 		 * ETH to current currency conversion rate
@@ -53,7 +50,11 @@ class TransactionsView extends PureComponent {
 		/**
 		 * A string represeting the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array
 	};
 
 	state = {
@@ -108,8 +109,14 @@ class TransactionsView extends PureComponent {
 		const { selectedAddress, networkType } = this.props;
 		const networkId = Networks[networkType].networkId;
 		const {
-			transaction: { from, to }
+			transaction: { from, to },
+			isTransfer,
+			transferInformation
 		} = tx;
+		if (isTransfer)
+			return this.props.tokens.find(
+				({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+			);
 		return (
 			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
 			((networkId && networkId.toString() === tx.networkID) ||
@@ -204,7 +211,6 @@ class TransactionsView extends PureComponent {
 
 	render = () => {
 		const { conversionRate, currentCurrency, selectedAddress, navigation, networkType } = this.props;
-
 		return (
 			<View style={styles.wrapper} testID={'wallet-screen'}>
 				{this.state.loading ? (
@@ -232,6 +238,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
@@ -243,4 +250,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(TransactionsView);
+)(withNavigation(TransactionsView));

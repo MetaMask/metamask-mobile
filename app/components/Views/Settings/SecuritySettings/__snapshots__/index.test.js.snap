@@ -240,7 +240,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         type="normal"
       >
-        CLEAR PRIVACY DATA
+        Clear privacy data
       </StyledButton>
     </View>
     <View
@@ -297,7 +297,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         type="normal"
       >
-        CLEAR BROWSER HISTORY
+        Clear browser history
       </StyledButton>
     </View>
     <View
@@ -414,7 +414,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Show Private Key for "Account 1"
+        Show private key for "Account 1"
       </Text>
       <Text
         style={
@@ -454,7 +454,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         type="danger"
       >
-        SHOW PRIVATE KEY
+        Show private key
       </StyledButton>
     </View>
     <View
@@ -476,7 +476,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         testID="reveal-seed-title"
       >
-        Reveal Seed Phrase
+        Reveal seed phrase
       </Text>
       <Text
         style={
@@ -517,7 +517,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         testID="reveal-seedphrase-button"
         type="danger"
       >
-        REVEAL SEED PHRASE
+        Reveal seed phrase
       </StyledButton>
     </View>
     <ActionModal
