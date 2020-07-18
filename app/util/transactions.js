@@ -1,10 +1,13 @@
-import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
+import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
+import { hexToBN } from './number';
+import AppConstants from '../core/AppConstants';
+const { SAI_ADDRESS } = AppConstants;
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -282,6 +285,8 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 	if (tx.isTransfer) {
 		const selfSent = safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		const translationKey = selfSent ? 'transactions.self_sent_unit' : 'transactions.received_unit';
+		// Third party sending wrong token symbol
+		if (tx.transferInformation.contractAddress === SAI_ADDRESS.toLowerCase()) tx.transferInformation.symbol = 'SAI';
 		return strings(translationKey, { unit: tx.transferInformation.symbol });
 	}
 
@@ -379,6 +384,30 @@ export function getTransactionToName({ addressBook, network, toAddress, identiti
 		(identities[checksummedToAddress] && identities[checksummedToAddress].name);
 
 	return transactionToName;
+}
+
+/**
+ * Validate transaction value for speed up or cancel transaction actions
+ *
+ * @param {object} transaction - Transaction object to validate
+ * @param {string} rate - Rate to validate
+ * @param {string} accounts - Map of accounts to information objects including balances
+ * @returns {string} - Whether the balance is validated or not
+ */
+export function validateTransactionActionBalance(transaction, rate, accounts) {
+	try {
+		const checksummedFrom = safeToChecksumAddress(transaction.transaction.from);
+		const balance = accounts[checksummedFrom].balance;
+		return hexToBN(balance).lt(
+			hexToBN(transaction.transaction.gasPrice)
+				.mul(new BN(rate * 10))
+				.div(new BN(10))
+				.mul(hexToBN(transaction.transaction.gas))
+				.add(hexToBN(transaction.transaction.value))
+		);
+	} catch (e) {
+		return false;
+	}
 }
 
 export function getNormalizedTxState(state) {
