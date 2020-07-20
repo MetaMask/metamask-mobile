@@ -42,7 +42,7 @@ import { getTicker, generateTransferData, getEther } from '../../../../util/tran
 import { util } from '@metamask/controllers';
 import FadeIn from 'react-native-fade-in-image';
 import ErrorMessage from '../ErrorMessage';
-import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
+import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import CollectibleImage from '../../../UI/CollectibleImage';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
@@ -636,7 +636,7 @@ class Amount extends PureComponent {
 			basicGasEstimates = { average: 20 };
 		}
 		const gas = hexToBN(estimation.gas);
-		const gasPrice = apiEstimateModifiedToWEI(basicGasEstimates.average);
+		const gasPrice = toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
 		return gas.mul(gasPrice);
 	};
 
