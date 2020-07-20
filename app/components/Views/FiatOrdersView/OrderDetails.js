@@ -80,7 +80,7 @@ function OrderDetails({ order: { ...order }, closeModal }) {
 								{strings('fiat_on_ramp.Fee')}
 							</Text>
 							<Text primary small>
-								{addCurrencySymbol(order.fee, order.currency)}
+								{addCurrencySymbol(order.fee.toLocaleString(), order.currency)}
 							</Text>
 						</Summary.Row>
 						<Summary.Separator />
@@ -89,7 +89,7 @@ function OrderDetails({ order: { ...order }, closeModal }) {
 								{strings('fiat_on_ramp.total_amount')}
 							</Text>
 							<Text primary small bold>
-								{addCurrencySymbol(order.amount, order.currency)}
+								{addCurrencySymbol(order.amount.toLocaleString(), order.currency)}
 							</Text>
 						</Summary.Row>
 					</Summary>
