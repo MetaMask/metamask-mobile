@@ -129,7 +129,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
           }
         }
       >
-        You must keep your seed phrase secret and safe. If someone gets your seed phrase, they’ll gain control over your accounts.
+        Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it.
       </Text>
     </View>
   </View>
