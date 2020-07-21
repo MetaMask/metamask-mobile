@@ -514,7 +514,7 @@ class Onboarding extends PureComponent {
 	}
 
 	render() {
-		const { qrCodeModalVisible, loading } = this.state;
+		const { qrCodeModalVisible, loading, existingUser } = this.state;
 
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
@@ -536,7 +536,7 @@ class Onboarding extends PureComponent {
 							)}
 							{loading ? this.renderLoader() : this.renderContent()}
 						</View>
-						{this.state.existingUser && (
+						{existingUser && !loading && (
 							<View style={styles.footer}>
 								<Button style={styles.login} onPress={this.onLogin}>
 									{strings('onboarding.login')}
