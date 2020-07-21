@@ -46,7 +46,7 @@
 		"sync_existing": "Sync your existing MetaMask wallet from the browser extension or import manually.",
 		"scan_title": "Scan QR code steps",
 		"scan_step_1": "1. Open the extension on desktop",
-		"scan_step_2": "2. Go to Settings &gt; Advanced",
+		"scan_step_2": "2. Go to Settings > Advanced",
 		"scan_step_3": "3. Click on “Sync with Mobile”",
 		"scan_step_4": "4. Scan the QR code to start syncing"
 	},
