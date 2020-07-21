@@ -17,7 +17,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
     }
   >
     <OnboardingProgress
-      currentStep={3}
+      currentStep={2}
       steps={
         Array [
           "one",
