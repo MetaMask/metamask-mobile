@@ -52,11 +52,11 @@
 	},
 	"onboarding_carousel": {
 		"title1": "Welcome to MetaMask",
-		"title2": "Say hello to your wallet...",
-		"title3": "Explore decentralized apps",
-		"subtitle1": "A secure browser – and so much more. Swipe to see what’s possible.",
-		"subtitle2": "Store, spend and send crypto currencies and assets.",
-		"subtitle3": "Use your MetaMask to login to decentralized apps – no sign-up needed.",
+		"title2": "Manage your digital assets",
+		"title3": "Your gateway to web3",
+		"subtitle1": "Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.",
+		"subtitle2": "Store, spend and send digital assets like tokens, ethereum, unique collectibles.",
+		"subtitle3": "Login with MetaMask and make transactions to invest, earn, play games, sell and more!",
 		"get_started": "Get started"
 	},
 	"onboarding_wizard": {
