@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 	},
 	action: {
 		fontSize: 18,
-		marginBottom: 16,
+		marginVertical: 16,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
