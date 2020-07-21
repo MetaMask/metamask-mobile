@@ -205,7 +205,7 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	state = {
 		seedPhraseHidden: true,
-		currentStep: 2,
+		currentStep: 1,
 		password: undefined,
 		warningIncorrectPassword: undefined,
 		ready: false,
