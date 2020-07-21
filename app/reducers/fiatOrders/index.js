@@ -83,6 +83,12 @@ const findOrderIndex = (provider, id, orders) =>
 const fiatOrderReducer = (state = initialState, action) => {
 	switch (action.type) {
 		case 'FIAT_ADD_ORDER': {
+			const orders = state.orders;
+			const order = action.payload;
+			const index = findOrderIndex(order.provider, order.id, orders);
+			if (index !== -1) {
+				return state;
+			}
 			return {
 				...state,
 				orders: [action.payload, ...state.orders]
@@ -91,7 +97,7 @@ const fiatOrderReducer = (state = initialState, action) => {
 		case 'FIAT_UPDATE_ORDER': {
 			const orders = state.orders;
 			const order = action.payload;
-			const index = findOrderIndex(order.provider, order.id, state.orders);
+			const index = findOrderIndex(order.provider, order.id, orders);
 			return {
 				...state,
 				orders: [
