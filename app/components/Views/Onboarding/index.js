@@ -17,6 +17,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
 import PubNubWrapper from '../../../util/syncWithExtension';
+import ActionModal from '../../UI/ActionModal';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -70,6 +71,19 @@ const styles = StyleSheet.create({
 	buttonWrapper: {
 		flexGrow: 1,
 		marginBottom: 16
+	},
+	scanTitle: {
+		fontSize: 18,
+		color: colors.fontPrimary,
+		fontWeight: 'bold'
+	},
+	steps: {
+		paddingVertical: 24
+	},
+	step: {
+		fontSize: 16,
+		color: colors.fontPrimary,
+		fontWeight: 'normal'
 	}
 });
 
@@ -100,6 +114,7 @@ class Onboarding extends PureComponent {
 
 	state = {
 		existingUser: false,
+		qrCodeModalVisible: false,
 		currentStep: 1
 	};
 
@@ -123,7 +138,11 @@ class Onboarding extends PureComponent {
 			return false;
 		}
 		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
-		this.showQrCode();
+		this.toggleQrCodeModal();
+	};
+
+	toggleQrCodeModal = () => {
+		this.setState(state => ({ qrCodeModalVisible: !state.qrCodeModalVisible }));
 	};
 
 	showQrCode = () => {
@@ -213,6 +232,8 @@ class Onboarding extends PureComponent {
 	};
 
 	render() {
+		const { qrCodeModalVisible } = this.state;
+
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
 				<OnboardingScreenWithBg screen={'c'}>
@@ -272,6 +293,23 @@ class Onboarding extends PureComponent {
 					</View>
 				</OnboardingScreenWithBg>
 				<FadeOutOverlay />
+				<ActionModal
+					modalVisible={qrCodeModalVisible}
+					onConfirmPress={this.showQrCode}
+					onCancelPress={this.toggleQrCodeModal}
+					confirmText="Scan"
+					confirmButtonMode="confirm"
+				>
+					<View style={styles.wrapper}>
+						<Text style={styles.scanTitle}>{strings('onboarding.scan_title')}</Text>
+						<View style={styles.steps}>
+							<Text style={styles.step}>{strings('onboarding.scan_step_1')}</Text>
+							<Text style={styles.step}>{strings('onboarding.scan_step_2')}</Text>
+							<Text style={styles.step}>{strings('onboarding.scan_step_3')}</Text>
+							<Text style={styles.step}>{strings('onboarding.scan_step_4')}</Text>
+						</View>
+					</View>
+				</ActionModal>
 			</View>
 		);
 	}
