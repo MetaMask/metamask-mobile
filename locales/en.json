@@ -752,7 +752,7 @@
 	},
 	"sync_with_extension_success": {
 		"title": "Wallet imported",
-		"sync_complete_1": "Just remember, MetaMask cannot recover your seed phrase should you loose it. You can find the seed phrase in",
+		"sync_complete_1": "Just remember, MetaMask cannot recover your seed phrase should you lose it. You can find the seed phrase in",
 		"sync_complete_2": "settings > security & privacy",
 		"button_continue": "Done",
 		"password_tip": "The password to unlock your mobile wallet is the same one you set for the extension.",
@@ -994,7 +994,7 @@
 		"congratulations": "Congratulations",
 		"success": "You’ve successfully protected your wallet. Remember to keep your seed phrase safe, it's your responsibility!",
 		"hint": "Leave yourself a hint?",
-		"recover": "MetaMask cannot recover your wallet should you loose it. You can find your seedphrase in settings > security & privacy.",
+		"recover": "MetaMask cannot recover your wallet should you lose it. You can find your seedphrase in settings > security & privacy.",
 		"learn": "Learn more",
 		"done": "Done",
 		"recovery_hint": "Recovery hint",
