@@ -72,7 +72,7 @@ const SeedphraseModal = ({ showWhatIsSeedphraseModal, hideWhatIsSeedphrase }) =>
 			<View>
 				<Text style={styles.explanationText}>{strings('account_backup_step_1.what_is_seedphrase_text_1')}</Text>
 				<Text style={styles.explanationText}>{strings('account_backup_step_1.what_is_seedphrase_text_2')}</Text>
-				<Text style={styles.explanationText}>{strings('account_backup_step_1.what_is_seedphrase_text_2')}</Text>
+				<Text style={styles.explanationText}>{strings('account_backup_step_1.what_is_seedphrase_text_3')}</Text>
 			</View>
 		</View>
 	</ActionModal>

@@ -178,7 +178,7 @@ class ManualBackupStep2 extends PureComponent {
 		wordsDict: {},
 		currentIndex: 0,
 		seedPhraseReady: false,
-		currentStep: 3
+		currentStep: 2
 	};
 
 	componentDidMount = () => {

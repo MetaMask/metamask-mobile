@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 	},
 	action: {
 		fontSize: 18,
-		marginBottom: 16,
+		marginVertical: 16,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
@@ -205,7 +205,7 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	state = {
 		seedPhraseHidden: true,
-		currentStep: 2,
+		currentStep: 1,
 		password: undefined,
 		warningIncorrectPassword: undefined,
 		ready: false,

@@ -17,7 +17,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
     }
   >
     <OnboardingProgress
-      currentStep={2}
+      currentStep={1}
       steps={
         Array [
           "Create Password",
@@ -56,7 +56,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             "fontSize": 18,
             "fontWeight": "600",
             "justifyContent": "center",
-            "marginBottom": 16,
+            "marginVertical": 16,
             "textAlign": "center",
           }
         }

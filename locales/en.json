@@ -43,15 +43,20 @@
 		"step2": "Create password",
 		"step3": "Secure wallet",
 		"already_have": "Already have a wallet?",
-		"sync_existing": "Sync your existing MetaMask wallet from the browser extension or import manually."
+		"sync_existing": "Sync your existing MetaMask wallet from the browser extension or import manually.",
+		"scan_title": "Scan QR code steps",
+		"scan_step_1": "1. Open the extension on desktop",
+		"scan_step_2": "2. Go to Settings > Advanced",
+		"scan_step_3": "3. Click on “Sync with Mobile”",
+		"scan_step_4": "4. Scan the QR code to start syncing"
 	},
 	"onboarding_carousel": {
 		"title1": "Welcome to MetaMask",
-		"title2": "Say hello to your wallet...",
-		"title3": "Explore decentralized apps",
-		"subtitle1": "A secure browser – and so much more. Swipe to see what’s possible.",
-		"subtitle2": "Store, spend and send crypto currencies and assets.",
-		"subtitle3": "Use your MetaMask to login to decentralized apps – no sign-up needed.",
+		"title2": "Manage your digital assets",
+		"title3": "Your gateway to web3",
+		"subtitle1": "Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.",
+		"subtitle2": "Store, spend and send digital assets like tokens, ethereum, unique collectibles.",
+		"subtitle3": "Login with MetaMask and make transactions to invest, earn, play games, sell and more!",
 		"get_started": "Get started"
 	},
 	"onboarding_wizard": {
@@ -747,7 +752,7 @@
 	},
 	"sync_with_extension_success": {
 		"title": "Wallet imported",
-		"sync_complete_1": "Just remember, MetaMask cannot recover your seed phrase should you loose it. You can find the seed phrase in",
+		"sync_complete_1": "Just remember, MetaMask cannot recover your seed phrase should you lose it. You can find the seed phrase in",
 		"sync_complete_2": "settings > security & privacy",
 		"button_continue": "Done",
 		"password_tip": "The password to unlock your mobile wallet is the same one you set for the extension.",
@@ -989,7 +994,7 @@
 		"congratulations": "Congratulations",
 		"success": "You’ve successfully protected your wallet. Remember to keep your seed phrase safe, it's your responsibility!",
 		"hint": "Leave yourself a hint?",
-		"recover": "MetaMask cannot recover your wallet should you loose it. You can find your seedphrase in settings > security & privacy.",
+		"recover": "MetaMask cannot recover your wallet should you lose it. You can find your seedphrase in settings > security & privacy.",
 		"learn": "Learn more",
 		"done": "Done",
 		"recovery_hint": "Recovery hint",

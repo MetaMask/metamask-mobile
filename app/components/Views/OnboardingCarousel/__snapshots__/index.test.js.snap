@@ -90,7 +90,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   }
                 }
               >
-                A secure browser – and so much more. Swipe to see what’s possible.
+                Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
               </Text>
             </View>
             <View
@@ -153,7 +153,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                 }
                 testID="carousel-screen-two"
               >
-                Say hello to your wallet...
+                Manage your digital assets
               </Text>
               <Text
                 style={
@@ -170,7 +170,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   }
                 }
               >
-                Store, spend and send crypto currencies and assets.
+                Store, spend and send digital assets like tokens, ethereum, unique collectibles.
               </Text>
             </View>
             <View
@@ -232,7 +232,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                 }
                 testID="carousel-screen-three"
               >
-                Explore decentralized apps
+                Your gateway to web3
               </Text>
               <Text
                 style={
@@ -249,7 +249,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   }
                 }
               >
-                Use your MetaMask to login to decentralized apps – no sign-up needed.
+                Login with MetaMask and make transactions to invest, earn, play games, sell and more!
               </Text>
             </View>
             <View
