@@ -37,7 +37,7 @@ exports[`CustomGas should render correctly 1`] = `
           Object {
             "alignSelf": "center",
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 14,
             "fontWeight": "600",
           }
@@ -86,7 +86,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -114,7 +114,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -190,7 +190,7 @@ exports[`CustomGas should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 10,
                 "fontWeight": "600",
               }
@@ -214,7 +214,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
               "marginVertical": 4,
@@ -226,7 +226,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
             }
@@ -240,7 +240,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
             }
@@ -286,7 +286,7 @@ exports[`CustomGas should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 10,
                 "fontWeight": "600",
               }
@@ -310,7 +310,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
               "marginVertical": 4,
@@ -322,7 +322,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
             }
@@ -336,7 +336,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
             }
@@ -382,7 +382,7 @@ exports[`CustomGas should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 10,
                 "fontWeight": "600",
               }
@@ -406,7 +406,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
               "marginVertical": 4,
@@ -418,7 +418,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
             }
@@ -432,7 +432,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
             }
@@ -446,7 +446,7 @@ exports[`CustomGas should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 12,
           "fontWeight": "400",
           "paddingBottom": 20,
@@ -484,7 +484,7 @@ exports[`CustomGas should render correctly 1`] = `
           Object {
             "color": "#000000",
             "flex": 1,
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "300",
             "textAlign": "left",
@@ -508,7 +508,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 14,
               "fontWeight": "600",
             }
@@ -535,7 +535,7 @@ exports[`CustomGas should render correctly 1`] = `
           Object {
             "color": "#000000",
             "flex": 1,
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "300",
             "textAlign": "left",
@@ -554,7 +554,7 @@ exports[`CustomGas should render correctly 1`] = `
             "borderRadius": 8,
             "borderWidth": 1,
             "flex": 1,
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingHorizontal": 10,
@@ -580,7 +580,7 @@ exports[`CustomGas should render correctly 1`] = `
           Object {
             "color": "#000000",
             "flex": 1,
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "300",
             "textAlign": "left",
@@ -599,7 +599,7 @@ exports[`CustomGas should render correctly 1`] = `
             "borderRadius": 8,
             "borderWidth": 1,
             "flex": 1,
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingHorizontal": 10,

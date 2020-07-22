@@ -35,7 +35,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
           }
@@ -54,7 +54,7 @@ exports[`AddCustomToken should render correctly 1`] = `
               "borderColor": "#d6d9dc",
               "borderRadius": 4,
               "borderWidth": 1,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "padding": 16,
             }
@@ -66,7 +66,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           style={
             Object {
               "color": "#D73A49",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,
             }
@@ -84,7 +84,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
           }
@@ -103,7 +103,7 @@ exports[`AddCustomToken should render correctly 1`] = `
               "borderColor": "#d6d9dc",
               "borderRadius": 4,
               "borderWidth": 1,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "padding": 16,
             }
@@ -115,7 +115,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           style={
             Object {
               "color": "#D73A49",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,
             }
@@ -132,7 +132,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
           }
@@ -153,7 +153,7 @@ exports[`AddCustomToken should render correctly 1`] = `
               "borderColor": "#d6d9dc",
               "borderRadius": 4,
               "borderWidth": 1,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "padding": 16,
             }
@@ -165,7 +165,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           style={
             Object {
               "color": "#D73A49",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,
             }

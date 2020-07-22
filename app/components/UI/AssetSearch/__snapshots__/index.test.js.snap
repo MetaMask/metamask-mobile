@@ -34,7 +34,7 @@ exports[`AssetSearch should render correctly 1`] = `
     style={
       Array [
         Object {
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontWeight": "400",
         },
         Object {

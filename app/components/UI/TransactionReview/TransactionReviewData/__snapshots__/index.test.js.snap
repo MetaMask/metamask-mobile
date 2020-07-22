@@ -39,7 +39,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
         Object {
           "alignSelf": "center",
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 14,
           "fontWeight": "600",
         }
@@ -58,7 +58,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
     style={
       Object {
         "color": "#000000",
-        "fontFamily": "CircularStd-Medium",
+        "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
         "marginBottom": 28,
@@ -93,12 +93,12 @@ exports[`TransactionReviewData should render correctly 1`] = `
           Array [
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
             },
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontWeight": "600",
             },
           ]
@@ -112,7 +112,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -124,12 +124,12 @@ exports[`TransactionReviewData should render correctly 1`] = `
         Array [
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
           },
           Object {
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
         ]
@@ -171,7 +171,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
               Object {
                 "backgroundColor": "#FFFFFF",
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "paddingTop": 0,
