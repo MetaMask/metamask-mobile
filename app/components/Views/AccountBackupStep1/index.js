@@ -1,5 +1,15 @@
-import React, { useState } from 'react';
-import { ScrollView, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, Image, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+	ScrollView,
+	TouchableOpacity,
+	Text,
+	View,
+	SafeAreaView,
+	StyleSheet,
+	Image,
+	Dimensions,
+	BackHandler
+} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -154,6 +164,22 @@ const AccountBackupStep1 = props => {
 	const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 	const [skipCheckbox, setToggleSkipCheckbox] = useState(false);
 
+	useEffect(
+		() => {
+			// Disable back press
+			const hardwareBackPress = () => true;
+
+			// Add event listener
+			BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+
+			// Remove event listener on cleanup
+			return () => {
+				BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+			};
+		},
+		[] // Run only when component mounts
+	);
+
 	const goNext = () => {
 		props.navigation.navigate('AccountBackupStep1B', { ...props.navigation.state.params });
 	};
@@ -306,7 +332,9 @@ AccountBackupStep1.propTypes = {
 	navigation: PropTypes.object
 };
 
-AccountBackupStep1.navigationOptions = ({ navigation }) =>
-	getOnboardingNavbarOptions(navigation, { headerLeft: <View /> });
+AccountBackupStep1.navigationOptions = ({ navigation }) => ({
+	...getOnboardingNavbarOptions(navigation, { headerLeft: <View /> }),
+	gesturesEnabled: false
+});
 
 export default AccountBackupStep1;
