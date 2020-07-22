@@ -572,17 +572,18 @@ class ChoosePassword extends PureComponent {
 
 								{!!error && <Text style={styles.errorMsg}>{error}</Text>}
 							</View>
+
+							<View style={styles.ctaWrapper}>
+								<StyledButton
+									type={'blue'}
+									onPress={this.onPressCreate}
+									testID={'submit-button'}
+									disabled={!canSubmit}
+								>
+									{strings('choose_password.create_button')}
+								</StyledButton>
+							</View>
 						</KeyboardAwareScrollView>
-						<View style={styles.ctaWrapper}>
-							<StyledButton
-								type={'blue'}
-								onPress={this.onPressCreate}
-								testID={'submit-button'}
-								disabled={!canSubmit}
-							>
-								{strings('choose_password.create_button')}
-							</StyledButton>
-						</View>
 					</View>
 				)}
 			</SafeAreaView>

@@ -204,6 +204,7 @@ const AccountBackupStep1 = props => {
 		if (!metricsOptIn) {
 			props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {
+			props.navigation.navigate('HomeNav');
 			props.navigation.popToTop();
 			props.navigation.goBack(null);
 		} else {
