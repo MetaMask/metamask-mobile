@@ -39,7 +39,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
       style={
         Object {
           "flex": 1,
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
           "fontWeight": "600",
           "textAlign": "center",
@@ -79,7 +79,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
     <Text
       style={
         Object {
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
           "fontWeight": "600",
           "textAlign": "center",

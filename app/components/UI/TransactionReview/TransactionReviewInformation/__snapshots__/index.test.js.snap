@@ -28,7 +28,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           Object {
             "alignSelf": "center",
             "color": "#037dd6",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 12,
             "fontWeight": "600",
             "textAlign": "center",

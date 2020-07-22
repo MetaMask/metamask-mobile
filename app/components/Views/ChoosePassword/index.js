@@ -288,13 +288,17 @@ class ChoosePassword extends PureComponent {
 		// Get props to restore vault
 		const hdKeyring = KeyringController.state.keyrings[0];
 		const existingAccountCount = hdKeyring.accounts.length;
-		const preferencesControllerState = PreferencesController.state;
 		const selectedAddress = this.props.selectedAddress;
+		let preferencesControllerState = PreferencesController.state;
 
 		// Create previous accounts again
 		for (let i = 0; i < existingAccountCount - 1; i++) {
 			await KeyringController.addNewAccount();
 		}
+
+		// Reset preferencesControllerState
+		preferencesControllerState = PreferencesController.state;
+
 		// Set preferencesControllerState again
 		await PreferencesController.update(preferencesControllerState);
 		// Reselect previous selected account if still available

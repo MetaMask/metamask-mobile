@@ -29,7 +29,7 @@ exports[`PersonalSign should render correctly 1`] = `
           Array [
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "textAlign": "center",

@@ -39,7 +39,7 @@ exports[`AddressElement should render correctly 1`] = `
         Object {
           "color": "#000000",
           "flex": 1,
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
         }

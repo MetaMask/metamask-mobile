@@ -56,7 +56,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
               }
@@ -68,7 +68,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
             style={
               Object {
                 "color": "#848c96",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
               }
@@ -112,7 +112,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
           style={
             Object {
               "color": "#037dd6",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 15,
               "fontWeight": "400",
             }
