@@ -172,6 +172,7 @@ workflows:
               only:
                 - master
                 - develop
+                - ios-build-number
       - prep-node-deps:
           filters:
             branches:
