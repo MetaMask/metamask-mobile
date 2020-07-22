@@ -9,7 +9,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginHorizontal: 24
+		marginHorizontal: 24,
+		paddingVertical: 24
 	},
 	feeWrapper: {
 		backgroundColor: colors.grey000,

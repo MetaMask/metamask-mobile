@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
+import { TRANSACTION_TYPES } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	summaryWrapper: {
@@ -70,7 +71,8 @@ export default class TransactionSummary extends PureComponent {
 		totalAmount: PropTypes.string,
 		secondaryTotalAmount: PropTypes.string,
 		gasEstimationReady: PropTypes.bool,
-		onEditPress: PropTypes.func
+		onEditPress: PropTypes.func,
+		transactionType: PropTypes.string
 	};
 
 	renderIfGastEstimationReady = children => {
@@ -86,6 +88,24 @@ export default class TransactionSummary extends PureComponent {
 
 	render = () => {
 		const { amount, fee, totalAmount, secondaryTotalAmount, gasEstimationReady, onEditPress } = this.props;
+		if (
+			this.props.transactionType === TRANSACTION_TYPES.RECEIVED_TOKEN ||
+			this.props.transactionType === TRANSACTION_TYPES.RECEIVED
+		) {
+			return (
+				<View style={styles.summaryWrapper}>
+					<View style={styles.summaryRow}>
+						<Text style={[styles.textSummary, styles.textBold]}>{strings('transaction.amount')}</Text>
+						<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>{amount}</Text>
+					</View>
+					{secondaryTotalAmount && (
+						<View style={styles.totalCryptoRow}>
+							<Text style={[styles.textSummary, styles.textCrypto]}>{secondaryTotalAmount}</Text>
+						</View>
+					)}
+				</View>
+			);
+		}
 		return (
 			<View style={styles.summaryWrapper}>
 				<View style={styles.summaryRow}>

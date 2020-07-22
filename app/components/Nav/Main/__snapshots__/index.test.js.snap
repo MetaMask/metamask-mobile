@@ -275,7 +275,6 @@ exports[`Main should render correctly 1`] = `
           "routes": Array [
             Object {
               "index": 0,
-              "isTransitioning": false,
               "key": "id-123-4",
               "routeName": "Home",
               "routes": Array [
@@ -609,7 +608,6 @@ exports[`Main should render correctly 1`] = `
             "routes": Array [
               Object {
                 "index": 0,
-                "isTransitioning": false,
                 "key": "id-123-4",
                 "routeName": "Home",
                 "routes": Array [
