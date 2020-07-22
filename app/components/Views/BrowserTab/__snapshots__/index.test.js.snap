@@ -106,7 +106,7 @@ exports[`Browser should render correctly 1`] = `
             "backgroundColor": "#f2f3f4",
             "borderRadius": 30,
             "flex": 1,
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "height": 30,
@@ -132,7 +132,7 @@ exports[`Browser should render correctly 1`] = `
           style={
             Object {
               "color": "#037dd6",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
             }
