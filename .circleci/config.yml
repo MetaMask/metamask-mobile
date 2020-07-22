@@ -178,6 +178,7 @@ workflows:
               ignore:
                 - master
                 - develop
+                - ios-build-number
       - lint:
           requires:
             - prep-node-deps
