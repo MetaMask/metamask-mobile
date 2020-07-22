@@ -68,7 +68,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 24,
                 "fontWeight": "600",
                 "marginBottom": 20,
@@ -82,7 +82,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "textAlign": "center",
@@ -109,7 +109,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -122,7 +122,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -165,7 +165,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -178,7 +178,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -223,7 +223,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -236,7 +236,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -285,7 +285,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -298,7 +298,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -339,7 +339,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -352,7 +352,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
