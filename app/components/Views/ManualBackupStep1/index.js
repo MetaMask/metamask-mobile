@@ -1,5 +1,14 @@
 import React, { PureComponent } from 'react';
-import { Text, View, SafeAreaView, StyleSheet, ActivityIndicator, InteractionManager, TextInput } from 'react-native';
+import {
+	Text,
+	View,
+	SafeAreaView,
+	StyleSheet,
+	ActivityIndicator,
+	InteractionManager,
+	TextInput,
+	ScrollView
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -142,7 +151,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 32,
-		marginTop: 10,
+		marginTop: 20,
 		marginBottom: 10,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
@@ -151,6 +160,7 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		marginBottom: 10,
+		marginTop: 20,
 		justifyContent: 'center'
 	},
 	label: {
@@ -162,6 +172,7 @@ const styles = StyleSheet.create({
 	},
 	buttonWrapper: {
 		flex: 1,
+		marginTop: 20,
 		justifyContent: 'flex-end'
 	},
 	input: {
@@ -301,7 +312,7 @@ export default class ManualBackupStep1 extends PureComponent {
 	renderConfirmPassword() {
 		const { warningIncorrectPassword } = this.state;
 		return (
-			<View style={styles.confirmPasswordWrapper}>
+			<ScrollView style={styles.confirmPasswordWrapper}>
 				<View style={[styles.content, styles.passwordRequiredContent]}>
 					<Text style={styles.title}>{strings('manual_backup_step_1.confirm_password')}</Text>
 					<View style={styles.text}>
@@ -330,7 +341,7 @@ export default class ManualBackupStep1 extends PureComponent {
 						{strings('manual_backup_step_1.confirm')}
 					</StyledButton>
 				</View>
-			</View>
+			</ScrollView>
 		);
 	}
 
