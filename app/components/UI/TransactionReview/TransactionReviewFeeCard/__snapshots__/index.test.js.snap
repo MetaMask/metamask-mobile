@@ -57,12 +57,17 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       </Text>
       <Text
         style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 14,
-            "fontWeight": "600",
-          }
+          Array [
+            Object {
+              "color": "#000000",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 14,
+              "fontWeight": "600",
+            },
+            Object {
+              "textTransform": "uppercase",
+            },
+          ]
         }
       />
     </View>

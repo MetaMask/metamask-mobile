@@ -197,7 +197,8 @@ exports[`TransactionDetails should render correctly 1`] = `
           "marginVertical": 8,
         },
         Object {
-          "marginVertical": 24,
+          "marginBottom": 24,
+          "marginTop": 12,
         },
       ]
     }
