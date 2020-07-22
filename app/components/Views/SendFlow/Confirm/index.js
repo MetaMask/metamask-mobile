@@ -200,7 +200,9 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		fontSize: 14,
 		textAlign: 'right',
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
+		flexWrap: 'wrap',
+		flex: 1
 	}
 });
 
