@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Text, View, SafeAreaView, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { Text, View, SafeAreaView, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -171,7 +171,7 @@ class ManualBackupStep3 extends PureComponent {
 				onConfirmPress={this.saveSeedphrase}
 				modalVisible={showHint}
 			>
-				<View style={styles.hintWrapper}>
+				<ScrollView keyboardShouldPersistTaps="handled" style={styles.hintWrapper}>
 					<View style={styles.hintHeader}>
 						<Text style={styles.recovery}>{strings('manual_backup_step_3.recovery_hint')}</Text>
 						<TouchableOpacity onPress={this.toggleHint}>
@@ -188,7 +188,7 @@ class ManualBackupStep3 extends PureComponent {
 						multiline
 						textAlignVertical={'top'}
 					/>
-				</View>
+				</ScrollView>
 			</ActionModal>
 		);
 	};
