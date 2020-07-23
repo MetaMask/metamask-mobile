@@ -38,7 +38,7 @@ export function generateETHLink(receiverAddress, value, chainId) {
 		chain_id: chainId,
 		function_name: undefined,
 		parameters: {
-			value: value + 'e18'
+			value
 		},
 		scheme: 'ethereum',
 		target_address: receiverAddress
