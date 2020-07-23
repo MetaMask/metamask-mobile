@@ -13,7 +13,7 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import ActionModal from '../../UI/ActionModal';
 import Device from '../../../util/Device';
 import Icon from 'react-native-vector-icons/Octicons';
-import ConfettiCannon from 'react-native-confetti-cannon';
+import Confetti from '../../UI/Confetti';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({
@@ -197,7 +197,7 @@ class ManualBackupStep3 extends PureComponent {
 		return (
 			<>
 				<SafeAreaView style={styles.mainWrapper}>
-					<ConfettiCannon fadeOut count={300} origin={{ x: Device.getDeviceWidth() / 2, y: 0 }} />
+					<Confetti />
 					<View style={styles.onBoardingWrapper}>
 						<OnboardingProgress currentStep={this.state.currentStep} steps={this.steps} />
 					</View>
