@@ -13,5 +13,3 @@ shallow_clone true
 force_for_new_devices true
 readonly false
 force true
-skip_waiting_for_build_processing true
-apple_id mobile.admin@metamask.io

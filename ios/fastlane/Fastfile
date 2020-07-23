@@ -31,7 +31,7 @@ platform :ios do
 			output_name: "MetaMask"
 		)
 		upload_to_testflight(
-	  		distribute_external: false,
+	 		distribute_external: false,
 			skip_waiting_for_build_processing: true
 		)
 
@@ -51,7 +51,7 @@ platform :ios do
 			output_name: "MetaMask"
 		)
 		upload_to_testflight(
-	  		distribute_external: false,
+	 		distribute_external: false,
 			skip_waiting_for_build_processing: true
 		)
 
