@@ -99,15 +99,23 @@ class Entry extends PureComponent {
 		}
 	}
 
-	handleDeeplinks = ({ error, params, uri }) => {
+	handleDeeplinks = async ({ error, params, uri }) => {
+		console.log('handleDeeplinks');
+
+		// check if wallet created
 		if (error) {
 			Logger.error(error, 'Error from Branch');
+			console.log('handleDeeplinks');
 			return;
 		}
-		if (params['+non_branch_link']) {
-			DeeplinkManager.parse(params['+non_branch_link']);
-		} else if (uri) {
-			DeeplinkManager.parse(uri);
+
+		let deeplink = null;
+		if (params['+non_branch_link']) deeplink = params['+non_branch_link'];
+		else if (uri) deeplink = uri;
+		if (deeplink) {
+			const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
+			console.log('deeplinkdeeplink', deeplink, existingUser);
+			!existingUser ? DeeplinkManager.setDeeplink(deeplink) : DeeplinkManager.parse(deeplink);
 		}
 	};
 
