@@ -19,7 +19,7 @@ import Logger from '../../../util/Logger';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
-import { passwordSet, passwordUnset } from '../../../actions/user';
+import { passwordSet, passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -210,7 +210,11 @@ class ChoosePassword extends PureComponent {
 		/**
 		 * A string representing the selected address => account
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Action to reset the flag seedphraseBackedUp in redux
+		 */
+		seedphraseNotBackedUp: PropTypes.func
 	};
 
 	state = {
@@ -289,6 +293,7 @@ class ChoosePassword extends PureComponent {
 			}
 
 			await this.createNewVaultAndKeychain(password);
+			this.props.seedphraseNotBackedUp();
 			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 
@@ -602,7 +607,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	passwordSet: () => dispatch(passwordSet()),
 	passwordUnset: () => dispatch(passwordUnset()),
-	setLockTime: time => dispatch(setLockTime(time))
+	setLockTime: time => dispatch(setLockTime(time)),
+	seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp())
 });
 
 export default connect(
