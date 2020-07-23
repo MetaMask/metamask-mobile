@@ -27,7 +27,8 @@ import {
 	isDecimal,
 	fiatNumberToTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
-	fromTokenMinimalUnit
+	fromTokenMinimalUnit,
+	toTokenMinimalUnit
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -540,9 +541,11 @@ class PaymentRequest extends PureComponent {
 		try {
 			let eth_link;
 			if (selectedAsset.isETH) {
-				eth_link = generateETHLink(selectedAddress, cryptoAmount, chainId);
+				const amount = toWei(cryptoAmount).toString();
+				eth_link = generateETHLink(selectedAddress, amount, chainId);
 			} else {
-				eth_link = generateERC20Link(selectedAddress, selectedAsset.address, cryptoAmount, chainId);
+				const amount = toTokenMinimalUnit(cryptoAmount, selectedAsset.decimals).toString();
+				eth_link = generateERC20Link(selectedAddress, selectedAsset.address, amount, chainId);
 			}
 
 			// Convert to universal link / app link
