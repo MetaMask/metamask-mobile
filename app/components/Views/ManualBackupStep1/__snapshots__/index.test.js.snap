@@ -17,7 +17,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
     }
   >
     <OnboardingProgress
-      currentStep={2}
+      currentStep={1}
       steps={
         Array [
           "Create Password",
@@ -53,6 +53,44 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
       }
       viewIsInsideTabBar={false}
     >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "CircularStd-Medium",
+            "fontSize": 18,
+            "fontWeight": "600",
+            "justifyContent": "center",
+            "marginVertical": 16,
+            "textAlign": "center",
+          }
+        }
+      >
+        Write down your seed phrase
+      </Text>
+      <View
+        style={
+          Object {
+            "justifyContent": "center",
+            "marginBottom": 16,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "CircularStd-Medium",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "paddingHorizontal": 6,
+              "textAlign": "center",
+            }
+          }
+        >
+          This is your seed phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.
+        </Text>
+      </View>
       <View
         style={
           Object {

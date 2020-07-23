@@ -144,7 +144,21 @@ class Login extends PureComponent {
 			if (previouslyDisabled && previouslyDisabled === 'true') {
 				enabled = false;
 			}
-			this.setState({ biometryType, biometryChoice: enabled, biometryPreviouslyDisabled: !!previouslyDisabled });
+
+			this.setState({
+				biometryType,
+				biometryChoice: enabled,
+				biometryPreviouslyDisabled: !!previouslyDisabled
+			});
+
+			try {
+				if (enabled && !previouslyDisabled) {
+					const hasCredentials = await this.tryBiometric();
+					this.setState({ hasCredentials });
+				}
+			} catch (e) {
+				console.warn(e);
+			}
 		}
 	}
 
@@ -281,6 +295,7 @@ class Login extends PureComponent {
 		field.blur();
 		try {
 			const credentials = await SecureKeychain.getGenericPassword();
+			if (!credentials) return false;
 			field.blur();
 			this.setState({ password: credentials.password });
 			field.setValue(credentials.password);
@@ -290,6 +305,7 @@ class Login extends PureComponent {
 			console.warn(error);
 		}
 		field.blur();
+		return true;
 	};
 
 	render = () => (
@@ -325,7 +341,13 @@ class Login extends PureComponent {
 							renderRightAccessory={() => (
 								<BiometryButton
 									onPress={this.tryBiometric}
-									hidden={!(this.state.biometryChoice && this.state.biometryType)}
+									hidden={
+										!(
+											this.state.biometryChoice &&
+											this.state.biometryType &&
+											this.state.hasCredentials
+										)
+									}
 									type={this.state.biometryType}
 								/>
 							)}

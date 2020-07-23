@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 	},
 	action: {
 		fontSize: 18,
-		marginBottom: 16,
+		marginVertical: 16,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 32,
-		marginTop: 10,
+		marginTop: 20,
 		marginBottom: 10,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
@@ -161,6 +161,7 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		marginBottom: 10,
+		marginTop: 20,
 		justifyContent: 'center'
 	},
 	label: {
@@ -172,6 +173,7 @@ const styles = StyleSheet.create({
 	},
 	buttonWrapper: {
 		flex: 1,
+		marginTop: 20,
 		justifyContent: 'flex-end'
 	},
 	input: {
@@ -220,7 +222,7 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	state = {
 		seedPhraseHidden: true,
-		currentStep: 2,
+		currentStep: 1,
 		password: undefined,
 		warningIncorrectPassword: undefined,
 		ready: false,

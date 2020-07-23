@@ -682,7 +682,7 @@
 	"sync_with_extension_success": {
 		"title": "Billetera importada",
 		"sync_complete_1": "Solo recuerda, MetaMask no puede recuperar tu frase semilla si la pierdes. Puedes encontrar la frase semilla en",
-		"sync_complete_2": "configuración > seguridad y privacidad",
+		"sync_complete_2": "Configuración > Seguridad y Privacidad",
 		"button_continue": "Listo",
 		"password_tip": "La contraseña para desbloquear tu billetera es la misma que configuraste para la extensión",
 		"learn_more": "Más información"

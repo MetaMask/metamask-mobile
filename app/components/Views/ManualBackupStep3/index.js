@@ -135,6 +135,7 @@ class ManualBackupStep3 extends PureComponent {
 		});
 
 	saveSeedphrase = async () => {
+		if (!this.state.hintText) return;
 		this.toggleHint();
 		const currentSeedphraseHints = await AsyncStorage.getItem('seedphraseHints');
 		const parsedHints = JSON.parse(currentSeedphraseHints);

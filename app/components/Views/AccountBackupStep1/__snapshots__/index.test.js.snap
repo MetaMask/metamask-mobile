@@ -35,7 +35,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
       testID="protect-your-account-screen"
     >
       <OnboardingProgress
-        currentStep={2}
+        currentStep={1}
         steps={
           Array [
             "Create password",

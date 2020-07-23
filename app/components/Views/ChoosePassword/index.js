@@ -259,6 +259,13 @@ class ChoosePassword extends PureComponent {
 		this.setState(() => ({ isSelected: !isSelected }));
 	};
 
+	createNewVaultAndKeychain = async password => {
+		const { KeyringController } = Engine.context;
+		await Engine.resetState();
+		await KeyringController.createNewVaultAndKeychain(password);
+		this.keyringControllerPasswordSet = true;
+	};
+
 	onPressCreate = async () => {
 		const { loading, isSelected, password, confirmPassword } = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
@@ -277,18 +284,13 @@ class ChoosePassword extends PureComponent {
 			this.setState({ loading: true });
 
 			const existing = await AsyncStorage.getItem('@MetaMask:existingUser');
-			if (!existing) {
-				// if user does not exist createNewVaultAndKeychain with password
-				const { KeyringController } = Engine.context;
-				await Engine.resetState();
-				await KeyringController.createNewVaultAndKeychain(password);
-				this.keyringControllerPasswordSet = true;
-				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
-				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
-			} else {
-				// else recreateVault with password like we did previously
-				await this.recreateVault(password);
+			if (existing) {
+				// TODO: prompt user with same <ActionModal /> we're using for ScanQR warning
 			}
+
+			await this.createNewVaultAndKeychain(password);
+			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
+			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 
 			// Set state in app as it was with password
 			if (this.state.biometryType && this.state.biometryChoice) {
@@ -570,17 +572,18 @@ class ChoosePassword extends PureComponent {
 
 								{!!error && <Text style={styles.errorMsg}>{error}</Text>}
 							</View>
+
+							<View style={styles.ctaWrapper}>
+								<StyledButton
+									type={'blue'}
+									onPress={this.onPressCreate}
+									testID={'submit-button'}
+									disabled={!canSubmit}
+								>
+									{strings('choose_password.create_button')}
+								</StyledButton>
+							</View>
 						</KeyboardAwareScrollView>
-						<View style={styles.ctaWrapper}>
-							<StyledButton
-								type={'blue'}
-								onPress={this.onPressCreate}
-								testID={'submit-button'}
-								disabled={!canSubmit}
-							>
-								{strings('choose_password.create_button')}
-							</StyledButton>
-						</View>
 					</View>
 				)}
 			</SafeAreaView>
