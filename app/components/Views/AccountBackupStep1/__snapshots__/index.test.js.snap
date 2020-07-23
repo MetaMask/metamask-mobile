@@ -57,7 +57,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
               "fontWeight": "600",
               "marginBottom": 40,
@@ -94,7 +94,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "lineHeight": 20,
@@ -120,7 +120,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Bold",
                   "fontWeight": "600",
                 }
               }
@@ -166,7 +166,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "color": "#037dd6",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 15,
                   "fontWeight": "400",
                   "lineHeight": 20,
@@ -181,7 +181,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             style={
               Object {
                 "color": "#5B5D67",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 11,
                 "fontWeight": "400",
                 "lineHeight": 20,
@@ -220,7 +220,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             style={
               Object {
                 "color": "#5B5D67",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 11,
                 "fontWeight": "400",
                 "marginTop": 12,
@@ -310,7 +310,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 24,
             "fontWeight": "600",
             "marginBottom": 16,

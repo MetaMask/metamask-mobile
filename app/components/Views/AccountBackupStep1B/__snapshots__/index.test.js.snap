@@ -65,7 +65,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
               "fontWeight": "600",
               "justifyContent": "center",
@@ -89,7 +89,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "lineHeight": 20,
@@ -169,7 +169,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
               "fontWeight": "600",
               "lineHeight": 17,
@@ -422,7 +422,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
               "textAlign": "center",
@@ -498,7 +498,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           <Text
             style={
               Object {
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontWeight": "600",
                 "lineHeight": 25,
               }
@@ -522,7 +522,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             style={
               Object {
                 "color": "#037dd6",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 15,
                 "fontWeight": "400",
                 "lineHeight": 20,

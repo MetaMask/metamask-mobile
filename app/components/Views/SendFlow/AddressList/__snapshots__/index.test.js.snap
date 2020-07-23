@@ -32,7 +32,7 @@ exports[`AddressList should render correctly 1`] = `
           Array [
             Object {
               "color": "#037dd6",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
               "textAlign": "center",

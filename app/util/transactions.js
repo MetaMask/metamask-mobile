@@ -1,10 +1,13 @@
-import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
+import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
+import { hexToBN } from './number';
+import AppConstants from '../core/AppConstants';
+const { SAI_ADDRESS } = AppConstants;
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -26,6 +29,21 @@ export const TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
 export const APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
 export const CONNEXT_DEPOSIT = '0xea682e37';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
+
+export const TRANSACTION_TYPES = {
+	PAYMENT_CHANNEL_DEPOSIT: 'payment_channel_deposit',
+	PAYMENT_CHANNEL_WITHDRAW: 'payment_channel_withdraw',
+	PAYMENT_CHANNEL_SENT: 'payment_channel_sent',
+	PAYMENT_CHANNEL_RECEIVED: 'payment_channel_received',
+	SENT: 'transaction_sent',
+	SENT_TOKEN: 'transaction_sent_token',
+	SENT_COLLECTIBLE: 'transaction_sent_collectible',
+	RECEIVED: 'transaction_received',
+	RECEIVED_TOKEN: 'transaction_received_token',
+	RECEIVED_COLLECTIBLE: 'transaction_received_collectible',
+	SITE_INTERACTION: 'transaction_site_interaction',
+	APPROVE: 'transaction_approve'
+};
 
 /**
  * Utility class with the single responsibility
@@ -264,7 +282,16 @@ export async function getTransactionActionKey(transaction) {
  * @returns {string} - Transaction type message
  */
 export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction) {
+	if (tx.isTransfer) {
+		const selfSent = safeToChecksumAddress(tx.transaction.from) === selectedAddress;
+		const translationKey = selfSent ? 'transactions.self_sent_unit' : 'transactions.received_unit';
+		// Third party sending wrong token symbol
+		if (tx.transferInformation.contractAddress === SAI_ADDRESS.toLowerCase()) tx.transferInformation.symbol = 'SAI';
+		return strings(translationKey, { unit: tx.transferInformation.symbol });
+	}
+
 	const actionKey = await getTransactionActionKey(tx);
+
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		ticker = paymentChannelTransaction ? strings('unit.sai') : ticker;
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
@@ -282,9 +309,11 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 			: strings('transactions.sent_ether');
 	}
 	const transactionActionKey = actionKeys[actionKey];
+
 	if (transactionActionKey) {
 		return transactionActionKey;
 	}
+
 	return actionKey;
 }
 
@@ -355,6 +384,30 @@ export function getTransactionToName({ addressBook, network, toAddress, identiti
 		(identities[checksummedToAddress] && identities[checksummedToAddress].name);
 
 	return transactionToName;
+}
+
+/**
+ * Validate transaction value for speed up or cancel transaction actions
+ *
+ * @param {object} transaction - Transaction object to validate
+ * @param {string} rate - Rate to validate
+ * @param {string} accounts - Map of accounts to information objects including balances
+ * @returns {string} - Whether the balance is validated or not
+ */
+export function validateTransactionActionBalance(transaction, rate, accounts) {
+	try {
+		const checksummedFrom = safeToChecksumAddress(transaction.transaction.from);
+		const balance = accounts[checksummedFrom].balance;
+		return hexToBN(balance).lt(
+			hexToBN(transaction.transaction.gasPrice)
+				.mul(new BN(rate * 10))
+				.div(new BN(10))
+				.mul(hexToBN(transaction.transaction.gas))
+				.add(hexToBN(transaction.transaction.value))
+		);
+	} catch (e) {
+		return false;
+	}
 }
 
 export function getNormalizedTxState(state) {

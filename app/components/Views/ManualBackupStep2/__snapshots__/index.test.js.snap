@@ -52,7 +52,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "600",
             "justifyContent": "center",
@@ -75,7 +75,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
               "paddingHorizontal": 6,
