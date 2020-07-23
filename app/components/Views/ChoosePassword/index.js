@@ -1,21 +1,9 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-	Switch,
-	ActivityIndicator,
-	Alert,
-	Text,
-	View,
-	TextInput,
-	SafeAreaView,
-	StyleSheet,
-	Linking,
-	Image
-} from 'react-native';
+import { Switch, ActivityIndicator, Alert, Text, View, TextInput, SafeAreaView, StyleSheet, Image } from 'react-native';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import AnimatedFox from 'react-native-animated-fox';
-import Logger from '../../../util/Logger';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
@@ -471,9 +459,9 @@ class ChoosePassword extends PureComponent {
 	};
 
 	learnMore = () => {
-		const URL = 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-';
-		return Linking.openURL(URL).catch(error => {
-			Logger.log('Error while trying to open external link: ${url}', error);
+		this.props.navigation.push('Webview', {
+			url: 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-',
+			title: 'metamask.zendesk.com'
 		});
 	};
 
