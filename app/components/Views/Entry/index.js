@@ -100,12 +100,10 @@ class Entry extends PureComponent {
 	}
 
 	handleDeeplinks = async ({ error, params, uri }) => {
-		// check if wallet created
 		if (error) {
 			Logger.error(error, 'Error from Branch');
 			return;
 		}
-
 		const deeplink = params['+non_branch_link'] || uri || null;
 		if (deeplink) {
 			const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
