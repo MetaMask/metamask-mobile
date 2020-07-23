@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Confetti should render correctly 1`] = `
+<Explosion
+  count={300}
+  fadeOut={true}
+  origin={
+    Object {
+      "x": 375,
+      "y": 0,
+    }
+  }
+/>
+`;

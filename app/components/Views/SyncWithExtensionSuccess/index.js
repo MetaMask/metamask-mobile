@@ -10,10 +10,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
-import Device from '../../../util/Device';
-import ConfettiCannon from 'react-native-confetti-cannon';
-
-const ORIGIN = { x: Device.getDeviceWidth() / 2, y: 0 };
+import Confetti from '../../UI/Confetti';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -145,7 +142,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 
 	render = () => (
 		<SafeAreaView style={styles.mainWrapper}>
-			<ConfettiCannon fadeOut count={300} origin={ORIGIN} />
+			<Confetti />
 			<ScrollView contentContainerStyle={styles.wrapper} testID={'sync-with-extension-screen'}>
 				<Animated.View
 					style={[
