@@ -106,9 +106,7 @@ class Entry extends PureComponent {
 			return;
 		}
 
-		let deeplink = null;
-		if (params['+non_branch_link']) deeplink = params['+non_branch_link'];
-		else if (uri) deeplink = uri;
+		const deeplink = params['+non_branch_link'] || uri || null;
 		if (deeplink) {
 			const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 			!existingUser ? DeeplinkManager.setDeeplink(deeplink) : DeeplinkManager.parse(deeplink);
