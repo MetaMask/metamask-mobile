@@ -352,34 +352,34 @@ exports[`ChoosePassword should render correctly 1`] = `
           </Text>
         </View>
       </View>
-    </KeyboardAwareScrollViewMock>
-    <View
-      style={
-        Object {
-          "marginTop": 20,
-          "paddingHorizontal": 10,
-        }
-      }
-    >
-      <StyledButton
-        disabled={true}
-        disabledContainerStyle={
+      <View
+        style={
           Object {
-            "opacity": 0.6,
+            "marginTop": 20,
+            "paddingHorizontal": 10,
           }
         }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        testID="submit-button"
-        type="blue"
       >
-        NEXT
-      </StyledButton>
-    </View>
+        <StyledButton
+          disabled={true}
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID="submit-button"
+          type="blue"
+        >
+          NEXT
+        </StyledButton>
+      </View>
+    </KeyboardAwareScrollViewMock>
   </View>
 </ForwardRef(SafeAreaView)>
 `;

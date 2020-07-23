@@ -7,10 +7,10 @@ import {
 	ActivityIndicator,
 	InteractionManager,
 	TextInput,
-	ScrollView
+	KeyboardAvoidingView
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
@@ -22,6 +22,7 @@ import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -187,6 +188,11 @@ const styles = StyleSheet.create({
 		paddingVertical: 10,
 		color: colors.red,
 		...fontStyles.normal
+	},
+	keyboardAvoidingView: {
+		flex: 1,
+		flexDirection: 'row',
+		alignSelf: 'center'
 	}
 });
 
@@ -312,36 +318,40 @@ export default class ManualBackupStep1 extends PureComponent {
 	renderConfirmPassword() {
 		const { warningIncorrectPassword } = this.state;
 		return (
-			<ScrollView style={styles.confirmPasswordWrapper}>
-				<View style={[styles.content, styles.passwordRequiredContent]}>
-					<Text style={styles.title}>{strings('manual_backup_step_1.confirm_password')}</Text>
-					<View style={styles.text}>
-						<Text style={styles.label}>{strings('manual_backup_step_1.before_continiuing')}</Text>
+			<KeyboardAvoidingView style={styles.keyboardAvoidingView} behavior={'padding'}>
+				<KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
+					<View style={styles.confirmPasswordWrapper}>
+						<View style={[styles.content, styles.passwordRequiredContent]}>
+							<Text style={styles.title}>{strings('manual_backup_step_1.confirm_password')}</Text>
+							<View style={styles.text}>
+								<Text style={styles.label}>{strings('manual_backup_step_1.before_continiuing')}</Text>
+							</View>
+							<TextInput
+								style={styles.input}
+								placeholder={'Password'}
+								placeholderTextColor={colors.grey100}
+								onChangeText={this.onPasswordChange}
+								secureTextEntry
+								onSubmitEditing={this.tryUnlock}
+								testID={'private-credential-password-text-input'}
+							/>
+							{warningIncorrectPassword && (
+								<Text style={styles.warningMessageText}>{warningIncorrectPassword}</Text>
+							)}
+						</View>
+						<View style={styles.buttonWrapper}>
+							<StyledButton
+								containerStyle={styles.button}
+								type={'confirm'}
+								onPress={this.tryUnlock}
+								testID={'submit-button'}
+							>
+								{strings('manual_backup_step_1.confirm')}
+							</StyledButton>
+						</View>
 					</View>
-					<TextInput
-						style={styles.input}
-						placeholder={'Password'}
-						placeholderTextColor={colors.grey100}
-						onChangeText={this.onPasswordChange}
-						secureTextEntry
-						onSubmitEditing={this.tryUnlock}
-						testID={'private-credential-password-text-input'}
-					/>
-					{warningIncorrectPassword && (
-						<Text style={styles.warningMessageText}>{warningIncorrectPassword}</Text>
-					)}
-				</View>
-				<View style={styles.buttonWrapper}>
-					<StyledButton
-						containerStyle={styles.button}
-						type={'confirm'}
-						onPress={this.tryUnlock}
-						testID={'submit-button'}
-					>
-						{strings('manual_backup_step_1.confirm')}
-					</StyledButton>
-				</View>
-			</ScrollView>
+				</KeyboardAwareScrollView>
+			</KeyboardAvoidingView>
 		);
 	}
 
