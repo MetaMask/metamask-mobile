@@ -65,7 +65,7 @@ function OrderDetails({ order: { ...order }, closeModal }) {
 						</DetailsModal.Column>
 					</DetailsModal.Section>
 				)}
-				{order.amount != null && order.fee != null && (
+				{Number.isFinite(order.amount) && Number.isFinite(order.fee) && (
 					<Summary style={styles.summary}>
 						<Summary.Row>
 							<Text primary small>
