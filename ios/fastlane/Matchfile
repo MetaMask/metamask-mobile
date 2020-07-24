@@ -1,4 +1,4 @@
-git_url("https://github.com/MetaMask/ios-app-certs")
+git_url("git@github.com:MetaMask/ios-app-certs.git")
 
 type("development") # The default type, can be: appstore, adhoc, enterprise or development
 
