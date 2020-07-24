@@ -102,7 +102,7 @@ const onboarding_carousel_2 = require('../../../images/onboarding-carousel-2.png
 const onboarding_carousel_3 = require('../../../images/onboarding-carousel-3.png'); // eslint-disable-line
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
-const carousel_items = [onboarding_carousel_1, onboarding_carousel_2, onboarding_carousel_3];
+const carousel_images = [onboarding_carousel_1, onboarding_carousel_2, onboarding_carousel_3];
 
 /**
  * View that is displayed to first time (new) users
@@ -151,7 +151,7 @@ export default class OnboardingCarousel extends PureComponent {
 									return (
 										<View key={key} style={baseStyles.flexGrow}>
 											<View style={styles.tab}>
-												<Text style={styles.title} testID={'carousel-screen-one'}>
+												<Text style={styles.title} testID={`carousel-screen-${value}`}>
 													{strings(`onboarding_carousel.title${key}`)}
 												</Text>
 												<Text style={styles.subtitle}>
@@ -160,10 +160,10 @@ export default class OnboardingCarousel extends PureComponent {
 											</View>
 											<View style={styles.carouselImageWrapper}>
 												<Image
-													source={carousel_items[index]}
+													source={carousel_images[index]}
 													style={[styles.carouselImage, styles[imgStyleKey]]}
 													resizeMethod={'auto'}
-													testID={'carousel-one-image'}
+													testID={`carousel-${value}-image`}
 												/>
 											</View>
 										</View>
