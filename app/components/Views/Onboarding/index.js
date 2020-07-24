@@ -117,15 +117,14 @@ const styles = StyleSheet.create({
 	},
 	stepsWrapper: {
 		paddingHorizontal: 40,
-		paddingVertical: 30
+		paddingVertical: 30,
+		display: 'flex'
 	},
 	column: {
-		flexDirection: 'column',
-		alignItems: 'flex-start'
+		flexDirection: 'column'
 	},
 	row: {
 		flexDirection: 'row',
-		alignItems: 'flex-start',
 		flexWrap: 'wrap',
 		flex: 1
 	},
