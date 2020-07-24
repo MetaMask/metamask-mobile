@@ -34,7 +34,8 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		alignItems: 'center'
+		alignItems: 'center',
+		paddingVertical: 30
 	},
 	modalWrapper: {
 		flexGrow: 1,
