@@ -100,8 +100,7 @@ const styles = StyleSheet.create({
 	},
 	step: {
 		fontSize: 16,
-		color: colors.fontPrimary,
-		fontWeight: 'normal'
+		color: colors.fontPrimary
 	},
 	loader: {
 		marginTop: 180,
