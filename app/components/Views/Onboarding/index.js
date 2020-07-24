@@ -100,9 +100,9 @@ const styles = StyleSheet.create({
 	},
 	steps: {},
 	step: {
+		...fontStyles.normal,
 		fontSize: 16,
 		color: colors.fontPrimary,
-		fontWeight: 'normal',
 		lineHeight: 32
 	},
 	loader: {
