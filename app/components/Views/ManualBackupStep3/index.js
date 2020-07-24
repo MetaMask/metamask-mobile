@@ -1,5 +1,14 @@
 import React, { PureComponent } from 'react';
-import { Text, View, SafeAreaView, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import {
+	Text,
+	View,
+	SafeAreaView,
+	StyleSheet,
+	Keyboard,
+	TouchableOpacity,
+	TouchableWithoutFeedback,
+	TextInput
+} from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -170,71 +179,70 @@ class ManualBackupStep3 extends PureComponent {
 				onCancelPress={this.toggleHint}
 				onConfirmPress={this.saveSeedphrase}
 				modalVisible={showHint}
+				onRequestClose={Keyboard.dismiss}
 			>
-				<ScrollView keyboardShouldPersistTaps="handled" style={styles.hintWrapper}>
-					<View style={styles.hintHeader}>
-						<Text style={styles.recovery}>{strings('manual_backup_step_3.recovery_hint')}</Text>
-						<TouchableOpacity onPress={this.toggleHint}>
-							<Icon name="x" size={16} />
-						</TouchableOpacity>
+				<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+					<View style={styles.hintWrapper}>
+						<View style={styles.hintHeader}>
+							<Text style={styles.recovery}>{strings('manual_backup_step_3.recovery_hint')}</Text>
+							<TouchableOpacity onPress={this.toggleHint}>
+								<Icon name="x" size={16} />
+							</TouchableOpacity>
+						</View>
+						<Text style={styles.leaveHint}>{strings('manual_backup_step_3.leave_hint')}</Text>
+						<Text style={styles.noSeedphrase}>{strings('manual_backup_step_3.no_seedphrase')}</Text>
+						<TextInput
+							style={styles.hintInput}
+							value={hintText}
+							placeholder={strings('manual_backup_step_3.example')}
+							onChangeText={this.handleChangeText}
+							multiline
+							textAlignVertical={'top'}
+						/>
 					</View>
-					<Text style={styles.leaveHint}>{strings('manual_backup_step_3.leave_hint')}</Text>
-					<Text style={styles.noSeedphrase}>{strings('manual_backup_step_3.no_seedphrase')}</Text>
-					<TextInput
-						style={styles.hintInput}
-						value={hintText}
-						placeholder={strings('manual_backup_step_3.example')}
-						onChangeText={this.handleChangeText}
-						multiline
-						textAlignVertical={'top'}
-					/>
-				</ScrollView>
+				</TouchableWithoutFeedback>
 			</ActionModal>
 		);
 	};
 
 	render() {
 		return (
-			<>
-				<SafeAreaView style={styles.mainWrapper}>
-					<Confetti />
-					<View style={styles.onBoardingWrapper}>
-						<OnboardingProgress currentStep={this.state.currentStep} steps={this.steps} />
+			<SafeAreaView style={styles.mainWrapper}>
+				<Confetti />
+				<View style={styles.onBoardingWrapper}>
+					<OnboardingProgress currentStep={this.state.currentStep} steps={this.steps} />
+				</View>
+				<ActionView
+					confirmTestID={'manual-backup-step-3-done-button'}
+					confirmText={strings('manual_backup_step_3.done')}
+					onConfirmPress={this.done}
+					showCancelButton={false}
+					confirmButtonMode={'confirm'}
+				>
+					<View style={styles.wrapper}>
+						<Emoji name="tada" style={styles.emoji} />
+						<Text style={styles.congratulations}>{strings('manual_backup_step_3.congratulations')}</Text>
+						<Text style={[styles.baseText, styles.successText]}>
+							{strings('manual_backup_step_3.success')}
+						</Text>
+						<TouchableOpacity onPress={this.toggleHint}>
+							<Text style={[styles.baseText, styles.hintText]}>
+								{strings('manual_backup_step_3.hint')}
+							</Text>
+						</TouchableOpacity>
+						<Text style={[styles.baseText, styles.recoverText]}>
+							{strings('manual_backup_step_3.recover')}
+						</Text>
+						<TouchableOpacity onPress={this.learnMore}>
+							<Text style={[styles.baseText, styles.learnText]}>
+								{strings('manual_backup_step_3.learn')}
+							</Text>
+						</TouchableOpacity>
 					</View>
-					<ActionView
-						confirmTestID={'manual-backup-step-3-done-button'}
-						confirmText={strings('manual_backup_step_3.done')}
-						onConfirmPress={this.done}
-						showCancelButton={false}
-						confirmButtonMode={'confirm'}
-					>
-						<View style={styles.wrapper}>
-							<Emoji name="tada" style={styles.emoji} />
-							<Text style={styles.congratulations}>
-								{strings('manual_backup_step_3.congratulations')}
-							</Text>
-							<Text style={[styles.baseText, styles.successText]}>
-								{strings('manual_backup_step_3.success')}
-							</Text>
-							<TouchableOpacity onPress={this.toggleHint}>
-								<Text style={[styles.baseText, styles.hintText]}>
-									{strings('manual_backup_step_3.hint')}
-								</Text>
-							</TouchableOpacity>
-							<Text style={[styles.baseText, styles.recoverText]}>
-								{strings('manual_backup_step_3.recover')}
-							</Text>
-							<TouchableOpacity onPress={this.learnMore}>
-								<Text style={[styles.baseText, styles.learnText]}>
-									{strings('manual_backup_step_3.learn')}
-								</Text>
-							</TouchableOpacity>
-						</View>
-					</ActionView>
-					{Device.isAndroid() && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
-				</SafeAreaView>
+				</ActionView>
+				{Device.isAndroid() && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
 				{this.renderHint()}
-			</>
+			</SafeAreaView>
 		);
 	}
 }
