@@ -506,7 +506,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             style={
               Object {
                 "color": "#FFFFFF",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "bold",
                 "lineHeight": 22,
