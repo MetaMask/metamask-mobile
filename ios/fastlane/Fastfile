@@ -32,7 +32,8 @@ platform :ios do
 		)
 		upload_to_testflight(
 	 		distribute_external: false,
-			skip_waiting_for_build_processing: true
+			skip_waiting_for_build_processing: true,
+      apple_id: "mobile.admin@metamask.io"
 		)
 
 	end
@@ -52,7 +53,8 @@ platform :ios do
 		)
 		upload_to_testflight(
 	 		distribute_external: false,
-			skip_waiting_for_build_processing: true
+			skip_waiting_for_build_processing: true,
+      apple_id: "mobile.admin@metamask.io"
 		)
 
 	end
