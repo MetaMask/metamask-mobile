@@ -4,3 +4,4 @@
 
 app_identifier("io.metamask.MetaMask") # The bundle identifier of your app
 apple_id("mobile.admin@metamask.io") # Your Apple email address
+skip_waiting_for_build_processing true
