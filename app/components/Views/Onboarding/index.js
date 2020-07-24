@@ -399,6 +399,7 @@ class Onboarding extends PureComponent {
 	};
 
 	showQrCode = () => {
+		this.toggleQrCodeModal();
 		this.props.navigation.push('QRScanner', {
 			onStartScan: async data => {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
