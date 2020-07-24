@@ -114,6 +114,23 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.fontPrimary,
 		...fontStyles.normal
+	},
+	column: {
+		flexDirection: 'column',
+		alignItems: 'flex-start',
+		width: 200
+	},
+	row: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		flexWrap: 'wrap',
+		flex: 1
+	},
+	bullet: {
+		width: 20
+	},
+	bulletText: {
+		flex: 1
 	}
 });
 
@@ -558,11 +575,17 @@ class Onboarding extends PureComponent {
 				>
 					<View style={styles.wrapper}>
 						<Text style={styles.scanTitle}>{strings('onboarding.scan_title')}</Text>
-						<View style={styles.steps}>
-							<Text style={styles.step}>{strings('onboarding.scan_step_1')}</Text>
-							<Text style={styles.step}>{strings('onboarding.scan_step_2')}</Text>
-							<Text style={styles.step}>{strings('onboarding.scan_step_3')}</Text>
-							<Text style={styles.step}>{strings('onboarding.scan_step_4')}</Text>
+						<View style={styles.column}>
+							{[1, 2, 3, 4].map(val => (
+								<View key={val} style={[styles.row, styles.steps]}>
+									<View style={styles.bullet}>
+										<Text style={styles.step}>{val}.</Text>
+									</View>
+									<View style={styles.bulletText}>
+										<Text style={styles.step}>{strings(`onboarding.scan_step_${val}`)}</Text>
+									</View>
+								</View>
+							))}
 						</View>
 					</View>
 				</ActionModal>
