@@ -38,7 +38,7 @@ exports[`ContactForm should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -66,7 +66,7 @@ exports[`ContactForm should render correctly 1`] = `
               "borderWidth": 2,
               "flex": 1,
               "flexDirection": "row",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
               "padding": 10,
@@ -81,7 +81,7 @@ exports[`ContactForm should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -100,7 +100,7 @@ exports[`ContactForm should render correctly 1`] = `
               "borderWidth": 2,
               "flex": 1,
               "flexDirection": "row",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
               "padding": 10,
@@ -131,7 +131,7 @@ exports[`ContactForm should render correctly 1`] = `
               Array [
                 Object {
                   "color": "#000000",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontWeight": "400",
                   "padding": 0,
                   "paddingRight": 8,
@@ -168,7 +168,7 @@ exports[`ContactForm should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 14,
             "fontWeight": "600",
             "paddingVertical": 12,
@@ -187,7 +187,7 @@ exports[`ContactForm should render correctly 1`] = `
               "borderWidth": 2,
               "flex": 1,
               "flexDirection": "row",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
               "padding": 10,
@@ -218,7 +218,7 @@ exports[`ContactForm should render correctly 1`] = `
               Array [
                 Object {
                   "color": "#000000",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontWeight": "400",
                   "padding": 0,
                   "paddingRight": 8,

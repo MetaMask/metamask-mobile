@@ -35,7 +35,7 @@ exports[`SignatureRequest should render correctly 1`] = `
     <Text
       style={
         Object {
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 20,
           "fontWeight": "600",
           "textAlign": "center",
@@ -114,7 +114,7 @@ exports[`SignatureRequest should render correctly 1`] = `
           <Text
             style={
               Object {
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 16,
                 "fontWeight": "600",
                 "marginBottom": 4,
