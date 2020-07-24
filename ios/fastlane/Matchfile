@@ -13,4 +13,3 @@ shallow_clone true
 force_for_new_devices true
 readonly false
 force true
-username "mobile.admin@metamask.io"
