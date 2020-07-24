@@ -578,8 +578,8 @@ class Onboarding extends PureComponent {
 					<View style={styles.stepsWrapper}>
 						<Text style={styles.scanTitle}>{strings('onboarding.scan_title')}</Text>
 						<View style={styles.column}>
-							{[1, 2, 3, 4].map(val => (
-								<View key={val} style={[styles.row, styles.steps]}>
+							{[1, 2, 3, 4].map((val, index) => (
+								<View key={index} style={[styles.row, styles.steps]}>
 									<View style={styles.bullet}>
 										<Text style={styles.step}>{val}.</Text>
 									</View>
