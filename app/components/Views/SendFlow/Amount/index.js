@@ -701,7 +701,6 @@ class Amount extends PureComponent {
 	onInputChange = (inputValue, selectedAsset, useMax) => {
 		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
-		!useMax && this.setState({ maxFiatInput: undefined });
 		let inputValueConversion, renderableInputValueConversion, hasExchangeRate, comma;
 		// Remove spaces from input
 		inputValue = inputValue && inputValue.replace(/\s+/g, '');
@@ -758,7 +757,8 @@ class Amount extends PureComponent {
 			inputValueConversion,
 			renderableInputValueConversion,
 			amountError: undefined,
-			hasExchangeRate
+			hasExchangeRate,
+			maxFiatInput: !useMax && undefined
 		});
 	};
 
