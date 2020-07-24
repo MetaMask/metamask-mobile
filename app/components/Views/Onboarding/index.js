@@ -92,9 +92,10 @@ const styles = StyleSheet.create({
 		marginBottom: 16
 	},
 	scanTitle: {
+		...fontStyles.bold,
 		fontSize: 18,
 		color: colors.fontPrimary,
-		fontWeight: 'bold'
+		textAlign: 'center'
 	},
 	steps: {},
 	step: {
@@ -566,7 +567,8 @@ class Onboarding extends PureComponent {
 					modalVisible={qrCodeModalVisible}
 					onConfirmPress={this.showQrCode}
 					onCancelPress={this.toggleQrCodeModal}
-					confirmText="Scan"
+					onRequestClose={this.toggleQrCodeModal}
+					confirmText={strings(`onboarding.scan`)}
 					confirmButtonMode="confirm"
 				>
 					<View style={styles.modalWrapper}>
