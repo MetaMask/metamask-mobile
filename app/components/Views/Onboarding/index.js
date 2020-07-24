@@ -115,10 +115,13 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
+	stepsWrapper: {
+		paddingHorizontal: 40,
+		paddingVertical: 30
+	},
 	column: {
 		flexDirection: 'column',
-		alignItems: 'flex-start',
-		width: 200
+		alignItems: 'flex-start'
 	},
 	row: {
 		flexDirection: 'row',
@@ -573,7 +576,7 @@ class Onboarding extends PureComponent {
 					confirmText="Scan"
 					confirmButtonMode="confirm"
 				>
-					<View style={styles.wrapper}>
+					<View style={styles.stepsWrapper}>
 						<Text style={styles.scanTitle}>{strings('onboarding.scan_title')}</Text>
 						<View style={styles.column}>
 							{[1, 2, 3, 4].map(val => (
