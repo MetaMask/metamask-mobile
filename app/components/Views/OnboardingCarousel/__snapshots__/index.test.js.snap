@@ -343,42 +343,43 @@ exports[`OnboardingCarousel should render correctly 1`] = `
             }
           />
         </View>
-        <View
-          style={
-            Object {
-              "flexDirection": "column",
-              "paddingHorizontal": 40,
-            }
-          }
-        >
-          <View
-            style={
-              Object {
-                "justifyContent": "flex-end",
-              }
-            }
-          >
-            <StyledButton
-              disabledContainerStyle={
-                Object {
-                  "opacity": 0.6,
-                }
-              }
-              onPress={[Function]}
-              styleDisabled={
-                Object {
-                  "opacity": 0.6,
-                }
-              }
-              testID="onboarding-get-started-button"
-              type="normal"
-            >
-              Get started
-            </StyledButton>
-          </View>
-        </View>
       </View>
     </ScrollViewMock>
+    <View
+      style={
+        Object {
+          "flexDirection": "column",
+          "paddingBottom": 20,
+          "paddingHorizontal": 40,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "justifyContent": "flex-end",
+          }
+        }
+      >
+        <StyledButton
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID="onboarding-get-started-button"
+          type="normal"
+        >
+          Get started
+        </StyledButton>
+      </View>
+    </View>
   </OnboardingScreenWithBg>
   <FadeOutOverlay
     duration={300}

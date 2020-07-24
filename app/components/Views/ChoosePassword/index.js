@@ -1,25 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-	Switch,
-	ActivityIndicator,
-	Alert,
-	Text,
-	View,
-	TextInput,
-	SafeAreaView,
-	StyleSheet,
-	Linking,
-	Image
-} from 'react-native';
+import { Switch, ActivityIndicator, Alert, Text, View, TextInput, SafeAreaView, StyleSheet, Image } from 'react-native';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import AnimatedFox from 'react-native-animated-fox';
-import Logger from '../../../util/Logger';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
-import { passwordSet, passwordUnset } from '../../../actions/user';
+import { passwordSet, passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -210,7 +198,11 @@ class ChoosePassword extends PureComponent {
 		/**
 		 * A string representing the selected address => account
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Action to reset the flag seedphraseBackedUp in redux
+		 */
+		seedphraseNotBackedUp: PropTypes.func
 	};
 
 	state = {
@@ -289,6 +281,7 @@ class ChoosePassword extends PureComponent {
 			}
 
 			await this.createNewVaultAndKeychain(password);
+			this.props.seedphraseNotBackedUp();
 			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 
@@ -466,9 +459,9 @@ class ChoosePassword extends PureComponent {
 	};
 
 	learnMore = () => {
-		const URL = 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-';
-		return Linking.openURL(URL).catch(error => {
-			Logger.log('Error while trying to open external link: ${url}', error);
+		this.props.navigation.push('Webview', {
+			url: 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-',
+			title: 'metamask.zendesk.com'
 		});
 	};
 
@@ -602,7 +595,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	passwordSet: () => dispatch(passwordSet()),
 	passwordUnset: () => dispatch(passwordUnset()),
-	setLockTime: time => dispatch(setLockTime(time))
+	setLockTime: time => dispatch(setLockTime(time)),
+	seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp())
 });
 
 export default connect(
