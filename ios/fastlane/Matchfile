@@ -1,4 +1,4 @@
-git_url("git@github.com:MetaMask/ios-app-certs.git")
+git_url("https://github.com/MetaMask/ios-app-certs")
 type("development") # The default type, can be: appstore, adhoc, enterprise or development
 
 # For all available options run `fastlane match --help`
@@ -8,5 +8,4 @@ shallow_clone true
 force_for_new_devices true
 readonly false
 force true
-username "mobile.admin@metamask.io" 
 
