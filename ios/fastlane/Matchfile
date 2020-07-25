@@ -1,5 +1,4 @@
 git_url("git@github.com:MetaMask/ios-app-certs.git")
-
 type("development") # The default type, can be: appstore, adhoc, enterprise or development
 
 # app_identifier(["tools.fastlane.app", "tools.fastlane.app2"])
