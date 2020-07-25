@@ -9,3 +9,4 @@ force_for_new_devices true
 readonly false
 force true
 verbose true
+username "mobile.admin@metamask.io"
