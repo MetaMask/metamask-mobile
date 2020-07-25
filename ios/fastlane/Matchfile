@@ -8,6 +8,5 @@ shallow_clone true
 force_for_new_devices true
 readonly false
 force true
-verbose true
 username "mobile.admin@metamask.io"
 team_id "48XVW22RCG"
