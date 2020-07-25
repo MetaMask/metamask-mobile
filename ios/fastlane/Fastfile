@@ -31,7 +31,7 @@ platform :ios do
 			output_name: "MetaMask"
 		)
 		upload_to_testflight(
-	 		distribute_external: false,
+      skip_submission: true,
 			skip_waiting_for_build_processing: true,
       apple_id: "mobile.admin@metamask.io"
 		)
@@ -42,7 +42,6 @@ platform :ios do
 	lane :prerelease do
 		setup_circle_ci
 
-
 		match(type: "appstore", force: true, readonly: false)
 		gym(
 			clean: true,
@@ -52,7 +51,7 @@ platform :ios do
 			output_name: "MetaMask"
 		)
 		upload_to_testflight(
-	 		distribute_external: false,
+      skip_submission: true,
 			skip_waiting_for_build_processing: true,
       apple_id: "mobile.admin@metamask.io"
 		)
