@@ -33,7 +33,8 @@ platform :ios do
 		upload_to_testflight(
       skip_submission: true,
 			skip_waiting_for_build_processing: true,
-      apple_id: "1438144202"
+      apple_id: "1438144202",
+      username: "mobile.admin@metamask.io"
 		)
 
 	end
@@ -53,7 +54,8 @@ platform :ios do
 		upload_to_testflight(
       skip_submission: true,
 			skip_waiting_for_build_processing: true,
-      apple_id: "1438144202"
+      apple_id: "1438144202",
+      username: "mobile.admin@metamask.io"
 		)
 
 	end
