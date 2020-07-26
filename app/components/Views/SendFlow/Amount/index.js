@@ -113,6 +113,9 @@ const styles = StyleSheet.create({
 		alignSelf: 'flex-end',
 		textTransform: 'uppercase'
 	},
+	maxTextOn: {
+		color: colors.white
+	},
 	actionMax: {
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -126,6 +129,10 @@ const styles = StyleSheet.create({
 		borderRadius: 100,
 		flexDirection: 'row',
 		alignItems: 'center'
+	},
+	actionMaxTouchableOn: {
+		backgroundColor: colors.blue,
+		borderWidth: 0
 	},
 	inputContainerWrapper: {
 		marginVertical: 16,
@@ -385,7 +392,8 @@ class Amount extends PureComponent {
 		assetsModalVisible: false,
 		internalPrimaryCurrencyIsCrypto: this.props.primaryCurrency === 'ETH',
 		estimatedTotalGas: undefined,
-		hasExchangeRate: false
+		hasExchangeRate: false,
+		maxMode: false
 	};
 
 	amountInput = React.createRef();
@@ -678,33 +686,38 @@ class Amount extends PureComponent {
 			contractExchangeRates,
 			transactionState: { paymentChannelTransaction }
 		} = this.props;
-		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
-		let input;
-		if (paymentChannelTransaction) {
-			input = selectedAsset.assetBalance;
-		} else if (selectedAsset.isETH) {
-			const balanceBN = hexToBN(accounts[selectedAddress].balance);
-			const realMaxValue = balanceBN.sub(estimatedTotalGas);
-			const maxValue = balanceBN.isZero() || realMaxValue.isNeg() ? new BN(0) : realMaxValue;
-			if (internalPrimaryCurrencyIsCrypto) {
-				input = fromWei(maxValue);
-			} else {
-				input = `${weiToFiatNumber(maxValue, conversionRate)}`;
-				this.setState({ maxFiatInput: `${weiToFiatNumber(maxValue, conversionRate, 12)}` });
-			}
+		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas, maxMode } = this.state;
+		if (maxMode) {
+			this.onInputChange('0');
 		} else {
-			const exchangeRate = contractExchangeRates[selectedAsset.address];
-			if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
-				input = fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals);
+			let input;
+			if (paymentChannelTransaction) {
+				input = selectedAsset.assetBalance;
+			} else if (selectedAsset.isETH) {
+				const balanceBN = hexToBN(accounts[selectedAddress].balance);
+				const realMaxValue = balanceBN.sub(estimatedTotalGas);
+				const maxValue = balanceBN.isZero() || realMaxValue.isNeg() ? new BN(0) : realMaxValue;
+				if (internalPrimaryCurrencyIsCrypto) {
+					input = fromWei(maxValue);
+				} else {
+					input = `${weiToFiatNumber(maxValue, conversionRate)}`;
+					this.setState({ maxFiatInput: `${weiToFiatNumber(maxValue, conversionRate, 12)}` });
+				}
 			} else {
-				input = `${balanceToFiatNumber(
-					fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals),
-					conversionRate,
-					exchangeRate
-				)}`;
+				const exchangeRate = contractExchangeRates[selectedAsset.address];
+				if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
+					input = fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals);
+				} else {
+					input = `${balanceToFiatNumber(
+						fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals),
+						conversionRate,
+						exchangeRate
+					)}`;
+				}
 			}
+			this.onInputChange(input, undefined, true);
 		}
-		this.onInputChange(input, undefined, true);
+		this.setState({ maxMode: !maxMode });
 	};
 
 	onInputChange = (inputValue, selectedAsset, useMax) => {
@@ -1018,7 +1031,7 @@ class Amount extends PureComponent {
 	};
 
 	render = () => {
-		const { estimatedTotalGas } = this.state;
+		const { estimatedTotalGas, maxMode } = this.state;
 		const {
 			selectedAsset,
 			transactionState: { paymentChannelTransaction, isPaymentRequest }
@@ -1053,11 +1066,13 @@ class Amount extends PureComponent {
 						<View style={[styles.actionBorder, styles.actionMax]}>
 							{!selectedAsset.tokenId && (
 								<TouchableOpacity
-									style={styles.actionMaxTouchable}
+									style={[styles.actionMaxTouchable, maxMode && styles.actionMaxTouchableOn]}
 									disabled={!paymentChannelTransaction && !estimatedTotalGas}
 									onPress={this.useMax}
 								>
-									<Text style={styles.maxText}>{strings('transaction.use_max')}</Text>
+									<Text style={[styles.maxText, maxMode && styles.maxTextOn]}>
+										{strings('transaction.use_max')}
+									</Text>
 								</TouchableOpacity>
 							)}
 						</View>
