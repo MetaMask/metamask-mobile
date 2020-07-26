@@ -157,6 +157,9 @@ const styles = StyleSheet.create({
 		fontSize: 44,
 		textAlign: 'center'
 	},
+	textInputMaxOn: {
+		color: colors.grey500
+	},
 	switch: {
 		flex: 1,
 		marginTop: Device.isIos() ? 0 : 2
@@ -689,6 +692,7 @@ class Amount extends PureComponent {
 		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas, maxMode } = this.state;
 		if (maxMode) {
 			this.onInputChange('0');
+			setTimeout(() => this.amountInput && this.amountInput.current && this.amountInput.current.focus(), 100);
 		} else {
 			let input;
 			if (paymentChannelTransaction) {
@@ -959,7 +963,8 @@ class Amount extends PureComponent {
 			amountError,
 			hasExchangeRate,
 			internalPrimaryCurrencyIsCrypto,
-			currentBalance
+			currentBalance,
+			maxMode
 		} = this.state;
 		const { currentCurrency } = this.props;
 		return (
@@ -971,12 +976,13 @@ class Amount extends PureComponent {
 						)}
 						<TextInput
 							ref={this.amountInput}
-							style={styles.textInput}
+							style={[styles.textInput, maxMode && styles.textInputMaxOn]}
 							value={inputValue}
 							onChangeText={this.onInputChange}
 							keyboardType={'numeric'}
 							placeholder={'0'}
 							testID={'txn-amount-input'}
+							editable={!maxMode}
 						/>
 					</View>
 				</View>
