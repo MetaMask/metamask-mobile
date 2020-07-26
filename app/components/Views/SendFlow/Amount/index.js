@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
 	maxText: {
 		...fontStyles.normal,
 		fontSize: 12,
+		paddingVertical: 2,
 		color: colors.blue,
 		alignSelf: 'flex-end',
 		textTransform: 'uppercase'
@@ -117,7 +118,15 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'flex-end'
 	},
-	actionMaxTouchable: {},
+	actionMaxTouchable: {
+		borderWidth: 1,
+		borderColor: colors.blue,
+		paddingHorizontal: 16,
+		paddingVertical: 2,
+		borderRadius: 100,
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
 	inputContainerWrapper: {
 		marginVertical: 16,
 		alignItems: 'center'
