@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-	ScrollView,
-	TouchableOpacity,
-	Text,
-	View,
-	SafeAreaView,
-	StyleSheet,
-	Image,
-	Dimensions,
-	BackHandler
-} from 'react-native';
+import { ScrollView, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, Image, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -27,10 +17,6 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 const warning_skip_backup = require('../../../images/warning.png'); // eslint-disable-line
-
-const IMAGE_EXPLAIN_RATIO = 162.8 / 138;
-const DEVICE_WIDTH = Dimensions.get('window').width;
-const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -111,8 +97,8 @@ const styles = StyleSheet.create({
 		marginBottom: 30
 	},
 	image: {
-		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_EXPLAIN_RATIO
+		width: 138,
+		height: 162
 	},
 	imageWarning: {
 		width: 56,

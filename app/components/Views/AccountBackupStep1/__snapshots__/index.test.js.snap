@@ -76,8 +76,8 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           }
           style={
             Object {
-              "height": 766.8115942028985,
-              "width": 650,
+              "height": 162,
+              "width": 138,
             }
           }
           testID="carousel-one-image"
