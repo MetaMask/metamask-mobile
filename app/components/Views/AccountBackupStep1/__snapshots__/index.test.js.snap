@@ -50,6 +50,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             "alignItems": "center",
             "flex": 1,
             "justifyContent": "flex-start",
+            "marginBottom": 10,
           }
         }
       >
