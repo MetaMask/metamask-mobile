@@ -73,7 +73,9 @@ export default class ProtectYourAccount extends PureComponent {
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('ChoosePassword');
+		this.props.navigation.navigate('ChoosePassword', {
+			from: 'protect'
+		});
 	};
 
 	render() {

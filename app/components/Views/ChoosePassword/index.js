@@ -275,16 +275,19 @@ class ChoosePassword extends PureComponent {
 		try {
 			this.setState({ loading: true });
 
-			const existing = await AsyncStorage.getItem('@MetaMask:existingUser');
-			if (existing) {
-				// TODO: prompt user with same <ActionModal /> we're using for ScanQR warning
-				// and secure the existing vault
-				await this.recreateVault(password);
-			} else {
+			const from = this.props.navigation.getParam('from');
+
+			if (from === 'onboarding') {
+				const existing = await AsyncStorage.getItem('@MetaMask:existingUser');
+				if (existing) {
+					// warn the user
+				}
 				await this.createNewVaultAndKeychain(password);
 				this.props.seedphraseNotBackedUp();
 				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			} else {
+				await this.recreateVault(password);
 			}
 
 			// Set state in app as it was with password
