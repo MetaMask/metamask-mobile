@@ -1,6 +1,7 @@
 import Device from '../util/Device';
 
 export default {
+	PREVIOUS_SCREEN: 'previous_screen',
 	DEFAULT_LOCK_TIMEOUT: 30000,
 	DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
 	TX_CHECK_MAX_FREQUENCY: 5000,

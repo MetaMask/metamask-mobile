@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Switch, Alert, ActivityIndicator, Text, View, TextInput, SafeAreaView, StyleSheet, Image } from 'react-native';
+import { Switch, Alert, ActivityIndicator, Text, View, SafeAreaView, StyleSheet, Image } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
@@ -18,6 +18,8 @@ import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import Device from '../../../util/Device';
+import { OutlinedTextField } from 'react-native-material-textfield';
+import BiometryButton from '../../UI/BiometryButton';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -50,19 +52,13 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	field: {
-		marginBottom: Device.isAndroid() ? 0 : 10
+		flex: 1,
+		marginBottom: Device.isAndroid() ? 0 : 10,
+		flexDirection: 'column'
 	},
 	label: {
-		fontSize: 16,
-		marginBottom: Device.isAndroid() ? 0 : 10,
-		marginTop: 10
-	},
-	input: {
-		borderWidth: Device.isAndroid() ? 0 : 1,
-		borderColor: colors.grey100,
-		padding: 10,
-		borderRadius: 4,
-		fontSize: Device.isAndroid() ? 15 : 20,
+		fontSize: 14,
+		marginBottom: 11,
 		...fontStyles.normal
 	},
 	ctaWrapper: {
@@ -131,10 +127,13 @@ class Login extends PureComponent {
 		rememberMe: false,
 		biometryChoice: false,
 		loading: false,
-		error: null
+		error: null,
+		biometryPreviouslyDisabled: false
 	};
 
 	mounted = true;
+
+	fieldRef = React.createRef();
 
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
@@ -145,7 +144,21 @@ class Login extends PureComponent {
 			if (previouslyDisabled && previouslyDisabled === 'true') {
 				enabled = false;
 			}
-			this.setState({ biometryType, biometryChoice: enabled });
+
+			this.setState({
+				biometryType,
+				biometryChoice: enabled,
+				biometryPreviouslyDisabled: !!previouslyDisabled
+			});
+
+			try {
+				if (enabled && !previouslyDisabled) {
+					const hasCredentials = await this.tryBiometric();
+					this.setState({ hasCredentials });
+				}
+			} catch (e) {
+				console.warn(e);
+			}
 		}
 	}
 
@@ -161,7 +174,7 @@ class Login extends PureComponent {
 
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
-			if (this.state.biometryType) {
+			if (this.state.biometryChoice && this.state.biometryType) {
 				const authOptions = {
 					accessControl: this.state.biometryChoice
 						? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
@@ -189,7 +202,6 @@ class Login extends PureComponent {
 				}
 				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			}
-			this.setState({ loading: false });
 
 			// Get onboarding wizard state
 			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
@@ -203,6 +215,7 @@ class Login extends PureComponent {
 				this.props.setOnboardingWizardStep(1);
 				this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
 			}
+			this.setState({ loading: false });
 		} catch (error) {
 			// Should we force people to enable passcode / biometrics?
 			if (error.toString().toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase()) {
@@ -243,7 +256,7 @@ class Login extends PureComponent {
 	};
 
 	renderSwitch = () => {
-		if (this.state.biometryType) {
+		if (this.state.biometryType && !this.state.biometryPreviouslyDisabled) {
 			return (
 				<View style={styles.biometrics}>
 					<Text style={styles.biometryLabel}>
@@ -276,6 +289,25 @@ class Login extends PureComponent {
 
 	setPassword = val => this.setState({ password: val });
 
+	tryBiometric = async e => {
+		if (e) e.preventDefault();
+		const { current: field } = this.fieldRef;
+		field.blur();
+		try {
+			const credentials = await SecureKeychain.getGenericPassword();
+			if (!credentials) return false;
+			field.blur();
+			this.setState({ password: credentials.password });
+			field.setValue(credentials.password);
+			field.blur();
+			this.onLogin();
+		} catch (error) {
+			console.warn(error);
+		}
+		field.blur();
+		return true;
+	};
+
 	render = () => (
 		<SafeAreaView style={styles.mainWrapper}>
 			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
@@ -294,18 +326,31 @@ class Login extends PureComponent {
 					<Text style={styles.title}>{strings('login.title')}</Text>
 					<View style={styles.field}>
 						<Text style={styles.label}>{strings('login.password')}</Text>
-						<TextInput
-							style={styles.input}
+						<OutlinedTextField
+							placeholder={'Password'}
 							testID={'login-password-input'}
-							value={this.state.password}
-							onChangeText={this.setPassword}
-							secureTextEntry
-							placeholder={''}
-							placeholderTextColor={colors.grey100}
-							underlineColorAndroid={colors.grey100}
-							onSubmitEditing={this.onLogin}
 							returnKeyType={'done'}
 							autoCapitalize="none"
+							secureTextEntry
+							ref={this.fieldRef}
+							onChangeText={this.setPassword}
+							value={this.state.password}
+							baseColor={colors.grey500}
+							tintColor={colors.blue}
+							onSubmitEditing={this.onLogin}
+							renderRightAccessory={() => (
+								<BiometryButton
+									onPress={this.tryBiometric}
+									hidden={
+										!(
+											this.state.biometryChoice &&
+											this.state.biometryType &&
+											this.state.hasCredentials
+										)
+									}
+									type={this.state.biometryType}
+								/>
+							)}
 						/>
 					</View>
 

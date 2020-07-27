@@ -15,6 +15,8 @@ export const colors = {
 	black: '#000000',
 	white: '#FFFFFF',
 	white100: '#F9FAFB',
+	grey450: '#8E8E93',
+	grey700: '#3C3F42',
 	grey600: '#5B5D67',
 	grey500: '#6a737d',
 	grey400: '#848c96',
@@ -29,6 +31,8 @@ export const colors = {
 	red000: '#fcf2f3',
 	blue: '#037dd6',
 	blue000: '#eaf6ff',
+	blue200: '#75C4FD',
+	blue600: '#0260A4',
 	green600: '#1e7e34',
 	green500: '#28a745',
 	green400: '#28A745',
@@ -83,5 +87,9 @@ export const fontStyles = {
 	bold: {
 		fontFamily: 'EuclidCircularB-Bold',
 		fontWeight: '600'
+	},
+	extraBold: {
+		fontFamily: 'EuclidCircularB-Regular',
+		fontWeight: 'bold'
 	}
 };
