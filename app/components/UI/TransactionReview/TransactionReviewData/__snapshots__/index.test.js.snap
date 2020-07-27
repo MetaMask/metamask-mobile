@@ -15,61 +15,59 @@ exports[`TransactionReviewData should render correctly 1`] = `
     ]
   }
 >
-  <View>
-    <View
-      style={
-        Object {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "marginBottom": 28,
-          "width": "100%",
-        }
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginBottom": 28,
+        "width": "100%",
       }
-    >
-      <TouchableOpacity>
-        <Icon
-          allowFontScaling={false}
-          color="#000000"
-          name="ios-arrow-back"
-          size={24}
-        />
-      </TouchableOpacity>
-      <Text
-        style={
-          Object {
-            "alignSelf": "center",
-            "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 14,
-            "fontWeight": "600",
-          }
-        }
-      >
-        Data
-      </Text>
+    }
+  >
+    <TouchableOpacity>
       <Icon
         allowFontScaling={false}
-        color="#FFFFFF"
+        color="#000000"
         name="ios-arrow-back"
         size={24}
       />
-    </View>
+    </TouchableOpacity>
     <Text
       style={
         Object {
+          "alignSelf": "center",
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 14,
-          "fontWeight": "400",
-          "marginBottom": 28,
-          "textAlign": "center",
+          "fontWeight": "600",
         }
       }
     >
-      Data associated with this transaction
+      Data
     </Text>
+    <Icon
+      allowFontScaling={false}
+      color="#FFFFFF"
+      name="ios-arrow-back"
+      size={24}
+    />
   </View>
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "marginBottom": 28,
+        "textAlign": "center",
+      }
+    }
+  >
+    Data associated with this transaction
+  </Text>
   <View
     style={
       Object {
@@ -95,12 +93,12 @@ exports[`TransactionReviewData should render correctly 1`] = `
           Array [
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
             },
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontWeight": "600",
             },
           ]
@@ -114,7 +112,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -126,12 +124,12 @@ exports[`TransactionReviewData should render correctly 1`] = `
         Array [
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
           },
           Object {
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
         ]
@@ -140,20 +138,49 @@ exports[`TransactionReviewData should render correctly 1`] = `
       Hex data
       : 
     </Text>
-    <ScrollViewMock>
-      <Text
+    <View
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    >
+      <KeyboardAwareScrollViewMock
+        enableAutomaticScroll={true}
+        enableOnAndroid={false}
+        enableResetScrollToCoords={true}
+        extraHeight={75}
+        extraScrollHeight={0}
+        keyboardOpeningTime={250}
         style={
           Object {
-            "backgroundColor": "#FFFFFF",
-            "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "paddingTop": 0,
+            "flex": 1,
           }
         }
-      />
-    </ScrollViewMock>
+        viewIsInsideTabBar={false}
+      >
+        <TouchableWithoutFeedback
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "color": "#000000",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "paddingTop": 0,
+              }
+            }
+          />
+        </TouchableWithoutFeedback>
+      </KeyboardAwareScrollViewMock>
+    </View>
   </View>
 </View>
 `;

@@ -192,7 +192,10 @@ class Engine {
 				allLastIncomingTxBlocks[`${selectedAddress}`] = {};
 			}
 			//Fetch txs and get the new lastIncomingTxBlock number
-			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, blockNumber);
+			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, {
+				blockNumber,
+				alethioApiKey: process.env.MM_ALETHIO_KEY
+			});
 			// Check if it's a newer block and store it so next time we ask for the newer txs only
 			if (
 				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] &&

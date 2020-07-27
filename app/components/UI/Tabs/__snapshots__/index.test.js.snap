@@ -80,7 +80,7 @@ exports[`Tabs should render correctly 1`] = `
           Array [
             Object {
               "color": "#037dd6",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
             },
@@ -154,12 +154,12 @@ exports[`Tabs should render correctly 1`] = `
           Array [
             Object {
               "color": "#037dd6",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
             },
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontWeight": "600",
             },
             null,

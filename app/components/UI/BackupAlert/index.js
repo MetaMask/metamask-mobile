@@ -67,7 +67,8 @@ const BLOCKED_LIST = [
 	'Approve',
 	'AddBookmark',
 	'RevealPrivateCredentialView',
-	'AccountBackupStep'
+	'AccountBackupStep',
+	'ManualBackupStep'
 ];
 
 /**

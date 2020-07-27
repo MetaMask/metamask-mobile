@@ -99,15 +99,15 @@ class Entry extends PureComponent {
 		}
 	}
 
-	handleDeeplinks = ({ error, params, uri }) => {
+	handleDeeplinks = async ({ error, params, uri }) => {
 		if (error) {
 			Logger.error(error, 'Error from Branch');
 			return;
 		}
-		if (params['+non_branch_link']) {
-			DeeplinkManager.parse(params['+non_branch_link']);
-		} else if (uri) {
-			DeeplinkManager.parse(uri);
+		const deeplink = params['+non_branch_link'] || uri || null;
+		if (deeplink) {
+			const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
+			!existingUser ? DeeplinkManager.setDeeplink(deeplink) : DeeplinkManager.parse(deeplink);
 		}
 	};
 

@@ -7,7 +7,7 @@ exports[`AssetList should render correctly 1`] = `
   <Text
     style={
       Object {
-        "fontFamily": "CircularStd-Medium",
+        "fontFamily": "EuclidCircularB-Regular",
         "fontWeight": "400",
       }
     }

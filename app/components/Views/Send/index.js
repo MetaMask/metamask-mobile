@@ -5,7 +5,7 @@ import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
-import { toBN, BNToHex, hexToBN, fromWei, toTokenMinimalUnit } from '../../../util/number';
+import { toBN, BNToHex, hexToBN, fromWei } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
@@ -278,7 +278,7 @@ class Send extends PureComponent {
 			case 'send-token': {
 				const selectedAsset = await this.handleTokenDeeplink(target_address);
 				const { ensRecipient, to } = this.handleNewTxMetaRecipient(parameters.address);
-				const tokenAmount = toTokenMinimalUnit(parameters.uint256 || '0', selectedAsset.decimals);
+				const tokenAmount = toBN(parameters.uint256 || '0');
 				newTxMeta = {
 					assetType: 'ERC20',
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',

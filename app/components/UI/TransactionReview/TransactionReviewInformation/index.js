@@ -168,7 +168,9 @@ class TransactionReviewInformation extends PureComponent {
 		const totals = {
 			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
-				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
+				const totalFiat = (
+					<Text style={styles.overviewEth}>{weiToFiat(totalEth, conversionRate, currentCurrency)}</Text>
+				);
 				const totalValue = (
 					<Text
 						style={totalFiat ? styles.overviewEth : [styles.overviewPrimary, styles.overviewAccent]}

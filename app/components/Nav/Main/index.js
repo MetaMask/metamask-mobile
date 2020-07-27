@@ -6,7 +6,8 @@ import {
 	StyleSheet,
 	View,
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
-	Alert
+	Alert,
+	Image
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -43,16 +44,14 @@ import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
 import LockScreen from '../../Views/LockScreen';
-import ProtectYourAccount from '../../Views/ProtectYourAccount';
 import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
-import AccountBackupStep2 from '../../Views/AccountBackupStep2';
-import AccountBackupStep3 from '../../Views/AccountBackupStep3';
-import AccountBackupStep4 from '../../Views/AccountBackupStep4';
-import AccountBackupStep5 from '../../Views/AccountBackupStep5';
-import AccountBackupStep6 from '../../Views/AccountBackupStep6';
+import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
+import ManualBackupStep1 from '../../Views/ManualBackupStep1';
+import ManualBackupStep2 from '../../Views/ManualBackupStep2';
+import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
@@ -102,7 +101,7 @@ import {
 	hideTransactionNotification,
 	showSimpleNotification
 } from '../../../actions/notification';
-import { toggleDappTransactionModal } from '../../../actions/modals';
+import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 
@@ -119,8 +118,18 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	headerLogo: {
+		width: 125,
+		height: 50
 	}
 });
+
+function HeaderLogo() {
+	return (
+		<Image style={styles.headerLogo} source={require('../../../images/metamask-name.png')} resizeMode={'contain'} />
+	);
+}
 
 /**
  * Navigator component that wraps
@@ -333,36 +342,33 @@ const MainNavigator = createStackNavigator(
 		SetPasswordFlow: {
 			screen: createStackNavigator(
 				{
-					ProtectYourAccount: {
-						screen: ProtectYourAccount
-					},
 					ChoosePassword: {
 						screen: ChoosePassword
 					},
 					AccountBackupStep1: {
 						screen: AccountBackupStep1
 					},
-					AccountBackupStep2: {
-						screen: AccountBackupStep2
+					AccountBackupStep1B: {
+						screen: AccountBackupStep1B
 					},
-					AccountBackupStep3: {
-						screen: AccountBackupStep3
+					ManualBackupStep1: {
+						screen: ManualBackupStep1
 					},
-					AccountBackupStep4: {
-						screen: AccountBackupStep4
+					ManualBackupStep2: {
+						screen: ManualBackupStep2
 					},
-					AccountBackupStep5: {
-						screen: AccountBackupStep5
-					},
-					AccountBackupStep6: {
-						screen: AccountBackupStep6,
-						navigationOptions: {
-							gesturesEnabled: false
-						}
+					ManualBackupStep3: {
+						screen: ManualBackupStep3
 					}
 				},
 				{
-					headerMode: 'none'
+					defaultNavigationOptions: {
+						// eslint-disable-next-line
+						headerTitle: () => <HeaderLogo />,
+						headerStyle: {
+							borderBottomWidth: 0
+						}
+					}
 				}
 			)
 		}
@@ -447,9 +453,17 @@ class Main extends PureComponent {
 		*/
 		toggleDappTransactionModal: PropTypes.func,
 		/**
+		/* Hides or shows approve modal
+		*/
+		toggleApproveModal: PropTypes.func,
+		/**
 		/* dApp transaction modal visible or not
 		*/
-		dappTransactionModalVisible: PropTypes.bool
+		dappTransactionModalVisible: PropTypes.bool,
+		/**
+		/* Token approve modal visible or not
+		*/
+		approveModalVisible: PropTypes.bool
 	};
 	state = {
 		connected: true,
@@ -481,7 +495,6 @@ class Main extends PureComponent {
 		}
 	};
 	componentDidMount = async () => {
-		this.props.toggleDappTransactionModal(false);
 		InteractionManager.runAfterInteractions(() => {
 			this.initializeWalletConnect();
 			AppState.addEventListener('change', this.handleAppStateChange);
@@ -824,7 +837,7 @@ class Main extends PureComponent {
 			}
 
 			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
-				this.props.navigation.push('ApproveView');
+				this.props.toggleApproveModal();
 			} else {
 				this.props.toggleDappTransactionModal();
 			}
@@ -1064,6 +1077,9 @@ class Main extends PureComponent {
 		/>
 	);
 
+	renderApproveModal = () =>
+		this.props.approveModalVisible && <Approve modalVisible toggleApproveModal={this.props.toggleApproveModal} />;
+
 	render() {
 		const { isPaymentChannelTransaction, isPaymentRequest } = this.props;
 		const { forceReload } = this.state;
@@ -1086,7 +1102,8 @@ class Main extends PureComponent {
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
-				{this.props.dappTransactionModalVisible && this.renderDappTransactionModal()}
+				{this.renderDappTransactionModal()}
+				{this.renderApproveModal()}
 			</React.Fragment>
 		);
 	}
@@ -1103,7 +1120,8 @@ const mapStateToProps = state => ({
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	isPaymentRequest: state.transaction.paymentRequest,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	dappTransactionModalVisible: state.modals.dappTransactionModalVisible
+	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
+	approveModalVisible: state.modals.approveModalVisible
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -1112,7 +1130,8 @@ const mapDispatchToProps = dispatch => ({
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
 	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
 	hideTransactionNotification: () => dispatch(hideTransactionNotification()),
-	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show))
+	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
+	toggleApproveModal: show => dispatch(toggleApproveModal(show))
 });
 
 export default connect(

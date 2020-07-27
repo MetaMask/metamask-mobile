@@ -200,7 +200,9 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		fontSize: 14,
 		textAlign: 'right',
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
+		flexWrap: 'wrap',
+		flex: 1
 	}
 });
 
@@ -393,7 +395,11 @@ class Confirm extends PureComponent {
 					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
 				</Text>
 			);
-			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
+			transactionTotalAmountFiat = (
+				<Text style={styles.totalAmount}>
+					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
+				</Text>
+			);
 			transactionTo = to;
 		} else if (selectedAsset.tokenId) {
 			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${parsedTicker}`;
@@ -418,7 +424,11 @@ class Confirm extends PureComponent {
 					{renderFromWei(weiTransactionFee)} {parsedTicker}
 				</Text>
 			);
-			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
+			transactionTotalAmountFiat = (
+				<Text style={styles.totalAmount}>
+					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
+				</Text>
+			);
 		} else {
 			let amount;
 			const { address, symbol = 'ERC20', decimals } = selectedAsset;
@@ -439,10 +449,10 @@ class Confirm extends PureComponent {
 					{transactionValue} + ${renderFromWei(weiTransactionFee)} {parsedTicker}
 				</Text>
 			);
-			transactionTotalAmountFiat = renderFiatAddition(
-				transactionValueFiatNumber,
-				transactionFeeFiatNumber,
-				currentCurrency
+			transactionTotalAmountFiat = (
+				<Text style={styles.totalAmount}>
+					{renderFiatAddition(transactionValueFiatNumber, transactionFeeFiatNumber, currentCurrency)}
+				</Text>
 			);
 		}
 
@@ -890,7 +900,7 @@ class Confirm extends PureComponent {
 			transactionFee,
 			transactionTo = '',
 			transactionTotalAmount = <Text />,
-			transactionTotalAmountFiat = '',
+			transactionTotalAmountFiat = <Text />,
 			errorMessage,
 			transactionConfirmed,
 			paymentChannelBalance

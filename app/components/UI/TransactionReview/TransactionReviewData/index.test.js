@@ -20,8 +20,10 @@ describe('TransactionReviewData', () => {
 				}
 			},
 			transaction: {
+				transaction: {
+					data: ''
+				},
 				value: '',
-				data: '',
 				from: '0x1',
 				gas: '',
 				gasPrice: '',
