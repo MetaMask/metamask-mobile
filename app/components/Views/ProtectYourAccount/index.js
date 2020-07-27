@@ -8,7 +8,7 @@ import Emoji from 'react-native-emoji';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/Device';
-import { PREVIOUS_SCREEN } from '../../../core/AppConstants';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -75,7 +75,7 @@ export default class ProtectYourAccount extends PureComponent {
 
 	goNext = () => {
 		this.props.navigation.navigate('ChoosePassword', {
-			[PREVIOUS_SCREEN]: 'protect'
+			[AppConstants.PREVIOUS_SCREEN]: 'protect'
 		});
 	};
 

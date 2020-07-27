@@ -22,7 +22,7 @@ import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
-import { DEFAULT_LOCK_TIMEOUT, PREVIOUS_SCREEN } from '../../../core/AppConstants';
+import AppConstants from '../../../core/AppConstants';
 import AnimatedFox from 'react-native-animated-fox';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 
@@ -385,7 +385,7 @@ class Onboarding extends PureComponent {
 			});
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.props.passwordHasBeenSet();
-			this.props.setLockTime(DEFAULT_LOCK_TIMEOUT);
+			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.seedphraseBackedUp();
 			this.done = true;
 			this.dataToSync = null;
@@ -454,7 +454,7 @@ class Onboarding extends PureComponent {
 
 	onPressCreate = () => {
 		this.props.navigation.navigate('ChoosePassword', {
-			[PREVIOUS_SCREEN]: 'onboarding'
+			[AppConstants.PREVIOUS_SCREEN]: 'onboarding'
 		});
 		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
 	};

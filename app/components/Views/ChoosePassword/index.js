@@ -17,7 +17,7 @@ import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { DEFAULT_LOCK_TIMEOUT, PREVIOUS_SCREEN } from '../../../core/AppConstants';
+import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
 
@@ -275,7 +275,8 @@ class ChoosePassword extends PureComponent {
 		try {
 			this.setState({ loading: true });
 
-			const previous_screen = this.props.navigation.getParam(PREVIOUS_SCREEN);
+			const previous_screen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
+			console.log(previous_screen);
 
 			if (previous_screen === 'onboarding') {
 				await this.createNewVaultAndKeychain(password);
@@ -314,7 +315,7 @@ class ChoosePassword extends PureComponent {
 			}
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.props.passwordSet();
-			this.props.setLockTime(DEFAULT_LOCK_TIMEOUT);
+			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
 			this.setState({ loading: false });
 			const seed = await this.getSeedPhrase();
