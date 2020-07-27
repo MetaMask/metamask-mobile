@@ -276,7 +276,6 @@ class ChoosePassword extends PureComponent {
 			this.setState({ loading: true });
 
 			const previous_screen = this.props.navigation.getParam(PREVIOUS_SCREEN);
-			console.log(previous_screen);
 
 			if (previous_screen === 'onboarding') {
 				await this.createNewVaultAndKeychain(password);
