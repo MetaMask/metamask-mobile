@@ -278,10 +278,6 @@ class ChoosePassword extends PureComponent {
 			const from = this.props.navigation.getParam('from');
 
 			if (from === 'onboarding') {
-				const existing = await AsyncStorage.getItem('@MetaMask:existingUser');
-				if (existing) {
-					// warn the user
-				}
 				await this.createNewVaultAndKeychain(password);
 				this.props.seedphraseNotBackedUp();
 				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
