@@ -30,13 +30,16 @@ const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 const styles = StyleSheet.create({
 	scroll: {
-		flexGrow: 1
+		flex: 1
 	},
 	wrapper: {
-		paddingHorizontal: 40,
-		paddingVertical: 30,
 		flex: 1,
-		alignItems: 'center'
+		alignItems: 'center',
+		paddingVertical: 30
+	},
+	modalWrapper: {
+		flexGrow: 1,
+		paddingHorizontal: 24
 	},
 	foxWrapper: {
 		width: Device.isIos() ? 90 : 45,
@@ -82,26 +85,25 @@ const styles = StyleSheet.create({
 		marginVertical: 24
 	},
 	createWrapper: {
-		position: 'absolute',
-		width: '100%',
-		bottom: 0
+		flex: 1,
+		justifyContent: 'flex-end',
+		marginBottom: 24
 	},
 	buttonWrapper: {
-		flexGrow: 1,
 		marginBottom: 16
 	},
 	scanTitle: {
+		...fontStyles.bold,
 		fontSize: 18,
 		color: colors.fontPrimary,
-		fontWeight: 'bold'
+		textAlign: 'center'
 	},
-	steps: {
-		paddingVertical: 24
-	},
+	steps: {},
 	step: {
+		...fontStyles.normal,
 		fontSize: 16,
 		color: colors.fontPrimary,
-		fontWeight: 'normal'
+		lineHeight: 32
 	},
 	loader: {
 		marginTop: 180,
@@ -116,22 +118,18 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	column: {
-		flexDirection: 'column',
-		alignItems: 'flex-start',
-		width: 200
+		marginVertical: 24,
+		alignItems: 'flex-start'
 	},
 	row: {
 		flexDirection: 'row',
 		alignItems: 'flex-start',
-		flexWrap: 'wrap',
-		flex: 1
+		flexWrap: 'wrap'
 	},
 	bullet: {
 		width: 20
 	},
-	bulletText: {
-		flex: 1
-	}
+	bulletText: {}
 });
 
 /**
@@ -401,6 +399,7 @@ class Onboarding extends PureComponent {
 	};
 
 	showQrCode = () => {
+		this.toggleQrCodeModal();
 		this.props.navigation.push('QRScanner', {
 			onStartScan: async data => {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
@@ -570,10 +569,11 @@ class Onboarding extends PureComponent {
 					modalVisible={qrCodeModalVisible}
 					onConfirmPress={this.showQrCode}
 					onCancelPress={this.toggleQrCodeModal}
-					confirmText="Scan"
+					onRequestClose={this.toggleQrCodeModal}
+					confirmText={strings(`onboarding.scan`)}
 					confirmButtonMode="confirm"
 				>
-					<View style={styles.wrapper}>
+					<View style={styles.modalWrapper}>
 						<Text style={styles.scanTitle}>{strings('onboarding.scan_title')}</Text>
 						<View style={styles.column}>
 							{[1, 2, 3, 4].map(val => (
