@@ -14,6 +14,7 @@ import Device from '../../../util/Device';
 import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import scaling from '../../../util/scaling';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 const warning_skip_backup = require('../../../images/warning.png'); // eslint-disable-line
@@ -35,7 +36,8 @@ const styles = StyleSheet.create({
 	content: {
 		alignItems: 'center',
 		justifyContent: 'flex-start',
-		flex: 1
+		flex: 1,
+		marginBottom: 10
 	},
 	title: {
 		fontSize: 24,
@@ -49,8 +51,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	label: {
-		lineHeight: 20,
-		fontSize: 14,
+		lineHeight: scaling.scale(20),
+		fontSize: scaling.scale(14),
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		...fontStyles.normal
@@ -97,8 +99,8 @@ const styles = StyleSheet.create({
 		marginBottom: 30
 	},
 	image: {
-		width: 138,
-		height: 162
+		width: scaling.scale(138),
+		height: scaling.scale(162)
 	},
 	imageWarning: {
 		width: 56,
