@@ -13,7 +13,12 @@ import {
 	InteractionManager
 } from 'react-native';
 import { connect } from 'react-redux';
-import { setSelectedAsset, prepareTransaction, setTransactionObject } from '../../../../actions/transaction';
+import {
+	setSelectedAsset,
+	prepareTransaction,
+	setTransactionObject,
+	toggleMaxMode
+} from '../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -384,7 +389,15 @@ class Amount extends PureComponent {
 		/**
 		 * function to call when the 'Next' button is clicked
 		 */
-		onConfirm: PropTypes.func
+		onConfirm: PropTypes.func,
+		/**
+		 * function to toggle Max Mode
+		 */
+		toggleMaxMode: PropTypes.func,
+		/**
+		 * Max Mode is on or off
+		 */
+		maxMode: PropTypes.bool
 	};
 
 	state = {
@@ -395,8 +408,7 @@ class Amount extends PureComponent {
 		assetsModalVisible: false,
 		internalPrimaryCurrencyIsCrypto: this.props.primaryCurrency === 'ETH',
 		estimatedTotalGas: undefined,
-		hasExchangeRate: false,
-		maxMode: false
+		hasExchangeRate: false
 	};
 
 	amountInput = React.createRef();
@@ -687,9 +699,11 @@ class Amount extends PureComponent {
 			selectedAsset,
 			conversionRate,
 			contractExchangeRates,
-			transactionState: { paymentChannelTransaction }
+			transactionState: { paymentChannelTransaction },
+			toggleMaxMode,
+			maxMode
 		} = this.props;
-		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas, maxMode } = this.state;
+		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
 		if (maxMode) {
 			this.onInputChange('0');
 			setTimeout(() => this.amountInput && this.amountInput.current && this.amountInput.current.focus(), 100);
@@ -721,7 +735,7 @@ class Amount extends PureComponent {
 			}
 			this.onInputChange(input, undefined, true);
 		}
-		this.setState({ maxMode: !maxMode });
+		toggleMaxMode(maxMode);
 	};
 
 	onInputChange = (inputValue, selectedAsset, useMax) => {
@@ -963,10 +977,9 @@ class Amount extends PureComponent {
 			amountError,
 			hasExchangeRate,
 			internalPrimaryCurrencyIsCrypto,
-			currentBalance,
-			maxMode
+			currentBalance
 		} = this.state;
-		const { currentCurrency } = this.props;
+		const { currentCurrency, maxMode } = this.props;
 		return (
 			<View>
 				<View style={styles.inputContainerWrapper}>
@@ -1037,10 +1050,11 @@ class Amount extends PureComponent {
 	};
 
 	render = () => {
-		const { estimatedTotalGas, maxMode } = this.state;
+		const { estimatedTotalGas } = this.state;
 		const {
 			selectedAsset,
-			transactionState: { paymentChannelTransaction, isPaymentRequest }
+			transactionState: { paymentChannelTransaction, isPaymentRequest },
+			maxMode
 		} = this.props;
 
 		return (
@@ -1124,13 +1138,15 @@ const mapStateToProps = (state, ownProps) => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
-	selectedAsset: state.transaction.selectedAsset
+	selectedAsset: state.transaction.selectedAsset,
+	maxMode: state.transaction.maxMode
 });
 
 const mapDispatchToProps = dispatch => ({
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
-	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
+	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset)),
+	toggleMaxMode: maxMode => dispatch(toggleMaxMode(maxMode))
 });
 
 export default connect(

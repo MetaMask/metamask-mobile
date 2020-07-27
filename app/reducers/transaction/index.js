@@ -22,7 +22,8 @@ const initialState = {
 	paymentRequest: undefined,
 	readableValue: undefined,
 	id: undefined,
-	type: undefined
+	type: undefined,
+	maxMode: undefined
 };
 
 const getAssetType = selectedAsset => {
@@ -95,6 +96,12 @@ const transactionReducer = (state = initialState, action) => {
 					...getTxData(action.transaction)
 				},
 				...txMeta
+			};
+		}
+		case 'TOGGLE_MAX_MODE': {
+			return {
+				...state,
+				maxMode: !action.maxMode
 			};
 		}
 		case 'SET_TOKENS_TRANSACTION': {

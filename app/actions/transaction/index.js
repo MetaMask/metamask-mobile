@@ -126,6 +126,18 @@ export function setTransactionObject(transaction) {
 }
 
 /**
+ * Toggles Max Mode
+ *
+ * @param {boolean} maxMode - maxMode initial state
+ */
+export function toggleMaxMode(maxMode) {
+	return {
+		type: 'TOGGLE_MAX_MODE',
+		maxMode
+	};
+}
+
+/**
  * Enable selectable tokens (ERC20 and Ether) to send in a transaction
  *
  * @param {object} asset - Asset to start the transaction with
