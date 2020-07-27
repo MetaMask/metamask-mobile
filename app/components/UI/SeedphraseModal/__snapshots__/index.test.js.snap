@@ -1,0 +1,137 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SeedphraseModal should render correctly 1`] = `
+<ActionModal
+  actionContainerStyle={
+    Object {
+      "borderTopWidth": 0,
+    }
+  }
+  cancelButtonMode="neutral"
+  cancelTestID=""
+  cancelText="Cancel"
+  confirmButtonMode="warning"
+  confirmDisabled={false}
+  confirmTestID=""
+  confirmText="Confirm"
+  displayCancelButton={false}
+  displayConfirmButton={false}
+  modalVisible={true}
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "flexDirection": "column",
+        "padding": 27,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "marginBottom": 16,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      />
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 18,
+            "fontWeight": "600",
+            "textAlign": "center",
+          }
+        }
+      >
+        What is a ‘Seed phrase’
+      </Text>
+      <TouchableOpacity
+        hitSlop={
+          Object {
+            "bottom": 10,
+            "left": 10,
+            "right": 10,
+            "top": 10,
+          }
+        }
+        style={
+          Object {
+            "alignItems": "flex-end",
+            "flex": 1,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          name="times"
+          size={12}
+          style={
+            Object {
+              "fontSize": 16,
+            }
+          }
+        />
+      </TouchableOpacity>
+    </View>
+    <View>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 16,
+            "textAlign": "center",
+          }
+        }
+      >
+        A seed phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 16,
+            "textAlign": "center",
+          }
+        }
+      >
+        You must keep your seed phrase secret and safe. If someone gets your seed phrase, they’ll gain control over your accounts.
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 16,
+            "textAlign": "center",
+          }
+        }
+      >
+        Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it.
+      </Text>
+    </View>
+  </View>
+</ActionModal>
+`;

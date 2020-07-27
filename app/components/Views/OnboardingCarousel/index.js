@@ -47,21 +47,25 @@ const styles = StyleSheet.create({
 	},
 	ctas: {
 		paddingHorizontal: 40,
+		paddingBottom: 20,
 		flexDirection: 'column'
 	},
 	ctaWrapper: {
 		justifyContent: 'flex-end'
 	},
 	carouselImage: {},
+	// eslint-disable-next-line react-native/no-unused-styles
 	carouselImage1: {
 		marginTop: 30,
 		width: DEVICE_WIDTH - IMG_PADDING,
 		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO
 	},
+	// eslint-disable-next-line react-native/no-unused-styles
 	carouselImage2: {
 		width: DEVICE_WIDTH - IMG_PADDING,
 		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO
 	},
+	// eslint-disable-next-line react-native/no-unused-styles
 	carouselImage3: {
 		width: DEVICE_WIDTH - 60,
 		height: (DEVICE_WIDTH - 60) * IMAGE_3_RATIO
@@ -96,6 +100,9 @@ const styles = StyleSheet.create({
 const onboarding_carousel_1 = require('../../../images/onboarding-carousel-1.png'); // eslint-disable-line
 const onboarding_carousel_2 = require('../../../images/onboarding-carousel-2.png'); // eslint-disable-line
 const onboarding_carousel_3 = require('../../../images/onboarding-carousel-3.png'); // eslint-disable-line
+const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
+
+const carousel_images = [onboarding_carousel_1, onboarding_carousel_2, onboarding_carousel_3];
 
 /**
  * View that is displayed to first time (new) users
@@ -138,54 +145,30 @@ export default class OnboardingCarousel extends PureComponent {
 								renderTabBar={this.renderTabBar}
 								onChangeTab={this.onChangeTab}
 							>
-								<View key={'1'} style={baseStyles.flexGrow}>
-									<View style={styles.tab}>
-										<Text style={styles.title} testID={'carousel-screen-one'}>
-											{strings('onboarding_carousel.title1')}
-										</Text>
-										<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle1')}</Text>
-									</View>
-									<View style={styles.carouselImageWrapper}>
-										<Image
-											source={onboarding_carousel_1}
-											style={[styles.carouselImage, styles.carouselImage1]}
-											resizeMethod={'auto'}
-											testID={'carousel-one-image'}
-										/>
-									</View>
-								</View>
-								<View key={'2'} style={baseStyles.flexGrow}>
-									<View style={styles.tab}>
-										<Text style={styles.title} testID={'carousel-screen-two'}>
-											{strings('onboarding_carousel.title2')}
-										</Text>
-										<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle2')}</Text>
-									</View>
-									<View style={styles.carouselImageWrapper}>
-										<Image
-											source={onboarding_carousel_2}
-											style={[styles.carouselImage, styles.carouselImage2]}
-											resizeMethod={'auto'}
-											testID={'carousel-two-image'}
-										/>
-									</View>
-								</View>
-								<View key={'3'} style={baseStyles.flexGrow}>
-									<View style={styles.tab}>
-										<Text style={styles.title} testID={'carousel-screen-three'}>
-											{strings('onboarding_carousel.title3')}
-										</Text>
-										<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle3')}</Text>
-									</View>
-									<View style={styles.carouselImageWrapper}>
-										<Image
-											source={onboarding_carousel_3}
-											style={[styles.carouselImage, styles.carouselImage3]}
-											resizeMethod={'auto'}
-											testID={'carousel-three-image'}
-										/>
-									</View>
-								</View>
+								{['one', 'two', 'three'].map((value, index) => {
+									const key = index + 1;
+									const imgStyleKey = `carouselImage${key}`;
+									return (
+										<View key={key} style={baseStyles.flexGrow}>
+											<View style={styles.tab}>
+												<Text style={styles.title} testID={`carousel-screen-${value}`}>
+													{strings(`onboarding_carousel.title${key}`)}
+												</Text>
+												<Text style={styles.subtitle}>
+													{strings(`onboarding_carousel.subtitle${key}`)}
+												</Text>
+											</View>
+											<View style={styles.carouselImageWrapper}>
+												<Image
+													source={carousel_images[index]}
+													style={[styles.carouselImage, styles[imgStyleKey]]}
+													resizeMethod={'auto'}
+													testID={`carousel-${value}-image`}
+												/>
+											</View>
+										</View>
+									);
+								})}
 							</ScrollableTabView>
 
 							<View style={styles.progessContainer}>
@@ -193,20 +176,19 @@ export default class OnboardingCarousel extends PureComponent {
 									<View key={i} style={[styles.circle, currentTab === i ? styles.solidCircle : {}]} />
 								))}
 							</View>
-
-							<View style={styles.ctas}>
-								<View style={styles.ctaWrapper}>
-									<StyledButton
-										type={'normal'}
-										onPress={this.onPresGetStarted}
-										testID={'onboarding-get-started-button'}
-									>
-										{strings('onboarding_carousel.get_started')}
-									</StyledButton>
-								</View>
-							</View>
 						</View>
 					</ScrollView>
+					<View style={styles.ctas}>
+						<View style={styles.ctaWrapper}>
+							<StyledButton
+								type={'normal'}
+								onPress={this.onPresGetStarted}
+								testID={'onboarding-get-started-button'}
+							>
+								{strings('onboarding_carousel.get_started')}
+							</StyledButton>
+						</View>
+					</View>
 				</OnboardingScreenWithBg>
 				<FadeOutOverlay />
 			</View>
