@@ -453,7 +453,9 @@ class Onboarding extends PureComponent {
 	};
 
 	onPressCreate = () => {
-		this.props.navigation.navigate('ChoosePassword');
+		this.props.navigation.navigate('ChoosePassword', {
+			[AppConstants.PREVIOUS_SCREEN]: 'onboarding'
+		});
 		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
 	};
 
