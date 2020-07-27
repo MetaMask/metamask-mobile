@@ -27,24 +27,37 @@
 		"ok": "OK"
 	},
 	"onboarding": {
-		"title": "Get started!",
+		"title": "Wallet setup",
 		"sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
-		"create_desc": "New to crypto? Set up your first wallet and start exploring decentralized apps.",
+		"create_desc": "Set up your first wallet and start exploring decentralized apps.",
+		"import": "Import an existing wallet or create a new one",
 		"import_wallet_button": "Sync or import wallet",
+		"new_to_crypto": "New to crypto?",
 		"start_exploring_now": "Create wallet",
 		"login": "Log in",
 		"new_to_metamask": "New to MetaMask?",
 		"already_have_wallet": "Already have a wallet?",
 		"optin_back_title": "Heads up!",
-		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings."
+		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings.",
+		"step1": "Wallet setup",
+		"step2": "Create password",
+		"step3": "Secure wallet",
+		"already_have": "Already have a wallet?",
+		"sync_existing": "Sync your existing MetaMask wallet from the browser extension or import manually.",
+		"scan_title": "Scan QR code steps",
+		"scan": "Scan",
+		"scan_step_1": "Open the extension on desktop",
+		"scan_step_2": "Go to Settings > Advanced",
+		"scan_step_3": "Click on “Sync with Mobile”",
+		"scan_step_4": "Scan the QR code to start syncing"
 	},
 	"onboarding_carousel": {
 		"title1": "Welcome to MetaMask",
-		"title2": "Say hello to your wallet...",
-		"title3": "Explore decentralized apps",
-		"subtitle1": "A secure browser – and so much more. Swipe to see what’s possible.",
-		"subtitle2": "Store, spend and send crypto currencies and assets.",
-		"subtitle3": "Use your MetaMask to login to decentralized apps – no signup needed.",
+		"title2": "Manage your digital assets",
+		"title3": "Your gateway to web3",
+		"subtitle1": "Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.",
+		"subtitle2": "Store, spend and send digital assets like tokens, ethereum, unique collectibles.",
+		"subtitle3": "Login with MetaMask and make transactions to invest, earn, play games, sell and more!",
 		"get_started": "Get started"
 	},
 	"onboarding_wizard": {
@@ -98,7 +111,7 @@
 		"sync_help_step_two": "2. Go to Settings > Advanced",
 		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
 		"sync_help_step_four": "4. Scan the QR Code to start syncing",
-		"sync_from_browser_extension_button": "Scan the QR code",
+		"sync_from_browser_extension_button": "Scan QR code",
 		"or": "OR",
 		"import_from_seed_button": "Import using seed phrase"
 	},
@@ -118,7 +131,7 @@
 	},
 	"choose_password": {
 		"title": "Create password",
-		"subtitle": "You'll use this password to unlock your MetaMask wallet only on this device.",
+		"subtitle": "This password will unlock your MetaMask wallet only on this device.",
 		"password": "New Password",
 		"confirm_password": "Confirm Password",
 		"create_button": "NEXT",
@@ -134,7 +147,11 @@
 		"must_be_at_least": "Must be at least {{number}} characters",
 		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
-		"security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
+		"security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
+		"i_understand": "I understand that MetaMask cannot recover this password for me.",
+		"learn_more": "Learn more.",
+		"secure": "Secure wallet",
+		"confirm": "Confirm seed phrase"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",
@@ -736,9 +753,12 @@
 		"allow_biometrics_desc": "You can use {{biometrics}} to authenticate on MetaMask"
 	},
 	"sync_with_extension_success": {
-		"title": "Sync completed",
-		"sync_complete": "We have synchronized all the information from your MetaMask extension and now you're ready to go!",
-		"button_continue": "Continue"
+		"title": "Wallet imported",
+		"sync_complete_1": "Just remember, MetaMask cannot recover your seed phrase should you lose it. You can find the seed phrase in",
+		"sync_complete_2": "Settings > Security & Privacy",
+		"button_continue": "Done",
+		"password_tip": "The password to unlock your mobile wallet is the same one you set for the extension.",
+		"learn_more": "Learn more."
 	},
 	"networks": {
 		"title": "Networks",
@@ -790,9 +810,9 @@
 		"empty_data": "0x"
 	},
 	"biometrics": {
-		"enable_touchid": "Sign In with Touch ID?",
-		"enable_faceid": "Sign In with Face ID?",
-		"enable_fingerprint": "Sign In with Fingerprint?",
+		"enable_touchid": "Sign in with Touch ID?",
+		"enable_faceid": "Sign in with Face ID?",
+		"enable_fingerprint": "Sign in with Fingerprint?",
 		"enable_device_passcode_ios": "Sign in with device passcode?",
 		"enable_device_passcode_android": "Sign in with device PIN?"
 	},
@@ -849,23 +869,46 @@
 		"cta_text": "CREATE PASSWORD"
 	},
 	"account_backup_step_1": {
-		"cancel_backup_title": "Cancel Backup",
-		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
-		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "No, back up Seed Phrase",
-		"skip": "Skip",
-		"important": "IMPORTANT!",
-		"title": "Save your wallet's seed phrase",
-		"highly_recommended": "HIGHLY RECOMMENDED",
-		"info_text_1": "Your wallet's seed phrase is:",
-		"info_text_2_1": "A ",
-		"info_text_2_2": "secret",
-		"info_text_2_3": " code that you do NOT share with anyone.",
-		"info_text_3_1": "used to ",
-		"info_text_3_2": "recover your wallet",
-		"info_text_3_3": " in case you lose your device, forget your password, have to re-install the MetaMask app or want to access your wallet on another device.",
-		"cta_text": "YEAH, LET'S SAVE IT",
-		"learn_more": "Learn More"
+		"remind_me_later": "Remind me later",
+		"remind_me_later_subtext": "(Not recommended)",
+		"title": "Secure your wallet",
+		"info_text_1_1": "Don’t risk losing your funds. Protect your wallet by saving your",
+		"info_text_1_2": "seed phrase",
+		"info_text_1_3": "in a place you trust.",
+		"info_text_1_4": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
+		"cta_text": "Start",
+		"cta_subText": "Highly recommended",
+		"skip_button_cancel": "Secure now",
+		"skip_button_confirm": "Skip",
+		"skip_title": "Skip account security?",
+		"skip_check": "I understand that if I lose my seed phrase I will not be able to access my wallet.",
+		"what_is_seedphrase_title": "What is a ‘Seed phrase’",
+		"what_is_seedphrase_text_1": "A seed phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.",
+		"what_is_seedphrase_text_2": "You must keep your seed phrase secret and safe. If someone gets your seed phrase, they’ll gain control over your accounts.",
+		"what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it."
+	},
+	"account_backup_step_1B": {
+		"title": "Secure your wallet",
+		"subtitle_1": "Secure your wallet's",
+		"subtitle_2": "seed phrase.",
+		"cta_text": "Start",
+		"learn_more": "Learn More",
+		"why_important": "Why is it important?",
+		"manual_title": "Manual",
+		"manual_subtitle": "Write down your seed phrase on a piece of paper and store in a safe place.",
+		"manual_security": "Security level: Very strong",
+		"risks_title": "Risks are:",
+		"risks_1": "You lose it",
+		"risks_2": "You forget where you put it",
+		"risks_3": "Someone else finds it",
+		"other_options": "Other options: Doesn’t have to be paper!",
+		"tips_title": "Tips:",
+		"tips_1": "Store in bank vault",
+		"tips_2": "Store in a safe",
+		"tips_3": "Store in multiple secret places",
+		"why_secure_title": "Protect your wallet",
+		"why_secure_1": "Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"why_secure_2": " It’s the only way to recover your wallet if you get locked out of the app or get a new device."
 	},
 	"account_backup_step_2": {
 		"cancel_backup_title": "Cancel Backup",
@@ -926,6 +969,42 @@
 		"modal_text": "You are all backed up and ready to go!",
 		"modal_button": "DONE",
 		"copy_seed_phrase": "COPY SEED PHRASE TO CLIPBOARD"
+	},
+	"manual_backup": {
+		"progressOne": "Create Password",
+		"progressTwo": "Secure wallet",
+		"progressThree": "Confirm seed phrase"
+	},
+	"manual_backup_step_1": {
+		"action": "Write down your seed phrase",
+		"info": "This is your seed phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
+		"continue": "Continue",
+		"reveal": "Tap to reveal your seed phrase",
+		"watching": "Make sure no one is watching your screen.",
+		"view": "View",
+		"confirm_password": "Confirm your password",
+		"before_continiuing": "Before continuing we need you to confirm your password",
+		"confirm": "CONFIRM"
+	},
+	"manual_backup_step_2": {
+		"action": "Confirm seed phrase",
+		"info": "Select each word in the order it was presented to you.",
+		"complete": "Complete Backup",
+		"success": "Success"
+	},
+	"manual_backup_step_3": {
+		"congratulations": "Congratulations",
+		"success": "You’ve successfully protected your wallet. Remember to keep your seed phrase safe, it's your responsibility!",
+		"hint": "Leave yourself a hint?",
+		"recover": "MetaMask cannot recover your wallet should you lose it. You can find your seedphrase in Settings > Security & Privacy.",
+		"learn": "Learn more",
+		"done": "Done",
+		"recovery_hint": "Recovery hint",
+		"leave_hint": "Leave yourself a hint. Write the location / where you saved it to remind yourself how you can access it. This information does not leave your device.",
+		"no_seedphrase": "Do not use this to write your seed phrase.",
+		"example": "e.g. Mom's house",
+		"save": "Save",
+		"cancel": "Cancel"
 	},
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",

@@ -103,6 +103,7 @@ target 'MetaMask' do
   # you should disable these next few lines.
   add_flipper_pods!
 
+
   post_install do |installer|
     flipper_post_install(installer)
   end
