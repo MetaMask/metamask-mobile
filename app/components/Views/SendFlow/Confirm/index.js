@@ -285,7 +285,11 @@ class Confirm extends PureComponent {
 		/**
 		 * ETH or fiat, depending on user setting
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Max Mode is on or off
+		 */
+		maxMode: PropTypes.bool
 	};
 
 	state = {
@@ -305,6 +309,7 @@ class Confirm extends PureComponent {
 		transactionValueFiat: undefined,
 		transactionFee: undefined,
 		transactionTotalAmount: undefined,
+		transactionTotalAmountBN: undefined,
 		transactionTotalAmountFiat: undefined,
 		errorMessage: undefined,
 		fromAccountModalVisible: false,
@@ -380,6 +385,7 @@ class Confirm extends PureComponent {
 		const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
 		const parsedTicker = getTicker(ticker);
 		const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+		let transactionTotalAmountBN;
 
 		if (isPaymentChannelTransaction) {
 			fromAccountBalance = `${selectedAsset.assetBalance} ${selectedAsset.symbol}`;
@@ -389,7 +395,7 @@ class Confirm extends PureComponent {
 			fromAccountBalance = `${renderFromWei(accounts[fromSelectedAddress].balance)} ${parsedTicker}`;
 			transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
-			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
+			transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 			transactionTotalAmount = (
 				<Text style={styles.totalAmount}>
 					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
@@ -418,7 +424,7 @@ class Confirm extends PureComponent {
 				[transactionTo, ,] = decodeTransferData('transfer', data);
 			}
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
-			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
+			transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 			transactionTotalAmount = (
 				<Text style={styles.totalAmount}>
 					{renderFromWei(weiTransactionFee)} {parsedTicker}
@@ -465,7 +471,8 @@ class Confirm extends PureComponent {
 				transactionFee,
 				transactionTo,
 				transactionTotalAmount,
-				transactionTotalAmountFiat
+				transactionTotalAmountFiat,
+				transactionTotalAmountBN
 			},
 			() => {
 				this.validateAmount({
@@ -520,16 +527,22 @@ class Confirm extends PureComponent {
 	};
 
 	handleSetGasFee = () => {
-		const { customGas, customGasPrice, customGasSelected } = this.state;
+		const { customGas, customGasPrice, customGasSelected, transactionTotalAmountBN } = this.state;
 		if (!customGas || !customGasPrice) {
 			this.toggleCustomGasModal();
 			return;
 		}
 		this.setState({ gasEstimationReady: false });
-		const { prepareTransaction, transactionState } = this.props;
+		const { prepareTransaction, transactionState, maxMode, selectedAsset } = this.props;
 		let transaction = transactionState.transaction;
-		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
-
+		if (maxMode && selectedAsset.isETH) {
+			const totalGas = customGas.mul(customGasPrice);
+			const newValue = transactionTotalAmountBN.sub(totalGas);
+			const newValueHex = BNToHex(newValue);
+			transaction = { ...transaction, value: newValueHex, gas: customGas, gasPrice: customGasPrice };
+		} else {
+			transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
+		}
 		prepareTransaction(transaction);
 		setTimeout(() => {
 			this.parseTransactionData();
@@ -586,7 +599,6 @@ class Confirm extends PureComponent {
 					gasPrice={gasPrice}
 					gasError={gasError}
 					toggleCustomGasModal={this.toggleCustomGasModal}
-					handleSetGasFee={this.handleSetGasFee}
 					parentStateReady={this.ready}
 				/>
 			</ActionModal>
@@ -1008,7 +1020,8 @@ const mapStateToProps = state => ({
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	maxMode: state.transaction.maxMode
 });
 
 const mapDispatchToProps = dispatch => ({
