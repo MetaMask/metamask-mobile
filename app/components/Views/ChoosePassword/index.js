@@ -33,7 +33,10 @@ const styles = StyleSheet.create({
 		marginHorizontal: 32
 	},
 	scrollableWrapper: {
-		flexWrap: 'wrap'
+		flex: 1
+	},
+	keyboardScrollableWrapper: {
+		flexGrow: 1
 	},
 	loadingWrapper: {
 		paddingHorizontal: 40,
@@ -495,7 +498,11 @@ class ChoosePassword extends PureComponent {
 				) : (
 					<View style={styles.wrapper} testID={'choose-password-screen'}>
 						<OnboardingProgress steps={steps} />
-						<KeyboardAwareScrollView style={styles.scrollableWrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
+						<KeyboardAwareScrollView
+							style={styles.scrollableWrapper}
+							contentContainerStyle={styles.keyboardScrollableWrapper}
+							resetScrollToCoords={{ x: 0, y: 0 }}
+						>
 							<View testID={'create-password-screen'}>
 								<View style={styles.content}>
 									<Text style={styles.title}>{strings('choose_password.title')}</Text>
