@@ -13,8 +13,7 @@ exports[`ChoosePassword should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
-        "paddingBottom": 20,
-        "paddingHorizontal": 20,
+        "marginHorizontal": 32,
       }
     }
     testID="choose-password-screen"
@@ -44,9 +43,7 @@ exports[`ChoosePassword should render correctly 1`] = `
       }
       style={
         Object {
-          "flex": 1,
-          "paddingBottom": 20,
-          "paddingHorizontal": 20,
+          "flexWrap": "wrap",
         }
       }
       viewIsInsideTabBar={false}
@@ -81,6 +78,8 @@ exports[`ChoosePassword should render correctly 1`] = `
           <View
             style={
               Object {
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontWeight": "400",
                 "justifyContent": "center",
                 "marginBottom": 10,
               }
@@ -330,7 +329,9 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
+                "fontWeight": "400",
                 "paddingHorizontal": 10,
               }
             }

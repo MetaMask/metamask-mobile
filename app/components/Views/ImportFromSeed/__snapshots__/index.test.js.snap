@@ -25,7 +25,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
-        "paddingHorizontal": 20,
+        "paddingHorizontal": 32,
       }
     }
     viewIsInsideTabBar={false}
