@@ -25,6 +25,7 @@ import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PreventScreenshot from '../../../core/PreventScreenshot';
+import { BIOMETRY_CHOICE } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -172,7 +173,7 @@ class RevealPrivateCredential extends PureComponent {
 		if (!this.props.passwordSet) {
 			this.tryUnlockWithPassword('');
 		} else if (biometryType) {
-			const biometryChoice = await AsyncStorage.getItem('@MetaMask:biometryChoice');
+			const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
 			if (biometryChoice !== '' && biometryChoice === biometryType) {
 				const credentials = await SecureKeychain.getGenericPassword();
 				if (credentials) {
