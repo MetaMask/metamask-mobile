@@ -507,8 +507,23 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
 	};
 
-	logout = () => {
+	onPress = async () => {
 		const { passwordSet } = this.props;
+		const { KeyringController } = Engine.context;
+		await SecureKeychain.resetGenericPassword();
+		await KeyringController.setLocked();
+		if (!passwordSet) {
+			this.props.navigation.navigate(
+				'OnboardingRootNav',
+				{},
+				NavigationActions.navigate({ routeName: 'Onboarding' })
+			);
+		} else {
+			this.props.navigation.navigate('Login');
+		}
+	};
+
+	logout = () => {
 		Alert.alert(
 			strings('drawer.logout_title'),
 			'',
@@ -520,18 +535,7 @@ class DrawerView extends PureComponent {
 				},
 				{
 					text: strings('drawer.logout_ok'),
-					onPress: async () => {
-						await SecureKeychain.resetGenericPassword();
-						if (!passwordSet) {
-							this.props.navigation.navigate(
-								'OnboardingRootNav',
-								{},
-								NavigationActions.navigate({ routeName: 'Onboarding' })
-							);
-						} else {
-							this.props.navigation.navigate('Login');
-						}
-					}
+					onPress: this.onPress
 				}
 			],
 			{ cancelable: false }
