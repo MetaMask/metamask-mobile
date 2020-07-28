@@ -172,7 +172,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	backUpSeedphraseAlertNotVisible: enable => dispatch(backUpSeedphraseAlertNotVisible())
+	backUpSeedphraseAlertNotVisible: () => dispatch(backUpSeedphraseAlertNotVisible())
 });
 
 export default connect(
