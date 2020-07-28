@@ -460,6 +460,7 @@ class Onboarding extends PureComponent {
 	};
 
 	handleExistingUser = action => {
+		console.log('this.state.existingUser', this.state.existingUser);
 		if (this.state.existingUser) {
 			this.alertExistingUser(action);
 		} else {
@@ -469,34 +470,18 @@ class Onboarding extends PureComponent {
 
 	onPressCreate = () => {
 		const action = () => {
-			this.props.navigation.navigate('CreateWallet');
-			InteractionManager.runAfterInteractions(async () => {
-				if (Analytics.getEnabled()) {
-					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-					return;
-				}
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-				if (!metricsOptIn) {
-					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-				}
+			this.props.navigation.navigate('ChoosePassword', {
+				[AppConstants.PREVIOUS_SCREEN]: 'onboarding'
 			});
+			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
 		};
 		this.handleExistingUser(action);
 	};
 
 	onPressImport = () => {
 		const action = () => {
-			this.props.navigation.push('ImportWallet');
-			InteractionManager.runAfterInteractions(async () => {
-				if (Analytics.getEnabled()) {
-					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
-					return;
-				}
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-				if (!metricsOptIn) {
-					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
-				}
-			});
+			this.props.navigation.push('ImportFromSeed');
+			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
 		};
 		this.handleExistingUser(action);
 	};
@@ -512,18 +497,6 @@ class Onboarding extends PureComponent {
 				this.props.saveOnboardingEvent(key);
 			}
 		});
-	};
-
-	onPressCreate = () => {
-		this.props.navigation.navigate('ChoosePassword', {
-			[AppConstants.PREVIOUS_SCREEN]: 'onboarding'
-		});
-		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
-	};
-
-	onPressImport = () => {
-		this.props.navigation.push('ImportFromSeed');
-		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
 	};
 
 	alertExistingUser = callback => {
@@ -630,6 +603,7 @@ class Onboarding extends PureComponent {
 					</View>
 				</OnboardingScreenWithBg>
 				<FadeOutOverlay />
+
 				<ActionModal
 					modalVisible={this.state.warningModalVisible}
 					cancelText={strings('onboarding.warning_proceed')}
