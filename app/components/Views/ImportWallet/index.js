@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 30,
+		paddingHorizontal: 32,
 		alignItems: 'center'
 	},
 	foxWrapper: {
