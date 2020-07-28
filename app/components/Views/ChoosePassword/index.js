@@ -30,8 +30,10 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 20,
-		paddingBottom: 20
+		marginHorizontal: 32
+	},
+	scrollableWrapper: {
+		flexWrap: 'wrap'
 	},
 	loadingWrapper: {
 		paddingHorizontal: 40,
@@ -72,7 +74,8 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		marginBottom: 10,
-		justifyContent: 'center'
+		justifyContent: 'center',
+		...fontStyles.normal
 	},
 	checkboxContainer: {
 		marginTop: 10,
@@ -89,6 +92,7 @@ const styles = StyleSheet.create({
 		marginLeft: -6
 	},
 	label: {
+		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.black,
 		paddingHorizontal: 10
@@ -491,7 +495,7 @@ class ChoosePassword extends PureComponent {
 				) : (
 					<View style={styles.wrapper} testID={'choose-password-screen'}>
 						<OnboardingProgress steps={steps} />
-						<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
+						<KeyboardAwareScrollView style={styles.scrollableWrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 							<View testID={'create-password-screen'}>
 								<View style={styles.content}>
 									<Text style={styles.title}>{strings('choose_password.title')}</Text>
