@@ -7,7 +7,7 @@ import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	viewWrapper: {
-		flex: 1,
+		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginHorizontal: 24
