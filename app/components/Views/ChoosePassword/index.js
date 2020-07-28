@@ -22,6 +22,13 @@ import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
+import {
+	EXISTING_USER,
+	NEXT_MAKER_REMINDER,
+	BIOMETRY_CHOICE,
+	BIOMETRY_CHOICE_DISABLED,
+	PASSCODE_DISABLED
+} from '../../../constants/storage';
 
 const steps = [strings('choose_password.title'), strings('choose_password.secure'), strings('choose_password.confirm')];
 
@@ -290,8 +297,8 @@ class ChoosePassword extends PureComponent {
 			if (previous_screen === ONBOARDING) {
 				await this.createNewVaultAndKeychain(password);
 				this.props.seedphraseNotBackedUp();
-				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
-				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
+				await AsyncStorage.setItem(EXISTING_USER, 'true');
 			} else {
 				await this.recreateVault(password);
 			}
@@ -307,9 +314,9 @@ class ChoosePassword extends PureComponent {
 				if (Device.isIos()) {
 					await SecureKeychain.getGenericPassword();
 				}
-				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
-				await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
-				await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
+				await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
+				await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+				await AsyncStorage.removeItem(PASSCODE_DISABLED);
 			} else {
 				if (this.state.rememberMe) {
 					await SecureKeychain.setGenericPassword('metamask-user', password, {
@@ -318,11 +325,11 @@ class ChoosePassword extends PureComponent {
 				} else {
 					await SecureKeychain.resetGenericPassword();
 				}
-				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-				await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
-				await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, 'true');
+				await AsyncStorage.setItem(PASSCODE_DISABLED, 'true');
 			}
-			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			await AsyncStorage.setItem(EXISTING_USER, 'true');
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
@@ -332,9 +339,9 @@ class ChoosePassword extends PureComponent {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
 			await SecureKeychain.setGenericPassword('metamask-user', '');
-			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
-			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
+			await AsyncStorage.setItem(EXISTING_USER, 'true');
 			this.props.passwordUnset();
 			this.props.setLockTime(-1);
 			// Should we force people to enable passcode / biometrics?
