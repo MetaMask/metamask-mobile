@@ -39,7 +39,8 @@ const styles = StyleSheet.create({
 	},
 	modalWrapper: {
 		flexGrow: 1,
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
+		marginTop: 24
 	},
 	foxWrapper: {
 		width: Device.isIos() ? 90 : 45,
@@ -90,8 +91,6 @@ const styles = StyleSheet.create({
 		marginBottom: 24
 	},
 	buttonWrapper: {
-		flexGrow: 1,
-		marginHorizontal: 50,
 		marginBottom: 16
 	},
 	warningModalView: {
@@ -232,29 +231,6 @@ class Onboarding extends PureComponent {
 			this.setState({ existingUser: true });
 		}
 	}
-
-	safeSync = () => {
-		const { existingUser } = this.state;
-		const action = () => this.onPressSync();
-		if (existingUser) {
-			this.alertExistingUser(action);
-		} else {
-			action();
-		}
-	};
-
-	onPressSync = () => {
-		if (!PUB_KEY) {
-			// Dev message
-			Alert.alert(
-				'This feature has been disabled',
-				`Because you did not set the .js.env file. Look at .js.env.example for more information`
-			);
-			return false;
-		}
-		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
-		this.toggleQrCodeModal();
-	};
 
 	toggleQrCodeModal = () => {
 		this.setState(state => ({ qrCodeModalVisible: !state.qrCodeModalVisible }));
@@ -460,7 +436,6 @@ class Onboarding extends PureComponent {
 	};
 
 	handleExistingUser = action => {
-		console.log('this.state.existingUser', this.state.existingUser);
 		if (this.state.existingUser) {
 			this.alertExistingUser(action);
 		} else {
@@ -476,6 +451,32 @@ class Onboarding extends PureComponent {
 			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
 		};
 		this.handleExistingUser(action);
+	};
+
+	onPressSync = () => {
+		const { existingUser } = this.state;
+		const action = () =>
+			setTimeout(() => {
+				this.safeSync();
+			}, 500);
+		if (existingUser) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
+	};
+
+	safeSync = () => {
+		if (!PUB_KEY) {
+			// Dev message
+			Alert.alert(
+				'This feature has been disabled',
+				`Because you did not set the .js.env file. Look at .js.env.example for more information`
+			);
+			return false;
+		}
+		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
+		this.toggleQrCodeModal();
 	};
 
 	onPressImport = () => {
@@ -546,7 +547,7 @@ class Onboarding extends PureComponent {
 						<StyledButton
 							style={styles.button}
 							type={'normal'}
-							onPress={this.safeSync}
+							onPress={this.onPressSync}
 							testID={'onboarding-import-button'}
 						>
 							{strings('import_wallet.sync_from_browser_extension_button')}
