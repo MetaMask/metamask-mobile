@@ -79,7 +79,7 @@ export default function ActionContent({
 							testID={cancelTestID}
 							type={cancelButtonMode}
 							onPress={onCancelPress}
-							containerStyle={[styles.button, verticalButtons ? {} : styles.buttonHorizontal]}
+							containerStyle={[styles.button, verticalButtons && styles.buttonHorizontal]}
 						>
 							{cancelText}
 						</StyledButton>
@@ -89,7 +89,7 @@ export default function ActionContent({
 							testID={confirmTestID}
 							type={confirmButtonMode}
 							onPress={onConfirmPress}
-							containerStyle={[styles.button, verticalButtons ? {} : styles.buttonHorizontal]}
+							containerStyle={[styles.button, verticalButtons && styles.buttonHorizontal]}
 							disabled={confirmDisabled}
 						>
 							{confirmText}
