@@ -275,9 +275,8 @@ class ChoosePassword extends PureComponent {
 		try {
 			this.setState({ loading: true });
 
-			const previous_screen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
-
-			if (previous_screen === 'onboarding') {
+			const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
+			if (previousScreen === 'onboarding') {
 				await this.createNewVaultAndKeychain(password);
 				this.props.seedphraseNotBackedUp();
 				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
@@ -317,8 +316,7 @@ class ChoosePassword extends PureComponent {
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
 			this.setState({ loading: false });
-			const seed = await this.getSeedPhrase();
-			this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
+			this.props.navigation.navigate('AccountBackupStep1');
 		} catch (error) {
 			await this.recreateVault('');
 			// Set state in app as it was with no password

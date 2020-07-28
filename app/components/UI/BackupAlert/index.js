@@ -128,7 +128,7 @@ class BackupAlert extends PureComponent {
 	}
 
 	goToBackupFlow = () => {
-		this.props.navigation.navigate('SetPasswordFlow');
+		this.props.navigation.navigate('AccountBackupStep1');
 	};
 
 	render() {
