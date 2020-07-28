@@ -197,9 +197,9 @@ class Onboarding extends PureComponent {
 		warningModalVisible: false,
 		loading: false,
 		existingUser: false,
-		qrCodeModalVisible: false,
-		currentStep: 1
+		qrCodeModalVisible: false
 	};
+
 	seedwords = null;
 	importedAccounts = null;
 	channelName = null;
@@ -209,13 +209,6 @@ class Onboarding extends PureComponent {
 
 	// eslint-disable-next-line no-empty-function
 	warningCallback = () => {};
-
-	async checkIfExistingUser() {
-		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
-		if (existingUser !== null) {
-			this.setState({ existingUser: true });
-		}
-	}
 
 	componentDidMount() {
 		this.mounted = true;
@@ -231,6 +224,13 @@ class Onboarding extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot.allow();
 		});
+	}
+
+	async checkIfExistingUser() {
+		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
+		if (existingUser !== null) {
+			this.setState({ existingUser: true });
+		}
 	}
 
 	safeSync = () => {
