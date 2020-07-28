@@ -25,6 +25,7 @@ import { setLockTime } from '../../../actions/settings';
 import AppConstants from '../../../core/AppConstants';
 import AnimatedFox from 'react-native-animated-fox';
 import PreventScreenshot from '../../../core/PreventScreenshot';
+import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -92,25 +93,6 @@ const styles = StyleSheet.create({
 	},
 	buttonWrapper: {
 		marginBottom: 16
-	},
-	warningModalView: {
-		margin: 24
-	},
-	warningModalTitle: {
-		...fontStyles.bold,
-		color: colors.red,
-		textAlign: 'center',
-		fontSize: 20,
-		marginBottom: 16
-	},
-	warningModalText: {
-		...fontStyles.normal,
-		color: colors.black,
-		textAlign: 'center',
-		fontSize: 14
-	},
-	warningModalTextBold: {
-		...fontStyles.bold
 	},
 	scanTitle: {
 		...fontStyles.bold,
@@ -605,30 +587,13 @@ class Onboarding extends PureComponent {
 				</OnboardingScreenWithBg>
 				<FadeOutOverlay />
 
-				<ActionModal
-					modalVisible={this.state.warningModalVisible}
-					cancelText={strings('onboarding.warning_proceed')}
-					confirmText={strings('onboarding.warning_cancel')}
+				<WarningExistingUserModal
+					warningModalVisible={this.state.warningModalVisible}
 					onCancelPress={this.warningCallback}
 					onRequestClose={this.toggleWarningModal}
 					onConfirmPress={this.toggleWarningModal}
-					cancelButtonMode={'warning'}
-					confirmButtonMode={'neutral'}
-					verticalButtons
-				>
-					<View style={styles.warningModalView}>
-						<Text style={styles.warningModalTitle}>{strings('onboarding.warning_title')}</Text>
-						<Text style={styles.warningModalText}>
-							{strings('onboarding.warning_text_1')}
-							<Text style={styles.warningModalTextBold}>{` ${strings(
-								'onboarding.warning_text_2'
-							)} `}</Text>
-							{strings('onboarding.warning_text_3')}
-						</Text>
-						<Text />
-						<Text style={styles.warningModalText}>{strings('onboarding.warning_text_4')}</Text>
-					</View>
-				</ActionModal>
+				/>
+
 				<ActionModal
 					modalVisible={qrCodeModalVisible}
 					onConfirmPress={this.showQrCode}
