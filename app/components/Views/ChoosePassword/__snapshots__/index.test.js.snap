@@ -29,6 +29,11 @@ exports[`ChoosePassword should render correctly 1`] = `
       }
     />
     <KeyboardAwareScrollViewMock
+      contentContainerStyle={
+        Object {
+          "flexGrow": 1,
+        }
+      }
       enableAutomaticScroll={true}
       enableOnAndroid={false}
       enableResetScrollToCoords={true}
@@ -43,7 +48,7 @@ exports[`ChoosePassword should render correctly 1`] = `
       }
       style={
         Object {
-          "flexWrap": "wrap",
+          "flex": 1,
         }
       }
       viewIsInsideTabBar={false}
