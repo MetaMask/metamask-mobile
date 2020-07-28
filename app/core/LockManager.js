@@ -1,6 +1,8 @@
 import { AppState } from 'react-native';
 import SecureKeychain from './SecureKeychain';
 import BackgroundTimer from 'react-native-background-timer';
+import Engine from '../core/Engine';
+import Logger from '../util/Logger';
 
 export default class LockManager {
 	constructor(navigation, lockTime) {
@@ -45,8 +47,15 @@ export default class LockManager {
 
 	lockApp() {
 		if (!SecureKeychain.getInstance().isAuthenticating) {
-			this.navigation.navigate('LockScreen', { backgroundMode: true });
-			this.locked = true;
+			const { KeyringController } = Engine.context;
+			KeyringController.setLocked()
+				.then(() => {
+					this.navigation.navigate('LockScreen', { backgroundMode: true });
+					this.locked = true;
+				})
+				.catch(error => {
+					Logger.log('Failed to lock KeyringController', error);
+				});
 		} else if (this.lockTimer) {
 			BackgroundTimer.clearTimeout(this.lockTimer);
 			this.lockTimer = null;

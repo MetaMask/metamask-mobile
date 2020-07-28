@@ -74,8 +74,6 @@ class LockScreen extends PureComponent {
 	unlockAttempts = 0;
 
 	componentDidMount = async () => {
-		const { KeyringController } = Engine.context;
-		await KeyringController.setLocked();
 		// Check if is the app is launching or it went to background mode
 		this.appState = 'background';
 		AppState.addEventListener('change', this.handleAppStateChange);
