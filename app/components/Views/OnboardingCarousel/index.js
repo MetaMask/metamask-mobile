@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 	},
 	ctas: {
 		paddingHorizontal: 40,
-		paddingBottom: 20,
+		paddingBottom: Device.isIphoneX() ? 40 : 20,
 		flexDirection: 'column'
 	},
 	ctaWrapper: {
