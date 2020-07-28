@@ -4,7 +4,7 @@ const initialState = {
 	passwordSet: false,
 	seedphraseBackedUp: false,
 	backUpSeedphraseVisible: false,
-	protectWalletModalVisible: true
+	protectWalletModalVisible: false
 };
 
 const userReducer = (state = initialState, action) => {
