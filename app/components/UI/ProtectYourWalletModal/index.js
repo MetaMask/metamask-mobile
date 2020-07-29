@@ -1,12 +1,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import ActionModal from '../ActionModal';
 import { fontStyles, colors } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { protectWalletModalNotVisible } from '../../../actions/user';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
 
 const protectWalletImage = require('../../../images/protect-wallet.jpg'); // eslint-disable-line
@@ -105,6 +104,7 @@ class ProtectYourWalletModal extends PureComponent {
 						{strings('protect_wallet_modal.text')}
 						<Text style={{ ...fontStyles.bold }}>{' ' + strings('protect_wallet_modal.text_bold')}</Text>
 					</Text>
+
 					<TouchableOpacity onPress={this.onLearnMore}>
 						<Text style={styles.learnMoreText}>{strings('protect_wallet_modal.action')}</Text>
 					</TouchableOpacity>
