@@ -65,6 +65,7 @@ class ProtectYourWalletModal extends PureComponent {
 	};
 
 	goToBackupFlow = () => {
+		this.props.protectWalletModalNotVisible();
 		this.props.navigation.navigate(this.props.passwordSet ? 'AccountBackupStep1' : 'SetPasswordFlow');
 	};
 
