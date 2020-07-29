@@ -45,17 +45,21 @@ export default class LockManager {
 		this.appState = nextAppState;
 	};
 
+	setLockedError = error => {
+		Logger.log('Failed to lock KeyringController', error);
+	};
+
+	gotoLockScreen = () => {
+		this.navigation.navigate('LockScreen', { backgroundMode: true });
+		this.locked = true;
+	};
+
 	lockApp() {
 		if (!SecureKeychain.getInstance().isAuthenticating) {
 			const { KeyringController } = Engine.context;
 			KeyringController.setLocked()
-				.then(() => {
-					this.navigation.navigate('LockScreen', { backgroundMode: true });
-					this.locked = true;
-				})
-				.catch(error => {
-					Logger.log('Failed to lock KeyringController', error);
-				});
+				.then(this.gotoLockScreen)
+				.catch(this.setLockedError);
 		} else if (this.lockTimer) {
 			BackgroundTimer.clearTimeout(this.lockTimer);
 			this.lockTimer = null;
