@@ -66,7 +66,7 @@ WarningExistingUserModal.propTypes = {
 	/**
 	 * Whether the modal is visible
 	 */
-	warningModalVisible: PropTypes.func,
+	warningModalVisible: PropTypes.bool,
 	/**
 	 * Cancel callback
 	 */
