@@ -57,11 +57,15 @@ class ProtectYourWalletModal extends PureComponent {
 		/**
 		 * Whether this modal is visible
 		 */
-		protectWalletModalVisible: PropTypes.bool
+		protectWalletModalVisible: PropTypes.bool,
+		/**
+		 * Boolean that determines if the user has set a password before
+		 */
+		passwordSet: PropTypes.bool
 	};
 
 	goToBackupFlow = () => {
-		this.props.navigation.navigate('SetPasswordFlow');
+		this.props.navigation.navigate(this.props.passwordSet ? 'AccountBackupStep1' : 'SetPasswordFlow');
 	};
 
 	onLearnMore = () => {
@@ -115,7 +119,8 @@ class ProtectYourWalletModal extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	protectWalletModalVisible: state.user.protectWalletModalVisible
+	protectWalletModalVisible: state.user.protectWalletModalVisible,
+	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({
