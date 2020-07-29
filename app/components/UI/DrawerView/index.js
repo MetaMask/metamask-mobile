@@ -382,7 +382,6 @@ class DrawerView extends PureComponent {
 	currentBalance = null;
 	previousBalance = null;
 	processedNewBalance = false;
-	animatingReceiveModal = false;
 	animatingNetworksModal = false;
 	animatingAccountsModal = false;
 
@@ -428,13 +427,7 @@ class DrawerView extends PureComponent {
 	};
 
 	toggleReceiveModal = () => {
-		if (!this.animatingReceiveModal) {
-			this.animatingReceiveModal = true;
-			this.props.toggleReceiveModal();
-			setTimeout(() => {
-				this.animatingReceiveModal = false;
-			}, 500);
-		}
+		this.props.toggleReceiveModal();
 	};
 
 	onNetworksModalClose = async manualClose => {
@@ -757,7 +750,9 @@ class DrawerView extends PureComponent {
 		Share.open({
 			message: generateUniversalLinkAddress(selectedAddress)
 		})
-			.then(() => this.props.protectWalletModalVisible())
+			.then(() => {
+				this.props.protectWalletModalVisible();
+			})
 			.catch(err => {
 				Logger.log('Error while trying to share address', err);
 			});

@@ -518,7 +518,7 @@ class ChoosePassword extends PureComponent {
 									<TextInput
 										style={styles.input}
 										value={password}
-										onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
+										onChangeText={this.onPasswordChange}
 										secureTextEntry={secureTextEntry}
 										placeholder=""
 										testID="input-password"

@@ -165,7 +165,10 @@ class ReceiveRequest extends PureComponent {
 	 * Closes QR code modal
 	 */
 	closeQrModal = () => {
-		this.setState({ qrModalVisible: false });
+		this.setState({ qrModalVisible: false }, () => {
+			this.props.hideModal();
+			setTimeout(() => this.props.protectWalletModalVisible(), 1000);
+		});
 	};
 
 	/**
