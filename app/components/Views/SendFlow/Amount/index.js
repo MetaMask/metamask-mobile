@@ -448,6 +448,11 @@ class Amount extends PureComponent {
 		}
 	};
 
+	componentWillUnmount = () => {
+		const { maxMode, toggleMaxMode } = this.props;
+		maxMode && toggleMaxMode(maxMode);
+	};
+
 	validateCollectibleOwnership = async () => {
 		const { AssetsContractController } = Engine.context;
 		const {
@@ -709,6 +714,7 @@ class Amount extends PureComponent {
 			setTimeout(() => this.amountInput && this.amountInput.current && this.amountInput.current.focus(), 100);
 		} else {
 			let input;
+			let maxFiatInput;
 			if (paymentChannelTransaction) {
 				input = selectedAsset.assetBalance;
 			} else if (selectedAsset.isETH) {
@@ -719,7 +725,7 @@ class Amount extends PureComponent {
 					input = fromWei(maxValue);
 				} else {
 					input = `${weiToFiatNumber(maxValue, conversionRate)}`;
-					this.setState({ maxFiatInput: `${weiToFiatNumber(maxValue, conversionRate, 12)}` });
+					maxFiatInput = `${weiToFiatNumber(maxValue, conversionRate, 12)}`;
 				}
 			} else {
 				const exchangeRate = contractExchangeRates[selectedAsset.address];
@@ -733,12 +739,12 @@ class Amount extends PureComponent {
 					)}`;
 				}
 			}
-			this.onInputChange(input, undefined, true);
+			this.onInputChange(input, undefined, { maxFiatInput });
 		}
 		toggleMaxMode(maxMode);
 	};
 
-	onInputChange = (inputValue, selectedAsset, useMax) => {
+	onInputChange = (inputValue, selectedAsset, max) => {
 		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let inputValueConversion, renderableInputValueConversion, hasExchangeRate, comma;
@@ -798,7 +804,7 @@ class Amount extends PureComponent {
 			renderableInputValueConversion,
 			amountError: undefined,
 			hasExchangeRate,
-			maxFiatInput: !useMax && undefined
+			maxFiatInput: (max && max.maxFiatInput) || undefined
 		});
 	};
 
