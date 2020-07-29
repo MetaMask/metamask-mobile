@@ -433,7 +433,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           ]
         }
       >
-        This is the private key for the current selected account: Account 1. Never disclose this key. Anyone with your private keys can take steal any assets held in your account.
+        This is the private key for the current selected account: Account 1. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
       </Text>
       <StyledButton
         containerStyle={
