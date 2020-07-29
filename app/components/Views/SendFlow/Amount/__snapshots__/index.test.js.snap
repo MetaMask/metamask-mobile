@@ -99,18 +99,35 @@ exports[`Amount should render correctly 1`] = `
         <TouchableOpacity
           disabled={true}
           onPress={[Function]}
-          style={Object {}}
+          style={
+            Array [
+              Object {
+                "alignItems": "center",
+                "borderColor": "#037dd6",
+                "borderRadius": 100,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "paddingHorizontal": 16,
+                "paddingVertical": 2,
+              },
+              undefined,
+            ]
+          }
         >
           <Text
             style={
-              Object {
-                "alignSelf": "flex-end",
-                "color": "#037dd6",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 12,
-                "fontWeight": "400",
-                "textTransform": "uppercase",
-              }
+              Array [
+                Object {
+                  "alignSelf": "flex-end",
+                  "color": "#037dd6",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "paddingVertical": 2,
+                  "textTransform": "uppercase",
+                },
+                undefined,
+              ]
             }
           >
             Use max
@@ -135,16 +152,20 @@ exports[`Amount should render correctly 1`] = `
           }
         >
           <TextInput
+            editable={true}
             keyboardType="numeric"
             onChangeText={[Function]}
             placeholder="0"
             style={
-              Object {
-                "fontFamily": "Roboto-Light",
-                "fontSize": 44,
-                "fontWeight": "300",
-                "textAlign": "center",
-              }
+              Array [
+                Object {
+                  "fontFamily": "Roboto-Light",
+                  "fontSize": 44,
+                  "fontWeight": "300",
+                  "textAlign": "center",
+                },
+                undefined,
+              ]
             }
             testID="txn-amount-input"
           />

@@ -266,7 +266,6 @@ exports[`Confirm should render correctly 1`] = `
   >
     <Connect(CustomGas)
       handleGasFeeSelection={[Function]}
-      handleSetGasFee={[Function]}
       parentStateReady={[Function]}
       selected="average"
       toggleCustomGasModal={[Function]}
