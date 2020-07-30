@@ -1,6 +1,8 @@
 # Changelog
 
 ## Current Develop Branch
+
+## v0.2.20 - Jul 31 2020
 - [#1738](https://github.com/MetaMask/metamask-mobile/pull/1738): Bump no_output_timeout (#1738)
 - [#1735](https://github.com/MetaMask/metamask-mobile/pull/1735): Switch dependency Git URLs to HTTPS (#1735)
 - [#1681](https://github.com/MetaMask/metamask-mobile/pull/1681): Feature/account backup alert flows (#1681)
@@ -34,13 +36,6 @@
 - [#1605](https://github.com/MetaMask/metamask-mobile/pull/1605): Fix word election error in Spanish (#1605)
 - [#1609](https://github.com/MetaMask/metamask-mobile/pull/1609): Feature/security third party api mode (#1609)
 - [#1658](https://github.com/MetaMask/metamask-mobile/pull/1658): @metamask/mobile-provider v1.2.3 (#1658)
-- [#1591](https://github.com/MetaMask/metamask-mobile/pull/1591): feature/sync imported accounts from extension (#1591)
-- [#1645](https://github.com/MetaMask/metamask-mobile/pull/1645): Fix env vars (#1645)
-- [#1649](https://github.com/MetaMask/metamask-mobile/pull/1649): remove sai message (#1649)
-- [#1648](https://github.com/MetaMask/metamask-mobile/pull/1648): bump mobile provider (#1648)
-- [#1643](https://github.com/MetaMask/metamask-mobile/pull/1643): Use @metamask/controllers@2.0.1 (#1643)
-- [#1558](https://github.com/MetaMask/metamask-mobile/pull/1558): Complete redesigns for approval flow (#1558)
-- [#1640](https://github.com/MetaMask/metamask-mobile/pull/1640): enable-apple-pay (#1640)
 - [#1591](https://github.com/MetaMask/metamask-mobile/pull/1591): feature/sync imported accounts from extension (#1591)
 - [#1645](https://github.com/MetaMask/metamask-mobile/pull/1645): Fix env vars (#1645)
 - [#1649](https://github.com/MetaMask/metamask-mobile/pull/1649): remove sai message (#1649)
