@@ -534,7 +534,7 @@ class ChoosePassword extends PureComponent {
 						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.blue : colors.grey} />
 						<Text style={styles.title}>
 							{strings(
-								previousScreen === 'onboarding'
+								previousScreen === ONBOARDING
 									? 'create_wallet.title'
 									: 'secure_your_wallet.creating_password'
 							)}
