@@ -26,6 +26,7 @@ describe('ChoosePassword', () => {
 		const wrapper = shallow(
 			<ChoosePassword
 				navigation={{
+					getParam: () => ['onboarding', 'protect'],
 					state: { params: {} }
 				}}
 			/>,
