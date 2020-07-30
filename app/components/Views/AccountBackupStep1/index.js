@@ -185,6 +185,7 @@ const AccountBackupStep1 = props => {
 	const hideRemindLaterModal = () => {
 		setToggleSkipCheckbox(false);
 		setRemindLaterModal(false);
+		goNext();
 	};
 
 	const secureNow = () => {
