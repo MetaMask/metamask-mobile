@@ -155,10 +155,11 @@ class Entry extends PureComponent {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
+			const { KeyringController } = Engine.context;
 			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
-				const { KeyringController } = Engine.context;
+
 				await KeyringController.submitPassword(credentials.password);
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
@@ -175,10 +176,12 @@ class Entry extends PureComponent {
 			} else if (this.props.passwordSet) {
 				this.animateAndGoTo('Login');
 			} else {
-				this.animateAndGoTo('Onboarding');
+				await KeyringController.submitPassword('');
+				await SecureKeychain.resetGenericPassword();
+				this.props.navigation.navigate('HomeNav');
 			}
 		} catch (error) {
-			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
+			Logger.log(`Keychain couldn't be accessed`, error);
 			this.animateAndGoTo('Login');
 		}
 	}

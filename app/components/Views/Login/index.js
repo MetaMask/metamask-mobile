@@ -12,7 +12,6 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
-// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
@@ -28,7 +27,7 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 20
+		paddingHorizontal: 32
 	},
 	foxWrapper: {
 		justifyContent: 'center',
@@ -118,7 +117,11 @@ class Login extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Boolean flag that determines if password has been set
+		 */
+		passwordSet: PropTypes.bool
 	};
 
 	state = {
@@ -136,28 +139,39 @@ class Login extends PureComponent {
 	fieldRef = React.createRef();
 
 	async componentDidMount() {
-		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		const passcodeDisabled = await AsyncStorage.getItem('@MetaMask:passcodeDisabled');
-		if (passcodeDisabled !== 'true' && biometryType) {
-			let enabled = true;
-			const previouslyDisabled = await AsyncStorage.getItem('@MetaMask:biometryChoiceDisabled');
-			if (previouslyDisabled && previouslyDisabled === 'true') {
-				enabled = false;
-			}
-
-			this.setState({
-				biometryType,
-				biometryChoice: enabled,
-				biometryPreviouslyDisabled: !!previouslyDisabled
-			});
-
+		if (!this.props.passwordSet) {
 			try {
-				if (enabled && !previouslyDisabled) {
-					const hasCredentials = await this.tryBiometric();
-					this.setState({ hasCredentials });
-				}
+				const { KeyringController } = Engine.context;
+				await KeyringController.submitPassword('');
+				await SecureKeychain.resetGenericPassword();
+				this.props.navigation.navigate('HomeNav');
 			} catch (e) {
-				console.warn(e);
+				//
+			}
+		} else {
+			const biometryType = await SecureKeychain.getSupportedBiometryType();
+			const passcodeDisabled = await AsyncStorage.getItem('@MetaMask:passcodeDisabled');
+			if (passcodeDisabled !== 'true' && biometryType) {
+				let enabled = true;
+				const previouslyDisabled = await AsyncStorage.getItem('@MetaMask:biometryChoiceDisabled');
+				if (previouslyDisabled && previouslyDisabled === 'true') {
+					enabled = false;
+				}
+
+				this.setState({
+					biometryType,
+					biometryChoice: enabled,
+					biometryPreviouslyDisabled: !!previouslyDisabled
+				});
+
+				try {
+					if (enabled && !previouslyDisabled) {
+						const hasCredentials = await this.tryBiometric();
+						this.setState({ hasCredentials });
+					}
+				} catch (e) {
+					console.warn(e);
+				}
 			}
 		}
 	}
@@ -387,7 +401,8 @@ class Login extends PureComponent {
 const mapStateToProps = state => ({
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({

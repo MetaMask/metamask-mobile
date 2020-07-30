@@ -26,6 +26,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { renderNumber } from '../../../util/number';
 import Device from '../../../util/Device';
 import { strings } from '../../../../locales/i18n';
+import { protectWalletModalVisible } from '../../../actions/user';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -161,7 +162,11 @@ class PaymentRequestSuccess extends PureComponent {
 		/**
 		/* Triggers global alert
 		*/
-		showAlert: PropTypes.func
+		showAlert: PropTypes.func,
+		/**
+		/* Prompts protect wallet modal
+		*/
+		protectWalletModalVisible: PropTypes.func
 	};
 
 	state = {
@@ -182,6 +187,10 @@ class PaymentRequestSuccess extends PureComponent {
 		const amount = navigation && navigation.getParam('amount', '');
 		const symbol = navigation && navigation.getParam('symbol', '');
 		this.setState({ link, qrLink, amount, symbol });
+	};
+
+	componentWillUnmount = () => {
+		this.props.protectWalletModalVisible();
 	};
 
 	/**
@@ -327,7 +336,8 @@ class PaymentRequestSuccess extends PureComponent {
 }
 
 const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config))
+	showAlert: config => dispatch(showAlert(config)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 
 export default connect(
