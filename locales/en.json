@@ -33,12 +33,19 @@
 		"import": "Import an existing wallet or create a new one",
 		"import_wallet_button": "Sync or import wallet",
 		"new_to_crypto": "New to crypto?",
-		"start_exploring_now": "Create wallet",
+		"start_exploring_now": "Create a new wallet",
 		"login": "Log in",
 		"new_to_metamask": "New to MetaMask?",
 		"already_have_wallet": "Already have a wallet?",
 		"optin_back_title": "Heads up!",
 		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings.",
+		"warning_title": "Warning",
+		"warning_text_1": "Your current wallet and accounts will be",
+		"warning_text_2": "removed",
+		"warning_text_3": "if you proceed.",
+		"warning_text_4": "You can ONLY recover them with your wallet’s seed phrase. MetaMask cannot help you recover it.",
+		"warning_proceed": "Remove wallet & proceed",
+		"warning_cancel": "Cancel",
 		"step1": "Wallet setup",
 		"step2": "Create password",
 		"step3": "Secure wallet",
@@ -182,8 +189,8 @@
 		"transaction_history": "Transaction History",
 		"submit_feedback": "Send Feedback",
 		"submit_feedback_message": "Choose the type of feedback to send.",
-		"submit_bug": "BUG REPORT",
-		"submit_general_feedback": "GENERAL",
+		"submit_bug": "Bug Report",
+		"submit_general_feedback": "General",
 		"share_address": "Share my Public Address",
 		"view_in_etherscan": "View on Etherscan",
 		"view_in": "View on",
@@ -634,9 +641,12 @@
 		"failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
 		"remove_bookmark_title": "Remove favorite",
 		"remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
-		"yes": "Yes",
-		"backup_alert_title": "Protect your funds",
-		"backup_alert_message": "Tap to save your seed phrase"
+		"yes": "Yes"
+	},
+	"backup_alert": {
+		"title": "Protect your wallet",
+		"left_button": "Remind me later",
+		"right_button": "Protect wallet"
 	},
 	"add_favorite": {
 		"title": "Add Favorite",
@@ -1055,11 +1065,11 @@
 		"wc_sent_tx_rejected_title": "You’ve rejected the transaction request",
 		"wc_description": "Go back to the browser"
 	},
-	"secure_your_wallet_modal": {
-		"title": "Secure your wallet",
-		"body": "Now that you have value in your wallet, create password & save your wallet's seed phrase ",
-		"required": "(required)",
-		"button": "PROCEED NOW"
+	"protect_your_wallet_modal": {
+		"title": "Protect your wallet",
+		"body_for_password": "Protect your wallet by setting a password and saving your seed phrase (required).",
+		"body_for_seedphrase": "Now that value was added to your wallet, protect your wallet by setting a password and saving your seed phrase (required).",
+		"button": "Protect wallet"
 	},
 	"payment_request": {
 		"title": "Request",
@@ -1213,5 +1223,13 @@
 	"walletconnect_return_modal": {
 		"title": "You're all set!",
 		"text": "You can now return to your browser"
+	},
+	"protect_wallet_modal": {
+		"title": "Protect your wallet",
+		"top_button": "Protect wallet",
+		"bottom_button": "Remind me later",
+		"text": "Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"text_bold": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
+		"action": "Learn more"
 	}
 }

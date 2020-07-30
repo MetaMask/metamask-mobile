@@ -15,6 +15,7 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import Device from '../../../util/Device';
+import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -100,7 +101,8 @@ class SyncWithExtension extends PureComponent {
 	complete = false;
 
 	state = {
-		loading: false
+		loading: false,
+		warningModalVisible: false
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -115,6 +117,27 @@ class SyncWithExtension extends PureComponent {
 		this.pubnubWrapper && this.pubnubWrapper.disconnectWebsockets();
 	}
 
+	handleExistingUser = action => {
+		if (this.props.navigation.getParam('existingUser', false)) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
+	};
+
+	alertExistingUser = callback => {
+		this.warningCallback = () => {
+			this.toggleWarningModal();
+			setTimeout(() => callback(), 100);
+		};
+		this.toggleWarningModal();
+	};
+
+	toggleWarningModal = () => {
+		const warningModalVisible = this.state.warningModalVisible;
+		this.setState({ warningModalVisible: !warningModalVisible });
+	};
+
 	scanCode = () => {
 		if (!PUB_KEY) {
 			// Dev message
@@ -124,24 +147,7 @@ class SyncWithExtension extends PureComponent {
 			);
 			return false;
 		}
-
-		if (this.props.navigation.getParam('existingUser', false)) {
-			Alert.alert(
-				strings('sync_with_extension.warning_title'),
-				strings('sync_with_extension.warning_message'),
-				[
-					{
-						text: strings('sync_with_extension.warning_cancel_button'),
-						onPress: () => false,
-						style: 'cancel'
-					},
-					{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => this.showQrCode() }
-				],
-				{ cancelable: false }
-			);
-		} else {
-			this.showQrCode();
-		}
+		this.handleExistingUser(this.showQrCode);
 	};
 
 	startSync = async firstAttempt => {
@@ -332,6 +338,12 @@ class SyncWithExtension extends PureComponent {
 				<Text style={styles.title}>{strings('sync_with_extension.title')}</Text>
 				{this.renderContent()}
 			</View>
+			<WarningExistingUserModal
+				warningModalVisible={this.state.warningModalVisible}
+				onCancelPress={this.warningCallback}
+				onRequestClose={this.toggleWarningModal}
+				onConfirmPress={this.toggleWarningModal}
+			/>
 		</SafeAreaView>
 	);
 }

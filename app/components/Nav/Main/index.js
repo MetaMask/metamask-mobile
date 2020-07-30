@@ -103,6 +103,7 @@ import {
 } from '../../../actions/notification';
 import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
+import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -1069,14 +1070,12 @@ class Main extends PureComponent {
 		);
 	};
 
-	backupAlertPress = () => {
-		this.props.navigation.navigate('AccountBackupStep1');
-	};
-
-	renderDappTransactionModal = () =>
-		this.props.dappTransactionModalVisible && (
-			<Approval dappTransactionModalVisible toggleDappTransactionModal={this.props.toggleDappTransactionModal} />
-		);
+	renderDappTransactionModal = () => (
+		<Approval
+			dappTransactionModalVisible={this.props.dappTransactionModalVisible}
+			toggleDappTransactionModal={this.props.toggleDappTransactionModal}
+		/>
+	);
 
 	renderApproveModal = () =>
 		this.props.approveModalVisible && <Approve modalVisible toggleApproveModal={this.props.toggleApproveModal} />;
@@ -1097,8 +1096,9 @@ class Main extends PureComponent {
 					)}
 					<GlobalAlert />
 					<FadeOutOverlay />
-					<BackupAlert navigation={this.props.navigation} onPress={this.backupAlertPress} />
 					<Notification navigation={this.props.navigation} />
+					<BackupAlert navigation={this.props.navigation} />
+					<ProtectYourWalletModal navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}

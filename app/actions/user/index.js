@@ -21,3 +21,27 @@ export function seedphraseNotBackedUp() {
 		type: 'SEEDPHRASE_NOT_BACKED_UP'
 	};
 }
+
+export function backUpSeedphraseAlertVisible() {
+	return {
+		type: 'BACK_UP_SEEDPHRASE_VISIBLE'
+	};
+}
+
+export function backUpSeedphraseAlertNotVisible() {
+	return {
+		type: 'BACK_UP_SEEDPHRASE_NOT_VISIBLE'
+	};
+}
+
+export function protectWalletModalVisible() {
+	return {
+		type: 'PROTECT_MODAL_VISIBLE'
+	};
+}
+
+export function protectWalletModalNotVisible() {
+	return {
+		type: 'PROTECT_MODAL_NOT_VISIBLE'
+	};
+}

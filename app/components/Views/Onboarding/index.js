@@ -25,6 +25,7 @@ import { setLockTime } from '../../../actions/settings';
 import AppConstants from '../../../core/AppConstants';
 import AnimatedFox from 'react-native-animated-fox';
 import PreventScreenshot from '../../../core/PreventScreenshot';
+import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -39,7 +40,8 @@ const styles = StyleSheet.create({
 	},
 	modalWrapper: {
 		flexGrow: 1,
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
+		marginTop: 24
 	},
 	foxWrapper: {
 		width: Device.isIos() ? 90 : 45,
@@ -173,11 +175,12 @@ class Onboarding extends PureComponent {
 	};
 
 	state = {
+		warningModalVisible: false,
 		loading: false,
 		existingUser: false,
-		qrCodeModalVisible: false,
-		currentStep: 1
+		qrCodeModalVisible: false
 	};
+
 	seedwords = null;
 	importedAccounts = null;
 	channelName = null;
@@ -185,17 +188,8 @@ class Onboarding extends PureComponent {
 	dataToSync = null;
 	mounted = false;
 
-	state = {
-		loading: false,
-		existingUser: false
-	};
-
-	async checkIfExistingUser() {
-		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
-		if (existingUser !== null) {
-			this.setState({ existingUser: true });
-		}
-	}
+	// eslint-disable-next-line no-empty-function
+	warningCallback = () => {};
 
 	componentDidMount() {
 		this.mounted = true;
@@ -213,28 +207,12 @@ class Onboarding extends PureComponent {
 		});
 	}
 
-	safeSync = () => {
-		const { existingUser } = this.state;
-		const action = () => this.onPressSync();
-		if (existingUser) {
-			this.alertExistingUser(action);
-		} else {
-			action();
+	async checkIfExistingUser() {
+		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
+		if (existingUser !== null) {
+			this.setState({ existingUser: true });
 		}
-	};
-
-	onPressSync = () => {
-		if (!PUB_KEY) {
-			// Dev message
-			Alert.alert(
-				'This feature has been disabled',
-				`Because you did not set the .js.env file. Look at .js.env.example for more information`
-			);
-			return false;
-		}
-		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
-		this.toggleQrCodeModal();
-	};
+	}
 
 	toggleQrCodeModal = () => {
 		this.setState(state => ({ qrCodeModalVisible: !state.qrCodeModalVisible }));
@@ -439,6 +417,58 @@ class Onboarding extends PureComponent {
 		}
 	};
 
+	handleExistingUser = action => {
+		if (this.state.existingUser) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
+	};
+
+	onPressCreate = () => {
+		const action = () => {
+			this.props.navigation.navigate('ChoosePassword', {
+				[AppConstants.PREVIOUS_SCREEN]: 'onboarding'
+			});
+			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
+		};
+		this.handleExistingUser(action);
+	};
+
+	onPressSync = () => {
+		const { existingUser } = this.state;
+		const action = () =>
+			setTimeout(() => {
+				this.safeSync();
+			}, 500);
+		if (existingUser) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
+	};
+
+	safeSync = () => {
+		if (!PUB_KEY) {
+			// Dev message
+			Alert.alert(
+				'This feature has been disabled',
+				`Because you did not set the .js.env file. Look at .js.env.example for more information`
+			);
+			return false;
+		}
+		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
+		this.toggleQrCodeModal();
+	};
+
+	onPressImport = () => {
+		const action = () => {
+			this.props.navigation.push('ImportFromSeed');
+			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+		};
+		this.handleExistingUser(action);
+	};
+
 	track = key => {
 		InteractionManager.runAfterInteractions(async () => {
 			if (Analytics.getEnabled()) {
@@ -452,28 +482,17 @@ class Onboarding extends PureComponent {
 		});
 	};
 
-	onPressCreate = () => {
-		this.props.navigation.navigate('ChoosePassword', {
-			[AppConstants.PREVIOUS_SCREEN]: 'onboarding'
-		});
-		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
-	};
-
-	onPressImport = () => {
-		this.props.navigation.push('ImportFromSeed');
-		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
-	};
-
 	alertExistingUser = callback => {
-		Alert.alert(
-			strings('sync_with_extension.warning_title'),
-			strings('sync_with_extension.warning_message'),
-			[
-				{ text: strings('sync_with_extension.warning_cancel_button'), onPress: () => false, style: 'cancel' },
-				{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => callback() }
-			],
-			{ cancelable: false }
-		);
+		this.warningCallback = () => {
+			callback();
+			this.toggleWarningModal();
+		};
+		this.toggleWarningModal();
+	};
+
+	toggleWarningModal = () => {
+		const warningModalVisible = this.state.warningModalVisible;
+		this.setState({ warningModalVisible: !warningModalVisible });
 	};
 
 	renderLoader() {
@@ -510,7 +529,7 @@ class Onboarding extends PureComponent {
 						<StyledButton
 							style={styles.button}
 							type={'normal'}
-							onPress={this.safeSync}
+							onPress={this.onPressSync}
 							testID={'onboarding-import-button'}
 						>
 							{strings('import_wallet.sync_from_browser_extension_button')}
@@ -567,6 +586,14 @@ class Onboarding extends PureComponent {
 					</View>
 				</OnboardingScreenWithBg>
 				<FadeOutOverlay />
+
+				<WarningExistingUserModal
+					warningModalVisible={this.state.warningModalVisible}
+					onCancelPress={this.warningCallback}
+					onRequestClose={this.toggleWarningModal}
+					onConfirmPress={this.toggleWarningModal}
+				/>
+
 				<ActionModal
 					modalVisible={qrCodeModalVisible}
 					onConfirmPress={this.showQrCode}
