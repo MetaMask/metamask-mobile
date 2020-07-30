@@ -83,8 +83,7 @@ class AddressQRCode extends PureComponent {
 	 * Closes QR code modal
 	 */
 	closeQrModal = () => {
-		const { closeQrModal } = this.props;
-		closeQrModal && closeQrModal();
+		this.props.closeQrModal();
 	};
 
 	copyAccountToClipboard = async () => {
