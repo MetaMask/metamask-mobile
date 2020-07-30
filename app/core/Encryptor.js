@@ -17,13 +17,13 @@ export default class Encryptor {
 		return b64encoded;
 	}
 
-	_generateKey = (password, salt) => Aes.pbkdf2(password, salt);
+	_generateKey = (password, salt) => Aes.pbkdf2(password, salt, 5000, 256);
 
 	_keyFromPassword = (password, salt) => this._generateKey(password, salt);
 
-	_encryptWithKey = (text, keyBase64) => {
-		const ivBase64 = this._generateSalt(32);
-		return Aes.encrypt(text, keyBase64, ivBase64).then(cipher => ({ cipher, iv: ivBase64 }));
+	_encryptWithKey = async (text, keyBase64) => {
+		const iv = await Aes.randomKey(16);
+		return Aes.encrypt(text, keyBase64, iv).then(cipher => ({ cipher, iv }));
 	};
 
 	_decryptWithKey = (encryptedData, key) => Aes.decrypt(encryptedData.cipher, key, encryptedData.iv);
