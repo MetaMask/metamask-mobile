@@ -30,10 +30,11 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		marginHorizontal: 32
+		marginBottom: 10
 	},
 	scrollableWrapper: {
-		flex: 1
+		flex: 1,
+		paddingHorizontal: 32
 	},
 	keyboardScrollableWrapper: {
 		flexGrow: 1
@@ -91,8 +92,7 @@ const styles = StyleSheet.create({
 	checkbox: {
 		width: 18,
 		height: 18,
-		margin: 10,
-		marginLeft: -6
+		margin: 10
 	},
 	label: {
 		...fontStyles.normal,
@@ -117,6 +117,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	ctaWrapper: {
+		flex: 1,
 		marginTop: 20,
 		paddingHorizontal: 10
 	},
