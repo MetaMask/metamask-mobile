@@ -476,6 +476,7 @@ class ChoosePassword extends PureComponent {
 		const { isSelected, password, confirmPassword, secureTextEntry, error, loading } = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
+		const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -493,7 +494,13 @@ class ChoosePassword extends PureComponent {
 							)}
 						</View>
 						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.blue : colors.grey} />
-						<Text style={styles.title}>{strings('create_wallet.title')}</Text>
+						<Text style={styles.title}>
+							{strings(
+								previousScreen === 'onboarding'
+									? 'create_wallet.title'
+									: 'secure_your_wallet.creating_password'
+							)}
+						</Text>
 						<Text style={styles.subtitle}>{strings('create_wallet.subtitle')}</Text>
 					</View>
 				) : (
