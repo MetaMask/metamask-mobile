@@ -13,7 +13,7 @@ exports[`ChoosePassword should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
-        "marginHorizontal": 32,
+        "marginBottom": 10,
       }
     }
     testID="choose-password-screen"
@@ -49,6 +49,7 @@ exports[`ChoosePassword should render correctly 1`] = `
       style={
         Object {
           "flex": 1,
+          "paddingHorizontal": 32,
         }
       }
       viewIsInsideTabBar={false}
@@ -318,7 +319,6 @@ exports[`ChoosePassword should render correctly 1`] = `
               Object {
                 "height": 18,
                 "margin": 10,
-                "marginLeft": -6,
                 "width": 18,
               }
             }
@@ -361,6 +361,7 @@ exports[`ChoosePassword should render correctly 1`] = `
       <View
         style={
           Object {
+            "flex": 1,
             "marginTop": 20,
             "paddingHorizontal": 10,
           }
@@ -382,7 +383,7 @@ exports[`ChoosePassword should render correctly 1`] = `
           testID="submit-button"
           type="blue"
         >
-          NEXT
+          Create password
         </StyledButton>
       </View>
     </KeyboardAwareScrollViewMock>
