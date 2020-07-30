@@ -185,6 +185,10 @@ const AccountBackupStep1 = props => {
 	const hideRemindLaterModal = () => {
 		setToggleSkipCheckbox(false);
 		setRemindLaterModal(false);
+	};
+
+	const secureNow = () => {
+		hideRemindLaterModal();
 		goNext();
 	};
 
@@ -278,7 +282,7 @@ const AccountBackupStep1 = props => {
 				displayCancelButton
 				modalVisible={showRemindLaterModal}
 				actionContainerStyle={styles.modalNoBorder}
-				onCancelPress={hideRemindLaterModal}
+				onCancelPress={secureNow}
 				confirmDisabled={!skipCheckbox}
 				onConfirmPress={skip}
 			>

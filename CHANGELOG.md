@@ -3,6 +3,7 @@
 ## Current Develop Branch
 
 ## v0.2.20 - Jul 31 2020
+- [#1741](https://github.com/MetaMask/metamask-mobile/pull/1741): Bugfix/skipping going to next step before (#1741)
 - [#1737](https://github.com/MetaMask/metamask-mobile/pull/1737): Fix scroll and button text and secure now goes to next step (#1737)
 - [#1740](https://github.com/MetaMask/metamask-mobile/pull/1740): check previousScreen and change lading message (#1740)
 - [#1738](https://github.com/MetaMask/metamask-mobile/pull/1738): Bump no_output_timeout (#1738)
