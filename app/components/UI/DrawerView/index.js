@@ -402,7 +402,7 @@ class DrawerView extends PureComponent {
 	componentDidUpdate() {
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
 			const route = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
-			if (route === 'SetPasswordFlow') return;
+			if (['SetPasswordFlow', 'Webview'].includes(route)) return;
 			let tokenFound = false;
 			this.props.tokens.forEach(token => {
 				if (!this.props.tokenBalances[token.address].isZero()) {
