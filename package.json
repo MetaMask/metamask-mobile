@@ -64,6 +64,7 @@
     ]
   },
   "resolutions": {
+    "**/ethers/elliptic": "^6.5.3",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^0.9.5"
   },
