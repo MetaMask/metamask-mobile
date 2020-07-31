@@ -187,6 +187,11 @@ const AccountBackupStep1 = props => {
 		setRemindLaterModal(false);
 	};
 
+	const secureNow = () => {
+		hideRemindLaterModal();
+		goNext();
+	};
+
 	const skip = async () => {
 		hideRemindLaterModal();
 		// Get onboarding wizard state
@@ -277,7 +282,7 @@ const AccountBackupStep1 = props => {
 				displayCancelButton
 				modalVisible={showRemindLaterModal}
 				actionContainerStyle={styles.modalNoBorder}
-				onCancelPress={hideRemindLaterModal}
+				onCancelPress={secureNow}
 				confirmDisabled={!skipCheckbox}
 				onConfirmPress={skip}
 			>

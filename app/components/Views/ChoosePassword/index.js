@@ -30,10 +30,11 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		marginHorizontal: 32
+		marginBottom: 10
 	},
 	scrollableWrapper: {
-		flex: 1
+		flex: 1,
+		paddingHorizontal: 32
 	},
 	keyboardScrollableWrapper: {
 		flexGrow: 1
@@ -91,8 +92,7 @@ const styles = StyleSheet.create({
 	checkbox: {
 		width: 18,
 		height: 18,
-		margin: 10,
-		marginLeft: -6
+		margin: 10
 	},
 	label: {
 		...fontStyles.normal,
@@ -117,6 +117,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	ctaWrapper: {
+		flex: 1,
 		marginTop: 20,
 		paddingHorizontal: 10
 	},
@@ -475,6 +476,7 @@ class ChoosePassword extends PureComponent {
 		const { isSelected, password, confirmPassword, secureTextEntry, error, loading } = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
+		const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -492,7 +494,13 @@ class ChoosePassword extends PureComponent {
 							)}
 						</View>
 						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.blue : colors.grey} />
-						<Text style={styles.title}>{strings('create_wallet.title')}</Text>
+						<Text style={styles.title}>
+							{strings(
+								previousScreen === 'onboarding'
+									? 'create_wallet.title'
+									: 'secure_your_wallet.creating_password'
+							)}
+						</Text>
 						<Text style={styles.subtitle}>{strings('create_wallet.subtitle')}</Text>
 					</View>
 				) : (

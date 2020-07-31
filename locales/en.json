@@ -141,7 +141,7 @@
 		"subtitle": "This password will unlock your MetaMask wallet only on this device.",
 		"password": "New Password",
 		"confirm_password": "Confirm Password",
-		"create_button": "NEXT",
+		"create_button": "Create password",
 		"import_with_seed_phrase": "Import with seed phrase",
 		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
@@ -876,7 +876,8 @@
 		"step_2_description": "Save wallet seed phrase",
 		"info_text_1": "Take a few moments to finish setting up your MetaMask wallet.",
 		"info_text_2": "This will ensure only you can access your funds and will let you recover your wallet if you lose your device",
-		"cta_text": "CREATE PASSWORD"
+		"cta_text": "Create Password",
+		"creating_password": "Creating password..."
 	},
 	"account_backup_step_1": {
 		"remind_me_later": "Remind me later",
