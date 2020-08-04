@@ -118,7 +118,7 @@
 		"sync_help_step_two": "2. Go to Settings > Advanced",
 		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
 		"sync_help_step_four": "4. Scan the QR Code to start syncing",
-		"sync_from_browser_extension_button": "Scan QR code",
+		"sync_from_browser_extension_button": "Sync with MetaMask extension",
 		"or": "OR",
 		"import_from_seed_button": "Import using seed phrase"
 	},
