@@ -33,7 +33,8 @@ import {
 	BIOMETRY_CHOICE_DISABLED,
 	PASSCODE_DISABLED,
 	NEXT_MAKER_REMINDER,
-	METRICS_OPT_IN
+	METRICS_OPT_IN,
+	TRUE
 } from '../../../constants/storage';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
@@ -311,7 +312,7 @@ class Onboarding extends PureComponent {
 							text: strings('sync_with_extension.warning_cancel_button'),
 							onPress: async () => {
 								await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-								await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, 'true');
+								await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 								this.finishSync({ biometrics: false, password });
 							},
 							style: 'cancel'
@@ -352,13 +353,13 @@ class Onboarding extends PureComponent {
 			} catch (e) {
 				Logger.error(e, 'User cancelled biometrics permission');
 				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, 'true');
-				await AsyncStorage.setItem(PASSCODE_DISABLED, 'true');
+				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 			}
 		} else {
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, 'true');
-			await AsyncStorage.setItem(PASSCODE_DISABLED, 'true');
+			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 		}
 
 		try {
@@ -370,7 +371,7 @@ class Onboarding extends PureComponent {
 				importedAccounts: this.importedAccounts,
 				pass: opts.password
 			});
-			await AsyncStorage.setItem(EXISTING_USER, 'true');
+			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.seedphraseBackedUp();

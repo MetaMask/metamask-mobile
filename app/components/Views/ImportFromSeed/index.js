@@ -38,7 +38,8 @@ import {
 	PASSCODE_DISABLED,
 	ONBOARDING_WIZARD,
 	EXISTING_USER,
-	METRICS_OPT_IN
+	METRICS_OPT_IN,
+	TRUE
 } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
@@ -210,7 +211,7 @@ class ImportFromSeed extends PureComponent {
 		if (biometryType) {
 			let enabled = true;
 			const previouslyDisabled = await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-			if (previouslyDisabled && previouslyDisabled === 'true') {
+			if (previouslyDisabled && previouslyDisabled === TRUE) {
 				enabled = false;
 			}
 			this.setState({ biometryType, biometryChoice: enabled });
@@ -275,15 +276,15 @@ class ImportFromSeed extends PureComponent {
 						await SecureKeychain.resetGenericPassword();
 					}
 					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, 'true');
-					await AsyncStorage.setItem(PASSCODE_DISABLED, 'true');
+					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+					await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 				}
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 				// Check if user passed through metrics opt-in screen
 				const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 				// mark the user as existing so it doesn't see the create password screen again
-				await AsyncStorage.setItem(EXISTING_USER, 'true');
+				await AsyncStorage.setItem(EXISTING_USER, TRUE);
 				this.setState({ loading: false });
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -345,7 +346,7 @@ class ImportFromSeed extends PureComponent {
 
 	updateBiometryChoice = async biometryChoice => {
 		if (!biometryChoice) {
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, 'true');
+			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}
