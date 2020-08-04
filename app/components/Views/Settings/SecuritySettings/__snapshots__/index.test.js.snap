@@ -495,7 +495,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           ]
         }
       >
-        This is your wallet's 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE.
+        This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.
       </Text>
       <StyledButton
         containerStyle={
