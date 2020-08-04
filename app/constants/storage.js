@@ -1,4 +1,5 @@
-const prefix = '@MetaMask:';
+const mm = 'MetaMask';
+const prefix = `@${mm}:`;
 
 export const EXISTING_USER = `${prefix}existingUser`;
 export const NEXT_MAKER_REMINDER = `${prefix}nextMakerReminder`;
@@ -22,3 +23,10 @@ export const LAST_KNOWN_INSTANT_PAYMENT_ID = `${prefix}lastKnownInstantPaymentID
 export const PAYMENT_CHANNEL_FIRST_TIME = `${prefix}paymentChannelFirstTime`;
 
 export const LANGUAGE = `${prefix}language`;
+
+export const TRUE = 'true';
+
+export const AGREED = 'agreed';
+export const DENIED = 'denied';
+
+export const DEBUG = `[${mm} DEBUG]:`;

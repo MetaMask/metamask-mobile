@@ -27,7 +27,8 @@ import {
 	NEXT_MAKER_REMINDER,
 	BIOMETRY_CHOICE,
 	BIOMETRY_CHOICE_DISABLED,
-	PASSCODE_DISABLED
+	PASSCODE_DISABLED,
+	TRUE
 } from '../../../constants/storage';
 
 const steps = [strings('choose_password.title'), strings('choose_password.secure'), strings('choose_password.confirm')];
@@ -298,7 +299,7 @@ class ChoosePassword extends PureComponent {
 				await this.createNewVaultAndKeychain(password);
 				this.props.seedphraseNotBackedUp();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-				await AsyncStorage.setItem(EXISTING_USER, 'true');
+				await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			} else {
 				await this.recreateVault(password);
 			}
@@ -326,10 +327,10 @@ class ChoosePassword extends PureComponent {
 					await SecureKeychain.resetGenericPassword();
 				}
 				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, 'true');
-				await AsyncStorage.setItem(PASSCODE_DISABLED, 'true');
+				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 			}
-			await AsyncStorage.setItem(EXISTING_USER, 'true');
+			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
@@ -341,7 +342,7 @@ class ChoosePassword extends PureComponent {
 			await SecureKeychain.setGenericPassword('metamask-user', '');
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-			await AsyncStorage.setItem(EXISTING_USER, 'true');
+			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordUnset();
 			this.props.setLockTime(-1);
 			// Should we force people to enable passcode / biometrics?

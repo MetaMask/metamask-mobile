@@ -16,7 +16,7 @@ import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import Device from '../../../util/Device';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
-import { EXISTING_USER, BIOMETRY_CHOICE, NEXT_MAKER_REMINDER } from '../../../constants/storage';
+import { EXISTING_USER, BIOMETRY_CHOICE, NEXT_MAKER_REMINDER, TRUE } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -287,7 +287,7 @@ class SyncWithExtension extends PureComponent {
 				pass: password,
 				importedAccounts: this.importedAccounts
 			});
-			await AsyncStorage.setItem(EXISTING_USER, 'true');
+			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.seedphraseBackedUp();

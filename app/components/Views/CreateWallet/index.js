@@ -29,7 +29,8 @@ import {
 	NEXT_MAKER_REMINDER,
 	EXISTING_USER,
 	ONBOARDING_WIZARD,
-	METRICS_OPT_IN
+	METRICS_OPT_IN,
+	TRUE
 } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
@@ -126,7 +127,7 @@ class CreateWallet extends PureComponent {
 			await SecureKeychain.setGenericPassword('metamask-user', '');
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-			await AsyncStorage.setItem(EXISTING_USER, 'true');
+			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			// Get onboarding wizard state
 			const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 			// Check if user passed through metrics opt-in screen

@@ -24,7 +24,8 @@ import {
 	BIOMETRY_CHOICE,
 	BIOMETRY_CHOICE_DISABLED,
 	ONBOARDING_WIZARD,
-	METRICS_OPT_IN
+	METRICS_OPT_IN,
+	TRUE
 } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
@@ -151,10 +152,10 @@ class Login extends PureComponent {
 		} else {
 			const biometryType = await SecureKeychain.getSupportedBiometryType();
 			const passcodeDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-			if (passcodeDisabled !== 'true' && biometryType) {
+			if (passcodeDisabled !== TRUE && biometryType) {
 				let enabled = true;
 				const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
-				if (previouslyDisabled && previouslyDisabled === 'true') {
+				if (previouslyDisabled && previouslyDisabled === TRUE) {
 					enabled = false;
 				}
 
@@ -204,8 +205,8 @@ class Login extends PureComponent {
 
 				if (!this.state.biometryChoice) {
 					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, 'true');
-					await AsyncStorage.setItem(PASSCODE_DISABLED, 'true');
+					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+					await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 				} else {
 					await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
 					await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
@@ -266,7 +267,7 @@ class Login extends PureComponent {
 
 	updateBiometryChoice = async biometryChoice => {
 		if (!biometryChoice) {
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, 'true');
+			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}

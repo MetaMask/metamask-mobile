@@ -24,7 +24,8 @@ import {
 	BIOMETRY_CHOICE,
 	BIOMETRY_CHOICE_DISABLED,
 	PASSCODE_CHOICE,
-	PASSCODE_DISABLED
+	PASSCODE_DISABLED,
+	TRUE
 } from '../../../../constants/storage';
 
 const styles = StyleSheet.create({
@@ -234,7 +235,7 @@ class Settings extends PureComponent {
 				bioEnabled = true;
 			} else {
 				const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
-				if (passcodeChoice !== '' && passcodeChoice === 'true') {
+				if (passcodeChoice !== '' && passcodeChoice === TRUE) {
 					passcodeEnabled = true;
 				}
 			}
@@ -250,7 +251,7 @@ class Settings extends PureComponent {
 			// If we're disabling biometrics, let's enable device passcode / pin
 			//  by default because if we disable both we lose the password
 			if (!enabled) {
-				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, 'true');
+				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 				this.onSecuritySettingChange(true, 'passcode');
 				return;
 			}
@@ -278,7 +279,7 @@ class Settings extends PureComponent {
 			this.setState({ passcodeChoice: enabled });
 
 			if (!enabled) {
-				await AsyncStorage.setItem(PASSCODE_DISABLED, 'true');
+				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 			} else {
 				await AsyncStorage.removeItem(PASSCODE_DISABLED);
 			}
@@ -344,7 +345,7 @@ class Settings extends PureComponent {
 				await Engine.context.KeyringController.exportSeedPhrase(password);
 			}
 
-			await AsyncStorage.setItem(EXISTING_USER, 'true');
+			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			if (enabled) {
 				const authOptions = {
 					accessControl:
@@ -363,7 +364,7 @@ class Settings extends PureComponent {
 						await SecureKeychain.getGenericPassword();
 					}
 				} else {
-					await AsyncStorage.setItem(PASSCODE_CHOICE, 'true');
+					await AsyncStorage.setItem(PASSCODE_CHOICE, TRUE);
 					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 				}
 			} else {
