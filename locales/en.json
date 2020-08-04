@@ -51,7 +51,7 @@
 		"step3": "Secure wallet",
 		"already_have": "Already have a wallet?",
 		"sync_existing": "Sync your existing MetaMask wallet from the browser extension or import manually.",
-		"scan_title": "Scan QR code steps",
+		"scan_title": "Steps to sync with MetaMask extension",
 		"scan": "Scan",
 		"scan_step_1": "Open the extension on desktop",
 		"scan_step_2": "Go to Settings > Advanced",
