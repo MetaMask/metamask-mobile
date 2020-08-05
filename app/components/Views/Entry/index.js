@@ -107,7 +107,9 @@ class Entry extends PureComponent {
 		const deeplink = params['+non_branch_link'] || uri || null;
 		if (deeplink) {
 			const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
-			existingUser && this.props.passwordSet
+			const { KeyringController } = Engine.context;
+			const isUnlocked = KeyringController.isUnlocked();
+			existingUser && this.props.passwordSet && !isUnlocked
 				? DeeplinkManager.setDeeplink(deeplink)
 				: DeeplinkManager.parse(deeplink);
 		}
