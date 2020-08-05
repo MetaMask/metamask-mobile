@@ -107,7 +107,9 @@ class Entry extends PureComponent {
 		const deeplink = params['+non_branch_link'] || uri || null;
 		if (deeplink) {
 			const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
-			!existingUser ? DeeplinkManager.setDeeplink(deeplink) : DeeplinkManager.parse(deeplink);
+			existingUser && this.props.passwordSet
+				? DeeplinkManager.setDeeplink(deeplink)
+				: DeeplinkManager.parse(deeplink);
 		}
 	};
 
