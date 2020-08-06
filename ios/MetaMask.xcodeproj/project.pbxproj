@@ -36,6 +36,7 @@
 		48AD4B0AABCB447B99B85DC4 /* Roboto-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 684F2C84313849199863B5FE /* Roboto-Black.ttf */; };
 		49D8E62C506F4A63889EEC7F /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
 		4CEFC9E34A8D4288BFE2F85A /* Roboto-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BB8BA2D3C0354D6090B56A8A /* Roboto-Light.ttf */; };
+		650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		654378B0243E2ADC00571B9C /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
 		7C0226ABD9694AEDBAF3016F /* Roboto-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CF552F79C77A4184A690513A /* Roboto-ThinItalic.ttf */; };
 		7E08FB90F3754D47994208B4 /* Roboto-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D9A37B5BF2914CF1B49EEF80 /* Roboto-Thin.ttf */; };
@@ -137,6 +138,13 @@
 			remoteGlobalIDString = 7C170C291A4A02F500D9E0F2;
 			remoteInfo = Mixpanel;
 		};
+		650F2B9B24DC5FEC00C3B9C4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 32D980DD1BE9F11C00FA27E5;
+			remoteInfo = RCTAesForked;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -196,6 +204,7 @@
 		58572D81B5D54ED79A16A16D /* EuclidCircularB-RegularItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-RegularItalic.otf"; path = "../app/fonts/EuclidCircularB-RegularItalic.otf"; sourceTree = "<group>"; };
 		5D7956F8525C4A45A2A555C3 /* Roboto-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Italic.ttf"; path = "../app/fonts/Roboto-Italic.ttf"; sourceTree = "<group>"; };
 		5E32A09A7BDC431FA403BA73 /* FontAwesome.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
+		650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTAesForked.xcodeproj; path = "../node_modules/react-native-aes-crypto-forked/ios/RCTAesForked.xcodeproj"; sourceTree = "<group>"; };
 		654378AE243E2ADB00571B9C /* MetaMask-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MetaMask-Bridging-Header.h"; sourceTree = "<group>"; };
 		654378AF243E2ADC00571B9C /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		67FBD519E04742E0AF191782 /* EuclidCircularB-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Bold.otf"; path = "../app/fonts/EuclidCircularB-Bold.otf"; sourceTree = "<group>"; };
@@ -236,6 +245,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */,
 				153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */,
 				15ACC9FC22655C3A0063978B /* Lottie.framework in Frameworks */,
 				15F7795E22A1B7B500B1DF8C /* Mixpanel.framework in Frameworks */,
@@ -399,9 +409,18 @@
 			name = Resources;
 			sourceTree = "<group>";
 		};
+		650F2B9824DC5FEB00C3B9C4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */,
 				153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */,
 				15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */,
 				4379F36F969347758D1A9F96 /* Lottie.xcodeproj */,
@@ -525,6 +544,10 @@
 					ProductGroup = 15F7795022A1B79400B1DF8C /* Products */;
 					ProjectRef = 15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */;
 				},
+				{
+					ProductGroup = 650F2B9824DC5FEB00C3B9C4 /* Products */;
+					ProjectRef = 650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -595,6 +618,13 @@
 			fileType = wrapper.framework;
 			path = Mixpanel.framework;
 			remoteRef = 15F7795C22A1B79400B1DF8C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTAesForked.a;
+			remoteRef = 650F2B9B24DC5FEC00C3B9C4 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */

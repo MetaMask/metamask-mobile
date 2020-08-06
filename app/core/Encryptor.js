@@ -1,5 +1,6 @@
 import { NativeModules } from 'react-native';
 const Aes = NativeModules.Aes;
+const AesForked = NativeModules.AesForked;
 
 /**
  * Class that exposes two public methods: Encrypt and Decrypt
@@ -17,9 +18,10 @@ export default class Encryptor {
 		return b64encoded;
 	}
 
-	_generateKey = (password, salt) => Aes.pbkdf2(password, salt, 5000, 256);
+	_generateKey = (password, salt, lib) =>
+		lib === 'original' ? Aes.pbkdf2(password, salt, 5000, 256) : AesForked.pbkdf2(password, salt);
 
-	_keyFromPassword = (password, salt) => this._generateKey(password, salt);
+	_keyFromPassword = (password, salt, lib) => this._generateKey(password, salt, lib);
 
 	_encryptWithKey = async (text, keyBase64) => {
 		const iv = await Aes.randomKey(16);
@@ -37,9 +39,10 @@ export default class Encryptor {
 	 */
 	encrypt = async (password, object) => {
 		const salt = this._generateSalt(16);
-		const key = await this._keyFromPassword(password, salt);
+		const key = await this._keyFromPassword(password, salt, 'original');
 		const result = await this._encryptWithKey(JSON.stringify(object), key);
 		result.salt = salt;
+		result.lib = 'original';
 		return JSON.stringify(result);
 	};
 
@@ -53,7 +56,7 @@ export default class Encryptor {
 	 */
 	decrypt = async (password, encryptedString) => {
 		const encryptedData = JSON.parse(encryptedString);
-		const key = await this._keyFromPassword(password, encryptedData.salt);
+		const key = await this._keyFromPassword(password, encryptedData.salt, encryptedData.lib);
 		const data = await this._decryptWithKey(encryptedData, key);
 
 		return JSON.parse(data);
