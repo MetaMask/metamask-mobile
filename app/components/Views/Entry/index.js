@@ -99,15 +99,16 @@ class Entry extends PureComponent {
 		}
 	}
 
-	handleDeeplinks = ({ error, params, uri }) => {
+	handleDeeplinks = async ({ error, params, uri }) => {
 		if (error) {
 			Logger.error(error, 'Error from Branch');
 			return;
 		}
-		if (params['+non_branch_link']) {
-			DeeplinkManager.parse(params['+non_branch_link']);
-		} else if (uri) {
-			DeeplinkManager.parse(uri);
+		const deeplink = params['+non_branch_link'] || uri || null;
+		if (deeplink) {
+			const { KeyringController } = Engine.context;
+			const isUnlocked = KeyringController.isUnlocked();
+			isUnlocked ? DeeplinkManager.parse(deeplink) : DeeplinkManager.setDeeplink(deeplink);
 		}
 	};
 
@@ -155,10 +156,11 @@ class Entry extends PureComponent {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
+			const { KeyringController } = Engine.context;
 			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
-				const { KeyringController } = Engine.context;
+
 				await KeyringController.submitPassword(credentials.password);
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
@@ -175,10 +177,12 @@ class Entry extends PureComponent {
 			} else if (this.props.passwordSet) {
 				this.animateAndGoTo('Login');
 			} else {
-				this.animateAndGoTo('Onboarding');
+				await KeyringController.submitPassword('');
+				await SecureKeychain.resetGenericPassword();
+				this.props.navigation.navigate('HomeNav');
 			}
 		} catch (error) {
-			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
+			Logger.log(`Keychain couldn't be accessed`, error);
 			this.animateAndGoTo('Login');
 		}
 	}

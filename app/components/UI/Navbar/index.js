@@ -531,7 +531,9 @@ export function getModalNavbarOptions(title) {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getOnboardingNavbarOptions() {
+export function getOnboardingNavbarOptions(navigation, { headerLeft } = {}) {
+	const headerLeftHide = headerLeft || navigation.getParam('headerLeft');
+
 	return {
 		headerStyle: {
 			shadowColor: colors.transparent,
@@ -540,11 +542,13 @@ export function getOnboardingNavbarOptions() {
 			borderBottomWidth: 0
 		},
 		headerTitle: (
-			<View style={styles.metamaskNameWrapper}>
+			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
-		headerBackTitle: strings('navigation.back')
+		headerBackTitle: strings('navigation.back'),
+		headerRight: <View />,
+		headerLeft: headerLeftHide
 	};
 }
 

@@ -17,6 +17,7 @@ import { generateUniversalLinkAddress } from '../../../util/payment-link-generat
 import { allowedToBuy } from '../FiatOrders';
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
+import { protectWalletModalVisible } from '../../../actions/user';
 
 import { colors, fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
@@ -120,7 +121,20 @@ class ReceiveRequest extends PureComponent {
 		/**
 		 * Network id
 		 */
-		network: PropTypes.string
+		network: PropTypes.string,
+    /**
+		 * Prompts protect wallet modal
+		 */
+		protectWalletModalVisible: PropTypes.func,
+		/**
+		 * Hides the modal that contains the component
+		 */
+		hideModal: PropTypes.func
+	};
+
+	state = {
+		qrModalVisible: false,
+		buyModalVisible: false
 	};
 
 	/**
@@ -130,9 +144,14 @@ class ReceiveRequest extends PureComponent {
 		const { selectedAddress } = this.props;
 		Share.open({
 			message: generateUniversalLinkAddress(selectedAddress)
-		}).catch(err => {
-			Logger.log('Error while trying to share address', err);
-		});
+		})
+			.then(() => {
+				this.props.hideModal();
+				setTimeout(() => this.props.protectWalletModalVisible(), 1000);
+			})
+			.catch(err => {
+				Logger.log('Error while trying to share address', err);
+			});
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_SHARE_ADDRESS);
 		});
@@ -169,7 +188,10 @@ class ReceiveRequest extends PureComponent {
 	 * Closes QR code modal
 	 */
 	closeQrModal = () => {
-		this.setState({ qrModalVisible: false });
+		this.setState({ qrModalVisible: false }, () => {
+			this.props.hideModal();
+			setTimeout(() => this.props.protectWalletModalVisible(), 1000);
+		});
 	};
 
 	/**
@@ -278,7 +300,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
-	showAlert: config => dispatch(showAlert(config))
+	showAlert: config => dispatch(showAlert(config)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 
 export default connect(

@@ -22,6 +22,9 @@ describe('Login', () => {
 						tokens: []
 					}
 				}
+			},
+			user: {
+				passwordSet: true
 			}
 		};
 

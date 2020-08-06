@@ -1927,10 +1927,6 @@ export class BrowserTab extends PureComponent {
 		return null;
 	};
 
-	backupAlertPress = () => {
-		this.props.navigation.navigate('AccountBackupStep1');
-	};
-
 	render() {
 		const { entryScriptWeb3, url, forceReload, activated } = this.state;
 		const isHidden = !this.isTabActive();

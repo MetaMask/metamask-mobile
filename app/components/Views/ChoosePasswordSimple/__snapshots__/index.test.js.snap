@@ -69,7 +69,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
                 }
               }
             >
-              You'll use this password to unlock your MetaMask wallet only on this device.
+              This password will unlock your MetaMask wallet only on this device.
             </Text>
           </View>
         </View>
@@ -298,7 +298,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
         testID="submit-button"
         type="blue"
       >
-        NEXT
+        Create password
       </StyledButton>
     </View>
   </View>

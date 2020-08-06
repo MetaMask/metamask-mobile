@@ -52,10 +52,9 @@ const styles = StyleSheet.create({
 	},
 	addToAddressBookRoot: {
 		flex: 1,
-		paddingHorizontal: 24
+		padding: 24
 	},
 	addToAddressBookWrapper: {
-		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
@@ -74,8 +73,7 @@ const styles = StyleSheet.create({
 	addTextInput: {
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 20,
-		width: '100%'
+		fontSize: 20
 	},
 	addInputWrapper: {
 		flexDirection: 'row',
@@ -83,8 +81,7 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		borderColor: colors.grey050,
 		height: 50,
-		width: '100%',
-		margin: 10
+		width: '100%'
 	},
 	input: {
 		flex: 1,
