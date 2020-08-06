@@ -22,10 +22,6 @@ platform :ios do
 		# Ensure that your git status is not dirty
   		ensure_git_status_clean
 
-		increment_build_number({	
-  			build_number: latest_testflight_build_number + 1	
-		})
-
 		match(type: "appstore", force: true, readonly: false)
 		gym(
 			clean: true,
@@ -35,10 +31,10 @@ platform :ios do
 			output_name: "MetaMask"
 		)
 		upload_to_testflight(
-      		skip_submission: true,
+      skip_submission: true,
 			skip_waiting_for_build_processing: true,
-      		apple_id: "1438144202",
-      		username: "mobile.admin@metamask.io"
+      apple_id: "1438144202",
+      username: "mobile.admin@metamask.io"
 		)
 
 	end
@@ -47,10 +43,6 @@ platform :ios do
 	lane :prerelease do
 		setup_circle_ci
 
-		increment_build_number({	
-  			build_number: latest_testflight_build_number + 1	
-		})
-
 		match(type: "appstore", force: true, readonly: false)
 		gym(
 			clean: true,
@@ -60,10 +52,10 @@ platform :ios do
 			output_name: "MetaMask"
 		)
 		upload_to_testflight(
-      		skip_submission: true,
+      skip_submission: true,
 			skip_waiting_for_build_processing: true,
-      		apple_id: "1438144202",
-      		username: "mobile.admin@metamask.io"
+      apple_id: "1438144202",
+      username: "mobile.admin@metamask.io"
 		)
 
 	end
