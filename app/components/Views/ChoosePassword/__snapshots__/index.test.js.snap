@@ -13,8 +13,7 @@ exports[`ChoosePassword should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
-        "paddingBottom": 20,
-        "paddingHorizontal": 20,
+        "marginBottom": 10,
       }
     }
     testID="choose-password-screen"
@@ -30,6 +29,11 @@ exports[`ChoosePassword should render correctly 1`] = `
       }
     />
     <KeyboardAwareScrollViewMock
+      contentContainerStyle={
+        Object {
+          "flexGrow": 1,
+        }
+      }
       enableAutomaticScroll={true}
       enableOnAndroid={false}
       enableResetScrollToCoords={true}
@@ -45,8 +49,7 @@ exports[`ChoosePassword should render correctly 1`] = `
       style={
         Object {
           "flex": 1,
-          "paddingBottom": 20,
-          "paddingHorizontal": 20,
+          "paddingHorizontal": 32,
         }
       }
       viewIsInsideTabBar={false}
@@ -81,6 +84,8 @@ exports[`ChoosePassword should render correctly 1`] = `
           <View
             style={
               Object {
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontWeight": "400",
                 "justifyContent": "center",
                 "marginBottom": 10,
               }
@@ -314,7 +319,6 @@ exports[`ChoosePassword should render correctly 1`] = `
               Object {
                 "height": 18,
                 "margin": 10,
-                "marginLeft": -6,
                 "width": 18,
               }
             }
@@ -330,7 +334,9 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
+                "fontWeight": "400",
                 "paddingHorizontal": 10,
               }
             }
@@ -355,6 +361,7 @@ exports[`ChoosePassword should render correctly 1`] = `
       <View
         style={
           Object {
+            "flex": 1,
             "marginTop": 20,
             "paddingHorizontal": 10,
           }
@@ -376,7 +383,7 @@ exports[`ChoosePassword should render correctly 1`] = `
           testID="submit-button"
           type="blue"
         >
-          NEXT
+          Create password
         </StyledButton>
       </View>
     </KeyboardAwareScrollViewMock>

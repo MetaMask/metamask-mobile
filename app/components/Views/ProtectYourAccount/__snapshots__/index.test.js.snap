@@ -243,7 +243,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
         testID="submit-button"
         type="confirm"
       >
-        CREATE PASSWORD
+        Create Password
       </StyledButton>
     </View>
   </ScrollViewMock>
