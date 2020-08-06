@@ -5,7 +5,7 @@ import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
-import { toBN, BNToHex, hexToBN, fromWei } from '../../../util/number';
+import { toBN, BNToHex, hexToBN, fromWei, fromTokenMinimalUnit } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
@@ -245,7 +245,6 @@ class Send extends PureComponent {
 		parameters = null
 	}) => {
 		const { addressBook, network, identities, selectedAddress } = this.props;
-
 		if (chain_id) {
 			this.handleNetworkSwitch(chain_id);
 		}
@@ -292,7 +291,7 @@ class Send extends PureComponent {
 						amount: BNToHex(tokenAmount)
 					}),
 					value: '0x0',
-					readableValue: parameters.uint256 || '0'
+					readableValue: fromTokenMinimalUnit(parameters.uint256, selectedAsset.decimals) || '0'
 				};
 				newTxMeta.transactionToName = getTransactionToName({
 					addressBook,
