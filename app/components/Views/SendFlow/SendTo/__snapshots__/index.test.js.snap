@@ -146,7 +146,7 @@ exports[`SendTo should render correctly 1`] = `
       style={
         Object {
           "flex": 1,
-          "paddingHorizontal": 24,
+          "padding": 24,
         }
       }
     >
@@ -154,7 +154,6 @@ exports[`SendTo should render correctly 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "flex": 1,
             "flexDirection": "row",
           }
         }
@@ -201,7 +200,6 @@ exports[`SendTo should render correctly 1`] = `
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 50,
-                "margin": 10,
                 "width": "100%",
               }
             }
@@ -231,7 +229,6 @@ exports[`SendTo should render correctly 1`] = `
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 20,
                     "fontWeight": "400",
-                    "width": "100%",
                   }
                 }
                 testID="address-alias-input"

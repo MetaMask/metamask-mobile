@@ -2,7 +2,13 @@
 
 ## Current Develop Branch
 
-## v0.2.20 - Jul 31 2020
+## v0.2.20 - Aug 6 2020
+- [#1751](https://github.com/MetaMask/metamask-mobile/pull/1751): bugfix/payment requests & deeplinks (#1751)
+- [#1732](https://github.com/MetaMask/metamask-mobile/pull/1732): Copy edits (#1732)
+- [#1750](https://github.com/MetaMask/metamask-mobile/pull/1750): Don't allow for zero in custom gas price (#1750)
+- [#1744](https://github.com/MetaMask/metamask-mobile/pull/1744): bugix/v0.2.20 (#1744)
+- [#1730](https://github.com/MetaMask/metamask-mobile/pull/1730): Check for pods first, don't double up on yarn install(s) (#1730)
+- [#1734](https://github.com/MetaMask/metamask-mobile/pull/1734): Use elliptic@6.5.3 (#1734)
 - [#1741](https://github.com/MetaMask/metamask-mobile/pull/1741): Bugfix/skipping going to next step before (#1741)
 - [#1737](https://github.com/MetaMask/metamask-mobile/pull/1737): Fix scroll and button text and secure now goes to next step (#1737)
 - [#1740](https://github.com/MetaMask/metamask-mobile/pull/1740): check previousScreen and change lading message (#1740)
