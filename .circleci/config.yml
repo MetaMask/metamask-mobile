@@ -176,14 +176,12 @@ workflows:
               only:
                 - master
                 - develop
-                - bugfix/payment-requestss
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
-                - bugfix/payment-requestss
       - lint:
           requires:
             - prep-node-deps
@@ -198,16 +196,13 @@ workflows:
           requires:
             - lint
             - test-unit
-      - publish-pre-release-android:
-          requires:
-            - prep-deps
     #       - test-e2e-ios
     #   - upload-coverage:
     #       requires:
     #         - test-unit
-      # - publish-pre-release-ios:
-      #     requires:
-      #       - prep-deps
-      # - publish-pre-release-android:
-      #     requires:
-      #       - publish-pre-release-ios
+      - publish-pre-release-ios:
+          requires:
+            - prep-deps
+      - publish-pre-release-android:
+          requires:
+            - publish-pre-release-ios
