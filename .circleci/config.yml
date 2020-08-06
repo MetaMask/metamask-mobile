@@ -23,7 +23,9 @@ jobs:
       - image: circleci/node:10
     steps:
       - checkout
-      - run: *install-node-dependencies
+      - run:
+          command: *install-node-dependencies
+          no_output_timeout: "15m"
       - persist_to_workspace:
           root: .
           paths:
@@ -35,7 +37,9 @@ jobs:
     steps:
       - checkout
       - restore_cache: *restore-node-cache
-      - run: *install-node-dependencies
+      - run:
+          command: *install-node-dependencies
+          no_output_timeout: "15m"
       - persist_to_workspace:
           root: .
           paths:

@@ -31,7 +31,12 @@ import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
-import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserScripts';
+import {
+	SPA_urlChangeListener,
+	JS_WINDOW_INFORMATION,
+	JS_DESELECT_TEXT,
+	JS_WEBVIEW_URL
+} from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
@@ -1300,6 +1305,9 @@ export class BrowserTab extends PureComponent {
 						});
 					}
 					break;
+
+				case 'GET_WEBVIEW_URL':
+					this.webviewUrlPostMessagePromiseResolve(data.payload.url);
 			}
 		} catch (e) {
 			Logger.error(e, `Browser::onMessage on ${this.state.inputValue}`);
@@ -1341,8 +1349,6 @@ export class BrowserTab extends PureComponent {
 			this.handleNotAllowedUrl(url);
 		}
 
-		data.fullHostname = urlObj.hostname;
-
 		if (this.isENSUrl(url)) {
 			this.go(url.replace('http://', 'https://'));
 			const { current } = this.webview;
@@ -1365,25 +1371,7 @@ export class BrowserTab extends PureComponent {
 			data.hostname = this.formatHostname(urlObj.hostname);
 		}
 
-		const { fullHostname, inputValue, hostname } = data;
-		if (
-			fullHostname !== this.state.fullHostname ||
-			url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) !== -1
-		) {
-			if (this.isTabActive()) {
-				this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
-			}
-		}
-
-		this.updateTabInfo(inputValue);
-		this.setState({
-			url,
-			fullHostname,
-			inputValue,
-			autocompleteInputValue: inputValue,
-			hostname,
-			forwardEnabled: false
-		});
+		this.setState({ newPageData: data });
 	};
 
 	formatHostname(hostname) {
@@ -1394,9 +1382,11 @@ export class BrowserTab extends PureComponent {
 		this.setState({ autocompleteInputValue: inputValue });
 	};
 
-	onLoadProgress = ({ nativeEvent: { progress } }) => {
+	onLoadProgress = ({ nativeEvent: { progress, ...args } }) => {
 		this.setState({ progress });
 	};
+
+	webviewUrlPostMessagePromiseResolve = null;
 
 	onLoadEnd = ({ nativeEvent }) => {
 		if (nativeEvent.loading) return;
@@ -1424,9 +1414,9 @@ export class BrowserTab extends PureComponent {
 		}
 
 		// Onloadstart does not fire when a website url has changes, e.g. example.com/ex#user1 to example.com/ex#user2. So this is needed for those cases.
-		const urlObj = new URL(nativeEvent.url);
+		const { url, title } = nativeEvent;
+		const urlObj = new URL(url);
 		if (urlObj.hostname === this.state.fullHostname && nativeEvent.url !== this.state.inputValue) {
-			const { url, title } = nativeEvent;
 			this.setState({
 				url,
 				inputValue: url,
@@ -1437,6 +1427,41 @@ export class BrowserTab extends PureComponent {
 			this.setState({ lastUrlBeforeHome: null });
 			this.props.navigation.setParams({ url: nativeEvent.url, silent: true, showUrlModal: false });
 			this.updateTabInfo(nativeEvent.url);
+		} else {
+			current && current.injectJavaScript(JS_WEBVIEW_URL);
+
+			const promiseResolver = resolve => {
+				this.webviewUrlPostMessagePromiseResolve = resolve;
+			};
+			const promise = current ? new Promise(promiseResolver) : Promise.resolve(url);
+
+			promise.then(webviewUrl => {
+				const fullHostname = urlObj.hostname;
+				if (webviewUrl === url) {
+					const { inputValue, hostname } = this.state.newPageData;
+					if (
+						fullHostname !== this.state.fullHostname ||
+						url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) !== -1
+					) {
+						if (this.isTabActive()) {
+							this.props.navigation.setParams({
+								url,
+								silent: true,
+								showUrlModal: false
+							});
+						}
+					}
+
+					this.updateTabInfo(inputValue);
+					this.setState({
+						fullHostname,
+						inputValue,
+						autocompleteInputValue: inputValue,
+						hostname,
+						forwardEnabled: false
+					});
+				}
+			});
 		}
 	};
 
@@ -1900,10 +1925,6 @@ export class BrowserTab extends PureComponent {
 			return <OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.homepageRef} />;
 		}
 		return null;
-	};
-
-	backupAlertPress = () => {
-		this.props.navigation.navigate('AccountBackupStep1');
 	};
 
 	render() {

@@ -117,7 +117,7 @@ module.exports = {
 		'react-native/split-platform-components': 2,
 		'react/jsx-boolean-value': 2,
 		'react/jsx-key': 1,
-		'react/jsx-no-bind': 1,
+		'react/jsx-no-bind': 0,
 		'react/jsx-pascal-case': 2,
 		'react/jsx-wrap-multilines': 2,
 		'react/no-danger': 2,

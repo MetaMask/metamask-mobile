@@ -18,7 +18,14 @@
 		"new_to_metamask": "Nuevo en MetaMask?",
 		"already_have_wallet": "Ya tienes una billetera?",
 		"optin_back_title": "Aviso",
-		"optin_back_desc": "Por favor acepte o rechace el uso de análisis de datos. Puede actualizar esta opción en la configuración."
+		"optin_back_desc": "Por favor acepte o rechace el uso de análisis de datos. Puede actualizar esta opción en la configuración.",
+		"warning_title": "Precaución",
+		"warning_text_1": "Tu billetera y cuentas serán",
+		"warning_text_2": "eliminadas",
+		"warning_text_3": "si continúas.",
+		"warning_text_4": "SOLO las puedes recuperar con la frase semilla de tu billetera. MetaMask no puede ayudarte a recuperarlas.",
+		"warning_proceed": "Eliminar billetera y continuar",
+		"warning_cancel": "Cancelar"
 	},
 	"onboarding_carousel": {
 		"title1": "Bienvenido a MetaMask",
@@ -103,7 +110,7 @@
 		"subtitle": "Utilizarás esta contraseña para acceder a tu billetera de MetaMask solamente en este dispositivo.",
 		"password": "Nueva Contraseña",
 		"confirm_password": "Confirmar Contraseña",
-		"create_button": "Siguiente",
+		"create_button": "Crear contraseña",
 		"import_with_seed_phrase": "Importar con frase semilla",
 		"password_length_error": "La contraseña debe contener al menos 8 caracteres",
 		"password_dont_match": "Las contraseñas no coinciden",
@@ -146,8 +153,8 @@
 		"transaction_history": "Historial de Transacciones",
 		"submit_feedback": "Enviar Feedback",
 		"submit_feedback_message": "Elige el tipo de feedback que deseas enviar.",
-		"submit_bug": "PROBLEMA",
-		"submit_general_feedback": "GENERAL",
+		"submit_bug": "Problema",
+		"submit_general_feedback": "General",
 		"copy_address": "Copiar mi dirección pública",
 		"view_in_etherscan": "Ver en Etherscan",
 		"view_in": "Ver en",
@@ -568,9 +575,12 @@
 		"failed_to_resolve_ens_name": "No pudimos resolver ese nombre ENS",
 		"remove_bookmark_title": "Eliminar favorito",
 		"remove_bookmark_msg": "Realmente deseas eliminar este sitio de tus favoritos?",
-		"yes": "Si",
-		"backup_alert_title": "Proteje tus fondos",
-		"backup_alert_message": "Presiona para salvar tu frase semilla"
+		"yes": "Si"
+	},
+	"backup_alert": {
+		"title": "Protege tu billetera",
+		"left_button": "Recuérdame más tarde",
+		"right_button": "Proteger billetera"
 	},
 	"add_favorite": {
 		"title": "Agregar Favorito",
@@ -680,9 +690,12 @@
 		"allow_biometrics_desc": "Puedes utilizar {{biometrics}} para autenticarte en MetaMask"
 	},
 	"sync_with_extension_success": {
-		"title": "Sincronización completa",
-		"sync_complete": "Hemos sincronizado toda la información desde la extensión de MetaMask y ahora puedes continuar!",
-		"button_continue": "Continuar"
+		"title": "Billetera importada",
+		"sync_complete_1": "Solo recuerda, MetaMask no puede recuperar tu frase semilla si la pierdes. Puedes encontrar la frase semilla en",
+		"sync_complete_2": "Configuración > Seguridad y Privacidad",
+		"button_continue": "Listo",
+		"password_tip": "La contraseña para desbloquear tu billetera es la misma que configuraste para la extensión",
+		"learn_more": "Más información"
 	},
 	"networks": {
 		"title": "Redes",
@@ -779,23 +792,46 @@
 		"cta_text": "CREAR CONTRASEÑA"
 	},
 	"account_backup_step_1": {
-		"cancel_backup_title": "Cancelar Respaldo",
-		"cancel_backup_message": "Recommendamos que guardes tu frase semilla para poder reestablecer tu billetera.",
-		"cancel_backup_ok": "Si, tomaré el riesgo",
-		"cancel_backup_no": "No, respaldar mi frase semilla",
-		"skip": "Salir",
-		"important": "IMPORTANTE",
-		"title": "Guarda tu frase semilla",
-		"highly_recommended": "ALTAMENTE RECOMENDADO",
-		"info_text_1": "La frase semilla de tu billeta es:",
-		"info_text_2_1": "Una ",
-		"info_text_2_2": "código secreto",
-		"info_text_2_3": " que NO debes compartir con nadie.",
-		"info_text_3_1": "Necesaria para ",
-		"info_text_3_2": "recuperar tu billetera",
-		"info_text_3_3": " en caso de que pierdas tu dispositivo, olvides tu contraseña, tengas que reinstalar la app de MetaMask o quieras acceder a tu billetera en otro dispositivo.",
-		"cta_text": "SI, RESPALDAR",
-		"learn_more": "Leer más"
+		"remind_me_later": "Recordarme más tarde",
+		"remind_me_later_subtext": "(No recomendado)",
+		"title": "Asegura tu billetera",
+		"info_text_1_1": "No te arriesgues a perder tus fondos. Proteje tu billetera guardando tu",
+		"info_text_1_2": "frase inicial",
+		"info_text_1_3": "en un lugar en el que confías",
+		"info_text_1_4": "Es la única forma de recuperar tu billetera si se bloquea la aplicación u obtienes un nuevo dispositivo",
+		"cta_text": "Inicio",
+		"cta_subText": "Muy recomendable",
+		"skip_button_cancel": "Seguro ahora",
+		"skip_button_confirm": "Saltar",
+		"skip_title": "¿Saltar seguridad de la cuenta?",
+		"skip_check": "Entiendo que si pierdo mi frase semilla no podré acceder a mi billetera",
+		"what_is_seedphrase_title": "¿Qué es una 'frase semilla'",
+		"what_is_seedphrase_text_1": "Una frase semilla es un conjunto de doce palabras que contiene toda la información sobre tu billetera, incluidos sus fondos. Es como un código secreto utilizado para acceder a toda tu billetera",
+		"what_is_seedphrase_text_2": "Debes mantener tu frase semilla secreta y segura. Si alguien obtiene tu frase semilla, obtendrá el control de tus cuentas",
+		"what_is_seedphrase_text_3": "Guárdalo en un lugar donde solo tú puedas acceder. Si lo pierde, ni siquiera MetaMask puede ayudarlo a recuperarlo."
+	},
+	"account_backup_step_1B": {
+		"title": "Asegura tu billetera",
+		"subtitle_1": "Asegura tu billetera",
+		"subtitle_2": "frase semilla",
+		"cta_text": "Inicio",
+		"learn_more": "Más información",
+		"why_important": "¿Por qué es importante?",
+		"manual_title": "Manual",
+		"manual_subtitle": "Escribe tu frase semilla en una hoja de papel y guárdala en un lugar seguro",
+		"manual_security": "Nivel de seguridad: Muy fuerte",
+		"risk_title": "Los riesgos son:",
+		"risk_1": "La pierdes",
+		"risk_2": "Olvidas dónde la pones",
+		"risk_3": "Alguien más la encuentra",
+		"other_options": "Otras opciones: ¡No tiene que ser papel!",
+		"tips_title": "Consejos:",
+		"tips_1": "Almacenar en la bóveda del banco",
+		"tips_2": "Almacenar en una caja fuerte",
+		"tips_3": "Almacenar en múltiples lugares secretos",
+		"why_secure_title": "Protege tu billetera",
+		"why_secure_1": "No te arriesgues a perder tus fondos. Proteje tu billetera guardando tu frase semilla en un lugar en el que confías",
+		"why_secure_2": "Es la única forma de recuperar tu billetera si se bloquea la aplicación u obtienes un nuevo dispositivo."
 	},
 	"account_backup_step_2": {
 		"cancel_backup_title": "Cancelar Respaldo",
@@ -897,11 +933,11 @@
 		"prompt_ok": "Si",
 		"prompt_cancel": "No, gracias"
 	},
-	"secure_your_wallet_modal": {
+	"protect_your_wallet_modal": {
 		"title": "Protege tu billetera",
-		"body": "Ahora que tienes valor en tu billetera, crea la contraseña y guarda la frase semilla de tu billetera ",
-		"required": "(requerido)",
-		"button": "CONTINUAR"
+		"body_for_password": "Protege tu billetera seteando una contraseña y guardando tu frase semilla (requerido).",
+		"body_for_seedphrase": "Ahora que tienes valor en tu billetera, protege tu billetera seteando una contraseña y guardando tu frase semilla (requerido).",
+		"button": "Proteger"
 	},
 	"payment_request": {
 		"title": "Solicitud",
@@ -1051,5 +1087,13 @@
 	"walletconnect_return_modal": {
 		"title": "Listo!",
 		"text": "Ahora puedes volver a tu navegador"
+	},
+	"protect_wallet_modal": {
+		"title": "Protege tu billetera",
+		"top_button": "Proteger billetera",
+		"bottom_button": "Recuérdame más tarde",
+		"text": "No te arriesgues a perder tus fondos. Protege tu billetera guardando tu frase semilla en un lugar en el que confíes.",
+		"text_bold": "Es la única forma de recuperar tu billetera si se bloquea la aplicación u obtienes un nuevo dispositivo.",
+		"action": "Saber más"
 	}
 }

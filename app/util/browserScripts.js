@@ -16,6 +16,17 @@ const getWindowInformation = `
 	))
 `;
 
+const getWebviewUrl = `
+	window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(
+		{
+			type: 'GET_WEBVIEW_URL',
+			payload: {
+				url: location.href
+			}
+		}
+	))
+`;
+
 export const SPA_urlChangeListener = `(function () {
 	var __mmHistory = window.history;
 	var __mmPushState = __mmHistory.pushState;
@@ -70,6 +81,12 @@ export const SPA_urlChangeListener = `(function () {
 export const JS_WINDOW_INFORMATION = `
 	(function () {
 		${getWindowInformation}
+	})();
+`;
+
+export const JS_WEBVIEW_URL = `
+	(function () {
+		${getWebviewUrl}
 	})();
 `;
 

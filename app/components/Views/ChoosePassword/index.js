@@ -1,21 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-	Animated,
-	Switch,
-	ActivityIndicator,
-	Alert,
-	Text,
-	View,
-	TextInput,
-	SafeAreaView,
-	StyleSheet,
-	TouchableOpacity
-} from 'react-native';
+import { Switch, ActivityIndicator, Alert, Text, View, TextInput, SafeAreaView, StyleSheet, Image } from 'react-native';
+// eslint-disable-next-line import/no-unresolved
+import CheckBox from '@react-native-community/checkbox';
+import AnimatedFox from 'react-native-animated-fox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
-import { passwordSet, passwordUnset } from '../../../actions/user';
+import { passwordSet, passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -26,7 +18,10 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
+import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
+
+const steps = [strings('choose_password.title'), strings('choose_password.secure'), strings('choose_password.confirm')];
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -35,55 +30,94 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		padding: 20
+		marginBottom: 10
+	},
+	scrollableWrapper: {
+		flex: 1,
+		paddingHorizontal: 32
+	},
+	keyboardScrollableWrapper: {
+		flexGrow: 1
+	},
+	loadingWrapper: {
+		paddingHorizontal: 40,
+		paddingBottom: 30,
+		alignItems: 'center',
+		flex: 1
+	},
+	foxWrapper: {
+		width: Device.isIos() ? 90 : 80,
+		height: Device.isIos() ? 90 : 80,
+		marginTop: 30,
+		marginBottom: 30
+	},
+	image: {
+		alignSelf: 'center',
+		width: 80,
+		height: 80
 	},
 	content: {
-		alignItems: 'flex-start'
+		textAlign: 'center',
+		alignItems: 'center'
 	},
 	title: {
-		fontSize: 32,
+		fontSize: 24,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
-		textAlign: 'left',
+		textAlign: 'center',
 		...fontStyles.normal
 	},
 	subtitle: {
 		fontSize: 16,
 		lineHeight: 23,
 		color: colors.fontPrimary,
-		textAlign: 'left',
+		textAlign: 'center',
 		...fontStyles.normal
 	},
 	text: {
 		marginBottom: 10,
-		justifyContent: 'center'
-	},
-
-	label: {
-		position: 'absolute',
-		marginTop: -35,
-		marginLeft: 5,
-		fontSize: 16,
-		color: colors.fontSecondary,
-		textAlign: 'left',
+		justifyContent: 'center',
 		...fontStyles.normal
 	},
+	checkboxContainer: {
+		marginTop: 10,
+		marginHorizontal: 10,
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
+		flexDirection: 'row'
+	},
+	checkbox: {
+		width: 18,
+		height: 18,
+		margin: 10
+	},
+	label: {
+		...fontStyles.normal,
+		fontSize: 14,
+		color: colors.black,
+		paddingHorizontal: 10
+	},
+	learnMore: {
+		color: colors.blue,
+		textDecorationLine: 'underline',
+		textDecorationColor: colors.blue
+	},
 	field: {
-		marginTop: 20,
-		marginBottom: 10
+		position: 'relative'
 	},
 	input: {
-		borderBottomWidth: Device.isAndroid() ? 0 : 1,
-		borderBottomColor: colors.grey100,
-		paddingLeft: 0,
-		paddingVertical: 10,
-		borderRadius: 4,
+		borderWidth: 1,
+		borderColor: colors.grey500,
+		padding: 10,
+		borderRadius: 6,
 		fontSize: Device.isAndroid() ? 14 : 20,
 		...fontStyles.normal
 	},
 	ctaWrapper: {
+		flex: 1,
 		marginTop: 20,
 		paddingHorizontal: 10
 	},
@@ -92,27 +126,34 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	biometrics: {
-		alignItems: 'flex-start',
-		marginTop: 30,
+		position: 'relative',
+		marginTop: 20,
 		marginBottom: 30
 	},
 	biometryLabel: {
-		flex: 1,
-		fontSize: 16,
-		...fontStyles.normal
+		fontSize: 14,
+		color: colors.fontPrimary,
+		position: 'absolute',
+		top: 0,
+		left: 0
 	},
 	biometrySwitch: {
-		marginTop: 10,
-		flex: 0
+		position: 'absolute',
+		top: 0,
+		right: 0
 	},
-	passwordStrengthLabel: {
+	hintLabel: {
 		height: 20,
-		marginLeft: 5,
-		marginTop: 10,
+		marginTop: 14,
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.grey450,
 		textAlign: 'left',
 		...fontStyles.normal
+	},
+	showPassword: {
+		position: 'absolute',
+		top: 0,
+		right: 0
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_weak: {
@@ -126,15 +167,10 @@ const styles = StyleSheet.create({
 	strength_strong: {
 		color: colors.green300
 	},
-	showHideToggle: {
-		backgroundColor: colors.white,
-		position: 'absolute',
-		marginTop: 8,
-		alignSelf: 'flex-end'
-	},
 	showMatchingPasswords: {
 		position: 'absolute',
-		marginTop: 8,
+		top: 50,
+		right: 17,
 		alignSelf: 'flex-end'
 	}
 });
@@ -170,18 +206,21 @@ class ChoosePassword extends PureComponent {
 		/**
 		 * A string representing the selected address => account
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Action to reset the flag seedphraseBackedUp in redux
+		 */
+		seedphraseNotBackedUp: PropTypes.func
 	};
 
 	state = {
+		isSelected: false,
 		password: '',
 		confirmPassword: '',
 		secureTextEntry: true,
 		biometryType: null,
 		biometryChoice: false,
 		rememberMe: false,
-		labelsScaleNew: new Animated.Value(1),
-		labelsScaleConfirm: new Animated.Value(1),
 		loading: false,
 		error: null
 	};
@@ -199,12 +238,40 @@ class ChoosePassword extends PureComponent {
 		}
 	}
 
+	componentDidUpdate(prevProps, prevState) {
+		const prevLoading = prevState.loading;
+		const { loading } = this.state;
+		const { navigation } = this.props;
+		if (!prevLoading && loading) {
+			// update navigationOptions
+			navigation.setParams({
+				headerLeft: <View />
+			});
+		}
+	}
+
 	componentWillUnmount() {
 		this.mounted = false;
 	}
 
+	setSelection = () => {
+		const { isSelected } = this.state;
+		this.setState(() => ({ isSelected: !isSelected }));
+	};
+
+	createNewVaultAndKeychain = async password => {
+		const { KeyringController } = Engine.context;
+		await Engine.resetState();
+		await KeyringController.createNewVaultAndKeychain(password);
+		this.keyringControllerPasswordSet = true;
+	};
+
 	onPressCreate = async () => {
-		const { loading, password, confirmPassword } = this.state;
+		const { loading, isSelected, password, confirmPassword } = this.state;
+		const passwordsMatch = password !== '' && password === confirmPassword;
+		const canSubmit = passwordsMatch && isSelected;
+
+		if (!canSubmit) return;
 		if (loading) return;
 		if (password.length < 8) {
 			Alert.alert('Error', strings('choose_password.password_length_error'));
@@ -215,7 +282,16 @@ class ChoosePassword extends PureComponent {
 		}
 		try {
 			this.setState({ loading: true });
-			await this.recreateVault(password);
+
+			const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
+			if (previousScreen === 'onboarding') {
+				await this.createNewVaultAndKeychain(password);
+				this.props.seedphraseNotBackedUp();
+				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
+				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			} else {
+				await this.recreateVault(password);
+			}
 
 			// Set state in app as it was with password
 			if (this.state.biometryType && this.state.biometryChoice) {
@@ -248,8 +324,7 @@ class ChoosePassword extends PureComponent {
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
 			this.setState({ loading: false });
-			const seed = await this.getSeedPhrase();
-			this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
+			this.props.navigation.navigate('AccountBackupStep1');
 		} catch (error) {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
@@ -327,30 +402,6 @@ class ChoosePassword extends PureComponent {
 		current && current.focus();
 	};
 
-	animateInLabel = label => {
-		if (
-			(label === 'new' && this.state.password !== '') ||
-			(label === 'confirm' && this.state.confirmPassword !== '')
-		) {
-			return;
-		}
-		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
-			toValue: 1,
-			duration: 200,
-			useNativeDriver: true,
-			isInteraction: false
-		}).start();
-	};
-
-	animateOutLabel = label => {
-		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
-			toValue: 0.66,
-			duration: 200,
-			useNativeDriver: true,
-			isInteraction: false
-		}).start();
-	};
-
 	getPasswordStrengthWord() {
 		// this.state.passwordStrength is calculated by zxcvbn
 		// which returns a score based on "entropy to crack time"
@@ -370,33 +421,36 @@ class ChoosePassword extends PureComponent {
 	}
 
 	renderSwitch = () => {
-		if (this.state.biometryType) {
-			return (
-				<View style={styles.biometrics}>
-					<Text style={styles.biometryLabel}>
-						{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
-					</Text>
-					<Switch
-						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
-						value={this.state.biometryChoice}
-						style={styles.biometrySwitch}
-						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-						ios_backgroundColor={colors.grey300}
-					/>
-				</View>
-			);
-		}
-
+		const { biometryType, rememberMe, biometryChoice } = this.state;
 		return (
 			<View style={styles.biometrics}>
-				<Text style={styles.biometryLabel}>{strings(`choose_password.remember_me`)}</Text>
-				<Switch
-					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
-					value={this.state.rememberMe}
-					style={styles.biometrySwitch}
-					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-					ios_backgroundColor={colors.grey300}
-				/>
+				{biometryType ? (
+					<>
+						<Text style={styles.biometryLabel}>
+							{strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
+						</Text>
+						<View>
+							<Switch
+								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+								value={biometryChoice}
+								style={styles.biometrySwitch}
+								trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
+								ios_backgroundColor={colors.grey300}
+							/>
+						</View>
+					</>
+				) : (
+					<>
+						<Text style={styles.biometryLabel}>{strings(`choose_password.remember_me`)}</Text>
+						<Switch
+							onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
+							value={rememberMe}
+							style={styles.biometrySwitch}
+							trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
+							ios_backgroundColor={colors.grey300}
+						/>
+					</>
+				)}
 			</View>
 		);
 	};
@@ -408,173 +462,145 @@ class ChoosePassword extends PureComponent {
 	};
 
 	toggleShowHide = () => {
-		this.setState({ secureTextEntry: !this.state.secureTextEntry });
+		this.setState(state => ({ secureTextEntry: !state.secureTextEntry }));
+	};
+
+	learnMore = () => {
+		this.props.navigation.push('Webview', {
+			url: 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-',
+			title: 'metamask.zendesk.com'
+		});
 	};
 
 	render() {
-		const startX = 0;
-		const startY = 0;
-		const width = 100;
-		const height = 24;
-		const initialScale = 1;
-		const endX = 0;
-		const endY = 50;
+		const { isSelected, password, confirmPassword, secureTextEntry, error, loading } = this.state;
+		const passwordsMatch = password !== '' && password === confirmPassword;
+		const canSubmit = passwordsMatch && isSelected;
+		const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<View style={styles.wrapper} testID={'choose-password-screen'}>
-					<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-						<View testID={'create-password-screen'}>
-							<View style={styles.content}>
-								<Text style={styles.title}>{strings('choose_password.title')}</Text>
-								<View style={styles.text}>
-									<Text style={styles.subtitle}>{strings('choose_password.subtitle')}</Text>
-								</View>
-							</View>
-							<View style={styles.field}>
-								<Animated.Text
-									style={[
-										styles.label,
-										{
-											transform: [
-												{
-													scale: this.state.labelsScaleNew
-												},
-												{
-													translateX: this.state.labelsScaleNew.interpolate({
-														inputRange: [0, 1],
-														outputRange: [
-															startX - width / 2 - (width * initialScale) / 2,
-															endX
-														]
-													})
-												},
-												{
-													translateY: this.state.labelsScaleNew.interpolate({
-														inputRange: [0, 1],
-														outputRange: [
-															startY - height / 2 - (height * initialScale) / 2,
-															endY
-														]
-													})
-												}
-											]
-										}
-									]}
-								>
-									{strings('choose_password.password')}
-								</Animated.Text>
-								<TextInput
-									style={styles.input}
-									value={this.state.password}
-									onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
-									secureTextEntry={this.state.secureTextEntry}
-									placeholder={''}
-									underlineColorAndroid={colors.grey100}
-									testID={'input-password'}
-									onSubmitEditing={this.jumpToConfirmPassword}
-									returnKeyType={'next'}
-									onFocus={() => this.animateOutLabel('new')} // eslint-disable-line  react/jsx-no-bind
-									onBlur={() => this.animateInLabel('new')} // eslint-disable-line  react/jsx-no-bind
-									autoCapitalize="none"
+				{loading ? (
+					<View style={styles.loadingWrapper}>
+						<View style={styles.foxWrapper}>
+							{Device.isAndroid() ? (
+								<Image
+									source={require('../../../images/fox.png')}
+									style={styles.image}
+									resizeMethod={'auto'}
 								/>
-								<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
-									<Text style={styles.passwordStrengthLabel}>
-										{strings(`choose_password.${this.state.secureTextEntry ? 'show' : 'hide'}`)}
+							) : (
+								<AnimatedFox />
+							)}
+						</View>
+						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.blue : colors.grey} />
+						<Text style={styles.title}>
+							{strings(
+								previousScreen === 'onboarding'
+									? 'create_wallet.title'
+									: 'secure_your_wallet.creating_password'
+							)}
+						</Text>
+						<Text style={styles.subtitle}>{strings('create_wallet.subtitle')}</Text>
+					</View>
+				) : (
+					<View style={styles.wrapper} testID={'choose-password-screen'}>
+						<OnboardingProgress steps={steps} />
+						<KeyboardAwareScrollView
+							style={styles.scrollableWrapper}
+							contentContainerStyle={styles.keyboardScrollableWrapper}
+							resetScrollToCoords={{ x: 0, y: 0 }}
+						>
+							<View testID={'create-password-screen'}>
+								<View style={styles.content}>
+									<Text style={styles.title}>{strings('choose_password.title')}</Text>
+									<View style={styles.text}>
+										<Text style={styles.subtitle}>{strings('choose_password.subtitle')}</Text>
+									</View>
+								</View>
+								<View style={styles.field}>
+									<Text style={styles.hintLabel}>{strings('choose_password.password')}</Text>
+									<Text onPress={this.toggleShowHide} style={[styles.hintLabel, styles.showPassword]}>
+										{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
 									</Text>
-								</TouchableOpacity>
-								{(this.state.password !== '' && (
-									<Text style={styles.passwordStrengthLabel}>
-										{strings('choose_password.password_strength')}
-										<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
-											{' '}
-											{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}
+									<TextInput
+										style={styles.input}
+										value={password}
+										onChangeText={this.onPasswordChange}
+										secureTextEntry={secureTextEntry}
+										placeholder=""
+										testID="input-password"
+										onSubmitEditing={this.jumpToConfirmPassword}
+										returnKeyType="next"
+										autoCapitalize="none"
+									/>
+									{(password !== '' && (
+										<Text style={styles.hintLabel}>
+											{strings('choose_password.password_strength')}
+											<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
+												{' '}
+												{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}
+											</Text>
+										</Text>
+									)) || <Text style={styles.hintLabel} />}
+								</View>
+								<View style={styles.field}>
+									<Text style={styles.hintLabel}>{strings('choose_password.confirm_password')}</Text>
+									<TextInput
+										ref={this.confirmPasswordInput}
+										style={styles.input}
+										value={confirmPassword}
+										onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
+										secureTextEntry={secureTextEntry}
+										placeholder={''}
+										placeholderTextColor={colors.grey100}
+										testID={'input-password-confirm'}
+										onSubmitEditing={this.onPressCreate}
+										returnKeyType={'done'}
+										autoCapitalize="none"
+									/>
+									<View style={styles.showMatchingPasswords}>
+										{passwordsMatch ? (
+											<Icon name="check" size={16} color={colors.green300} />
+										) : null}
+									</View>
+									<Text style={styles.hintLabel}>
+										{strings('choose_password.must_be_at_least', { number: 8 })}
+									</Text>
+								</View>
+								<View>{this.renderSwitch()}</View>
+								<View style={styles.checkboxContainer}>
+									<CheckBox
+										value={isSelected}
+										onValueChange={this.setSelection}
+										style={styles.checkbox}
+										tintColors={{ true: colors.blue }}
+										boxType="square"
+									/>
+									<Text style={styles.label} onPress={this.setSelection}>
+										{strings('choose_password.i_understand')}{' '}
+										<Text onPress={this.learnMore} style={styles.learnMore}>
+											{strings('choose_password.learn_more')}
 										</Text>
 									</Text>
-								)) || <Text style={styles.passwordStrengthLabel} />}
-							</View>
-							<View style={styles.field}>
-								<Animated.Text
-									style={[
-										styles.label,
-										{
-											transform: [
-												{
-													scale: this.state.labelsScaleConfirm
-												},
-												{
-													translateX: this.state.labelsScaleConfirm.interpolate({
-														inputRange: [0, 1],
-														outputRange: [
-															startX - width / 2 - (width * initialScale) / 2,
-															endX
-														]
-													})
-												},
-												{
-													translateY: this.state.labelsScaleConfirm.interpolate({
-														inputRange: [0, 1],
-														outputRange: [
-															startY - height / 2 - (height * initialScale) / 2,
-															endY
-														]
-													})
-												}
-											]
-										}
-									]}
-								>
-									{strings('choose_password.confirm_password')}
-								</Animated.Text>
-								<TextInput
-									ref={this.confirmPasswordInput}
-									style={styles.input}
-									value={this.state.confirmPassword}
-									onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
-									secureTextEntry={this.state.secureTextEntry}
-									placeholder={''}
-									placeholderTextColor={colors.grey100}
-									underlineColorAndroid={colors.grey100}
-									testID={'input-password-confirm'}
-									onSubmitEditing={this.onPressCreate}
-									returnKeyType={'done'}
-									onFocus={() => this.animateOutLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
-									onBlur={() => this.animateInLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
-									autoCapitalize="none"
-								/>
-								<View style={styles.showMatchingPasswords}>
-									{this.state.password !== '' &&
-									this.state.password === this.state.confirmPassword ? (
-										<Icon name="check" size={12} color={colors.green300} />
-									) : null}
 								</View>
-								<Text style={styles.passwordStrengthLabel}>
-									{strings('choose_password.must_be_at_least', { number: 8 })}
-								</Text>
+
+								{!!error && <Text style={styles.errorMsg}>{error}</Text>}
 							</View>
 
-							{this.renderSwitch()}
-
-							{!!this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
-						</View>
-					</KeyboardAwareScrollView>
-					<View style={styles.ctaWrapper}>
-						<StyledButton
-							type={'blue'}
-							onPress={this.onPressCreate}
-							testID={'submit-button'}
-							disabled={
-								!(this.state.password !== '' && this.state.password === this.state.confirmPassword)
-							}
-						>
-							{this.state.loading ? (
-								<ActivityIndicator size="small" color="white" />
-							) : (
-								strings('choose_password.create_button')
-							)}
-						</StyledButton>
+							<View style={styles.ctaWrapper}>
+								<StyledButton
+									type={'blue'}
+									onPress={this.onPressCreate}
+									testID={'submit-button'}
+									disabled={!canSubmit}
+								>
+									{strings('choose_password.create_button')}
+								</StyledButton>
+							</View>
+						</KeyboardAwareScrollView>
 					</View>
-				</View>
+				)}
 			</SafeAreaView>
 		);
 	}
@@ -587,7 +613,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	passwordSet: () => dispatch(passwordSet()),
 	passwordUnset: () => dispatch(passwordUnset()),
-	setLockTime: time => dispatch(setLockTime(time))
+	setLockTime: time => dispatch(setLockTime(time)),
+	seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp())
 });
 
 export default connect(

@@ -6,7 +6,8 @@ import {
 	StyleSheet,
 	View,
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
-	Alert
+	Alert,
+	Image
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -43,16 +44,14 @@ import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
 import LockScreen from '../../Views/LockScreen';
-import ProtectYourAccount from '../../Views/ProtectYourAccount';
 import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
-import AccountBackupStep2 from '../../Views/AccountBackupStep2';
-import AccountBackupStep3 from '../../Views/AccountBackupStep3';
-import AccountBackupStep4 from '../../Views/AccountBackupStep4';
-import AccountBackupStep5 from '../../Views/AccountBackupStep5';
-import AccountBackupStep6 from '../../Views/AccountBackupStep6';
+import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
+import ManualBackupStep1 from '../../Views/ManualBackupStep1';
+import ManualBackupStep2 from '../../Views/ManualBackupStep2';
+import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
@@ -104,6 +103,7 @@ import {
 } from '../../../actions/notification';
 import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
+import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -118,8 +118,18 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	headerLogo: {
+		width: 125,
+		height: 50
 	}
 });
+
+function HeaderLogo() {
+	return (
+		<Image style={styles.headerLogo} source={require('../../../images/metamask-name.png')} resizeMode={'contain'} />
+	);
+}
 
 /**
  * Navigator component that wraps
@@ -332,36 +342,33 @@ const MainNavigator = createStackNavigator(
 		SetPasswordFlow: {
 			screen: createStackNavigator(
 				{
-					ProtectYourAccount: {
-						screen: ProtectYourAccount
-					},
 					ChoosePassword: {
 						screen: ChoosePassword
 					},
 					AccountBackupStep1: {
 						screen: AccountBackupStep1
 					},
-					AccountBackupStep2: {
-						screen: AccountBackupStep2
+					AccountBackupStep1B: {
+						screen: AccountBackupStep1B
 					},
-					AccountBackupStep3: {
-						screen: AccountBackupStep3
+					ManualBackupStep1: {
+						screen: ManualBackupStep1
 					},
-					AccountBackupStep4: {
-						screen: AccountBackupStep4
+					ManualBackupStep2: {
+						screen: ManualBackupStep2
 					},
-					AccountBackupStep5: {
-						screen: AccountBackupStep5
-					},
-					AccountBackupStep6: {
-						screen: AccountBackupStep6,
-						navigationOptions: {
-							gesturesEnabled: false
-						}
+					ManualBackupStep3: {
+						screen: ManualBackupStep3
 					}
 				},
 				{
-					headerMode: 'none'
+					defaultNavigationOptions: {
+						// eslint-disable-next-line
+						headerTitle: () => <HeaderLogo />,
+						headerStyle: {
+							borderBottomWidth: 0
+						}
+					}
 				}
 			)
 		}
@@ -1063,14 +1070,12 @@ class Main extends PureComponent {
 		);
 	};
 
-	backupAlertPress = () => {
-		this.props.navigation.navigate('AccountBackupStep1');
-	};
-
-	renderDappTransactionModal = () =>
-		this.props.dappTransactionModalVisible && (
-			<Approval dappTransactionModalVisible toggleDappTransactionModal={this.props.toggleDappTransactionModal} />
-		);
+	renderDappTransactionModal = () => (
+		<Approval
+			dappTransactionModalVisible={this.props.dappTransactionModalVisible}
+			toggleDappTransactionModal={this.props.toggleDappTransactionModal}
+		/>
+	);
 
 	renderApproveModal = () =>
 		this.props.approveModalVisible && <Approve modalVisible toggleApproveModal={this.props.toggleApproveModal} />;
@@ -1091,8 +1096,9 @@ class Main extends PureComponent {
 					)}
 					<GlobalAlert />
 					<FadeOutOverlay />
-					<BackupAlert navigation={this.props.navigation} onPress={this.backupAlertPress} />
 					<Notification navigation={this.props.navigation} />
+					<BackupAlert navigation={this.props.navigation} />
+					<ProtectYourWalletModal navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
