@@ -23,6 +23,7 @@ import WarningMessage from '../WarningMessage';
 import { util } from '@metamask/controllers';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { allowedToBuy } from '../../../UI/FiatOrders';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -51,10 +52,9 @@ const styles = StyleSheet.create({
 	},
 	addToAddressBookRoot: {
 		flex: 1,
-		paddingHorizontal: 24
+		padding: 24
 	},
 	addToAddressBookWrapper: {
-		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
@@ -73,8 +73,7 @@ const styles = StyleSheet.create({
 	addTextInput: {
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 20,
-		width: '100%'
+		fontSize: 20
 	},
 	addInputWrapper: {
 		flexDirection: 'row',
@@ -82,8 +81,7 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		borderColor: colors.grey050,
 		height: 50,
-		width: '100%',
-		margin: 10
+		width: '100%'
 	},
 	input: {
 		flex: 1,
@@ -114,6 +112,11 @@ const styles = StyleSheet.create({
 	warningContainer: {
 		marginHorizontal: 24,
 		marginBottom: 32
+	},
+	buyEth: {
+		...fontStyles.bold,
+		color: colors.black,
+		textDecorationLine: 'underline'
 	}
 });
 
@@ -451,6 +454,28 @@ class SendFlow extends PureComponent {
 		this.setState({ toInputHighlighted: !toInputHighlighted });
 	};
 
+	goToBuy = () => {
+		this.props.navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+		});
+	};
+
+	renderBuyEth = () => {
+		if (!allowedToBuy(this.props.network)) {
+			return null;
+		}
+
+		return (
+			<>
+				{'\n'}
+				<Text style={styles.buyEth} onPress={this.goToBuy}>
+					{strings('fiat_on_ramp.buy_eth')}
+				</Text>
+			</>
+		);
+	};
+
 	render = () => {
 		const { isPaymentChannelTransaction } = this.props;
 		const {
@@ -520,7 +545,15 @@ class SendFlow extends PureComponent {
 							<View style={styles.footerContainer} testID={'no-eth-message'}>
 								{!isPaymentChannelTransaction && balanceIsZero && (
 									<View style={styles.warningContainer}>
-										<WarningMessage warningMessage={strings('transaction.not_enough_for_gas')} />
+										<WarningMessage
+											warningMessage={
+												<>
+													{strings('transaction.not_enough_for_gas')}
+
+													{this.renderBuyEth()}
+												</>
+											}
+										/>
 									</View>
 								)}
 								<View style={styles.buttonNextWrapper}>

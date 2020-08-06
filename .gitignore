@@ -60,7 +60,6 @@ coverage
 /app/core/InpageBridgeWeb3.js
 
 # environment variables
-.env
 .js.env
 .ios.env
 .android.env

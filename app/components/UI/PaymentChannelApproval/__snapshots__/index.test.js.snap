@@ -17,7 +17,7 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
       style={
         Object {
           "color": "#000000",
-          "fontFamily": "CircularStd-Medium",
+          "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 14,
           "fontWeight": "600",
           "marginVertical": 24,
@@ -74,7 +74,7 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "marginTop": 12,
@@ -173,7 +173,7 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "textAlign": "center",
@@ -188,7 +188,7 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",
             "marginVertical": 24,
@@ -211,7 +211,7 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 55,
               "fontWeight": "600",
               "textAlign": "center",

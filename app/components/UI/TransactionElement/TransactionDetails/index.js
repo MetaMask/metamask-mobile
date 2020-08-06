@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
-import { colors, fontStyles, baseStyles } from '../../../../styles/common';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import NetworkList, {
 	getNetworkTypeById,
@@ -18,39 +18,11 @@ import { toDateFormat } from '../../../../util/date';
 import StyledButton from '../../StyledButton';
 import { safeToChecksumAddress } from '../../../../util/address';
 import AppConstants from '../../../../core/AppConstants';
+import StatusText from '../../../Base/StatusText';
+import Text from '../../../Base/Text';
+import DetailsModal from '../../../Base/DetailsModal';
 
 const styles = StyleSheet.create({
-	detailRowWrapper: {
-		paddingHorizontal: 15
-	},
-	detailRowTitle: {
-		fontSize: 10,
-		color: colors.grey500,
-		marginBottom: 8,
-		...fontStyles.normal
-	},
-	flexRow: {
-		flexDirection: 'row'
-	},
-	section: {
-		paddingVertical: 16
-	},
-	sectionBorderBottom: {
-		borderBottomColor: colors.grey100,
-		borderBottomWidth: 1
-	},
-	flexEnd: {
-		flex: 1,
-		alignItems: 'flex-end'
-	},
-	textUppercase: {
-		textTransform: 'uppercase'
-	},
-	detailRowText: {
-		fontSize: 12,
-		color: colors.fontPrimary,
-		...fontStyles.normal
-	},
 	viewOnEtherscan: {
 		fontSize: 16,
 		color: colors.blue,
@@ -58,14 +30,11 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	touchableViewOnEtherscan: {
-		marginVertical: 24
+		marginBottom: 24,
+		marginTop: 12
 	},
 	summaryWrapper: {
 		marginVertical: 8
-	},
-	statusText: {
-		fontSize: 12,
-		...fontStyles.normal
 	},
 	actionContainerStyle: {
 		height: 25,
@@ -146,6 +115,7 @@ class TransactionDetails extends PureComponent {
 
 	viewOnEtherscan = () => {
 		const {
+			navigation,
 			transactionObject: { networkID },
 			transactionDetails: { transactionHash },
 			network: {
@@ -158,7 +128,7 @@ class TransactionDetails extends PureComponent {
 			if (type === 'rpc') {
 				const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
 				const title = new URL(rpcBlockExplorer).hostname;
-				this.props.navigation.push('Webview', {
+				navigation.push('Webview', {
 					url,
 					title
 				});
@@ -166,7 +136,7 @@ class TransactionDetails extends PureComponent {
 				const network = getNetworkTypeById(networkID);
 				const url = getEtherscanTransactionUrl(network, transactionHash);
 				const etherscan_url = getEtherscanBaseUrl(network).replace('https://', '');
-				this.props.navigation.push('Webview', {
+				navigation.push('Webview', {
 					url,
 					title: etherscan_url
 				});
@@ -175,20 +145,6 @@ class TransactionDetails extends PureComponent {
 		} catch (e) {
 			// eslint-disable-next-line no-console
 			Logger.error(e, { message: `can't get a block explorer link for network `, networkID });
-		}
-	};
-
-	renderStatusText = status => {
-		status = status && status.charAt(0).toUpperCase() + status.slice(1);
-		switch (status) {
-			case 'Confirmed':
-				return <Text style={[styles.statusText, { color: colors.green400 }]}>{status}</Text>;
-			case 'Pending':
-			case 'Submitted':
-				return <Text style={[styles.statusText, { color: colors.orange }]}>{status}</Text>;
-			case 'Failed':
-			case 'Cancelled':
-				return <Text style={[styles.statusText, { color: colors.red }]}>{status}</Text>;
 		}
 	};
 
@@ -216,6 +172,7 @@ class TransactionDetails extends PureComponent {
 
 	render = () => {
 		const {
+			transactionDetails,
 			transactionObject,
 			transactionObject: {
 				status,
@@ -229,75 +186,70 @@ class TransactionDetails extends PureComponent {
 		const renderSpeedUpAction = safeToChecksumAddress(to) !== AppConstants.CONNEXT.CONTRACTS[networkId];
 		const { rpcBlockExplorer } = this.state;
 		return (
-			<View style={styles.detailRowWrapper}>
-				<View style={[styles.section, styles.flexRow, styles.sectionBorderBottom]}>
-					<View style={[baseStyles.flexGrow, styles.flexRow]}>
-						<View style={baseStyles.flexRow}>
-							<Text style={styles.detailRowTitle}>{strings('transactions.status')}</Text>
-							{this.renderStatusText(status)}
-							{!!renderTxActions && (
-								<View style={styles.transactionActionsContainer}>
-									{renderSpeedUpAction && this.renderSpeedUpButton()}
-									{this.renderCancelButton()}
-								</View>
-							)}
-						</View>
-						<View style={styles.flexEnd}>
-							<Text style={styles.detailRowTitle}>{strings('transactions.date')}</Text>
-							<Text style={styles.statusText}>{toDateFormat(time)}</Text>
-						</View>
-					</View>
-				</View>
-				<View style={[styles.section, styles.flexRow, !!nonce && styles.sectionBorderBottom]}>
-					<View style={[baseStyles.flexGrow, styles.flexRow]}>
-						<View style={baseStyles.flexRow}>
-							<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
-							<EthereumAddress
-								type="short"
-								style={styles.detailRowText}
-								address={this.props.transactionDetails.renderFrom}
-							/>
-						</View>
-						<View style={styles.flexEnd}>
-							<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
-							<EthereumAddress
-								type="short"
-								style={styles.detailRowText}
-								address={this.props.transactionDetails.renderTo}
-							/>
-						</View>
-					</View>
-				</View>
-				{!!nonce && (
-					<View style={styles.section}>
-						<Text style={[styles.detailRowTitle, styles.textUppercase]}>
-							{strings('transactions.nonce')}
+			<DetailsModal.Body>
+				<DetailsModal.Section borderBottom>
+					<DetailsModal.Column>
+						<DetailsModal.SectionTitle>{strings('transactions.status')}</DetailsModal.SectionTitle>
+						<StatusText status={status} />
+						{!!renderTxActions && (
+							<View style={styles.transactionActionsContainer}>
+								{renderSpeedUpAction && this.renderSpeedUpButton()}
+								{this.renderCancelButton()}
+							</View>
+						)}
+					</DetailsModal.Column>
+					<DetailsModal.Column end>
+						<DetailsModal.SectionTitle>{strings('transactions.date')}</DetailsModal.SectionTitle>
+						<Text small primary>
+							{toDateFormat(time)}
 						</Text>
-						<Text style={[styles.detailRowText]}>{`#${parseInt(nonce.replace(/^#/, ''), 16)}`}</Text>
-					</View>
+					</DetailsModal.Column>
+				</DetailsModal.Section>
+				<DetailsModal.Section borderBottom={!!nonce}>
+					<DetailsModal.Column>
+						<DetailsModal.SectionTitle>{strings('transactions.from')}</DetailsModal.SectionTitle>
+						<Text small primary>
+							<EthereumAddress type="short" address={transactionDetails.renderFrom} />
+						</Text>
+					</DetailsModal.Column>
+					<DetailsModal.Column end>
+						<DetailsModal.SectionTitle>{strings('transactions.to')}</DetailsModal.SectionTitle>
+						<Text small primary>
+							<EthereumAddress type="short" address={transactionDetails.renderTo} />
+						</Text>
+					</DetailsModal.Column>
+				</DetailsModal.Section>
+				{!!nonce && (
+					<DetailsModal.Section>
+						<DetailsModal.Column>
+							<DetailsModal.SectionTitle upper>{strings('transactions.nonce')}</DetailsModal.SectionTitle>
+							<Text small primary>{`#${parseInt(nonce.replace(/^#/, ''), 16)}`}</Text>
+						</DetailsModal.Column>
+					</DetailsModal.Section>
 				)}
 				<View style={[styles.summaryWrapper, !nonce && styles.touchableViewOnEtherscan]}>
 					<TransactionSummary
-						amount={this.props.transactionDetails.summaryAmount}
-						fee={this.props.transactionDetails.summaryFee}
-						totalAmount={this.props.transactionDetails.summaryTotalAmount}
-						secondaryTotalAmount={this.props.transactionDetails.summarySecondaryTotalAmount}
+						amount={transactionDetails.summaryAmount}
+						fee={transactionDetails.summaryFee}
+						totalAmount={transactionDetails.summaryTotalAmount}
+						secondaryTotalAmount={transactionDetails.summarySecondaryTotalAmount}
 						gasEstimationReady
+						transactionType={transactionDetails.transactionType}
 					/>
 				</View>
 
-				{this.props.transactionDetails.transactionHash &&
+				{transactionDetails.transactionHash &&
 					transactionObject.status !== 'cancelled' &&
 					rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
 						<TouchableOpacity onPress={this.viewOnEtherscan} style={styles.touchableViewOnEtherscan}>
-							<Text style={styles.viewOnEtherscan}>
+							<Text reset style={styles.viewOnEtherscan}>
 								{(rpcBlockExplorer &&
 									`${strings('transactions.view_on')} ${getBlockExplorerName(rpcBlockExplorer)}`) ||
 									strings('transactions.view_on_etherscan')}
 							</Text>
 						</TouchableOpacity>
 					)}
-			</View>
+			</DetailsModal.Body>
 		);
 	};
 }

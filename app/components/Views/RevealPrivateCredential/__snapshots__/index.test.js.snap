@@ -33,7 +33,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
             Object {
               "borderBottomColor": "#848c96",
               "borderBottomWidth": 1,
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             },
           ]
@@ -79,14 +79,14 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
           <Text
             style={
               Object {
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
                 "marginLeft": 10,
                 "marginRight": 40,
               }
             }
           >
-            Never disclose this key. Anyone with your private keys can take steal any assets held in your account.
+            Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
           </Text>
         </View>
       </View>
@@ -127,7 +127,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
             style={
               Object {
                 "color": "#D73A49",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
                 "marginTop": 10,
               }

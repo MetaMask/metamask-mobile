@@ -31,7 +31,12 @@ import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
-import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserScripts';
+import {
+	SPA_urlChangeListener,
+	JS_WINDOW_INFORMATION,
+	JS_DESELECT_TEXT,
+	JS_WEBVIEW_URL
+} from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
@@ -369,7 +374,7 @@ export class BrowserTab extends PureComponent {
 			showApprovalDialog: false,
 			showPhishingModal: false,
 			timeout: false,
-			url: null,
+			url: props.initialUrl || HOMEPAGE_URL,
 			contentHeight: 0,
 			forwardEnabled: false,
 			forceReload: false,
@@ -471,6 +476,13 @@ export class BrowserTab extends PureComponent {
 	getRpcMethodMiddleware = ({ hostname }) =>
 		// all user facing RPC calls not implemented by the provider
 		createAsyncMiddleware(async (req, res, next) => {
+			const getAccounts = async () => {
+				const { approvedHosts, privacyMode, selectedAddress } = this.props;
+				const isEnabled = !privacyMode || approvedHosts[hostname];
+
+				return isEnabled ? [selectedAddress.toLowerCase()] : [];
+			};
+
 			const rpcMethods = {
 				eth_requestAccounts: async () => {
 					const { params } = req;
@@ -504,14 +516,12 @@ export class BrowserTab extends PureComponent {
 				},
 
 				eth_accounts: async () => {
-					const { approvedHosts, privacyMode, selectedAddress } = this.props;
-					const isEnabled = !privacyMode || approvedHosts[hostname];
+					res.result = await getAccounts();
+				},
 
-					if (isEnabled) {
-						res.result = [selectedAddress.toLowerCase()];
-					} else {
-						res.result = [];
-					}
+				eth_coinbase: async () => {
+					const accounts = await getAccounts();
+					res.result = accounts.length > 0 ? accounts[0] : null;
 				},
 
 				eth_sign: async () => {
@@ -1282,16 +1292,7 @@ export class BrowserTab extends PureComponent {
 				}
 
 				case 'NAV_CHANGE': {
-					const { url, title } = data.payload;
-					this.setState({
-						inputValue: url,
-						autocompletInputValue: url,
-						currentPageTitle: title,
-						forwardEnabled: false
-					});
-					this.setState({ lastUrlBeforeHome: null });
-					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
-					this.updateTabInfo(data.payload.url);
+					// This event is not necessary since it is handled by the onLoadEnd now
 					break;
 				}
 
@@ -1304,6 +1305,9 @@ export class BrowserTab extends PureComponent {
 						});
 					}
 					break;
+
+				case 'GET_WEBVIEW_URL':
+					this.webviewUrlPostMessagePromiseResolve(data.payload.url);
 			}
 		} catch (e) {
 			Logger.error(e, `Browser::onMessage on ${this.state.inputValue}`);
@@ -1321,7 +1325,7 @@ export class BrowserTab extends PureComponent {
 		return true;
 	};
 
-	onPageChange = ({ url }) => {
+	onPageChange = url => {
 		if (this.isHomepage(url)) {
 			this.refreshHomeScripts();
 		}
@@ -1345,8 +1349,6 @@ export class BrowserTab extends PureComponent {
 			this.handleNotAllowedUrl(url);
 		}
 
-		data.fullHostname = urlObj.hostname;
-
 		if (this.isENSUrl(url)) {
 			this.go(url.replace('http://', 'https://'));
 			const { current } = this.webview;
@@ -1369,39 +1371,26 @@ export class BrowserTab extends PureComponent {
 			data.hostname = this.formatHostname(urlObj.hostname);
 		}
 
-		const { fullHostname, inputValue, hostname } = data;
-		if (
-			fullHostname !== this.state.fullHostname ||
-			url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) !== -1
-		) {
-			if (this.isTabActive()) {
-				this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
-			}
-		}
-
-		this.updateTabInfo(inputValue);
-		this.setState({
-			fullHostname,
-			inputValue,
-			autocompleteInputValue: inputValue,
-			hostname,
-			forwardEnabled: false
-		});
+		this.setState({ newPageData: data });
 	};
 
 	formatHostname(hostname) {
-		return hostname.toLowerCase().replace('www.', '');
+		return hostname.toLowerCase().replace(/^www./, '');
 	}
 
 	onURLChange = inputValue => {
 		this.setState({ autocompleteInputValue: inputValue });
 	};
 
-	onLoadProgress = ({ nativeEvent: { progress } }) => {
+	onLoadProgress = ({ nativeEvent: { progress, ...args } }) => {
 		this.setState({ progress });
 	};
 
-	onLoadEnd = () => {
+	webviewUrlPostMessagePromiseResolve = null;
+
+	onLoadEnd = ({ nativeEvent }) => {
+		if (nativeEvent.loading) return;
+
 		// Wait for the title, then store the visit
 		setTimeout(() => {
 			this.props.addToBrowserHistory({
@@ -1419,14 +1408,68 @@ export class BrowserTab extends PureComponent {
 
 		const { current } = this.webview;
 		// Inject favorites on the homepage
-		if (this.isHomepage() && current) {
+		if (this.isHomepage(nativeEvent.url) && current) {
 			const js = this.state.homepageScripts;
 			current.injectJavaScript(js);
+		}
+
+		// Onloadstart does not fire when a website url has changes, e.g. example.com/ex#user1 to example.com/ex#user2. So this is needed for those cases.
+		const { url, title } = nativeEvent;
+		const urlObj = new URL(url);
+		if (urlObj.hostname === this.state.fullHostname && nativeEvent.url !== this.state.inputValue) {
+			this.setState({
+				url,
+				inputValue: url,
+				autocompletInputValue: url,
+				currentPageTitle: title,
+				forwardEnabled: false
+			});
+			this.setState({ lastUrlBeforeHome: null });
+			this.props.navigation.setParams({ url: nativeEvent.url, silent: true, showUrlModal: false });
+			this.updateTabInfo(nativeEvent.url);
+		} else {
+			current && current.injectJavaScript(JS_WEBVIEW_URL);
+
+			const promiseResolver = resolve => {
+				this.webviewUrlPostMessagePromiseResolve = resolve;
+			};
+			const promise = current ? new Promise(promiseResolver) : Promise.resolve(url);
+
+			promise.then(webviewUrl => {
+				const fullHostname = urlObj.hostname;
+				if (webviewUrl === url) {
+					const { inputValue, hostname } = this.state.newPageData;
+					if (
+						fullHostname !== this.state.fullHostname ||
+						url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) !== -1
+					) {
+						if (this.isTabActive()) {
+							this.props.navigation.setParams({
+								url,
+								silent: true,
+								showUrlModal: false
+							});
+						}
+					}
+
+					this.updateTabInfo(inputValue);
+					this.setState({
+						fullHostname,
+						inputValue,
+						autocompleteInputValue: inputValue,
+						hostname,
+						forwardEnabled: false
+					});
+				}
+			});
 		}
 	};
 
 	onError = ({ nativeEvent: errorInfo }) => {
 		Logger.log(errorInfo);
+		this.props.navigation.setParams({
+			error: true
+		});
 		this.setState({ lastError: errorInfo });
 	};
 
@@ -1809,6 +1852,7 @@ export class BrowserTab extends PureComponent {
 	onLoadStart = async ({ nativeEvent }) => {
 		// Handle the scenario when going back
 		// from an ENS name
+		this.props.navigation.setParams({ error: false });
 		if (nativeEvent.navigationType === 'backforward' && nativeEvent.url === this.state.inputValue) {
 			setTimeout(() => this.goBack(), 500);
 		} else if (nativeEvent.url.indexOf(this.props.ipfsGateway) !== -1) {
@@ -1838,6 +1882,8 @@ export class BrowserTab extends PureComponent {
 			const origin = new URL(nativeEvent.url).origin;
 			this.initializeBackgroundBridge(origin, true);
 		}
+
+		this.onPageChange(nativeEvent.url);
 	};
 
 	canGoForward = () => this.state.forwardEnabled;
@@ -1881,10 +1927,6 @@ export class BrowserTab extends PureComponent {
 		return null;
 	};
 
-	backupAlertPress = () => {
-		this.props.navigation.navigate('AccountBackupStep1');
-	};
-
 	render() {
 		const { entryScriptWeb3, url, forceReload, activated } = this.state;
 		const isHidden = !this.isTabActive();
@@ -1907,7 +1949,6 @@ export class BrowserTab extends PureComponent {
 							onLoadEnd={this.onLoadEnd}
 							onError={this.onError}
 							onMessage={this.onMessage}
-							onNavigationStateChange={this.onPageChange}
 							ref={this.webview}
 							source={{ uri: url }}
 							style={styles.webview}

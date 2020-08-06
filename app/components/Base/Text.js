@@ -7,8 +7,7 @@ const style = StyleSheet.create({
 	text: {
 		...fontStyles.normal,
 		color: colors.grey600,
-		marginBottom: 2,
-		marginTop: 2,
+		marginVertical: 2,
 		fontSize: 14
 	},
 	centered: {
@@ -21,8 +20,14 @@ const style = StyleSheet.create({
 	green: {
 		color: colors.green400
 	},
+	primary: {
+		color: colors.fontPrimary
+	},
 	small: {
 		fontSize: 12
+	},
+	upper: {
+		textTransform: 'uppercase'
 	},
 	disclaimer: {
 		fontStyle: 'italic',
@@ -47,7 +52,9 @@ const Text = ({
 	right,
 	bold,
 	green,
+	primary,
 	small,
+	upper,
 	modal,
 	disclaimer,
 	link,
@@ -62,8 +69,10 @@ const Text = ({
 			right && style.right,
 			bold && style.bold,
 			green && style.green,
+			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
 			small && style.small,
+			upper && style.upper,
 			modal && style.modal,
 			link && style.link,
 			strikethrough && style.strikethrough,
@@ -79,25 +88,70 @@ Text.defaultProps = {
 	right: false,
 	bold: false,
 	green: false,
+	primary: false,
 	disclaimer: false,
 	modal: false,
 	small: false,
+	upper: false,
 	link: false,
 	strikethrough: false,
 	style: undefined
 };
 
 Text.propTypes = {
+	/**
+	 * Removes teh default style
+	 */
 	reset: PropTypes.bool,
+	/**
+	 * Align text to center
+	 */
 	centered: PropTypes.bool,
+	/**
+	 * Align text to right
+	 */
 	right: PropTypes.bool,
+	/**
+	 * Makes text bold
+	 */
 	bold: PropTypes.bool,
+	/**
+	 * Makes text green
+	 */
 	green: PropTypes.bool,
+	/**
+	 * Makes text fontPrimary color
+	 */
+	primary: PropTypes.bool,
+	/**
+	 * Makes text italic and tight
+	 * used in disclaimers
+	 */
 	disclaimer: PropTypes.bool,
+	/**
+	 * Makes text black and bigger
+	 * Used in modals
+	 */
 	modal: PropTypes.bool,
+	/**
+	 * Makes text small
+	 */
 	small: PropTypes.bool,
+	/**
+	 * Makes text uppercase
+	 */
+	upper: PropTypes.bool,
+	/**
+	 * Applies a link style
+	 */
 	link: PropTypes.bool,
+	/**
+	 * Applies a strikethrough decoration
+	 */
 	strikethrough: PropTypes.bool,
+	/**
+	 * Any other external style defined in props will be applied
+	 */
 	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
 };
 

@@ -6,7 +6,8 @@ import {
 	StyleSheet,
 	View,
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
-	Alert
+	Alert,
+	Image
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -30,7 +31,6 @@ import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettin
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
-import TransactionsView from '../../Views/TransactionsView';
 import SyncWithExtension from '../../Views/SyncWithExtension';
 import Asset from '../../Views/Asset';
 import AddAsset from '../../Views/AddAsset';
@@ -43,16 +43,14 @@ import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
 import LockScreen from '../../Views/LockScreen';
-import ProtectYourAccount from '../../Views/ProtectYourAccount';
 import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
-import AccountBackupStep2 from '../../Views/AccountBackupStep2';
-import AccountBackupStep3 from '../../Views/AccountBackupStep3';
-import AccountBackupStep4 from '../../Views/AccountBackupStep4';
-import AccountBackupStep5 from '../../Views/AccountBackupStep5';
-import AccountBackupStep6 from '../../Views/AccountBackupStep6';
+import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
+import ManualBackupStep1 from '../../Views/ManualBackupStep1';
+import ManualBackupStep2 from '../../Views/ManualBackupStep2';
+import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
@@ -90,7 +88,6 @@ import { isENS, safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
-import AsyncStorage from '@react-native-community/async-storage';
 import Approve from '../../Views/ApproveView/Approve';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
@@ -107,7 +104,10 @@ import {
 	hideTransactionNotification,
 	showSimpleNotification
 } from '../../../actions/notification';
+import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
+import ActivityView from '../../Views/ActivityView';
+import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -122,8 +122,18 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	headerLogo: {
+		width: 125,
+		height: 50
 	}
 });
+
+function HeaderLogo() {
+	return (
+		<Image style={styles.headerLogo} source={require('../../../images/metamask-name.png')} resizeMode={'contain'} />
+	);
+}
 
 /**
  * Navigator component that wraps
@@ -164,7 +174,7 @@ const MainNavigator = createStackNavigator(
 					}),
 					TransactionsHome: createStackNavigator({
 						TransactionsView: {
-							screen: TransactionsView
+							screen: ActivityView
 						}
 					}),
 					PaymentChannelHome: createStackNavigator({
@@ -345,36 +355,33 @@ const MainNavigator = createStackNavigator(
 		SetPasswordFlow: {
 			screen: createStackNavigator(
 				{
-					ProtectYourAccount: {
-						screen: ProtectYourAccount
-					},
 					ChoosePassword: {
 						screen: ChoosePassword
 					},
 					AccountBackupStep1: {
 						screen: AccountBackupStep1
 					},
-					AccountBackupStep2: {
-						screen: AccountBackupStep2
+					AccountBackupStep1B: {
+						screen: AccountBackupStep1B
 					},
-					AccountBackupStep3: {
-						screen: AccountBackupStep3
+					ManualBackupStep1: {
+						screen: ManualBackupStep1
 					},
-					AccountBackupStep4: {
-						screen: AccountBackupStep4
+					ManualBackupStep2: {
+						screen: ManualBackupStep2
 					},
-					AccountBackupStep5: {
-						screen: AccountBackupStep5
-					},
-					AccountBackupStep6: {
-						screen: AccountBackupStep6,
-						navigationOptions: {
-							gesturesEnabled: false
-						}
+					ManualBackupStep3: {
+						screen: ManualBackupStep3
 					}
 				},
 				{
-					headerMode: 'none'
+					defaultNavigationOptions: {
+						// eslint-disable-next-line
+						headerTitle: () => <HeaderLogo />,
+						headerStyle: {
+							borderBottomWidth: 0
+						}
+					}
 				}
 			)
 		}
@@ -419,15 +426,6 @@ class Main extends PureComponent {
 		 */
 		tokens: PropTypes.array,
 		/**
-		 * List of all tracked tokens
-		 */
-		allTokens: PropTypes.object,
-		/**
-		/**
-		 * List of all the balances of each contract tracked
-		 */
-		contractBalances: PropTypes.object,
-		/**
 		 * List of transactions
 		 */
 		transactions: PropTypes.array,
@@ -458,9 +456,28 @@ class Main extends PureComponent {
 		/**
 		/* Identities object required to get account name
 		*/
-		identities: PropTypes.object
+		identities: PropTypes.object,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		/* Hides or shows dApp transaction modal
+		*/
+		toggleDappTransactionModal: PropTypes.func,
+		/**
+		/* Hides or shows approve modal
+		*/
+		toggleApproveModal: PropTypes.func,
+		/**
+		/* dApp transaction modal visible or not
+		*/
+		dappTransactionModalVisible: PropTypes.bool,
+		/**
+		/* Token approve modal visible or not
+		*/
+		approveModalVisible: PropTypes.bool
 	};
-
 	state = {
 		connected: true,
 		forceReload: false,
@@ -482,7 +499,7 @@ class Main extends PureComponent {
 	locale = I18n.locale;
 
 	pollForIncomingTransactions = async () => {
-		await Engine.refreshTransactionHistory();
+		this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
 		// Stop polling if the app is in the background
 		if (!this.backgroundMode) {
 			setTimeout(() => {
@@ -571,76 +588,9 @@ class Main extends PureComponent {
 					this.initializePaymentChannels();
 				}
 
-				setTimeout(() => {
-					this.checkForSai();
-				}, 3500);
-
 				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 			}, 1000);
 		});
-	};
-
-	checkForSai = async () => {
-		let hasSAI = false;
-		Object.keys(this.props.allTokens).forEach(account => {
-			const tokens = this.props.allTokens[account].mainnet;
-			tokens &&
-				tokens.forEach(token => {
-					if (token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
-						if (this.props.contractBalances[AppConstants.SAI_ADDRESS]) {
-							const balance = this.props.contractBalances[AppConstants.SAI_ADDRESS];
-							if (!balance.isZero()) {
-								hasSAI = true;
-							}
-						}
-					}
-				});
-		});
-
-		if (hasSAI) {
-			const previousReminder = await AsyncStorage.getItem('@MetaMask:nextMakerReminder');
-			if (!previousReminder || parseInt(previousReminder, 10) < Date.now()) {
-				Alert.alert(
-					strings('sai_migration.title'),
-					strings('sai_migration.message'),
-					[
-						{
-							text: strings('sai_migration.lets_do_it'),
-							onPress: async () => {
-								this.props.navigation.navigate('BrowserTabHome');
-								InteractionManager.runAfterInteractions(() => {
-									setTimeout(() => {
-										this.props.navigation.navigate('BrowserView', {
-											newTabUrl: 'https://migrate.makerdao.com'
-										});
-										const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
-										AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
-									}, 300);
-								});
-							},
-							style: 'cancel'
-						},
-						{
-							text: strings('sai_migration.learn_more'),
-							onPress: () => {
-								this.props.navigation.navigate('BrowserTabHome');
-								InteractionManager.runAfterInteractions(() => {
-									setTimeout(() => {
-										this.props.navigation.navigate('BrowserView', {
-											newTabUrl:
-												'https://blog.makerdao.com/what-to-expect-with-the-launch-of-multi-collateral-dai/'
-										});
-										const tsToRemind = Date.now() + AppConstants.SAI_MIGRATION_DAYS_TO_REMIND;
-										AsyncStorage.setItem('@MetaMask:nextMakerReminder', tsToRemind.toString());
-									}, 300);
-								});
-							}
-						}
-					],
-					{ cancelable: false }
-				);
-			}
-		}
 	};
 
 	connectionChangeHandler = state => {
@@ -900,9 +850,9 @@ class Main extends PureComponent {
 			}
 
 			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
-				this.props.navigation.push('ApproveView');
+				this.props.toggleApproveModal();
 			} else {
-				this.props.navigation.push('ApprovalView');
+				this.props.toggleDappTransactionModal();
 			}
 		}
 	};
@@ -1133,9 +1083,15 @@ class Main extends PureComponent {
 		);
 	};
 
-	backupAlertPress = () => {
-		this.props.navigation.navigate('AccountBackupStep1');
-	};
+	renderDappTransactionModal = () => (
+		<Approval
+			dappTransactionModalVisible={this.props.dappTransactionModalVisible}
+			toggleDappTransactionModal={this.props.toggleDappTransactionModal}
+		/>
+	);
+
+	renderApproveModal = () =>
+		this.props.approveModalVisible && <Approve modalVisible toggleApproveModal={this.props.toggleApproveModal} />;
 
 	render() {
 		const { isPaymentChannelTransaction, isPaymentRequest } = this.props;
@@ -1153,12 +1109,15 @@ class Main extends PureComponent {
 					)}
 					<GlobalAlert />
 					<FadeOutOverlay />
-					<BackupAlert navigation={this.props.navigation} onPress={this.backupAlertPress} />
 					<Notification navigation={this.props.navigation} />
 					<FiatOrders />
+					<BackupAlert navigation={this.props.navigation} />
+					<ProtectYourWalletModal navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
+				{this.renderDappTransactionModal()}
+				{this.renderApproveModal()}
 			</React.Fragment>
 		);
 	}
@@ -1166,16 +1125,17 @@ class Main extends PureComponent {
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	allTokens: state.engine.backgroundState.AssetsController.allTokens,
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	isPaymentRequest: state.transaction.paymentRequest,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
+	approveModalVisible: state.modals.approveModalVisible
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -1183,7 +1143,9 @@ const mapDispatchToProps = dispatch => ({
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
 	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
-	hideTransactionNotification: () => dispatch(hideTransactionNotification())
+	hideTransactionNotification: () => dispatch(hideTransactionNotification()),
+	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
+	toggleApproveModal: show => dispatch(toggleApproveModal(show))
 });
 
 export default connect(

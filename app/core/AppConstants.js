@@ -1,6 +1,7 @@
 import Device from '../util/Device';
 
 export default {
+	PREVIOUS_SCREEN: 'previous_screen',
 	DEFAULT_LOCK_TIMEOUT: 30000,
 	DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
 	TX_CHECK_MAX_FREQUENCY: 5000,
@@ -24,7 +25,6 @@ export default {
 	},
 	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 	SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
-	SAI_MIGRATION_DAYS_TO_REMIND: 1000 * 60 * 60 * 24 * 7,
 	HOMEPAGE_URL: 'https://home.metamask.io/',
 	ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
 	INSTAPAY_GAS_PONDERATOR: 1.2,
@@ -43,6 +43,7 @@ export default {
 		WYRE_API_ENDPOINT: 'https://api.sendwyre.com/',
 		WYRE_API_ENDPOINT_TEST: 'https://api.testwyre.com/',
 		WYRE_MERCHANT_ID: 'merchant.io.metamask',
-		WYRE_MERCHANT_ID_TEST: 'merchant.io.metamask-test'
+		WYRE_MERCHANT_ID_TEST: 'merchant.io.metamask-test',
+		POLLING_FREQUENCY: 10000
 	}
 };

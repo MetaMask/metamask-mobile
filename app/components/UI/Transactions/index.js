@@ -12,20 +12,18 @@ import {
 	Dimensions,
 	InteractionManager
 } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import NotificationManager from '../../../core/NotificationManager';
-import { CANCEL_RATE, SPEED_UP_RATE, util } from '@metamask/controllers';
+import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
 import { renderFromWei } from '../../../util/number';
-import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/Device';
-import { BN } from 'ethereumjs-util';
 import TransactionActionModal from '../TransactionActionModal';
+import { validateTransactionActionBalance } from '../../../util/transactions';
 
-const { hexToBN } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
@@ -115,7 +113,11 @@ class Transactions extends PureComponent {
 		 * Optional header height
 		 */
 		headerHeight: PropTypes.number,
-		exchangeRate: PropTypes.number
+		exchangeRate: PropTypes.number,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	static defaultProps = {
@@ -204,7 +206,7 @@ class Transactions extends PureComponent {
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
-		await Engine.refreshTransactionHistory();
+		this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
 		this.setState({ refreshing: false });
 	};
 
@@ -231,32 +233,12 @@ class Transactions extends PureComponent {
 
 	keyExtractor = item => item.id.toString();
 
-	validateBalance = (tx, rate) => {
-		const { accounts } = this.props;
-		try {
-			const checksummedFrom = safeToChecksumAddress(tx.transaction.from);
-			const balance = accounts[checksummedFrom].balance;
-			return hexToBN(balance).lt(
-				hexToBN(tx.transaction.gasPrice)
-					.mul(new BN(rate * 10))
-					.mul(new BN(10))
-					.mul(hexToBN(tx.transaction.gas))
-					.add(hexToBN(tx.transaction.value))
-			);
-		} catch (e) {
-			return false;
-		}
-	};
-
 	onSpeedUpAction = (speedUpAction, existingGasPriceDecimal, tx) => {
 		this.setState({ speedUpIsOpen: speedUpAction });
 		this.existingGasPriceDecimal = existingGasPriceDecimal;
 		this.speedUpTxId = tx.id;
-		if (this.validateBalance(tx, SPEED_UP_RATE)) {
-			this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled: true });
-		} else {
-			this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled: false });
-		}
+		const speedUpConfirmDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, this.props.accounts);
+		this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled });
 	};
 
 	onSpeedUpCompleted = () => {
@@ -268,11 +250,8 @@ class Transactions extends PureComponent {
 	onCancelAction = (cancelAction, existingGasPriceDecimal, tx) => {
 		this.existingGasPriceDecimal = existingGasPriceDecimal;
 		this.cancelTxId = tx.id;
-		if (this.validateBalance(tx, CANCEL_RATE)) {
-			this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled: true });
-		} else {
-			this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled: false });
-		}
+		const cancelConfirmDisabled = validateTransactionActionBalance(tx, CANCEL_RATE, this.props.accounts);
+		this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled });
 	};
 	onCancelCompleted = () => {
 		this.setState({ cancelIsOpen: false });
@@ -335,7 +314,6 @@ class Transactions extends PureComponent {
 			submittedTransactions && submittedTransactions.length
 				? submittedTransactions.concat(confirmedTransactions)
 				: this.props.transactions;
-
 		return (
 			<View style={styles.wrapper} testID={'transactions-screen'}>
 				<FlatList
@@ -350,6 +328,8 @@ class Transactions extends PureComponent {
 					maxToRenderPerBatch={2}
 					onEndReachedThreshold={0.5}
 					ListHeaderComponent={header}
+					style={baseStyles.flexGrow}
+					scrollIndicatorInsets={{ right: 1 }}
 				/>
 
 				<TransactionActionModal
@@ -358,6 +338,7 @@ class Transactions extends PureComponent {
 					onCancelPress={this.onCancelCompleted}
 					onConfirmPress={this.cancelTransaction}
 					confirmText={strings('transaction.lets_try')}
+					confirmButtonMode={'confirm'}
 					cancelText={strings('transaction.nevermind')}
 					feeText={`${renderFromWei(Math.floor(this.existingGasPriceDecimal * CANCEL_RATE))} ${strings(
 						'unit.eth'
@@ -373,6 +354,7 @@ class Transactions extends PureComponent {
 					onCancelPress={this.onSpeedUpCompleted}
 					onConfirmPress={this.speedUpTransaction}
 					confirmText={strings('transaction.lets_try')}
+					confirmButtonMode={'confirm'}
 					cancelText={strings('transaction.nevermind')}
 					feeText={`${renderFromWei(Math.floor(this.existingGasPriceDecimal * SPEED_UP_RATE))} ${strings(
 						'unit.eth'
@@ -395,7 +377,8 @@ const mapStateToProps = state => ({
 	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 
 const mapDispatchToProps = dispatch => ({

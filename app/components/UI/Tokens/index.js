@@ -16,6 +16,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import StyledButton from '../StyledButton';
+import { allowedToBuy } from '../FiatOrders';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -29,20 +30,21 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginTop: 50
 	},
-	homeGraphic: {
+	tokensHome: {
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginVertical: 20,
+		marginTop: 35,
 		marginHorizontal: 50
 	},
-	homeGraphicText: {
+	tokensHomeText: {
 		...fontStyles.normal,
-		margin: 15,
+		marginBottom: 15,
+		marginHorizontal: 15,
 		fontSize: 18,
 		color: colors.fontPrimary,
 		textAlign: 'center'
 	},
-	homeGraphicButton: {
+	tokensHomeButton: {
 		width: '100%'
 	},
 	text: {
@@ -90,7 +92,6 @@ const styles = StyleSheet.create({
 });
 
 const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
-const homeGraphic = require('../../../images/HomeGraphic.png'); // eslint-disable-line
 
 /**
  * View that renders a list of ERC-20 Tokens
@@ -129,7 +130,11 @@ class Tokens extends PureComponent {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string
 	};
 
 	actionSheet = null;
@@ -201,18 +206,33 @@ class Tokens extends PureComponent {
 		);
 	};
 
-	goToBuy = () => this.props.navigation.navigate('PaymentMethodSelector');
+	goToBuy = () => {
+		this.props.navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+		});
+	};
 
-	renderBuyEth(tokens) {
-		if (tokens.length === 0 || tokens.length > 1 || (tokens[0] && !tokens[0].isETH) || tokens[0].balance !== '0') {
-			return;
+	renderBuyEth() {
+		const { tokens, network, tokenBalances } = this.props;
+		if (!allowedToBuy(network)) {
+			return null;
 		}
+		const eth = tokens.find(token => token.isETH);
+		const ethBalance = eth && eth.balance !== '0';
+		const hasTokens = eth ? tokens.length > 1 : tokens.length > 0;
+		const hasTokensBalance =
+			hasTokens &&
+			tokens.some(
+				token => !token.isETH && tokenBalances[token.address] && !tokenBalances[token.address].isZero()
+			);
 
 		return (
-			<View style={styles.homeGraphic}>
-				<Image source={homeGraphic} />
-				<Text style={styles.homeGraphicText}>{strings('wallet.ready_to_explore')}</Text>
-				<StyledButton type="blue" onPress={this.goToBuy} containerStyle={styles.homeGraphicButton}>
+			<View style={styles.tokensHome}>
+				{!ethBalance && !hasTokensBalance && (
+					<Text style={styles.tokensHomeText}>{strings('wallet.ready_to_explore')}</Text>
+				)}
+				<StyledButton type="blue" onPress={this.goToBuy} containerStyle={styles.tokensHomeButton}>
 					{strings('fiat_on_ramp.buy_eth')}
 				</StyledButton>
 			</View>
@@ -225,7 +245,7 @@ class Tokens extends PureComponent {
 		return (
 			<View>
 				{tokens.map(item => this.renderItem(item))}
-				{this.renderBuyEth(tokens)}
+				{this.renderBuyEth()}
 				{this.renderFooter()}
 			</View>
 		);
@@ -274,6 +294,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController.network,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	primaryCurrency: state.settings.primaryCurrency,

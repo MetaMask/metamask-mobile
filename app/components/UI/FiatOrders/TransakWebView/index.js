@@ -15,7 +15,9 @@ class TransakWebView extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransakWebviewNavbar(navigation);
 
 	static propTypes = {
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		network: PropTypes.string,
+		addOrder: PropTypes.func
 	};
 
 	handleNavigationStateChange = async navState => {
@@ -40,11 +42,6 @@ class TransakWebView extends PureComponent {
 		}
 	}
 }
-
-TransakWebView.propTypes = {
-	network: PropTypes.string,
-	addOrder: PropTypes.func
-};
 
 const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController.network

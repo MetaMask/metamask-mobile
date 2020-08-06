@@ -41,7 +41,7 @@ exports[`TransactionDetails should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
               "marginBottom": 8,
@@ -54,7 +54,7 @@ exports[`TransactionDetails should render correctly 1`] = `
           style={
             Array [
               Object {
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
               },
@@ -79,7 +79,7 @@ exports[`TransactionDetails should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
               "marginBottom": 8,
@@ -91,7 +91,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
             }
@@ -132,7 +132,7 @@ exports[`TransactionDetails should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
               "marginBottom": 8,
@@ -146,7 +146,7 @@ exports[`TransactionDetails should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
             }
@@ -166,7 +166,7 @@ exports[`TransactionDetails should render correctly 1`] = `
           style={
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
               "marginBottom": 8,
@@ -180,7 +180,7 @@ exports[`TransactionDetails should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
             }
@@ -197,7 +197,8 @@ exports[`TransactionDetails should render correctly 1`] = `
           "marginVertical": 8,
         },
         Object {
-          "marginVertical": 24,
+          "marginBottom": 24,
+          "marginTop": 12,
         },
       ]
     }

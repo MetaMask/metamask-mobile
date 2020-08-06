@@ -57,7 +57,15 @@ class Asset extends PureComponent {
 		/**
 		 * An array that represents the user transactions
 		 */
-		transactions: PropTypes.array
+		transactions: PropTypes.array,
+		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	state = {
@@ -85,7 +93,6 @@ class Asset extends PureComponent {
 			this.normalizeTransactions();
 			this.mounted = true;
 		});
-
 		this.navSymbol = this.props.navigation.getParam('symbol', '').toLowerCase();
 		this.navAddress = this.props.navigation.getParam('address', '').toLowerCase();
 		if (this.navSymbol.toUpperCase() !== 'ETH' && this.navAddress !== '') {
@@ -122,8 +129,14 @@ class Asset extends PureComponent {
 		const { selectedAddress, networkType } = this.props;
 		const networkId = Networks[networkType].networkId;
 		const {
-			transaction: { from, to }
+			transaction: { from, to },
+			isTransfer,
+			transferInformation
 		} = tx;
+		if (isTransfer)
+			return this.props.tokens.find(
+				({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+			);
 		return (
 			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
 			((networkId && networkId.toString() === tx.networkID) ||
@@ -136,8 +149,11 @@ class Asset extends PureComponent {
 		const { networkType } = this.props;
 		const networkId = Networks[networkType].networkId;
 		const {
-			transaction: { to, from }
+			transaction: { to, from },
+			isTransfer,
+			transferInformation
 		} = tx;
+		if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
 		return (
 			(from & (from.toLowerCase() === this.navAddress) || (to && to.toLowerCase() === this.navAddress)) &&
 			((networkId && networkId.toString() === tx.networkID) ||
@@ -153,7 +169,6 @@ class Asset extends PureComponent {
 		const newPendingTxs = [];
 		const confirmedTxs = [];
 		const { networkType, transactions } = this.props;
-
 		if (transactions.length) {
 			const txs = transactions.filter(tx => {
 				const filerResult = this.filter(tx);
@@ -230,7 +245,7 @@ class Asset extends PureComponent {
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
-		await Engine.refreshTransactionHistory();
+		this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
 		this.setState({ refreshing: false });
 	};
 
@@ -248,29 +263,27 @@ class Asset extends PureComponent {
 
 		return (
 			<View style={styles.wrapper}>
-				<View style={styles.wrapper}>
-					{this.state.loading ? (
-						this.renderLoader()
-					) : (
-						<Transactions
-							header={
-								<View style={styles.assetOverviewWrapper}>
-									<AssetOverview navigation={navigation} asset={navigation && params} />
-								</View>
-							}
-							navigation={navigation}
-							transactions={this.state.transactions}
-							submittedTransactions={this.state.submittedTxs}
-							confirmedTransactions={this.state.confirmedTxs}
-							selectedAddress={selectedAddress}
-							conversionRate={conversionRate}
-							currentCurrency={currentCurrency}
-							networkType={networkType}
-							loading={!this.state.transactionsUpdated}
-							headerHeight={280}
-						/>
-					)}
-				</View>
+				{this.state.loading ? (
+					this.renderLoader()
+				) : (
+					<Transactions
+						header={
+							<View style={styles.assetOverviewWrapper}>
+								<AssetOverview navigation={navigation} asset={navigation && params} />
+							</View>
+						}
+						navigation={navigation}
+						transactions={this.state.transactions}
+						submittedTransactions={this.state.submittedTxs}
+						confirmedTransactions={this.state.confirmedTxs}
+						selectedAddress={selectedAddress}
+						conversionRate={conversionRate}
+						currentCurrency={currentCurrency}
+						networkType={networkType}
+						loading={!this.state.transactionsUpdated}
+						headerHeight={280}
+					/>
+				)}
 			</View>
 		);
 	};
@@ -281,7 +294,9 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	transactions: state.engine.backgroundState.TransactionController.transactions
+	tokens: state.engine.backgroundState.AssetsController.tokens,
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 
 export default connect(mapStateToProps)(Asset);

@@ -15,6 +15,7 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import Device from '../../../util/Device';
+import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -93,13 +94,15 @@ class SyncWithExtension extends PureComponent {
 
 	seedwords = null;
 	channelName = null;
+	importedAccounts = null;
 	incomingDataStr = '';
 	dataToSync = null;
 	mounted = false;
 	complete = false;
 
 	state = {
-		loading: false
+		loading: false,
+		warningModalVisible: false
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -114,6 +117,27 @@ class SyncWithExtension extends PureComponent {
 		this.pubnubWrapper && this.pubnubWrapper.disconnectWebsockets();
 	}
 
+	handleExistingUser = action => {
+		if (this.props.navigation.getParam('existingUser', false)) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
+	};
+
+	alertExistingUser = callback => {
+		this.warningCallback = () => {
+			this.toggleWarningModal();
+			setTimeout(() => callback(), 100);
+		};
+		this.toggleWarningModal();
+	};
+
+	toggleWarningModal = () => {
+		const warningModalVisible = this.state.warningModalVisible;
+		this.setState({ warningModalVisible: !warningModalVisible });
+	};
+
 	scanCode = () => {
 		if (!PUB_KEY) {
 			// Dev message
@@ -123,24 +147,7 @@ class SyncWithExtension extends PureComponent {
 			);
 			return false;
 		}
-
-		if (this.props.navigation.getParam('existingUser', false)) {
-			Alert.alert(
-				strings('sync_with_extension.warning_title'),
-				strings('sync_with_extension.warning_message'),
-				[
-					{
-						text: strings('sync_with_extension.warning_cancel_button'),
-						onPress: () => false,
-						style: 'cancel'
-					},
-					{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => this.showQrCode() }
-				],
-				{ cancelable: false }
-			);
-		} else {
-			this.showQrCode();
-		}
+		this.handleExistingUser(this.showQrCode);
 	};
 
 	startSync = async firstAttempt => {
@@ -207,9 +214,10 @@ class SyncWithExtension extends PureComponent {
 				return false;
 			},
 			data => {
-				const { pwd, seed } = data.udata;
+				const { pwd, seed, importedAccounts } = data.udata;
 				this.password = pwd;
 				this.seedWords = seed;
+				this.importedAccounts = importedAccounts;
 				delete data.udata;
 				this.dataToSync = { ...data };
 				this.pubnubWrapper.endSync(() => this.disconnect());
@@ -272,7 +280,12 @@ class SyncWithExtension extends PureComponent {
 		try {
 			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 			await Engine.resetState();
-			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
+			await Engine.sync({
+				...this.dataToSync,
+				seed: this.seedWords,
+				pass: password,
+				importedAccounts: this.importedAccounts
+			});
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -325,6 +338,12 @@ class SyncWithExtension extends PureComponent {
 				<Text style={styles.title}>{strings('sync_with_extension.title')}</Text>
 				{this.renderContent()}
 			</View>
+			<WarningExistingUserModal
+				warningModalVisible={this.state.warningModalVisible}
+				onCancelPress={this.warningCallback}
+				onRequestClose={this.toggleWarningModal}
+				onConfirmPress={this.toggleWarningModal}
+			/>
 		</SafeAreaView>
 	);
 }

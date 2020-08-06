@@ -27,24 +27,44 @@
 		"ok": "OK"
 	},
 	"onboarding": {
-		"title": "Get started!",
+		"title": "Wallet setup",
 		"sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
-		"create_desc": "New to crypto? Set up your first wallet and start exploring decentralized apps.",
+		"create_desc": "Set up your first wallet and start exploring decentralized apps.",
+		"import": "Import an existing wallet or create a new one",
 		"import_wallet_button": "Sync or import wallet",
-		"start_exploring_now": "Create wallet",
+		"new_to_crypto": "New to crypto?",
+		"start_exploring_now": "Create a new wallet",
 		"login": "Log in",
 		"new_to_metamask": "New to MetaMask?",
 		"already_have_wallet": "Already have a wallet?",
 		"optin_back_title": "Heads up!",
-		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings."
+		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings.",
+		"warning_title": "Warning",
+		"warning_text_1": "Your current wallet and accounts will be",
+		"warning_text_2": "removed",
+		"warning_text_3": "if you proceed.",
+		"warning_text_4": "You can ONLY recover them with your wallet’s seed phrase. MetaMask cannot help you recover it.",
+		"warning_proceed": "Remove wallet & proceed",
+		"warning_cancel": "Cancel",
+		"step1": "Wallet setup",
+		"step2": "Create password",
+		"step3": "Secure wallet",
+		"already_have": "Already have a wallet?",
+		"sync_existing": "Sync your existing MetaMask wallet from the browser extension or import manually.",
+		"scan_title": "Steps to sync with MetaMask extension",
+		"scan": "Scan",
+		"scan_step_1": "Open the extension on desktop",
+		"scan_step_2": "Go to Settings > Advanced",
+		"scan_step_3": "Click on “Sync with Mobile”",
+		"scan_step_4": "Scan the QR code to start syncing"
 	},
 	"onboarding_carousel": {
 		"title1": "Welcome to MetaMask",
-		"title2": "Say hello to your wallet...",
-		"title3": "Explore decentralized apps",
-		"subtitle1": "A secure browser – and so much more. Swipe to see what’s possible.",
-		"subtitle2": "Store, spend and send crypto currencies and assets.",
-		"subtitle3": "Use your MetaMask to login to decentralized apps – no signup needed.",
+		"title2": "Manage your digital assets",
+		"title3": "Your gateway to web3",
+		"subtitle1": "Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.",
+		"subtitle2": "Store, spend and send digital assets like tokens, ethereum, unique collectibles.",
+		"subtitle3": "Login with MetaMask and make transactions to invest, earn, play games, sell and more!",
 		"get_started": "Get started"
 	},
 	"onboarding_wizard": {
@@ -98,7 +118,7 @@
 		"sync_help_step_two": "2. Go to Settings > Advanced",
 		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
 		"sync_help_step_four": "4. Scan the QR Code to start syncing",
-		"sync_from_browser_extension_button": "Scan the QR code",
+		"sync_from_browser_extension_button": "Sync with MetaMask extension",
 		"or": "OR",
 		"import_from_seed_button": "Import using seed phrase"
 	},
@@ -118,10 +138,10 @@
 	},
 	"choose_password": {
 		"title": "Create password",
-		"subtitle": "You'll use this password to unlock your MetaMask wallet only on this device.",
+		"subtitle": "This password will unlock your MetaMask wallet only on this device.",
 		"password": "New Password",
 		"confirm_password": "Confirm Password",
-		"create_button": "NEXT",
+		"create_button": "Create password",
 		"import_with_seed_phrase": "Import with seed phrase",
 		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
@@ -134,7 +154,11 @@
 		"must_be_at_least": "Must be at least {{number}} characters",
 		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
-		"security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
+		"security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
+		"i_understand": "I understand that MetaMask cannot recover this password for me.",
+		"learn_more": "Learn more.",
+		"secure": "Secure wallet",
+		"confirm": "Confirm seed phrase"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",
@@ -158,15 +182,15 @@
 	"drawer": {
 		"payment_channel": "Instant Payments",
 		"send_button": "Send",
-		"receive_button": "Receive",
+		"receive_button": "Add funds",
 		"coming_soon": "Coming soon...",
 		"wallet": "Wallet",
 		"insta_pay": "InstaPay",
 		"transaction_history": "Transaction History",
 		"submit_feedback": "Send Feedback",
 		"submit_feedback_message": "Choose the type of feedback to send.",
-		"submit_bug": "BUG REPORT",
-		"submit_general_feedback": "GENERAL",
+		"submit_bug": "Bug Report",
+		"submit_general_feedback": "General",
 		"share_address": "Share my Public Address",
 		"view_in_etherscan": "View on Etherscan",
 		"view_in": "View on",
@@ -223,6 +247,9 @@
 		"error": "Error",
 		"logout_to_import_seed": "You need to log out first in order to import a seed phrase.",
 		"ready_to_explore": "Ready to start exploring blockchain applications?"
+	},
+	"activity_view": {
+		"title": "Activity"
 	},
 	"transactions_view": {
 		"title": "Transactions"
@@ -381,7 +408,7 @@
 		"cancel_remove_network": "Cancel",
 		"info_title": "About MetaMask",
 		"experimental_title": "Experimental",
-		"experimental_desc": "Payment Channels, WalletConnect & more...",
+		"experimental_desc": "WalletConnect & more...",
 		"legal_title": "Legal",
 		"conversion_title": "Currency conversion",
 		"conversion_desc": "Display fiat values in using a specific currency throughout the application.",
@@ -399,6 +426,8 @@
 		"clear_history_desc": "Choose this option to clear your entire browsing history.",
 		"metametrics_title": "Participate in MetaMetrics",
 		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
+		"third_party_title": "Get incoming transactions",
+		"third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
 		"metametrics_opt_out": "MetaMetrics Opt-out",
 		"metrametrics_restart_required": "You need to restart the app for the changes to take effect.",
 		"create_password": "Create Password",
@@ -416,17 +445,17 @@
 		"email_us": "Email Us at support@metamask.io!"
 	},
 	"reveal_credential": {
-		"seed_phrase_title": "Reveal Seed Phrase",
-		"private_key_title": "Show Private Key",
-		"show_private_key": "Show Private Key",
-		"private_key_title_for_account": "Show Private Key for \"{{accountName}}\"",
+		"seed_phrase_title": "Reveal seed phrase",
+		"private_key_title": "Show private key",
+		"show_private_key": "Show private key",
+		"private_key_title_for_account": "Show private key for \"{{accountName}}\"",
 		"cancel": "Cancel",
 		"confirm": "Next",
 		"seed_phrase_explanation": "If you ever change browsers or move computers, you will need this seed phrase to access your accounts. Save them somewhere safe and secret.",
 		"private_key_explanation": "Save it somewhere safe and secret.",
-		"private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private keys can take steal any assets held in your account.",
+		"private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
 		"seed_phrase_warning_explanation": "DO NOT share this phrase with anyone! These words can be used to steal all your accounts.",
-		"private_key_warning_explanation": "Never disclose this key. Anyone with your private keys can take steal any assets held in your account.",
+		"private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
 		"seed_phrase": "Your seed phrase",
 		"private_key": "Your private key",
 		"copy_to_clipboard": "Copy to clipboard",
@@ -435,7 +464,7 @@
 		"private_key_copied": "Private key copied to clipboard",
 		"warning_incorrect_password": "Incorrect password",
 		"unknown_error": "Couldn't unlock your account. Please try again.",
-		"seed_warning": "This is your wallet's 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE.",
+		"seed_warning": "This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.",
 		"text": "TEXT",
 		"qr_code": "QR CODE"
 	},
@@ -489,14 +518,18 @@
 		"hex_data": "Hex Data",
 		"review_details": "DETAILS",
 		"review_data": "DATA",
+		"data": "Data",
+		"data_description": "Data associated with this transaction",
 		"review_function_type": "FUNCTION TYPE",
-		"review_hex_data": "HEX DATA",
+		"review_function": "Function",
+		"review_hex_data": "Hex data",
 		"insufficient": "Insufficient funds",
 		"insufficient_tokens": "Insufficient {{token}}",
 		"invalid_address": "Invalid address",
 		"invalid_amount": "Invalid amount",
 		"invalid_gas": "Invalid gas amount",
 		"invalid_gas_price": "Invalid gas price",
+		"low_gas_price": "Gas price extremely low",
 		"invalid_collectible_ownership": "You don't own this collectible",
 		"known_asset_contract": "Known asset contract address",
 		"max": "Max",
@@ -523,16 +556,24 @@
 		"use_max": "Use max",
 		"set_gas": "Set",
 		"cancel_gas": "Cancel",
-		"transaction_fee": "Transaction fee",
+		"transaction_fee": "Network fee",
 		"transaction_fee_less": "No fee",
 		"total_amount": "Total amount",
+		"view_data": "View Data",
 		"adjust_transaction_fee": "Adjust transaction fee",
 		"could_not_resolve_ens": "Couldn't resolve ENS",
 		"asset": "Asset",
 		"balance": "Balance",
-		"not_enough_for_gas": "You have 0 ETH in your account to pay for transaction fees. Buy some ETH or deposit from another account."
+		"not_enough_for_gas": "You have 0 ETH in your account to pay for transaction fees. Buy some ETH or deposit from another account.",
+		"send": "Send",
+		"confirmed": "Confirmed",
+		"pending": "Pending",
+		"submitted": "Submitted",
+		"failed": "Failed",
+		"cancelled": "Cancelled"
 	},
 	"custom_gas": {
+		"total": "Total",
 		"advanced_options": "Advanced",
 		"basic_options": "Basic",
 		"hide_advanced_options": "Hide advanced",
@@ -545,30 +586,37 @@
 	"spend_limit_edition": {
 		"save": "Save",
 		"title": "Edit permission",
-		"spend_limit": "Spend limit edition",
+		"spend_limit": "Spend limit permission",
 		"allow": "Allow",
 		"allow_explanation": "to withdraw and spend up to the following amount:",
-		"unlimited": "Unlimited",
+		"proposed": "Proposed approval limit",
 		"requested_by": "Spend limit requested by",
 		"custom_spend_limit": "Custom spend limit",
 		"max_spend_limit": "Enter a max spend limit",
 		"minimum": "1.00 {{tokenSymbol}} minimum",
 		"cancel": "Cancel",
 		"approve": "Approve",
-		"allow_to_access": "Allow {{host}} to access your {{tokenSymbol}}?",
-		"you_trust_this_site_1": "Do you trust this site? By granting this permission, you're allowing",
-		"you_trust_this_site_2": "to withdraw your {{tokenSymbol}} and automate transactions for you.",
+		"allow_to_access": "Give this site permission to access your {{tokenSymbol}}?",
+		"you_trust_this_site": "Do you trust this site? By granting this permission, you're allowing this site to access your funds (up to 10,000 ETH).",
 		"edit_permission": "Edit permission",
 		"edit": "Edit",
 		"transaction_fee_explanation": "A transaction fee is associated with this permission.",
 		"view_details": "View details",
+		"view_data": "View Data",
+		"transaction_details": "Transaction Details",
+		"site_url": "Site URL",
 		"permission_request": "Permission request",
 		"details_explanation": "{{host}} may access and spend up to this max amount from this account.",
 		"amount": "Amount:",
+		"allowance": "Allowance:",
 		"to": "To:",
 		"contract": "Contract ({{address}})",
+		"contract_name": "Contract name:",
+		"contract_address": "Contract address:",
+		"contract_allowance": "Allowance:",
 		"data": "Data",
 		"function_approve": "Function: Approve",
+		"function": "Function",
 		"close": "Close",
 		"all_set": "All set!",
 		"all_set_desc": "You’ve successfully set permissions for this site."
@@ -603,9 +651,12 @@
 		"failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
 		"remove_bookmark_title": "Remove favorite",
 		"remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
-		"yes": "Yes",
-		"backup_alert_title": "Protect your funds",
-		"backup_alert_message": "Tap to save your seed phrase"
+		"yes": "Yes"
+	},
+	"backup_alert": {
+		"title": "Protect your wallet",
+		"left_button": "Remind me later",
+		"right_button": "Protect wallet"
 	},
 	"add_favorite": {
 		"title": "Add Favorite",
@@ -621,13 +672,13 @@
 		"title": "Approve"
 	},
 	"transactions": {
-		"tx_review_confirm": "CONFIRM",
-		"tx_review_transfer": "TRANSFER",
-		"tx_review_contract_deployment": "CONTRACT DEPLOYMENT",
-		"tx_review_transfer_from": "TRANSFER FROM",
-		"tx_review_unknown": "UNKNOWN METHOD",
-		"tx_review_approve": "APPROVE",
-		"tx_review_instant_payment_deposit": "INSTANT PAYMENT DEPOSIT",
+		"tx_review_confirm": "Confirm",
+		"tx_review_transfer": "Transfer",
+		"tx_review_contract_deployment": "Contract Deployment",
+		"tx_review_transfer_from": "Transfer From",
+		"tx_review_unknown": "Unknown Method",
+		"tx_review_approve": "Approve",
+		"tx_review_instant_payment_deposit": "InstaPay Deposit",
 		"sent_ether": "Sent Ether",
 		"self_sent_ether": "Sent Yourself Ether",
 		"received_ether": "Received Ether",
@@ -641,9 +692,10 @@
 		"received_unit": "Received {{unit}}",
 		"sent_collectible": "Sent Collectible",
 		"sent": "Sent",
+		"received": "Received",
 		"contract_deploy": "Contract Deployment",
 		"to_contract": "New Contract",
-		"instant_payment_deposit": "Instant Payment Deposit",
+		"instant_payment_deposit": "InstaPay Deposit",
 		"instant_payment_deposit_tx": "Deposit",
 		"instant_payment_withdraw_tx": "Withdraw",
 		"tx_details_free": "Free",
@@ -721,9 +773,12 @@
 		"allow_biometrics_desc": "You can use {{biometrics}} to authenticate on MetaMask"
 	},
 	"sync_with_extension_success": {
-		"title": "Sync completed",
-		"sync_complete": "We have synchronized all the information from your MetaMask extension and now you're ready to go!",
-		"button_continue": "Continue"
+		"title": "Wallet imported",
+		"sync_complete_1": "Just remember, MetaMask cannot recover your seed phrase should you lose it. You can find the seed phrase in",
+		"sync_complete_2": "Settings > Security & Privacy",
+		"button_continue": "Done",
+		"password_tip": "The password to unlock your mobile wallet is the same one you set for the extension.",
+		"learn_more": "Learn more."
 	},
 	"networks": {
 		"title": "Networks",
@@ -775,9 +830,9 @@
 		"empty_data": "0x"
 	},
 	"biometrics": {
-		"enable_touchid": "Sign In with Touch ID?",
-		"enable_faceid": "Sign In with Face ID?",
-		"enable_fingerprint": "Sign In with Fingerprint?",
+		"enable_touchid": "Sign in with Touch ID?",
+		"enable_faceid": "Sign in with Face ID?",
+		"enable_fingerprint": "Sign in with Fingerprint?",
 		"enable_device_passcode_ios": "Sign in with device passcode?",
 		"enable_device_passcode_android": "Sign in with device PIN?"
 	},
@@ -831,26 +886,50 @@
 		"step_2_description": "Save wallet seed phrase",
 		"info_text_1": "Take a few moments to finish setting up your MetaMask wallet.",
 		"info_text_2": "This will ensure only you can access your funds and will let you recover your wallet if you lose your device",
-		"cta_text": "CREATE PASSWORD"
+		"cta_text": "Create Password",
+		"creating_password": "Creating password..."
 	},
 	"account_backup_step_1": {
-		"cancel_backup_title": "Cancel Backup",
-		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
-		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "No, back up Seed Phrase",
-		"skip": "Skip",
-		"important": "IMPORTANT!",
-		"title": "Save your wallet's seed phrase",
-		"highly_recommended": "HIGHLY RECOMMENDED",
-		"info_text_1": "Your wallet's seed phrase is:",
-		"info_text_2_1": "A ",
-		"info_text_2_2": "secret",
-		"info_text_2_3": " code that you do NOT share with anyone.",
-		"info_text_3_1": "used to ",
-		"info_text_3_2": "recover your wallet",
-		"info_text_3_3": " in case you lose your device, forget your password, have to re-install the MetaMask app or want to access your wallet on another device.",
-		"cta_text": "YEAH, LET'S SAVE IT",
-		"learn_more": "Learn More"
+		"remind_me_later": "Remind me later",
+		"remind_me_later_subtext": "(Not recommended)",
+		"title": "Secure your wallet",
+		"info_text_1_1": "Don’t risk losing your funds. Protect your wallet by saving your",
+		"info_text_1_2": "seed phrase",
+		"info_text_1_3": "in a place you trust.",
+		"info_text_1_4": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
+		"cta_text": "Start",
+		"cta_subText": "Highly recommended",
+		"skip_button_cancel": "Secure now",
+		"skip_button_confirm": "Skip",
+		"skip_title": "Skip account security?",
+		"skip_check": "I understand that if I lose my seed phrase I will not be able to access my wallet.",
+		"what_is_seedphrase_title": "What is a ‘Seed phrase’",
+		"what_is_seedphrase_text_1": "A seed phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.",
+		"what_is_seedphrase_text_2": "You must keep your seed phrase secret and safe. If someone gets your seed phrase, they’ll gain control over your accounts.",
+		"what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it."
+	},
+	"account_backup_step_1B": {
+		"title": "Secure your wallet",
+		"subtitle_1": "Secure your wallet's",
+		"subtitle_2": "seed phrase.",
+		"cta_text": "Start",
+		"learn_more": "Learn More",
+		"why_important": "Why is it important?",
+		"manual_title": "Manual",
+		"manual_subtitle": "Write down your seed phrase on a piece of paper and store in a safe place.",
+		"manual_security": "Security level: Very strong",
+		"risks_title": "Risks are:",
+		"risks_1": "You lose it",
+		"risks_2": "You forget where you put it",
+		"risks_3": "Someone else finds it",
+		"other_options": "Other options: Doesn’t have to be paper!",
+		"tips_title": "Tips:",
+		"tips_1": "Store in bank vault",
+		"tips_2": "Store in a safe",
+		"tips_3": "Store in multiple secret places",
+		"why_secure_title": "Protect your wallet",
+		"why_secure_1": "Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"why_secure_2": " It’s the only way to recover your wallet if you get locked out of the app or get a new device."
 	},
 	"account_backup_step_2": {
 		"cancel_backup_title": "Cancel Backup",
@@ -912,6 +991,42 @@
 		"modal_button": "DONE",
 		"copy_seed_phrase": "COPY SEED PHRASE TO CLIPBOARD"
 	},
+	"manual_backup": {
+		"progressOne": "Create Password",
+		"progressTwo": "Secure wallet",
+		"progressThree": "Confirm seed phrase"
+	},
+	"manual_backup_step_1": {
+		"action": "Write down your seed phrase",
+		"info": "This is your seed phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
+		"continue": "Continue",
+		"reveal": "Tap to reveal your seed phrase",
+		"watching": "Make sure no one is watching your screen.",
+		"view": "View",
+		"confirm_password": "Confirm your password",
+		"before_continiuing": "Before continuing we need you to confirm your password",
+		"confirm": "CONFIRM"
+	},
+	"manual_backup_step_2": {
+		"action": "Confirm seed phrase",
+		"info": "Select each word in the order it was presented to you.",
+		"complete": "Complete Backup",
+		"success": "Success"
+	},
+	"manual_backup_step_3": {
+		"congratulations": "Congratulations",
+		"success": "You’ve successfully protected your wallet. Remember to keep your seed phrase safe, it's your responsibility!",
+		"hint": "Leave yourself a hint?",
+		"recover": "MetaMask cannot recover your wallet should you lose it. You can find your seedphrase in Settings > Security & Privacy.",
+		"learn": "Learn more",
+		"done": "Done",
+		"recovery_hint": "Recovery hint",
+		"leave_hint": "Leave yourself a hint. Write the location / where you saved it to remind yourself how you can access it. This information does not leave your device.",
+		"no_seedphrase": "Do not use this to write your seed phrase.",
+		"example": "e.g. Mom's house",
+		"save": "Save",
+		"cancel": "Cancel"
+	},
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",
 		"ethereum_phishing_detector": "Ethereum Phishing Detector",
@@ -961,11 +1076,11 @@
 		"wc_sent_tx_rejected_title": "You’ve rejected the transaction request",
 		"wc_description": "Go back to the browser"
 	},
-	"secure_your_wallet_modal": {
-		"title": "Secure your wallet",
-		"body": "Now that you have value in your wallet, create password & save your wallet's seed phrase ",
-		"required": "(required)",
-		"button": "PROCEED NOW"
+	"protect_your_wallet_modal": {
+		"title": "Protect your wallet",
+		"body_for_password": "Protect your wallet by setting a password and saving your seed phrase (required).",
+		"body_for_seedphrase": "Now that value was added to your wallet, protect your wallet by setting a password and saving your seed phrase (required).",
+		"button": "Protect wallet"
 	},
 	"payment_request": {
 		"title": "Request",
@@ -999,10 +1114,13 @@
 		"request_title": "Request",
 		"request_description": "Request assets from friends",
 		"buy_title": "Buy",
-		"buy_description": "Buy Crypto with Credit Card",
+		"buy_description": "Buy crypto with debit card or bank transfer",
 		"public_address": "Public Address",
 		"public_address_qr_code": "Public Address",
-		"coming_soon": "Coming soon..."
+		"coming_soon": "Coming soon...",
+		"request_payment": "Request Payment",
+		"copy": "Copy",
+		"scan_address": "Scan address to receive payment"
 	},
 	"experimental_settings": {
 		"payment_channels": "Payment Channels",
@@ -1120,17 +1238,16 @@
 		"title": "You're all set!",
 		"text": "You can now return to your browser"
 	},
-	"sai_migration": {
-		"title": "A message from MakerDAO",
-		"message": "It looks like you have some Dai in your account. You need to migrate this Dai to its new version or it will be deprecated.",
-		"learn_more": "Learn More",
-		"lets_do_it": "Let's do it!"
-	},
 	"account_bar": {
 		"depositing_to": "Depositing to:"
 	},
 	"fiat_on_ramp": {
 		"buy_eth": "Buy ETH",
+		"purchased_currency": "Purchased {{currency}}",
+		"network_not_supported": "Current network not supported",
+		"switch_network": "Please switch to Mainnet",
+		"switch": "Switch",
+		"purchases": "Purchases",
 		"purchase_method": "Purchase Method",
 		"amount_to_buy": "Amount to buy",
 		"transak_webview_title": "Transak",
@@ -1169,6 +1286,7 @@
 		"wyre_modal_terms_of_service_apply": "Wyre terms of service apply.",
 		"wyre_minimum_deposit": "Minimum deposit is {{amount}}",
 		"wyre_maximum_deposit": "Maximum deposit is {{amount}}",
+		"wyre_purchase": "{{currency}} Purchase",
 		"buy_with": "Buy with",
 		"plus_fee": "Plus a {{fee}} fee",
 		"notifications": {
@@ -1178,6 +1296,24 @@
 			"purchase_completed_description": "Your {{currency}} is now available",
 			"purchase_pending_title": "Processing your purchase of {{currency}}",
 			"purchase_pending_description": "Your deposit is in progress"
-		}
+		},
+		"date": "Date",
+		"from": "From",
+		"to": "To",
+		"status": "Status",
+		"completed": "Completed",
+		"pending": "Pending",
+		"failed": "Failed",
+		"cancelled": "Canceled",
+		"amount": "Amount",
+		"total_amount": "Total amount"
+	},
+	"protect_wallet_modal": {
+		"title": "Protect your wallet",
+		"top_button": "Protect wallet",
+		"bottom_button": "Remind me later",
+		"text": "Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"text_bold": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
+		"action": "Learn more"
 	}
 }

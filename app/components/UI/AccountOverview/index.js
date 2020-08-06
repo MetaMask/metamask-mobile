@@ -16,6 +16,7 @@ import { toggleAccountsModal } from '../../../actions/modals';
 import EthereumAddress from '../EthereumAddress';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { protectWalletModalVisible } from '../../../actions/user';
 
 const styles = StyleSheet.create({
 	scrollView: {
@@ -118,7 +119,11 @@ class AccountOverview extends PureComponent {
 		/**
 		 * Used to get child ref
 		 */
-		onRef: PropTypes.func
+		onRef: PropTypes.func,
+		/**
+		 * Prompts protect wallet modal
+		 */
+		protectWalletModalVisible: PropTypes.func
 	};
 
 	state = {
@@ -189,6 +194,7 @@ class AccountOverview extends PureComponent {
 			content: 'clipboard-alert',
 			data: { msg: strings('account_details.account_copied_to_clipboard') }
 		});
+		setTimeout(() => this.props.protectWalletModalVisible(), 2000);
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_COPIED_ADDRESS);
 		});
@@ -283,7 +289,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	setTokensTransaction: asset => dispatch(setTokensTransaction(asset)),
 	showAlert: config => dispatch(showAlert(config)),
-	toggleAccountsModal: () => dispatch(toggleAccountsModal())
+	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 
 export default connect(

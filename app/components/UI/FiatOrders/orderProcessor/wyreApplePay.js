@@ -109,7 +109,7 @@ export const WYRE_ORDER_STATES = {
 //* Constants */
 
 const { WYRE_MERCHANT_ID, WYRE_MERCHANT_ID_TEST, WYRE_API_ENDPOINT, WYRE_API_ENDPOINT_TEST } = AppConstants.FIAT_ORDERS;
-export const WYRE_IS_PROMOTION = true;
+export const WYRE_IS_PROMOTION = false;
 export const WYRE_REGULAR_FEE_PERCENT = 2.9;
 export const WYRE_REGULAR_FEE_FLAT = 0.3;
 export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_PERCENT;
@@ -186,6 +186,7 @@ const wyreOrderStateToFiatState = wyreOrderState => {
 const wyreOrderToFiatOrder = wyreOrder => ({
 	id: wyreOrder.id,
 	provider: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
+	createdAt: wyreOrder.createdAt,
 	amount: wyreOrder.sourceAmount,
 	fee: null,
 	cryptoAmount: null,
@@ -209,7 +210,7 @@ const wyreOrderToFiatOrder = wyreOrder => ({
 const wyreTransferToFiatOrder = wyreTransfer => ({
 	fee: wyreTransfer.fee,
 	cryptoAmount: wyreTransfer.destAmount,
-	cryptoFee: wyreTransfer.fee ? wyreTransfer.fee[wyreTransfer.destCurrency] : null,
+	cryptoFee: wyreTransfer.fees ? wyreTransfer.fees[wyreTransfer.destCurrency] : null,
 	txHash: wyreTransfer.blockchainNetworkTx
 });
 
@@ -219,7 +220,7 @@ export async function processWyreApplePayOrder(order) {
 	try {
 		const { data } = await getOrderStatus(order.network, order.id);
 		if (!data) {
-			Logger.message('FiatOrders::WyreApplePayProcessor empty data', order);
+			Logger.error('FiatOrders::WyreApplePayProcessor empty data', order);
 			return order;
 		}
 
@@ -273,7 +274,6 @@ const PAYMENT_REQUEST_COMPLETE = {
 const getMethodData = network => [
 	{
 		supportedMethods: ['apple-pay'],
-		supportedTypes: ['debit'],
 		data: {
 			countryCode: 'US',
 			currencyCode: USD_CURRENCY_CODE,
@@ -287,11 +287,11 @@ const getPaymentDetails = (cryptoCurrency, amount, fee, total) => ({
 	displayItems: [
 		{
 			amount: { currency: USD_CURRENCY_CODE, value: `${amount}` },
-			label: `${cryptoCurrency} Purchase`
+			label: strings('fiat_on_ramp.wyre_purchase', { currency: cryptoCurrency })
 		},
 		{
 			amount: { currency: USD_CURRENCY_CODE, value: `${fee}` },
-			label: 'Fee'
+			label: strings('fiat_on_ramp.Fee')
 		}
 	],
 	total: {
@@ -303,7 +303,8 @@ const getPaymentDetails = (cryptoCurrency, amount, fee, total) => ({
 const paymentOptions = {
 	requestPayerPhone: true,
 	requestPayerEmail: true,
-	requestBilling: true
+	requestBilling: true,
+	merchantCapabilities: ['debit']
 };
 
 const createPayload = (network, amount, address, paymentDetails) => {
@@ -411,9 +412,7 @@ export function useWyreApplePay(amount, address, network) {
 			const { data, status } = await createFiatOrder(network, payload);
 			if (status >= 200 && status < 300) {
 				paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.SUCCESS);
-				const order = { ...wyreOrderToFiatOrder(data), network };
-				Logger.message('FiatOrders::WyreApplePayPayment order created', order);
-				return order;
+				return { ...wyreOrderToFiatOrder(data), network };
 			}
 			paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.FAIL);
 			throw new WyreException(data.message, data.type, data.exceptionId);

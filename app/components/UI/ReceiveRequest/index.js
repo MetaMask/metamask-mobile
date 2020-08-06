@@ -1,27 +1,31 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { InteractionManager, SafeAreaView, Dimensions, StyleSheet, View, Text } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
-import ReceiveRequestAction from './ReceiveRequestAction';
-import Logger from '../../../util/Logger';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
-import { connect } from 'react-redux';
-import { toggleReceiveModal } from '../../../actions/modals';
+import { InteractionManager, TouchableOpacity, SafeAreaView, Dimensions, StyleSheet, View, Alert } from 'react-native';
 import Modal from 'react-native-modal';
-import { strings } from '../../../../locales/i18n';
-import ElevatedView from 'react-native-elevated-view';
-import AntIcon from 'react-native-vector-icons/AntDesign';
-import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import Device from '../../../util/Device';
-import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
-import AddressQRCode from '../../Views/AddressQRCode';
-import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import Share from 'react-native-share';
+import QRCode from 'react-native-qrcode-svg';
+import Clipboard from '@react-native-community/clipboard';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import { connect } from 'react-redux';
 
-const TOTAL_PADDING = 64;
-const ACTION_WIDTH = (Dimensions.get('window').width - TOTAL_PADDING) / 2;
+import Analytics from '../../../core/Analytics';
+import Logger from '../../../util/Logger';
+import Device from '../../../util/Device';
+import { strings } from '../../../../locales/i18n';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
+import { allowedToBuy } from '../FiatOrders';
+import { showAlert } from '../../../actions/alert';
+import { toggleReceiveModal } from '../../../actions/modals';
+import { protectWalletModalVisible } from '../../../actions/user';
+
+import { colors, fontStyles } from '../../../styles/common';
+import Text from '../../Base/Text';
+import ModalHandler from '../../Base/ModalHandler';
+import AddressQRCode from '../../Views/AddressQRCode';
+import EthereumAddress from '../EthereumAddress';
+import GlobalAlert from '../GlobalAlert';
+import StyledButton from '../StyledButton';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -44,50 +48,48 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.grey400,
 		opacity: Device.isAndroid() ? 0.6 : 0.5
 	},
-	actionsWrapper: {
-		marginHorizontal: 16,
-		paddingBottom: Device.isIphoneX() ? 16 : 8
+	body: {
+		alignItems: 'center',
+		paddingHorizontal: 15
 	},
-	row: {
+	qrWrapper: {
+		margin: 15
+	},
+	addressWrapper: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
+		margin: 15,
+		padding: 9,
+		paddingHorizontal: 15,
+		backgroundColor: colors.grey000,
+		borderRadius: 30
+	},
+	copyButton: {
+		backgroundColor: colors.grey050,
+		color: colors.fontPrimary,
+		borderRadius: 12,
+		overflow: 'hidden',
+		paddingVertical: 3,
+		paddingHorizontal: 6,
+		marginHorizontal: 6
+	},
+	actionRow: {
+		flexDirection: 'row',
+		marginBottom: 15
+	},
+	actionButton: {
+		flex: 1,
+		marginHorizontal: 8
 	},
 	title: {
 		...fontStyles.normal,
+		color: colors.fontPrimary,
 		fontSize: 18,
 		flexDirection: 'row',
 		alignSelf: 'center'
 	},
 	titleWrapper: {
-		marginVertical: 8
-	},
-	modal: {
-		margin: 0,
-		width: '100%'
-	},
-	copyAlert: {
-		width: 180,
-		backgroundColor: colors.darkAlert,
-		padding: 20,
-		paddingTop: 30,
-		alignSelf: 'center',
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 8
-	},
-	copyAlertIcon: {
-		marginBottom: 20
-	},
-	copyAlertText: {
-		textAlign: 'center',
-		color: colors.white,
-		fontSize: 16,
-		...fontStyles.normal
-	},
-	receiveAction: {
-		flex: 1,
-		width: ACTION_WIDTH,
-		height: ACTION_WIDTH
+		marginTop: 10
 	}
 });
 
@@ -111,7 +113,23 @@ class ReceiveRequest extends PureComponent {
 		/**
 		 * Action that toggles the receive modal
 		 */
-		toggleReceiveModal: PropTypes.func
+		toggleReceiveModal: PropTypes.func,
+		/**
+		/* Triggers global alert
+		*/
+		showAlert: PropTypes.func,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string,
+    /**
+		 * Prompts protect wallet modal
+		 */
+		protectWalletModalVisible: PropTypes.func,
+		/**
+		 * Hides the modal that contains the component
+		 */
+		hideModal: PropTypes.func
 	};
 
 	state = {
@@ -126,9 +144,14 @@ class ReceiveRequest extends PureComponent {
 		const { selectedAddress } = this.props;
 		Share.open({
 			message: generateUniversalLinkAddress(selectedAddress)
-		}).catch(err => {
-			Logger.log('Error while trying to share address', err);
-		});
+		})
+			.then(() => {
+				this.props.hideModal();
+				setTimeout(() => this.props.protectWalletModalVisible(), 1000);
+			})
+			.catch(err => {
+				Logger.log('Error while trying to share address', err);
+			});
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_SHARE_ADDRESS);
 		});
@@ -137,23 +160,38 @@ class ReceiveRequest extends PureComponent {
 	/**
 	 * Shows an alert message with a coming soon message
 	 */
-	onBuy = () => {
-		this.props.toggleReceiveModal();
-		this.props.navigation.navigate('PaymentMethodSelector');
-		// InteractionManager.runAfterInteractions(() => {
-		// 	this.setState({ buyModalVisible: true });
-		// 	setTimeout(() => {
-		// 		this.setState({ buyModalVisible: false });
-		// 	}, 1500);
-		// 	Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_BUY);
-		// });
+	onBuy = async () => {
+		const { navigation, toggleReceiveModal, network } = this.props;
+		if (!allowedToBuy(network)) {
+			Alert.alert(strings('fiat_on_ramp.network_not_supported'), strings('fiat_on_ramp.switch_network'));
+		} else {
+			toggleReceiveModal();
+			navigation.navigate('PaymentMethodSelector');
+			InteractionManager.runAfterInteractions(() => {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			});
+		}
+	};
+
+	copyAccountToClipboard = async () => {
+		const { selectedAddress } = this.props;
+		Clipboard.setString(selectedAddress);
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings('account_details.account_copied_to_clipboard') }
+		});
 	};
 
 	/**
 	 * Closes QR code modal
 	 */
 	closeQrModal = () => {
-		this.setState({ qrModalVisible: false });
+		this.setState({ qrModalVisible: false }, () => {
+			this.props.hideModal();
+			setTimeout(() => this.props.protectWalletModalVisible(), 1000);
+		});
 	};
 
 	/**
@@ -174,36 +212,7 @@ class ReceiveRequest extends PureComponent {
 		});
 	};
 
-	actions = [
-		{
-			icon: <SimpleLineIcons name={'paper-plane'} size={28} color={colors.black} />,
-			title: strings('receive_request.share_title'),
-			description: strings('receive_request.share_description'),
-			onPress: this.onShare
-		},
-		{
-			icon: <FontAwesome name={'qrcode'} size={32} color={colors.black} />,
-			title: strings('receive_request.qr_code_title'),
-			description: strings('receive_request.qr_code_description'),
-			onPress: this.openQrModal
-		},
-		{
-			icon: <FontAwesome5 solid name={'hand-holding'} size={30} color={colors.black} />,
-			title: strings('receive_request.request_title'),
-			description: strings('receive_request.request_description'),
-			onPress: this.onReceive
-		},
-		{
-			icon: <FontAwesome name={'credit-card'} size={32} color={colors.black} />,
-			title: strings('receive_request.buy_title'),
-			description: strings('receive_request.buy_description'),
-			onPress: this.onBuy
-		}
-	];
-
 	render() {
-		const { qrModalVisible, buyModalVisible } = this.state;
-
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.draggerWrapper}>
@@ -214,81 +223,85 @@ class ReceiveRequest extends PureComponent {
 						{strings('receive_request.title')}
 					</Text>
 				</View>
+				<View style={styles.body}>
+					<ModalHandler>
+						{({ isVisible, toggleModal }) => (
+							<>
+								<TouchableOpacity
+									style={styles.qrWrapper}
+									// eslint-disable-next-line react/jsx-no-bind
+									onPress={() => {
+										toggleModal();
+										InteractionManager.runAfterInteractions(() => {
+											Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_QR_CODE);
+										});
+									}}
+								>
+									<QRCode
+										value={`ethereum:${this.props.selectedAddress}`}
+										size={Dimensions.get('window').width / 2}
+									/>
+								</TouchableOpacity>
+								<Modal
+									isVisible={isVisible}
+									onBackdropPress={toggleModal}
+									onBackButtonPress={toggleModal}
+									onSwipeComplete={toggleModal}
+									swipeDirection={'down'}
+									propagateSwipe
+									testID={'qr-modal'}
+								>
+									<AddressQRCode closeQrModal={toggleModal} />
+								</Modal>
+							</>
+						)}
+					</ModalHandler>
 
-				<View style={styles.actionsWrapper}>
-					<View style={styles.row}>
-						<ReceiveRequestAction
-							style={styles.receiveAction}
-							icon={this.actions[0].icon}
-							actionTitle={this.actions[0].title}
-							actionDescription={this.actions[0].description}
-							onPress={this.actions[0].onPress}
-						/>
-						<ReceiveRequestAction
-							style={styles.receiveAction}
-							icon={this.actions[1].icon}
-							actionTitle={this.actions[1].title}
-							actionDescription={this.actions[1].description}
-							onPress={this.actions[1].onPress}
-						/>
-					</View>
-					<View style={styles.row}>
-						<ReceiveRequestAction
-							style={styles.receiveAction}
-							icon={this.actions[2].icon}
-							actionTitle={this.actions[2].title}
-							actionDescription={this.actions[2].description}
-							onPress={this.actions[2].onPress}
-						/>
-						<ReceiveRequestAction
-							style={styles.receiveAction}
-							icon={this.actions[3].icon}
-							actionTitle={this.actions[3].title}
-							actionDescription={this.actions[3].description}
-							onPress={this.actions[3].onPress}
-						/>
+					<Text>{strings('receive_request.scan_address')}</Text>
+
+					<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+						<Text>
+							<EthereumAddress address={this.props.selectedAddress} type={'short'} />
+						</Text>
+						<Text style={styles.copyButton} small>
+							{strings('receive_request.copy')}
+						</Text>
+						<TouchableOpacity onPress={this.onShare}>
+							<EvilIcons
+								name={Device.isIos() ? 'share-apple' : 'share-google'}
+								size={25}
+								color={colors.grey600}
+							/>
+						</TouchableOpacity>
+					</TouchableOpacity>
+					<View style={styles.actionRow}>
+						{allowedToBuy(this.props.network) && (
+							<StyledButton type={'blue'} containerStyle={styles.actionButton} onPress={this.onBuy}>
+								{strings('fiat_on_ramp.buy_eth')}
+							</StyledButton>
+						)}
+						<StyledButton type={'normal'} onPress={this.onReceive} containerStyle={styles.actionButton}>
+							{strings('receive_request.request_payment')}
+						</StyledButton>
 					</View>
 				</View>
-				<Modal
-					isVisible={qrModalVisible}
-					onBackdropPress={this.closeQrModal}
-					onBackButtonPress={this.closeQrModal}
-					onSwipeComplete={this.closeQrModal}
-					swipeDirection={'down'}
-					propagateSwipe
-					testID={'qr-modal'}
-				>
-					<AddressQRCode closeQrModal={this.closeQrModal} />
-				</Modal>
-				<Modal
-					style={styles.modal}
-					isVisible={buyModalVisible}
-					onBackdropPress={this.onClose}
-					onBackButtonPress={this.onClose}
-					backdropOpacity={0}
-					animationIn={'fadeIn'}
-					animationOut={'fadeOut'}
-					useNativeDriver
-				>
-					<ElevatedView style={styles.copyAlert} elevation={5}>
-						<View style={styles.copyAlertIcon}>
-							<AntIcon name={'clockcircle'} size={64} color={colors.white} />
-						</View>
-						<Text style={styles.copyAlertText}>{strings('receive_request.coming_soon')}</Text>
-					</ElevatedView>
-				</Modal>
+
+				<GlobalAlert />
 			</SafeAreaView>
 		);
 	}
 }
 
 const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController.network,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	receiveAsset: state.modals.receiveAsset
 });
 
 const mapDispatchToProps = dispatch => ({
-	toggleReceiveModal: () => dispatch(toggleReceiveModal())
+	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
+	showAlert: config => dispatch(showAlert(config)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 
 export default connect(

@@ -17,26 +17,26 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderRadius: 10
 	},
-	actionContainer: {
-		borderTopColor: colors.grey200,
-		borderTopWidth: 1,
+	actionHorizontalContainer: {
 		flexDirection: 'row',
-		padding: 16
+		padding: 16,
+		borderTopWidth: 1,
+		borderTopColor: colors.grey200
+	},
+	actionVerticalContainer: {
+		flexDirection: 'column',
+		paddingHorizontal: 16,
+		paddingVertical: 8
 	},
 	childrenContainer: {
-		minHeight: 250,
-		width: '100%',
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
 	button: {
+		margin: 8
+	},
+	buttonHorizontal: {
 		flex: 1
-	},
-	cancel: {
-		marginRight: 8
-	},
-	confirm: {
-		marginLeft: 8
 	}
 });
 
@@ -61,19 +61,25 @@ export default function ActionContent({
 	viewWrapperStyle,
 	viewContainerStyle,
 	actionContainerStyle,
-	childrenContainerStyle
+	childrenContainerStyle,
+	verticalButtons
 }) {
 	return (
 		<View style={[styles.viewWrapper, viewWrapperStyle]}>
 			<View style={[styles.viewContainer, viewContainerStyle]}>
 				<View style={[styles.childrenContainer, childrenContainerStyle]}>{children}</View>
-				<View style={[styles.actionContainer, actionContainerStyle]}>
+				<View
+					style={[
+						verticalButtons ? styles.actionVerticalContainer : styles.actionHorizontalContainer,
+						actionContainerStyle
+					]}
+				>
 					{displayCancelButton && (
 						<StyledButton
 							testID={cancelTestID}
 							type={cancelButtonMode}
 							onPress={onCancelPress}
-							containerStyle={[styles.button, displayConfirmButton ? styles.cancel : {}]}
+							containerStyle={[styles.button, !verticalButtons && styles.buttonHorizontal]}
 						>
 							{cancelText}
 						</StyledButton>
@@ -83,7 +89,7 @@ export default function ActionContent({
 							testID={confirmTestID}
 							type={confirmButtonMode}
 							onPress={onConfirmPress}
-							containerStyle={[styles.button, displayCancelButton ? styles.confirm : {}]}
+							containerStyle={[styles.button, !verticalButtons && styles.buttonHorizontal]}
 							disabled={confirmDisabled}
 						>
 							{confirmText}
@@ -130,11 +136,11 @@ ActionContent.propTypes = {
 	/**
 	 * Type of button to show as the cancel button
 	 */
-	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'confirm', 'normal']),
+	cancelButtonMode: PropTypes.string,
 	/**
 	 * Type of button to show as the confirm button
 	 */
-	confirmButtonMode: PropTypes.oneOf(['normal', 'confirm', 'warning']),
+	confirmButtonMode: PropTypes.string,
 	/**
 	 * Whether confirm button is disabled
 	 */
@@ -171,6 +177,10 @@ ActionContent.propTypes = {
 	 * Action container style
 	 */
 	actionContainerStyle: PropTypes.object,
+	/**
+	 * Whether buttons are rendered vertically
+	 */
+	verticalButtons: PropTypes.bool,
 	/**
 	 * Children container style
 	 */
