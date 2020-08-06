@@ -33,18 +33,25 @@
 		"import": "Import an existing wallet or create a new one",
 		"import_wallet_button": "Sync or import wallet",
 		"new_to_crypto": "New to crypto?",
-		"start_exploring_now": "Create wallet",
+		"start_exploring_now": "Create a new wallet",
 		"login": "Log in",
 		"new_to_metamask": "New to MetaMask?",
 		"already_have_wallet": "Already have a wallet?",
 		"optin_back_title": "Heads up!",
 		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings.",
+		"warning_title": "Warning",
+		"warning_text_1": "Your current wallet and accounts will be",
+		"warning_text_2": "removed",
+		"warning_text_3": "if you proceed.",
+		"warning_text_4": "You can ONLY recover them with your wallet’s seed phrase. MetaMask cannot help you recover it.",
+		"warning_proceed": "Remove wallet & proceed",
+		"warning_cancel": "Cancel",
 		"step1": "Wallet setup",
 		"step2": "Create password",
 		"step3": "Secure wallet",
 		"already_have": "Already have a wallet?",
 		"sync_existing": "Sync your existing MetaMask wallet from the browser extension or import manually.",
-		"scan_title": "Scan QR code steps",
+		"scan_title": "Steps to sync with MetaMask extension",
 		"scan": "Scan",
 		"scan_step_1": "Open the extension on desktop",
 		"scan_step_2": "Go to Settings > Advanced",
@@ -111,7 +118,7 @@
 		"sync_help_step_two": "2. Go to Settings > Advanced",
 		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
 		"sync_help_step_four": "4. Scan the QR Code to start syncing",
-		"sync_from_browser_extension_button": "Scan QR code",
+		"sync_from_browser_extension_button": "Sync with MetaMask extension",
 		"or": "OR",
 		"import_from_seed_button": "Import using seed phrase"
 	},
@@ -134,7 +141,7 @@
 		"subtitle": "This password will unlock your MetaMask wallet only on this device.",
 		"password": "New Password",
 		"confirm_password": "Confirm Password",
-		"create_button": "NEXT",
+		"create_button": "Create password",
 		"import_with_seed_phrase": "Import with seed phrase",
 		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
@@ -182,8 +189,8 @@
 		"transaction_history": "Transaction History",
 		"submit_feedback": "Send Feedback",
 		"submit_feedback_message": "Choose the type of feedback to send.",
-		"submit_bug": "BUG REPORT",
-		"submit_general_feedback": "GENERAL",
+		"submit_bug": "Bug Report",
+		"submit_general_feedback": "General",
 		"share_address": "Share my Public Address",
 		"view_in_etherscan": "View on Etherscan",
 		"view_in": "View on",
@@ -442,9 +449,9 @@
 		"confirm": "Next",
 		"seed_phrase_explanation": "If you ever change browsers or move computers, you will need this seed phrase to access your accounts. Save them somewhere safe and secret.",
 		"private_key_explanation": "Save it somewhere safe and secret.",
-		"private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private keys can take steal any assets held in your account.",
+		"private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
 		"seed_phrase_warning_explanation": "DO NOT share this phrase with anyone! These words can be used to steal all your accounts.",
-		"private_key_warning_explanation": "Never disclose this key. Anyone with your private keys can take steal any assets held in your account.",
+		"private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
 		"seed_phrase": "Your seed phrase",
 		"private_key": "Your private key",
 		"copy_to_clipboard": "Copy to clipboard",
@@ -453,7 +460,7 @@
 		"private_key_copied": "Private key copied to clipboard",
 		"warning_incorrect_password": "Incorrect password",
 		"unknown_error": "Couldn't unlock your account. Please try again.",
-		"seed_warning": "This is your wallet's 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE.",
+		"seed_warning": "This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.",
 		"text": "TEXT",
 		"qr_code": "QR CODE"
 	},
@@ -634,9 +641,12 @@
 		"failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
 		"remove_bookmark_title": "Remove favorite",
 		"remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
-		"yes": "Yes",
-		"backup_alert_title": "Protect your funds",
-		"backup_alert_message": "Tap to save your seed phrase"
+		"yes": "Yes"
+	},
+	"backup_alert": {
+		"title": "Protect your wallet",
+		"left_button": "Remind me later",
+		"right_button": "Protect wallet"
 	},
 	"add_favorite": {
 		"title": "Add Favorite",
@@ -866,7 +876,8 @@
 		"step_2_description": "Save wallet seed phrase",
 		"info_text_1": "Take a few moments to finish setting up your MetaMask wallet.",
 		"info_text_2": "This will ensure only you can access your funds and will let you recover your wallet if you lose your device",
-		"cta_text": "CREATE PASSWORD"
+		"cta_text": "Create Password",
+		"creating_password": "Creating password..."
 	},
 	"account_backup_step_1": {
 		"remind_me_later": "Remind me later",
@@ -1055,11 +1066,11 @@
 		"wc_sent_tx_rejected_title": "You’ve rejected the transaction request",
 		"wc_description": "Go back to the browser"
 	},
-	"secure_your_wallet_modal": {
-		"title": "Secure your wallet",
-		"body": "Now that you have value in your wallet, create password & save your wallet's seed phrase ",
-		"required": "(required)",
-		"button": "PROCEED NOW"
+	"protect_your_wallet_modal": {
+		"title": "Protect your wallet",
+		"body_for_password": "Protect your wallet by setting a password and saving your seed phrase (required).",
+		"body_for_seedphrase": "Now that value was added to your wallet, protect your wallet by setting a password and saving your seed phrase (required).",
+		"button": "Protect wallet"
 	},
 	"payment_request": {
 		"title": "Request",
@@ -1213,5 +1224,13 @@
 	"walletconnect_return_modal": {
 		"title": "You're all set!",
 		"text": "You can now return to your browser"
+	},
+	"protect_wallet_modal": {
+		"title": "Protect your wallet",
+		"top_button": "Protect wallet",
+		"bottom_button": "Remind me later",
+		"text": "Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"text_bold": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
+		"action": "Learn more"
 	}
 }

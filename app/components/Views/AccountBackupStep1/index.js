@@ -118,7 +118,11 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		...fontStyles.bold
 	},
-	skipModalContainer: { flex: 1, padding: 27, flexDirection: 'column' },
+	skipModalContainer: {
+		flex: 1,
+		margin: 24,
+		flexDirection: 'column'
+	},
 	skipModalXButton: {
 		flex: 1,
 		alignItems: 'flex-end'
@@ -127,7 +131,6 @@ const styles = StyleSheet.create({
 		fontSize: 16
 	},
 	skipModalActionButtons: {
-		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
@@ -137,9 +140,10 @@ const styles = StyleSheet.create({
 		marginRight: 12
 	},
 	skipModalText: {
+		flex: 1,
+		...fontStyles.normal,
 		lineHeight: 20,
-		fontSize: 14,
-		flex: 1
+		fontSize: 14
 	}
 });
 
@@ -181,6 +185,11 @@ const AccountBackupStep1 = props => {
 	const hideRemindLaterModal = () => {
 		setToggleSkipCheckbox(false);
 		setRemindLaterModal(false);
+	};
+
+	const secureNow = () => {
+		hideRemindLaterModal();
+		goNext();
 	};
 
 	const skip = async () => {
@@ -273,7 +282,7 @@ const AccountBackupStep1 = props => {
 				displayCancelButton
 				modalVisible={showRemindLaterModal}
 				actionContainerStyle={styles.modalNoBorder}
-				onCancelPress={hideRemindLaterModal}
+				onCancelPress={secureNow}
 				confirmDisabled={!skipCheckbox}
 				onConfirmPress={skip}
 			>

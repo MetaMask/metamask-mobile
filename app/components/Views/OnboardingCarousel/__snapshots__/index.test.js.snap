@@ -349,7 +349,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
       style={
         Object {
           "flexDirection": "column",
-          "paddingBottom": 20,
+          "paddingBottom": 40,
           "paddingHorizontal": 40,
         }
       }
