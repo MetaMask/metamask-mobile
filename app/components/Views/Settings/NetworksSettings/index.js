@@ -70,7 +70,11 @@ class NetworksSettings extends PureComponent {
 		/**
 		 * NetworkController povider object
 		 */
-		provider: PropTypes.object
+		provider: PropTypes.object,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	actionSheet = null;
@@ -102,9 +106,10 @@ class NetworksSettings extends PureComponent {
 		const { NetworkController, CurrencyRateController } = Engine.context;
 		CurrencyRateController.configure({ nativeCurrency: 'ETH' });
 		NetworkController.setProviderType('mainnet');
-		setTimeout(() => {
-			Engine.refreshTransactionHistory();
-		}, 1000);
+		this.props.thirdPartyApiMode &&
+			setTimeout(() => {
+				Engine.refreshTransactionHistory();
+			}, 1000);
 	};
 
 	removeNetwork = () => {
@@ -221,7 +226,8 @@ class NetworksSettings extends PureComponent {
 
 const mapStateToProps = state => ({
 	provider: state.engine.backgroundState.NetworkController.provider,
-	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 
 export default connect(mapStateToProps)(NetworksSettings);

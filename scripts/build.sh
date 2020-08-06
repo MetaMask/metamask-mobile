@@ -275,6 +275,17 @@ buildIos() {
 	fi
 }
 
+startWatcher() {
+	source $JS_ENV_FILE
+	if [ "$MODE" == "clean" ]; then
+		watchman watch-del-all
+		rm -rf $TMPDIR/react-*
+		react-native start -- --reset-cache
+	else
+		react-native start
+	fi
+}
+
 checkAuthToken() {
 	local propertiesFileName="$1"
 
@@ -315,6 +326,8 @@ if [ "$PLATFORM" == "ios" ]; then
 	else
 		envFileMissing $IOS_ENV_FILE
 	fi
+elif [ "$PLATFORM" == "watcher" ]; then
+	startWatcher
 else
 	# we don't care about env file in CI
 	if [ -f "$ANDROID_ENV_FILE" ] || [ "$CI" = true ]; then

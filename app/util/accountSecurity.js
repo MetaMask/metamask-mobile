@@ -4,9 +4,9 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { toBN, hexToBN, renderFromWei, renderFromTokenMinimalUnit } from './number';
 import { strings } from '../../locales/i18n';
 
-export default async function findFirstIncomingTransaction(networkType, selectedAddress) {
-	// Pull txs
-	await Engine.refreshTransactionHistory();
+export default async function findFirstIncomingTransaction(networkType, selectedAddress, thirPartyApiMode) {
+	// Pull txs if allowed
+	thirPartyApiMode && (await Engine.refreshTransactionHistory());
 	// Find the incoming TX
 	const { TransactionController, TokenBalancesController, AssetsController } = Engine.context;
 	const { transactions } = TransactionController.state;

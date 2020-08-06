@@ -23,32 +23,6 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
     }
     testID="account-backup-step-1-screen"
   >
-    <Pager
-      pages={5}
-    />
-    <TouchableOpacity
-      onPress={[Function]}
-      style={
-        Object {
-          "alignSelf": "flex-end",
-          "paddingHorizontal": 28,
-          "paddingVertical": 20,
-        }
-      }
-    >
-      <Text
-        style={
-          Object {
-            "color": "#037dd6",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 18,
-            "fontWeight": "400",
-          }
-        }
-      >
-        Skip
-      </Text>
-    </TouchableOpacity>
     <View
       style={
         Object {
@@ -60,10 +34,23 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
       }
       testID="protect-your-account-screen"
     >
+      <OnboardingProgress
+        currentStep={1}
+        steps={
+          Array [
+            "Create password",
+            "Secure wallet",
+            "Confirm seed phrase",
+          ]
+        }
+      />
       <View
         style={
           Object {
-            "alignItems": "flex-start",
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "flex-start",
+            "marginBottom": 10,
           }
         }
       >
@@ -71,51 +58,36 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
-              "fontSize": 32,
-              "fontWeight": "400",
-              "justifyContent": "center",
-              "marginBottom": 25,
-              "marginLeft": 10,
-              "marginTop": 0,
-              "textAlign": "left",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 24,
+              "fontWeight": "600",
+              "marginBottom": 40,
+              "textAlign": "center",
             }
           }
         >
-          Save your wallet's seed phrase
+          Secure your wallet
         </Text>
-        <View
-          style={
+        <Image
+          resizeMethod="auto"
+          source={
             Object {
-              "alignSelf": "center",
-              "backgroundColor": "#FFD33D",
-              "borderRadius": 8,
-              "marginBottom": 35,
-              "paddingHorizontal": 17,
-              "paddingVertical": 9,
+              "testUri": "../../../app/images/explain-backup-seedphrase.png",
             }
           }
-        >
-          <Text
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
-                "fontSize": 12,
-                "fontWeight": "400",
-              }
+          style={
+            Object {
+              "height": 162,
+              "width": 138,
             }
-          >
-            HIGHLY RECOMMENDED
-          </Text>
-        </View>
+          }
+          testID="carousel-one-image"
+        />
         <View
           style={
             Object {
               "justifyContent": "center",
-              "marginBottom": 10,
-              "marginLeft": 10,
-              "marginRight": 20,
+              "marginTop": 32,
             }
           }
         >
@@ -123,107 +95,40 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
-                "fontSize": 16,
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
                 "fontWeight": "400",
-                "lineHeight": 23,
-                "marginBottom": 20,
-                "textAlign": "left",
+                "lineHeight": 20,
+                "textAlign": "center",
               }
             }
           >
-            Your wallet's seed phrase is:
+            Don’t risk losing your funds. Protect your wallet by saving your
+             
+            <Text
+              onPress={[Function]}
+              style={
+                Object {
+                  "color": "#037dd6",
+                }
+              }
+            >
+              seed phrase
+            </Text>
+             
+            in a place you trust.
+             
+            <Text
+              style={
+                Object {
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontWeight": "600",
+                }
+              }
+            >
+              It’s the only way to recover your wallet if you get locked out of the app or get a new device.
+            </Text>
           </Text>
-          <View
-            style={
-              Object {
-                "flexDirection": "row",
-                "marginBottom": 15,
-              }
-            }
-          >
-            <Text
-              style={
-                Object {
-                  "marginRight": 5,
-                }
-              }
-            >
-              •
-            </Text>
-            <Text
-              style={
-                Object {
-                  "color": "#000000",
-                  "fontFamily": "CircularStd-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 23,
-                  "marginBottom": 20,
-                  "textAlign": "left",
-                }
-              }
-            >
-              A 
-              <Text
-                style={
-                  Object {
-                    "fontFamily": "CircularStd-Medium",
-                    "fontWeight": "600",
-                    "lineHeight": 25,
-                  }
-                }
-              >
-                secret
-              </Text>
-               code that you do NOT share with anyone.
-            </Text>
-          </View>
-          <View
-            style={
-              Object {
-                "flexDirection": "row",
-                "marginBottom": 15,
-              }
-            }
-          >
-            <Text
-              style={
-                Object {
-                  "marginRight": 5,
-                }
-              }
-            >
-              •
-            </Text>
-            <Text
-              style={
-                Object {
-                  "color": "#000000",
-                  "fontFamily": "CircularStd-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 23,
-                  "marginBottom": 20,
-                  "textAlign": "left",
-                }
-              }
-            >
-              used to 
-              <Text
-                style={
-                  Object {
-                    "fontFamily": "CircularStd-Medium",
-                    "fontWeight": "600",
-                    "lineHeight": 25,
-                  }
-                }
-              >
-                recover your wallet
-              </Text>
-               in case you lose your device, forget your password, have to re-install the MetaMask app or want to access your wallet on another device.
-            </Text>
-          </View>
         </View>
       </View>
       <View
@@ -234,47 +139,234 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           }
         }
       >
-        <StyledButton
-          disabledContainerStyle={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          onPress={[Function]}
-          styleDisabled={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          testID="submit-button"
-          type="confirm"
-        >
-          YEAH, LET'S SAVE IT
-        </StyledButton>
-        <Button
-          onPress={[Function]}
+        <View
           style={
             Object {
-              "backgroundColor": "transparent",
-              "flex": 0,
-              "height": 60,
+              "marginBottom": 34,
             }
           }
-          testID="learn-more-button"
         >
-          <Text
+          <TouchableOpacity
+            hitSlop={
+              Object {
+                "bottom": 10,
+                "left": 10,
+                "right": 10,
+                "top": 10,
+              }
+            }
+            onPress={[Function]}
             style={
               Object {
-                "color": "#037dd6",
-                "fontSize": 18,
+                "elevation": 10,
+                "zIndex": 10,
               }
             }
           >
-            Learn More
+            <Text
+              style={
+                Object {
+                  "color": "#037dd6",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 15,
+                  "fontWeight": "400",
+                  "lineHeight": 20,
+                  "textAlign": "center",
+                }
+              }
+            >
+              Remind me later
+            </Text>
+          </TouchableOpacity>
+          <Text
+            style={
+              Object {
+                "color": "#5B5D67",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 11,
+                "fontWeight": "400",
+                "lineHeight": 20,
+                "textAlign": "center",
+              }
+            }
+          >
+            (Not recommended)
           </Text>
-        </Button>
+        </View>
+        <View
+          style={
+            Object {
+              "marginBottom": 30,
+            }
+          }
+        >
+          <StyledButton
+            disabledContainerStyle={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            onPress={[Function]}
+            styleDisabled={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            testID="submit-button"
+            type="confirm"
+          >
+            Start
+          </StyledButton>
+          <Text
+            style={
+              Object {
+                "color": "#5B5D67",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 11,
+                "fontWeight": "400",
+                "marginTop": 12,
+                "textAlign": "center",
+              }
+            }
+          >
+            Highly recommended
+          </Text>
+        </View>
       </View>
     </View>
   </ScrollViewMock>
+  <ActionModal
+    actionContainerStyle={
+      Object {
+        "borderTopWidth": 0,
+      }
+    }
+    cancelButtonMode="normal"
+    cancelTestID=""
+    cancelText="Secure now"
+    confirmButtonMode="confirm"
+    confirmDisabled={true}
+    confirmTestID=""
+    confirmText="Skip"
+    displayCancelButton={true}
+    displayConfirmButton={true}
+    modalVisible={false}
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+  >
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "flexDirection": "column",
+          "margin": 24,
+        }
+      }
+    >
+      <TouchableOpacity
+        hitSlop={
+          Object {
+            "bottom": 10,
+            "left": 10,
+            "right": 10,
+            "top": 10,
+          }
+        }
+        onPress={[Function]}
+        style={
+          Object {
+            "alignItems": "flex-end",
+            "flex": 1,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          name="times"
+          size={12}
+          style={
+            Object {
+              "fontSize": 16,
+            }
+          }
+        />
+      </TouchableOpacity>
+      <Image
+        resizeMethod="auto"
+        source={
+          Object {
+            "testUri": "../../../app/images/warning.png",
+          }
+        }
+        style={
+          Object {
+            "alignSelf": "center",
+            "height": 56,
+            "width": 56,
+          }
+        }
+        testID="skip_backup_warning"
+      />
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 24,
+            "fontWeight": "600",
+            "marginBottom": 16,
+            "marginTop": 12,
+            "textAlign": "center",
+          }
+        }
+      >
+        Skip account security?
+      </Text>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <ForwardRef(CheckBoxWithRef)
+          boxType="square"
+          onValueChange={[Function]}
+          style={
+            Object {
+              "height": 18,
+              "marginRight": 12,
+              "width": 18,
+            }
+          }
+          tintColors={
+            Object {
+              "true": "#037dd6",
+            }
+          }
+          value={false}
+        />
+        <Text
+          onPress={[Function]}
+          style={
+            Object {
+              "flex": 1,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 20,
+            }
+          }
+        >
+          I understand that if I lose my seed phrase I will not be able to access my wallet.
+        </Text>
+      </View>
+    </View>
+  </ActionModal>
+  <SeedphraseModal
+    hideWhatIsSeedphrase={[Function]}
+    showWhatIsSeedphraseModal={false}
+  />
 </ForwardRef(SafeAreaView)>
 `;

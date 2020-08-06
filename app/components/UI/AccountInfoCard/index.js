@@ -37,17 +37,20 @@ const styles = StyleSheet.create({
 		maxWidth: Device.isMediumDevice() ? '35%' : '45%',
 		...fontStyles.bold,
 		fontSize: 16,
-		marginRight: 2
+		marginRight: 2,
+		color: colors.black
 	},
 	accountAddress: {
 		flexGrow: 1,
 		...fontStyles.bold,
-		fontSize: 16
+		fontSize: 16,
+		color: colors.black
 	},
 	balanceText: {
 		...fontStyles.thin,
 		fontSize: 14,
-		alignSelf: 'flex-start'
+		alignSelf: 'flex-start',
+		color: colors.black
 	}
 });
 

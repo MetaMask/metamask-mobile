@@ -1,19 +1,9 @@
 import React, { PureComponent } from 'react';
-import {
-	Alert,
-	Linking,
-	TouchableOpacity,
-	View,
-	Image,
-	StyleSheet,
-	Text,
-	ScrollView,
-	InteractionManager
-} from 'react-native';
+import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, InteractionManager } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
+import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -23,19 +13,15 @@ import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
-import CustomAlert from '../CustomAlert';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
+import { DrawerActions } from 'react-navigation-drawer';
 import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Engine from '../../../core/Engine';
-import findFirstIncomingTransaction from '../../../util/accountSecurity';
-import ActionModal from '../ActionModal';
-import { getVersion, getBuildNumber, getSystemName, getApiLevel, getSystemVersion } from 'react-native-device-info';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import OnboardingWizard from '../OnboardingWizard';
@@ -46,12 +32,12 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import EthereumAddress from '../EthereumAddress';
-// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
+import { protectWalletModalVisible } from '../../../actions/user';
 
-const ANDROID_OFFSET = 30;
+const ANDROID_OFFSET = 38;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -214,36 +200,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 		margin: 0
 	},
-	modalView: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		padding: 20,
-		flexDirection: 'column'
-	},
-	modalText: {
-		fontSize: 18,
-		textAlign: 'center',
-		...fontStyles.normal
-	},
-	modalTitle: {
-		fontSize: 22,
-		marginBottom: 15,
-		textAlign: 'center',
-		...fontStyles.bold
-	},
-	secureModalText: {
-		textAlign: 'center',
-		fontSize: 13,
-		...fontStyles.normal
-	},
-	bold: {
-		...fontStyles.bold
-	},
-	secureModalImage: {
-		width: 100,
-		height: 100
-	},
 	importedWrapper: {
 		marginTop: 10,
 		width: 73,
@@ -261,7 +217,38 @@ const styles = StyleSheet.create({
 	instapayLogo: {
 		width: 24,
 		height: 24
-	}
+	},
+	protectWalletContainer: {
+		backgroundColor: colors.white,
+		paddingTop: 24,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		paddingVertical: 16,
+		paddingBottom: Device.isIphoneX() ? 20 : 0,
+		paddingHorizontal: 40
+	},
+	protectWalletIconContainer: {
+		alignSelf: 'center',
+		width: 56,
+		height: 56,
+		borderRadius: 28,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
+		borderWidth: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	protectWalletIcon: { alignSelf: 'center', color: colors.red },
+	protectWalletTitle: { textAlign: 'center', fontSize: 18, marginVertical: 8, ...fontStyles.bold },
+	protectWalletContent: {
+		textAlign: 'center',
+		fontSize: 14,
+		marginVertical: 8,
+		justifyContent: 'center',
+		...fontStyles.normal
+	},
+	protectWalletButtonWrapper: { marginVertical: 8 }
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
@@ -270,11 +257,8 @@ const ICON_IMAGES = {
 	wallet: require('../../../images/wallet-icon.png'),
 	'selected-wallet': require('../../../images/selected-wallet-icon.png')
 };
-const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-line
 const instapay_logo_selected = require('../../../images/mm-instapay-selected.png'); // eslint-disable-line
 const instapay_logo = require('../../../images/mm-instapay.png'); // eslint-disable-line
-
-const USE_EXTERNAL_LINKS = Device.isAndroid() || false;
 
 /**
  * View component that displays the MetaMask fox
@@ -365,12 +349,32 @@ class DrawerView extends PureComponent {
 		/**
 		 * Current provider type
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array,
+		/**
+		 * Array of ERC721 assets
+		 */
+		collectibles: PropTypes.array,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		seedphraseBackedUp: PropTypes.bool,
+		/**
+		 * An object containing token balances for current account and network in the format address => balance
+		 */
+		tokenBalances: PropTypes.object,
+		/**
+		 * Prompts protect wallet modal
+		 */
+		protectWalletModalVisible: PropTypes.func
 	};
 
 	state = {
-		submitFeedback: false,
-		showSecureWalletModal: false
+		showProtectWalletModal: false
 	};
 
 	browserSectionRef = React.createRef();
@@ -378,7 +382,6 @@ class DrawerView extends PureComponent {
 	currentBalance = null;
 	previousBalance = null;
 	processedNewBalance = false;
-	animatingReceiveModal = false;
 	animatingNetworksModal = false;
 	animatingAccountsModal = false;
 
@@ -397,27 +400,19 @@ class DrawerView extends PureComponent {
 	}
 
 	componentDidUpdate() {
-		setTimeout(async () => {
-			if (
-				!this.isCurrentAccountImported() &&
-				!this.props.passwordSet &&
-				!this.processedNewBalance &&
-				this.currentBalance >= this.previousBalance &&
-				this.currentBalance > 0
-			) {
-				const { selectedAddress, network } = this.props;
-
-				const incomingTransaction = await findFirstIncomingTransaction(network.provider.type, selectedAddress);
-				if (incomingTransaction) {
-					this.processedNewBalance = true;
-					// We need to wait for the notification to dismiss
-					// before attempting to show the secure wallet modal
-					setTimeout(() => {
-						this.setState({ showSecureWalletModal: true });
-					}, 8000);
+		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
+			const route = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
+			if (['SetPasswordFlow', 'Webview'].includes(route)) return;
+			let tokenFound = false;
+			this.props.tokens.forEach(token => {
+				if (!this.props.tokenBalances[token.address].isZero()) {
+					tokenFound = true;
 				}
-			}
-		}, 1000);
+			});
+			if (!this.props.passwordSet || this.currentBalance > 0 || tokenFound || this.props.collectibles.length > 0)
+				// eslint-disable-next-line react/no-did-update-set-state
+				this.setState({ showProtectWalletModal: true });
+		}
 	}
 
 	toggleAccountsModal = () => {
@@ -432,13 +427,7 @@ class DrawerView extends PureComponent {
 	};
 
 	toggleReceiveModal = () => {
-		if (!this.animatingReceiveModal) {
-			this.animatingReceiveModal = true;
-			this.props.toggleReceiveModal();
-			setTimeout(() => {
-				this.animatingReceiveModal = false;
-			}, 500);
-		}
+		this.props.toggleReceiveModal();
 	};
 
 	onNetworksModalClose = async manualClose => {
@@ -574,43 +563,7 @@ class DrawerView extends PureComponent {
 
 	submitFeedback = () => {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND_FEEDBACK);
-		this.setState({ submitFeedback: true });
-	};
-
-	closeSubmitFeedback = () => {
-		this.setState({ submitFeedback: false });
-	};
-	handleURL = url => {
-		const handleError = error => {
-			console.warn(error);
-			this.closeSubmitFeedback();
-		};
-		if (USE_EXTERNAL_LINKS) {
-			Linking.openURL(url)
-				.then(this.closeSubmitFeedback)
-				.catch(handleError);
-		} else {
-			this.goToBrowserUrl(url, strings('drawer.submit_bug'));
-			this.closeSubmitFeedback();
-		}
-	};
-	goToBugFeedback = () => {
-		this.handleURL('https://metamask.zendesk.com/hc/en-us/requests/new');
-	};
-
-	goToGeneralFeedback = () => {
-		const formId = '1FAIpQLSecHcnnn84-m01guIbv7Nh93mCj_G8IVdDn96dKFcXgNx0fKg';
-		this.goToFeedback(formId);
-	};
-
-	goToFeedback = async formId => {
-		const appVersion = await getVersion();
-		const buildNumber = await getBuildNumber();
-		const systemName = await getSystemName();
-		const systemVersion = systemName === 'Android' ? await getApiLevel() : await getSystemVersion();
-		this.handleURL(
-			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`
-		);
+		this.goToBrowserUrl('https://metamask.zendesk.com/hc/en-us/requests/new', strings('drawer.metamask_support'));
 	};
 
 	showHelp = () => {
@@ -796,23 +749,32 @@ class DrawerView extends PureComponent {
 		const { selectedAddress } = this.props;
 		Share.open({
 			message: generateUniversalLinkAddress(selectedAddress)
-		}).catch(err => {
-			Logger.log('Error while trying to share address', err);
-		});
+		})
+			.then(() => {
+				this.props.protectWalletModalVisible();
+			})
+			.catch(err => {
+				Logger.log('Error while trying to share address', err);
+			});
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
-	};
-
-	onSecureWalletModalAction = () => {
-		this.setState({ showSecureWalletModal: false });
-		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('SetPasswordFlow');
-		});
 	};
 
 	findRouteNameFromNavigatorState({ routes }) {
 		let route = routes[routes.length - 1];
-		while (route.index !== undefined) route = route.routes[route.index];
+		while (route.index !== undefined) {
+			route = route.routes[route.index];
+		}
 		return route.routeName;
+	}
+
+	findBottomTabRouteNameFromNavigatorState({ routes }) {
+		let route = routes[routes.length - 1];
+		let routeName;
+		while (route.index !== undefined) {
+			routeName = route.routeName;
+			route = route.routes[route.index];
+		}
+		return routeName;
 	}
 
 	/**
@@ -826,6 +788,40 @@ class DrawerView extends PureComponent {
 			step === 5 && <OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.browserSectionRef} />
 		);
 	};
+
+	onSecureWalletModalAction = () => {
+		this.setState({ showProtectWalletModal: false });
+		this.props.navigation.navigate(this.props.passwordSet ? 'AccountBackupStep1' : 'SetPasswordFlow');
+	};
+
+	renderProtectModal = () => (
+		<Modal
+			isVisible={this.state.showProtectWalletModal}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={600}
+			animationOutTiming={600}
+		>
+			<View style={styles.protectWalletContainer}>
+				<View style={styles.protectWalletIconContainer}>
+					<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
+				</View>
+				<Text style={styles.protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
+				<Text style={styles.protectWalletContent}>
+					{!this.props.passwordSet
+						? strings('protect_your_wallet_modal.body_for_password')
+						: strings('protect_your_wallet_modal.body_for_seedphrase')}
+				</Text>
+				<View style={styles.protectWalletButtonWrapper}>
+					<StyledButton type={'confirm'} onPress={this.onSecureWalletModalAction}>
+						{strings('protect_your_wallet_modal.button')}
+					</StyledButton>
+				</View>
+			</View>
+		</Modal>
+	);
 
 	render() {
 		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency, ticker } = this.props;
@@ -995,21 +991,6 @@ class DrawerView extends PureComponent {
 					/>
 				</Modal>
 				{this.renderOnboardingWizard()}
-				<ActionModal
-					modalVisible={this.state.submitFeedback}
-					confirmText={strings('drawer.submit_bug')}
-					cancelText={strings('drawer.submit_general_feedback')}
-					onCancelPress={this.goToGeneralFeedback}
-					onRequestClose={this.closeSubmitFeedback}
-					onConfirmPress={this.goToBugFeedback}
-					cancelButtonMode={'confirm'}
-					confirmButtonMode={'confirm'}
-				>
-					<View style={styles.modalView}>
-						<Text style={styles.modalTitle}>{strings('drawer.submit_feedback')}</Text>
-						<Text style={styles.modalText}>{strings('drawer.submit_feedback_message')}</Text>
-					</View>
-				</ActionModal>
 				<Modal
 					isVisible={this.props.receiveModalVisible}
 					onBackdropPress={this.toggleReceiveModal}
@@ -1019,29 +1000,13 @@ class DrawerView extends PureComponent {
 					propagateSwipe
 					style={styles.bottomModal}
 				>
-					<ReceiveRequest navigation={this.props.navigation} showReceiveModal={this.showReceiveModal} />
+					<ReceiveRequest
+						navigation={this.props.navigation}
+						hideModal={this.toggleReceiveModal}
+						showReceiveModal={this.showReceiveModal}
+					/>
 				</Modal>
-				{!this.props.passwordSet && (
-					<CustomAlert
-						headerStyle={{ backgroundColor: colors.red }}
-						headerContent={
-							<Image
-								source={require('../../../images/lock.png')}
-								style={styles.secureModalImage}
-								resizeMethod={'auto'}
-							/>
-						}
-						titleText={strings('secure_your_wallet_modal.title')}
-						buttonText={strings('secure_your_wallet_modal.button')}
-						onPress={this.onSecureWalletModalAction}
-						isVisible={this.state.showSecureWalletModal}
-					>
-						<Text style={styles.secureModalText}>
-							{strings('secure_your_wallet_modal.body')}
-							<Text style={styles.bold}>{strings('secure_your_wallet_modal.required')}</Text>
-						</Text>
-					</CustomAlert>
-				)}
+				{this.renderProtectModal()}
 			</View>
 		);
 	}
@@ -1062,7 +1027,11 @@ const mapStateToProps = state => ({
 	wizard: state.wizard,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	seedphraseBackedUp: state.user.seedphraseBackedUp
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -1070,7 +1039,8 @@ const mapDispatchToProps = dispatch => ({
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
 	showAlert: config => dispatch(showAlert(config)),
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
+	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 
 export default connect(

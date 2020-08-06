@@ -29,8 +29,9 @@ import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import NotificationManager from './NotificationManager';
 import contractMap from 'eth-contract-metadata';
+import Logger from '../util/Logger';
 
-const OPENSEA_API_KEY = process.env['MM_OPENSEA_KEY']; // eslint-disable-line dot-notation
+const OPENSEA_API_KEY = process.env.MM_OPENSEA_KEY;
 const encryptor = new Encryptor();
 let refreshing = false;
 /**
@@ -191,7 +192,10 @@ class Engine {
 				allLastIncomingTxBlocks[`${selectedAddress}`] = {};
 			}
 			//Fetch txs and get the new lastIncomingTxBlock number
-			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, blockNumber);
+			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, {
+				blockNumber,
+				alethioApiKey: process.env.MM_ALETHIO_KEY
+			});
 			// Check if it's a newer block and store it so next time we ask for the newer txs only
 			if (
 				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] &&
@@ -213,7 +217,7 @@ class Engine {
 			}
 			await AsyncStorage.setItem('@MetaMask:lastIncomingTxBlockInfo', JSON.stringify(allLastIncomingTxBlocks));
 		} catch (e) {
-			console.log('Error while fetching all txs', e); // eslint-disable-line
+			Logger.log('Error while fetching all txs', e);
 		}
 	};
 
@@ -288,7 +292,7 @@ class Engine {
 		});
 	};
 
-	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
+	sync = async ({ accounts, preferences, network, transactions, seed, pass, importedAccounts }) => {
 		const {
 			KeyringController,
 			PreferencesController,
@@ -306,6 +310,12 @@ class Engine {
 			await KeyringController.addNewAccount();
 		}
 
+		// Recreate imported accounts
+		if (importedAccounts) {
+			for (let i = 0; i < importedAccounts.length; i++) {
+				await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
+			}
+		}
 		// Sync tokens
 		const allTokens = {};
 		Object.keys(preferences.accountTokens).forEach(address => {
@@ -331,11 +341,12 @@ class Engine {
 		const updatedPref = { ...preferences, identities: {} };
 		Object.keys(preferences.identities).forEach(address => {
 			const checksummedAddress = toChecksumAddress(address);
-			if (accounts.hd.includes(checksummedAddress)) {
+			if (accounts.hd.includes(checksummedAddress) || accounts.simpleKeyPair.includes(checksummedAddress)) {
 				updatedPref.identities[checksummedAddress] = preferences.identities[address];
 			}
 		});
 		await PreferencesController.update(updatedPref);
+
 		if (accounts.hd.includes(toChecksumAddress(updatedPref.selectedAddress))) {
 			PreferencesController.setSelectedAddress(updatedPref.selectedAddress);
 		} else {

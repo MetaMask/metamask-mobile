@@ -35,7 +35,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -48,7 +48,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -89,7 +89,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -102,7 +102,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -138,13 +138,66 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Get incoming transactions
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 18,
+          }
+        }
+      >
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
       testID="clear-privacy-section"
     >
       <Text
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -157,7 +210,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -187,7 +240,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         type="normal"
       >
-        CLEAR PRIVACY DATA
+        Clear privacy data
       </StyledButton>
     </View>
     <View
@@ -201,7 +254,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -214,7 +267,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -244,7 +297,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         type="normal"
       >
-        CLEAR BROWSER HISTORY
+        Clear browser history
       </StyledButton>
     </View>
     <View
@@ -259,7 +312,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -272,7 +325,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -354,21 +407,21 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
           }
         }
       >
-        Show Private Key for "Account 1"
+        Show private key for "Account 1"
       </Text>
       <Text
         style={
           Array [
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -380,7 +433,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           ]
         }
       >
-        This is the private key for the current selected account: Account 1. Never disclose this key. Anyone with your private keys can take steal any assets held in your account.
+        This is the private key for the current selected account: Account 1. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
       </Text>
       <StyledButton
         containerStyle={
@@ -401,7 +454,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         type="danger"
       >
-        SHOW PRIVATE KEY
+        Show private key
       </StyledButton>
     </View>
     <View
@@ -415,7 +468,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
@@ -423,14 +476,14 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         testID="reveal-seed-title"
       >
-        Reveal Seed Phrase
+        Reveal seed phrase
       </Text>
       <Text
         style={
           Array [
             Object {
               "color": "#6a737d",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
@@ -442,7 +495,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           ]
         }
       >
-        This is your wallet's 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE.
+        This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.
       </Text>
       <StyledButton
         containerStyle={
@@ -464,7 +517,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         testID="reveal-seedphrase-button"
         type="danger"
       >
-        REVEAL SEED PHRASE
+        Reveal seed phrase
       </StyledButton>
     </View>
     <ActionModal
@@ -496,7 +549,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 22,
               "fontWeight": "600",
               "marginBottom": 20,
@@ -509,7 +562,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 18,
               "fontWeight": "400",
               "textAlign": "center",
@@ -549,7 +602,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 22,
               "fontWeight": "600",
               "marginBottom": 20,
@@ -562,7 +615,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           style={
             Object {
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 18,
               "fontWeight": "400",
               "textAlign": "center",

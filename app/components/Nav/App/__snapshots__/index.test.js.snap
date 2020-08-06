@@ -196,13 +196,11 @@ exports[`App should render correctly 1`] = `
                     "SetPasswordFlow": Object {
                       "childRouters": Object {
                         "AccountBackupStep1": null,
-                        "AccountBackupStep2": null,
-                        "AccountBackupStep3": null,
-                        "AccountBackupStep4": null,
-                        "AccountBackupStep5": null,
-                        "AccountBackupStep6": null,
+                        "AccountBackupStep1B": null,
                         "ChoosePassword": null,
-                        "ProtectYourAccount": null,
+                        "ManualBackupStep1": null,
+                        "ManualBackupStep2": null,
+                        "ManualBackupStep3": null,
                       },
                       "getActionCreators": [Function],
                       "getActionForPathAndParams": [Function],
@@ -275,9 +273,15 @@ exports[`App should render correctly 1`] = `
               "childRouters": Object {
                 "OnboardingNav": Object {
                   "childRouters": Object {
+                    "AccountBackupStep1": null,
+                    "AccountBackupStep1B": null,
+                    "ChoosePassword": null,
                     "CreateWallet": null,
                     "ImportFromSeed": null,
                     "ImportWallet": null,
+                    "ManualBackupStep1": null,
+                    "ManualBackupStep2": null,
+                    "ManualBackupStep3": null,
                     "Onboarding": null,
                     "OnboardingCarousel": null,
                     "OptinMetrics": null,
@@ -326,7 +330,6 @@ exports[`App should render correctly 1`] = `
         "setParams": [Function],
         "state": Object {
           "index": 0,
-          "isTransitioning": false,
           "routes": Array [
             Object {
               "key": "Entry",
@@ -339,7 +342,6 @@ exports[`App should render correctly 1`] = `
               "index": 0,
               "isDrawerIdle": true,
               "isDrawerOpen": false,
-              "isTransitioning": false,
               "key": "HomeNav",
               "openId": 0,
               "params": undefined,
@@ -354,7 +356,6 @@ exports[`App should render correctly 1`] = `
                   "routes": Array [
                     Object {
                       "index": 0,
-                      "isTransitioning": false,
                       "key": "id-123-4",
                       "routeName": "Home",
                       "routes": Array [
@@ -650,13 +651,11 @@ exports[`App should render correctly 1`] = `
                       "SetPasswordFlow": Object {
                         "childRouters": Object {
                           "AccountBackupStep1": null,
-                          "AccountBackupStep2": null,
-                          "AccountBackupStep3": null,
-                          "AccountBackupStep4": null,
-                          "AccountBackupStep5": null,
-                          "AccountBackupStep6": null,
+                          "AccountBackupStep1B": null,
                           "ChoosePassword": null,
-                          "ProtectYourAccount": null,
+                          "ManualBackupStep1": null,
+                          "ManualBackupStep2": null,
+                          "ManualBackupStep3": null,
                         },
                         "getActionCreators": [Function],
                         "getActionForPathAndParams": [Function],
@@ -729,9 +728,15 @@ exports[`App should render correctly 1`] = `
                 "childRouters": Object {
                   "OnboardingNav": Object {
                     "childRouters": Object {
+                      "AccountBackupStep1": null,
+                      "AccountBackupStep1B": null,
+                      "ChoosePassword": null,
                       "CreateWallet": null,
                       "ImportFromSeed": null,
                       "ImportWallet": null,
+                      "ManualBackupStep1": null,
+                      "ManualBackupStep2": null,
+                      "ManualBackupStep3": null,
                       "Onboarding": null,
                       "OnboardingCarousel": null,
                       "OptinMetrics": null,
@@ -780,7 +785,6 @@ exports[`App should render correctly 1`] = `
           "setParams": [Function],
           "state": Object {
             "index": 0,
-            "isTransitioning": false,
             "routes": Array [
               Object {
                 "key": "Entry",
@@ -793,7 +797,6 @@ exports[`App should render correctly 1`] = `
                 "index": 0,
                 "isDrawerIdle": true,
                 "isDrawerOpen": false,
-                "isTransitioning": false,
                 "key": "HomeNav",
                 "openId": 0,
                 "params": undefined,
@@ -808,7 +811,6 @@ exports[`App should render correctly 1`] = `
                     "routes": Array [
                       Object {
                         "index": 0,
-                        "isTransitioning": false,
                         "key": "id-123-4",
                         "routeName": "Home",
                         "routes": Array [

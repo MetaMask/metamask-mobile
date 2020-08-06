@@ -5,12 +5,13 @@ import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
-import { toBN, BNToHex, hexToBN, fromWei, toTokenMinimalUnit } from '../../../util/number';
+import { toBN, BNToHex, hexToBN, fromWei, fromTokenMinimalUnit } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import { resetTransaction, setTransactionObject } from '../../../actions/transaction';
+import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
 import NetworkList, { getNetworkTypeById } from '../../../util/networks';
 import contractMap from 'eth-contract-metadata';
@@ -98,7 +99,15 @@ class Send extends PureComponent {
 		/**
 		 * Object containing token balances in the format address => balance
 		 */
-		contractBalances: PropTypes.object
+		contractBalances: PropTypes.object,
+		/**
+		/* Hides or shows dApp transaction modal
+		*/
+		toggleDappTransactionModal: PropTypes.func,
+		/**
+		/* dApp transaction modal visible or not
+		*/
+		dappTransactionModalVisible: PropTypes.bool
 	};
 
 	state = {
@@ -152,7 +161,9 @@ class Send extends PureComponent {
 		const {
 			navigation,
 			transaction: { assetType, selectedAsset },
-			contractBalances
+			contractBalances,
+			dappTransactionModalVisible,
+			toggleDappTransactionModal
 		} = this.props;
 		navigation &&
 			navigation.setParams({
@@ -160,6 +171,7 @@ class Send extends PureComponent {
 				dispatch: this.onModeChange,
 				disableModeChange: assetType === 'ERC20' && contractBalances[selectedAsset.address] === undefined
 			});
+		dappTransactionModalVisible && toggleDappTransactionModal();
 		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
@@ -233,7 +245,6 @@ class Send extends PureComponent {
 		parameters = null
 	}) => {
 		const { addressBook, network, identities, selectedAddress } = this.props;
-
 		if (chain_id) {
 			this.handleNetworkSwitch(chain_id);
 		}
@@ -266,7 +277,7 @@ class Send extends PureComponent {
 			case 'send-token': {
 				const selectedAsset = await this.handleTokenDeeplink(target_address);
 				const { ensRecipient, to } = this.handleNewTxMetaRecipient(parameters.address);
-				const tokenAmount = toTokenMinimalUnit(parameters.uint256 || '0', selectedAsset.decimals);
+				const tokenAmount = toBN(parameters.uint256 || '0');
 				newTxMeta = {
 					assetType: 'ERC20',
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
@@ -280,7 +291,7 @@ class Send extends PureComponent {
 						amount: BNToHex(tokenAmount)
 					}),
 					value: '0x0',
-					readableValue: parameters.uint256 || '0'
+					readableValue: fromTokenMinimalUnit(parameters.uint256 || '0', selectedAsset.decimals) || '0'
 				};
 				newTxMeta.transactionToName = getTransactionToName({
 					addressBook,
@@ -644,13 +655,15 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	network: state.engine.backgroundState.NetworkController.network,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	dappTransactionModalVisible: state.modals.dappTransactionModalVisible
 });
 
 const mapDispatchToProps = dispatch => ({
 	resetTransaction: () => dispatch(resetTransaction()),
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
-	showAlert: config => dispatch(showAlert(config))
+	showAlert: config => dispatch(showAlert(config)),
+	toggleDappTransactionModal: () => dispatch(toggleDappTransactionModal())
 });
 
 export default connect(

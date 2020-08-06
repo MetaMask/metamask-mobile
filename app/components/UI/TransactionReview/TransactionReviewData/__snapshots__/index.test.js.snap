@@ -3,105 +3,184 @@
 exports[`TransactionReviewData should render correctly 1`] = `
 <View
   style={
-    Object {
-      "paddingHorizontal": 24,
-    }
+    Array [
+      Object {
+        "paddingBottom": 48,
+        "paddingHorizontal": 24,
+        "paddingTop": 24,
+      },
+      Object {
+        "height": undefined,
+      },
+    ]
   }
 >
   <View
     style={
-      Array [
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginBottom": 28,
+        "width": "100%",
+      }
+    }
+  >
+    <TouchableOpacity>
+      <Icon
+        allowFontScaling={false}
+        color="#000000"
+        name="ios-arrow-back"
+        size={24}
+      />
+    </TouchableOpacity>
+    <Text
+      style={
         Object {
-          "paddingVertical": 15,
-        },
-        Object {
-          "borderBottomWidth": 1,
-          "borderColor": "#bbc0c5",
-        },
-      ]
+          "alignSelf": "center",
+          "color": "#000000",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 14,
+          "fontWeight": "600",
+        }
+      }
+    >
+      Data
+    </Text>
+    <Icon
+      allowFontScaling={false}
+      color="#FFFFFF"
+      name="ios-arrow-back"
+      size={24}
+    />
+  </View>
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "marginBottom": 28,
+        "textAlign": "center",
+      }
+    }
+  >
+    Data associated with this transaction
+  </Text>
+  <View
+    style={
+      Object {
+        "borderColor": "#bbc0c5",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flex": 1,
+        "padding": 12,
+      }
     }
   >
     <View
       style={
         Object {
-          "flex": 0,
-          "paddingRight": 18,
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
+          "marginBottom": 12,
         }
       }
     >
       <Text
         style={
-          Object {
-            "color": "#848c96",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 12,
-            "fontWeight": "600",
-          }
+          Array [
+            Object {
+              "color": "#000000",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+            },
+            Object {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontWeight": "600",
+            },
+          ]
         }
       >
-        FUNCTION TYPE
+        Function
+        :
+         
       </Text>
       <Text
         style={
           Object {
             "color": "#000000",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 12,
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
             "fontWeight": "400",
-            "padding": 16,
           }
         }
       />
     </View>
-  </View>
-  <View
-    style={
-      Object {
-        "paddingVertical": 15,
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+          },
+          Object {
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontWeight": "600",
+          },
+        ]
       }
-    }
-  >
+    >
+      Hex data
+      : 
+    </Text>
     <View
       style={
         Object {
-          "flex": 0,
-          "paddingRight": 18,
+          "flex": 1,
         }
       }
     >
-      <Text
+      <KeyboardAwareScrollViewMock
+        enableAutomaticScroll={true}
+        enableOnAndroid={false}
+        enableResetScrollToCoords={true}
+        extraHeight={75}
+        extraScrollHeight={0}
+        keyboardOpeningTime={250}
         style={
           Object {
-            "color": "#848c96",
-            "fontFamily": "CircularStd-Medium",
-            "fontSize": 12,
-            "fontWeight": "600",
+            "flex": 1,
           }
         }
+        viewIsInsideTabBar={false}
       >
-        HEX DATA
-        :
-      </Text>
+        <TouchableWithoutFeedback
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "color": "#000000",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "paddingTop": 0,
+              }
+            }
+          />
+        </TouchableWithoutFeedback>
+      </KeyboardAwareScrollViewMock>
     </View>
-    <TextInput
-      editable={false}
-      multiline={true}
-      placeholder="Optional"
-      placeholderTextColor="#d6d9dc"
-      style={
-        Object {
-          "backgroundColor": "#FFFFFF",
-          "color": "#000000",
-          "flex": 1,
-          "fontFamily": "CircularStd-Medium",
-          "fontSize": 12,
-          "fontWeight": "400",
-          "minHeight": 64,
-          "padding": 16,
-        }
-      }
-      value=""
-    />
   </View>
 </View>
 `;

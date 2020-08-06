@@ -146,7 +146,7 @@ exports[`SendTo should render correctly 1`] = `
       style={
         Object {
           "flex": 1,
-          "paddingHorizontal": 24,
+          "padding": 24,
         }
       }
     >
@@ -154,7 +154,6 @@ exports[`SendTo should render correctly 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "flex": 1,
             "flexDirection": "row",
           }
         }
@@ -171,7 +170,7 @@ exports[`SendTo should render correctly 1`] = `
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 24,
                 "fontWeight": "400",
                 "marginBottom": 24,
@@ -184,7 +183,7 @@ exports[`SendTo should render correctly 1`] = `
             style={
               Object {
                 "color": "#5B5D67",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "marginBottom": 24,
@@ -201,7 +200,6 @@ exports[`SendTo should render correctly 1`] = `
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 50,
-                "margin": 10,
                 "width": "100%",
               }
             }
@@ -228,10 +226,9 @@ exports[`SendTo should render correctly 1`] = `
                 style={
                   Object {
                     "color": "#000000",
-                    "fontFamily": "CircularStd-Medium",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 20,
                     "fontWeight": "400",
-                    "width": "100%",
                   }
                 }
                 testID="address-alias-input"

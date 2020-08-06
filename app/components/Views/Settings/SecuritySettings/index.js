@@ -8,7 +8,7 @@ import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import { clearHistory } from '../../../../actions/browser';
-import { clearHosts, setPrivacyMode } from '../../../../actions/privacy';
+import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
 import { colors, fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import Device from '../../../../util/Device';
@@ -100,6 +100,14 @@ class Settings extends PureComponent {
 		 * Called to toggle privacy mode
 		 */
 		setPrivacyMode: PropTypes.func,
+		/**`
+		 * Called to toggle set party api mode
+		 */
+		setThirdPartyApiMode: PropTypes.func,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool,
 		/**
 		 * Boolean that determines if the user has set a password before
 		 */
@@ -408,6 +416,10 @@ class Settings extends PureComponent {
 		this.props.setPrivacyMode(value);
 	};
 
+	toggleThirdPartyAPI = value => {
+		this.props.setThirdPartyApiMode(value);
+	};
+
 	toggleMetricsOptIn = async value => {
 		if (value) {
 			Analytics.enable();
@@ -435,7 +447,7 @@ class Settings extends PureComponent {
 	};
 
 	render = () => {
-		const { approvedHosts, browserHistory, privacyMode } = this.props;
+		const { approvedHosts, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
 		const { approvalModalVisible, biometryType, browserHistoryModalVisible, metricsOptIn } = this.state;
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
@@ -466,6 +478,18 @@ class Settings extends PureComponent {
 							/>
 						</View>
 					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.third_party_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.third_party_description')}</Text>
+						<View style={styles.switchElement}>
+							<Switch
+								value={thirdPartyApiMode}
+								onValueChange={this.toggleThirdPartyAPI}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								ios_backgroundColor={colors.grey000}
+							/>
+						</View>
+					</View>
 					<View style={styles.setting} testID={'clear-privacy-section'}>
 						<Text style={styles.title}>{strings('app_settings.clear_privacy_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.clear_privacy_desc')}</Text>
@@ -475,7 +499,7 @@ class Settings extends PureComponent {
 							disabled={Object.keys(approvedHosts).length === 0}
 							containerStyle={styles.clearApprovedConfirm}
 						>
-							{strings('app_settings.clear_privacy_title').toUpperCase()}
+							{strings('app_settings.clear_privacy_title')}
 						</StyledButton>
 					</View>
 					<View style={styles.setting}>
@@ -487,7 +511,7 @@ class Settings extends PureComponent {
 							disabled={browserHistory.length === 0}
 							containerStyle={styles.clearHistoryConfirm}
 						>
-							{strings('app_settings.clear_browser_history_desc').toUpperCase()}
+							{strings('app_settings.clear_browser_history_desc')}
 						</StyledButton>
 					</View>
 					<View style={styles.setting} testID={'auto-lock-section'}>
@@ -554,7 +578,7 @@ class Settings extends PureComponent {
 							onPress={this.goToExportPrivateKey}
 							containerStyle={styles.clearHistoryConfirm}
 						>
-							{strings('reveal_credential.show_private_key').toUpperCase()}
+							{strings('reveal_credential.show_private_key')}
 						</StyledButton>
 					</View>
 					<View style={styles.setting}>
@@ -568,7 +592,7 @@ class Settings extends PureComponent {
 							onPress={this.goToRevealPrivateCredential}
 							containerStyle={styles.clearHistoryConfirm}
 						>
-							{strings('reveal_credential.seed_phrase_title').toUpperCase()}
+							{strings('reveal_credential.seed_phrase_title')}
 						</StyledButton>
 					</View>
 					<ActionModal
@@ -614,6 +638,7 @@ const mapStateToProps = state => ({
 	browserHistory: state.browser.history,
 	lockTime: state.settings.lockTime,
 	privacyMode: state.privacy.privacyMode,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
@@ -626,6 +651,7 @@ const mapDispatchToProps = dispatch => ({
 	clearHosts: () => dispatch(clearHosts()),
 	setLockTime: lockTime => dispatch(setLockTime(lockTime)),
 	setPrivacyMode: enabled => dispatch(setPrivacyMode(enabled)),
+	setThirdPartyApiMode: enabled => dispatch(setThirdPartyApiMode(enabled)),
 	passwordSet: () => dispatch(passwordSet())
 });
 

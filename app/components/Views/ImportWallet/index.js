@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 30,
+		paddingHorizontal: 32,
 		alignItems: 'center'
 	},
 	foxWrapper: {
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-notation
+const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 /**
  * View where users can decide how to import their wallet
@@ -138,26 +138,18 @@ class ImportWallet extends PureComponent {
 	};
 
 	seedwords = null;
+	importedAccounts = null;
 	channelName = null;
 	incomingDataStr = '';
 	dataToSync = null;
 	mounted = false;
 
 	state = {
-		loading: false,
-		existingUser: false
+		loading: false
 	};
-
-	async checkIfExistingUser() {
-		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
-		if (existingUser !== null) {
-			this.setState({ existingUser: true });
-		}
-	}
 
 	componentDidMount() {
 		this.mounted = true;
-		this.checkIfExistingUser();
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot.forbid();
 		});
@@ -236,9 +228,10 @@ class ImportWallet extends PureComponent {
 			},
 			data => {
 				this.incomingDataStr = null;
-				const { pwd, seed } = data.udata;
+				const { pwd, seed, importedAccounts } = data.udata;
 				this.password = pwd;
 				this.seedWords = seed;
+				this.importedAccounts = importedAccounts;
 				delete data.udata;
 				this.dataToSync = { ...data };
 				this.pubnubWrapper.endSync(() => this.disconnect());
@@ -334,7 +327,12 @@ class ImportWallet extends PureComponent {
 		try {
 			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
 			await Engine.resetState();
-			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: opts.password });
+			await Engine.sync({
+				...this.dataToSync,
+				seed: this.seedWords,
+				importedAccounts: this.importedAccounts,
+				pass: opts.password
+			});
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -350,48 +348,18 @@ class ImportWallet extends PureComponent {
 		}
 	};
 
-	alertExistingUser = callback => {
-		Alert.alert(
-			strings('sync_with_extension.warning_title'),
-			strings('sync_with_extension.warning_message'),
-			[
-				{ text: strings('sync_with_extension.warning_cancel_button'), onPress: () => false, style: 'cancel' },
-				{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => callback() }
-			],
-			{ cancelable: false }
-		);
-	};
-
 	onPressImport = () => {
-		const { existingUser } = this.state;
-		const action = () => {
-			this.props.navigation.push('ImportFromSeed');
-			InteractionManager.runAfterInteractions(async () => {
-				if (Analytics.getEnabled()) {
-					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WITH_SEEDPHRASE);
-					return;
-				}
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-				if (!metricsOptIn) {
-					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WITH_SEEDPHRASE);
-				}
-			});
-		};
-		if (existingUser) {
-			this.alertExistingUser(action);
-		} else {
-			action();
-		}
-	};
-
-	safeSync = () => {
-		const { existingUser } = this.state;
-		const action = () => this.onPressSync();
-		if (existingUser) {
-			this.alertExistingUser(action);
-		} else {
-			action();
-		}
+		this.props.navigation.push('ImportFromSeed');
+		InteractionManager.runAfterInteractions(async () => {
+			if (Analytics.getEnabled()) {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WITH_SEEDPHRASE);
+				return;
+			}
+			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			if (!metricsOptIn) {
+				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WITH_SEEDPHRASE);
+			}
+		});
 	};
 
 	onPressSync = () => {
@@ -441,7 +409,7 @@ class ImportWallet extends PureComponent {
 					</View>
 					<View style={styles.ctaWrapper}>
 						<View style={styles.flexGrow}>
-							<StyledButton type={'blue'} onPress={this.safeSync} testID={'onboarding-import-button'}>
+							<StyledButton type={'blue'} onPress={this.onPressSync} testID={'onboarding-import-button'}>
 								{strings('import_wallet.sync_from_browser_extension_button')}
 							</StyledButton>
 						</View>

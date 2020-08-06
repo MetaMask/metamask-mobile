@@ -193,8 +193,16 @@ const styles = StyleSheet.create({
 		borderTopRightRadius: 20,
 		width: '100%',
 		backgroundColor: colors.white,
-		paddingTop: 24,
-		paddingHorizontal: 24
+		paddingTop: 24
+	},
+	totalAmount: {
+		...fontStyles.normal,
+		color: colors.fontPrimary,
+		fontSize: 14,
+		textAlign: 'right',
+		textTransform: 'uppercase',
+		flexWrap: 'wrap',
+		flex: 1
 	}
 });
 
@@ -382,8 +390,16 @@ class Confirm extends PureComponent {
 			transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
-			transactionTotalAmount = `${renderFromWei(transactionTotalAmountBN)} ${parsedTicker}`;
-			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
+			transactionTotalAmount = (
+				<Text style={styles.totalAmount}>
+					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
+				</Text>
+			);
+			transactionTotalAmountFiat = (
+				<Text style={styles.totalAmount}>
+					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
+				</Text>
+			);
 			transactionTo = to;
 		} else if (selectedAsset.tokenId) {
 			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${parsedTicker}`;
@@ -403,8 +419,16 @@ class Confirm extends PureComponent {
 			}
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
-			transactionTotalAmount = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
-			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
+			transactionTotalAmount = (
+				<Text style={styles.totalAmount}>
+					{renderFromWei(weiTransactionFee)} {parsedTicker}
+				</Text>
+			);
+			transactionTotalAmountFiat = (
+				<Text style={styles.totalAmount}>
+					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
+				</Text>
+			);
 		} else {
 			let amount;
 			const { address, symbol = 'ERC20', decimals } = selectedAsset;
@@ -412,7 +436,7 @@ class Confirm extends PureComponent {
 				contractBalances[address] ? contractBalances[address] : '0',
 				decimals
 			)} ${symbol}`;
-			[transactionTo, , amount] = decodeTransferData('transfer', data);
+			[transactionTo, amount] = decodeTransferData('transfer', data);
 			const transferValue = renderFromTokenMinimalUnit(amount, decimals);
 			transactionValue = `${transferValue} ${symbol}`;
 			const exchangeRate = contractExchangeRates[address];
@@ -420,11 +444,15 @@ class Confirm extends PureComponent {
 			transactionValueFiat =
 				balanceToFiat(transferValue, conversionRate, exchangeRate, currentCurrency) || `0 ${currentCurrency}`;
 			const transactionValueFiatNumber = balanceToFiatNumber(transferValue, conversionRate, exchangeRate);
-			transactionTotalAmount = `${transactionValue} + ${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
-			transactionTotalAmountFiat = renderFiatAddition(
-				transactionValueFiatNumber,
-				transactionFeeFiatNumber,
-				currentCurrency
+			transactionTotalAmount = (
+				<Text style={styles.totalAmount}>
+					{transactionValue} + ${renderFromWei(weiTransactionFee)} {parsedTicker}
+				</Text>
+			);
+			transactionTotalAmountFiat = (
+				<Text style={styles.totalAmount}>
+					{renderFiatAddition(transactionValueFiatNumber, transactionFeeFiatNumber, currentCurrency)}
+				</Text>
 			);
 		}
 
@@ -871,13 +899,12 @@ class Confirm extends PureComponent {
 			transactionFeeFiat = '',
 			transactionFee,
 			transactionTo = '',
-			transactionTotalAmount = '',
-			transactionTotalAmountFiat = '',
+			transactionTotalAmount = <Text />,
+			transactionTotalAmountFiat = <Text />,
 			errorMessage,
 			transactionConfirmed,
 			paymentChannelBalance
 		} = this.state;
-
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
