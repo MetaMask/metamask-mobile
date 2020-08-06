@@ -16,7 +16,7 @@ export const getSeedPhrase = async (password = '') => {
  *
  * @param password - Password to recreate and set the vault with
  */
-export const recreateVault = async (password = '') => {
+export const recreateVault = async (password = '', selectedAddress) => {
 	const { KeyringController, PreferencesController } = Engine.context;
 	const seedPhrase = await getSeedPhrase(password);
 	// Recreate keyring with password given to this method
@@ -25,7 +25,6 @@ export const recreateVault = async (password = '') => {
 	// Get props to restore vault
 	const hdKeyring = KeyringController.state.keyrings[0];
 	const existingAccountCount = hdKeyring.accounts.length;
-	const selectedAddress = this.props.selectedAddress;
 	let preferencesControllerState = PreferencesController.state;
 
 	// Create previous accounts again

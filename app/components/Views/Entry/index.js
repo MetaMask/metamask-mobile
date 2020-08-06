@@ -77,7 +77,11 @@ class Entry extends PureComponent {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * A string representing the selected address => account
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -165,7 +169,7 @@ class Entry extends PureComponent {
 				await KeyringController.submitPassword(credentials.password);
 				const encryptionLib = await AsyncStorage.getItem('@MetaMask:encryptionLib');
 				if (encryptionLib !== 'original') {
-					await recreateVault(credentials.password);
+					await recreateVault(credentials.password, this.props.selectedAddress);
 					await AsyncStorage.setItem('@MetaMask:encryptionLib', 'original');
 				}
 				// Get onboarding wizard state
@@ -239,7 +243,8 @@ const mapDispatchToProps = dispatch => ({
 });
 
 const mapStateToProps = state => ({
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(

@@ -28,7 +28,10 @@ export default class Encryptor {
 		return Aes.encrypt(text, keyBase64, iv).then(cipher => ({ cipher, iv }));
 	};
 
-	_decryptWithKey = (encryptedData, key) => Aes.decrypt(encryptedData.cipher, key, encryptedData.iv);
+	_decryptWithKey = (encryptedData, key, lib) =>
+		lib === 'original'
+			? Aes.decrypt(encryptedData.cipher, key, encryptedData.iv)
+			: AesForked.decrypt(encryptedData.cipher, key, encryptedData.iv);
 
 	/**
 	 * Encrypts a JS object using a password (and AES encryption with native libraries)
@@ -57,8 +60,7 @@ export default class Encryptor {
 	decrypt = async (password, encryptedString) => {
 		const encryptedData = JSON.parse(encryptedString);
 		const key = await this._keyFromPassword(password, encryptedData.salt, encryptedData.lib);
-		const data = await this._decryptWithKey(encryptedData, key);
-
+		const data = await this._decryptWithKey(encryptedData, key, encryptedData.lib);
 		return JSON.parse(data);
 	};
 }

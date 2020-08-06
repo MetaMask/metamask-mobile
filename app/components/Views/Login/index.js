@@ -122,7 +122,11 @@ class Login extends PureComponent {
 		/**
 		 * Boolean flag that determines if password has been set
 		 */
-		passwordSet: PropTypes.bool
+		passwordSet: PropTypes.bool,
+		/**
+		 * A string representing the selected address => account
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -191,7 +195,7 @@ class Login extends PureComponent {
 			await KeyringController.submitPassword(this.state.password);
 			const encryptionLib = await AsyncStorage.getItem('@MetaMask:encryptionLib');
 			if (encryptionLib !== 'original') {
-				await recreateVault(this.state.password);
+				await recreateVault(this.state.password, this.props.selectedAddress);
 				await AsyncStorage.setItem('@MetaMask:encryptionLib', 'original');
 			}
 			if (this.state.biometryChoice && this.state.biometryType) {
@@ -408,7 +412,7 @@ const mapStateToProps = state => ({
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	passwordSet: state.user.passwordSet
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 const mapDispatchToProps = dispatch => ({
