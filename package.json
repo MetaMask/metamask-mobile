@@ -70,7 +70,7 @@
     "react-native-level-fs/**/bl": "^0.9.5"
   },
   "dependencies": {
-    "@metamask/controllers": "2.0.2",
+    "@metamask/controllers": "2.0.3",
     "@react-native-community/async-storage": "1.9.0",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
