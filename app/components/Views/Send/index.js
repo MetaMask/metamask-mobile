@@ -291,7 +291,7 @@ class Send extends PureComponent {
 						amount: BNToHex(tokenAmount)
 					}),
 					value: '0x0',
-					readableValue: fromTokenMinimalUnit(parameters.uint256, selectedAsset.decimals) || '0'
+					readableValue: fromTokenMinimalUnit(parameters.uint256 || '0', selectedAsset.decimals) || '0'
 				};
 				newTxMeta.transactionToName = getTransactionToName({
 					addressBook,
