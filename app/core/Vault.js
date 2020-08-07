@@ -19,6 +19,16 @@ export const getSeedPhrase = async (password = '') => {
 export const recreateVault = async (password = '', selectedAddress) => {
 	const { KeyringController, PreferencesController } = Engine.context;
 	const seedPhrase = await getSeedPhrase(password);
+	const importedAccounts = [];
+
+	// Get imported accounts
+	if (KeyringController.state.keyrings.length === 2) {
+		const simpleKeyring = KeyringController.state.keyrings[1];
+		for (let i = 0; i < simpleKeyring.accounts.length; i++) {
+			const privateKey = await KeyringController.exportAccount(password, simpleKeyring.accounts[i]);
+			importedAccounts.push(privateKey);
+		}
+	}
 	// Recreate keyring with password given to this method
 	await KeyringController.createNewVaultAndRestore(password, seedPhrase);
 
@@ -30,6 +40,11 @@ export const recreateVault = async (password = '', selectedAddress) => {
 	// Create previous accounts again
 	for (let i = 0; i < existingAccountCount - 1; i++) {
 		await KeyringController.addNewAccount();
+	}
+
+	// Import imported accounts again
+	for (let i = 0; i < importedAccounts.length; i++) {
+		await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
 	}
 
 	// Reset preferencesControllerState
