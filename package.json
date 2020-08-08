@@ -146,6 +146,7 @@
     "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "^1.6.1",
     "react-native-i18n": "2.0.15",
+    "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "0.8.0",
     "react-native-keychain": "git+https://github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f",
     "react-native-level-fs": "3.0.1",

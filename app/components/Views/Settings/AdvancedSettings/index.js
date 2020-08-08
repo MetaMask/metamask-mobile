@@ -9,7 +9,7 @@ import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { setShowHexData } from '../../../../actions/settings';
+import { setShowHexData, setUseBlockieIcon } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import { getApplicationName, getVersion, getBuildNumber } from 'react-native-device-info';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -124,7 +124,9 @@ class AdvancedSettings extends PureComponent {
 		/**
 		 * Entire redux state used to generate state logs
 		 */
-		fullState: PropTypes.object
+		fullState: PropTypes.object,
+		useBlockieIcon: PropTypes.bool,
+		setUseBlockieIcon: PropTypes.func
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -188,6 +190,10 @@ class AdvancedSettings extends PureComponent {
 
 	toggleShowHexData = showHexData => {
 		this.props.setShowHexData(showHexData);
+	};
+
+	toggleUseBlockieIcon = useuseBlockieIcon => {
+		this.props.setUseBlockieIcon(useuseBlockieIcon);
 	};
 
 	goToSyncWithExtension = () => {
@@ -265,7 +271,7 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	render = () => {
-		const { showHexData, ipfsGateway, paymentChannelsEnabled } = this.props;
+		const { showHexData, useBlockieIcon, ipfsGateway, paymentChannelsEnabled } = this.props;
 		const { resetModalVisible, onlineIpfsGateways } = this.state;
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
@@ -342,6 +348,18 @@ class AdvancedSettings extends PureComponent {
 							</View>
 						</View>
 						<View style={styles.setting}>
+							<Text style={styles.title}>{strings('app_settings.show_blockies_identicon')}</Text>
+							{/*<Text style={styles.desc}>{strings('app_settings.hex_desc')}</Text>*/}
+							<View style={styles.switchElement}>
+								<Switch
+									value={useBlockieIcon}
+									onValueChange={this.toggleUseBlockieIcon}
+									trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+									ios_backgroundColor={colors.grey000}
+								/>
+							</View>
+						</View>
+						<View style={styles.setting}>
 							<Text style={styles.title}>{strings('app_settings.state_logs')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.state_logs_desc')}</Text>
 							<StyledButton
@@ -375,12 +393,14 @@ class AdvancedSettings extends PureComponent {
 const mapStateToProps = state => ({
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	showHexData: state.settings.showHexData,
+	useBlockieIcon: state.settings.useBlockieIcon,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	fullState: state
 });
 
 const mapDispatchToProps = dispatch => ({
-	setShowHexData: showHexData => dispatch(setShowHexData(showHexData))
+	setShowHexData: showHexData => dispatch(setShowHexData(showHexData)),
+	setUseBlockieIcon: useBlockieIcon => dispatch(setUseBlockieIcon(useBlockieIcon))
 });
 
 export default connect(
