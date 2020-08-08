@@ -192,8 +192,8 @@ class AdvancedSettings extends PureComponent {
 		this.props.setShowHexData(showHexData);
 	};
 
-	toggleUseBlockieIcon = useuseBlockieIcon => {
-		this.props.setUseBlockieIcon(useuseBlockieIcon);
+	toggleUseBlockieIcon = useBlockieIcon => {
+		this.props.setUseBlockieIcon(useBlockieIcon);
 	};
 
 	goToSyncWithExtension = () => {
@@ -342,7 +342,7 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showHexData}
 									onValueChange={this.toggleShowHexData}
-									trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
@@ -354,7 +354,7 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={useBlockieIcon}
 									onValueChange={this.toggleUseBlockieIcon}
-									trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
