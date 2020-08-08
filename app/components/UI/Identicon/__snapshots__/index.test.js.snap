@@ -1,3 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Identicon should render correctly 1`] = `""`;
+exports[`Identicon should render correctly when useBlockieIcon is false 1`] = `
+<Component
+  diameter={46}
+  dispatch={[Function]}
+  useBlockieIcon={false}
+/>
+`;
+
+exports[`Identicon should render correctly when useBlockieIcon is true 1`] = `
+<Component
+  diameter={46}
+  dispatch={[Function]}
+  useBlockieIcon={true}
+/>
+`;
