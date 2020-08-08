@@ -125,7 +125,13 @@ class AdvancedSettings extends PureComponent {
 		 * Entire redux state used to generate state logs
 		 */
 		fullState: PropTypes.object,
+		/**
+		 * Show a BlockieIcon instead of JazzIcon
+		 */
 		useBlockieIcon: PropTypes.bool,
+		/**
+		 * called to toggle BlockieIcon
+		 */
 		setUseBlockieIcon: PropTypes.func
 	};
 
@@ -349,7 +355,6 @@ class AdvancedSettings extends PureComponent {
 						</View>
 						<View style={styles.setting}>
 							<Text style={styles.title}>{strings('app_settings.show_blockies_identicon')}</Text>
-							{/*<Text style={styles.desc}>{strings('app_settings.hex_desc')}</Text>*/}
 							<View style={styles.switchElement}>
 								<Switch
 									value={useBlockieIcon}
