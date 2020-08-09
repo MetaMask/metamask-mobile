@@ -637,9 +637,15 @@ export class BrowserTab extends PureComponent {
 				},
 
 				wallet_scanQRCode: async () => {
-					await new Promise(resolve => {
+					await new Promise((resolve, reject) => {
 						this.props.navigation.navigate('QRScanner', {
 							onScanSuccess: data => {
+								const regex = new RegExp(req.params[0]);
+								if (regex && !regex.exec(data)) {
+									reject({ message: 'NO_REGEX_MATCH', data });
+								} else if (!regex && !/^(0x){1}[0-9a-fA-F]{40}$/i.exec(data.target_address)) {
+									reject({ message: 'INVALID_ETHEREUM_ADDRESS', data: data.target_address });
+								}
 								let result = data;
 								if (data.target_address) {
 									result = data.target_address;
