@@ -18,26 +18,21 @@ const Identicon = React.memo(props => {
 	const { diameter, address, customStyle, noFadeIn, useBlockieIcon } = props;
 	if (!address) return null;
 
-	let image;
-	if (useBlockieIcon) {
-		const uri = toDataUrl(address);
-
-		image = (
-			<Image
-				source={{ uri }}
-				style={[
-					{
-						height: diameter,
-						width: diameter,
-						borderRadius: diameter / 2
-					},
-					customStyle
-				]}
-			/>
-		);
-	} else {
-		image = <Jazzicon size={diameter} address={address} />;
-	}
+	const image = useBlockieIcon ? (
+		<Image
+			source={toDataUrl(address)}
+			style={[
+				{
+					height: diameter,
+					width: diameter,
+					borderRadius: diameter / 2
+				},
+				customStyle
+			]}
+		/>
+	) : (
+		<Jazzicon size={diameter} address={address} />
+	);
 
 	if (noFadeIn) {
 		return image;
