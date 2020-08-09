@@ -637,19 +637,22 @@ export class BrowserTab extends PureComponent {
 				},
 
 				wallet_scanQRCode: async () => {
-					this.props.navigation.navigate('QRScanner', {
-						onScanSuccess: data => {
-							let result = data;
-							if (data.target_address) {
-								result = data.target_address;
-							} else if (data.scheme) {
-								result = JSON.stringify(data);
+					await new Promise(resolve => {
+						this.props.navigation.navigate('QRScanner', {
+							onScanSuccess: data => {
+								let result = data;
+								if (data.target_address) {
+									result = data.target_address;
+								} else if (data.scheme) {
+									result = JSON.stringify(data);
+								}
+								res.result = result;
+								resolve();
+							},
+							onScanError: e => {
+								throw ethErrors.rpc.internal(e.toString());
 							}
-							res.result = result;
-						},
-						onScanError: e => {
-							throw ethErrors.rpc.internal(e.toString());
-						}
+						});
 					});
 				},
 
@@ -671,7 +674,6 @@ export class BrowserTab extends PureComponent {
 					if (!this.isHomepage()) {
 						throw ethErrors.provider.unauthorized('Forbidden.');
 					}
-
 					Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
 						{
 							text: strings('browser.cancel'),
