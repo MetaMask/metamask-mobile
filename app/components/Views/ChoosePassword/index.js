@@ -356,16 +356,20 @@ class ChoosePassword extends PureComponent {
 		const { KeyringController, PreferencesController } = Engine.context;
 		const seedPhrase = await this.getSeedPhrase();
 
-		const importedAccounts = [];
-
+		let importedAccounts = [];
 		try {
 			// Get imported accounts
-			const simpleKeyring = KeyringController.state.keyrings.find(keyring => keyring.type === 'Simple Key Pair');
-			if (simpleKeyring) {
-				for (let i = 0; i < simpleKeyring.accounts.length; i++) {
-					const privateKey = await KeyringController.exportAccount(password, simpleKeyring.accounts[i]);
-					importedAccounts.push(privateKey);
-				}
+			const simpleKeyrings = KeyringController.state.keyrings.filter(
+				keyring => keyring.type === 'Simple Key Pair'
+			);
+			for (let i = 0; i < simpleKeyrings.length; i++) {
+				const simpleKeyring = simpleKeyrings[i];
+				const simpleKeyringAccounts = await Promise.all(
+					simpleKeyring.accounts.map(
+						async account => await KeyringController.exportAccount(password, account)
+					)
+				);
+				importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
 			}
 		} catch (e) {
 			console.warn(e);
