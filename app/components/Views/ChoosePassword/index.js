@@ -365,9 +365,7 @@ class ChoosePassword extends PureComponent {
 			for (let i = 0; i < simpleKeyrings.length; i++) {
 				const simpleKeyring = simpleKeyrings[i];
 				const simpleKeyringAccounts = await Promise.all(
-					simpleKeyring.accounts.map(
-						async account => await KeyringController.exportAccount(password, account)
-					)
+					simpleKeyring.accounts.map(account => KeyringController.exportAccount(password, account))
 				);
 				importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
 			}
