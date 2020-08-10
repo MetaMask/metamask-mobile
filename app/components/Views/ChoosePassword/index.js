@@ -358,13 +358,17 @@ class ChoosePassword extends PureComponent {
 
 		const importedAccounts = [];
 
-		// Get imported accounts
-		const simpleKeyring = KeyringController.state.keyrings.find(keyring => keyring.type === 'Simple Key Pair');
-		if (simpleKeyring) {
-			for (let i = 0; i < simpleKeyring.accounts.length; i++) {
-				const privateKey = await KeyringController.exportAccount(password, simpleKeyring.accounts[i]);
-				importedAccounts.push(privateKey);
+		try {
+			// Get imported accounts
+			const simpleKeyring = KeyringController.state.keyrings.find(keyring => keyring.type === 'Simple Key Pair');
+			if (simpleKeyring) {
+				for (let i = 0; i < simpleKeyring.accounts.length; i++) {
+					const privateKey = await KeyringController.exportAccount(password, simpleKeyring.accounts[i]);
+					importedAccounts.push(privateKey);
+				}
 			}
+		} catch (e) {
+			console.warn(e);
 		}
 
 		// Recreate keyring with password given to this method
@@ -383,9 +387,13 @@ class ChoosePassword extends PureComponent {
 			await KeyringController.addNewAccount();
 		}
 
-		// Import imported accounts again
-		for (let i = 0; i < importedAccounts.length; i++) {
-			await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
+		try {
+			// Import imported accounts again
+			for (let i = 0; i < importedAccounts.length; i++) {
+				await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
+			}
+		} catch (e) {
+			console.warn(e);
 		}
 
 		// Reset preferencesControllerState
