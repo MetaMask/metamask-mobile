@@ -244,7 +244,9 @@ const mapDispatchToProps = dispatch => ({
 
 const mapStateToProps = state => ({
 	passwordSet: state.user.passwordSet,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress:
+		state.engine.backgroundState.PreferencesController &&
+		state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(
