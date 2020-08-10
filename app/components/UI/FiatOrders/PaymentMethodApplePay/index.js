@@ -284,6 +284,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 				description: `${error instanceof WyreException ? 'Wyre: ' : ''}${error.message}`,
 				status: 'error'
 			});
+			Logger.error(error, 'FiatOrders::WyreApplePayProcessor Error');
 		} finally {
 			setLockTime(prevLockTime);
 		}
