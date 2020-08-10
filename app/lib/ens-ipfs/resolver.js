@@ -86,6 +86,8 @@ export function isGatewayUrl(urlObj) {
 	if (urlObj.pathname.substr(0, 6) === '/ipfs/') return true;
 	// All Swarm gateway urls start with the path /bzz:/
 	if (urlObj.pathname.substr(0, 6) === '/bzz:/') return true;
+	// All IPNS gateway urls start with the path /ipns/
+	if (urlObj.pathname.substr(0, 6) === '/ipns/') return true;
 
 	return false;
 }

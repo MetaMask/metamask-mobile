@@ -1027,8 +1027,9 @@ export class BrowserTab extends PureComponent {
 				}
 			} else if (type === 'swarm-ns') {
 				gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
+			} else if (type === 'ipns-ns') {
+				gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'}${query || ''}`;
 			}
-
 			return {
 				url: gatewayUrl,
 				hash,
@@ -1359,6 +1360,12 @@ export class BrowserTab extends PureComponent {
 			if (this.state.contentType === 'ipfs-ns') {
 				data.inputValue = url.replace(
 					`${ipfsGateway}${this.state.contentId}/`,
+					`https://${this.state.currentEnsName}/`
+				);
+			} else if (this.state.contentType === 'ipns-ns') {
+				console.log('this.state.contentType', url);
+				data.inputValue = url.replace(
+					`${ipfsGateway}${this.state.currentEnsName}/`,
 					`https://${this.state.currentEnsName}/`
 				);
 			} else {

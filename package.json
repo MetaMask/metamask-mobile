@@ -89,7 +89,7 @@
     "bignumber.js": "8.1.1",
     "buffer": "5.2.1",
     "connext": "4.2.5",
-    "content-hash": "2.3.2",
+    "content-hash": "2.5.2",
     "dnode": "1.2.2",
     "eth-contract-metadata": "1.15.0",
     "eth-ens-namehash": "2.0.8",
