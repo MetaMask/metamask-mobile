@@ -104,10 +104,6 @@ class AccountElement extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
-		 * List of accounts from the AccountTrackerController
-		 */
-		accounts: PropTypes.object,
-		/**
 		 * The currently selected account
 		 */
 		selectedAccount: PropTypes.object,
@@ -130,7 +126,7 @@ class AccountElement extends PureComponent {
 	};
 
 	render() {
-		const { disabled, selectedAddress, accounts, selectedAccount, selectedAccountHasBalance } = this.props;
+		const { disabled, selectedAddress, selectedAccount, selectedAccountHasBalance } = this.props;
 		const { address, balance, ticker, name, isSelected, isImported, balanceError } = this.props.item;
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
 		const imported = isImported ? (
@@ -143,7 +139,7 @@ class AccountElement extends PureComponent {
 
 		const updatedBalanceFromState =
 			balance === EMPTY && selectedAddress === address && selectedAccount && selectedAccountHasBalance
-				? accounts[selectedAddress][BALANCE_KEY]
+				? selectedAccount[BALANCE_KEY]
 				: balance;
 
 		return (
@@ -188,7 +184,6 @@ const mapStateToProps = ({
 	const selectedAccountHasBalance =
 		selectedAccount && Object.prototype.hasOwnProperty.call(selectedAccount, BALANCE_KEY);
 	return {
-		accounts,
 		selectedAddress,
 		selectedAccount,
 		selectedAccountHasBalance
