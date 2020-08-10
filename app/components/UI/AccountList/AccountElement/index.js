@@ -107,7 +107,13 @@ class AccountElement extends PureComponent {
 		 * List of accounts from the AccountTrackerController
 		 */
 		accounts: PropTypes.object,
+		/**
+		 * The currently selected account
+		 */
 		selectedAccount: PropTypes.object,
+		/**
+		 * Does the currently selected account have a balance?
+		 */
 		selectedAccountHasBalance: PropTypes.bool
 	};
 
