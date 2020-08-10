@@ -1363,7 +1363,6 @@ export class BrowserTab extends PureComponent {
 					`https://${this.state.currentEnsName}/`
 				);
 			} else if (this.state.contentType === 'ipns-ns') {
-				console.log('this.state.contentType', url);
 				data.inputValue = url.replace(
 					`${ipfsGateway}${this.state.currentEnsName}/`,
 					`https://${this.state.currentEnsName}/`
