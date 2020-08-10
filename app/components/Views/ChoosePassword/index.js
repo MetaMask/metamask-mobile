@@ -359,8 +359,8 @@ class ChoosePassword extends PureComponent {
 		const importedAccounts = [];
 
 		// Get imported accounts
-		if (KeyringController.state.keyrings.length === 2) {
-			const simpleKeyring = KeyringController.state.keyrings[1];
+		const simpleKeyring = KeyringController.state.keyrings.find(keyring => keyring.type === 'Simple Key Pair');
+		if (simpleKeyring) {
 			for (let i = 0; i < simpleKeyring.accounts.length; i++) {
 				const privateKey = await KeyringController.exportAccount(password, simpleKeyring.accounts[i]);
 				importedAccounts.push(privateKey);
