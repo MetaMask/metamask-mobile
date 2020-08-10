@@ -100,17 +100,9 @@ class AccountElement extends PureComponent {
 		disabled: PropTypes.bool,
 		item: PropTypes.object,
 		/**
-		 * Selected address as string
+		 * Updated balance using stored in state
 		 */
-		selectedAddress: PropTypes.string,
-		/**
-		 * The currently selected account
-		 */
-		selectedAccount: PropTypes.object,
-		/**
-		 * Does the currently selected account have a balance?
-		 */
-		selectedAccountHasBalance: PropTypes.bool
+		updatedBalanceFromStore: PropTypes.string
 	};
 
 	onPress = () => {
@@ -126,8 +118,8 @@ class AccountElement extends PureComponent {
 	};
 
 	render() {
-		const { disabled, selectedAddress, selectedAccount, selectedAccountHasBalance } = this.props;
-		const { address, balance, ticker, name, isSelected, isImported, balanceError } = this.props.item;
+		const { disabled, updatedBalanceFromStore } = this.props;
+		const { address, ticker, name, isSelected, isImported, balanceError } = this.props.item;
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
 		const imported = isImported ? (
 			<View style={styles.importedWrapper}>
@@ -136,11 +128,6 @@ class AccountElement extends PureComponent {
 				</Text>
 			</View>
 		) : null;
-
-		const updatedBalanceFromState =
-			balance === EMPTY && selectedAddress === address && selectedAccount && selectedAccountHasBalance
-				? selectedAccount[BALANCE_KEY]
-				: balance;
 
 		return (
 			<TouchableOpacity
@@ -158,7 +145,7 @@ class AccountElement extends PureComponent {
 						</Text>
 						<View style={styles.accountBalanceWrapper}>
 							<Text style={styles.accountBalance}>
-								{renderFromWei(updatedBalanceFromState)} {getTicker(ticker)}
+								{renderFromWei(updatedBalanceFromStore)} {getTicker(ticker)}
 							</Text>
 							{!!balanceError && (
 								<Text style={[styles.accountBalance, styles.accountBalanceError]}>{balanceError}</Text>
@@ -173,20 +160,25 @@ class AccountElement extends PureComponent {
 	}
 }
 
-const mapStateToProps = ({
-	engine: {
-		backgroundState: { PreferencesController, AccountTrackerController }
-	}
-}) => {
+const mapStateToProps = (
+	{
+		engine: {
+			backgroundState: { PreferencesController, AccountTrackerController }
+		}
+	},
+	{ item: { balance, address } }
+) => {
 	const { selectedAddress } = PreferencesController;
 	const { accounts } = AccountTrackerController;
 	const selectedAccount = accounts[selectedAddress];
 	const selectedAccountHasBalance =
 		selectedAccount && Object.prototype.hasOwnProperty.call(selectedAccount, BALANCE_KEY);
+	const updatedBalanceFromStore =
+		balance === EMPTY && selectedAddress === address && selectedAccount && selectedAccountHasBalance
+			? selectedAccount[BALANCE_KEY]
+			: balance;
 	return {
-		selectedAddress,
-		selectedAccount,
-		selectedAccountHasBalance
+		updatedBalanceFromStore
 	};
 };
 
