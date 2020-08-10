@@ -42,8 +42,8 @@ export default {
 		TRANSAK_REDIRECT_URL: 'https://metamask.io/',
 		WYRE_API_ENDPOINT: 'https://api.sendwyre.com/',
 		WYRE_API_ENDPOINT_TEST: 'https://api.testwyre.com/',
-		WYRE_MERCHANT_ID: 'merchant.io.metamask',
-		WYRE_MERCHANT_ID_TEST: 'merchant.io.metamask-test',
+		WYRE_MERCHANT_ID: 'merchant.io.metamask.wyre',
+		WYRE_MERCHANT_ID_TEST: 'merchant.io.metamask.wyre.test',
 		POLLING_FREQUENCY: 10000
 	}
 };
