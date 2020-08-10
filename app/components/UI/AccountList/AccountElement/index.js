@@ -7,6 +7,10 @@ import { renderFromWei } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { connect } from 'react-redux';
+
+const EMPTY = '0x0';
+const BALANCE_KEY = 'balance';
 
 const styles = StyleSheet.create({
 	account: {
@@ -76,7 +80,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders specific account element in AccountList
  */
-export default class AccountElement extends PureComponent {
+class AccountElement extends PureComponent {
 	static propTypes = {
 		/**
 		 * Callback to be called onPress
@@ -94,7 +98,17 @@ export default class AccountElement extends PureComponent {
 		 * Whether the account element should be disabled (opaque and not clickable)
 		 */
 		disabled: PropTypes.bool,
-		item: PropTypes.object
+		item: PropTypes.object,
+		/**
+		 * Selected address as string
+		 */
+		selectedAddress: PropTypes.string,
+		/**
+		 * List of accounts from the AccountTrackerController
+		 */
+		accounts: PropTypes.object,
+		selectedAccount: PropTypes.object,
+		selectedAccountHasBalance: PropTypes.bool
 	};
 
 	onPress = () => {
@@ -110,7 +124,7 @@ export default class AccountElement extends PureComponent {
 	};
 
 	render() {
-		const { disabled } = this.props;
+		const { disabled, selectedAddress, accounts, selectedAccount, selectedAccountHasBalance } = this.props;
 		const { address, balance, ticker, name, isSelected, isImported, balanceError } = this.props.item;
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
 		const imported = isImported ? (
@@ -120,6 +134,12 @@ export default class AccountElement extends PureComponent {
 				</Text>
 			</View>
 		) : null;
+
+		const updatedBalanceFromState =
+			balance === EMPTY && selectedAddress === address && selectedAccount && selectedAccountHasBalance
+				? accounts[selectedAddress][BALANCE_KEY]
+				: balance;
+
 		return (
 			<TouchableOpacity
 				style={[styles.account, disabled ? styles.disabledAccount : null]}
@@ -136,7 +156,7 @@ export default class AccountElement extends PureComponent {
 						</Text>
 						<View style={styles.accountBalanceWrapper}>
 							<Text style={styles.accountBalance}>
-								{renderFromWei(balance)} {getTicker(ticker)}
+								{renderFromWei(updatedBalanceFromState)} {getTicker(ticker)}
 							</Text>
 							{!!balanceError && (
 								<Text style={[styles.accountBalance, styles.accountBalanceError]}>{balanceError}</Text>
@@ -150,3 +170,23 @@ export default class AccountElement extends PureComponent {
 		);
 	}
 }
+
+const mapStateToProps = ({
+	engine: {
+		backgroundState: { PreferencesController, AccountTrackerController }
+	}
+}) => {
+	const { selectedAddress } = PreferencesController;
+	const { accounts } = AccountTrackerController;
+	const selectedAccount = accounts[selectedAddress];
+	const selectedAccountHasBalance =
+		selectedAccount && Object.prototype.hasOwnProperty.call(selectedAccount, BALANCE_KEY);
+	return {
+		accounts,
+		selectedAddress,
+		selectedAccount,
+		selectedAccountHasBalance
+	};
+};
+
+export default connect(mapStateToProps)(AccountElement);
