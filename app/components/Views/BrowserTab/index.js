@@ -384,7 +384,8 @@ export class BrowserTab extends PureComponent {
 			lastError: null,
 			showApprovalDialogHostname: undefined,
 			showOptions: false,
-			lastUrlBeforeHome: null
+			lastUrlBeforeHome: null,
+			newPageData: {}
 		};
 	}
 	backgroundBridges = [];
@@ -1370,7 +1371,6 @@ export class BrowserTab extends PureComponent {
 			data.inputValue = url;
 			data.hostname = this.formatHostname(urlObj.hostname);
 		}
-
 		this.setState({ newPageData: data });
 	};
 
