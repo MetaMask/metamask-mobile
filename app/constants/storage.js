@@ -28,5 +28,6 @@ export const TRUE = 'true';
 
 export const AGREED = 'agreed';
 export const DENIED = 'denied';
+export const EXPLORED = 'explored';
 
 export const DEBUG = `[${mm} DEBUG]:`;

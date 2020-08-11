@@ -18,7 +18,7 @@ import Modal from 'react-native-modal';
 import Device from '../../../util/Device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS, ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
+import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 
 const MIN_HEIGHT = Dimensions.get('window').height;
 const styles = StyleSheet.create({
@@ -101,7 +101,7 @@ class OnboardingWizard extends PureComponent {
 			navigation,
 			wizard: { step }
 		} = this.props;
-		await AsyncStorage.setItem(ONBOARDING_WIZARD, 'explored');
+		await AsyncStorage.setItem(ONBOARDING_WIZARD, EXPLORED);
 		setOnboardingWizardStep && setOnboardingWizardStep(0);
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
 		closing &&
