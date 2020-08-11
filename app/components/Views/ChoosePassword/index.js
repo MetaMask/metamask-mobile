@@ -358,6 +358,7 @@ class ChoosePassword extends PureComponent {
 
 		let importedAccounts = [];
 		try {
+			const keychainPassword = this.keyringControllerPasswordSet ? this.state.password : '';
 			// Get imported accounts
 			const simpleKeyrings = KeyringController.state.keyrings.filter(
 				keyring => keyring.type === 'Simple Key Pair'
@@ -365,7 +366,7 @@ class ChoosePassword extends PureComponent {
 			for (let i = 0; i < simpleKeyrings.length; i++) {
 				const simpleKeyring = simpleKeyrings[i];
 				const simpleKeyringAccounts = await Promise.all(
-					simpleKeyring.accounts.map(account => KeyringController.exportAccount(password, account))
+					simpleKeyring.accounts.map(account => KeyringController.exportAccount(keychainPassword, account))
 				);
 				importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
 			}
