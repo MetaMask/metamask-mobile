@@ -298,7 +298,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
         testID="submit-button"
         type="blue"
       >
-        NEXT
+        Create password
       </StyledButton>
     </View>
   </View>

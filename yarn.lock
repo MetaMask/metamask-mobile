@@ -996,20 +996,20 @@
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
 
-"@metamask/controllers@2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-2.0.2.tgz#100a5d87b6061751b39edec2288f16f07d471e2d"
-  integrity sha512-KKxNguTEdkzwvfv2Hl4BE2OMGULLeh7df6iAwcEG8ipXWbTWGZsLr13DBrczQxRi8TiNPaksAakv++6sMu6ngA==
+"@metamask/controllers@2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-2.0.3.tgz#3a63ae133f4fd468e88c6729f4145838e99a1d80"
+  integrity sha512-Tpcyi0YSyEDIjJxL7qYfD8ECLtb80LPqkyGkqpQ8rqX2X1zWgClZ5aSVf878Qkg9Wn67m4fHnCgI1cDdGotUsA==
   dependencies:
     await-semaphore "^0.1.3"
     eth-contract-metadata "^1.11.0"
     eth-ens-namehash "^2.0.8"
-    eth-json-rpc-errors "^2.0.2"
     eth-json-rpc-infura "^4.0.1"
     eth-keyring-controller "^5.6.1"
     eth-method-registry "1.1.0"
     eth-phishing-detect "^1.1.13"
     eth-query "^2.1.2"
+    eth-rpc-errors "^2.1.1"
     eth-sig-util "^2.3.0"
     ethereumjs-util "^6.1.0"
     ethereumjs-wallet "0.6.0"
@@ -3862,20 +3862,10 @@ elegant-spinner@^1.0.1:
   resolved "https://registry.yarnpkg.com/elegant-spinner/-/elegant-spinner-1.0.1.tgz#db043521c95d7e303fd8f345bedc3349cfb0729e"
   integrity sha1-2wQ1IcldfjA/2PNFvtwzSc+wcp4=
 
-elliptic@6.3.3:
-  version "6.3.3"
-  resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.3.3.tgz#5482d9646d54bcb89fd7d994fc9e2e9568876e3f"
-  integrity sha1-VILZZG1UvLif19mU/J4ulWiHbj8=
-  dependencies:
-    bn.js "^4.4.0"
-    brorand "^1.0.1"
-    hash.js "^1.0.0"
-    inherits "^2.0.1"
-
-elliptic@6.5.2, elliptic@^6.0.0, elliptic@^6.4.0, elliptic@^6.5.2:
-  version "6.5.2"
-  resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.5.2.tgz#05c5678d7173c049d8ca433552224a495d0e3762"
-  integrity sha512-f4x70okzZbIQl/NSRLkI/+tteV/9WqL98zx+SQ69KbXxmVrmjwsNUPn/gYJJ0sHvEak24cZgHIPegRePAtA/xw==
+elliptic@6.3.3, elliptic@6.5.2, elliptic@^6.0.0, elliptic@^6.4.0, elliptic@^6.5.2, elliptic@^6.5.3:
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.5.3.tgz#cb59eb2efdaf73a0bd78ccd7015a62ad6e0f93d6"
+  integrity sha512-IMqzv5wNQf+E6aHeIqATs0tOLeOTwj1QKbRcS3jBbYkl5oLAserA8yJTT7/VyHUYG91PRmPyeQDObKLPpeS4dw==
   dependencies:
     bn.js "^4.4.0"
     brorand "^1.0.1"
@@ -4650,6 +4640,13 @@ eth-query@^2.1.0, eth-query@^2.1.2:
   dependencies:
     json-rpc-random-id "^1.0.0"
     xtend "^4.0.1"
+
+eth-rpc-errors@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/eth-rpc-errors/-/eth-rpc-errors-2.1.1.tgz#00a7d6c8a9c864a8ab7d0356be20964e5bee4b13"
+  integrity sha512-MY3zAa5ZF8hvgQu1HOF9agaK5GgigBRGpTJ8H0oVlE0NqMu13CW6syyjLXdeIDCGQTbUeHliU1z9dVmvMKx1Tg==
+  dependencies:
+    fast-safe-stringify "^2.0.6"
 
 eth-sig-util@^1.4.0, eth-sig-util@^1.4.2:
   version "1.4.2"
@@ -7968,9 +7965,9 @@ lottie-ios@2.5.0:
   resolved "https://registry.yarnpkg.com/lottie-ios/-/lottie-ios-2.5.0.tgz#55c808e785d4a6933b0c10b395530b17098b05de"
   integrity sha1-VcgI54XUppM7DBCzlVMLFwmLBd4=
 
-"lottie-react-native@git+ssh://git@github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106":
+"lottie-react-native@git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106":
   version "3.1.0"
-  resolved "git+ssh://git@github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106"
+  resolved "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106"
   dependencies:
     invariant "^2.2.2"
     lottie-ios "2.5.0"
@@ -10002,9 +9999,9 @@ react-native-actionsheet@beefe/react-native-actionsheet#107/head:
   version "2.4.2"
   resolved "https://codeload.github.com/beefe/react-native-actionsheet/tar.gz/fb97d7c6a33bc3213b928a36257dd0c23b42fa6f"
 
-"react-native-aes-crypto@git+ssh://git@github.com/MetaMask/react-native-aes.git#b73625d7e1ce711ed3c2fbd795eea2bda5a5e9ad":
+"react-native-aes-crypto@git+https://github.com/MetaMask/react-native-aes.git#b73625d7e1ce711ed3c2fbd795eea2bda5a5e9ad":
   version "1.2.1"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-aes.git#b73625d7e1ce711ed3c2fbd795eea2bda5a5e9ad"
+  resolved "git+https://github.com/MetaMask/react-native-aes.git#b73625d7e1ce711ed3c2fbd795eea2bda5a5e9ad"
 
 react-native-animatable@1.3.3:
   version "1.3.3"
@@ -10013,9 +10010,9 @@ react-native-animatable@1.3.3:
   dependencies:
     prop-types "^15.7.2"
 
-"react-native-animated-fox@git+ssh://git@github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9":
+"react-native-animated-fox@git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9":
   version "2.0.1"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9"
+  resolved "git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9"
   dependencies:
     prop-types "^15.5.10"
 
@@ -10034,9 +10031,9 @@ react-native-browser-polyfill@0.1.2:
   resolved "https://registry.yarnpkg.com/react-native-browser-polyfill/-/react-native-browser-polyfill-0.1.2.tgz#d2c4e816e7a1d91bc314400a1b0a9795a91b8bcd"
   integrity sha1-0sToFueh2RvDFEAKGwqXlakbi80=
 
-"react-native-button@git+ssh://git@github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7":
+"react-native-button@git+https://github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7":
   version "2.3.0"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7"
+  resolved "git+https://github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7"
   dependencies:
     prop-types "^15.5.10"
 
@@ -10154,9 +10151,9 @@ react-native-keyboard-aware-scroll-view@0.8.0:
     prop-types "^15.6.2"
     react-native-iphone-x-helper "^1.0.3"
 
-"react-native-keychain@git+ssh://git@github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f":
+"react-native-keychain@git+https://github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f":
   version "3.0.0"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f"
+  resolved "git+https://github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f"
 
 react-native-level-fs@3.0.1:
   version "3.0.1"
@@ -10193,9 +10190,9 @@ react-native-progress@3.5.0:
   dependencies:
     prop-types "^15.5.8"
 
-"react-native-push-notification@git+ssh://git@github.com/MetaMask/react-native-push-notification.git#androidx":
+"react-native-push-notification@git+https://github.com/MetaMask/react-native-push-notification.git#androidx":
   version "3.1.3"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c"
+  resolved "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c"
 
 react-native-qrcode-svg@5.1.2:
   version "5.1.2"
@@ -10265,9 +10262,9 @@ react-native-share@^3.2.0:
   resolved "https://registry.yarnpkg.com/react-native-share/-/react-native-share-3.3.2.tgz#06d1d3f14ba8eeb95e7e94e4db6a286e9902bd29"
   integrity sha512-Pvkr62TiCX511RMPL+wvy9Fofre4HQnvUT5zzgPPN3vszP/C8lUb7cmFu/8x5U14t3JQg+xW/svNK5eKNebJKw==
 
-"react-native-splash-screen@git+ssh://git@github.com/MetaMask/react-native-splash-screen.git":
+"react-native-splash-screen@git+https://github.com/MetaMask/react-native-splash-screen.git":
   version "3.2.0"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee"
+  resolved "git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee"
 
 react-native-step-indicator@^1.0.3:
   version "1.0.3"
@@ -10331,9 +10328,9 @@ react-native-view-shot@^3.1.2:
   resolved "https://registry.yarnpkg.com/react-native-view-shot/-/react-native-view-shot-3.1.2.tgz#8c8e84c67a4bc8b603e697dbbd59dbc9b4f84825"
   integrity sha512-9u9fPtp6a52UMoZ/UCPrCjKZk8tnkI9To0Eh6yYnLKFEGkRZ7Chm6DqwDJbYJHeZrheCCopaD5oEOnRqhF4L2Q==
 
-"react-native-webview@git+ssh://git@github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7":
+"react-native-webview@git+https://github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7":
   version "7.0.5"
-  resolved "git+ssh://git@github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7"
+  resolved "git+https://github.com/MetaMask/react-native-webview.git#931ae99a0f80a650c958e9d2e39e4ed0e68d95a7"
   dependencies:
     escape-string-regexp "1.0.5"
     invariant "2.2.4"
