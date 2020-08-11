@@ -436,7 +436,7 @@ class Confirm extends PureComponent {
 				contractBalances[address] ? contractBalances[address] : '0',
 				decimals
 			)} ${symbol}`;
-			[transactionTo, , amount] = decodeTransferData('transfer', data);
+			[transactionTo, amount] = decodeTransferData('transfer', data);
 			const transferValue = renderFromTokenMinimalUnit(amount, decimals);
 			transactionValue = `${transferValue} ${symbol}`;
 			const exchangeRate = contractExchangeRates[address];
@@ -905,7 +905,6 @@ class Confirm extends PureComponent {
 			transactionConfirmed,
 			paymentChannelBalance
 		} = this.state;
-
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
