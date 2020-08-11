@@ -12,11 +12,11 @@ export const getSeedPhrase = async (password = '') => {
 };
 
 /**
- * Recreates a vault
+ * Recreates a vault with the same password for the purpose of using the newest encryption methods
  *
  * @param password - Password to recreate and set the vault with
  */
-export const recreateVault = async (password = '', selectedAddress) => {
+export const recreateVaultWithSamePassword = async (password = '', selectedAddress) => {
 	const { KeyringController, PreferencesController } = Engine.context;
 	const seedPhrase = await getSeedPhrase(password);
 
@@ -24,14 +24,12 @@ export const recreateVault = async (password = '', selectedAddress) => {
 	try {
 		// Get imported accounts
 		const simpleKeyrings = KeyringController.state.keyrings.filter(keyring => keyring.type === 'Simple Key Pair');
-		if (simpleKeyrings.length) {
-			for (let i = 0; i < simpleKeyrings.length; i++) {
-				const simpleKeyring = simpleKeyrings[i];
-				const simpleKeyringAccounts = await Promise.all(
-					simpleKeyring.accounts.map(account => KeyringController.exportAccount(password, account))
-				);
-				importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
-			}
+		for (let i = 0; i < simpleKeyrings.length; i++) {
+			const simpleKeyring = simpleKeyrings[i];
+			const simpleKeyringAccounts = await Promise.all(
+				simpleKeyring.accounts.map(account => KeyringController.exportAccount(password, account))
+			);
+			importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
 		}
 	} catch (e) {
 		console.warn(e);

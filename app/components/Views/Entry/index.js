@@ -14,7 +14,7 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import SplashScreen from 'react-native-splash-screen';
-import { recreateVault } from '../../../core/Vault';
+import { recreateVaultWithSamePassword } from '../../../core/Vault';
 
 /**
  * Entry Screen that decides which screen to show
@@ -169,7 +169,7 @@ class Entry extends PureComponent {
 				await KeyringController.submitPassword(credentials.password);
 				const encryptionLib = await AsyncStorage.getItem('@MetaMask:encryptionLib');
 				if (encryptionLib !== 'original') {
-					await recreateVault(credentials.password, this.props.selectedAddress);
+					await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
 					await AsyncStorage.setItem('@MetaMask:encryptionLib', 'original');
 				}
 				// Get onboarding wizard state
