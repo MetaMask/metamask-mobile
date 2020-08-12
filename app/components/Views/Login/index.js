@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
+const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 
 /**
  * View where returning users can authenticate
@@ -242,7 +243,10 @@ class Login extends PureComponent {
 			this.setState({ loading: false });
 		} catch (error) {
 			// Should we force people to enable passcode / biometrics?
-			if (error.toString().toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase()) {
+			if (
+				error.toString().toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase() ||
+				error.toString().toLowerCase() === WRONG_PASSWORD_ERROR_ANDROID.toLowerCase()
+			) {
 				this.setState({ loading: false, error: strings('login.invalid_password') });
 			} else if (error.toString() === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
