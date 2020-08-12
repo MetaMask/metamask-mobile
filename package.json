@@ -70,7 +70,7 @@
     "react-native-level-fs/**/bl": "^0.9.5"
   },
   "dependencies": {
-    "@metamask/controllers": "2.0.2",
+    "@metamask/controllers": "2.0.3",
     "@react-native-community/async-storage": "1.9.0",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
@@ -207,11 +207,10 @@
     "jest": "^25.2.7",
     "jest-serializer": "24.4.0",
     "lint-staged": "8.1.5",
-    "metamask-mobile-provider": "^1.0.2",
     "metro": "^0.59.0",
     "metro-react-native-babel-preset": "^0.59.0",
     "octonode": "0.9.5",
-    "patch-package": "6.2.0",
+    "patch-package": "^6.2.2",
     "prettier": "1.16.4",
     "react-dom": "16.8.4",
     "react-native-cli": "2.0.1",

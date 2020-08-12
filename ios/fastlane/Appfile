@@ -3,4 +3,5 @@
 #     https://docs.fastlane.tools/advanced/#appfile
 
 app_identifier("io.metamask.MetaMask") # The bundle identifier of your app
-apple_id("mobile.admin@metamask.io") # Your Apple email address
+apple_id("1438144202") # Your Apple email address
+
