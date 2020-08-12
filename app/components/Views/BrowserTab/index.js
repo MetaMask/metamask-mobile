@@ -584,7 +584,7 @@ export class BrowserTab extends PureComponent {
 							? this.props.network
 							: Networks[this.props.networkType].networkId;
 
-					// eslint-disable-next-line eqeqeq
+					// eslint-disable-next-line
 					if (chainId && chainId != activeChainId) {
 						throw ethErrors.rpc.invalidRequest(
 							`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
@@ -967,7 +967,8 @@ export class BrowserTab extends PureComponent {
 		const { hostname, query, pathname } = new URL(sanitizedURL);
 
 		let contentId, contentUrl, contentType;
-		if (this.isENSUrl(sanitizedURL)) {
+		const isEnsUrl = this.isENSUrl(sanitizedURL);
+		if (isEnsUrl) {
 			this.resolvingENSUrl = true;
 			const { url, type, hash } = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
 			contentUrl = url;
@@ -994,7 +995,7 @@ export class BrowserTab extends PureComponent {
 				progress: 0,
 				ipfsWebsite: !!contentUrl,
 				inputValue: sanitizedURL,
-				currentEnsName: hostname,
+				currentEnsName: isEnsUrl && hostname,
 				contentId,
 				contentType,
 				hostname: this.formatHostname(hostname),
@@ -1751,7 +1752,8 @@ export class BrowserTab extends PureComponent {
 			currentPageTitle,
 			currentPageUrl,
 			currentPageIcon,
-			inputValue
+			inputValue,
+			currentEnsName
 		} = this.state;
 		const url =
 			currentPageUrl && currentPageUrl.length && currentPageUrl !== 'localhost' ? currentPageUrl : inputValue;
@@ -1773,7 +1775,7 @@ export class BrowserTab extends PureComponent {
 				<AccountApproval
 					onCancel={this.onAccountsReject}
 					onConfirm={this.onAccountsConfirm}
-					currentPageInformation={{ title: currentPageTitle, url, icon: currentPageIcon }}
+					currentPageInformation={{ title: currentPageTitle, url, icon: currentPageIcon, currentEnsName }}
 				/>
 			</Modal>
 		);
