@@ -1,5 +1,6 @@
 import { NativeModules } from 'react-native';
 const Aes = NativeModules.Aes;
+const AesForked = NativeModules.AesForked;
 
 /**
  * Class that exposes two public methods: Encrypt and Decrypt
@@ -17,16 +18,20 @@ export default class Encryptor {
 		return b64encoded;
 	}
 
-	_generateKey = (password, salt) => Aes.pbkdf2(password, salt);
+	_generateKey = (password, salt, lib) =>
+		lib === 'original' ? Aes.pbkdf2(password, salt, 5000, 256) : AesForked.pbkdf2(password, salt);
 
-	_keyFromPassword = (password, salt) => this._generateKey(password, salt);
+	_keyFromPassword = (password, salt, lib) => this._generateKey(password, salt, lib);
 
-	_encryptWithKey = (text, keyBase64) => {
-		const ivBase64 = this._generateSalt(32);
-		return Aes.encrypt(text, keyBase64, ivBase64).then(cipher => ({ cipher, iv: ivBase64 }));
+	_encryptWithKey = async (text, keyBase64) => {
+		const iv = await Aes.randomKey(16);
+		return Aes.encrypt(text, keyBase64, iv).then(cipher => ({ cipher, iv }));
 	};
 
-	_decryptWithKey = (encryptedData, key) => Aes.decrypt(encryptedData.cipher, key, encryptedData.iv);
+	_decryptWithKey = (encryptedData, key, lib) =>
+		lib === 'original'
+			? Aes.decrypt(encryptedData.cipher, key, encryptedData.iv)
+			: AesForked.decrypt(encryptedData.cipher, key, encryptedData.iv);
 
 	/**
 	 * Encrypts a JS object using a password (and AES encryption with native libraries)
@@ -37,9 +42,10 @@ export default class Encryptor {
 	 */
 	encrypt = async (password, object) => {
 		const salt = this._generateSalt(16);
-		const key = await this._keyFromPassword(password, salt);
+		const key = await this._keyFromPassword(password, salt, 'original');
 		const result = await this._encryptWithKey(JSON.stringify(object), key);
 		result.salt = salt;
+		result.lib = 'original';
 		return JSON.stringify(result);
 	};
 
@@ -53,9 +59,8 @@ export default class Encryptor {
 	 */
 	decrypt = async (password, encryptedString) => {
 		const encryptedData = JSON.parse(encryptedString);
-		const key = await this._keyFromPassword(password, encryptedData.salt);
-		const data = await this._decryptWithKey(encryptedData, key);
-
+		const key = await this._keyFromPassword(password, encryptedData.salt, encryptedData.lib);
+		const data = await this._decryptWithKey(encryptedData, key, encryptedData.lib);
 		return JSON.parse(data);
 	};
 }
