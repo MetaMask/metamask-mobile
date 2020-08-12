@@ -465,7 +465,9 @@ class Amount extends PureComponent {
 				)}`;
 			}
 		}
-
+		if (value && value.includes(',')) {
+			value = inputValue.replace(',', '.');
+		}
 		if (!selectedAsset.tokenId && this.validateAmount(value)) {
 			return;
 		} else if (selectedAsset.tokenId) {
