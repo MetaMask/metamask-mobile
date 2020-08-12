@@ -10,6 +10,11 @@ describe('Entry', () => {
 		const initialState = {
 			user: {
 				passwordSet: false
+			},
+			engine: {
+				backgroundState: {
+					PreferencesController: {}
+				}
 			}
 		};
 
