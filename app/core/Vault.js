@@ -1,4 +1,5 @@
 import Engine from './Engine';
+import Logger from '../util/Logger';
 
 /**
  * Returns current vault seed phrase
@@ -32,7 +33,7 @@ export const recreateVaultWithSamePassword = async (password = '', selectedAddre
 			importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
 		}
 	} catch (e) {
-		console.warn(e);
+		Logger.error(e, 'error while trying to get imported accounts on recreate vault');
 	}
 
 	// Recreate keyring with password given to this method
@@ -54,7 +55,7 @@ export const recreateVaultWithSamePassword = async (password = '', selectedAddre
 			await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
 		}
 	} catch (e) {
-		console.warn(e);
+		Logger.error(e, 'error while trying to import accounts on recreate vault');
 	}
 
 	// Reset preferencesControllerState
