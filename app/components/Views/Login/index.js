@@ -19,6 +19,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import Device from '../../../util/Device';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
+import { recreateVaultWithSamePassword } from '../../../core/Vault';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -92,6 +93,7 @@ const styles = StyleSheet.create({
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
+const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 
 /**
  * View where returning users can authenticate
@@ -121,7 +123,11 @@ class Login extends PureComponent {
 		/**
 		 * Boolean flag that determines if password has been set
 		 */
-		passwordSet: PropTypes.bool
+		passwordSet: PropTypes.bool,
+		/**
+		 * A string representing the selected address => account
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -188,6 +194,11 @@ class Login extends PureComponent {
 
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
+			const encryptionLib = await AsyncStorage.getItem('@MetaMask:encryptionLib');
+			if (encryptionLib !== 'original') {
+				await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
+				await AsyncStorage.setItem('@MetaMask:encryptionLib', 'original');
+			}
 			if (this.state.biometryChoice && this.state.biometryType) {
 				const authOptions = {
 					accessControl: this.state.biometryChoice
@@ -232,7 +243,10 @@ class Login extends PureComponent {
 			this.setState({ loading: false });
 		} catch (error) {
 			// Should we force people to enable passcode / biometrics?
-			if (error.toString().toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase()) {
+			if (
+				error.toString().toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase() ||
+				error.toString().toLowerCase() === WRONG_PASSWORD_ERROR_ANDROID.toLowerCase()
+			) {
 				this.setState({ loading: false, error: strings('login.invalid_password') });
 			} else if (error.toString() === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
@@ -402,7 +416,8 @@ const mapStateToProps = state => ({
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 const mapDispatchToProps = dispatch => ({
