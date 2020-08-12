@@ -20,6 +20,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
+import Logger from '../../../util/Logger';
 
 const steps = [strings('choose_password.title'), strings('choose_password.secure'), strings('choose_password.confirm')];
 
@@ -371,7 +372,7 @@ class ChoosePassword extends PureComponent {
 				importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
 			}
 		} catch (e) {
-			console.warn(e);
+			Logger.error(e, 'error while trying to get imported accounts on recreate vault');
 		}
 
 		// Recreate keyring with password given to this method
@@ -396,7 +397,7 @@ class ChoosePassword extends PureComponent {
 				await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
 			}
 		} catch (e) {
-			console.warn(e);
+			Logger.error(e, 'error while trying to import accounts on recreate vault');
 		}
 
 		// Reset preferencesControllerState
