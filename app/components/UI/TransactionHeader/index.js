@@ -106,14 +106,19 @@ class TransactionHeader extends PureComponent {
 
 	render() {
 		const {
-			currentPageInformation: { url },
+			currentPageInformation: { url, currentEnsName },
 			networkType
 		} = this.props;
-		const title = getHost(url);
+		const title = getHost(currentEnsName || url);
 		const networkName = networkList[networkType].shortName;
 		return (
 			<View style={styles.transactionHeader}>
-				<WebsiteIcon style={styles.domainLogo} viewStyle={styles.assetLogo} title={title} url={url} />
+				<WebsiteIcon
+					style={styles.domainLogo}
+					viewStyle={styles.assetLogo}
+					title={title}
+					url={currentEnsName || url}
+				/>
 				<View style={styles.domanUrlContainer}>
 					{this.renderSecureIcon()}
 					<Text style={styles.domainUrl}>{title}</Text>
