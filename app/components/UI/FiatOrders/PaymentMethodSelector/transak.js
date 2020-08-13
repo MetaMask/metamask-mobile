@@ -50,7 +50,7 @@ const TransakPaymentMethod = ({ onPress }) => (
 							<TouchableOpacity onPress={toggleModal}>
 								<PaymentMethod.InfoIconLine>
 									<Text bold small>
-										32+ {strings('fiat_on_ramp.countries')}
+										33 {strings('fiat_on_ramp.countries')}
 									</Text>
 									<PaymentMethod.InfoIcon />
 								</PaymentMethod.InfoIconLine>
@@ -64,29 +64,41 @@ const TransakPaymentMethod = ({ onPress }) => (
 								<View style={style.countryList}>
 									<ScrollView contentContainerStyle={style.countryList}>
 										<View style={style.countryCol}>
-											<Text modal>Austria 🇦🇹</Text>
-											<Text modal>Belgium 🇧🇪</Text>
-											<Text modal>Cyprus 🇨🇾</Text>
-											<Text modal>Czechia 🇨🇿</Text>
-											<Text modal>Estonia 🇪🇪</Text>
-											<Text modal>Finland 🇫🇮</Text>
-											<Text modal>France 🇫🇷</Text>
-											<Text modal>Germany 🇩🇪</Text>
-											<Text modal>Greece 🇬🇷</Text>
-											<Text modal>Ireland 🇮🇪</Text>
-											<Text modal>Italy 🇮🇹</Text>
+											<Text primary>Austria 🇦🇹</Text>
+											<Text primary>Australia 🇦🇺</Text>
+											<Text primary>Belgium 🇧🇪</Text>
+											<Text primary>Canada 🇨🇦</Text>
+											<Text primary>Cyprus 🇨🇾</Text>
+											<Text primary>Czechia 🇨🇿</Text>
+											<Text primary>Denmark 🇩🇰</Text>
+											<Text primary>Estonia 🇪🇪</Text>
+											<Text primary>Finland 🇫🇮</Text>
+											<Text primary>France 🇫🇷</Text>
+											<Text primary>Germany 🇩🇪</Text>
+											<Text primary>Greece 🇬🇷</Text>
+											<Text primary>Hong Kong 🇭🇰</Text>
+											<Text primary>Ireland 🇮🇪</Text>
+											<Text primary>Italy 🇮🇹</Text>
+											<Text primary>India 🇮🇳</Text>
+											<Text primary>Latvia 🇱🇻</Text>
 										</View>
 										<View style={style.countryCol}>
-											<Text modal>Latvia 🇱🇻</Text>
-											<Text modal>Luxembourg 🇱🇺</Text>
-											<Text modal>Malta 🇲🇹</Text>
-											<Text modal>Netherlands 🇳🇱</Text>
-											<Text modal>Portugal 🇵🇹</Text>
-											<Text modal>Romania 🇷🇴</Text>
-											<Text modal>Slovakia 🇸🇰</Text>
-											<Text modal>Slovenia 🇸🇮</Text>
-											<Text modal>Spain 🇪🇸</Text>
-											<Text modal>United Kingdom 🇬🇧</Text>
+											<Text primary>Luxembourg 🇱🇺</Text>
+											<Text primary>Malta 🇲🇹</Text>
+											<Text primary>Mexico 🇲🇽</Text>
+											<Text primary>Romania 🇷🇴</Text>
+											<Text primary>Netherlands 🇳🇱</Text>
+											<Text primary>New Zealand 🇳🇿</Text>
+											<Text primary>Norway 🇳🇴</Text>
+											<Text primary>Poland 🇵🇱</Text>
+											<Text primary>Portugal 🇵🇹</Text>
+											<Text primary>Slovakia 🇸🇰</Text>
+											<Text primary>Slovenia 🇸🇮</Text>
+											<Text primary>Spain 🇪🇸</Text>
+											<Text primary>Sweden 🇸🇪</Text>
+											<Text primary>Switzerland 🇨🇭</Text>
+											<Text primary>United Kingdom 🇬🇧</Text>
+											<Text primary>USA 🇺🇸</Text>
 										</View>
 									</ScrollView>
 								</View>
