@@ -636,8 +636,8 @@ export class BrowserTab extends PureComponent {
 					res.result = `MetaMask/${this.props.app_version}/Beta/Mobile`;
 				},
 
-				wallet_scanQRCode: async () => {
-					await new Promise((resolve, reject) => {
+				wallet_scanQRCode: () =>
+					new Promise((resolve, reject) => {
 						this.props.navigation.navigate('QRScanner', {
 							onScanSuccess: data => {
 								const regex = new RegExp(req.params[0]);
@@ -659,8 +659,7 @@ export class BrowserTab extends PureComponent {
 								throw ethErrors.rpc.internal(e.toString());
 							}
 						});
-					});
-				},
+					}),
 
 				wallet_watchAsset: async () => {
 					const {
