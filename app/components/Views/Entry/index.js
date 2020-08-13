@@ -14,6 +14,7 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import SplashScreen from 'react-native-splash-screen';
+import { recreateVaultWithSamePassword } from '../../../core/Vault';
 
 /**
  * Entry Screen that decides which screen to show
@@ -76,7 +77,11 @@ class Entry extends PureComponent {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * A string representing the selected address => account
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -162,6 +167,11 @@ class Entry extends PureComponent {
 				// Restore vault with existing credentials
 
 				await KeyringController.submitPassword(credentials.password);
+				const encryptionLib = await AsyncStorage.getItem('@MetaMask:encryptionLib');
+				if (encryptionLib !== 'original') {
+					await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
+					await AsyncStorage.setItem('@MetaMask:encryptionLib', 'original');
+				}
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
 				// Check if user passed through metrics opt-in screen
@@ -233,7 +243,10 @@ const mapDispatchToProps = dispatch => ({
 });
 
 const mapStateToProps = state => ({
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	selectedAddress:
+		state.engine.backgroundState.PreferencesController &&
+		state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(
