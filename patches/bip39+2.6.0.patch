@@ -1,12 +1,12 @@
 diff --git a/node_modules/bip39/index.js b/node_modules/bip39/index.js
-index efed68c..e978df8 100644
+index efed68c..8461160 100644
 --- a/node_modules/bip39/index.js
 +++ b/node_modules/bip39/index.js
 @@ -4,6 +4,8 @@ var _pbkdf2 = require('pbkdf2')
  var pbkdf2 = _pbkdf2.pbkdf2Sync
  var pbkdf2Async = _pbkdf2.pbkdf2
  var randomBytes = require('randombytes')
-+import { NativeModules } from 'react-native';
++const { NativeModules } = require('react-native');
 +const Aes = NativeModules.Aes;
  
  // use unorm until String.prototype.normalize gets better browser support
