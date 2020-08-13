@@ -9,6 +9,7 @@ export default {
 	TX_CHECK_BACKGROUND_FREQUENCY: 30000,
 	IPFS_OVERRIDE_PARAM: 'mm_override',
 	IPFS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipfs/',
+	IPNS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipns/',
 	SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
 	supportedTLDs: ['eth', 'xyz', 'test'],
 	MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
