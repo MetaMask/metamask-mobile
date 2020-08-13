@@ -31,6 +31,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
+import { OutlinedTextField } from 'react-native-material-textfield';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -55,20 +56,11 @@ const styles = StyleSheet.create({
 		marginBottom: 10
 	},
 	label: {
-		position: 'absolute',
-		marginTop: -35,
-		marginLeft: 5,
-		fontSize: 16,
-		color: colors.fontSecondary,
-		textAlign: 'left',
+		fontSize: 14,
+		marginBottom: 12,
 		...fontStyles.normal
 	},
 	input: {
-		borderBottomWidth: Device.isAndroid() ? 0 : 1,
-		borderBottomColor: colors.grey100,
-		paddingLeft: 0,
-		paddingVertical: 10,
-		borderRadius: 4,
 		fontSize: Device.isAndroid() ? 14 : 20,
 		...fontStyles.normal
 	},
@@ -92,8 +84,8 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		minHeight: 110,
 		height: 'auto',
-		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderWidth: 1,
+		borderColor: colors.grey500,
 		...fontStyles.normal
 	},
 	biometrics: {
@@ -136,7 +128,6 @@ const styles = StyleSheet.create({
 	},
 	showHideToggle: {
 		backgroundColor: colors.white,
-		position: 'absolute',
 		marginTop: 8,
 		alignSelf: 'flex-end'
 	},
@@ -394,30 +385,6 @@ class ImportFromSeed extends PureComponent {
 		this.setState({ secureTextEntry: !this.state.secureTextEntry });
 	};
 
-	animateInLabel = label => {
-		if (
-			(label === 'new' && this.state.password !== '') ||
-			(label === 'confirm' && this.state.confirmPassword !== '')
-		) {
-			return;
-		}
-		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
-			toValue: 1,
-			duration: 200,
-			useNativeDriver: true,
-			isInteraction: false
-		}).start();
-	};
-
-	animateOutLabel = label => {
-		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
-			toValue: 0.66,
-			duration: 200,
-			useNativeDriver: true,
-			isInteraction: false
-		}).start();
-	};
-
 	getPasswordStrengthWord() {
 		// this.state.passwordStrength is calculated by zxcvbn
 		// which returns a score based on "entropy to crack time"
@@ -452,32 +419,6 @@ class ImportFromSeed extends PureComponent {
 	};
 
 	render() {
-		const startX = 0;
-		const startY = 0;
-		const width = 100;
-		const height = 24;
-		const initialScale = 1;
-		const endX = 0;
-		const endY = 50;
-
-		const labelsScaleNewX = this.state.labelsScaleNew.interpolate({
-			inputRange: [0, 1],
-			outputRange: [startX - width / 2 - (width * initialScale) / 2, endX]
-		});
-		const labelsScaleNewY = this.state.labelsScaleNew.interpolate({
-			inputRange: [0, 1],
-			outputRange: [startY - height / 2 - (height * initialScale) / 2, endY]
-		});
-
-		const labelsScaleNewXConfirm = this.state.labelsScaleConfirm.interpolate({
-			inputRange: [0, 1],
-			outputRange: [startX - width / 2 - (width * initialScale) / 2, endX]
-		});
-		const labelsScaleNewYConfirm = this.state.labelsScaleConfirm.interpolate({
-			inputRange: [0, 1],
-			outputRange: [startY - height / 2 - (height * initialScale) / 2, endY]
-		});
-
 		const { password, confirmPassword, seed } = this.state;
 
 		return (
@@ -505,41 +446,29 @@ class ImportFromSeed extends PureComponent {
 							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
 						</TouchableOpacity>
 						<View style={styles.field}>
-							<Animated.Text
-								style={[
-									styles.label,
-									{
-										transform: [
-											{ scale: this.state.labelsScaleNew },
-											{ translateX: labelsScaleNewX },
-											{ translateY: labelsScaleNewY }
-										]
-									}
-								]}
-							>
-								{strings('import_from_seed.new_password')}
-							</Animated.Text>
-							<TextInput
+							<Text style={styles.label}>{strings('login.password')}</Text>
+							<OutlinedTextField
 								ref={this.passwordInput}
 								style={styles.input}
+								placeholder={strings('login.password')}
 								testID={'input-password-field'}
-								value={this.state.password}
-								onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
-								secureTextEntry={this.state.secureTextEntry}
-								placeholder={''}
-								placeholderTextColor={colors.grey100}
-								underlineColorAndroid={colors.grey100}
-								onSubmitEditing={this.jumpToConfirmPassword}
 								returnKeyType={'next'}
-								onFocus={() => this.animateOutLabel('new')} // eslint-disable-line  react/jsx-no-bind
-								onBlur={() => this.animateInLabel('new')} // eslint-disable-line  react/jsx-no-bind
 								autoCapitalize="none"
+								secureTextEntry={this.state.secureTextEntry}
+								onChangeText={this.onPasswordChange}
+								value={this.state.password}
+								baseColor={colors.grey500}
+								tintColor={colors.blue}
+								onSubmitEditing={this.jumpToConfirmPassword}
+								renderRightAccessory={() => (
+									<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
+										<Text style={styles.passwordStrengthLabel}>
+											{strings(`choose_password.${this.state.secureTextEntry ? 'show' : 'hide'}`)}
+										</Text>
+									</TouchableOpacity>
+								)}
 							/>
-							<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
-								<Text style={styles.passwordStrengthLabel}>
-									{strings(`choose_password.${this.state.secureTextEntry ? 'show' : 'hide'}`)}
-								</Text>
-							</TouchableOpacity>
+
 							{(this.state.password !== '' && (
 								<Text style={styles.passwordStrengthLabel}>
 									{strings('choose_password.password_strength')}
@@ -552,36 +481,22 @@ class ImportFromSeed extends PureComponent {
 						</View>
 
 						<View style={styles.field}>
-							<Animated.Text
-								style={[
-									styles.label,
-									{
-										transform: [
-											{ scale: this.state.labelsScaleConfirm },
-											{ translateX: labelsScaleNewXConfirm },
-											{ translateY: labelsScaleNewYConfirm }
-										]
-									}
-								]}
-							>
-								{strings('import_from_seed.confirm_password')}
-							</Animated.Text>
-							<TextInput
+							<Text style={styles.label}>{strings('import_from_seed.confirm_password')}</Text>
+							<OutlinedTextField
 								ref={this.confirmPasswordInput}
 								style={styles.input}
 								testID={'input-password-field-confirm'}
-								value={this.state.confirmPassword}
-								onChangeText={this.onPasswordConfirmChange} // eslint-disable-line  react/jsx-no-bind
-								secureTextEntry={this.state.secureTextEntry}
-								placeholder={''}
-								placeholderTextColor={colors.grey100}
-								underlineColorAndroid={colors.grey100}
-								onSubmitEditing={this.onPressImport}
-								returnKeyType={'done'}
-								onFocus={() => this.animateOutLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
-								onBlur={() => this.animateInLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
+								onChangeText={this.onPasswordConfirmChange}
+								returnKeyType={'next'}
 								autoCapitalize="none"
+								secureTextEntry={this.state.secureTextEntry}
+								placeholder={strings('import_from_seed.confirm_password')}
+								value={this.state.confirmPassword}
+								baseColor={colors.grey500}
+								tintColor={colors.blue}
+								onSubmitEditing={this.onPressImport}
 							/>
+
 							<View style={styles.showMatchingPasswords}>
 								{this.state.password !== '' && this.state.password === this.state.confirmPassword ? (
 									<Icon name="check" size={12} color={colors.green300} />
