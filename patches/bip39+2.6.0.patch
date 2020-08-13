@@ -1,5 +1,5 @@
 diff --git a/node_modules/bip39/index.js b/node_modules/bip39/index.js
-index efed68c..1725549 100644
+index efed68c..e978df8 100644
 --- a/node_modules/bip39/index.js
 +++ b/node_modules/bip39/index.js
 @@ -4,6 +4,8 @@ var _pbkdf2 = require('pbkdf2')
@@ -16,7 +16,7 @@ index efed68c..1725549 100644
    var saltBuffer = Buffer.from(salt(unorm.nfkd(password)), 'utf8')
  
 -  return pbkdf2(mnemonicBuffer, saltBuffer, 2048, 64, 'sha512')
-+  // Bellow is the native equivalent to pbkdf2(mnemonicBuffer, saltBuffer, 2048, 64, 'sha512')
++  // Bellow is the native equivalent of pbkdf2(mnemonicBuffer, saltBuffer, 2048, 64, 'sha512')
 +
 +  const seed = Aes.pbkdf2Sync(mnemonicBuffer.toString('utf8'), saltBuffer.toString('utf8'), 2048, 512);
 +  const seedBuffer = global.Buffer.from(seed, "hex")
