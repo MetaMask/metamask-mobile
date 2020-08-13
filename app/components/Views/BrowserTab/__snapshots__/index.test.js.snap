@@ -196,6 +196,7 @@ exports[`Browser should render correctly 1`] = `
     <Connect(AccountApproval)
       currentPageInformation={
         Object {
+          "currentEnsName": null,
           "icon": undefined,
           "title": "",
           "url": "https://metamask.io",
