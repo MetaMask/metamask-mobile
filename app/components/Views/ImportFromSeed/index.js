@@ -52,8 +52,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	field: {
-		marginTop: 20,
-		marginBottom: 10
+		marginVertical: 5
 	},
 	label: {
 		fontSize: 14,
@@ -73,25 +72,22 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	seedPhrase: {
-		marginTop: 10,
-		marginBottom: 10,
-		backgroundColor: colors.white,
+		marginVertical: 10,
 		paddingTop: 20,
 		paddingBottom: 20,
-		paddingLeft: 20,
-		paddingRight: 20,
+		paddingHorizontal: 20,
 		fontSize: 20,
 		borderRadius: 10,
 		minHeight: 110,
 		height: 'auto',
 		borderWidth: 1,
 		borderColor: colors.grey500,
+		backgroundColor: colors.white,
 		...fontStyles.normal
 	},
 	biometrics: {
 		alignItems: 'flex-start',
-		marginTop: 30,
-		marginBottom: 30
+		marginTop: 10
 	},
 	biometryLabel: {
 		flex: 1,
@@ -103,7 +99,7 @@ const styles = StyleSheet.create({
 		flex: 0
 	},
 	termsAndConditions: {
-		paddingVertical: 30
+		paddingVertical: 10
 	},
 	passwordStrengthLabel: {
 		height: 20,
@@ -531,14 +527,14 @@ class ImportFromSeed extends PureComponent {
 								)}
 							</StyledButton>
 						</View>
-						<View style={styles.termsAndConditions}>
-							<TermsAndConditions
-								navigation={this.props.navigation}
-								action={strings('import_from_seed.import_button')}
-							/>
-						</View>
 					</View>
 				</KeyboardAwareScrollView>
+				<View style={styles.termsAndConditions}>
+					<TermsAndConditions
+						navigation={this.props.navigation}
+						action={strings('import_from_seed.import_button')}
+					/>
+				</View>
 			</SafeAreaView>
 		);
 	}
