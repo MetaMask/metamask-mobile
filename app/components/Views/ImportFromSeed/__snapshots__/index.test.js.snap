@@ -65,19 +65,17 @@ exports[`ImportFromSeed should render correctly 1`] = `
           Array [
             Object {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#d6d9dc",
+              "borderColor": "#6a737d",
               "borderRadius": 10,
-              "borderWidth": 0.5,
+              "borderWidth": 1,
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",
               "height": "auto",
-              "marginBottom": 10,
-              "marginTop": 10,
+              "marginVertical": 10,
               "minHeight": 110,
               "paddingBottom": 20,
-              "paddingLeft": 20,
-              "paddingRight": 20,
+              "paddingHorizontal": 20,
               "paddingTop": 20,
             },
             Object {},
@@ -112,96 +110,56 @@ exports[`ImportFromSeed should render correctly 1`] = `
       <View
         style={
           Object {
-            "marginBottom": 10,
-            "marginTop": 20,
+            "marginVertical": 5,
           }
         }
       >
-        <ForwardRef(AnimatedComponentWrapper)
+        <Text
           style={
-            Array [
-              Object {
-                "color": "#777777",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "marginLeft": 5,
-                "marginTop": -35,
-                "position": "absolute",
-                "textAlign": "left",
-              },
-              Object {
-                "transform": Array [
-                  Object {
-                    "scale": 1,
-                  },
-                  Object {
-                    "translateX": 0,
-                  },
-                  Object {
-                    "translateY": 50,
-                  },
-                ],
-              },
-            ]
+            Object {
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "marginBottom": 12,
+            }
           }
         >
-          New Password
-        </ForwardRef(AnimatedComponentWrapper)>
-        <TextInput
+          Password
+        </Text>
+        <OutlinedTextField
+          activeLineWidth={2}
+          animationDuration={225}
           autoCapitalize="none"
-          onBlur={[Function]}
+          baseColor="#6a737d"
+          disableFullscreenUI={true}
+          disabled={false}
+          disabledLineType="dotted"
+          disabledLineWidth={0.5}
+          editable={true}
+          errorColor="rgb(213, 0, 0)"
+          fontSize={16}
+          labelFontSize={12}
+          lineType="solid"
+          lineWidth={1}
           onChangeText={[Function]}
-          onFocus={[Function]}
           onSubmitEditing={[Function]}
-          placeholder=""
-          placeholderTextColor="#d6d9dc"
+          placeholder="Password"
+          renderRightAccessory={[Function]}
           returnKeyType="next"
           secureTextEntry={true}
           style={
             Object {
-              "borderBottomColor": "#d6d9dc",
-              "borderBottomWidth": 1,
-              "borderRadius": 4,
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",
-              "paddingLeft": 0,
-              "paddingVertical": 10,
             }
           }
           testID="input-password-field"
-          underlineColorAndroid="#d6d9dc"
+          textColor="rgba(0, 0, 0, .87)"
+          tintColor="#037dd6"
+          underlineColorAndroid="transparent"
           value=""
         />
-        <TouchableOpacity
-          onPress={[Function]}
-          style={
-            Object {
-              "alignSelf": "flex-end",
-              "backgroundColor": "#FFFFFF",
-              "marginTop": 8,
-              "position": "absolute",
-            }
-          }
-        >
-          <Text
-            style={
-              Object {
-                "color": "#777777",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 12,
-                "fontWeight": "400",
-                "height": 20,
-                "marginLeft": 5,
-                "marginTop": 10,
-                "textAlign": "left",
-              }
-            }
-          >
-            Show
-          </Text>
-        </TouchableOpacity>
         <Text
           style={
             Object {
@@ -220,66 +178,53 @@ exports[`ImportFromSeed should render correctly 1`] = `
       <View
         style={
           Object {
-            "marginBottom": 10,
-            "marginTop": 20,
+            "marginVertical": 5,
           }
         }
       >
-        <ForwardRef(AnimatedComponentWrapper)
+        <Text
           style={
-            Array [
-              Object {
-                "color": "#777777",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "marginLeft": 5,
-                "marginTop": -35,
-                "position": "absolute",
-                "textAlign": "left",
-              },
-              Object {
-                "transform": Array [
-                  Object {
-                    "scale": 1,
-                  },
-                  Object {
-                    "translateX": 0,
-                  },
-                  Object {
-                    "translateY": 50,
-                  },
-                ],
-              },
-            ]
+            Object {
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "marginBottom": 12,
+            }
           }
         >
           Confirm Password
-        </ForwardRef(AnimatedComponentWrapper)>
-        <TextInput
+        </Text>
+        <OutlinedTextField
+          activeLineWidth={2}
+          animationDuration={225}
           autoCapitalize="none"
-          onBlur={[Function]}
+          baseColor="#6a737d"
+          disableFullscreenUI={true}
+          disabled={false}
+          disabledLineType="dotted"
+          disabledLineWidth={0.5}
+          editable={true}
+          errorColor="rgb(213, 0, 0)"
+          fontSize={16}
+          labelFontSize={12}
+          lineType="solid"
+          lineWidth={1}
           onChangeText={[Function]}
-          onFocus={[Function]}
           onSubmitEditing={[Function]}
-          placeholder=""
-          placeholderTextColor="#d6d9dc"
-          returnKeyType="done"
+          placeholder="Confirm Password"
+          returnKeyType="next"
           secureTextEntry={true}
           style={
             Object {
-              "borderBottomColor": "#d6d9dc",
-              "borderBottomWidth": 1,
-              "borderRadius": 4,
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",
-              "paddingLeft": 0,
-              "paddingVertical": 10,
             }
           }
           testID="input-password-field-confirm"
-          underlineColorAndroid="#d6d9dc"
+          textColor="rgba(0, 0, 0, .87)"
+          tintColor="#037dd6"
+          underlineColorAndroid="transparent"
           value=""
         />
         <View
@@ -312,8 +257,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         style={
           Object {
             "alignItems": "flex-start",
-            "marginBottom": 30,
-            "marginTop": 30,
+            "marginTop": 10,
           }
         }
       >
@@ -373,25 +317,25 @@ exports[`ImportFromSeed should render correctly 1`] = `
           IMPORT
         </StyledButton>
       </View>
-      <View
-        style={
-          Object {
-            "paddingVertical": 30,
-          }
-        }
-      >
-        <TermsAndConditions
-          action="IMPORT"
-          navigation={
-            Object {
-              "state": Object {
-                "params": Object {},
-              },
-            }
-          }
-        />
-      </View>
     </View>
   </KeyboardAwareScrollViewMock>
+  <View
+    style={
+      Object {
+        "paddingVertical": 10,
+      }
+    }
+  >
+    <TermsAndConditions
+      action="IMPORT"
+      navigation={
+        Object {
+          "state": Object {
+            "params": Object {},
+          },
+        }
+      }
+    />
+  </View>
 </ForwardRef(SafeAreaView)>
 `;
