@@ -35,16 +35,16 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between'
 	},
 	amountContainer: {
-		margin: 10,
-		padding: Device.isMediumDevice() ? 10 : 15,
+		margin: Device.isIphone5() ? 0 : 10,
+		padding: Device.isMediumDevice() ? (Device.isIphone5() ? 5 : 10) : 15,
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
 	amount: {
 		...fontStyles.light,
 		color: colors.black,
-		fontSize: 48,
-		height: 60
+		fontSize: Device.isIphone5() ? 48 : 48,
+		height: Device.isIphone5() ? 50 : 60
 	},
 	amountError: {
 		color: colors.red
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
 	},
 	keypadButton: {
 		paddingHorizontal: 20,
-		paddingVertical: Device.isMediumDevice() ? 10 : 15,
+		paddingVertical: Device.isMediumDevice() ? (Device.isIphone5() ? 5 : 10) : 15,
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center'
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
 	applePayButton: {
 		backgroundColor: colors.black,
 		padding: 10,
-		margin: 10,
+		margin: Device.isIphone5() ? 5 : 10,
 		marginHorizontal: 25,
 		alignItems: 'center'
 	},

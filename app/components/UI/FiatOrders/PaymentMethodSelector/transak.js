@@ -12,7 +12,10 @@ import Device from '../../../../util/Device';
 
 const style = StyleSheet.create({
 	logo: {
-		marginVertical: 5
+		marginVertical: 5,
+		aspectRatio: 95 / 25,
+		width: Device.isIphone5() ? 80 : 95,
+		height: Device.isIphone5() ? 20 : 25
 	},
 	cta: {
 		marginTop: 25,

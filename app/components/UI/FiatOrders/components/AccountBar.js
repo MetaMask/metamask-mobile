@@ -46,7 +46,7 @@ const AccountBar = ({ toggleAccountsModal, selectedAddress, identities }) => (
 			<View style={styles.addressContainer}>
 				<Identicon diameter={15} address={selectedAddress} />
 				<Text style={styles.accountText} centered>
-					{identities[selectedAddress].name} (<EthereumAddress address={selectedAddress} type={'short'} />)
+					{identities[selectedAddress]?.name} (<EthereumAddress address={selectedAddress} type={'short'} />)
 				</Text>
 				<Icon name="caret-down" size={18} style={styles.caretDown} />
 			</View>

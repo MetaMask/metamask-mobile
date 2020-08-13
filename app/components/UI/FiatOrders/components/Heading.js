@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import Device from '../../../../util/Device';
 
 const style = StyleSheet.create({
 	view: {
-		margin: 30
+		margin: Device.isIphone5() ? 20 : 30
 	}
 });
 
