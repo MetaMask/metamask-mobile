@@ -81,7 +81,7 @@ class Approval extends PureComponent {
 	};
 
 	handleAppStateChange = appState => {
-		if (appState === 'inactive' || appState === 'background') {
+		if (appState !== 'active') {
 			const { transaction } = this.props;
 			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
 			this.props.toggleDappTransactionModal(false);
