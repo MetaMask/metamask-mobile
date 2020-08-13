@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-navigation';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../../locales/i18n';
@@ -8,15 +9,13 @@ import { strings } from '../../../../../../locales/i18n';
 import Title from '../Title';
 import { colors } from '../../../../../styles/common';
 import StyledButton from '../../../StyledButton';
-import { SafeAreaView } from 'react-navigation';
-import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	modalView: {
 		backgroundColor: colors.white,
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginVertical: 25,
+		marginVertical: 50,
 		borderRadius: 10,
 		shadowColor: colors.black,
 		shadowOffset: {
@@ -27,7 +26,6 @@ const styles = StyleSheet.create({
 		shadowRadius: 6.68,
 		elevation: 11
 	},
-
 	modal: {
 		margin: 0,
 		width: '100%',
@@ -74,6 +72,7 @@ const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => (
 		onSwipeComplete={dismiss}
 		swipeDirection="down"
 		style={styles.modal}
+		propagateSwipe
 	>
 		<SafeAreaView style={styles.modalView}>
 			<View style={styles.title}>
@@ -82,7 +81,9 @@ const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => (
 					<CloseIcon />
 				</TouchableOpacity>
 			</View>
-			<ScrollView style={styles.body}>{children}</ScrollView>
+			<ScrollView style={styles.body}>
+				<View onStartShouldSetResponder={() => true}>{children}</View>
+			</ScrollView>
 			<View style={styles.action}>
 				<StyledButton type="blue" onPress={dismiss} containerStyle={[styles.button]}>
 					{strings('fiat_on_ramp.purchase_method_modal_close')}
