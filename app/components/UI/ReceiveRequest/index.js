@@ -122,7 +122,7 @@ class ReceiveRequest extends PureComponent {
 		 * Network id
 		 */
 		network: PropTypes.string,
-    /**
+		/**
 		 * Prompts protect wallet modal
 		 */
 		protectWalletModalVisible: PropTypes.func,
