@@ -412,12 +412,19 @@ class ImportFromSeed extends PureComponent {
 		});
 	};
 
-	setSeedphraseInputFocused = () => this.setState({ seedphraseInputFocused: true });
-
-	unsetSeedphraseInputFocused = () => this.setState({ seedphraseInputFocused: false });
+	seedphraseInputFocused = () => this.setState({ seedphraseInputFocused: !this.state.seedphraseInputFocused });
 
 	render() {
-		const { password, confirmPassword, seed } = this.state;
+		const {
+			password,
+			confirmPassword,
+			seed,
+			seedphraseInputFocused,
+			inputWidth,
+			secureTextEntry,
+			error,
+			loading
+		} = this.state;
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -425,13 +432,13 @@ class ImportFromSeed extends PureComponent {
 					<View testID={'import-from-seed-screen'}>
 						<Text style={styles.title}>{strings('import_from_seed.title')}</Text>
 						<TextInput
-							value={this.state.seed}
+							value={seed}
 							numberOfLines={3}
 							multiline
 							style={[
 								styles.seedPhrase,
-								this.state.inputWidth ? { width: this.state.inputWidth } : {},
-								this.state.seedphraseInputFocused && styles.inputFocused
+								inputWidth && { width: inputWidth },
+								seedphraseInputFocused && styles.inputFocused
 							]}
 							placeholder={strings('import_from_seed.seed_phrase_placeholder')}
 							placeholderTextColor={colors.grey200}
@@ -443,8 +450,8 @@ class ImportFromSeed extends PureComponent {
 							keyboardType={Device.isAndroid() ? 'visible-password' : 'default'}
 							autoCapitalize="none"
 							autoCorrect={false}
-							onFocus={this.setSeedphraseInputFocused}
-							onBlur={this.unsetSeedphraseInputFocused}
+							onFocus={this.seedphraseInputFocused}
+							onBlur={this.seedphraseInputFocused}
 						/>
 						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
 							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
@@ -457,22 +464,22 @@ class ImportFromSeed extends PureComponent {
 								testID={'input-password-field'}
 								returnKeyType={'next'}
 								autoCapitalize="none"
-								secureTextEntry={this.state.secureTextEntry}
+								secureTextEntry={secureTextEntry}
 								onChangeText={this.onPasswordChange}
-								value={this.state.password}
+								value={password}
 								baseColor={colors.grey500}
 								tintColor={colors.blue}
 								onSubmitEditing={this.jumpToConfirmPassword}
 								renderRightAccessory={() => (
 									<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
 										<Text style={styles.passwordStrengthLabel}>
-											{strings(`choose_password.${this.state.secureTextEntry ? 'show' : 'hide'}`)}
+											{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
 										</Text>
 									</TouchableOpacity>
 								)}
 							/>
 
-							{(this.state.password !== '' && (
+							{(password !== '' && (
 								<Text style={styles.passwordStrengthLabel}>
 									{strings('choose_password.password_strength')}
 									<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
@@ -491,16 +498,16 @@ class ImportFromSeed extends PureComponent {
 								onChangeText={this.onPasswordConfirmChange}
 								returnKeyType={'next'}
 								autoCapitalize="none"
-								secureTextEntry={this.state.secureTextEntry}
+								secureTextEntry={secureTextEntry}
 								placeholder={strings('import_from_seed.confirm_password')}
-								value={this.state.confirmPassword}
+								value={confirmPassword}
 								baseColor={colors.grey500}
 								tintColor={colors.blue}
 								onSubmitEditing={this.onPressImport}
 							/>
 
 							<View style={styles.showMatchingPasswords}>
-								{this.state.password !== '' && this.state.password === this.state.confirmPassword ? (
+								{password !== '' && password === confirmPassword ? (
 									<Icon name="check" size={12} color={colors.green300} />
 								) : null}
 							</View>
@@ -511,9 +518,9 @@ class ImportFromSeed extends PureComponent {
 
 						{this.renderSwitch()}
 
-						{!!this.state.error && (
+						{!!error && (
 							<Text style={styles.errorMsg} testID={'invalid-seed-phrase'}>
-								{this.state.error}
+								{error}
 							</Text>
 						)}
 
@@ -526,7 +533,7 @@ class ImportFromSeed extends PureComponent {
 									!(password !== '' && password === confirmPassword && seed.split(' ').length === 12)
 								}
 							>
-								{this.state.loading ? (
+								{loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
 									strings('import_from_seed.import_button')
