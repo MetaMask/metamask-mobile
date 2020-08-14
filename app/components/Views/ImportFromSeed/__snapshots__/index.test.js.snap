@@ -56,10 +56,12 @@ exports[`ImportFromSeed should render correctly 1`] = `
         keyboardType="default"
         multiline={true}
         numberOfLines={3}
+        onBlur={[Function]}
         onChangeText={[Function]}
+        onFocus={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Enter your seed phrase here"
-        placeholderTextColor="#d6d9dc"
+        placeholderTextColor="#bbc0c5"
         returnKeyType="next"
         style={
           Array [
@@ -79,6 +81,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
               "paddingTop": 20,
             },
             Object {},
+            false,
           ]
         }
         testID="input-seed-phrase"
@@ -147,13 +150,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
           renderRightAccessory={[Function]}
           returnKeyType="next"
           secureTextEntry={true}
-          style={
-            Object {
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-            }
-          }
           testID="input-password-field"
           textColor="rgba(0, 0, 0, .87)"
           tintColor="#037dd6"
@@ -192,7 +188,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
             }
           }
         >
-          Confirm Password
+          Confirm password
         </Text>
         <OutlinedTextField
           activeLineWidth={2}
@@ -211,16 +207,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
           lineWidth={1}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
-          placeholder="Confirm Password"
+          placeholder="Confirm password"
           returnKeyType="next"
           secureTextEntry={true}
-          style={
-            Object {
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-            }
-          }
           testID="input-password-field-confirm"
           textColor="rgba(0, 0, 0, .87)"
           tintColor="#037dd6"
