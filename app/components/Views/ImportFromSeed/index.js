@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-	Animated,
 	Switch,
 	ActivityIndicator,
 	Alert,
@@ -57,10 +56,6 @@ const styles = StyleSheet.create({
 	label: {
 		fontSize: 14,
 		marginBottom: 12,
-		...fontStyles.normal
-	},
-	input: {
-		fontSize: Device.isAndroid() ? 14 : 20,
 		...fontStyles.normal
 	},
 	ctaWrapper: {
@@ -142,6 +137,10 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		paddingVertical: 4,
 		paddingHorizontal: 6
+	},
+	inputFocused: {
+		borderColor: colors.blue,
+		borderWidth: 2
 	}
 });
 
@@ -186,12 +185,11 @@ class ImportFromSeed extends PureComponent {
 		seed: '',
 		biometryType: null,
 		rememberMe: false,
-		labelsScaleNew: new Animated.Value(1),
-		labelsScaleConfirm: new Animated.Value(1),
 		secureTextEntry: true,
 		biometryChoice: false,
 		loading: false,
 		error: null,
+		seedphraseInputFocused: false,
 		inputWidth: Device.isAndroid() ? '99%' : undefined
 	};
 
@@ -414,6 +412,10 @@ class ImportFromSeed extends PureComponent {
 		});
 	};
 
+	setSeedphraseInputFocused = () => this.setState({ seedphraseInputFocused: true });
+
+	unsetSeedphraseInputFocused = () => this.setState({ seedphraseInputFocused: false });
+
 	render() {
 		const { password, confirmPassword, seed } = this.state;
 
@@ -426,9 +428,13 @@ class ImportFromSeed extends PureComponent {
 							value={this.state.seed}
 							numberOfLines={3}
 							multiline
-							style={[styles.seedPhrase, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							style={[
+								styles.seedPhrase,
+								this.state.inputWidth ? { width: this.state.inputWidth } : {},
+								this.state.seedphraseInputFocused && styles.inputFocused
+							]}
 							placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.grey200}
 							onChangeText={this.onSeedWordsChange}
 							testID={'input-seed-phrase'}
 							blurOnSubmit
@@ -437,6 +443,8 @@ class ImportFromSeed extends PureComponent {
 							keyboardType={Device.isAndroid() ? 'visible-password' : 'default'}
 							autoCapitalize="none"
 							autoCorrect={false}
+							onFocus={this.setSeedphraseInputFocused}
+							onBlur={this.unsetSeedphraseInputFocused}
 						/>
 						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
 							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
@@ -445,7 +453,6 @@ class ImportFromSeed extends PureComponent {
 							<Text style={styles.label}>{strings('login.password')}</Text>
 							<OutlinedTextField
 								ref={this.passwordInput}
-								style={styles.input}
 								placeholder={strings('login.password')}
 								testID={'input-password-field'}
 								returnKeyType={'next'}
@@ -480,7 +487,6 @@ class ImportFromSeed extends PureComponent {
 							<Text style={styles.label}>{strings('import_from_seed.confirm_password')}</Text>
 							<OutlinedTextField
 								ref={this.confirmPasswordInput}
-								style={styles.input}
 								testID={'input-password-field-confirm'}
 								onChangeText={this.onPasswordConfirmChange}
 								returnKeyType={'next'}
