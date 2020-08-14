@@ -457,10 +457,10 @@ class ImportFromSeed extends PureComponent {
 							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
 						</TouchableOpacity>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('login.password')}</Text>
+							<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
 							<OutlinedTextField
 								ref={this.passwordInput}
-								placeholder={strings('login.password')}
+								placeholder={strings('import_from_seed.new_password')}
 								testID={'input-password-field'}
 								returnKeyType={'next'}
 								autoCapitalize="none"
