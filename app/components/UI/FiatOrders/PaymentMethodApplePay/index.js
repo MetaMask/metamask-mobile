@@ -26,6 +26,7 @@ import AccountBar from '../components/AccountBar';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
+import { protectWalletModalVisible } from '../../../../actions/user';
 
 //* styles and components  */
 
@@ -243,7 +244,14 @@ const handleNewAmountInput = (currentAmount, newInput) => {
 	}
 };
 
-function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network, addOrder }) {
+function PaymentMethodApplePay({
+	lockTime,
+	setLockTime,
+	selectedAddress,
+	network,
+	addOrder,
+	protectWalletModalVisible
+}) {
 	const navigation = useContext(NavigationContext);
 	const [amount, setAmount] = useState('0');
 	const roundAmount =
@@ -268,6 +276,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 				if (order) {
 					addOrder(order);
 					navigation.dismiss();
+					protectWalletModalVisible();
 					InteractionManager.runAfterInteractions(() =>
 						NotificationManager.showSimpleNotification(getNotificationDetails(order))
 					);
@@ -288,7 +297,7 @@ function PaymentMethodApplePay({ lockTime, setLockTime, selectedAddress, network
 		} finally {
 			setLockTime(prevLockTime);
 		}
-	}, [ABORTED, addOrder, lockTime, navigation, pay, setLockTime]);
+	}, [ABORTED, addOrder, lockTime, navigation, pay, setLockTime, protectWalletModalVisible]);
 
 	const handleQuickAmountPress = useCallback(amount => setAmount(amount), []);
 	const handleKeypadPress = useCallback(
@@ -465,7 +474,11 @@ PaymentMethodApplePay.propTypes = {
 	/**
 	 * Function to dispatch adding a new fiat order to the state
 	 */
-	addOrder: PropTypes.func.isRequired
+	addOrder: PropTypes.func.isRequired,
+	/**
+	 * Prompts protect wallet modal
+	 */
+	protectWalletModalVisible: PropTypes.func
 };
 
 PaymentMethodApplePay.navigationOptions = ({ navigation }) => getPaymentMethodApplePayNavbar(navigation);
@@ -478,7 +491,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	setLockTime: time => dispatch(setLockTime(time)),
-	addOrder: order => dispatch({ type: 'FIAT_ADD_ORDER', payload: order })
+	addOrder: order => dispatch({ type: 'FIAT_ADD_ORDER', payload: order }),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 export default connect(
 	mapStateToProps,
