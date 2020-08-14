@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
 	metamaskNameWrapper: {
 		marginLeft: Device.isAndroid() ? 20 : 0
 	},
-	webviewTitle: {
+	centeredTitle: {
 		fontSize: 20,
 		color: colors.fontPrimary,
 		textAlign: 'center',
@@ -797,7 +797,7 @@ export function getWebviewNavbar(navigation) {
 		'';
 	});
 	return {
-		headerTitle: <Text style={styles.webviewTitle}>{title}</Text>,
+		headerTitle: <Text style={styles.centeredTitle}>{title}</Text>,
 		headerLeft: Device.isAndroid() ? (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
@@ -827,12 +827,8 @@ export function getPaymentSelectorMethodNavbar(navigation) {
 	const rightAction = navigation.dismiss;
 
 	return {
-		title: strings('fiat_on_ramp.purchase_method'),
-		headerTitleStyle: {
-			fontSize: 20,
-			color: colors.fontPrimary,
-			...fontStyles.normal
-		},
+		headerTitle: <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
+		headerLeft: <View />,
 		headerRight: (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
