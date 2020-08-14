@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Alert, InteractionManager } from 'react-native';
+import { StyleSheet, AppState, Alert, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
@@ -76,11 +76,21 @@ class Approval extends PureComponent {
 			Engine.context.TransactionController.cancelTransaction(transaction.id);
 		}
 		Engine.context.TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
+		AppState.removeEventListener('change', this.handleAppStateChange);
 		this.clear();
+	};
+
+	handleAppStateChange = appState => {
+		if (appState !== 'active') {
+			const { transaction } = this.props;
+			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
+			this.props.toggleDappTransactionModal(false);
+		}
 	};
 
 	componentDidMount = () => {
 		const { navigation } = this.props;
+		AppState.addEventListener('change', this.handleAppStateChange);
 		navigation && navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 		this.trackConfirmScreen();
 	};
