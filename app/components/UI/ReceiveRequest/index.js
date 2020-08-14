@@ -182,6 +182,7 @@ class ReceiveRequest extends PureComponent {
 			content: 'clipboard-alert',
 			data: { msg: strings('account_details.account_copied_to_clipboard') }
 		});
+		setTimeout(() => this.props.protectWalletModalVisible(), 1500);
 	};
 
 	/**
