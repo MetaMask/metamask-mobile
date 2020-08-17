@@ -599,7 +599,7 @@ class CustomGas extends PureComponent {
 						style={styles.gasInput}
 						onChangeText={this.onGasLimitChange}
 						//useing BN here due to a glitch that causes it to sometimes render as x.00000001
-						value={customGasLimitBN && customGasLimitBN.toString()}
+						value={customGasLimitBN ? customGasLimitBN.toString() : ''}
 					/>
 				</View>
 				<View style={styles.valueRow}>
@@ -608,7 +608,7 @@ class CustomGas extends PureComponent {
 						keyboardType="numeric"
 						style={styles.gasInput}
 						onChangeText={this.onGasPriceChange}
-						value={customGasLimitBN && customGasPriceBN.toString()}
+						value={customGasPriceBN ? customGasPriceBN.toString() : ''}
 					/>
 				</View>
 			</Animated.View>

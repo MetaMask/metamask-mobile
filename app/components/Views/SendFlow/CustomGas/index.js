@@ -477,7 +477,7 @@ class CustomGas extends PureComponent {
 	renderCustomGasInput = () => {
 		const { customGasLimit, customGasPrice, customGasLimitBN, customGasPriceBN } = this.state;
 		const ticker = getTicker(this.props.ticker);
-		const totalGas = customGasLimitBN.mul(customGasPriceBN);
+		const totalGas = customGasLimitBN && customGasLimitBN.mul(customGasPriceBN);
 		return (
 			<View style={styles.advancedOptionsContainer}>
 				<View style={styles.valueRow}>
