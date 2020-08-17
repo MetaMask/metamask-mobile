@@ -1,7 +1,9 @@
-import React, { useCallback } from 'react';
-import { InteractionManager, Linking } from 'react-native';
+import React, { useContext, useCallback } from 'react';
+import { InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
+import { NavigationContext } from 'react-navigation';
 import { connect } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
@@ -11,18 +13,20 @@ import ScreenView from '../components/ScreenView';
 import Title from '../components/Title';
 
 import TransakPaymentMethod from './transak';
-import Logger from '../../../../util/Logger';
 
 function PaymentMethodSelectorView({ selectedAddress, ...props }) {
+	const navigation = useContext(NavigationContext);
 	const transakURL = useTransakFlowURL(selectedAddress);
 
 	const onPressTransak = useCallback(() => {
-		Linking.openURL(transakURL).catch(e => Logger.console.error('PaymentMethodSelectorView::onPressTransak', e));
-
+		navigation.navigate('TransakFlow', {
+			url: transakURL,
+			title: strings('fiat_on_ramp.transak_webview_title')
+		});
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_DEBIT_OR_ACH);
 		});
-	}, [transakURL]);
+	}, [navigation, transakURL]);
 
 	return (
 		<ScreenView>
