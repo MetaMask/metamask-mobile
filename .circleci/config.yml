@@ -176,27 +176,26 @@ workflows:
               only:
                 - master
                 - develop
-                - feature/rn-payments
-      # - prep-node-deps:
-      #     filters:
-      #       branches:
-      #         ignore:
-      #           - master
-      #           - develop
-      # - lint:
-      #     requires:
-      #       - prep-node-deps
-      # - test-unit:
-      #     requires:
-      #       - prep-node-deps
+      - prep-node-deps:
+          filters:
+            branches:
+              ignore:
+                - master
+                - develop
+      - lint:
+          requires:
+            - prep-node-deps
+      - test-unit:
+          requires:
+            - prep-node-deps
     #   - test-e2e-ios:
     #       requires:
     #         - prep-node-deps
     #         - test-unit
-      # - all-tests-pass:
-      #     requires:
-      #       - lint
-      #       - test-unit
+      - all-tests-pass:
+          requires:
+            - lint
+            - test-unit
     #       - test-e2e-ios
     #   - upload-coverage:
     #       requires:
