@@ -89,7 +89,7 @@ class AddressQRCode extends PureComponent {
 	 */
 	closeQrModal = () => {
 		this.props.closeQrModal();
-		this.props.protectWalletModalVisible();
+		setTimeout(() => this.props.protectWalletModalVisible(), 1000);
 	};
 
 	copyAccountToClipboard = async () => {
