@@ -108,8 +108,8 @@
 	"choose_password": {
 		"title": "Crea tu contraseña",
 		"subtitle": "Utilizarás esta contraseña para acceder a tu billetera de MetaMask solamente en este dispositivo.",
-		"password": "Nueva Contraseña",
-		"confirm_password": "Confirmar Contraseña",
+		"password": "Nueva contraseña",
+		"confirm_password": "Confirmar contraseña",
 		"create_button": "Crear contraseña",
 		"import_with_seed_phrase": "Importar con frase semilla",
 		"password_length_error": "La contraseña debe contener al menos 8 caracteres",
@@ -128,8 +128,8 @@
 	"import_from_seed": {
 		"title": "Importar con frase semilla",
 		"seed_phrase_placeholder": "Ingresa tu frase semilla aquí",
-		"new_password": "Nueva Contraseña",
-		"confirm_password": "Confirmar Contraseña",
+		"new_password": "Nueva contraseña",
+		"confirm_password": "Confirmar contraseña",
 		"import_button": "IMPORTAR",
 		"cancel_button": "Cancelar",
 		"password_length_error": "La contraseña debe contener al menos 8 caracteres",
