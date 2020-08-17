@@ -24,10 +24,13 @@ export const PAYMENT_CHANNEL_FIRST_TIME = `${prefix}paymentChannelFirstTime`;
 
 export const LANGUAGE = `${prefix}language`;
 
+export const ENCRYPTION_LIB = `${prefix}encryptionLib`;
+
 export const TRUE = 'true';
 
 export const AGREED = 'agreed';
 export const DENIED = 'denied';
 export const EXPLORED = 'explored';
+export const ORIGINAL = 'original';
 
 export const DEBUG = `[${mm} DEBUG]:`;
