@@ -311,7 +311,7 @@ class ChoosePassword extends PureComponent {
 			} else {
 				if (this.state.rememberMe) {
 					await SecureKeychain.setGenericPassword('metamask-user', password, {
-						accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
+						accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY
 					});
 				} else {
 					await SecureKeychain.resetGenericPassword();
