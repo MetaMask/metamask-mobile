@@ -15,7 +15,7 @@ import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import SplashScreen from 'react-native-splash-screen';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
-import { EXISTING_USER, ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
+import { EXISTING_USER, ONBOARDING_WIZARD, METRICS_OPT_IN, ENCRYPTION_LIB, ORIGINAL } from '../../../constants/storage';
 
 /**
  * Entry Screen that decides which screen to show
@@ -168,10 +168,10 @@ class Entry extends PureComponent {
 				// Restore vault with existing credentials
 
 				await KeyringController.submitPassword(credentials.password);
-				const encryptionLib = await AsyncStorage.getItem('@MetaMask:encryptionLib');
-				if (encryptionLib !== 'original') {
+				const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+				if (encryptionLib !== ORIGINAL) {
 					await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
-					await AsyncStorage.setItem('@MetaMask:encryptionLib', 'original');
+					await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 				}
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);

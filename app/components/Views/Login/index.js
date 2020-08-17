@@ -26,7 +26,9 @@ import {
 	BIOMETRY_CHOICE_DISABLED,
 	ONBOARDING_WIZARD,
 	METRICS_OPT_IN,
-	TRUE
+	ENCRYPTION_LIB,
+	TRUE,
+	ORIGINAL
 } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
@@ -202,10 +204,10 @@ class Login extends PureComponent {
 
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
-			const encryptionLib = await AsyncStorage.getItem('@MetaMask:encryptionLib');
-			if (encryptionLib !== 'original') {
+			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+			if (encryptionLib !== ORIGINAL) {
 				await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
-				await AsyncStorage.setItem('@MetaMask:encryptionLib', 'original');
+				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			}
 			if (this.state.biometryChoice && this.state.biometryType) {
 				const authOptions = {
