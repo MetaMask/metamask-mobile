@@ -10,7 +10,8 @@ describe('ReceiveRequest', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					PreferencesController: { selectedAddress: '0x' }
+					PreferencesController: { selectedAddress: '0x' },
+					NetworkController: { network: '1' }
 				}
 			},
 			modals: {

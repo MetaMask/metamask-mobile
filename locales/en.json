@@ -245,7 +245,11 @@
 		"private_key_detected": "Private key detected",
 		"do_you_want_to_import_this_account": "Do you want to import this account?",
 		"error": "Error",
-		"logout_to_import_seed": "You need to log out first in order to import a seed phrase."
+		"logout_to_import_seed": "You need to log out first in order to import a seed phrase.",
+		"ready_to_explore": "Ready to start exploring blockchain applications?"
+	},
+	"activity_view": {
+		"title": "Activity"
 	},
 	"transactions_view": {
 		"title": "Transactions"
@@ -560,7 +564,13 @@
 		"could_not_resolve_ens": "Couldn't resolve ENS",
 		"asset": "Asset",
 		"balance": "Balance",
-		"not_enough_for_gas": "You have 0 ETH in your account to pay for transaction fees. Buy some ETH or deposit from another account."
+		"not_enough_for_gas": "You have 0 ETH in your account to pay for transaction fees. Buy some ETH or deposit from another account.",
+		"send": "Send",
+		"confirmed": "Confirmed",
+		"pending": "Pending",
+		"submitted": "Submitted",
+		"failed": "Failed",
+		"cancelled": "Cancelled"
 	},
 	"custom_gas": {
 		"total": "Total",
@@ -1104,10 +1114,13 @@
 		"request_title": "Request",
 		"request_description": "Request assets from friends",
 		"buy_title": "Buy",
-		"buy_description": "Buy Crypto with Credit Card",
+		"buy_description": "Buy crypto with debit card or bank transfer",
 		"public_address": "Public Address",
 		"public_address_qr_code": "Public Address",
-		"coming_soon": "Coming soon..."
+		"coming_soon": "Coming soon...",
+		"request_payment": "Request Payment",
+		"copy": "Copy",
+		"scan_address": "Scan address to receive payment"
 	},
 	"experimental_settings": {
 		"payment_channels": "Payment Channels",
@@ -1224,6 +1237,76 @@
 	"walletconnect_return_modal": {
 		"title": "You're all set!",
 		"text": "You can now return to your browser"
+	},
+	"account_bar": {
+		"depositing_to": "Depositing to:"
+	},
+	"fiat_on_ramp": {
+		"buy_eth": "Buy ETH",
+		"purchased_currency": "Purchased {{currency}}",
+		"network_not_supported": "Current network not supported",
+		"switch_network": "Please switch to Mainnet",
+		"switch": "Switch",
+		"purchases": "Purchases",
+		"purchase_method": "Purchase Method",
+		"amount_to_buy": "Amount to buy",
+		"transak_webview_title": "Transak",
+		"wyre_user_agreement": "Wyre User Agreement",
+		"wyre_terms_of_service": "Wyre Terms of Service",
+		"best_deal": "Best deal",
+		"purchase_method_title": {
+			"wyre_first_line": "0% fee when you use",
+			"wyre_second_line": "Apple Pay.",
+			"wyre_sub_header": "Valid until July 1st, 2020",
+			"first_line": "How do you want to make",
+			"second_line": "your purchase?"
+		},
+		"bank_transfer_debit": "Bank transfer or debit card",
+		"requires_registration": "Requires registration",
+		"options_fees_vary": "Options and fees vary based on location",
+		"countries": "countries",
+		"some_states_excluded": "Some states excluded",
+		"purchase_method_modal_close": "Close",
+		"modal_transak_support": "Transak Support",
+		"modal_wyre_support": "Wyre Support",
+		"transak_cta": "Buy ETH with Transak",
+		"transak_modal_text": "Exact payment methods and fees vary depending on location. Supported countries are:",
+		"apple_pay": "Apple Pay",
+		"via": "via",
+		"fee": "fee",
+		"Fee": "Fee",
+		"limited_time": "limited time",
+		"wyre_loading_rates": " ",
+		"wyre_estimated": "Estimated {{amount}} {{currency}}",
+		"wyre_minutes": "1 - 2 minutes",
+		"wyre_max": "Max $450 weekly",
+		"wyre_requires_debit_card": "Requires debit card",
+		"wyre_us_only": "🇺🇸 U.S. only",
+		"wyre_modal_text": "Paying with Apple Pay, powered by Wyre is supported in the United Sates 🇺🇸 except for CT, HI, NC, NH, NY, VA and VT.",
+		"wyre_modal_terms_of_service_apply": "Wyre terms of service apply.",
+		"wyre_minimum_deposit": "Minimum deposit is {{amount}}",
+		"wyre_maximum_deposit": "Maximum deposit is {{amount}}",
+		"wyre_purchase": "{{currency}} Purchase",
+		"buy_with": "Buy with",
+		"plus_fee": "Plus a {{fee}} fee",
+		"notifications": {
+			"purchase_failed_title": "Purchase of {{currency}} has failed! Please try again, sorry for the inconvenience!",
+			"purchase_cancelled_title": "Your purchase was cancelled",
+			"purchase_completed_title": "Your purchase of {{amount}} {{currency}} was successful!",
+			"purchase_completed_description": "Your {{currency}} is now available",
+			"purchase_pending_title": "Processing your purchase of {{currency}}",
+			"purchase_pending_description": "Your deposit is in progress"
+		},
+		"date": "Date",
+		"from": "From",
+		"to": "To",
+		"status": "Status",
+		"completed": "Completed",
+		"pending": "Pending",
+		"failed": "Failed",
+		"cancelled": "Canceled",
+		"amount": "Amount",
+		"total_amount": "Total amount"
 	},
 	"protect_wallet_modal": {
 		"title": "Protect your wallet",
