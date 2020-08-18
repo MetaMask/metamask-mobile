@@ -37,14 +37,26 @@ exports[`ReceiveRequest should render correctly 1`] = `
   <View
     style={
       Object {
-        "marginVertical": 8,
+        "marginTop": 10,
       }
     }
   >
     <Text
+      bold={false}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      primary={false}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
       style={
         Object {
           "alignSelf": "center",
+          "color": "#000000",
           "flexDirection": "row",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 18,
@@ -52,6 +64,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
         }
       }
       testID="receive-request-screen"
+      upper={false}
     >
       Receive
     </Text>
@@ -59,243 +72,155 @@ exports[`ReceiveRequest should render correctly 1`] = `
   <View
     style={
       Object {
-        "marginHorizontal": 16,
-        "paddingBottom": 16,
+        "alignItems": "center",
+        "paddingHorizontal": 15,
       }
     }
   >
-    <View
+    <ModalHandler>
+      <Component />
+    </ModalHandler>
+    <Text
+      bold={false}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      primary={false}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
+      upper={false}
+    >
+      Scan address to receive payment
+    </Text>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         Object {
           "alignItems": "center",
+          "backgroundColor": "#f2f3f4",
+          "borderRadius": 30,
           "flexDirection": "row",
+          "margin": 15,
+          "padding": 9,
+          "paddingHorizontal": 15,
         }
       }
     >
-      <Connect(ReceiveRequestAction)
-        actionDescription="Email or text your address"
-        actionTitle="Share Address"
-        icon={
-          <Icon
-            allowFontScaling={false}
-            color="#000000"
-            name="paper-plane"
-            size={28}
-          />
+      <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        upper={false}
+      >
+        <Connect(EthereumAddress)
+          address="0x"
+          type="short"
+        />
+      </Text>
+      <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={true}
+        strikethrough={false}
+        style={
+          Object {
+            "backgroundColor": "#D8D8D8",
+            "borderRadius": 12,
+            "color": "#000000",
+            "marginHorizontal": 6,
+            "overflow": "hidden",
+            "paddingHorizontal": 6,
+            "paddingVertical": 3,
+          }
         }
+        upper={false}
+      >
+        Copy
+      </Text>
+      <TouchableOpacity
         onPress={[Function]}
-        style={
-          Object {
-            "flex": 1,
-            "height": 343,
-            "width": 343,
-          }
-        }
-      />
-      <Connect(ReceiveRequestAction)
-        actionDescription="Scannable image that can read your address"
-        actionTitle="QR Code"
-        icon={
-          <Icon
-            allowFontScaling={false}
-            color="#000000"
-            name="qrcode"
-            size={32}
-          />
-        }
-        onPress={[Function]}
-        style={
-          Object {
-            "flex": 1,
-            "height": 343,
-            "width": 343,
-          }
-        }
-      />
-    </View>
-    <View
-      style={
-        Object {
-          "alignItems": "center",
-          "flexDirection": "row",
-        }
-      }
-    >
-      <Connect(ReceiveRequestAction)
-        actionDescription="Request assets from friends"
-        actionTitle="Request"
-        icon={
-          <IconClass
-            brand={false}
-            color="#000000"
-            light={false}
-            name="hand-holding"
-            regular={false}
-            size={30}
-            solid={true}
-          />
-        }
-        onPress={[Function]}
-        style={
-          Object {
-            "flex": 1,
-            "height": 343,
-            "width": 343,
-          }
-        }
-      />
-      <Connect(ReceiveRequestAction)
-        actionDescription="Buy Crypto with Credit Card"
-        actionTitle="Buy"
-        icon={
-          <Icon
-            allowFontScaling={false}
-            color="#000000"
-            name="credit-card"
-            size={32}
-          />
-        }
-        onPress={[Function]}
-        style={
-          Object {
-            "flex": 1,
-            "height": 343,
-            "width": 343,
-          }
-        }
-      />
-    </View>
-  </View>
-  <ReactNativeModal
-    animationIn="slideInUp"
-    animationInTiming={300}
-    animationOut="slideOutDown"
-    animationOutTiming={300}
-    avoidKeyboard={false}
-    backdropColor="black"
-    backdropOpacity={0.7}
-    backdropTransitionInTiming={300}
-    backdropTransitionOutTiming={300}
-    coverScreen={true}
-    customBackdrop={null}
-    deviceHeight={null}
-    deviceWidth={null}
-    hasBackdrop={true}
-    hideModalContentWhileAnimating={false}
-    isVisible={false}
-    onBackButtonPress={[Function]}
-    onBackdropPress={[Function]}
-    onModalHide={[Function]}
-    onModalShow={[Function]}
-    onModalWillHide={[Function]}
-    onModalWillShow={[Function]}
-    onSwipeComplete={[Function]}
-    propagateSwipe={true}
-    scrollHorizontal={false}
-    scrollOffset={0}
-    scrollOffsetMax={0}
-    scrollTo={null}
-    supportedOrientations={
-      Array [
-        "portrait",
-        "landscape",
-      ]
-    }
-    swipeDirection="down"
-    swipeThreshold={100}
-    testID="qr-modal"
-    useNativeDriver={false}
-  >
-    <Connect(AddressQRCode)
-      closeQrModal={[Function]}
-    />
-  </ReactNativeModal>
-  <ReactNativeModal
-    animationIn="fadeIn"
-    animationInTiming={300}
-    animationOut="fadeOut"
-    animationOutTiming={300}
-    avoidKeyboard={false}
-    backdropColor="black"
-    backdropOpacity={0}
-    backdropTransitionInTiming={300}
-    backdropTransitionOutTiming={300}
-    coverScreen={true}
-    customBackdrop={null}
-    deviceHeight={null}
-    deviceWidth={null}
-    hasBackdrop={true}
-    hideModalContentWhileAnimating={false}
-    isVisible={false}
-    onBackButtonPress={[Function]}
-    onBackdropPress={[Function]}
-    onModalHide={[Function]}
-    onModalShow={[Function]}
-    onModalWillHide={[Function]}
-    onModalWillShow={[Function]}
-    propagateSwipe={false}
-    scrollHorizontal={false}
-    scrollOffset={0}
-    scrollOffsetMax={0}
-    scrollTo={null}
-    style={
-      Object {
-        "margin": 0,
-        "width": "100%",
-      }
-    }
-    supportedOrientations={
-      Array [
-        "portrait",
-        "landscape",
-      ]
-    }
-    swipeThreshold={100}
-    useNativeDriver={true}
-  >
-    <ElevatedView
-      elevation={5}
-      style={
-        Object {
-          "alignItems": "center",
-          "alignSelf": "center",
-          "backgroundColor": "rgba(0,0,0,.75)",
-          "borderRadius": 8,
-          "justifyContent": "center",
-          "padding": 20,
-          "paddingTop": 30,
-          "width": 180,
-        }
-      }
-    >
-      <View
-        style={
-          Object {
-            "marginBottom": 20,
-          }
-        }
       >
         <Icon
           allowFontScaling={false}
-          color="#FFFFFF"
-          name="clockcircle"
-          size={64}
+          color="#5B5D67"
+          name="share-apple"
+          size={25}
         />
-      </View>
-      <Text
-        style={
+      </TouchableOpacity>
+    </TouchableOpacity>
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "marginBottom": 15,
+        }
+      }
+    >
+      <StyledButton
+        containerStyle={
           Object {
-            "color": "#FFFFFF",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "textAlign": "center",
+            "flex": 1,
+            "marginHorizontal": 8,
           }
         }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="blue"
       >
-        Coming soon...
-      </Text>
-    </ElevatedView>
-  </ReactNativeModal>
+        Buy ETH
+      </StyledButton>
+      <StyledButton
+        containerStyle={
+          Object {
+            "flex": 1,
+            "marginHorizontal": 8,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        Request Payment
+      </StyledButton>
+    </View>
+  </View>
+  <Connect(GlobalAlert) />
 </ForwardRef(SafeAreaView)>
 `;
