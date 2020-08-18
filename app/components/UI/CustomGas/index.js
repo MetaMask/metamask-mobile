@@ -574,7 +574,7 @@ class CustomGas extends PureComponent {
 	renderCustomGasInput = () => {
 		const { customGasLimitBN, customGasPriceBNWei, customGasPriceBN } = this.state;
 		const { generateTransform } = this.props;
-		const totalGas = customGasLimitBN.mul(customGasPriceBNWei);
+		const totalGas = customGasLimitBN && customGasLimitBN.mul(customGasPriceBNWei);
 		const ticker = getTicker(this.props.ticker);
 		return (
 			<Animated.View
@@ -599,7 +599,7 @@ class CustomGas extends PureComponent {
 						style={styles.gasInput}
 						onChangeText={this.onGasLimitChange}
 						//useing BN here due to a glitch that causes it to sometimes render as x.00000001
-						value={customGasLimitBN.toString()}
+						value={customGasLimitBN ? customGasLimitBN.toString() : ''}
 					/>
 				</View>
 				<View style={styles.valueRow}>
@@ -608,7 +608,7 @@ class CustomGas extends PureComponent {
 						keyboardType="numeric"
 						style={styles.gasInput}
 						onChangeText={this.onGasPriceChange}
-						value={customGasPriceBN.toString()}
+						value={customGasPriceBN ? customGasPriceBN.toString() : ''}
 					/>
 				</View>
 			</Animated.View>

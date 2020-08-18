@@ -218,7 +218,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
               ]
             }
           >
-            Confirm Password
+            Confirm password
           </ForwardRef(AnimatedComponentWrapper)>
           <TextInput
             autoCapitalize="none"
