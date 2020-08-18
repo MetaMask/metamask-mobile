@@ -25,7 +25,12 @@
 		"warning_text_3": "si continúas.",
 		"warning_text_4": "SOLO las puedes recuperar con la frase semilla de tu billetera. MetaMask no puede ayudarte a recuperarlas.",
 		"warning_proceed": "Eliminar billetera y continuar",
-		"warning_cancel": "Cancelar"
+		"warning_cancel": "Cancelar",
+		"step1": "Configuración de la Billetera",
+		"step2": "Crear contraseña",
+		"step3": "Billetera segura",
+		"already_have": "¿Ya tienes una billetera?",
+		"sync_existing": "Sincroniza tu billetera MetaMask existente desde la extensión en el navegador o impórtala manualmente."
 	},
 	"onboarding_carousel": {
 		"title1": "Bienvenido a MetaMask",
