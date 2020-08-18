@@ -70,8 +70,8 @@ const styles = StyleSheet.create({
 		maxWidth: '30%'
 	},
 	viewDataWrapper: {
-		marginTop: 32,
-		marginBottom: 16
+		flex: 1,
+		marginTop: 16
 	},
 	viewDataButton: {
 		alignSelf: 'center'

@@ -10,6 +10,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/Device';
 import { showAlert } from '../../../actions/alert';
 import GlobalAlert from '../../UI/GlobalAlert';
+import { protectWalletModalVisible } from '../../../actions/user';
 
 const WIDTH = Dimensions.get('window').width - 88;
 
@@ -76,7 +77,11 @@ class AddressQRCode extends PureComponent {
 		/**
 		/* Callback to close the modal
 		*/
-		closeQrModal: PropTypes.func
+		closeQrModal: PropTypes.func,
+		/**
+		 * Prompts protect wallet modal
+		 */
+		protectWalletModalVisible: PropTypes.func
 	};
 
 	/**
@@ -84,6 +89,7 @@ class AddressQRCode extends PureComponent {
 	 */
 	closeQrModal = () => {
 		this.props.closeQrModal();
+		setTimeout(() => this.props.protectWalletModalVisible(), 1000);
 	};
 
 	copyAccountToClipboard = async () => {
@@ -139,7 +145,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config))
+	showAlert: config => dispatch(showAlert(config)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 
 export default connect(

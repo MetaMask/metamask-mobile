@@ -1,195 +1,97 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionDetails should render correctly 1`] = `
-<View
-  style={
-    Object {
-      "paddingHorizontal": 15,
-    }
-  }
->
-  <View
-    style={
-      Array [
-        Object {
-          "paddingVertical": 16,
-        },
-        Object {
-          "flexDirection": "row",
-        },
-        Object {
-          "borderBottomColor": "#d6d9dc",
-          "borderBottomWidth": 1,
-        },
-      ]
-    }
+<DetailsModalBody>
+  <DetailsModalSection
+    borderBottom={true}
   >
-    <View
-      style={
-        Array [
-          Object {
-            "flex": 1,
-          },
-          Object {
-            "flexDirection": "row",
-          },
-        ]
-      }
+    <DetailsModalColumn>
+      <DetailsModalSectionTitle>
+        Status
+      </DetailsModalSectionTitle>
+      <StatusText
+        context="transaction"
+        status="confirmed"
+      />
+    </DetailsModalColumn>
+    <DetailsModalColumn
+      end={true}
     >
-      <View>
-        <Text
-          style={
-            Object {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 10,
-              "fontWeight": "400",
-              "marginBottom": 8,
-            }
-          }
-        >
-          Status
-        </Text>
-        <Text
-          style={
-            Array [
-              Object {
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 12,
-                "fontWeight": "400",
-              },
-              Object {
-                "color": "#28A745",
-              },
-            ]
-          }
-        >
-          Confirmed
-        </Text>
-      </View>
-      <View
-        style={
-          Object {
-            "alignItems": "flex-end",
-            "flex": 1,
-          }
-        }
+      <DetailsModalSectionTitle>
+        Date
+      </DetailsModalSectionTitle>
+      <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={true}
+        reset={false}
+        right={false}
+        small={true}
+        strikethrough={false}
+        upper={false}
       >
-        <Text
-          style={
-            Object {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 10,
-              "fontWeight": "400",
-              "marginBottom": 8,
-            }
-          }
-        >
-          Date
-        </Text>
-        <Text
-          style={
-            Object {
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
-            }
-          }
-        >
-          [missing "en.date.months.NaN" translation] NaN at NaN:NaNam
-        </Text>
-      </View>
-    </View>
-  </View>
-  <View
-    style={
-      Array [
-        Object {
-          "paddingVertical": 16,
-        },
-        Object {
-          "flexDirection": "row",
-        },
-        false,
-      ]
-    }
+        [missing "en.date.months.NaN" translation] NaN at NaN:NaNam
+      </Text>
+    </DetailsModalColumn>
+  </DetailsModalSection>
+  <DetailsModalSection
+    borderBottom={false}
   >
-    <View
-      style={
-        Array [
-          Object {
-            "flex": 1,
-          },
-          Object {
-            "flexDirection": "row",
-          },
-        ]
-      }
-    >
-      <View>
-        <Text
-          style={
-            Object {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 10,
-              "fontWeight": "400",
-              "marginBottom": 8,
-            }
-          }
-        >
-          From
-        </Text>
+    <DetailsModalColumn>
+      <DetailsModalSectionTitle>
+        From
+      </DetailsModalSectionTitle>
+      <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={true}
+        reset={false}
+        right={false}
+        small={true}
+        strikethrough={false}
+        upper={false}
+      >
         <Connect(EthereumAddress)
           address="0x0"
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
-            }
-          }
           type="short"
         />
-      </View>
-      <View
-        style={
-          Object {
-            "alignItems": "flex-end",
-            "flex": 1,
-          }
-        }
+      </Text>
+    </DetailsModalColumn>
+    <DetailsModalColumn
+      end={true}
+    >
+      <DetailsModalSectionTitle>
+        To
+      </DetailsModalSectionTitle>
+      <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={true}
+        reset={false}
+        right={false}
+        small={true}
+        strikethrough={false}
+        upper={false}
       >
-        <Text
-          style={
-            Object {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 10,
-              "fontWeight": "400",
-              "marginBottom": 8,
-            }
-          }
-        >
-          To
-        </Text>
         <Connect(EthereumAddress)
           address="0x1"
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
-            }
-          }
           type="short"
         />
-      </View>
-    </View>
-  </View>
+      </Text>
+    </DetailsModalColumn>
+  </DetailsModalSection>
   <View
     style={
       Array [
@@ -207,5 +109,5 @@ exports[`TransactionDetails should render correctly 1`] = `
       gasEstimationReady={true}
     />
   </View>
-</View>
+</DetailsModalBody>
 `;
