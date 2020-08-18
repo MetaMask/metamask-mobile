@@ -213,7 +213,7 @@ const AccountBackupStep1B = props => {
 	const hideWhatIsSeedphrase = () => setWhatIsSeedphraseModal(false);
 
 	const steps = [
-		strings('choose_password.confirm_password'),
+		strings('choose_password.title'),
 		strings('choose_password.secure'),
 		strings('choose_password.confirm')
 	];
