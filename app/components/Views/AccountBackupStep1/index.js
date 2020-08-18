@@ -220,6 +220,12 @@ const AccountBackupStep1 = props => {
 
 	const hideWhatIsSeedphrase = () => setWhatIsSeedphraseModal(false);
 
+	const steps = [
+		strings('choose_password.confirm_password'),
+		strings('choose_password.secure'),
+		strings('choose_password.confirm')
+	];
+
 	return (
 		<SafeAreaView style={styles.mainWrapper}>
 			<ScrollView
@@ -228,10 +234,7 @@ const AccountBackupStep1 = props => {
 				testID={'account-backup-step-1-screen'}
 			>
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-					<OnboardingProgress
-						steps={['Create password', 'Secure wallet', 'Confirm seed phrase']}
-						currentStep={1}
-					/>
+					<OnboardingProgress steps={steps} currentStep={1} />
 					<View style={styles.content}>
 						<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
 						<Image
