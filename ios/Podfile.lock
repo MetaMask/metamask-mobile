@@ -260,13 +260,13 @@ PODS:
   - react-native-branch (5.0.0-beta.1):
     - Branch (= 0.32.0)
     - React
-  - react-native-camera (2.10.0):
+  - react-native-camera (3.36.0):
     - React
-    - react-native-camera/RCT (= 2.10.0)
-    - react-native-camera/RN (= 2.10.0)
-  - react-native-camera/RCT (2.10.0):
+    - react-native-camera/RCT (= 3.36.0)
+    - react-native-camera/RN (= 3.36.0)
+  - react-native-camera/RCT (3.36.0):
     - React
-  - react-native-camera/RN (2.10.0):
+  - react-native-camera/RN (3.36.0):
     - React
   - react-native-netinfo (4.1.5):
     - React
@@ -643,7 +643,7 @@ SPEC CHECKSUMS:
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
   react-native-blur: cad4d93b364f91e7b7931b3fa935455487e5c33c
   react-native-branch: ed90b087f2ff6a2f81643ead0b321531877f2e69
-  react-native-camera: 5d4ee26d19ac5aa9a8d8663b50f53b1c1250597c
+  react-native-camera: 8016138a8348b889e22c95b23f668a234f124335
   react-native-netinfo: 0e563248a4b9a99c33ec29bd03c2d50767db22a6
   react-native-randombytes: 3638d24759d67c68f6ccba60c52a7a8a8faa6a23
   react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
