@@ -15,6 +15,7 @@ import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
+import Engine from '../../../core/Engine';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 const warning_skip_backup = require('../../../images/warning.png'); // eslint-disable-line
@@ -155,9 +156,13 @@ const AccountBackupStep1 = props => {
 	const [showRemindLaterModal, setRemindLaterModal] = useState(false);
 	const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 	const [skipCheckbox, setToggleSkipCheckbox] = useState(false);
+	const [hasFunds, setHasFunds] = useState(false);
 
 	useEffect(
 		() => {
+			// Check if user has funds
+			if (Engine.hasFunds()) setHasFunds(true);
+
 			// Disable back press
 			const hardwareBackPress = () => true;
 
@@ -177,6 +182,8 @@ const AccountBackupStep1 = props => {
 	};
 
 	const showRemindLater = () => {
+		if (hasFunds) return;
+
 		setRemindLaterModal(true);
 	};
 
@@ -245,20 +252,22 @@ const AccountBackupStep1 = props => {
 						</View>
 					</View>
 					<View style={styles.buttonWrapper}>
-						<View style={styles.remindLaterContainer}>
-							<TouchableOpacity
-								style={styles.remindLaterButton}
-								onPress={showRemindLater}
-								hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-							>
-								<Text style={styles.remindLaterText}>
-									{strings('account_backup_step_1.remind_me_later')}
+						{!hasFunds && (
+							<View style={styles.remindLaterContainer}>
+								<TouchableOpacity
+									style={styles.remindLaterButton}
+									onPress={showRemindLater}
+									hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+								>
+									<Text style={styles.remindLaterText}>
+										{strings('account_backup_step_1.remind_me_later')}
+									</Text>
+								</TouchableOpacity>
+								<Text style={styles.remindLaterSubText}>
+									{strings('account_backup_step_1.remind_me_later_subtext')}
 								</Text>
-							</TouchableOpacity>
-							<Text style={styles.remindLaterSubText}>
-								{strings('account_backup_step_1.remind_me_later_subtext')}
-							</Text>
-						</View>
+							</View>
+						)}
 						<View style={styles.ctaContainer}>
 							<StyledButton
 								containerStyle={styles.button}
