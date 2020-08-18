@@ -402,7 +402,11 @@ class DrawerView extends PureComponent {
 	componentDidUpdate() {
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
 			const route = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
-			if (['SetPasswordFlow', 'Webview'].includes(route)) return;
+			if (['SetPasswordFlow', 'Webview'].includes(route)) {
+				// eslint-disable-next-line react/no-did-update-set-state
+				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
+				return;
+			}
 			let tokenFound = false;
 
 			this.props.tokens.forEach(token => {
