@@ -258,6 +258,33 @@ class Engine {
 		return total;
 	};
 
+	/**
+	 * Returns true or false whether the user has funds or not
+	 */
+	hasFunds = () => {
+		try {
+			const {
+				engine: { backgroundState }
+			} = store.getState();
+			const collectibles = backgroundState.AssetsController.collectibles;
+			const tokens = backgroundState.AssetsController.tokens;
+			const tokenBalances = backgroundState.TokenBalancesController.contractBalances;
+
+			let tokenFound = false;
+			tokens.forEach(token => {
+				if (tokenBalances[token.address] && !tokenBalances[token.address].isZero()) {
+					tokenFound = true;
+				}
+			});
+
+			const fiatBalance = this.getTotalFiatAccountBalance();
+
+			return fiatBalance > 0 || tokenFound || collectibles.length > 0;
+		} catch (e) {
+			Logger.log('Error while getting user funds', e);
+		}
+	};
+
 	resetState = async () => {
 		// Whenever we are gonna start a new wallet
 		// either imported or created, we need to
@@ -427,6 +454,9 @@ export default {
 	},
 	getTotalFiatAccountBalance() {
 		return instance.getTotalFiatAccountBalance();
+	},
+	hasFunds() {
+		return instance.hasFunds();
 	},
 	resetState() {
 		return instance.resetState();
