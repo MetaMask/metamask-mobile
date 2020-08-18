@@ -69,6 +69,20 @@ exports[`Main should render correctly 1`] = `
               "getScreenOptions": [Function],
               "getStateForAction": [Function],
             },
+            "FiatOnRamp": Object {
+              "childRouters": Object {
+                "PaymentMethodApplePay": null,
+                "PaymentMethodSelector": null,
+                "TransakFlow": null,
+              },
+              "getActionCreators": [Function],
+              "getActionForPathAndParams": [Function],
+              "getComponentForRouteName": [Function],
+              "getComponentForState": [Function],
+              "getPathAndParamsForState": [Function],
+              "getScreenOptions": [Function],
+              "getStateForAction": [Function],
+            },
             "Home": Object {
               "childRouters": Object {
                 "BrowserTabHome": Object {
@@ -391,6 +405,20 @@ exports[`Main should render correctly 1`] = `
               "ApproveView": Object {
                 "childRouters": Object {
                   "Approve": null,
+                },
+                "getActionCreators": [Function],
+                "getActionForPathAndParams": [Function],
+                "getComponentForRouteName": [Function],
+                "getComponentForState": [Function],
+                "getPathAndParamsForState": [Function],
+                "getScreenOptions": [Function],
+                "getStateForAction": [Function],
+              },
+              "FiatOnRamp": Object {
+                "childRouters": Object {
+                  "PaymentMethodApplePay": null,
+                  "PaymentMethodSelector": null,
+                  "TransakFlow": null,
                 },
                 "getActionCreators": [Function],
                 "getActionForPathAndParams": [Function],

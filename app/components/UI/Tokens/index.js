@@ -15,6 +15,8 @@ import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import StyledButton from '../StyledButton';
+import { allowedToBuy } from '../FiatOrders';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -27,6 +29,23 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginTop: 50
+	},
+	tokensHome: {
+		justifyContent: 'center',
+		alignItems: 'center',
+		marginTop: 35,
+		marginHorizontal: 50
+	},
+	tokensHomeText: {
+		...fontStyles.normal,
+		marginBottom: 15,
+		marginHorizontal: 15,
+		fontSize: 18,
+		color: colors.fontPrimary,
+		textAlign: 'center'
+	},
+	tokensHomeButton: {
+		width: '100%'
 	},
 	text: {
 		fontSize: 20,
@@ -111,7 +130,11 @@ class Tokens extends PureComponent {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string
 	};
 
 	actionSheet = null;
@@ -183,12 +206,46 @@ class Tokens extends PureComponent {
 		);
 	};
 
+	goToBuy = () => {
+		this.props.navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+		});
+	};
+
+	renderBuyEth() {
+		const { tokens, network, tokenBalances } = this.props;
+		if (!allowedToBuy(network)) {
+			return null;
+		}
+		const eth = tokens.find(token => token.isETH);
+		const ethBalance = eth && eth.balance !== '0';
+		const hasTokens = eth ? tokens.length > 1 : tokens.length > 0;
+		const hasTokensBalance =
+			hasTokens &&
+			tokens.some(
+				token => !token.isETH && tokenBalances[token.address] && !tokenBalances[token.address].isZero()
+			);
+
+		return (
+			<View style={styles.tokensHome}>
+				{!ethBalance && !hasTokensBalance && (
+					<Text style={styles.tokensHomeText}>{strings('wallet.ready_to_explore')}</Text>
+				)}
+				<StyledButton type="blue" onPress={this.goToBuy} containerStyle={styles.tokensHomeButton}>
+					{strings('fiat_on_ramp.buy_eth')}
+				</StyledButton>
+			</View>
+		);
+	}
+
 	renderList() {
 		const { tokens } = this.props;
 
 		return (
 			<View>
 				{tokens.map(item => this.renderItem(item))}
+				{this.renderBuyEth()}
 				{this.renderFooter()}
 			</View>
 		);
@@ -237,6 +294,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController.network,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	primaryCurrency: state.settings.primaryCurrency,

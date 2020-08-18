@@ -2,18 +2,17 @@ import React, { PureComponent } from 'react';
 import { ActivityIndicator, InteractionManager, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { withNavigation } from 'react-navigation';
+import Engine from '../../../core/Engine';
+import { showAlert } from '../../../actions/alert';
 import { colors } from '../../../styles/common';
 import Transactions from '../../UI/Transactions';
-import getNavbarOptions from '../../UI/Navbar';
 import Networks, { isKnownNetwork } from '../../../util/networks';
-import { showAlert } from '../../../actions/alert';
 import { safeToChecksumAddress } from '../../../util/address';
-import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1,
-		backgroundColor: colors.white
+		flex: 1
 	},
 	loader: {
 		backgroundColor: colors.white,
@@ -27,8 +26,6 @@ const styles = StyleSheet.create({
  * Main view for the Transaction history
  */
 class TransactionsView extends PureComponent {
-	static navigationOptions = ({ navigation }) => getNavbarOptions('transactions_view.title', navigation);
-
 	static propTypes = {
 		/**
 		 * ETH to current currency conversion rate
@@ -214,7 +211,6 @@ class TransactionsView extends PureComponent {
 
 	render = () => {
 		const { conversionRate, currentCurrency, selectedAddress, navigation, networkType } = this.props;
-
 		return (
 			<View style={styles.wrapper} testID={'wallet-screen'}>
 				{this.state.loading ? (
@@ -254,4 +250,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(TransactionsView);
+)(withNavigation(TransactionsView));
