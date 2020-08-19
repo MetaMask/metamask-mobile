@@ -188,11 +188,9 @@ class ReceiveRequest extends PureComponent {
 	/**
 	 * Closes QR code modal
 	 */
-	closeQrModal = () => {
-		this.setState({ qrModalVisible: false }, () => {
-			this.props.hideModal();
-			setTimeout(() => this.props.protectWalletModalVisible(), 1000);
-		});
+	closeQrModal = toggleModal => {
+		this.props.hideModal();
+		toggleModal();
 	};
 
 	/**
@@ -252,7 +250,7 @@ class ReceiveRequest extends PureComponent {
 									propagateSwipe
 									testID={'qr-modal'}
 								>
-									<AddressQRCode closeQrModal={toggleModal} />
+									<AddressQRCode closeQrModal={() => this.closeQrModal(toggleModal)} />
 								</Modal>
 							</>
 						)}
