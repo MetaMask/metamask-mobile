@@ -207,7 +207,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               }
             }
           >
-            Confirm Password
+            Confirm password
           </Text>
           <TextInput
             autoCapitalize="none"

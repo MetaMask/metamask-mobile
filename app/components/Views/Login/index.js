@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 	},
 	label: {
 		fontSize: 14,
-		marginBottom: 11,
+		marginBottom: 12,
 		...fontStyles.normal
 	},
 	ctaWrapper: {

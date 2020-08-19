@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 // eslint-disable-next-line import/named
 import { withNavigation } from 'react-navigation';
-import { WebView } from 'react-native-webview';
+import { WebView } from 'react-native-webview-forked';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
