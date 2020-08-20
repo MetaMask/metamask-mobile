@@ -3,6 +3,7 @@
 ## Current Develop Branch
 
 ## v1.0.0
+- [#1788](https://github.com/MetaMask/metamask-mobile/pull/1788): bugfix/protect wallet modal receive request (#1788)
 - [#1666](https://github.com/MetaMask/metamask-mobile/pull/1666): Fiat on Ramp: Payments (#1666)
 - [#1783](https://github.com/MetaMask/metamask-mobile/pull/1783): bugfix/hide protect wallet modal (#1783)
 - [#1779](https://github.com/MetaMask/metamask-mobile/pull/1779): Update camera lib (#1779)

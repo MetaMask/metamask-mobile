@@ -129,7 +129,12 @@ class ReceiveRequest extends PureComponent {
 		/**
 		 * Hides the modal that contains the component
 		 */
-		hideModal: PropTypes.func
+		hideModal: PropTypes.func,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		seedphraseBackedUp: PropTypes.bool
 	};
 
 	state = {
@@ -182,17 +187,18 @@ class ReceiveRequest extends PureComponent {
 			content: 'clipboard-alert',
 			data: { msg: strings('account_details.account_copied_to_clipboard') }
 		});
-		setTimeout(() => this.props.protectWalletModalVisible(), 1500);
+		if (!this.props.seedphraseBackedUp) {
+			setTimeout(() => this.props.hideModal(), 1000);
+			setTimeout(() => this.props.protectWalletModalVisible(), 1500);
+		}
 	};
 
 	/**
 	 * Closes QR code modal
 	 */
-	closeQrModal = () => {
-		this.setState({ qrModalVisible: false }, () => {
-			this.props.hideModal();
-			setTimeout(() => this.props.protectWalletModalVisible(), 1000);
-		});
+	closeQrModal = toggleModal => {
+		this.props.hideModal();
+		toggleModal();
 	};
 
 	/**
@@ -252,7 +258,7 @@ class ReceiveRequest extends PureComponent {
 									propagateSwipe
 									testID={'qr-modal'}
 								>
-									<AddressQRCode closeQrModal={toggleModal} />
+									<AddressQRCode closeQrModal={() => this.closeQrModal(toggleModal)} />
 								</Modal>
 							</>
 						)}
@@ -296,7 +302,8 @@ class ReceiveRequest extends PureComponent {
 const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController.network,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	receiveAsset: state.modals.receiveAsset
+	receiveAsset: state.modals.receiveAsset,
+	seedphraseBackedUp: state.user.seedphraseBackedUp
 });
 
 const mapDispatchToProps = dispatch => ({
