@@ -279,8 +279,9 @@ class TransactionReview extends PureComponent {
 	};
 
 	getUrlFromBrowser() {
-		const { browser } = this.props;
+		const { browser, transaction } = this.props;
 		let url;
+		if (transaction.origin) return transaction.origin;
 		browser.tabs.forEach(tab => {
 			if (tab.id === browser.activeTab) {
 				url = tab.url;
