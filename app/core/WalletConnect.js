@@ -99,7 +99,7 @@ class WalletConnect {
 						txParams.data = payload.params[0].data;
 						const hash = await (await TransactionController.addTransaction(
 							txParams,
-							WALLET_CONNECT_ORIGIN + meta.url
+							meta && WALLET_CONNECT_ORIGIN + meta.url
 						)).result;
 						this.walletConnector.approveRequest({
 							id: payload.id,
