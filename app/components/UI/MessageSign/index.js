@@ -59,9 +59,10 @@ export default class MessageSign extends PureComponent {
 		truncateMessage: false
 	};
 
-	showWalletConnectNotification = (messageParams, confirmation = false) => {
+	showWalletConnectNotification = (messageParams = {}, confirmation = false) => {
 		InteractionManager.runAfterInteractions(() => {
-			messageParams.origin.includes(WALLET_CONNECT_ORIGIN) &&
+			messageParams.origin &&
+				messageParams.origin.includes(WALLET_CONNECT_ORIGIN) &&
 				NotificationManager.showSimpleNotification({
 					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
 					duration: 5000,

@@ -283,7 +283,6 @@ class TransactionReview extends PureComponent {
 		const { browser, transaction } = this.props;
 		let url;
 		if (transaction.origin && transaction.origin.includes(WALLET_CONNECT_ORIGIN)) {
-			console.log('transaction.origin', transaction.origin);
 			return transaction.origin.split(WALLET_CONNECT_ORIGIN)[1];
 		}
 		browser.tabs.forEach(tab => {
@@ -306,7 +305,6 @@ class TransactionReview extends PureComponent {
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
-		console.log('currentPageInformation', currentPageInformation);
 		return (
 			<>
 				<Animated.View style={generateTransform('reviewToData', [0, -Device.getDeviceWidth()])}>
