@@ -30,6 +30,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
@@ -279,8 +280,11 @@ class TransactionReview extends PureComponent {
 	};
 
 	getUrlFromBrowser() {
-		const { browser } = this.props;
+		const { browser, transaction } = this.props;
 		let url;
+		if (transaction.origin && transaction.origin.includes(WALLET_CONNECT_ORIGIN)) {
+			return transaction.origin.split(WALLET_CONNECT_ORIGIN)[1];
+		}
 		browser.tabs.forEach(tab => {
 			if (tab.id === browser.activeTab) {
 				url = tab.url;
