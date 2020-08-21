@@ -37,7 +37,6 @@ import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
 
-const ANDROID_OFFSET = 38;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -120,6 +119,8 @@ const styles = StyleSheet.create({
 	},
 	buttons: {
 		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
 		borderBottomColor: colors.grey100,
 		borderBottomWidth: 1,
 		padding: 15
@@ -127,6 +128,8 @@ const styles = StyleSheet.create({
 	button: {
 		flex: 1,
 		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
 		borderRadius: 30,
 		borderWidth: 1.5
 	},
@@ -137,25 +140,21 @@ const styles = StyleSheet.create({
 		marginLeft: 5
 	},
 	buttonText: {
-		marginLeft: Device.isIos() ? 8 : 28,
-		marginTop: Device.isIos() ? 0 : -23,
-		paddingBottom: Device.isIos() ? 0 : 3,
+		paddingLeft: 8,
 		fontSize: 15,
 		color: colors.blue,
 		...fontStyles.normal
 	},
 	buttonContent: {
 		flexDirection: 'row',
-		alignItems: 'flex-start',
+		alignItems: 'center',
 		justifyContent: 'center'
 	},
 	buttonIcon: {
 		marginTop: 0
 	},
 	buttonReceive: {
-		transform: Device.isIos()
-			? [{ rotate: '90deg' }]
-			: [{ rotate: '90deg' }, { translateX: ANDROID_OFFSET }, { translateY: ANDROID_OFFSET }]
+		transform: [{ rotate: '90deg' }]
 	},
 	menu: {},
 	noTopBorder: {
@@ -895,30 +894,32 @@ class DrawerView extends PureComponent {
 							type={'rounded-normal'}
 							onPress={this.onSend}
 							containerStyle={[styles.button, styles.leftButton]}
-							style={styles.buttonContent}
 						>
-							<MaterialIcon
-								name={'arrow-top-right'}
-								size={22}
-								color={colors.blue}
-								style={styles.buttonIcon}
-							/>
-							<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
+							<View style={styles.buttonContent}>
+								<MaterialIcon
+									name={'arrow-top-right'}
+									size={22}
+									color={colors.blue}
+									style={styles.buttonIcon}
+								/>
+								<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
+							</View>
 						</StyledButton>
 						<StyledButton
 							type={'rounded-normal'}
 							onPress={this.onReceive}
 							containerStyle={[styles.button, styles.rightButton]}
-							style={styles.buttonContent}
 							testID={'drawer-receive-button'}
 						>
-							<MaterialIcon
-								name={'keyboard-tab'}
-								size={22}
-								color={colors.blue}
-								style={[styles.buttonIcon, styles.buttonReceive]}
-							/>
-							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
+							<View style={styles.buttonContent}>
+								<MaterialIcon
+									name={'keyboard-tab'}
+									size={22}
+									color={colors.blue}
+									style={[styles.buttonIcon, styles.buttonReceive]}
+								/>
+								<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
+							</View>
 						</StyledButton>
 					</View>
 					<View style={styles.menu}>
