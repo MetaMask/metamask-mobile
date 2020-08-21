@@ -30,6 +30,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
@@ -281,7 +282,10 @@ class TransactionReview extends PureComponent {
 	getUrlFromBrowser() {
 		const { browser, transaction } = this.props;
 		let url;
-		if (transaction.origin) return transaction.origin;
+		if (transaction.origin && transaction.origin.includes(WALLET_CONNECT_ORIGIN)) {
+			console.log('transaction.origin', transaction.origin);
+			return transaction.origin.split(WALLET_CONNECT_ORIGIN)[1];
+		}
 		browser.tabs.forEach(tab => {
 			if (tab.id === browser.activeTab) {
 				url = tab.url;
@@ -302,6 +306,7 @@ class TransactionReview extends PureComponent {
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
+		console.log('currentPageInformation', currentPageInformation);
 		return (
 			<>
 				<Animated.View style={generateTransform('reviewToData', [0, -Device.getDeviceWidth()])}>

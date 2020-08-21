@@ -66,7 +66,7 @@ export default class PersonalSign extends PureComponent {
 
 	showWalletConnectNotification = (messageParams, confirmation = false) => {
 		InteractionManager.runAfterInteractions(() => {
-			messageParams.origin === WALLET_CONNECT_ORIGIN &&
+			messageParams.origin.includes(WALLET_CONNECT_ORIGIN) &&
 				NotificationManager.showSimpleNotification({
 					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
 					duration: 5000,

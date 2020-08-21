@@ -162,7 +162,7 @@ class Approval extends PureComponent {
 	showWalletConnectNotification = (confirmation = false) => {
 		const { transaction } = this.props;
 		InteractionManager.runAfterInteractions(() => {
-			transaction.origin === WALLET_CONNECT_ORIGIN &&
+			transaction.origin.includes(WALLET_CONNECT_ORIGIN) &&
 				NotificationManager.showSimpleNotification({
 					status: `simple_notification${!confirmation ? '_rejected' : ''}`,
 					duration: 5000,

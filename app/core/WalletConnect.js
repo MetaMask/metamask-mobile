@@ -97,8 +97,10 @@ class WalletConnect {
 						txParams.gasLimit = payload.params[0].gasLimit;
 						txParams.gasPrice = payload.params[0].gasPrice;
 						txParams.data = payload.params[0].data;
-						const hash = await (await TransactionController.addTransaction(txParams, WALLET_CONNECT_ORIGIN))
-							.result;
+						const hash = await (await TransactionController.addTransaction(
+							txParams,
+							WALLET_CONNECT_ORIGIN + meta.url
+						)).result;
 						this.walletConnector.approveRequest({
 							id: payload.id,
 							result: hash
@@ -124,7 +126,6 @@ class WalletConnect {
 						} else {
 							const data = payload.params[1];
 							const from = payload.params[0];
-
 							rawSig = await MessageManager.addUnapprovedMessageAsync({
 								data,
 								from,
