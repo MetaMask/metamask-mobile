@@ -290,13 +290,11 @@ class PaymentRequest extends PureComponent {
 		const { primaryCurrency, navigation, networkType } = this.props;
 		const receiveAsset = navigation && navigation.getParam('receiveAsset', undefined);
 		const chainId = Object.keys(NetworkList).indexOf(networkType) > -1 && NetworkList[networkType].networkId;
-		setTimeout(() => {
-			this.setState({
-				internalPrimaryCurrency: primaryCurrency,
-				chainId,
-				inputWidth: { width: '100%' }
-			});
-		}, 100);
+		this.setState({
+			internalPrimaryCurrency: primaryCurrency,
+			chainId,
+			inputWidth: { width: '100%' }
+		});
 		if (receiveAsset) {
 			this.goToAmountInput(receiveAsset);
 		}
