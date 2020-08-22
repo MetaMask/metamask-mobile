@@ -6,13 +6,13 @@ import { connect } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import I18n, { strings, getLanguages, setLocale } from '../../../../../locales/i18n';
 import SelectComponent from '../../../UI/SelectComponent';
-import infuraCurrencies from '../../../../util/infura-conversion.json';
+import { currencies } from '@metamask/controllers';
 import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setSearchEngine, setPrimaryCurrency } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
 
-const sortedCurrencies = infuraCurrencies.objects
+const sortedCurrencies = currencies.objects
 	.map((value, index) =>
 		Object.assign({}, value, {
 			base: {
