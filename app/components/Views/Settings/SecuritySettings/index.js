@@ -399,12 +399,12 @@ class Settings extends PureComponent {
 		}
 	};
 
-	displayClearApprovalsModal = () => {
-		this.setState({ approvalModalVisible: true });
+	toggleClearApprovalsModal = () => {
+		this.setState({ approvalModalVisible: !this.state.approvalModalVisible });
 	};
 
-	displayClearBrowserHistoryModal = () => {
-		this.setState({ browserHistoryModalVisible: true });
+	toggleClearBrowserHistoryModal = () => {
+		this.setState({ browserHistoryModalVisible: !this.state.browserHistoryModalVisible });
 	};
 
 	toggleClearCookiesModal = () => {
@@ -413,20 +413,19 @@ class Settings extends PureComponent {
 
 	clearApprovals = () => {
 		this.props.clearHosts();
-		this.cancelClearApprovals();
+		this.toggleClearApprovalsModal();
 	};
 
 	clearBrowserHistory = () => {
 		this.props.clearBrowserHistory();
-		this.cancelClearBrowserHistory();
+		this.toggleClearBrowserHistoryModal();
 	};
 
-	cancelClearApprovals = () => {
-		this.setState({ approvalModalVisible: false });
-	};
-
-	cancelClearBrowserHistory = () => {
-		this.setState({ browserHistoryModalVisible: false });
+	clearCookies = () => {
+		CookieManager.clearAll().then(() => {
+			Logger.log('Browser cookies cleared');
+			this.toggleClearCookiesModal();
+		});
 	};
 
 	togglePrivacy = value => {
@@ -461,13 +460,6 @@ class Settings extends PureComponent {
 
 	selectLockTime = lockTime => {
 		this.props.setLockTime(parseInt(lockTime, 10));
-	};
-
-	clearCookies = () => {
-		CookieManager.clearAll().then(() => {
-			Logger.log('Browser cookies cleared');
-			this.toggleClearCookiesModal();
-		});
 	};
 
 	render = () => {
@@ -526,7 +518,7 @@ class Settings extends PureComponent {
 						<Text style={styles.desc}>{strings('app_settings.clear_privacy_desc')}</Text>
 						<StyledButton
 							type="normal"
-							onPress={this.displayClearApprovalsModal}
+							onPress={this.toggleClearApprovalsModal}
 							disabled={Object.keys(approvedHosts).length === 0}
 							containerStyle={styles.clearApprovedConfirm}
 						>
@@ -538,7 +530,7 @@ class Settings extends PureComponent {
 						<Text style={styles.desc}>{strings('app_settings.clear_history_desc')}</Text>
 						<StyledButton
 							type="normal"
-							onPress={this.displayClearBrowserHistoryModal}
+							onPress={this.toggleClearBrowserHistoryModal}
 							disabled={browserHistory.length === 0}
 							containerStyle={styles.clearHistoryConfirm}
 						>
@@ -551,7 +543,6 @@ class Settings extends PureComponent {
 						<StyledButton
 							type="normal"
 							onPress={this.toggleClearCookiesModal}
-							disabled={browserHistory.length === 0}
 							containerStyle={styles.clearHistoryConfirm}
 						>
 							{strings('app_settings.clear_browser_cookies_desc')}
@@ -642,8 +633,8 @@ class Settings extends PureComponent {
 						modalVisible={approvalModalVisible}
 						confirmText={strings('app_settings.clear')}
 						cancelText={strings('app_settings.reset_account_cancel_button')}
-						onCancelPress={this.cancelClearApprovals}
-						onRequestClose={this.cancelClearApprovals}
+						onCancelPress={this.toggleClearApprovalsModal}
+						onRequestClose={this.toggleClearApprovalsModal}
 						onConfirmPress={this.clearApprovals}
 					>
 						<View style={styles.modalView}>
@@ -657,8 +648,8 @@ class Settings extends PureComponent {
 						modalVisible={browserHistoryModalVisible}
 						confirmText={strings('app_settings.clear')}
 						cancelText={strings('app_settings.reset_account_cancel_button')}
-						onCancelPress={this.cancelClearBrowserHistory}
-						onRequestClose={this.cancelClearBrowserHistory}
+						onCancelPress={this.toggleClearBrowserHistoryModal}
+						onRequestClose={this.toggleClearBrowserHistoryModal}
 						onConfirmPress={this.clearBrowserHistory}
 					>
 						<View style={styles.modalView}>
