@@ -19,6 +19,7 @@ import Analytics from '../../../../core/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
+<<<<<<< HEAD
 import {
 	EXISTING_USER,
 	BIOMETRY_CHOICE,
@@ -27,6 +28,9 @@ import {
 	PASSCODE_DISABLED,
 	TRUE
 } from '../../../../constants/storage';
+=======
+import CookieManager from '@react-native-community/cookies';
+>>>>>>> Add ability to clear cookies
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -178,6 +182,7 @@ class Settings extends PureComponent {
 		biometryChoice: null,
 		biometryType: null,
 		browserHistoryModalVisible: false,
+		cookiesModalVisible: false,
 		metricsOptIn: false,
 		passcodeChoice: false
 	};
@@ -402,6 +407,10 @@ class Settings extends PureComponent {
 		this.setState({ browserHistoryModalVisible: true });
 	};
 
+	toggleClearCookiesModal = () => {
+		this.setState({ cookiesModalVisible: !this.state.cookiesModalVisible });
+	};
+
 	clearApprovals = () => {
 		this.props.clearHosts();
 		this.cancelClearApprovals();
@@ -454,9 +463,22 @@ class Settings extends PureComponent {
 		this.props.setLockTime(parseInt(lockTime, 10));
 	};
 
+	clearCookies = () => {
+		CookieManager.clearAll().then(() => {
+			Logger.log('Browser cookies cleared');
+			this.toggleClearCookiesModal();
+		});
+	};
+
 	render = () => {
 		const { approvedHosts, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
-		const { approvalModalVisible, biometryType, browserHistoryModalVisible, metricsOptIn } = this.state;
+		const {
+			approvalModalVisible,
+			biometryType,
+			browserHistoryModalVisible,
+			cookiesModalVisible,
+			metricsOptIn
+		} = this.state;
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		return (
@@ -521,6 +543,18 @@ class Settings extends PureComponent {
 							containerStyle={styles.clearHistoryConfirm}
 						>
 							{strings('app_settings.clear_browser_history_desc')}
+						</StyledButton>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.clear_browser_cookies_desc')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.clear_cookies_desc')}</Text>
+						<StyledButton
+							type="normal"
+							onPress={this.toggleClearCookiesModal}
+							disabled={browserHistory.length === 0}
+							containerStyle={styles.clearHistoryConfirm}
+						>
+							{strings('app_settings.clear_browser_cookies_desc')}
 						</StyledButton>
 					</View>
 					<View style={styles.setting} testID={'auto-lock-section'}>
@@ -634,6 +668,19 @@ class Settings extends PureComponent {
 							<Text style={styles.modalText}>
 								{strings('app_settings.clear_browser_history_modal_message')}
 							</Text>
+						</View>
+					</ActionModal>
+					<ActionModal
+						modalVisible={cookiesModalVisible}
+						confirmText={strings('app_settings.clear')}
+						cancelText={strings('app_settings.reset_account_cancel_button')}
+						onCancelPress={this.toggleClearCookiesModal}
+						onRequestClose={this.toggleClearCookiesModal}
+						onConfirmPress={this.clearCookies}
+					>
+						<View style={styles.modalView}>
+							<Text style={styles.modalTitle}>{strings('app_settings.clear_cookies_modal_title')}</Text>
+							<Text style={styles.modalText}>{strings('app_settings.clear_cookies_modal_message')}</Text>
 						</View>
 					</ActionModal>
 				</View>
