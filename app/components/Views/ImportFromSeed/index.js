@@ -47,6 +47,11 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1
 	},
+	seedPhraseControls: {
+		flexDirection: 'row-reverse',
+		marginTop: -50,
+		marginBottom: 30
+	},
 	wrapper: {
 		flex: 1,
 		paddingHorizontal: 32
@@ -138,9 +143,14 @@ const styles = StyleSheet.create({
 		alignSelf: 'flex-end'
 	},
 	qrCode: {
-		marginTop: -50,
-		marginBottom: 30,
-		alignSelf: 'flex-end',
+		marginRight: 10,
+		borderWidth: 1,
+		borderRadius: 6,
+		borderColor: colors.grey100,
+		paddingVertical: 4,
+		paddingHorizontal: 6
+	},
+	seedPhraseVisibility: {
 		marginRight: 10,
 		borderWidth: 1,
 		borderRadius: 6,
@@ -200,7 +210,8 @@ class ImportFromSeed extends PureComponent {
 		loading: false,
 		error: null,
 		seedphraseInputFocused: false,
-		inputWidth: { width: '99%' }
+		inputWidth: { width: '99%' },
+		hideSeedPhraseInput: true
 	};
 
 	passwordInput = React.createRef();
@@ -383,6 +394,10 @@ class ImportFromSeed extends PureComponent {
 		this.setState({ secureTextEntry: !this.state.secureTextEntry });
 	};
 
+	toggleHideSeedPhraseInput = () => {
+		this.setState({ hideSeedPhraseInput: !this.state.hideSeedPhraseInput });
+	};
+
 	getPasswordStrengthWord() {
 		// this.state.passwordStrength is calculated by zxcvbn
 		// which returns a score based on "entropy to crack time"
@@ -427,8 +442,11 @@ class ImportFromSeed extends PureComponent {
 			inputWidth,
 			secureTextEntry,
 			error,
-			loading
+			loading,
+			hideSeedPhraseInput
 		} = this.state;
+
+		const iconName = hideSeedPhraseInput ? 'eye-slash' : 'eye';
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -438,8 +456,9 @@ class ImportFromSeed extends PureComponent {
 						<TextInput
 							value={seed}
 							numberOfLines={3}
-							multiline
 							style={[styles.seedPhrase, inputWidth, seedphraseInputFocused && styles.inputFocused]}
+							secureTextEntry
+							multiline={!hideSeedPhraseInput}
 							placeholder={strings('import_from_seed.seed_phrase_placeholder')}
 							placeholderTextColor={colors.grey200}
 							onChangeText={this.onSeedWordsChange}
@@ -447,15 +466,25 @@ class ImportFromSeed extends PureComponent {
 							blurOnSubmit
 							onSubmitEditing={this.jumpToPassword}
 							returnKeyType={'next'}
-							keyboardType={Device.isAndroid() ? 'visible-password' : 'default'}
+							keyboardType={
+								(!hideSeedPhraseInput && Device.isAndroid() && 'visible-password') || 'default'
+							}
 							autoCapitalize="none"
 							autoCorrect={false}
-							onFocus={this.seedphraseInputFocused}
-							onBlur={this.seedphraseInputFocused}
+							onFocus={!hideSeedPhraseInput && this.seedphraseInputFocused}
+							onBlur={!hideSeedPhraseInput && this.seedphraseInputFocused}
 						/>
-						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
-							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
-						</TouchableOpacity>
+						<View style={styles.seedPhraseControls}>
+							<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
+								<Icon name="qrcode" size={20} color={colors.fontSecondary} />
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={styles.seedPhraseVisibility}
+								onPress={this.toggleHideSeedPhraseInput}
+							>
+								<Icon name={iconName} size={20} color={colors.fontSecondary} />
+							</TouchableOpacity>
+						</View>
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
 							<OutlinedTextField
