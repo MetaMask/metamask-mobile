@@ -471,8 +471,8 @@ class ImportFromSeed extends PureComponent {
 							}
 							autoCapitalize="none"
 							autoCorrect={false}
-							onFocus={!hideSeedPhraseInput && this.seedphraseInputFocused}
-							onBlur={!hideSeedPhraseInput && this.seedphraseInputFocused}
+							onFocus={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
+							onBlur={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
 						/>
 						<View style={styles.seedPhraseControls}>
 							<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
