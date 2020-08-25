@@ -54,15 +54,16 @@ exports[`ImportFromSeed should render correctly 1`] = `
         autoCorrect={false}
         blurOnSubmit={true}
         keyboardType="default"
-        multiline={true}
+        multiline={false}
         numberOfLines={3}
-        onBlur={[Function]}
+        onBlur={null}
         onChangeText={[Function]}
-        onFocus={[Function]}
+        onFocus={null}
         onSubmitEditing={[Function]}
         placeholder="Enter your seed phrase here"
         placeholderTextColor="#bbc0c5"
         returnKeyType="next"
+        secureTextEntry={true}
         style={
           Array [
             Object {
@@ -89,29 +90,56 @@ exports[`ImportFromSeed should render correctly 1`] = `
         testID="input-seed-phrase"
         value=""
       />
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
         style={
           Object {
-            "alignSelf": "flex-end",
-            "borderColor": "#d6d9dc",
-            "borderRadius": 6,
-            "borderWidth": 1,
+            "flexDirection": "row-reverse",
             "marginBottom": 30,
-            "marginRight": 10,
             "marginTop": -50,
-            "paddingHorizontal": 6,
-            "paddingVertical": 4,
           }
         }
       >
-        <Icon
-          allowFontScaling={false}
-          color="#777777"
-          name="qrcode"
-          size={20}
-        />
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            Object {
+              "borderColor": "#d6d9dc",
+              "borderRadius": 6,
+              "borderWidth": 1,
+              "marginRight": 10,
+              "paddingHorizontal": 6,
+              "paddingVertical": 4,
+            }
+          }
+        >
+          <Icon
+            allowFontScaling={false}
+            color="#777777"
+            name="qrcode"
+            size={20}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            Object {
+              "borderColor": "#d6d9dc",
+              "borderRadius": 6,
+              "borderWidth": 1,
+              "marginRight": 10,
+              "paddingHorizontal": 6,
+              "paddingVertical": 4,
+            }
+          }
+        >
+          <Icon
+            allowFontScaling={false}
+            color="#777777"
+            name="eye-slash"
+            size={20}
+          />
+        </TouchableOpacity>
+      </View>
       <View
         style={
           Object {
