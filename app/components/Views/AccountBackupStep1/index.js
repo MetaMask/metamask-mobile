@@ -17,6 +17,7 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
+import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 const warning_skip_backup = require('../../../images/warning.png'); // eslint-disable-line
@@ -221,12 +222,6 @@ const AccountBackupStep1 = props => {
 
 	const hideWhatIsSeedphrase = () => setWhatIsSeedphraseModal(false);
 
-	const steps = [
-		strings('choose_password.title'),
-		strings('choose_password.secure'),
-		strings('choose_password.confirm')
-	];
-
 	return (
 		<SafeAreaView style={styles.mainWrapper}>
 			<ScrollView
@@ -235,7 +230,7 @@ const AccountBackupStep1 = props => {
 				testID={'account-backup-step-1-screen'}
 			>
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-					<OnboardingProgress steps={steps} currentStep={1} />
+					<OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
 					<View style={styles.content}>
 						<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
 						<Image

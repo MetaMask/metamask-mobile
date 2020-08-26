@@ -31,7 +31,7 @@ import {
 	TRUE
 } from '../../../constants/storage';
 
-const steps = [strings('choose_password.title'), strings('choose_password.secure'), strings('choose_password.confirm')];
+import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -544,7 +544,7 @@ class ChoosePassword extends PureComponent {
 					</View>
 				) : (
 					<View style={styles.wrapper} testID={'choose-password-screen'}>
-						<OnboardingProgress steps={steps} />
+						<OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} />
 						<KeyboardAwareScrollView
 							style={styles.scrollableWrapper}
 							contentContainerStyle={styles.keyboardScrollableWrapper}
