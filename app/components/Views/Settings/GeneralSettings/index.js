@@ -12,16 +12,9 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setSearchEngine, setPrimaryCurrency } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
 
-const sortedCurrencies = infuraCurrencies.objects
-	.map((value, index) =>
-		Object.assign({}, value, {
-			base: {
-				code: 'eth',
-				name: 'Ethereum'
-			}
-		})
-	)
-	.sort((a, b) => a.quote.code.toLocaleLowerCase().localeCompare(b.quote.code.toLocaleLowerCase()));
+const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
+	a.quote.code.toLocaleLowerCase().localeCompare(b.quote.code.toLocaleLowerCase())
+);
 
 const infuraCurrencyOptions = sortedCurrencies.map(({ quote: { code, name } }) => ({
 	label: `${code.toUpperCase()} - ${name}`,
