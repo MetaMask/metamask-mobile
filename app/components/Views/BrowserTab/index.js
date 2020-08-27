@@ -1427,7 +1427,7 @@ export class BrowserTab extends PureComponent {
 			this.setState({
 				url,
 				inputValue: url,
-				autocompletInputValue: url,
+				autocompleteInputValue: url,
 				currentPageTitle: title,
 				forwardEnabled: false
 			});
