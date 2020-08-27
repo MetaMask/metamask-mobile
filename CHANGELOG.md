@@ -1,6 +1,7 @@
 # Changelog
 
 ## Current Develop Branch
+- [#1800](https://github.com/MetaMask/metamask-mobile/pull/1800): Feature/improve nav browser title (#1800)
 - [#1781](https://github.com/MetaMask/metamask-mobile/pull/1781): Bugfix/Use translations for steps (#1781)
 - [#1759](https://github.com/MetaMask/metamask-mobile/pull/1759): Bugfix/Display correct balance from state when creating an account that already holds funds (#1759)
 - [#1728](https://github.com/MetaMask/metamask-mobile/pull/1728): Add /constants (#1728)
