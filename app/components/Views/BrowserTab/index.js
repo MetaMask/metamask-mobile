@@ -1604,6 +1604,19 @@ export class BrowserTab extends PureComponent {
 		this.props.navigation.setParams(params);
 	};
 
+	/**
+	 * reset autocompleteInputValue to be the url if the input has been left empty
+	 */
+	resetAutocompleteInputValue = urlParam => {
+		console.log(urlParam);
+		const { autocompleteInputValue } = this.state;
+		if (autocompleteInputValue === '') {
+			this.setState({
+				autocompleteInputValue: urlParam
+			});
+		}
+	};
+
 	hideUrlModal = url => {
 		const urlParam = typeof url === 'string' && url ? url : this.props.navigation.state.params.url;
 		this.props.navigation.setParams({
@@ -1611,6 +1624,8 @@ export class BrowserTab extends PureComponent {
 			url: urlParam,
 			showUrlModal: false
 		});
+
+		this.resetAutocompleteInputValue(urlParam);
 
 		if (this.isHomepage()) {
 			const { current } = this.webview;
