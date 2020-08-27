@@ -114,6 +114,8 @@
 		android:resource="@color/lightgray"/>
 		<!-- MIXPANEL -->
 		<meta-data android:name="com.mixpanel.android.mpmetrics.MixpanelAPI.token" android:value="${MM_MIXPANEL_TOKEN}"	/>
+		<activity android:name="com.mixpanel.android.takeoverinapp.TakeoverInAppActivity"
+		android:theme="@style/com_mixpanel_android_TakeoverInAppActivityTheme"/>
 
 		<!-- Branch install referrer tracking (optional) -->
 		<receiver android:name="io.branch.referral.InstallListener" android:exported="true">
