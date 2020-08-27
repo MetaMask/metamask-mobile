@@ -1608,7 +1608,6 @@ export class BrowserTab extends PureComponent {
 	 * reset autocompleteInputValue to be the url if the input has been left empty
 	 */
 	resetAutocompleteInputValue = urlParam => {
-		console.log(urlParam);
 		const { autocompleteInputValue } = this.state;
 		if (autocompleteInputValue === '') {
 			this.setState({
