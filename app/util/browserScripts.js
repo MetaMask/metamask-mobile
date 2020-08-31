@@ -17,11 +17,14 @@ const getWindowInformation = `
 `;
 
 const getWebviewUrl = `
+	const shortcutIcon = window.document.querySelector('head > link[rel="shortcut icon"]');
+	const icon = shortcutIcon || Array.from(window.document.querySelectorAll('head > link[rel="icon"]')).find((icon) => Boolean(icon.href));
 	window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(
 		{
 			type: 'GET_WEBVIEW_URL',
 			payload: {
-				url: location.href
+				url: location.href,
+				icon: icon && icon.href
 			}
 		}
 	))
