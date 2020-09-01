@@ -247,8 +247,6 @@ const BrowserTab = props => {
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
 
-	const { activeTab, id } = props;
-
 	const getMaskedUrl = url => {
 		let replace = null;
 		if (url.startsWith(AppConstants.IPFS_DEFAULT_GATEWAY_URL)) {
@@ -274,6 +272,7 @@ const BrowserTab = props => {
 		const urlToShow = getMaskedUrl(urlInput || url);
 
 		if (goingToShow) setAutocompleteValue(urlToShow);
+
 		setShowUrlModal(goingToShow);
 	};
 
@@ -614,7 +613,7 @@ const BrowserTab = props => {
 		url && initializeBackgroundBridge(url, false);
 	};
 
-	const isTabActive = () => activeTab === id;
+	const isTabActive = () => props.activeTab === props.id;
 	const isHidden = () => !isTabActive();
 
 	const dismissTextSelectionIfNeeded = () => {
@@ -652,8 +651,9 @@ const BrowserTab = props => {
 
 	const goForward = async () => {
 		if (!forwardEnabled) return;
-		const { current } = webviewRef;
+
 		toggleOptionsIfNeeded();
+		const { current } = webviewRef;
 		current && current.goForward && current.goForward();
 	};
 
@@ -755,6 +755,7 @@ const BrowserTab = props => {
 
 	const openNewTab = url => {
 		toggleOptionsIfNeeded();
+		dismissTextSelectionIfNeeded();
 		props.newTab(url);
 	};
 
@@ -807,7 +808,8 @@ const BrowserTab = props => {
 		return function cleanup() {
 			keyboardDidHideListener.remove();
 		};
-	});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [props.activeTab, props.id, fromHomepage, url]);
 
 	const reload = () => {
 		toggleOptionsIfNeeded();
@@ -830,17 +832,7 @@ const BrowserTab = props => {
 			setEntryScriptWeb3(entryScriptWeb3 + SPA_urlChangeListener);
 		};
 		getEntryScriptWeb3();
-		props.navigation.setParams({ showUrlModal: toggleUrlModal });
 
-		// Specify how to clean up after this effect:
-		return function cleanup() {
-			backgroundBridges.forEach(bridge => bridge.onDisconnect());
-		};
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
-
-	useEffect(() => {
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
 			if (!isTabActive()) return false;
 			setSuggestedAssetMeta(suggestedAssetMeta);
@@ -850,20 +842,38 @@ const BrowserTab = props => {
 		// Listen to network changes
 		Engine.context.TransactionController.hub.on('networkChange', reload);
 
+		// Specify how to clean up after this effect:
+		return function cleanup() {
+			backgroundBridges.forEach(bridge => bridge.onDisconnect());
+
+			// Remove all Engine listeners
+			Engine.context.AssetsController.hub.removeAllListeners();
+			Engine.context.TransactionController.hub.removeListener('networkChange', reload);
+		};
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	useEffect(() => {
+		if (props.activeTab === props.id) props.navigation.setParams({ showUrlModal: toggleUrlModal });
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [props.activeTab, props.id]);
+
+	useEffect(() => {
 		if (Device.isAndroid()) {
 			DrawerStatusTracker.hub.on('drawer::open', drawerOpenHandler);
 		}
 
 		return function cleanup() {
-			// Remove all Engine listeners
-			Engine.context.AssetsController.hub.removeAllListeners();
-			Engine.context.TransactionController.hub.removeListener('networkChange', reload);
-
 			if (Device.isAndroid()) {
-				DrawerStatusTracker && DrawerStatusTracker.hub && DrawerStatusTracker.hub.removeAllListeners();
+				DrawerStatusTracker &&
+					DrawerStatusTracker.hub &&
+					DrawerStatusTracker.hub.removeListener('drawer::open', drawerOpenHandler);
 			}
 		};
-	});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [props.activeTab, props.id]);
 
 	useEffect(() => {
 		// Deeplink handling
@@ -883,7 +893,9 @@ const BrowserTab = props => {
 		return function cleanup() {
 			unsubscribeFromBranch();
 		};
-	});
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [props.activeTab, props.id, showOptions]);
 
 	useEffect(() => {
 		const handleAndroidBackPress = () => {
@@ -905,7 +917,8 @@ const BrowserTab = props => {
 		return function cleanup() {
 			BackHandler.removeEventListener('hardwareBackPress', handleAndroidBackPress);
 		};
-	});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [props.activeTab, props.id, backEnabled, showOptions]);
 
 	const changeUrl = (nativeEvent, type) => {
 		setBackEnabled(nativeEvent.canGoBack);
@@ -921,7 +934,8 @@ const BrowserTab = props => {
 		}
 		setTitle(nativeEvent.title);
 		if (nativeEvent.icon) setIcon(nativeEvent.icon);
-		props.navigation.setParams({ url: getMaskedUrl(nativeEvent.url), silent: true, error: false });
+
+		isTabActive() && props.navigation.setParams({ url: getMaskedUrl(nativeEvent.url), silent: true, error: false });
 
 		if (isHomepage(nativeEvent.url)) {
 			injectHomePageScripts();
@@ -1296,6 +1310,7 @@ const BrowserTab = props => {
 	};
 
 	const showTabs = () => {
+		dismissTextSelectionIfNeeded();
 		props.showTabs();
 	};
 
