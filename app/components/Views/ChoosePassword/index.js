@@ -20,6 +20,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
+import Logger from '../../../util/Logger';
 
 const steps = [strings('choose_password.title'), strings('choose_password.secure'), strings('choose_password.confirm')];
 
@@ -355,6 +356,25 @@ class ChoosePassword extends PureComponent {
 	recreateVault = async password => {
 		const { KeyringController, PreferencesController } = Engine.context;
 		const seedPhrase = await this.getSeedPhrase();
+
+		let importedAccounts = [];
+		try {
+			const keychainPassword = this.keyringControllerPasswordSet ? this.state.password : '';
+			// Get imported accounts
+			const simpleKeyrings = KeyringController.state.keyrings.filter(
+				keyring => keyring.type === 'Simple Key Pair'
+			);
+			for (let i = 0; i < simpleKeyrings.length; i++) {
+				const simpleKeyring = simpleKeyrings[i];
+				const simpleKeyringAccounts = await Promise.all(
+					simpleKeyring.accounts.map(account => KeyringController.exportAccount(keychainPassword, account))
+				);
+				importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
+			}
+		} catch (e) {
+			Logger.error(e, 'error while trying to get imported accounts on recreate vault');
+		}
+
 		// Recreate keyring with password given to this method
 		await KeyringController.createNewVaultAndRestore(password, seedPhrase);
 		// Keyring is set with empty password or not
@@ -369,6 +389,15 @@ class ChoosePassword extends PureComponent {
 		// Create previous accounts again
 		for (let i = 0; i < existingAccountCount - 1; i++) {
 			await KeyringController.addNewAccount();
+		}
+
+		try {
+			// Import imported accounts again
+			for (let i = 0; i < importedAccounts.length; i++) {
+				await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
+			}
+		} catch (e) {
+			Logger.error(e, 'error while trying to import accounts on recreate vault');
 		}
 
 		// Reset preferencesControllerState

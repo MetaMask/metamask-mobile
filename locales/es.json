@@ -108,8 +108,8 @@
 	"choose_password": {
 		"title": "Crea tu contraseña",
 		"subtitle": "Utilizarás esta contraseña para acceder a tu billetera de MetaMask solamente en este dispositivo.",
-		"password": "Nueva Contraseña",
-		"confirm_password": "Confirmar Contraseña",
+		"password": "Nueva contraseña",
+		"confirm_password": "Confirmar contraseña",
 		"create_button": "Crear contraseña",
 		"import_with_seed_phrase": "Importar con frase semilla",
 		"password_length_error": "La contraseña debe contener al menos 8 caracteres",
@@ -128,8 +128,8 @@
 	"import_from_seed": {
 		"title": "Importar con frase semilla",
 		"seed_phrase_placeholder": "Ingresa tu frase semilla aquí",
-		"new_password": "Nueva Contraseña",
-		"confirm_password": "Confirmar Contraseña",
+		"new_password": "Nueva contraseña",
+		"confirm_password": "Confirmar contraseña",
 		"import_button": "IMPORTAR",
 		"cancel_button": "Cancelar",
 		"password_length_error": "La contraseña debe contener al menos 8 caracteres",
@@ -172,7 +172,10 @@
 	"send": {
 		"title": "Enviar",
 		"deeplink_failure": "Ooops! Algo ha salido mal, por favor intėntalo de nuevo",
-		"warn_network_change": "La red ha sido cambiada a "
+		"warn_network_change": "La red ha sido cambiada a ",
+		"send_to": "Enviar a",
+		"confirm": "Confirmar",
+		"amount": "Monto"
 	},
 	"receive": {
 		"title": "Recibir"
@@ -203,7 +206,11 @@
 		"private_key_detected": "Clave privada detectada",
 		"do_you_want_to_import_this_account": "Deseas importar esta cuenta?",
 		"error": "Error",
-		"logout_to_import_seed": "Primero debes cerrar la sesión para poder importar una nueva frase semilla."
+		"logout_to_import_seed": "Primero debes cerrar la sesión para poder importar una nueva frase semilla.",
+		"ready_to_explore": "¿Listo para explorar aplicaciones blockchain?"
+	},
+	"activity_view": {
+		"title": "Actividad"
 	},
 	"transactions_view": {
 		"title": "Transacciones"
@@ -508,7 +515,13 @@
 		"could_not_resolve_ens": "No se pudo resolver nombre ENS",
 		"asset": "Activo",
 		"balance": "Balance",
-		"not_enough_for_gas": "Tienes 0 ETH en tu cuenta para pagar por la tarifa de transacción. Compra ETH o depositalo desde otra cuenta."
+		"not_enough_for_gas": "Tienes 0 ETH en tu cuenta para pagar por la tarifa de transacción. Compra ETH o deposítalo desde otra cuenta.",
+		"send": "Enviar",
+		"confirmed": "Confirmada",
+		"pending": "Pendiente",
+		"submitted": "Enviada",
+		"failed": "Fallida",
+		"cancelled": "Cancelada"
 	},
 	"custom_gas": {
 		"advanced_options": "Mostrar opciones avanzadas",
@@ -639,7 +652,10 @@
 		"address_copied_to_clipboard": "La dirección fue copiada al portapapeles",
 		"transaction_error": "Error de transacción",
 		"address_to_placeholder": "Buscar, dirección pública (0x), o ENS",
-		"address_from_balance": "Balance:"
+		"address_from_balance": "Balance:",
+		"status": "Estado",
+		"date": "Fecha",
+		"nonce": "Nonce"
 	},
 	"address_book": {
 		"recents": "Recientes",
@@ -971,10 +987,13 @@
 		"request_title": "Solicitar",
 		"request_description": "Solicitar activos de amigos",
 		"buy_title": "Comprar",
-		"buy_description": "Compre con tarjeta de crédito",
+		"buy_description": "Compre con tarjeta de dédito o transferencia bancaria",
 		"public_address": "Dirección Pública",
 		"public_address_qr_code": "Dirección Pública",
-		"coming_soon": "Pronto..."
+		"coming_soon": "Pronto...",
+		"request_payment": "Solicitar Pago",
+		"copy": "Copiar",
+		"scan_address": "Escanee dirección para recibir pago"
 	},
 	"experimental_settings": {
 		"payment_channels": "Canales de Pago",
@@ -1087,6 +1106,76 @@
 	"walletconnect_return_modal": {
 		"title": "Listo!",
 		"text": "Ahora puedes volver a tu navegador"
+	},
+	"account_bar": {
+		"depositing_to": "Depositando a:"
+	},
+	"fiat_on_ramp": {
+		"buy_eth": "Comprar ETH",
+		"purchased_currency": "Compra de {{currency}}",
+		"network_not_supported": "La red actual no esta soportada",
+		"switch_network": "Por favor cambiar a Mainnet",
+		"switch": "Cambiar",
+		"purchases": "Compras",
+		"purchase_method": "Método de pago",
+		"amount_to_buy": "Monto a comprar",
+		"transak_webview_title": "Transak",
+		"wyre_user_agreement": "Acuerdo de Usuario de Wyre",
+		"wyre_terms_of_service": "Términos de Uso de Wyre",
+		"best_deal": "Mejor oferta",
+		"purchase_method_title": {
+			"wyre_first_line": "0% de comisión al",
+			"wyre_second_line": "pagar con Apple Pay.",
+			"wyre_sub_header": "Válido hasta 1 Jul, 2020",
+			"first_line": "¿Cómo quiere pagar",
+			"second_line": "su compra?"
+		},
+		"bank_transfer_debit": "Transferencia bancaria o tarjeta de débito",
+		"requires_registration": "Requiere registro",
+		"options_fees_vary": "Opciones y comisiones varían según ubicación",
+		"countries": "países",
+		"some_states_excluded": "Algunos estados excluídos",
+		"purchase_method_modal_close": "Cerrar",
+		"modal_transak_support": "Disponibilidad de Transak",
+		"modal_wyre_support": "Disponibilidad de Wyre",
+		"transak_cta": "Comprar ETH con Transak",
+		"transak_modal_text": "Métodos de pago y comisiones varían dependiendo de la ubicación. Países disponibles:",
+		"apple_pay": "Apple Pay",
+		"via": "via",
+		"fee": "comisión",
+		"Fee": "Comisión",
+		"limited_time": "tiempo limitado",
+		"wyre_loading_rates": " ",
+		"wyre_estimated": "Estimado {{amount}} {{currency}}",
+		"wyre_minutes": "1 - 2 minutos",
+		"wyre_max": "Máx. $450 semanal",
+		"wyre_requires_debit_card": "Requiere tarjeta de débito",
+		"wyre_us_only": "🇺🇸 solo EUA",
+		"wyre_modal_text": "El pago con Apple Pay, provisto por Wyre es aceptado en los Estados Unidos 🇺🇸 a excepción de CT, HI, NC, NH, NY, VA y VT.",
+		"wyre_modal_terms_of_service_apply": "Rige Acuerdo de Usuario de Wyre.",
+		"wyre_minimum_deposit": "El monto mínimo es {{amount}}",
+		"wyre_maximum_deposit": "El monto máximo es {{amount}}",
+		"wyre_purchase": "Comprar {{currency}}",
+		"buy_with": "Comprar con",
+		"plus_fee": "Más {{fee}} de comisión",
+		"notifications": {
+			"purchase_failed_title": "¡Su compra de {{currency}} ha fallado! Lo sentimos, por favor intente de nuevo",
+			"purchase_cancelled_title": "Su compra fue cancelada",
+			"purchase_completed_title": "¡Su compra de {{amount}} {{currency}} fue exitosa!",
+			"purchase_completed_description": "Su {{currency}} está disponible",
+			"purchase_pending_title": "Procesando su compra de {{currency}}",
+			"purchase_pending_description": "Su depósito está en progreso"
+		},
+		"date": "Fecha",
+		"from": "Desde",
+		"to": "Para",
+		"status": "Estado",
+		"completed": "Realizada",
+		"pending": "Pendiente",
+		"failed": "Fallida",
+		"cancelled": "Cancelada",
+		"amount": "Cantidad",
+		"total_amount": "Cantidad total"
 	},
 	"protect_wallet_modal": {
 		"title": "Protege tu billetera",

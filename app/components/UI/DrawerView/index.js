@@ -37,7 +37,6 @@ import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
 
-const ANDROID_OFFSET = 38;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -120,6 +119,8 @@ const styles = StyleSheet.create({
 	},
 	buttons: {
 		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
 		borderBottomColor: colors.grey100,
 		borderBottomWidth: 1,
 		padding: 15
@@ -127,6 +128,8 @@ const styles = StyleSheet.create({
 	button: {
 		flex: 1,
 		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
 		borderRadius: 30,
 		borderWidth: 1.5
 	},
@@ -137,25 +140,21 @@ const styles = StyleSheet.create({
 		marginLeft: 5
 	},
 	buttonText: {
-		marginLeft: Device.isIos() ? 8 : 28,
-		marginTop: Device.isIos() ? 0 : -23,
-		paddingBottom: Device.isIos() ? 0 : 3,
+		paddingLeft: 8,
 		fontSize: 15,
 		color: colors.blue,
 		...fontStyles.normal
 	},
 	buttonContent: {
 		flexDirection: 'row',
-		alignItems: 'flex-start',
+		alignItems: 'center',
 		justifyContent: 'center'
 	},
 	buttonIcon: {
 		marginTop: 0
 	},
 	buttonReceive: {
-		transform: Device.isIos()
-			? [{ rotate: '90deg' }]
-			: [{ rotate: '90deg' }, { translateX: ANDROID_OFFSET }, { translateY: ANDROID_OFFSET }]
+		transform: [{ rotate: '90deg' }]
 	},
 	menu: {},
 	noTopBorder: {
@@ -402,10 +401,15 @@ class DrawerView extends PureComponent {
 	componentDidUpdate() {
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
 			const route = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
-			if (['SetPasswordFlow', 'Webview'].includes(route)) return;
+			if (['SetPasswordFlow', 'Webview'].includes(route)) {
+				// eslint-disable-next-line react/no-did-update-set-state
+				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
+				return;
+			}
 			let tokenFound = false;
+
 			this.props.tokens.forEach(token => {
-				if (!this.props.tokenBalances[token.address].isZero()) {
+				if (this.props.tokenBalances[token.address] && !this.props.tokenBalances[token.address].isZero()) {
 					tokenFound = true;
 				}
 			});
@@ -507,8 +511,23 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
 	};
 
-	logout = () => {
+	onPress = async () => {
 		const { passwordSet } = this.props;
+		const { KeyringController } = Engine.context;
+		await SecureKeychain.resetGenericPassword();
+		await KeyringController.setLocked();
+		if (!passwordSet) {
+			this.props.navigation.navigate(
+				'OnboardingRootNav',
+				{},
+				NavigationActions.navigate({ routeName: 'Onboarding' })
+			);
+		} else {
+			this.props.navigation.navigate('Login');
+		}
+	};
+
+	logout = () => {
 		Alert.alert(
 			strings('drawer.logout_title'),
 			'',
@@ -520,18 +539,7 @@ class DrawerView extends PureComponent {
 				},
 				{
 					text: strings('drawer.logout_ok'),
-					onPress: async () => {
-						await SecureKeychain.resetGenericPassword();
-						if (!passwordSet) {
-							this.props.navigation.navigate(
-								'OnboardingRootNav',
-								{},
-								NavigationActions.navigate({ routeName: 'Onboarding' })
-							);
-						} else {
-							this.props.navigation.navigate('Login');
-						}
-					}
+					onPress: this.onPress
 				}
 			],
 			{ cancelable: false }
@@ -886,30 +894,32 @@ class DrawerView extends PureComponent {
 							type={'rounded-normal'}
 							onPress={this.onSend}
 							containerStyle={[styles.button, styles.leftButton]}
-							style={styles.buttonContent}
 						>
-							<MaterialIcon
-								name={'arrow-top-right'}
-								size={22}
-								color={colors.blue}
-								style={styles.buttonIcon}
-							/>
-							<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
+							<View style={styles.buttonContent}>
+								<MaterialIcon
+									name={'arrow-top-right'}
+									size={22}
+									color={colors.blue}
+									style={styles.buttonIcon}
+								/>
+								<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
+							</View>
 						</StyledButton>
 						<StyledButton
 							type={'rounded-normal'}
 							onPress={this.onReceive}
 							containerStyle={[styles.button, styles.rightButton]}
-							style={styles.buttonContent}
 							testID={'drawer-receive-button'}
 						>
-							<MaterialIcon
-								name={'keyboard-tab'}
-								size={22}
-								color={colors.blue}
-								style={[styles.buttonIcon, styles.buttonReceive]}
-							/>
-							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
+							<View style={styles.buttonContent}>
+								<MaterialIcon
+									name={'keyboard-tab'}
+									size={22}
+									color={colors.blue}
+									style={[styles.buttonIcon, styles.buttonReceive]}
+								/>
+								<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
+							</View>
 						</StyledButton>
 					</View>
 					<View style={styles.menu}>

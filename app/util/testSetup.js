@@ -2,7 +2,7 @@ import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
 import NotificationManager from '../core/NotificationManager';
-import { NativeModules, View } from 'react-native';
+import { NativeModules } from 'react-native';
 import mockAsyncStorage from '../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';
 
 Enzyme.configure({ adapter: new Adapter() });
@@ -90,10 +90,6 @@ jest.mock('react-native-search-api', () => 'SearchApi');
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock('@react-native-community/async-storage', () => mockAsyncStorage);
-jest.mock('react-native-camera', () => ({
-	RNCamera: View,
-	Aspect: true
-}));
 
 NativeModules.RNGestureHandlerModule = {
 	attachGestureHandler: jest.fn(),

@@ -105,7 +105,11 @@ const NAMES = {
 	DAPP_APPROVE_SCREEN_CANCEL: 'Cancel',
 	DAPP_APPROVE_SCREEN_EDIT_PERMISSION: 'Edit permission',
 	DAPP_APPROVE_SCREEN_EDIT_FEE: 'Edit tx fee',
-	DAPP_APPROVE_SCREEN_VIEW_DETAILS: 'View tx details'
+	DAPP_APPROVE_SCREEN_VIEW_DETAILS: 'View tx details',
+	// Fiat Orders
+	WALLET_BUY_ETH: 'Buy ETH',
+	PAYMENTS_SELECTS_DEBIT_OR_ACH: 'Selects debit card or bank account as payment method',
+	PAYMENTS_SELECTS_APPLE_PAY: 'Selects Apple Pay as payment method'
 };
 
 const ACTIONS = {
@@ -144,7 +148,10 @@ const ACTIONS = {
 	// Send Flow
 	SEND_FLOW: 'Send Flow',
 	// Dapp Interactions
-	APPROVE_REQUEST: 'Approve Request'
+	APPROVE_REQUEST: 'Approve Request',
+	BUY_ETH: 'Buy ETH',
+	SELECTS_DEBIT_OR_ACH: 'Selects Debit or ACH',
+	SELECTS_APPLE_PAY: 'Selects Apple Pay'
 };
 
 const CATEGORIES = {
@@ -161,7 +168,9 @@ const CATEGORIES = {
 	RECEIVE_OPTIONS: 'Receive Options',
 	INSTAPAY_VIEW: 'InstaPay View',
 	SEND_FLOW: 'Send Flow',
-	DAPP_INTERACTIONS: 'Dapp Interactions'
+	DAPP_INTERACTIONS: 'Dapp Interactions',
+	WALLET: 'Wallet',
+	PAYMENTS: 'Payments'
 };
 
 export const ANALYTICS_EVENT_OPTS = {
@@ -471,5 +480,17 @@ export const ANALYTICS_EVENT_OPTS = {
 		CATEGORIES.DAPP_INTERACTIONS,
 		ACTIONS.APPROVE_REQUEST,
 		NAMES.DAPP_APPROVE_SCREEN_VIEW_DETAILS
+	),
+	// Fiat Orders
+	WALLET_BUY_ETH: generateOpt(CATEGORIES.WALLET, ACTIONS.BUY_ETH, NAMES.WALLET_BUY_ETH),
+	PAYMENTS_SELECTS_DEBIT_OR_ACH: generateOpt(
+		CATEGORIES.PAYMENTS,
+		ACTIONS.SELECTS_DEBIT_OR_ACH,
+		NAMES.PAYMENTS_SELECTS_DEBIT_OR_ACH
+	),
+	PAYMENTS_SELECTS_APPLE_PAY: generateOpt(
+		CATEGORIES.PAYMENTS,
+		ACTIONS.SELECTS_APPLE_PAY,
+		NAMES.PAYMENTS_SELECTS_APPLE_PAY
 	)
 };

@@ -11,8 +11,8 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
   <View
     style={
       Object {
-        "marginBottom": 16,
-        "marginTop": 32,
+        "flex": 1,
+        "marginTop": 16,
       }
     }
   >

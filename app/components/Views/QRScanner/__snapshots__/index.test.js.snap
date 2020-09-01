@@ -9,7 +9,7 @@ exports[`QrScanner should render correctly 1`] = `
     }
   }
 >
-  <View
+  <Camera
     androidCameraPermissionOptions={
       Object {
         "buttonNegative": "Cancel",
@@ -18,17 +18,78 @@ exports[`QrScanner should render correctly 1`] = `
         "title": "Allow camera access",
       }
     }
+    androidRecordAudioPermissionOptions={null}
+    autoFocus={1}
+    barCodeTypes={Array []}
+    cameraId={null}
     captureAudio={false}
-    flashMode="auto"
+    exposure={-1}
+    faceDetectionClassifications={0}
+    faceDetectionLandmarks={0}
+    faceDetectionMode={1}
+    flashMode={1}
+    focusDepth={0}
+    keepAudioSession={false}
+    maxZoom={0}
+    mirrorVideo={false}
+    notAuthorizedView={
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontSize": 16,
+              "textAlign": "center",
+            }
+          }
+        >
+          Camera not authorized
+        </Text>
+      </View>
+    }
     onBarCodeRead={[Function]}
     onMountError={[Function]}
     onStatusChange={[Function]}
+    pendingAuthorizationView={
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+          }
+        }
+      >
+        <ActivityIndicator
+          animating={true}
+          color="#999999"
+          hidesWhenStopped={true}
+          size="small"
+        />
+      </View>
+    }
+    permissionDialogMessage=""
+    permissionDialogTitle=""
+    pictureSize="None"
+    playSoundOnCapture={false}
+    ratio="4:3"
     style={
       Object {
         "flex": 1,
       }
     }
-    type="back"
+    type={1}
+    useCamera2Api={false}
+    useNativeZoom={false}
+    videoStabilizationMode={0}
+    zoom={0}
   >
     <ForwardRef(SafeAreaView)
       style={
@@ -87,6 +148,6 @@ exports[`QrScanner should render correctly 1`] = `
         scanning...
       </Text>
     </ForwardRef(SafeAreaView)>
-  </View>
+  </Camera>
 </View>
 `;
