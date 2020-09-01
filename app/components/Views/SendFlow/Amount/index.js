@@ -42,7 +42,7 @@ import { getTicker, generateTransferData, getEther } from '../../../../util/tran
 import { util } from '@metamask/controllers';
 import FadeIn from 'react-native-fade-in-image';
 import ErrorMessage from '../ErrorMessage';
-import { fetchBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
+import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import CollectibleImage from '../../../UI/CollectibleImage';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
@@ -445,8 +445,29 @@ class Amount extends PureComponent {
 			providerType,
 			onConfirm
 		} = this.props;
-		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto, hasExchangeRate } = this.state;
-		const value = internalPrimaryCurrencyIsCrypto || !hasExchangeRate ? inputValue : inputValueConversion;
+		const {
+			inputValue,
+			inputValueConversion,
+			internalPrimaryCurrencyIsCrypto,
+			hasExchangeRate,
+			maxFiatInput
+		} = this.state;
+
+		let value;
+		if (internalPrimaryCurrencyIsCrypto || !hasExchangeRate) {
+			value = inputValue;
+		} else {
+			value = inputValueConversion;
+			if (maxFiatInput) {
+				value = `${renderFromWei(
+					fiatNumberToWei(handleWeiNumber(maxFiatInput), this.props.conversionRate),
+					18
+				)}`;
+			}
+		}
+		if (value && value.includes(',')) {
+			value = inputValue.replace(',', '.');
+		}
 		if (!selectedAsset.tokenId && this.validateAmount(value)) {
 			return;
 		} else if (selectedAsset.tokenId) {
@@ -636,7 +657,7 @@ class Amount extends PureComponent {
 			basicGasEstimates = { average: 20 };
 		}
 		const gas = hexToBN(estimation.gas);
-		const gasPrice = apiEstimateModifiedToWEI(basicGasEstimates.average);
+		const gasPrice = toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
 		return gas.mul(gasPrice);
 	};
 
@@ -662,6 +683,7 @@ class Amount extends PureComponent {
 				input = fromWei(maxValue);
 			} else {
 				input = `${weiToFiatNumber(maxValue, conversionRate)}`;
+				this.setState({ maxFiatInput: `${weiToFiatNumber(maxValue, conversionRate, 12)}` });
 			}
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
@@ -675,10 +697,10 @@ class Amount extends PureComponent {
 				)}`;
 			}
 		}
-		this.onInputChange(input);
+		this.onInputChange(input, undefined, true);
 	};
 
-	onInputChange = (inputValue, selectedAsset) => {
+	onInputChange = (inputValue, selectedAsset, useMax) => {
 		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let inputValueConversion, renderableInputValueConversion, hasExchangeRate, comma;
@@ -737,7 +759,8 @@ class Amount extends PureComponent {
 			inputValueConversion,
 			renderableInputValueConversion,
 			amountError: undefined,
-			hasExchangeRate
+			hasExchangeRate,
+			maxFiatInput: !useMax && undefined
 		});
 	};
 

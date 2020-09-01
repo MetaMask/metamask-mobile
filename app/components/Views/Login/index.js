@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Switch, Alert, ActivityIndicator, Text, View, TextInput, SafeAreaView, StyleSheet, Image } from 'react-native';
+import { Switch, Alert, ActivityIndicator, Text, View, SafeAreaView, StyleSheet, Image } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
@@ -12,12 +12,14 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
-// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import Device from '../../../util/Device';
+import { OutlinedTextField } from 'react-native-material-textfield';
+import BiometryButton from '../../UI/BiometryButton';
+import { recreateVaultWithSamePassword } from '../../../core/Vault';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -26,7 +28,7 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 20
+		paddingHorizontal: 32
 	},
 	foxWrapper: {
 		justifyContent: 'center',
@@ -50,19 +52,13 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	field: {
-		marginBottom: Device.isAndroid() ? 0 : 10
+		flex: 1,
+		marginBottom: Device.isAndroid() ? 0 : 10,
+		flexDirection: 'column'
 	},
 	label: {
-		fontSize: 16,
-		marginBottom: Device.isAndroid() ? 0 : 10,
-		marginTop: 10
-	},
-	input: {
-		borderWidth: Device.isAndroid() ? 0 : 1,
-		borderColor: colors.grey100,
-		padding: 10,
-		borderRadius: 4,
-		fontSize: Device.isAndroid() ? 15 : 20,
+		fontSize: 14,
+		marginBottom: 12,
 		...fontStyles.normal
 	},
 	ctaWrapper: {
@@ -97,6 +93,7 @@ const styles = StyleSheet.create({
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
+const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 
 /**
  * View where returning users can authenticate
@@ -122,7 +119,15 @@ class Login extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Boolean flag that determines if password has been set
+		 */
+		passwordSet: PropTypes.bool,
+		/**
+		 * A string representing the selected address => account
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -131,21 +136,49 @@ class Login extends PureComponent {
 		rememberMe: false,
 		biometryChoice: false,
 		loading: false,
-		error: null
+		error: null,
+		biometryPreviouslyDisabled: false
 	};
 
 	mounted = true;
 
+	fieldRef = React.createRef();
+
 	async componentDidMount() {
-		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		const passcodeDisabled = await AsyncStorage.getItem('@MetaMask:passcodeDisabled');
-		if (passcodeDisabled !== 'true' && biometryType) {
-			let enabled = true;
-			const previouslyDisabled = await AsyncStorage.getItem('@MetaMask:biometryChoiceDisabled');
-			if (previouslyDisabled && previouslyDisabled === 'true') {
-				enabled = false;
+		if (!this.props.passwordSet) {
+			try {
+				const { KeyringController } = Engine.context;
+				await KeyringController.submitPassword('');
+				await SecureKeychain.resetGenericPassword();
+				this.props.navigation.navigate('HomeNav');
+			} catch (e) {
+				//
 			}
-			this.setState({ biometryType, biometryChoice: enabled });
+		} else {
+			const biometryType = await SecureKeychain.getSupportedBiometryType();
+			const passcodeDisabled = await AsyncStorage.getItem('@MetaMask:passcodeDisabled');
+			if (passcodeDisabled !== 'true' && biometryType) {
+				let enabled = true;
+				const previouslyDisabled = await AsyncStorage.getItem('@MetaMask:biometryChoiceDisabled');
+				if (previouslyDisabled && previouslyDisabled === 'true') {
+					enabled = false;
+				}
+
+				this.setState({
+					biometryType,
+					biometryChoice: enabled,
+					biometryPreviouslyDisabled: !!previouslyDisabled
+				});
+
+				try {
+					if (enabled && !previouslyDisabled) {
+						const hasCredentials = await this.tryBiometric();
+						this.setState({ hasCredentials });
+					}
+				} catch (e) {
+					console.warn(e);
+				}
+			}
 		}
 	}
 
@@ -161,7 +194,12 @@ class Login extends PureComponent {
 
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
-			if (this.state.biometryType) {
+			const encryptionLib = await AsyncStorage.getItem('@MetaMask:encryptionLib');
+			if (encryptionLib !== 'original') {
+				await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
+				await AsyncStorage.setItem('@MetaMask:encryptionLib', 'original');
+			}
+			if (this.state.biometryChoice && this.state.biometryType) {
 				const authOptions = {
 					accessControl: this.state.biometryChoice
 						? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
@@ -189,7 +227,6 @@ class Login extends PureComponent {
 				}
 				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			}
-			this.setState({ loading: false });
 
 			// Get onboarding wizard state
 			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
@@ -203,9 +240,13 @@ class Login extends PureComponent {
 				this.props.setOnboardingWizardStep(1);
 				this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
 			}
+			this.setState({ loading: false });
 		} catch (error) {
 			// Should we force people to enable passcode / biometrics?
-			if (error.toString().toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase()) {
+			if (
+				error.toString().toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase() ||
+				error.toString().toLowerCase() === WRONG_PASSWORD_ERROR_ANDROID.toLowerCase()
+			) {
 				this.setState({ loading: false, error: strings('login.invalid_password') });
 			} else if (error.toString() === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
@@ -243,7 +284,7 @@ class Login extends PureComponent {
 	};
 
 	renderSwitch = () => {
-		if (this.state.biometryType) {
+		if (this.state.biometryType && !this.state.biometryPreviouslyDisabled) {
 			return (
 				<View style={styles.biometrics}>
 					<Text style={styles.biometryLabel}>
@@ -276,6 +317,25 @@ class Login extends PureComponent {
 
 	setPassword = val => this.setState({ password: val });
 
+	tryBiometric = async e => {
+		if (e) e.preventDefault();
+		const { current: field } = this.fieldRef;
+		field.blur();
+		try {
+			const credentials = await SecureKeychain.getGenericPassword();
+			if (!credentials) return false;
+			field.blur();
+			this.setState({ password: credentials.password });
+			field.setValue(credentials.password);
+			field.blur();
+			this.onLogin();
+		} catch (error) {
+			console.warn(error);
+		}
+		field.blur();
+		return true;
+	};
+
 	render = () => (
 		<SafeAreaView style={styles.mainWrapper}>
 			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
@@ -294,18 +354,31 @@ class Login extends PureComponent {
 					<Text style={styles.title}>{strings('login.title')}</Text>
 					<View style={styles.field}>
 						<Text style={styles.label}>{strings('login.password')}</Text>
-						<TextInput
-							style={styles.input}
+						<OutlinedTextField
+							placeholder={'Password'}
 							testID={'login-password-input'}
-							value={this.state.password}
-							onChangeText={this.setPassword}
-							secureTextEntry
-							placeholder={''}
-							placeholderTextColor={colors.grey100}
-							underlineColorAndroid={colors.grey100}
-							onSubmitEditing={this.onLogin}
 							returnKeyType={'done'}
 							autoCapitalize="none"
+							secureTextEntry
+							ref={this.fieldRef}
+							onChangeText={this.setPassword}
+							value={this.state.password}
+							baseColor={colors.grey500}
+							tintColor={colors.blue}
+							onSubmitEditing={this.onLogin}
+							renderRightAccessory={() => (
+								<BiometryButton
+									onPress={this.tryBiometric}
+									hidden={
+										!(
+											this.state.biometryChoice &&
+											this.state.biometryType &&
+											this.state.hasCredentials
+										)
+									}
+									type={this.state.biometryType}
+								/>
+							)}
 						/>
 					</View>
 
@@ -342,7 +415,9 @@ class Login extends PureComponent {
 const mapStateToProps = state => ({
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	passwordSet: state.user.passwordSet,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -4,6 +4,7 @@ exports[`Login should render correctly 1`] = `
 <Login
   accountsLength={1}
   networkType="ropsten"
+  passwordSet={true}
   setOnboardingWizardStep={[Function]}
   tokensLength={0}
 />

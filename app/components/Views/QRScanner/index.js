@@ -148,9 +148,9 @@ export default class QrScanner extends PureComponent {
 				onMountError={this.onError}
 				captureAudio={false}
 				style={styles.preview}
-				type={'back'}
+				type={RNCamera.Constants.Type.back}
 				onBarCodeRead={this.shouldReadBarCode ? this.onBarCodeRead : null}
-				flashMode={'auto'}
+				flashMode={RNCamera.Constants.FlashMode.auto}
 				androidCameraPermissionOptions={{
 					title: strings('qr_scanner.allow_camera_dialog_title'),
 					message: strings('qr_scanner.allow_camera_dialog_message'),

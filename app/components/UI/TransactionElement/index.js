@@ -1,20 +1,21 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableHighlight, StyleSheet, Text, View, Image } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { TouchableHighlight, StyleSheet, Image } from 'react-native';
+import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
 import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
 import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import StyledButton from '../StyledButton';
 import Networks from '../../../util/networks';
-import Device from '../../../util/Device';
 import Modal from 'react-native-modal';
 import decodeTransaction from './utils';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
+import ListItem from '../../Base/ListItem';
+import StatusText from '../../Base/StatusText';
+import DetailsModal from '../../Base/DetailsModal';
 
 const styles = StyleSheet.create({
 	row: {
@@ -23,53 +24,6 @@ const styles = StyleSheet.create({
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.grey100
 	},
-	rowContent: {
-		padding: 0
-	},
-	rowOnly: {
-		padding: 15,
-		minHeight: Device.isIos() ? 95 : 100
-	},
-	date: {
-		color: colors.fontSecondary,
-		fontSize: 12,
-		marginBottom: 10,
-		...fontStyles.normal
-	},
-	info: {
-		flex: 1,
-		marginLeft: 15
-	},
-	address: {
-		fontSize: 15,
-		color: colors.fontPrimary,
-		...fontStyles.normal
-	},
-	status: {
-		marginTop: 4,
-		fontSize: 12,
-		letterSpacing: 0.5,
-		...fontStyles.bold
-	},
-	amount: {
-		fontSize: 15,
-		color: colors.fontPrimary,
-		...fontStyles.normal
-	},
-	amountFiat: {
-		fontSize: 12,
-		color: colors.fontSecondary,
-		textTransform: 'uppercase',
-		...fontStyles.normal
-	},
-	amounts: {
-		flex: 0.6,
-		alignItems: 'flex-end'
-	},
-	subRow: {
-		flexDirection: 'row'
-	},
-
 	actionContainerStyle: {
 		height: 25,
 		width: 70,
@@ -83,63 +37,23 @@ const styles = StyleSheet.create({
 		padding: 0,
 		paddingHorizontal: 10
 	},
-	transactionActionsContainer: {
-		flexDirection: 'row',
-		paddingTop: 10,
-		paddingLeft: 40
-	},
-	modalContainer: {
-		width: '90%',
-		backgroundColor: colors.white,
-		borderRadius: 10
-	},
-	modal: {
-		margin: 0,
-		width: '100%'
-	},
-	modalView: {
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	titleWrapper: {
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-		flexDirection: 'row'
-	},
-	title: {
-		flex: 1,
-		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 24,
-		color: colors.fontPrimary,
-		...fontStyles.bold
-	},
-	closeIcon: { paddingTop: 4, position: 'absolute', right: 16 },
-	iconWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center'
-	},
 	icon: {
 		width: 28,
 		height: 28
-	},
-	statusText: {
-		fontSize: 12,
-		...fontStyles.normal
 	}
 });
 
-const transactionIconApprove = require('../../../images/transaction-icons/approve.png'); // eslint-disable-line
-const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png'); // eslint-disable-line
-const transactionIconSent = require('../../../images/transaction-icons/send.png'); // eslint-disable-line
-const transactionIconReceived = require('../../../images/transaction-icons/receive.png'); // eslint-disable-line
+/* eslint-disable import/no-commonjs */
+const transactionIconApprove = require('../../../images/transaction-icons/approve.png');
+const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png');
+const transactionIconSent = require('../../../images/transaction-icons/send.png');
+const transactionIconReceived = require('../../../images/transaction-icons/receive.png');
 
-const transactionIconApproveFailed = require('../../../images/transaction-icons/approve-failed.png'); // eslint-disable-line
-const transactionIconInteractionFailed = require('../../../images/transaction-icons/interaction-failed.png'); // eslint-disable-line
-const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png'); // eslint-disable-line
-const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png'); // eslint-disable-line
+const transactionIconApproveFailed = require('../../../images/transaction-icons/approve-failed.png');
+const transactionIconInteractionFailed = require('../../../images/transaction-icons/interaction-failed.png');
+const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png');
+const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png');
+/* eslint-enable import/no-commonjs */
 
 /**
  * View that renders a transaction item part of transactions list
@@ -242,20 +156,6 @@ class TransactionElement extends PureComponent {
 		this.mounted = false;
 	}
 
-	getStatusStyle(status) {
-		switch (status) {
-			case 'confirmed':
-				return [styles.statusText, { color: colors.green400 }];
-			case 'pending':
-			case 'submitted':
-				return [styles.statusText, { color: colors.orange }];
-			case 'failed':
-			case 'cancelled':
-				return [styles.statusText, { color: colors.red }];
-		}
-		return null;
-	}
-
 	onPressItem = () => {
 		const { tx, i, onPressItem } = this.props;
 		onPressItem(tx.id, i);
@@ -270,12 +170,9 @@ class TransactionElement extends PureComponent {
 		const { tx, selectedAddress } = this.props;
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
-		return (
-			<Text style={styles.date}>
-				{(!incoming || selfSent) && tx.transaction.nonce && `#${parseInt(tx.transaction.nonce, 16)}  - `}
-				{`${toDateFormat(tx.time)}`}
-			</Text>
-		);
+		return `${
+			(!incoming || selfSent) && tx.transaction.nonce ? `#${parseInt(tx.transaction.nonce, 16)}  - ` : ''
+		}${toDateFormat(tx.time)}`;
 	};
 
 	renderTxElementIcon = (transactionElement, status) => {
@@ -304,25 +201,7 @@ class TransactionElement extends PureComponent {
 				icon = isFailedTransaction ? transactionIconApproveFailed : transactionIconApprove;
 				break;
 		}
-		return (
-			<View style={styles.iconWrapper}>
-				<Image source={icon} style={styles.icon} resizeMode="stretch" />
-			</View>
-		);
-	};
-
-	renderStatusText = status => {
-		status = status && status.charAt(0).toUpperCase() + status.slice(1);
-		switch (status) {
-			case 'Confirmed':
-				return <Text style={[styles.status, { color: colors.green400 }]}>{status}</Text>;
-			case 'Pending':
-			case 'Submitted':
-				return <Text style={[styles.status, { color: colors.orange }]}>{status}</Text>;
-			case 'Failed':
-			case 'Cancelled':
-				return <Text style={[styles.status, { color: colors.red }]}>{status}</Text>;
-		}
+		return <Image source={icon} style={styles.icon} resizeMode="stretch" />;
 	};
 
 	/**
@@ -343,28 +222,26 @@ class TransactionElement extends PureComponent {
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		const renderSpeedUpAction = safeToChecksumAddress(to) !== AppConstants.CONNEXT.CONTRACTS[networkId];
 		return (
-			<View style={styles.rowOnly}>
-				{this.renderTxTime()}
-				<View style={styles.subRow}>
-					{this.renderTxElementIcon(transactionElement, status)}
-					<View style={styles.info} numberOfLines={1}>
-						<Text numberOfLines={1} style={styles.address}>
-							{actionKey}
-						</Text>
-						{this.renderStatusText(status)}
-					</View>
-					<View style={styles.amounts}>
-						<Text style={styles.amount}>{value}</Text>
-						<Text style={styles.amountFiat}>{fiatValue}</Text>
-					</View>
-				</View>
+			<ListItem>
+				<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
+				<ListItem.Content>
+					<ListItem.Icon>{this.renderTxElementIcon(transactionElement, status)}</ListItem.Icon>
+					<ListItem.Body>
+						<ListItem.Title numberOfLines={1}>{actionKey}</ListItem.Title>
+						<StatusText status={status} />
+					</ListItem.Body>
+					<ListItem.Amounts>
+						<ListItem.Amount>{value}</ListItem.Amount>
+						<ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
+					</ListItem.Amounts>
+				</ListItem.Content>
 				{!!renderTxActions && (
-					<View style={styles.transactionActionsContainer}>
+					<ListItem.Actions>
 						{renderSpeedUpAction && this.renderSpeedUpButton()}
 						{this.renderCancelButton()}
-					</View>
+					</ListItem.Actions>
 				)}
-			</View>
+			</ListItem>
 		);
 	};
 
@@ -412,48 +289,40 @@ class TransactionElement extends PureComponent {
 		const { tx } = this.props;
 		const { detailsModalVisible, transactionElement, transactionDetails } = this.state;
 
-		if (!transactionElement || !transactionDetails) return <View />;
+		if (!transactionElement || !transactionDetails) return null;
 		return (
-			<View>
+			<>
 				<TouchableHighlight
 					style={styles.row}
 					onPress={this.onPressItem}
 					underlayColor={colors.grey000}
 					activeOpacity={1}
 				>
-					<View style={styles.rowContent}>{this.renderTxElement(transactionElement)}</View>
+					{this.renderTxElement(transactionElement)}
 				</TouchableHighlight>
 				<Modal
 					isVisible={detailsModalVisible}
-					style={styles.modal}
 					onBackdropPress={this.onCloseDetailsModal}
 					onBackButtonPress={this.onCloseDetailsModal}
 					onSwipeComplete={this.onCloseDetailsModal}
 					swipeDirection={'down'}
 				>
-					<View style={styles.modalView}>
-						<View style={styles.modalContainer}>
-							<View style={styles.titleWrapper}>
-								<Text style={styles.title} onPress={this.onCloseDetailsModal}>
-									{transactionElement.actionKey}
-								</Text>
-								<Ionicons
-									onPress={this.onCloseDetailsModal}
-									name={'ios-close'}
-									size={38}
-									style={styles.closeIcon}
-								/>
-							</View>
-							<TransactionDetails
-								transactionObject={tx}
-								transactionDetails={transactionDetails}
-								navigation={this.props.navigation}
-								close={this.onCloseDetailsModal}
-							/>
-						</View>
-					</View>
+					<DetailsModal>
+						<DetailsModal.Header>
+							<DetailsModal.Title onPress={this.onCloseDetailsModal}>
+								{transactionElement.actionKey}
+							</DetailsModal.Title>
+							<DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
+						</DetailsModal.Header>
+						<TransactionDetails
+							transactionObject={tx}
+							transactionDetails={transactionDetails}
+							navigation={this.props.navigation}
+							close={this.onCloseDetailsModal}
+						/>
+					</DetailsModal>
 				</Modal>
-			</View>
+			</>
 		);
 	}
 }

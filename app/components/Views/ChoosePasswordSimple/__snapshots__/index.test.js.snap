@@ -61,7 +61,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
               style={
                 Object {
                   "color": "#000000",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "lineHeight": 23,
@@ -69,7 +69,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
                 }
               }
             >
-              You'll use this password to unlock your MetaMask wallet only on this device.
+              This password will unlock your MetaMask wallet only on this device.
             </Text>
           </View>
         </View>
@@ -86,7 +86,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
               Array [
                 Object {
                   "color": "#777777",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "marginLeft": 5,
@@ -127,7 +127,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
                 "borderBottomColor": "#d6d9dc",
                 "borderBottomWidth": 1,
                 "borderRadius": 4,
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 20,
                 "fontWeight": "400",
                 "paddingLeft": 0,
@@ -153,7 +153,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
               style={
                 Object {
                   "color": "#777777",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "height": 20,
@@ -170,7 +170,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
             style={
               Object {
                 "color": "#777777",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
@@ -194,7 +194,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
               Array [
                 Object {
                   "color": "#777777",
-                  "fontFamily": "CircularStd-Medium",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "marginLeft": 5,
@@ -218,7 +218,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
               ]
             }
           >
-            Confirm Password
+            Confirm password
           </ForwardRef(AnimatedComponentWrapper)>
           <TextInput
             autoCapitalize="none"
@@ -235,7 +235,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
                 "borderBottomColor": "#d6d9dc",
                 "borderBottomWidth": 1,
                 "borderRadius": 4,
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 20,
                 "fontWeight": "400",
                 "paddingLeft": 0,
@@ -259,7 +259,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
             style={
               Object {
                 "color": "#777777",
-                "fontFamily": "CircularStd-Medium",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "height": 20,
@@ -298,7 +298,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
         testID="submit-button"
         type="blue"
       >
-        NEXT
+        Create password
       </StyledButton>
     </View>
   </View>

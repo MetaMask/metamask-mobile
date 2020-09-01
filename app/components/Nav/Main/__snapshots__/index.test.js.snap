@@ -69,6 +69,20 @@ exports[`Main should render correctly 1`] = `
               "getScreenOptions": [Function],
               "getStateForAction": [Function],
             },
+            "FiatOnRamp": Object {
+              "childRouters": Object {
+                "PaymentMethodApplePay": null,
+                "PaymentMethodSelector": null,
+                "TransakFlow": null,
+              },
+              "getActionCreators": [Function],
+              "getActionForPathAndParams": [Function],
+              "getComponentForRouteName": [Function],
+              "getComponentForState": [Function],
+              "getPathAndParamsForState": [Function],
+              "getScreenOptions": [Function],
+              "getStateForAction": [Function],
+            },
             "Home": Object {
               "childRouters": Object {
                 "BrowserTabHome": Object {
@@ -204,13 +218,11 @@ exports[`Main should render correctly 1`] = `
             "SetPasswordFlow": Object {
               "childRouters": Object {
                 "AccountBackupStep1": null,
-                "AccountBackupStep2": null,
-                "AccountBackupStep3": null,
-                "AccountBackupStep4": null,
-                "AccountBackupStep5": null,
-                "AccountBackupStep6": null,
+                "AccountBackupStep1B": null,
                 "ChoosePassword": null,
-                "ProtectYourAccount": null,
+                "ManualBackupStep1": null,
+                "ManualBackupStep2": null,
+                "ManualBackupStep3": null,
               },
               "getActionCreators": [Function],
               "getActionForPathAndParams": [Function],
@@ -402,6 +414,20 @@ exports[`Main should render correctly 1`] = `
                 "getScreenOptions": [Function],
                 "getStateForAction": [Function],
               },
+              "FiatOnRamp": Object {
+                "childRouters": Object {
+                  "PaymentMethodApplePay": null,
+                  "PaymentMethodSelector": null,
+                  "TransakFlow": null,
+                },
+                "getActionCreators": [Function],
+                "getActionForPathAndParams": [Function],
+                "getComponentForRouteName": [Function],
+                "getComponentForState": [Function],
+                "getPathAndParamsForState": [Function],
+                "getScreenOptions": [Function],
+                "getStateForAction": [Function],
+              },
               "Home": Object {
                 "childRouters": Object {
                   "BrowserTabHome": Object {
@@ -537,13 +563,11 @@ exports[`Main should render correctly 1`] = `
               "SetPasswordFlow": Object {
                 "childRouters": Object {
                   "AccountBackupStep1": null,
-                  "AccountBackupStep2": null,
-                  "AccountBackupStep3": null,
-                  "AccountBackupStep4": null,
-                  "AccountBackupStep5": null,
-                  "AccountBackupStep6": null,
+                  "AccountBackupStep1B": null,
                   "ChoosePassword": null,
-                  "ProtectYourAccount": null,
+                  "ManualBackupStep1": null,
+                  "ManualBackupStep2": null,
+                  "ManualBackupStep3": null,
                 },
                 "getActionCreators": [Function],
                 "getActionForPathAndParams": [Function],

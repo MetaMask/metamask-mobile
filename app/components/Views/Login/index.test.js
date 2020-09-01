@@ -20,8 +20,12 @@ describe('Login', () => {
 					},
 					AssetsController: {
 						tokens: []
-					}
+					},
+					PreferencesController: {}
 				}
+			},
+			user: {
+				passwordSet: true
 			}
 		};
 

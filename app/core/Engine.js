@@ -29,6 +29,7 @@ import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import NotificationManager from './NotificationManager';
 import contractMap from 'eth-contract-metadata';
+import Logger from '../util/Logger';
 
 const OPENSEA_API_KEY = process.env.MM_OPENSEA_KEY;
 const encryptor = new Encryptor();
@@ -216,7 +217,7 @@ class Engine {
 			}
 			await AsyncStorage.setItem('@MetaMask:lastIncomingTxBlockInfo', JSON.stringify(allLastIncomingTxBlocks));
 		} catch (e) {
-			console.log('Error while fetching all txs', e); // eslint-disable-line
+			Logger.log('Error while fetching all txs', e);
 		}
 	};
 
@@ -255,6 +256,33 @@ class Engine {
 
 		const total = ethFiat + tokenFiat;
 		return total;
+	};
+
+	/**
+	 * Returns true or false whether the user has funds or not
+	 */
+	hasFunds = () => {
+		try {
+			const {
+				engine: { backgroundState }
+			} = store.getState();
+			const collectibles = backgroundState.AssetsController.collectibles;
+			const tokens = backgroundState.AssetsController.tokens;
+			const tokenBalances = backgroundState.TokenBalancesController.contractBalances;
+
+			let tokenFound = false;
+			tokens.forEach(token => {
+				if (tokenBalances[token.address] && !tokenBalances[token.address].isZero()) {
+					tokenFound = true;
+				}
+			});
+
+			const fiatBalance = this.getTotalFiatAccountBalance();
+
+			return fiatBalance > 0 || tokenFound || collectibles.length > 0;
+		} catch (e) {
+			Logger.log('Error while getting user funds', e);
+		}
 	};
 
 	resetState = async () => {
@@ -426,6 +454,9 @@ export default {
 	},
 	getTotalFiatAccountBalance() {
 		return instance.getTotalFiatAccountBalance();
+	},
+	hasFunds() {
+		return instance.hasFunds();
 	},
 	resetState() {
 		return instance.resetState();

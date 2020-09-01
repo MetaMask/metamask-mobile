@@ -12,6 +12,12 @@ import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import CreateWallet from '../../Views/CreateWallet';
+import ChoosePassword from '../../Views/ChoosePassword';
+import AccountBackupStep1 from '../../Views/AccountBackupStep1';
+import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
+import ManualBackupStep1 from '../../Views/ManualBackupStep1';
+import ManualBackupStep2 from '../../Views/ManualBackupStep2';
+import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportWallet from '../../Views/ImportWallet';
 import ImportFromSeed from '../../Views/ImportFromSeed';
 import SyncWithExtension from '../../Views/SyncWithExtension';
@@ -39,6 +45,24 @@ const OnboardingNav = createStackNavigator(
 		CreateWallet: {
 			screen: CreateWallet
 		},
+		ChoosePassword: {
+			screen: ChoosePassword
+		},
+		AccountBackupStep1: {
+			screen: AccountBackupStep1
+		},
+		AccountBackupStep1B: {
+			screen: AccountBackupStep1B
+		},
+		ManualBackupStep1: {
+			screen: ManualBackupStep1
+		},
+		ManualBackupStep2: {
+			screen: ManualBackupStep2
+		},
+		ManualBackupStep3: {
+			screen: ManualBackupStep3
+		},
 		ImportWallet: {
 			screen: ImportWallet
 		},
@@ -64,13 +88,19 @@ const OnboardingNav = createStackNavigator(
 const OnboardingRootNav = createStackNavigator(
 	{
 		OnboardingNav: {
-			screen: OnboardingNav
+			screen: OnboardingNav,
+			navigationOptions: {
+				header: null
+			}
 		},
 		SyncWithExtensionSuccess: {
 			screen: SyncWithExtensionSuccess
 		},
 		QRScanner: {
-			screen: QRScanner
+			screen: QRScanner,
+			navigationOptions: {
+				header: null
+			}
 		},
 		Webview: {
 			screen: createStackNavigator(
@@ -82,11 +112,13 @@ const OnboardingRootNav = createStackNavigator(
 				{
 					mode: 'modal'
 				}
-			)
+			),
+			navigationOptions: {
+				header: null
+			}
 		}
 	},
 	{
-		headerMode: 'none',
 		mode: 'modal'
 	}
 );

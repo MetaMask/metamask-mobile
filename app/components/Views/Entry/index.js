@@ -14,6 +14,7 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import SplashScreen from 'react-native-splash-screen';
+import { recreateVaultWithSamePassword } from '../../../core/Vault';
 
 /**
  * Entry Screen that decides which screen to show
@@ -76,7 +77,11 @@ class Entry extends PureComponent {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * A string representing the selected address => account
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -99,15 +104,16 @@ class Entry extends PureComponent {
 		}
 	}
 
-	handleDeeplinks = ({ error, params, uri }) => {
+	handleDeeplinks = async ({ error, params, uri }) => {
 		if (error) {
 			Logger.error(error, 'Error from Branch');
 			return;
 		}
-		if (params['+non_branch_link']) {
-			DeeplinkManager.parse(params['+non_branch_link']);
-		} else if (uri) {
-			DeeplinkManager.parse(uri);
+		const deeplink = params['+non_branch_link'] || uri || null;
+		if (deeplink) {
+			const { KeyringController } = Engine.context;
+			const isUnlocked = KeyringController.isUnlocked();
+			isUnlocked ? DeeplinkManager.parse(deeplink) : DeeplinkManager.setDeeplink(deeplink);
 		}
 	};
 
@@ -155,11 +161,17 @@ class Entry extends PureComponent {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
+			const { KeyringController } = Engine.context;
 			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
-				const { KeyringController } = Engine.context;
+
 				await KeyringController.submitPassword(credentials.password);
+				const encryptionLib = await AsyncStorage.getItem('@MetaMask:encryptionLib');
+				if (encryptionLib !== 'original') {
+					await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
+					await AsyncStorage.setItem('@MetaMask:encryptionLib', 'original');
+				}
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
 				// Check if user passed through metrics opt-in screen
@@ -175,10 +187,12 @@ class Entry extends PureComponent {
 			} else if (this.props.passwordSet) {
 				this.animateAndGoTo('Login');
 			} else {
-				this.animateAndGoTo('Onboarding');
+				await KeyringController.submitPassword('');
+				await SecureKeychain.resetGenericPassword();
+				this.props.navigation.navigate('HomeNav');
 			}
 		} catch (error) {
-			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
+			Logger.log(`Keychain couldn't be accessed`, error);
 			this.animateAndGoTo('Login');
 		}
 	}
@@ -229,7 +243,10 @@ const mapDispatchToProps = dispatch => ({
 });
 
 const mapStateToProps = state => ({
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	selectedAddress:
+		state.engine.backgroundState.PreferencesController &&
+		state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(

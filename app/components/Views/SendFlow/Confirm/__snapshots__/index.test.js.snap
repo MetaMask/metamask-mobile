@@ -48,7 +48,7 @@ exports[`Confirm should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "marginVertical": 3,
@@ -75,7 +75,7 @@ exports[`Confirm should render correctly 1`] = `
         style={
           Object {
             "color": "#6a737d",
-            "fontFamily": "CircularStd-Medium",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "marginVertical": 3,
@@ -89,7 +89,7 @@ exports[`Confirm should render correctly 1`] = `
       fiat=""
       gasEstimationReady={false}
       toggleCustomGasModal={[Function]}
-      totalFiat=""
+      totalFiat={<Text />}
       totalGasFiat=""
       totalValue={<Text />}
       transactionValue=""
@@ -114,7 +114,7 @@ exports[`Confirm should render correctly 1`] = `
             Object {
               "alignSelf": "center",
               "color": "#037dd6",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -355,7 +355,7 @@ exports[`Confirm should render correctly 1`] = `
             Object {
               "alignItems": "center",
               "color": "#000000",
-              "fontFamily": "CircularStd-Medium",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
               "fontWeight": "600",
               "justifyContent": "center",

@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-	Animated,
 	Switch,
 	ActivityIndicator,
 	Alert,
@@ -31,6 +30,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
+import { OutlinedTextField } from 'react-native-material-textfield';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 20
+		paddingHorizontal: 32
 	},
 	title: {
 		fontSize: Device.isAndroid() ? 20 : 25,
@@ -51,25 +51,11 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	field: {
-		marginTop: 20,
-		marginBottom: 10
+		marginVertical: 5
 	},
 	label: {
-		position: 'absolute',
-		marginTop: -35,
-		marginLeft: 5,
-		fontSize: 16,
-		color: colors.fontSecondary,
-		textAlign: 'left',
-		...fontStyles.normal
-	},
-	input: {
-		borderBottomWidth: Device.isAndroid() ? 0 : 1,
-		borderBottomColor: colors.grey100,
-		paddingLeft: 0,
-		paddingVertical: 10,
-		borderRadius: 4,
-		fontSize: Device.isAndroid() ? 14 : 20,
+		fontSize: 14,
+		marginBottom: 12,
 		...fontStyles.normal
 	},
 	ctaWrapper: {
@@ -81,25 +67,22 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	seedPhrase: {
-		marginTop: 10,
-		marginBottom: 10,
-		backgroundColor: colors.white,
+		marginVertical: 10,
 		paddingTop: 20,
 		paddingBottom: 20,
-		paddingLeft: 20,
-		paddingRight: 20,
+		paddingHorizontal: 20,
 		fontSize: 20,
 		borderRadius: 10,
 		minHeight: 110,
 		height: 'auto',
-		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderWidth: 1,
+		borderColor: colors.grey500,
+		backgroundColor: colors.white,
 		...fontStyles.normal
 	},
 	biometrics: {
 		alignItems: 'flex-start',
-		marginTop: 30,
-		marginBottom: 30
+		marginTop: 10
 	},
 	biometryLabel: {
 		flex: 1,
@@ -111,7 +94,7 @@ const styles = StyleSheet.create({
 		flex: 0
 	},
 	termsAndConditions: {
-		paddingVertical: 30
+		paddingVertical: 10
 	},
 	passwordStrengthLabel: {
 		height: 20,
@@ -136,7 +119,6 @@ const styles = StyleSheet.create({
 	},
 	showHideToggle: {
 		backgroundColor: colors.white,
-		position: 'absolute',
 		marginTop: 8,
 		alignSelf: 'flex-end'
 	},
@@ -155,6 +137,10 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		paddingVertical: 4,
 		paddingHorizontal: 6
+	},
+	inputFocused: {
+		borderColor: colors.blue,
+		borderWidth: 2
 	}
 });
 
@@ -199,12 +185,11 @@ class ImportFromSeed extends PureComponent {
 		seed: '',
 		biometryType: null,
 		rememberMe: false,
-		labelsScaleNew: new Animated.Value(1),
-		labelsScaleConfirm: new Animated.Value(1),
 		secureTextEntry: true,
 		biometryChoice: false,
 		loading: false,
 		error: null,
+		seedphraseInputFocused: false,
 		inputWidth: Device.isAndroid() ? '99%' : undefined
 	};
 
@@ -394,30 +379,6 @@ class ImportFromSeed extends PureComponent {
 		this.setState({ secureTextEntry: !this.state.secureTextEntry });
 	};
 
-	animateInLabel = label => {
-		if (
-			(label === 'new' && this.state.password !== '') ||
-			(label === 'confirm' && this.state.confirmPassword !== '')
-		) {
-			return;
-		}
-		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
-			toValue: 1,
-			duration: 200,
-			useNativeDriver: true,
-			isInteraction: false
-		}).start();
-	};
-
-	animateOutLabel = label => {
-		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
-			toValue: 0.66,
-			duration: 200,
-			useNativeDriver: true,
-			isInteraction: false
-		}).start();
-	};
-
 	getPasswordStrengthWord() {
 		// this.state.passwordStrength is calculated by zxcvbn
 		// which returns a score based on "entropy to crack time"
@@ -451,34 +412,19 @@ class ImportFromSeed extends PureComponent {
 		});
 	};
 
+	seedphraseInputFocused = () => this.setState({ seedphraseInputFocused: !this.state.seedphraseInputFocused });
+
 	render() {
-		const startX = 0;
-		const startY = 0;
-		const width = 100;
-		const height = 24;
-		const initialScale = 1;
-		const endX = 0;
-		const endY = 50;
-
-		const labelsScaleNewX = this.state.labelsScaleNew.interpolate({
-			inputRange: [0, 1],
-			outputRange: [startX - width / 2 - (width * initialScale) / 2, endX]
-		});
-		const labelsScaleNewY = this.state.labelsScaleNew.interpolate({
-			inputRange: [0, 1],
-			outputRange: [startY - height / 2 - (height * initialScale) / 2, endY]
-		});
-
-		const labelsScaleNewXConfirm = this.state.labelsScaleConfirm.interpolate({
-			inputRange: [0, 1],
-			outputRange: [startX - width / 2 - (width * initialScale) / 2, endX]
-		});
-		const labelsScaleNewYConfirm = this.state.labelsScaleConfirm.interpolate({
-			inputRange: [0, 1],
-			outputRange: [startY - height / 2 - (height * initialScale) / 2, endY]
-		});
-
-		const { password, confirmPassword, seed } = this.state;
+		const {
+			password,
+			confirmPassword,
+			seed,
+			seedphraseInputFocused,
+			inputWidth,
+			secureTextEntry,
+			error,
+			loading
+		} = this.state;
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -486,12 +432,16 @@ class ImportFromSeed extends PureComponent {
 					<View testID={'import-from-seed-screen'}>
 						<Text style={styles.title}>{strings('import_from_seed.title')}</Text>
 						<TextInput
-							value={this.state.seed}
+							value={seed}
 							numberOfLines={3}
 							multiline
-							style={[styles.seedPhrase, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							style={[
+								styles.seedPhrase,
+								inputWidth && { width: inputWidth },
+								seedphraseInputFocused && styles.inputFocused
+							]}
 							placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.grey200}
 							onChangeText={this.onSeedWordsChange}
 							testID={'input-seed-phrase'}
 							blurOnSubmit
@@ -500,47 +450,36 @@ class ImportFromSeed extends PureComponent {
 							keyboardType={Device.isAndroid() ? 'visible-password' : 'default'}
 							autoCapitalize="none"
 							autoCorrect={false}
+							onFocus={this.seedphraseInputFocused}
+							onBlur={this.seedphraseInputFocused}
 						/>
 						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
 							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
 						</TouchableOpacity>
 						<View style={styles.field}>
-							<Animated.Text
-								style={[
-									styles.label,
-									{
-										transform: [
-											{ scale: this.state.labelsScaleNew },
-											{ translateX: labelsScaleNewX },
-											{ translateY: labelsScaleNewY }
-										]
-									}
-								]}
-							>
-								{strings('import_from_seed.new_password')}
-							</Animated.Text>
-							<TextInput
+							<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
+							<OutlinedTextField
 								ref={this.passwordInput}
-								style={styles.input}
+								placeholder={strings('import_from_seed.new_password')}
 								testID={'input-password-field'}
-								value={this.state.password}
-								onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
-								secureTextEntry={this.state.secureTextEntry}
-								placeholder={''}
-								placeholderTextColor={colors.grey100}
-								underlineColorAndroid={colors.grey100}
-								onSubmitEditing={this.jumpToConfirmPassword}
 								returnKeyType={'next'}
-								onFocus={() => this.animateOutLabel('new')} // eslint-disable-line  react/jsx-no-bind
-								onBlur={() => this.animateInLabel('new')} // eslint-disable-line  react/jsx-no-bind
 								autoCapitalize="none"
+								secureTextEntry={secureTextEntry}
+								onChangeText={this.onPasswordChange}
+								value={password}
+								baseColor={colors.grey500}
+								tintColor={colors.blue}
+								onSubmitEditing={this.jumpToConfirmPassword}
+								renderRightAccessory={() => (
+									<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
+										<Text style={styles.passwordStrengthLabel}>
+											{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
+										</Text>
+									</TouchableOpacity>
+								)}
 							/>
-							<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
-								<Text style={styles.passwordStrengthLabel}>
-									{strings(`choose_password.${this.state.secureTextEntry ? 'show' : 'hide'}`)}
-								</Text>
-							</TouchableOpacity>
-							{(this.state.password !== '' && (
+
+							{(password !== '' && (
 								<Text style={styles.passwordStrengthLabel}>
 									{strings('choose_password.password_strength')}
 									<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
@@ -552,38 +491,23 @@ class ImportFromSeed extends PureComponent {
 						</View>
 
 						<View style={styles.field}>
-							<Animated.Text
-								style={[
-									styles.label,
-									{
-										transform: [
-											{ scale: this.state.labelsScaleConfirm },
-											{ translateX: labelsScaleNewXConfirm },
-											{ translateY: labelsScaleNewYConfirm }
-										]
-									}
-								]}
-							>
-								{strings('import_from_seed.confirm_password')}
-							</Animated.Text>
-							<TextInput
+							<Text style={styles.label}>{strings('import_from_seed.confirm_password')}</Text>
+							<OutlinedTextField
 								ref={this.confirmPasswordInput}
-								style={styles.input}
 								testID={'input-password-field-confirm'}
-								value={this.state.confirmPassword}
-								onChangeText={this.onPasswordConfirmChange} // eslint-disable-line  react/jsx-no-bind
-								secureTextEntry={this.state.secureTextEntry}
-								placeholder={''}
-								placeholderTextColor={colors.grey100}
-								underlineColorAndroid={colors.grey100}
-								onSubmitEditing={this.onPressImport}
-								returnKeyType={'done'}
-								onFocus={() => this.animateOutLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
-								onBlur={() => this.animateInLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
+								onChangeText={this.onPasswordConfirmChange}
+								returnKeyType={'next'}
 								autoCapitalize="none"
+								secureTextEntry={secureTextEntry}
+								placeholder={strings('import_from_seed.confirm_password')}
+								value={confirmPassword}
+								baseColor={colors.grey500}
+								tintColor={colors.blue}
+								onSubmitEditing={this.onPressImport}
 							/>
+
 							<View style={styles.showMatchingPasswords}>
-								{this.state.password !== '' && this.state.password === this.state.confirmPassword ? (
+								{password !== '' && password === confirmPassword ? (
 									<Icon name="check" size={12} color={colors.green300} />
 								) : null}
 							</View>
@@ -594,9 +518,9 @@ class ImportFromSeed extends PureComponent {
 
 						{this.renderSwitch()}
 
-						{!!this.state.error && (
+						{!!error && (
 							<Text style={styles.errorMsg} testID={'invalid-seed-phrase'}>
-								{this.state.error}
+								{error}
 							</Text>
 						)}
 
@@ -609,21 +533,21 @@ class ImportFromSeed extends PureComponent {
 									!(password !== '' && password === confirmPassword && seed.split(' ').length === 12)
 								}
 							>
-								{this.state.loading ? (
+								{loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
 									strings('import_from_seed.import_button')
 								)}
 							</StyledButton>
 						</View>
-						<View style={styles.termsAndConditions}>
-							<TermsAndConditions
-								navigation={this.props.navigation}
-								action={strings('import_from_seed.import_button')}
-							/>
-						</View>
 					</View>
 				</KeyboardAwareScrollView>
+				<View style={styles.termsAndConditions}>
+					<TermsAndConditions
+						navigation={this.props.navigation}
+						action={strings('import_from_seed.import_button')}
+					/>
+				</View>
 			</SafeAreaView>
 		);
 	}

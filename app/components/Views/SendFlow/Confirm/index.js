@@ -200,7 +200,9 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		fontSize: 14,
 		textAlign: 'right',
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
+		flexWrap: 'wrap',
+		flex: 1
 	}
 });
 
@@ -393,7 +395,11 @@ class Confirm extends PureComponent {
 					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
 				</Text>
 			);
-			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
+			transactionTotalAmountFiat = (
+				<Text style={styles.totalAmount}>
+					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
+				</Text>
+			);
 			transactionTo = to;
 		} else if (selectedAsset.tokenId) {
 			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${parsedTicker}`;
@@ -418,7 +424,11 @@ class Confirm extends PureComponent {
 					{renderFromWei(weiTransactionFee)} {parsedTicker}
 				</Text>
 			);
-			transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
+			transactionTotalAmountFiat = (
+				<Text style={styles.totalAmount}>
+					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
+				</Text>
+			);
 		} else {
 			let amount;
 			const { address, symbol = 'ERC20', decimals } = selectedAsset;
@@ -426,7 +436,7 @@ class Confirm extends PureComponent {
 				contractBalances[address] ? contractBalances[address] : '0',
 				decimals
 			)} ${symbol}`;
-			[transactionTo, , amount] = decodeTransferData('transfer', data);
+			[transactionTo, amount] = decodeTransferData('transfer', data);
 			const transferValue = renderFromTokenMinimalUnit(amount, decimals);
 			transactionValue = `${transferValue} ${symbol}`;
 			const exchangeRate = contractExchangeRates[address];
@@ -439,10 +449,10 @@ class Confirm extends PureComponent {
 					{transactionValue} + ${renderFromWei(weiTransactionFee)} {parsedTicker}
 				</Text>
 			);
-			transactionTotalAmountFiat = renderFiatAddition(
-				transactionValueFiatNumber,
-				transactionFeeFiatNumber,
-				currentCurrency
+			transactionTotalAmountFiat = (
+				<Text style={styles.totalAmount}>
+					{renderFiatAddition(transactionValueFiatNumber, transactionFeeFiatNumber, currentCurrency)}
+				</Text>
 			);
 		}
 
@@ -890,12 +900,11 @@ class Confirm extends PureComponent {
 			transactionFee,
 			transactionTo = '',
 			transactionTotalAmount = <Text />,
-			transactionTotalAmountFiat = '',
+			transactionTotalAmountFiat = <Text />,
 			errorMessage,
 			transactionConfirmed,
 			paymentChannelBalance
 		} = this.state;
-
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
@@ -972,7 +981,11 @@ class Confirm extends PureComponent {
 						onPress={isPaymentChannelTransaction ? this.onPaymentChannelSend : this.onNext}
 						testID={'txn-confirm-send-button'}
 					>
-						{transactionConfirmed ? <ActivityIndicator size="small" color="white" /> : 'Send'}
+						{transactionConfirmed ? (
+							<ActivityIndicator size="small" color="white" />
+						) : (
+							strings('transaction.send')
+						)}
 					</StyledButton>
 				</View>
 				{this.renderFromAccountModal()}

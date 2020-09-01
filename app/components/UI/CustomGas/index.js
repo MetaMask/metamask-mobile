@@ -305,9 +305,10 @@ class CustomGas extends PureComponent {
 		gasSlowSelected: false,
 		selected: 'average',
 		ready: false,
-		customGasPrice: Math.round(this.props.basicGasEstimates.averageGwei),
+		customGasPrice: '10',
 		customGasLimit: fromWei(this.props.gas, 'wei'),
-		customGasPriceBN: this.props.gasPrice,
+		customGasPriceBNWei: this.props.gasPrice,
+		customGasPriceBN: new BN(Math.round(this.props.basicGasEstimates.averageGwei)),
 		customGasLimitBN: this.props.gas,
 		warningGasLimit: '',
 		warningGasPrice: '',
@@ -329,7 +330,7 @@ class CustomGas extends PureComponent {
 			gasSlowSelected: false,
 			selected: 'fast',
 			customGasPrice: fastGwei,
-			customGasPriceBN: gasPriceBN
+			customGasPriceBNWei: gasPriceBN
 		});
 	};
 
@@ -346,7 +347,7 @@ class CustomGas extends PureComponent {
 			gasSlowSelected: false,
 			selected: 'average',
 			customGasPrice: averageGwei,
-			customGasPriceBN: gasPriceBN
+			customGasPriceBNWei: gasPriceBN
 		});
 	};
 
@@ -363,7 +364,7 @@ class CustomGas extends PureComponent {
 			gasSlowSelected: true,
 			selected: 'slow',
 			customGasPrice: safeLowGwei,
-			customGasPriceBN: gasPriceBN
+			customGasPriceBNWei: gasPriceBN
 		});
 	};
 
@@ -427,9 +428,9 @@ class CustomGas extends PureComponent {
 	};
 
 	onGasLimitChange = value => {
-		const { customGasPriceBN } = this.state;
+		const { customGasPriceBNWei } = this.state;
 		const bnValue = new BN(value);
-		const warningSufficientFunds = this.hasSufficientFunds(bnValue, customGasPriceBN);
+		const warningSufficientFunds = this.hasSufficientFunds(bnValue, customGasPriceBNWei);
 		let warningGasLimit;
 		if (!value || value === '' || !isDecimal(value)) warningGasLimit = strings('transaction.invalid_gas');
 		else if (bnValue && !isBN(bnValue)) warningGasLimit = strings('transaction.invalid_gas');
@@ -448,15 +449,17 @@ class CustomGas extends PureComponent {
 		const { customGasLimitBN } = this.state;
 		//Added because apiEstimateModifiedToWEI doesn't like empty strings
 		const gasPrice = value === '' ? '0' : value;
-		const gasPriceBN = apiEstimateModifiedToWEI(gasPrice);
-		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBN);
+		const gasPriceBN = new BN(gasPrice);
+		const gasPriceBNWei = apiEstimateModifiedToWEI(gasPrice);
+		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBNWei);
 		let warningGasPrice;
 		if (value < this.props.basicGasEstimates.safeLowGwei) warningGasPrice = strings('transaction.low_gas_price');
 		if (!value || value === '' || !isDecimal(value) || value <= 0)
 			warningGasPrice = strings('transaction.invalid_gas_price');
-		if (gasPriceBN && !isBN(gasPriceBN)) warningGasPrice = strings('transaction.invalid_gas_price');
+		if (gasPriceBNWei && !isBN(gasPriceBNWei)) warningGasPrice = strings('transaction.invalid_gas_price');
 		this.setState({
-			customGasPrice: value,
+			customGasPrice: gasPrice,
+			customGasPriceBNWei: gasPriceBNWei,
 			customGasPriceBN: gasPriceBN,
 			warningGasPrice,
 			warningSufficientFunds
@@ -569,9 +572,9 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasInput = () => {
-		const { customGasPrice, customGasLimitBN, customGasPriceBN } = this.state;
+		const { customGasLimitBN, customGasPriceBNWei, customGasPriceBN } = this.state;
 		const { generateTransform } = this.props;
-		const totalGas = customGasLimitBN.mul(customGasPriceBN);
+		const totalGas = customGasLimitBN && customGasLimitBN.mul(customGasPriceBNWei);
 		const ticker = getTicker(this.props.ticker);
 		return (
 			<Animated.View
@@ -596,7 +599,7 @@ class CustomGas extends PureComponent {
 						style={styles.gasInput}
 						onChangeText={this.onGasLimitChange}
 						//useing BN here due to a glitch that causes it to sometimes render as x.00000001
-						value={customGasLimitBN.toString()}
+						value={customGasLimitBN ? customGasLimitBN.toString() : ''}
 					/>
 				</View>
 				<View style={styles.valueRow}>
@@ -605,7 +608,7 @@ class CustomGas extends PureComponent {
 						keyboardType="numeric"
 						style={styles.gasInput}
 						onChangeText={this.onGasPriceChange}
-						value={customGasPrice.toString()}
+						value={customGasPriceBN ? customGasPriceBN.toString() : ''}
 					/>
 				</View>
 			</Animated.View>
