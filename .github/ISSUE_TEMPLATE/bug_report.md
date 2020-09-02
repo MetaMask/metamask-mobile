@@ -26,7 +26,7 @@ _A clear and concise description of what you expected to happen_
 **Smartphone (please complete the following information):**
  - Device: [e.g. iPhone6]
  - OS: [e.g. iOS8.1]
- - Version [e.g. 22]
+ - App Version [e.g. 1.0.0] - find version number in app from Settings > About MetaMask
 
 
 -------------------------------------------------------------
