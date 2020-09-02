@@ -2,7 +2,10 @@
 
 ## Current Develop Branch
 
-## v1.0.1
+## v1.0.2 - Sept 2 2020
+- [#1812](https://github.com/MetaMask/metamask-mobile/pull/1812): Add logger on login (#1812)
+
+## v1.0.1 - Sept 1 2020
 - [#1795](https://github.com/MetaMask/metamask-mobile/pull/1795): Update react native aes crypto forked (#1795)
 - [#1796](https://github.com/MetaMask/metamask-mobile/pull/1796): bugfix/mixpanel android in app notifications (#1796)
 
