@@ -17,10 +17,11 @@ import { connect } from 'react-redux';
 const Identicon = React.memo(props => {
 	const { diameter, address, customStyle, noFadeIn, useBlockieIcon } = props;
 	if (!address) return null;
+	const uri = useBlockieIcon && toDataUrl(address);
 
 	const image = useBlockieIcon ? (
 		<Image
-			source={toDataUrl(address)}
+			source={{ uri }}
 			style={[
 				{
 					height: diameter,
