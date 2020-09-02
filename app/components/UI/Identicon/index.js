@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Image } from 'react-native';
+import { Image, View } from 'react-native';
 import { toDataUrl } from '../../../util/blockies.js';
 import FadeIn from 'react-native-fade-in-image';
 import { colors } from '../../../styles/common.js';
@@ -32,7 +32,9 @@ const Identicon = React.memo(props => {
 			]}
 		/>
 	) : (
-		<Jazzicon size={diameter} address={address} />
+		<View style={customStyle}>
+			<Jazzicon size={diameter} address={address} />
+		</View>
 	);
 
 	if (noFadeIn) {
