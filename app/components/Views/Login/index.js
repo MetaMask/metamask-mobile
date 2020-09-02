@@ -14,12 +14,11 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
-import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import Device from '../../../util/Device';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -108,18 +107,6 @@ class Login extends PureComponent {
 		 * Action to set onboarding wizard step
 		 */
 		setOnboardingWizardStep: PropTypes.func,
-		/**
-		 * Number of tokens
-		 */
-		tokensLength: PropTypes.number,
-		/**
-		 * Number of accounts
-		 */
-		accountsLength: PropTypes.number,
-		/**
-		 * A string representing the network name
-		 */
-		networkType: PropTypes.string,
 		/**
 		 * Boolean flag that determines if password has been set
 		 */
@@ -241,28 +228,24 @@ class Login extends PureComponent {
 				this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
 			}
 			this.setState({ loading: false });
-		} catch (error) {
+		} catch (e) {
 			// Should we force people to enable passcode / biometrics?
+			const error = e.toString();
 			if (
-				error.toString().toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase() ||
-				error.toString().toLowerCase() === WRONG_PASSWORD_ERROR_ANDROID.toLowerCase()
+				error.toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase() ||
+				error.toLowerCase() === WRONG_PASSWORD_ERROR_ANDROID.toLowerCase()
 			) {
 				this.setState({ loading: false, error: strings('login.invalid_password') });
-			} else if (error.toString() === PASSCODE_NOT_SET_ERROR) {
+			} else if (error === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
 					'Security Alert',
 					'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
 				);
 				this.setState({ loading: false });
 			} else {
-				this.setState({ loading: false, error: error.toString() });
+				this.setState({ loading: false, error });
 			}
-			const { tokensLength, accountsLength, networkType } = this.props;
-			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.AUTHENTICATION_INCORRECT_PASSWORD, {
-				numberOfTokens: tokensLength,
-				numberOfAccounts: accountsLength,
-				network: networkType
-			});
+			Logger.error(error, 'Failed to login');
 		}
 	};
 
@@ -413,9 +396,6 @@ class Login extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
-	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
-	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	passwordSet: state.user.passwordSet,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
