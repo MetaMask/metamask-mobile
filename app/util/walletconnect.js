@@ -9,4 +9,4 @@ export const CLIENT_OPTIONS = {
 	}
 };
 
-export const WALLET_CONNECT_ORIGIN = 'wallect-connect-origin';
+export const WALLET_CONNECT_ORIGIN = 'wc::';

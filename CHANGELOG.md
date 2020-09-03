@@ -2,7 +2,18 @@
 
 ## Current Develop Branch
 
-## v1.0.0
+## v1.0.2 - Sept 2 2020
+- [#1812](https://github.com/MetaMask/metamask-mobile/pull/1812): Add logger on login (#1812)
+
+## v1.0.1 - Sept 1 2020
+- [#1795](https://github.com/MetaMask/metamask-mobile/pull/1795): Update react native aes crypto forked (#1795)
+- [#1796](https://github.com/MetaMask/metamask-mobile/pull/1796): bugfix/mixpanel android in app notifications (#1796)
+
+## v1.0.0 - Aug 26 2020
+- [#1790](https://github.com/MetaMask/metamask-mobile/pull/1790): Bugfix/payment request and wallet connect origin on tx (#1790)
+- [#1791](https://github.com/MetaMask/metamask-mobile/pull/1791): Fix send receive buttons style (#1791)
+- [#1785](https://github.com/MetaMask/metamask-mobile/pull/1785): Use @metamask/controllers@2.0.5 (#1785)
+- [#1788](https://github.com/MetaMask/metamask-mobile/pull/1788): bugfix/protect wallet modal receive request (#1788)
 - [#1666](https://github.com/MetaMask/metamask-mobile/pull/1666): Fiat on Ramp: Payments (#1666)
 - [#1783](https://github.com/MetaMask/metamask-mobile/pull/1783): bugfix/hide protect wallet modal (#1783)
 - [#1779](https://github.com/MetaMask/metamask-mobile/pull/1779): Update camera lib (#1779)

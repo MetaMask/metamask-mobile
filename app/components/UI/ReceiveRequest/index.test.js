@@ -16,6 +16,9 @@ describe('ReceiveRequest', () => {
 			},
 			modals: {
 				receiveAsset: {}
+			},
+			user: {
+				seedphraseBackedUp: true
 			}
 		};
 

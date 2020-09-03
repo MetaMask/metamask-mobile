@@ -81,7 +81,12 @@ class AddressQRCode extends PureComponent {
 		/**
 		 * Prompts protect wallet modal
 		 */
-		protectWalletModalVisible: PropTypes.func
+		protectWalletModalVisible: PropTypes.func,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		seedphraseBackedUp: PropTypes.bool
 	};
 
 	/**
@@ -89,7 +94,7 @@ class AddressQRCode extends PureComponent {
 	 */
 	closeQrModal = () => {
 		this.props.closeQrModal();
-		setTimeout(() => this.props.protectWalletModalVisible(), 1000);
+		!this.props.seedphraseBackedUp && setTimeout(() => this.props.protectWalletModalVisible(), 1000);
 	};
 
 	copyAccountToClipboard = async () => {
@@ -141,7 +146,8 @@ class AddressQRCode extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	seedphraseBackedUp: state.user.seedphraseBackedUp
 });
 
 const mapDispatchToProps = dispatch => ({
