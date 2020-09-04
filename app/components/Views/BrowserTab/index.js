@@ -248,6 +248,7 @@ const BrowserTab = props => {
 	const inputRef = useRef(null);
 
 	const getMaskedUrl = url => {
+		if (!url) return url;
 		let replace = null;
 		if (url.startsWith(AppConstants.IPFS_DEFAULT_GATEWAY_URL)) {
 			replace = key => `${AppConstants.IPFS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hash}/`;
@@ -271,7 +272,7 @@ const BrowserTab = props => {
 		const goingToShow = !showUrlModal;
 		const urlToShow = getMaskedUrl(urlInput || url);
 
-		if (goingToShow) setAutocompleteValue(urlToShow);
+		if (goingToShow && urlToShow) setAutocompleteValue(urlToShow);
 
 		setShowUrlModal(goingToShow);
 	};
@@ -1107,7 +1108,10 @@ const BrowserTab = props => {
 
 	const onUrlInputSubmit = async (input = null) => {
 		const inputValue = (typeof input === 'string' && input) || autocompleteValue;
-		if (!inputValue) return;
+		if (!inputValue) {
+			toggleUrlModal();
+			return;
+		}
 		const { defaultProtocol, searchEngine } = props;
 		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
 		await go(sanitizedInput);
@@ -1156,7 +1160,10 @@ const BrowserTab = props => {
 					/>
 
 					{Device.isAndroid() ? (
-						<TouchableOpacity onPress={() => setAutocompleteValue('')} style={styles.iconCloseButton}>
+						<TouchableOpacity
+							onPress={() => (!autocompleteValue ? setShowUrlModal(false) : setAutocompleteValue(''))}
+							style={styles.iconCloseButton}
+						>
 							<MaterialIcon name="close" size={20} style={[styles.icon, styles.iconClose]} />
 						</TouchableOpacity>
 					) : (
