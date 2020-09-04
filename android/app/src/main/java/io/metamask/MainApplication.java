@@ -1,7 +1,6 @@
 package io.metamask;
 
 import com.facebook.react.ReactApplication;
-import com.reactnativecommunity.webviewforked.RNCWebViewForkedPackage;
 import com.cmcewen.blurview.BlurViewPackage;
 import android.content.Context;
 import com.facebook.react.PackageList;
