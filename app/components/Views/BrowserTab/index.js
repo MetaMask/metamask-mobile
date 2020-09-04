@@ -532,8 +532,10 @@ const BrowserTab = props => {
 
 				wallet_watchAsset: async () => {
 					const {
-						options: { address, decimals, image, symbol },
-						type
+						params: {
+							options: { address, decimals, image, symbol },
+							type
+						}
 					} = req;
 					const { AssetsController } = Engine.context;
 					const suggestionResult = await AssetsController.watchAsset(
