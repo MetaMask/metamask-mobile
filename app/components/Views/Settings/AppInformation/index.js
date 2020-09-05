@@ -7,8 +7,7 @@ import {
 	InteractionManager,
 	View,
 	ScrollView,
-	TouchableOpacity,
-	Linking
+	TouchableOpacity
 } from 'react-native';
 import { getApplicationName, getVersion, getBuildNumber } from 'react-native-device-info';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -128,9 +127,9 @@ export default class AppInformation extends PureComponent {
 		this.goTo(url, 'metamask.io');
 	};
 
-	onEmailUs = () => {
-		this.props.navigation.pop();
-		Linking.openURL('mailto:help@metamask.io?subject=Feedback');
+	onContactUs = () => {
+		const url = 'https://metamask.zendesk.com/hc/en-us/requests/new';
+		this.goTo(url, strings('app_information.submit_request'));
 	};
 
 	render = () => (
@@ -160,8 +159,8 @@ export default class AppInformation extends PureComponent {
 					<TouchableOpacity onPress={this.onWebSite}>
 						<Text style={styles.link}>{strings('app_information.web_site')}</Text>
 					</TouchableOpacity>
-					<TouchableOpacity onPress={this.onEmailUs}>
-						<Text style={styles.link}>{strings('app_information.email_us')}</Text>
+					<TouchableOpacity onPress={this.onContactUs}>
+						<Text style={styles.link}>{strings('app_information.contact_us')}</Text>
 					</TouchableOpacity>
 				</View>
 			</ScrollView>

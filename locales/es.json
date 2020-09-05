@@ -401,7 +401,8 @@
 		"attributions": "Atribuciones",
 		"support_center": "Visita nuestro centro de atención",
 		"web_site": "Visita nuestro sitio web",
-		"email_us": "¡Envíanos un correo a support@metamask.io!"
+		"contact_us": "Contact Us",
+		"submit_request": "Submit a request"
 	},
 	"reveal_credential": {
 		"seed_phrase_title": "Revelar frase semilla",
