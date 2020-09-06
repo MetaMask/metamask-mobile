@@ -401,8 +401,8 @@
 		"attributions": "Atribuciones",
 		"support_center": "Visita nuestro centro de atención",
 		"web_site": "Visita nuestro sitio web",
-		"contact_us": "Contact Us",
-		"submit_request": "Submit a request"
+		"contact_us": "Contacto",
+		"submit_request": "presentar una solicitud"
 	},
 	"reveal_credential": {
 		"seed_phrase_title": "Revelar frase semilla",
