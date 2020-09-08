@@ -442,8 +442,7 @@
 		"attributions": "Attributions",
 		"support_center": "Visit our Support Center",
 		"web_site": "Visit our Website",
-		"contact_us": "Contact Us",
-		"submit_request": "Submit a request"
+		"contact_us": "Contact Us"
 	},
 	"reveal_credential": {
 		"seed_phrase_title": "Reveal seed phrase",

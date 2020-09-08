@@ -129,7 +129,7 @@ export default class AppInformation extends PureComponent {
 
 	onContactUs = () => {
 		const url = 'https://metamask.zendesk.com/hc/en-us/requests/new';
-		this.goTo(url, strings('app_information.submit_request'));
+		this.goTo(url, strings('drawer.metamask_support'));
 	};
 
 	render = () => (
