@@ -1002,9 +1002,9 @@ const BrowserTab = props => {
 		</Modal>
 	);
 
-	const onShouldStartLoadWithRequest = ({ url, navigationType }) => {
+	const onShouldStartLoadWithRequest = ({ url }) => {
 		if (isENSUrl(url)) {
-			go(url.replace('http://', 'https://'));
+			go(url.replace(/^http:\/\//, 'https://'));
 			return false;
 		}
 		return true;
