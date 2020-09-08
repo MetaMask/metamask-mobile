@@ -442,7 +442,7 @@
 		"attributions": "Attributions",
 		"support_center": "Visit our Support Center",
 		"web_site": "Visit our Website",
-		"email_us": "Email Us at support@metamask.io!"
+		"contact_us": "Contact Us"
 	},
 	"reveal_credential": {
 		"seed_phrase_title": "Reveal seed phrase",
