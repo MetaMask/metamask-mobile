@@ -247,6 +247,10 @@ const BrowserTab = props => {
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
 
+	/**
+	 * Gets the url to be displayed to the user
+	 * For example, if it's ens then show [site].eth instead of ipfs url
+	 */
 	const getMaskedUrl = url => {
 		if (!url) return url;
 		let replace = null;
@@ -268,6 +272,10 @@ const BrowserTab = props => {
 		return url;
 	};
 
+	/**
+	 * Shows or hides the url input modal.
+	 * When opened it sets the current website url on the input.
+	 */
 	const toggleUrlModal = ({ urlInput = null } = {}) => {
 		const goingToShow = !showUrlModal;
 		const urlToShow = getMaskedUrl(urlInput || url);
@@ -277,6 +285,9 @@ const BrowserTab = props => {
 		setShowUrlModal(goingToShow);
 	};
 
+	/**
+	 * Checks if it is a ENS website
+	 */
 	const isENSUrl = url => {
 		const { hostname } = new URL(url);
 		const tld = hostname.split('.').pop();
@@ -289,12 +300,18 @@ const BrowserTab = props => {
 		return false;
 	};
 
+	/**
+	 * Checks if a given url or the current url is the homepage
+	 */
 	const isHomepage = (checkUrl = null) => {
 		const currentPage = checkUrl || url;
 		const { host: currentHost, pathname: currentPathname } = getUrlObj(currentPage);
 		return currentHost === HOMEPAGE_HOST && currentPathname === '/';
 	};
 
+	/**
+	 * Gets the page current title and url that are on the state
+	 */
 	const getPageMeta = () =>
 		new Promise(resolve => {
 			resolve({
@@ -305,6 +322,9 @@ const BrowserTab = props => {
 			});
 		});
 
+	/**
+	 * When user clicks on approve to connect with a dapp
+	 */
 	const onAccountsConfirm = () => {
 		const { approveHost, selectedAddress } = props;
 		const fullHostname = new URL(url).hostname;
@@ -314,6 +334,9 @@ const BrowserTab = props => {
 		approvalRequest && approvalRequest.resolve && approvalRequest.resolve([selectedAddress]);
 	};
 
+	/**
+	 * When user clicks on reject to connect with a dapp
+	 */
 	const onAccountsReject = () => {
 		setShowApprovalDialog(false);
 		setShowApprovalDialogHostname(undefined);
@@ -616,9 +639,18 @@ const BrowserTab = props => {
 		url && initializeBackgroundBridge(url, false);
 	};
 
+	/**
+	 * Is the current tab the active tab
+	 */
 	const isTabActive = () => props.activeTab === props.id;
+	/**
+	 * Is the current tab not the active tab
+	 */
 	const isHidden = () => !isTabActive();
 
+	/**
+	 * Dismiss the text selection on the current website
+	 */
 	const dismissTextSelectionIfNeeded = () => {
 		if (isTabActive() && Device.isAndroid()) {
 			const { current } = webviewRef;
@@ -630,6 +662,9 @@ const BrowserTab = props => {
 		}
 	};
 
+	/**
+	 * Toggle the options menu
+	 */
 	const toggleOptions = () => {
 		dismissTextSelectionIfNeeded();
 		setShowOptions(!showOptions);
@@ -638,12 +673,18 @@ const BrowserTab = props => {
 		});
 	};
 
+	/**
+	 * Show the options menu
+	 */
 	const toggleOptionsIfNeeded = () => {
 		if (showOptions) {
 			toggleOptions();
 		}
 	};
 
+	/**
+	 * Go back to previous website in history
+	 */
 	const goBack = () => {
 		if (!backEnabled) return;
 
@@ -652,6 +693,9 @@ const BrowserTab = props => {
 		current && current.goBack();
 	};
 
+	/**
+	 * Go forward to the next website in history
+	 */
 	const goForward = async () => {
 		if (!forwardEnabled) return;
 
@@ -660,6 +704,9 @@ const BrowserTab = props => {
 		current && current.goForward && current.goForward();
 	};
 
+	/**
+	 * Check if a hostname is allowed
+	 */
 	const isAllowedUrl = hostname => {
 		const { PhishingController } = Engine.context;
 		const { whitelist } = props;
@@ -671,6 +718,9 @@ const BrowserTab = props => {
 		return bookmarks.some(({ url: bookmark }) => bookmark === url);
 	};
 
+	/**
+	 * Inject home page scripts to get the favourites and set analytics key
+	 */
 	const injectHomePageScripts = async () => {
 		const { current } = webviewRef;
 		if (!current) return;
@@ -688,11 +738,17 @@ const BrowserTab = props => {
 		current.injectJavaScript(homepageScripts);
 	};
 
+	/**
+	 * Show a phishing modal when a url is not allowed
+	 */
 	const handleNotAllowedUrl = urlToGo => {
 		setBlockedUrl(urlToGo);
 		setShowPhishingModal(true);
 	};
 
+	/**
+	 * Get IPFS info from a ens url
+	 */
 	const handleIpfsContent = async (fullUrl, { hostname, pathname, query }) => {
 		const { provider } = Engine.context.NetworkController;
 		const { ipfsGateway } = props;
@@ -731,6 +787,9 @@ const BrowserTab = props => {
 		}
 	};
 
+	/**
+	 * Go to a url
+	 */
 	const go = async url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//) || isHomepage(url);
 		const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
@@ -756,12 +815,18 @@ const BrowserTab = props => {
 		return null;
 	};
 
+	/**
+	 * Open a new tab
+	 */
 	const openNewTab = url => {
 		toggleOptionsIfNeeded();
 		dismissTextSelectionIfNeeded();
 		props.newTab(url);
 	};
 
+	/**
+	 * Handle Branch deeplinking
+	 */
 	const handleBranchDeeplink = deeplink_url => {
 		Logger.log('Branch Deeplink detected!', deeplink_url);
 		DeeplinkManager.parse(deeplink_url, url => {
@@ -769,6 +834,9 @@ const BrowserTab = props => {
 		});
 	};
 
+	/**
+	 * Handle deeplinking
+	 */
 	const handleDeeplinks = async ({ error, params }) => {
 		if (!isTabActive()) return false;
 		if (error) {
@@ -787,6 +855,9 @@ const BrowserTab = props => {
 		}
 	};
 
+	/**
+	 * Hide url input modal
+	 */
 	const hideUrlModal = () => {
 		setShowUrlModal(false);
 
@@ -797,6 +868,9 @@ const BrowserTab = props => {
 		}
 	};
 
+	/**
+	 * Handle keyboard hide
+	 */
 	const keyboardDidHide = () => {
 		if (!isTabActive()) return false;
 		if (!fromHomepage) {
@@ -806,6 +880,9 @@ const BrowserTab = props => {
 		}
 	};
 
+	/**
+	 * Set keyboard listeners
+	 */
 	useEffect(() => {
 		const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', keyboardDidHide);
 		return function cleanup() {
@@ -814,16 +891,25 @@ const BrowserTab = props => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [props.activeTab, props.id, fromHomepage, url]);
 
+	/**
+	 * Reload current page
+	 */
 	const reload = () => {
 		toggleOptionsIfNeeded();
 		const { current } = webviewRef;
 		current && current.reload();
 	};
 
+	/**
+	 * Handle when the drawer (app menu) is opened
+	 */
 	const drawerOpenHandler = () => {
 		dismissTextSelectionIfNeeded();
 	};
 
+	/**
+	 * Set initial url, dapp scripts and engine. Similar to componentDidMount
+	 */
 	useEffect(() => {
 		const initialUrl = props.initialUrl || HOMEPAGE_URL;
 		if (isENSUrl(initialUrl)) go(initialUrl);
@@ -857,6 +943,9 @@ const BrowserTab = props => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
+	/**
+	 * Enable the header to toggle the url modal
+	 */
 	useEffect(() => {
 		if (props.activeTab === props.id) props.navigation.setParams({ showUrlModal: toggleUrlModal });
 
@@ -878,6 +967,9 @@ const BrowserTab = props => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [props.activeTab, props.id]);
 
+	/**
+	 * Set deeplinking listeners
+	 */
 	useEffect(() => {
 		// Deeplink handling
 		const unsubscribeFromBranch = Branch.subscribe(handleDeeplinks);
@@ -900,6 +992,9 @@ const BrowserTab = props => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [props.activeTab, props.id, showOptions]);
 
+	/**
+	 * Set navigation listeners
+	 */
 	useEffect(() => {
 		const handleAndroidBackPress = () => {
 			if (!isTabActive()) return false;
@@ -923,6 +1018,9 @@ const BrowserTab = props => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [props.activeTab, props.id, backEnabled, showOptions]);
 
+	/**
+	 * Handles state changes for when the url changes
+	 */
 	const changeUrl = (nativeEvent, type) => {
 		setBackEnabled(nativeEvent.canGoBack);
 		setForwardEnabled(nativeEvent.canGoForward);
@@ -945,11 +1043,17 @@ const BrowserTab = props => {
 		}
 	};
 
+	/**
+	 * Go to eth-phishing-detect page
+	 */
 	const goToETHPhishingDetector = () => {
 		setShowPhishingModal(false);
 		go(`https://github.com/metamask/eth-phishing-detect`);
 	};
 
+	/**
+	 * Continue to phishing website
+	 */
 	const continueToPhishingSite = () => {
 		const urlObj = new URL(blockedUrl);
 		props.addToWhitelist(urlObj.hostname);
@@ -961,16 +1065,25 @@ const BrowserTab = props => {
 			}, 1000);
 	};
 
+	/**
+	 * Go to etherscam website
+	 */
 	const goToEtherscam = () => {
 		setShowPhishingModal(false);
 		go(`https://etherscamdb.info/domain/meta-mask.com`);
 	};
 
+	/**
+	 * Go to eth-phishing-detect issue
+	 */
 	const goToFilePhishingIssue = () => {
 		setShowPhishingModal(false);
 		go(`https://github.com/metamask/eth-phishing-detect/issues/new`);
 	};
 
+	/**
+	 * Go back from phishing website alert
+	 */
 	const goBackToSafety = () => {
 		blockedUrl === url && goBack();
 		setTimeout(() => {
@@ -979,6 +1092,9 @@ const BrowserTab = props => {
 		}, 500);
 	};
 
+	/**
+	 * Renders the phishing modal
+	 */
 	const renderPhishingModal = () => (
 		<Modal
 			isVisible={showPhishingModal}
@@ -1002,6 +1118,9 @@ const BrowserTab = props => {
 		</Modal>
 	);
 
+	/**
+	 * Stops normal loading when it's ens, instead call go to be properly set up
+	 */
 	const onShouldStartLoadWithRequest = ({ url }) => {
 		if (isENSUrl(url)) {
 			go(url.replace(/^http:\/\//, 'https://'));
@@ -1010,6 +1129,9 @@ const BrowserTab = props => {
 		return true;
 	};
 
+	/**
+	 * Website started to load
+	 */
 	const onLoadStart = async ({ nativeEvent }) => {
 		const { hostname } = new URL(nativeEvent.url);
 
@@ -1028,13 +1150,21 @@ const BrowserTab = props => {
 		initializeBackgroundBridge(origin, true);
 	};
 
+	/**
+	 * Sets loading bar progress
+	 */
 	const onLoadProgress = ({ nativeEvent: { progress } }) => {
 		setProgress(progress);
 	};
 
+	/**
+	 * When website finished loading
+	 */
 	const onLoadEnd = ({ nativeEvent }) => {
 		if (nativeEvent.loading) return;
-		/*const urlObj = new URL(nativeEvent.url);
+		/*
+		Not removing this for now, may be needed
+		const urlObj = new URL(nativeEvent.url);
 		const currentUrl = new URL(url);
 		if (urlObj.hostname === currentUrl.hostname && nativeEvent.url !== url) {
 			changeUrl(nativeEvent);
@@ -1057,6 +1187,9 @@ const BrowserTab = props => {
 		});
 	};
 
+	/**
+	 * Handle message from website
+	 */
 	const onMessage = ({ nativeEvent: { data } }) => {
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
@@ -1089,6 +1222,9 @@ const BrowserTab = props => {
 		}
 	};
 
+	/**
+	 * Go to home page, reload if already on homepage
+	 */
 	const goToHomepage = async () => {
 		toggleOptionsIfNeeded();
 		if (url === HOMEPAGE_URL) return reload();
@@ -1096,16 +1232,25 @@ const BrowserTab = props => {
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 	};
 
+	/**
+	 * Render the progress bar
+	 */
 	const renderProgressBar = () => (
 		<View style={styles.progressBarWrapper}>
 			<WebviewProgressBar progress={progress} />
 		</View>
 	);
 
+	/**
+	 * When url input changes
+	 */
 	const onURLChange = inputValue => {
 		setAutocompleteValue(inputValue);
 	};
 
+	/**
+	 * Handle url input submit
+	 */
 	const onUrlInputSubmit = async (input = null) => {
 		const inputValue = (typeof input === 'string' && input) || autocompleteValue;
 		if (!inputValue) {
@@ -1118,6 +1263,9 @@ const BrowserTab = props => {
 		toggleUrlModal();
 	};
 
+	/**
+	 * Render url input modal
+	 */
 	const renderUrlModal = () => {
 		if (showUrlModal && inputRef) {
 			setTimeout(() => {
@@ -1181,6 +1329,9 @@ const BrowserTab = props => {
 		);
 	};
 
+	/**
+	 * Handle error, for example, ssl certificate error
+	 */
 	const onError = ({ nativeEvent: errorInfo }) => {
 		Logger.log(errorInfo);
 		props.navigation.setParams({
@@ -1189,6 +1340,9 @@ const BrowserTab = props => {
 		setError(errorInfo);
 	};
 
+	/**
+	 * Add bookmark
+	 */
 	const addBookmark = () => {
 		toggleOptionsIfNeeded();
 		props.navigation.push('AddBookmarkView', {
@@ -1216,6 +1370,9 @@ const BrowserTab = props => {
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
 	};
 
+	/**
+	 * Share url
+	 */
 	const share = () => {
 		toggleOptionsIfNeeded();
 		Share.open({
@@ -1225,12 +1382,18 @@ const BrowserTab = props => {
 		});
 	};
 
+	/**
+	 * Open external link
+	 */
 	const openInBrowser = () => {
 		toggleOptionsIfNeeded();
 		Linking.openURL(url).catch(error => Logger.log(`Error while trying to open external link: ${url}`, error));
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_OPEN_IN_BROWSER);
 	};
 
+	/**
+	 * Render non-homepage options menu
+	 */
 	const renderNonHomeOptions = () => {
 		if (isHomepage()) return null;
 
@@ -1274,15 +1437,24 @@ const BrowserTab = props => {
 		);
 	};
 
+	/**
+	 * Handle new tab button press
+	 */
 	const onNewTabPress = () => {
 		openNewTab();
 	};
 
+	/**
+	 * Handle switch network press
+	 */
 	const switchNetwork = () => {
 		toggleOptionsIfNeeded();
 		props.toggleNetworkModal();
 	};
 
+	/**
+	 * Render options menu
+	 */
 	const renderOptions = () => {
 		if (showOptions) {
 			return (
@@ -1318,11 +1490,17 @@ const BrowserTab = props => {
 		}
 	};
 
+	/**
+	 * Show the different tabs
+	 */
 	const showTabs = () => {
 		dismissTextSelectionIfNeeded();
 		props.showTabs();
 	};
 
+	/**
+	 * Render the bottom (navigation/options) bar
+	 */
 	const renderBottomBar = () => (
 		<BrowserBottomBar
 			canGoBack={backEnabled}
@@ -1336,6 +1514,9 @@ const BrowserTab = props => {
 		/>
 	);
 
+	/**
+	 * Render the modal that asks the user to approve/reject connections to a dapp
+	 */
 	const renderApprovalModal = () => {
 		const showApprovalDialogNow = showApprovalDialog && showApprovalDialogHostname === new URL(url).hostname;
 		return (
@@ -1360,10 +1541,16 @@ const BrowserTab = props => {
 		);
 	};
 
+	/**
+	 * On rejection addinga an asset
+	 */
 	const onCancelWatchAsset = () => {
 		setWatchAsset(false);
 	};
 
+	/**
+	 * Render the add asset modal
+	 */
 	const renderWatchAssetModal = () => (
 		<Modal
 			isVisible={watchAsset}
@@ -1386,6 +1573,9 @@ const BrowserTab = props => {
 		</Modal>
 	);
 
+	/**
+	 * Render the onboarding wizard browser step
+	 */
 	const renderOnboardingWizard = () => {
 		const { wizardStep } = props;
 		if ([6].includes(wizardStep)) {
@@ -1439,6 +1629,7 @@ const BrowserTab = props => {
 		</View>
 	);
 };
+
 BrowserTab.propTypes = {
 	/**
 	 * The ID of the current tab
