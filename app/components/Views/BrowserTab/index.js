@@ -1626,7 +1626,7 @@ export class BrowserTab extends PureComponent {
 			showUrlModal: false
 		});
 
-		this.resetAutocompleteInputValue(urlParam);
+		setTimeout(this.resetAutocompleteInputValue, ANIMATION_TIMING, urlParam);
 
 		if (this.isHomepage()) {
 			const { current } = this.webview;
