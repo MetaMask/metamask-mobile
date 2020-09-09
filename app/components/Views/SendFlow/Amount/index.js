@@ -770,11 +770,10 @@ class Amount extends PureComponent {
 		this.setState({ assetsModalVisible: !assetsModalVisible });
 	};
 
-	handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
+	handleSelectedAssetBalance = ({ address, decimals, symbol, isETH }, renderableBalance) => {
 		const { accounts, selectedAddress, contractBalances } = this.props;
 		let currentBalance;
 
-		const { address, decimals, symbol, isETH } = selectedAsset;
 		if (renderableBalance) {
 			currentBalance = `${renderableBalance} ${symbol}`;
 		} else if (isETH) {

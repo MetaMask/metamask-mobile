@@ -141,7 +141,7 @@ class AssetOverview extends PureComponent {
 	render() {
 		const {
 			accounts,
-			asset,
+			asset: { address, isETH = undefined, decimals, symbol },
 			primaryCurrency,
 			selectedAddress,
 			tokenExchangeRates,
@@ -150,26 +150,24 @@ class AssetOverview extends PureComponent {
 			currentCurrency
 		} = this.props;
 		let mainBalance, secondaryBalance;
-		const itemAddress = safeToChecksumAddress(asset.address);
+		const itemAddress = safeToChecksumAddress(address);
 		let balance, balanceFiat;
-		if (asset.isETH) {
+		if (isETH) {
 			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
 			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 		} else {
 			const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 			balance =
-				itemAddress in tokenBalances
-					? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
-					: 0;
+				itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], decimals) : 0;
 			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		}
 		// choose balances depending on 'primaryCurrency'
 		if (primaryCurrency === 'ETH') {
-			mainBalance = `${balance} ${asset.symbol}`;
+			mainBalance = `${balance} ${symbol}`;
 			secondaryBalance = balanceFiat;
 		} else {
-			mainBalance = !balanceFiat ? `${balance} ${asset.symbol}` : balanceFiat;
-			secondaryBalance = !balanceFiat ? balanceFiat : `${balance} ${asset.symbol}`;
+			mainBalance = !balanceFiat ? `${balance} ${symbol}` : balanceFiat;
+			secondaryBalance = !balanceFiat ? balanceFiat : `${balance} ${symbol}`;
 		}
 
 		return (
