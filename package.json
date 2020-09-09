@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "scripts": {
     "watch": "./scripts/build.sh watcher watch",
@@ -128,7 +128,7 @@
     "react-native": "0.62.2",
     "react-native-actionsheet": "beefe/react-native-actionsheet#107/head",
     "react-native-aes-crypto": "^1.3.9",
-    "react-native-aes-crypto-forked": "git+https://github.com/andrepimenta/react-native-aes-forked.git#de903003afc81e4ad14ed00e237795a696716e9e",
+	"react-native-aes-crypto-forked": "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25",
     "react-native-animated-fox": "git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9",
     "react-native-background-timer": "2.1.1",
     "react-native-branch": "5.0.0-beta.1",
@@ -146,6 +146,7 @@
     "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "^1.6.1",
     "react-native-i18n": "2.0.15",
+    "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "0.8.0",
     "react-native-keychain": "git+https://github.com/MetaMask/react-native-keychain.git#80e497ed3c167e1b122231c29d951d2c06efe58f",
     "react-native-level-fs": "3.0.1",
