@@ -133,7 +133,8 @@ const styles = StyleSheet.create({
 		marginRight: 8,
 		paddingVertical: Device.isIos() ? 0 : 8,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		textTransform: 'uppercase'
 	},
 	textInput: {
 		fontFamily: 'Roboto-Light',

@@ -47,7 +47,8 @@ const styles = StyleSheet.create({
 	amountFiat: {
 		fontSize: 18,
 		color: colors.fontSecondary,
-		...fontStyles.light
+		...fontStyles.light,
+		textTransform: 'uppercase'
 	}
 });
 

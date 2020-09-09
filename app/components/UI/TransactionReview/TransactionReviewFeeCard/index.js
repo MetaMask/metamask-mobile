@@ -7,6 +7,9 @@ import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
 
 const styles = StyleSheet.create({
+	uppercase: {
+		textTransform: 'uppercase'
+	},
 	overview: {
 		marginHorizontal: 24
 	},
@@ -103,7 +106,7 @@ class TransactionReviewFeeCard extends PureComponent {
 					<Text primary bold>
 						{strings('transaction.amount')}
 					</Text>
-					<Text primary bold>
+					<Text primary bold style={styles.uppercase}>
 						{amount}
 					</Text>
 				</Summary.Row>
@@ -121,7 +124,7 @@ class TransactionReviewFeeCard extends PureComponent {
 					</Summary.Col>
 
 					{this.renderIfGasEstimationReady(
-						<Text primary bold>
+						<Text primary bold style={styles.uppercase}>
 							{networkFee}
 						</Text>
 					)}
