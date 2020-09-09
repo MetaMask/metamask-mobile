@@ -32,6 +32,7 @@ import contractMap from 'eth-contract-metadata';
 import Logger from '../util/Logger';
 
 const OPENSEA_API_KEY = process.env.MM_OPENSEA_KEY;
+const MM_INFURA_KEY = process.env.MM_INFURA_KEY;
 const encryptor = new Encryptor();
 let refreshing = false;
 /**
@@ -75,6 +76,7 @@ class Engine {
 					new MessageManager(),
 					new NetworkController(
 						{
+							infuraProjectId: MM_INFURA_KEY,
 							providerConfig: {
 								static: {
 									eth_sendTransaction: async (payload, next, end) => {
