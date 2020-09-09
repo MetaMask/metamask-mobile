@@ -1004,10 +1004,9 @@
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
 
-"@metamask/controllers@^2.0.5":
+"@metamask/controllers@./metamask-controllers-v2.0.5.tgz":
   version "2.0.5"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-2.0.5.tgz#302dbae0595b269f2660253ee40c4c7f9bce069e"
-  integrity sha512-i+BjTEMy0XQFdcyXeEHmQ7xzktdNPBuw/R9QNBIllOvV4atR0JkZ9of6hi4tDFyjV40CBudqnIgS0iUVLWNGbA==
+  resolved "./metamask-controllers-v2.0.5.tgz#d574b9a076de8aee06ab0bb09dab45222d8e86f7"
   dependencies:
     await-semaphore "^0.1.3"
     eth-contract-metadata "^1.11.0"
@@ -8006,11 +8005,6 @@ mersenne-twister@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/mersenne-twister/-/mersenne-twister-1.1.0.tgz#f916618ee43d7179efcf641bec4531eb9670978a"
   integrity sha1-+RZhjuQ9cXnvz2Qb7EUx65Zwl4o=
-
-metamask-mobile-provider@^1.0.2:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/metamask-mobile-provider/-/metamask-mobile-provider-1.1.0.tgz#477aa8ee55d91bd79a0f4c00a5083be159a5a678"
-  integrity sha512-GZLiq2sCPvYlHT4xYVklrAg6hWA/RZyFoekCtQz+842LbFtajHYmSb0DW5GDgEdQ/unaABU9A6BfKpfUurOe2A==
 
 methods@^1.1.1:
   version "1.1.2"
