@@ -228,7 +228,7 @@ class AccountOverview extends PureComponent {
 							onPress={this.toggleAccountsModal}
 							testID={'wallet-account-identicon'}
 						>
-							<Identicon address={address} size="38" noFadeIn={onboardingWizard} />
+							<Identicon address={address} diameter={38} noFadeIn={onboardingWizard} />
 						</TouchableOpacity>
 						<View ref={this.editableLabelRef} style={styles.data} collapsable={false}>
 							{accountLabelEditable ? (
