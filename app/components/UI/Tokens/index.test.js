@@ -22,6 +22,9 @@ describe('Tokens', () => {
 					},
 					TokenBalancesController: {
 						contractBalance: {}
+					},
+					NetworkController: {
+						network: '1'
 					}
 				}
 			},

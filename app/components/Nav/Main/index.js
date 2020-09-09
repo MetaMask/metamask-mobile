@@ -31,7 +31,6 @@ import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettin
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
-import TransactionsView from '../../Views/TransactionsView';
 import SyncWithExtension from '../../Views/SyncWithExtension';
 import Asset from '../../Views/Asset';
 import AddAsset from '../../Views/AddAsset';
@@ -96,6 +95,10 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
+import FiatOrders from '../../UI/FiatOrders';
+import PaymentMethodSelector from '../../UI/FiatOrders/PaymentMethodSelector';
+import PaymentMethodApplePay from '../../UI/FiatOrders/PaymentMethodApplePay';
+import TransakWebView from '../../UI/FiatOrders/TransakWebView';
 import {
 	showTransactionNotification,
 	hideTransactionNotification,
@@ -103,6 +106,7 @@ import {
 } from '../../../actions/notification';
 import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
+import ActivityView from '../../Views/ActivityView';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 
 const styles = StyleSheet.create({
@@ -170,7 +174,7 @@ const MainNavigator = createStackNavigator(
 					}),
 					TransactionsHome: createStackNavigator({
 						TransactionsView: {
-							screen: TransactionsView
+							screen: ActivityView
 						}
 					}),
 					PaymentChannelHome: createStackNavigator({
@@ -339,6 +343,15 @@ const MainNavigator = createStackNavigator(
 				}
 			)
 		},
+
+		FiatOnRamp: {
+			screen: createStackNavigator({
+				PaymentMethodSelector: { screen: PaymentMethodSelector },
+				PaymentMethodApplePay: { screen: PaymentMethodApplePay },
+				TransakFlow: { screen: TransakWebView }
+			})
+		},
+
 		SetPasswordFlow: {
 			screen: createStackNavigator(
 				{
@@ -1097,6 +1110,7 @@ class Main extends PureComponent {
 					<GlobalAlert />
 					<FadeOutOverlay />
 					<Notification navigation={this.props.navigation} />
+					<FiatOrders />
 					<BackupAlert navigation={this.props.navigation} />
 					<ProtectYourWalletModal navigation={this.props.navigation} />
 				</View>

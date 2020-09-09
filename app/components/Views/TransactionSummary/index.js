@@ -1,66 +1,16 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { StyleSheet, View, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
+import Summary from '../../Base/Summary';
+import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
-	summaryWrapper: {
-		flexDirection: 'column',
-		borderWidth: 1,
-		borderColor: colors.grey050,
-		borderRadius: 8,
-		padding: 16
-	},
-	summaryRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		marginVertical: 6
-	},
-	totalCryptoRow: {
-		alignItems: 'flex-end',
-		marginTop: 8
-	},
-	textSummary: {
-		...fontStyles.normal,
-		color: colors.black,
-		fontSize: 12
-	},
-	textSummaryAmount: {
-		textTransform: 'uppercase'
-	},
-	textFee: {
-		fontStyle: 'italic'
-	},
-	textCrypto: {
-		...fontStyles.normal,
-		textAlign: 'right',
-		fontSize: 12,
-		textTransform: 'uppercase',
-		color: colors.grey500
-	},
-	textBold: {
-		...fontStyles.bold,
-		alignSelf: 'flex-end'
-	},
-	separator: {
-		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
-		marginVertical: 6
-	},
 	loader: {
 		backgroundColor: colors.white,
 		height: 10
-	},
-	transactionFeeLeft: {
-		display: 'flex',
-		flexDirection: 'row'
-	},
-	transactionEditText: {
-		fontSize: 12,
-		marginLeft: 8,
-		color: colors.blue
 	}
 });
 
@@ -93,28 +43,38 @@ export default class TransactionSummary extends PureComponent {
 			this.props.transactionType === TRANSACTION_TYPES.RECEIVED
 		) {
 			return (
-				<View style={styles.summaryWrapper}>
-					<View style={styles.summaryRow}>
-						<Text style={[styles.textSummary, styles.textBold]}>{strings('transaction.amount')}</Text>
-						<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>{amount}</Text>
-					</View>
+				<Summary>
+					<Summary.Row>
+						<Text small bold primary>
+							{strings('transaction.amount')}
+						</Text>
+						<Text small bold primary>
+							{amount}
+						</Text>
+					</Summary.Row>
 					{secondaryTotalAmount && (
-						<View style={styles.totalCryptoRow}>
-							<Text style={[styles.textSummary, styles.textCrypto]}>{secondaryTotalAmount}</Text>
-						</View>
+						<Summary.Row end last>
+							<Text small right upper>
+								{secondaryTotalAmount}
+							</Text>
+						</Summary.Row>
 					)}
-				</View>
+				</Summary>
 			);
 		}
 		return (
-			<View style={styles.summaryWrapper}>
-				<View style={styles.summaryRow}>
-					<Text style={styles.textSummary}>{strings('transaction.amount')}</Text>
-					<Text style={[styles.textSummary, styles.textSummaryAmount]}>{amount}</Text>
-				</View>
-				<View style={styles.summaryRow}>
-					<View style={styles.transactionFeeLeft}>
-						<Text style={[styles.textSummary, !fee ? styles.textFee : null]}>
+			<Summary>
+				<Summary.Row>
+					<Text small primary>
+						{strings('transaction.amount')}
+					</Text>
+					<Text small primary>
+						{amount}
+					</Text>
+				</Summary.Row>
+				<Summary.Row>
+					<Summary.Col>
+						<Text small primary italic>
 							{!fee
 								? strings('transaction.transaction_fee_less')
 								: strings('transaction.transaction_fee')}
@@ -125,32 +85,39 @@ export default class TransactionSummary extends PureComponent {
 								onPress={onEditPress}
 								key="transactionFeeEdit"
 							>
-								<Text style={[styles.actionText, styles.transactionEditText]}>
+								<Text small link>
+									{'  '}
 									{strings('transaction.edit')}
 								</Text>
 							</TouchableOpacity>
 						)}
-					</View>
+					</Summary.Col>
 					{!!fee &&
 						this.renderIfGastEstimationReady(
-							<Text style={[styles.textSummary, styles.textSummaryAmount]}>{fee}</Text>
+							<Text small primary upper>
+								{fee}
+							</Text>
 						)}
-				</View>
-				<View style={styles.separator} />
-				<View style={styles.summaryRow}>
-					<Text style={[styles.textSummary, styles.textBold]}>{strings('transaction.total_amount')}</Text>
+				</Summary.Row>
+				<Summary.Separator />
+				<Summary.Row>
+					<Text small bold primary>
+						{strings('transaction.total_amount')}
+					</Text>
 					{this.renderIfGastEstimationReady(
-						<Text style={[styles.textSummary, styles.textSummaryAmount, styles.textBold]}>
+						<Text small bold primary>
 							{totalAmount}
 						</Text>
 					)}
-				</View>
-				<View style={styles.totalCryptoRow}>
+				</Summary.Row>
+				<Summary.Row end last>
 					{this.renderIfGastEstimationReady(
-						<Text style={[styles.textSummary, styles.textCrypto]}>{secondaryTotalAmount}</Text>
+						<Text small right upper>
+							{secondaryTotalAmount}
+						</Text>
 					)}
-				</View>
-			</View>
+				</Summary.Row>
+			</Summary>
 		);
 	};
 }

@@ -16,9 +16,8 @@ exports[`TokenImage should render correctly 1`] = `
     ]
   }
 >
-  <Component
+  <Connect(Component)
     address="0x123"
-    diameter={46}
   />
 </View>
 `;

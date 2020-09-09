@@ -34,5 +34,17 @@ export default {
 		: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/76.0.3809.123 Mobile/15E148 Safari/605.1',
 	NOTIFICATION_NAMES: {
 		accountsChanged: 'wallet_accountsChanged'
+	},
+	FIAT_ORDERS: {
+		TRANSAK_URL: 'https://global.transak.com/',
+		TRANSAK_URL_STAGING: 'https://staging-global.transak.com/',
+		TRANSAK_API_URL_PRODUCTION: 'https://api.transak.com/',
+		TRANSAK_API_URL_STAGING: 'https://staging-api.transak.com/',
+		TRANSAK_REDIRECT_URL: 'https://metamask.io/',
+		WYRE_API_ENDPOINT: 'https://api.sendwyre.com/',
+		WYRE_API_ENDPOINT_TEST: 'https://api.testwyre.com/',
+		WYRE_MERCHANT_ID: 'merchant.io.metamask.wyre',
+		WYRE_MERCHANT_ID_TEST: 'merchant.io.metamask.wyre.test',
+		POLLING_FREQUENCY: 10000
 	}
 };
