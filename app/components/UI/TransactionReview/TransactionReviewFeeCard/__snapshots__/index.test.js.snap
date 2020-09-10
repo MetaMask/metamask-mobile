@@ -45,6 +45,11 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       right={false}
       small={false}
       strikethrough={false}
+      style={
+        Object {
+          "textTransform": "uppercase",
+        }
+      }
       upper={false}
     />
   </SummaryRow>
