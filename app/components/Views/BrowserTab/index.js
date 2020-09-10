@@ -223,6 +223,7 @@ let fromHomepage = false;
 let webviewUrlPostMessagePromiseResolve = null;
 const sessionENSNames = {};
 const ensIgnoreList = [];
+let approvedHosts = {};
 
 const BrowserTab = props => {
 	const [backEnabled, setBackEnabled] = useState(false);
@@ -331,6 +332,7 @@ const BrowserTab = props => {
 		setShowApprovalDialog(false);
 		setShowApprovalDialogHostname(undefined);
 		approveHost(fullHostname);
+		approvedHosts = { ...approvedHosts, [fullHostname]: true };
 		approvalRequest && approvalRequest.resolve && approvalRequest.resolve([selectedAddress]);
 	};
 
@@ -344,7 +346,7 @@ const BrowserTab = props => {
 	};
 
 	const notifyAllConnections = (payload, restricted = true) => {
-		const { privacyMode, approvedHosts } = props;
+		const { privacyMode } = props;
 		const fullHostname = new URL(url).hostname;
 
 		// TODO:permissions move permissioning logic elsewhere
@@ -356,7 +358,9 @@ const BrowserTab = props => {
 	};
 
 	useEffect(() => {
-		const { approvedHosts, selectedAddress } = props;
+		const { approvedHosts: approvedHostsProps, selectedAddress } = props;
+
+		approvedHosts = approvedHostsProps;
 
 		const numApprovedHosts = Object.keys(approvedHosts).length;
 
@@ -384,7 +388,7 @@ const BrowserTab = props => {
 		// all user facing RPC calls not implemented by the provider
 		createAsyncMiddleware(async (req, res, next) => {
 			const getAccounts = async () => {
-				const { approvedHosts, privacyMode, selectedAddress } = props;
+				const { privacyMode, selectedAddress } = props;
 				const isEnabled = !privacyMode || approvedHosts[hostname];
 
 				return isEnabled ? [selectedAddress.toLowerCase()] : [];
@@ -393,20 +397,15 @@ const BrowserTab = props => {
 			const rpcMethods = {
 				eth_requestAccounts: async () => {
 					const { params } = req;
-					const { approvedHosts, privacyMode, selectedAddress } = props;
+					const { privacyMode, selectedAddress } = props;
 
 					if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
 						res.result = [selectedAddress];
 					} else {
-						if (!showApprovalDialog) {
-							setTimeout(async () => {
-								if (!showApprovalDialog) {
-									await getPageMeta();
-									setShowApprovalDialog(true);
-									setShowApprovalDialogHostname(hostname);
-								}
-							}, 1000); // TODO: how long does this actually have to be?
-						}
+						if (showApprovalDialog) return;
+						await getPageMeta();
+						setShowApprovalDialog(true);
+						setShowApprovalDialogHostname(hostname);
 
 						const approved = await new Promise((resolve, reject) => {
 							approvalRequest = { resolve, reject };
@@ -1601,7 +1600,7 @@ const BrowserTab = props => {
 						ref={webviewRef}
 						renderError={() => <WebviewError error={error} onReload={() => null} />}
 						source={{ uri: url }}
-						injectedJavaScript={entryScriptWeb3}
+						injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
 						style={styles.webview}
 						onLoadStart={onLoadStart}
 						onLoadEnd={onLoadEnd}
