@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
 	Text,
 	StyleSheet,
@@ -277,14 +277,17 @@ const BrowserTab = props => {
 	 * Shows or hides the url input modal.
 	 * When opened it sets the current website url on the input.
 	 */
-	const toggleUrlModal = ({ urlInput = null } = {}) => {
-		const goingToShow = !showUrlModal;
-		const urlToShow = getMaskedUrl(urlInput || url);
+	const toggleUrlModal = useCallback(
+		({ urlInput = null } = {}) => {
+			const goingToShow = !showUrlModal;
+			const urlToShow = getMaskedUrl(urlInput || url);
 
-		if (goingToShow && urlToShow) setAutocompleteValue(urlToShow);
+			if (goingToShow && urlToShow) setAutocompleteValue(urlToShow);
 
-		setShowUrlModal(goingToShow);
-	};
+			setShowUrlModal(goingToShow);
+		},
+		[showUrlModal, url]
+	);
 
 	/**
 	 * Checks if it is a ENS website
@@ -304,11 +307,14 @@ const BrowserTab = props => {
 	/**
 	 * Checks if a given url or the current url is the homepage
 	 */
-	const isHomepage = (checkUrl = null) => {
-		const currentPage = checkUrl || url;
-		const { host: currentHost, pathname: currentPathname } = getUrlObj(currentPage);
-		return currentHost === HOMEPAGE_HOST && currentPathname === '/';
-	};
+	const isHomepage = useCallback(
+		(checkUrl = null) => {
+			const currentPage = checkUrl || url;
+			const { host: currentHost, pathname: currentPathname } = getUrlObj(currentPage);
+			return currentHost === HOMEPAGE_HOST && currentPathname === '/';
+		},
+		[url]
+	);
 
 	/**
 	 * Gets the page current title and url that are on the state
@@ -345,18 +351,26 @@ const BrowserTab = props => {
 		approvalRequest && approvalRequest.reject && approvalRequest.reject(new Error('User rejected account access'));
 	};
 
-	const notifyAllConnections = (payload, restricted = true) => {
-		const { privacyMode } = props;
-		const fullHostname = new URL(url).hostname;
+	const notifyAllConnections = useCallback(
+		(payload, restricted = true) => {
+			const fullHostname = new URL(url).hostname;
 
-		// TODO:permissions move permissioning logic elsewhere
-		backgroundBridges.forEach(bridge => {
-			if (bridge.hostname === fullHostname && (!privacyMode || !restricted || approvedHosts[bridge.hostname])) {
-				bridge.sendNotification(payload);
-			}
-		});
-	};
+			// TODO:permissions move permissioning logic elsewhere
+			backgroundBridges.forEach(bridge => {
+				if (
+					bridge.hostname === fullHostname &&
+					(!props.privacyMode || !restricted || approvedHosts[bridge.hostname])
+				) {
+					bridge.sendNotification(payload);
+				}
+			});
+		},
+		[props.privacyMode, url]
+	);
 
+	/**
+	 * Manage hosts that were approved to connect with the user accounts
+	 */
 	useEffect(() => {
 		const { approvedHosts: approvedHostsProps, selectedAddress } = props;
 
@@ -381,9 +395,13 @@ const BrowserTab = props => {
 				result: [selectedAddress]
 			});
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [props.approvedHosts, props.selectedAddress]);
 
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
+
+	/**
+	 * Handle RPC methods called by dapps
+	 */
 	const getRpcMethodMiddleware = ({ hostname }) =>
 		// all user facing RPC calls not implemented by the provider
 		createAsyncMiddleware(async (req, res, next) => {
@@ -641,7 +659,7 @@ const BrowserTab = props => {
 	/**
 	 * Is the current tab the active tab
 	 */
-	const isTabActive = () => props.activeTab === props.id;
+	const isTabActive = useCallback(() => props.activeTab === props.id, [props.activeTab, props.id]);
 	/**
 	 * Is the current tab not the active tab
 	 */
@@ -650,7 +668,7 @@ const BrowserTab = props => {
 	/**
 	 * Dismiss the text selection on the current website
 	 */
-	const dismissTextSelectionIfNeeded = () => {
+	const dismissTextSelectionIfNeeded = useCallback(() => {
 		if (isTabActive() && Device.isAndroid()) {
 			const { current } = webviewRef;
 			if (current) {
@@ -659,38 +677,38 @@ const BrowserTab = props => {
 				}, 50);
 			}
 		}
-	};
+	}, [isTabActive]);
 
 	/**
 	 * Toggle the options menu
 	 */
-	const toggleOptions = () => {
+	const toggleOptions = useCallback(() => {
 		dismissTextSelectionIfNeeded();
 		setShowOptions(!showOptions);
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_BROWSER_OPTIONS);
 		});
-	};
+	}, [dismissTextSelectionIfNeeded, showOptions]);
 
 	/**
 	 * Show the options menu
 	 */
-	const toggleOptionsIfNeeded = () => {
+	const toggleOptionsIfNeeded = useCallback(() => {
 		if (showOptions) {
 			toggleOptions();
 		}
-	};
+	}, [showOptions, toggleOptions]);
 
 	/**
 	 * Go back to previous website in history
 	 */
-	const goBack = () => {
+	const goBack = useCallback(() => {
 		if (!backEnabled) return;
 
 		toggleOptionsIfNeeded();
 		const { current } = webviewRef;
 		current && current.goBack();
-	};
+	}, [backEnabled, toggleOptionsIfNeeded]);
 
 	/**
 	 * Go forward to the next website in history
@@ -706,11 +724,13 @@ const BrowserTab = props => {
 	/**
 	 * Check if a hostname is allowed
 	 */
-	const isAllowedUrl = hostname => {
-		const { PhishingController } = Engine.context;
-		const { whitelist } = props;
-		return (whitelist && whitelist.includes(hostname)) || !PhishingController.test(hostname);
-	};
+	const isAllowedUrl = useCallback(
+		hostname => {
+			const { PhishingController } = Engine.context;
+			return (props.whitelist && props.whitelist.includes(hostname)) || !PhishingController.test(hostname);
+		},
+		[props.whitelist]
+	);
 
 	const isBookmark = () => {
 		const { bookmarks } = props;
@@ -748,116 +768,135 @@ const BrowserTab = props => {
 	/**
 	 * Get IPFS info from a ens url
 	 */
-	const handleIpfsContent = async (fullUrl, { hostname, pathname, query }) => {
-		const { provider } = Engine.context.NetworkController;
-		const { ipfsGateway } = props;
-		let gatewayUrl;
-		try {
-			const { type, hash } = await resolveEnsToIpfsContentId({ provider, name: hostname });
-			if (type === 'ipfs-ns') {
-				gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
-				const response = await fetch(gatewayUrl);
-				const statusCode = response.status;
-				if (statusCode >= 400) {
-					Logger.log('Status code ', statusCode, gatewayUrl);
-					//urlNotFound(gatewayUrl);
-					return null;
+	const handleIpfsContent = useCallback(
+		async (fullUrl, { hostname, pathname, query }) => {
+			const { provider } = Engine.context.NetworkController;
+			let gatewayUrl;
+			try {
+				const { type, hash } = await resolveEnsToIpfsContentId({
+					provider,
+					name: hostname
+				});
+				if (type === 'ipfs-ns') {
+					gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
+					const response = await fetch(gatewayUrl);
+					const statusCode = response.status;
+					if (statusCode >= 400) {
+						Logger.log('Status code ', statusCode, gatewayUrl);
+						//urlNotFound(gatewayUrl);
+						return null;
+					}
+				} else if (type === 'swarm-ns') {
+					gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
+				} else if (type === 'ipns-ns') {
+					gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'}${query || ''}`;
 				}
-			} else if (type === 'swarm-ns') {
-				gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
-			} else if (type === 'ipns-ns') {
-				gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'}${query || ''}`;
+				return {
+					url: gatewayUrl,
+					hash,
+					type
+				};
+			} catch (err) {
+				// This is a TLD that might be a normal website
+				// For example .XYZ and might be more in the future
+				if (hostname.substr(-4) !== '.eth' && err.toString().indexOf('is not standard') !== -1) {
+					ensIgnoreList.push(hostname);
+					return { url: fullUrl, reload: true };
+				}
+				Logger.error(err, 'Failed to resolve ENS name');
+				Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
+				goBack();
 			}
-			return {
-				url: gatewayUrl,
-				hash,
-				type
-			};
-		} catch (err) {
-			// This is a TLD that might be a normal website
-			// For example .XYZ and might be more in the future
-			if (hostname.substr(-4) !== '.eth' && err.toString().indexOf('is not standard') !== -1) {
-				ensIgnoreList.push(hostname);
-				return { url: fullUrl, reload: true };
-			}
-			Logger.error(err, 'Failed to resolve ENS name');
-			Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
-			goBack();
-		}
-	};
+		},
+		[goBack, props.ipfsGateway]
+	);
 
 	/**
 	 * Go to a url
 	 */
-	const go = async url => {
-		const hasProtocol = url.match(/^[a-z]*:\/\//) || isHomepage(url);
-		const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
-		const { hostname, query, pathname } = new URL(sanitizedURL);
+	const go = useCallback(
+		async url => {
+			const hasProtocol = url.match(/^[a-z]*:\/\//) || isHomepage(url);
+			const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
+			const { hostname, query, pathname } = new URL(sanitizedURL);
 
-		let urlToGo = sanitizedURL;
-		const isEnsUrl = isENSUrl(url);
-		if (isEnsUrl) {
-			const { current } = webviewRef;
-			current && current.stopLoading();
-			const { url: ensUrl, type, hash, reload } = await handleIpfsContent(url, { hostname, query, pathname });
-			if (reload) return go(ensUrl);
-			urlToGo = ensUrl;
-			sessionENSNames[urlToGo] = { hostname, hash, type };
-		}
+			let urlToGo = sanitizedURL;
+			const isEnsUrl = isENSUrl(url);
+			if (isEnsUrl) {
+				const { current } = webviewRef;
+				current && current.stopLoading();
+				const { url: ensUrl, type, hash, reload } = await handleIpfsContent(url, { hostname, query, pathname });
+				if (reload) return go(ensUrl);
+				urlToGo = ensUrl;
+				sessionENSNames[urlToGo] = { hostname, hash, type };
+			}
 
-		if (isAllowedUrl(hostname)) {
-			setUrl(urlToGo);
-			setProgress(0);
-			return sanitizedURL;
-		}
-		handleNotAllowedUrl(urlToGo);
-		return null;
-	};
+			if (isAllowedUrl(hostname)) {
+				setUrl(urlToGo);
+				setProgress(0);
+				return sanitizedURL;
+			}
+			handleNotAllowedUrl(urlToGo);
+			return null;
+		},
+		[handleIpfsContent, isAllowedUrl, isHomepage, props.defaultProtocol]
+	);
 
 	/**
 	 * Open a new tab
 	 */
-	const openNewTab = url => {
-		toggleOptionsIfNeeded();
-		dismissTextSelectionIfNeeded();
-		props.newTab(url);
-	};
+	const openNewTab = useCallback(
+		url => {
+			toggleOptionsIfNeeded();
+			dismissTextSelectionIfNeeded();
+			props.newTab(url);
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[dismissTextSelectionIfNeeded, toggleOptionsIfNeeded]
+	);
 
 	/**
 	 * Handle Branch deeplinking
 	 */
-	const handleBranchDeeplink = deeplink_url => {
-		Logger.log('Branch Deeplink detected!', deeplink_url);
-		DeeplinkManager.parse(deeplink_url, url => {
-			openNewTab(url);
-		});
-	};
+	const handleBranchDeeplink = useCallback(
+		deeplink_url => {
+			Logger.log('Branch Deeplink detected!', deeplink_url);
+			DeeplinkManager.parse(deeplink_url, url => {
+				openNewTab(url);
+			});
+		},
+		[openNewTab]
+	);
 
 	/**
 	 * Handle deeplinking
 	 */
-	const handleDeeplinks = async ({ error, params }) => {
-		if (!isTabActive()) return false;
-		if (error) {
-			Logger.error(error, 'Error from Branch');
-			return;
-		}
-		// QA THIS
-		if (params.spotlight_identifier) {
-			setTimeout(() => {
-				props.navigation.setParams({
-					url: params.spotlight_identifier,
-					silent: false
-				});
-				setShowUrlModal(false);
-			}, 1000);
-		}
-	};
+	const handleDeeplinks = useCallback(
+		async ({ error, params }) => {
+			if (!isTabActive()) return false;
+			if (error) {
+				Logger.error(error, 'Error from Branch');
+				return;
+			}
+			// QA THIS
+			if (params.spotlight_identifier) {
+				setTimeout(() => {
+					props.navigation.setParams({
+						url: params.spotlight_identifier,
+						silent: false
+					});
+					setShowUrlModal(false);
+				}, 1000);
+			}
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[isTabActive]
+	);
 
 	/**
 	 * Hide url input modal
 	 */
-	const hideUrlModal = () => {
+	const hideUrlModal = useCallback(() => {
 		setShowUrlModal(false);
 
 		if (isHomepage()) {
@@ -865,19 +904,19 @@ const BrowserTab = props => {
 			const blur = `document.getElementsByClassName('autocomplete-input')[0].blur();`;
 			current && current.injectJavaScript(blur);
 		}
-	};
+	}, [isHomepage]);
 
 	/**
 	 * Handle keyboard hide
 	 */
-	const keyboardDidHide = () => {
+	const keyboardDidHide = useCallback(() => {
 		if (!isTabActive()) return false;
 		if (!fromHomepage) {
 			if (showUrlModal) {
 				hideUrlModal();
 			}
 		}
-	};
+	}, [hideUrlModal, isTabActive, showUrlModal]);
 
 	/**
 	 * Set keyboard listeners
@@ -887,29 +926,29 @@ const BrowserTab = props => {
 		return function cleanup() {
 			keyboardDidHideListener.remove();
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [props.activeTab, props.id, fromHomepage, url]);
+	}, [keyboardDidHide]);
 
 	/**
 	 * Reload current page
 	 */
-	const reload = () => {
+	const reload = useCallback(() => {
 		toggleOptionsIfNeeded();
 		const { current } = webviewRef;
 		current && current.reload();
-	};
+	}, [toggleOptionsIfNeeded]);
 
 	/**
 	 * Handle when the drawer (app menu) is opened
 	 */
-	const drawerOpenHandler = () => {
+	const drawerOpenHandler = useCallback(() => {
 		dismissTextSelectionIfNeeded();
-	};
+	}, [dismissTextSelectionIfNeeded]);
 
 	/**
 	 * Set initial url, dapp scripts and engine. Similar to componentDidMount
 	 */
 	useEffect(() => {
+		approvedHosts = props.approvedHosts;
 		const initialUrl = props.initialUrl || HOMEPAGE_URL;
 		if (isENSUrl(initialUrl)) go(initialUrl);
 		else setUrl(initialUrl);
@@ -919,6 +958,7 @@ const BrowserTab = props => {
 			const entryScriptWeb3 = await EntryScriptWeb3.get();
 			setEntryScriptWeb3(entryScriptWeb3 + SPA_urlChangeListener);
 		};
+
 		getEntryScriptWeb3();
 
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
@@ -949,7 +989,7 @@ const BrowserTab = props => {
 		if (props.activeTab === props.id) props.navigation.setParams({ showUrlModal: toggleUrlModal });
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [props.activeTab, props.id]);
+	}, [props.activeTab, props.id, toggleUrlModal]);
 
 	useEffect(() => {
 		if (Device.isAndroid()) {
@@ -963,8 +1003,7 @@ const BrowserTab = props => {
 					DrawerStatusTracker.hub.removeListener('drawer::open', drawerOpenHandler);
 			}
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [props.activeTab, props.id]);
+	}, [drawerOpenHandler]);
 
 	/**
 	 * Set deeplinking listeners
@@ -987,9 +1026,7 @@ const BrowserTab = props => {
 		return function cleanup() {
 			unsubscribeFromBranch();
 		};
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [props.activeTab, props.id, showOptions]);
+	}, [handleBranchDeeplink, handleDeeplinks]);
 
 	/**
 	 * Set navigation listeners
@@ -1014,8 +1051,9 @@ const BrowserTab = props => {
 		return function cleanup() {
 			BackHandler.removeEventListener('hardwareBackPress', handleAndroidBackPress);
 		};
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [props.activeTab, props.id, backEnabled, showOptions]);
+	}, [goBack, isTabActive]);
 
 	/**
 	 * Handles state changes for when the url changes
@@ -1035,7 +1073,12 @@ const BrowserTab = props => {
 		setTitle(nativeEvent.title);
 		if (nativeEvent.icon) setIcon(nativeEvent.icon);
 
-		isTabActive() && props.navigation.setParams({ url: getMaskedUrl(nativeEvent.url), silent: true, error: false });
+		isTabActive() &&
+			props.navigation.setParams({
+				url: getMaskedUrl(nativeEvent.url),
+				silent: true,
+				error: false
+			});
 
 		if (isHomepage(nativeEvent.url)) {
 			injectHomePageScripts();
@@ -1355,7 +1398,9 @@ const BrowserTab = props => {
 						title: name || getMaskedUrl(url),
 						contentDescription: `Launch ${name || url} on MetaMask`,
 						keywords: [name.split(' '), url, 'dapp'],
-						thumbnail: { uri: icon || `https://api.faviconkit.com/${getHost(url)}/256` }
+						thumbnail: {
+							uri: icon || `https://api.faviconkit.com/${getHost(url)}/256`
+						}
 					};
 					try {
 						SearchApi.indexSpotlightItem(item);
@@ -1589,6 +1634,9 @@ const BrowserTab = props => {
 		return null;
 	};
 
+	/**
+	 * Main render
+	 */
 	return (
 		<View
 			style={[styles.wrapper, isHidden() && styles.hide]}
