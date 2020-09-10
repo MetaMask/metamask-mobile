@@ -36,7 +36,7 @@
 		"scan_step_1": "Abrir la extensión en el escritorio",
 		"scan_step_2": "Ir a Configuración > Avanzado",
 		"scan_step_3": "Haz click en “Sincronizar con móvil”",
-		"scan_step_4 ": "Escanea el código QR para iniciar la sincronización"
+		"scan_step_4": "Escanea el código QR para iniciar la sincronización"
 	},
 	"onboarding_carousel": {
 		"title1": "Bienvenido a MetaMask",
