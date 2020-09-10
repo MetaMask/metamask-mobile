@@ -33,7 +33,9 @@ exports[`Browser should render correctly 1`] = `
       }
     }
   >
-    <WebviewProgressBar />
+    <WebviewProgressBar
+      progress={0}
+    />
   </View>
   <ReactNativeModal
     animationIn="slideInDown"
@@ -196,10 +198,9 @@ exports[`Browser should render correctly 1`] = `
     <Connect(AccountApproval)
       currentPageInformation={
         Object {
-          "currentEnsName": null,
-          "icon": undefined,
+          "icon": null,
           "title": "",
-          "url": "https://metamask.io",
+          "url": "",
         }
       }
       onCancel={[Function]}
@@ -307,7 +308,7 @@ exports[`Browser should render correctly 1`] = `
     />
   </ReactNativeModal>
   <BrowserBottomBar
-    canGoBack={true}
+    canGoBack={false}
     canGoForward={false}
     goBack={[Function]}
     goForward={[Function]}

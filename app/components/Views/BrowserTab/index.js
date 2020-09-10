@@ -12,7 +12,6 @@ import {
 	BackHandler,
 	InteractionManager
 } from 'react-native';
-// eslint-disable-next-line import/named
 import { withNavigation } from 'react-navigation';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -20,7 +19,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
+import Share from 'react-native-share';
 import { connect } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
@@ -225,7 +224,7 @@ const sessionENSNames = {};
 const ensIgnoreList = [];
 let approvedHosts = {};
 
-const BrowserTab = props => {
+export const BrowserTab = props => {
 	const [backEnabled, setBackEnabled] = useState(false);
 	const [forwardEnabled, setForwardEnabled] = useState(false);
 	const [progress, setProgress] = useState(0);
@@ -1204,14 +1203,6 @@ const BrowserTab = props => {
 	 */
 	const onLoadEnd = ({ nativeEvent }) => {
 		if (nativeEvent.loading) return;
-		/*
-		Not removing this for now, may be needed
-		const urlObj = new URL(nativeEvent.url);
-		const currentUrl = new URL(url);
-		if (urlObj.hostname === currentUrl.hostname && nativeEvent.url !== url) {
-			changeUrl(nativeEvent);
-			return;
-		}*/
 
 		const { current } = webviewRef;
 
