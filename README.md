@@ -22,6 +22,12 @@ _Add examples here_
 
 _Add examples here_
 
+## Testing
+
+Run `yarn test` to run the tests once.
+
+To run tests on file changes, run `yarn test:watch`.
+
 ## Release & Publishing
 
 The project follows the same release process as the other libraries in the MetaMask organization:

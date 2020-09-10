@@ -1,1 +1,3 @@
-console.log('Hello, world!');
+export default function (name:string): string {
+  return `Hello, ${name}!`;
+}
