@@ -37,6 +37,8 @@ import {
 	TRUE
 } from '../../../constants/storage';
 
+import scaling from '../../../util/scaling';
+
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 const styles = StyleSheet.create({
@@ -113,7 +115,7 @@ const styles = StyleSheet.create({
 	steps: {},
 	step: {
 		...fontStyles.normal,
-		fontSize: 16,
+		fontSize: scaling.scale(14),
 		color: colors.fontPrimary,
 		lineHeight: 32
 	},
