@@ -48,7 +48,7 @@ export default class TransactionSummary extends PureComponent {
 						<Text small bold primary>
 							{strings('transaction.amount')}
 						</Text>
-						<Text small bold primary>
+						<Text small bold primary upper>
 							{amount}
 						</Text>
 					</Summary.Row>
