@@ -1179,7 +1179,7 @@ export const BrowserTab = props => {
 		if (!isAllowedUrl(hostname)) {
 			return handleNotAllowedUrl(nativeEvent.url);
 		}
-
+		webviewUrlPostMessagePromiseResolve = null;
 		setError(false);
 		changeUrl(nativeEvent, 'start');
 		setIcon(null);
@@ -1248,7 +1248,7 @@ export const BrowserTab = props => {
 					break;
 				}
 				case 'GET_WEBVIEW_URL':
-					webviewUrlPostMessagePromiseResolve(data.payload);
+					webviewUrlPostMessagePromiseResolve && webviewUrlPostMessagePromiseResolve(data.payload);
 			}
 		} catch (e) {
 			Logger.error(e, `Browser::onMessage on ${url}`);
