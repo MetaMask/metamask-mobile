@@ -23,6 +23,12 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+	MANUAL_BACKUP_STEPS,
+	SEED_PHRASE,
+	CONFIRM_PASSWORD,
+	WRONG_PASSWORD_ERROR
+} from '../../../constants/onboarding';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -196,10 +202,6 @@ const styles = StyleSheet.create({
 	}
 });
 
-const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
-const SEED_PHRASE = 'seed_phrase';
-const CONFIRM_PASSWORD = 'confirm_password';
-
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
@@ -214,11 +216,7 @@ export default class ManualBackupStep1 extends PureComponent {
 		navigation: PropTypes.object
 	};
 
-	steps = [
-		strings('manual_backup.progressOne'),
-		strings('manual_backup.progressTwo'),
-		strings('manual_backup.progressThree')
-	];
+	steps = MANUAL_BACKUP_STEPS;
 
 	state = {
 		seedPhraseHidden: true,
