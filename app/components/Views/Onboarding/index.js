@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
 	steps: {},
 	step: {
 		...fontStyles.normal,
-		fontSize: scaling.scale(14),
+		fontSize: scaling.scale(13),
 		color: colors.fontPrimary,
 		lineHeight: 32
 	},
