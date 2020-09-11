@@ -13,6 +13,7 @@ import { EventEmitter } from 'events';
 import AppConstants from './AppConstants';
 import byteArrayToHex from '../util/bytes';
 import Networks from '../util/networks';
+import { LAST_KNOWN_INSTANT_PAYMENT_ID } from '../constants/storage';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -246,7 +247,7 @@ class PaymentChannelsClient {
 
 	checkPaymentHistory = async () => {
 		const paymentHistory = await this.state.connext.getPaymentHistory();
-		const lastKnownPaymentIDStr = await AsyncStorage.getItem('@MetaMask:lastKnownInstantPaymentID');
+		const lastKnownPaymentIDStr = await AsyncStorage.getItem(LAST_KNOWN_INSTANT_PAYMENT_ID);
 		let lastKnownPaymentID = 0;
 		const latestPayment = paymentHistory.find(
 			payment => payment.recipient.toLowerCase() === this.selectedAddress.toLowerCase()
@@ -260,11 +261,11 @@ class PaymentChannelsClient {
 					setTimeout(() => {
 						NotificationManager.showIncomingPaymentNotification(amountToken);
 					}, 300);
-					await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
+					await AsyncStorage.setItem(LAST_KNOWN_INSTANT_PAYMENT_ID, latestPaymentID.toString());
 				}
 			} else {
 				// For first time flow
-				await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
+				await AsyncStorage.setItem(LAST_KNOWN_INSTANT_PAYMENT_ID, latestPaymentID.toString());
 			}
 		}
 		this.setState({ transactions: paymentHistory });

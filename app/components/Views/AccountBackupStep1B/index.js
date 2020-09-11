@@ -11,6 +11,7 @@ import Device from '../../../util/Device';
 import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -220,10 +221,7 @@ const AccountBackupStep1B = props => {
 				testID={'account-backup-step-1-screen'}
 			>
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-					<OnboardingProgress
-						steps={['Create password', 'Secure wallet', 'Confirm seed phrase']}
-						currentStep={1}
-					/>
+					<OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
 					<View style={styles.content}>
 						<Text style={styles.titleIcon}>🔒</Text>
 						<Text style={styles.title}>{strings('account_backup_step_1B.title')}</Text>
