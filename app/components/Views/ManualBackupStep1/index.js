@@ -216,6 +216,8 @@ export default class ManualBackupStep1 extends PureComponent {
 		navigation: PropTypes.object
 	};
 
+	steps = MANUAL_BACKUP_STEPS;
+
 	state = {
 		seedPhraseHidden: true,
 		currentStep: 1,
@@ -392,7 +394,7 @@ export default class ManualBackupStep1 extends PureComponent {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<View style={styles.onBoardingWrapper}>
-					<OnboardingProgress currentStep={currentStep} steps={MANUAL_BACKUP_STEPS} />
+					<OnboardingProgress currentStep={currentStep} steps={this.steps} />
 				</View>
 				{view === SEED_PHRASE ? this.renderSeedphraseView() : this.renderConfirmPassword()}
 			</SafeAreaView>
