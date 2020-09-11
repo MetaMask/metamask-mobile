@@ -42,7 +42,8 @@ const styles = StyleSheet.create({
 	amount: {
 		fontSize: 30,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
+		textTransform: 'uppercase'
 	},
 	amountFiat: {
 		fontSize: 18,

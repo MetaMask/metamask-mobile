@@ -68,7 +68,7 @@ export default class TransactionSummary extends PureComponent {
 					<Text small primary>
 						{strings('transaction.amount')}
 					</Text>
-					<Text small primary>
+					<Text small primary upper>
 						{amount}
 					</Text>
 				</Summary.Row>
@@ -105,7 +105,7 @@ export default class TransactionSummary extends PureComponent {
 						{strings('transaction.total_amount')}
 					</Text>
 					{this.renderIfGastEstimationReady(
-						<Text small bold primary>
+						<Text small bold primary upper>
 							{totalAmount}
 						</Text>
 					)}
