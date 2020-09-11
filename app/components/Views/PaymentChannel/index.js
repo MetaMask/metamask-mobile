@@ -35,6 +35,7 @@ import { withNavigationFocus } from 'react-navigation';
 import { showAlert } from '../../../actions/alert';
 import AddressQRCode from '../AddressQRCode';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { PAYMENT_CHANNEL_FIRST_TIME } from '../../../constants/storage';
 
 const SAI_ADDRESS = AppConstants.SAI_ADDRESS;
 
@@ -284,7 +285,7 @@ class PaymentChannel extends PureComponent {
 				]);
 			}
 		} else {
-			const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
+			const paymentChannelFirstTime = await AsyncStorage.getItem(PAYMENT_CHANNEL_FIRST_TIME, '');
 			if (!paymentChannelFirstTime) {
 				this.setState({ displayWelcomeModal: true });
 			}
@@ -692,7 +693,7 @@ class PaymentChannel extends PureComponent {
 	}
 
 	closeWelcomeModal = async () => {
-		await AsyncStorage.setItem('@MetaMask:paymentChannelFirstTime', '1');
+		await AsyncStorage.setItem(PAYMENT_CHANNEL_FIRST_TIME, '1');
 		this.setState({ displayWelcomeModal: false });
 	};
 

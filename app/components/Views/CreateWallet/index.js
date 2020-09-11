@@ -24,6 +24,14 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions, withNavigationFocus } from 'react-navigation';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/Device';
+import {
+	BIOMETRY_CHOICE,
+	NEXT_MAKER_REMINDER,
+	EXISTING_USER,
+	ONBOARDING_WIZARD,
+	METRICS_OPT_IN,
+	TRUE
+} from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -117,13 +125,13 @@ class CreateWallet extends PureComponent {
 			await Engine.resetState();
 			await KeyringController.createNewVaultAndKeychain('');
 			await SecureKeychain.setGenericPassword('metamask-user', '');
-			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
-			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
+			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			// Get onboarding wizard state
-			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+			const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 			// Check if user passed through metrics opt-in screen
-			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 			// Making sure we reset the flag while going to
 			// the first time flow
 			this.props.passwordUnset();

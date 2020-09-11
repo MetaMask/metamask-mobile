@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import ActionSheet from 'react-native-actionsheet';
 import WalletConnect from '../../../core/WalletConnect';
 import Logger from '../../../util/Logger';
+import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -80,7 +81,7 @@ export default class WalletConnectSessions extends PureComponent {
 
 	loadSessions = async () => {
 		let sessions = [];
-		const sessionData = await AsyncStorage.getItem('@MetaMask:walletconnectSessions');
+		const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
 		if (sessionData) {
 			sessions = JSON.parse(sessionData);
 		}
