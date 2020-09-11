@@ -17,14 +17,24 @@ const getWindowInformation = `
 `;
 
 const getWebviewUrl = `
-	const shortcutIcon = window.document.querySelector('head > link[rel="shortcut icon"]');
-	const icon = shortcutIcon || Array.from(window.document.querySelectorAll('head > link[rel="icon"]')).find((icon) => Boolean(icon.href));
+	var __getFavicon = function(){
+		var favicon = undefined;
+		var nodeList = document.getElementsByTagName("link");
+		for (var i = 0; i < nodeList.length; i++)
+		{
+			if((nodeList[i].getAttribute("rel") == "icon")||(nodeList[i].getAttribute("rel") == "shortcut icon"))
+			{
+				favicon = nodeList[i]
+			}
+		}
+		return favicon && favicon.href
+	}
 	window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(
 		{
 			type: 'GET_WEBVIEW_URL',
 			payload: {
 				url: location.href,
-				icon: icon && icon.href
+				icon: __getFavicon()
 			}
 		}
 	))

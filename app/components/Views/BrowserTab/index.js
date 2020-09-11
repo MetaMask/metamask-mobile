@@ -1060,9 +1060,8 @@ export const BrowserTab = props => {
 	const changeUrl = (nativeEvent, type) => {
 		setBackEnabled(nativeEvent.canGoBack);
 		setForwardEnabled(nativeEvent.canGoForward);
-
-		setUrl(nativeEvent.url);
 		if (type !== 'start') {
+			setUrl(nativeEvent.url);
 			isTabActive() && props.updateTabInfo(getMaskedUrl(nativeEvent.url), props.id);
 			props.addToBrowserHistory({
 				name: nativeEvent.title,
@@ -1202,8 +1201,6 @@ export const BrowserTab = props => {
 	 * When website finished loading
 	 */
 	const onLoadEnd = ({ nativeEvent }) => {
-		if (nativeEvent.loading) return;
-
 		const { current } = webviewRef;
 
 		current && current.injectJavaScript(JS_WEBVIEW_URL);
