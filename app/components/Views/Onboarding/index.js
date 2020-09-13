@@ -26,6 +26,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
+import ScanStep from '../../UI/ScanStep';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import ActionModal from '../../UI/ActionModal';
 import Logger from '../../../util/Logger';
@@ -37,7 +38,6 @@ import AnimatedFox from 'react-native-animated-fox';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import { ONBOARDING_SCAN_STEPS } from '../../../constants/onboarding';
 import {
 	EXISTING_USER,
 	BIOMETRY_CHOICE,
@@ -47,8 +47,6 @@ import {
 	METRICS_OPT_IN,
 	TRUE
 } from '../../../constants/storage';
-
-import scaling from '../../../util/scaling';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -124,13 +122,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		lineHeight: 28
 	},
-
-	step: {
-		...fontStyles.normal,
-		fontSize: scaling.scale(14),
-		color: colors.fontPrimary,
-		lineHeight: 28
-	},
 	loader: {
 		marginTop: 180,
 		justifyContent: 'center',
@@ -146,32 +137,10 @@ const styles = StyleSheet.create({
 	column: {
 		marginVertical: 24,
 		alignItems: 'flex-start'
-	},
-	row: {
-		flexDirection: 'row',
-		alignItems: 'flex-start',
-		flexWrap: 'wrap',
-		marginBottom: 6
-	},
-	val: { width: '8%' },
-	stepTitle: { width: '92%' }
+	}
 });
 
-const ScanStep = ({ val, step }) => (
-	<View style={styles.row}>
-		<View style={styles.val}>
-			<Text style={styles.step}>{val}.</Text>
-		</View>
-		<View style={styles.stepTitle}>
-			<Text style={styles.step}>{step}</Text>
-		</View>
-	</View>
-);
-
-ScanStep.propTypes = {
-	val: PropTypes.number,
-	step: PropTypes.string
-};
+const keyExtractor = item => item.id;
 
 /**
  * View that is displayed to first time (new) users
@@ -594,6 +563,12 @@ class Onboarding extends PureComponent {
 
 		const renderScanStep = ({ item }) => <ScanStep val={item.val} step={item.step} />;
 
+		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(val => ({
+			id: `${val}`,
+			val,
+			step: strings(`onboarding.scan_step_${val}`)
+		}));
+
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
 				<OnboardingScreenWithBg screen={'c'}>
@@ -649,7 +624,7 @@ class Onboarding extends PureComponent {
 							<FlatList
 								data={ONBOARDING_SCAN_STEPS}
 								renderItem={renderScanStep}
-								keyExtractor={item => item.id}
+								keyExtractor={keyExtractor}
 							/>
 						</View>
 					</View>
