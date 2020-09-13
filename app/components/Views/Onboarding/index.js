@@ -561,12 +561,12 @@ class Onboarding extends PureComponent {
 	render() {
 		const { qrCodeModalVisible, loading, existingUser } = this.state;
 
-		const renderScanStep = ({ item }) => <ScanStep val={item.val} step={item.step} />;
+		const renderScanStep = ({ item }) => <ScanStep step={item.step}>{item.text}</ScanStep>;
 
-		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(val => ({
-			id: `ONBOARDING_SCAN_STEPS-${val}`,
-			val,
-			step: strings(`onboarding.scan_step_${val}`)
+		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(step => ({
+			id: `ONBOARDING_SCAN_STEPS-${step}`,
+			step,
+			text: strings(`onboarding.scan_step_${step}`)
 		}));
 
 		return (

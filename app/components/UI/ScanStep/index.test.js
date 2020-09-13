@@ -4,7 +4,7 @@ import ScanStep from './';
 
 describe('ScanStep', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<ScanStep />);
-		expect(wrapper).toMatchSnapshot();
+		const step = shallow(<ScanStep step={1}>some text</ScanStep>);
+		expect(step).toMatchSnapshot();
 	});
 });

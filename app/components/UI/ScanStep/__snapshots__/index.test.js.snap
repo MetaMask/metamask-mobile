@@ -29,6 +29,7 @@ exports[`ScanStep should render correctly 1`] = `
         }
       }
     >
+      1
       .
     </Text>
   </View>
@@ -49,7 +50,9 @@ exports[`ScanStep should render correctly 1`] = `
           "lineHeight": 28,
         }
       }
-    />
+    >
+      some text
+    </Text>
   </View>
 </View>
 `;

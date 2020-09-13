@@ -21,20 +21,20 @@ const styles = StyleSheet.create({
 	stepTitle: { width: '92%' }
 });
 
-const ScanStep = ({ val, step }) => (
+const ScanStep = ({ step, children }) => (
 	<View style={styles.row}>
 		<View style={styles.val}>
-			<Text style={styles.step}>{val}.</Text>
+			<Text style={styles.step}>{step}.</Text>
 		</View>
 		<View style={styles.stepTitle}>
-			<Text style={styles.step}>{step}</Text>
+			<Text style={styles.step}>{children}</Text>
 		</View>
 	</View>
 );
 
 ScanStep.propTypes = {
-	val: PropTypes.number,
-	step: PropTypes.string
+	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
+	step: PropTypes.number
 };
 
 export default ScanStep;
