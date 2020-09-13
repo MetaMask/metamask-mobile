@@ -1,6 +1,16 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Text, View, ScrollView, StyleSheet, Alert, Image, InteractionManager } from 'react-native';
+import {
+	ActivityIndicator,
+	FlatList,
+	Text,
+	View,
+	ScrollView,
+	StyleSheet,
+	Alert,
+	Image,
+	InteractionManager
+} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -27,6 +37,7 @@ import AnimatedFox from 'react-native-animated-fox';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
+import { ONBOARDING_SCAN_STEPS } from '../../../constants/onboarding';
 import {
 	EXISTING_USER,
 	BIOMETRY_CHOICE,
@@ -110,14 +121,15 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: 18,
 		color: colors.fontPrimary,
-		textAlign: 'center'
+		textAlign: 'center',
+		lineHeight: 28
 	},
-	steps: {},
+
 	step: {
 		...fontStyles.normal,
-		fontSize: scaling.scale(13),
+		fontSize: scaling.scale(14),
 		color: colors.fontPrimary,
-		lineHeight: 32
+		lineHeight: 28
 	},
 	loader: {
 		marginTop: 180,
@@ -138,13 +150,28 @@ const styles = StyleSheet.create({
 	row: {
 		flexDirection: 'row',
 		alignItems: 'flex-start',
-		flexWrap: 'wrap'
+		flexWrap: 'wrap',
+		marginBottom: 6
 	},
-	bullet: {
-		width: 20
-	},
-	bulletText: {}
+	val: { width: '8%' },
+	stepTitle: { width: '92%' }
 });
+
+const ScanStep = ({ val, step }) => (
+	<View style={styles.row}>
+		<View style={styles.val}>
+			<Text style={styles.step}>{val}.</Text>
+		</View>
+		<View style={styles.stepTitle}>
+			<Text style={styles.step}>{step}</Text>
+		</View>
+	</View>
+);
+
+ScanStep.propTypes = {
+	val: PropTypes.number,
+	step: PropTypes.string
+};
 
 /**
  * View that is displayed to first time (new) users
@@ -565,6 +592,8 @@ class Onboarding extends PureComponent {
 	render() {
 		const { qrCodeModalVisible, loading, existingUser } = this.state;
 
+		const renderScanStep = ({ item }) => <ScanStep val={item.val} step={item.step} />;
+
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
 				<OnboardingScreenWithBg screen={'c'}>
@@ -617,16 +646,11 @@ class Onboarding extends PureComponent {
 					<View style={styles.modalWrapper}>
 						<Text style={styles.scanTitle}>{strings('onboarding.scan_title')}</Text>
 						<View style={styles.column}>
-							{[1, 2, 3, 4].map(val => (
-								<View key={val} style={[styles.row, styles.steps]}>
-									<View style={styles.bullet}>
-										<Text style={styles.step}>{val}.</Text>
-									</View>
-									<View style={styles.bulletText}>
-										<Text style={styles.step}>{strings(`onboarding.scan_step_${val}`)}</Text>
-									</View>
-								</View>
-							))}
+							<FlatList
+								data={ONBOARDING_SCAN_STEPS}
+								renderItem={renderScanStep}
+								keyExtractor={item => item.id}
+							/>
 						</View>
 					</View>
 				</ActionModal>

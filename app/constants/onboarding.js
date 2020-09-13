@@ -15,3 +15,9 @@ export const MANUAL_BACKUP_STEPS = [
 export const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 export const SEED_PHRASE = 'seed_phrase';
 export const CONFIRM_PASSWORD = 'confirm_password';
+
+export const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(val => ({
+	id: `${val}`,
+	val,
+	step: strings(`onboarding.scan_step_${val}`)
+}));
