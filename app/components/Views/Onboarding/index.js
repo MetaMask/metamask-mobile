@@ -564,7 +564,7 @@ class Onboarding extends PureComponent {
 		const renderScanStep = ({ item }) => <ScanStep val={item.val} step={item.step} />;
 
 		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(val => ({
-			id: `${val}`,
+			id: `ONBOARDING_SCAN_STEPS-${val}`,
 			val,
 			step: strings(`onboarding.scan_step_${val}`)
 		}));
