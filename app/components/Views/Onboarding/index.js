@@ -142,6 +142,12 @@ const styles = StyleSheet.create({
 
 const keyExtractor = item => item.id;
 
+const createStep = step => ({
+	id: `ONBOARDING_SCAN_STEPS-${step}`,
+	step,
+	text: strings(`onboarding.scan_step_${step}`)
+});
+
 /**
  * View that is displayed to first time (new) users
  */
@@ -563,11 +569,7 @@ class Onboarding extends PureComponent {
 
 		const renderScanStep = ({ item }) => <ScanStep step={item.step}>{item.text}</ScanStep>;
 
-		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(step => ({
-			id: `ONBOARDING_SCAN_STEPS-${step}`,
-			step,
-			text: strings(`onboarding.scan_step_${step}`)
-		}));
+		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(createStep);
 
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
