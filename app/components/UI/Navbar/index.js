@@ -504,7 +504,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 		headerTitle: (
 			<NavbarBrowserTitle
 				error={!!error}
-				icon={!isHomepage ? icon : null}
+				icon={!isHomepage(url) ? icon : null}
 				navigation={navigation}
 				url={url}
 				hostname={hostname}
