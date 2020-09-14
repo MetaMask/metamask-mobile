@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const keyExtractor = item => item.id;
+const keyExtractor = ({ id }) => id;
 
 const createStep = step => ({
 	id: `ONBOARDING_SCAN_STEPS-${step}`,
@@ -567,7 +567,7 @@ class Onboarding extends PureComponent {
 	render() {
 		const { qrCodeModalVisible, loading, existingUser } = this.state;
 
-		const renderScanStep = ({ item }) => <ScanStep step={item.step}>{item.text}</ScanStep>;
+		const renderScanStep = ({ item: { step, text } }) => <ScanStep step={step}>{text}</ScanStep>;
 
 		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(createStep);
 
