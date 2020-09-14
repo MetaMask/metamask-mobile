@@ -469,6 +469,7 @@ class ImportFromSeed extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
 							<OutlinedTextField
+								style={inputWidth && { width: inputWidth }}
 								ref={this.passwordInput}
 								placeholder={strings('import_from_seed.new_password')}
 								testID={'input-password-field'}
@@ -503,6 +504,7 @@ class ImportFromSeed extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('import_from_seed.confirm_password')}</Text>
 							<OutlinedTextField
+								style={inputWidth && { width: inputWidth }}
 								ref={this.confirmPasswordInput}
 								testID={'input-password-field-confirm'}
 								onChangeText={this.onPasswordConfirmChange}
