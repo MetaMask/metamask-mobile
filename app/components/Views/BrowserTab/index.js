@@ -229,6 +229,7 @@ export const BrowserTab = props => {
 	const [forwardEnabled, setForwardEnabled] = useState(false);
 	const [progress, setProgress] = useState(0);
 	const [url, setUrl] = useState('');
+	const [initialUrl, setInitialUrl] = useState('');
 	const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
 	const [title, setTitle] = useState('');
 	const [icon, setIcon] = useState(null);
@@ -814,15 +815,15 @@ export const BrowserTab = props => {
 	 * Go to a url
 	 */
 	const go = useCallback(
-		async url => {
+		async (url, initialCall) => {
 			const hasProtocol = url.match(/^[a-z]*:\/\//) || isHomepage(url);
 			const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
 			const { hostname, query, pathname } = new URL(sanitizedURL);
 
 			let urlToGo = sanitizedURL;
 			const isEnsUrl = isENSUrl(url);
+			const { current } = webviewRef;
 			if (isEnsUrl) {
-				const { current } = webviewRef;
 				current && current.stopLoading();
 				const { url: ensUrl, type, hash, reload } = await handleIpfsContent(url, { hostname, query, pathname });
 				if (reload) return go(ensUrl);
@@ -831,7 +832,13 @@ export const BrowserTab = props => {
 			}
 
 			if (isAllowedUrl(hostname)) {
-				setUrl(urlToGo);
+				if (initialCall) {
+					setInitialUrl(urlToGo);
+					setFirstUrlLoaded(true);
+				} else {
+					current && current.injectJavaScript(`(function(){window.location.href = '${urlToGo}' })()`);
+				}
+
 				setProgress(0);
 				return sanitizedURL;
 			}
@@ -949,10 +956,8 @@ export const BrowserTab = props => {
 	useEffect(() => {
 		approvedHosts = props.approvedHosts;
 		const initialUrl = props.initialUrl || HOMEPAGE_URL;
-		if (isENSUrl(initialUrl)) go(initialUrl);
-		else setUrl(initialUrl);
+		go(initialUrl, true);
 
-		setFirstUrlLoaded(true);
 		const getEntryScriptWeb3 = async () => {
 			const entryScriptWeb3 = await EntryScriptWeb3.get();
 			setEntryScriptWeb3(entryScriptWeb3 + SPA_urlChangeListener);
@@ -1057,28 +1062,31 @@ export const BrowserTab = props => {
 	/**
 	 * Handles state changes for when the url changes
 	 */
-	const changeUrl = (nativeEvent, type) => {
-		setBackEnabled(nativeEvent.canGoBack);
-		setForwardEnabled(nativeEvent.canGoForward);
+	const changeUrl = (siteInfo, type) => {
+		setBackEnabled(siteInfo.canGoBack);
+		setForwardEnabled(siteInfo.canGoForward);
+
+		setUrl(siteInfo.url);
+
 		if (type !== 'start') {
-			setUrl(nativeEvent.url);
-			isTabActive() && props.updateTabInfo(getMaskedUrl(nativeEvent.url), props.id);
+			isTabActive() && props.updateTabInfo(getMaskedUrl(siteInfo.url), props.id);
 			props.addToBrowserHistory({
-				name: nativeEvent.title,
-				url: getMaskedUrl(nativeEvent.url)
+				name: siteInfo.title,
+				url: getMaskedUrl(siteInfo.url)
 			});
 		}
-		setTitle(nativeEvent.title);
-		if (nativeEvent.icon) setIcon(nativeEvent.icon);
+		setTitle(siteInfo.title);
+		if (siteInfo.icon) setIcon(siteInfo.icon);
 
 		isTabActive() &&
 			props.navigation.setParams({
-				url: getMaskedUrl(nativeEvent.url),
+				url: getMaskedUrl(siteInfo.url),
+				icon: siteInfo.icon,
 				silent: true,
 				error: false
 			});
 
-		if (isHomepage(nativeEvent.url)) {
+		if (isHomepage(siteInfo.url)) {
 			injectHomePageScripts();
 		}
 	};
@@ -1635,7 +1643,7 @@ export const BrowserTab = props => {
 					<WebView
 						ref={webviewRef}
 						renderError={() => <WebviewError error={error} onReload={() => null} />}
-						source={{ uri: url }}
+						source={{ uri: initialUrl }}
 						injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
 						style={styles.webview}
 						onLoadStart={onLoadStart}

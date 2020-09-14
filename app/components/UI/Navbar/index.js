@@ -469,6 +469,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 
 	const isHomepage = url => getHost(url) === getHost(HOMEPAGE_URL);
 	const error = navigation.getParam('error', '');
+	const icon = navigation.getParam('icon', null);
 
 	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
@@ -501,7 +502,14 @@ export function getBrowserViewNavbarOptions(navigation) {
 			</TouchableOpacity>
 		),
 		headerTitle: (
-			<NavbarBrowserTitle error={!!error} navigation={navigation} url={url} hostname={hostname} https={isHttps} />
+			<NavbarBrowserTitle
+				error={!!error}
+				icon={!isHomepage ? icon : null}
+				navigation={navigation}
+				url={url}
+				hostname={hostname}
+				https={isHttps}
+			/>
 		),
 		headerRight: (
 			<View style={styles.browserRightButton}>
