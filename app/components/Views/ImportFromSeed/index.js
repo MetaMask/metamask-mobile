@@ -200,7 +200,7 @@ class ImportFromSeed extends PureComponent {
 		loading: false,
 		error: null,
 		seedphraseInputFocused: false,
-		inputWidth: Device.isAndroid() ? '99%' : undefined
+		inputWidth: { width: '99%' }
 	};
 
 	passwordInput = React.createRef();
@@ -216,17 +216,11 @@ class ImportFromSeed extends PureComponent {
 			}
 			this.setState({ biometryType, biometryChoice: enabled });
 		}
-		this.mounted = true;
 		// Workaround https://github.com/facebook/react-native/issues/9958
-		this.state.inputWidth &&
-			setTimeout(() => {
-				this.mounted && this.setState({ inputWidth: '100%' });
-			}, 100);
+		setTimeout(() => {
+			this.setState({ inputWidth: { width: '100%' } });
+		}, 100);
 	}
-
-	componentWillUnmount = () => {
-		this.mounted = false;
-	};
 
 	onPressImport = async () => {
 		if (this.state.loading) return;
@@ -445,11 +439,7 @@ class ImportFromSeed extends PureComponent {
 							value={seed}
 							numberOfLines={3}
 							multiline
-							style={[
-								styles.seedPhrase,
-								inputWidth && { width: inputWidth },
-								seedphraseInputFocused && styles.inputFocused
-							]}
+							style={[styles.seedPhrase, inputWidth, seedphraseInputFocused && styles.inputFocused]}
 							placeholder={strings('import_from_seed.seed_phrase_placeholder')}
 							placeholderTextColor={colors.grey200}
 							onChangeText={this.onSeedWordsChange}
@@ -469,7 +459,7 @@ class ImportFromSeed extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
 							<OutlinedTextField
-								style={inputWidth && { width: inputWidth }}
+								style={inputWidth}
 								ref={this.passwordInput}
 								placeholder={strings('import_from_seed.new_password')}
 								testID={'input-password-field'}
@@ -504,7 +494,7 @@ class ImportFromSeed extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('import_from_seed.confirm_password')}</Text>
 							<OutlinedTextField
-								style={inputWidth && { width: inputWidth }}
+								style={inputWidth}
 								ref={this.confirmPasswordInput}
 								testID={'input-password-field-confirm'}
 								onChangeText={this.onPasswordConfirmChange}
