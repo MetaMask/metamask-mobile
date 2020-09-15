@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 		height: Device.isIos() ? 90 : 45
 	},
 	title: {
-		fontSize: Device.isSmallDevice() ? 20 : 24,
+		fontSize: SMALL_DEVICE ? 20 : 24,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
