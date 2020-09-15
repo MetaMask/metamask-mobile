@@ -1,6 +1,16 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Text, View, ScrollView, StyleSheet, Alert, Image, InteractionManager } from 'react-native';
+import {
+	ActivityIndicator,
+	FlatList,
+	Text,
+	View,
+	ScrollView,
+	StyleSheet,
+	Alert,
+	Image,
+	InteractionManager
+} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -16,6 +26,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
+import ScanStep from '../../UI/ScanStep';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import ActionModal from '../../UI/ActionModal';
 import Logger from '../../../util/Logger';
@@ -36,8 +47,6 @@ import {
 	METRICS_OPT_IN,
 	TRUE
 } from '../../../constants/storage';
-
-import scaling from '../../../util/scaling';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -110,14 +119,8 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: 18,
 		color: colors.fontPrimary,
-		textAlign: 'center'
-	},
-	steps: {},
-	step: {
-		...fontStyles.normal,
-		fontSize: scaling.scale(13),
-		color: colors.fontPrimary,
-		lineHeight: 32
+		textAlign: 'center',
+		lineHeight: 28
 	},
 	loader: {
 		marginTop: 180,
@@ -134,16 +137,15 @@ const styles = StyleSheet.create({
 	column: {
 		marginVertical: 24,
 		alignItems: 'flex-start'
-	},
-	row: {
-		flexDirection: 'row',
-		alignItems: 'flex-start',
-		flexWrap: 'wrap'
-	},
-	bullet: {
-		width: 20
-	},
-	bulletText: {}
+	}
+});
+
+const keyExtractor = ({ id }) => id;
+
+const createStep = step => ({
+	id: `ONBOARDING_SCAN_STEPS-${step}`,
+	step,
+	text: strings(`onboarding.scan_step_${step}`)
 });
 
 /**
@@ -565,6 +567,10 @@ class Onboarding extends PureComponent {
 	render() {
 		const { qrCodeModalVisible, loading, existingUser } = this.state;
 
+		const renderScanStep = ({ item: { step, text } }) => <ScanStep step={step}>{text}</ScanStep>;
+
+		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(createStep);
+
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
 				<OnboardingScreenWithBg screen={'c'}>
@@ -617,16 +623,11 @@ class Onboarding extends PureComponent {
 					<View style={styles.modalWrapper}>
 						<Text style={styles.scanTitle}>{strings('onboarding.scan_title')}</Text>
 						<View style={styles.column}>
-							{[1, 2, 3, 4].map(val => (
-								<View key={val} style={[styles.row, styles.steps]}>
-									<View style={styles.bullet}>
-										<Text style={styles.step}>{val}.</Text>
-									</View>
-									<View style={styles.bulletText}>
-										<Text style={styles.step}>{strings(`onboarding.scan_step_${val}`)}</Text>
-									</View>
-								</View>
-							))}
+							<FlatList
+								data={ONBOARDING_SCAN_STEPS}
+								renderItem={renderScanStep}
+								keyExtractor={keyExtractor}
+							/>
 						</View>
 					</View>
 				</ActionModal>
