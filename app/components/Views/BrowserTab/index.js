@@ -71,6 +71,8 @@ const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
+const ANIMATION_TIMING = 300;
+
 const styles = StyleSheet.create({
 	wrapper: {
 		...baseStyles.flexGrow,
@@ -1155,7 +1157,7 @@ export class BrowserTab extends PureComponent {
 					this.isReloading = false;
 					this.go(url2Reload);
 				});
-			}, 300);
+			}, ANIMATION_TIMING);
 		});
 	};
 
@@ -1219,7 +1221,7 @@ export class BrowserTab extends PureComponent {
 		this.toggleOptionsIfNeeded();
 		setTimeout(() => {
 			this.props.toggleNetworkModal();
-		}, 300);
+		}, ANIMATION_TIMING);
 	};
 
 	onNewTabPress = () => {
@@ -1229,7 +1231,7 @@ export class BrowserTab extends PureComponent {
 		this.toggleOptionsIfNeeded();
 		setTimeout(() => {
 			this.props.newTab(url);
-		}, 300);
+		}, ANIMATION_TIMING);
 	};
 
 	openInBrowser = () => {
@@ -1427,7 +1429,7 @@ export class BrowserTab extends PureComponent {
 			this.setState({
 				url,
 				inputValue: url,
-				autocompletInputValue: url,
+				autocompleteInputValue: url,
 				currentPageTitle: title,
 				forwardEnabled: false
 			});
@@ -1604,6 +1606,18 @@ export class BrowserTab extends PureComponent {
 		this.props.navigation.setParams(params);
 	};
 
+	/**
+	 * reset autocompleteInputValue to be the url if the input has been left empty
+	 */
+	resetAutocompleteInputValue = urlParam => {
+		const { autocompleteInputValue } = this.state;
+		if (autocompleteInputValue === '') {
+			this.setState({
+				autocompleteInputValue: urlParam
+			});
+		}
+	};
+
 	hideUrlModal = url => {
 		const urlParam = typeof url === 'string' && url ? url : this.props.navigation.state.params.url;
 		this.props.navigation.setParams({
@@ -1611,6 +1625,8 @@ export class BrowserTab extends PureComponent {
 			url: urlParam,
 			showUrlModal: false
 		});
+
+		setTimeout(this.resetAutocompleteInputValue, ANIMATION_TIMING, urlParam);
 
 		if (this.isHomepage()) {
 			const { current } = this.webview;
@@ -1646,7 +1662,7 @@ export class BrowserTab extends PureComponent {
 				if (current && !current.isFocused()) {
 					current.focus();
 				}
-			}, 300);
+			}, ANIMATION_TIMING);
 		}
 
 		return (
@@ -1658,8 +1674,8 @@ export class BrowserTab extends PureComponent {
 				animationIn="slideInDown"
 				animationOut="slideOutUp"
 				backdropOpacity={0.7}
-				animationInTiming={300}
-				animationOutTiming={300}
+				animationInTiming={ANIMATION_TIMING}
+				animationOutTiming={ANIMATION_TIMING}
 				useNativeDriver
 			>
 				<View style={styles.urlModalContent} testID={'url-modal'}>
@@ -1766,8 +1782,8 @@ export class BrowserTab extends PureComponent {
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
 				backdropOpacity={0.7}
-				animationInTiming={300}
-				animationOutTiming={300}
+				animationInTiming={ANIMATION_TIMING}
+				animationOutTiming={ANIMATION_TIMING}
 				onSwipeComplete={this.onAccountsReject}
 				onBackdropPress={this.onAccountsReject}
 				swipeDirection={'down'}
@@ -1825,8 +1841,8 @@ export class BrowserTab extends PureComponent {
 				style={styles.fullScreenModal}
 				backdropOpacity={1}
 				backdropColor={colors.red}
-				animationInTiming={300}
-				animationOutTiming={300}
+				animationInTiming={ANIMATION_TIMING}
+				animationOutTiming={ANIMATION_TIMING}
 				useNativeDriver
 			>
 				<PhishingModal

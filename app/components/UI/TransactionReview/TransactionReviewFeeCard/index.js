@@ -103,7 +103,7 @@ class TransactionReviewFeeCard extends PureComponent {
 					<Text primary bold>
 						{strings('transaction.amount')}
 					</Text>
-					<Text primary bold>
+					<Text primary bold upper>
 						{amount}
 					</Text>
 				</Summary.Row>
@@ -121,7 +121,7 @@ class TransactionReviewFeeCard extends PureComponent {
 					</Summary.Col>
 
 					{this.renderIfGasEstimationReady(
-						<Text primary bold>
+						<Text primary bold upper>
 							{networkFee}
 						</Text>
 					)}

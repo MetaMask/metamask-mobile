@@ -21,8 +21,17 @@ import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
+import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
+import {
+	EXISTING_USER,
+	NEXT_MAKER_REMINDER,
+	BIOMETRY_CHOICE,
+	BIOMETRY_CHOICE_DISABLED,
+	PASSCODE_DISABLED,
+	TRUE
+} from '../../../constants/storage';
 
-const steps = [strings('choose_password.title'), strings('choose_password.secure'), strings('choose_password.confirm')];
+import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -284,12 +293,13 @@ class ChoosePassword extends PureComponent {
 		try {
 			this.setState({ loading: true });
 
-			const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
-			if (previousScreen === 'onboarding') {
+			const previous_screen = this.props.navigation.getParam(PREVIOUS_SCREEN);
+
+			if (previous_screen === ONBOARDING) {
 				await this.createNewVaultAndKeychain(password);
 				this.props.seedphraseNotBackedUp();
-				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
-				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
+				await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			} else {
 				await this.recreateVault(password);
 			}
@@ -305,9 +315,9 @@ class ChoosePassword extends PureComponent {
 				if (Device.isIos()) {
 					await SecureKeychain.getGenericPassword();
 				}
-				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
-				await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
-				await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
+				await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
+				await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+				await AsyncStorage.removeItem(PASSCODE_DISABLED);
 			} else {
 				if (this.state.rememberMe) {
 					await SecureKeychain.setGenericPassword('metamask-user', password, {
@@ -316,11 +326,11 @@ class ChoosePassword extends PureComponent {
 				} else {
 					await SecureKeychain.resetGenericPassword();
 				}
-				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-				await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
-				await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 			}
-			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
@@ -330,9 +340,9 @@ class ChoosePassword extends PureComponent {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
 			await SecureKeychain.setGenericPassword('metamask-user', '');
-			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
-			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
+			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordUnset();
 			this.props.setLockTime(-1);
 			// Should we force people to enable passcode / biometrics?
@@ -525,7 +535,7 @@ class ChoosePassword extends PureComponent {
 						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.blue : colors.grey} />
 						<Text style={styles.title}>
 							{strings(
-								previousScreen === 'onboarding'
+								previousScreen === ONBOARDING
 									? 'create_wallet.title'
 									: 'secure_your_wallet.creating_password'
 							)}
@@ -534,7 +544,7 @@ class ChoosePassword extends PureComponent {
 					</View>
 				) : (
 					<View style={styles.wrapper} testID={'choose-password-screen'}>
-						<OnboardingProgress steps={steps} />
+						<OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} />
 						<KeyboardAwareScrollView
 							style={styles.scrollableWrapper}
 							contentContainerStyle={styles.keyboardScrollableWrapper}

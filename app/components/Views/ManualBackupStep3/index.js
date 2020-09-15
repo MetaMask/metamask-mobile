@@ -24,6 +24,7 @@ import Device from '../../../util/Device';
 import Icon from 'react-native-vector-icons/Octicons';
 import Confetti from '../../UI/Confetti';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -155,9 +156,9 @@ class ManualBackupStep3 extends PureComponent {
 	};
 
 	done = async () => {
-		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		if (!metricsOptIn) {
 			this.props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {
