@@ -215,11 +215,8 @@ const styles = StyleSheet.create({
 	}
 });
 
-let backgroundBridges = [];
-let approvalRequest = null;
 let wizardScrollAdjusted = false;
-let fromHomepage = false;
-let webviewUrlPostMessagePromiseResolve = null;
+
 const sessionENSNames = {};
 const ensIgnoreList = [];
 let approvedHosts = {};
@@ -228,11 +225,8 @@ export const BrowserTab = props => {
 	const [backEnabled, setBackEnabled] = useState(false);
 	const [forwardEnabled, setForwardEnabled] = useState(false);
 	const [progress, setProgress] = useState(0);
-	const [url, setUrl] = useState('');
 	const [initialUrl, setInitialUrl] = useState('');
 	const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
-	const [title, setTitle] = useState('');
-	const [icon, setIcon] = useState(null);
 	const [autocompleteValue, setAutocompleteValue] = useState('');
 	const [error, setError] = useState(null);
 	const [showUrlModal, setShowUrlModal] = useState(false);
@@ -247,6 +241,14 @@ export const BrowserTab = props => {
 
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
+
+	const url = useRef('');
+	const title = useRef('');
+	const icon = useRef(null);
+	const webviewUrlPostMessagePromiseResolve = useRef(null);
+	const backgroundBridges = useRef([]);
+	const approvalRequest = useRef(null);
+	const fromHomepage = useRef(false);
 
 	/**
 	 * Gets the url to be displayed to the user
@@ -280,13 +282,13 @@ export const BrowserTab = props => {
 	const toggleUrlModal = useCallback(
 		({ urlInput = null } = {}) => {
 			const goingToShow = !showUrlModal;
-			const urlToShow = getMaskedUrl(urlInput || url);
+			const urlToShow = getMaskedUrl(urlInput || url.current);
 
 			if (goingToShow && urlToShow) setAutocompleteValue(urlToShow);
 
 			setShowUrlModal(goingToShow);
 		},
-		[showUrlModal, url]
+		[showUrlModal]
 	);
 
 	/**
@@ -307,39 +309,25 @@ export const BrowserTab = props => {
 	/**
 	 * Checks if a given url or the current url is the homepage
 	 */
-	const isHomepage = useCallback(
-		(checkUrl = null) => {
-			const currentPage = checkUrl || url;
-			const { host: currentHost, pathname: currentPathname } = getUrlObj(currentPage);
-			return currentHost === HOMEPAGE_HOST && currentPathname === '/';
-		},
-		[url]
-	);
-
-	/**
-	 * Gets the page current title and url that are on the state
-	 */
-	const getPageMeta = () =>
-		new Promise(resolve => {
-			resolve({
-				meta: {
-					title,
-					url
-				}
-			});
-		});
+	const isHomepage = useCallback((checkUrl = null) => {
+		const currentPage = checkUrl || url.current;
+		const { host: currentHost, pathname: currentPathname } = getUrlObj(currentPage);
+		return currentHost === HOMEPAGE_HOST && currentPathname === '/';
+	}, []);
 
 	/**
 	 * When user clicks on approve to connect with a dapp
 	 */
 	const onAccountsConfirm = () => {
 		const { approveHost, selectedAddress } = props;
-		const fullHostname = new URL(url).hostname;
+		const fullHostname = new URL(url.current).hostname;
 		setShowApprovalDialog(false);
 		setShowApprovalDialogHostname(undefined);
 		approveHost(fullHostname);
 		approvedHosts = { ...approvedHosts, [fullHostname]: true };
-		approvalRequest && approvalRequest.resolve && approvalRequest.resolve([selectedAddress]);
+		approvalRequest.current &&
+			approvalRequest.current.resolve &&
+			approvalRequest.current.resolve([selectedAddress]);
 	};
 
 	/**
@@ -348,15 +336,17 @@ export const BrowserTab = props => {
 	const onAccountsReject = () => {
 		setShowApprovalDialog(false);
 		setShowApprovalDialogHostname(undefined);
-		approvalRequest && approvalRequest.reject && approvalRequest.reject(new Error('User rejected account access'));
+		approvalRequest.current &&
+			approvalRequest.current.reject &&
+			approvalRequest.current.reject(new Error('User rejected account access'));
 	};
 
 	const notifyAllConnections = useCallback(
 		(payload, restricted = true) => {
-			const fullHostname = new URL(url).hostname;
+			const fullHostname = new URL(url.current).hostname;
 
 			// TODO:permissions move permissioning logic elsewhere
-			backgroundBridges.forEach(bridge => {
+			backgroundBridges.current.forEach(bridge => {
 				if (
 					bridge.hostname === fullHostname &&
 					(!props.privacyMode || !restricted || approvedHosts[bridge.hostname])
@@ -365,7 +355,7 @@ export const BrowserTab = props => {
 				}
 			});
 		},
-		[props.privacyMode, url]
+		[props.privacyMode]
 	);
 
 	/**
@@ -395,7 +385,7 @@ export const BrowserTab = props => {
 				result: [selectedAddress]
 			});
 		}
-
+		console.log('----------useeffect');
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
 
@@ -405,6 +395,7 @@ export const BrowserTab = props => {
 	const getRpcMethodMiddleware = ({ hostname }) =>
 		// all user facing RPC calls not implemented by the provider
 		createAsyncMiddleware(async (req, res, next) => {
+			console.log('-----createAsyncMiddleware', hostname);
 			const getAccounts = async () => {
 				const { privacyMode, selectedAddress } = props;
 				const isEnabled = !privacyMode || approvedHosts[hostname];
@@ -420,13 +411,13 @@ export const BrowserTab = props => {
 					if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
 						res.result = [selectedAddress];
 					} else {
+						console.log('------OLA');
 						if (showApprovalDialog) return;
-						await getPageMeta();
 						setShowApprovalDialog(true);
 						setShowApprovalDialogHostname(hostname);
 
 						const approved = await new Promise((resolve, reject) => {
-							approvalRequest = { resolve, reject };
+							approvalRequest.current = { resolve, reject };
 						});
 
 						if (approved) {
@@ -448,7 +439,13 @@ export const BrowserTab = props => {
 
 				eth_sign: async () => {
 					const { MessageManager } = Engine.context;
-					const pageMeta = await getPageMeta();
+					const pageMeta = {
+						meta: {
+							url: url.current,
+							title: title.current,
+							icon: icon.current
+						}
+					};
 					const rawSig = await MessageManager.addUnapprovedMessageAsync({
 						data: req.params[1],
 						from: req.params[0],
@@ -472,7 +469,13 @@ export const BrowserTab = props => {
 						params.from = firstParam;
 					}
 
-					const pageMeta = await getPageMeta();
+					const pageMeta = {
+						meta: {
+							url: url.current,
+							title: title.current,
+							icon: icon.current
+						}
+					};
 					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 						...params,
 						...pageMeta
@@ -483,7 +486,13 @@ export const BrowserTab = props => {
 
 				eth_signTypedData: async () => {
 					const { TypedMessageManager } = Engine.context;
-					const pageMeta = await getPageMeta();
+					const pageMeta = {
+						meta: {
+							url: url.current,
+							title: title.current,
+							icon: icon.current
+						}
+					};
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 						{
 							data: req.params[0],
@@ -510,7 +519,14 @@ export const BrowserTab = props => {
 						);
 					}
 
-					const pageMeta = await getPageMeta();
+					const pageMeta = {
+						meta: {
+							url: url.current,
+							title: title.current,
+							icon: icon.current
+						}
+					};
+
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 						{
 							data: req.params[1],
@@ -537,7 +553,13 @@ export const BrowserTab = props => {
 						);
 					}
 
-					const pageMeta = await getPageMeta();
+					const pageMeta = {
+						meta: {
+							url: url.current,
+							title: title.current,
+							icon: icon.current
+						}
+					};
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 						{
 							data: req.params[1],
@@ -624,12 +646,12 @@ export const BrowserTab = props => {
 				},
 
 				metamask_showAutocomplete: async () => {
-					fromHomepage = true;
+					fromHomepage.current = true;
 					setAutocompleteValue('');
 					setShowUrlModal(true);
 
 					setTimeout(() => {
-						fromHomepage = false;
+						fromHomepage.current = false;
 					}, 1500);
 
 					res.result = true;
@@ -649,7 +671,7 @@ export const BrowserTab = props => {
 			getRpcMethodMiddleware,
 			isMainFrame
 		});
-		backgroundBridges.push(newBridge);
+		backgroundBridges.current.push(newBridge);
 	};
 
 	const onFrameLoadStarted = url => {
@@ -734,7 +756,7 @@ export const BrowserTab = props => {
 
 	const isBookmark = () => {
 		const { bookmarks } = props;
-		return bookmarks.some(({ url: bookmark }) => bookmark === url);
+		return bookmarks.some(({ url: bookmark }) => bookmark === url.current);
 	};
 
 	/**
@@ -917,7 +939,7 @@ export const BrowserTab = props => {
 	 */
 	const keyboardDidHide = useCallback(() => {
 		if (!isTabActive()) return false;
-		if (!fromHomepage) {
+		if (!fromHomepage.current) {
 			if (showUrlModal) {
 				hideUrlModal();
 			}
@@ -976,7 +998,7 @@ export const BrowserTab = props => {
 
 		// Specify how to clean up after this effect:
 		return function cleanup() {
-			backgroundBridges.forEach(bridge => bridge.onDisconnect());
+			backgroundBridges.current.forEach(bridge => bridge.onDisconnect());
 
 			// Remove all Engine listeners
 			Engine.context.AssetsController.hub.removeAllListeners();
@@ -990,7 +1012,14 @@ export const BrowserTab = props => {
 	 * Enable the header to toggle the url modal
 	 */
 	useEffect(() => {
-		if (props.activeTab === props.id) props.navigation.setParams({ showUrlModal: toggleUrlModal });
+		if (props.activeTab === props.id) {
+			props.navigation.setParams({
+				showUrlModal: toggleUrlModal,
+				url: getMaskedUrl(url.current),
+				icon: icon.current,
+				error
+			});
+		}
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [props.activeTab, props.id, toggleUrlModal]);
@@ -1066,7 +1095,7 @@ export const BrowserTab = props => {
 		setBackEnabled(siteInfo.canGoBack);
 		setForwardEnabled(siteInfo.canGoForward);
 
-		setUrl(siteInfo.url);
+		url.current = siteInfo.url;
 
 		if (type !== 'start') {
 			isTabActive() && props.updateTabInfo(getMaskedUrl(siteInfo.url), props.id);
@@ -1075,15 +1104,14 @@ export const BrowserTab = props => {
 				url: getMaskedUrl(siteInfo.url)
 			});
 		}
-		setTitle(siteInfo.title);
-		if (siteInfo.icon) setIcon(siteInfo.icon);
+		title.current = siteInfo.title;
+		if (siteInfo.icon) icon.current = siteInfo.icon;
 
 		isTabActive() &&
 			props.navigation.setParams({
 				url: getMaskedUrl(siteInfo.url),
 				icon: siteInfo.icon,
-				silent: true,
-				error: false
+				silent: true
 			});
 
 		if (isHomepage(siteInfo.url)) {
@@ -1106,7 +1134,7 @@ export const BrowserTab = props => {
 		const urlObj = new URL(blockedUrl);
 		props.addToWhitelist(urlObj.hostname);
 		setShowPhishingModal(false);
-		blockedUrl !== url &&
+		blockedUrl !== url.current &&
 			setTimeout(() => {
 				go(blockedUrl);
 				setBlockedUrl(undefined);
@@ -1133,7 +1161,7 @@ export const BrowserTab = props => {
 	 * Go back from phishing website alert
 	 */
 	const goBackToSafety = () => {
-		blockedUrl === url && goBack();
+		blockedUrl === url.current && goBack();
 		setTimeout(() => {
 			setShowPhishingModal(false);
 			setBlockedUrl(undefined);
@@ -1186,14 +1214,14 @@ export const BrowserTab = props => {
 		if (!isAllowedUrl(hostname)) {
 			return handleNotAllowedUrl(nativeEvent.url);
 		}
-		webviewUrlPostMessagePromiseResolve = null;
+		webviewUrlPostMessagePromiseResolve.current = null;
 		setError(false);
 		changeUrl(nativeEvent, 'start');
-		setIcon(null);
+		icon.current = null;
 
 		// Reset the previous bridges
-		backgroundBridges.length && backgroundBridges.forEach(bridge => bridge.onDisconnect());
-		backgroundBridges = [];
+		backgroundBridges.current.length && backgroundBridges.current.forEach(bridge => bridge.onDisconnect());
+		backgroundBridges.current = [];
 		const origin = new URL(nativeEvent.url).origin;
 		initializeBackgroundBridge(origin, true);
 	};
@@ -1214,9 +1242,9 @@ export const BrowserTab = props => {
 		current && current.injectJavaScript(JS_WEBVIEW_URL);
 
 		const promiseResolver = resolve => {
-			webviewUrlPostMessagePromiseResolve = resolve;
+			webviewUrlPostMessagePromiseResolve.current = resolve;
 		};
-		const promise = current ? new Promise(promiseResolver) : Promise.resolve(url);
+		const promise = current ? new Promise(promiseResolver) : Promise.resolve(url.current);
 
 		promise.then(info => {
 			if (info.url === nativeEvent.url) {
@@ -1235,7 +1263,7 @@ export const BrowserTab = props => {
 				return;
 			}
 			if (data.name) {
-				backgroundBridges.forEach(bridge => {
+				backgroundBridges.current.forEach(bridge => {
 					if (bridge.isMainFrame) {
 						const { origin } = data && data.origin && new URL(data.origin);
 						bridge.url === origin && bridge.onMessage(data);
@@ -1253,10 +1281,11 @@ export const BrowserTab = props => {
 					break;
 				}
 				case 'GET_WEBVIEW_URL':
-					webviewUrlPostMessagePromiseResolve && webviewUrlPostMessagePromiseResolve(data.payload);
+					webviewUrlPostMessagePromiseResolve.current &&
+						webviewUrlPostMessagePromiseResolve.current(data.payload);
 			}
 		} catch (e) {
-			Logger.error(e, `Browser::onMessage on ${url}`);
+			Logger.error(e, `Browser::onMessage on ${url.current}`);
 		}
 	};
 
@@ -1265,7 +1294,7 @@ export const BrowserTab = props => {
 	 */
 	const goToHomepage = async () => {
 		toggleOptionsIfNeeded();
-		if (url === HOMEPAGE_URL) return reload();
+		if (url.current === HOMEPAGE_URL) return reload();
 		await go(HOMEPAGE_URL);
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 	};
@@ -1384,8 +1413,8 @@ export const BrowserTab = props => {
 	const addBookmark = () => {
 		toggleOptionsIfNeeded();
 		props.navigation.push('AddBookmarkView', {
-			title: title || '',
-			url: getMaskedUrl(url),
+			title: title.current || '',
+			url: getMaskedUrl(url.current),
 			onAddBookmark: async ({ name, url }) => {
 				props.addBookmark({ name, url });
 				if (Device.isIos()) {
@@ -1395,7 +1424,7 @@ export const BrowserTab = props => {
 						contentDescription: `Launch ${name || url} on MetaMask`,
 						keywords: [name.split(' '), url, 'dapp'],
 						thumbnail: {
-							uri: icon || `https://api.faviconkit.com/${getHost(url)}/256`
+							uri: icon.current || `https://api.faviconkit.com/${getHost(url)}/256`
 						}
 					};
 					try {
@@ -1416,7 +1445,7 @@ export const BrowserTab = props => {
 	const share = () => {
 		toggleOptionsIfNeeded();
 		Share.open({
-			url
+			url: url.current
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
@@ -1427,7 +1456,9 @@ export const BrowserTab = props => {
 	 */
 	const openInBrowser = () => {
 		toggleOptionsIfNeeded();
-		Linking.openURL(url).catch(error => Logger.log(`Error while trying to open external link: ${url}`, error));
+		Linking.openURL(url.current).catch(error =>
+			Logger.log(`Error while trying to open external link: ${url.current}`, error)
+		);
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_OPEN_IN_BROWSER);
 	};
 
@@ -1558,7 +1589,8 @@ export const BrowserTab = props => {
 	 * Render the modal that asks the user to approve/reject connections to a dapp
 	 */
 	const renderApprovalModal = () => {
-		const showApprovalDialogNow = showApprovalDialog && showApprovalDialogHostname === new URL(url).hostname;
+		const showApprovalDialogNow =
+			showApprovalDialog && showApprovalDialogHostname === new URL(url.current).hostname;
 		return (
 			<Modal
 				isVisible={showApprovalDialogNow}
@@ -1575,7 +1607,11 @@ export const BrowserTab = props => {
 				<AccountApproval
 					onCancel={onAccountsReject}
 					onConfirm={onAccountsConfirm}
-					currentPageInformation={{ title, url: getMaskedUrl(url), icon }}
+					currentPageInformation={{
+						title: title.current,
+						url: getMaskedUrl(url.current),
+						icon: icon.current
+					}}
 				/>
 			</Modal>
 		);
@@ -1629,7 +1665,7 @@ export const BrowserTab = props => {
 		}
 		return null;
 	};
-
+	console.log(url.current);
 	/**
 	 * Main render
 	 */
