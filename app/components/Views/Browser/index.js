@@ -239,17 +239,11 @@ class Browser extends PureComponent {
 	}
 
 	updateTabInfo = (url, tabID) => {
-		if (this.snapshotTimer) {
-			clearTimeout(this.snapshotTimer);
-		}
-		this.snapshotTimer = setTimeout(() => {
-			const showTabs = this.props.navigation.getParam('showTabs', false);
-			if (showTabs) {
-				this.updateTabInfo(url, tabID);
-				return false;
-			}
-			this.takeScreenshot(url, tabID);
-		}, 500);
+		const { updateTab } = this.props;
+
+		updateTab(tabID, {
+			url
+		});
 	};
 
 	takeScreenshot = (url, tabID) =>

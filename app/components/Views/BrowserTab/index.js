@@ -1007,7 +1007,7 @@ export const BrowserTab = props => {
 	}, []);
 
 	/**
-	 * Enable the header to toggle the url modal
+	 * Enable the header to toggle the url modal and update other header data
 	 */
 	useEffect(() => {
 		if (props.activeTab === props.id) {
@@ -1020,7 +1020,7 @@ export const BrowserTab = props => {
 		}
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [props.activeTab, props.id, toggleUrlModal]);
+	}, [error, props.activeTab, props.id, toggleUrlModal]);
 
 	useEffect(() => {
 		if (Device.isAndroid()) {
@@ -1094,14 +1094,6 @@ export const BrowserTab = props => {
 		setForwardEnabled(siteInfo.canGoForward);
 
 		url.current = siteInfo.url;
-
-		if (type !== 'start') {
-			isTabActive() && props.updateTabInfo(getMaskedUrl(siteInfo.url), props.id);
-			props.addToBrowserHistory({
-				name: siteInfo.title,
-				url: getMaskedUrl(siteInfo.url)
-			});
-		}
 		title.current = siteInfo.title;
 		if (siteInfo.icon) icon.current = siteInfo.icon;
 
@@ -1111,6 +1103,15 @@ export const BrowserTab = props => {
 				icon: siteInfo.icon,
 				silent: true
 			});
+
+		props.updateTabInfo(getMaskedUrl(siteInfo.url), props.id);
+
+		if (type !== 'start') {
+			props.addToBrowserHistory({
+				name: siteInfo.title,
+				url: getMaskedUrl(siteInfo.url)
+			});
+		}
 
 		if (isHomepage(siteInfo.url)) {
 			injectHomePageScripts();
