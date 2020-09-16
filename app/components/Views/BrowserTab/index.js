@@ -385,7 +385,7 @@ export const BrowserTab = props => {
 				result: [selectedAddress]
 			});
 		}
-		console.log('----------useeffect');
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
 
@@ -395,7 +395,6 @@ export const BrowserTab = props => {
 	const getRpcMethodMiddleware = ({ hostname }) =>
 		// all user facing RPC calls not implemented by the provider
 		createAsyncMiddleware(async (req, res, next) => {
-			console.log('-----createAsyncMiddleware', hostname);
 			const getAccounts = async () => {
 				const { privacyMode, selectedAddress } = props;
 				const isEnabled = !privacyMode || approvedHosts[hostname];
@@ -411,7 +410,6 @@ export const BrowserTab = props => {
 					if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
 						res.result = [selectedAddress];
 					} else {
-						console.log('------OLA');
 						if (showApprovalDialog) return;
 						setShowApprovalDialog(true);
 						setShowApprovalDialogHostname(hostname);
@@ -1665,7 +1663,7 @@ export const BrowserTab = props => {
 		}
 		return null;
 	};
-	console.log(url.current);
+
 	/**
 	 * Main render
 	 */
