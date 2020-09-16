@@ -474,11 +474,11 @@ export function getBrowserViewNavbarOptions(navigation) {
 	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
-		hostname = urlObj.hostname.toLowerCase().replace(/^www./, '');
+		hostname = urlObj.hostname.toLowerCase().replace(/^www\./, '');
 		if (isGatewayUrl(urlObj) && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			const ensUrl = navigation.getParam('currentEnsName', '');
 			if (ensUrl) {
-				hostname = ensUrl.toLowerCase().replace(/^www./, '');
+				hostname = ensUrl.toLowerCase().replace(/^www\./, '');
 			}
 		}
 	} else {
