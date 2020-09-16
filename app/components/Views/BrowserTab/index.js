@@ -59,6 +59,7 @@ import createAsyncMiddleware from 'json-rpc-engine/src/createAsyncMiddleware';
 import { ethErrors } from 'eth-json-rpc-errors';
 
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
+import { getVersion } from 'react-native-device-info';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -220,6 +221,7 @@ let wizardScrollAdjusted = false;
 const sessionENSNames = {};
 const ensIgnoreList = [];
 let approvedHosts = {};
+let appVersion = '';
 
 export const BrowserTab = props => {
 	const [backEnabled, setBackEnabled] = useState(false);
@@ -571,7 +573,12 @@ export const BrowserTab = props => {
 				},
 
 				web3_clientVersion: async () => {
-					res.result = `MetaMask/${props.app_version}/Beta/Mobile`;
+					let version = appVersion;
+					if (!version) {
+						appVersion = await getVersion();
+						version = appVersion;
+					}
+					res.result = `MetaMask/${version}/Beta/Mobile`;
 				},
 
 				wallet_scanQRCode: async () => {
