@@ -789,7 +789,7 @@ export const BrowserTab = props => {
 	 */
 	const handleNotAllowedUrl = urlToGo => {
 		setBlockedUrl(urlToGo);
-		setShowPhishingModal(true);
+		setTimeout(() => setShowPhishingModal(true), 1000);
 	};
 
 	/**
@@ -1707,6 +1707,7 @@ export const BrowserTab = props => {
 			{!isHidden() && renderPhishingModal()}
 			{!isHidden() && renderUrlModal()}
 			{!isHidden() && renderApprovalModal()}
+			{!isHidden() && renderPhishingModal()}
 			{!isHidden() && renderWatchAssetModal()}
 			{!isHidden() && renderOptions()}
 			{!isHidden() && renderBottomBar()}
