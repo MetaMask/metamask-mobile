@@ -1704,9 +1704,9 @@ export const BrowserTab = props => {
 				)}
 			</View>
 			{renderProgressBar()}
+			{!isHidden() && renderPhishingModal()}
 			{!isHidden() && renderUrlModal()}
 			{!isHidden() && renderApprovalModal()}
-			{!isHidden() && renderPhishingModal()}
 			{!isHidden() && renderWatchAssetModal()}
 			{!isHidden() && renderOptions()}
 			{!isHidden() && renderBottomBar()}
