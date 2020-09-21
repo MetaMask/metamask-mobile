@@ -19,7 +19,6 @@ import Analytics from '../../../../core/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
-<<<<<<< HEAD
 import {
 	EXISTING_USER,
 	BIOMETRY_CHOICE,
@@ -28,9 +27,7 @@ import {
 	PASSCODE_DISABLED,
 	TRUE
 } from '../../../../constants/storage';
-=======
 import CookieManager from '@react-native-community/cookies';
->>>>>>> Add ability to clear cookies
 
 const styles = StyleSheet.create({
 	wrapper: {
