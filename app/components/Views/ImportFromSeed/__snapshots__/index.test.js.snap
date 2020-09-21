@@ -80,7 +80,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
               "paddingHorizontal": 20,
               "paddingTop": 20,
             },
-            undefined,
+            Object {
+              "width": "99%",
+            },
             false,
           ]
         }
@@ -150,6 +152,11 @@ exports[`ImportFromSeed should render correctly 1`] = `
           renderRightAccessory={[Function]}
           returnKeyType="next"
           secureTextEntry={true}
+          style={
+            Object {
+              "width": "99%",
+            }
+          }
           testID="input-password-field"
           textColor="rgba(0, 0, 0, .87)"
           tintColor="#037dd6"
@@ -210,6 +217,11 @@ exports[`ImportFromSeed should render correctly 1`] = `
           placeholder="Confirm password"
           returnKeyType="next"
           secureTextEntry={true}
+          style={
+            Object {
+              "width": "99%",
+            }
+          }
           testID="input-password-field-confirm"
           textColor="rgba(0, 0, 0, .87)"
           tintColor="#037dd6"
