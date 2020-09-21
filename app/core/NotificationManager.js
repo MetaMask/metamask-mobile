@@ -10,6 +10,7 @@ import { strings } from '../../locales/i18n';
 import { Alert, AppState } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import AppConstants from './AppConstants';
+import { PUSH_NOTIFICATIONS_PROMPT_COUNT, PUSH_NOTIFICATIONS_PROMPT_TIME } from '../constants/storage';
 
 /**
  * Singleton class responsible for managing all the
@@ -265,7 +266,7 @@ class NotificationManager {
 	 * with a custom set of rules, like max. number of attempts
 	 */
 	requestPushNotificationsPermission = async () => {
-		const promptCount = await AsyncStorage.getItem('@MetaMask:pushNotificationsPromptCount');
+		const promptCount = await AsyncStorage.getItem(PUSH_NOTIFICATIONS_PROMPT_COUNT);
 		if (!promptCount || Number(promptCount) < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES) {
 			PushNotification.checkPermissions(permissions => {
 				if (!permissions || !permissions.alert) {
@@ -287,9 +288,9 @@ class NotificationManager {
 					);
 
 					const times = (promptCount && Number(promptCount) + 1) || 1;
-					AsyncStorage.setItem('@MetaMask:pushNotificationsPromptCount', times.toString());
+					AsyncStorage.setItem(PUSH_NOTIFICATIONS_PROMPT_COUNT, times.toString());
 					// In case we want to prompt again after certain time.
-					AsyncStorage.setItem('@MetaMask:pushNotificationsPromptTime', Date.now().toString());
+					AsyncStorage.setItem(PUSH_NOTIFICATIONS_PROMPT_TIME, Date.now().toString());
 				}
 			});
 		}

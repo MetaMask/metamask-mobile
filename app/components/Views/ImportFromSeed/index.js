@@ -31,6 +31,16 @@ import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
 import { OutlinedTextField } from 'react-native-material-textfield';
+import {
+	BIOMETRY_CHOICE,
+	BIOMETRY_CHOICE_DISABLED,
+	NEXT_MAKER_REMINDER,
+	PASSCODE_DISABLED,
+	ONBOARDING_WIZARD,
+	EXISTING_USER,
+	METRICS_OPT_IN,
+	TRUE
+} from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -200,8 +210,8 @@ class ImportFromSeed extends PureComponent {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
 			let enabled = true;
-			const previouslyDisabled = await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
-			if (previouslyDisabled && previouslyDisabled === 'true') {
+			const previouslyDisabled = await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			if (previouslyDisabled && previouslyDisabled === TRUE) {
 				enabled = false;
 			}
 			this.setState({ biometryType, biometryChoice: enabled });
@@ -239,7 +249,7 @@ class ImportFromSeed extends PureComponent {
 
 				const { KeyringController } = Engine.context;
 				await Engine.resetState();
-				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
+				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
 
 				if (this.state.biometryType && this.state.biometryChoice) {
@@ -254,9 +264,9 @@ class ImportFromSeed extends PureComponent {
 					if (Device.isIos()) {
 						await SecureKeychain.getGenericPassword();
 					}
-					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
-					await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
-					await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
+					await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
+					await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+					await AsyncStorage.removeItem(PASSCODE_DISABLED);
 				} else {
 					if (this.state.rememberMe) {
 						await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
@@ -265,16 +275,16 @@ class ImportFromSeed extends PureComponent {
 					} else {
 						await SecureKeychain.resetGenericPassword();
 					}
-					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-					await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
-					await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+					await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 				}
 				// Get onboarding wizard state
-				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 				// mark the user as existing so it doesn't see the create password screen again
-				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+				await AsyncStorage.setItem(EXISTING_USER, TRUE);
 				this.setState({ loading: false });
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -336,9 +346,9 @@ class ImportFromSeed extends PureComponent {
 
 	updateBiometryChoice = async biometryChoice => {
 		if (!biometryChoice) {
-			await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
-			await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}
 		this.setState({ biometryChoice });
 	};

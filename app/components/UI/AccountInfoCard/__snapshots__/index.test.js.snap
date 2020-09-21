@@ -13,7 +13,7 @@ exports[`AccountInfoCard should render correctly 1`] = `
     }
   }
 >
-  <Component
+  <Connect(Component)
     address="0x0"
     customStyle={
       Object {
@@ -87,7 +87,7 @@ exports[`AccountInfoCard should render correctly 1`] = `
     >
       Balance:
        
-      0 undefined
+      0 INR
        
       (&lt; 0.00001 eth)
     </Text>

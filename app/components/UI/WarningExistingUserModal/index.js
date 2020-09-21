@@ -20,7 +20,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.black,
 		textAlign: 'center',
-		fontSize: 14
+		fontSize: 14,
+		lineHeight: 18
 	},
 	warningModalTextBold: {
 		...fontStyles.bold

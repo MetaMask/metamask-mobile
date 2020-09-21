@@ -2,10 +2,6 @@
 	"objects": [
 		{
 			"symbol": "ethaud",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "aud",
 				"name": "Australian Dollar"
@@ -13,10 +9,6 @@
 		},
 		{
 			"symbol": "ethhkd",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "hkd",
 				"name": "Hong Kong Dollar"
@@ -24,10 +16,6 @@
 		},
 		{
 			"symbol": "ethsgd",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "sgd",
 				"name": "Singapore Dollar"
@@ -35,10 +23,6 @@
 		},
 		{
 			"symbol": "ethidr",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "idr",
 				"name": "Indonesian Rupiah"
@@ -46,10 +30,6 @@
 		},
 		{
 			"symbol": "ethphp",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "php",
 				"name": "Philippine Peso"
@@ -57,10 +37,6 @@
 		},
 		{
 			"symbol": "ethadt",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "adt",
 				"name": "adToken"
@@ -68,10 +44,6 @@
 		},
 		{
 			"symbol": "ethadx",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "adx",
 				"name": "AdEx"
@@ -79,10 +51,6 @@
 		},
 		{
 			"symbol": "ethant",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "ant",
 				"name": "Aragon"
@@ -90,10 +58,6 @@
 		},
 		{
 			"symbol": "ethbat",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "bat",
 				"name": "Basic Attention Token"
@@ -101,10 +65,6 @@
 		},
 		{
 			"symbol": "ethbnt",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "bnt",
 				"name": "Bancor"
@@ -112,10 +72,6 @@
 		},
 		{
 			"symbol": "ethbtc",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "btc",
 				"name": "Bitcoin"
@@ -123,10 +79,6 @@
 		},
 		{
 			"symbol": "ethcad",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "cad",
 				"name": "Canadian Dollar"
@@ -134,10 +86,6 @@
 		},
 		{
 			"symbol": "ethcfi",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "cfi",
 				"name": "Cofound.it"
@@ -145,10 +93,6 @@
 		},
 		{
 			"symbol": "ethcrb",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "crb",
 				"name": "CreditBit"
@@ -156,10 +100,6 @@
 		},
 		{
 			"symbol": "ethcvc",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "cvc",
 				"name": "Civic"
@@ -167,10 +107,6 @@
 		},
 		{
 			"symbol": "ethdash",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "dash",
 				"name": "Dash"
@@ -178,10 +114,6 @@
 		},
 		{
 			"symbol": "ethdgd",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "dgd",
 				"name": "DigixDAO"
@@ -189,10 +121,6 @@
 		},
 		{
 			"symbol": "ethetc",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "etc",
 				"name": "Ethereum Classic"
@@ -200,10 +128,6 @@
 		},
 		{
 			"symbol": "etheur",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "eur",
 				"name": "Euro"
@@ -211,10 +135,6 @@
 		},
 		{
 			"symbol": "ethfun",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "fun",
 				"name": "FunFair"
@@ -222,10 +142,6 @@
 		},
 		{
 			"symbol": "ethgbp",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "gbp",
 				"name": "Pound Sterling"
@@ -233,10 +149,6 @@
 		},
 		{
 			"symbol": "ethgno",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "gno",
 				"name": "Gnosis"
@@ -244,10 +156,6 @@
 		},
 		{
 			"symbol": "ethgnt",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "gnt",
 				"name": "Golem"
@@ -255,10 +163,6 @@
 		},
 		{
 			"symbol": "ethgup",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "gup",
 				"name": "Matchpool"
@@ -266,10 +170,6 @@
 		},
 		{
 			"symbol": "ethhmq",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "hmq",
 				"name": "Humaniq"
@@ -277,10 +177,6 @@
 		},
 		{
 			"symbol": "ethjpy",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "jpy",
 				"name": "Japanese Yen"
@@ -288,10 +184,6 @@
 		},
 		{
 			"symbol": "ethlgd",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "lgd",
 				"name": "Legends Room"
@@ -299,10 +191,6 @@
 		},
 		{
 			"symbol": "ethlsk",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "lsk",
 				"name": "Lisk"
@@ -310,10 +198,6 @@
 		},
 		{
 			"symbol": "ethltc",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "ltc",
 				"name": "Litecoin"
@@ -321,10 +205,6 @@
 		},
 		{
 			"symbol": "ethlun",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "lun",
 				"name": "Lunyr"
@@ -332,10 +212,6 @@
 		},
 		{
 			"symbol": "ethmco",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "mco",
 				"name": "Monaco"
@@ -343,10 +219,6 @@
 		},
 		{
 			"symbol": "ethmtl",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "mtl",
 				"name": "Metal"
@@ -354,10 +226,6 @@
 		},
 		{
 			"symbol": "ethmyst",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "myst",
 				"name": "Mysterium"
@@ -365,10 +233,6 @@
 		},
 		{
 			"symbol": "ethnmr",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "nmr",
 				"name": "Numeraire"
@@ -376,10 +240,6 @@
 		},
 		{
 			"symbol": "ethomg",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "omg",
 				"name": "OmiseGO"
@@ -387,10 +247,6 @@
 		},
 		{
 			"symbol": "ethpay",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "pay",
 				"name": "TenX"
@@ -398,10 +254,6 @@
 		},
 		{
 			"symbol": "ethptoy",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "ptoy",
 				"name": "Patientory"
@@ -409,10 +261,6 @@
 		},
 		{
 			"symbol": "ethqrl",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "qrl",
 				"name": "Quantum-Resistant Ledger"
@@ -420,10 +268,6 @@
 		},
 		{
 			"symbol": "ethqtum",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "qtum",
 				"name": "Qtum"
@@ -431,10 +275,6 @@
 		},
 		{
 			"symbol": "ethrep",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "rep",
 				"name": "Augur"
@@ -442,10 +282,6 @@
 		},
 		{
 			"symbol": "ethrlc",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "rlc",
 				"name": "iEx.ec"
@@ -453,10 +289,6 @@
 		},
 		{
 			"symbol": "ethrub",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "rub",
 				"name": "Russian Ruble"
@@ -464,10 +296,6 @@
 		},
 		{
 			"symbol": "ethsc",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "sc",
 				"name": "Siacoin"
@@ -475,10 +303,6 @@
 		},
 		{
 			"symbol": "ethsngls",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "sngls",
 				"name": "SingularDTV"
@@ -486,10 +310,6 @@
 		},
 		{
 			"symbol": "ethsnt",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "snt",
 				"name": "Status"
@@ -497,10 +317,6 @@
 		},
 		{
 			"symbol": "ethsteem",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "steem",
 				"name": "Steem"
@@ -508,10 +324,6 @@
 		},
 		{
 			"symbol": "ethstorj",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "storj",
 				"name": "Storj"
@@ -519,10 +331,6 @@
 		},
 		{
 			"symbol": "ethtime",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "time",
 				"name": "ChronoBank"
@@ -530,10 +338,6 @@
 		},
 		{
 			"symbol": "ethtkn",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "tkn",
 				"name": "TokenCard"
@@ -541,10 +345,6 @@
 		},
 		{
 			"symbol": "ethtrst",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "trst",
 				"name": "WeTrust"
@@ -552,10 +352,6 @@
 		},
 		{
 			"symbol": "ethusd",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "usd",
 				"name": "United States Dollar"
@@ -563,10 +359,6 @@
 		},
 		{
 			"symbol": "ethwings",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "wings",
 				"name": "Wings"
@@ -574,10 +366,6 @@
 		},
 		{
 			"symbol": "ethxem",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "xem",
 				"name": "NEM"
@@ -585,10 +373,6 @@
 		},
 		{
 			"symbol": "ethxlm",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "xlm",
 				"name": "Stellar Lumen"
@@ -596,10 +380,6 @@
 		},
 		{
 			"symbol": "ethxmr",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "xmr",
 				"name": "Monero"
@@ -607,10 +387,6 @@
 		},
 		{
 			"symbol": "ethxrp",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "xrp",
 				"name": "Ripple"
@@ -618,10 +394,6 @@
 		},
 		{
 			"symbol": "ethzec",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "zec",
 				"name": "Zcash"
@@ -629,10 +401,6 @@
 		},
 		{
 			"symbol": "ethdai",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "dai",
 				"name": "DAI"
@@ -640,10 +408,6 @@
 		},
 		{
 			"symbol": "ethusdc",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "usdc",
 				"name": "USD Coin"
@@ -651,13 +415,37 @@
 		},
 		{
 			"symbol": "ethusdt",
-			"base": {
-				"code": "eth",
-				"name": "Ethereum"
-			},
 			"quote": {
 				"code": "usdt",
 				"name": "Tether"
+			}
+		},
+		{
+			"symbol": "ethinr",
+			"quote": {
+				"code": "inr",
+				"name": "Indian Rupee"
+			}
+		},
+		{
+			"symbol": "eth1st",
+			"quote": {
+				"code": "1st",
+				"name": "FirstBlood"
+			}
+		},
+		{
+			"symbol": "ethuah",
+			"quote": {
+				"code": "uah",
+				"name": "Ukrainian Hryvnia"
+			}
+		},
+		{
+			"symbol": "ethsai",
+			"quote": {
+				"code": "sai",
+				"name": "SAI"
 			}
 		}
 	]
