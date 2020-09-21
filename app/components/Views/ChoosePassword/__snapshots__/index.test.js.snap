@@ -160,15 +160,20 @@ exports[`ChoosePassword should render correctly 1`] = `
             returnKeyType="next"
             secureTextEntry={true}
             style={
-              Object {
-                "borderColor": "#6a737d",
-                "borderRadius": 6,
-                "borderWidth": 1,
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
-                "fontWeight": "400",
-                "padding": 10,
-              }
+              Array [
+                Object {
+                  "borderColor": "#6a737d",
+                  "borderRadius": 6,
+                  "borderWidth": 1,
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 20,
+                  "fontWeight": "400",
+                  "padding": 10,
+                },
+                Object {
+                  "width": "99%",
+                },
+              ]
             }
             testID="input-password"
             value=""
@@ -218,15 +223,20 @@ exports[`ChoosePassword should render correctly 1`] = `
             returnKeyType="done"
             secureTextEntry={true}
             style={
-              Object {
-                "borderColor": "#6a737d",
-                "borderRadius": 6,
-                "borderWidth": 1,
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
-                "fontWeight": "400",
-                "padding": 10,
-              }
+              Array [
+                Object {
+                  "borderColor": "#6a737d",
+                  "borderRadius": 6,
+                  "borderWidth": 1,
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 20,
+                  "fontWeight": "400",
+                  "padding": 10,
+                },
+                Object {
+                  "width": "99%",
+                },
+              ]
             }
             testID="input-password-confirm"
             value=""

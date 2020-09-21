@@ -232,7 +232,8 @@ class ChoosePassword extends PureComponent {
 		biometryChoice: false,
 		rememberMe: false,
 		loading: false,
-		error: null
+		error: null,
+		inputWidth: { width: '99%' }
 	};
 
 	mounted = true;
@@ -246,6 +247,11 @@ class ChoosePassword extends PureComponent {
 		if (biometryType) {
 			this.setState({ biometryType, biometryChoice: true });
 		}
+		setTimeout(() => {
+			this.setState({
+				inputWidth: { width: '100%' }
+			});
+		}, 100);
 	}
 
 	componentDidUpdate(prevProps, prevState) {
@@ -512,7 +518,7 @@ class ChoosePassword extends PureComponent {
 	};
 
 	render() {
-		const { isSelected, password, confirmPassword, secureTextEntry, error, loading } = this.state;
+		const { isSelected, inputWidth, password, confirmPassword, secureTextEntry, error, loading } = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
 		const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
@@ -563,7 +569,7 @@ class ChoosePassword extends PureComponent {
 										{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
 									</Text>
 									<TextInput
-										style={styles.input}
+										style={[styles.input, inputWidth]}
 										value={password}
 										onChangeText={this.onPasswordChange}
 										secureTextEntry={secureTextEntry}
@@ -587,7 +593,7 @@ class ChoosePassword extends PureComponent {
 									<Text style={styles.hintLabel}>{strings('choose_password.confirm_password')}</Text>
 									<TextInput
 										ref={this.confirmPasswordInput}
-										style={styles.input}
+										style={[styles.input, inputWidth]}
 										value={confirmPassword}
 										onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
 										secureTextEntry={secureTextEntry}
