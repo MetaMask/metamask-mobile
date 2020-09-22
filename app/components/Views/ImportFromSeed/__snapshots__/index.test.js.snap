@@ -49,6 +49,51 @@ exports[`ImportFromSeed should render correctly 1`] = `
       >
         Import from seed
       </Text>
+      <View
+        style={
+          Object {
+            "alignItems": "flex-end",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "width": "50%",
+            }
+          }
+        />
+        <View
+          style={
+            Array [
+              Object {
+                "width": "50%",
+              },
+              Object {
+                "flexDirection": "row-reverse",
+              },
+            ]
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "marginBottom": 12,
+                }
+              }
+            >
+              Show
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
       <TextInput
         autoCapitalize="none"
         autoCorrect={false}
@@ -75,7 +120,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
               "fontSize": 20,
               "fontWeight": "400",
               "height": "auto",
-              "marginVertical": 10,
+              "marginBottom": 10,
               "minHeight": 110,
               "paddingBottom": 20,
               "paddingHorizontal": 20,
@@ -119,26 +164,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
             size={20}
           />
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={[Function]}
-          style={
-            Object {
-              "borderColor": "#d6d9dc",
-              "borderRadius": 6,
-              "borderWidth": 1,
-              "marginRight": 10,
-              "paddingHorizontal": 6,
-              "paddingVertical": 4,
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            color="#777777"
-            name="eye-slash"
-            size={20}
-          />
-        </TouchableOpacity>
       </View>
       <View
         style={
@@ -147,18 +172,64 @@ exports[`ImportFromSeed should render correctly 1`] = `
           }
         }
       >
-        <Text
+        <View
           style={
             Object {
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "marginBottom": 12,
+              "alignItems": "flex-end",
+              "flexDirection": "row",
             }
           }
         >
-          New Password
-        </Text>
+          <View
+            style={
+              Object {
+                "width": "50%",
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "marginBottom": 12,
+                }
+              }
+            >
+              New Password
+            </Text>
+          </View>
+          <View
+            style={
+              Array [
+                Object {
+                  "width": "50%",
+                },
+                Object {
+                  "flexDirection": "row-reverse",
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Object {
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "marginBottom": 12,
+                  }
+                }
+              >
+                Show
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         <OutlinedTextField
           activeLineWidth={2}
           animationDuration={225}
@@ -177,7 +248,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="New Password"
-          renderRightAccessory={[Function]}
           returnKeyType="next"
           secureTextEntry={true}
           style={
