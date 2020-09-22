@@ -639,22 +639,30 @@ export class BrowserTab extends PureComponent {
 					res.result = `MetaMask/${this.props.app_version}/Beta/Mobile`;
 				},
 
-				wallet_scanQRCode: async () => {
-					this.props.navigation.navigate('QRScanner', {
-						onScanSuccess: data => {
-							let result = data;
-							if (data.target_address) {
-								result = data.target_address;
-							} else if (data.scheme) {
-								result = JSON.stringify(data);
+				wallet_scanQRCode: () =>
+					new Promise((resolve, reject) => {
+						this.props.navigation.navigate('QRScanner', {
+							onScanSuccess: data => {
+								const regex = new RegExp(req.params[0]);
+								if (regex && !regex.exec(data)) {
+									reject({ message: 'NO_REGEX_MATCH', data });
+								} else if (!regex && !/^(0x){1}[0-9a-fA-F]{40}$/i.exec(data.target_address)) {
+									reject({ message: 'INVALID_ETHEREUM_ADDRESS', data: data.target_address });
+								}
+								let result = data;
+								if (data.target_address) {
+									result = data.target_address;
+								} else if (data.scheme) {
+									result = JSON.stringify(data);
+								}
+								res.result = result;
+								resolve();
+							},
+							onScanError: e => {
+								throw ethErrors.rpc.internal(e.toString());
 							}
-							res.result = result;
-						},
-						onScanError: e => {
-							throw ethErrors.rpc.internal(e.toString());
-						}
-					});
-				},
+						});
+					}),
 
 				wallet_watchAsset: async () => {
 					const {
@@ -674,7 +682,6 @@ export class BrowserTab extends PureComponent {
 					if (!this.isHomepage()) {
 						throw ethErrors.provider.unauthorized('Forbidden.');
 					}
-
 					Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
 						{
 							text: strings('browser.cancel'),
