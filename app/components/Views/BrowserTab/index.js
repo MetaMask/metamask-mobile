@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 // eslint-disable-next-line import/named
 import { withNavigation } from 'react-navigation';
-import { WebView } from 'react-native-webview';
+import { WebView } from 'react-native-webview-forked';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -70,6 +70,8 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
+
+const ANIMATION_TIMING = 300;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -384,7 +386,8 @@ export class BrowserTab extends PureComponent {
 			lastError: null,
 			showApprovalDialogHostname: undefined,
 			showOptions: false,
-			lastUrlBeforeHome: null
+			lastUrlBeforeHome: null,
+			newPageData: {}
 		};
 	}
 	backgroundBridges = [];
@@ -583,7 +586,7 @@ export class BrowserTab extends PureComponent {
 							? this.props.network
 							: Networks[this.props.networkType].networkId;
 
-					// eslint-disable-next-line eqeqeq
+					// eslint-disable-next-line
 					if (chainId && chainId != activeChainId) {
 						throw ethErrors.rpc.invalidRequest(
 							`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
@@ -973,7 +976,8 @@ export class BrowserTab extends PureComponent {
 		const { hostname, query, pathname } = new URL(sanitizedURL);
 
 		let contentId, contentUrl, contentType;
-		if (this.isENSUrl(sanitizedURL)) {
+		const isEnsUrl = this.isENSUrl(sanitizedURL);
+		if (isEnsUrl) {
 			this.resolvingENSUrl = true;
 			const { url, type, hash } = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
 			contentUrl = url;
@@ -1000,7 +1004,7 @@ export class BrowserTab extends PureComponent {
 				progress: 0,
 				ipfsWebsite: !!contentUrl,
 				inputValue: sanitizedURL,
-				currentEnsName: hostname,
+				currentEnsName: isEnsUrl && hostname,
 				contentId,
 				contentType,
 				hostname: this.formatHostname(hostname),
@@ -1033,8 +1037,9 @@ export class BrowserTab extends PureComponent {
 				}
 			} else if (type === 'swarm-ns') {
 				gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
+			} else if (type === 'ipns-ns') {
+				gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'}${query || ''}`;
 			}
-
 			return {
 				url: gatewayUrl,
 				hash,
@@ -1159,7 +1164,7 @@ export class BrowserTab extends PureComponent {
 					this.isReloading = false;
 					this.go(url2Reload);
 				});
-			}, 300);
+			}, ANIMATION_TIMING);
 		});
 	};
 
@@ -1223,7 +1228,7 @@ export class BrowserTab extends PureComponent {
 		this.toggleOptionsIfNeeded();
 		setTimeout(() => {
 			this.props.toggleNetworkModal();
-		}, 300);
+		}, ANIMATION_TIMING);
 	};
 
 	onNewTabPress = () => {
@@ -1233,7 +1238,7 @@ export class BrowserTab extends PureComponent {
 		this.toggleOptionsIfNeeded();
 		setTimeout(() => {
 			this.props.newTab(url);
-		}, 300);
+		}, ANIMATION_TIMING);
 	};
 
 	openInBrowser = () => {
@@ -1367,6 +1372,11 @@ export class BrowserTab extends PureComponent {
 					`${ipfsGateway}${this.state.contentId}/`,
 					`https://${this.state.currentEnsName}/`
 				);
+			} else if (this.state.contentType === 'ipns-ns') {
+				data.inputValue = url.replace(
+					`${ipfsGateway}${this.state.currentEnsName}/`,
+					`https://${this.state.currentEnsName}/`
+				);
 			} else {
 				data.inputValue = url.replace(
 					`${AppConstants.SWARM_GATEWAY_URL}${this.state.contentId}/`,
@@ -1377,7 +1387,6 @@ export class BrowserTab extends PureComponent {
 			data.inputValue = url;
 			data.hostname = this.formatHostname(urlObj.hostname);
 		}
-
 		this.setState({ newPageData: data });
 	};
 
@@ -1427,7 +1436,7 @@ export class BrowserTab extends PureComponent {
 			this.setState({
 				url,
 				inputValue: url,
-				autocompletInputValue: url,
+				autocompleteInputValue: url,
 				currentPageTitle: title,
 				forwardEnabled: false
 			});
@@ -1604,6 +1613,18 @@ export class BrowserTab extends PureComponent {
 		this.props.navigation.setParams(params);
 	};
 
+	/**
+	 * reset autocompleteInputValue to be the url if the input has been left empty
+	 */
+	resetAutocompleteInputValue = urlParam => {
+		const { autocompleteInputValue } = this.state;
+		if (autocompleteInputValue === '') {
+			this.setState({
+				autocompleteInputValue: urlParam
+			});
+		}
+	};
+
 	hideUrlModal = url => {
 		const urlParam = typeof url === 'string' && url ? url : this.props.navigation.state.params.url;
 		this.props.navigation.setParams({
@@ -1611,6 +1632,8 @@ export class BrowserTab extends PureComponent {
 			url: urlParam,
 			showUrlModal: false
 		});
+
+		setTimeout(this.resetAutocompleteInputValue, ANIMATION_TIMING, urlParam);
 
 		if (this.isHomepage()) {
 			const { current } = this.webview;
@@ -1646,7 +1669,7 @@ export class BrowserTab extends PureComponent {
 				if (current && !current.isFocused()) {
 					current.focus();
 				}
-			}, 300);
+			}, ANIMATION_TIMING);
 		}
 
 		return (
@@ -1658,8 +1681,8 @@ export class BrowserTab extends PureComponent {
 				animationIn="slideInDown"
 				animationOut="slideOutUp"
 				backdropOpacity={0.7}
-				animationInTiming={300}
-				animationOutTiming={300}
+				animationInTiming={ANIMATION_TIMING}
+				animationOutTiming={ANIMATION_TIMING}
 				useNativeDriver
 			>
 				<View style={styles.urlModalContent} testID={'url-modal'}>
@@ -1752,7 +1775,8 @@ export class BrowserTab extends PureComponent {
 			currentPageTitle,
 			currentPageUrl,
 			currentPageIcon,
-			inputValue
+			inputValue,
+			currentEnsName
 		} = this.state;
 		const url =
 			currentPageUrl && currentPageUrl.length && currentPageUrl !== 'localhost' ? currentPageUrl : inputValue;
@@ -1765,8 +1789,8 @@ export class BrowserTab extends PureComponent {
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
 				backdropOpacity={0.7}
-				animationInTiming={300}
-				animationOutTiming={300}
+				animationInTiming={ANIMATION_TIMING}
+				animationOutTiming={ANIMATION_TIMING}
 				onSwipeComplete={this.onAccountsReject}
 				onBackdropPress={this.onAccountsReject}
 				swipeDirection={'down'}
@@ -1774,7 +1798,7 @@ export class BrowserTab extends PureComponent {
 				<AccountApproval
 					onCancel={this.onAccountsReject}
 					onConfirm={this.onAccountsConfirm}
-					currentPageInformation={{ title: currentPageTitle, url, icon: currentPageIcon }}
+					currentPageInformation={{ title: currentPageTitle, url, icon: currentPageIcon, currentEnsName }}
 				/>
 			</Modal>
 		);
@@ -1824,8 +1848,8 @@ export class BrowserTab extends PureComponent {
 				style={styles.fullScreenModal}
 				backdropOpacity={1}
 				backdropColor={colors.red}
-				animationInTiming={300}
-				animationOutTiming={300}
+				animationInTiming={ANIMATION_TIMING}
+				animationOutTiming={ANIMATION_TIMING}
 				useNativeDriver
 			>
 				<PhishingModal

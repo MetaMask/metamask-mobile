@@ -1,7 +1,6 @@
 import Device from '../util/Device';
 
 export default {
-	PREVIOUS_SCREEN: 'previous_screen',
 	DEFAULT_LOCK_TIMEOUT: 30000,
 	DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
 	TX_CHECK_MAX_FREQUENCY: 5000,
@@ -9,6 +8,7 @@ export default {
 	TX_CHECK_BACKGROUND_FREQUENCY: 30000,
 	IPFS_OVERRIDE_PARAM: 'mm_override',
 	IPFS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipfs/',
+	IPNS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipns/',
 	SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
 	supportedTLDs: ['eth', 'xyz', 'test'],
 	MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
@@ -33,5 +33,17 @@ export default {
 		: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/76.0.3809.123 Mobile/15E148 Safari/605.1',
 	NOTIFICATION_NAMES: {
 		accountsChanged: 'wallet_accountsChanged'
+	},
+	FIAT_ORDERS: {
+		TRANSAK_URL: 'https://global.transak.com/',
+		TRANSAK_URL_STAGING: 'https://staging-global.transak.com/',
+		TRANSAK_API_URL_PRODUCTION: 'https://api.transak.com/',
+		TRANSAK_API_URL_STAGING: 'https://staging-api.transak.com/',
+		TRANSAK_REDIRECT_URL: 'https://metamask.io/',
+		WYRE_API_ENDPOINT: 'https://api.sendwyre.com/',
+		WYRE_API_ENDPOINT_TEST: 'https://api.testwyre.com/',
+		WYRE_MERCHANT_ID: 'merchant.io.metamask.wyre',
+		WYRE_MERCHANT_ID_TEST: 'merchant.io.metamask.wyre.test',
+		POLLING_FREQUENCY: 10000
 	}
 };

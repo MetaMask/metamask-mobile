@@ -1,8 +1,53 @@
 # Changelog
 
 ## Current Develop Branch
+- [#1800](https://github.com/MetaMask/metamask-mobile/pull/1800): Feature/improve nav browser title (#1800)
+- [#1781](https://github.com/MetaMask/metamask-mobile/pull/1781): Bugfix/Use translations for steps (#1781)
+- [#1759](https://github.com/MetaMask/metamask-mobile/pull/1759): Bugfix/Display correct balance from state when creating an account that already holds funds (#1759)
+- [#1728](https://github.com/MetaMask/metamask-mobile/pull/1728): Add /constants (#1728)
+- [#1787](https://github.com/MetaMask/metamask-mobile/pull/1787): Add missing currency conversions (#1787)
 
-## v0.2.20 - Jul 31 2020
+## v1.0.2 - Sept 2 2020
+- [#1812](https://github.com/MetaMask/metamask-mobile/pull/1812): Add logger on login (#1812)
+
+## v1.0.1 - Sept 1 2020
+- [#1795](https://github.com/MetaMask/metamask-mobile/pull/1795): Update react native aes crypto forked (#1795)
+- [#1796](https://github.com/MetaMask/metamask-mobile/pull/1796): bugfix/mixpanel android in app notifications (#1796)
+
+## v1.0.0 - Aug 26 2020
+- [#1790](https://github.com/MetaMask/metamask-mobile/pull/1790): Bugfix/payment request and wallet connect origin on tx (#1790)
+- [#1791](https://github.com/MetaMask/metamask-mobile/pull/1791): Fix send receive buttons style (#1791)
+- [#1785](https://github.com/MetaMask/metamask-mobile/pull/1785): Use @metamask/controllers@2.0.5 (#1785)
+- [#1788](https://github.com/MetaMask/metamask-mobile/pull/1788): bugfix/protect wallet modal receive request (#1788)
+- [#1666](https://github.com/MetaMask/metamask-mobile/pull/1666): Fiat on Ramp: Payments (#1666)
+- [#1783](https://github.com/MetaMask/metamask-mobile/pull/1783): bugfix/hide protect wallet modal (#1783)
+- [#1779](https://github.com/MetaMask/metamask-mobile/pull/1779): Update camera lib (#1779)
+- [#1782](https://github.com/MetaMask/metamask-mobile/pull/1782): Make backup required when user has funds (#1782)
+- [#1778](https://github.com/MetaMask/metamask-mobile/pull/1778): Update bip to use js version of pbkdf2 even more specific use case (#1778)
+- [#1776](https://github.com/MetaMask/metamask-mobile/pull/1776): Use JS pbkdf2 if using chrome devtools (bip39) (#1776)
+- [#1773](https://github.com/MetaMask/metamask-mobile/pull/1773): Improvement/import from seed styles (#1773)
+- [#1772](https://github.com/MetaMask/metamask-mobile/pull/1772): bugfix/cancel dapp tx when inactive (#1772)
+- [#1769](https://github.com/MetaMask/metamask-mobile/pull/1769): Patch bip39 to use native crypto lib pbkdf2 (#1769)
+- [#1766](https://github.com/MetaMask/metamask-mobile/pull/1766): Feature/ipns ens sites (#1766)
+- [#1755](https://github.com/MetaMask/metamask-mobile/pull/1755): Improvement/migrate aes crypto lib (#1755)
+- [#1756](https://github.com/MetaMask/metamask-mobile/pull/1756): Fix recreate vault import accounts (#1756)
+- [#1729](https://github.com/MetaMask/metamask-mobile/pull/1729): Lock KeyringController on logout (#1729)
+- [#1767](https://github.com/MetaMask/metamask-mobile/pull/1767): Fix crash when entering custom token (#1767)
+- [#1765](https://github.com/MetaMask/metamask-mobile/pull/1765): Browser newPageData state undefined (#1765)
+- [#1762](https://github.com/MetaMask/metamask-mobile/pull/1762): Use patch-package@6.2.2 (#1762)
+- [#1763](https://github.com/MetaMask/metamask-mobile/pull/1763): Remove unused metamask-mobile-provider dependency (#1763)
+- [#1736](https://github.com/MetaMask/metamask-mobile/pull/1736): Amount: fix comma causing invalid send amount (#1736)
+- [#1711](https://github.com/MetaMask/metamask-mobile/pull/1711): Improve iOS build process (#1711)
+- [#1733](https://github.com/MetaMask/metamask-mobile/pull/1733): @metamask/controllers 2.0.3 (#1733)
+- [#1727](https://github.com/MetaMask/metamask-mobile/pull/1727): Bump json from 2.2.0 to 2.3.1 in /ios (#1727)
+
+## v0.2.20 - Aug 6 2020
+- [#1751](https://github.com/MetaMask/metamask-mobile/pull/1751): bugfix/payment requests & deeplinks (#1751)
+- [#1732](https://github.com/MetaMask/metamask-mobile/pull/1732): Copy edits (#1732)
+- [#1750](https://github.com/MetaMask/metamask-mobile/pull/1750): Don't allow for zero in custom gas price (#1750)
+- [#1744](https://github.com/MetaMask/metamask-mobile/pull/1744): bugix/v0.2.20 (#1744)
+- [#1730](https://github.com/MetaMask/metamask-mobile/pull/1730): Check for pods first, don't double up on yarn install(s) (#1730)
+- [#1734](https://github.com/MetaMask/metamask-mobile/pull/1734): Use elliptic@6.5.3 (#1734)
 - [#1741](https://github.com/MetaMask/metamask-mobile/pull/1741): Bugfix/skipping going to next step before (#1741)
 - [#1737](https://github.com/MetaMask/metamask-mobile/pull/1737): Fix scroll and button text and secure now goes to next step (#1737)
 - [#1740](https://github.com/MetaMask/metamask-mobile/pull/1740): check previousScreen and change lading message (#1740)

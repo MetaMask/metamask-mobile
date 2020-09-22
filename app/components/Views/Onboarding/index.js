@@ -1,6 +1,16 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Text, View, ScrollView, StyleSheet, Alert, Image, InteractionManager } from 'react-native';
+import {
+	ActivityIndicator,
+	FlatList,
+	Text,
+	View,
+	ScrollView,
+	StyleSheet,
+	Alert,
+	Image,
+	InteractionManager
+} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -16,6 +26,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
+import ScanStep from '../../UI/ScanStep';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import ActionModal from '../../UI/ActionModal';
 import Logger from '../../../util/Logger';
@@ -26,6 +37,16 @@ import AppConstants from '../../../core/AppConstants';
 import AnimatedFox from 'react-native-animated-fox';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
+import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
+import {
+	EXISTING_USER,
+	BIOMETRY_CHOICE,
+	BIOMETRY_CHOICE_DISABLED,
+	PASSCODE_DISABLED,
+	NEXT_MAKER_REMINDER,
+	METRICS_OPT_IN,
+	TRUE
+} from '../../../constants/storage';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -98,14 +119,8 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: 18,
 		color: colors.fontPrimary,
-		textAlign: 'center'
-	},
-	steps: {},
-	step: {
-		...fontStyles.normal,
-		fontSize: 16,
-		color: colors.fontPrimary,
-		lineHeight: 32
+		textAlign: 'center',
+		lineHeight: 28
 	},
 	loader: {
 		marginTop: 180,
@@ -122,16 +137,15 @@ const styles = StyleSheet.create({
 	column: {
 		marginVertical: 24,
 		alignItems: 'flex-start'
-	},
-	row: {
-		flexDirection: 'row',
-		alignItems: 'flex-start',
-		flexWrap: 'wrap'
-	},
-	bullet: {
-		width: 20
-	},
-	bulletText: {}
+	}
+});
+
+const keyExtractor = ({ id }) => id;
+
+const createStep = step => ({
+	id: `ONBOARDING_SCAN_STEPS-${step}`,
+	step,
+	text: strings(`onboarding.scan_step_${step}`)
 });
 
 /**
@@ -208,7 +222,7 @@ class Onboarding extends PureComponent {
 	}
 
 	async checkIfExistingUser() {
-		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
+		const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 		if (existingUser !== null) {
 			this.setState({ existingUser: true });
 		}
@@ -301,8 +315,8 @@ class Onboarding extends PureComponent {
 						{
 							text: strings('sync_with_extension.warning_cancel_button'),
 							onPress: async () => {
-								await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-								await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+								await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+								await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 								this.finishSync({ biometrics: false, password });
 							},
 							style: 'cancel'
@@ -310,8 +324,8 @@ class Onboarding extends PureComponent {
 						{
 							text: strings('sync_with_extension.warning_ok_button'),
 							onPress: async () => {
-								await AsyncStorage.setItem('@MetaMask:biometryChoice', biometryType);
-								await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+								await AsyncStorage.setItem(BIOMETRY_CHOICE, biometryType);
+								await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 								this.finishSync({ biometrics: true, biometryType, password });
 							}
 						}
@@ -338,22 +352,22 @@ class Onboarding extends PureComponent {
 			try {
 				if (Device.isIos()) {
 					await SecureKeychain.getGenericPassword();
-					await AsyncStorage.setItem('@MetaMask:biometryChoice', opts.biometryType);
+					await AsyncStorage.setItem(BIOMETRY_CHOICE, opts.biometryType);
 				}
 			} catch (e) {
 				Logger.error(e, 'User cancelled biometrics permission');
-				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-				await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
-				await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 			}
 		} else {
-			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-			await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
-			await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 		}
 
 		try {
-			await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
+			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			await Engine.resetState();
 			await Engine.sync({
 				...this.dataToSync,
@@ -361,7 +375,7 @@ class Onboarding extends PureComponent {
 				importedAccounts: this.importedAccounts,
 				pass: opts.password
 			});
-			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.seedphraseBackedUp();
@@ -428,7 +442,7 @@ class Onboarding extends PureComponent {
 	onPressCreate = () => {
 		const action = () => {
 			this.props.navigation.navigate('ChoosePassword', {
-				[AppConstants.PREVIOUS_SCREEN]: 'onboarding'
+				[PREVIOUS_SCREEN]: ONBOARDING
 			});
 			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
 		};
@@ -475,7 +489,7 @@ class Onboarding extends PureComponent {
 				Analytics.trackEvent(key);
 				return;
 			}
-			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 			if (!metricsOptIn) {
 				this.props.saveOnboardingEvent(key);
 			}
@@ -553,6 +567,10 @@ class Onboarding extends PureComponent {
 	render() {
 		const { qrCodeModalVisible, loading, existingUser } = this.state;
 
+		const renderScanStep = ({ item: { step, text } }) => <ScanStep step={step}>{text}</ScanStep>;
+
+		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(createStep);
+
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
 				<OnboardingScreenWithBg screen={'c'}>
@@ -605,16 +623,11 @@ class Onboarding extends PureComponent {
 					<View style={styles.modalWrapper}>
 						<Text style={styles.scanTitle}>{strings('onboarding.scan_title')}</Text>
 						<View style={styles.column}>
-							{[1, 2, 3, 4].map(val => (
-								<View key={val} style={[styles.row, styles.steps]}>
-									<View style={styles.bullet}>
-										<Text style={styles.step}>{val}.</Text>
-									</View>
-									<View style={styles.bulletText}>
-										<Text style={styles.step}>{strings(`onboarding.scan_step_${val}`)}</Text>
-									</View>
-								</View>
-							))}
+							<FlatList
+								data={ONBOARDING_SCAN_STEPS}
+								renderItem={renderScanStep}
+								keyExtractor={keyExtractor}
+							/>
 						</View>
 					</View>
 				</ActionModal>

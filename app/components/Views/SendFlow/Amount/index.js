@@ -133,7 +133,8 @@ const styles = StyleSheet.create({
 		marginRight: 8,
 		paddingVertical: Device.isIos() ? 0 : 8,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		textTransform: 'uppercase'
 	},
 	textInput: {
 		fontFamily: 'Roboto-Light',
@@ -465,7 +466,9 @@ class Amount extends PureComponent {
 				)}`;
 			}
 		}
-
+		if (value && value.includes(',')) {
+			value = inputValue.replace(',', '.');
+		}
 		if (!selectedAsset.tokenId && this.validateAmount(value)) {
 			return;
 		} else if (selectedAsset.tokenId) {
@@ -767,11 +770,10 @@ class Amount extends PureComponent {
 		this.setState({ assetsModalVisible: !assetsModalVisible });
 	};
 
-	handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
+	handleSelectedAssetBalance = ({ address, decimals, symbol, isETH }, renderableBalance) => {
 		const { accounts, selectedAddress, contractBalances } = this.props;
 		let currentBalance;
 
-		const { address, decimals, symbol, isETH } = selectedAsset;
 		if (renderableBalance) {
 			currentBalance = `${renderableBalance} ${symbol}`;
 		} else if (isETH) {

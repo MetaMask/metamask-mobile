@@ -151,7 +151,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  * on project.ext.react, JavaScript will not be compiled to Hermes Bytecode
  * and the benefits of using Hermes will therefore be sharply reduced.
  */
-def enableHermes = project.ext.react.get("enableHermes", false);
+def enableHermes = project.ext.react.get("enableHermes", false)
 
 android {
 
@@ -166,8 +166,8 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 33
-		versionName "0.2.20"
+		versionCode 36
+		versionName "1.0.2"
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
 		missingDimensionStrategy "minReactNative", "minReactNative46"
@@ -250,16 +250,18 @@ android {
 	}
 }
 
-dependencies {	
+dependencies {
 	implementation project(':lottie-react-native')
 
 	implementation project(':react-native-gesture-handler')
-	
-	implementation 'androidx.multidex:multidex:2.0.0'
+
+	implementation 'androidx.multidex:multidex:2.0.1'
 	implementation 'androidx.annotation:annotation:1.1.0'
-	implementation 'androidx.appcompat:appcompat:1.0.0'
+	implementation 'androidx.appcompat:appcompat:1.2.0'
 	implementation "com.facebook.react:react-native:+"  // From node_modules
 	implementation 'org.chromium:v8-android:+'
+
+	implementation 'com.google.android.gms:play-services-wallet:18.0.0'
 
 	implementation "io.branch.sdk.android:library:5.+"
 

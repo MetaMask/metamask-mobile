@@ -73,6 +73,11 @@ exports[`GeneralSettings should render correctly 1`] = `
           options={
             Array [
               Object {
+                "key": "1st",
+                "label": "1ST - FirstBlood",
+                "value": "1st",
+              },
+              Object {
                 "key": "adt",
                 "label": "ADT - adToken",
                 "value": "adt",
@@ -193,6 +198,11 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "idr",
               },
               Object {
+                "key": "inr",
+                "label": "INR - Indian Rupee",
+                "value": "inr",
+              },
+              Object {
                 "key": "jpy",
                 "label": "JPY - Japanese Yen",
                 "value": "jpy",
@@ -283,6 +293,11 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "rub",
               },
               Object {
+                "key": "sai",
+                "label": "SAI - SAI",
+                "value": "sai",
+              },
+              Object {
                 "key": "sc",
                 "label": "SC - Siacoin",
                 "value": "sc",
@@ -326,6 +341,11 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "key": "trst",
                 "label": "TRST - WeTrust",
                 "value": "trst",
+              },
+              Object {
+                "key": "uah",
+                "label": "UAH - Ukrainian Hryvnia",
+                "value": "uah",
               },
               Object {
                 "key": "usd",

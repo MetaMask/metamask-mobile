@@ -3,224 +3,147 @@
 exports[`TransactionReviewFeeCard should render correctly 1`] = `
 <View
   style={
-    Object {
-      "borderColor": "#bbc0c5",
-      "borderRadius": 10,
-      "borderWidth": 1,
-      "marginHorizontal": 24,
-      "padding": 16,
-    }
+    Array [
+      Object {
+        "borderColor": "#D8D8D8",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "padding": 16,
+      },
+      Object {
+        "marginHorizontal": 24,
+      },
+    ]
   }
 >
-  <View
-    style={
-      Array [
-        Object {
-          "alignItems": "center",
-          "flexDirection": "column",
-          "justifyContent": "center",
-        },
-        Object {
-          "borderBottomWidth": 1,
-          "borderColor": "#bbc0c5",
-          "paddingBottom": 12,
-        },
-      ]
-    }
-  >
-    <View
-      style={
-        Array [
-          Object {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "width": "100%",
-          },
-          Object {
-            "paddingBottom": 12,
-          },
-        ]
-      }
+  <SummaryRow>
+    <Text
+      bold={true}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      primary={true}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
+      upper={false}
     >
+      Amount
+    </Text>
+    <Text
+      bold={true}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      primary={true}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
+      upper={true}
+    />
+  </SummaryRow>
+  <SummaryRow>
+    <SummaryCol>
       <Text
-        style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 14,
-            "fontWeight": "600",
-          }
-        }
+        bold={true}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={true}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        upper={false}
       >
-        Amount
+        Network fee
       </Text>
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#000000",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 14,
-              "fontWeight": "600",
-            },
-            Object {
-              "textTransform": "uppercase",
-            },
-          ]
-        }
-      />
-    </View>
-    <View
-      style={
-        Object {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "width": "100%",
-        }
-      }
-    >
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "flex-start",
-          }
-        }
+      <TouchableOpacity
+        disabled={true}
       >
         <Text
-          style={
-            Array [
-              Object {
-                "color": "#000000",
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 14,
-                "fontWeight": "600",
-              },
-              Object {
-                "paddingRight": 5,
-              },
-            ]
-          }
+          bold={true}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={true}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          upper={false}
         >
-          Network fee
+            
+          Edit
         </Text>
-        <TouchableOpacity
-          disabled={true}
-        >
-          <Text
-            style={
-              Array [
-                Object {
-                  "color": "#000000",
-                  "fontFamily": "EuclidCircularB-Bold",
-                  "fontSize": 14,
-                  "fontWeight": "600",
-                },
-                Object {
-                  "color": "#037dd6",
-                },
-              ]
-            }
-          >
-            Edit
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <View
-        style={
-          Object {
-            "backgroundColor": "#FFFFFF",
-            "height": 10,
-          }
+      </TouchableOpacity>
+    </SummaryCol>
+    <View
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "height": 10,
         }
-      >
-        <ActivityIndicator
-          animating={true}
-          color="#999999"
-          hidesWhenStopped={true}
-          size="small"
-        />
-      </View>
+      }
+    >
+      <ActivityIndicator
+        animating={true}
+        color="#999999"
+        hidesWhenStopped={true}
+        size="small"
+      />
     </View>
-  </View>
-  <View
-    style={
-      Array [
-        Object {
-          "alignItems": "center",
-          "flexDirection": "column",
-          "justifyContent": "center",
-        },
-        Object {
-          "paddingTop": 12,
-        },
-      ]
-    }
+  </SummaryRow>
+  <SummarySeparator />
+  <SummaryRow>
+    <Text
+      bold={true}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      primary={true}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
+      upper={false}
+    >
+      Total
+       
+      Amount
+    </Text>
+  </SummaryRow>
+  <SummaryRow
+    end={true}
+    last={true}
   >
     <View
       style={
-        Array [
-          Object {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "width": "100%",
-          },
-          Object {
-            "paddingBottom": 12,
-          },
-        ]
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "height": 10,
+        }
       }
     >
-      <Text
-        style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 14,
-            "fontWeight": "600",
-          }
-        }
-      >
-        Total
-         
-        Amount
-      </Text>
+      <ActivityIndicator
+        animating={true}
+        color="#999999"
+        hidesWhenStopped={true}
+        size="small"
+      />
     </View>
-    <View
-      style={
-        Array [
-          Object {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "width": "100%",
-          },
-          Object {
-            "justifyContent": "flex-end",
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          Object {
-            "backgroundColor": "#FFFFFF",
-            "height": 10,
-          }
-        }
-      >
-        <ActivityIndicator
-          animating={true}
-          color="#999999"
-          hidesWhenStopped={true}
-          size="small"
-        />
-      </View>
-    </View>
-  </View>
+  </SummaryRow>
 </View>
 `;

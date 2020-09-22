@@ -15,6 +15,9 @@ import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
+import Engine from '../../../core/Engine';
+import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
+import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 const warning_skip_backup = require('../../../images/warning.png'); // eslint-disable-line
@@ -155,9 +158,13 @@ const AccountBackupStep1 = props => {
 	const [showRemindLaterModal, setRemindLaterModal] = useState(false);
 	const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 	const [skipCheckbox, setToggleSkipCheckbox] = useState(false);
+	const [hasFunds, setHasFunds] = useState(false);
 
 	useEffect(
 		() => {
+			// Check if user has funds
+			if (Engine.hasFunds()) setHasFunds(true);
+
 			// Disable back press
 			const hardwareBackPress = () => true;
 
@@ -177,6 +184,8 @@ const AccountBackupStep1 = props => {
 	};
 
 	const showRemindLater = () => {
+		if (hasFunds) return;
+
 		setRemindLaterModal(true);
 	};
 
@@ -195,9 +204,9 @@ const AccountBackupStep1 = props => {
 	const skip = async () => {
 		hideRemindLaterModal();
 		// Get onboarding wizard state
-		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		if (!metricsOptIn) {
 			props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {
@@ -221,10 +230,7 @@ const AccountBackupStep1 = props => {
 				testID={'account-backup-step-1-screen'}
 			>
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-					<OnboardingProgress
-						steps={['Create password', 'Secure wallet', 'Confirm seed phrase']}
-						currentStep={1}
-					/>
+					<OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
 					<View style={styles.content}>
 						<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
 						<Image
@@ -245,20 +251,22 @@ const AccountBackupStep1 = props => {
 						</View>
 					</View>
 					<View style={styles.buttonWrapper}>
-						<View style={styles.remindLaterContainer}>
-							<TouchableOpacity
-								style={styles.remindLaterButton}
-								onPress={showRemindLater}
-								hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-							>
-								<Text style={styles.remindLaterText}>
-									{strings('account_backup_step_1.remind_me_later')}
+						{!hasFunds && (
+							<View style={styles.remindLaterContainer}>
+								<TouchableOpacity
+									style={styles.remindLaterButton}
+									onPress={showRemindLater}
+									hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+								>
+									<Text style={styles.remindLaterText}>
+										{strings('account_backup_step_1.remind_me_later')}
+									</Text>
+								</TouchableOpacity>
+								<Text style={styles.remindLaterSubText}>
+									{strings('account_backup_step_1.remind_me_later_subtext')}
 								</Text>
-							</TouchableOpacity>
-							<Text style={styles.remindLaterSubText}>
-								{strings('account_backup_step_1.remind_me_later_subtext')}
-							</Text>
-						</View>
+							</View>
+						)}
 						<View style={styles.ctaContainer}>
 							<StyledButton
 								containerStyle={styles.button}
