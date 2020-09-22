@@ -317,6 +317,38 @@ class CustomGas extends PureComponent {
 		gasInputHeight: null
 	};
 
+	componentDidMount = async () => {
+		const { gas, gasPrice, toggleAdvancedCustomGas } = this.props;
+		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
+		const { ticker } = this.props;
+		if (ticker && ticker !== 'ETH') toggleAdvancedCustomGas(true);
+		//Applies ISF error if present before any gas modifications
+		this.setState({ warningSufficientFunds, advancedCustomGas: ticker && ticker !== 'ETH' });
+	};
+
+	componentDidUpdate = prevProps => {
+		if (this.props.advancedCustomGas) {
+			this.handleGasRecalculationForCustomGasInput(prevProps);
+		}
+	};
+
+	handleGasRecalculationForCustomGasInput = prevProps => {
+		const actualGasLimitWei = renderWei(hexToBN(this.props.gas));
+		if (renderWei(hexToBN(prevProps.gas)) !== actualGasLimitWei)
+			this.setState({ customGasLimit: actualGasLimitWei });
+	};
+
+	//Validate locally instead of in TransactionEditor, otherwise cannot change back to review mode if insufficient funds
+	hasSufficientFunds = (gas, gasPrice) => {
+		const {
+			transaction: { from, value }
+		} = this.props;
+		const checksummedFrom = safeToChecksumAddress(from) || '';
+		const fromAccount = this.props.accounts[checksummedFrom];
+		if (hexToBN(fromAccount.balance).lt(gas.mul(gasPrice).add(value))) return strings('transaction.insufficient');
+		return '';
+	};
+
 	onPressGasFast = () => {
 		const {
 			onPress,
@@ -393,38 +425,6 @@ class CustomGas extends PureComponent {
 				xTranslationEndValue: 0
 			});
 		}
-	};
-
-	componentDidMount = async () => {
-		const { gas, gasPrice, toggleAdvancedCustomGas } = this.props;
-		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
-		const { ticker } = this.props;
-		if (ticker && ticker !== 'ETH') toggleAdvancedCustomGas(true);
-		//Applies ISF error if present before any gas modifications
-		this.setState({ warningSufficientFunds, advancedCustomGas: ticker && ticker !== 'ETH' });
-	};
-
-	componentDidUpdate = prevProps => {
-		if (this.props.advancedCustomGas) {
-			this.handleGasRecalculationForCustomGasInput(prevProps);
-		}
-	};
-
-	handleGasRecalculationForCustomGasInput = prevProps => {
-		const actualGasLimitWei = renderWei(hexToBN(this.props.gas));
-		if (renderWei(hexToBN(prevProps.gas)) !== actualGasLimitWei)
-			this.setState({ customGasLimit: actualGasLimitWei });
-	};
-
-	//Validate locally instead of in TransactionEditor, otherwise cannot change back to review mode if insufficient funds
-	hasSufficientFunds = (gas, gasPrice) => {
-		const {
-			transaction: { from, value }
-		} = this.props;
-		const checksummedFrom = safeToChecksumAddress(from) || '';
-		const fromAccount = this.props.accounts[checksummedFrom];
-		if (hexToBN(fromAccount.balance).lt(gas.mul(gasPrice).add(value))) return strings('transaction.insufficient');
-		return '';
 	};
 
 	onGasLimitChange = value => {

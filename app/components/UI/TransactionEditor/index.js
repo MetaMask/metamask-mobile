@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 import { colors } from '../../../styles/common';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
 import TransactionReview from '../TransactionReview';
-import TransactionEdit from '../TransactionEdit';
-import { isBN, hexToBN, toBN, isDecimal } from '../../../util/number';
-import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
+import CustomGas from '../CustomGas';
+import { isBN, hexToBN, toBN, isDecimal, fromWei } from '../../../util/number';
+import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -55,10 +55,6 @@ class TransactionEditor extends PureComponent {
 		 * List of accounts from the AccountTrackerController
 		 */
 		accounts: PropTypes.object,
-		/**
-		 * react-navigation object used for switching between screens
-		 */
-		navigation: PropTypes.object,
 		/**
 		 * A string representing the network name
 		 */
@@ -118,7 +114,11 @@ class TransactionEditor extends PureComponent {
 		ensRecipient: undefined,
 		basicGasEstimates: {},
 		ready: false,
+		data: undefined,
 		advancedCustomGas: false,
+		amountError: '',
+		gasError: '',
+		toAddressError: '',
 		modalValue: new Animated.Value(1),
 		reviewToEditValue: new Animated.Value(0),
 		reviewToDataValue: new Animated.Value(0),
@@ -139,7 +139,24 @@ class TransactionEditor extends PureComponent {
 	};
 
 	componentDidMount = async () => {
+		const { transaction } = this.props;
 		await this.handleFetchBasicEstimates();
+		if (transaction && transaction.value) {
+			this.handleUpdateAmount(transaction.value, true);
+		}
+		if (transaction && transaction.assetType === 'ETH') {
+			this.handleUpdateReadableValue(fromWei(transaction.value));
+		}
+		if (transaction && transaction.data) {
+			this.setState({ data: transaction.data });
+		}
+	};
+
+	componentDidUpdate = prevProps => {
+		const { transaction } = this.props;
+		if (transaction.data !== prevProps.transaction.data) {
+			this.handleUpdateData(transaction.data);
+		}
 	};
 
 	/**
@@ -235,6 +252,7 @@ class TransactionEditor extends PureComponent {
 	 */
 	handleUpdateData = async data => {
 		const { gas } = await this.estimateGas({ data });
+		this.setState({ data });
 		this.props.setTransactionObject({ gas: hexToBN(gas), data });
 	};
 
@@ -570,6 +588,32 @@ class TransactionEditor extends PureComponent {
 		return undefined;
 	};
 
+	review = async () => {
+		const { data } = this.state;
+		await this.setState({ toFocused: true });
+		const validated = !(await this.validate());
+		if (validated) {
+			if (data && data.substr(0, 2) !== '0x') {
+				this.handleUpdateData(addHexPrefix(data));
+			}
+		}
+		this.onModeChange('review');
+	};
+
+	validate = async () => {
+		const amountError = await this.validateAmount(false);
+		const gasError = this.validateGas();
+		const toAddressError = this.validateToAddress();
+		this.setState({ amountError, gasError, toAddressError });
+		return amountError || gasError || toAddressError;
+	};
+
+	updateGas = async (gas, gasLimit) => {
+		await this.handleGasFeeSelection(gas, gasLimit);
+		const gasError = this.validateGas();
+		this.setState({ gasError });
+	};
+
 	handleNewTxMeta = async ({
 		target_address,
 		chain_id = null, // eslint-disable-line no-unused-vars
@@ -721,7 +765,7 @@ class TransactionEditor extends PureComponent {
 			width,
 			advancedCustomGas,
 			hideGasSelectors,
-			modalValue,
+			gasError,
 			toAdvancedFrom,
 			hideData,
 			customGasHeight
@@ -757,31 +801,21 @@ class TransactionEditor extends PureComponent {
 								<Animated.View
 									style={[styles.transactionEdit, this.generateTransform('reviewToEdit', [width, 0])]}
 								>
-									<TransactionEdit
-										navigation={this.props.navigation}
+									<CustomGas
+										handleGasFeeSelection={this.updateGas}
 										basicGasEstimates={basicGasEstimates}
-										onCancel={this.onCancel}
-										onModeChange={this.onModeChange}
-										handleUpdateAmount={this.handleUpdateAmount}
-										handleUpdateData={this.handleUpdateData}
-										handleUpdateFromAddress={this.handleUpdateFromAddress}
-										handleUpdateToAddress={this.handleUpdateToAddress}
-										handleGasFeeSelection={this.handleGasFeeSelection}
-										validateAmount={this.validateAmount}
-										validateGas={this.validateGas}
-										validateToAddress={this.validateToAddress}
-										handleUpdateAsset={this.handleUpdateAsset}
-										checkForAssetAddress={this.checkForAssetAddress}
-										handleUpdateReadableValue={this.handleUpdateReadableValue}
-										saveCustomGasHeight={this.saveCustomGasHeight}
+										gas={transaction.gas}
+										gasPrice={transaction.gasPrice}
+										gasError={gasError}
 										toggleAdvancedCustomGas={this.toggleAdvancedCustomGas}
 										advancedCustomGas={advancedCustomGas}
+										review={this.review}
+										saveCustomGasHeight={this.saveCustomGasHeight}
 										animate={this.animate}
 										generateTransform={this.generateTransform}
 										getAnimatedModalValueForAdvancedCG={this.getAnimatedModalValueForAdvancedCG}
 										hideGasSelectors={hideGasSelectors}
 										mode={mode}
-										modalValue={modalValue}
 										toAdvancedFrom={toAdvancedFrom}
 									/>
 								</Animated.View>
