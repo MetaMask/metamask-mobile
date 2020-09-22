@@ -151,6 +151,7 @@
 		"strength_strong": "Strong",
 		"show": "Show",
 		"hide": "Hide",
+		"seed_phrase": "Seed phrase",
 		"must_be_at_least": "Must be at least {{number}} characters",
 		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
