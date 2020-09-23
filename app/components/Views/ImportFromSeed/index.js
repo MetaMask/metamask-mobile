@@ -47,6 +47,11 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1
 	},
+	seedPhraseControls: {
+		flexDirection: 'row-reverse',
+		marginTop: -50,
+		marginBottom: 30
+	},
 	wrapper: {
 		flex: 1,
 		paddingHorizontal: 32
@@ -63,6 +68,16 @@ const styles = StyleSheet.create({
 	field: {
 		marginVertical: 5
 	},
+	fieldRow: {
+		flexDirection: 'row',
+		alignItems: 'flex-end'
+	},
+	fieldCol: {
+		width: '50%'
+	},
+	fieldColRight: {
+		flexDirection: 'row-reverse'
+	},
 	label: {
 		fontSize: 14,
 		marginBottom: 12,
@@ -77,7 +92,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	seedPhrase: {
-		marginVertical: 10,
+		marginBottom: 10,
 		paddingTop: 20,
 		paddingBottom: 20,
 		paddingHorizontal: 20,
@@ -89,6 +104,9 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey500,
 		backgroundColor: colors.white,
 		...fontStyles.normal
+	},
+	padding: {
+		paddingRight: 46
 	},
 	biometrics: {
 		alignItems: 'flex-start',
@@ -127,20 +145,12 @@ const styles = StyleSheet.create({
 	strength_strong: {
 		color: colors.green300
 	},
-	showHideToggle: {
-		backgroundColor: colors.white,
-		marginTop: 8,
-		alignSelf: 'flex-end'
-	},
 	showMatchingPasswords: {
 		position: 'absolute',
 		marginTop: 8,
 		alignSelf: 'flex-end'
 	},
 	qrCode: {
-		marginTop: -50,
-		marginBottom: 30,
-		alignSelf: 'flex-end',
 		marginRight: 10,
 		borderWidth: 1,
 		borderRadius: 6,
@@ -200,7 +210,8 @@ class ImportFromSeed extends PureComponent {
 		loading: false,
 		error: null,
 		seedphraseInputFocused: false,
-		inputWidth: { width: '99%' }
+		inputWidth: { width: '99%' },
+		hideSeedPhraseInput: true
 	};
 
 	passwordInput = React.createRef();
@@ -383,6 +394,10 @@ class ImportFromSeed extends PureComponent {
 		this.setState({ secureTextEntry: !this.state.secureTextEntry });
 	};
 
+	toggleHideSeedPhraseInput = () => {
+		this.setState({ hideSeedPhraseInput: !this.state.hideSeedPhraseInput });
+	};
+
 	getPasswordStrengthWord() {
 		// this.state.passwordStrength is calculated by zxcvbn
 		// which returns a score based on "entropy to crack time"
@@ -427,7 +442,8 @@ class ImportFromSeed extends PureComponent {
 			inputWidth,
 			secureTextEntry,
 			error,
-			loading
+			loading,
+			hideSeedPhraseInput
 		} = this.state;
 
 		return (
@@ -435,31 +451,82 @@ class ImportFromSeed extends PureComponent {
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'import-from-seed-screen'}>
 						<Text style={styles.title}>{strings('import_from_seed.title')}</Text>
-						<TextInput
-							value={seed}
-							numberOfLines={3}
-							multiline
-							style={[styles.seedPhrase, inputWidth, seedphraseInputFocused && styles.inputFocused]}
-							placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-							placeholderTextColor={colors.grey200}
-							onChangeText={this.onSeedWordsChange}
-							testID={'input-seed-phrase'}
-							blurOnSubmit
-							onSubmitEditing={this.jumpToPassword}
-							returnKeyType={'next'}
-							keyboardType={Device.isAndroid() ? 'visible-password' : 'default'}
-							autoCapitalize="none"
-							autoCorrect={false}
-							onFocus={this.seedphraseInputFocused}
-							onBlur={this.seedphraseInputFocused}
-						/>
-						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
-							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
-						</TouchableOpacity>
+						<View style={styles.fieldRow}>
+							<View style={styles.fieldCol}>
+								<Text style={styles.label}>{strings('choose_password.seed_phrase')}</Text>
+							</View>
+							<View style={[styles.fieldCol, styles.fieldColRight]}>
+								<TouchableOpacity onPress={this.toggleHideSeedPhraseInput}>
+									<Text style={styles.label}>
+										{strings(`choose_password.${hideSeedPhraseInput ? 'show' : 'hide'}`)}
+									</Text>
+								</TouchableOpacity>
+							</View>
+						</View>
+						<View styles={styles.position}>
+							{hideSeedPhraseInput ? (
+								<OutlinedTextField
+									containerStyle={inputWidth}
+									inputContainerStyle={styles.padding}
+									placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+									testID="input-seed-phrase"
+									returnKeyType="next"
+									autoCapitalize="none"
+									secureTextEntry={hideSeedPhraseInput}
+									onChangeText={this.onSeedWordsChange}
+									value={seed}
+									baseColor={colors.grey500}
+									tintColor={colors.blue}
+									onSubmitEditing={this.jumpToPassword}
+								/>
+							) : (
+								<TextInput
+									value={seed}
+									numberOfLines={3}
+									style={[
+										styles.seedPhrase,
+										inputWidth,
+										seedphraseInputFocused && styles.inputFocused
+									]}
+									secureTextEntry
+									multiline={!hideSeedPhraseInput}
+									placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+									placeholderTextColor={colors.grey200}
+									onChangeText={this.onSeedWordsChange}
+									testID="input-seed-phrase"
+									blurOnSubmit
+									onSubmitEditing={this.jumpToPassword}
+									returnKeyType="next"
+									keyboardType={
+										(!hideSeedPhraseInput && Device.isAndroid() && 'visible-password') || 'default'
+									}
+									autoCapitalize="none"
+									autoCorrect={false}
+									onFocus={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
+									onBlur={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
+								/>
+							)}
+							<View style={styles.seedPhraseControls}>
+								<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
+									<Icon name="qrcode" size={20} color={colors.fontSecondary} />
+								</TouchableOpacity>
+							</View>
+						</View>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
+							<View style={styles.fieldRow}>
+								<View style={styles.fieldCol}>
+									<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
+								</View>
+								<View style={[styles.fieldCol, styles.fieldColRight]}>
+									<TouchableOpacity onPress={this.toggleShowHide}>
+										<Text style={styles.label}>
+											{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
+										</Text>
+									</TouchableOpacity>
+								</View>
+							</View>
 							<OutlinedTextField
-								style={inputWidth}
+								containerStyle={inputWidth}
 								ref={this.passwordInput}
 								placeholder={strings('import_from_seed.new_password')}
 								testID={'input-password-field'}
@@ -471,13 +538,6 @@ class ImportFromSeed extends PureComponent {
 								baseColor={colors.grey500}
 								tintColor={colors.blue}
 								onSubmitEditing={this.jumpToConfirmPassword}
-								renderRightAccessory={() => (
-									<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
-										<Text style={styles.passwordStrengthLabel}>
-											{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
-										</Text>
-									</TouchableOpacity>
-								)}
 							/>
 
 							{(password !== '' && (
@@ -494,7 +554,7 @@ class ImportFromSeed extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('import_from_seed.confirm_password')}</Text>
 							<OutlinedTextField
-								style={inputWidth}
+								containerStyle={inputWidth}
 								ref={this.confirmPasswordInput}
 								testID={'input-password-field-confirm'}
 								onChangeText={this.onPasswordConfirmChange}
