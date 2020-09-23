@@ -466,7 +466,7 @@ class ImportFromSeed extends PureComponent {
 						<View styles={styles.position}>
 							{hideSeedPhraseInput ? (
 								<OutlinedTextField
-									containerStyle={[inputWidth, styles.zIndex]}
+									containerStyle={inputWidth}
 									inputContainerStyle={styles.padding}
 									placeholder={strings('import_from_seed.seed_phrase_placeholder')}
 									testID="input-seed-phrase"
