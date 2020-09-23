@@ -15,7 +15,13 @@ class DeeplinkManager {
 	}
 
 	handleEthereumUrl(url) {
-		const ethUrl = parse(url);
+		let ethUrl = '';
+		try {
+			ethUrl = parse(url);
+		} catch (e) {
+			Alert.alert('Invalid Deeplink', e.toString());
+			return;
+		}
 
 		if (!ethUrl.function_name) {
 			this.navigation.navigate('SendView', {
@@ -63,8 +69,13 @@ class DeeplinkManager {
 		let params;
 
 		if (urlObj.query.length) {
-			params = qs.parse(urlObj.query.substring(1));
+			try {
+				params = qs.parse(urlObj.query.substring(1));
+			} catch (e) {
+				Alert.alert('Invalid Deeplink', e.toString());
+			}
 		}
+
 		const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
 
 		switch (urlObj.protocol.replace(':', '')) {
