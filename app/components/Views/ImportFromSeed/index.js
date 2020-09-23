@@ -47,11 +47,6 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1
 	},
-	seedPhraseControls: {
-		flexDirection: 'row-reverse',
-		marginTop: -50,
-		marginBottom: 30
-	},
 	wrapper: {
 		flex: 1,
 		paddingHorizontal: 32
@@ -156,7 +151,10 @@ const styles = StyleSheet.create({
 		borderRadius: 6,
 		borderColor: colors.grey100,
 		paddingVertical: 4,
-		paddingHorizontal: 6
+		paddingHorizontal: 6,
+		marginTop: -50,
+		marginBottom: 30,
+		alignSelf: 'flex-end'
 	},
 	inputFocused: {
 		borderColor: colors.blue,
@@ -463,55 +461,47 @@ class ImportFromSeed extends PureComponent {
 								</TouchableOpacity>
 							</View>
 						</View>
-						<View styles={styles.position}>
-							{hideSeedPhraseInput ? (
-								<OutlinedTextField
-									containerStyle={inputWidth}
-									inputContainerStyle={styles.padding}
-									placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-									testID="input-seed-phrase"
-									returnKeyType="next"
-									autoCapitalize="none"
-									secureTextEntry={hideSeedPhraseInput}
-									onChangeText={this.onSeedWordsChange}
-									value={seed}
-									baseColor={colors.grey500}
-									tintColor={colors.blue}
-									onSubmitEditing={this.jumpToPassword}
-								/>
-							) : (
-								<TextInput
-									value={seed}
-									numberOfLines={3}
-									style={[
-										styles.seedPhrase,
-										inputWidth,
-										seedphraseInputFocused && styles.inputFocused
-									]}
-									secureTextEntry
-									multiline={!hideSeedPhraseInput}
-									placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-									placeholderTextColor={colors.grey200}
-									onChangeText={this.onSeedWordsChange}
-									testID="input-seed-phrase"
-									blurOnSubmit
-									onSubmitEditing={this.jumpToPassword}
-									returnKeyType="next"
-									keyboardType={
-										(!hideSeedPhraseInput && Device.isAndroid() && 'visible-password') || 'default'
-									}
-									autoCapitalize="none"
-									autoCorrect={false}
-									onFocus={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
-									onBlur={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
-								/>
-							)}
-							<View style={styles.seedPhraseControls}>
-								<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
-									<Icon name="qrcode" size={20} color={colors.fontSecondary} />
-								</TouchableOpacity>
-							</View>
-						</View>
+						{hideSeedPhraseInput ? (
+							<OutlinedTextField
+								containerStyle={inputWidth}
+								inputContainerStyle={styles.padding}
+								placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+								testID="input-seed-phrase"
+								returnKeyType="next"
+								autoCapitalize="none"
+								secureTextEntry={hideSeedPhraseInput}
+								onChangeText={this.onSeedWordsChange}
+								value={seed}
+								baseColor={colors.grey500}
+								tintColor={colors.blue}
+								onSubmitEditing={this.jumpToPassword}
+							/>
+						) : (
+							<TextInput
+								value={seed}
+								numberOfLines={3}
+								style={[styles.seedPhrase, inputWidth, seedphraseInputFocused && styles.inputFocused]}
+								secureTextEntry
+								multiline={!hideSeedPhraseInput}
+								placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+								placeholderTextColor={colors.grey200}
+								onChangeText={this.onSeedWordsChange}
+								testID="input-seed-phrase"
+								blurOnSubmit
+								onSubmitEditing={this.jumpToPassword}
+								returnKeyType="next"
+								keyboardType={
+									(!hideSeedPhraseInput && Device.isAndroid() && 'visible-password') || 'default'
+								}
+								autoCapitalize="none"
+								autoCorrect={false}
+								onFocus={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
+								onBlur={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
+							/>
+						)}
+						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
+							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
+						</TouchableOpacity>
 						<View style={styles.field}>
 							<View style={styles.fieldRow}>
 								<View style={styles.fieldCol}>
