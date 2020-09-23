@@ -107,74 +107,65 @@ exports[`ImportFromSeed should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <View>
-        <OutlinedTextField
-          activeLineWidth={2}
-          animationDuration={225}
-          autoCapitalize="none"
-          baseColor="#6a737d"
-          containerStyle={
-            Object {
-              "width": "99%",
-            }
+      <OutlinedTextField
+        activeLineWidth={2}
+        animationDuration={225}
+        autoCapitalize="none"
+        baseColor="#6a737d"
+        containerStyle={
+          Object {
+            "width": "99%",
           }
-          disableFullscreenUI={true}
-          disabled={false}
-          disabledLineType="dotted"
-          disabledLineWidth={0.5}
-          editable={true}
-          errorColor="rgb(213, 0, 0)"
-          fontSize={16}
-          inputContainerStyle={
-            Object {
-              "paddingRight": 46,
-            }
+        }
+        disableFullscreenUI={true}
+        disabled={false}
+        disabledLineType="dotted"
+        disabledLineWidth={0.5}
+        editable={true}
+        errorColor="rgb(213, 0, 0)"
+        fontSize={16}
+        inputContainerStyle={
+          Object {
+            "paddingRight": 46,
           }
-          labelFontSize={12}
-          lineType="solid"
-          lineWidth={1}
-          onChangeText={[Function]}
-          onSubmitEditing={[Function]}
-          placeholder="Enter your seed phrase here"
-          returnKeyType="next"
-          secureTextEntry={true}
-          testID="input-seed-phrase"
-          textColor="rgba(0, 0, 0, .87)"
-          tintColor="#037dd6"
-          underlineColorAndroid="transparent"
-          value=""
+        }
+        labelFontSize={12}
+        lineType="solid"
+        lineWidth={1}
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Enter your seed phrase here"
+        returnKeyType="next"
+        secureTextEntry={true}
+        testID="input-seed-phrase"
+        textColor="rgba(0, 0, 0, .87)"
+        tintColor="#037dd6"
+        underlineColorAndroid="transparent"
+        value=""
+      />
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Object {
+            "alignSelf": "flex-end",
+            "borderColor": "#d6d9dc",
+            "borderRadius": 6,
+            "borderWidth": 1,
+            "marginBottom": 30,
+            "marginRight": 10,
+            "marginTop": -50,
+            "paddingHorizontal": 6,
+            "paddingVertical": 4,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#777777"
+          name="qrcode"
+          size={20}
         />
-        <View
-          style={
-            Object {
-              "flexDirection": "row-reverse",
-              "marginBottom": 30,
-              "marginTop": -50,
-            }
-          }
-        >
-          <TouchableOpacity
-            onPress={[Function]}
-            style={
-              Object {
-                "borderColor": "#d6d9dc",
-                "borderRadius": 6,
-                "borderWidth": 1,
-                "marginRight": 10,
-                "paddingHorizontal": 6,
-                "paddingVertical": 4,
-              }
-            }
-          >
-            <Icon
-              allowFontScaling={false}
-              color="#777777"
-              name="qrcode"
-              size={20}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      </TouchableOpacity>
       <View
         style={
           Object {
