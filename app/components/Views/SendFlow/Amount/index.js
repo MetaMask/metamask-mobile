@@ -540,18 +540,18 @@ class Amount extends PureComponent {
 			from: selectedAddress
 		};
 
-		if (selectedAsset.erc20) {
+		if (selectedAsset.tokenId) {
+			const collectibleTransferTransactionProperties = this.getCollectibleTranferTransactionProperties();
+			transactionObject.data = collectibleTransferTransactionProperties.data;
+			transactionObject.to = collectibleTransferTransactionProperties.to;
+			transactionObject.value = collectibleTransferTransactionProperties.value;
+		} else if (!selectedAsset.isETH) {
 			const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
 			transactionObject.data = generateTransferData('transfer', {
 				toAddress: transactionTo,
 				amount: BNToHex(tokenAmount)
 			});
 			transactionObject.value = '0x0';
-		} else if (selectedAsset.tokenId) {
-			const collectibleTransferTransactionProperties = this.getCollectibleTranferTransactionProperties();
-			transactionObject.data = collectibleTransferTransactionProperties.data;
-			transactionObject.to = collectibleTransferTransactionProperties.to;
-			transactionObject.value = collectibleTransferTransactionProperties.value;
 		}
 
 		if (paymentChannelTransaction || selectedAsset.erc20) {
