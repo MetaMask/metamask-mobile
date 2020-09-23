@@ -16,7 +16,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "prepublishOnly": "npm run build",
-    "lint": "eslint --ext .ts,.js .",
+    "lint": "printf '%s\n' 'No lint command yet'",
     "build": "rollup --config"
   },
   "license": "MIT",
