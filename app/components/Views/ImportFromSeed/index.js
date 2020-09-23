@@ -420,13 +420,13 @@ class ImportFromSeed extends PureComponent {
 			onScanSuccess: ({ seed = undefined }) => {
 				if (seed) {
 					this.setState({ seed });
-					this.toggleHideSeedPhraseInput();
 				} else {
 					Alert.alert(
 						strings('import_from_seed.invalid_qr_code_title'),
 						strings('import_from_seed.invalid_qr_code_message')
 					);
 				}
+				this.toggleHideSeedPhraseInput();
 			}
 		});
 	};
