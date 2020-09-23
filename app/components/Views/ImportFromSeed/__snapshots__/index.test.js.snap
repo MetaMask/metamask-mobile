@@ -114,12 +114,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
           autoCapitalize="none"
           baseColor="#6a737d"
           containerStyle={
-            Array [
-              Object {
-                "width": "99%",
-              },
-              undefined,
-            ]
+            Object {
+              "width": "99%",
+            }
           }
           disableFullscreenUI={true}
           disabled={false}
