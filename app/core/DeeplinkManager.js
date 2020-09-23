@@ -16,6 +16,7 @@ class DeeplinkManager {
 
 	handleEthereumUrl(url) {
 		const ethUrl = parse(url);
+
 		if (!ethUrl.function_name) {
 			this.navigation.navigate('SendView', {
 				txMeta: { ...ethUrl, action: 'send-eth', source: url }
