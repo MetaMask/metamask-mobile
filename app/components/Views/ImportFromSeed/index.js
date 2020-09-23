@@ -393,7 +393,7 @@ class ImportFromSeed extends PureComponent {
 	};
 
 	toggleHideSeedPhraseInput = () => {
-		this.setState({ hideSeedPhraseInput: !this.state.hideSeedPhraseInput });
+		this.setState(({ hideSeedPhraseInput }) => ({ hideSeedPhraseInput: !hideSeedPhraseInput }));
 	};
 
 	getPasswordStrengthWord() {
@@ -415,10 +415,12 @@ class ImportFromSeed extends PureComponent {
 	}
 
 	onQrCodePress = () => {
+		setTimeout(this.toggleHideSeedPhraseInput, 100);
 		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: meta => {
-				if (meta && meta.seed) {
-					this.setState({ seed: meta.seed });
+			onScanSuccess: ({ seed = undefined }) => {
+				if (seed) {
+					this.setState({ seed });
+					this.toggleHideSeedPhraseInput();
 				} else {
 					Alert.alert(
 						strings('import_from_seed.invalid_qr_code_title'),
