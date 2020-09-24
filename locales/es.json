@@ -131,6 +131,7 @@
 		"strength_strong": "Segura",
 		"show": "Mostrar",
 		"hide": "Ocultar",
+		"seed_phrase": "Frase semilla",
 		"must_be_at_least": "Debe contener al menos {{number}} caracteres",
 		"remember_me": "Recordarme",
 		"security_alert_title": "Alerta de seguridad",
