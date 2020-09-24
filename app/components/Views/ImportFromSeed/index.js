@@ -41,6 +41,8 @@ import {
 	METRICS_OPT_IN,
 	TRUE
 } from '../../../constants/storage';
+// TODO:
+// import { validateMnemonic } from 'bip39';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -164,6 +166,11 @@ const styles = StyleSheet.create({
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 
+const failedSeedPhraseRequirements = seed => {
+	const wordCount = seed.split(/\s/u).length;
+	return wordCount % 3 !== 0 || wordCount > 24 || wordCount < 12;
+};
+
 /**
  * View where users can set restore their account
  * using a seed phrase
@@ -232,17 +239,24 @@ class ImportFromSeed extends PureComponent {
 	}
 
 	onPressImport = async () => {
-		if (this.state.loading) return;
+		const { loading, seed, password, confirmPassword } = this.state;
+
+		if (loading) return;
 		let error = null;
-		if (this.state.password.length < 8) {
+		if (password.length < 8) {
 			error = strings('import_from_seed.password_length_error');
-		} else if (this.state.password !== this.state.confirmPassword) {
+		} else if (password !== confirmPassword) {
 			error = strings('import_from_seed.password_dont_match');
 		}
 
-		if (this.state.seed.split(' ').length !== 12) {
-			error = strings('import_from_seed.seed_word_count_error');
+		if (failedSeedPhraseRequirements(seed)) {
+			error = strings('import_from_seed.seed_phrase_requirements');
 		}
+
+		// TODO: do bip39 validate
+		// else if (!validateMnemonic(seed)) {
+		// 	error = strings('import_from_seed.invalid_seed_phrase');
+		// }
 
 		if (error) {
 			Alert.alert(strings('import_from_seed.error'), error);
@@ -584,7 +598,11 @@ class ImportFromSeed extends PureComponent {
 								onPress={this.onPressImport}
 								testID={'submit'}
 								disabled={
-									!(password !== '' && password === confirmPassword && seed.split(' ').length === 12)
+									!(
+										password !== '' &&
+										password === confirmPassword &&
+										!failedSeedPhraseRequirements(seed)
+									)
 								}
 							>
 								{loading ? (
