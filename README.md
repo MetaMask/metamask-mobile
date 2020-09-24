@@ -1,5 +1,4 @@
 # MetaMask Module Template
-![test status badge](https://github.com/MetaMask/metamask-module-template/workflows/Node.js%20CI/badge.svg)
 
 This module is maintained in the style of the MetaMask team.
 
