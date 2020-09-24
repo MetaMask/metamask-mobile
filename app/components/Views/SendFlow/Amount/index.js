@@ -53,6 +53,7 @@ import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 
 const { hexToBN, BNToHex } = util;
 
@@ -479,6 +480,7 @@ class Amount extends PureComponent {
 			const invalidCollectibleOwnership = await this.validateCollectibleOwnership();
 			if (invalidCollectibleOwnership) {
 				this.setState({ amountError: invalidCollectibleOwnership });
+				dismissKeyboard();
 			}
 		}
 
@@ -634,7 +636,10 @@ class Amount extends PureComponent {
 		} else {
 			amountError = strings('transaction.invalid_amount');
 		}
-		this.setState({ amountError });
+		if (amountError) {
+			this.setState({ amountError });
+			dismissKeyboard();
+		}
 		return !!amountError;
 	};
 
