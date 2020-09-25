@@ -5,6 +5,7 @@ const ETHEREUM_ENABLE = 'https://brunobar79.github.io/dapp-issues-repro/';
 const Sign_Examples = 'https://danfinlay.github.io/js-eth-personal-sign-examples/';
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
+const PASSWORD = '12345678';
 
 describe('Browser Tests', () => {
 	beforeEach(() => {
@@ -18,8 +19,38 @@ describe('Browser Tests', () => {
 		await TestHelpers.waitAndTap('onboarding-get-started-button');
 		// Check that we are on the onboarding screen
 		await TestHelpers.checkIfVisible('onboarding-screen');
-		// Check that Start Exploring CTA is visible & tap it
-		await TestHelpers.waitAndTap('start-exploring-button');
+		// Check that Create a new wallet CTA is visible & tap it
+		await TestHelpers.waitAndTap('create-wallet-button');
+		// Check that we are on the Create password screen
+		await TestHelpers.checkIfVisible('create-password-screen');
+		// Input new password
+		await TestHelpers.typeTextAndHideKeyboard('input-password', PASSWORD);
+		// Input confirm password
+		await TestHelpers.typeTextAndHideKeyboard('input-password-confirm', PASSWORD);
+		// Mark the checkbox that you understand the password cannot be recovered
+		if (device.getPlatform() === 'ios') {
+			await TestHelpers.tap('password-understand-box');
+		} else {
+			// Tap by the I understand text
+			await TestHelpers.delay(1000);
+			await TestHelpers.tap('i-understand-text');
+		}
+		// Tap on create password button
+		await TestHelpers.tap('submit-button');
+		// Check that we are on the Secure your wallet screen
+		await TestHelpers.checkIfVisible('protect-your-account-screen');
+		// Tap on the remind me later button
+		await TestHelpers.tap('remind-me-later-button');
+		// Check the box to state you understand
+		if (device.getPlatform() === 'ios') {
+			await TestHelpers.tap('skip-backup-check');
+		} else {
+			// Tap by the I understand text
+			await TestHelpers.delay(1000);
+			await TestHelpers.tap('skip-backup-text');
+		}
+		// Tap on Skip button
+		await TestHelpers.tapByText('Skip');
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
@@ -35,6 +66,10 @@ describe('Browser Tests', () => {
 		await TestHelpers.waitAndTap('onboarding-wizard-back-button');
 		// Check that the onboarding wizard is gone
 		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
+		// Check that the protect your wallet modal is visible
+		await TestHelpers.checkIfVisible('backup-alert');
+		// Tap on remind me later
+		await TestHelpers.tap('notification-remind-later-button');
 	});
 
 	it('should navigate to browser', async () => {

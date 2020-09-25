@@ -621,8 +621,9 @@ class ChoosePassword extends PureComponent {
 										style={styles.checkbox}
 										tintColors={{ true: colors.blue }}
 										boxType="square"
+										testID={'password-understand-box'}
 									/>
-									<Text style={styles.label} onPress={this.setSelection}>
+									<Text style={styles.label} onPress={this.setSelection} testID={'i-understand-text'}>
 										{strings('choose_password.i_understand')}{' '}
 										<Text onPress={this.learnMore} style={styles.learnMore}>
 											{strings('choose_password.learn_more')}
