@@ -37,6 +37,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionReviewDetailsCard from '../../../UI/TransactionReview/TransactionReivewDetailsCard';
 import StyledButton from '../../../UI/StyledButton';
 import currencySymbols from '../../../../util/currency-symbols.json';
+import Logger from '../../../../util/Logger';
 
 const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
@@ -664,6 +665,7 @@ class Approve extends PureComponent {
 			this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_APPROVE);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+			Logger.error(error, 'error while trying to send transaction (Approve)');
 			this.setState({ transactionHandled: false });
 		}
 	};
