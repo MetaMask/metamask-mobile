@@ -43,6 +43,7 @@ import {
 } from '../../../constants/storage';
 // TODO:
 // import { validateMnemonic } from 'bip39';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -328,6 +329,7 @@ class ImportFromSeed extends PureComponent {
 					this.setState({ loading: false });
 				} else {
 					this.setState({ loading: false, error: error.toString() });
+					Logger.log('Error with seed phrase import', error);
 				}
 			}
 		}
