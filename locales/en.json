@@ -171,7 +171,7 @@
 		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
 		"seed_phrase_requirements": "Seed phrases contain 12, 15, 18, 21, or 24 words",
-		"invalid_seed_phrase:": "Invalid seed phrase",
+		"invalid_seed_phrase": "Invalid seed phrase",
 		"error": "Error",
 		"invalid_qr_code_title": "Invalid QR Code",
 		"invalid_qr_code_message": "This QR code doesn't represent a valid seed phrase"
