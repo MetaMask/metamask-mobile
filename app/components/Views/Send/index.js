@@ -260,7 +260,6 @@ class Send extends PureComponent {
 					selectedAsset: { symbol: 'ETH', isETH: true },
 					...this.handleNewTxMetaRecipient(target_address)
 				};
-				console.log('handle tx meta', parameters);
 				if (parameters && parameters.value) {
 					newTxMeta.value = BNToHex(toBN(parameters.value));
 					newTxMeta.transactionValue = newTxMeta.value;
