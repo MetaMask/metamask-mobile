@@ -441,6 +441,9 @@ class ImportFromSeed extends PureComponent {
 					);
 				}
 				this.toggleHideSeedPhraseInput();
+			},
+			onScanError: error => {
+				this.toggleHideSeedPhraseInput();
 			}
 		});
 	};
