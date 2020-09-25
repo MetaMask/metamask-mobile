@@ -1316,5 +1316,9 @@
 		"text": "Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
 		"text_bold": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
 		"action": "Learn more"
+	},
+	"deeplink": {
+		"invalid": "Invalid deeplink",
+		"not_supported": "Deeplink not supported"
 	}
 }

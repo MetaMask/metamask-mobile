@@ -8,6 +8,7 @@ import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
 import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
+import { strings } from '../../locales/i18n';
 
 class DeeplinkManager {
 	constructor(_navigation) {
@@ -19,7 +20,7 @@ class DeeplinkManager {
 		try {
 			ethUrl = parse(url);
 		} catch (e) {
-			Alert.alert('Invalid Deeplink', e.toString());
+			Alert.alert(strings('deeplink.invalid'), e.toString());
 			return;
 		}
 
@@ -66,7 +67,7 @@ class DeeplinkManager {
 			try {
 				params = qs.parse(urlObj.query.substring(1));
 			} catch (e) {
-				Alert.alert('Invalid Deeplink', e.toString());
+				Alert.alert(strings('deeplink.invalid'), e.toString());
 			}
 		}
 
@@ -106,7 +107,7 @@ class DeeplinkManager {
 							break;
 
 						default:
-							Alert.alert('Deeplink not supported');
+							Alert.alert(strings('deeplink.not_supported'));
 					}
 				} else {
 					// Normal links (same as dapp)

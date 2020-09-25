@@ -1195,5 +1195,9 @@
 		"text": "No te arriesgues a perder tus fondos. Protege tu billetera guardando tu frase semilla en un lugar en el que confíes.",
 		"text_bold": "Es la única forma de recuperar tu billetera si se bloquea la aplicación u obtienes un nuevo dispositivo.",
 		"action": "Saber más"
+	},
+	"deeplink": {
+		"invalid": "Deeplink inválido",
+		"not_supported": "Deeplink no soportado"
 	}
 }
