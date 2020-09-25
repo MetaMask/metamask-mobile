@@ -23,16 +23,13 @@ class DeeplinkManager {
 			return;
 		}
 
-		if (!ethUrl.function_name) {
+		const functionName = ethUrl.function_name;
+
+		if (!functionName || functionName === 'transfer') {
 			this.navigation.navigate('SendView', {
-				txMeta: { ...ethUrl, action: 'send-eth', source: url }
+				txMeta: { ...ethUrl, action: !functionName ? 'send-eth' : 'send-token', source: url }
 			});
-		} else if (ethUrl.function_name === 'transfer') {
-			// Send erc20 token
-			this.navigation.navigate('SendView', {
-				txMeta: { ...ethUrl, action: 'send-token', source: url }
-			});
-		} else if (ethUrl.function_name === 'approve') {
+		} else if (functionName === 'approve') {
 			// add approve transaction
 			const {
 				parameters: { address, uint256 },
@@ -45,9 +42,6 @@ class DeeplinkManager {
 			txParams.value = '0x0';
 			txParams.data = generateApproveData({ spender: address, value: parseInt(uint256).toString(16) });
 			TransactionController.addTransaction(txParams);
-		} else if (ethUrl.function_name) {
-			// Other smart contract interaction
-			// That involves txs
 		}
 	}
 
@@ -112,7 +106,7 @@ class DeeplinkManager {
 							break;
 
 						default:
-							Alert.alert('Error', 'invalid deeplink');
+							Alert.alert('Deeplink not supported');
 					}
 				} else {
 					// Normal links (same as dapp)
