@@ -41,9 +41,10 @@ import {
 	METRICS_OPT_IN,
 	TRUE
 } from '../../../constants/storage';
-// TODO:
-// import { validateMnemonic } from 'bip39';
+import { ethers } from 'ethers';
 import Logger from '../../../util/Logger';
+
+const { isValidMnemonic } = ethers.utils;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -252,12 +253,9 @@ class ImportFromSeed extends PureComponent {
 
 		if (failedSeedPhraseRequirements(seed)) {
 			error = strings('import_from_seed.seed_phrase_requirements');
+		} else if (!isValidMnemonic(seed)) {
+			error = strings('import_from_seed.invalid_seed_phrase');
 		}
-
-		// TODO: do bip39 validate
-		// else if (!validateMnemonic(seed)) {
-		// 	error = strings('import_from_seed.invalid_seed_phrase');
-		// }
 
 		if (error) {
 			Alert.alert(strings('import_from_seed.error'), error);
