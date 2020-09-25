@@ -1,10 +1,11 @@
 'use strict';
 import TestHelpers from './helpers';
 
-const ETHEREUM_ENABLE = 'https://brunobar79.github.io/dapp-issues-repro/';
+// const ETHEREUM_ENABLE = 'https://brunobar79.github.io/dapp-issues-repro/';
 const Sign_Examples = 'https://danfinlay.github.io/js-eth-personal-sign-examples/';
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
+const UNISWAP = 'https://uniswap.eth';
 const PASSWORD = '12345678';
 
 describe('Browser Tests', () => {
@@ -267,86 +268,94 @@ describe('Browser Tests', () => {
 		}
 	});
 
-	it('should navigate to dapp-issues-repro and reload page', async () => {
-		// Tap on options
-		await TestHelpers.waitAndTap('options-button');
-		// Tap on New tab
-		await TestHelpers.tapByText('New tab');
-		// Tap on search in bottom navbar
-		await TestHelpers.tap('search-button');
-		// Navigate to URL
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.typeTextAndHideKeyboard('url-input', ETHEREUM_ENABLE);
-		} else {
-			await TestHelpers.replaceTextInField('url-input', ETHEREUM_ENABLE);
-			await element(by.id('url-input')).tapReturnKey();
-		}
-		// Check that the dapp title is correct
-		await TestHelpers.checkIfElementWithTextIsVisible('brunobar79.github.io', 0);
-		// Tap on CONNECT button
-		if (!device.getPlatform() === 'android') {
-			await TestHelpers.delay(2000);
-		}
-		await TestHelpers.tap('connect-approve-button');
-		// Dismiss alert box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAlertWithButton('Ok');
-		} else {
-			await TestHelpers.tapAlertWithButton('OK');
-		}
-		// Tap on options
-		await TestHelpers.waitAndTap('options-button');
-		// Tap on New tab
-		await TestHelpers.tapByText('Reload');
-		// Dismiss alert box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAlertWithButton('Ok');
-		} else {
-			await TestHelpers.tapAlertWithButton('OK');
-		}
-		// Dismiss alert box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAlertWithButton('Ok');
-		} else {
-			await TestHelpers.tapAlertWithButton('OK');
-		}
-	});
+	// it('should navigate to dapp-issues-repro and reload page', async () => {
+	// 	// Tap on options
+	// 	await TestHelpers.waitAndTap('options-button');
+	// 	// Tap on New tab
+	// 	await TestHelpers.tapByText('New tab');
+	// 	// Tap on search in bottom navbar
+	// 	await TestHelpers.tap('search-button');
+	// 	// Navigate to URL
+	// 	if (device.getPlatform() === 'ios') {
+	// 		await TestHelpers.typeTextAndHideKeyboard('url-input', ETHEREUM_ENABLE);
+	// 	} else {
+	// 		await TestHelpers.replaceTextInField('url-input', ETHEREUM_ENABLE);
+	// 		await element(by.id('url-input')).tapReturnKey();
+	// 	}
+	// 	// Tap on search in bottom navbar
+	// 	await TestHelpers.tap('search-button');
+	// 	// Check that the dapp title is correct
+	// 	await TestHelpers.checkIfElementWithTextIsVisible('brunobar79.github.io', 0);
+	// 	// Tap on CONNECT button
+	// 	if (!device.getPlatform() === 'android') {
+	// 		await TestHelpers.delay(2000);
+	// 	}
+	// 	await TestHelpers.tap('connect-approve-button');
+	// 	// Dismiss alert box
+	// 	if (device.getPlatform() === 'ios') {
+	// 		await TestHelpers.tapAlertWithButton('Ok');
+	// 	} else {
+	// 		await TestHelpers.tapAlertWithButton('OK');
+	// 	}
+	// 	// Tap on options
+	// 	await TestHelpers.waitAndTap('options-button');
+	// 	// Tap on New tab
+	// 	await TestHelpers.tapByText('Reload');
+	// 	// Dismiss alert box
+	// 	if (device.getPlatform() === 'ios') {
+	// 		await TestHelpers.tapAlertWithButton('Ok');
+	// 	} else {
+	// 		await TestHelpers.tapAlertWithButton('OK');
+	// 	}
+	// 	// Dismiss alert box
+	// 	if (device.getPlatform() === 'ios') {
+	// 		await TestHelpers.tapAlertWithButton('Ok');
+	// 	} else {
+	// 		await TestHelpers.tapAlertWithButton('OK');
+	// 	}
+	// });
 
-	it('should go to coinbase and navigate back to homepage', async () => {
+	// it('should go to first explore tab and navigate back to homepage', async () => {
+	// 	// Tap on home on bottom navbar
+	// 	await TestHelpers.tap('home-button');
+	// 	// Wait for page to load
+	// 	await TestHelpers.delay(1000);
+	// 	// Tap on first category
+	// 	if (device.getPlatform() === 'android') {
+	// 		await TestHelpers.tapAtPoint('browser-screen', { x: 100, y: 425 });
+	// 	} else {
+	// 		await TestHelpers.tapAtPoint('browser-screen', { x: 100, y: 450 });
+	// 	}
+	// 	// Tap on first option
+	// 	await TestHelpers.tapAtPoint('browser-screen', { x: 80, y: 100 });
+	// 	// Tap back button
+	// 	await TestHelpers.waitAndTap('go-back-button');
+	// 	// Tap back button
+	// 	await TestHelpers.waitAndTap('go-back-button');
+	// 	// Wait for page to load
+	// 	await TestHelpers.delay(1000);
+	// 	// Check that we are on the browser screen
+	// 	await TestHelpers.checkIfVisible('browser-screen');
+	// });
+
+	it('should go to uniswap', async () => {
 		// Tap on home on bottom navbar
 		await TestHelpers.tap('home-button');
 		// Wait for page to load
 		await TestHelpers.delay(1000);
-		// Tap on Buy Crypto
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 100, y: 425 });
+		// Tap on search in bottom navbar
+		await TestHelpers.tap('search-button');
+		// Navigate to URL
+		if (device.getPlatform() === 'ios') {
+			await TestHelpers.typeTextAndHideKeyboard('url-input', UNISWAP);
 		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 100, y: 450 });
+			await TestHelpers.replaceTextInField('url-input', UNISWAP);
+			await element(by.id('url-input')).tapReturnKey();
 		}
-		// Tap on Coinbase
-		await TestHelpers.tapAtPoint('browser-screen', { x: 80, y: 100 });
-		// Tap back button
-		await TestHelpers.waitAndTap('go-back-button');
-		// Tap back button
-		await TestHelpers.waitAndTap('go-back-button');
-		// Wait for page to load
-		await TestHelpers.delay(1000);
-		// Check that we are on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
-	});
-
-	it('should go to uniswap', async () => {
-		// Tap on Uniswap
-		await TestHelpers.tapAtPoint('browser-screen', { x: 50, y: 285 });
 		// Wait for page to load
 		await TestHelpers.delay(1000);
 		// Check that the dapp title is correct
-		await TestHelpers.checkIfElementWithTextIsVisible('uniswap.exchange', 0);
-
-		// There is a yellow warning that pops up in dev mode, when canceling the connection request
-		// go to index.js and add this to the list of warnings
-		// to block in order to get it to work = "Error in RPC response",
-
+		await TestHelpers.checkIfElementWithTextIsVisible('uniswap.eth', 0);
 		// Tap on CANCEL button
 		await TestHelpers.tap('connect-cancel-button');
 
@@ -373,29 +382,28 @@ describe('Browser Tests', () => {
 		await TestHelpers.tap('add-bookmark-confirm-button');
 	});
 
-	it('should go back home and navigate to favorites', async () => {
-		// Tap on home on bottom navbar
-		await TestHelpers.tap('home-button');
-		// Wait for page to load
-		await TestHelpers.delay(1000);
-		// Check that we are still on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap on Favorites tab
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 274, y: 386 });
-			await TestHelpers.tapAtPoint('browser-screen', { x: 184, y: 446 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 277, y: 418 });
-			await TestHelpers.tapAtPoint('browser-screen', { x: 181, y: 482 });
-			await TestHelpers.delay(1500);
-		}
-		// Check that account approval is displayed with correct dapp name
-		await TestHelpers.checkIfElementWithTextIsVisible('uniswap.exchange', 0);
-		// Tap on Connect button
-		await TestHelpers.tap('connect-approve-button');
-		// Check that we are still on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
-	});
+	// it('should go back home and navigate to favorites', async () => {
+	// 	// Tap on home on bottom navbar
+	// 	await TestHelpers.tap('home-button');
+	// 	// Wait for page to load
+	// 	await TestHelpers.delay(1000);
+	// 	// Check that we are still on the browser screen
+	// 	await TestHelpers.checkIfVisible('browser-screen');
+	// 	// Tap on Favorites tab
+	// 	if (device.getPlatform() === 'ios') {
+	// 		await TestHelpers.tapAtPoint('browser-screen', { x: 274, y: 227 });
+	// 		await TestHelpers.tapAtPoint('browser-screen', { x: 174, y: 281 });
+	// 		await TestHelpers.delay(1500);
+	// 	} else {
+	// 		await TestHelpers.tapAtPoint('browser-screen', { x: 274, y: 223 });
+	// 		await TestHelpers.tapAtPoint('browser-screen', { x: 180, y: 275 });
+	// 		await TestHelpers.delay(1500);
+	// 	}
+	// 	// Tap on Connect button
+	// 	await TestHelpers.tap('connect-approve-button');
+	// 	// Check that we are still on the browser screen
+	// 	await TestHelpers.checkIfVisible('browser-screen');
+	// });
 
 	it('should test ENS sites', async () => {
 		// Tap on home on bottom navbar
@@ -428,7 +436,7 @@ describe('Browser Tests', () => {
 		// Clear text
 		await TestHelpers.clearField('url-input');
 		// Navigate to URL
-		await TestHelpers.typeTextAndHideKeyboard('url-input', 'empowr secure');
+		await TestHelpers.typeTextAndHideKeyboard('url-input', 'secure empowr');
 		// Wait for page to load
 		await TestHelpers.delay(1000);
 		// Check that we are on the browser screen
