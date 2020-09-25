@@ -30,6 +30,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
+import { failedSeedPhraseRequirements } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
 	BIOMETRY_CHOICE,
@@ -167,11 +168,6 @@ const styles = StyleSheet.create({
 });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-
-const failedSeedPhraseRequirements = seed => {
-	const wordCount = seed.split(/\s/u).length;
-	return wordCount % 3 !== 0 || wordCount > 24 || wordCount < 12;
-};
 
 /**
  * View where users can set restore their account
