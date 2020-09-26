@@ -162,7 +162,7 @@ class Login extends PureComponent {
 				}
 
 				this.setState({
-					biometryType,
+					biometryType: (biometryType && biometryType.toLowerCase()) || null,
 					biometryChoice: enabled,
 					biometryPreviouslyDisabled: !!previouslyDisabled
 				});
@@ -277,15 +277,14 @@ class Login extends PureComponent {
 	};
 
 	renderSwitch = () => {
-		if (this.state.biometryType && !this.state.biometryPreviouslyDisabled) {
+		const { biometryType, biometryPreviouslyDisabled, biometryChoice } = this.state;
+		if (biometryType && !biometryPreviouslyDisabled) {
 			return (
 				<View style={styles.biometrics}>
-					<Text style={styles.biometryLabel}>
-						{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
-					</Text>
+					<Text style={styles.biometryLabel}>{strings(`biometrics.enable_${biometryType}`)}</Text>
 					<Switch
 						onValueChange={biometryChoice => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
-						value={this.state.biometryChoice}
+						value={biometryChoice}
 						style={styles.biometrySwitch}
 						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
 						ios_backgroundColor={colors.grey300}

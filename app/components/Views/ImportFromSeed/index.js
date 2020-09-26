@@ -223,7 +223,10 @@ class ImportFromSeed extends PureComponent {
 			if (previouslyDisabled && previouslyDisabled === TRUE) {
 				enabled = false;
 			}
-			this.setState({ biometryType, biometryChoice: enabled });
+			this.setState({
+				biometryType: (biometryType && biometryType.toLowerCase()) || null,
+				biometryChoice: enabled
+			});
 		}
 		// Workaround https://github.com/facebook/react-native/issues/9958
 		setTimeout(() => {
@@ -360,9 +363,7 @@ class ImportFromSeed extends PureComponent {
 		if (this.state.biometryType) {
 			return (
 				<View style={styles.biometrics}>
-					<Text style={styles.biometryLabel}>
-						{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
-					</Text>
+					<Text style={styles.biometryLabel}>{strings(`biometrics.enable_${this.state.biometryType}`)}</Text>
 					<Switch
 						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}

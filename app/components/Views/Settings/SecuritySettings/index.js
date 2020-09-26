@@ -241,7 +241,12 @@ class Settings extends PureComponent {
 			}
 		}
 		const metricsOptIn = Analytics.getEnabled();
-		this.setState({ biometryType, biometryChoice: bioEnabled, metricsOptIn, passcodeChoice: passcodeEnabled });
+		this.setState({
+			biometryType: (biometryType && biometryType.toLowerCase()) || null,
+			biometryChoice: bioEnabled,
+			metricsOptIn,
+			passcodeChoice: passcodeEnabled
+		});
 	};
 
 	onSecuritySettingChange = async (enabled, type) => {
@@ -538,9 +543,7 @@ class Settings extends PureComponent {
 					</View>
 					{biometryType && (
 						<View style={styles.setting} testID={'biometrics-option'}>
-							<Text style={styles.title}>
-								{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
-							</Text>
+							<Text style={styles.title}>{strings(`biometrics.enable_${this.state.biometryType}`)}</Text>
 							<View style={styles.switchElement}>
 								<Switch
 									// eslint-disable-next-line react/jsx-no-bind

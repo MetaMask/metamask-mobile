@@ -245,7 +245,10 @@ class ChoosePassword extends PureComponent {
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
-			this.setState({ biometryType, biometryChoice: true });
+			this.setState({
+				biometryType: (biometryType && biometryType.toLowerCase()) || null,
+				biometryChoice: true
+			});
 		}
 		setTimeout(() => {
 			this.setState({
@@ -471,9 +474,7 @@ class ChoosePassword extends PureComponent {
 			<View style={styles.biometrics}>
 				{biometryType ? (
 					<>
-						<Text style={styles.biometryLabel}>
-							{strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
-						</Text>
+						<Text style={styles.biometryLabel}>{strings(`biometrics.enable_${biometryType}`)}</Text>
 						<View>
 							<Switch
 								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
