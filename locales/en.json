@@ -930,7 +930,7 @@
 		"tips_2": "Store in a safe",
 		"tips_3": "Store in multiple secret places",
 		"why_secure_title": "Protect your wallet",
-		"why_secure_1": "Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"why_secure_1": "Don’t risk losing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
 		"why_secure_2": " It’s the only way to recover your wallet if you get locked out of the app or get a new device."
 	},
 	"account_backup_step_2": {
@@ -1284,7 +1284,7 @@
 		"wyre_max": "Max $450 weekly",
 		"wyre_requires_debit_card": "Requires debit card",
 		"wyre_us_only": "🇺🇸 U.S. only",
-		"wyre_modal_text": "Paying with Apple Pay, powered by Wyre is supported in the United Sates 🇺🇸 except for CT, HI, NC, NH, NY, VA and VT.",
+		"wyre_modal_text": "Paying with Apple Pay, powered by Wyre is supported in the United States 🇺🇸 except for CT, HI, NC, NH, NY, VA and VT.",
 		"wyre_modal_terms_of_service_apply": "Wyre terms of service apply.",
 		"wyre_minimum_deposit": "Minimum deposit is {{amount}}",
 		"wyre_maximum_deposit": "Maximum deposit is {{amount}}",
@@ -1314,7 +1314,7 @@
 		"title": "Protect your wallet",
 		"top_button": "Protect wallet",
 		"bottom_button": "Remind me later",
-		"text": "Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"text": "Don’t risk losing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
 		"text_bold": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
 		"action": "Learn more"
 	}

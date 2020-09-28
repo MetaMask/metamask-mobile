@@ -483,10 +483,11 @@ class Settings extends PureComponent {
 								onValueChange={this.toggleMetricsOptIn}
 								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
+								testID={'metametrics-switch'}
 							/>
 						</View>
 					</View>
-					<View style={styles.setting}>
+					<View style={styles.setting} testID={'third-party-section'}>
 						<Text style={styles.title}>{strings('app_settings.third_party_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.third_party_description')}</Text>
 						<View style={styles.switchElement}>
@@ -574,7 +575,7 @@ class Settings extends PureComponent {
 							</View>
 						</View>
 					)}
-					<View style={styles.setting}>
+					<View style={styles.setting} testID={'reveal-private-key-section'}>
 						<Text style={styles.title}>
 							{strings('reveal_credential.private_key_title_for_account', { accountName: account.name })}
 						</Text>
