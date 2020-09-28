@@ -235,7 +235,7 @@ class Login extends PureComponent {
 				this.props.navigation.navigate('HomeNav');
 			} else {
 				this.props.setOnboardingWizardStep(1);
-				this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+				this.props.navigation.navigate('HomeNav');
 			}
 			this.setState({ loading: false });
 		} catch (e) {
