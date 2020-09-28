@@ -554,7 +554,7 @@ class Onboarding extends PureComponent {
 							style={styles.button}
 							type={'blue'}
 							onPress={this.onPressCreate}
-							testID={'start-exploring-button'}
+							testID={'create-wallet-button'}
 						>
 							{strings('onboarding.start_exploring_now')}
 						</StyledButton>
