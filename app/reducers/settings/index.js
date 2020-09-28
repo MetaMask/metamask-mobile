@@ -5,7 +5,8 @@ const initialState = {
 	searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
 	primaryCurrency: 'ETH',
 	lockTime: -1, // Disabled by default
-	paymentChannelsEnabled: false
+	paymentChannelsEnabled: false,
+	useBlockieIcon: false
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -29,6 +30,11 @@ const settingsReducer = (state = initialState, action) => {
 			return {
 				...state,
 				showHexData: action.showHexData
+			};
+		case 'SET_USE_BLOCKIE_ICON':
+			return {
+				...state,
+				useBlockieIcon: action.useBlockieIcon
 			};
 		case 'SET_PRIMARY_CURRENCY':
 			return {

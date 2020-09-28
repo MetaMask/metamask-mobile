@@ -1,8 +1,20 @@
 # Changelog
 
 ## Current Develop Branch
+- [#1800](https://github.com/MetaMask/metamask-mobile/pull/1800): Feature/improve nav browser title (#1800)
+- [#1781](https://github.com/MetaMask/metamask-mobile/pull/1781): Bugfix/Use translations for steps (#1781)
+- [#1759](https://github.com/MetaMask/metamask-mobile/pull/1759): Bugfix/Display correct balance from state when creating an account that already holds funds (#1759)
+- [#1728](https://github.com/MetaMask/metamask-mobile/pull/1728): Add /constants (#1728)
+- [#1787](https://github.com/MetaMask/metamask-mobile/pull/1787): Add missing currency conversions (#1787)
 
-## v1.0.0
+## v1.0.2 - Sept 2 2020
+- [#1812](https://github.com/MetaMask/metamask-mobile/pull/1812): Add logger on login (#1812)
+
+## v1.0.1 - Sept 1 2020
+- [#1795](https://github.com/MetaMask/metamask-mobile/pull/1795): Update react native aes crypto forked (#1795)
+- [#1796](https://github.com/MetaMask/metamask-mobile/pull/1796): bugfix/mixpanel android in app notifications (#1796)
+
+## v1.0.0 - Aug 26 2020
 - [#1790](https://github.com/MetaMask/metamask-mobile/pull/1790): Bugfix/payment request and wallet connect origin on tx (#1790)
 - [#1791](https://github.com/MetaMask/metamask-mobile/pull/1791): Fix send receive buttons style (#1791)
 - [#1785](https://github.com/MetaMask/metamask-mobile/pull/1785): Use @metamask/controllers@2.0.5 (#1785)

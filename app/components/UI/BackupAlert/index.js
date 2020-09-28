@@ -143,7 +143,7 @@ class BackupAlert extends PureComponent {
 					inBrowserView ? styles.modalViewInBrowserView : styles.modalViewNotInBrowserView
 				]}
 			>
-				<View style={styles.touchableView}>
+				<View style={styles.touchableView} testID={'backup-alert'}>
 					<View style={styles.backupAlertIconWrapper}>
 						<EvilIcons name="bell" style={styles.backupAlertIcon} />
 					</View>
@@ -156,7 +156,9 @@ class BackupAlert extends PureComponent {
 								</Text>
 							</TouchableOpacity>
 							<TouchableOpacity onPress={this.props.backUpSeedphraseAlertNotVisible}>
-								<Text style={styles.backupAlertMessage}>{strings('backup_alert.left_button')}</Text>
+								<Text style={styles.backupAlertMessage} testID={'notification-remind-later-button'}>
+									{strings('backup_alert.left_button')}
+								</Text>
 							</TouchableOpacity>
 						</View>
 					</View>

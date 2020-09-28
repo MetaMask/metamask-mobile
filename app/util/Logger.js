@@ -2,6 +2,7 @@
 
 import { addBreadcrumb, captureException, captureMessage, withScope } from '@sentry/react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import { METRICS_OPT_IN, AGREED, DEBUG } from '../constants/storage';
 
 /**
  * Wrapper class that allows us to override
@@ -18,11 +19,11 @@ export default class Logger {
 	 */
 	static async log(...args) {
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		if (__DEV__) {
-			args.unshift('[MetaMask DEBUG]:');
+			args.unshift(DEBUG);
 			console.log.apply(null, args); // eslint-disable-line no-console
-		} else if (metricsOptIn === 'agreed') {
+		} else if (metricsOptIn === AGREED) {
 			addBreadcrumb({
 				message: JSON.stringify(args)
 			});
@@ -38,10 +39,10 @@ export default class Logger {
 	 */
 	static async error(error, extra) {
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		if (__DEV__) {
-			console.warn('[MetaMask DEBUG]:', error); // eslint-disable-line no-console
-		} else if (metricsOptIn === 'agreed') {
+			console.warn(DEBUG, error); // eslint-disable-line no-console
+		} else if (metricsOptIn === AGREED) {
 			if (extra) {
 				if (typeof extra === 'string') {
 					extra = { message: extra };
@@ -64,7 +65,7 @@ export default class Logger {
 	 */
 	static async message(...args) {
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
 			console.log.apply(null, args); // eslint-disable-line no-console

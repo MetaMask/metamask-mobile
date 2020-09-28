@@ -14,12 +14,21 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
-import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import Device from '../../../util/Device';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
+import Logger from '../../../util/Logger';
+import {
+	PASSCODE_DISABLED,
+	BIOMETRY_CHOICE,
+	BIOMETRY_CHOICE_DISABLED,
+	ONBOARDING_WIZARD,
+	METRICS_OPT_IN,
+	ENCRYPTION_LIB,
+	TRUE,
+	ORIGINAL
+} from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -109,18 +118,6 @@ class Login extends PureComponent {
 		 */
 		setOnboardingWizardStep: PropTypes.func,
 		/**
-		 * Number of tokens
-		 */
-		tokensLength: PropTypes.number,
-		/**
-		 * Number of accounts
-		 */
-		accountsLength: PropTypes.number,
-		/**
-		 * A string representing the network name
-		 */
-		networkType: PropTypes.string,
-		/**
 		 * Boolean flag that determines if password has been set
 		 */
 		passwordSet: PropTypes.bool,
@@ -156,11 +153,11 @@ class Login extends PureComponent {
 			}
 		} else {
 			const biometryType = await SecureKeychain.getSupportedBiometryType();
-			const passcodeDisabled = await AsyncStorage.getItem('@MetaMask:passcodeDisabled');
-			if (passcodeDisabled !== 'true' && biometryType) {
+			const passcodeDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
+			if (passcodeDisabled !== TRUE && biometryType) {
 				let enabled = true;
-				const previouslyDisabled = await AsyncStorage.getItem('@MetaMask:biometryChoiceDisabled');
-				if (previouslyDisabled && previouslyDisabled === 'true') {
+				const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+				if (previouslyDisabled && previouslyDisabled === TRUE) {
 					enabled = false;
 				}
 
@@ -194,10 +191,10 @@ class Login extends PureComponent {
 
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
-			const encryptionLib = await AsyncStorage.getItem('@MetaMask:encryptionLib');
-			if (encryptionLib !== 'original') {
+			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+			if (encryptionLib !== ORIGINAL) {
 				await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
-				await AsyncStorage.setItem('@MetaMask:encryptionLib', 'original');
+				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			}
 			if (this.state.biometryChoice && this.state.biometryType) {
 				const authOptions = {
@@ -209,13 +206,13 @@ class Login extends PureComponent {
 				await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 
 				if (!this.state.biometryChoice) {
-					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-					await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
-					await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+					await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 				} else {
-					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
-					await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
-					await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
+					await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
+					await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+					await AsyncStorage.removeItem(PASSCODE_DISABLED);
 				}
 			} else {
 				if (this.state.rememberMe) {
@@ -225,44 +222,40 @@ class Login extends PureComponent {
 				} else {
 					await SecureKeychain.resetGenericPassword();
 				}
-				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 			}
 
 			// Get onboarding wizard state
-			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+			const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 			// Check if user passed through metrics opt-in screen
-			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 			if (!metricsOptIn) {
 				this.props.navigation.navigate('OptinMetrics');
 			} else if (onboardingWizard) {
 				this.props.navigation.navigate('HomeNav');
 			} else {
 				this.props.setOnboardingWizardStep(1);
-				this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+				this.props.navigation.navigate('HomeNav');
 			}
 			this.setState({ loading: false });
-		} catch (error) {
+		} catch (e) {
 			// Should we force people to enable passcode / biometrics?
+			const error = e.toString();
 			if (
-				error.toString().toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase() ||
-				error.toString().toLowerCase() === WRONG_PASSWORD_ERROR_ANDROID.toLowerCase()
+				error.toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase() ||
+				error.toLowerCase() === WRONG_PASSWORD_ERROR_ANDROID.toLowerCase()
 			) {
 				this.setState({ loading: false, error: strings('login.invalid_password') });
-			} else if (error.toString() === PASSCODE_NOT_SET_ERROR) {
+			} else if (error === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
 					'Security Alert',
 					'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
 				);
 				this.setState({ loading: false });
 			} else {
-				this.setState({ loading: false, error: error.toString() });
+				this.setState({ loading: false, error });
 			}
-			const { tokensLength, accountsLength, networkType } = this.props;
-			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.AUTHENTICATION_INCORRECT_PASSWORD, {
-				numberOfTokens: tokensLength,
-				numberOfAccounts: accountsLength,
-				network: networkType
-			});
+			Logger.error(error, 'Failed to login');
 		}
 	};
 
@@ -276,9 +269,9 @@ class Login extends PureComponent {
 
 	updateBiometryChoice = async biometryChoice => {
 		if (!biometryChoice) {
-			await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
-			await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}
 		this.setState({ biometryChoice });
 	};
@@ -413,9 +406,6 @@ class Login extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
-	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
-	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	passwordSet: state.user.passwordSet,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });

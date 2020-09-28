@@ -32,3 +32,10 @@ export function setEnablePaymentChannels(paymentChannelsEnabled) {
 		paymentChannelsEnabled
 	};
 }
+
+export function setUseBlockieIcon(useBlockieIcon) {
+	return {
+		type: 'SET_USE_BLOCKIE_ICON',
+		useBlockieIcon
+	};
+}

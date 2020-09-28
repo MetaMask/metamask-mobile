@@ -25,7 +25,8 @@ describe('AccountInfoCard', () => {
 						}
 					},
 					CurrencyRateController: {
-						conversionRate: 10
+						conversionRate: 10,
+						currentCurrency: 'inr'
 					},
 					NetworkController: {
 						provider: {

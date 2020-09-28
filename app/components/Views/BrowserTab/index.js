@@ -65,6 +65,8 @@ const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
+const ANIMATION_TIMING = 300;
+
 const styles = StyleSheet.create({
 	wrapper: {
 		...baseStyles.flexGrow,
@@ -581,22 +583,30 @@ export const BrowserTab = props => {
 					res.result = `MetaMask/${version}/Beta/Mobile`;
 				},
 
-				wallet_scanQRCode: async () => {
-					props.navigation.navigate('QRScanner', {
-						onScanSuccess: data => {
-							let result = data;
-							if (data.target_address) {
-								result = data.target_address;
-							} else if (data.scheme) {
-								result = JSON.stringify(data);
+				wallet_scanQRCode: () =>
+					new Promise((resolve, reject) => {
+						this.props.navigation.navigate('QRScanner', {
+							onScanSuccess: data => {
+								const regex = new RegExp(req.params[0]);
+								if (regex && !regex.exec(data)) {
+									reject({ message: 'NO_REGEX_MATCH', data });
+								} else if (!regex && !/^(0x){1}[0-9a-fA-F]{40}$/i.exec(data.target_address)) {
+									reject({ message: 'INVALID_ETHEREUM_ADDRESS', data: data.target_address });
+								}
+								let result = data;
+								if (data.target_address) {
+									result = data.target_address;
+								} else if (data.scheme) {
+									result = JSON.stringify(data);
+								}
+								res.result = result;
+								resolve();
+							},
+							onScanError: e => {
+								throw ethErrors.rpc.internal(e.toString());
 							}
-							res.result = result;
-						},
-						onScanError: e => {
-							throw ethErrors.rpc.internal(e.toString());
-						}
-					});
-				},
+						});
+					}),
 
 				wallet_watchAsset: async () => {
 					const {
@@ -618,7 +628,6 @@ export const BrowserTab = props => {
 					if (!isHomepage()) {
 						throw ethErrors.provider.unauthorized('Forbidden.');
 					}
-
 					Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
 						{
 							text: strings('browser.cancel'),
@@ -1342,7 +1351,7 @@ export const BrowserTab = props => {
 				if (current && !current.isFocused()) {
 					current.focus();
 				}
-			}, 300);
+			}, ANIMATION_TIMING);
 		}
 
 		return (
@@ -1354,8 +1363,8 @@ export const BrowserTab = props => {
 				animationIn="slideInDown"
 				animationOut="slideOutUp"
 				backdropOpacity={0.7}
-				animationInTiming={300}
-				animationOutTiming={300}
+				animationInTiming={ANIMATION_TIMING}
+				animationOutTiming={ANIMATION_TIMING}
 				useNativeDriver
 			>
 				<View style={styles.urlModalContent} testID={'url-modal'}>
