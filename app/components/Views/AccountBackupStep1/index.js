@@ -257,6 +257,7 @@ const AccountBackupStep1 = props => {
 									style={styles.remindLaterButton}
 									onPress={showRemindLater}
 									hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+									testID={'remind-me-later-button'}
 								>
 									<Text style={styles.remindLaterText}>
 										{strings('account_backup_step_1.remind_me_later')}
@@ -316,8 +317,9 @@ const AccountBackupStep1 = props => {
 							onValueChange={toggleSkipCheckbox}
 							boxType={'square'}
 							tintColors={{ true: colors.blue }}
+							testID={'skip-backup-check'}
 						/>
-						<Text onPress={toggleSkipCheckbox} style={styles.skipModalText}>
+						<Text onPress={toggleSkipCheckbox} style={styles.skipModalText} testID={'skip-backup-text'}>
 							{strings('account_backup_step_1.skip_check')}
 						</Text>
 					</View>

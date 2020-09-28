@@ -2,8 +2,13 @@
 import TestHelpers from './helpers';
 
 const ACCOUNT = 'Test Account One';
+const PASSWORD = '12345678';
 
 describe('Start Exploring', () => {
+	beforeEach(() => {
+		jest.setTimeout(150000);
+	});
+
 	it('should show the onboarding screen', async () => {
 		// Check that we are on the onboarding carousel screen
 		await TestHelpers.checkIfVisible('onboarding-carousel-screen');
@@ -32,8 +37,38 @@ describe('Start Exploring', () => {
 	});
 
 	it('should allow you to create a new wallet', async () => {
-		// Check that Start Exploring CTA is visible & tap it
-		await TestHelpers.waitAndTap('start-exploring-button');
+		// Check that Create a new wallet CTA is visible & tap it
+		await TestHelpers.waitAndTap('create-wallet-button');
+		// Check that we are on the Create password screen
+		await TestHelpers.checkIfVisible('create-password-screen');
+		// Input new password
+		await TestHelpers.typeTextAndHideKeyboard('input-password', PASSWORD);
+		// Input confirm password
+		await TestHelpers.typeTextAndHideKeyboard('input-password-confirm', PASSWORD);
+		// Mark the checkbox that you understand the password cannot be recovered
+		if (device.getPlatform() === 'ios') {
+			await TestHelpers.tap('password-understand-box');
+		} else {
+			// Tap by the I understand text
+			await TestHelpers.delay(1000);
+			await TestHelpers.tap('i-understand-text');
+		}
+		// Tap on create password button
+		await TestHelpers.tap('submit-button');
+		// Check that we are on the Secure your wallet screen
+		await TestHelpers.checkIfVisible('protect-your-account-screen');
+		// Tap on the remind me later button
+		await TestHelpers.tap('remind-me-later-button');
+		// Check the box to state you understand
+		if (device.getPlatform() === 'ios') {
+			await TestHelpers.tap('skip-backup-check');
+		} else {
+			// Tap by the I understand text
+			await TestHelpers.delay(1000);
+			await TestHelpers.tap('skip-backup-text');
+		}
+		// Tap on Skip button
+		await TestHelpers.tapByText('Skip');
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 	});

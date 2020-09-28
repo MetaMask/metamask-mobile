@@ -15,6 +15,7 @@ import { getTransactionReviewActionKey, getNormalizedTxState } from '../../../ut
 import { strings } from '../../../../locales/i18n';
 import { safeToChecksumAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import Logger from '../../../util/Logger';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -220,6 +221,7 @@ class Approval extends PureComponent {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
 				{ text: strings('navigation.ok') }
 			]);
+			Logger.error(error, 'error while trying to send transaction (Approval)');
 			this.setState({ transactionHandled: false });
 		}
 		this.trackOnConfirm();
