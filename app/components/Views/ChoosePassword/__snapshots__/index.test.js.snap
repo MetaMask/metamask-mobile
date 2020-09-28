@@ -332,6 +332,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "width": 18,
               }
             }
+            testID="password-understand-box"
             tintColors={
               Object {
                 "true": "#037dd6",
@@ -350,6 +351,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "paddingHorizontal": 10,
               }
             }
+            testID="i-understand-text"
           >
             I understand that MetaMask cannot recover this password for me.
              

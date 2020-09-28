@@ -21,13 +21,9 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.waitAndTap('onboarding-get-started-button');
 		// Check that we are on the onboarding screen
 		await TestHelpers.checkIfVisible('onboarding-screen');
-		// Check that Sync or import your wallet CTA is visible & tap it
-		await TestHelpers.waitAndTap('onboarding-import-button');
-		// Check that we are on the import wallet screen
-		await TestHelpers.checkIfVisible('import-wallet-screen');
 		// Check that Import using seed phrase CTA is visible & tap it
 		await TestHelpers.waitAndTap('import-wallet-import-from-seed-button');
-		// Check that we are on the import from seed screen
+		// Check that we are on the import wallet screen
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input incorrect seed phrase
 		if (device.getPlatform() === 'android') {
@@ -95,13 +91,15 @@ describe('Import seedphrase flow', () => {
 
 		// Scroll to the bottom
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.swipe('clear-privacy-section', 'up');
+			await TestHelpers.swipe('third-party-section', 'up');
 			TestHelpers.delay(1000);
-			await TestHelpers.swipe('clear-privacy-section', 'up');
+			await TestHelpers.swipe('third-party-section', 'up');
 			TestHelpers.delay(1000);
 			await TestHelpers.swipe('clear-privacy-section', 'up');
 			TestHelpers.delay(1000);
 			await TestHelpers.swipe('auto-lock-section', 'up');
+			TestHelpers.delay(1000);
+			await TestHelpers.swipe('reveal-private-key-section', 'up');
 			TestHelpers.delay(1000);
 		} else {
 			await TestHelpers.swipe('clear-privacy-section', 'up');
@@ -138,7 +136,7 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.checkIfVisible('invalid-password-error');
 		// Log in
 		await TestHelpers.typeTextAndHideKeyboard('login-password-input', Correct_Password);
-		// Check that we are on the Browser page
-		await TestHelpers.checkIfVisible('browser-screen');
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
 	});
 });
