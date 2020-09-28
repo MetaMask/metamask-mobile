@@ -687,10 +687,6 @@ export const BrowserTab = props => {
 	 * Is the current tab the active tab
 	 */
 	const isTabActive = useCallback(() => props.activeTab === props.id, [props.activeTab, props.id]);
-	/**
-	 * Is the current tab not the active tab
-	 */
-	const isHidden = () => !isTabActive();
 
 	/**
 	 * Dismiss the text selection on the current website
@@ -1677,7 +1673,7 @@ export const BrowserTab = props => {
 	 */
 	return (
 		<View
-			style={[styles.wrapper, isHidden() && styles.hide]}
+			style={[styles.wrapper, !isTabActive() && styles.hide]}
 			{...(Device.isAndroid() ? { collapsable: false } : {})}
 		>
 			<View style={styles.webview}>
@@ -1704,14 +1700,13 @@ export const BrowserTab = props => {
 				)}
 			</View>
 			{renderProgressBar()}
-			{!isHidden() && renderPhishingModal()}
-			{!isHidden() && renderUrlModal()}
-			{!isHidden() && renderApprovalModal()}
-			{!isHidden() && renderPhishingModal()}
-			{!isHidden() && renderWatchAssetModal()}
-			{!isHidden() && renderOptions()}
-			{!isHidden() && renderBottomBar()}
-			{!isHidden() && renderOnboardingWizard()}
+			{isTabActive() && renderPhishingModal()}
+			{isTabActive() && renderUrlModal()}
+			{isTabActive() && renderApprovalModal()}
+			{isTabActive() && renderWatchAssetModal()}
+			{isTabActive() && renderOptions()}
+			{isTabActive() && renderBottomBar()}
+			{isTabActive() && renderOnboardingWizard()}
 		</View>
 	);
 };
