@@ -10,7 +10,8 @@ import {
 	KeyboardAvoidingView,
 	FlatList,
 	Image,
-	InteractionManager
+	InteractionManager,
+	ScrollView
 } from 'react-native';
 import { connect } from 'react-redux';
 import { setSelectedAsset, prepareTransaction, setTransactionObject } from '../../../../actions/transaction';
@@ -52,6 +53,7 @@ import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 
 const { hexToBN, BNToHex } = util;
 
@@ -63,6 +65,9 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		backgroundColor: colors.white
+	},
+	scrollWrapper: {
+		marginBottom: 60
 	},
 	buttonNextWrapper: {
 		flex: 1,
@@ -475,6 +480,7 @@ class Amount extends PureComponent {
 			const invalidCollectibleOwnership = await this.validateCollectibleOwnership();
 			if (invalidCollectibleOwnership) {
 				this.setState({ amountError: invalidCollectibleOwnership });
+				dismissKeyboard();
 			}
 		}
 
@@ -630,7 +636,10 @@ class Amount extends PureComponent {
 		} else {
 			amountError = strings('transaction.invalid_amount');
 		}
-		this.setState({ amountError });
+		if (amountError) {
+			this.setState({ amountError });
+			dismissKeyboard();
+		}
 		return !!amountError;
 	};
 
@@ -1019,44 +1028,46 @@ class Amount extends PureComponent {
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'amount-screen'}>
-				<View style={styles.inputWrapper}>
-					<View style={styles.actionsWrapper}>
-						<View style={styles.actionBorder} />
-						<View style={styles.action}>
-							<TouchableOpacity
-								style={styles.actionDropdown}
-								disabled={paymentChannelTransaction || isPaymentRequest}
-								onPress={this.toggleAssetsModal}
-							>
-								<Text style={styles.textDropdown}>
-									{selectedAsset.symbol || strings('wallet.collectible')}
-								</Text>
-								{!paymentChannelTransaction && (
-									<View styles={styles.arrow}>
-										<Ionicons
-											name="ios-arrow-down"
-											size={16}
-											color={colors.white}
-											style={styles.iconDropdown}
-										/>
-									</View>
-								)}
-							</TouchableOpacity>
-						</View>
-						<View style={[styles.actionBorder, styles.actionMax]}>
-							{!selectedAsset.tokenId && (
+				<ScrollView style={styles.scrollWrapper}>
+					<View style={styles.inputWrapper}>
+						<View style={styles.actionsWrapper}>
+							<View style={styles.actionBorder} />
+							<View style={styles.action}>
 								<TouchableOpacity
-									style={styles.actionMaxTouchable}
-									disabled={!paymentChannelTransaction && !estimatedTotalGas}
-									onPress={this.useMax}
+									style={styles.actionDropdown}
+									disabled={paymentChannelTransaction || isPaymentRequest}
+									onPress={this.toggleAssetsModal}
 								>
-									<Text style={styles.maxText}>{strings('transaction.use_max')}</Text>
+									<Text style={styles.textDropdown}>
+										{selectedAsset.symbol || strings('wallet.collectible')}
+									</Text>
+									{!paymentChannelTransaction && (
+										<View styles={styles.arrow}>
+											<Ionicons
+												name="ios-arrow-down"
+												size={16}
+												color={colors.white}
+												style={styles.iconDropdown}
+											/>
+										</View>
+									)}
 								</TouchableOpacity>
-							)}
+							</View>
+							<View style={[styles.actionBorder, styles.actionMax]}>
+								{!selectedAsset.tokenId && (
+									<TouchableOpacity
+										style={styles.actionMaxTouchable}
+										disabled={!paymentChannelTransaction && !estimatedTotalGas}
+										onPress={this.useMax}
+									>
+										<Text style={styles.maxText}>{strings('transaction.use_max')}</Text>
+									</TouchableOpacity>
+								)}
+							</View>
 						</View>
+						{selectedAsset.tokenId ? this.renderCollectibleInput() : this.renderTokenInput()}
 					</View>
-					{selectedAsset.tokenId ? this.renderCollectibleInput() : this.renderTokenInput()}
-				</View>
+				</ScrollView>
 
 				<KeyboardAvoidingView
 					style={styles.nextActionWrapper}
