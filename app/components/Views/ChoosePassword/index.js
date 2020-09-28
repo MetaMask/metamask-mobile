@@ -30,6 +30,7 @@ import {
 	PASSCODE_DISABLED,
 	TRUE
 } from '../../../constants/storage';
+import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 
@@ -289,7 +290,7 @@ class ChoosePassword extends PureComponent {
 
 		if (!canSubmit) return;
 		if (loading) return;
-		if (password.length < 8) {
+		if (!passwordRequirementsMet(password)) {
 			Alert.alert('Error', strings('choose_password.password_length_error'));
 			return;
 		} else if (password !== confirmPassword) {
@@ -447,24 +448,6 @@ class ChoosePassword extends PureComponent {
 		current && current.focus();
 	};
 
-	getPasswordStrengthWord() {
-		// this.state.passwordStrength is calculated by zxcvbn
-		// which returns a score based on "entropy to crack time"
-		// 0 is the weakest, 4 the strongest
-		switch (this.state.passwordStrength) {
-			case 0:
-				return 'weak';
-			case 1:
-				return 'weak';
-			case 2:
-				return 'weak';
-			case 3:
-				return 'good';
-			case 4:
-				return 'strong';
-		}
-	}
-
 	renderSwitch = () => {
 		const { biometryType, rememberMe, biometryChoice } = this.state;
 		return (
@@ -518,10 +501,20 @@ class ChoosePassword extends PureComponent {
 	};
 
 	render() {
-		const { isSelected, inputWidth, password, confirmPassword, secureTextEntry, error, loading } = this.state;
+		const {
+			isSelected,
+			inputWidth,
+			password,
+			passwordStrength,
+			confirmPassword,
+			secureTextEntry,
+			error,
+			loading
+		} = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
 		const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
+		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -582,9 +575,9 @@ class ChoosePassword extends PureComponent {
 									{(password !== '' && (
 										<Text style={styles.hintLabel}>
 											{strings('choose_password.password_strength')}
-											<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
+											<Text style={styles[`strength_${passwordStrengthWord}`]}>
 												{' '}
-												{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}
+												{strings(`choose_password.strength_${passwordStrengthWord}`)}
 											</Text>
 										</Text>
 									)) || <Text style={styles.hintLabel} />}

@@ -29,6 +29,7 @@ import {
 	TRUE,
 	ORIGINAL
 } from '../../../constants/storage';
+import { passwordRequirementsMet } from '../../../util/password';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -331,7 +332,7 @@ class Login extends PureComponent {
 
 	render = () => {
 		const { password } = this.state;
-		const passEmpty = !password.length;
+		const disabled = !passwordRequirementsMet(password);
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -388,7 +389,7 @@ class Login extends PureComponent {
 						)}
 
 						<View style={styles.ctaWrapper} testID={'log-in-button'}>
-							<StyledButton disabled={passEmpty} type={'confirm'} onPress={this.onLogin}>
+							<StyledButton disabled={disabled} type={'confirm'} onPress={this.onLogin}>
 								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
