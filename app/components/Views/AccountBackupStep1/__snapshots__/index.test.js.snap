@@ -162,6 +162,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                 "zIndex": 10,
               }
             }
+            testID="remind-me-later-button"
           >
             <Text
               style={
@@ -340,6 +341,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               "width": 18,
             }
           }
+          testID="skip-backup-check"
           tintColors={
             Object {
               "true": "#037dd6",
@@ -358,6 +360,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               "lineHeight": 20,
             }
           }
+          testID="skip-backup-text"
         >
           I understand that if I lose my seed phrase I will not be able to access my wallet.
         </Text>

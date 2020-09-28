@@ -266,7 +266,11 @@ class ReceiveRequest extends PureComponent {
 
 					<Text>{strings('receive_request.scan_address')}</Text>
 
-					<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+					<TouchableOpacity
+						style={styles.addressWrapper}
+						onPress={this.copyAccountToClipboard}
+						testID={'account-address'}
+					>
 						<Text>
 							<EthereumAddress address={this.props.selectedAddress} type={'short'} />
 						</Text>
@@ -287,7 +291,12 @@ class ReceiveRequest extends PureComponent {
 								{strings('fiat_on_ramp.buy_eth')}
 							</StyledButton>
 						)}
-						<StyledButton type={'normal'} onPress={this.onReceive} containerStyle={styles.actionButton}>
+						<StyledButton
+							type={'normal'}
+							onPress={this.onReceive}
+							containerStyle={styles.actionButton}
+							testID={'request-payment-button'}
+						>
 							{strings('receive_request.request_payment')}
 						</StyledButton>
 					</View>
