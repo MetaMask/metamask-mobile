@@ -30,6 +30,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
+import { failedSeedPhraseRequirements } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
 	BIOMETRY_CHOICE,
@@ -41,6 +42,10 @@ import {
 	METRICS_OPT_IN,
 	TRUE
 } from '../../../constants/storage';
+import { ethers } from 'ethers';
+import Logger from '../../../util/Logger';
+
+const { isValidMnemonic } = ethers.utils;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -232,16 +237,20 @@ class ImportFromSeed extends PureComponent {
 	}
 
 	onPressImport = async () => {
-		if (this.state.loading) return;
+		const { loading, seed, password, confirmPassword } = this.state;
+
+		if (loading) return;
 		let error = null;
-		if (this.state.password.length < 8) {
+		if (password.length < 8) {
 			error = strings('import_from_seed.password_length_error');
-		} else if (this.state.password !== this.state.confirmPassword) {
+		} else if (password !== confirmPassword) {
 			error = strings('import_from_seed.password_dont_match');
 		}
 
-		if (this.state.seed.split(' ').length !== 12) {
-			error = strings('import_from_seed.seed_word_count_error');
+		if (failedSeedPhraseRequirements(seed)) {
+			error = strings('import_from_seed.seed_phrase_requirements');
+		} else if (!isValidMnemonic(seed)) {
+			error = strings('import_from_seed.invalid_seed_phrase');
 		}
 
 		if (error) {
@@ -314,6 +323,7 @@ class ImportFromSeed extends PureComponent {
 					this.setState({ loading: false });
 				} else {
 					this.setState({ loading: false, error: error.toString() });
+					Logger.log('Error with seed phrase import', error);
 				}
 			}
 		}
@@ -426,6 +436,9 @@ class ImportFromSeed extends PureComponent {
 						strings('import_from_seed.invalid_qr_code_message')
 					);
 				}
+				this.toggleHideSeedPhraseInput();
+			},
+			onScanError: error => {
 				this.toggleHideSeedPhraseInput();
 			}
 		});
@@ -584,7 +597,11 @@ class ImportFromSeed extends PureComponent {
 								onPress={this.onPressImport}
 								testID={'submit'}
 								disabled={
-									!(password !== '' && password === confirmPassword && seed.split(' ').length === 12)
+									!(
+										password !== '' &&
+										password === confirmPassword &&
+										!failedSeedPhraseRequirements(seed)
+									)
 								}
 							>
 								{loading ? (
