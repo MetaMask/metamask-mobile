@@ -13,7 +13,6 @@ import { colors } from '../../../styles/common';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
-import SplashScreen from 'react-native-splash-screen';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import { EXISTING_USER, ONBOARDING_WIZARD, METRICS_OPT_IN, ENCRYPTION_LIB, ORIGINAL } from '../../../constants/storage';
 
@@ -96,7 +95,6 @@ class Entry extends PureComponent {
 	async componentDidMount() {
 		DeeplinkManager.init(this.props.navigation);
 		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
-		SplashScreen.hide();
 		const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 		if (existingUser !== null) {
 			await this.unlockKeychain();
@@ -154,7 +152,7 @@ class Entry extends PureComponent {
 					NavigationActions.navigate({ routeName: 'Oboarding' })
 				);
 			} else {
-				this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+				this.props.navigation.navigate('HomeNav');
 			}
 		});
 	};
