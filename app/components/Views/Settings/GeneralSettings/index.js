@@ -78,7 +78,6 @@ const styles = StyleSheet.create({
 	identicon_type: {
 		...fontStyles.bold,
 		fontSize: 14,
-		color: colors.black,
 		marginHorizontal: 10
 	},
 	blockie: {
@@ -98,6 +97,9 @@ const styles = StyleSheet.create({
 	},
 	selected: {
 		borderColor: colors.blue
+	},
+	selected_text: {
+		color: colors.black
 	}
 });
 
@@ -255,13 +257,17 @@ class Settings extends PureComponent {
 								<View style={[styles.border, !useBlockieIcon && styles.selected]}>
 									<Jazzicon size={diameter} address={selectedAddress} />
 								</View>
-								<Text style={styles.identicon_type}>{strings('app_settings.jazzicons')}</Text>
+								<Text style={[styles.identicon_type, !useBlockieIcon && styles.selected_text]}>
+									{strings('app_settings.jazzicons')}
+								</Text>
 							</TouchableOpacity>
 							<TouchableOpacity onPress={() => setUseBlockieIcon(true)} style={styles.identicon_row}>
 								<View style={[styles.border, useBlockieIcon && styles.selected]}>
 									<Image source={{ uri: toDataUrl(selectedAddress) }} style={styles.blockie} />
 								</View>
-								<Text style={styles.identicon_type}>{strings('app_settings.blockies')}</Text>
+								<Text style={[styles.identicon_type, useBlockieIcon && styles.selected_text]}>
+									{strings('app_settings.blockies')}
+								</Text>
 							</TouchableOpacity>
 						</View>
 					</View>
