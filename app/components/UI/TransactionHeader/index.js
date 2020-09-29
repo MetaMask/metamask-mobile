@@ -106,7 +106,7 @@ class TransactionHeader extends PureComponent {
 
 	render() {
 		const {
-			currentPageInformation: { url, currentEnsName },
+			currentPageInformation: { url, currentEnsName, icon },
 			networkType
 		} = this.props;
 		const title = getHost(currentEnsName || url);
@@ -118,6 +118,7 @@ class TransactionHeader extends PureComponent {
 					viewStyle={styles.assetLogo}
 					title={title}
 					url={currentEnsName || url}
+					icon={icon}
 				/>
 				<View style={styles.domanUrlContainer}>
 					{this.renderSecureIcon()}

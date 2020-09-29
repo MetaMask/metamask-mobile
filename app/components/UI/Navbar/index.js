@@ -469,15 +469,16 @@ export function getBrowserViewNavbarOptions(navigation) {
 
 	const isHomepage = url => getHost(url) === getHost(HOMEPAGE_URL);
 	const error = navigation.getParam('error', '');
+	const icon = navigation.getParam('icon', null);
 
 	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
-		hostname = urlObj.hostname.toLowerCase().replace(/^www./, '');
+		hostname = urlObj.hostname.toLowerCase().replace(/^www\./, '');
 		if (isGatewayUrl(urlObj) && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			const ensUrl = navigation.getParam('currentEnsName', '');
 			if (ensUrl) {
-				hostname = ensUrl.toLowerCase().replace(/^www./, '');
+				hostname = ensUrl.toLowerCase().replace(/^www\./, '');
 			}
 		}
 	} else {
@@ -501,7 +502,14 @@ export function getBrowserViewNavbarOptions(navigation) {
 			</TouchableOpacity>
 		),
 		headerTitle: (
-			<NavbarBrowserTitle error={!!error} navigation={navigation} url={url} hostname={hostname} https={isHttps} />
+			<NavbarBrowserTitle
+				error={!!error}
+				icon={url && !isHomepage(url) ? icon : null}
+				navigation={navigation}
+				url={url}
+				hostname={hostname}
+				https={isHttps}
+			/>
 		),
 		headerRight: (
 			<View style={styles.browserRightButton}>
