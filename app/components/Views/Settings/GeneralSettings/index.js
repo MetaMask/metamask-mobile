@@ -182,7 +182,8 @@ class Settings extends PureComponent {
 						</View>
 					</View>
 					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.show_blockies_identicon')}</Text>
+						<Text style={styles.title}>{strings('app_settings.accounts_identicon_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.accounts_identicon_desc')}</Text>
 						<View style={styles.switchElement}>
 							<Switch
 								value={useBlockieIcon}
