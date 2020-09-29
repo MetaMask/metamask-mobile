@@ -44,6 +44,7 @@ import {
 } from '../../../constants/storage';
 import { ethers } from 'ethers';
 import Logger from '../../../util/Logger';
+import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 
 const { isValidMnemonic } = ethers.utils;
 
@@ -241,7 +242,7 @@ class ImportFromSeed extends PureComponent {
 
 		if (loading) return;
 		let error = null;
-		if (password.length < 8) {
+		if (!passwordRequirementsMet(this.state.password)) {
 			error = strings('import_from_seed.password_length_error');
 		} else if (password !== confirmPassword) {
 			error = strings('import_from_seed.password_dont_match');
@@ -406,24 +407,6 @@ class ImportFromSeed extends PureComponent {
 		this.setState(({ hideSeedPhraseInput }) => ({ hideSeedPhraseInput: !hideSeedPhraseInput }));
 	};
 
-	getPasswordStrengthWord() {
-		// this.state.passwordStrength is calculated by zxcvbn
-		// which returns a score based on "entropy to crack time"
-		// 0 is the weakest, 4 the strongest
-		switch (this.state.passwordStrength) {
-			case 0:
-				return 'weak';
-			case 1:
-				return 'weak';
-			case 2:
-				return 'weak';
-			case 3:
-				return 'good';
-			case 4:
-				return 'strong';
-		}
-	}
-
 	onQrCodePress = () => {
 		setTimeout(this.toggleHideSeedPhraseInput, 100);
 		this.props.navigation.navigate('QRScanner', {
@@ -449,6 +432,7 @@ class ImportFromSeed extends PureComponent {
 	render() {
 		const {
 			password,
+			passwordStrength,
 			confirmPassword,
 			seed,
 			seedphraseInputFocused,
@@ -458,6 +442,8 @@ class ImportFromSeed extends PureComponent {
 			loading,
 			hideSeedPhraseInput
 		} = this.state;
+
+		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -548,9 +534,9 @@ class ImportFromSeed extends PureComponent {
 							{(password !== '' && (
 								<Text style={styles.passwordStrengthLabel}>
 									{strings('choose_password.password_strength')}
-									<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
+									<Text style={styles[`strength_${passwordStrengthWord}`]}>
 										{' '}
-										{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}
+										{strings(`choose_password.strength_${passwordStrengthWord}`)}
 									</Text>
 								</Text>
 							)) || <Text style={styles.passwordStrengthLabel} />}
