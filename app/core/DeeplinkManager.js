@@ -2,7 +2,7 @@
 
 import URL from 'url-parse';
 import qs from 'qs';
-import { InteractionManager, Alert } from 'react-native';
+import { InteractionManager, Alert, AppState } from 'react-native';
 import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
 import PaymentChannelsClient from '../core/PaymentChannelsClient';
@@ -141,6 +141,9 @@ let pendingDeeplink = null;
 const SharedDeeplinkManager = {
 	init: navigation => {
 		instance = new DeeplinkManager(navigation);
+		AppState.addEventListener('change', appState => {
+			if (appState !== 'active') pendingDeeplink = null;
+		});
 	},
 	parse: (url, browserCallback) => instance.parse(url, browserCallback),
 	setDeeplink: url => {
