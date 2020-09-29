@@ -304,7 +304,6 @@ class CustomGas extends PureComponent {
 		gasAverageSelected: true,
 		gasSlowSelected: false,
 		selected: 'average',
-		ready: false,
 		customGasPrice: '10',
 		customGasLimit: fromWei(this.props.gas, 'wei'),
 		customGasPriceBNWei: this.props.gasPrice,

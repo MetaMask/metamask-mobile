@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Animated, Easing } from 'react-native';
+import { StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors } from '../../../styles/common';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
+import AnimatedTransactionModal from '../AnimatedTransactionModal';
 import TransactionReview from '../TransactionReview';
 import CustomGas from '../CustomGas';
 import { isBN, hexToBN, toBN, isDecimal, fromWei } from '../../../util/number';
@@ -19,27 +19,11 @@ import contractMap from 'eth-contract-metadata';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
-import Device from '../../../util/Device';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
 
 const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		minHeight: 200,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		paddingBottom: Device.isIphoneX() ? 24 : 0
-	},
-	transactionEdit: {
-		position: 'absolute',
-		width: '100%',
-		height: '100%'
-	},
-	transactionReview: {
-		paddingTop: 24
-	},
 	keyboardAwareWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end'
@@ -115,27 +99,9 @@ class TransactionEditor extends PureComponent {
 		basicGasEstimates: {},
 		ready: false,
 		data: undefined,
-		advancedCustomGas: false,
 		amountError: '',
 		gasError: '',
-		toAddressError: '',
-		modalValue: new Animated.Value(1),
-		reviewToEditValue: new Animated.Value(0),
-		reviewToDataValue: new Animated.Value(0),
-		editToAdvancedValue: new Animated.Value(0),
-		width: Device.getDeviceWidth(),
-		rootHeight: null,
-		customGasHeight: null,
-		transactionReviewDataHeight: null,
-		hideGasSelectors: false,
-		hideData: true,
-		toAdvancedFrom: 'edit'
-	};
-
-	xTranslationMappings = {
-		reviewToEdit: this.state.reviewToEditValue,
-		editToAdvanced: this.state.editToAdvancedValue,
-		reviewToData: this.state.reviewToDataValue
+		toAddressError: ''
 	};
 
 	componentDidMount = async () => {
@@ -597,7 +563,6 @@ class TransactionEditor extends PureComponent {
 				this.handleUpdateData(addHexPrefix(data));
 			}
 		}
-		this.onModeChange('review');
 	};
 
 	validate = async () => {
@@ -650,177 +615,32 @@ class TransactionEditor extends PureComponent {
 		this.setState({ basicGasEstimates, ready: true });
 	};
 
-	onModeChange = mode => {
-		if (mode === 'edit') {
-			this.setState({ toAdvancedFrom: 'review' });
-			this.animate({
-				modalEndValue: this.state.advancedCustomGas ? this.getAnimatedModalValueForAdvancedCG() : 0,
-				xTranslationName: 'reviewToEdit',
-				xTranslationEndValue: 1
-			});
-		} else {
-			this.animate({
-				modalEndValue: 1,
-				xTranslationName: 'reviewToEdit',
-				xTranslationEndValue: 0
-			});
-		}
-		this.props.onModeChange(mode);
-	};
-
-	toggleAdvancedCustomGas = (toggle = false) => {
-		const { advancedCustomGas } = this.state;
-		this.setState({ advancedCustomGas: toggle ? true : !advancedCustomGas, toAdvancedFrom: 'edit' });
-	};
-
-	hideComponents = (xTranslationName, xTranslationEndValue, animationTime) => {
-		//data view is hidden by default because when we switch from review to edit, since view is nested in review, it also gets transformed. It's shown if it's the animation's destination.
-		if (xTranslationName === 'editToAdvanced') {
-			this.setState({
-				hideGasSelectors: xTranslationEndValue === 1 && animationTime === 'end'
-			});
-		}
-		if (xTranslationName === 'reviewToData') {
-			this.setState({
-				hideData: xTranslationEndValue === 0 && animationTime === 'end'
-			});
-		}
-	};
-
-	animate = ({ modalEndValue, xTranslationName, xTranslationEndValue }) => {
-		const { modalValue } = this.state;
-		this.hideComponents(xTranslationName, xTranslationEndValue, 'start');
-		Animated.parallel([
-			Animated.timing(modalValue, {
-				toValue: modalEndValue,
-				duration: 250,
-				easing: Easing.ease,
-				useNativeDriver: true
-			}),
-			Animated.timing(this.xTranslationMappings[xTranslationName], {
-				toValue: xTranslationEndValue,
-				duration: 250,
-				easing: Easing.ease,
-				useNativeDriver: true
-			})
-		]).start(() => {
-			this.hideComponents(xTranslationName, xTranslationEndValue, 'end');
-		});
-	};
-
-	generateTransform = (valueType, outRange) => {
-		const { modalValue, reviewToEditValue, editToAdvancedValue, reviewToDataValue } = this.state;
-		if (valueType === 'modal' || valueType === 'saveButton') {
-			return {
-				transform: [
-					{
-						translateY: modalValue.interpolate({
-							inputRange: [0, valueType === 'saveButton' ? this.getAnimatedModalValueForAdvancedCG() : 1],
-							outputRange: outRange
-						})
-					}
-				]
-			};
-		}
-		let value;
-		if (valueType === 'reviewToEdit') value = reviewToEditValue;
-		else if (valueType === 'editToAdvanced') value = editToAdvancedValue;
-		else if (valueType === 'reviewToData') value = reviewToDataValue;
-		return {
-			transform: [
-				{
-					translateX: value.interpolate({
-						inputRange: [0, 1],
-						outputRange: outRange
-					})
-				}
-			]
-		};
-	};
-
-	getAnimatedModalValueForAdvancedCG = () => {
-		const { rootHeight, customGasHeight } = this.state;
-		//70 is the fixed height + margin of the error message in advanced custom gas. It expands 70 units vertically to accomodate it
-		return 70 / (rootHeight - customGasHeight);
-	};
-
-	saveRootHeight = event => this.setState({ rootHeight: event.nativeEvent.layout.height });
-
-	saveCustomGasHeight = event =>
-		!this.state.customGasHeight && this.setState({ customGasHeight: event.nativeEvent.layout.height });
-
-	saveTransactionReviewDataHeight = event =>
-		!this.state.transactionReviewDataHeight &&
-		this.setState({ transactionReviewDataHeight: event.nativeEvent.layout.height });
-
-	getTransformValue = () => {
-		const { rootHeight, customGasHeight } = this.state;
-		return rootHeight - customGasHeight;
-	};
 	render = () => {
-		const { mode, transactionConfirmed, transaction } = this.props;
-		const {
-			basicGasEstimates,
-			ready,
-			width,
-			advancedCustomGas,
-			hideGasSelectors,
-			gasError,
-			toAdvancedFrom,
-			hideData,
-			customGasHeight
-		} = this.state;
+		const { mode, transactionConfirmed, transaction, onModeChange } = this.props;
+		const { basicGasEstimates, ready, gasError } = this.state;
 		const paymentChannelTransaction = transaction ? transaction.paymentChannelTransaction : false;
 		return (
 			<React.Fragment>
 				{mode === EDIT && paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
 				{!paymentChannelTransaction && (
 					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-						<Animated.View
-							style={[styles.root, this.generateTransform('modal', [this.getTransformValue(), 0])]}
-							onLayout={this.saveRootHeight}
-						>
-							<Animated.View
-								style={[this.generateTransform('reviewToEdit', [0, -width]), styles.transactionReview]}
-							>
-								<TransactionReview
-									onCancel={this.onCancel}
-									onConfirm={this.onConfirm}
-									onModeChange={this.onModeChange}
-									validate={this.validate}
-									ready={ready}
-									transactionConfirmed={transactionConfirmed}
-									generateTransform={this.generateTransform}
-									animate={this.animate}
-									hideData={hideData}
-									saveTransactionReviewDataHeight={this.saveTransactionReviewDataHeight}
-									customGasHeight={customGasHeight}
-								/>
-							</Animated.View>
-							{ready && (
-								<Animated.View
-									style={[styles.transactionEdit, this.generateTransform('reviewToEdit', [width, 0])]}
-								>
-									<CustomGas
-										handleGasFeeSelection={this.updateGas}
-										basicGasEstimates={basicGasEstimates}
-										gas={transaction.gas}
-										gasPrice={transaction.gasPrice}
-										gasError={gasError}
-										toggleAdvancedCustomGas={this.toggleAdvancedCustomGas}
-										advancedCustomGas={advancedCustomGas}
-										review={this.review}
-										saveCustomGasHeight={this.saveCustomGasHeight}
-										animate={this.animate}
-										generateTransform={this.generateTransform}
-										getAnimatedModalValueForAdvancedCG={this.getAnimatedModalValueForAdvancedCG}
-										hideGasSelectors={hideGasSelectors}
-										mode={mode}
-										toAdvancedFrom={toAdvancedFrom}
-									/>
-								</Animated.View>
-							)}
-						</Animated.View>
+						<AnimatedTransactionModal onModeChange={onModeChange} ready={ready} review={this.review}>
+							<TransactionReview
+								onCancel={this.onCancel}
+								onConfirm={this.onConfirm}
+								validate={this.validate}
+								ready={ready}
+								transactionConfirmed={transactionConfirmed}
+							/>
+							<CustomGas
+								handleGasFeeSelection={this.updateGas}
+								basicGasEstimates={basicGasEstimates}
+								gas={transaction.gas}
+								gasPrice={transaction.gasPrice}
+								gasError={gasError}
+								mode={mode}
+							/>
+						</AnimatedTransactionModal>
 					</KeyboardAwareScrollView>
 				)}
 			</React.Fragment>
