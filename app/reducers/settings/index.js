@@ -6,7 +6,7 @@ const initialState = {
 	primaryCurrency: 'ETH',
 	lockTime: -1, // Disabled by default
 	paymentChannelsEnabled: false,
-	useBlockieIcon: false
+	useBlockieIcon: true
 };
 
 const settingsReducer = (state = initialState, action) => {

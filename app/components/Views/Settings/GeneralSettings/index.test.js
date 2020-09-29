@@ -8,7 +8,7 @@ describe('GeneralSettings', () => {
 		const initialState = {
 			privacy: { approvedHosts: [], privacyMode: true },
 			browser: { history: [] },
-			settings: { lockTime: 1000, searchEngine: 'DuckDuckGo' },
+			settings: { lockTime: 1000, searchEngine: 'DuckDuckGo', useBlockieIcon: true },
 			engine: {
 				backgroundState: {
 					CurrencyRateController: { currentCurrency: 'USD' },
@@ -16,7 +16,8 @@ describe('GeneralSettings', () => {
 						provider: {
 							type: 'mainnet'
 						}
-					}
+					},
+					PreferencesController: { selectedAddress: '0x0' }
 				}
 			}
 		};
