@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, ScrollView, Switch, View } from 'react-native';
+import { StyleSheet, Text, ScrollView, View, Image, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 
 import Engine from '../../../../core/Engine';
@@ -11,7 +11,11 @@ import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setSearchEngine, setPrimaryCurrency, setUseBlockieIcon } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
-import Device from '../../../../util/Device';
+import { toDataUrl } from '../../../../util/blockies.js';
+import Jazzicon from 'react-native-jazzicon';
+
+const diameter = 40;
+const spacing = 8;
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.code.toLocaleLowerCase().localeCompare(b.quote.code.toLocaleLowerCase())
@@ -60,6 +64,40 @@ const styles = StyleSheet.create({
 	},
 	inner: {
 		paddingBottom: 48
+	},
+	identicon_container: {
+		marginVertical: 16,
+		display: 'flex',
+		flexDirection: 'row'
+	},
+	identicon_row: {
+		width: '50%',
+		alignItems: 'center',
+		flexDirection: 'row'
+	},
+	identicon_type: {
+		...fontStyles.bold,
+		fontSize: 14,
+		color: colors.black,
+		marginHorizontal: 10
+	},
+	blockie: {
+		height: diameter,
+		width: diameter,
+		borderRadius: diameter / 2
+	},
+	border: {
+		height: diameter + spacing,
+		width: diameter + spacing,
+		borderRadius: (diameter + spacing) / 2,
+		backgroundColor: colors.white,
+		borderWidth: 2,
+		borderColor: colors.white,
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	selected: {
+		borderColor: colors.blue
 	}
 });
 
@@ -99,7 +137,11 @@ class Settings extends PureComponent {
 		/**
 		 * called to toggle BlockieIcon
 		 */
-		setUseBlockieIcon: PropTypes.func
+		setUseBlockieIcon: PropTypes.func,
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -108,10 +150,6 @@ class Settings extends PureComponent {
 	state = {
 		currentLanguage: I18n.locale.substr(0, 2),
 		languages: {}
-	};
-
-	toggleUseBlockieIcon = useBlockieIcon => {
-		this.props.setUseBlockieIcon(useBlockieIcon);
 	};
 
 	selectCurrency = async currency => {
@@ -149,7 +187,7 @@ class Settings extends PureComponent {
 	};
 
 	render() {
-		const { currentCurrency, primaryCurrency, useBlockieIcon } = this.props;
+		const { currentCurrency, primaryCurrency, useBlockieIcon, setUseBlockieIcon, selectedAddress } = this.props;
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View style={styles.inner}>
@@ -182,18 +220,6 @@ class Settings extends PureComponent {
 						</View>
 					</View>
 					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.accounts_identicon_title')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.accounts_identicon_desc')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={useBlockieIcon}
-								onValueChange={this.toggleUseBlockieIcon}
-								trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
-								ios_backgroundColor={colors.grey000}
-							/>
-						</View>
-					</View>
-					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('app_settings.current_language')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.language_desc')}</Text>
 						<View style={styles.picker}>
@@ -221,6 +247,24 @@ class Settings extends PureComponent {
 							)}
 						</View>
 					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.accounts_identicon_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.accounts_identicon_desc')}</Text>
+						<View style={styles.identicon_container}>
+							<TouchableOpacity onPress={() => setUseBlockieIcon(false)} style={styles.identicon_row}>
+								<View style={[styles.border, !useBlockieIcon && styles.selected]}>
+									<Jazzicon size={diameter} address={selectedAddress} />
+								</View>
+								<Text style={styles.identicon_type}>{strings('app_settings.jazzicons')}</Text>
+							</TouchableOpacity>
+							<TouchableOpacity onPress={() => setUseBlockieIcon(true)} style={styles.identicon_row}>
+								<View style={[styles.border, useBlockieIcon && styles.selected]}>
+									<Image source={{ uri: toDataUrl(selectedAddress) }} style={styles.blockie} />
+								</View>
+								<Text style={styles.identicon_type}>{strings('app_settings.blockies')}</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
 				</View>
 			</ScrollView>
 		);
@@ -231,7 +275,8 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	searchEngine: state.settings.searchEngine,
 	primaryCurrency: state.settings.primaryCurrency,
-	useBlockieIcon: state.settings.useBlockieIcon
+	useBlockieIcon: state.settings.useBlockieIcon,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 const mapDispatchToProps = dispatch => ({

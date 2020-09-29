@@ -380,6 +380,8 @@
 		"show_hex_data": "Show Hex Data",
 		"accounts_identicon_title": "Account Identicon",
 		"accounts_identicon_desc": "Jazzicons and Blockies are two different styles of unique icons that help you identify an account at a glance.",
+		"jazzicons": "Jazzicons",
+		"blockies": "Blockies",
 		"show_hex_data_desc": "Select this to show the hex data field on the send screen.",
 		"general_title": "General",
 		"general_desc": "Currency conversion, primary currency, language and search engine",
