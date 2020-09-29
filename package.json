@@ -102,7 +102,7 @@
     "eth-url-parser": "1.0.2",
     "ethereumjs-abi": "0.6.6",
     "ethereumjs-util": "6.1.0",
-    "ethers": "4.0.27",
+    "ethers": "^5.0.14",
     "ethjs-contract": "0.2.3",
     "ethjs-ens": "2.0.1",
     "ethjs-query": "0.3.8",
