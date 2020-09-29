@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, ScrollView, View } from 'react-native';
+import { StyleSheet, Text, ScrollView, Switch, View } from 'react-native';
 import { connect } from 'react-redux';
 
 import Engine from '../../../../core/Engine';
@@ -9,8 +9,9 @@ import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
 import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { setSearchEngine, setPrimaryCurrency } from '../../../../actions/settings';
+import { setSearchEngine, setPrimaryCurrency, setUseBlockieIcon } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
+import Device from '../../../../util/Device';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.code.toLocaleLowerCase().localeCompare(b.quote.code.toLocaleLowerCase())
@@ -90,7 +91,15 @@ class Settings extends PureComponent {
 		/**
 		 * Active primary currency
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Show a BlockieIcon instead of JazzIcon
+		 */
+		useBlockieIcon: PropTypes.bool,
+		/**
+		 * called to toggle BlockieIcon
+		 */
+		setUseBlockieIcon: PropTypes.func
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -99,6 +108,10 @@ class Settings extends PureComponent {
 	state = {
 		currentLanguage: I18n.locale.substr(0, 2),
 		languages: {}
+	};
+
+	toggleUseBlockieIcon = useBlockieIcon => {
+		this.props.setUseBlockieIcon(useBlockieIcon);
 	};
 
 	selectCurrency = async currency => {
@@ -136,7 +149,7 @@ class Settings extends PureComponent {
 	};
 
 	render() {
-		const { currentCurrency, primaryCurrency } = this.props;
+		const { currentCurrency, primaryCurrency, useBlockieIcon } = this.props;
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View style={styles.inner}>
@@ -166,6 +179,17 @@ class Settings extends PureComponent {
 									selectedValue={primaryCurrency}
 								/>
 							)}
+						</View>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.show_blockies_identicon')}</Text>
+						<View style={styles.switchElement}>
+							<Switch
+								value={useBlockieIcon}
+								onValueChange={this.toggleUseBlockieIcon}
+								trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
+								ios_backgroundColor={colors.grey000}
+							/>
 						</View>
 					</View>
 					<View style={styles.setting}>
@@ -205,12 +229,14 @@ class Settings extends PureComponent {
 const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	searchEngine: state.settings.searchEngine,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	useBlockieIcon: state.settings.useBlockieIcon
 });
 
 const mapDispatchToProps = dispatch => ({
 	setSearchEngine: searchEngine => dispatch(setSearchEngine(searchEngine)),
-	setPrimaryCurrency: primaryCurrency => dispatch(setPrimaryCurrency(primaryCurrency))
+	setPrimaryCurrency: primaryCurrency => dispatch(setPrimaryCurrency(primaryCurrency)),
+	setUseBlockieIcon: useBlockieIcon => dispatch(setUseBlockieIcon(useBlockieIcon))
 });
 
 export default connect(
