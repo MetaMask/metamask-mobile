@@ -184,8 +184,8 @@ class Login extends PureComponent {
 		this.mounted = false;
 	}
 
-	onLogin = async () => {
-		if (this.state.loading) return;
+	onLogin = async disabled => {
+		if (this.state.loading || disabled) return;
 		try {
 			this.setState({ loading: true });
 			const { KeyringController } = Engine.context;
@@ -363,7 +363,7 @@ class Login extends PureComponent {
 								value={this.state.password}
 								baseColor={colors.grey500}
 								tintColor={colors.blue}
-								onSubmitEditing={this.onLogin}
+								onSubmitEditing={() => this.onLogin(disabled)}
 								renderRightAccessory={() => (
 									<BiometryButton
 										onPress={this.tryBiometric}
