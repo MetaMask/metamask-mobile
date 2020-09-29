@@ -607,13 +607,15 @@ exports[`GeneralSettings should render correctly 1`] = `
           </View>
           <Text
             style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 14,
-                "fontWeight": "600",
-                "marginHorizontal": 10,
-              }
+              Array [
+                Object {
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontSize": 14,
+                  "fontWeight": "600",
+                  "marginHorizontal": 10,
+                },
+                false,
+              ]
             }
           >
             Jazzicons
@@ -665,13 +667,17 @@ exports[`GeneralSettings should render correctly 1`] = `
           </View>
           <Text
             style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 14,
-                "fontWeight": "600",
-                "marginHorizontal": 10,
-              }
+              Array [
+                Object {
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontSize": 14,
+                  "fontWeight": "600",
+                  "marginHorizontal": 10,
+                },
+                Object {
+                  "color": "#000000",
+                },
+              ]
             }
           >
             Blockies
