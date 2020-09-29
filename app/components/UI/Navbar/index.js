@@ -687,8 +687,10 @@ export function getOfflineModalNavbar(navigation) {
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
 export function getWalletNavbarOptions(title, navigation) {
-	const onScanSuccess = (data, content) => {
-		if (data.private_key) {
+	const onScanSuccess = data => {
+		if (data.target_address) {
+			navigation.navigate('SendFlowView', { txMeta: data });
+		} else if (data.private_key) {
 			Alert.alert(
 				strings('wallet.private_key_detected'),
 				strings('wallet.do_you_want_to_import_this_account'),

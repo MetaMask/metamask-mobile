@@ -235,6 +235,8 @@ class SendFlow extends PureComponent {
 		if (!Object.keys(networkAddressBook).length) {
 			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
 		}
+		//Fills in to address if coming from QR code scan
+		this.onToSelectedAddressChange(navigation.getParam('txMeta', null)?.target_address);
 	};
 
 	toggleFromAccountModal = () => {
@@ -491,7 +493,6 @@ class SendFlow extends PureComponent {
 			toInputHighlighted,
 			inputWidth
 		} = this.state;
-
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
 				<View style={styles.imputWrapper}>
