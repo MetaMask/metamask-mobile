@@ -1,4 +1,5 @@
-import React, { PureComponent } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { withNavigation } from 'react-navigation';
 import PropTypes from 'prop-types';
 import { Animated, Dimensions, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -7,7 +8,6 @@ import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import DeeplinkManager from '../../../core/DeeplinkManager';
@@ -64,46 +64,14 @@ const styles = StyleSheet.create({
 	}
 });
 
-class Entry extends PureComponent {
-	static propTypes = {
-		/**
-		 * The navigator object
-		 */
-		navigation: PropTypes.object,
-		/**
-		 * Boolean flag that determines if password has been set
-		 */
-		passwordSet: PropTypes.bool,
-		/**
-		 * Action to set onboarding wizard step
-		 */
-		setOnboardingWizardStep: PropTypes.func,
-		/**
-		 * A string representing the selected address => account
-		 */
-		selectedAddress: PropTypes.string
-	};
+const Entry = props => {
+	const [viewToGo, setViewToGo] = useState(null);
 
-	state = {
-		viewToGo: null
-	};
+	const animation = useRef(null);
+	const animationName = useRef(null);
+	const opacity = new Animated.Value(1);
 
-	animation = React.createRef();
-	animationName = React.createRef();
-	opacity = new Animated.Value(1);
-
-	async componentDidMount() {
-		DeeplinkManager.init(this.props.navigation);
-		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
-		const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-		if (existingUser !== null) {
-			await this.unlockKeychain();
-		} else {
-			this.animateAndGoTo('OnboardingRootNav');
-		}
-	}
-
-	handleDeeplinks = async ({ error, params, uri }) => {
+	const handleDeeplinks = async ({ error, params, uri }) => {
 		if (error) {
 			Logger.error(error, 'Error from Branch');
 			return;
@@ -116,48 +84,38 @@ class Entry extends PureComponent {
 		}
 	};
 
-	componentWillUnmount() {
-		if (this.unsubscribeFromBranch) {
-			this.unsubscribeFromBranch();
-			this.unsubscribeFromBranch = null;
-		}
-	}
-
-	animateAndGoTo(view) {
-		this.setState({ viewToGo: view }, () => {
-			if (Device.isAndroid()) {
-				this.animation ? this.animation.play(0, 25) : this.onAnimationFinished();
-				this.animationName && this.animationName.play();
-			} else {
-				this.animation.play();
-				this.animationName.play();
-			}
-		});
-	}
-
-	onAnimationFinished = () => {
-		const { viewToGo } = this.state;
-		Animated.timing(this.opacity, {
+	const onAnimationFinished = useCallback(() => {
+		Animated.timing(opacity, {
 			toValue: 0,
 			duration: 300,
 			useNativeDriver: true,
 			isInteraction: false
 		}).start(() => {
 			if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
-				this.props.navigation.navigate(viewToGo);
+				props.navigation.navigate(viewToGo);
 			} else if (viewToGo === 'Onboarding') {
-				this.props.navigation.navigate(
-					'OnboardingRootNav',
-					{},
-					NavigationActions.navigate({ routeName: 'Oboarding' })
-				);
+				props.navigation.navigate('OnboardingRootNav');
 			} else {
-				this.props.navigation.navigate('HomeNav');
+				props.navigation.navigate('HomeNav');
 			}
 		});
-	};
+	}, [opacity, viewToGo, props.navigation]);
 
-	async unlockKeychain() {
+	const animateAndGoTo = useCallback(
+		viewToGo => {
+			setViewToGo(viewToGo);
+			if (Device.isAndroid()) {
+				animation ? animation.play(0, 25) : onAnimationFinished();
+				animationName && animationName.play();
+			} else {
+				animation && animation.current && animation.current.play();
+				animation && animation.current && animationName.current.play();
+			}
+		},
+		[onAnimationFinished]
+	);
+
+	const unlockKeychain = useCallback(async () => {
 		try {
 			// Retreive the credentials
 			const { KeyringController } = Engine.context;
@@ -168,7 +126,7 @@ class Entry extends PureComponent {
 				await KeyringController.submitPassword(credentials.password);
 				const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
 				if (encryptionLib !== ORIGINAL) {
-					await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
+					await recreateVaultWithSamePassword(credentials.password, props.selectedAddress);
 					await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 				}
 				// Get onboarding wizard state
@@ -176,66 +134,94 @@ class Entry extends PureComponent {
 				// Check if user passed through metrics opt-in screen
 				const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 				if (!metricsOptIn) {
-					this.animateAndGoTo('OptinMetrics');
+					animateAndGoTo('OptinMetrics');
 				} else if (onboardingWizard) {
-					this.animateAndGoTo('HomeNav');
+					animateAndGoTo('HomeNav');
 				} else {
-					this.props.setOnboardingWizardStep(1);
-					this.animateAndGoTo('WalletView');
+					props.setOnboardingWizardStep(1);
+					animateAndGoTo('WalletView');
 				}
-			} else if (this.props.passwordSet) {
-				this.animateAndGoTo('Login');
+			} else if (props.passwordSet) {
+				animateAndGoTo('Login');
 			} else {
 				await KeyringController.submitPassword('');
 				await SecureKeychain.resetGenericPassword();
-				this.props.navigation.navigate('HomeNav');
+				props.navigation.navigate('HomeNav');
 			}
 		} catch (error) {
 			Logger.log(`Keychain couldn't be accessed`, error);
-			this.animateAndGoTo('Login');
+			animateAndGoTo('Login');
 		}
-	}
+	}, [animateAndGoTo, props]);
 
-	renderAnimations() {
-		if (!this.state.viewToGo) {
+	useEffect(() => {
+		// let unsubscribeFromBranch;
+		DeeplinkManager.init(props.navigation);
+		Branch.subscribe(handleDeeplinks);
+		AsyncStorage.getItem(EXISTING_USER).then(existingUser => {
+			if (existingUser !== null) {
+				unlockKeychain();
+			} else {
+				animateAndGoTo('OnboardingRootNav');
+			}
+		});
+
+		// return unsubscribeFromBranch => {
+		// 	unsubscribeFromBranch && unsubscribeFromBranch();
+		// };
+	}, [props.navigation, animateAndGoTo, unlockKeychain]);
+
+	const renderAnimations = () => {
+		if (!viewToGo) {
 			return <LottieView style={styles.animation} autoPlay source={require('../../../animations/bounce.json')} />;
 		}
 
 		return (
 			<View style={styles.foxAndName}>
 				<LottieView
-					// eslint-disable-next-line react/jsx-no-bind
-					ref={animation => {
-						this.animation = animation;
-					}}
+					ref={animation}
 					style={styles.animation}
 					loop={false}
 					source={require('../../../animations/fox-in.json')}
-					onAnimationFinish={this.onAnimationFinished}
+					onAnimationFinish={onAnimationFinished}
 				/>
 				<LottieView
-					// eslint-disable-next-line react/jsx-no-bind
-					ref={animation => {
-						this.animationName = animation;
-					}}
+					ref={animationName}
 					style={styles.metamaskName}
 					loop={false}
 					source={require('../../../animations/wordmark.json')}
 				/>
 			</View>
 		);
-	}
+	};
 
-	render() {
-		return (
-			<View style={styles.main}>
-				<Animated.View style={[styles.logoWrapper, { opacity: this.opacity }]}>
-					<View style={styles.fox}>{this.renderAnimations()}</View>
-				</Animated.View>
-			</View>
-		);
-	}
-}
+	return (
+		<View style={styles.main}>
+			<Animated.View style={[styles.logoWrapper, { opacity }]}>
+				<View style={styles.fox}>{renderAnimations()}</View>
+			</Animated.View>
+		</View>
+	);
+};
+
+Entry.propTypes = {
+	/**
+	 * The navigator object
+	 */
+	navigation: PropTypes.object,
+	/**
+	 * Boolean flag that determines if password has been set
+	 */
+	passwordSet: PropTypes.bool,
+	/**
+	 * Action to set onboarding wizard step
+	 */
+	setOnboardingWizardStep: PropTypes.func,
+	/**
+	 * A string representing the selected address => account
+	 */
+	selectedAddress: PropTypes.string
+};
 
 const mapDispatchToProps = dispatch => ({
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
@@ -251,4 +237,4 @@ const mapStateToProps = state => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(Entry);
+)(withNavigation(Entry));
