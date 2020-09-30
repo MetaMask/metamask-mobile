@@ -68,7 +68,7 @@ Identicon.propTypes = {
 
 Identicon.defaultProps = {
 	diameter: 46,
-	useBlockieIcon: false
+	useBlockieIcon: true
 };
 
 const mapStateToProps = state => ({
