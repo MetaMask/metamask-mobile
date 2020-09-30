@@ -1,14 +1,18 @@
 'use strict';
 import TestHelpers from './helpers';
+import { strings } from '../locales/i18n';
+
+// use i18n for these
+// this way if the strings ever change the tests will not break :)
+const Incorrect_Password_Length = strings('import_from_seed.password_length_error');
+const Invalid_Seed_Error = strings('import_from_seed.invalid_seed_phrase');
+const Password_Warning = strings('reveal_credential.unknown_error');
 
 const Incorrect_Seed_Words = 'fold media south add since false relax immense pause cloth just falcon';
 const Correct_Seed_Words = 'fold media south add since false relax immense pause cloth just raven';
-const Incorrect_Password_Length = 'The password needs to be at least 8 characters long';
-const Invalid_Seed_Error = 'Invalid seed phrase';
 const Correct_Password = `12345678`;
 const Incorrect_Password = `1234567`;
 const Incorrect_Password2 = `12345679`;
-const Password_Warning = "Couldn't unlock your account. Please try again.";
 
 describe('Import seedphrase flow', () => {
 	beforeEach(() => {
