@@ -50,7 +50,7 @@ const TransakPaymentMethod = ({ onPress }) => (
 							<TouchableOpacity onPress={toggleModal}>
 								<PaymentMethod.InfoIconLine>
 									<Text bold small>
-										33 {strings('fiat_on_ramp.countries')}
+										59 {strings('fiat_on_ramp.countries')}
 									</Text>
 									<PaymentMethod.InfoIcon />
 								</PaymentMethod.InfoIconLine>
