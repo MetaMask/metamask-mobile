@@ -155,9 +155,8 @@ const Entry = props => {
 	}, [animateAndGoTo, props]);
 
 	useEffect(() => {
-		// let unsubscribeFromBranch;
 		DeeplinkManager.init(props.navigation);
-		Branch.subscribe(handleDeeplinks);
+		const unsubscribeFromBranch = Branch.subscribe(handleDeeplinks);
 		AsyncStorage.getItem(EXISTING_USER).then(existingUser => {
 			if (existingUser !== null) {
 				unlockKeychain();
@@ -166,9 +165,9 @@ const Entry = props => {
 			}
 		});
 
-		// return unsubscribeFromBranch => {
-		// 	unsubscribeFromBranch && unsubscribeFromBranch();
-		// };
+		return function cleanup() {
+			unsubscribeFromBranch();
+		};
 	}, [props.navigation, animateAndGoTo, unlockKeychain]);
 
 	const renderAnimations = () => {
