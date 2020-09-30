@@ -105,6 +105,8 @@ const Entry = props => {
 		viewToGo => {
 			setViewToGo(viewToGo);
 			if (Device.isAndroid()) {
+				// CHECK ANDROID
+
 				animation ? animation.play(0, 25) : onAnimationFinished();
 				animationName && animationName.play();
 			} else {
