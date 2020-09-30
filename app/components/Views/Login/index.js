@@ -389,7 +389,7 @@ class Login extends PureComponent {
 						)}
 
 						<View style={styles.ctaWrapper} testID={'log-in-button'}>
-							<StyledButton disabled={disabled} type={'confirm'} onPress={this.onLogin}>
+							<StyledButton disabled={disabled} type={'confirm'} onPress={() => this.onLogin(disabled)}>
 								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
