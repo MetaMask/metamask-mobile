@@ -4,9 +4,10 @@ import TestHelpers from './helpers';
 const Incorrect_Seed_Words = 'fold media south add since false relax immense pause cloth just falcon';
 const Correct_Seed_Words = 'fold media south add since false relax immense pause cloth just raven';
 const Incorrect_Password_Length = 'The password needs to be at least 8 characters long';
-const Invalid_Seed_Error = `Error: Seed phrase is invalid.`;
+const Invalid_Seed_Error = 'Invalid seed phrase';
 const Correct_Password = `12345678`;
 const Incorrect_Password = `1234567`;
+const Incorrect_Password2 = `12345679`;
 const Password_Warning = "Couldn't unlock your account. Please try again.";
 
 describe('Import seedphrase flow', () => {
@@ -37,15 +38,10 @@ describe('Import seedphrase flow', () => {
 		// Input short password confirm
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Incorrect_Password);
 		// ensure alert box is displayed with correct text
-		await TestHelpers.checkIfElementByTextIsVisible(Incorrect_Password_Length);
+		await TestHelpers.checkIfElementByTextIsVisible(Invalid_Seed_Error);
 		// dismiss alert by tapping ok
 		await TestHelpers.tapAlertWithButton('OK');
-		// Input password
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
-		// Input password confirm
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
-		// Ensure error is displayed
-		await TestHelpers.checkIfHasText('invalid-seed-phrase', Invalid_Seed_Error);
+
 		// Clear field content
 		await TestHelpers.clearField('input-seed-phrase');
 		// Input correct seed phrase
@@ -55,6 +51,11 @@ describe('Import seedphrase flow', () => {
 		} else {
 			await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Correct_Seed_Words);
 		}
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Incorrect_Password);
+		// Input short password confirm
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Incorrect_Password);
+		await TestHelpers.checkIfElementByTextIsVisible(Incorrect_Password_Length);
+		await TestHelpers.tapAlertWithButton('OK');
 
 		// Input Correct password and Submit
 		if (device.getPlatform() === 'android') {
@@ -130,11 +131,10 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.relaunchApp();
 		// Check that we are on login screen
 		await TestHelpers.checkIfVisible('login');
-		// Tap on log in button
-		await TestHelpers.tap('log-in-button');
-		// Check that the invalid error is displayed
+		// Fail login attempt
+		await TestHelpers.typeTextAndHideKeyboard('login-password-input', Incorrect_Password2);
 		await TestHelpers.checkIfVisible('invalid-password-error');
-		// Log in
+		// Login
 		await TestHelpers.typeTextAndHideKeyboard('login-password-input', Correct_Password);
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
