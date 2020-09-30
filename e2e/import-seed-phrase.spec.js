@@ -45,7 +45,6 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.checkIfElementByTextIsVisible(Invalid_Seed_Error);
 		// dismiss alert by tapping ok
 		await TestHelpers.tapAlertWithButton('OK');
-
 		// Clear field content
 		await TestHelpers.clearField('input-seed-phrase');
 		// Input correct seed phrase
@@ -60,19 +59,10 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Incorrect_Password);
 		await TestHelpers.checkIfElementByTextIsVisible(Incorrect_Password_Length);
 		await TestHelpers.tapAlertWithButton('OK');
-
-		// Input Correct password and Submit
-		if (device.getPlatform() === 'android') {
-			// Input password
-			await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
-			// Input password confirm
-			await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
-		} else {
-			await TestHelpers.tapAtPoint('import-from-seed-screen', { x: 40, y: 20 });
-			// Tap import to continue
-			await TestHelpers.waitAndTap('submit');
-		}
-
+		// Input password
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
+		// Input password confirm
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
