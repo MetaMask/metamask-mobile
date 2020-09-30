@@ -6,6 +6,7 @@ import {
 	StyleSheet,
 	View,
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
+	Alert,
 	Image
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
@@ -13,6 +14,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
+import ENS from 'ethjs-ens';
 import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import Browser from '../../Views/Browser';
@@ -58,11 +60,11 @@ import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
-import I18n from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
+import { BNToHex, hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
 import { setEtherTransaction, setTransactionObject } from '../../../actions/transaction';
 import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
@@ -81,8 +83,9 @@ import {
 	decodeTransferData,
 	APPROVE_FUNCTION_SIGNATURE
 } from '../../../util/transactions';
-import { BN } from 'ethereumjs-util';
-import { safeToChecksumAddress } from '../../../util/address';
+import { BN, isValidAddress } from 'ethereumjs-util';
+import { isENS, safeToChecksumAddress } from '../../../util/address';
+import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
@@ -415,9 +418,17 @@ class Main extends PureComponent {
 		 */
 		setTransactionObject: PropTypes.func,
 		/**
+		 * Selected address
+		 */
+		selectedAddress: PropTypes.string,
+		/**
 		 * Array of ERC20 assets
 		 */
 		tokens: PropTypes.array,
+		/**
+		 * List of transactions
+		 */
+		transactions: PropTypes.array,
 		/**
 		 * A string representing the network name
 		 */
@@ -442,6 +453,10 @@ class Main extends PureComponent {
 		 * Indicates whether the current transaction is a deep link transaction
 		 */
 		isPaymentRequest: PropTypes.bool,
+		/**
+		/* Identities object required to get account name
+		*/
+		identities: PropTypes.object,
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
@@ -592,6 +607,179 @@ class Main extends PureComponent {
 			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
 		});
 		WalletConnect.init();
+	};
+
+	initiatePaymentChannelRequest = ({ amount, to }) => {
+		this.props.setTransactionObject({
+			selectedAsset: {
+				address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
+				decimals: 18,
+				logo: 'sai.svg',
+				symbol: 'SAI',
+				assetBalance: this.state.paymentChannelBalance
+			},
+			value: amount,
+			readableValue: amount,
+			transactionTo: to,
+			from: this.props.selectedAddress,
+			transactionFromName: this.props.identities[this.props.selectedAddress].name,
+			paymentChannelTransaction: true,
+			type: 'PAYMENT_CHANNEL_TRANSACTION'
+		});
+
+		this.props.navigation.navigate('Confirm');
+	};
+
+	onPaymentChannelStateChange = state => {
+		if (state.balance !== this.state.paymentChannelBalance || !this.state.paymentChannelReady) {
+			this.setState({
+				paymentChannelBalance: state.balance,
+				paymentChannelReady: true
+			});
+		}
+	};
+
+	initializePaymentChannels = () => {
+		PaymentChannelsClient.init(this.props.selectedAddress);
+		PaymentChannelsClient.hub.on('state::change', this.onPaymentChannelStateChange);
+		PaymentChannelsClient.hub.on('payment::request', async request => {
+			const validRequest = { ...request };
+			// Validate amount
+			if (isNaN(request.amount)) {
+				Alert.alert(
+					strings('payment_channel_request.title_error'),
+					strings('payment_channel_request.amount_error_message')
+				);
+				return;
+			}
+
+			const isAddress = !request.to || request.to.substring(0, 2).toLowerCase() === '0x';
+			const isInvalidAddress = isAddress && !isValidAddress(request.to);
+
+			// Validate address
+			if (isInvalidAddress || (!isAddress && !isENS(request.to))) {
+				Alert.alert(
+					strings('payment_channel_request.title_error'),
+					strings('payment_channel_request.address_error_message')
+				);
+				return;
+			}
+
+			// Check if ENS and resolve the address before sending
+			if (isENS(request.to)) {
+				InteractionManager.runAfterInteractions(async () => {
+					const {
+						state: { network },
+						provider
+					} = Engine.context.NetworkController;
+					const ensProvider = new ENS({ provider, network });
+					try {
+						const resolvedAddress = await ensProvider.lookup(request.to.trim());
+						if (isValidAddress(resolvedAddress)) {
+							validRequest.to = resolvedAddress;
+							validRequest.ensName = request.to;
+							this.initiatePaymentChannelRequest(validRequest);
+							return;
+						}
+					} catch (e) {
+						Logger.log('Error with payment request', request);
+					}
+					Alert.alert(
+						strings('payment_channel_request.title_error'),
+						strings('payment_channel_request.address_error_message')
+					);
+					this.setState({
+						paymentChannelRequest: false,
+						paymentChannelRequestInfo: null
+					});
+				});
+			} else {
+				this.initiatePaymentChannelRequest(validRequest);
+			}
+		});
+
+		PaymentChannelsClient.hub.on('payment::complete', () => {
+			// show the success screen
+			this.setState({ paymentChannelRequestCompleted: true });
+			// hide the modal and reset state
+			setTimeout(() => {
+				this.setState({
+					paymentChannelRequest: false,
+					paymentChannelRequestLoading: false,
+					paymentChannelRequestInfo: {}
+				});
+				setTimeout(() => {
+					this.setState({
+						paymentChannelRequestCompleted: false
+					});
+				}, 1500);
+			}, 800);
+		});
+
+		PaymentChannelsClient.hub.on('payment::error', error => {
+			if (error === 'INVALID_ENS_NAME') {
+				Alert.alert(
+					strings('payment_channel_request.title_error'),
+					strings('payment_channel_request.address_error_message')
+				);
+			} else if (error.indexOf('insufficient_balance') !== -1) {
+				Alert.alert(
+					strings('payment_channel_request.error'),
+					strings('payment_channel_request.balance_error_message')
+				);
+			}
+
+			// hide the modal and reset state
+			setTimeout(() => {
+				setTimeout(() => {
+					this.setState({
+						paymentChannelRequest: false,
+						paymentChannelRequestLoading: false,
+						paymentChannelRequestInfo: {}
+					});
+					setTimeout(() => {
+						this.setState({
+							paymentChannelRequestCompleted: false
+						});
+					});
+				}, 800);
+			}, 800);
+		});
+	};
+
+	paymentChannelDepositSign = async transactionMeta => {
+		const { TransactionController } = Engine.context;
+		const { transactions } = this.props;
+		try {
+			TransactionController.hub.once(`${transactionMeta.id}:finished`, transactionMeta => {
+				if (transactionMeta.status === 'submitted') {
+					this.setState({ transactionHandled: true });
+					this.props.navigation.pop();
+					NotificationManager.watchSubmittedTransaction({
+						...transactionMeta,
+						assetType: transactionMeta.transaction.assetType
+					});
+				} else {
+					throw transactionMeta.error;
+				}
+			});
+
+			const fullTx = transactions.find(({ id }) => id === transactionMeta.id);
+			const gasPrice = BNToHex(
+				hexToBN(transactionMeta.transaction.gasPrice)
+					.mul(new BN(AppConstants.INSTAPAY_GAS_PONDERATOR * 10))
+					.div(new BN(10))
+			);
+			const updatedTx = { ...fullTx, transaction: { ...transactionMeta.transaction, gasPrice } };
+			await TransactionController.updateTransaction(updatedTx);
+			await TransactionController.approveTransaction(transactionMeta.id);
+		} catch (error) {
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+				{ text: strings('navigation.ok') }
+			]);
+			Logger.error(error, 'error while trying to send transaction (Main)');
+			this.setState({ transactionHandled: false });
+		}
 	};
 
 	onUnapprovedTransaction = async transactionMeta => {
@@ -896,10 +1084,12 @@ class Main extends PureComponent {
 		);
 	};
 
-	renderDappTransactionModal = () =>
-		this.props.dappTransactionModalVisible && (
-			<Approval dappTransactionModalVisible toggleDappTransactionModal={this.props.toggleDappTransactionModal} />
-		);
+	renderDappTransactionModal = () => (
+		<Approval
+			dappTransactionModalVisible={this.props.dappTransactionModalVisible}
+			toggleDappTransactionModal={this.props.toggleDappTransactionModal}
+		/>
+	);
 
 	renderApproveModal = () =>
 		this.props.approveModalVisible && <Approve modalVisible toggleApproveModal={this.props.toggleApproveModal} />;
