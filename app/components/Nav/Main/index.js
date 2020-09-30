@@ -1,6 +1,6 @@
-import React, { PureComponent } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+
 import {
-	InteractionManager,
 	ActivityIndicator,
 	AppState,
 	StyleSheet,
@@ -371,189 +371,60 @@ const MainNavigator = createStackNavigator(
 	}
 );
 
-class Main extends PureComponent {
-	static router = {
-		...MainNavigator.router
-	};
-	static propTypes = {
-		/**
-		 * Object that represents the navigator
-		 */
-		navigation: PropTypes.object,
-		/**
-		 * Time to auto-lock the app after it goes in background mode
-		 */
-		lockTime: PropTypes.number,
-		/**
-		 * Action that sets an ETH transaction
-		 */
-		setEtherTransaction: PropTypes.func,
-		/**
-		 * Action that sets a transaction
-		 */
-		setTransactionObject: PropTypes.func,
-		/**
-		 * Array of ERC20 assets
-		 */
-		tokens: PropTypes.array,
-		/**
-		 * Dispatch showing a transaction notification
-		 */
-		showTransactionNotification: PropTypes.func,
-		/**
-		 * Dispatch showing a simple notification
-		 */
-		showSimpleNotification: PropTypes.func,
-		/**
-		 * Dispatch hiding a transaction notification
-		 */
-		hideTransactionNotification: PropTypes.func,
-		/**
-		 * Indicates whether the current transaction is a deep link transaction
-		 */
-		isPaymentRequest: PropTypes.bool,
-		/**
-		 * Indicates whether third party API mode is enabled
-		 */
-		thirdPartyApiMode: PropTypes.bool,
-		/**
-		/* Hides or shows dApp transaction modal
-		*/
-		toggleDappTransactionModal: PropTypes.func,
-		/**
-		/* Hides or shows approve modal
-		*/
-		toggleApproveModal: PropTypes.func,
-		/**
-		/* dApp transaction modal visible or not
-		*/
-		dappTransactionModalVisible: PropTypes.bool,
-		/**
-		/* Token approve modal visible or not
-		*/
-		approveModalVisible: PropTypes.bool
-	};
-	state = {
-		connected: true,
-		forceReload: false,
-		signMessage: false,
-		signMessageParams: { data: '' },
-		signType: '',
-		walletConnectRequest: false,
-		walletConnectRequestInfo: {},
-		showExpandedMessage: false
-	};
+const Main = props => {
+	const [connected, setConnected] = useState(false);
+	const [forceReload, setForceReload] = useState(false);
+	const [signMessage, setSignMessage] = useState(false);
+	const [signMessageParams, setSignMessageParams] = useState({ data: '' });
+	const [signType, setSignType] = useState(false);
+	const [walletConnectRequest, setWalletConnectRequest] = useState(false);
+	const [walletConnectRequestInfo, setWalletConnectRequestInfo] = useState(false);
+	const [showExpandedMessage, setShowExpandedMessage] = useState(false);
+	const [currentPageTitle, setCurrentPageTitle] = useState('');
+	const [currentPageUrl, setCurrentPageUrl] = useState('');
 
-	backgroundMode = false;
-	locale = I18n.locale;
+	let backgroundMode = false;
+	const locale = useRef(I18n.locale);
+	const lockManager = useRef();
+	const removeConnectionStatusListener = useRef();
 
-	pollForIncomingTransactions = async () => {
-		this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
+	const pollForIncomingTransactions = async () => {
+		props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
 		// Stop polling if the app is in the background
-		if (!this.backgroundMode) {
+		if (!backgroundMode) {
 			setTimeout(() => {
-				this.pollForIncomingTransactions();
+				pollForIncomingTransactions();
 			}, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
 		}
 	};
-	componentDidMount = async () => {
-		InteractionManager.runAfterInteractions(() => {
-			this.initializeWalletConnect();
-			AppState.addEventListener('change', this.handleAppStateChange);
-			this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
-			PushNotification.configure({
-				requestPermissions: false,
-				onNotification: notification => {
-					let data = null;
-					if (Device.isAndroid()) {
-						if (notification.tag) {
-							data = JSON.parse(notification.tag);
-						}
-					} else if (notification.data) {
-						data = notification.data;
-					}
-					if (data && data.action === 'tx') {
-						if (data.id) {
-							NotificationManager.setTransactionToView(data.id);
-						}
-						this.props.navigation.navigate('TransactionsHome');
-					}
 
-					if (Device.isIos()) {
-						notification.finish(PushNotificationIOS.FetchResult.NoData);
-					}
-				}
-			});
-
-			Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
-
-			Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams => {
-				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
-				delete messageParams.meta;
-				this.setState({
-					signMessage: true,
-					signMessageParams: messageParams,
-					signType: 'eth',
-					currentPageTitle,
-					currentPageUrl
-				});
-			});
-
-			Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
-				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
-				delete messageParams.meta;
-				this.setState({
-					signMessage: true,
-					signMessageParams: messageParams,
-					signType: 'personal',
-					currentPageTitle,
-					currentPageUrl
-				});
-			});
-
-			Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
-				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
-				delete messageParams.meta;
-				this.setState({
-					signMessage: true,
-					signMessageParams: messageParams,
-					signType: 'typed',
-					currentPageTitle,
-					currentPageUrl
-				});
-			});
-
-			setTimeout(() => {
-				NotificationManager.init(
-					this.props.navigation,
-					this.props.showTransactionNotification,
-					this.props.hideTransactionNotification,
-					this.props.showSimpleNotification
-				);
-				this.pollForIncomingTransactions();
-
-				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
-			}, 1000);
-		});
+	const onUnapprovedMessage = (messageParams, type) => {
+		const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+		delete messageParams.meta;
+		setSignMessage(true);
+		setSignMessageParams(messageParams);
+		setSignType(type);
+		setCurrentPageTitle(currentPageTitle);
+		setCurrentPageUrl(currentPageUrl);
 	};
 
-	connectionChangeHandler = state => {
+	const connectionChangeHandler = state => {
 		// Show the modal once the status changes to offline
-		if (this.state.connected && !state.isConnected) {
-			this.props.navigation.navigate('OfflineModeView');
+		if (connected && !state.isConnected) {
+			props.navigation.navigate('OfflineModeView');
 		}
-
-		this.setState({ connected: state.isConnected });
+		setConnected(state.isConnected);
 	};
 
-	initializeWalletConnect = () => {
+	const initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
-			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
+			setWalletConnectRequest(true);
+			setWalletConnectRequestInfo(peerInfo);
 		});
 		WalletConnect.init();
 	};
 
-	onUnapprovedTransaction = async transactionMeta => {
+	const onUnapprovedTransaction = async transactionMeta => {
 		if (transactionMeta.origin === TransactionTypes.MMM) return;
 		const {
 			transaction: { value, gas, gasPrice, data }
@@ -571,7 +442,7 @@ class Main extends PureComponent {
 			to &&
 			(await getMethodData(data)).name === TOKEN_METHOD_TRANSFER
 		) {
-			let asset = this.props.tokens.find(({ address }) => address === to);
+			let asset = props.tokens.find(({ address }) => address === to);
 			if (!asset && contractMap[to]) {
 				asset = contractMap[to];
 			} else if (!asset) {
@@ -593,7 +464,7 @@ class Main extends PureComponent {
 			);
 			transactionMeta.transaction.to = decodedData[0];
 
-			this.props.setTransactionObject({
+			props.setTransactionObject({
 				type: 'INDIVIDUAL_TOKEN_TRANSACTION',
 				selectedAsset: asset,
 				id: transactionMeta.id,
@@ -604,7 +475,7 @@ class Main extends PureComponent {
 			transactionMeta.transaction.value = hexToBN(value);
 			transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
 
-			this.props.setEtherTransaction({
+			props.setEtherTransaction({
 				id: transactionMeta.id,
 				origin: transactionMeta.origin,
 				...transactionMeta.transaction
@@ -612,155 +483,114 @@ class Main extends PureComponent {
 		}
 
 		if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
-			this.props.toggleApproveModal();
+			props.toggleApproveModal();
 		} else {
-			this.props.toggleDappTransactionModal();
+			props.toggleDappTransactionModal();
 		}
 	};
 
-	handleAppStateChange = appState => {
+	const handleAppStateChange = appState => {
 		const newModeIsBackground = appState === 'background';
 		// If it was in background and it's not anymore
 		// we need to stop the Background timer
-		if (this.backgroundMode && !newModeIsBackground) {
+		if (backgroundMode && !newModeIsBackground) {
 			BackgroundTimer.stop();
-			this.pollForIncomingTransactions();
+			pollForIncomingTransactions();
 		}
 
-		this.backgroundMode = newModeIsBackground;
+		backgroundMode = newModeIsBackground;
 
 		// If the app is now in background, we need to start
 		// the background timer, which is less intense
-		if (this.backgroundMode) {
+		if (backgroundMode) {
 			BackgroundTimer.runBackgroundTimer(async () => {
 				await Engine.refreshTransactionHistory();
 			}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
 		}
 	};
 
-	componentDidUpdate(prevProps) {
-		if (this.locale !== I18n.locale) {
-			this.locale = I18n.locale;
-			this.forceReload();
-			return;
-		}
-		if (this.props.lockTime !== prevProps.lockTime) {
-			this.lockManager.updateLockTime(this.props.lockTime);
-		}
-	}
-
-	forceReload() {
+	const initForceReload = () => {
 		// Force unmount the webview to avoid caching problems
-		this.setState({ forceReload: true }, () => {
-			setTimeout(() => {
-				this.setState({ forceReload: false });
-			}, 1000);
-		});
-	}
+		setForceReload(true);
+		setTimeout(() => {
+			setForceReload(false);
+		}, 1000);
+	};
 
-	renderLoader = () => (
+	const renderLoader = () => (
 		<View style={styles.loader}>
 			<ActivityIndicator size="small" />
 		</View>
 	);
 
-	componentWillUnmount() {
-		AppState.removeEventListener('change', this.handleAppStateChange);
-		this.lockManager.stopListening();
-		Engine.context.PersonalMessageManager.hub.removeAllListeners();
-		Engine.context.TypedMessageManager.hub.removeAllListeners();
-		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
-		WalletConnect.hub.removeAllListeners();
-		this.removeConnectionStatusListener && this.removeConnectionStatusListener();
-	}
+	const onSignAction = () => setSignMessage(false);
 
-	onSignAction = () => {
-		this.setState({ signMessage: false });
-	};
+	const toggleExpandedMessage = () => setShowExpandedMessage(!showExpandedMessage);
 
-	toggleExpandedMessage = () => {
-		this.setState({ showExpandedMessage: !this.state.showExpandedMessage });
-	};
+	const renderSigningModal = () => (
+		<Modal
+			isVisible={signMessage}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={600}
+			animationOutTiming={600}
+			onBackdropPress={onSignAction}
+			onBackButtonPress={showExpandedMessage ? toggleExpandedMessage : onSignAction}
+			onSwipeComplete={onSignAction}
+			swipeDirection={'down'}
+			propagateSwipe
+		>
+			{signType === 'personal' && (
+				<PersonalSign
+					messageParams={signMessageParams}
+					onCancel={onSignAction}
+					onConfirm={onSignAction}
+					currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					toggleExpandedMessage={toggleExpandedMessage}
+					showExpandedMessage={showExpandedMessage}
+				/>
+			)}
+			{signType === 'typed' && (
+				<TypedSign
+					messageParams={signMessageParams}
+					onCancel={onSignAction}
+					onConfirm={onSignAction}
+					currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					toggleExpandedMessage={toggleExpandedMessage}
+					showExpandedMessage={showExpandedMessage}
+				/>
+			)}
+			{signType === 'eth' && (
+				<MessageSign
+					navigation={props.navigation}
+					messageParams={signMessageParams}
+					onCancel={onSignAction}
+					onConfirm={onSignAction}
+					currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					toggleExpandedMessage={toggleExpandedMessage}
+					showExpandedMessage={showExpandedMessage}
+				/>
+			)}
+		</Modal>
+	);
 
-	renderSigningModal = () => {
-		const {
-			signMessage,
-			signMessageParams,
-			signType,
-			currentPageTitle,
-			currentPageUrl,
-			showExpandedMessage
-		} = this.state;
-		return (
-			<Modal
-				isVisible={signMessage}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-				onBackdropPress={this.onSignAction}
-				onBackButtonPress={showExpandedMessage ? this.toggleExpandedMessage : this.onSignAction}
-				onSwipeComplete={this.onSignAction}
-				swipeDirection={'down'}
-				propagateSwipe
-			>
-				{signType === 'personal' && (
-					<PersonalSign
-						messageParams={signMessageParams}
-						onCancel={this.onSignAction}
-						onConfirm={this.onSignAction}
-						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
-						toggleExpandedMessage={this.toggleExpandedMessage}
-						showExpandedMessage={showExpandedMessage}
-					/>
-				)}
-				{signType === 'typed' && (
-					<TypedSign
-						messageParams={signMessageParams}
-						onCancel={this.onSignAction}
-						onConfirm={this.onSignAction}
-						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
-						toggleExpandedMessage={this.toggleExpandedMessage}
-						showExpandedMessage={showExpandedMessage}
-					/>
-				)}
-				{signType === 'eth' && (
-					<MessageSign
-						navigation={this.props.navigation}
-						messageParams={signMessageParams}
-						onCancel={this.onSignAction}
-						onConfirm={this.onSignAction}
-						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
-						toggleExpandedMessage={this.toggleExpandedMessage}
-						showExpandedMessage={showExpandedMessage}
-					/>
-				)}
-			</Modal>
-		);
-	};
-
-	onWalletConnectSessionApproval = () => {
-		const { peerId } = this.state.walletConnectRequestInfo;
-		this.setState({
-			walletConnectRequest: false,
-			walletConnectRequestInfo: {}
-		});
+	const onWalletConnectSessionApproval = () => {
+		const { peerId } = walletConnectRequestInfo;
+		setWalletConnectRequest(false);
+		setWalletConnectRequestInfo({});
 		WalletConnect.hub.emit('walletconnectSessionRequest::approved', peerId);
 	};
 
-	onWalletConnectSessionRejected = () => {
-		const peerId = this.state.walletConnectRequestInfo.peerId;
-		this.setState({
-			walletConnectRequest: false,
-			walletConnectRequestInfo: {}
-		});
+	const onWalletConnectSessionRejected = () => {
+		const peerId = walletConnectRequestInfo.peerId;
+		setWalletConnectRequest(false);
+		setWalletConnectRequestInfo({});
 		WalletConnect.hub.emit('walletconnectSessionRequest::rejected', peerId);
 	};
 
-	renderWalletConnectSessionRequestModal = () => {
-		const { walletConnectRequest, walletConnectRequestInfo } = this.state;
+	const renderWalletConnectSessionRequestModal = () => {
 		const meta = walletConnectRequestInfo.peerMeta || null;
 
 		return (
@@ -772,13 +602,13 @@ class Main extends PureComponent {
 				backdropOpacity={0.7}
 				animationInTiming={300}
 				animationOutTiming={300}
-				onSwipeComplete={this.onWalletConnectSessionRejected}
-				onBackButtonPress={this.onWalletConnectSessionRejected}
+				onSwipeComplete={onWalletConnectSessionRejected}
+				onBackButtonPress={onWalletConnectSessionRejected}
 				swipeDirection={'down'}
 			>
 				<AccountApproval
-					onCancel={this.onWalletConnectSessionRejected}
-					onConfirm={this.onWalletConnectSessionApproval}
+					onCancel={onWalletConnectSessionRejected}
+					onConfirm={onWalletConnectSessionApproval}
 					currentPageInformation={{
 						title: meta && meta.name,
 						url: meta && meta.url
@@ -789,42 +619,179 @@ class Main extends PureComponent {
 		);
 	};
 
-	renderDappTransactionModal = () => (
-		<Approval
-			dappTransactionModalVisible={this.props.dappTransactionModalVisible}
-			toggleDappTransactionModal={this.props.toggleDappTransactionModal}
-		/>
-	);
-
-	renderApproveModal = () =>
-		this.props.approveModalVisible && <Approve modalVisible toggleApproveModal={this.props.toggleApproveModal} />;
-
-	render() {
-		const { isPaymentRequest } = this.props;
-		const { forceReload } = this.state;
-		return (
-			<React.Fragment>
-				<View style={styles.flex}>
-					{!forceReload ? (
-						<MainNavigator navigation={this.props.navigation} screenProps={{ isPaymentRequest }} />
-					) : (
-						this.renderLoader()
-					)}
-					<GlobalAlert />
-					<FadeOutOverlay />
-					<Notification navigation={this.props.navigation} />
-					<FiatOrders />
-					<BackupAlert navigation={this.props.navigation} />
-					<ProtectYourWalletModal navigation={this.props.navigation} />
-				</View>
-				{this.renderSigningModal()}
-				{this.renderWalletConnectSessionRequestModal()}
-				{this.renderDappTransactionModal()}
-				{this.renderApproveModal()}
-			</React.Fragment>
+	const renderDappTransactionModal = () =>
+		props.dappTransactionModalVisible && (
+			<Approval
+				dappTransactionModalVisible={props.dappTransactionModalVisible}
+				toggleDappTransactionModal={props.toggleDappTransactionModal}
+			/>
 		);
-	}
-}
+
+	const renderApproveModal = () =>
+		props.approveModalVisible && <Approve modalVisible toggleApproveModal={props.toggleApproveModal} />;
+
+	useEffect(() => {
+		if (locale.current !== I18n.locale) {
+			locale.current = I18n.locale;
+			initForceReload();
+			return;
+		}
+		// if (props.lockTime !== prevProps.lockTime) {
+		// 	lockManager.updateLockTime(props.lockTime);
+		// }
+	}, []);
+
+	useEffect(() => {
+		initializeWalletConnect();
+		AppState.addEventListener('change', handleAppStateChange);
+		lockManager.current = new LockManager(props.navigation, props.lockTime);
+		PushNotification.configure({
+			requestPermissions: false,
+			onNotification: notification => {
+				let data = null;
+				if (Device.isAndroid()) {
+					if (notification.tag) {
+						data = JSON.parse(notification.tag);
+					}
+				} else if (notification.data) {
+					data = notification.data;
+				}
+				if (data && data.action === 'tx') {
+					if (data.id) {
+						NotificationManager.setTransactionToView(data.id);
+					}
+					props.navigation.navigate('TransactionsHome');
+				}
+
+				if (Device.isIos()) {
+					notification.finish(PushNotificationIOS.FetchResult.NoData);
+				}
+			}
+		});
+
+		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
+
+		Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams =>
+			onUnapprovedMessage(messageParams, 'eth')
+		);
+
+		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams =>
+			onUnapprovedMessage(messageParams, 'personal')
+		);
+
+		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams =>
+			onUnapprovedMessage(messageParams, 'typed')
+		);
+
+		setTimeout(() => {
+			NotificationManager.init(
+				props.navigation,
+				props.showTransactionNotification,
+				props.hideTransactionNotification,
+				props.showSimpleNotification
+			);
+			pollForIncomingTransactions();
+
+			removeConnectionStatusListener.current = NetInfo.addEventListener(connectionChangeHandler);
+		}, 1000);
+
+		return function cleanup() {
+			AppState.removeEventListener('change', handleAppStateChange);
+			lockManager.current.stopListening();
+			Engine.context.PersonalMessageManager.hub.removeAllListeners();
+			Engine.context.TypedMessageManager.hub.removeAllListeners();
+			Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', onUnapprovedTransaction);
+			WalletConnect.hub.removeAllListeners();
+			removeConnectionStatusListener.current && removeConnectionStatusListener.current();
+		};
+	});
+
+	return (
+		<React.Fragment>
+			<View style={styles.flex}>
+				{!forceReload ? (
+					<MainNavigator
+						navigation={props.navigation}
+						screenProps={{ isPaymentRequest: props.isPaymentRequest }}
+					/>
+				) : (
+					renderLoader()
+				)}
+				<GlobalAlert />
+				<FadeOutOverlay />
+				<Notification navigation={props.navigation} />
+				<FiatOrders />
+				<BackupAlert navigation={props.navigation} />
+				<ProtectYourWalletModal navigation={props.navigation} />
+			</View>
+			{renderSigningModal()}
+			{renderWalletConnectSessionRequestModal()}
+			{renderDappTransactionModal()}
+			{renderApproveModal()}
+		</React.Fragment>
+	);
+};
+
+Main.router = MainNavigator.router;
+
+Main.propTypes = {
+	/**
+	 * Object that represents the navigator
+	 */
+	navigation: PropTypes.object,
+	/**
+	 * Time to auto-lock the app after it goes in background mode
+	 */
+	lockTime: PropTypes.number,
+	/**
+	 * Action that sets an ETH transaction
+	 */
+	setEtherTransaction: PropTypes.func,
+	/**
+	 * Action that sets a transaction
+	 */
+	setTransactionObject: PropTypes.func,
+	/**
+	 * Array of ERC20 assets
+	 */
+	tokens: PropTypes.array,
+	/**
+	 * Dispatch showing a transaction notification
+	 */
+	showTransactionNotification: PropTypes.func,
+	/**
+	 * Dispatch showing a simple notification
+	 */
+	showSimpleNotification: PropTypes.func,
+	/**
+	 * Dispatch hiding a transaction notification
+	 */
+	hideTransactionNotification: PropTypes.func,
+	/**
+	 * Indicates whether the current transaction is a deep link transaction
+	 */
+	isPaymentRequest: PropTypes.bool,
+	/**
+	 * Indicates whether third party API mode is enabled
+	 */
+	thirdPartyApiMode: PropTypes.bool,
+	/**
+	/* Hides or shows dApp transaction modal
+	*/
+	toggleDappTransactionModal: PropTypes.func,
+	/**
+	/* Hides or shows approve modal
+	*/
+	toggleApproveModal: PropTypes.func,
+	/**
+	/* dApp transaction modal visible or not
+	*/
+	dappTransactionModalVisible: PropTypes.bool,
+	/**
+	/* Token approve modal visible or not
+	*/
+	approveModalVisible: PropTypes.bool
+};
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
