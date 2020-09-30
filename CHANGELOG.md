@@ -3,6 +3,7 @@
 ## Current Develop Branch
 
 ## v1.0.3 - Sept 30 2020
+- [#1865](https://github.com/MetaMask/metamask-mobile/pull/1865): bugfix/login (#1865)
 - [#1863](https://github.com/MetaMask/metamask-mobile/pull/1863): transak countries update (#1863)
 - [#1829](https://github.com/MetaMask/metamask-mobile/pull/1829): Improvement/browser refactor (#1829)
 - [#1848](https://github.com/MetaMask/metamask-mobile/pull/1848): Allow for 24 length seedphrase on import (#1848)
