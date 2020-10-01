@@ -453,7 +453,8 @@ class CustomGas extends PureComponent {
 		const gasPriceBNWei = apiEstimateModifiedToWEI(gasPrice);
 		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBNWei);
 		let warningGasPrice;
-		if (value < this.props.basicGasEstimates.safeLowGwei) warningGasPrice = strings('transaction.low_gas_price');
+		if (parseInt(gasPrice) < parseInt(this.props.basicGasEstimates.safeLowGwei))
+			warningGasPrice = strings('transaction.low_gas_price');
 		if (!value || value === '' || !isDecimal(value) || value <= 0)
 			warningGasPrice = strings('transaction.invalid_gas_price');
 		if (gasPriceBNWei && !isBN(gasPriceBNWei)) warningGasPrice = strings('transaction.invalid_gas_price');

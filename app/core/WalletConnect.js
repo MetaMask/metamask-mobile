@@ -6,6 +6,7 @@ import Logger from '../util/Logger';
 import { EventEmitter } from 'events';
 import AsyncStorage from '@react-native-community/async-storage';
 import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
+import { WALLETCONNECT_SESSIONS } from '../constants/storage';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -16,7 +17,7 @@ const persistSessions = async () => {
 		.filter(connector => connector && connector.walletConnector && connector && connector.walletConnector.connected)
 		.map(connector => connector.walletConnector.session);
 
-	await AsyncStorage.setItem('@MetaMask:walletconnectSessions', JSON.stringify(sessions));
+	await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
 };
 
 const waitForInitialization = async () => {
@@ -94,7 +95,7 @@ class WalletConnect {
 						txParams.to = payload.params[0].to;
 						txParams.from = payload.params[0].from;
 						txParams.value = payload.params[0].value;
-						txParams.gasLimit = payload.params[0].gasLimit;
+						txParams.gas = payload.params[0].gas;
 						txParams.gasPrice = payload.params[0].gasPrice;
 						txParams.data = payload.params[0].data;
 						const hash = await (await TransactionController.addTransaction(
@@ -306,7 +307,7 @@ class WalletConnect {
 
 const instance = {
 	async init() {
-		const sessionData = await AsyncStorage.getItem('@MetaMask:walletconnectSessions');
+		const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
 		if (sessionData) {
 			const sessions = JSON.parse(sessionData);
 			sessions.forEach(session => {
@@ -330,7 +331,7 @@ const instance = {
 	},
 	getSessions: async () => {
 		let sessions = [];
-		const sessionData = await AsyncStorage.getItem('@MetaMask:walletconnectSessions');
+		const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
 		if (sessionData) {
 			sessions = JSON.parse(sessionData);
 		}

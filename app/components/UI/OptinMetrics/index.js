@@ -24,6 +24,7 @@ import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
+import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	root: {
@@ -171,7 +172,7 @@ class OptinMetrics extends PureComponent {
 	 */
 	continue = async () => {
 		// Get onboarding wizard state
-		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 		if (onboardingWizard) {
 			this.props.navigation.navigate('HomeNav');
 		} else {
@@ -207,7 +208,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
+			await AsyncStorage.setItem(METRICS_OPT_IN, DENIED);
 			Analytics.disableInstance();
 		});
 		this.continue();
@@ -223,7 +224,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
+			await AsyncStorage.setItem(METRICS_OPT_IN, AGREED);
 		});
 		this.continue();
 	};

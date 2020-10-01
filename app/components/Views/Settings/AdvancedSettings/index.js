@@ -336,7 +336,7 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showHexData}
 									onValueChange={this.toggleShowHexData}
-									trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>

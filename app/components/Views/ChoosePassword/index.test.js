@@ -4,6 +4,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import ChoosePassword from './';
 import configureMockStore from 'redux-mock-store';
+import { ONBOARDING, PROTECT } from '../../../constants/navigation';
 
 describe('ChoosePassword', () => {
 	const mockStore = configureMockStore();
@@ -26,7 +27,7 @@ describe('ChoosePassword', () => {
 		const wrapper = shallow(
 			<ChoosePassword
 				navigation={{
-					getParam: () => ['onboarding', 'protect'],
+					getParam: () => [ONBOARDING, PROTECT],
 					state: { params: {} }
 				}}
 			/>,

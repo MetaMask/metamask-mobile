@@ -30,7 +30,23 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
+import { failedSeedPhraseRequirements } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
+import {
+	BIOMETRY_CHOICE,
+	BIOMETRY_CHOICE_DISABLED,
+	NEXT_MAKER_REMINDER,
+	PASSCODE_DISABLED,
+	ONBOARDING_WIZARD,
+	EXISTING_USER,
+	METRICS_OPT_IN,
+	TRUE
+} from '../../../constants/storage';
+import { ethers } from 'ethers';
+import Logger from '../../../util/Logger';
+import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
+
+const { isValidMnemonic } = ethers.utils;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -53,6 +69,16 @@ const styles = StyleSheet.create({
 	field: {
 		marginVertical: 5
 	},
+	fieldRow: {
+		flexDirection: 'row',
+		alignItems: 'flex-end'
+	},
+	fieldCol: {
+		width: '50%'
+	},
+	fieldColRight: {
+		flexDirection: 'row-reverse'
+	},
 	label: {
 		fontSize: 14,
 		marginBottom: 12,
@@ -67,7 +93,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	seedPhrase: {
-		marginVertical: 10,
+		marginBottom: 10,
 		paddingTop: 20,
 		paddingBottom: 20,
 		paddingHorizontal: 20,
@@ -79,6 +105,9 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey500,
 		backgroundColor: colors.white,
 		...fontStyles.normal
+	},
+	padding: {
+		paddingRight: 46
 	},
 	biometrics: {
 		alignItems: 'flex-start',
@@ -117,26 +146,21 @@ const styles = StyleSheet.create({
 	strength_strong: {
 		color: colors.green300
 	},
-	showHideToggle: {
-		backgroundColor: colors.white,
-		marginTop: 8,
-		alignSelf: 'flex-end'
-	},
 	showMatchingPasswords: {
 		position: 'absolute',
 		marginTop: 8,
 		alignSelf: 'flex-end'
 	},
 	qrCode: {
-		marginTop: -50,
-		marginBottom: 30,
-		alignSelf: 'flex-end',
 		marginRight: 10,
 		borderWidth: 1,
 		borderRadius: 6,
 		borderColor: colors.grey100,
 		paddingVertical: 4,
-		paddingHorizontal: 6
+		paddingHorizontal: 6,
+		marginTop: -50,
+		marginBottom: 30,
+		alignSelf: 'flex-end'
 	},
 	inputFocused: {
 		borderColor: colors.blue,
@@ -190,7 +214,8 @@ class ImportFromSeed extends PureComponent {
 		loading: false,
 		error: null,
 		seedphraseInputFocused: false,
-		inputWidth: Device.isAndroid() ? '99%' : undefined
+		inputWidth: { width: '99%' },
+		hideSeedPhraseInput: true
 	};
 
 	passwordInput = React.createRef();
@@ -200,35 +225,33 @@ class ImportFromSeed extends PureComponent {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
 			let enabled = true;
-			const previouslyDisabled = await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
-			if (previouslyDisabled && previouslyDisabled === 'true') {
+			const previouslyDisabled = await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			if (previouslyDisabled && previouslyDisabled === TRUE) {
 				enabled = false;
 			}
 			this.setState({ biometryType, biometryChoice: enabled });
 		}
-		this.mounted = true;
 		// Workaround https://github.com/facebook/react-native/issues/9958
-		this.state.inputWidth &&
-			setTimeout(() => {
-				this.mounted && this.setState({ inputWidth: '100%' });
-			}, 100);
+		setTimeout(() => {
+			this.setState({ inputWidth: { width: '100%' } });
+		}, 100);
 	}
 
-	componentWillUnmount = () => {
-		this.mounted = false;
-	};
-
 	onPressImport = async () => {
-		if (this.state.loading) return;
+		const { loading, seed, password, confirmPassword } = this.state;
+
+		if (loading) return;
 		let error = null;
-		if (this.state.password.length < 8) {
+		if (!passwordRequirementsMet(this.state.password)) {
 			error = strings('import_from_seed.password_length_error');
-		} else if (this.state.password !== this.state.confirmPassword) {
+		} else if (password !== confirmPassword) {
 			error = strings('import_from_seed.password_dont_match');
 		}
 
-		if (this.state.seed.split(' ').length !== 12) {
-			error = strings('import_from_seed.seed_word_count_error');
+		if (failedSeedPhraseRequirements(seed)) {
+			error = strings('import_from_seed.seed_phrase_requirements');
+		} else if (!isValidMnemonic(seed)) {
+			error = strings('import_from_seed.invalid_seed_phrase');
 		}
 
 		if (error) {
@@ -239,7 +262,7 @@ class ImportFromSeed extends PureComponent {
 
 				const { KeyringController } = Engine.context;
 				await Engine.resetState();
-				await AsyncStorage.removeItem('@MetaMask:nextMakerReminder');
+				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
 
 				if (this.state.biometryType && this.state.biometryChoice) {
@@ -254,9 +277,9 @@ class ImportFromSeed extends PureComponent {
 					if (Device.isIos()) {
 						await SecureKeychain.getGenericPassword();
 					}
-					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
-					await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
-					await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
+					await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
+					await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+					await AsyncStorage.removeItem(PASSCODE_DISABLED);
 				} else {
 					if (this.state.rememberMe) {
 						await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
@@ -265,16 +288,16 @@ class ImportFromSeed extends PureComponent {
 					} else {
 						await SecureKeychain.resetGenericPassword();
 					}
-					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-					await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
-					await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+					await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 				}
 				// Get onboarding wizard state
-				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 				// mark the user as existing so it doesn't see the create password screen again
-				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+				await AsyncStorage.setItem(EXISTING_USER, TRUE);
 				this.setState({ loading: false });
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -301,6 +324,7 @@ class ImportFromSeed extends PureComponent {
 					this.setState({ loading: false });
 				} else {
 					this.setState({ loading: false, error: error.toString() });
+					Logger.log('Error with seed phrase import', error);
 				}
 			}
 		}
@@ -336,9 +360,9 @@ class ImportFromSeed extends PureComponent {
 
 	updateBiometryChoice = async biometryChoice => {
 		if (!biometryChoice) {
-			await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
-			await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}
 		this.setState({ biometryChoice });
 	};
@@ -379,35 +403,26 @@ class ImportFromSeed extends PureComponent {
 		this.setState({ secureTextEntry: !this.state.secureTextEntry });
 	};
 
-	getPasswordStrengthWord() {
-		// this.state.passwordStrength is calculated by zxcvbn
-		// which returns a score based on "entropy to crack time"
-		// 0 is the weakest, 4 the strongest
-		switch (this.state.passwordStrength) {
-			case 0:
-				return 'weak';
-			case 1:
-				return 'weak';
-			case 2:
-				return 'weak';
-			case 3:
-				return 'good';
-			case 4:
-				return 'strong';
-		}
-	}
+	toggleHideSeedPhraseInput = () => {
+		this.setState(({ hideSeedPhraseInput }) => ({ hideSeedPhraseInput: !hideSeedPhraseInput }));
+	};
 
 	onQrCodePress = () => {
+		setTimeout(this.toggleHideSeedPhraseInput, 100);
 		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: meta => {
-				if (meta && meta.seed) {
-					this.setState({ seed: meta.seed });
+			onScanSuccess: ({ seed = undefined }) => {
+				if (seed) {
+					this.setState({ seed });
 				} else {
 					Alert.alert(
 						strings('import_from_seed.invalid_qr_code_title'),
 						strings('import_from_seed.invalid_qr_code_message')
 					);
 				}
+				this.toggleHideSeedPhraseInput();
+			},
+			onScanError: error => {
+				this.toggleHideSeedPhraseInput();
 			}
 		});
 	};
@@ -417,48 +432,92 @@ class ImportFromSeed extends PureComponent {
 	render() {
 		const {
 			password,
+			passwordStrength,
 			confirmPassword,
 			seed,
 			seedphraseInputFocused,
 			inputWidth,
 			secureTextEntry,
 			error,
-			loading
+			loading,
+			hideSeedPhraseInput
 		} = this.state;
+
+		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'import-from-seed-screen'}>
 						<Text style={styles.title}>{strings('import_from_seed.title')}</Text>
-						<TextInput
-							value={seed}
-							numberOfLines={3}
-							multiline
-							style={[
-								styles.seedPhrase,
-								inputWidth && { width: inputWidth },
-								seedphraseInputFocused && styles.inputFocused
-							]}
-							placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-							placeholderTextColor={colors.grey200}
-							onChangeText={this.onSeedWordsChange}
-							testID={'input-seed-phrase'}
-							blurOnSubmit
-							onSubmitEditing={this.jumpToPassword}
-							returnKeyType={'next'}
-							keyboardType={Device.isAndroid() ? 'visible-password' : 'default'}
-							autoCapitalize="none"
-							autoCorrect={false}
-							onFocus={this.seedphraseInputFocused}
-							onBlur={this.seedphraseInputFocused}
-						/>
+						<View style={styles.fieldRow}>
+							<View style={styles.fieldCol}>
+								<Text style={styles.label}>{strings('choose_password.seed_phrase')}</Text>
+							</View>
+							<View style={[styles.fieldCol, styles.fieldColRight]}>
+								<TouchableOpacity onPress={this.toggleHideSeedPhraseInput}>
+									<Text style={styles.label}>
+										{strings(`choose_password.${hideSeedPhraseInput ? 'show' : 'hide'}`)}
+									</Text>
+								</TouchableOpacity>
+							</View>
+						</View>
+						{hideSeedPhraseInput ? (
+							<OutlinedTextField
+								containerStyle={inputWidth}
+								inputContainerStyle={styles.padding}
+								placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+								testID="input-seed-phrase"
+								returnKeyType="next"
+								autoCapitalize="none"
+								secureTextEntry={hideSeedPhraseInput}
+								onChangeText={this.onSeedWordsChange}
+								value={seed}
+								baseColor={colors.grey500}
+								tintColor={colors.blue}
+								onSubmitEditing={this.jumpToPassword}
+							/>
+						) : (
+							<TextInput
+								value={seed}
+								numberOfLines={3}
+								style={[styles.seedPhrase, inputWidth, seedphraseInputFocused && styles.inputFocused]}
+								secureTextEntry
+								multiline={!hideSeedPhraseInput}
+								placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+								placeholderTextColor={colors.grey200}
+								onChangeText={this.onSeedWordsChange}
+								testID="input-seed-phrase"
+								blurOnSubmit
+								onSubmitEditing={this.jumpToPassword}
+								returnKeyType="next"
+								keyboardType={
+									(!hideSeedPhraseInput && Device.isAndroid() && 'visible-password') || 'default'
+								}
+								autoCapitalize="none"
+								autoCorrect={false}
+								onFocus={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
+								onBlur={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
+							/>
+						)}
 						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
 							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
 						</TouchableOpacity>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
+							<View style={styles.fieldRow}>
+								<View style={styles.fieldCol}>
+									<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
+								</View>
+								<View style={[styles.fieldCol, styles.fieldColRight]}>
+									<TouchableOpacity onPress={this.toggleShowHide}>
+										<Text style={styles.label}>
+											{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
+										</Text>
+									</TouchableOpacity>
+								</View>
+							</View>
 							<OutlinedTextField
+								containerStyle={inputWidth}
 								ref={this.passwordInput}
 								placeholder={strings('import_from_seed.new_password')}
 								testID={'input-password-field'}
@@ -470,21 +529,14 @@ class ImportFromSeed extends PureComponent {
 								baseColor={colors.grey500}
 								tintColor={colors.blue}
 								onSubmitEditing={this.jumpToConfirmPassword}
-								renderRightAccessory={() => (
-									<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
-										<Text style={styles.passwordStrengthLabel}>
-											{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
-										</Text>
-									</TouchableOpacity>
-								)}
 							/>
 
 							{(password !== '' && (
 								<Text style={styles.passwordStrengthLabel}>
 									{strings('choose_password.password_strength')}
-									<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
+									<Text style={styles[`strength_${passwordStrengthWord}`]}>
 										{' '}
-										{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}
+										{strings(`choose_password.strength_${passwordStrengthWord}`)}
 									</Text>
 								</Text>
 							)) || <Text style={styles.passwordStrengthLabel} />}
@@ -493,6 +545,7 @@ class ImportFromSeed extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('import_from_seed.confirm_password')}</Text>
 							<OutlinedTextField
+								containerStyle={inputWidth}
 								ref={this.confirmPasswordInput}
 								testID={'input-password-field-confirm'}
 								onChangeText={this.onPasswordConfirmChange}
@@ -530,7 +583,11 @@ class ImportFromSeed extends PureComponent {
 								onPress={this.onPressImport}
 								testID={'submit'}
 								disabled={
-									!(password !== '' && password === confirmPassword && seed.split(' ').length === 12)
+									!(
+										password !== '' &&
+										password === confirmPassword &&
+										!failedSeedPhraseRequirements(seed)
+									)
 								}
 							>
 								{loading ? (

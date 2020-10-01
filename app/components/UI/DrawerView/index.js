@@ -30,7 +30,6 @@ import Analytics from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
-import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import EthereumAddress from '../EthereumAddress';
 import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
@@ -756,7 +755,7 @@ class DrawerView extends PureComponent {
 	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
-			message: generateUniversalLinkAddress(selectedAddress)
+			message: selectedAddress
 		})
 			.then(() => {
 				this.props.protectWalletModalVisible();

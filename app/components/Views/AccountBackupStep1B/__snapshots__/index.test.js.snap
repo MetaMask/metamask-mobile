@@ -494,7 +494,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             }
           }
         >
-          Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.
+          Don’t risk losing your funds. Protect your wallet by saving your seed phrase in a place you trust.
           <Text
             style={
               Object {

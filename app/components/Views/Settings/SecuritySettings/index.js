@@ -19,6 +19,14 @@ import Analytics from '../../../../core/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
+import {
+	EXISTING_USER,
+	BIOMETRY_CHOICE,
+	BIOMETRY_CHOICE_DISABLED,
+	PASSCODE_CHOICE,
+	PASSCODE_DISABLED,
+	TRUE
+} from '../../../../constants/storage';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -222,12 +230,12 @@ class Settings extends PureComponent {
 		let bioEnabled = false;
 		let passcodeEnabled = false;
 		if (biometryType) {
-			const biometryChoice = await AsyncStorage.getItem('@MetaMask:biometryChoice');
+			const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
 			if (biometryChoice !== '' && biometryChoice === biometryType) {
 				bioEnabled = true;
 			} else {
-				const passcodeChoice = await AsyncStorage.getItem('@MetaMask:passcodeChoice');
-				if (passcodeChoice !== '' && passcodeChoice === 'true') {
+				const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
+				if (passcodeChoice !== '' && passcodeChoice === TRUE) {
 					passcodeEnabled = true;
 				}
 			}
@@ -243,13 +251,13 @@ class Settings extends PureComponent {
 			// If we're disabling biometrics, let's enable device passcode / pin
 			//  by default because if we disable both we lose the password
 			if (!enabled) {
-				await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 				this.onSecuritySettingChange(true, 'passcode');
 				return;
 			}
 
-			await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
-			await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			await AsyncStorage.removeItem(PASSCODE_DISABLED);
 
 			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials && credentials.password !== '') {
@@ -271,9 +279,9 @@ class Settings extends PureComponent {
 			this.setState({ passcodeChoice: enabled });
 
 			if (!enabled) {
-				await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 			} else {
-				await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
+				await AsyncStorage.removeItem(PASSCODE_DISABLED);
 			}
 
 			const credentials = await SecureKeychain.getGenericPassword();
@@ -337,7 +345,7 @@ class Settings extends PureComponent {
 				await Engine.context.KeyringController.exportSeedPhrase(password);
 			}
 
-			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			if (enabled) {
 				const authOptions = {
 					accessControl:
@@ -348,20 +356,20 @@ class Settings extends PureComponent {
 				await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
 
 				if (type === 'biometrics') {
-					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
-					await AsyncStorage.removeItem('@MetaMask:passcodeChoice');
+					await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
+					await AsyncStorage.removeItem(PASSCODE_CHOICE);
 					// If the user enables biometrics, we're trying to read the password
 					// immediately so we get the permission prompt
 					if (Device.isIos()) {
 						await SecureKeychain.getGenericPassword();
 					}
 				} else {
-					await AsyncStorage.setItem('@MetaMask:passcodeChoice', 'true');
-					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+					await AsyncStorage.setItem(PASSCODE_CHOICE, TRUE);
+					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 				}
 			} else {
-				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-				await AsyncStorage.removeItem('@MetaMask:passcodeChoice');
+				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+				await AsyncStorage.removeItem(PASSCODE_CHOICE);
 			}
 
 			this.props.passwordSet();
@@ -475,10 +483,11 @@ class Settings extends PureComponent {
 								onValueChange={this.toggleMetricsOptIn}
 								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
+								testID={'metametrics-switch'}
 							/>
 						</View>
 					</View>
-					<View style={styles.setting}>
+					<View style={styles.setting} testID={'third-party-section'}>
 						<Text style={styles.title}>{strings('app_settings.third_party_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.third_party_description')}</Text>
 						<View style={styles.switchElement}>
@@ -566,7 +575,7 @@ class Settings extends PureComponent {
 							</View>
 						</View>
 					)}
-					<View style={styles.setting}>
+					<View style={styles.setting} testID={'reveal-private-key-section'}>
 						<Text style={styles.title}>
 							{strings('reveal_credential.private_key_title_for_account', { accountName: account.name })}
 						</Text>

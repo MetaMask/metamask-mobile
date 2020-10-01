@@ -619,12 +619,9 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
  * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens
  */
 export default async function decodeTransaction(args) {
-	const {
-		tx,
-		tx: { paymentChannelTransaction, isTransfer },
-		selectedAddress,
-		ticker
-	} = args;
+	const { tx, selectedAddress, ticker } = args;
+
+	const { paymentChannelTransaction, isTransfer } = tx || {};
 
 	const actionKey = await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction);
 	let transactionElement, transactionDetails;
