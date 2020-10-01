@@ -18,6 +18,7 @@ import java.util.List;
 import io.metamask.nativeModules.PreventScreenshotPackage;
 
 import androidx.multidex.MultiDexApplication;
+import android.webkit.WebView;
 
 
 public class MainApplication extends MultiDexApplication implements ShareApplication, ReactApplication {
@@ -53,12 +54,12 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 
 	@Override
 	public void onCreate() {
-		super.onCreate();
-		SoLoader.init(this, /* native exopackage */ false);
+			super.onCreate();
+			SoLoader.init(this, /* native exopackage */ false);
 
-		initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
-		RNBranchModule.getAutoInstance(this);
-
+			initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
+			RNBranchModule.getAutoInstance(this);
+			WebView.setWebContentsDebuggingEnabled(true);
     }
     /**
      * Loads Flipper in React Native templates. Call this in the onCreate method with something like

@@ -1704,7 +1704,8 @@ export const BrowserTab = props => {
 						javascriptEnabled
 						allowsInlineMediaPlayback
 						useWebkit
-						testID={'browser-webview'}
+						testID="browser-webview"
+						mixedContentMode="compatibility"
 					/>
 				)}
 			</View>

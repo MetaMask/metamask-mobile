@@ -5,5 +5,5 @@
 		<domain includeSubdomains="false">10.0.2.2</domain>
 		<domain includeSubdomains="false">10.0.3.2</domain>
 	</domain-config>
-  <base-config cleartextTrafficPermitted="false" />
+  <base-config cleartextTrafficPermitted="true" />
 </network-security-config>
