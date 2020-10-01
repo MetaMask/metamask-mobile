@@ -5,54 +5,14 @@ import {
 	AppState,
 	StyleSheet,
 	View,
-	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
-	Image
+	PushNotificationIOS // eslint-disable-line react-native/split-platform-components
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { createStackNavigator } from 'react-navigation-stack';
-import { createBottomTabNavigator } from 'react-navigation-tabs';
 import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
-import Browser from '../../Views/Browser';
-import AddBookmark from '../../Views/AddBookmark';
-import SimpleWebview from '../../Views/SimpleWebview';
 import Approval from '../../Views/Approval';
-import Settings from '../../Views/Settings';
-import GeneralSettings from '../../Views/Settings/GeneralSettings';
-import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
-import SecuritySettings from '../../Views/Settings/SecuritySettings';
-import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
-import NetworksSettings from '../../Views/Settings/NetworksSettings';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
-import AppInformation from '../../Views/Settings/AppInformation';
-import Contacts from '../../Views/Settings/Contacts';
-import Wallet from '../../Views/Wallet';
-import SyncWithExtension from '../../Views/SyncWithExtension';
-import Asset from '../../Views/Asset';
-import AddAsset from '../../Views/AddAsset';
-import Collectible from '../../Views/Collectible';
-import CollectibleView from '../../Views/CollectibleView';
-import Send from '../../Views/Send';
-import SendTo from '../../Views/SendFlow/SendTo';
-import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
-import WalletConnectSessions from '../../Views/WalletConnectSessions';
-import OfflineMode from '../../Views/OfflineMode';
-import QrScanner from '../../Views/QRScanner';
-import LockScreen from '../../Views/LockScreen';
-import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
-import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
-import ChoosePassword from '../../Views/ChoosePassword';
-import AccountBackupStep1 from '../../Views/AccountBackupStep1';
-import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
-import ManualBackupStep1 from '../../Views/ManualBackupStep1';
-import ManualBackupStep2 from '../../Views/ManualBackupStep2';
-import ManualBackupStep3 from '../../Views/ManualBackupStep3';
-import ImportPrivateKey from '../../Views/ImportPrivateKey';
-import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
-import PaymentRequest from '../../UI/PaymentRequest';
-import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -79,16 +39,10 @@ import { safeToChecksumAddress } from '../../../util/address';
 import contractMap from 'eth-contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
-import Amount from '../../Views/SendFlow/Amount';
-import Confirm from '../../Views/SendFlow/Confirm';
-import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import FiatOrders from '../../UI/FiatOrders';
-import PaymentMethodSelector from '../../UI/FiatOrders/PaymentMethodSelector';
-import PaymentMethodApplePay from '../../UI/FiatOrders/PaymentMethodApplePay';
-import TransakWebView from '../../UI/FiatOrders/TransakWebView';
 import {
 	showTransactionNotification,
 	hideTransactionNotification,
@@ -96,8 +50,8 @@ import {
 } from '../../../actions/notification';
 import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
-import ActivityView from '../../Views/ActivityView';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
+import MainNavigator from './MainNavigator';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -112,264 +66,8 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
-	},
-	headerLogo: {
-		width: 125,
-		height: 50
 	}
 });
-
-function HeaderLogo() {
-	return (
-		<Image style={styles.headerLogo} source={require('../../../images/metamask-name.png')} resizeMode={'contain'} />
-	);
-}
-
-/**
- * Navigator component that wraps
- * the 2 main sections: Browser, Wallet
- */
-const MainNavigator = createStackNavigator(
-	{
-		Home: {
-			screen: createBottomTabNavigator(
-				{
-					WalletTabHome: createStackNavigator({
-						WalletView: {
-							screen: Wallet
-						},
-						Asset: {
-							screen: Asset
-						},
-						AddAsset: {
-							screen: AddAsset
-						},
-						Collectible: {
-							screen: Collectible
-						},
-						CollectibleView: {
-							screen: CollectibleView
-						},
-						RevealPrivateCredentialView: {
-							screen: RevealPrivateCredential
-						}
-					}),
-					BrowserTabHome: createStackNavigator({
-						BrowserView: {
-							screen: Browser,
-							navigationOptions: {
-								gesturesEnabled: false
-							}
-						}
-					}),
-					TransactionsHome: createStackNavigator({
-						TransactionsView: {
-							screen: ActivityView
-						}
-					})
-				},
-				{
-					defaultNavigationOptions: () => ({
-						tabBarVisible: false
-					})
-				}
-			)
-		},
-		Webview: {
-			screen: createStackNavigator(
-				{
-					SimpleWebview: {
-						screen: SimpleWebview
-					}
-				},
-				{
-					mode: 'modal'
-				}
-			)
-		},
-		SettingsView: {
-			screen: createStackNavigator({
-				Settings: {
-					screen: Settings
-				},
-				GeneralSettings: {
-					screen: GeneralSettings
-				},
-				AdvancedSettings: {
-					screen: AdvancedSettings
-				},
-				SecuritySettings: {
-					screen: SecuritySettings
-				},
-				ExperimentalSettings: {
-					screen: ExperimentalSettings
-				},
-				NetworksSettings: {
-					screen: NetworksSettings
-				},
-				NetworkSettings: {
-					screen: NetworkSettings
-				},
-				CompanySettings: {
-					screen: AppInformation
-				},
-				ContactsSettings: {
-					screen: Contacts
-				},
-				ContactForm: {
-					screen: ContactForm
-				},
-				SyncWithExtensionView: {
-					screen: SyncWithExtension
-				},
-				RevealPrivateCredentialView: {
-					screen: RevealPrivateCredential
-				},
-				WalletConnectSessionsView: {
-					screen: WalletConnectSessions
-				},
-				ChoosePasswordSimple: {
-					screen: ChoosePasswordSimple
-				},
-				EnterPasswordSimple: {
-					screen: EnterPasswordSimple
-				}
-			})
-		},
-		ImportPrivateKeyView: {
-			screen: createStackNavigator(
-				{
-					ImportPrivateKey: {
-						screen: ImportPrivateKey
-					},
-					ImportPrivateKeySuccess: {
-						screen: ImportPrivateKeySuccess
-					}
-				},
-				{
-					headerMode: 'none'
-				}
-			)
-		},
-		SendView: {
-			screen: createStackNavigator({
-				Send: {
-					screen: Send
-				}
-			})
-		},
-		SendFlowView: {
-			screen: createStackNavigator({
-				SendTo: {
-					screen: SendTo
-				},
-				Amount: {
-					screen: Amount
-				},
-				Confirm: {
-					screen: Confirm
-				}
-			})
-		},
-		ApprovalView: {
-			screen: createStackNavigator({
-				Approval: {
-					screen: Approval
-				}
-			})
-		},
-		ApproveView: {
-			screen: createStackNavigator({
-				Approve: {
-					screen: Approve
-				}
-			})
-		},
-		AddBookmarkView: {
-			screen: createStackNavigator({
-				AddBookmark: {
-					screen: AddBookmark
-				}
-			})
-		},
-		OfflineModeView: {
-			screen: createStackNavigator({
-				OfflineMode: {
-					screen: OfflineMode
-				}
-			})
-		},
-		/** ALL FULL SCREEN MODALS SHOULD GO HERE */
-		QRScanner: {
-			screen: QrScanner
-		},
-		LockScreen: {
-			screen: LockScreen
-		},
-
-		PaymentRequestView: {
-			screen: createStackNavigator(
-				{
-					PaymentRequest: {
-						screen: PaymentRequest
-					},
-					PaymentRequestSuccess: {
-						screen: PaymentRequestSuccess
-					}
-				},
-				{
-					mode: 'modal'
-				}
-			)
-		},
-
-		FiatOnRamp: {
-			screen: createStackNavigator({
-				PaymentMethodSelector: { screen: PaymentMethodSelector },
-				PaymentMethodApplePay: { screen: PaymentMethodApplePay },
-				TransakFlow: { screen: TransakWebView }
-			})
-		},
-
-		SetPasswordFlow: {
-			screen: createStackNavigator(
-				{
-					ChoosePassword: {
-						screen: ChoosePassword
-					},
-					AccountBackupStep1: {
-						screen: AccountBackupStep1
-					},
-					AccountBackupStep1B: {
-						screen: AccountBackupStep1B
-					},
-					ManualBackupStep1: {
-						screen: ManualBackupStep1
-					},
-					ManualBackupStep2: {
-						screen: ManualBackupStep2
-					},
-					ManualBackupStep3: {
-						screen: ManualBackupStep3
-					}
-				},
-				{
-					defaultNavigationOptions: {
-						// eslint-disable-next-line
-						headerTitle: () => <HeaderLogo />,
-						headerStyle: {
-							borderBottomWidth: 0
-						}
-					}
-				}
-			)
-		}
-	},
-	{
-		mode: 'modal',
-		headerMode: 'none'
-	}
-);
 
 const Main = props => {
 	const [connected, setConnected] = useState(false);
@@ -387,6 +85,16 @@ const Main = props => {
 	const locale = useRef(I18n.locale);
 	const lockManager = useRef();
 	const removeConnectionStatusListener = useRef();
+
+	const usePrevious = value => {
+		const ref = useRef();
+		useEffect(() => {
+			ref.current = value;
+		});
+		return ref.current;
+	};
+
+	const prevLockTime = usePrevious(props.lockTime);
 
 	const pollForIncomingTransactions = async () => {
 		props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
@@ -621,10 +329,7 @@ const Main = props => {
 
 	const renderDappTransactionModal = () =>
 		props.dappTransactionModalVisible && (
-			<Approval
-				dappTransactionModalVisible={props.dappTransactionModalVisible}
-				toggleDappTransactionModal={props.toggleDappTransactionModal}
-			/>
+			<Approval dappTransactionModalVisible toggleDappTransactionModal={props.toggleDappTransactionModal} />
 		);
 
 	const renderApproveModal = () =>
@@ -636,10 +341,10 @@ const Main = props => {
 			initForceReload();
 			return;
 		}
-		// if (props.lockTime !== prevProps.lockTime) {
-		// 	lockManager.updateLockTime(props.lockTime);
-		// }
-	}, []);
+		if (prevLockTime !== props.lockTime) {
+			lockManager.current && lockManager.current.updateLockTime(props.lockTime);
+		}
+	});
 
 	useEffect(() => {
 		initializeWalletConnect();
