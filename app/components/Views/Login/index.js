@@ -184,7 +184,10 @@ class Login extends PureComponent {
 		this.mounted = false;
 	}
 
-	onLogin = async disabled => {
+	onLogin = async () => {
+		const { password } = this.state;
+		const disabled = !passwordRequirementsMet(password);
+
 		if (this.state.loading || disabled) return;
 		try {
 			this.setState({ loading: true });
@@ -363,7 +366,7 @@ class Login extends PureComponent {
 								value={this.state.password}
 								baseColor={colors.grey500}
 								tintColor={colors.blue}
-								onSubmitEditing={() => this.onLogin(disabled)}
+								onSubmitEditing={this.onLogin}
 								renderRightAccessory={() => (
 									<BiometryButton
 										onPress={this.tryBiometric}
@@ -389,7 +392,7 @@ class Login extends PureComponent {
 						)}
 
 						<View style={styles.ctaWrapper} testID={'log-in-button'}>
-							<StyledButton disabled={disabled} type={'confirm'} onPress={() => this.onLogin(disabled)}>
+							<StyledButton disabled={disabled} type={'confirm'} onPress={this.onLogin}>
 								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
