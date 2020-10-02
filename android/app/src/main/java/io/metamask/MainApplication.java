@@ -59,7 +59,9 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 
 			initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
 			RNBranchModule.getAutoInstance(this);
-			WebView.setWebContentsDebuggingEnabled(true);
+			if (BuildConfig.DEBUG) {
+				WebView.setWebContentsDebuggingEnabled(true);
+			}
     }
     /**
      * Loads Flipper in React Native templates. Call this in the onCreate method with something like
