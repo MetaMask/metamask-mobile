@@ -296,7 +296,7 @@ const getPaymentDetails = (cryptoCurrency, amount, fee, total) => ({
 	],
 	total: {
 		amount: { currency: USD_CURRENCY_CODE, value: `${total}` },
-		label: 'Wyre'
+		label: 'Wyre (via MetaMask)'
 	}
 });
 
