@@ -40,6 +40,11 @@ export default class Logger {
 	static async error(error, extra) {
 		// Check if user passed accepted opt-in to metrics
 		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+		let exception = error.error || error.message || error.originalError || error;
+		if (!(error instanceof Error)) {
+			exception = new Error('error to capture is not an error instance');
+			exception.originalError = error;
+		}
 		if (__DEV__) {
 			console.warn(DEBUG, error); // eslint-disable-line no-console
 		} else if (metricsOptIn === AGREED) {
@@ -49,10 +54,10 @@ export default class Logger {
 				}
 				withScope(scope => {
 					scope.setExtras(extra);
-					captureException(error);
+					captureException(exception);
 				});
 			} else {
-				captureException(error);
+				captureException(exception);
 			}
 		}
 	}
