@@ -79,7 +79,8 @@ const styles = StyleSheet.create({
 	},
 	errorMsg: {
 		color: colors.red,
-		...fontStyles.normal
+		...fontStyles.normal,
+		lineHeight: 20
 	},
 	goBack: {
 		color: colors.fontSecondary,
@@ -184,10 +185,11 @@ class Login extends PureComponent {
 		this.mounted = false;
 	}
 
-	onLogin = async disabled => {
-		if (this.state.loading || disabled) return;
+	onLogin = async locked => {
+		if (locked) this.setState({ error: strings('login.invalid_password') });
+		if (this.state.loading || locked) return;
 		try {
-			this.setState({ loading: true });
+			this.setState({ loading: true, error: null });
 			const { KeyringController } = Engine.context;
 
 			// Restore vault with user entered password
@@ -332,7 +334,7 @@ class Login extends PureComponent {
 
 	render = () => {
 		const { password } = this.state;
-		const disabled = !passwordRequirementsMet(password);
+		const locked = !passwordRequirementsMet(password);
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -363,7 +365,7 @@ class Login extends PureComponent {
 								value={this.state.password}
 								baseColor={colors.grey500}
 								tintColor={colors.blue}
-								onSubmitEditing={() => this.onLogin(disabled)}
+								onSubmitEditing={() => this.onLogin(locked)}
 								renderRightAccessory={() => (
 									<BiometryButton
 										onPress={this.tryBiometric}
@@ -389,7 +391,7 @@ class Login extends PureComponent {
 						)}
 
 						<View style={styles.ctaWrapper} testID={'log-in-button'}>
-							<StyledButton disabled={disabled} type={'confirm'} onPress={() => this.onLogin(disabled)}>
+							<StyledButton type={'confirm'} onPress={() => this.onLogin(locked)}>
 								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
