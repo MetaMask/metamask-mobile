@@ -49,42 +49,98 @@ exports[`ImportFromSeed should render correctly 1`] = `
       >
         Import from seed
       </Text>
-      <TextInput
+      <View
+        style={
+          Object {
+            "alignItems": "flex-end",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "width": "50%",
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "marginBottom": 12,
+              }
+            }
+          >
+            Seed phrase
+          </Text>
+        </View>
+        <View
+          style={
+            Array [
+              Object {
+                "width": "50%",
+              },
+              Object {
+                "flexDirection": "row-reverse",
+              },
+            ]
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "marginBottom": 12,
+                }
+              }
+            >
+              Show
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <OutlinedTextField
+        activeLineWidth={2}
+        animationDuration={225}
         autoCapitalize="none"
-        autoCorrect={false}
-        blurOnSubmit={true}
-        keyboardType="default"
-        multiline={true}
-        numberOfLines={3}
-        onBlur={[Function]}
+        baseColor="#6a737d"
+        containerStyle={
+          Object {
+            "width": "99%",
+          }
+        }
+        disableFullscreenUI={true}
+        disabled={false}
+        disabledLineType="dotted"
+        disabledLineWidth={0.5}
+        editable={true}
+        errorColor="rgb(213, 0, 0)"
+        fontSize={16}
+        inputContainerStyle={
+          Object {
+            "paddingRight": 46,
+          }
+        }
+        labelFontSize={12}
+        lineType="solid"
+        lineWidth={1}
         onChangeText={[Function]}
-        onFocus={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Enter your seed phrase here"
-        placeholderTextColor="#bbc0c5"
         returnKeyType="next"
-        style={
-          Array [
-            Object {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#6a737d",
-              "borderRadius": 10,
-              "borderWidth": 1,
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "height": "auto",
-              "marginVertical": 10,
-              "minHeight": 110,
-              "paddingBottom": 20,
-              "paddingHorizontal": 20,
-              "paddingTop": 20,
-            },
-            undefined,
-            false,
-          ]
-        }
+        secureTextEntry={true}
         testID="input-seed-phrase"
+        textColor="rgba(0, 0, 0, .87)"
+        tintColor="#037dd6"
+        underlineColorAndroid="transparent"
         value=""
       />
       <TouchableOpacity
@@ -117,23 +173,74 @@ exports[`ImportFromSeed should render correctly 1`] = `
           }
         }
       >
-        <Text
+        <View
           style={
             Object {
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "marginBottom": 12,
+              "alignItems": "flex-end",
+              "flexDirection": "row",
             }
           }
         >
-          New Password
-        </Text>
+          <View
+            style={
+              Object {
+                "width": "50%",
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "marginBottom": 12,
+                }
+              }
+            >
+              New Password
+            </Text>
+          </View>
+          <View
+            style={
+              Array [
+                Object {
+                  "width": "50%",
+                },
+                Object {
+                  "flexDirection": "row-reverse",
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Object {
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "marginBottom": 12,
+                  }
+                }
+              >
+                Show
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         <OutlinedTextField
           activeLineWidth={2}
           animationDuration={225}
           autoCapitalize="none"
           baseColor="#6a737d"
+          containerStyle={
+            Object {
+              "width": "99%",
+            }
+          }
           disableFullscreenUI={true}
           disabled={false}
           disabledLineType="dotted"
@@ -147,7 +254,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="New Password"
-          renderRightAccessory={[Function]}
           returnKeyType="next"
           secureTextEntry={true}
           testID="input-password-field"
@@ -195,6 +301,11 @@ exports[`ImportFromSeed should render correctly 1`] = `
           animationDuration={225}
           autoCapitalize="none"
           baseColor="#6a737d"
+          containerStyle={
+            Object {
+              "width": "99%",
+            }
+          }
           disableFullscreenUI={true}
           disabled={false}
           disabledLineType="dotted"

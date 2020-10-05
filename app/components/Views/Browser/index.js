@@ -11,7 +11,6 @@ import Device from '../../../util/Device';
 import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
-import { getVersion } from 'react-native-device-info';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -57,7 +56,6 @@ class Browser extends PureComponent {
 		activeTab: PropTypes.number
 	};
 	static navigationOptions = ({ navigation }) => getBrowserViewNavbarOptions(navigation);
-	tabs = {};
 
 	constructor(props) {
 		super(props);
@@ -65,10 +63,7 @@ class Browser extends PureComponent {
 		if (!props.tabs.length) {
 			this.newTab();
 		}
-
-		this.createBrowserTabs(props.tabs);
 	}
-
 	componentDidMount() {
 		const activeTab = this.props.tabs.find(tab => tab.id === this.props.activeTab);
 		if (activeTab) {
@@ -78,38 +73,7 @@ class Browser extends PureComponent {
 		}
 	}
 
-	async createBrowserTabs(tabs) {
-		const APP_VERSION = await getVersion();
-
-		// Delete closed tabs
-		Object.keys(this.tabs).forEach(tabID => {
-			const existingTab = tabs.find(tab => tab.id === tabID);
-			if (!existingTab) {
-				delete this.tabs[tabID];
-			}
-		});
-
-		// Add new tabs
-		tabs.forEach(tab => {
-			if (!this.tabs[tab.id]) {
-				this.tabs[tab.id] = React.createElement(BrowserTab, {
-					id: tab.id,
-					key: `tab_${tab.id}`,
-					initialUrl: tab.url || AppConstants.HOMEPAGE_URL,
-					updateTabInfo: (url, tabID) => this.updateTabInfo(url, tabID),
-					showTabs: () => this.showTabs(),
-					newTab: url => this.newTab(url),
-					app_version: APP_VERSION
-				});
-			}
-		});
-	}
-
 	componentDidUpdate(prevProps) {
-		if (this.props.tabs.length !== Object.keys(this.tabs).length) {
-			this.createBrowserTabs(this.props.tabs);
-		}
-
 		const prevNavigation = prevProps.navigation;
 		const { navigation } = this.props;
 
@@ -238,19 +202,10 @@ class Browser extends PureComponent {
 		return null;
 	}
 
-	updateTabInfo = (url, tabID) => {
-		if (this.snapshotTimer) {
-			clearTimeout(this.snapshotTimer);
-		}
-		this.snapshotTimer = setTimeout(() => {
-			const showTabs = this.props.navigation.getParam('showTabs', false);
-			if (showTabs) {
-				this.updateTabInfo(url, tabID);
-				return false;
-			}
-			this.takeScreenshot(url, tabID);
-		}, 500);
-	};
+	updateTabInfo = (url, tabID) =>
+		this.props.updateTab(tabID, {
+			url
+		});
 
 	takeScreenshot = (url, tabID) =>
 		new Promise((resolve, reject) => {
@@ -276,10 +231,17 @@ class Browser extends PureComponent {
 			);
 		});
 
-	renderBrowserTabs() {
-		const tabs = Object.keys(this.tabs).map(tabID => this.tabs[tabID]);
-		return tabs;
-	}
+	renderBrowserTabs = () =>
+		this.props.tabs.map(tab => (
+			<BrowserTab
+				id={tab.id}
+				key={`tab_${tab.id}`}
+				initialUrl={tab.url || AppConstants.HOMEPAGE_URL}
+				updateTabInfo={this.updateTabInfo}
+				showTabs={this.showTabs}
+				newTab={this.newTab}
+			/>
+		));
 
 	render() {
 		return (

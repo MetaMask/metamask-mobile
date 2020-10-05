@@ -7,6 +7,7 @@ import StyledButton from '../../UI/StyledButton';
 import { colors, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import { passwordRequirementsMet } from '../../../util/password';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -60,7 +61,7 @@ export default class EnterPasswordSimple extends PureComponent {
 
 	onPressConfirm = async () => {
 		if (this.state.loading) return;
-		if (this.state.password.length < 8) {
+		if (!passwordRequirementsMet(this.state.password)) {
 			Alert.alert(strings('enter_password.error'), strings('choose_password.password_length_error'));
 		} else {
 			this.props.navigation.state.params.onPasswordSet(this.state.password);
@@ -95,7 +96,9 @@ export default class EnterPasswordSimple extends PureComponent {
 									type={'blue'}
 									onPress={this.onPressConfirm}
 									testID={'submit-button'}
-									disabled={!(this.state.password !== '' || this.state.password.length < 8)}
+									disabled={
+										!(this.state.password !== '' || !passwordRequirementsMet(this.state.password))
+									}
 								>
 									{this.state.loading ? (
 										<ActivityIndicator size="small" color="white" />

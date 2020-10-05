@@ -23,13 +23,9 @@ describe('Wallet Tests', () => {
 		await TestHelpers.waitAndTap('onboarding-get-started-button');
 		// Check that we are on the onboarding screen
 		await TestHelpers.checkIfVisible('onboarding-screen');
-		// Check that Sync or import your wallet CTA is visible & tap it
-		await TestHelpers.waitAndTap('onboarding-import-button');
-		// Check that we are on the import wallet screen
-		await TestHelpers.checkIfVisible('import-wallet-screen');
 		// Check that Import using seed phrase CTA is visible & tap it
 		await TestHelpers.waitAndTap('import-wallet-import-from-seed-button');
-		// Check that we are on the import from seed screen
+		// Check that we are on the import wallet screen
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input seed phrase
 		if (device.getPlatform() === 'android') {
@@ -122,18 +118,10 @@ describe('Wallet Tests', () => {
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Receive button
 		await TestHelpers.waitAndTap('drawer-receive-button');
-		// Check that we are on the reveive screen
-		await TestHelpers.checkIfVisible('receive-request-screen');
-		// Tap on QR Code button
-		await TestHelpers.tapByText('QR Code');
-		// Check that QR Modal pops up
-		await TestHelpers.checkIfVisible('qr-modal');
-		// Check that the public address matches that of account 1
-		await TestHelpers.checkIfElementHasString('public-address-input', TEST_PUBLIC_ADDRESS);
-		// Close modal
-		await TestHelpers.tap('close-qr-modal');
 		// Check that we are on the receive screen
 		await TestHelpers.checkIfVisible('receive-request-screen');
+		// Check that the public address matches that of account 1
+		await TestHelpers.checkIfElementHasString('account-address', TEST_PUBLIC_ADDRESS);
 
 		// Close Receive screen and go back to wallet screen
 		if (device.getPlatform() === 'android') {

@@ -52,7 +52,11 @@ export default class WebsiteIcon extends PureComponent {
 		 * Flag that determines if the background
 		 * should be transaparent or not
 		 */
-		transparent: PropTypes.bool
+		transparent: PropTypes.bool,
+		/**
+		 * Icon image to use, this substitutes getting the icon from the url
+		 */
+		icon: PropTypes.string
 	};
 
 	state = {
@@ -76,8 +80,8 @@ export default class WebsiteIcon extends PureComponent {
 
 	render = () => {
 		const { renderIconUrlError } = this.state;
-		const { viewStyle, style, textStyle, transparent, url } = this.props;
-		const apiLogoUrl = { uri: this.getIconUrl(url) };
+		const { viewStyle, style, textStyle, transparent, url, icon } = this.props;
+		const apiLogoUrl = { uri: icon || this.getIconUrl(url) };
 		const title = typeof this.props.title === 'string' ? this.props.title.substr(0, 1) : getHost(url).substr(0, 1);
 
 		if (renderIconUrlError && title) {

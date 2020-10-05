@@ -30,6 +30,7 @@ import {
 	PASSCODE_DISABLED,
 	TRUE
 } from '../../../constants/storage';
+import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 
@@ -232,7 +233,8 @@ class ChoosePassword extends PureComponent {
 		biometryChoice: false,
 		rememberMe: false,
 		loading: false,
-		error: null
+		error: null,
+		inputWidth: { width: '99%' }
 	};
 
 	mounted = true;
@@ -246,6 +248,11 @@ class ChoosePassword extends PureComponent {
 		if (biometryType) {
 			this.setState({ biometryType, biometryChoice: true });
 		}
+		setTimeout(() => {
+			this.setState({
+				inputWidth: { width: '100%' }
+			});
+		}, 100);
 	}
 
 	componentDidUpdate(prevProps, prevState) {
@@ -283,7 +290,7 @@ class ChoosePassword extends PureComponent {
 
 		if (!canSubmit) return;
 		if (loading) return;
-		if (password.length < 8) {
+		if (!passwordRequirementsMet(password)) {
 			Alert.alert('Error', strings('choose_password.password_length_error'));
 			return;
 		} else if (password !== confirmPassword) {
@@ -441,24 +448,6 @@ class ChoosePassword extends PureComponent {
 		current && current.focus();
 	};
 
-	getPasswordStrengthWord() {
-		// this.state.passwordStrength is calculated by zxcvbn
-		// which returns a score based on "entropy to crack time"
-		// 0 is the weakest, 4 the strongest
-		switch (this.state.passwordStrength) {
-			case 0:
-				return 'weak';
-			case 1:
-				return 'weak';
-			case 2:
-				return 'weak';
-			case 3:
-				return 'good';
-			case 4:
-				return 'strong';
-		}
-	}
-
 	renderSwitch = () => {
 		const { biometryType, rememberMe, biometryChoice } = this.state;
 		return (
@@ -512,10 +501,20 @@ class ChoosePassword extends PureComponent {
 	};
 
 	render() {
-		const { isSelected, password, confirmPassword, secureTextEntry, error, loading } = this.state;
+		const {
+			isSelected,
+			inputWidth,
+			password,
+			passwordStrength,
+			confirmPassword,
+			secureTextEntry,
+			error,
+			loading
+		} = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
 		const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
+		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -563,7 +562,7 @@ class ChoosePassword extends PureComponent {
 										{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
 									</Text>
 									<TextInput
-										style={styles.input}
+										style={[styles.input, inputWidth]}
 										value={password}
 										onChangeText={this.onPasswordChange}
 										secureTextEntry={secureTextEntry}
@@ -576,9 +575,9 @@ class ChoosePassword extends PureComponent {
 									{(password !== '' && (
 										<Text style={styles.hintLabel}>
 											{strings('choose_password.password_strength')}
-											<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
+											<Text style={styles[`strength_${passwordStrengthWord}`]}>
 												{' '}
-												{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}
+												{strings(`choose_password.strength_${passwordStrengthWord}`)}
 											</Text>
 										</Text>
 									)) || <Text style={styles.hintLabel} />}
@@ -587,7 +586,7 @@ class ChoosePassword extends PureComponent {
 									<Text style={styles.hintLabel}>{strings('choose_password.confirm_password')}</Text>
 									<TextInput
 										ref={this.confirmPasswordInput}
-										style={styles.input}
+										style={[styles.input, inputWidth]}
 										value={confirmPassword}
 										onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
 										secureTextEntry={secureTextEntry}
@@ -615,8 +614,9 @@ class ChoosePassword extends PureComponent {
 										style={styles.checkbox}
 										tintColors={{ true: colors.blue }}
 										boxType="square"
+										testID={'password-understand-box'}
 									/>
-									<Text style={styles.label} onPress={this.setSelection}>
+									<Text style={styles.label} onPress={this.setSelection} testID={'i-understand-text'}>
 										{strings('choose_password.i_understand')}{' '}
 										<Text onPress={this.learnMore} style={styles.learnMore}>
 											{strings('choose_password.learn_more')}
