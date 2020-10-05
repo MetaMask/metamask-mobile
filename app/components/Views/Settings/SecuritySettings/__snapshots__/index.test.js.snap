@@ -122,6 +122,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Switch
           ios_backgroundColor="#f2f3f4"
           onValueChange={[Function]}
+          testID="metametrics-switch"
           trackColor={
             Object {
               "false": "#f2f3f4",
@@ -138,6 +139,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
+      testID="third-party-section"
     >
       <Text
         style={
@@ -402,6 +404,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
+      testID="reveal-private-key-section"
     >
       <Text
         style={

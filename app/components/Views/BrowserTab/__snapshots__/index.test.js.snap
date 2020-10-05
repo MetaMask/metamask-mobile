@@ -33,8 +33,60 @@ exports[`Browser should render correctly 1`] = `
       }
     }
   >
-    <WebviewProgressBar />
+    <WebviewProgressBar
+      progress={0}
+    />
   </View>
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={300}
+    animationOut="slideOutDown"
+    animationOutTiming={300}
+    avoidKeyboard={false}
+    backdropColor="#D73A49"
+    backdropOpacity={1}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    coverScreen={true}
+    customBackdrop={null}
+    deviceHeight={null}
+    deviceWidth={null}
+    hasBackdrop={true}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    propagateSwipe={false}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
+    useNativeDriver={true}
+  >
+    <PhishingModal
+      continueToPhishingSite={[Function]}
+      goBackToSafety={[Function]}
+      goToETHPhishingDetector={[Function]}
+      goToEtherscam={[Function]}
+      goToFilePhishingIssue={[Function]}
+    />
+  </ReactNativeModal>
   <ReactNativeModal
     animationIn="slideInDown"
     animationInTiming={300}
@@ -196,64 +248,13 @@ exports[`Browser should render correctly 1`] = `
     <Connect(AccountApproval)
       currentPageInformation={
         Object {
-          "currentEnsName": null,
-          "icon": undefined,
+          "icon": null,
           "title": "",
-          "url": "https://metamask.io",
+          "url": "",
         }
       }
       onCancel={[Function]}
       onConfirm={[Function]}
-    />
-  </ReactNativeModal>
-  <ReactNativeModal
-    animationIn="slideInUp"
-    animationInTiming={300}
-    animationOut="slideOutDown"
-    animationOutTiming={300}
-    avoidKeyboard={false}
-    backdropColor="#D73A49"
-    backdropOpacity={1}
-    backdropTransitionInTiming={300}
-    backdropTransitionOutTiming={300}
-    coverScreen={true}
-    customBackdrop={null}
-    deviceHeight={null}
-    deviceWidth={null}
-    hasBackdrop={true}
-    hideModalContentWhileAnimating={false}
-    isVisible={false}
-    onBackButtonPress={[Function]}
-    onBackdropPress={[Function]}
-    onModalHide={[Function]}
-    onModalShow={[Function]}
-    onModalWillHide={[Function]}
-    onModalWillShow={[Function]}
-    propagateSwipe={false}
-    scrollHorizontal={false}
-    scrollOffset={0}
-    scrollOffsetMax={0}
-    scrollTo={null}
-    style={
-      Object {
-        "flex": 1,
-      }
-    }
-    supportedOrientations={
-      Array [
-        "portrait",
-        "landscape",
-      ]
-    }
-    swipeThreshold={100}
-    useNativeDriver={true}
-  >
-    <PhishingModal
-      continueToPhishingSite={[Function]}
-      goBackToSafety={[Function]}
-      goToETHPhishingDetector={[Function]}
-      goToEtherscam={[Function]}
-      goToFilePhishingIssue={[Function]}
     />
   </ReactNativeModal>
   <ReactNativeModal
@@ -307,7 +308,7 @@ exports[`Browser should render correctly 1`] = `
     />
   </ReactNativeModal>
   <BrowserBottomBar
-    canGoBack={true}
+    canGoBack={false}
     canGoForward={false}
     goBack={[Function]}
     goForward={[Function]}

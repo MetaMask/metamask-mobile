@@ -346,45 +346,6 @@ exports[`AdvancedSettings should render correctly 1`] = `
             }
           }
         >
-          Use Blockies Identicon
-        </Text>
-        <View
-          style={
-            Object {
-              "marginTop": 18,
-            }
-          }
-        >
-          <Switch
-            ios_backgroundColor="#f2f3f4"
-            onValueChange={[Function]}
-            trackColor={
-              Object {
-                "false": "#f2f3f4",
-                "true": "#037dd6",
-              }
-            }
-          />
-        </View>
-      </View>
-      <View
-        style={
-          Object {
-            "marginTop": 50,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-            }
-          }
-        >
           State Logs
         </Text>
         <Text
