@@ -1125,10 +1125,6 @@ export const BrowserTab = props => {
 				url: getMaskedUrl(siteInfo.url)
 			});
 		}
-
-		// if (isHomepage(siteInfo.url)) {
-		// 	injectHomePageScripts();
-		// }
 	};
 
 	/**
