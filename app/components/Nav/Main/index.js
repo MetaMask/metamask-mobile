@@ -314,7 +314,6 @@ const Main = props => {
 
 	const renderWalletConnectSessionRequestModal = () => {
 		const meta = walletConnectRequestInfo.peerMeta || null;
-
 		return (
 			<Modal
 				isVisible={walletConnectRequest}

@@ -11,6 +11,7 @@ import { WALLETCONNECT_SESSIONS } from '../constants/storage';
 const hub = new EventEmitter();
 let connectors = [];
 let initialized = false;
+let tempCallIds = [];
 
 const persistSessions = async () => {
 	const sessions = connectors
@@ -80,6 +81,9 @@ class WalletConnect {
 		 *  Subscribe to call requests
 		 */
 		this.walletConnector.on('call_request', async (error, payload) => {
+			if (tempCallIds.includes(payload.id)) return;
+			tempCallIds.push(payload.id);
+
 			Logger.log('CALL_REQUEST', error, payload);
 			if (error) {
 				throw error;
@@ -215,6 +219,8 @@ class WalletConnect {
 				}
 				this.redirectIfNeeded();
 			}
+			// Clean call ids
+			tempCallIds = [];
 		});
 
 		this.walletConnector.on('disconnect', error => {
