@@ -29,6 +29,15 @@ const waitForInitialization = async () => {
 	}
 };
 
+const waitForKeychainUnlocked = async () => {
+	let i = 0;
+	const { KeyringController } = Engine.context;
+	while (!KeyringController.isUnlocked()) {
+		await new Promise(res => setTimeout(() => res(), 1000));
+		if (i++ > 60) break;
+	}
+};
+
 class WalletConnect {
 	selectedAddress = null;
 	chainId = null;
@@ -51,6 +60,8 @@ class WalletConnect {
 			if (error) {
 				throw error;
 			}
+
+			await waitForKeychainUnlocked();
 
 			try {
 				const sessionData = {
@@ -83,6 +94,8 @@ class WalletConnect {
 		this.walletConnector.on('call_request', async (error, payload) => {
 			if (tempCallIds.includes(payload.id)) return;
 			tempCallIds.push(payload.id);
+
+			await waitForKeychainUnlocked();
 
 			Logger.log('CALL_REQUEST', error, payload);
 			if (error) {
