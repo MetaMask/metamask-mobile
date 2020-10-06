@@ -316,7 +316,6 @@ export const BrowserTab = props => {
 	const isHomepage = useCallback((checkUrl = null) => {
 		const currentPage = checkUrl || url.current;
 		const { host: currentHost } = getUrlObj(currentPage);
-		console.log('ishomepage', currentHost, HOMEPAGE_HOST, currentHost === HOMEPAGE_HOST);
 		return currentHost === HOMEPAGE_HOST;
 	}, []);
 
