@@ -30,6 +30,7 @@ import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from
 import NotificationManager from './NotificationManager';
 import contractMap from 'eth-contract-metadata';
 import Logger from '../util/Logger';
+import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 
 const OPENSEA_API_KEY = process.env.MM_OPENSEA_KEY;
 const MM_INFURA_KEY = process.env.MM_INFURA_KEY;
@@ -175,7 +176,7 @@ class Engine {
 		const { type: networkType } = NetworkController.state.provider;
 		const { networkId } = Networks[networkType];
 		try {
-			const lastIncomingTxBlockInfoStr = await AsyncStorage.getItem('@MetaMask:lastIncomingTxBlockInfo');
+			const lastIncomingTxBlockInfoStr = await AsyncStorage.getItem(LAST_INCOMING_TX_BLOCK_INFO);
 			const allLastIncomingTxBlocks =
 				(lastIncomingTxBlockInfoStr && JSON.parse(lastIncomingTxBlockInfoStr)) || {};
 			let blockNumber = null;
@@ -217,7 +218,7 @@ class Engine {
 					lastCheck: Date.now()
 				};
 			}
-			await AsyncStorage.setItem('@MetaMask:lastIncomingTxBlockInfo', JSON.stringify(allLastIncomingTxBlocks));
+			await AsyncStorage.setItem(LAST_INCOMING_TX_BLOCK_INFO, JSON.stringify(allLastIncomingTxBlocks));
 		} catch (e) {
 			Logger.log('Error while fetching all txs', e);
 		}

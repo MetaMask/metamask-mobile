@@ -10,7 +10,8 @@ import {
 	KeyboardAvoidingView,
 	FlatList,
 	Image,
-	InteractionManager
+	InteractionManager,
+	ScrollView
 } from 'react-native';
 import { connect } from 'react-redux';
 import { setSelectedAsset, prepareTransaction, setTransactionObject } from '../../../../actions/transaction';
@@ -52,6 +53,7 @@ import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 
 const { hexToBN, BNToHex } = util;
 
@@ -63,6 +65,9 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		backgroundColor: colors.white
+	},
+	scrollWrapper: {
+		marginBottom: 60
 	},
 	buttonNextWrapper: {
 		flex: 1,
@@ -133,7 +138,8 @@ const styles = StyleSheet.create({
 		marginRight: 8,
 		paddingVertical: Device.isIos() ? 0 : 8,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		textTransform: 'uppercase'
 	},
 	textInput: {
 		fontFamily: 'Roboto-Light',
@@ -474,6 +480,7 @@ class Amount extends PureComponent {
 			const invalidCollectibleOwnership = await this.validateCollectibleOwnership();
 			if (invalidCollectibleOwnership) {
 				this.setState({ amountError: invalidCollectibleOwnership });
+				dismissKeyboard();
 			}
 		}
 
@@ -539,18 +546,18 @@ class Amount extends PureComponent {
 			from: selectedAddress
 		};
 
-		if (selectedAsset.erc20) {
+		if (selectedAsset.tokenId) {
+			const collectibleTransferTransactionProperties = this.getCollectibleTranferTransactionProperties();
+			transactionObject.data = collectibleTransferTransactionProperties.data;
+			transactionObject.to = collectibleTransferTransactionProperties.to;
+			transactionObject.value = collectibleTransferTransactionProperties.value;
+		} else if (!selectedAsset.isETH) {
 			const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
 			transactionObject.data = generateTransferData('transfer', {
 				toAddress: transactionTo,
 				amount: BNToHex(tokenAmount)
 			});
 			transactionObject.value = '0x0';
-		} else if (selectedAsset.tokenId) {
-			const collectibleTransferTransactionProperties = this.getCollectibleTranferTransactionProperties();
-			transactionObject.data = collectibleTransferTransactionProperties.data;
-			transactionObject.to = collectibleTransferTransactionProperties.to;
-			transactionObject.value = collectibleTransferTransactionProperties.value;
 		}
 
 		if (paymentChannelTransaction || selectedAsset.erc20) {
@@ -629,7 +636,10 @@ class Amount extends PureComponent {
 		} else {
 			amountError = strings('transaction.invalid_amount');
 		}
-		this.setState({ amountError });
+		if (amountError) {
+			this.setState({ amountError });
+			dismissKeyboard();
+		}
 		return !!amountError;
 	};
 
@@ -769,11 +779,10 @@ class Amount extends PureComponent {
 		this.setState({ assetsModalVisible: !assetsModalVisible });
 	};
 
-	handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
+	handleSelectedAssetBalance = ({ address, decimals, symbol, isETH }, renderableBalance) => {
 		const { accounts, selectedAddress, contractBalances } = this.props;
 		let currentBalance;
 
-		const { address, decimals, symbol, isETH } = selectedAsset;
 		if (renderableBalance) {
 			currentBalance = `${renderableBalance} ${symbol}`;
 		} else if (isETH) {
@@ -1019,44 +1028,46 @@ class Amount extends PureComponent {
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'amount-screen'}>
-				<View style={styles.inputWrapper}>
-					<View style={styles.actionsWrapper}>
-						<View style={styles.actionBorder} />
-						<View style={styles.action}>
-							<TouchableOpacity
-								style={styles.actionDropdown}
-								disabled={paymentChannelTransaction || isPaymentRequest}
-								onPress={this.toggleAssetsModal}
-							>
-								<Text style={styles.textDropdown}>
-									{selectedAsset.symbol || strings('wallet.collectible')}
-								</Text>
-								{!paymentChannelTransaction && (
-									<View styles={styles.arrow}>
-										<Ionicons
-											name="ios-arrow-down"
-											size={16}
-											color={colors.white}
-											style={styles.iconDropdown}
-										/>
-									</View>
-								)}
-							</TouchableOpacity>
-						</View>
-						<View style={[styles.actionBorder, styles.actionMax]}>
-							{!selectedAsset.tokenId && (
+				<ScrollView style={styles.scrollWrapper}>
+					<View style={styles.inputWrapper}>
+						<View style={styles.actionsWrapper}>
+							<View style={styles.actionBorder} />
+							<View style={styles.action}>
 								<TouchableOpacity
-									style={styles.actionMaxTouchable}
-									disabled={!paymentChannelTransaction && !estimatedTotalGas}
-									onPress={this.useMax}
+									style={styles.actionDropdown}
+									disabled={paymentChannelTransaction || isPaymentRequest}
+									onPress={this.toggleAssetsModal}
 								>
-									<Text style={styles.maxText}>{strings('transaction.use_max')}</Text>
+									<Text style={styles.textDropdown}>
+										{selectedAsset.symbol || strings('wallet.collectible')}
+									</Text>
+									{!paymentChannelTransaction && (
+										<View styles={styles.arrow}>
+											<Ionicons
+												name="ios-arrow-down"
+												size={16}
+												color={colors.white}
+												style={styles.iconDropdown}
+											/>
+										</View>
+									)}
 								</TouchableOpacity>
-							)}
+							</View>
+							<View style={[styles.actionBorder, styles.actionMax]}>
+								{!selectedAsset.tokenId && (
+									<TouchableOpacity
+										style={styles.actionMaxTouchable}
+										disabled={!paymentChannelTransaction && !estimatedTotalGas}
+										onPress={this.useMax}
+									>
+										<Text style={styles.maxText}>{strings('transaction.use_max')}</Text>
+									</TouchableOpacity>
+								)}
+							</View>
 						</View>
+						{selectedAsset.tokenId ? this.renderCollectibleInput() : this.renderTokenInput()}
 					</View>
-					{selectedAsset.tokenId ? this.renderCollectibleInput() : this.renderTokenInput()}
-				</View>
+				</ScrollView>
 
 				<KeyboardAvoidingView
 					style={styles.nextActionWrapper}

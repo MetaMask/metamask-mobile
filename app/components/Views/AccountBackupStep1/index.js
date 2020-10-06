@@ -16,6 +16,8 @@ import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
+import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
+import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 const warning_skip_backup = require('../../../images/warning.png'); // eslint-disable-line
@@ -202,9 +204,9 @@ const AccountBackupStep1 = props => {
 	const skip = async () => {
 		hideRemindLaterModal();
 		// Get onboarding wizard state
-		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		if (!metricsOptIn) {
 			props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {
@@ -228,10 +230,7 @@ const AccountBackupStep1 = props => {
 				testID={'account-backup-step-1-screen'}
 			>
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-					<OnboardingProgress
-						steps={['Create password', 'Secure wallet', 'Confirm seed phrase']}
-						currentStep={1}
-					/>
+					<OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
 					<View style={styles.content}>
 						<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
 						<Image
@@ -258,6 +257,7 @@ const AccountBackupStep1 = props => {
 									style={styles.remindLaterButton}
 									onPress={showRemindLater}
 									hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+									testID={'remind-me-later-button'}
 								>
 									<Text style={styles.remindLaterText}>
 										{strings('account_backup_step_1.remind_me_later')}
@@ -317,8 +317,9 @@ const AccountBackupStep1 = props => {
 							onValueChange={toggleSkipCheckbox}
 							boxType={'square'}
 							tintColors={{ true: colors.blue }}
+							testID={'skip-backup-check'}
 						/>
-						<Text onPress={toggleSkipCheckbox} style={styles.skipModalText}>
+						<Text onPress={toggleSkipCheckbox} style={styles.skipModalText} testID={'skip-backup-text'}>
 							{strings('account_backup_step_1.skip_check')}
 						</Text>
 					</View>

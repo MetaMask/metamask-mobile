@@ -159,7 +159,14 @@ class UrlAutocomplete extends PureComponent {
 	};
 
 	render() {
-		if (!this.props.input || this.props.input.length < 2) return <View style={styles.wrapper} />;
+		if (!this.props.input || this.props.input.length < 2)
+			return (
+				<View style={styles.wrapper}>
+					<TouchableWithoutFeedback style={styles.bg} onPress={this.props.onDismiss}>
+						<View style={styles.bg} />
+					</TouchableWithoutFeedback>
+				</View>
+			);
 		if (this.state.results.length === 0) {
 			return (
 				<View style={styles.wrapper}>

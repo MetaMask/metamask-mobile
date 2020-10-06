@@ -13,8 +13,8 @@ import { colors } from '../../../styles/common';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
-import SplashScreen from 'react-native-splash-screen';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
+import { EXISTING_USER, ONBOARDING_WIZARD, METRICS_OPT_IN, ENCRYPTION_LIB, ORIGINAL } from '../../../constants/storage';
 
 /**
  * Entry Screen that decides which screen to show
@@ -95,8 +95,7 @@ class Entry extends PureComponent {
 	async componentDidMount() {
 		DeeplinkManager.init(this.props.navigation);
 		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
-		SplashScreen.hide();
-		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
+		const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 		if (existingUser !== null) {
 			await this.unlockKeychain();
 		} else {
@@ -153,7 +152,7 @@ class Entry extends PureComponent {
 					NavigationActions.navigate({ routeName: 'Oboarding' })
 				);
 			} else {
-				this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+				this.props.navigation.navigate('HomeNav');
 			}
 		});
 	};
@@ -167,15 +166,15 @@ class Entry extends PureComponent {
 				// Restore vault with existing credentials
 
 				await KeyringController.submitPassword(credentials.password);
-				const encryptionLib = await AsyncStorage.getItem('@MetaMask:encryptionLib');
-				if (encryptionLib !== 'original') {
+				const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+				if (encryptionLib !== ORIGINAL) {
 					await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
-					await AsyncStorage.setItem('@MetaMask:encryptionLib', 'original');
+					await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 				}
 				// Get onboarding wizard state
-				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 				if (!metricsOptIn) {
 					this.animateAndGoTo('OptinMetrics');
 				} else if (onboardingWizard) {
