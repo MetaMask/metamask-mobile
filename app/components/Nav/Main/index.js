@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import {
 	ActivityIndicator,
@@ -81,10 +81,15 @@ const Main = props => {
 	const [currentPageTitle, setCurrentPageTitle] = useState('');
 	const [currentPageUrl, setCurrentPageUrl] = useState('');
 
-	let backgroundMode = false;
+	const backgroundMode = useRef(false);
 	const locale = useRef(I18n.locale);
 	const lockManager = useRef();
 	const removeConnectionStatusListener = useRef();
+
+	const setTransactionObject = props.setTransactionObject;
+	const toggleApproveModal = props.toggleApproveModal;
+	const toggleDappTransactionModal = props.toggleDappTransactionModal;
+	const setEtherTransaction = props.setEtherTransaction;
 
 	const usePrevious = value => {
 		const ref = useRef();
@@ -96,15 +101,15 @@ const Main = props => {
 
 	const prevLockTime = usePrevious(props.lockTime);
 
-	const pollForIncomingTransactions = async () => {
+	const pollForIncomingTransactions = useCallback(async () => {
 		props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
 		// Stop polling if the app is in the background
-		if (!backgroundMode) {
+		if (!backgroundMode.current) {
 			setTimeout(() => {
 				pollForIncomingTransactions();
 			}, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
 		}
-	};
+	}, [backgroundMode, props.thirdPartyApiMode]);
 
 	const onUnapprovedMessage = (messageParams, type) => {
 		const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
@@ -116,13 +121,16 @@ const Main = props => {
 		setCurrentPageUrl(currentPageUrl);
 	};
 
-	const connectionChangeHandler = state => {
-		// Show the modal once the status changes to offline
-		if (connected && !state.isConnected) {
-			props.navigation.navigate('OfflineModeView');
-		}
-		setConnected(state.isConnected);
-	};
+	const connectionChangeHandler = useCallback(
+		state => {
+			// Show the modal once the status changes to offline
+			if (connected && !state.isConnected) {
+				props.navigation.navigate('OfflineModeView');
+			}
+			setConnected(state.isConnected);
+		},
+		[connected, props.navigation]
+	);
 
 	const initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
@@ -132,90 +140,96 @@ const Main = props => {
 		WalletConnect.init();
 	};
 
-	const onUnapprovedTransaction = async transactionMeta => {
-		if (transactionMeta.origin === TransactionTypes.MMM) return;
-		const {
-			transaction: { value, gas, gasPrice, data }
-		} = transactionMeta;
-		const { AssetsContractController } = Engine.context;
-		transactionMeta.transaction.gas = hexToBN(gas);
-		transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
+	const onUnapprovedTransaction = useCallback(
+		async transactionMeta => {
+			if (transactionMeta.origin === TransactionTypes.MMM) return;
+			const {
+				transaction: { value, gas, gasPrice, data }
+			} = transactionMeta;
+			const { AssetsContractController } = Engine.context;
+			transactionMeta.transaction.gas = hexToBN(gas);
+			transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
 
-		const to = safeToChecksumAddress(transactionMeta.transaction.to);
+			const to = safeToChecksumAddress(transactionMeta.transaction.to);
 
-		if (
-			(value === '0x0' || !value) &&
-			data &&
-			data !== '0x' &&
-			to &&
-			(await getMethodData(data)).name === TOKEN_METHOD_TRANSFER
-		) {
-			let asset = props.tokens.find(({ address }) => address === to);
-			if (!asset && contractMap[to]) {
-				asset = contractMap[to];
-			} else if (!asset) {
-				try {
-					asset = {};
-					asset.decimals = await AssetsContractController.getTokenDecimals(to);
-					asset.symbol = await AssetsContractController.getAssetSymbol(to);
-				} catch (e) {
-					// This could fail when requesting a transfer in other network
-					asset = { symbol: 'ERC20', decimals: new BN(0) };
+			if (
+				(value === '0x0' || !value) &&
+				data &&
+				data !== '0x' &&
+				to &&
+				(await getMethodData(data)).name === TOKEN_METHOD_TRANSFER
+			) {
+				let asset = props.tokens.find(({ address }) => address === to);
+				if (!asset && contractMap[to]) {
+					asset = contractMap[to];
+				} else if (!asset) {
+					try {
+						asset = {};
+						asset.decimals = await AssetsContractController.getTokenDecimals(to);
+						asset.symbol = await AssetsContractController.getAssetSymbol(to);
+					} catch (e) {
+						// This could fail when requesting a transfer in other network
+						asset = { symbol: 'ERC20', decimals: new BN(0) };
+					}
 				}
+
+				const decodedData = decodeTransferData('transfer', data);
+				transactionMeta.transaction.value = hexToBN(decodedData[2]);
+				transactionMeta.transaction.readableValue = renderFromTokenMinimalUnit(
+					hexToBN(decodedData[2]),
+					asset.decimals
+				);
+				transactionMeta.transaction.to = decodedData[0];
+
+				setTransactionObject({
+					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
+					selectedAsset: asset,
+					id: transactionMeta.id,
+					origin: transactionMeta.origin,
+					...transactionMeta.transaction
+				});
+			} else {
+				transactionMeta.transaction.value = hexToBN(value);
+				transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
+
+				setEtherTransaction({
+					id: transactionMeta.id,
+					origin: transactionMeta.origin,
+					...transactionMeta.transaction
+				});
 			}
 
-			const decodedData = decodeTransferData('transfer', data);
-			transactionMeta.transaction.value = hexToBN(decodedData[2]);
-			transactionMeta.transaction.readableValue = renderFromTokenMinimalUnit(
-				hexToBN(decodedData[2]),
-				asset.decimals
-			);
-			transactionMeta.transaction.to = decodedData[0];
+			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
+				toggleApproveModal();
+			} else {
+				toggleDappTransactionModal();
+			}
+		},
+		[props.tokens, setEtherTransaction, setTransactionObject, toggleApproveModal, toggleDappTransactionModal]
+	);
 
-			props.setTransactionObject({
-				type: 'INDIVIDUAL_TOKEN_TRANSACTION',
-				selectedAsset: asset,
-				id: transactionMeta.id,
-				origin: transactionMeta.origin,
-				...transactionMeta.transaction
-			});
-		} else {
-			transactionMeta.transaction.value = hexToBN(value);
-			transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
+	const handleAppStateChange = useCallback(
+		appState => {
+			const newModeIsBackground = appState === 'background';
+			// If it was in background and it's not anymore
+			// we need to stop the Background timer
+			if (backgroundMode.current && !newModeIsBackground) {
+				BackgroundTimer.stop();
+				pollForIncomingTransactions();
+			}
 
-			props.setEtherTransaction({
-				id: transactionMeta.id,
-				origin: transactionMeta.origin,
-				...transactionMeta.transaction
-			});
-		}
+			backgroundMode.current = newModeIsBackground;
 
-		if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
-			props.toggleApproveModal();
-		} else {
-			props.toggleDappTransactionModal();
-		}
-	};
-
-	const handleAppStateChange = appState => {
-		const newModeIsBackground = appState === 'background';
-		// If it was in background and it's not anymore
-		// we need to stop the Background timer
-		if (backgroundMode && !newModeIsBackground) {
-			BackgroundTimer.stop();
-			pollForIncomingTransactions();
-		}
-
-		backgroundMode = newModeIsBackground;
-
-		// If the app is now in background, we need to start
-		// the background timer, which is less intense
-		if (backgroundMode) {
-			BackgroundTimer.runBackgroundTimer(async () => {
-				await Engine.refreshTransactionHistory();
-			}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
-		}
-	};
+			// If the app is now in background, we need to start
+			// the background timer, which is less intense
+			if (backgroundMode.current) {
+				BackgroundTimer.runBackgroundTimer(async () => {
+					await Engine.refreshTransactionHistory();
+				}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
+			}
+		},
+		[backgroundMode, pollForIncomingTransactions]
+	);
 
 	const initForceReload = () => {
 		// Force unmount the webview to avoid caching problems
@@ -409,7 +423,7 @@ const Main = props => {
 			WalletConnect.hub.removeAllListeners();
 			removeConnectionStatusListener.current && removeConnectionStatusListener.current();
 		};
-	});
+	}, [connectionChangeHandler, handleAppStateChange, onUnapprovedTransaction, pollForIncomingTransactions, props]);
 
 	return (
 		<React.Fragment>
