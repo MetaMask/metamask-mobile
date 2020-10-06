@@ -185,7 +185,9 @@ class Login extends PureComponent {
 		this.mounted = false;
 	}
 
-	onLogin = async locked => {
+	onLogin = async () => {
+		const { password } = this.state;
+		const locked = !passwordRequirementsMet(password);
 		if (locked) this.setState({ error: strings('login.invalid_password') });
 		if (this.state.loading || locked) return;
 		try {
@@ -332,85 +334,80 @@ class Login extends PureComponent {
 		return true;
 	};
 
-	render = () => {
-		const { password } = this.state;
-		const locked = !passwordRequirementsMet(password);
-
-		return (
-			<SafeAreaView style={styles.mainWrapper}>
-				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-					<View testID={'login'}>
-						<View style={styles.foxWrapper}>
-							{Device.isAndroid() ? (
-								<Image
-									source={require('../../../images/fox.png')}
-									style={styles.image}
-									resizeMethod={'auto'}
-								/>
-							) : (
-								<AnimatedFox />
-							)}
-						</View>
-						<Text style={styles.title}>{strings('login.title')}</Text>
-						<View style={styles.field}>
-							<Text style={styles.label}>{strings('login.password')}</Text>
-							<OutlinedTextField
-								placeholder={'Password'}
-								testID={'login-password-input'}
-								returnKeyType={'done'}
-								autoCapitalize="none"
-								secureTextEntry
-								ref={this.fieldRef}
-								onChangeText={this.setPassword}
-								value={this.state.password}
-								baseColor={colors.grey500}
-								tintColor={colors.blue}
-								onSubmitEditing={() => this.onLogin(locked)}
-								renderRightAccessory={() => (
-									<BiometryButton
-										onPress={this.tryBiometric}
-										hidden={
-											!(
-												this.state.biometryChoice &&
-												this.state.biometryType &&
-												this.state.hasCredentials
-											)
-										}
-										type={this.state.biometryType}
-									/>
-								)}
+	render = () => (
+		<SafeAreaView style={styles.mainWrapper}>
+			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
+				<View testID={'login'}>
+					<View style={styles.foxWrapper}>
+						{Device.isAndroid() ? (
+							<Image
+								source={require('../../../images/fox.png')}
+								style={styles.image}
+								resizeMethod={'auto'}
 							/>
-						</View>
-
-						{this.renderSwitch()}
-
-						{!!this.state.error && (
-							<Text style={styles.errorMsg} testID={'invalid-password-error'}>
-								{this.state.error}
-							</Text>
+						) : (
+							<AnimatedFox />
 						)}
-
-						<View style={styles.ctaWrapper} testID={'log-in-button'}>
-							<StyledButton type={'confirm'} onPress={() => this.onLogin(locked)}>
-								{this.state.loading ? (
-									<ActivityIndicator size="small" color="white" />
-								) : (
-									strings('login.login_button')
-								)}
-							</StyledButton>
-						</View>
-
-						<View style={styles.footer}>
-							<Button style={styles.goBack} onPress={this.onPressGoBack}>
-								{strings('login.go_back')}
-							</Button>
-						</View>
 					</View>
-				</KeyboardAwareScrollView>
-				<FadeOutOverlay />
-			</SafeAreaView>
-		);
-	};
+					<Text style={styles.title}>{strings('login.title')}</Text>
+					<View style={styles.field}>
+						<Text style={styles.label}>{strings('login.password')}</Text>
+						<OutlinedTextField
+							placeholder={'Password'}
+							testID={'login-password-input'}
+							returnKeyType={'done'}
+							autoCapitalize="none"
+							secureTextEntry
+							ref={this.fieldRef}
+							onChangeText={this.setPassword}
+							value={this.state.password}
+							baseColor={colors.grey500}
+							tintColor={colors.blue}
+							onSubmitEditing={this.onLogin}
+							renderRightAccessory={() => (
+								<BiometryButton
+									onPress={this.tryBiometric}
+									hidden={
+										!(
+											this.state.biometryChoice &&
+											this.state.biometryType &&
+											this.state.hasCredentials
+										)
+									}
+									type={this.state.biometryType}
+								/>
+							)}
+						/>
+					</View>
+
+					{this.renderSwitch()}
+
+					{!!this.state.error && (
+						<Text style={styles.errorMsg} testID={'invalid-password-error'}>
+							{this.state.error}
+						</Text>
+					)}
+
+					<View style={styles.ctaWrapper} testID={'log-in-button'}>
+						<StyledButton type={'confirm'} onPress={this.onLogin}>
+							{this.state.loading ? (
+								<ActivityIndicator size="small" color="white" />
+							) : (
+								strings('login.login_button')
+							)}
+						</StyledButton>
+					</View>
+
+					<View style={styles.footer}>
+						<Button style={styles.goBack} onPress={this.onPressGoBack}>
+							{strings('login.go_back')}
+						</Button>
+					</View>
+				</View>
+			</KeyboardAwareScrollView>
+			<FadeOutOverlay />
+		</SafeAreaView>
+	);
 }
 
 const mapStateToProps = state => ({
