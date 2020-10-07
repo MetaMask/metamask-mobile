@@ -109,7 +109,7 @@ class Wallet extends PureComponent {
 			const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
 			if (pendingDeeplink) {
 				DeeplinkManager.expireDeeplink();
-				DeeplinkManager.parse(pendingDeeplink);
+				DeeplinkManager.parse(pendingDeeplink, { origin: 'deeplink' });
 			}
 			this.mounted = true;
 		});

@@ -439,7 +439,7 @@ class Approve extends PureComponent {
 	renderTransactionReview = () => {
 		const { host, method, viewData, tokenSymbol } = this.state;
 		const {
-			transaction: { to, data }
+			transaction: { to, data, origin }
 		} = this.props;
 		const amount = decodeTransferData('transfer', data)[1];
 
@@ -449,7 +449,7 @@ class Approve extends PureComponent {
 				toggleViewData={this.toggleViewData}
 				copyContractAddress={this.copyContractAddress}
 				address={renderShortAddress(to)}
-				host={host}
+				host={origin || host}
 				allowance={amount}
 				tokenSymbol={tokenSymbol}
 				data={data}
@@ -701,6 +701,10 @@ class Approve extends PureComponent {
 			gasError
 		} = this.state;
 
+		const {
+			transaction: { origin }
+		} = this.props;
+
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
 		const currencySymbol = currencySymbols[currentCurrency];
 		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
@@ -732,7 +736,9 @@ class Approve extends PureComponent {
 					) : (
 						<>
 							<View style={styles.section} testID={'approve-screen'}>
-								<TransactionHeader currentPageInformation={{ title: host, url: activeTabUrl }} />
+								<TransactionHeader
+									currentPageInformation={{ title: origin || host, url: origin || activeTabUrl }}
+								/>
 								<Text style={styles.title} testID={'allow-access'}>
 									{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
 								</Text>

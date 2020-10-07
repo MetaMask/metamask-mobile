@@ -112,7 +112,9 @@ class Entry extends PureComponent {
 		if (deeplink) {
 			const { KeyringController } = Engine.context;
 			const isUnlocked = KeyringController.isUnlocked();
-			isUnlocked ? DeeplinkManager.parse(deeplink) : DeeplinkManager.setDeeplink(deeplink);
+			isUnlocked
+				? DeeplinkManager.parse(deeplink, { origin: 'deeplink' })
+				: DeeplinkManager.setDeeplink(deeplink);
 		}
 	};
 

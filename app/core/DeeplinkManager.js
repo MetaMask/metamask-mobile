@@ -15,7 +15,7 @@ class DeeplinkManager {
 		this.navigation = _navigation;
 	}
 
-	handleEthereumUrl(url) {
+	handleEthereumUrl(url, origin) {
 		let ethUrl = '';
 		try {
 			ethUrl = parse(url);
@@ -42,7 +42,7 @@ class DeeplinkManager {
 			txParams.from = `${address}`;
 			txParams.value = '0x0';
 			txParams.data = generateApproveData({ spender: address, value: parseInt(uint256).toString(16) });
-			TransactionController.addTransaction(txParams);
+			TransactionController.addTransaction(txParams, origin);
 		}
 	}
 
@@ -59,7 +59,7 @@ class DeeplinkManager {
 		});
 	}
 
-	parse(url, browserCallBack = null) {
+	parse(url, { browserCallBack, origin }) {
 		const urlObj = new URL(url);
 		let params;
 
@@ -93,12 +93,14 @@ class DeeplinkManager {
 							break;
 						case 'send':
 							this.handleEthereumUrl(
-								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/send/`, 'ethereum:')
+								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/send/`, 'ethereum:'),
+								origin
 							);
 							break;
 						case 'approve':
 							this.handleEthereumUrl(
-								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/approve/`, 'ethereum:')
+								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/approve/`, 'ethereum:'),
+								origin
 							);
 							break;
 						case 'payment':
@@ -127,7 +129,7 @@ class DeeplinkManager {
 				WalletConnect.newSession(url, redirect, autosign);
 				break;
 			case 'ethereum':
-				this.handleEthereumUrl(url);
+				this.handleEthereumUrl(url, origin);
 				break;
 
 			// Specific to the browser screen
@@ -153,7 +155,7 @@ const SharedDeeplinkManager = {
 	init: navigation => {
 		instance = new DeeplinkManager(navigation);
 	},
-	parse: (url, browserCallback) => instance.parse(url, browserCallback),
+	parse: (url, args) => instance.parse(url, args),
 	setDeeplink: url => {
 		pendingDeeplink = url;
 	},
