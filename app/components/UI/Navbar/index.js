@@ -723,7 +723,7 @@ export function getWalletNavbarOptions(title, navigation) {
 			Alert.alert(strings('wallet.error'), strings('wallet.logout_to_import_seed'));
 		} else {
 			setTimeout(() => {
-				DeeplinkManager.parse(content, { origin: 'QR Code' });
+				DeeplinkManager.parse(content, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
 			}, 500);
 		}
 	};

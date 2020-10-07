@@ -18,6 +18,7 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import { showTransactionNotification, hideTransactionNotification } from '../../../actions/notification';
 import DeeplinkManager from '../../../core/DeeplinkManager';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -109,7 +110,7 @@ class Wallet extends PureComponent {
 			const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
 			if (pendingDeeplink) {
 				DeeplinkManager.expireDeeplink();
-				DeeplinkManager.parse(pendingDeeplink, { origin: 'deeplink' });
+				DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
 			}
 			this.mounted = true;
 		});

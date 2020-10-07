@@ -15,6 +15,7 @@ import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import { EXISTING_USER, ONBOARDING_WIZARD, METRICS_OPT_IN, ENCRYPTION_LIB, ORIGINAL } from '../../../constants/storage';
+import AppConstants from '../../../core/AppConstants';
 
 /**
  * Entry Screen that decides which screen to show
@@ -113,7 +114,7 @@ class Entry extends PureComponent {
 			const { KeyringController } = Engine.context;
 			const isUnlocked = KeyringController.isUnlocked();
 			isUnlocked
-				? DeeplinkManager.parse(deeplink, { origin: 'deeplink' })
+				? DeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
 				: DeeplinkManager.setDeeplink(deeplink);
 		}
 	};
