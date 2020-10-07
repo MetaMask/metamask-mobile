@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Entry should render correctly 1`] = `
-<Entry
+<withNavigation(Entry)
   passwordSet={false}
   setOnboardingWizardStep={[Function]}
 />
