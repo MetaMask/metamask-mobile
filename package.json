@@ -110,6 +110,7 @@
     "events": "3.0.0",
     "fuse.js": "3.4.4",
     "https-browserify": "0.0.1",
+    "is-url": "^1.2.4",
     "json-rpc-engine": "5.1.5",
     "json-rpc-middleware-stream": "2.1.1",
     "lottie-react-native": "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",

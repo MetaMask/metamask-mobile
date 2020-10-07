@@ -64,11 +64,15 @@ export default class WebviewError extends PureComponent {
 		/**
 		 * error info
 		 */
-		error: PropTypes.object,
+		error: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
 		/**
 		 * Function that reloads the page
 		 */
 		onReload: PropTypes.func
+	};
+
+	static defaultProps = {
+		error: false
 	};
 
 	onReload = () => {
@@ -77,10 +81,7 @@ export default class WebviewError extends PureComponent {
 
 	render() {
 		const { error } = this.props;
-		if (!error) {
-			return null;
-		}
-		return (
+		return error ? (
 			<View style={styles.wrapper}>
 				<View style={styles.foxWrapper}>
 					{Device.isAndroid() ? (
@@ -104,6 +105,6 @@ export default class WebviewError extends PureComponent {
 					</StyledButton>
 				</View>
 			</View>
-		);
+		) : null;
 	}
 }
