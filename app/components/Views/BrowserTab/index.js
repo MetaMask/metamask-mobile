@@ -786,8 +786,7 @@ export const BrowserTab = props => {
 			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
 		`;
 
-		const entryScriptWeb3 = await EntryScriptWeb3.get();
-		setEntryScriptWeb3(homepageScripts + entryScriptWeb3 + SPA_urlChangeListener);
+		current.injectJavaScript(homepageScripts);
 	};
 
 	/**
