@@ -45,6 +45,10 @@ import {
 import { ethers } from 'ethers';
 import Logger from '../../../util/Logger';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
+// import EthQuery from 'ethjs-query';
+// TODO: i need to sort out how to use the above dep (that's already included in the project)
+// but it returns different data! (classic!)
+import EthQuery from 'eth-query';
 
 const { isValidMnemonic } = ethers.utils;
 
@@ -236,6 +240,36 @@ class ImportFromSeed extends PureComponent {
 			this.setState({ inputWidth: { width: '100%' } });
 		}, 100);
 	}
+	/**
+	 * Get an account balance from the AccountTracker or request it directly from the network.
+	 * @param {string} address - The account address
+	 * @param {EthQuery} ethQuery - The EthQuery instance to use when asking the network
+	 */
+	getAccounts = async () => {
+		const { KeyringController } = Engine.context;
+		return await KeyringController.getAccounts();
+	};
+
+	getBalance = async (address, ethQuery) => {
+		const accounts = await this.getAccounts();
+		return new Promise((resolve, reject) => {
+			// const cached = this.accountTracker.store.getState().accounts[address];
+			const cached = accounts[address];
+
+			if (cached && cached.balance) {
+				resolve(cached.balance);
+			} else {
+				ethQuery.getBalance(address, (error, balance) => {
+					if (error) {
+						reject(error);
+						Logger.error(error);
+					} else {
+						resolve(balance || '0x0');
+					}
+				});
+			}
+		});
+	};
 
 	onPressImport = async () => {
 		const { loading, seed, password, confirmPassword } = this.state;
@@ -260,10 +294,45 @@ class ImportFromSeed extends PureComponent {
 			try {
 				this.setState({ loading: true });
 
-				const { KeyringController } = Engine.context;
+				const { password, seed: seedPhrase } = this.state;
+				const {
+					KeyringController,
+					NetworkController
+					// PreferencesController,
+					// AccountTrackerController
+				} = Engine.context;
+				const { provider } = NetworkController;
 				await Engine.resetState();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
+				await KeyringController.createNewVaultAndRestore(password, seedPhrase);
+
+				// add derived accounts on seedPhrase import
+				const ethQuery = new EthQuery(provider);
+				let accounts = await KeyringController.getAccounts();
+				// throw new Error('lolwat');
+				let lastBalance = await this.getBalance(accounts[accounts.length - 1], ethQuery);
+
+				// const primaryKeyring = KeyringController.getKeyringsByType('HD Key Tree')[0];
+				const { keyrings } = KeyringController.state;
+				const primaryKeyring = keyrings[0];
+				if (!primaryKeyring) {
+					throw new Error('MetamaskController - No HD Key Tree found');
+				}
+
+				// should we also have a max?
+				let i = 0;
+				const MAX = 10;
+				// seek out the first zero balance
+				while (lastBalance !== '0x0') {
+					if (i === MAX) break;
+					await KeyringController.addNewAccount(primaryKeyring);
+					accounts = await KeyringController.getAccounts();
+					lastBalance = await this.getBalance(accounts[accounts.length - 1], ethQuery);
+					i++;
+				}
+
+				// set new identities
+				// PreferencesController.setAddresses(accounts);
 
 				if (this.state.biometryType && this.state.biometryChoice) {
 					const authOptions = {
