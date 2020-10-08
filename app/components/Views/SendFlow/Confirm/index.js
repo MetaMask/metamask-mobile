@@ -521,12 +521,10 @@ class Confirm extends PureComponent {
 		const { prepareTransaction, transactionState } = this.props;
 		let transaction = transactionState.transaction;
 		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
-
 		prepareTransaction(transaction);
 		setTimeout(() => {
 			this.parseTransactionData();
 			this.setState({
-				gasEstimationReady: true,
 				currentCustomGasSelected: customGasSelected,
 				errorMessage: undefined
 			});
@@ -807,17 +805,6 @@ class Confirm extends PureComponent {
 			Logger.error(error, 'error while trying to send transaction (Confirm)');
 		}
 		this.setState({ transactionConfirmed: false });
-	};
-
-	renderIfGastEstimationReady = children => {
-		const { gasEstimationReady } = this.state;
-		return !gasEstimationReady ? (
-			<View style={styles.loader}>
-				<ActivityIndicator size="small" />
-			</View>
-		) : (
-			children
-		);
 	};
 
 	getBalanceError = balance => {
