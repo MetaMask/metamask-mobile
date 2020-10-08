@@ -55,7 +55,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 	@Override
 	public void onCreate() {
 		super.onCreate();
-    if (0 != (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE))
+    if (BuildConfig.DEBUG)
     { WebView.setWebContentsDebuggingEnabled(true); }
 		SoLoader.init(this, /* native exopackage */ false);
 
