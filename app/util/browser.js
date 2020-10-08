@@ -1,4 +1,5 @@
 import URL from 'url-parse';
+import isUrl from 'is-url';
 
 /**
  * Returns a sanitized url, which could be a search engine url if
@@ -11,8 +12,8 @@ import URL from 'url-parse';
  */
 export default function onUrlSubmit(input, searchEngine = 'Google', defaultProtocol = 'https://') {
 	//Check if it's a url or a keyword
-	const res = input.match(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',;=.+]+$/g);
-	if (res === null) {
+	const regEx = new RegExp(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',;=.+]+$/g);
+	if (!isUrl(input) && !regEx.test(input)) {
 		// Add exception for localhost
 		if (!input.startsWith('http://localhost') && !input.startsWith('localhost')) {
 			// In case of keywords we default to google search
@@ -23,7 +24,7 @@ export default function onUrlSubmit(input, searchEngine = 'Google', defaultProto
 			return searchUrl;
 		}
 	}
-	const hasProtocol = input.match(/^[a-z]*:\/\//);
+	const hasProtocol = /^[a-z]*:\/\//.test(input);
 	const sanitizedURL = hasProtocol ? input : `${defaultProtocol}${input}`;
 	return sanitizedURL;
 }

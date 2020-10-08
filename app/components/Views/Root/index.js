@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import propTypes from 'prop-types';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 
@@ -14,9 +15,17 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
  * App component is wrapped by the provider from react-redux
  */
 export default class Root extends PureComponent {
+	static propTypes = {
+		foxCode: propTypes.string
+	};
+
+	static defaultProps = {
+		foxCode: 'null'
+	};
+
 	constructor(props) {
 		super(props);
-		SecureKeychain.init(props.foxCode); // eslint-disable-line
+		SecureKeychain.init(props.foxCode);
 		// Init EntryScriptWeb3 asynchronously on the background
 		EntryScriptWeb3.init();
 		SplashScreen.hide();
