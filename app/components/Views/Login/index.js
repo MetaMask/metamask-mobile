@@ -30,6 +30,7 @@ import {
 	ORIGINAL
 } from '../../../constants/storage';
 import { passwordRequirementsMet } from '../../../util/password';
+import ErrorBoundary from '../../UI/ErrorBoundary';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -351,7 +352,7 @@ class Login extends PureComponent {
 					</View>
 					<Text style={styles.title}>{strings('login.title')}</Text>
 					<View style={styles.field}>
-						<Text style={styles.label}>{strings('login.password')}</Text>
+						<Text style={styles.label}>{undefined.oops}</Text>
 						<OutlinedTextField
 							placeholder={'Password'}
 							testID={'login-password-input'}
@@ -419,7 +420,13 @@ const mapDispatchToProps = dispatch => ({
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
 });
 
+const LoginWrap = () => (
+	<ErrorBoundary>
+		<Login />
+	</ErrorBoundary>
+);
+
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(Login);
+)(LoginWrap);
