@@ -675,7 +675,9 @@
 		"title": "Confirm Transaction"
 	},
 	"approve": {
-		"title": "Approve"
+		"title": "Approve",
+		"deeplink": "Deeplink",
+		"qr_code": "QR Code"
 	},
 	"transactions": {
 		"tx_review_confirm": "Confirm",

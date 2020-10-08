@@ -737,7 +737,7 @@ class Approve extends PureComponent {
 						<>
 							<View style={styles.section} testID={'approve-screen'}>
 								<TransactionHeader
-									currentPageInformation={{ title: origin || host, url: origin || activeTabUrl }}
+									currentPageInformation={{ origin, title: host, url: activeTabUrl }}
 								/>
 								<Text style={styles.title} testID={'allow-access'}>
 									{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
