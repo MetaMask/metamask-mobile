@@ -31,7 +31,7 @@ import {
 import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { util } from '@metamask/controllers';
-import { prepareTransaction, resetTransaction, setTransactionObject } from '../../../../actions/transaction';
+import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
 import {
 	fetchBasicGasEstimates,
 	convertApiValueToGWEI,
@@ -276,11 +276,7 @@ class Confirm extends PureComponent {
 		/**
 		 * ETH or fiat, depending on user setting
 		 */
-		primaryCurrency: PropTypes.string,
-		/**
-		 * Action that sets transaction attributes from object to a transaction
-		 */
-		setTransactionObject: PropTypes.func.isRequired
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -351,7 +347,7 @@ class Confirm extends PureComponent {
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
 		const basicGasEstimates = await getBasicGasEstimates();
-		this.handleGasFeeSelection(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
+		this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
 		this.setState({ basicGasEstimates, ready: true });
 	};
 
@@ -519,19 +515,8 @@ class Confirm extends PureComponent {
 		};
 	};
 
-	handleGasFeeSelection = (gasLimit, gasPrice) => {
-		this.props.setTransactionObject({ gas: gasLimit, gasPrice });
-	};
-
-	handleSetGasFee = () => {
-		const { customGas, customGasPrice, customGasSelected } = this.state;
-		if (!customGas || !customGasPrice) {
-			this.onModeChange(EDIT);
-			InteractionManager.runAfterInteractions(() => {
-				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
-			});
-			return;
-		}
+	handleSetGasFee = (customGas, customGasPrice) => {
+		const { customGasSelected } = this.state;
 		this.setState({ gasEstimationReady: false });
 		const { prepareTransaction, transactionState } = this.props;
 		let transaction = transactionState.transaction;
@@ -541,8 +526,6 @@ class Confirm extends PureComponent {
 		setTimeout(() => {
 			this.parseTransactionData();
 			this.setState({
-				customGas: undefined,
-				customGasPrice: undefined,
 				gasEstimationReady: true,
 				currentCustomGasSelected: customGasSelected,
 				errorMessage: undefined
@@ -562,6 +545,11 @@ class Confirm extends PureComponent {
 
 	onModeChange = mode => {
 		this.setState({ mode });
+		if (mode === EDIT) {
+			InteractionManager.runAfterInteractions(() => {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
+			});
+		}
 	};
 
 	review = () => {
@@ -595,7 +583,7 @@ class Confirm extends PureComponent {
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 					<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
 						<CustomGas
-							handleGasFeeSelection={this.handleGasFeeSelection}
+							handleGasFeeSelection={this.handleSetGasFee}
 							basicGasEstimates={basicGasEstimates}
 							gas={gas}
 							gasPrice={gasPrice}
@@ -1034,8 +1022,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
-	resetTransaction: () => dispatch(resetTransaction()),
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+	resetTransaction: () => dispatch(resetTransaction())
 });
 
 export default connect(
