@@ -603,7 +603,7 @@
 		"cancel": "Cancel",
 		"approve": "Approve",
 		"allow_to_access": "Give this site permission to access your {{tokenSymbol}}?",
-		"allow_to_address_access": "Give {{spenderAddress}} permission to access your {{tokenSymbol}}?",
+		"allow_to_address_access": "Give this address access your {{tokenSymbol}}?",
 		"you_trust_this_site": "Do you trust this site? By granting this permission, you're allowing this site to access your funds.",
 		"you_trust_this_address": "Do you trust this address? By granting this permission, you're allowing this address to access your funds.",
 		"edit_permission": "Edit permission",

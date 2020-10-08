@@ -748,14 +748,14 @@ class Approve extends PureComponent {
 						<>
 							<View style={styles.section} testID={'approve-screen'}>
 								<TransactionHeader
-									currentPageInformation={{ origin, title: host, url: activeTabUrl }}
+									currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
 								/>
 								<Text style={styles.title} testID={'allow-access'}>
 									{strings(
 										`spend_limit_edition.${
 											originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'
 										}`,
-										{ spenderAddress: renderShortAddress(spenderAddress || ''), tokenSymbol }
+										{ tokenSymbol }
 									)}
 								</Text>
 								<Text style={styles.explanation}>

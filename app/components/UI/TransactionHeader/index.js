@@ -8,7 +8,7 @@ import { getHost, getUrlObj } from '../../../util/browser';
 import networkList from '../../../util/networks';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
-import { strings } from '../../../../locales/i18n';
+import { renderShortAddress } from '../../../util/address';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
@@ -59,6 +59,17 @@ const styles = StyleSheet.create({
 		padding: 5,
 		color: colors.black,
 		textTransform: 'capitalize'
+	},
+	deeplinkIconContainer: {
+		borderWidth: 1,
+		borderColor: colors.grey600,
+		width: 56,
+		height: 56,
+		borderRadius: 38
+	},
+	deeplinkIcon: {
+		alignSelf: 'center',
+		lineHeight: 56
 	}
 });
 
@@ -89,11 +100,9 @@ const TransactionHeader = props => {
 	 * @return {element} - JSX image element
 	 */
 	const renderSecureIcon = () => {
+		if (originIsDeeplink) return null;
 		const { url } = props.currentPageInformation;
-		let name;
-		if (originIsDeeplink) name = 'warning';
-		else name = getUrlObj(url).protocol === 'https:' ? 'lock' : 'warning';
-
+		const name = getUrlObj(url).protocol === 'https:' ? 'lock' : 'warning';
 		return <FontAwesome name={name} size={15} style={styles.secureIcon} />;
 	};
 
@@ -101,13 +110,14 @@ const TransactionHeader = props => {
 		const { url, currentEnsName, icon, origin } = props.currentPageInformation;
 		if (originIsDeeplink) {
 			return (
-				<FontAwesome
-					style={styles.domainLogo}
-					viewStyle={styles.assetLogo}
-					name={origin === ORIGIN_DEEPLINK ? 'link' : 'qrcode'}
-					size={56}
-					color={colors.grey600}
-				/>
+				<View style={styles.deeplinkIconContainer}>
+					<FontAwesome
+						style={styles.deeplinkIcon}
+						name={origin === ORIGIN_DEEPLINK ? 'link' : 'qrcode'}
+						size={32}
+						color={colors.grey600}
+					/>
+				</View>
 			);
 		}
 		return (
@@ -122,10 +132,9 @@ const TransactionHeader = props => {
 	};
 
 	const renderTitle = () => {
-		const { url, currentEnsName, origin } = props.currentPageInformation;
+		const { url, currentEnsName, spenderAddress } = props.currentPageInformation;
 		let title = '';
-		if (originIsDeeplink)
-			title = origin === ORIGIN_DEEPLINK ? strings('approve.deeplink') : strings('approve.qr_code');
+		if (originIsDeeplink) title = renderShortAddress(spenderAddress);
 		else title = getHost(currentEnsName || url);
 
 		return <Text style={styles.domainUrl}>{title}</Text>;
