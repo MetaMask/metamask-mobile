@@ -224,17 +224,10 @@ export const useTransakFlowURL = address => {
 		() =>
 			qs.stringify({
 				apiKey: TRANSAK_API_KEY,
-				// cryptoCurrencyCode: 'ETH',
+				cryptoCurrencyCode: 'ETH',
+				networks: 'ethereum',
 				themeColor: '037dd6',
-				// fiatCurrency: 'USD',
-				walletAddressesData: JSON.stringify({
-					networks: {
-						erc20: { address }
-					},
-					coins: {
-						DAI: { address }
-					}
-				}),
+				walletAddress: address,
 				redirectURL: TRANSAK_REDIRECT_URL
 			}),
 		[address]
