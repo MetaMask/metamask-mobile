@@ -268,6 +268,8 @@ PODS:
     - React
   - react-native-camera/RN (3.36.0):
     - React
+  - react-native-cookies (4.0.1):
+    - React
   - react-native-netinfo (4.1.5):
     - React
   - react-native-randombytes (3.5.3):
@@ -432,6 +434,7 @@ DEPENDENCIES:
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
+  - "react-native-cookies (from `../node_modules/@react-native-community/cookies`)"
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
@@ -531,6 +534,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-branch"
   react-native-camera:
     :path: "../node_modules/react-native-camera"
+  react-native-cookies:
+    :path: "../node_modules/@react-native-community/cookies"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-randombytes:
@@ -639,6 +644,7 @@ SPEC CHECKSUMS:
   react-native-blur: cad4d93b364f91e7b7931b3fa935455487e5c33c
   react-native-branch: ed90b087f2ff6a2f81643ead0b321531877f2e69
   react-native-camera: 8016138a8348b889e22c95b23f668a234f124335
+  react-native-cookies: ff2e6865dff2e5feeca8f1ed082ae7898e4fa912
   react-native-netinfo: 0e563248a4b9a99c33ec29bd03c2d50767db22a6
   react-native-randombytes: 3638d24759d67c68f6ccba60c52a7a8a8faa6a23
   react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
