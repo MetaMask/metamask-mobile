@@ -7,7 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import { getRenderableEthGasFee, getRenderableFiatGasFee, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { BN } from 'ethereumjs-util';
-import { fromWei, renderWei, hexToBN, isDecimal, isBN } from '../../../util/number';
+import { fromWei, renderWei, hexToBN, isDecimal, isBN, toBN } from '../../../util/number';
 import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import { safeToChecksumAddress } from '../../../util/address';
 import Radio from '../Radio';
@@ -344,7 +344,8 @@ class CustomGas extends PureComponent {
 		} = this.props;
 		const checksummedFrom = safeToChecksumAddress(from) || '';
 		const fromAccount = this.props.accounts[checksummedFrom];
-		if (hexToBN(fromAccount.balance).lt(gas.mul(gasPrice).add(value))) return strings('transaction.insufficient');
+		if (hexToBN(fromAccount.balance).lt(gas.mul(gasPrice).add(toBN(value))))
+			return strings('transaction.insufficient');
 		return '';
 	};
 
@@ -400,7 +401,6 @@ class CustomGas extends PureComponent {
 	};
 
 	toggleAdvancedOptions = () => {
-		const { customGasPrice } = this.state;
 		const {
 			gas,
 			advancedCustomGas,
@@ -416,7 +416,6 @@ class CustomGas extends PureComponent {
 				xTranslationEndValue: 1
 			});
 			this.setState({ customGasLimit: fromWei(gas, 'wei') });
-			this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(customGasPrice));
 		} else {
 			animate({
 				modalEndValue: 0,
