@@ -45,6 +45,7 @@ import {
 import { ethers } from 'ethers';
 import Logger from '../../../util/Logger';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
+import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 
 const { isValidMnemonic } = ethers.utils;
 
@@ -264,6 +265,7 @@ class ImportFromSeed extends PureComponent {
 				await Engine.resetState();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
+				await importAdditionalAccounts();
 
 				if (this.state.biometryType && this.state.biometryChoice) {
 					const authOptions = {
