@@ -315,8 +315,8 @@ export const BrowserTab = props => {
 	 */
 	const isHomepage = useCallback((checkUrl = null) => {
 		const currentPage = checkUrl || url.current;
-		const { host: currentHost, pathname: currentPathname } = getUrlObj(currentPage);
-		return currentHost === HOMEPAGE_HOST && currentPathname === '/';
+		const { host: currentHost } = getUrlObj(currentPage);
+		return currentHost === HOMEPAGE_HOST;
 	}, []);
 
 	/**
@@ -779,12 +779,12 @@ export const BrowserTab = props => {
 		const disctinctId = await Analytics.getDistinctId();
 
 		const homepageScripts = `
-      window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
-      window.__mmSearchEngine = "${props.searchEngine}";
-      window.__mmMetametrics = ${analyticsEnabled};
-	  window.__mmDistinctId = "${disctinctId}";
-      window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
-	  `;
+			window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
+			window.__mmSearchEngine = "${props.searchEngine}";
+			window.__mmMetametrics = ${analyticsEnabled};
+			window.__mmDistinctId = "${disctinctId}";
+			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+		`;
 
 		current.injectJavaScript(homepageScripts);
 	};
@@ -1124,10 +1124,6 @@ export const BrowserTab = props => {
 				url: getMaskedUrl(siteInfo.url)
 			});
 		}
-
-		if (isHomepage(siteInfo.url)) {
-			injectHomePageScripts();
-		}
 	};
 
 	/**
@@ -1229,7 +1225,9 @@ export const BrowserTab = props => {
 		setError(false);
 		changeUrl(nativeEvent, 'start');
 		icon.current = null;
-
+		if (isHomepage()) {
+			injectHomePageScripts();
+		}
 		// Reset the previous bridges
 		backgroundBridges.current.length && backgroundBridges.current.forEach(bridge => bridge.onDisconnect());
 		backgroundBridges.current = [];
