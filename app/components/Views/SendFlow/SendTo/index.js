@@ -147,6 +147,10 @@ class SendFlow extends PureComponent {
 		 */
 		navigation: PropTypes.object,
 		/**
+		 * Start transaction with asset
+		 */
+		newAssetTransaction: PropTypes.func.isRequired,
+		/**
 		 * Selected address as string
 		 */
 		selectedAddress: PropTypes.string,
@@ -235,8 +239,12 @@ class SendFlow extends PureComponent {
 		if (!Object.keys(networkAddressBook).length) {
 			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
 		}
-		//Fills in to address if coming from QR code scan
-		this.onToSelectedAddressChange(navigation.getParam('txMeta', null)?.target_address);
+		//Fills in to address and sets the transaction if coming from QR code scan
+		const targetAddress = navigation.getParam('txMeta', null)?.target_address;
+		if (targetAddress) {
+			this.props.newAssetTransaction(getEther());
+			this.onToSelectedAddressChange(targetAddress);
+		}
 	};
 
 	toggleFromAccountModal = () => {
