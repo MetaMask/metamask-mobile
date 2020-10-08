@@ -46,7 +46,9 @@ class AnimatedTransactionModal extends PureComponent {
 	};
 
 	state = {
-		modalValue: new Animated.Value(1),
+		originComponent: React.Children.toArray(this.props.children).length > 1 ? 'dapp' : 'wallet',
+		modalValue:
+			React.Children.toArray(this.props.children).length > 1 ? new Animated.Value(1) : new Animated.Value(0),
 		reviewToEditValue: new Animated.Value(0),
 		reviewToDataValue: new Animated.Value(0),
 		editToAdvancedValue: new Animated.Value(0),
@@ -161,15 +163,15 @@ class AnimatedTransactionModal extends PureComponent {
 	};
 
 	getAnimatedModalValueForAdvancedCG = () => {
-		const { rootHeight, customGasHeight } = this.state;
+		const { rootHeight, customGasHeight, originComponent } = this.state;
+		if (originComponent === 'wallet') return 1;
 		//70 is the fixed height + margin of the error message in advanced custom gas. It expands 70 units vertically to accomodate it
 		return 70 / (rootHeight - customGasHeight);
 	};
 
 	saveRootHeight = event => this.setState({ rootHeight: event.nativeEvent.layout.height });
 
-	saveCustomGasHeight = event =>
-		!this.state.customGasHeight && this.setState({ customGasHeight: event.nativeEvent.layout.height });
+	saveCustomGasHeight = event => this.setState({ customGasHeight: event.nativeEvent.layout.height });
 
 	saveTransactionReviewDataHeight = event =>
 		!this.state.transactionReviewDataHeight &&
@@ -180,36 +182,61 @@ class AnimatedTransactionModal extends PureComponent {
 		return rootHeight - customGasHeight;
 	};
 
-	render = () => {
+	renderDappTransactionInterface = () => {
 		const { width, hideData, customGasHeight, advancedCustomGas, hideGasSelectors, toAdvancedFrom } = this.state;
 		const { ready, children } = this.props;
-
 		const components = React.Children.toArray(children);
-		const customGasComponent = components.length === 1 ? components[0] : components[1];
-
 		return (
 			<Animated.View
 				style={[styles.root, this.generateTransform('modal', [this.getTransformValue(), 0])]}
 				onLayout={this.saveRootHeight}
 			>
-				{components.length > 1 && (
-					<Animated.View
-						style={[this.generateTransform('reviewToEdit', [0, -width]), styles.transactionReview]}
-					>
-						{React.cloneElement(components[0], {
-							...components[0].props,
-							customGasHeight,
-							hideData,
-							generateTransform: this.generateTransform,
-							animate: this.animate,
-							saveTransactionReviewDataHeight: this.saveTransactionReviewDataHeight,
-							onModeChange: this.onModeChange
-						})}
-					</Animated.View>
-				)}
+				<Animated.View style={[this.generateTransform('reviewToEdit', [0, -width]), styles.transactionReview]}>
+					{React.cloneElement(components[0], {
+						...components[0].props,
+						customGasHeight,
+						hideData,
+						generateTransform: this.generateTransform,
+						animate: this.animate,
+						saveTransactionReviewDataHeight: this.saveTransactionReviewDataHeight,
+						onModeChange: this.onModeChange
+					})}
+				</Animated.View>
 
 				{ready && (
 					<Animated.View style={[styles.transactionEdit, this.generateTransform('reviewToEdit', [width, 0])]}>
+						{React.cloneElement(components[1], {
+							...components[1].props,
+							advancedCustomGas,
+							hideGasSelectors,
+							toAdvancedFrom,
+							onModeChange: this.onModeChange,
+							toggleAdvancedCustomGas: this.toggleAdvancedCustomGas,
+							saveCustomGasHeight: this.saveCustomGasHeight,
+							animate: this.animate,
+							generateTransform: this.generateTransform,
+							getAnimatedModalValueForAdvancedCG: this.getAnimatedModalValueForAdvancedCG,
+							review: this.review
+						})}
+					</Animated.View>
+				)}
+			</Animated.View>
+		);
+	};
+
+	renderWalletTransactionInterface = () => {
+		const { width, advancedCustomGas, hideGasSelectors, toAdvancedFrom, customGasHeight } = this.state;
+		const { ready, children } = this.props;
+		const customGasComponent = React.Children.toArray(children)[0];
+
+		return (
+			<Animated.View
+				style={[styles.root, this.generateTransform('modal', [70, 0]), { height: customGasHeight + 70 }]}
+			>
+				{ready && (
+					<Animated.View
+						style={[styles.transactionEdit, this.generateTransform('reviewToEdit', [0, -width])]}
+					>
 						{React.cloneElement(customGasComponent, {
 							...customGasComponent.props,
 							advancedCustomGas,
@@ -227,6 +254,14 @@ class AnimatedTransactionModal extends PureComponent {
 				)}
 			</Animated.View>
 		);
+	};
+
+	render = () => {
+		const interfaceType =
+			this.state.originComponent === 'dapp'
+				? this.renderDappTransactionInterface()
+				: this.renderWalletTransactionInterface();
+		return interfaceType;
 	};
 }
 
