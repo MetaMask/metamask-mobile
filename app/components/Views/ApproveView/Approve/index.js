@@ -38,6 +38,7 @@ import TransactionReviewDetailsCard from '../../../UI/TransactionReview/Transact
 import StyledButton from '../../../UI/StyledButton';
 import currencySymbols from '../../../../util/currency-symbols.json';
 import Logger from '../../../../util/Logger';
+import AppConstants from '../../../../core/AppConstants';
 
 const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
@@ -213,6 +214,8 @@ const styles = StyleSheet.create({
 	}
 });
 
+const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
+
 /**
  * PureComponent that manages ERC20 approve from the dapp browser
  */
@@ -298,7 +301,8 @@ class Approve extends PureComponent {
 		spendLimitCustomValue: undefined,
 		ticker: getTicker(this.props.ticker),
 		validSpendLimitCustomValue: true,
-		viewDetails: false
+		viewDetails: false,
+		spenderAddress: '0x...'
 	};
 
 	customSpendLimitInput = React.createRef();
@@ -313,13 +317,18 @@ class Approve extends PureComponent {
 		let tokenSymbol, tokenDecimals;
 		const contract = contractMap[safeToChecksumAddress(to)];
 		if (!contract) {
-			tokenSymbol = await AssetsContractController.getAssetSymbol(to);
-			tokenDecimals = await AssetsContractController.getTokenDecimals(to);
+			try {
+				tokenSymbol = await AssetsContractController.getAssetSymbol(to);
+				tokenDecimals = await AssetsContractController.getTokenDecimals(to);
+			} catch (e) {
+				tokenSymbol = 'ERC20 Token';
+				tokenDecimals = 18;
+			}
 		} else {
 			tokenSymbol = contract.symbol;
 			tokenDecimals = contract.decimals;
 		}
-		const originalApproveAmount = decodeTransferData('transfer', data)[2];
+		const [spenderAddress, , originalApproveAmount] = decodeTransferData('transfer', data);
 		const approveAmount = fromTokenMinimalUnit(hexToBN(originalApproveAmount), tokenDecimals);
 		const totalGas = gas.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
@@ -331,7 +340,8 @@ class Approve extends PureComponent {
 			tokenDecimals,
 			tokenSymbol,
 			totalGas: renderFromWei(totalGas),
-			totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
+			totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
+			spenderAddress
 		});
 	};
 
@@ -698,7 +708,8 @@ class Approve extends PureComponent {
 			customGasVisible,
 			editPermissionVisible,
 			ticker,
-			gasError
+			gasError,
+			spenderAddress
 		} = this.state;
 
 		const {
@@ -708,7 +719,7 @@ class Approve extends PureComponent {
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
 		const currencySymbol = currencySymbols[currentCurrency];
 		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
-
+		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
 		return (
 			<ActionModal
 				modalVisible={this.props.modalVisible}
@@ -740,10 +751,19 @@ class Approve extends PureComponent {
 									currentPageInformation={{ origin, title: host, url: activeTabUrl }}
 								/>
 								<Text style={styles.title} testID={'allow-access'}>
-									{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
+									{strings(
+										`spend_limit_edition.${
+											originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'
+										}`,
+										{ spenderAddress: renderShortAddress(spenderAddress || ''), tokenSymbol }
+									)}
 								</Text>
 								<Text style={styles.explanation}>
-									{strings('spend_limit_edition.you_trust_this_site')}
+									{`${strings(
+										`spend_limit_edition.${
+											originIsDeeplink ? 'you_trust_this_address' : 'you_trust_this_site'
+										}`
+									)}`}
 								</Text>
 								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
 									<Text style={styles.editPermissionText}>
