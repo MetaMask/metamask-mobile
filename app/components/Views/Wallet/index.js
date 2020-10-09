@@ -241,7 +241,6 @@ class Wallet extends PureComponent {
 	render = () => (
 		<ErrorBoundary view="Wallet">
 			<View style={baseStyles.flexGrow} testID={'wallet-screen'}>
-				{''}
 				<ScrollView
 					style={styles.wrapper}
 					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
