@@ -153,8 +153,7 @@ class ErrorBoundary extends Component {
 	}
 
 	componentDidCatch(error, errorInfo) {
-		Logger.error(error, { ...errorInfo, view: this.props.view });
-		console.log(error, { view: this.props.view, ...errorInfo });
+		Logger.error(error, { View: this.props.view, ...errorInfo });
 	}
 
 	resetError = () => {
