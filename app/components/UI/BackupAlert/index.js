@@ -137,7 +137,7 @@ class BackupAlert extends PureComponent {
 		if (seedphraseBackedUp || blockedView || !backUpSeedphraseVisible) return null;
 		return (
 			<ElevatedView
-				elevation={99}
+				elevation={1}
 				style={[
 					styles.backupAlertWrapper,
 					inBrowserView ? styles.modalViewInBrowserView : styles.modalViewNotInBrowserView

@@ -8,6 +8,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import Clipboard from '@react-native-community/clipboard';
 import { strings } from '../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import ElevatedView from 'react-native-elevated-view';
 
 // eslint-disable-next-line import/no-commonjs
 const metamaskErrorImage = require('../../../images/metamask-error.png');
@@ -87,69 +88,75 @@ const styles = StyleSheet.create({
 	},
 	reportStep: {
 		marginTop: 14
+	},
+	backupAlertWrapper: {
+		flex: 1,
+		position: 'absolute'
 	}
 });
 
 const Fallback = props => (
-	<SafeAreaView style={styles.container}>
-		<ScrollView style={styles.content}>
-			<View style={styles.header}>
-				<Image source={metamaskErrorImage} style={styles.errorImage} />
-				<Text style={styles.title}>{strings('error_screen.title')}</Text>
-				<Text style={styles.subtitle}>{strings('error_screen.subtitle')}</Text>
-			</View>
-			<View style={styles.errorContainer}>
-				<Text style={styles.error}>{props.errorMessage}</Text>
-			</View>
-			<View style={styles.header}>
-				<TouchableOpacity style={styles.button} onPress={props.resetError}>
-					<Text style={styles.buttonText}>
-						<Icon name="refresh" size={15} />
-						{'  '}
-						{strings('error_screen.try_again_button')}
-					</Text>
-				</TouchableOpacity>
-			</View>
-			<View style={styles.textContainer}>
-				<Text style={styles.text}>
-					<Text>{strings('error_screen.submit_ticket_1')}</Text>
-				</Text>
-				<View style={styles.reportTextContainer}>
+	<ElevatedView elevation={999999} style={[styles.backupAlertWrapper]}>
+		<SafeAreaView style={styles.container}>
+			<ScrollView style={styles.content}>
+				<View style={styles.header}>
+					<Image source={metamaskErrorImage} style={styles.errorImage} />
+					<Text style={styles.title}>{strings('error_screen.title')}</Text>
+					<Text style={styles.subtitle}>{strings('error_screen.subtitle')}</Text>
+				</View>
+				<View style={styles.errorContainer}>
+					<Text style={styles.error}>{props.errorMessage}</Text>
+				</View>
+				<View style={styles.header}>
+					<TouchableOpacity style={styles.button} onPress={props.resetError}>
+						<Text style={styles.buttonText}>
+							<Icon name="refresh" size={15} />
+							{'  '}
+							{strings('error_screen.try_again_button')}
+						</Text>
+					</TouchableOpacity>
+				</View>
+				<View style={styles.textContainer}>
 					<Text style={styles.text}>
-						<Icon name="mobile-phone" size={20} />
-						{'  '}
-						{strings('error_screen.submit_ticket_2')}
+						<Text>{strings('error_screen.submit_ticket_1')}</Text>
 					</Text>
+					<View style={styles.reportTextContainer}>
+						<Text style={styles.text}>
+							<Icon name="mobile-phone" size={20} />
+							{'  '}
+							{strings('error_screen.submit_ticket_2')}
+						</Text>
 
-					<Text style={[styles.reportStep, styles.text]}>
-						<Icon name="copy" size={14} />
-						{'  '}
-						<Text onPress={props.copyErrorToClipboard} style={styles.link}>
-							{strings('error_screen.submit_ticket_3')}
-						</Text>{' '}
-						{strings('error_screen.submit_ticket_4')}
-					</Text>
+						<Text style={[styles.reportStep, styles.text]}>
+							<Icon name="copy" size={14} />
+							{'  '}
+							<Text onPress={props.copyErrorToClipboard} style={styles.link}>
+								{strings('error_screen.submit_ticket_3')}
+							</Text>{' '}
+							{strings('error_screen.submit_ticket_4')}
+						</Text>
 
-					<Text style={[styles.reportStep, styles.text]}>
-						<Icon name="send-o" size={14} />
-						{'  '}
-						{strings('error_screen.submit_ticket_5')}{' '}
-						<Text onPress={props.openTicket} style={styles.link}>
-							{strings('error_screen.submit_ticket_6')}
+						<Text style={[styles.reportStep, styles.text]}>
+							<Icon name="send-o" size={14} />
+							{'  '}
+							{strings('error_screen.submit_ticket_5')}{' '}
+							<Text onPress={props.openTicket} style={styles.link}>
+								{strings('error_screen.submit_ticket_6')}
+							</Text>{' '}
+							{strings('error_screen.submit_ticket_7')}
+						</Text>
+					</View>
+					<Text style={styles.text}>
+						{strings('error_screen.save_seedphrase_1')}{' '}
+						<Text onPress={props.showExportSeedphrase} style={styles.link}>
+							{strings('error_screen.save_seedphrase_2')}
 						</Text>{' '}
-						{strings('error_screen.submit_ticket_7')}
+						{strings('error_screen.save_seedphrase_3')}
 					</Text>
 				</View>
-				<Text style={styles.text}>
-					{strings('error_screen.save_seedphrase_1')}{' '}
-					<Text onPress={props.showExportSeedphrase} style={styles.link}>
-						{strings('error_screen.save_seedphrase_2')}
-					</Text>{' '}
-					{strings('error_screen.save_seedphrase_3')}
-				</Text>
-			</View>
-		</ScrollView>
-	</SafeAreaView>
+			</ScrollView>
+		</SafeAreaView>
+	</ElevatedView>
 );
 
 Fallback.propTypes = {
