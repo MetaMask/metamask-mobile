@@ -1341,6 +1341,8 @@
 		"submit_ticket_8": "to our ticketing system and include the screenshot and add the error message to the description field.",
 		"save_seedphrase_1": "If this error persists,",
 		"save_seedphrase_2": "save your seed phrase",
-		"save_seedphrase_3": "and re-install the app."
+		"save_seedphrase_3": "and re-install the app.",
+		"copied_clipboard": "Copied to clipboard",
+		"ok": "OK"
 	}
 }

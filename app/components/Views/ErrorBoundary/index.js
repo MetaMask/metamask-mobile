@@ -172,7 +172,7 @@ class ErrorBoundary extends Component {
 
 	copyErrorToClipboard = async () => {
 		await Clipboard.setString(this.getErrorMessage());
-		Alert.alert('Copied to clipboard', '', [{ text: 'OK' }], {
+		Alert.alert(strings('error_screen.copied_clipboard'), '', [{ text: strings('error_screen.ok') }], {
 			cancelable: true
 		});
 	};
