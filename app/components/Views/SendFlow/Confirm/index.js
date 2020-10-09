@@ -302,6 +302,7 @@ class Confirm extends PureComponent {
 		paymentChannelReady: false,
 		mode: REVIEW
 	};
+
 	componentDidMount = async () => {
 		// For analytics
 		const { navigation, providerType } = this.props;
@@ -344,11 +345,74 @@ class Confirm extends PureComponent {
 		}
 	};
 
+	setScrollViewRef = ref => {
+		this.scrollView = ref;
+	};
+
+	ready = () => {
+		this.setState({ ready: true });
+	};
+
+	review = () => {
+		this.onModeChange(REVIEW);
+	};
+
+	edit = () => {
+		this.onModeChange(EDIT);
+	};
+
+	onModeChange = mode => {
+		this.setState({ mode });
+		if (mode === EDIT) {
+			InteractionManager.runAfterInteractions(() => {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
+			});
+		}
+	};
+
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
 		const basicGasEstimates = await getBasicGasEstimates();
 		this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
 		this.setState({ basicGasEstimates, ready: true });
+	};
+
+	prepareTransaction = async () => {
+		const {
+			prepareTransaction,
+			transactionState: { transaction }
+		} = this.props;
+		const estimation = await this.estimateGas(transaction);
+		prepareTransaction({ ...transaction, ...estimation });
+		this.parseTransactionData();
+		this.setState({ gasEstimationReady: true });
+	};
+
+	estimateGas = async transaction => {
+		const { TransactionController } = Engine.context;
+		const { value, data, to, from } = transaction;
+		let estimation;
+		try {
+			estimation = await TransactionController.estimateGas({
+				value,
+				from,
+				data,
+				to
+			});
+		} catch (e) {
+			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
+		}
+		let basicGasEstimates;
+		try {
+			basicGasEstimates = await fetchBasicGasEstimates();
+		} catch (error) {
+			Logger.log('Error while trying to get gas limit estimates', error);
+			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
+		}
+		return {
+			gas: hexToBN(estimation.gas),
+			gasPrice: toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei')
+		};
 	};
 
 	parseTransactionData = () => {
@@ -477,44 +541,6 @@ class Confirm extends PureComponent {
 		);
 	};
 
-	prepareTransaction = async () => {
-		const {
-			prepareTransaction,
-			transactionState: { transaction }
-		} = this.props;
-		const estimation = await this.estimateGas(transaction);
-		prepareTransaction({ ...transaction, ...estimation });
-		this.parseTransactionData();
-		this.setState({ gasEstimationReady: true });
-	};
-
-	estimateGas = async transaction => {
-		const { TransactionController } = Engine.context;
-		const { value, data, to, from } = transaction;
-		let estimation;
-		try {
-			estimation = await TransactionController.estimateGas({
-				value,
-				from,
-				data,
-				to
-			});
-		} catch (e) {
-			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
-		}
-		let basicGasEstimates;
-		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
-		} catch (error) {
-			Logger.log('Error while trying to get gas limit estimates', error);
-			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
-		}
-		return {
-			gas: hexToBN(estimation.gas),
-			gasPrice: toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei')
-		};
-	};
-
 	handleSetGasFee = (customGas, customGasPrice) => {
 		const { customGasSelected } = this.state;
 		const { prepareTransaction, transactionState } = this.props;
@@ -529,93 +555,6 @@ class Confirm extends PureComponent {
 			});
 		}, 100);
 		this.onModeChange(REVIEW);
-	};
-
-	toggleHexDataModal = () => {
-		const { hexDataModalVisible } = this.state;
-		this.setState({ hexDataModalVisible: !hexDataModalVisible });
-	};
-
-	ready = () => {
-		this.setState({ ready: true });
-	};
-
-	onModeChange = mode => {
-		this.setState({ mode });
-		if (mode === EDIT) {
-			InteractionManager.runAfterInteractions(() => {
-				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
-			});
-		}
-	};
-
-	review = () => {
-		this.onModeChange(REVIEW);
-	};
-
-	edit = () => {
-		this.onModeChange(EDIT);
-	};
-
-	renderCustomGasModal = () => {
-		const { basicGasEstimates, gasError, ready, mode } = this.state;
-		const {
-			transaction: { gas, gasPrice }
-		} = this.props;
-		return (
-			<Modal
-				isVisible
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-				onBackdropPress={this.review}
-				onBackButtonPress={this.review}
-				onSwipeComplete={this.review}
-				swipeDirection={'down'}
-				propagateSwipe
-			>
-				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-					<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
-						<CustomGas
-							handleGasFeeSelection={this.handleSetGasFee}
-							basicGasEstimates={basicGasEstimates}
-							gas={gas}
-							gasPrice={gasPrice}
-							gasError={gasError}
-							mode={mode}
-						/>
-					</AnimatedTransactionModal>
-				</KeyboardAwareScrollView>
-			</Modal>
-		);
-	};
-
-	renderHexDataModal = () => {
-		const { hexDataModalVisible } = this.state;
-		const { data } = this.props.transactionState.transaction;
-		return (
-			<Modal
-				isVisible={hexDataModalVisible}
-				onBackdropPress={this.toggleHexDataModal}
-				onBackButtonPress={this.toggleHexDataModal}
-				onSwipeComplete={this.toggleHexDataModal}
-				swipeDirection={'down'}
-				propagateSwipe
-			>
-				<View style={styles.hexDataWrapper}>
-					<TouchableOpacity style={styles.hexDataClose} onPress={this.toggleHexDataModal}>
-						<IonicIcon name={'ios-close'} size={28} color={colors.black} />
-					</TouchableOpacity>
-					<View style={styles.qrCode}>
-						<Text style={styles.addressTitle}>{strings('transaction.hex_data')}</Text>
-						<Text style={styles.hexDataText}>{data || strings('unit.empty_data')}</Text>
-					</View>
-				</View>
-			</Modal>
-		);
 	};
 
 	validateGas = () => {
@@ -840,9 +779,75 @@ class Confirm extends PureComponent {
 		this.toggleFromAccountModal();
 	};
 
+	toggleHexDataModal = () => {
+		const { hexDataModalVisible } = this.state;
+		this.setState({ hexDataModalVisible: !hexDataModalVisible });
+	};
+
 	toggleFromAccountModal = () => {
 		const { fromAccountModalVisible } = this.state;
 		this.setState({ fromAccountModalVisible: !fromAccountModalVisible });
+	};
+
+	renderCustomGasModal = () => {
+		const { basicGasEstimates, gasError, ready, mode } = this.state;
+		const {
+			transaction: { gas, gasPrice }
+		} = this.props;
+		return (
+			<Modal
+				isVisible
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.review}
+				onBackButtonPress={this.review}
+				onSwipeComplete={this.review}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+					<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
+						<CustomGas
+							handleGasFeeSelection={this.handleSetGasFee}
+							basicGasEstimates={basicGasEstimates}
+							gas={gas}
+							gasPrice={gasPrice}
+							gasError={gasError}
+							mode={mode}
+						/>
+					</AnimatedTransactionModal>
+				</KeyboardAwareScrollView>
+			</Modal>
+		);
+	};
+
+	renderHexDataModal = () => {
+		const { hexDataModalVisible } = this.state;
+		const { data } = this.props.transactionState.transaction;
+		return (
+			<Modal
+				isVisible={hexDataModalVisible}
+				onBackdropPress={this.toggleHexDataModal}
+				onBackButtonPress={this.toggleHexDataModal}
+				onSwipeComplete={this.toggleHexDataModal}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<View style={styles.hexDataWrapper}>
+					<TouchableOpacity style={styles.hexDataClose} onPress={this.toggleHexDataModal}>
+						<IonicIcon name={'ios-close'} size={28} color={colors.black} />
+					</TouchableOpacity>
+					<View style={styles.qrCode}>
+						<Text style={styles.addressTitle}>{strings('transaction.hex_data')}</Text>
+						<Text style={styles.hexDataText}>{data || strings('unit.empty_data')}</Text>
+					</View>
+				</View>
+			</Modal>
+		);
 	};
 
 	renderFromAccountModal = () => {
@@ -870,10 +875,6 @@ class Confirm extends PureComponent {
 				/>
 			</Modal>
 		);
-	};
-
-	setScrollViewRef = ref => {
-		this.scrollView = ref;
 	};
 
 	render = () => {
