@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { SafeAreaView, Text, TouchableOpacity, View, StyleSheet, Image, Linking, Alert } from 'react-native';
 import PropTypes from 'prop-types';
-import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
+import RevealPrivateCredential from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { colors, fontStyles } from '../../../styles/common';
 import { ScrollView } from 'react-native-gesture-handler';

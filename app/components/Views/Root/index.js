@@ -10,7 +10,7 @@ import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
-import ErrorBoundary from '../../UI/ErrorBoundary';
+import ErrorBoundary from '../ErrorBoundary';
 
 /**
  * Top level of the component hierarchy
