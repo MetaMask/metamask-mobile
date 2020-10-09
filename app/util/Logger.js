@@ -41,7 +41,7 @@ export default class Logger {
 		// Check if user passed accepted opt-in to metrics
 		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		if (__DEV__) {
-			// console.warn(DEBUG, error); // eslint-disable-line no-console
+			console.warn(DEBUG, error); // eslint-disable-line no-console
 		} else if (metricsOptIn === AGREED) {
 			if (extra) {
 				if (typeof extra === 'string') {
