@@ -1501,6 +1501,13 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/clipboard/-/clipboard-1.2.2.tgz#956b29df141199fd9ed47e820baf9693f9f50b55"
   integrity sha512-WJkJSWA/fhuBhHL3rh6UDdB8+AZNMvAHoyo/ERnNxl9KZqruq7K+AIaQQlggEAsIVBIhjKt65fT+Zynj7gF8Cg==
 
+"@react-native-community/cookies@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@react-native-community/cookies/-/cookies-4.0.1.tgz#520f16ddf87156269b291ef9f03283a032414300"
+  integrity sha512-SHr9evZD5NipwwKvVeSMyjdYxdouWIPP5x8AJRaABDM1BnW6Md5hyAQvQzQJMKBym5uyH9MkFvjSSJI2ueBYQQ==
+  dependencies:
+    invariant "^2.2.4"
+
 "@react-native-community/eslint-config@^0.0.5":
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/@react-native-community/eslint-config/-/eslint-config-0.0.5.tgz#584f6493258202a57efc22e7be66966e43832795"
@@ -6960,6 +6967,11 @@ is-typedarray@1.0.0, is-typedarray@^1.0.0, is-typedarray@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/is-typedarray/-/is-typedarray-1.0.0.tgz#e479c80858df0c1b11ddda6940f96011fcda4a9a"
   integrity sha1-5HnICFjfDBsR3dppQPlgEfzaSpo=
+
+is-url@^1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/is-url/-/is-url-1.2.4.tgz#04a4df46d28c4cff3d73d01ff06abeb318a1aa52"
+  integrity sha512-ITvGim8FhRiYe4IQ5uHSkj7pVaPDrCTkNd3yq3cV7iZAcJdHTUMPMEHcqSOy9xZ9qFenQCvi+2wjH9a1nXqHww==
 
 is-weakmap@^2.0.1:
   version "2.0.1"
