@@ -176,12 +176,14 @@ workflows:
               only:
                 - master
                 - develop
+                - update-react-native-keychain
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
+                - update-react-native-keychain
       - lint:
           requires:
             - prep-node-deps

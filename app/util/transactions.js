@@ -282,7 +282,7 @@ export async function getTransactionActionKey(transaction) {
  * @returns {string} - Transaction type message
  */
 export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction) {
-	if (tx.isTransfer) {
+	if (tx && tx.isTransfer) {
 		const selfSent = safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		const translationKey = selfSent ? 'transactions.self_sent_unit' : 'transactions.received_unit';
 		// Third party sending wrong token symbol
