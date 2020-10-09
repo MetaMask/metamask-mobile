@@ -29,7 +29,7 @@ import {
 	TRUE,
 	ORIGINAL
 } from '../../../constants/storage';
-import { passwordRequirementsMet } from '../../../util/password';
+import ErrorBoundary from '../ErrorBoundary';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -330,11 +330,8 @@ class Login extends PureComponent {
 		return true;
 	};
 
-	render = () => {
-		const { password } = this.state;
-		const disabled = !passwordRequirementsMet(password);
-
-		return (
+	render = () => (
+		<ErrorBoundary view="Login">
 			<SafeAreaView style={styles.mainWrapper}>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'login'}>
@@ -363,7 +360,7 @@ class Login extends PureComponent {
 								value={this.state.password}
 								baseColor={colors.grey500}
 								tintColor={colors.blue}
-								onSubmitEditing={() => this.onLogin(disabled)}
+								onSubmitEditing={this.onLogin}
 								renderRightAccessory={() => (
 									<BiometryButton
 										onPress={this.tryBiometric}
@@ -389,7 +386,7 @@ class Login extends PureComponent {
 						)}
 
 						<View style={styles.ctaWrapper} testID={'log-in-button'}>
-							<StyledButton disabled={disabled} type={'confirm'} onPress={() => this.onLogin(disabled)}>
+							<StyledButton type={'confirm'} onPress={this.onLogin}>
 								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
@@ -407,8 +404,8 @@ class Login extends PureComponent {
 				</KeyboardAwareScrollView>
 				<FadeOutOverlay />
 			</SafeAreaView>
-		);
-	};
+		</ErrorBoundary>
+	);
 }
 
 const mapStateToProps = state => ({
