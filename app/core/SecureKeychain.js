@@ -6,9 +6,10 @@ const privates = new WeakMap();
 const encryptor = new Encryptor();
 const defaultOptions = {
 	service: 'com.metamask',
-	authenticationPromptTitle: strings('authentication.auth_prompt_title'),
-	authenticationPrompt: strings('authentication.auth_prompt_desc'),
-	authenticationPromptDesc: strings('authentication.auth_prompt_desc'),
+	authenticationPrompt: {
+		title: strings('authentication.auth_prompt_title'),
+		description: strings('authentication.auth_prompt_desc')
+	},
 	fingerprintPromptTitle: strings('authentication.fingerprint_prompt_title'),
 	fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
 	fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
