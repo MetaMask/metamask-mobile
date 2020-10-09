@@ -349,10 +349,6 @@ class Confirm extends PureComponent {
 		this.scrollView = ref;
 	};
 
-	ready = () => {
-		this.setState({ ready: true });
-	};
-
 	review = () => {
 		this.onModeChange(REVIEW);
 	};
