@@ -554,6 +554,7 @@ class ApproveTransactionReview extends PureComponent {
 								<ActionView
 									confirmButtonMode="confirm"
 									cancelText={strings('transaction.reject')}
+									confirmText={strings('transactions.approve')}
 									onCancelPress={this.props.onCancel}
 									onConfirmPress={this.props.onConfirm}
 								>
