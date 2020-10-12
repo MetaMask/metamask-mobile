@@ -276,7 +276,22 @@ class ApproveTransactionReview extends PureComponent {
 			totalGas: renderFromWei(totalGas),
 			totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
 		});
-	};
+  };
+  
+  componentDidUpdate(previousProps, previousState) {
+    const {
+      transaction: { gas, gasPrice },
+      conversionRate
+    } = this.props;
+    const totalGas = gas.mul(gasPrice);
+    if ((previousProps.transaction.gas !== this.props.transaction.gas) ||
+      (previousProps.transaction.gasPrice !== this.props.transaction.gasPrice)) {
+      this.setState({
+        totalGas: renderFromWei(totalGas),
+        totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
+      });
+    }
+  }
 
 	trackApproveEvent = event => {
 		const { transaction, tokensLength, accountsLength, providerType } = this.props;
