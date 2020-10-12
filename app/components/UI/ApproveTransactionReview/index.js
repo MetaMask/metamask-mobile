@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, InteractionManager } from 'react-native';
+import ActionView from '../../UI/ActionView';
 import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
@@ -32,6 +33,7 @@ import AccountInfoCard from '../../UI/AccountInfoCard';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReivewDetailsCard';
 import StyledButton from '../../UI/StyledButton';
+import Device from '../../../util/Device';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -178,6 +180,12 @@ const styles = StyleSheet.create({
 	},
 	errorMessageWrapper: {
 		marginTop: 16
+	},
+	actionViewWrapper: {
+		height: Device.isMediumDevice() ? 200 : 350
+	},
+	actionViewChildren: {
+		height: 300
 	}
 });
 
@@ -192,6 +200,14 @@ class ApproveTransactionReview extends PureComponent {
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
+		/**
+		 * Callback triggered when this transaction is cancelled
+		 */
+		onCancel: PropTypes.func,
+		/**
+		 * Callback triggered when this transaction is confirmed
+		 */
+		onConfirm: PropTypes.func,
 		/**
 		 * Currency code of the currently-active currency
 		 */
@@ -525,38 +541,61 @@ class ApproveTransactionReview extends PureComponent {
 								{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
 							</Text>
 							<Text style={styles.explanation}>{strings('spend_limit_edition.you_trust_this_site')}</Text>
-							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
-								<Text style={styles.editPermissionText}>
-									{strings('spend_limit_edition.edit_permission')}
-								</Text>
-							</TouchableOpacity>
-							<AccountInfoCard />
-						</View>
-						<View style={styles.section}>
-							<TouchableOpacity onPress={this.edit}>
-								<View style={styles.networkFee}>
-									<Text style={styles.sectionLeft}>{strings('transaction.transaction_fee')}</Text>
-									<Text style={styles.sectionRight}>
-										{isFiat && currencySymbol}
-										{isFiat ? totalGasFiatRounded : totalGas} {!isFiat && ticker}
-									</Text>
-									<View style={styles.networkFeeArrow}>
-										<IonicIcon name="ios-arrow-forward" size={16} color={colors.grey00} />
+							<View style={styles.actionViewWrapper}>
+								<ActionView
+									confirmButtonMode="confirm"
+									cancelText={strings('transaction.reject')}
+									onCancelPress={this.props.onCancel}
+									onConfirmPress={this.props.onConfirm}
+								>
+									<View style={styles.actionViewChildren}>
+										<TouchableOpacity
+											style={styles.actionTouchable}
+											onPress={this.toggleEditPermission}
+										>
+											<Text style={styles.editPermissionText}>
+												{strings('spend_limit_edition.edit_permission')}
+											</Text>
+										</TouchableOpacity>
+										<AccountInfoCard />
+										<View style={styles.section}>
+											<TouchableOpacity onPress={this.edit}>
+												<View style={styles.networkFee}>
+													<Text style={styles.sectionLeft}>
+														{strings('transaction.transaction_fee')}
+													</Text>
+													<Text style={styles.sectionRight}>
+														{isFiat && currencySymbol}
+														{isFiat ? totalGasFiatRounded : totalGas} {!isFiat && ticker}
+													</Text>
+													<View style={styles.networkFeeArrow}>
+														<IonicIcon
+															name="ios-arrow-forward"
+															size={16}
+															color={colors.grey00}
+														/>
+													</View>
+												</View>
+											</TouchableOpacity>
+											<TouchableOpacity
+												style={styles.actionTouchable}
+												onPress={this.toggleViewDetails}
+											>
+												<View style={styles.viewDetailsWrapper}>
+													<Text style={styles.viewDetailsText}>
+														{strings('spend_limit_edition.view_details')}
+													</Text>
+												</View>
+											</TouchableOpacity>
+											{gasError && (
+												<View style={styles.errorMessageWrapper}>
+													<ErrorMessage errorMessage={gasError} />
+												</View>
+											)}
+										</View>
 									</View>
-								</View>
-							</TouchableOpacity>
-							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleViewDetails}>
-								<View style={styles.viewDetailsWrapper}>
-									<Text style={styles.viewDetailsText}>
-										{strings('spend_limit_edition.view_details')}
-									</Text>
-								</View>
-							</TouchableOpacity>
-							{gasError && (
-								<View style={styles.errorMessageWrapper}>
-									<ErrorMessage errorMessage={gasError} />
-								</View>
-							)}
+								</ActionView>
+							</View>
 						</View>
 					</>
 				)}

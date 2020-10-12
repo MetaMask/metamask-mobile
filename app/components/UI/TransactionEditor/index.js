@@ -52,7 +52,7 @@ class TransactionEditor extends PureComponent {
 		 */
 		onCancel: PropTypes.func,
 		/**
-		 * Callback triggered when this transaction is cancelled
+		 * Callback triggered when this transaction is confirmed
 		 */
 		onConfirm: PropTypes.func,
 		/**

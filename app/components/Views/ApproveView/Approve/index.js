@@ -229,7 +229,11 @@ class Approve extends PureComponent {
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 					<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
-						<ApproveTransactionReview gasError={gasError} />
+						<ApproveTransactionReview
+							gasError={gasError}
+							onCancel={this.onCancel}
+							onConfirm={this.onConfirm}
+						/>
 						<CustomGas
 							handleGasFeeSelection={this.handleSetGasFee}
 							basicGasEstimates={basicGasEstimates}
