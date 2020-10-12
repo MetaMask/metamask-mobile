@@ -60,14 +60,20 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.black,
 		lineHeight: 34,
-		marginVertical: 16
+		marginVertical: 16,
+		paddingHorizontal: 16
 	},
 	explanation: {
 		...fontStyles.normal,
 		fontSize: 14,
 		textAlign: 'center',
 		color: colors.black,
-		lineHeight: 20
+		lineHeight: 20,
+		paddingHorizontal: 16
+	},
+	editPermissionWrapper: {
+		paddingHorizontal: 16,
+		paddingBottom: 16
 	},
 	editPermissionText: {
 		...fontStyles.bold,
@@ -186,6 +192,9 @@ const styles = StyleSheet.create({
 	},
 	actionViewChildren: {
 		height: 300
+	},
+	paddingHorizontal: {
+		paddingHorizontal: 16
 	}
 });
 
@@ -385,7 +394,7 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount
 		} = this.state;
 		return (
-			<View style={baseStyles.section}>
+			<View style={[baseStyles.section, styles.editPermissionWrapper]}>
 				<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
 					<ConnectHeader action={this.toggleEditPermission} title={strings('spend_limit_edition.title')} />
 					<View>
@@ -557,41 +566,44 @@ class ApproveTransactionReview extends PureComponent {
 												{strings('spend_limit_edition.edit_permission')}
 											</Text>
 										</TouchableOpacity>
-										<AccountInfoCard />
-										<View style={styles.section}>
-											<TouchableOpacity onPress={this.edit}>
-												<View style={styles.networkFee}>
-													<Text style={styles.sectionLeft}>
-														{strings('transaction.transaction_fee')}
-													</Text>
-													<Text style={styles.sectionRight}>
-														{isFiat && currencySymbol}
-														{isFiat ? totalGasFiatRounded : totalGas} {!isFiat && ticker}
-													</Text>
-													<View style={styles.networkFeeArrow}>
-														<IonicIcon
-															name="ios-arrow-forward"
-															size={16}
-															color={colors.grey00}
-														/>
+										<View style={styles.paddingHorizontal}>
+											<AccountInfoCard />
+											<View style={styles.section}>
+												<TouchableOpacity onPress={this.edit}>
+													<View style={styles.networkFee}>
+														<Text style={styles.sectionLeft}>
+															{strings('transaction.transaction_fee')}
+														</Text>
+														<Text style={styles.sectionRight}>
+															{isFiat && currencySymbol}
+															{isFiat ? totalGasFiatRounded : totalGas}{' '}
+															{!isFiat && ticker}
+														</Text>
+														<View style={styles.networkFeeArrow}>
+															<IonicIcon
+																name="ios-arrow-forward"
+																size={16}
+																color={colors.grey00}
+															/>
+														</View>
 													</View>
-												</View>
-											</TouchableOpacity>
-											<TouchableOpacity
-												style={styles.actionTouchable}
-												onPress={this.toggleViewDetails}
-											>
-												<View style={styles.viewDetailsWrapper}>
-													<Text style={styles.viewDetailsText}>
-														{strings('spend_limit_edition.view_details')}
-													</Text>
-												</View>
-											</TouchableOpacity>
-											{gasError && (
-												<View style={styles.errorMessageWrapper}>
-													<ErrorMessage errorMessage={gasError} />
-												</View>
-											)}
+												</TouchableOpacity>
+												<TouchableOpacity
+													style={styles.actionTouchable}
+													onPress={this.toggleViewDetails}
+												>
+													<View style={styles.viewDetailsWrapper}>
+														<Text style={styles.viewDetailsText}>
+															{strings('spend_limit_edition.view_details')}
+														</Text>
+													</View>
+												</TouchableOpacity>
+												{gasError && (
+													<View style={styles.errorMessageWrapper}>
+														<ErrorMessage errorMessage={gasError} />
+													</View>
+												)}
+											</View>
 										</View>
 									</View>
 								</ActionView>
