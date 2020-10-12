@@ -2,7 +2,6 @@
 
 exports[`AnimatedTransactionModal should render correctly 1`] = `
 <ForwardRef(AnimatedComponentWrapper)
-  onLayout={[Function]}
   style={
     Array [
       Object {
@@ -15,9 +14,12 @@ exports[`AnimatedTransactionModal should render correctly 1`] = `
       Object {
         "transform": Array [
           Object {
-            "translateY": 0,
+            "translateY": 70,
           },
         ],
+      },
+      Object {
+        "height": 70,
       },
     ]
   }
