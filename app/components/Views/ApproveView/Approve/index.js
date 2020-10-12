@@ -1,220 +1,41 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, InteractionManager } from 'react-native';
-import Clipboard from '@react-native-community/clipboard';
+import { StyleSheet, Alert, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
-import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
-import { getHost } from '../../../../util/browser';
-import contractMap from 'eth-contract-metadata';
-import { safeToChecksumAddress, renderShortAddress } from '../../../../util/address';
+import { safeToChecksumAddress } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
-import CustomGas from '../../SendFlow/CustomGas';
-import ActionModal from '../../../UI/ActionModal';
+import CustomGas from '../../../UI/CustomGas';
+import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
+import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
+import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { util } from '@metamask/controllers';
-import { renderFromWei, weiToFiatNumber, isBN, isDecimal, fromTokenMinimalUnit } from '../../../../util/number';
-import {
-	getTicker,
-	decodeTransferData,
-	generateApproveData,
-	getNormalizedTxState,
-	getActiveTabUrl,
-	getMethodData
-} from '../../../../util/transactions';
+import { isBN } from '../../../../util/number';
+import { getNormalizedTxState } from '../../../../util/transactions';
+import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import ErrorMessage from '../../SendFlow/ErrorMessage';
-import { showAlert } from '../../../../actions/alert';
 import NotificationManager from '../../../../core/NotificationManager';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import Device from '../../../../util/Device';
-import TransactionHeader from '../../../UI/TransactionHeader';
-import ConnectHeader from '../../../UI/ConnectHeader';
-import AccountInfoCard from '../../../UI/AccountInfoCard';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
-import TransactionReviewDetailsCard from '../../../UI/TransactionReview/TransactionReivewDetailsCard';
-import StyledButton from '../../../UI/StyledButton';
-import currencySymbols from '../../../../util/currency-symbols.json';
 import Logger from '../../../../util/Logger';
-import AppConstants from '../../../../core/AppConstants';
 
 const { BNToHex, hexToBN } = util;
+
+const EDIT = 'edit';
+const REVIEW = 'review';
+
 const styles = StyleSheet.create({
-	networkFee: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16
-	},
-	networkFeeArrow: {
-		paddingLeft: 20,
-		marginTop: 2
-	},
-	section: {
-		minWidth: '100%',
-		width: '100%',
-		paddingVertical: 10
-	},
-	title: {
-		...fontStyles.bold,
-		fontSize: 24,
-		textAlign: 'center',
-		color: colors.black,
-		lineHeight: 34,
-		marginVertical: 16
-	},
-	explanation: {
-		...fontStyles.normal,
-		fontSize: 14,
-		textAlign: 'center',
-		color: colors.black,
-		lineHeight: 20
-	},
-	editPermissionText: {
-		...fontStyles.bold,
-		color: colors.blue,
-		fontSize: 12,
-		lineHeight: 20,
-		textAlign: 'center',
-		marginVertical: 20,
-		borderWidth: 1,
-		borderRadius: 20,
-		borderColor: colors.blue,
-		paddingVertical: 8,
-		paddingHorizontal: 16
-	},
-	viewDetailsText: {
-		...fontStyles.normal,
-		color: colors.blue,
-		fontSize: 12,
-		lineHeight: 16,
-		marginTop: 20,
-		textAlign: 'center'
-	},
-	actionTouchable: {
-		flexDirection: 'column',
-		alignItems: 'center'
-	},
-	sectionExplanationText: {
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.grey500,
-		marginVertical: 6
-	},
-	sectionLeft: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		flex: 1
-	},
-	sectionRight: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
+	keyboardAwareWrapper: {
 		flex: 1,
-		textTransform: 'uppercase',
-		textAlign: 'right'
+		justifyContent: 'flex-end'
 	},
-	option: {
-		flexDirection: 'row',
-		marginVertical: 8
-	},
-	optionText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		lineHeight: 20
-	},
-	touchableOption: {
-		flexDirection: 'row'
-	},
-	selectedCircle: {
-		width: 8,
-		height: 8,
-		borderRadius: 8 / 2,
-		margin: 3,
-		backgroundColor: colors.blue
-	},
-	outSelectedCircle: {
-		width: 18,
-		height: 18,
-		borderRadius: 18 / 2,
-		borderWidth: 2,
-		borderColor: colors.blue
-	},
-	circle: {
-		width: 18,
-		height: 18,
-		borderRadius: 18 / 2,
-		backgroundColor: colors.white,
-		opacity: 1,
-		borderWidth: 2,
-		borderColor: colors.grey200
-	},
-	input: {
-		padding: 12,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		borderWidth: 2
-	},
-	spendLimitContent: {
-		marginLeft: 8,
-		flex: 1
-	},
-	spendLimitTitle: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		lineHeight: 20,
-		marginBottom: 8
-	},
-	spendLimitSubtitle: {
-		...fontStyles.normal,
-		fontSize: 12,
-		lineHeight: 18,
-		color: colors.grey500
-	},
-	textBlue: {
-		color: colors.blue
-	},
-	textBlack: {
-		color: colors.black
-	},
-	errorMessageWrapper: {
-		marginTop: 16
-	},
-	actionModal: {
+	bottomModal: {
 		justifyContent: 'flex-end',
-		alignItems: 'center',
-		width: '100%'
-	},
-	viewWrapperStyle: {
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		marginHorizontal: 0,
-		backgroundColor: colors.white,
-		paddingBottom: Device.isIphoneX() ? 24 : 0
-	},
-	viewContainerStyle: {
-		borderRadius: 20
-	},
-	actionContainerStyle: {
-		borderTopWidth: 0
-	},
-	childrenContainerStyle: {
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		width: '100%',
-		backgroundColor: colors.white,
-		paddingTop: 24,
-		paddingHorizontal: 24
+		margin: 0
 	}
 });
-
-const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
 /**
  * PureComponent that manages ERC20 approve from the dapp browser
@@ -228,14 +49,6 @@ class Approve extends PureComponent {
 		 */
 		accounts: PropTypes.object,
 		/**
-		 * ETH to current currency conversion rate
-		 */
-		conversionRate: PropTypes.number,
-		/**
-		 * Currency code of the currently-active currency
-		 */
-		currentCurrency: PropTypes.string,
-		/**
 		 * Transaction state
 		 */
 		transaction: PropTypes.object.isRequired,
@@ -243,14 +56,6 @@ class Approve extends PureComponent {
 		 * Action that sets transaction attributes from object to a transaction
 		 */
 		setTransactionObject: PropTypes.func.isRequired,
-		/**
-		 * Action that shows the global alert
-		 */
-		showAlert: PropTypes.func,
-		/**
-		 * Current provider ticker
-		 */
-		ticker: PropTypes.string,
 		/**
 		 * List of transactions
 		 */
@@ -267,8 +72,6 @@ class Approve extends PureComponent {
 		 * A string representing the network name
 		 */
 		providerType: PropTypes.string,
-		primaryCurrency: PropTypes.string,
-		activeTabUrl: PropTypes.string,
 		/**
 		 * Whether the modal is visible
 		 */
@@ -281,74 +84,22 @@ class Approve extends PureComponent {
 
 	state = {
 		approved: false,
-		viewData: false,
-		currentCustomGasSelected: 'average',
-		customGasSelected: 'average',
-		customGas: undefined,
-		customGasPrice: undefined,
-		customGasVisible: false,
-		editPermissionVisible: false,
 		gasError: undefined,
-		host: undefined,
-		originalApproveAmount: undefined,
-		originalTransactionData: this.props.transaction.data,
-		totalGas: undefined,
-		totalGasFiat: undefined,
-		tokenSymbol: undefined,
-		tokenDecimals: undefined,
 		ready: false,
-		spendLimitUnlimitedSelected: true,
-		spendLimitCustomValue: undefined,
-		ticker: getTicker(this.props.ticker),
-		validSpendLimitCustomValue: true,
-		viewDetails: false,
-		spenderAddress: '0x...'
-	};
-
-	customSpendLimitInput = React.createRef();
-
-	componentDidMount = async () => {
-		const {
-			transaction: { origin, to, gas, gasPrice, data },
-			conversionRate
-		} = this.props;
-		const { AssetsContractController } = Engine.context;
-		const host = getHost(origin);
-		let tokenSymbol, tokenDecimals;
-		const contract = contractMap[safeToChecksumAddress(to)];
-		if (!contract) {
-			try {
-				tokenSymbol = await AssetsContractController.getAssetSymbol(to);
-				tokenDecimals = await AssetsContractController.getTokenDecimals(to);
-			} catch (e) {
-				tokenSymbol = 'ERC20 Token';
-				tokenDecimals = 18;
-			}
-		} else {
-			tokenSymbol = contract.symbol;
-			tokenDecimals = contract.decimals;
-		}
-		const [spenderAddress, , originalApproveAmount] = decodeTransferData('transfer', data);
-		const approveAmount = fromTokenMinimalUnit(hexToBN(originalApproveAmount), tokenDecimals);
-		const totalGas = gas.mul(gasPrice);
-		const { name: method } = await getMethodData(data);
-
-		this.setState({
-			host,
-			method,
-			originalApproveAmount: approveAmount,
-			tokenDecimals,
-			tokenSymbol,
-			totalGas: renderFromWei(totalGas),
-			totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
-			spenderAddress
-		});
+		mode: REVIEW
 	};
 
 	componentWillUnmount = () => {
 		const { approved } = this.state;
 		const { transaction } = this.props;
 		if (!approved) Engine.context.TransactionController.cancelTransaction(transaction.id);
+	};
+
+	handleFetchBasicEstimates = async () => {
+		this.setState({ ready: false });
+		const basicGasEstimates = await getBasicGasEstimates();
+		this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
+		this.setState({ basicGasEstimates, ready: true });
 	};
 
 	trackApproveEvent = event => {
@@ -363,264 +114,19 @@ class Approve extends PureComponent {
 		});
 	};
 
-	toggleViewData = () => {
-		const { viewData } = this.state;
-		this.setState({ viewData: !viewData });
-	};
+	handleSetGasFee = (customGas, customGasPrice) => {
+		const { setTransactionObject } = this.props;
 
-	toggleViewDetails = () => {
-		const { viewDetails } = this.state;
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
-		this.setState({ viewDetails: !viewDetails });
-	};
-
-	toggleCustomGasModal = () => {
-		const { customGasVisible } = this.state;
-		!customGasVisible && this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_FEE);
-		this.setState({ customGasVisible: !customGasVisible, gasError: undefined });
-	};
-
-	toggleEditPermission = () => {
-		const { editPermissionVisible } = this.state;
-		!editPermissionVisible && this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_PERMISSION);
-		this.setState({ editPermissionVisible: !editPermissionVisible });
-	};
-
-	handleSetGasFee = () => {
-		const { customGas, customGasPrice, customGasSelected } = this.state;
-		const { setTransactionObject, conversionRate } = this.props;
-
-		if (!customGas || !customGasPrice) {
-			this.toggleCustomGasModal();
-			return;
-		}
 		this.setState({ gasEstimationReady: false });
 
 		setTransactionObject({ gas: customGas, gasPrice: customGasPrice });
-		const totalGas = customGas.mul(customGasPrice);
 
 		setTimeout(() => {
 			this.setState({
-				customGas: undefined,
-				customGasPrice: undefined,
 				gasEstimationReady: true,
-				currentCustomGasSelected: customGasSelected,
-				errorMessage: undefined,
-				totalGas: renderFromWei(totalGas),
-				totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
+				errorMessage: undefined
 			});
 		}, 100);
-		this.toggleCustomGasModal();
-	};
-
-	handleGasFeeSelection = ({ gas, gasPrice, customGasSelected, error }) => {
-		this.setState({ customGas: gas, customGasPrice: gasPrice, customGasSelected, gasError: error });
-	};
-
-	ready = () => {
-		this.setState({ ready: true });
-	};
-
-	renderCustomGas = () => {
-		const { currentCustomGasSelected, gasError } = this.state;
-		const { gas, gasPrice } = this.props.transaction;
-		return (
-			<View style={styles.section}>
-				<CustomGas
-					selected={currentCustomGasSelected}
-					handleGasFeeSelection={this.handleGasFeeSelection}
-					gas={gas}
-					gasPrice={gasPrice}
-					gasError={gasError}
-					toggleCustomGasModal={this.toggleCustomGasModal}
-					parentStateReady={this.ready}
-				/>
-				<StyledButton
-					// testID={cancelTestID}
-					type="confirm"
-					onPress={this.handleSetGasFee}
-				>
-					{strings('custom_gas.save')}
-				</StyledButton>
-			</View>
-		);
-	};
-
-	renderTransactionReview = () => {
-		const { host, method, viewData, tokenSymbol } = this.state;
-		const {
-			transaction: { to, data, origin }
-		} = this.props;
-		const amount = decodeTransferData('transfer', data)[1];
-
-		return (
-			<TransactionReviewDetailsCard
-				toggleViewDetails={this.toggleViewDetails}
-				toggleViewData={this.toggleViewData}
-				copyContractAddress={this.copyContractAddress}
-				address={renderShortAddress(to)}
-				host={origin || host}
-				allowance={amount}
-				tokenSymbol={tokenSymbol}
-				data={data}
-				method={method}
-				displayViewData={viewData}
-			/>
-		);
-	};
-
-	onPressSpendLimitUnlimitedSelected = () => {
-		this.setState({ spendLimitUnlimitedSelected: true, spendLimitCustomValue: undefined });
-	};
-
-	onPressSpendLimitCustomSelected = () => {
-		this.setState({ spendLimitUnlimitedSelected: false });
-		setTimeout(
-			() =>
-				this.customSpendLimitInput &&
-				this.customSpendLimitInput.current &&
-				this.customSpendLimitInput.current.focus(),
-			100
-		);
-	};
-
-	onSpendLimitCustomValueChange = value => {
-		let validSpendLimitCustomValue = true;
-		if (value && isDecimal(value)) {
-			const floatValue = parseFloat(value);
-			if (floatValue < 1) validSpendLimitCustomValue = false;
-		} else {
-			validSpendLimitCustomValue = false;
-		}
-		this.setState({ spendLimitCustomValue: value, validSpendLimitCustomValue });
-	};
-
-	handleSetSpendLimit = () => {
-		const {
-			transaction: { data },
-			setTransactionObject
-		} = this.props;
-		const { spendLimitCustomValue, originalTransactionData, spendLimitUnlimitedSelected } = this.state;
-		let newData;
-		if (spendLimitUnlimitedSelected) {
-			newData = originalTransactionData;
-		} else {
-			const spender = decodeTransferData('transfer', data)[0];
-			newData = generateApproveData({ spender, value: parseInt(spendLimitCustomValue).toString(16) });
-		}
-
-		setTransactionObject({ data: newData });
-		this.toggleEditPermission();
-	};
-
-	renderEditPermission = () => {
-		const {
-			host,
-			spendLimitUnlimitedSelected,
-			tokenSymbol,
-			spendLimitCustomValue,
-			originalApproveAmount
-		} = this.state;
-		return (
-			<View style={baseStyles.section}>
-				<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
-					<ConnectHeader action={this.toggleEditPermission} title={strings('spend_limit_edition.title')} />
-					<View>
-						<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
-						<Text style={styles.spendLimitSubtitle}>
-							{strings('spend_limit_edition.allow')}
-							<Text style={fontStyles.bold}>{` ${host} `}</Text>
-							{strings('spend_limit_edition.allow_explanation')}
-						</Text>
-
-						<View style={styles.option}>
-							<TouchableOpacity
-								onPress={this.onPressSpendLimitUnlimitedSelected}
-								style={styles.touchableOption}
-							>
-								{spendLimitUnlimitedSelected ? (
-									<View style={styles.outSelectedCircle}>
-										<View style={styles.selectedCircle} />
-									</View>
-								) : (
-									<View style={styles.circle} />
-								)}
-							</TouchableOpacity>
-							<View style={styles.spendLimitContent}>
-								<Text
-									style={[
-										styles.optionText,
-										spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
-									]}
-								>
-									{strings('spend_limit_edition.proposed')}
-								</Text>
-								<Text style={styles.sectionExplanationText}>
-									{strings('spend_limit_edition.requested_by')}
-									<Text style={fontStyles.bold}>{` ${host}`}</Text>
-								</Text>
-								<Text
-									style={[styles.optionText, styles.textBlack]}
-								>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
-							</View>
-						</View>
-
-						<View style={styles.option}>
-							<TouchableOpacity
-								onPress={this.onPressSpendLimitCustomSelected}
-								style={styles.touchableOption}
-							>
-								{spendLimitUnlimitedSelected ? (
-									<View style={styles.circle} />
-								) : (
-									<View style={styles.outSelectedCircle}>
-										<View style={styles.selectedCircle} />
-									</View>
-								)}
-							</TouchableOpacity>
-							<View style={styles.spendLimitContent}>
-								<Text
-									style={[
-										styles.optionText,
-										!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
-									]}
-								>
-									{strings('spend_limit_edition.custom_spend_limit')}
-								</Text>
-								<Text style={styles.sectionExplanationText}>
-									{strings('spend_limit_edition.max_spend_limit')}
-								</Text>
-								<TextInput
-									ref={this.customSpendLimitInput}
-									autoCapitalize="none"
-									keyboardType="numeric"
-									autoCorrect={false}
-									onChangeText={this.onSpendLimitCustomValueChange}
-									placeholder={`100 ${tokenSymbol}`}
-									placeholderTextColor={colors.grey100}
-									spellCheck={false}
-									style={styles.input}
-									value={spendLimitCustomValue}
-									numberOfLines={1}
-									onFocus={this.onPressSpendLimitCustomSelected}
-									returnKeyType={'done'}
-								/>
-								<Text style={styles.sectionExplanationText}>
-									{strings('spend_limit_edition.minimum', { tokenSymbol })}
-								</Text>
-							</View>
-						</View>
-					</View>
-					<StyledButton
-						// testID={cancelTestID}
-						type="confirm"
-						onPress={this.toggleEditPermission}
-					>
-						{strings('transaction.set_gas')}
-					</StyledButton>
-				</KeyboardAwareScrollView>
-			</View>
-		);
 	};
 
 	validateGas = () => {
@@ -685,145 +191,68 @@ class Approve extends PureComponent {
 		this.props.toggleApproveModal();
 	};
 
-	copyContractAddress = async () => {
-		const { transaction } = this.props;
-		await Clipboard.setString(transaction.to);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 1500,
-			content: 'clipboard-alert',
-			data: { msg: strings('transactions.address_copied_to_clipboard') }
-		});
+	review = () => {
+		this.onModeChange(REVIEW);
+	};
+
+	onModeChange = mode => {
+		this.setState({ mode });
+		if (mode === EDIT) {
+			InteractionManager.runAfterInteractions(() => {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
+			});
+		}
 	};
 
 	render = () => {
-		const { activeTabUrl, currentCurrency, primaryCurrency } = this.props;
+		const { gasError, basicGasEstimates, mode, ready } = this.state;
 
-		const {
-			host,
-			tokenSymbol,
-			viewDetails,
-			totalGas,
-			totalGasFiat,
-			customGasVisible,
-			editPermissionVisible,
-			ticker,
-			gasError,
-			spenderAddress
-		} = this.state;
+		const { transaction } = this.props;
 
-		const {
-			transaction: { origin }
-		} = this.props;
-
-		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
-		const currencySymbol = currencySymbols[currentCurrency];
-		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
-		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
 		return (
-			<ActionModal
-				modalVisible={this.props.modalVisible}
-				cancelText={strings('spend_limit_edition.cancel')}
-				confirmText={strings('spend_limit_edition.approve')}
-				onCancelPress={this.onCancel}
-				onConfirmPress={this.onConfirm}
-				confirmButtonMode="confirm"
-				onRequestClose={this.onCancel}
-				displayCancelButton={false}
-				displayConfirmButton={!editPermissionVisible && !customGasVisible}
-				modalStyle={styles.actionModal}
-				viewWrapperStyle={styles.viewWrapperStyle}
-				viewContainerStyle={styles.viewContainerStyle}
-				actionContainerStyle={styles.actionContainerStyle}
-				childrenContainerStyle={styles.childrenContainerStyle}
+			<Modal
+				isVisible={this.props.modalVisible}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.onCancel}
+				onBackButtonPress={this.onCancel}
+				onSwipeComplete={this.onCancel}
+				swipeDirection={'down'}
+				propagateSwipe
 			>
-				<View>
-					{viewDetails ? (
-						this.renderTransactionReview()
-					) : customGasVisible ? (
-						this.renderCustomGas()
-					) : editPermissionVisible ? (
-						this.renderEditPermission()
-					) : (
-						<>
-							<View style={styles.section} testID={'approve-screen'}>
-								<TransactionHeader
-									currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
-								/>
-								<Text style={styles.title} testID={'allow-access'}>
-									{strings(
-										`spend_limit_edition.${
-											originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'
-										}`,
-										{ tokenSymbol }
-									)}
-								</Text>
-								<Text style={styles.explanation}>
-									{`${strings(
-										`spend_limit_edition.${
-											originIsDeeplink ? 'you_trust_this_address' : 'you_trust_this_site'
-										}`
-									)}`}
-								</Text>
-								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
-									<Text style={styles.editPermissionText}>
-										{strings('spend_limit_edition.edit_permission')}
-									</Text>
-								</TouchableOpacity>
-								<AccountInfoCard />
-							</View>
-							<View style={styles.section}>
-								<TouchableOpacity onPress={this.toggleCustomGasModal}>
-									<View style={styles.networkFee}>
-										<Text style={styles.sectionLeft}>{strings('transaction.transaction_fee')}</Text>
-										<Text style={styles.sectionRight}>
-											{isFiat && currencySymbol}
-											{isFiat ? totalGasFiatRounded : totalGas} {!isFiat && ticker}
-										</Text>
-										<View style={styles.networkFeeArrow}>
-											<IonicIcon name="ios-arrow-forward" size={16} color={colors.grey00} />
-										</View>
-									</View>
-								</TouchableOpacity>
-								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleViewDetails}>
-									<View style={styles.viewDetailsWrapper}>
-										<Text style={styles.viewDetailsText}>
-											{strings('spend_limit_edition.view_details')}
-										</Text>
-									</View>
-								</TouchableOpacity>
-								{gasError && (
-									<View style={styles.errorMessageWrapper}>
-										<ErrorMessage errorMessage={gasError} />
-									</View>
-								)}
-							</View>
-						</>
-					)}
-				</View>
-			</ActionModal>
+				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+					<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
+						<ApproveTransactionReview gasError={gasError} />
+						<CustomGas
+							handleGasFeeSelection={this.handleSetGasFee}
+							basicGasEstimates={basicGasEstimates}
+							gas={transaction.gas}
+							gasPrice={transaction.gasPrice}
+							gasError={gasError}
+							mode={mode}
+						/>
+					</AnimatedTransactionModal>
+				</KeyboardAwareScrollView>
+			</Modal>
 		);
 	};
 }
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	identities: state.engine.backgroundState.PreferencesController.identities,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	primaryCurrency: state.settings.primaryCurrency,
-	activeTabUrl: getActiveTabUrl(state)
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
-	showAlert: config => dispatch(showAlert(config))
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
 });
 
 export default connect(
