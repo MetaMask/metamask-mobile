@@ -42,7 +42,17 @@ export default class Logger {
 		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		let exception = error.error || error.message || error.originalError || error;
 		if (!(error instanceof Error)) {
-			exception = new Error('error to capture is not an error instance');
+			const type = typeof error;
+			switch (type) {
+				case 'string':
+					exception = new Error(error);
+					break;
+				case 'object':
+					exception = new Error(JSON.stringify(error));
+					break;
+				default:
+					exception = new Error('error to capture is not an error instance');
+			}
 			exception.originalError = error;
 		}
 		if (__DEV__) {
