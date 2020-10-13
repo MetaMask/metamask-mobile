@@ -26,8 +26,22 @@ const getBalance = async (address, ethQuery) =>
 		});
 	});
 
+const updateIdentities = async accounts => {
+	const { KeyringController, PreferencesController } = Engine.context;
+	const newAccounts = await KeyringController.getAccounts();
+	PreferencesController.updateIdentities(newAccounts);
+	newAccounts.forEach(selectedAddress => {
+		if (!accounts.includes(selectedAddress)) {
+			PreferencesController.update({ selectedAddress });
+		}
+	});
+
+	// setSelectedAddress to the initial account
+	PreferencesController.setSelectedAddress(accounts[0]);
+};
+
 export default async () => {
-	const { KeyringController, NetworkController, PreferencesController } = Engine.context;
+	const { KeyringController, NetworkController } = Engine.context;
 	const { provider } = NetworkController;
 
 	const ethQuery = new EthQuery(provider);
@@ -49,14 +63,5 @@ export default async () => {
 		i++;
 	}
 
-	const newAccounts = await KeyringController.getAccounts();
-	PreferencesController.updateIdentities(newAccounts);
-	newAccounts.forEach(selectedAddress => {
-		if (!accounts.includes(selectedAddress)) {
-			PreferencesController.update({ selectedAddress });
-		}
-	});
-
-	// setSelectedAddress to the initial account
-	PreferencesController.setSelectedAddress(accounts[0]);
+	updateIdentities(accounts);
 };
