@@ -1325,5 +1325,22 @@
 		"text": "Don’t risk losing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
 		"text_bold": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
 		"action": "Learn more"
+	},
+	"error_screen": {
+		"title": "An error occured",
+		"subtitle": "Your information can't be shown. Don’t worry, your wallet and funds are safe.",
+		"try_again_button": "Try again",
+		"submit_ticket_1": "Please report this issue so we can fix it:",
+		"submit_ticket_2": "Take a screenshot of this screen.",
+		"submit_ticket_3": "Copy",
+		"submit_ticket_4": "the error message to clipboard.",
+		"submit_ticket_5": "Submit a ticket",
+		"submit_ticket_6": "here.",
+		"submit_ticket_7": "Please include the error message and the screenshot.",
+		"save_seedphrase_1": "If this error persists,",
+		"save_seedphrase_2": "save your seed phrase",
+		"save_seedphrase_3": "& re-install the app. Note: you can NOT restore your wallet without your seed phrase.",
+		"copied_clipboard": "Copied to clipboard",
+		"ok": "OK"
 	}
 }
