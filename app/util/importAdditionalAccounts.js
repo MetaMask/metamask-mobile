@@ -26,6 +26,10 @@ const getBalance = async (address, ethQuery) =>
 		});
 	});
 
+/**
+ * Updates identities in the preferences controllers
+ * @param {array} accounts - an array of addresses
+ */
 const updateIdentities = async accounts => {
 	const { KeyringController, PreferencesController } = Engine.context;
 	const newAccounts = await KeyringController.getAccounts();
@@ -40,6 +44,9 @@ const updateIdentities = async accounts => {
 	PreferencesController.setSelectedAddress(accounts[0]);
 };
 
+/**
+ * Add additional accounts in the wallet based on balance
+ */
 export default async () => {
 	const { KeyringController, NetworkController } = Engine.context;
 	const { provider } = NetworkController;
