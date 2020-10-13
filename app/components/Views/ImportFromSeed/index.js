@@ -265,7 +265,6 @@ class ImportFromSeed extends PureComponent {
 				await Engine.resetState();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
-				await importAdditionalAccounts();
 
 				if (this.state.biometryType && this.state.biometryChoice) {
 					const authOptions = {
@@ -316,6 +315,7 @@ class ImportFromSeed extends PureComponent {
 						NavigationActions.navigate({ routeName: 'WalletView' })
 					);
 				}
+				await importAdditionalAccounts();
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {

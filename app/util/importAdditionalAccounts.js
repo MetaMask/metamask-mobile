@@ -43,11 +43,19 @@ export default async () => {
 	// seek out the first zero balance
 	while (lastBalance !== ZERO_BALANCE) {
 		if (i === MAX) break;
-		await KeyringController.addNewAccount(primaryKeyring);
+		await KeyringController.addNewAccountWithoutUpdate(primaryKeyring);
 		accounts = await KeyringController.getAccounts();
 		lastBalance = await getBalance(accounts[accounts.length - 1], ethQuery);
 		i++;
 	}
+
+	const newAccounts = await KeyringController.getAccounts();
+	PreferencesController.updateIdentities(newAccounts);
+	newAccounts.forEach(selectedAddress => {
+		if (!accounts.includes(selectedAddress)) {
+			PreferencesController.update({ selectedAddress });
+		}
+	});
 
 	// setSelectedAddress to the initial account
 	PreferencesController.setSelectedAddress(accounts[0]);
