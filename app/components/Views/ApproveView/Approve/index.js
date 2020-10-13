@@ -715,7 +715,7 @@ class Approve extends PureComponent {
 		const {
 			transaction: { origin }
 		} = this.props;
-
+		console.log('transaction approve', this.props.transaction);
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
 		const currencySymbol = currencySymbols[currentCurrency];
 		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;

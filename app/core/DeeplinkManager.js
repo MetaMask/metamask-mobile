@@ -9,6 +9,7 @@ import AppConstants from './AppConstants';
 import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
 import { strings } from '../../locales/i18n';
+import { getNetworkTypeById } from '../util/networks';
 
 class DeeplinkManager {
 	constructor(_navigation) {
@@ -34,12 +35,17 @@ class DeeplinkManager {
 			// add approve transaction
 			const {
 				parameters: { address, uint256 },
-				target_address
+				target_address,
+				chain_id
 			} = ethUrl;
-			const { TransactionController } = Engine.context;
+			const { TransactionController, PreferencesController, NetworkController } = Engine.context;
+			if (chain_id) {
+				const newNetworkType = getNetworkTypeById(chain_id);
+				NetworkController.setProviderType(newNetworkType);
+			}
 			const txParams = {};
 			txParams.to = `${target_address}`;
-			txParams.from = `${address}`;
+			txParams.from = `${PreferencesController.state.selectedAddress}`;
 			txParams.value = '0x0';
 			txParams.data = generateApproveData({ spender: address, value: parseInt(uint256).toString(16) });
 			TransactionController.addTransaction(txParams, origin);
