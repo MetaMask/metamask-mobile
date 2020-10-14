@@ -19,6 +19,7 @@ import OnboardingWizard from '../../UI/OnboardingWizard';
 import { showTransactionNotification, hideTransactionNotification } from '../../../actions/notification';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
+import ErrorBoundary from '../ErrorBoundary';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -239,15 +240,17 @@ class Wallet extends PureComponent {
 	};
 
 	render = () => (
-		<View style={baseStyles.flexGrow} testID={'wallet-screen'}>
-			<ScrollView
-				style={styles.wrapper}
-				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-			>
-				{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}
-			</ScrollView>
-			{this.renderOnboardingWizard()}
-		</View>
+		<ErrorBoundary view="Wallet">
+			<View style={baseStyles.flexGrow} testID={'wallet-screen'}>
+				<ScrollView
+					style={styles.wrapper}
+					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+				>
+					{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}
+				</ScrollView>
+				{this.renderOnboardingWizard()}
+			</View>
+		</ErrorBoundary>
 	);
 }
 
