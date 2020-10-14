@@ -342,7 +342,7 @@ class CustomGas extends PureComponent {
 		const {
 			transaction: { from, value }
 		} = this.props;
-		const checksummedFrom = safeToChecksumAddress(from) || '';
+		const checksummedFrom = safeToChecksumAddress(from);
 		const fromAccount = this.props.accounts[checksummedFrom];
 		if (hexToBN(fromAccount.balance).lt(gas.mul(gasPrice).add(toBN(value))))
 			return strings('transaction.insufficient');
