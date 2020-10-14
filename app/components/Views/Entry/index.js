@@ -105,8 +105,8 @@ const Entry = props => {
 		viewToGo => {
 			setViewToGo(viewToGo);
 			if (Device.isAndroid()) {
-				animation ? animation.play(0, 25) : onAnimationFinished();
-				animationName && animationName.play();
+				animation && animation.current ? animation.current.play(0, 25) : onAnimationFinished();
+				animationName && animationName.current && animationName.current.play();
 			} else {
 				animation && animation.current && animation.current.play();
 				animation && animation.current && animationName.current.play();
@@ -205,21 +205,21 @@ const Entry = props => {
 
 Entry.propTypes = {
 	/**
-	 * The navigator object
-	 */
+	/* navigation object required to push new views
+	*/
 	navigation: PropTypes.object,
 	/**
-	 * Boolean flag that determines if password has been set
+	 * A string that represents the selected address
+	 */
+	selectedAddress: PropTypes.string,
+	/**
+	 * Boolean that determines if the user has set a password before
 	 */
 	passwordSet: PropTypes.bool,
 	/**
-	 * Action to set onboarding wizard step
+	 * Dispatch set onboarding wizard step
 	 */
-	setOnboardingWizardStep: PropTypes.func,
-	/**
-	 * A string representing the selected address => account
-	 */
-	selectedAddress: PropTypes.string
+	setOnboardingWizardStep: PropTypes.func
 };
 
 const mapDispatchToProps = dispatch => ({
