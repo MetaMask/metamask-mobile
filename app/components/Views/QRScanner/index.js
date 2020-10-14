@@ -123,7 +123,7 @@ export default class QrScanner extends PureComponent {
 			}
 			this.mounted = false;
 			this.props.navigation.goBack();
-			this.props.navigation.state.params.onScanSuccess(data);
+			this.props.navigation.state.params.onScanSuccess(data, content);
 		}
 	};
 
