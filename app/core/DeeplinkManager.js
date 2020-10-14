@@ -16,7 +16,7 @@ class DeeplinkManager {
 		this.navigation = _navigation;
 	}
 
-	handleEthereumUrl(url, origin) {
+	async handleEthereumUrl(url, origin) {
 		let ethUrl = '';
 		try {
 			ethUrl = parse(url);
@@ -47,7 +47,8 @@ class DeeplinkManager {
 			txParams.to = `${target_address}`;
 			txParams.from = `${PreferencesController.state.selectedAddress}`;
 			txParams.value = '0x0';
-			txParams.data = generateApproveData({ spender: address, value: parseInt(uint256).toString(16) });
+			const value = Number(uint256);
+			txParams.data = generateApproveData({ spender: address, value });
 			TransactionController.addTransaction(txParams, origin);
 		}
 	}
