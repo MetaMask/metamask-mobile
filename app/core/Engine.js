@@ -33,7 +33,7 @@ import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 
 const OPENSEA_API_KEY = process.env.MM_OPENSEA_KEY;
-const MM_INFURA_KEY = process.env.MM_INFURA_KEY;
+const MM_INFURA_PROJECT_ID = process.env.MM_INFURA_PROJECT_ID;
 const encryptor = new Encryptor();
 let refreshing = false;
 /**
@@ -77,7 +77,7 @@ class Engine {
 					new MessageManager(),
 					new NetworkController(
 						{
-							infuraProjectId: MM_INFURA_KEY,
+							infuraProjectId: MM_INFURA_PROJECT_ID,
 							providerConfig: {
 								static: {
 									eth_sendTransaction: async (payload, next, end) => {
