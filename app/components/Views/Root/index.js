@@ -9,6 +9,8 @@ import SplashScreen from 'react-native-splash-screen';
 import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
+import Logger from '../../../util/Logger';
+import ErrorBoundary from '../ErrorBoundary';
 
 /**
  * Top level of the component hierarchy
@@ -23,6 +25,10 @@ export default class Root extends PureComponent {
 		foxCode: 'null'
 	};
 
+	errorHandler = (error, stackTrace) => {
+		Logger.error(error, stackTrace);
+	};
+
 	constructor(props) {
 		super(props);
 		SecureKeychain.init(props.foxCode);
@@ -34,7 +40,9 @@ export default class Root extends PureComponent {
 	render = () => (
 		<Provider store={store}>
 			<PersistGate persistor={persistor}>
-				<App />
+				<ErrorBoundary onError={this.errorHandler} view="Root">
+					<App />
+				</ErrorBoundary>
 			</PersistGate>
 		</Provider>
 	);
