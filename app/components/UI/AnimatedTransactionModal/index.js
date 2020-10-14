@@ -49,9 +49,6 @@ class AnimatedTransactionModal extends PureComponent {
 		originComponent: React.Children.toArray(this.props.children).length > 1 ? 'dapp' : 'wallet',
 		modalValue:
 			React.Children.toArray(this.props.children).length > 1 ? new Animated.Value(1) : new Animated.Value(0),
-		reviewToEditValue: new Animated.Value(0),
-		reviewToDataValue: new Animated.Value(0),
-		editToAdvancedValue: new Animated.Value(0),
 		width: Device.getDeviceWidth(),
 		rootHeight: null,
 		customGasHeight: null,
@@ -63,10 +60,14 @@ class AnimatedTransactionModal extends PureComponent {
 		mode: 'review'
 	};
 
+	reviewToEditValue = new Animated.Value(0);
+	reviewToDataValue = new Animated.Value(0);
+	editToAdvancedValue = new Animated.Value(0);
+
 	xTranslationMappings = {
-		reviewToEdit: this.state.reviewToEditValue,
-		editToAdvanced: this.state.editToAdvancedValue,
-		reviewToData: this.state.reviewToDataValue
+		reviewToEdit: this.reviewToEditValue,
+		editToAdvanced: this.editToAdvancedValue,
+		reviewToData: this.reviewToDataValue
 	};
 
 	review = () => {
@@ -133,7 +134,7 @@ class AnimatedTransactionModal extends PureComponent {
 	};
 
 	generateTransform = (valueType, outRange) => {
-		const { modalValue, reviewToEditValue, editToAdvancedValue, reviewToDataValue } = this.state;
+		const { modalValue } = this.state;
 		if (valueType === 'modal' || valueType === 'saveButton') {
 			return {
 				transform: [
@@ -147,9 +148,9 @@ class AnimatedTransactionModal extends PureComponent {
 			};
 		}
 		let value;
-		if (valueType === 'reviewToEdit') value = reviewToEditValue;
-		else if (valueType === 'editToAdvanced') value = editToAdvancedValue;
-		else if (valueType === 'reviewToData') value = reviewToDataValue;
+		if (valueType === 'reviewToEdit') value = this.reviewToEditValue;
+		else if (valueType === 'editToAdvanced') value = this.editToAdvancedValue;
+		else if (valueType === 'reviewToData') value = this.reviewToDataValue;
 		return {
 			transform: [
 				{
