@@ -689,7 +689,7 @@ export function getOfflineModalNavbar(navigation) {
 export function getWalletNavbarOptions(title, navigation) {
 	const onScanSuccess = data => {
 		if (data.target_address) {
-			if (data?.parameters?.value) {
+			if (data?.parameters?.value || data?.function_name === 'transfer') {
 				navigation.navigate('SendView', { txMeta: data });
 			} else {
 				navigation.navigate('SendFlowView', { txMeta: data });
