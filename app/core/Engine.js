@@ -218,7 +218,7 @@ class Engine {
 			}
 			await AsyncStorage.setItem(LAST_INCOMING_TX_BLOCK_INFO, JSON.stringify(allLastIncomingTxBlocks));
 		} catch (e) {
-			Logger.log('Error while fetching all txs', e);
+			// Logger.log('Error while fetching all txs', e);
 		}
 	};
 

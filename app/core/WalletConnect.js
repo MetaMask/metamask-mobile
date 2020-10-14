@@ -69,7 +69,7 @@ class WalletConnect {
 					autosign: this.autosign
 				};
 
-				Logger.log('requesting session with', sessionData);
+				Logger.log('WC:', sessionData);
 
 				await waitForInitialization();
 				await this.sessionRequest(sessionData);

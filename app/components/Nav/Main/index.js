@@ -675,14 +675,8 @@ const Main = props => {
 			PaymentChannelsClient.stop();
 			removeConnectionStatusListener.current && removeConnectionStatusListener.current();
 		};
-	}, [
-		connectionChangeHandler,
-		handleAppStateChange,
-		initializePaymentChannels,
-		onUnapprovedTransaction,
-		pollForIncomingTransactions,
-		props
-	]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	return (
 		<React.Fragment>

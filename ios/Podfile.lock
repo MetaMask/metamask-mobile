@@ -1,8 +1,6 @@
 PODS:
   - boost-for-react-native (1.63.0)
-  - Branch (0.32.0):
-    - Branch/Core (= 0.32.0)
-  - Branch/Core (0.32.0)
+  - Branch (0.35.0)
   - CocoaAsyncSocket (7.6.4)
   - CocoaLibEvent (1.0.0)
   - DoubleConversion (1.1.6)
@@ -257,8 +255,8 @@ PODS:
     - React
   - react-native-blur (0.8.0):
     - React
-  - react-native-branch (5.0.0-beta.1):
-    - Branch (= 0.32.0)
+  - react-native-branch (5.0.0):
+    - Branch (= 0.35.0)
     - React
   - react-native-camera (3.36.0):
     - React
@@ -606,7 +604,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
-  Branch: 770a23c04d3f5410cf9231db099a444dd3060784
+  Branch: 9a37f707974a128c37829033c49018b79c7e7a2d
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
   DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
@@ -637,7 +635,7 @@ SPEC CHECKSUMS:
   react-native-aes: ff31f0dd4c791eb423a631ee04570fcf3c618924
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
   react-native-blur: cad4d93b364f91e7b7931b3fa935455487e5c33c
-  react-native-branch: ed90b087f2ff6a2f81643ead0b321531877f2e69
+  react-native-branch: 8bda99ca8dc5a16d32bd81c8a8d937cb3d2c5e0c
   react-native-camera: 8016138a8348b889e22c95b23f668a234f124335
   react-native-netinfo: 0e563248a4b9a99c33ec29bd03c2d50767db22a6
   react-native-randombytes: 3638d24759d67c68f6ccba60c52a7a8a8faa6a23

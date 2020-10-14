@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, InteractionManager } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, InteractionManager, AppState } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
@@ -323,6 +323,7 @@ class Approve extends PureComponent {
 		const approveAmount = fromTokenMinimalUnit(hexToBN(originalApproveAmount), tokenDecimals);
 		const totalGas = gas.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
+		AppState.addEventListener('change', this.handleAppStateChange);
 
 		this.setState({
 			host,
@@ -339,6 +340,15 @@ class Approve extends PureComponent {
 		const { approved } = this.state;
 		const { transaction } = this.props;
 		if (!approved) Engine.context.TransactionController.cancelTransaction(transaction.id);
+		AppState.removeEventListener('change', this.handleAppStateChange);
+	};
+
+	handleAppStateChange = appState => {
+		if (appState !== 'active') {
+			const { transaction } = this.props;
+			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
+			this.props.toggleApproveModal();
+		}
 	};
 
 	trackApproveEvent = event => {
