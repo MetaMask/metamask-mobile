@@ -46,9 +46,9 @@ class AnimatedTransactionModal extends PureComponent {
 	};
 
 	state = {
-		originComponent: React.Children.toArray(this.props.children).length > 1 ? 'dapp' : 'wallet',
+		originComponent: React.Children.toArray(this.props?.children).length > 1 ? 'dapp' : 'wallet',
 		modalValue:
-			React.Children.toArray(this.props.children).length > 1 ? new Animated.Value(1) : new Animated.Value(0),
+			React.Children.toArray(this.props?.children).length > 1 ? new Animated.Value(1) : new Animated.Value(0),
 		width: Device.getDeviceWidth(),
 		rootHeight: null,
 		customGasHeight: null,
