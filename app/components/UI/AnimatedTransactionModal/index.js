@@ -183,63 +183,60 @@ class AnimatedTransactionModal extends PureComponent {
 		return rootHeight - customGasHeight;
 	};
 
-	renderDappTransactionInterface = () => {
-		const { width, hideData, customGasHeight, advancedCustomGas, hideGasSelectors, toAdvancedFrom } = this.state;
+	render = () => {
+		const {
+			width,
+			hideData,
+			originComponent,
+			customGasHeight,
+			advancedCustomGas,
+			hideGasSelectors,
+			toAdvancedFrom
+		} = this.state;
 		const { ready, children } = this.props;
 		const components = React.Children.toArray(children);
+		let gasTransformStyle;
+		let modalTransformStyle;
+		let gasComponent;
+		if (originComponent === 'dapp') {
+			gasTransformStyle = this.generateTransform('reviewToEdit', [width, 0]);
+			modalTransformStyle = this.generateTransform('modal', [this.getTransformValue(), 0]);
+			gasComponent = components[1];
+		} else {
+			gasTransformStyle = this.generateTransform('reviewToEdit', [0, -width]);
+			modalTransformStyle = this.generateTransform('modal', [70, 0]);
+			gasComponent = components[0];
+		}
+
 		return (
 			<Animated.View
-				style={[styles.root, this.generateTransform('modal', [this.getTransformValue(), 0])]}
+				style={[
+					styles.root,
+					modalTransformStyle,
+					originComponent === 'wallet' && { height: customGasHeight + 70 }
+				]}
 				onLayout={this.saveRootHeight}
 			>
-				<Animated.View style={[this.generateTransform('reviewToEdit', [0, -width]), styles.transactionReview]}>
-					{React.cloneElement(components[0], {
-						...components[0].props,
-						customGasHeight,
-						hideData,
-						generateTransform: this.generateTransform,
-						animate: this.animate,
-						saveTransactionReviewDataHeight: this.saveTransactionReviewDataHeight,
-						onModeChange: this.onModeChange
-					})}
-				</Animated.View>
-
-				{ready && (
-					<Animated.View style={[styles.transactionEdit, this.generateTransform('reviewToEdit', [width, 0])]}>
-						{React.cloneElement(components[1], {
-							...components[1].props,
-							advancedCustomGas,
-							hideGasSelectors,
-							toAdvancedFrom,
-							onModeChange: this.onModeChange,
-							toggleAdvancedCustomGas: this.toggleAdvancedCustomGas,
-							saveCustomGasHeight: this.saveCustomGasHeight,
-							animate: this.animate,
-							generateTransform: this.generateTransform,
-							getAnimatedModalValueForAdvancedCG: this.getAnimatedModalValueForAdvancedCG,
-							review: this.review
-						})}
-					</Animated.View>
-				)}
-			</Animated.View>
-		);
-	};
-
-	renderWalletTransactionInterface = () => {
-		const { width, advancedCustomGas, hideGasSelectors, toAdvancedFrom, customGasHeight } = this.state;
-		const { ready, children } = this.props;
-		const customGasComponent = React.Children.toArray(children)[0];
-
-		return (
-			<Animated.View
-				style={[styles.root, this.generateTransform('modal', [70, 0]), { height: customGasHeight + 70 }]}
-			>
-				{ready && (
+				{originComponent === 'dapp' && (
 					<Animated.View
-						style={[styles.transactionEdit, this.generateTransform('reviewToEdit', [0, -width])]}
+						style={[this.generateTransform('reviewToEdit', [0, -width]), styles.transactionReview]}
 					>
-						{React.cloneElement(customGasComponent, {
-							...customGasComponent.props,
+						{React.cloneElement(components[0], {
+							...components[0].props,
+							customGasHeight,
+							hideData,
+							generateTransform: this.generateTransform,
+							animate: this.animate,
+							saveTransactionReviewDataHeight: this.saveTransactionReviewDataHeight,
+							onModeChange: this.onModeChange
+						})}
+					</Animated.View>
+				)}
+
+				{ready && (
+					<Animated.View style={[styles.transactionEdit, gasTransformStyle]}>
+						{React.cloneElement(gasComponent, {
+							...gasComponent.props,
 							advancedCustomGas,
 							hideGasSelectors,
 							toAdvancedFrom,
@@ -255,14 +252,6 @@ class AnimatedTransactionModal extends PureComponent {
 				)}
 			</Animated.View>
 		);
-	};
-
-	render = () => {
-		const interfaceType =
-			this.state.originComponent === 'dapp'
-				? this.renderDappTransactionInterface()
-				: this.renderWalletTransactionInterface();
-		return interfaceType;
 	};
 }
 
