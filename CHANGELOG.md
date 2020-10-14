@@ -2,6 +2,9 @@
 
 ## Current Develop Branch
 
+## v1.0.4 - Oct 9 2020
+- [#1882](https://github.com/MetaMask/metamask-mobile/pull/1882): Error boundary (#1882)
+
 ## v1.0.3 - Sept 30 2020
 - [#1865](https://github.com/MetaMask/metamask-mobile/pull/1865): bugfix/login (#1865)
 - [#1863](https://github.com/MetaMask/metamask-mobile/pull/1863): transak countries update (#1863)
