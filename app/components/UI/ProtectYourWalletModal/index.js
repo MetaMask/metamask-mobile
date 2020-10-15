@@ -90,7 +90,7 @@ class ProtectYourWalletModal extends PureComponent {
 				confirmButtonMode={'transparent-blue'}
 				verticalButtons
 			>
-				<View style={styles.wrapper}>
+				<View style={styles.wrapper} testID={'protect-wallet-modal'}>
 					<View style={styles.titleWrapper}>
 						<Text style={styles.title}>{strings('protect_wallet_modal.title')}</Text>
 

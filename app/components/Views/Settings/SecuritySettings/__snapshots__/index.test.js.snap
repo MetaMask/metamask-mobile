@@ -122,6 +122,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Switch
           ios_backgroundColor="#f2f3f4"
           onValueChange={[Function]}
+          testID="metametrics-switch"
           trackColor={
             Object {
               "false": "#f2f3f4",
@@ -138,6 +139,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
+      testID="third-party-section"
     >
       <Text
         style={
@@ -306,6 +308,62 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Clear browser cookies
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Choose this option to clear your browser's cookies.
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        Clear browser cookies
+      </StyledButton>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
       testID="auto-lock-section"
     >
       <Text
@@ -402,6 +460,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
+      testID="reveal-private-key-section"
     >
       <Text
         style={
@@ -623,6 +682,59 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         >
           We are about to remove all your browser history. Are you sure?
+        </Text>
+      </View>
+    </ActionModal>
+    <ActionModal
+      cancelButtonMode="neutral"
+      cancelTestID=""
+      cancelText="Cancel"
+      confirmButtonMode="warning"
+      confirmDisabled={false}
+      confirmTestID=""
+      confirmText="CLEAR"
+      displayCancelButton={true}
+      displayConfirmButton={true}
+      modalVisible={false}
+      onCancelPress={[Function]}
+      onConfirmPress={[Function]}
+      onRequestClose={[Function]}
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "column",
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 22,
+              "fontWeight": "600",
+              "marginBottom": 20,
+              "textAlign": "center",
+            }
+          }
+        >
+          Clear Browser Cookies
+        </Text>
+        <Text
+          style={
+            Object {
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 18,
+              "fontWeight": "400",
+              "textAlign": "center",
+            }
+          }
+        >
+          We are about to remove your browser's cookies. Are you sure?
         </Text>
       </View>
     </ActionModal>

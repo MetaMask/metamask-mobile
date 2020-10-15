@@ -726,10 +726,11 @@ class TransactionEditor extends PureComponent {
 			hideData,
 			customGasHeight
 		} = this.state;
+		const paymentChannelTransaction = transaction ? transaction.paymentChannelTransaction : false;
 		return (
 			<React.Fragment>
-				{mode === EDIT && transaction.paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
-				{!transaction.paymentChannelTransaction && (
+				{mode === EDIT && paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
+				{!paymentChannelTransaction && (
 					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 						<Animated.View
 							style={[styles.root, this.generateTransform('modal', [this.getTransformValue(), 0])]}

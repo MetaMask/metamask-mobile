@@ -1,6 +1,35 @@
 # Changelog
 
 ## Current Develop Branch
+
+## v1.0.4 - Oct 9 2020
+- [#1882](https://github.com/MetaMask/metamask-mobile/pull/1882): Error boundary (#1882)
+
+## v1.0.3 - Sept 30 2020
+- [#1865](https://github.com/MetaMask/metamask-mobile/pull/1865): bugfix/login (#1865)
+- [#1863](https://github.com/MetaMask/metamask-mobile/pull/1863): transak countries update (#1863)
+- [#1829](https://github.com/MetaMask/metamask-mobile/pull/1829): Improvement/browser refactor (#1829)
+- [#1848](https://github.com/MetaMask/metamask-mobile/pull/1848): Allow for 24 length seedphrase on import (#1848)
+- [#1857](https://github.com/MetaMask/metamask-mobile/pull/1857): bugfix/splash screen (#1857)
+- [#1852](https://github.com/MetaMask/metamask-mobile/pull/1852): Bugfix/sentry v1 (#1852)
+- [#1846](https://github.com/MetaMask/metamask-mobile/pull/1846): Amount: fix 'data' value for transaction info not being populated with ERC20 tokens (#1846)
+- [#1851](https://github.com/MetaMask/metamask-mobile/pull/1851): Detox/ Update e2e based on v1 updates (#1851)
+- [#1853](https://github.com/MetaMask/metamask-mobile/pull/1853): fixed typo on country name (#1853)
+- [#1815](https://github.com/MetaMask/metamask-mobile/pull/1815): Add ScrollView so we can scroll to errorMessage (#1815)
+- [#1752](https://github.com/MetaMask/metamask-mobile/pull/1752): Send caught errors to sentry (#1752)
+- [#1794](https://github.com/MetaMask/metamask-mobile/pull/1794): Feature/hide seedphrase on import (#1794)
+- [#1841](https://github.com/MetaMask/metamask-mobile/pull/1841): Fixing typo in onboarding flow (#1841)
+- [#1845](https://github.com/MetaMask/metamask-mobile/pull/1845): Share address from sidebar (#1845)
+- [#1835](https://github.com/MetaMask/metamask-mobile/pull/1835): UI/CustomGas: fix inconsistent low gas error (#1835)
+- [#1758](https://github.com/MetaMask/metamask-mobile/pull/1758): Fix wallet_scanQRCode rpc method (#1758)
+- [#1831](https://github.com/MetaMask/metamask-mobile/pull/1831): Get paste context working for password fields (onboarding) (#1831)
+- [#1837](https://github.com/MetaMask/metamask-mobile/pull/1837): Add gms:play-services-wallet (#1837)
+- [#1830](https://github.com/MetaMask/metamask-mobile/pull/1830): Use FlatList for scan steps modal (#1830)
+- [#1797](https://github.com/MetaMask/metamask-mobile/pull/1797): Bugfixes/post v1 aug 2020 (#1797)
+- [#1801](https://github.com/MetaMask/metamask-mobile/pull/1801): Update gradle (#1801)
+- [#1757](https://github.com/MetaMask/metamask-mobile/pull/1757): Add option to use Blockies Identicon and use Jazz Icons as default (#1757)
+- [#1816](https://github.com/MetaMask/metamask-mobile/pull/1816): Update about to inclue "Contact Us" link (#1816)
+- [#1775](https://github.com/MetaMask/metamask-mobile/pull/1775): WalletConnect: fix WC not respecting gas limit (#1775)
 - [#1800](https://github.com/MetaMask/metamask-mobile/pull/1800): Feature/improve nav browser title (#1800)
 - [#1781](https://github.com/MetaMask/metamask-mobile/pull/1781): Bugfix/Use translations for steps (#1781)
 - [#1759](https://github.com/MetaMask/metamask-mobile/pull/1759): Bugfix/Display correct balance from state when creating an account that already holds funds (#1759)

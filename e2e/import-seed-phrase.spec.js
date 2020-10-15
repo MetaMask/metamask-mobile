@@ -1,13 +1,18 @@
 'use strict';
 import TestHelpers from './helpers';
+import { strings } from '../locales/i18n';
+
+// use i18n for these
+// this way if the strings ever change the tests will not break :)
+const Incorrect_Password_Length = strings('import_from_seed.password_length_error');
+const Invalid_Seed_Error = strings('import_from_seed.invalid_seed_phrase');
+const Password_Warning = strings('reveal_credential.unknown_error');
 
 const Incorrect_Seed_Words = 'fold media south add since false relax immense pause cloth just falcon';
 const Correct_Seed_Words = 'fold media south add since false relax immense pause cloth just raven';
-const Incorrect_Password_Length = 'The password needs to be at least 8 characters long';
-const Invalid_Seed_Error = `Error: Seed phrase is invalid.`;
 const Correct_Password = `12345678`;
 const Incorrect_Password = `1234567`;
-const Password_Warning = "Couldn't unlock your account. Please try again.";
+const Incorrect_Password2 = `12345679`;
 
 describe('Import seedphrase flow', () => {
 	beforeEach(() => {
@@ -21,13 +26,9 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.waitAndTap('onboarding-get-started-button');
 		// Check that we are on the onboarding screen
 		await TestHelpers.checkIfVisible('onboarding-screen');
-		// Check that Sync or import your wallet CTA is visible & tap it
-		await TestHelpers.waitAndTap('onboarding-import-button');
-		// Check that we are on the import wallet screen
-		await TestHelpers.checkIfVisible('import-wallet-screen');
 		// Check that Import using seed phrase CTA is visible & tap it
 		await TestHelpers.waitAndTap('import-wallet-import-from-seed-button');
-		// Check that we are on the import from seed screen
+		// Check that we are on the import wallet screen
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input incorrect seed phrase
 		if (device.getPlatform() === 'android') {
@@ -41,15 +42,9 @@ describe('Import seedphrase flow', () => {
 		// Input short password confirm
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Incorrect_Password);
 		// ensure alert box is displayed with correct text
-		await TestHelpers.checkIfElementByTextIsVisible(Incorrect_Password_Length);
+		await TestHelpers.checkIfElementByTextIsVisible(Invalid_Seed_Error);
 		// dismiss alert by tapping ok
 		await TestHelpers.tapAlertWithButton('OK');
-		// Input password
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
-		// Input password confirm
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
-		// Ensure error is displayed
-		await TestHelpers.checkIfHasText('invalid-seed-phrase', Invalid_Seed_Error);
 		// Clear field content
 		await TestHelpers.clearField('input-seed-phrase');
 		// Input correct seed phrase
@@ -59,19 +54,15 @@ describe('Import seedphrase flow', () => {
 		} else {
 			await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Correct_Seed_Words);
 		}
-
-		// Input Correct password and Submit
-		if (device.getPlatform() === 'android') {
-			// Input password
-			await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
-			// Input password confirm
-			await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
-		} else {
-			await TestHelpers.tapAtPoint('import-from-seed-screen', { x: 40, y: 20 });
-			// Tap import to continue
-			await TestHelpers.waitAndTap('submit');
-		}
-
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Incorrect_Password);
+		// Input short password confirm
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Incorrect_Password);
+		await TestHelpers.checkIfElementByTextIsVisible(Incorrect_Password_Length);
+		await TestHelpers.tapAlertWithButton('OK');
+		// Input password
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
+		// Input password confirm
+		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
@@ -95,13 +86,15 @@ describe('Import seedphrase flow', () => {
 
 		// Scroll to the bottom
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.swipe('clear-privacy-section', 'up');
+			await TestHelpers.swipe('third-party-section', 'up');
 			TestHelpers.delay(1000);
-			await TestHelpers.swipe('clear-privacy-section', 'up');
+			await TestHelpers.swipe('third-party-section', 'up');
 			TestHelpers.delay(1000);
 			await TestHelpers.swipe('clear-privacy-section', 'up');
 			TestHelpers.delay(1000);
 			await TestHelpers.swipe('auto-lock-section', 'up');
+			TestHelpers.delay(1000);
+			await TestHelpers.swipe('reveal-private-key-section', 'up');
 			TestHelpers.delay(1000);
 		} else {
 			await TestHelpers.swipe('clear-privacy-section', 'up');
@@ -132,13 +125,12 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.relaunchApp();
 		// Check that we are on login screen
 		await TestHelpers.checkIfVisible('login');
-		// Tap on log in button
-		await TestHelpers.tap('log-in-button');
-		// Check that the invalid error is displayed
+		// Fail login attempt
+		await TestHelpers.typeTextAndHideKeyboard('login-password-input', Incorrect_Password2);
 		await TestHelpers.checkIfVisible('invalid-password-error');
-		// Log in
+		// Login
 		await TestHelpers.typeTextAndHideKeyboard('login-password-input', Correct_Password);
-		// Check that we are on the Browser page
-		await TestHelpers.checkIfVisible('browser-screen');
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
 	});
 });

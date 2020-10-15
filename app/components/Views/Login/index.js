@@ -29,6 +29,8 @@ import {
 	TRUE,
 	ORIGINAL
 } from '../../../constants/storage';
+import { passwordRequirementsMet } from '../../../util/password';
+import ErrorBoundary from '../ErrorBoundary';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -78,7 +80,8 @@ const styles = StyleSheet.create({
 	},
 	errorMsg: {
 		color: colors.red,
-		...fontStyles.normal
+		...fontStyles.normal,
+		lineHeight: 20
 	},
 	goBack: {
 		color: colors.fontSecondary,
@@ -184,9 +187,12 @@ class Login extends PureComponent {
 	}
 
 	onLogin = async () => {
-		if (this.state.loading) return;
+		const { password } = this.state;
+		const locked = !passwordRequirementsMet(password);
+		if (locked) this.setState({ error: strings('login.invalid_password') });
+		if (this.state.loading || locked) return;
 		try {
-			this.setState({ loading: true });
+			this.setState({ loading: true, error: null });
 			const { KeyringController } = Engine.context;
 
 			// Restore vault with user entered password
@@ -235,7 +241,7 @@ class Login extends PureComponent {
 				this.props.navigation.navigate('HomeNav');
 			} else {
 				this.props.setOnboardingWizardStep(1);
-				this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+				this.props.navigation.navigate('HomeNav');
 			}
 			this.setState({ loading: false });
 		} catch (e) {
@@ -330,78 +336,80 @@ class Login extends PureComponent {
 	};
 
 	render = () => (
-		<SafeAreaView style={styles.mainWrapper}>
-			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-				<View testID={'login'}>
-					<View style={styles.foxWrapper}>
-						{Device.isAndroid() ? (
-							<Image
-								source={require('../../../images/fox.png')}
-								style={styles.image}
-								resizeMethod={'auto'}
-							/>
-						) : (
-							<AnimatedFox />
-						)}
-					</View>
-					<Text style={styles.title}>{strings('login.title')}</Text>
-					<View style={styles.field}>
-						<Text style={styles.label}>{strings('login.password')}</Text>
-						<OutlinedTextField
-							placeholder={'Password'}
-							testID={'login-password-input'}
-							returnKeyType={'done'}
-							autoCapitalize="none"
-							secureTextEntry
-							ref={this.fieldRef}
-							onChangeText={this.setPassword}
-							value={this.state.password}
-							baseColor={colors.grey500}
-							tintColor={colors.blue}
-							onSubmitEditing={this.onLogin}
-							renderRightAccessory={() => (
-								<BiometryButton
-									onPress={this.tryBiometric}
-									hidden={
-										!(
-											this.state.biometryChoice &&
-											this.state.biometryType &&
-											this.state.hasCredentials
-										)
-									}
-									type={this.state.biometryType}
+		<ErrorBoundary view="Login">
+			<SafeAreaView style={styles.mainWrapper}>
+				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
+					<View testID={'login'}>
+						<View style={styles.foxWrapper}>
+							{Device.isAndroid() ? (
+								<Image
+									source={require('../../../images/fox.png')}
+									style={styles.image}
+									resizeMethod={'auto'}
 								/>
-							)}
-						/>
-					</View>
-
-					{this.renderSwitch()}
-
-					{!!this.state.error && (
-						<Text style={styles.errorMsg} testID={'invalid-password-error'}>
-							{this.state.error}
-						</Text>
-					)}
-
-					<View style={styles.ctaWrapper} testID={'log-in-button'}>
-						<StyledButton type={'confirm'} onPress={this.onLogin}>
-							{this.state.loading ? (
-								<ActivityIndicator size="small" color="white" />
 							) : (
-								strings('login.login_button')
+								<AnimatedFox />
 							)}
-						</StyledButton>
-					</View>
+						</View>
+						<Text style={styles.title}>{strings('login.title')}</Text>
+						<View style={styles.field}>
+							<Text style={styles.label}>{strings('login.password')}</Text>
+							<OutlinedTextField
+								placeholder={'Password'}
+								testID={'login-password-input'}
+								returnKeyType={'done'}
+								autoCapitalize="none"
+								secureTextEntry
+								ref={this.fieldRef}
+								onChangeText={this.setPassword}
+								value={this.state.password}
+								baseColor={colors.grey500}
+								tintColor={colors.blue}
+								onSubmitEditing={this.onLogin}
+								renderRightAccessory={() => (
+									<BiometryButton
+										onPress={this.tryBiometric}
+										hidden={
+											!(
+												this.state.biometryChoice &&
+												this.state.biometryType &&
+												this.state.hasCredentials
+											)
+										}
+										type={this.state.biometryType}
+									/>
+								)}
+							/>
+						</View>
 
-					<View style={styles.footer}>
-						<Button style={styles.goBack} onPress={this.onPressGoBack}>
-							{strings('login.go_back')}
-						</Button>
+						{this.renderSwitch()}
+
+						{!!this.state.error && (
+							<Text style={styles.errorMsg} testID={'invalid-password-error'}>
+								{this.state.error}
+							</Text>
+						)}
+
+						<View style={styles.ctaWrapper} testID={'log-in-button'}>
+							<StyledButton type={'confirm'} onPress={this.onLogin}>
+								{this.state.loading ? (
+									<ActivityIndicator size="small" color="white" />
+								) : (
+									strings('login.login_button')
+								)}
+							</StyledButton>
+						</View>
+
+						<View style={styles.footer}>
+							<Button style={styles.goBack} onPress={this.onPressGoBack}>
+								{strings('login.go_back')}
+							</Button>
+						</View>
 					</View>
-				</View>
-			</KeyboardAwareScrollView>
-			<FadeOutOverlay />
-		</SafeAreaView>
+				</KeyboardAwareScrollView>
+				<FadeOutOverlay />
+			</SafeAreaView>
+		</ErrorBoundary>
 	);
 }
 

@@ -17,11 +17,25 @@ const getWindowInformation = `
 `;
 
 const getWebviewUrl = `
+	const __getFavicon = function(){
+		let favicon = undefined;
+		const nodeList = document.getElementsByTagName("link");
+		for (let i = 0; i < nodeList.length; i++)
+		{
+			const rel = nodeList[i].getAttribute("rel")
+			if (rel === "icon" || rel === "shortcut icon")
+			{
+				favicon = nodeList[i]
+			}
+		}
+		return favicon && favicon.href
+	}
 	window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(
 		{
 			type: 'GET_WEBVIEW_URL',
 			payload: {
-				url: location.href
+				url: location.href,
+				icon: __getFavicon()
 			}
 		}
 	))
@@ -101,7 +115,10 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
 	}
 })()`;
 
-export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
+export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {})()`;
+/** Disable sending messages to iframes for now
+ *
+`(function () {
 	const iframes = document.getElementsByTagName('iframe');
 	for (let frame of iframes){
 
@@ -113,3 +130,4 @@ export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(functio
 
 	}
 })()`;
+ */

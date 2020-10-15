@@ -777,6 +777,7 @@ class Main extends PureComponent {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
 				{ text: strings('navigation.ok') }
 			]);
+			Logger.error(error, 'error while trying to send transaction (Main)');
 			this.setState({ transactionHandled: false });
 		}
 	};
@@ -850,7 +851,7 @@ class Main extends PureComponent {
 			}
 
 			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
-				this.props.toggleApproveModal();
+				!this.props.approveModalVisible && this.props.toggleApproveModal();
 			} else {
 				this.props.toggleDappTransactionModal();
 			}

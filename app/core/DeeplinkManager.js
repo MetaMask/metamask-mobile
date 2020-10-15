@@ -5,29 +5,52 @@ import qs from 'qs';
 import { InteractionManager, Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
-import PaymentChannelsClient from '../core/PaymentChannelsClient';
 import AppConstants from './AppConstants';
+import Engine from './Engine';
+import { generateApproveData } from '../util/transactions';
+import { strings } from '../../locales/i18n';
+import { getNetworkTypeById } from '../util/networks';
 
 class DeeplinkManager {
 	constructor(_navigation) {
 		this.navigation = _navigation;
 	}
 
-	handleEthereumUrl(url) {
-		let action;
-		const ethUrl = parse(url);
-		action = 'send-eth';
-		if (ethUrl.function_name === 'transfer') {
-			// Send erc20 token
-			action = 'send-token';
-		} else if (ethUrl.function_name) {
-			// Other smart contract interaction
-			// That involves txs
-			action = 'smart-contract-interaction';
+	async handleEthereumUrl(url, origin) {
+		let ethUrl = '';
+		try {
+			ethUrl = parse(url);
+		} catch (e) {
+			Alert.alert(strings('deeplink.invalid'), e.toString());
+			return;
 		}
-		this.navigation.navigate('SendView', {
-			txMeta: { ...ethUrl, action, source: url }
-		});
+
+		const functionName = ethUrl.function_name;
+
+		if (!functionName || functionName === 'transfer') {
+			this.navigation.navigate('SendView', {
+				txMeta: { ...ethUrl, action: !functionName ? 'send-eth' : 'send-token', source: url }
+			});
+		} else if (functionName === 'approve') {
+			// add approve transaction
+			const {
+				parameters: { address, uint256 },
+				target_address,
+				chain_id
+			} = ethUrl;
+			const { TransactionController, PreferencesController, NetworkController } = Engine.context;
+			if (chain_id) {
+				const newNetworkType = getNetworkTypeById(chain_id);
+				NetworkController.setProviderType(newNetworkType);
+			}
+			const txParams = {};
+			txParams.to = `${target_address}`;
+			txParams.from = `${PreferencesController.state.selectedAddress}`;
+			txParams.value = '0x0';
+			const value = Number(uint256).toString(16);
+			txParams.data = generateApproveData({ spender: address, value });
+			TransactionController.addTransaction(txParams, origin);
+		}
 	}
 
 	handleBrowserUrl(url, callback) {
@@ -43,22 +66,18 @@ class DeeplinkManager {
 		});
 	}
 
-	handlePaymentChannelsUrl(to, params) {
-		setTimeout(() => {
-			PaymentChannelsClient.hub.emit('payment::request', {
-				to,
-				...params
-			});
-		}, 1000);
-	}
-
-	parse(url, browserCallBack = null) {
+	parse(url, { browserCallBack, origin }) {
 		const urlObj = new URL(url);
 		let params;
 
 		if (urlObj.query.length) {
-			params = qs.parse(urlObj.query.substring(1));
+			try {
+				params = qs.parse(urlObj.query.substring(1));
+			} catch (e) {
+				Alert.alert(strings('deeplink.invalid'), e.toString());
+			}
 		}
+
 		const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
 
 		switch (urlObj.protocol.replace(':', '')) {
@@ -81,18 +100,23 @@ class DeeplinkManager {
 							break;
 						case 'send':
 							this.handleEthereumUrl(
-								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/send/`, 'ethereum:')
+								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/send/`, 'ethereum:'),
+								origin
+							);
+							break;
+						case 'approve':
+							this.handleEthereumUrl(
+								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/approve/`, 'ethereum:'),
+								origin
 							);
 							break;
 						case 'payment':
-							this.handlePaymentChannelsUrl(urlObj.pathname.replace('/payment/', ''), params);
-							break;
 						case 'focus':
 						case '':
 							break;
 
 						default:
-							Alert.alert('Error', 'invalid deeplink');
+							Alert.alert(strings('deeplink.not_supported'));
 					}
 				} else {
 					// Normal links (same as dapp)
@@ -112,8 +136,7 @@ class DeeplinkManager {
 				WalletConnect.newSession(url, redirect, autosign);
 				break;
 			case 'ethereum':
-				this.handleEthereumUrl(url);
-
+				this.handleEthereumUrl(url, origin);
 				break;
 
 			// Specific to the browser screen
@@ -127,9 +150,6 @@ class DeeplinkManager {
 			// Specific to the MetaMask app
 			// For ex. go to settings
 			case 'metamask':
-				if (urlObj.hostname === 'payment') {
-					this.handlePaymentChannelsUrl(urlObj.pathname.replace('/', ''), params);
-				}
 				break;
 		}
 	}
@@ -142,7 +162,7 @@ const SharedDeeplinkManager = {
 	init: navigation => {
 		instance = new DeeplinkManager(navigation);
 	},
-	parse: (url, browserCallback) => instance.parse(url, browserCallback),
+	parse: (url, args) => instance.parse(url, args),
 	setDeeplink: url => {
 		pendingDeeplink = url;
 	},

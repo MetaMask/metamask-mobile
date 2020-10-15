@@ -151,6 +151,7 @@
 		"strength_strong": "Strong",
 		"show": "Show",
 		"hide": "Hide",
+		"seed_phrase": "Seed phrase",
 		"must_be_at_least": "Must be at least {{number}} characters",
 		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
@@ -169,7 +170,8 @@
 		"cancel_button": "Cancel",
 		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
-		"seed_word_count_error": "The seed needs to be 12 words",
+		"seed_phrase_requirements": "Seed phrases contain 12, 15, 18, 21, or 24 words",
+		"invalid_seed_phrase": "Invalid seed phrase",
 		"error": "Error",
 		"invalid_qr_code_title": "Invalid QR Code",
 		"invalid_qr_code_message": "This QR code doesn't represent a valid seed phrase"
@@ -269,7 +271,7 @@
 	},
 	"terms_and_conditions": {
 		"title": "Terms and Conditions",
-		"description": "By proceding, you agree to these ",
+		"description": "By proceeding, you agree to these ",
 		"terms": "Terms and Conditions"
 	},
 	"privacy_policy": {
@@ -361,6 +363,8 @@
 		"clear_approvals_modal_message": "All dapps will need to request access to view account information again.",
 		"clear_browser_history_modal_title": "Clear Browser History?",
 		"clear_browser_history_modal_message": "We are about to remove all your browser history. Are you sure?",
+		"clear_cookies_modal_title": "Clear Browser Cookies",
+		"clear_cookies_modal_message": "We are about to remove your browser's cookies. Are you sure?",
 		"reset_account_modal_message": "Resetting your account will clear your transaction history.",
 		"save_rpc_url": "SAVE",
 		"invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
@@ -372,12 +376,16 @@
 		"clear_browser_history": "CLEAR BROWSER HISTORY",
 		"clear_approve_dapps_desc": "Clear approved dapps",
 		"clear_browser_history_desc": "Clear browser history",
+		"clear_browser_cookies_desc": "Clear browser cookies",
 		"clear": "CLEAR",
 		"privacy_mode": "Privacy mode",
 		"privacy_mode_desc": "Websites must request access to view your account information.",
 		"show_hex_data": "Show Hex Data",
-		"show_blockies_identicon": "Use Blockies Identicon",
 		"show_hex_data_desc": "Select this to show the hex data field on the send screen.",
+		"accounts_identicon_title": "Account Identicon",
+		"accounts_identicon_desc": "Jazzicons and Blockies are two different styles of unique icons that help you identify an account at a glance.",
+		"jazzicons": "Jazzicons",
+		"blockies": "Blockies",
 		"general_title": "General",
 		"general_desc": "Currency conversion, primary currency, language and search engine",
 		"advanced_title": "Advanced",
@@ -425,6 +433,7 @@
 		"clear_privacy_title": "Clear privacy data",
 		"clear_privacy_desc": "Clear privacy data so all websites must request access to view account information again.",
 		"clear_history_desc": "Choose this option to clear your entire browsing history.",
+		"clear_cookies_desc": "Choose this option to clear your browser's cookies.",
 		"metametrics_title": "Participate in MetaMetrics",
 		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
 		"third_party_title": "Get incoming transactions",
@@ -598,7 +607,9 @@
 		"cancel": "Cancel",
 		"approve": "Approve",
 		"allow_to_access": "Give this site permission to access your {{tokenSymbol}}?",
-		"you_trust_this_site": "Do you trust this site? By granting this permission, you're allowing this site to access your funds (up to 10,000 ETH).",
+		"allow_to_address_access": "Give this address access your {{tokenSymbol}}?",
+		"you_trust_this_site": "Do you trust this site? By granting this permission, you're allowing this site to access your funds.",
+		"you_trust_this_address": "Do you trust this address? By granting this permission, you're allowing this address to access your funds.",
 		"edit_permission": "Edit permission",
 		"edit": "Edit",
 		"transaction_fee_explanation": "A transaction fee is associated with this permission.",
@@ -670,7 +681,9 @@
 		"title": "Confirm Transaction"
 	},
 	"approve": {
-		"title": "Approve"
+		"title": "Approve",
+		"deeplink": "Deeplink",
+		"qr_code": "QR Code"
 	},
 	"transactions": {
 		"tx_review_confirm": "Confirm",
@@ -929,7 +942,7 @@
 		"tips_2": "Store in a safe",
 		"tips_3": "Store in multiple secret places",
 		"why_secure_title": "Protect your wallet",
-		"why_secure_1": "Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"why_secure_1": "Don’t risk losing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
 		"why_secure_2": " It’s the only way to recover your wallet if you get locked out of the app or get a new device."
 	},
 	"account_backup_step_2": {
@@ -1283,7 +1296,7 @@
 		"wyre_max": "Max $450 weekly",
 		"wyre_requires_debit_card": "Requires debit card",
 		"wyre_us_only": "🇺🇸 U.S. only",
-		"wyre_modal_text": "Paying with Apple Pay, powered by Wyre is supported in the United Sates 🇺🇸 except for CT, HI, NC, NH, NY, VA and VT.",
+		"wyre_modal_text": "Paying with Apple Pay, powered by Wyre is supported in the United States 🇺🇸 except for CT, HI, NC, NH, NY, VA and VT.",
 		"wyre_modal_terms_of_service_apply": "Wyre terms of service apply.",
 		"wyre_minimum_deposit": "Minimum deposit is {{amount}}",
 		"wyre_maximum_deposit": "Maximum deposit is {{amount}}",
@@ -1313,8 +1326,29 @@
 		"title": "Protect your wallet",
 		"top_button": "Protect wallet",
 		"bottom_button": "Remind me later",
-		"text": "Don’t risk loosing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"text": "Don’t risk losing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
 		"text_bold": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
 		"action": "Learn more"
+	},
+	"deeplink": {
+		"invalid": "Invalid deeplink",
+		"not_supported": "Deeplink not supported"
+	},
+	"error_screen": {
+		"title": "An error occured",
+		"subtitle": "Your information can't be shown. Don’t worry, your wallet and funds are safe.",
+		"try_again_button": "Try again",
+		"submit_ticket_1": "Please report this issue so we can fix it:",
+		"submit_ticket_2": "Take a screenshot of this screen.",
+		"submit_ticket_3": "Copy",
+		"submit_ticket_4": "the error message to clipboard.",
+		"submit_ticket_5": "Submit a ticket",
+		"submit_ticket_6": "here.",
+		"submit_ticket_7": "Please include the error message and the screenshot.",
+		"save_seedphrase_1": "If this error persists,",
+		"save_seedphrase_2": "save your seed phrase",
+		"save_seedphrase_3": "& re-install the app. Note: you can NOT restore your wallet without your seed phrase.",
+		"copied_clipboard": "Copied to clipboard",
+		"ok": "OK"
 	}
 }
