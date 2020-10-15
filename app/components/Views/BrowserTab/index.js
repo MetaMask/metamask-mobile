@@ -687,9 +687,12 @@ export const BrowserTab = props => {
 		backgroundBridges.current.push(newBridge);
 	};
 
+	/**
+	 * Disabling iframes for now
 	const onFrameLoadStarted = url => {
 		url && initializeBackgroundBridge(url, false);
 	};
+	*/
 
 	/**
 	 * Is the current tab the active tab
@@ -1222,11 +1225,13 @@ export const BrowserTab = props => {
 			}
 
 			switch (data.type) {
+				/**
+				* Disabling iframes for now
 				case 'FRAME_READY': {
 					const { url } = data.payload;
 					onFrameLoadStarted(url);
 					break;
-				}
+				}*/
 				case 'GET_WEBVIEW_URL':
 					webviewUrlPostMessagePromiseResolve.current &&
 						webviewUrlPostMessagePromiseResolve.current(data.payload);
