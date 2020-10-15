@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "scripts": {
     "watch": "./scripts/build.sh watcher watch",
@@ -71,7 +71,7 @@
   },
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
-    "@metamask/controllers": "^2.0.5",
+    "@metamask/controllers": "3.0.0",
     "@react-native-community/async-storage": "1.9.0",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
@@ -94,11 +94,11 @@
     "connext": "4.2.5",
     "content-hash": "2.5.2",
     "dnode": "1.2.2",
-    "eth-contract-metadata": "1.15.0",
+    "eth-contract-metadata": "^1.16.0",
     "eth-ens-namehash": "2.0.8",
     "eth-json-rpc-errors": "^2.0.2",
     "eth-json-rpc-filters": "4.1.1",
-    "eth-json-rpc-infura": "4.0.0",
+    "eth-json-rpc-infura": "5.1.0",
     "eth-json-rpc-middleware": "4.3.0",
     "eth-url-parser": "1.0.2",
     "ethereumjs-abi": "0.6.6",
@@ -189,6 +189,7 @@
     "url-parse": "1.4.4",
     "valid-url": "1.0.9",
     "vm-browserify": "0.0.4",
+    "web3-provider-engine": "^16.0.1",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {

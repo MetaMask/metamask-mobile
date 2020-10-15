@@ -60,6 +60,7 @@ import { ethErrors } from 'eth-json-rpc-errors';
 
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import { getVersion } from 'react-native-device-info';
+import ErrorBoundary from '../ErrorBoundary';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -688,9 +689,12 @@ export const BrowserTab = props => {
 		backgroundBridges.current.push(newBridge);
 	};
 
+	/**
+	 * Disabling iframes for now
 	const onFrameLoadStarted = url => {
 		url && initializeBackgroundBridge(url, false);
 	};
+	*/
 
 	/**
 	 * Is the current tab the active tab
@@ -1284,11 +1288,13 @@ export const BrowserTab = props => {
 			}
 
 			switch (data.type) {
+				/**
+				* Disabling iframes for now
 				case 'FRAME_READY': {
 					const { url } = data.payload;
 					onFrameLoadStarted(url);
 					break;
-				}
+				}*/
 				case 'GET_WEBVIEW_URL':
 					webviewUrlPostMessagePromiseResolve.current &&
 						webviewUrlPostMessagePromiseResolve.current(data.payload);
@@ -1679,42 +1685,44 @@ export const BrowserTab = props => {
 	 * Main render
 	 */
 	return (
-		<View
-			style={[styles.wrapper, !isTabActive() && styles.hide]}
-			{...(Device.isAndroid() ? { collapsable: false } : {})}
-		>
-			<View style={styles.webview}>
-				{!!entryScriptWeb3 && firstUrlLoaded && (
-					<WebView
-						ref={webviewRef}
-						renderError={() => <WebviewError error={error} onReload={() => null} />}
-						source={{ uri: initialUrl }}
-						injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
-						style={styles.webview}
-						onLoadStart={onLoadStart}
-						onLoadEnd={onLoadEnd}
-						onLoadProgress={onLoadProgress}
-						onMessage={onMessage}
-						onError={onError}
-						onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-						userAgent={USER_AGENT}
-						sendCookies
-						javascriptEnabled
-						allowsInlineMediaPlayback
-						useWebkit
-						testID={'browser-webview'}
-					/>
-				)}
+		<ErrorBoundary view="BrowserTab">
+			<View
+				style={[styles.wrapper, !isTabActive() && styles.hide]}
+				{...(Device.isAndroid() ? { collapsable: false } : {})}
+			>
+				<View style={styles.webview}>
+					{!!entryScriptWeb3 && firstUrlLoaded && (
+						<WebView
+							ref={webviewRef}
+							renderError={() => <WebviewError error={error} onReload={() => null} />}
+							source={{ uri: initialUrl }}
+							injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+							style={styles.webview}
+							onLoadStart={onLoadStart}
+							onLoadEnd={onLoadEnd}
+							onLoadProgress={onLoadProgress}
+							onMessage={onMessage}
+							onError={onError}
+							onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+							userAgent={USER_AGENT}
+							sendCookies
+							javascriptEnabled
+							allowsInlineMediaPlayback
+							useWebkit
+							testID={'browser-webview'}
+						/>
+					)}
+				</View>
+				{renderProgressBar()}
+				{isTabActive() && renderPhishingModal()}
+				{isTabActive() && renderUrlModal()}
+				{isTabActive() && renderApprovalModal()}
+				{isTabActive() && renderWatchAssetModal()}
+				{isTabActive() && renderOptions()}
+				{isTabActive() && renderBottomBar()}
+				{isTabActive() && renderOnboardingWizard()}
 			</View>
-			{renderProgressBar()}
-			{isTabActive() && renderPhishingModal()}
-			{isTabActive() && renderUrlModal()}
-			{isTabActive() && renderApprovalModal()}
-			{isTabActive() && renderWatchAssetModal()}
-			{isTabActive() && renderOptions()}
-			{isTabActive() && renderBottomBar()}
-			{isTabActive() && renderOnboardingWizard()}
-		</View>
+		</ErrorBoundary>
 	);
 };
 

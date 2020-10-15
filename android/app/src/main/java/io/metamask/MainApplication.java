@@ -16,6 +16,7 @@ import cl.json.ShareApplication;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import io.metamask.nativeModules.PreventScreenshotPackage;
+import android.webkit.WebView;
 
 import androidx.multidex.MultiDexApplication;
 
@@ -54,6 +55,8 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 	@Override
 	public void onCreate() {
 		super.onCreate();
+    if (BuildConfig.DEBUG)
+    { WebView.setWebContentsDebuggingEnabled(true); }
 		SoLoader.init(this, /* native exopackage */ false);
 
 		initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
