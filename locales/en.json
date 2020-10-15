@@ -607,7 +607,9 @@
 		"cancel": "Cancel",
 		"approve": "Approve",
 		"allow_to_access": "Give this site permission to access your {{tokenSymbol}}?",
-		"you_trust_this_site": "Do you trust this site? By granting this permission, you're allowing this site to access your funds (up to 10,000 ETH).",
+		"allow_to_address_access": "Give this address access your {{tokenSymbol}}?",
+		"you_trust_this_site": "Do you trust this site? By granting this permission, you're allowing this site to access your funds.",
+		"you_trust_this_address": "Do you trust this address? By granting this permission, you're allowing this address to access your funds.",
 		"edit_permission": "Edit permission",
 		"edit": "Edit",
 		"transaction_fee_explanation": "A transaction fee is associated with this permission.",
@@ -679,7 +681,9 @@
 		"title": "Confirm Transaction"
 	},
 	"approve": {
-		"title": "Approve"
+		"title": "Approve",
+		"deeplink": "Deeplink",
+		"qr_code": "QR Code"
 	},
 	"transactions": {
 		"tx_review_confirm": "Confirm",
@@ -1325,6 +1329,10 @@
 		"text": "Don’t risk losing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
 		"text_bold": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
 		"action": "Learn more"
+	},
+	"deeplink": {
+		"invalid": "Invalid deeplink",
+		"not_supported": "Deeplink not supported"
 	},
 	"error_screen": {
 		"title": "An error occured",
