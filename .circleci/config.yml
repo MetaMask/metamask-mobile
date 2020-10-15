@@ -111,7 +111,6 @@ jobs:
           name:  All Tests Passed
           command: echo 'weew - everything passed!'
   publish-pre-release-android:
-    resource_class: large # refer to documentation for additional sizes 
     working_directory:  ~/MetaMask
     environment:
       JAVA_OPTS: "-Xms512m -Xmx1024m"
@@ -144,7 +143,6 @@ jobs:
           name: Announcing pre-release
           command: yarn build:announce
   publish-pre-release-ios:
-    resource_class: large # refer to documentation for additional sizes 
     macos:
       xcode: 11.3.1
     working_directory:  ~/MetaMask
