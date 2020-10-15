@@ -115,7 +115,10 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
 	}
 })()`;
 
-export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
+export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {})()`;
+/** Disable sending messages to iframes for now
+ *
+`(function () {
 	const iframes = document.getElementsByTagName('iframe');
 	for (let frame of iframes){
 
@@ -127,3 +130,4 @@ export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(functio
 
 	}
 })()`;
+ */
