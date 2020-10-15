@@ -561,9 +561,12 @@
 		"minimum": "1.00 {{tokenSymbol}} mínimo",
 		"cancel": "Cancelar",
 		"approve": "Aprobar",
-		"allow_to_access": "¿Permitir {{host}} para acceder a su {{tokenSymbol}}?",
 		"you_trust_this_site_1": "¿Confías en este sitio? Al otorgar este permiso, estás permitiendo a",
 		"you_trust_this_site_2": "para retirar su {{tokenSymbol}} y automatizar las transacciones por ti.",
+		"allow_to_access": "¿Permitir a este sitio para acceder a tu {{tokenSymbol}}?",
+		"allow_to_address_access": "¿Entregar a esta dirección acceso a tu {{tokenSymbol}}?",
+		"you_trust_this_site": "¿Confías en este sitio? Entregando este permiso, estás permitiendo a este sitio acceder a tus fondos.",
+		"you_trust_this_address": "¿Confías en esta dirección? Entregando este permiso, estás permitiendo a esta dirección acceder a tus fondos.",
 		"edit_permission": "Editar permiso",
 		"edit": "Editar",
 		"transaction_fee_explanation": "Una tarifa de transacción está asociada con este permiso.",
@@ -1201,5 +1204,9 @@
 		"text": "No te arriesgues a perder tus fondos. Protege tu billetera guardando tu frase semilla en un lugar en el que confíes.",
 		"text_bold": "Es la única forma de recuperar tu billetera si se bloquea la aplicación u obtienes un nuevo dispositivo.",
 		"action": "Saber más"
+	},
+	"deeplink": {
+		"invalid": "Deeplink inválido",
+		"not_supported": "Deeplink no soportado"
 	}
 }

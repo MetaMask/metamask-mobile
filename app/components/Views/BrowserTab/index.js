@@ -60,6 +60,7 @@ import { ethErrors } from 'eth-json-rpc-errors';
 
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import { getVersion } from 'react-native-device-info';
+import ErrorBoundary from '../ErrorBoundary';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -315,8 +316,8 @@ export const BrowserTab = props => {
 	 */
 	const isHomepage = useCallback((checkUrl = null) => {
 		const currentPage = checkUrl || url.current;
-		const { host: currentHost, pathname: currentPathname } = getUrlObj(currentPage);
-		return currentHost === HOMEPAGE_HOST && currentPathname === '/';
+		const { host: currentHost } = getUrlObj(currentPage);
+		return currentHost === HOMEPAGE_HOST;
 	}, []);
 
 	/**
@@ -782,12 +783,12 @@ export const BrowserTab = props => {
 		const disctinctId = await Analytics.getDistinctId();
 
 		const homepageScripts = `
-      window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
-      window.__mmSearchEngine = "${props.searchEngine}";
-      window.__mmMetametrics = ${analyticsEnabled};
-	  window.__mmDistinctId = "${disctinctId}";
-      window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
-	  `;
+			window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
+			window.__mmSearchEngine = "${props.searchEngine}";
+			window.__mmMetametrics = ${analyticsEnabled};
+			window.__mmDistinctId = "${disctinctId}";
+			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+		`;
 
 		current.injectJavaScript(homepageScripts);
 	};
@@ -1127,10 +1128,6 @@ export const BrowserTab = props => {
 				url: getMaskedUrl(siteInfo.url)
 			});
 		}
-
-		if (isHomepage(siteInfo.url)) {
-			injectHomePageScripts();
-		}
 	};
 
 	/**
@@ -1232,7 +1229,9 @@ export const BrowserTab = props => {
 		setError(false);
 		changeUrl(nativeEvent, 'start');
 		icon.current = null;
-
+		if (isHomepage()) {
+			injectHomePageScripts();
+		}
 		// Reset the previous bridges
 		backgroundBridges.current.length && backgroundBridges.current.forEach(bridge => bridge.onDisconnect());
 		backgroundBridges.current = [];
@@ -1686,42 +1685,44 @@ export const BrowserTab = props => {
 	 * Main render
 	 */
 	return (
-		<View
-			style={[styles.wrapper, !isTabActive() && styles.hide]}
-			{...(Device.isAndroid() ? { collapsable: false } : {})}
-		>
-			<View style={styles.webview}>
-				{!!entryScriptWeb3 && firstUrlLoaded && (
-					<WebView
-						ref={webviewRef}
-						renderError={() => <WebviewError error={error} onReload={() => null} />}
-						source={{ uri: initialUrl }}
-						injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
-						style={styles.webview}
-						onLoadStart={onLoadStart}
-						onLoadEnd={onLoadEnd}
-						onLoadProgress={onLoadProgress}
-						onMessage={onMessage}
-						onError={onError}
-						onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-						userAgent={USER_AGENT}
-						sendCookies
-						javascriptEnabled
-						allowsInlineMediaPlayback
-						useWebkit
-						testID={'browser-webview'}
-					/>
-				)}
+		<ErrorBoundary view="BrowserTab">
+			<View
+				style={[styles.wrapper, !isTabActive() && styles.hide]}
+				{...(Device.isAndroid() ? { collapsable: false } : {})}
+			>
+				<View style={styles.webview}>
+					{!!entryScriptWeb3 && firstUrlLoaded && (
+						<WebView
+							ref={webviewRef}
+							renderError={() => <WebviewError error={error} onReload={() => null} />}
+							source={{ uri: initialUrl }}
+							injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+							style={styles.webview}
+							onLoadStart={onLoadStart}
+							onLoadEnd={onLoadEnd}
+							onLoadProgress={onLoadProgress}
+							onMessage={onMessage}
+							onError={onError}
+							onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+							userAgent={USER_AGENT}
+							sendCookies
+							javascriptEnabled
+							allowsInlineMediaPlayback
+							useWebkit
+							testID={'browser-webview'}
+						/>
+					)}
+				</View>
+				{renderProgressBar()}
+				{isTabActive() && renderPhishingModal()}
+				{isTabActive() && renderUrlModal()}
+				{isTabActive() && renderApprovalModal()}
+				{isTabActive() && renderWatchAssetModal()}
+				{isTabActive() && renderOptions()}
+				{isTabActive() && renderBottomBar()}
+				{isTabActive() && renderOnboardingWizard()}
 			</View>
-			{renderProgressBar()}
-			{isTabActive() && renderPhishingModal()}
-			{isTabActive() && renderUrlModal()}
-			{isTabActive() && renderApprovalModal()}
-			{isTabActive() && renderWatchAssetModal()}
-			{isTabActive() && renderOptions()}
-			{isTabActive() && renderBottomBar()}
-			{isTabActive() && renderOnboardingWizard()}
-		</View>
+		</ErrorBoundary>
 	);
 };
 

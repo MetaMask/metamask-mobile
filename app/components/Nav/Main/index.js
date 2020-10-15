@@ -851,7 +851,7 @@ class Main extends PureComponent {
 			}
 
 			if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
-				this.props.toggleApproveModal();
+				!this.props.approveModalVisible && this.props.toggleApproveModal();
 			} else {
 				this.props.toggleDappTransactionModal();
 			}
