@@ -687,7 +687,7 @@ export function getOfflineModalNavbar(navigation) {
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
 export function getWalletNavbarOptions(title, navigation) {
-	const onScanSuccess = data => {
+	const onScanSuccess = (data, content) => {
 		if (data.target_address) {
 			if (data?.parameters?.value || data?.function_name === 'transfer') {
 				navigation.navigate('SendView', { txMeta: data });
