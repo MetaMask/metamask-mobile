@@ -459,6 +459,10 @@ class Settings extends PureComponent {
 		this.props.setLockTime(parseInt(lockTime, 10));
 	};
 
+	protect = () => {
+		this.props.navigation.navigate('AccountBackupStep1');
+	};
+
 	render = () => {
 		const { approvedHosts, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
 		const {
@@ -474,6 +478,13 @@ class Settings extends PureComponent {
 			<ScrollView style={styles.wrapper} testID={'security-settings-scrollview'}>
 				<View style={styles.inner}>
 					<View style={[styles.setting, styles.firstSetting]}>
+						<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
+						<StyledButton type="normal" onPress={this.protect} containerStyle={styles.clearApprovedConfirm}>
+							{strings('app_settings.protect_cta')}
+						</StyledButton>
+					</View>
+					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.privacy_mode_desc')}</Text>
 						<View style={styles.switchElement}>
