@@ -430,14 +430,15 @@ class Confirm extends PureComponent {
 				</Text>
 			);
 		} else {
-			let amount;
+			let rawAmount;
 			const { address, symbol = 'ERC20', decimals } = selectedAsset;
 			fromAccountBalance = `${renderFromTokenMinimalUnit(
 				contractBalances[address] ? contractBalances[address] : '0',
 				decimals
 			)} ${symbol}`;
-			[transactionTo, amount] = decodeTransferData('transfer', data);
-			const transferValue = renderFromTokenMinimalUnit(amount, decimals);
+			[transactionTo, , rawAmount] = decodeTransferData('transfer', data);
+			const rawAmountString = parseInt(rawAmount, 16).toLocaleString('fullwide', { useGrouping: false });
+			const transferValue = renderFromTokenMinimalUnit(rawAmountString, decimals);
 			transactionValue = `${transferValue} ${symbol}`;
 			const exchangeRate = contractExchangeRates[address];
 			const transactionFeeFiatNumber = weiToFiatNumber(weiTransactionFee, conversionRate);
