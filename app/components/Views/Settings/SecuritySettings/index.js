@@ -7,6 +7,7 @@ import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
+import SettingsWarning from '../../../UI/SettingsWarning';
 import { clearHistory } from '../../../../actions/browser';
 import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -480,9 +481,7 @@ class Settings extends PureComponent {
 					<View style={[styles.setting, styles.firstSetting]}>
 						<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
-						<StyledButton type="normal" onPress={this.protect} containerStyle={styles.clearApprovedConfirm}>
-							{strings('app_settings.protect_cta')}
-						</StyledButton>
+						<SettingsWarning msgText="Seed phrase not backed up" actionText="Back up now" />
 					</View>
 					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
