@@ -94,6 +94,21 @@ const styles = StyleSheet.create({
 		borderRadius: 5,
 		borderWidth: 2,
 		marginTop: 16
+	},
+	marginLeft: {
+		marginLeft: 10
+	},
+	warningText: {
+		color: colors.black,
+		fontSize: 12
+	},
+	warningTextRed: {
+		color: colors.red
+	},
+	warningBold: {
+		...fontStyles.bold,
+		color: colors.blue,
+		marginLeft: 'auto'
 	}
 });
 
@@ -481,7 +496,18 @@ class Settings extends PureComponent {
 					<View style={[styles.setting, styles.firstSetting]}>
 						<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
-						<SettingsWarning msgText="Seed phrase not backed up" actionText="Back up now" />
+						<SettingsWarning type="warning">
+							<Text style={[styles.warningText, styles.warningTextRed, styles.marginLeft]}>
+								Seed phrase not backed up
+							</Text>
+							<Text style={[styles.warningText, styles.warningBold]}>Back up now</Text>
+						</SettingsWarning>
+						<SettingsWarning type="warning">
+							<Text style={[styles.warningText, styles.warningTextRed, styles.marginLeft]}>
+								Password not backed up
+							</Text>
+							<Text style={[styles.warningText, styles.warningBold]}>Back up now</Text>
+						</SettingsWarning>
 					</View>
 					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>

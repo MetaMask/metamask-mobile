@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	flexRow: {
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 		display: 'flex',
 		flexDirection: 'row',
 		width: '100%',
-		marginVertical: 10
+		marginTop: 10
 	},
 	red: {
 		backgroundColor: colors.red000
@@ -27,16 +27,6 @@ const styles = StyleSheet.create({
 	},
 	check: {
 		color: colors.green500
-	},
-	marginLeft: {
-		marginLeft: 10
-	},
-	warningText: {
-		fontSize: 12
-	},
-	warningBold: {
-		...fontStyles.bold,
-		marginLeft: 'auto'
 	}
 });
 
@@ -44,12 +34,11 @@ const WarningIcon = () => <Icon size={16} color={colors.red} name="exclamation-t
 const CheckIcon = () => <MaterialIcon size={16} name="check-circle" style={styles.check} />;
 const isWarning = type => type === 'warning';
 
-const SettingsWarning = ({ msgText, actionText, type, children, onPress }) => (
+const SettingsWarning = ({ type, children, onPress }) => (
 	<View style={[styles.wrapper, isWarning(type) ? styles.red : styles.normal]}>
 		<TouchableOpacity style={styles.flexRow} onPress={onPress}>
 			{isWarning(type) ? <WarningIcon /> : <CheckIcon />}
-			<Text style={[styles.warningText, styles.marginLeft]}>{msgText}</Text>
-			<Text style={[styles.warningText, styles.warningBold]}>{actionText}</Text>
+			{children}
 		</TouchableOpacity>
 	</View>
 );
@@ -57,9 +46,7 @@ const SettingsWarning = ({ msgText, actionText, type, children, onPress }) => (
 SettingsWarning.propTypes = {
 	type: PropTypes.string,
 	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
-	onPress: PropTypes.onPress,
-	msgText: PropTypes.string,
-	actionText: PropTypes.string
+	onPress: PropTypes.onPress
 };
 
 SettingsWarning.defaultProps = {
