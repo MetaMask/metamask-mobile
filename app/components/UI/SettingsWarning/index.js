@@ -32,25 +32,28 @@ const styles = StyleSheet.create({
 
 const WarningIcon = () => <Icon size={16} color={colors.red} name="exclamation-triangle" />;
 const CheckIcon = () => <MaterialIcon size={16} name="check-circle" style={styles.check} />;
-const isWarning = type => type === 'warning';
 
-const SettingsWarning = ({ type, children, onPress }) => (
-	<View style={[styles.wrapper, isWarning(type) ? styles.red : styles.normal]}>
+const propTypes = {
+	isWarning: PropTypes.boolean,
+	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
+	onPress: PropTypes.onPress
+};
+
+const defaultProps = {
+	isWarning: false,
+	onPress: () => ({})
+};
+
+const SettingsWarning = ({ isWarning, children, onPress }) => (
+	<View style={[styles.wrapper, isWarning ? styles.red : styles.normal]}>
 		<TouchableOpacity style={styles.flexRow} onPress={onPress}>
-			{isWarning(type) ? <WarningIcon /> : <CheckIcon />}
+			{isWarning ? <WarningIcon /> : <CheckIcon />}
 			{children}
 		</TouchableOpacity>
 	</View>
 );
 
-SettingsWarning.propTypes = {
-	type: PropTypes.string,
-	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
-	onPress: PropTypes.onPress
-};
-
-SettingsWarning.defaultProps = {
-	type: 'normal'
-};
+SettingsWarning.propTypes = propTypes;
+SettingsWarning.defaultProps = defaultProps;
 
 export default SettingsWarning;
