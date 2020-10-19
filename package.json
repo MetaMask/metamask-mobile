@@ -150,7 +150,7 @@
     "react-native-i18n": "2.0.15",
     "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "0.8.0",
-    "react-native-keychain": "^6.1.1",
+    "react-native-keychain": "^6.2.0",
     "react-native-level-fs": "3.0.1",
     "react-native-material-textfield": "0.16.1",
     "react-native-modal": "^11.5.6",
