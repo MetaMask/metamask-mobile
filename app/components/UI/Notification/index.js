@@ -255,7 +255,7 @@ class Notification extends PureComponent {
 					? { paymentChannelTransaction, transaction: {} }
 					: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
 				// THIS NEEDS REFACTOR
-				if (!tx) {
+				if (tx) {
 					const decoded = await decodeTransaction({ ...this.props, tx });
 					transactionElement = decoded[0];
 					transactionDetails = decoded[1];
