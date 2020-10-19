@@ -165,7 +165,7 @@ class Login extends PureComponent {
 				}
 
 				this.setState({
-					biometryType,
+					biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
 					biometryChoice: enabled,
 					biometryPreviouslyDisabled: !!previouslyDisabled
 				});

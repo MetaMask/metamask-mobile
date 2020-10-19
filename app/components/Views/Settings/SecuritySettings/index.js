@@ -243,7 +243,12 @@ class Settings extends PureComponent {
 			}
 		}
 		const metricsOptIn = Analytics.getEnabled();
-		this.setState({ biometryType, biometryChoice: bioEnabled, metricsOptIn, passcodeChoice: passcodeEnabled });
+		this.setState({
+			biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
+			biometryChoice: bioEnabled,
+			metricsOptIn,
+			passcodeChoice: passcodeEnabled
+		});
 	};
 
 	onSecuritySettingChange = async (enabled, type) => {

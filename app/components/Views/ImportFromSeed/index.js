@@ -229,7 +229,7 @@ class ImportFromSeed extends PureComponent {
 			if (previouslyDisabled && previouslyDisabled === TRUE) {
 				enabled = false;
 			}
-			this.setState({ biometryType, biometryChoice: enabled });
+			this.setState({ biometryType: Device.isAndroid() ? 'biometrics' : biometryType, biometryChoice: enabled });
 		}
 		// Workaround https://github.com/facebook/react-native/issues/9958
 		setTimeout(() => {

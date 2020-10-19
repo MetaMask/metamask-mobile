@@ -246,7 +246,7 @@ class ChoosePassword extends PureComponent {
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
-			this.setState({ biometryType, biometryChoice: true });
+			this.setState({ biometryType: Device.isAndroid() ? 'biometrics' : biometryType, biometryChoice: true });
 		}
 		setTimeout(() => {
 			this.setState({

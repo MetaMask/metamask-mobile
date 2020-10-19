@@ -847,6 +847,7 @@
 		"enable_touchid": "Sign in with Touch ID?",
 		"enable_faceid": "Sign in with Face ID?",
 		"enable_fingerprint": "Sign in with Fingerprint?",
+		"enable_biometrics": "Sign in with Biometrics?",
 		"enable_device_passcode_ios": "Sign in with device passcode?",
 		"enable_device_passcode_android": "Sign in with device PIN?"
 	},
