@@ -187,6 +187,19 @@ const styles = StyleSheet.create({
 		color: colors.grey400,
 		...fontStyles.normal
 	},
+	menuItemWarning: {
+		flex: 1,
+		alignSelf: 'center',
+		flexDirection: 'row',
+		marginRight: 24
+	},
+	menuItemWarningText: {
+		color: colors.red,
+		fontSize: 12
+	},
+	warningIcon: {
+		marginRight: 4
+	},
 	noIcon: {
 		paddingLeft: 0
 	},
@@ -248,6 +261,9 @@ const styles = StyleSheet.create({
 	},
 	protectWalletButtonWrapper: { marginVertical: 8 }
 });
+
+const iconName = 'exclamation-triangle';
+const WarningIcon = () => <Icon size={16} color={colors.red} style={styles.warningIcon} name={iconName} />;
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
@@ -717,6 +733,7 @@ class DrawerView extends PureComponent {
 				{
 					name: strings('drawer.settings'),
 					icon: this.getFeatherIcon('settings'),
+					warning: 'Wallet unprotected',
 					action: this.showSettings
 				},
 				{
@@ -966,6 +983,15 @@ class DrawerView extends PureComponent {
 											>
 												{item.name}
 											</Text>
+											{item.warning ? (
+												<TouchableOpacity
+													onPress={this.onSecureWalletModalAction}
+													style={styles.menuItemWarning}
+												>
+													<WarningIcon />
+													<Text style={styles.menuItemWarningText}>{item.warning}</Text>
+												</TouchableOpacity>
+											) : null}
 										</TouchableOpacity>
 									))}
 							</View>
