@@ -34,6 +34,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReivewDetailsCard';
 import StyledButton from '../../UI/StyledButton';
 import Device from '../../../util/Device';
+import AppConstants from '../../../core/AppConstants';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -198,6 +199,8 @@ const styles = StyleSheet.create({
 	}
 });
 
+const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
+
 /**
  * PureComponent that manages ERC20 approve from the dapp browser
  */
@@ -267,7 +270,8 @@ class ApproveTransactionReview extends PureComponent {
 		spendLimitUnlimitedSelected: true,
 		spendLimitCustomValue: undefined,
 		ticker: getTicker(this.props.ticker),
-		viewDetails: false
+		viewDetails: false,
+		spenderAddress: '0x...'
 	};
 
 	customSpendLimitInput = React.createRef();
@@ -282,13 +286,19 @@ class ApproveTransactionReview extends PureComponent {
 		let tokenSymbol, tokenDecimals;
 		const contract = contractMap[safeToChecksumAddress(to)];
 		if (!contract) {
-			tokenSymbol = await AssetsContractController.getAssetSymbol(to);
-			tokenDecimals = await AssetsContractController.getTokenDecimals(to);
+			try {
+				tokenDecimals = await AssetsContractController.getTokenDecimals(to);
+				tokenSymbol = await AssetsContractController.getAssetSymbol(to);
+				tokenDecimals = await AssetsContractController.getTokenDecimals(to);
+			} catch (e) {
+				tokenSymbol = 'ERC20 Token';
+				tokenDecimals = 18;
+			}
 		} else {
 			tokenSymbol = contract.symbol;
 			tokenDecimals = contract.decimals;
 		}
-		const originalApproveAmount = decodeTransferData('transfer', data)[2];
+		const [spenderAddress, , originalApproveAmount] = decodeTransferData('transfer', data);
 		const approveAmount = fromTokenMinimalUnit(hexToBN(originalApproveAmount), tokenDecimals);
 		const totalGas = gas.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
@@ -299,7 +309,8 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount: approveAmount,
 			tokenSymbol,
 			totalGas: renderFromWei(totalGas),
-			totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
+			totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
+			spenderAddress
 		});
 	};
 
@@ -498,7 +509,7 @@ class ApproveTransactionReview extends PureComponent {
 	renderTransactionReview = () => {
 		const { host, method, viewData, tokenSymbol } = this.state;
 		const {
-			transaction: { to, data }
+			transaction: { to, data, origin }
 		} = this.props;
 		const amount = decodeTransferData('transfer', data)[1];
 
@@ -508,7 +519,7 @@ class ApproveTransactionReview extends PureComponent {
 				toggleViewData={this.toggleViewData}
 				copyContractAddress={this.copyContractAddress}
 				address={renderShortAddress(to)}
-				host={host}
+				host={origin || host}
 				allowance={amount}
 				tokenSymbol={tokenSymbol}
 				data={data}
@@ -527,14 +538,21 @@ class ApproveTransactionReview extends PureComponent {
 			totalGas,
 			totalGasFiat,
 			editPermissionVisible,
-			ticker
+			ticker,
+			spenderAddress
 		} = this.state;
 
-		const { primaryCurrency, currentCurrency, gasError } = this.props;
+		const {
+			primaryCurrency,
+			currentCurrency,
+			gasError,
+			transaction: { origin }
+		} = this.props;
 
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
 		const currencySymbol = currencySymbols[currentCurrency];
 		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
+		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
 
 		return (
 			<View>
@@ -545,11 +563,24 @@ class ApproveTransactionReview extends PureComponent {
 				) : (
 					<>
 						<View style={styles.section} testID={'approve-screen'}>
-							<TransactionHeader currentPageInformation={{ title: host, url: activeTabUrl }} />
+							<TransactionHeader
+								currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
+							/>
 							<Text style={styles.title} testID={'allow-access'}>
-								{strings('spend_limit_edition.allow_to_access', { tokenSymbol })}
+								{strings(
+									`spend_limit_edition.${
+										originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'
+									}`,
+									{ tokenSymbol }
+								)}
 							</Text>
-							<Text style={styles.explanation}>{strings('spend_limit_edition.you_trust_this_site')}</Text>
+							<Text style={styles.explanation}>
+								{`${strings(
+									`spend_limit_edition.${
+										originIsDeeplink ? 'you_trust_this_address' : 'you_trust_this_site'
+									}`
+								)}`}
+							</Text>
 							<View style={styles.actionViewWrapper}>
 								<ActionView
 									confirmButtonMode="confirm"
