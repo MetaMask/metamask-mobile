@@ -104,6 +104,7 @@ const Entry = props => {
 		try {
 			// Retreive the credentials
 			const { KeyringController } = Engine.context;
+			console.log('SecureKeychain.getGenericPassword entry');
 			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
@@ -147,7 +148,8 @@ const Entry = props => {
 				animateAndGoTo('OnboardingRootNav');
 			}
 		});
-	}, [animateAndGoTo, unlockKeychain]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const renderAnimations = () => {
 		if (!viewToGo) {
