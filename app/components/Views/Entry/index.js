@@ -104,7 +104,6 @@ const Entry = props => {
 		try {
 			// Retreive the credentials
 			const { KeyringController } = Engine.context;
-			console.log('SecureKeychain.getGenericPassword entry');
 			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
