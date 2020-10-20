@@ -60,6 +60,13 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
 		expect(fromTokenMinimalUnit(new BN('1337'), 0)).toEqual('1337');
 		expect(fromTokenMinimalUnit(new BN('1337'), 18)).toEqual('0.000000000000001337');
 	});
+
+	it('fromTokenMinimalUnit using exp number', () => {
+		expect(fromTokenMinimalUnit(1e22, 6)).toEqual('10000000000000000');
+		expect(fromTokenMinimalUnit(1e2, 6)).toEqual('0.0001');
+		expect(fromTokenMinimalUnit(1e16, 6)).toEqual('10000000000');
+		expect(fromTokenMinimalUnit(1e18, 18)).toEqual('1');
+	});
 });
 
 describe('Number utils :: toTokenMinimalUnit', () => {

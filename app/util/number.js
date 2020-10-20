@@ -1,7 +1,7 @@
 /**
  * Collection of utility functions for consistent formatting and conversion
  */
-import { BN } from 'ethereumjs-util';
+import { addHexPrefix, BN } from 'ethereumjs-util';
 import convert from 'ethjs-unit';
 import { util } from '@metamask/controllers';
 import numberToBN from 'number-to-bn';
@@ -36,6 +36,7 @@ export function fromWei(value = 0, unit = 'ether') {
  * @returns {string} - String containing the new number
  */
 export function fromTokenMinimalUnit(minimalInput, decimals) {
+	minimalInput = addHexPrefix(Number(minimalInput).toString(16));
 	let minimal = numberToBN(minimalInput);
 	const negative = minimal.lt(new BN(0));
 	const base = toBN(Math.pow(10, decimals).toString());
