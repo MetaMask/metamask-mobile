@@ -930,8 +930,10 @@ class DrawerView extends PureComponent {
 								{section
 									.filter(item => {
 										if (!item) return undefined;
-										if (item.name.toLowerCase().indexOf('etherscan') !== -1) {
-											return this.hasBlockExplorer(network.provider.type);
+										const { name = undefined } = item;
+										if (name && name.toLowerCase().indexOf('etherscan') !== -1) {
+											const type = network.provider?.type;
+											return (type && this.hasBlockExplorer(type)) || undefined;
 										}
 										return true;
 									})
