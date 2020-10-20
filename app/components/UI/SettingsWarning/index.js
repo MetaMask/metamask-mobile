@@ -47,9 +47,7 @@ const propTypes = {
 const defaultProps = {
 	isWarning: false,
 	isHighlighted: false,
-	onPress: () => ({
-		/* no op */
-	})
+	onPress: undefined
 };
 
 const SettingsWarning = ({ isWarning, isNotification, children, onPress }) => (

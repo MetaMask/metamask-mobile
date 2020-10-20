@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		marginTop: 16
 	},
-	marginLeft: {},
 	warningText: {
 		color: colors.black,
 		fontSize: 12
