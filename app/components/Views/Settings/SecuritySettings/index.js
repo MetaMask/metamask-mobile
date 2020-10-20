@@ -308,6 +308,7 @@ class Settings extends PureComponent {
 				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
 
 				// Also regenerate the accounts
+
 				let accountLength = 1;
 				const allKeyrings =
 					keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
@@ -317,16 +318,12 @@ class Settings extends PureComponent {
 						break;
 					}
 				}
-				Logger.log('SecuritySettings::Got the account count');
 				await KeyringController.createNewVaultAndRestore(password, seed);
-				Logger.log('SecuritySettings::Keyring created and re-encrypted');
 				for (let i = 0; i < accountLength - 1; i++) {
 					await KeyringController.addNewAccount();
 				}
-				Logger.log('SecuritySettings::selecting address');
 				// Finally set the same selected address
 				PreferencesController.setSelectedAddress(selectedAddress);
-				Logger.log('SecuritySettings::restore complete');
 			}
 
 			// When there's no need to restore and we just need
@@ -366,22 +363,14 @@ class Settings extends PureComponent {
 			this.props.passwordSet();
 
 			if (enabled && this.props.lockTime === -1) {
-				Logger.log('Setting locktime to ', AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-			} else {
-				Logger.log('Locktime was set to', this.props.lockTime);
 			}
 		} catch (e) {
 			if (e.message === 'Invalid password') {
 				Alert.alert(strings('app_settings.invalid_password'), strings('app_settings.invalid_password_message'));
 			}
 			Logger.error(e, 'SecuritySettings:biometrics');
-			// Return the switch to the previous value
-			if (type === 'biometrics') {
-				this.setState({ biometryChoice: !enabled });
-			} else {
-				this.setState({ passcodeChoice: !enabled });
-			}
+			this.setState({ biometryChoice: !enabled });
 		}
 	};
 
