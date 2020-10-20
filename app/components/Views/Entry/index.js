@@ -3,19 +3,16 @@ import { withNavigation } from 'react-navigation';
 import PropTypes from 'prop-types';
 import { Animated, Dimensions, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
-import Branch from 'react-native-branch';
 import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
-import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import { EXISTING_USER, ONBOARDING_WIZARD, METRICS_OPT_IN, ENCRYPTION_LIB, ORIGINAL } from '../../../constants/storage';
-import AppConstants from '../../../core/AppConstants';
 
 /**
  * Entry Screen that decides which screen to show
@@ -71,21 +68,6 @@ const Entry = props => {
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = new Animated.Value(1);
-
-	const handleDeeplinks = async ({ error, params, uri }) => {
-		if (error) {
-			Logger.error(error, 'Error from Branch');
-			return;
-		}
-		const deeplink = params['+non_branch_link'] || uri || null;
-		if (deeplink) {
-			const { KeyringController } = Engine.context;
-			const isUnlocked = KeyringController.isUnlocked();
-			isUnlocked
-				? DeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
-				: DeeplinkManager.setDeeplink(deeplink);
-		}
-	};
 
 	const onAnimationFinished = useCallback(() => {
 		Animated.timing(opacity, {
@@ -158,8 +140,6 @@ const Entry = props => {
 	}, [animateAndGoTo, props]);
 
 	useEffect(() => {
-		DeeplinkManager.init(props.navigation);
-		const unsubscribeFromBranch = Branch.subscribe(handleDeeplinks);
 		AsyncStorage.getItem(EXISTING_USER).then(existingUser => {
 			if (existingUser !== null) {
 				unlockKeychain();
@@ -167,11 +147,7 @@ const Entry = props => {
 				animateAndGoTo('OnboardingRootNav');
 			}
 		});
-
-		return function cleanup() {
-			unsubscribeFromBranch();
-		};
-	}, [props.navigation, animateAndGoTo, unlockKeychain]);
+	}, [animateAndGoTo, unlockKeychain]);
 
 	const renderAnimations = () => {
 		if (!viewToGo) {

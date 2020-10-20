@@ -57,6 +57,7 @@ class WalletConnect {
 		 *  Subscribe to session requests
 		 */
 		this.walletConnector.on('session_request', async (error, payload) => {
+			Logger.log('WC session_request:', payload);
 			if (error) {
 				throw error;
 			}

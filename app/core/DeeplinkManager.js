@@ -77,7 +77,6 @@ class DeeplinkManager {
 				Alert.alert(strings('deeplink.invalid'), e.toString());
 			}
 		}
-
 		const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
 
 		switch (urlObj.protocol.replace(':', '')) {
