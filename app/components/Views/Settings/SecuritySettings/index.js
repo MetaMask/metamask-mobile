@@ -184,7 +184,8 @@ class Settings extends PureComponent {
 		/**
 		 * List of accounts from the PreferencesController
 		 */
-		identities: PropTypes.object
+		identities: PropTypes.object,
+		seedphraseBackedUp: PropTypes.bool
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -259,7 +260,12 @@ class Settings extends PureComponent {
 			}
 		}
 		const metricsOptIn = Analytics.getEnabled();
-		this.setState({ biometryType, biometryChoice: bioEnabled, metricsOptIn, passcodeChoice: passcodeEnabled });
+		this.setState({
+			biometryType,
+			biometryChoice: bioEnabled,
+			metricsOptIn,
+			passcodeChoice: passcodeEnabled
+		});
 	};
 
 	onSecuritySettingChange = async (enabled, type) => {
@@ -475,12 +481,12 @@ class Settings extends PureComponent {
 		this.props.setLockTime(parseInt(lockTime, 10));
 	};
 
-	protect = () => {
-		this.props.navigation.navigate('AccountBackupStep1');
+	manualBackup = () => {
+		this.props.navigation.navigate('ManualBackupStep1');
 	};
 
 	render = () => {
-		const { approvedHosts, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
+		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
 		const {
 			approvalModalVisible,
 			biometryType,
@@ -496,11 +502,19 @@ class Settings extends PureComponent {
 					<View style={[styles.setting, styles.firstSetting]}>
 						<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
-						<SettingsWarning>
-							<Text style={[styles.warningText, styles.warningTextGreen, styles.marginLeft]}>
+						<SettingsWarning onPress={this.manualBackup} isWarning={!seedphraseBackedUp}>
+							<Text
+								style={[
+									styles.warningText,
+									!seedphraseBackedUp ? styles.warningTextRed : styles.warningTextGreen,
+									styles.marginLeft
+								]}
+							>
 								Seed phrase backed up
 							</Text>
-							<Text style={[styles.warningText, styles.warningBold]}>Back up now</Text>
+							<Text style={[styles.warningText, styles.warningBold]}>
+								{!seedphraseBackedUp ? 'Back up now' : 'Review'}
+							</Text>
 						</SettingsWarning>
 						<SettingsWarning isWarning>
 							<Text style={[styles.warningText, styles.warningTextRed, styles.marginLeft]}>
@@ -723,7 +737,8 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
-	passwordHasBeenSet: state.user.passwordSet
+	passwordHasBeenSet: state.user.passwordSet,
+	seedphraseBackedUp: state.user.seedphraseBackedUp
 });
 
 const mapDispatchToProps = dispatch => ({
