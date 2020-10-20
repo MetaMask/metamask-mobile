@@ -95,15 +95,16 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		marginTop: 16
 	},
-	marginLeft: {
-		marginLeft: 10
-	},
+	marginLeft: {},
 	warningText: {
 		color: colors.black,
 		fontSize: 12
 	},
 	warningTextRed: {
 		color: colors.red
+	},
+	warningTextGreen: {
+		color: colors.black
 	},
 	warningBold: {
 		...fontStyles.bold,
@@ -496,9 +497,9 @@ class Settings extends PureComponent {
 					<View style={[styles.setting, styles.firstSetting]}>
 						<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
-						<SettingsWarning isWarning>
-							<Text style={[styles.warningText, styles.warningTextRed, styles.marginLeft]}>
-								Seed phrase not backed up
+						<SettingsWarning>
+							<Text style={[styles.warningText, styles.warningTextGreen, styles.marginLeft]}>
+								Seed phrase backed up
 							</Text>
 							<Text style={[styles.warningText, styles.warningBold]}>Back up now</Text>
 						</SettingsWarning>

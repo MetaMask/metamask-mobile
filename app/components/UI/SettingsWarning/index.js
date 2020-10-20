@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
-	flexRow: {
-		width: '100%',
-		display: 'flex',
-		flexDirection: 'row'
+	menuItemWarning: {
+		flex: 1,
+		alignSelf: 'center',
+		flexDirection: 'row',
+		marginRight: 24
 	},
 	wrapper: {
 		padding: 12,
@@ -18,6 +19,9 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		width: '100%',
 		marginTop: 10
+	},
+	icon: {
+		marginRight: 4
 	},
 	red: {
 		backgroundColor: colors.red000
@@ -30,27 +34,35 @@ const styles = StyleSheet.create({
 	}
 });
 
-const WarningIcon = () => <Icon size={16} color={colors.red} name="exclamation-triangle" />;
-const CheckIcon = () => <MaterialIcon size={16} name="check-circle" style={styles.check} />;
+const WarningIcon = () => <Icon style={styles.icon} size={16} color={colors.red} name="exclamation-triangle" />;
+const CheckIcon = () => <MaterialIcon style={[styles.icon, styles.check]} size={16} name="check-circle" />;
 
 const propTypes = {
-	isWarning: PropTypes.boolean,
+	isWarning: PropTypes.bool,
+	isNotification: PropTypes.bool,
 	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
-	onPress: PropTypes.onPress
+	onPress: PropTypes.func
 };
 
 const defaultProps = {
 	isWarning: false,
-	onPress: () => ({})
+	isHighlighted: false,
+	onPress: () => ({
+		/* no op */
+	})
 };
 
-const SettingsWarning = ({ isWarning, children, onPress }) => (
-	<View style={[styles.wrapper, isWarning ? styles.red : styles.normal]}>
-		<TouchableOpacity style={styles.flexRow} onPress={onPress}>
-			{isWarning ? <WarningIcon /> : <CheckIcon />}
-			{children}
-		</TouchableOpacity>
-	</View>
+const SettingsWarning = ({ isWarning, isNotification, children, onPress }) => (
+	<TouchableOpacity
+		style={[
+			isNotification ? styles.menuItemWarning : styles.wrapper,
+			isNotification ? null : isWarning ? styles.red : styles.normal
+		]}
+		onPress={onPress}
+	>
+		{isWarning ? <WarningIcon /> : <CheckIcon />}
+		{children}
+	</TouchableOpacity>
 );
 
 SettingsWarning.propTypes = propTypes;
