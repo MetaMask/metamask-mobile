@@ -108,5 +108,6 @@ export function getBlockExplorerName(blockExplorerUrl) {
 	const hostname = new URL(blockExplorerUrl).hostname;
 	if (!hostname) return undefined;
 	const tempBlockExplorerName = hostname.split('.')[0];
+	if (!tempBlockExplorerName || !tempBlockExplorerName[0]) return undefined;
 	return tempBlockExplorerName[0].toUpperCase() + tempBlockExplorerName.slice(1);
 }
