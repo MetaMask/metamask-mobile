@@ -1071,7 +1071,7 @@ class Amount extends PureComponent {
 
 				<KeyboardAvoidingView
 					style={styles.nextActionWrapper}
-					behavior={'padding'}
+					behavior={Device.isIos() ? 'padding' : 'height'}
 					keyboardVerticalOffset={KEYBOARD_OFFSET}
 					enabled={Device.isIos()}
 				>

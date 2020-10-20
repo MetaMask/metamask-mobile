@@ -316,7 +316,7 @@ export default class ManualBackupStep1 extends PureComponent {
 	renderConfirmPassword() {
 		const { warningIncorrectPassword } = this.state;
 		return (
-			<KeyboardAvoidingView style={styles.keyboardAvoidingView} behavior={'padding'}>
+			<KeyboardAvoidingView style={styles.keyboardAvoidingView} behavior={Device.isIos() ? 'padding' : 'height'}>
 				<KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
 					<View style={styles.confirmPasswordWrapper}>
 						<View style={[styles.content, styles.passwordRequiredContent]}>

@@ -462,7 +462,7 @@ class Deposit extends PureComponent {
 
 						<KeyboardAvoidingView
 							style={styles.buttonsWrapper}
-							behavior={'padding'}
+							behavior={Device.isIos() ? 'padding' : 'height'}
 							keyboardVerticalOffset={KEYBOARD_OFFSET}
 							enabled={Device.isIos()}
 						>
