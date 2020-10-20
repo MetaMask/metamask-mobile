@@ -29,6 +29,10 @@ import {
 } from '../../../../constants/storage';
 import CookieManager from '@react-native-community/cookies';
 
+const TYPE_BIOMETRICS = 'biometrics';
+const TYPE_PASSCODE = 'passcode';
+const isIos = Device.isIos();
+
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
@@ -177,7 +181,7 @@ class Settings extends PureComponent {
 	state = {
 		approvalModalVisible: false,
 		biometryChoice: null,
-		biometryType: null,
+		biometryType: false,
 		browserHistoryModalVisible: false,
 		cookiesModalVisible: false,
 		metricsOptIn: false,
@@ -229,84 +233,80 @@ class Settings extends PureComponent {
 
 	componentDidMount = async () => {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		let bioEnabled = false;
-		let passcodeEnabled = false;
+		const metricsOptIn = Analytics.getEnabled();
 		if (biometryType) {
+			let passcodeEnabled = false;
 			const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-			if (biometryChoice !== '' && biometryChoice === biometryType) {
-				bioEnabled = true;
-			} else {
+			if (biometryChoice === '') {
 				const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
 				if (passcodeChoice !== '' && passcodeChoice === TRUE) {
 					passcodeEnabled = true;
 				}
 			}
+			this.setState({
+				biometryType: biometryType && Device.isAndroid() ? 'biometrics' : biometryType,
+				biometryChoice: !!biometryChoice,
+				metricsOptIn,
+				passcodeChoice: passcodeEnabled
+			});
+		} else {
+			this.setState({ metricsOptIn });
 		}
-		const metricsOptIn = Analytics.getEnabled();
-		this.setState({
-			biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
-			biometryChoice: bioEnabled,
-			metricsOptIn,
-			passcodeChoice: passcodeEnabled
-		});
 	};
 
-	onSecuritySettingChange = async (enabled, type) => {
-		if (type === 'biometrics') {
-			this.setState({ biometryChoice: enabled });
+	onSingInWithBiometrics = async enabled => {
+		this.setState({ biometryChoice: enabled });
+		// If we're disabling biometrics, let's enable device passcode / pin
+		//  by default because if we disable both we lose the password
+		if (!enabled) {
+			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			this.onSignInWithPasscode(true);
+			return;
+		}
 
-			// If we're disabling biometrics, let's enable device passcode / pin
-			//  by default because if we disable both we lose the password
-			if (!enabled) {
-				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-				this.onSecuritySettingChange(true, 'passcode');
-				return;
-			}
-
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-			await AsyncStorage.removeItem(PASSCODE_DISABLED);
-
-			const credentials = await SecureKeychain.getGenericPassword();
-			if (credentials && credentials.password !== '') {
-				this.storeCredentials(credentials.password, enabled, false, type);
-			} else if (this.props.passwordHasBeenSet) {
-				this.props.navigation.navigate('EnterPasswordSimple', {
-					onPasswordSet: password => {
-						this.storeCredentials(password, true, false, type, true);
-					}
-				});
-			} else {
-				this.props.navigation.navigate('ChoosePasswordSimple', {
-					onPasswordSet: password => {
-						this.storeCredentials(password, enabled, true, type);
-					}
-				});
-			}
+		await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+		await AsyncStorage.removeItem(PASSCODE_DISABLED);
+		const credentials = await SecureKeychain.getGenericPassword();
+		if (credentials && credentials.password !== '') {
+			this.storeCredentials(credentials.password, enabled, false, TYPE_BIOMETRICS);
+		} else if (this.props.passwordHasBeenSet) {
+			this.props.navigation.navigate('EnterPasswordSimple', {
+				onPasswordSet: password => {
+					this.storeCredentials(password, true, false, TYPE_BIOMETRICS, true);
+				}
+			});
 		} else {
-			this.setState({ passcodeChoice: enabled });
+			this.props.navigation.navigate('ChoosePasswordSimple', {
+				onPasswordSet: password => {
+					this.storeCredentials(password, enabled, true, TYPE_BIOMETRICS);
+				}
+			});
+		}
+	};
 
-			if (!enabled) {
-				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-			} else {
-				await AsyncStorage.removeItem(PASSCODE_DISABLED);
-			}
+	onSignInWithPasscode = async enabled => {
+		this.setState({ passcodeChoice: enabled });
+		if (!enabled) {
+			await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+		} else {
+			await AsyncStorage.removeItem(PASSCODE_DISABLED);
+		}
 
-			const credentials = await SecureKeychain.getGenericPassword();
-			if (credentials && credentials.password !== '') {
-				this.storeCredentials(credentials.password, enabled, false, type);
-			} else if (this.props.passwordHasBeenSet) {
-				this.props.navigation.navigate('EnterPasswordSimple', {
-					onPasswordSet: password => {
-						this.storeCredentials(password, true, false, type, true);
-					}
-				});
-			} else {
-				this.props.navigation.navigate('ChoosePasswordSimple', {
-					onPasswordSet: password => {
-						this.storeCredentials(password, enabled, true, type);
-					}
-				});
-			}
+		const credentials = await SecureKeychain.getGenericPassword();
+		if (credentials && credentials.password !== '') {
+			this.storeCredentials(credentials.password, enabled, false, TYPE_PASSCODE);
+		} else if (this.props.passwordHasBeenSet) {
+			this.props.navigation.navigate('EnterPasswordSimple', {
+				onPasswordSet: password => {
+					this.storeCredentials(password, true, false, TYPE_PASSCODE, true);
+				}
+			});
+		} else {
+			this.props.navigation.navigate('ChoosePasswordSimple', {
+				onPasswordSet: password => {
+					this.storeCredentials(password, enabled, true, TYPE_PASSCODE);
+				}
+			});
 		}
 	};
 
@@ -367,7 +367,7 @@ class Settings extends PureComponent {
 					await AsyncStorage.removeItem(PASSCODE_CHOICE);
 					// If the user enables biometrics, we're trying to read the password
 					// immediately so we get the permission prompt
-					if (Device.isIos()) {
+					if (isIos) {
 						await SecureKeychain.getGenericPassword();
 					}
 				} else {
@@ -485,7 +485,7 @@ class Settings extends PureComponent {
 							<Switch
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
 							/>
 						</View>
@@ -497,7 +497,7 @@ class Settings extends PureComponent {
 							<Switch
 								value={metricsOptIn}
 								onValueChange={this.toggleMetricsOptIn}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
 								testID={'metametrics-switch'}
 							/>
@@ -510,7 +510,7 @@ class Settings extends PureComponent {
 							<Switch
 								value={thirdPartyApiMode}
 								onValueChange={this.toggleThirdPartyAPI}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
 							/>
 						</View>
@@ -571,12 +571,9 @@ class Settings extends PureComponent {
 							</Text>
 							<View style={styles.switchElement}>
 								<Switch
-									// eslint-disable-next-line react/jsx-no-bind
-									onValueChange={(
-										biometryChoice // eslint-disable-line react/jsx-no-bind
-									) => this.onSecuritySettingChange(biometryChoice, 'biometrics')}
+									onValueChange={this.onSingInWithBiometrics}
 									value={this.state.biometryChoice}
-									trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+									trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
@@ -585,18 +582,15 @@ class Settings extends PureComponent {
 					{biometryType && !this.state.biometryChoice && (
 						<View style={styles.setting}>
 							<Text style={styles.title}>
-								{Device.isIos()
+								{isIos
 									? strings(`biometrics.enable_device_passcode_ios`)
 									: strings(`biometrics.enable_device_passcode_android`)}
 							</Text>
 							<View style={styles.switchElement}>
 								<Switch
-									// eslint-disable-next-line react/jsx-no-bind
-									onValueChange={(
-										passcodeChoice // eslint-disable-line react/jsx-no-bind
-									) => this.onSecuritySettingChange(passcodeChoice, 'passcode')}
+									onValueChange={this.onSignInWithPasscode}
 									value={this.state.passcodeChoice}
-									trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+									trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
