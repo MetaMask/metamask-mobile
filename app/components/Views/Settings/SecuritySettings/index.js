@@ -122,10 +122,6 @@ class Settings extends PureComponent {
 		 */
 		thirdPartyApiMode: PropTypes.bool,
 		/**
-		 * Boolean that determines if the user has set a password before
-		 */
-		passwordHasBeenSet: PropTypes.bool,
-		/**
 		 * Called to set the passwordSet flag
 		 */
 		passwordSet: PropTypes.func,
@@ -269,16 +265,10 @@ class Settings extends PureComponent {
 		const credentials = await SecureKeychain.getGenericPassword();
 		if (credentials && credentials.password !== '') {
 			this.storeCredentials(credentials.password, enabled, false, TYPE_BIOMETRICS);
-		} else if (this.props.passwordHasBeenSet) {
+		} else {
 			this.props.navigation.navigate('EnterPasswordSimple', {
 				onPasswordSet: password => {
 					this.storeCredentials(password, true, false, TYPE_BIOMETRICS, true);
-				}
-			});
-		} else {
-			this.props.navigation.navigate('ChoosePasswordSimple', {
-				onPasswordSet: password => {
-					this.storeCredentials(password, enabled, true, TYPE_BIOMETRICS);
 				}
 			});
 		}
@@ -295,16 +285,10 @@ class Settings extends PureComponent {
 		const credentials = await SecureKeychain.getGenericPassword();
 		if (credentials && credentials.password !== '') {
 			this.storeCredentials(credentials.password, enabled, false, TYPE_PASSCODE);
-		} else if (this.props.passwordHasBeenSet) {
+		} else {
 			this.props.navigation.navigate('EnterPasswordSimple', {
 				onPasswordSet: password => {
 					this.storeCredentials(password, true, false, TYPE_PASSCODE, true);
-				}
-			});
-		} else {
-			this.props.navigation.navigate('ChoosePasswordSimple', {
-				onPasswordSet: password => {
-					this.storeCredentials(password, enabled, true, TYPE_PASSCODE);
 				}
 			});
 		}
@@ -685,8 +669,7 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	keyrings: state.engine.backgroundState.KeyringController.keyrings,
-	passwordHasBeenSet: state.user.passwordSet
+	keyrings: state.engine.backgroundState.KeyringController.keyrings
 });
 
 const mapDispatchToProps = dispatch => ({
