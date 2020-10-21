@@ -198,6 +198,7 @@
 		"view_in": "View on",
 		"browser": "Browser",
 		"settings": "Settings",
+		"settings_warning": "Wallet unprotected",
 		"help": "Get help",
 		"logout": "Log Out",
 		"logout_title": "Do you really want to log out?",

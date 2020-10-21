@@ -722,7 +722,7 @@ class DrawerView extends PureComponent {
 				{
 					name: strings('drawer.settings'),
 					icon: this.getFeatherIcon('settings'),
-					warning: 'Wallet unprotected',
+					warning: strings('drawer.settings_warning'),
 					action: this.showSettings
 				},
 				{

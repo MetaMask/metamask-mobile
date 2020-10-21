@@ -173,6 +173,7 @@
 		"view_in": "Ver en",
 		"browser": "Navegador",
 		"settings": "Ajustes",
+		"settings_warning": "Billetera desprotegida",
 		"help": "Ayuda",
 		"logout": "Salir",
 		"logout_title": "Realmente deseas salir?",
