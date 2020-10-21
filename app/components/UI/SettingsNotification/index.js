@@ -50,7 +50,7 @@ const defaultProps = {
 	onPress: undefined
 };
 
-const SettingsWarning = ({ isWarning, isNotification, children, onPress }) => (
+const SettingsNotification = ({ isWarning, isNotification, children, onPress }) => (
 	<TouchableOpacity
 		style={[
 			isNotification ? styles.menuItemWarning : styles.wrapper,
@@ -63,7 +63,7 @@ const SettingsWarning = ({ isWarning, isNotification, children, onPress }) => (
 	</TouchableOpacity>
 );
 
-SettingsWarning.propTypes = propTypes;
-SettingsWarning.defaultProps = defaultProps;
+SettingsNotification.propTypes = propTypes;
+SettingsNotification.defaultProps = defaultProps;
 
-export default SettingsWarning;
+export default SettingsNotification;

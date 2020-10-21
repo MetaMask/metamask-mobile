@@ -7,7 +7,7 @@ import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
-import SettingsWarning from '../../../UI/SettingsWarning';
+import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
 import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -507,7 +507,7 @@ class Settings extends PureComponent {
 					<View style={[styles.setting, styles.firstSetting]}>
 						<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
-						<SettingsWarning onPress={this.manualBackup} isWarning={!seedphraseBackedUp}>
+						<SettingsNotification onPress={this.manualBackup} isWarning={!seedphraseBackedUp}>
 							<Text
 								style={[
 									styles.warningText,
@@ -526,7 +526,7 @@ class Settings extends PureComponent {
 									{strings('app_settings.view_hint')}
 								</Text>
 							) : null}
-						</SettingsWarning>
+						</SettingsNotification>
 					</View>
 					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>

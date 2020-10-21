@@ -35,7 +35,7 @@ import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
-import SettingsWarning from '../SettingsWarning';
+import SettingsNotification from '../SettingsNotification';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -986,13 +986,13 @@ class DrawerView extends PureComponent {
 												{item.name}
 											</Text>
 											{!seedphraseBackedUp && item.warning ? (
-												<SettingsWarning
+												<SettingsNotification
 													isNotification
 													isWarning
 													onPress={this.drillIntoSecuritySettings}
 												>
 													<Text style={styles.menuItemWarningText}>{item.warning}</Text>
-												</SettingsWarning>
+												</SettingsNotification>
 											) : null}
 										</TouchableOpacity>
 									))}
