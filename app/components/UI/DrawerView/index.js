@@ -807,10 +807,6 @@ class DrawerView extends PureComponent {
 		this.props.navigation.navigate(this.props.passwordSet ? 'AccountBackupStep1' : 'SetPasswordFlow');
 	};
 
-	drillIntoSecuritySettings = () => {
-		this.props.navigation.navigate('SecuritySettings');
-	};
-
 	renderProtectModal = () => (
 		<Modal
 			isVisible={this.state.showProtectWalletModal}
@@ -986,11 +982,7 @@ class DrawerView extends PureComponent {
 												{item.name}
 											</Text>
 											{!seedphraseBackedUp && item.warning ? (
-												<SettingsNotification
-													isNotification
-													isWarning
-													onPress={this.drillIntoSecuritySettings}
-												>
+												<SettingsNotification isNotification isWarning>
 													<Text style={styles.menuItemWarningText}>{item.warning}</Text>
 												</SettingsNotification>
 											) : null}

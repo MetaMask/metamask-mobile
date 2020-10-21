@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../../../styles/common';
@@ -38,29 +38,28 @@ const WarningIcon = () => <Icon style={styles.icon} size={16} color={colors.red}
 const CheckIcon = () => <MaterialIcon style={[styles.icon, styles.check]} size={16} name="check-circle" />;
 
 const propTypes = {
+	style: PropTypes.object,
 	isWarning: PropTypes.bool,
 	isNotification: PropTypes.bool,
-	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
-	onPress: PropTypes.func
+	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node])
 };
 
 const defaultProps = {
+	style: {},
 	isWarning: false,
-	isHighlighted: false,
-	onPress: undefined
+	isHighlighted: false
 };
 
-const SettingsNotification = ({ isWarning, isNotification, children, onPress }) => (
-	<TouchableOpacity
+const SettingsNotification = ({ style, isWarning, isNotification, children }) => (
+	<View
 		style={[
-			isNotification ? styles.menuItemWarning : styles.wrapper,
+			isNotification ? Object.assign({}, styles.menuItemWarning, style) : styles.wrapper,
 			isNotification ? null : isWarning ? styles.red : styles.normal
 		]}
-		onPress={onPress}
 	>
 		{isWarning ? <WarningIcon /> : <CheckIcon />}
 		{children}
-	</TouchableOpacity>
+	</View>
 );
 
 SettingsNotification.propTypes = propTypes;

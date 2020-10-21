@@ -507,7 +507,7 @@ class Settings extends PureComponent {
 					<View style={[styles.setting, styles.firstSetting]}>
 						<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
-						<SettingsNotification onPress={this.manualBackup} isWarning={!seedphraseBackedUp}>
+						<SettingsNotification isWarning={!seedphraseBackedUp}>
 							<Text
 								style={[
 									styles.warningText,
