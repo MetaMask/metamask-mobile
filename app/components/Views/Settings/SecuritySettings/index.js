@@ -26,7 +26,8 @@ import {
 	BIOMETRY_CHOICE_DISABLED,
 	PASSCODE_CHOICE,
 	PASSCODE_DISABLED,
-	TRUE
+	TRUE,
+	SEED_PHRASE_HINTS
 } from '../../../../constants/storage';
 import CookieManager from '@react-native-community/cookies';
 
@@ -246,6 +247,8 @@ class Settings extends PureComponent {
 
 	componentDidMount = async () => {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
+		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
+
 		let bioEnabled = false;
 		let passcodeEnabled = false;
 		if (biometryType) {
@@ -264,7 +267,8 @@ class Settings extends PureComponent {
 			biometryType,
 			biometryChoice: bioEnabled,
 			metricsOptIn,
-			passcodeChoice: passcodeEnabled
+			passcodeChoice: passcodeEnabled,
+			currentSeedphraseHints
 		});
 	};
 
@@ -492,7 +496,8 @@ class Settings extends PureComponent {
 			biometryType,
 			browserHistoryModalVisible,
 			cookiesModalVisible,
-			metricsOptIn
+			metricsOptIn,
+			currentSeedphraseHints
 		} = this.state;
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
@@ -506,21 +511,21 @@ class Settings extends PureComponent {
 							<Text
 								style={[
 									styles.warningText,
-									!seedphraseBackedUp ? styles.warningTextRed : styles.warningTextGreen,
+									seedphraseBackedUp ? styles.warningTextGreen : styles.warningTextRed,
 									styles.marginLeft
 								]}
 							>
-								Seed phrase backed up
+								{strings(
+									seedphraseBackedUp
+										? 'app_settings.seedphrase_backed_up'
+										: 'app_settings.seedphrase_not_backed_up'
+								)}
 							</Text>
-							<Text style={[styles.warningText, styles.warningBold]}>
-								{!seedphraseBackedUp ? 'Back up now' : 'Review'}
-							</Text>
-						</SettingsWarning>
-						<SettingsWarning isWarning>
-							<Text style={[styles.warningText, styles.warningTextRed, styles.marginLeft]}>
-								Password not backed up
-							</Text>
-							<Text style={[styles.warningText, styles.warningBold]}>Back up now</Text>
+							{currentSeedphraseHints && seedphraseBackedUp ? (
+								<Text style={[styles.warningText, styles.warningBold]}>
+									{strings('app_settings.view_hint')}
+								</Text>
+							) : null}
 						</SettingsWarning>
 					</View>
 					<View style={styles.setting}>

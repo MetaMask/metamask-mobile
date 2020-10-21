@@ -841,7 +841,16 @@ class DrawerView extends PureComponent {
 	);
 
 	render() {
-		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency, ticker } = this.props;
+		const {
+			network,
+			accounts,
+			identities,
+			selectedAddress,
+			keyrings,
+			currentCurrency,
+			ticker,
+			seedphraseBackedUp
+		} = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
@@ -976,7 +985,7 @@ class DrawerView extends PureComponent {
 											>
 												{item.name}
 											</Text>
-											{item.warning ? (
+											{!seedphraseBackedUp && item.warning ? (
 												<SettingsWarning
 													isNotification
 													isWarning

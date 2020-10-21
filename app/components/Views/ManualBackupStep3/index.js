@@ -25,7 +25,7 @@ import Device from '../../../util/Device';
 import Icon from 'react-native-vector-icons/Octicons';
 import Confetti from '../../UI/Confetti';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
+import { ONBOARDING_WIZARD, METRICS_OPT_IN, SEED_PHRASE_HINTS } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -157,14 +157,14 @@ class ManualBackupStep3 extends PureComponent {
 	saveSeedphrase = async () => {
 		const { hintText } = this.state;
 		if (!hintText) return;
-		const currentSeedphraseHints = await AsyncStorage.getItem('seedphraseHints');
-		const parsedHints = JSON.parse(currentSeedphraseHints);
 		if (this.isHintSeedPhrase(hintText)) {
 			Alert.alert('Error!', strings('manual_backup_step_3.no_seedphrase'));
 			return;
 		}
 		this.toggleHint();
-		await AsyncStorage.setItem('seedphraseHints', JSON.stringify({ ...parsedHints, manualBackup: hintText }));
+		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
+		const parsedHints = JSON.parse(currentSeedphraseHints);
+		await AsyncStorage.setItem(SEED_PHRASE_HINTS, JSON.stringify({ ...parsedHints, manualBackup: hintText }));
 	};
 
 	done = async () => {
