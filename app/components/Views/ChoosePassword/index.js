@@ -313,10 +313,7 @@ class ChoosePassword extends PureComponent {
 
 			// Set state in app as it was with password
 			if (this.state.biometryType && this.state.biometryChoice) {
-				const authOptions = {
-					accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-				};
-				await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
+				await SecureKeychain.setGenericPassword(password, true);
 				// If the user enables biometrics, we're trying to read the password
 				// immediately so we get the permission prompt
 				if (Device.isIos()) {
@@ -327,9 +324,7 @@ class ChoosePassword extends PureComponent {
 				await AsyncStorage.removeItem(PASSCODE_DISABLED);
 			} else {
 				if (this.state.rememberMe) {
-					await SecureKeychain.setGenericPassword('metamask-user', password, {
-						accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY
-					});
+					await SecureKeychain.setGenericPassword(password);
 				} else {
 					await SecureKeychain.resetGenericPassword();
 				}
@@ -346,7 +341,7 @@ class ChoosePassword extends PureComponent {
 		} catch (error) {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
-			await SecureKeychain.setGenericPassword('metamask-user', '');
+			await SecureKeychain.setGenericPassword('');
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);

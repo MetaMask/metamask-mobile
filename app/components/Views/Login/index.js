@@ -203,13 +203,7 @@ class Login extends PureComponent {
 				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			}
 			if (this.state.biometryChoice && this.state.biometryType) {
-				const authOptions = {
-					accessControl: this.state.biometryChoice
-						? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-						: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
-				};
-
-				await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
+				await SecureKeychain.setGenericPassword(this.state.password, true);
 
 				if (!this.state.biometryChoice) {
 					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
@@ -222,9 +216,7 @@ class Login extends PureComponent {
 				}
 			} else {
 				if (this.state.rememberMe) {
-					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
-						accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY
-					});
+					await SecureKeychain.setGenericPassword(this.state.password);
 				} else {
 					await SecureKeychain.resetGenericPassword();
 				}

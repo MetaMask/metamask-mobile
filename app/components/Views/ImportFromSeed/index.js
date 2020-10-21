@@ -266,11 +266,7 @@ class ImportFromSeed extends PureComponent {
 				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
 
 				if (this.state.biometryType && this.state.biometryChoice) {
-					const authOptions = {
-						accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					};
-
-					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
+					await SecureKeychain.setGenericPassword(this.state.password, true);
 
 					// If the user enables biometrics, we're trying to read the password
 					// immediately so we get the permission prompt
@@ -282,9 +278,7 @@ class ImportFromSeed extends PureComponent {
 					await AsyncStorage.removeItem(PASSCODE_DISABLED);
 				} else {
 					if (this.state.rememberMe) {
-						await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
-							accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY
-						});
+						await SecureKeychain.setGenericPassword(this.state.password);
 					} else {
 						await SecureKeychain.resetGenericPassword();
 					}

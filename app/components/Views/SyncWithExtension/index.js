@@ -253,13 +253,7 @@ class SyncWithExtension extends PureComponent {
 				this.setState({ biometryType, biometryChoice: true });
 			}
 
-			const authOptions = {
-				accessControl: this.state.biometryChoice
-					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
-			};
-
-			await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
+			await SecureKeychain.setGenericPassword(password, this.state.biometryChoice);
 
 			if (!this.state.biometryChoice) {
 				await AsyncStorage.removeItem(BIOMETRY_CHOICE);

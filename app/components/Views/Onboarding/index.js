@@ -342,10 +342,7 @@ class Onboarding extends PureComponent {
 
 	finishSync = async opts => {
 		if (opts.biometrics) {
-			const authOptions = {
-				accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-			};
-			await SecureKeychain.setGenericPassword('metamask-user', opts.password, authOptions);
+			await SecureKeychain.setGenericPassword(opts.password, true);
 
 			// If the user enables biometrics, we're trying to read the password
 			// immediately so we get the permission prompt

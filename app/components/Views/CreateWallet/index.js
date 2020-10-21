@@ -124,7 +124,7 @@ class CreateWallet extends PureComponent {
 			const { KeyringController } = Engine.context;
 			await Engine.resetState();
 			await KeyringController.createNewVaultAndKeychain('');
-			await SecureKeychain.setGenericPassword('metamask-user', '');
+			await SecureKeychain.setGenericPassword('');
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);

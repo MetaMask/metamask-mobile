@@ -77,9 +77,15 @@ export default {
 		return null;
 	},
 
-	async setGenericPassword(key, password, authOptions) {
+	async setGenericPassword(password, biometrics) {
+		const authOptions = {
+			accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+			accessControl: biometrics
+				? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+				: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE
+		};
 		const encryptedPassword = await instance.encryptPassword(password);
-		return Keychain.setGenericPassword(key, encryptedPassword, { ...defaultOptions, ...authOptions });
+		return Keychain.setGenericPassword('metamask-user', encryptedPassword, { ...defaultOptions, ...authOptions });
 	},
 	ACCESS_CONTROL: Keychain.ACCESS_CONTROL,
 	ACCESSIBLE: Keychain.ACCESSIBLE,

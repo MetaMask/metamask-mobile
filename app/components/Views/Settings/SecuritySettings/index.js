@@ -335,13 +335,7 @@ class Settings extends PureComponent {
 
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			if (enabled) {
-				const authOptions = {
-					accessControl:
-						type === 'biometrics'
-							? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-							: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
-				};
-				await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
+				await SecureKeychain.setGenericPassword(password, type === 'biometrics');
 
 				if (type === 'biometrics') {
 					await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
