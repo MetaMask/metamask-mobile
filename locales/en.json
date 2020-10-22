@@ -286,10 +286,9 @@
 		"description_content_2": "MetaMask will...",
 		"action_description_1": "Always allow you to opt-out via Settings",
 		"action_description_2": "Send anonymized click & pageview events",
-		"action_description_3": "Maintain a public aggregate dashboard to educate the community",
-		"action_description_4": "Never collect keys, addresses, transactions, balances, hashes, or any personal information",
-		"action_description_5": "Never collect your IP address",
-		"action_description_6": "Never sell data for profit. Ever!"
+		"action_description_3": "Never collect keys, addresses, transactions, balances, hashes, or any personal information",
+		"action_description_4": "Never collect your IP address",
+		"action_description_5": "Never sell data for profit. Ever!"
 	},
 	"token": {
 		"token_symbol": "Token Symbol",

@@ -258,10 +258,9 @@
 		"description_content_2": "MetaMask va a...",
 		"action_description_1": "Siempre permitir cancelar a través de Configuraciónes",
 		"action_description_2": "Enviar eventos anónimos de clics y páginas vistas",
-		"action_description_3": "Mantener un panel público agregado para educar a la comunidad.",
-		"action_description_4": "Nunca recopilar claves, direcciones, transacciones, saldos, hashes o cualquier información personal",
-		"action_description_5": "Nunca recopilar su dirección IP",
-		"action_description_6": "Nunca vender datos con fines de lucro. ¡Nunca!"
+		"action_description_3": "Nunca recopilar claves, direcciones, transacciones, saldos, hashes o cualquier información personal",
+		"action_description_4": "Nunca recopilar su dirección IP",
+		"action_description_5": "Nunca vender datos con fines de lucro. ¡Nunca!"
 	},
 	"token": {
 		"token_symbol": "Símbolo del Token",
