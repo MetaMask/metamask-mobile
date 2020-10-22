@@ -60,8 +60,6 @@ import AccountApproval from '../../UI/AccountApproval';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
-import DeeplinkManager from '../../../core/DeeplinkManager';
-import Branch from 'react-native-branch';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -588,24 +586,6 @@ const Main = props => {
 		</Modal>
 	);
 
-	const handleDeeplinks = async ({ error, params, uri }) => {
-		if (error) {
-			Logger.error(error, 'Deeplink: Error from Branch');
-		}
-		const deeplink = params['+non_branch_link'] || uri || null;
-		try {
-			if (deeplink) {
-				const { KeyringController } = Engine.context;
-				const isUnlocked = KeyringController.isUnlocked();
-				isUnlocked
-					? DeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
-					: DeeplinkManager.setDeeplink(deeplink);
-			}
-		} catch (e) {
-			Logger.error(e, `Deeplink: Error parsing deeplink`);
-		}
-	};
-
 	useEffect(() => {
 		if (locale.current !== I18n.locale) {
 			locale.current = I18n.locale;
@@ -627,8 +607,6 @@ const Main = props => {
 
 	useEffect(() => {
 		initializeWalletConnect();
-		DeeplinkManager.init(props.navigation);
-		const unsubscribeFromBranch = Branch.subscribe(handleDeeplinks);
 		AppState.addEventListener('change', handleAppStateChange);
 		lockManager.current = new LockManager(props.navigation, props.lockTime);
 		PushNotification.configure({
@@ -696,7 +674,6 @@ const Main = props => {
 			PaymentChannelsClient.hub.removeAllListeners();
 			PaymentChannelsClient.stop();
 			removeConnectionStatusListener.current && removeConnectionStatusListener.current();
-			unsubscribeFromBranch();
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
