@@ -7,7 +7,8 @@ import {
 	Keyboard,
 	TouchableOpacity,
 	TouchableWithoutFeedback,
-	TextInput
+	TextInput,
+	Alert
 } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -144,15 +145,23 @@ class ManualBackupStep3 extends PureComponent {
 			title: strings('drawer.metamask_support')
 		});
 
+	isHintSeedPhrase = hintText => {
+		const words = this.props.navigation.getParam('words');
+		const lower = string => String(string).toLowerCase();
+		return lower(hintText) === lower(words.join(' '));
+	};
+
 	saveSeedphrase = async () => {
-		if (!this.state.hintText) return;
-		this.toggleHint();
+		const { hintText } = this.state;
+		if (!hintText) return;
 		const currentSeedphraseHints = await AsyncStorage.getItem('seedphraseHints');
 		const parsedHints = JSON.parse(currentSeedphraseHints);
-		await AsyncStorage.setItem(
-			'seedphraseHints',
-			JSON.stringify({ ...parsedHints, manualBackup: this.state.hintText })
-		);
+		if (this.isHintSeedPhrase(hintText)) {
+			Alert.alert('Error!', strings('manual_backup_step_3.no_seedphrase'));
+			return;
+		}
+		this.toggleHint();
+		await AsyncStorage.setItem('seedphraseHints', JSON.stringify({ ...parsedHints, manualBackup: hintText }));
 	};
 
 	done = async () => {
