@@ -1,8 +1,39 @@
 diff --git a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.java b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.java
-index f718ba5..6523727 100644
+index f718ba5..6841ea5 100644
 --- a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.java
 +++ b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.java
-@@ -225,7 +225,7 @@ public class CipherStorageKeystoreRsaEcb extends CipherStorageBase {
+@@ -118,18 +118,20 @@ public class CipherStorageKeystoreRsaEcb extends CipherStorageBase {
+ 
+     Key key = null;
+ 
+-    try {
+-      // key is always NOT NULL otherwise GeneralSecurityException raised
+-      key = extractGeneratedKey(safeAlias, level, retries);
++    // try {
++      // // key is always NOT NULL otherwise GeneralSecurityException raised
++      // key = extractGeneratedKey(safeAlias, level, retries);
+ 
+-      final DecryptionResult results = new DecryptionResult(
+-        decryptBytes(key, username),
+-        decryptBytes(key, password)
+-      );
++      // final DecryptionResult results = new DecryptionResult(
++      //   decryptBytes(key, username),
++      //   decryptBytes(key, password)
++      // );
+ 
+-      handler.onDecrypt(results, null);
+-    } catch (final UserNotAuthenticatedException ex) {
+-      Log.d(LOG_TAG, "Unlock of keystore is needed. Error: " + ex.getMessage(), ex);
++      // handler.onDecrypt(results, null);
++    // } catch (final UserNotAuthenticatedException ex) {
++    try {
++      key = extractGeneratedKey(safeAlias, level, retries);
++      // Log.d(LOG_TAG, "Unlock of keystore is needed. Error: " + ex.getMessage(), ex);
+ 
+       // expected that KEY instance is extracted and we caught exception on decryptBytes operation
+       @SuppressWarnings("ConstantConditions") final DecryptionContext context =
+@@ -225,7 +227,7 @@ public class CipherStorageKeystoreRsaEcb extends CipherStorageBase {
        .setEncryptionPaddings(PADDING_PKCS1)
        .setRandomizedEncryptionRequired(true)
        .setUserAuthenticationRequired(true)

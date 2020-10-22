@@ -321,7 +321,7 @@ class Login extends PureComponent {
 			field.blur();
 			this.onLogin();
 		} catch (error) {
-			console.warn(error);
+			Logger.log(error);
 		}
 		field.blur();
 		return true;
