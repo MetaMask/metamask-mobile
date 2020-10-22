@@ -1,3 +1,16 @@
+diff --git a/node_modules/react-native-keychain/RNKeychainManager/RNKeychainManager.m b/node_modules/react-native-keychain/RNKeychainManager/RNKeychainManager.m
+index 98e45fe..50602a3 100644
+--- a/node_modules/react-native-keychain/RNKeychainManager/RNKeychainManager.m
++++ b/node_modules/react-native-keychain/RNKeychainManager/RNKeychainManager.m
+@@ -292,7 +292,7 @@ - (OSStatus)deleteCredentialsForServer:(NSString *)server
+ {
+   NSError *aerr = nil;
+   LAContext *context = [LAContext new];
+-  BOOL canBeProtected = [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthentication error:&aerr];
++  BOOL canBeProtected = [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&aerr];
+ 
+   if (!aerr && canBeProtected) {
+     if (@available(iOS 11, *)) {
 diff --git a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.java b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.java
 index f718ba5..6841ea5 100644
 --- a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.java
