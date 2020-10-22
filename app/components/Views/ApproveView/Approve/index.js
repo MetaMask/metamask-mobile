@@ -39,6 +39,8 @@ import StyledButton from '../../../UI/StyledButton';
 import currencySymbols from '../../../../util/currency-symbols.json';
 import Logger from '../../../../util/Logger';
 import AppConstants from '../../../../core/AppConstants';
+import { WALLET_CONNECT_ORIGIN } from '../../../../util/walletconnect';
+import isUrl from 'is-url';
 
 const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
@@ -290,6 +292,7 @@ class Approve extends PureComponent {
 		editPermissionVisible: false,
 		gasError: undefined,
 		host: undefined,
+		origin: undefined,
 		originalApproveAmount: undefined,
 		originalTransactionData: this.props.transaction.data,
 		totalGas: undefined,
@@ -309,10 +312,14 @@ class Approve extends PureComponent {
 
 	componentDidMount = async () => {
 		const {
-			transaction: { origin, to, gas, gasPrice, data },
+			transaction: { to, gas, gasPrice, data },
 			conversionRate
 		} = this.props;
+		let origin = this.props.transaction.origin;
 		const { AssetsContractController } = Engine.context;
+		if (origin && origin.includes(WALLET_CONNECT_ORIGIN)) {
+			origin = origin.split(WALLET_CONNECT_ORIGIN)[1];
+		}
 		const host = getHost(origin);
 		let tokenSymbol, tokenDecimals;
 		const contract = contractMap[safeToChecksumAddress(to)];
@@ -342,7 +349,8 @@ class Approve extends PureComponent {
 			tokenSymbol,
 			totalGas: renderFromWei(totalGas),
 			totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
-			spenderAddress
+			spenderAddress,
+			origin
 		});
 	};
 
@@ -719,17 +727,15 @@ class Approve extends PureComponent {
 			editPermissionVisible,
 			ticker,
 			gasError,
-			spenderAddress
+			spenderAddress,
+			origin
 		} = this.state;
-
-		const {
-			transaction: { origin }
-		} = this.props;
 
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
 		const currencySymbol = currencySymbols[currentCurrency];
 		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
+		const url = isUrl(origin) ? origin : activeTabUrl;
 		return (
 			<ActionModal
 				modalVisible={this.props.modalVisible}
@@ -758,7 +764,7 @@ class Approve extends PureComponent {
 						<>
 							<View style={styles.section} testID={'approve-screen'}>
 								<TransactionHeader
-									currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
+									currentPageInformation={{ origin, spenderAddress, title: host, url }}
 								/>
 								<Text style={styles.title} testID={'allow-access'}>
 									{strings(
