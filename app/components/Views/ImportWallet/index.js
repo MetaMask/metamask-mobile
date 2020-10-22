@@ -271,8 +271,9 @@ class ImportWallet extends PureComponent {
 		}
 
 		if (password === this.password) {
-			const biometryType = await SecureKeychain.getSupportedBiometryType();
+			let biometryType = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
+				if (Device.isAndroid()) biometryType = 'biometrics';
 				this.setState({ biometryType, biometryChoice: true });
 
 				Alert.alert(

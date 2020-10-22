@@ -304,10 +304,10 @@ class Onboarding extends PureComponent {
 		}
 
 		if (password === this.password) {
-			const biometryType = await SecureKeychain.getSupportedBiometryType();
+			let biometryType = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
+				if (Device.isAndroid()) biometryType = 'biometrics';
 				this.setState({ biometryType, biometryChoice: true });
-
 				Alert.alert(
 					strings('sync_with_extension.allow_biometrics_title', { biometrics: biometryType }),
 					strings('sync_with_extension.allow_biometrics_desc', { biometrics: biometryType }),
