@@ -108,6 +108,7 @@ import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions
 import AccountApproval from '../../UI/AccountApproval';
 import ActivityView from '../../Views/ActivityView';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
+import WhatsNewModal from '../../UI/WhatsNewModal';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -1114,6 +1115,7 @@ class Main extends PureComponent {
 					<FiatOrders />
 					<BackupAlert navigation={this.props.navigation} />
 					<ProtectYourWalletModal navigation={this.props.navigation} />
+					<WhatsNewModal navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
