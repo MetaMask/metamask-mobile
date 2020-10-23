@@ -146,7 +146,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		...fontStyles.normal,
 		lineHeight: 20,
-		fontSize: 14
+		fontSize: 14,
+		paddingHorizontal: 10
 	}
 });
 

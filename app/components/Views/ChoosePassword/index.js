@@ -109,7 +109,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.black,
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
+		lineHeight: 20
 	},
 	learnMore: {
 		color: colors.blue,
