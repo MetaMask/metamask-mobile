@@ -97,9 +97,6 @@ const OnboardingRootNav = createStackNavigator(
 		SyncWithExtensionSuccess: {
 			screen: SyncWithExtensionSuccess
 		},
-		ResetPassword: {
-			screen: ResetPassword
-		},
 		QRScanner: {
 			screen: QRScanner,
 			navigationOptions: {
@@ -144,6 +141,12 @@ const HomeNav = createDrawerNavigator(
 	}
 );
 
+const ResetPasswordNav = createStackNavigator({
+	ResetPassword: {
+		screen: ResetPassword
+	}
+});
+
 /**
  * Drawer status tracking
  */
@@ -172,7 +175,8 @@ const App = createSwitchNavigator(
 		OnboardingRootNav,
 		Login,
 		OnboardingCarousel,
-		LockScreen
+		LockScreen,
+		ResetPasswordNav
 	},
 	{
 		initialRouteName: 'Entry'
