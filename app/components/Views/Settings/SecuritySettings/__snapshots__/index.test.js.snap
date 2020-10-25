@@ -42,6 +42,140 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
+        Protect your wallet
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Protect your wallet by saving your seed phrase in various places like on a piece of paper, password manager and/or the cloud.
+      </Text>
+      <SettingsNotification
+        isHighlighted={false}
+        isWarning={true}
+        style={Object {}}
+      >
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#000000",
+                "fontSize": 12,
+              },
+              Object {
+                "color": "#D73A49",
+              },
+              undefined,
+            ]
+          }
+        >
+          Important! Seed phrase not backed up
+        </Text>
+      </SettingsNotification>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="blue"
+      >
+        Back up now
+      </StyledButton>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Password
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your seedphrase to re-import your wallet.
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="blue"
+      >
+        Change password
+      </StyledButton>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
         Privacy mode
       </Text>
       <Text

@@ -442,7 +442,6 @@ class ChoosePassword extends PureComponent {
 		let importedAccounts = [];
 		try {
 			const keychainPassword = this.keyringControllerPasswordSet ? this.state.originalPassword : '';
-			console.log(keychainPassword);
 			// Get imported accounts
 			const simpleKeyrings = KeyringController.state.keyrings.filter(
 				keyring => keyring.type === 'Simple Key Pair'
@@ -455,7 +454,6 @@ class ChoosePassword extends PureComponent {
 				importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
 			}
 		} catch (e) {
-			console.log(e);
 			Logger.error(e, 'error while trying to get imported accounts on recreate vault');
 		}
 
@@ -506,9 +504,7 @@ class ChoosePassword extends PureComponent {
 		const { KeyringController } = Engine.context;
 		const { originalPassword } = this.state;
 		const keychainPassword = originalPassword;
-		console.log(keychainPassword);
 		const mnemonic = await KeyringController.exportSeedPhrase(keychainPassword);
-		console.log(mnemonic);
 		return JSON.stringify(mnemonic).replace(/"/g, '');
 	};
 

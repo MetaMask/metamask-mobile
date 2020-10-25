@@ -358,6 +358,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               "fontSize": 14,
               "fontWeight": "400",
               "lineHeight": 20,
+              "paddingHorizontal": 10,
             }
           }
           testID="skip-backup-text"
