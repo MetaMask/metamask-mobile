@@ -493,6 +493,10 @@ class Settings extends PureComponent {
 		this.props.navigation.navigate('ManualBackupStep1');
 	};
 
+	resetPassword = () => {
+		console.log('reset!');
+	};
+
 	render = () => {
 		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
 		const {
@@ -553,6 +557,13 @@ class Settings extends PureComponent {
 								</StyledButton>
 							</View>
 						)}
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('password_reset.password_title')}</Text>
+						<Text style={styles.desc}>{strings('password_reset.password_desc')}</Text>
+						<StyledButton type="blue" onPress={this.resetPassword} containerStyle={styles.Confirm}>
+							{strings('password_reset.change_password')}
+						</StyledButton>
 					</View>
 					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>

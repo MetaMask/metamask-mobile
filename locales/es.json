@@ -451,6 +451,12 @@
 		"text": "TEXT",
 		"qr_code": "QR CODE"
 	},
+	"password_reset": {
+		"password_title": "Contraseña",
+		"password_desc": "Elija una contraseña segura para desbloquear la aplicación MetaMask en su dispositivo. Si pierde esta contraseña, necesitará su frase inicial para volver a importar su billetera.",
+		"password_learn_more": "Aprende más.",
+		"change_password": "Cambia la contraseña"
+	},
 	"asset_overview": {
 		"send_button": "Enviar",
 		"receive_button": "RECIBIR",

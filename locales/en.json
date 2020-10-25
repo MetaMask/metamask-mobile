@@ -486,6 +486,12 @@
 		"text": "TEXT",
 		"qr_code": "QR CODE"
 	},
+	"password_reset": {
+		"password_title": "Password",
+		"password_desc": "Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your seedphrase to re-import your wallet.",
+		"password_learn_more": "Learn more.",
+		"change_password": "Change password"
+	},
 	"asset_overview": {
 		"send_button": "Send",
 		"receive_button": "RECEIVE",
