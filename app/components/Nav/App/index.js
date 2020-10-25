@@ -13,6 +13,7 @@ import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import CreateWallet from '../../Views/CreateWallet';
 import ChoosePassword from '../../Views/ChoosePassword';
+import ResetPassword from '../../Views/ResetPassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
@@ -95,6 +96,9 @@ const OnboardingRootNav = createStackNavigator(
 		},
 		SyncWithExtensionSuccess: {
 			screen: SyncWithExtensionSuccess
+		},
+		ResetPassword: {
+			screen: ResetPassword
 		},
 		QRScanner: {
 			screen: QRScanner,

@@ -494,7 +494,7 @@ class Settings extends PureComponent {
 	};
 
 	resetPassword = () => {
-		console.log('reset!');
+		this.props.navigation.navigate('ResetPassword');
 	};
 
 	render = () => {
