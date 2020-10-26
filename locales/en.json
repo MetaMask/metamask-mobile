@@ -477,7 +477,9 @@
 		"metrametrics_restart_required": "You need to restart the app for the changes to take effect.",
 		"create_password": "Create Password",
 		"invalid_password": "Invalid password",
-		"invalid_password_message": "The password was not correct. Please try again."
+		"invalid_password_message": "The password was not correct. Please try again.",
+		"security_heading": "Security",
+		"privacy_heading": "Privacy"
 	},
 	"app_information": {
 		"title": "Information",

@@ -44,6 +44,11 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		lineHeight: 20
 	},
+	heading: {
+		fontSize: 24,
+		lineHeight: 30,
+		marginBottom: 24
+	},
 	desc: {
 		...fontStyles.normal,
 		color: colors.grey500,
@@ -88,9 +93,6 @@ const styles = StyleSheet.create({
 	fifty: {
 		width: '48%'
 	},
-	red: {
-		color: colors.red
-	},
 	inner: {
 		paddingBottom: 112
 	},
@@ -116,6 +118,17 @@ const styles = StyleSheet.create({
 		marginLeft: 'auto'
 	}
 });
+
+const Heading = ({ children, first }) => (
+	<View style={[styles.setting, first && styles.firstSetting]}>
+		<Text style={[styles.title, styles.heading]}>{children}</Text>
+	</View>
+);
+
+Heading.propTypes = {
+	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
+	first: PropTypes.bool
+};
 
 /**
  * Main view for app configurations
@@ -512,6 +525,7 @@ class Settings extends PureComponent {
 		return (
 			<ScrollView style={styles.wrapper} testID={'security-settings-scrollview'}>
 				<View style={styles.inner}>
+					<Heading first>{strings('app_settings.security_heading')}</Heading>
 					<View style={[styles.setting, styles.firstSetting]}>
 						<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
@@ -563,78 +577,6 @@ class Settings extends PureComponent {
 						<Text style={styles.desc}>{strings('password_reset.password_desc')}</Text>
 						<StyledButton type="blue" onPress={this.resetPassword} containerStyle={styles.Confirm}>
 							{strings('password_reset.change_password')}
-						</StyledButton>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.privacy_mode_desc')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={privacyMode}
-								onValueChange={this.togglePrivacy}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.grey000}
-							/>
-						</View>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.metametrics_title')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.metametrics_description')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={metricsOptIn}
-								onValueChange={this.toggleMetricsOptIn}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.grey000}
-								testID={'metametrics-switch'}
-							/>
-						</View>
-					</View>
-					<View style={styles.setting} testID={'third-party-section'}>
-						<Text style={styles.title}>{strings('app_settings.third_party_title')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.third_party_description')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={thirdPartyApiMode}
-								onValueChange={this.toggleThirdPartyAPI}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.grey000}
-							/>
-						</View>
-					</View>
-					<View style={styles.setting} testID={'clear-privacy-section'}>
-						<Text style={styles.title}>{strings('app_settings.clear_privacy_title')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.clear_privacy_desc')}</Text>
-						<StyledButton
-							type="normal"
-							onPress={this.toggleClearApprovalsModal}
-							disabled={Object.keys(approvedHosts).length === 0}
-							containerStyle={styles.Confirm}
-						>
-							{strings('app_settings.clear_privacy_title')}
-						</StyledButton>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.clear_browser_history_desc')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.clear_history_desc')}</Text>
-						<StyledButton
-							type="normal"
-							onPress={this.toggleClearBrowserHistoryModal}
-							disabled={browserHistory.length === 0}
-							containerStyle={styles.Confirm}
-						>
-							{strings('app_settings.clear_browser_history_desc')}
-						</StyledButton>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.clear_browser_cookies_desc')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.clear_cookies_desc')}</Text>
-						<StyledButton
-							type="normal"
-							onPress={this.toggleClearCookiesModal}
-							containerStyle={styles.Confirm}
-						>
-							{strings('app_settings.clear_browser_cookies_desc')}
 						</StyledButton>
 					</View>
 					<View style={styles.setting} testID={'auto-lock-section'}>
@@ -693,26 +635,85 @@ class Settings extends PureComponent {
 						<Text style={styles.title}>
 							{strings('reveal_credential.private_key_title_for_account', { accountName: account.name })}
 						</Text>
-						<Text style={[styles.desc, styles.red]}>
+						<Text style={styles.desc}>
 							{strings('reveal_credential.private_key_warning', { accountName: account.name })}
 						</Text>
-						<StyledButton type="danger" onPress={this.goToExportPrivateKey} containerStyle={styles.Confirm}>
+						<StyledButton type="normal" onPress={this.goToExportPrivateKey} containerStyle={styles.Confirm}>
 							{strings('reveal_credential.show_private_key')}
 						</StyledButton>
 					</View>
-					<View style={styles.setting}>
-						<Text style={styles.title} testID={'reveal-seed-title'}>
-							{strings('reveal_credential.seed_phrase_title')}
-						</Text>
-						<Text style={[styles.desc, styles.red]}>{strings('reveal_credential.seed_warning')}</Text>
+					<Heading>{strings('app_settings.privacy_heading')}</Heading>
+					<View style={[styles.setting, styles.firstSetting]} testID={'clear-privacy-section'}>
+						<Text style={styles.title}>{strings('app_settings.clear_privacy_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.clear_privacy_desc')}</Text>
 						<StyledButton
-							type="danger"
-							testID={'reveal-seedphrase-button'}
-							onPress={this.goToRevealPrivateCredential}
+							type="normal"
+							onPress={this.toggleClearApprovalsModal}
+							disabled={Object.keys(approvedHosts).length === 0}
 							containerStyle={styles.Confirm}
 						>
-							{strings('reveal_credential.seed_phrase_title')}
+							{strings('app_settings.clear_privacy_title')}
 						</StyledButton>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.clear_browser_history_desc')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.clear_history_desc')}</Text>
+						<StyledButton
+							type="normal"
+							onPress={this.toggleClearBrowserHistoryModal}
+							disabled={browserHistory.length === 0}
+							containerStyle={styles.Confirm}
+						>
+							{strings('app_settings.clear_browser_history_desc')}
+						</StyledButton>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.clear_browser_cookies_desc')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.clear_cookies_desc')}</Text>
+						<StyledButton
+							type="normal"
+							onPress={this.toggleClearCookiesModal}
+							containerStyle={styles.Confirm}
+						>
+							{strings('app_settings.clear_browser_cookies_desc')}
+						</StyledButton>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.privacy_mode_desc')}</Text>
+						<View style={styles.switchElement}>
+							<Switch
+								value={privacyMode}
+								onValueChange={this.togglePrivacy}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								ios_backgroundColor={colors.grey000}
+							/>
+						</View>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.metametrics_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.metametrics_description')}</Text>
+						<View style={styles.switchElement}>
+							<Switch
+								value={metricsOptIn}
+								onValueChange={this.toggleMetricsOptIn}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								ios_backgroundColor={colors.grey000}
+								testID={'metametrics-switch'}
+							/>
+						</View>
+					</View>
+					<View style={styles.setting} testID={'third-party-section'}>
+						<Text style={styles.title}>{strings('app_settings.third_party_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.third_party_description')}</Text>
+						<View style={styles.switchElement}>
+							<Switch
+								value={thirdPartyApiMode}
+								onValueChange={this.toggleThirdPartyAPI}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								ios_backgroundColor={colors.grey000}
+							/>
+						</View>
 					</View>
 					<ActionModal
 						modalVisible={approvalModalVisible}

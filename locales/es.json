@@ -443,7 +443,9 @@
 		"metrametrics_restart_required": "Necesitas reiniciar la app para que los entren en efecto.",
 		"create_password": "Crear Contraseña",
 		"invalid_password": "Contraseña inválida",
-		"invalid_password_message": "La contraseña no es correcta. Por favor inténtalo de nuevo."
+		"invalid_password_message": "La contraseña no es correcta. Por favor inténtalo de nuevo.",
+		"security_heading": "Security",
+		"privacy_heading": "Privacy"
 	},
 	"app_information": {
 		"title": "Información",
