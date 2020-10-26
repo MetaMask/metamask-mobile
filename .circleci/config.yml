@@ -176,14 +176,14 @@ workflows:
               only:
                 - master
                 - develop
-                - v1.0.4
+                - v1.0.5
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
-                - v1.0.4
+                - v1.0.5
       - lint:
           requires:
             - prep-node-deps
