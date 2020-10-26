@@ -45,6 +45,7 @@ import {
 import { ethers } from 'ethers';
 import Logger from '../../../util/Logger';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
+import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 
 const { isValidMnemonic } = ethers.utils;
 
@@ -314,6 +315,7 @@ class ImportFromSeed extends PureComponent {
 						NavigationActions.navigate({ routeName: 'WalletView' })
 					);
 				}
+				await importAdditionalAccounts();
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
