@@ -32,7 +32,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
-import { ONBOARDING } from '../../../constants/navigation';
+import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
 	EXISTING_USER,
 	NEXT_MAKER_REMINDER,
@@ -652,7 +652,7 @@ class ResetPassword extends PureComponent {
 		} = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
-		const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
+		const previousScreen = this.props.navigation.getParam(PREVIOUS_SCREEN);
 		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
 		return (
