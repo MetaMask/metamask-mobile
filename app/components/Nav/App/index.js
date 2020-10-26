@@ -13,7 +13,6 @@ import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import CreateWallet from '../../Views/CreateWallet';
 import ChoosePassword from '../../Views/ChoosePassword';
-import ResetPassword from '../../Views/ResetPassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
@@ -141,12 +140,6 @@ const HomeNav = createDrawerNavigator(
 	}
 );
 
-const ResetPasswordNav = createStackNavigator({
-	ResetPassword: {
-		screen: ResetPassword
-	}
-});
-
 /**
  * Drawer status tracking
  */
@@ -175,8 +168,7 @@ const App = createSwitchNavigator(
 		OnboardingRootNav,
 		Login,
 		OnboardingCarousel,
-		LockScreen,
-		ResetPasswordNav
+		LockScreen
 	},
 	{
 		initialRouteName: 'Entry'

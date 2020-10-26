@@ -46,6 +46,7 @@ import LockScreen from '../../Views/LockScreen';
 import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
+import ResetPassword from '../../Views/ResetPassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
@@ -251,6 +252,9 @@ const MainNavigator = createStackNavigator(
 				},
 				ChoosePasswordSimple: {
 					screen: ChoosePasswordSimple
+				},
+				ResetPassword: {
+					screen: ResetPassword
 				},
 				EnterPasswordSimple: {
 					screen: EnterPasswordSimple
