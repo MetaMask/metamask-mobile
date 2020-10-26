@@ -7,6 +7,7 @@ describe('Settings', () => {
 	const mockStore = configureMockStore();
 	it('should render correctly', () => {
 		const initialState = {
+			user: { seedphraseBackedUp: true },
 			privacy: { approvedHosts: [], privacyMode: true },
 			browser: { history: [] },
 			settings: { lockTime: 1000, searchEngine: 'DuckDuckGo', useBlockieIcon: true },
