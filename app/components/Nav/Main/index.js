@@ -7,9 +7,13 @@ import {
 	View,
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 	Alert,
-	Image
+	Image,
+	TouchableOpacity,
+	Text
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
+// eslint-disable-next-line import/no-unresolved
+import CheckBox from '@react-native-community/checkbox';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStackNavigator } from 'react-navigation-stack';
@@ -62,7 +66,7 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
 import I18n, { strings } from '../../../../locales/i18n';
-import { colors } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import { BNToHex, hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
@@ -109,6 +113,9 @@ import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions
 import AccountApproval from '../../UI/AccountApproval';
 import ActivityView from '../../Views/ActivityView';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
+import ActionModal from '../../UI/ActionModal';
+import Icon from 'react-native-vector-icons/FontAwesome';
+const warning_skip_backup = require('../../../images/warning.png'); // eslint-disable-line
 
 const styles = StyleSheet.create({
 	flex: {
@@ -127,6 +134,50 @@ const styles = StyleSheet.create({
 	headerLogo: {
 		width: 125,
 		height: 50
+	},
+	imageWarning: {
+		width: 56,
+		height: 56,
+		alignSelf: 'center'
+	},
+	modalNoBorder: {
+		borderTopWidth: 0
+	},
+	skipTitle: {
+		fontSize: 24,
+		marginTop: 12,
+		marginBottom: 16,
+		color: colors.fontPrimary,
+		textAlign: 'center',
+		...fontStyles.bold
+	},
+	skipModalContainer: {
+		flex: 1,
+		margin: 24,
+		flexDirection: 'column'
+	},
+	skipModalXButton: {
+		flex: 1,
+		alignItems: 'flex-end'
+	},
+	skipModalXIcon: {
+		fontSize: 16
+	},
+	skipModalActionButtons: {
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	skipModalCheckbox: {
+		height: 18,
+		width: 18,
+		marginRight: 12
+	},
+	skipModalText: {
+		flex: 1,
+		...fontStyles.normal,
+		lineHeight: 20,
+		fontSize: 14,
+		paddingHorizontal: 10
 	}
 });
 
@@ -505,7 +556,9 @@ class Main extends PureComponent {
 		paymentChannelRequestInfo: {},
 		showExpandedMessage: false,
 		paymentChannelBalance: null,
-		paymentChannelReady: false
+		paymentChannelReady: false,
+		showRemindLaterModal: true,
+		skipCheckbox: false
 	};
 
 	backgroundMode = false;
@@ -1104,18 +1157,41 @@ class Main extends PureComponent {
 		/>
 	);
 
+	toggleRemindLater = () => {
+		this.setState(state => ({ showRemindLaterModal: !state.showRemindLaterModal }));
+	};
+
+	toggleSkipCheckbox = () => {
+		this.setState(state => ({ skipCheckbox: !state.skipCheckbox }));
+	};
+
+	secureNow = () => {
+		this.toggleRemindLater();
+		this.goNext();
+	};
+
+	skip = () => {
+		const { skipCheckbox } = this.state;
+		if (skipCheckbox) this.toggleRemindLater();
+	};
+
+	goNext = () => {
+		const { navigation } = this.props;
+		navigation.navigate('AccountBackupStep1B', { ...navigation.state.params });
+	};
+
 	renderApproveModal = () =>
 		this.props.approveModalVisible && <Approve modalVisible toggleApproveModal={this.props.toggleApproveModal} />;
 
 	render() {
-		const { isPaymentChannelTransaction, isPaymentRequest } = this.props;
-		const { forceReload } = this.state;
+		const { navigation, isPaymentChannelTransaction, isPaymentRequest } = this.props;
+		const { forceReload, showRemindLaterModal, skipCheckbox } = this.state;
 		return (
 			<React.Fragment>
 				<View style={styles.flex}>
 					{!forceReload ? (
 						<MainNavigator
-							navigation={this.props.navigation}
+							navigation={navigation}
 							screenProps={{ isPaymentChannelTransaction, isPaymentRequest }}
 						/>
 					) : (
@@ -1123,10 +1199,56 @@ class Main extends PureComponent {
 					)}
 					<GlobalAlert />
 					<FadeOutOverlay />
-					<Notification navigation={this.props.navigation} />
+					<Notification navigation={navigation} />
 					<FiatOrders />
-					<BackupAlert navigation={this.props.navigation} />
-					<ProtectYourWalletModal navigation={this.props.navigation} />
+					<BackupAlert onDismiss={this.toggleRemindLater} navigation={navigation} />
+					<ActionModal
+						confirmText={strings('account_backup_step_1.skip_button_confirm')}
+						cancelText={strings('account_backup_step_1.skip_button_cancel')}
+						confirmButtonMode={'confirm'}
+						cancelButtonMode={'normal'}
+						displayCancelButton
+						modalVisible={showRemindLaterModal}
+						actionContainerStyle={styles.modalNoBorder}
+						onCancelPress={this.secureNow}
+						confirmDisabled={false}
+						onConfirmPress={this.skip}
+					>
+						<View style={styles.skipModalContainer}>
+							<TouchableOpacity
+								onPress={this.skip}
+								style={styles.skipModalXButton}
+								hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+							>
+								<Icon name="times" style={styles.skipModalXIcon} />
+							</TouchableOpacity>
+							<Image
+								source={warning_skip_backup}
+								style={styles.imageWarning}
+								resizeMethod={'auto'}
+								testID={'skip_backup_warning'}
+							/>
+							<Text style={styles.skipTitle}>{strings('account_backup_step_1.skip_title')}</Text>
+							<View style={styles.skipModalActionButtons}>
+								<CheckBox
+									style={styles.skipModalCheckbox}
+									value={skipCheckbox}
+									onValueChange={this.toggleSkipCheckbox}
+									boxType={'square'}
+									tintColors={{ true: colors.blue }}
+									testID={'skip-backup-check'}
+								/>
+								<Text
+									onPress={this.toggleSkipCheckbox}
+									style={styles.skipModalText}
+									testID={'skip-backup-text'}
+								>
+									{strings('account_backup_step_1.skip_check')}
+								</Text>
+							</View>
+						</View>
+					</ActionModal>
+					<ProtectYourWalletModal navigation={navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
