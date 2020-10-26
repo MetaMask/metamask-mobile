@@ -107,7 +107,6 @@ class Entry extends PureComponent {
 		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
 		const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 
-		const ola = new Date().getTime();
 		try {
 			const currentVersion = await getVersion();
 			const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
@@ -118,7 +117,6 @@ class Entry extends PureComponent {
 		} catch (error) {
 			Logger.error(error);
 		}
-		console.log(ola - new Date().getTime());
 
 		if (existingUser !== null) {
 			await this.unlockKeychain();
