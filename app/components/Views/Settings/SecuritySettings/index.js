@@ -30,6 +30,7 @@ import {
 	SEED_PHRASE_HINTS
 } from '../../../../constants/storage';
 import CookieManager from '@react-native-community/cookies';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -124,6 +125,8 @@ const Heading = ({ children, first }) => (
 		<Text style={[styles.title, styles.heading]}>{children}</Text>
 	</View>
 );
+
+const WarningIcon = () => <Icon size={16} color={colors.red} name="exclamation-triangle" />;
 
 Heading.propTypes = {
 	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
@@ -527,7 +530,14 @@ class Settings extends PureComponent {
 				<View style={styles.inner}>
 					<Heading first>{strings('app_settings.security_heading')}</Heading>
 					<View style={[styles.setting, styles.firstSetting]}>
-						<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
+						<Text style={styles.title}>
+							{!seedphraseBackedUp ? (
+								<>
+									<WarningIcon />{' '}
+								</>
+							) : null}
+							<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
+						</Text>
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
 						<SettingsNotification isWarning={!seedphraseBackedUp}>
 							<Text
