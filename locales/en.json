@@ -184,7 +184,9 @@
 		"i_understand": "I understand that MetaMask cannot recover this password for me.",
 		"learn_more": "Learn more.",
 		"secure": "Secure wallet",
-		"confirm": "Confirm seed phrase"
+		"confirm": "Confirm seed phrase",
+		"password_updated": "Password updated",
+		"great_success": "Great success!"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",

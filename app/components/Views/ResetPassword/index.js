@@ -11,7 +11,8 @@ import {
 	SafeAreaView,
 	StyleSheet,
 	ScrollView,
-	Image
+	Image,
+	InteractionManager
 } from 'react-native';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
@@ -42,6 +43,7 @@ import {
 	TRUE
 } from '../../../constants/storage';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
+import NotificationManager from '../../../core/NotificationManager';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -399,7 +401,15 @@ class ResetPassword extends PureComponent {
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
 			this.setState({ loading: false });
-			this.props.navigation.navigate('SecuritySettings');
+			InteractionManager.runAfterInteractions(() => {
+				this.props.navigation.navigate('SecuritySettings');
+				NotificationManager.showSimpleNotification({
+					status: 'success',
+					duration: 5000,
+					title: strings('reset_password.password_updated'),
+					description: strings('reset_password.great_success')
+				});
+			});
 		} catch (error) {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
