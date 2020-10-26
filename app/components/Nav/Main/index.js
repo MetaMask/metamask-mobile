@@ -256,6 +256,15 @@ const MainNavigator = createStackNavigator(
 				ResetPassword: {
 					screen: ResetPassword
 				},
+				ManualBackupStep1: {
+					screen: ManualBackupStep1
+				},
+				ManualBackupStep2: {
+					screen: ManualBackupStep2
+				},
+				ManualBackupStep3: {
+					screen: ManualBackupStep3
+				},
 				EnterPasswordSimple: {
 					screen: EnterPasswordSimple
 				}
