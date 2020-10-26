@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "private": true,
   "scripts": {
     "watch": "./scripts/build.sh watcher watch",
