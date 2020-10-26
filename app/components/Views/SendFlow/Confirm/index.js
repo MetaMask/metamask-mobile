@@ -280,8 +280,7 @@ class Confirm extends PureComponent {
 	};
 
 	state = {
-		currentCustomGasSelected: 'average',
-		customGasSelected: 'average',
+		gasSpeedSelected: 'average',
 		gasEstimationReady: false,
 		customGas: undefined,
 		customGasPrice: undefined,
@@ -538,7 +537,6 @@ class Confirm extends PureComponent {
 	};
 
 	handleSetGasFee = (customGas, customGasPrice) => {
-		const { customGasSelected } = this.state;
 		const { prepareTransaction, transactionState } = this.props;
 		let transaction = transactionState.transaction;
 		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
@@ -546,11 +544,14 @@ class Confirm extends PureComponent {
 		setTimeout(() => {
 			this.parseTransactionData();
 			this.setState({
-				currentCustomGasSelected: customGasSelected,
 				errorMessage: undefined
 			});
 		}, 100);
 		this.onModeChange(REVIEW);
+	};
+
+	handleSetGasSpeed = speed => {
+		this.setState({ gasSpeedSelected: speed });
 	};
 
 	validateGas = () => {
@@ -786,7 +787,7 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomGasModal = () => {
-		const { basicGasEstimates, gasError, ready, mode } = this.state;
+		const { basicGasEstimates, gasError, ready, mode, gasSpeedSelected } = this.state;
 		const {
 			transaction: { gas, gasPrice }
 		} = this.props;
@@ -814,6 +815,8 @@ class Confirm extends PureComponent {
 							gasPrice={gasPrice}
 							gasError={gasError}
 							mode={mode}
+							onPress={this.handleSetGasSpeed}
+							gasSpeedSelected={gasSpeedSelected}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>

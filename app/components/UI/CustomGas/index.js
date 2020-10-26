@@ -238,7 +238,7 @@ class CustomGas extends PureComponent {
 		 */
 		gasPrice: PropTypes.object,
 		/**
-		 * Callback to modify state in parent state
+		 * Callback to modify parent state
 		 */
 		onPress: PropTypes.func,
 		/**
@@ -300,10 +300,7 @@ class CustomGas extends PureComponent {
 	};
 
 	state = {
-		gasFastSelected: false,
-		gasAverageSelected: true,
-		gasSlowSelected: false,
-		selected: 'average',
+		gasSpeedSelected: this?.props?.gasSpeedSelected || 'average',
 		customGasPrice: '10',
 		customGasLimit: fromWei(this.props.gas, 'wei'),
 		customGasPriceBNWei: this.props.gasPrice,
@@ -354,13 +351,10 @@ class CustomGas extends PureComponent {
 			onPress,
 			basicGasEstimates: { fastGwei }
 		} = this.props;
-		onPress && onPress();
+		onPress && onPress('fast');
 		const gasPriceBN = apiEstimateModifiedToWEI(fastGwei);
 		this.setState({
-			gasFastSelected: true,
-			gasAverageSelected: false,
-			gasSlowSelected: false,
-			selected: 'fast',
+			gasSpeedSelected: 'fast',
 			customGasPrice: fastGwei,
 			customGasPriceBNWei: gasPriceBN
 		});
@@ -371,13 +365,10 @@ class CustomGas extends PureComponent {
 			onPress,
 			basicGasEstimates: { averageGwei }
 		} = this.props;
-		onPress && onPress();
+		onPress && onPress('average');
 		const gasPriceBN = apiEstimateModifiedToWEI(averageGwei);
 		this.setState({
-			gasFastSelected: false,
-			gasAverageSelected: true,
-			gasSlowSelected: false,
-			selected: 'average',
+			gasSpeedSelected: 'average',
 			customGasPrice: averageGwei,
 			customGasPriceBNWei: gasPriceBN
 		});
@@ -388,13 +379,10 @@ class CustomGas extends PureComponent {
 			onPress,
 			basicGasEstimates: { safeLowGwei }
 		} = this.props;
-		onPress && onPress();
+		onPress && onPress('slow');
 		const gasPriceBN = apiEstimateModifiedToWEI(safeLowGwei);
 		this.setState({
-			gasFastSelected: false,
-			gasAverageSelected: false,
-			gasSlowSelected: true,
-			selected: 'slow',
+			gasSpeedSelected: 'slow',
 			customGasPrice: safeLowGwei,
 			customGasPriceBNWei: gasPriceBN
 		});
@@ -467,7 +455,7 @@ class CustomGas extends PureComponent {
 
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
 	saveCustomGasSelection = () => {
-		const { selected, customGasLimit, customGasPrice } = this.state;
+		const { gasSpeedSelected, customGasLimit, customGasPrice } = this.state;
 		const {
 			review,
 			gas,
@@ -478,15 +466,15 @@ class CustomGas extends PureComponent {
 		if (advancedCustomGas) {
 			handleGasFeeSelection(new BN(customGasLimit), apiEstimateModifiedToWEI(customGasPrice));
 		} else {
-			if (selected === 'slow') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
-			if (selected === 'average') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
-			if (selected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei));
+			if (gasSpeedSelected === 'slow') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
+			if (gasSpeedSelected === 'average') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
+			if (gasSpeedSelected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei));
 		}
 		review();
 	};
 
 	renderCustomGasSelector = () => {
-		const { gasSlowSelected, gasAverageSelected, gasFastSelected, headerHeight } = this.state;
+		const { gasSpeedSelected, headerHeight } = this.state;
 		const {
 			conversionRate,
 			currentCurrency,
@@ -497,6 +485,9 @@ class CustomGas extends PureComponent {
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
 		const topOffset = { top: headerHeight };
+		const gasFastSelected = gasSpeedSelected === 'fast';
+		const gasAverageSelected = gasSpeedSelected === 'average';
+		const gasSlowSelected = gasSpeedSelected === 'slow';
 		return (
 			<Animated.View
 				style={[
