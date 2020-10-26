@@ -407,7 +407,7 @@ class ResetPassword extends PureComponent {
 					status: 'success',
 					duration: 5000,
 					title: strings('reset_password.password_updated'),
-					description: strings('reset_password.great_success')
+					description: strings('reset_password.successfully_changed')
 				});
 			});
 		} catch (error) {

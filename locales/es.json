@@ -162,7 +162,7 @@
 		"secure": "Secure wallet",
 		"confirm": "Confirm seed phrase",
 		"password_updated": "Password updated",
-		"great_success": "Great success!"
+		"successfully_changed": "Your password has been successfully changed"
 	},
 	"import_from_seed": {
 		"title": "Importar con frase semilla",
