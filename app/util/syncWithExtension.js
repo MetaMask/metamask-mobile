@@ -55,7 +55,7 @@ export default class PubNubWrapper {
 					sendByPost: false,
 					storeInHistory: false
 				},
-				() => {
+				(status, response) => {
 					setTimeout(() => {
 						if (this.timeout) {
 							const error = new Error('Sync::timeout');
@@ -65,6 +65,10 @@ export default class PubNubWrapper {
 							resolve();
 						}
 					}, EXPIRED_CODE_TIMEOUT);
+
+					if (status && status.error) {
+						Logger.error(new Error('Sync::error-startSync'), { ...status, ...response });
+					}
 				}
 			);
 		});
@@ -115,7 +119,7 @@ export default class PubNubWrapper {
 					sendByPost: false,
 					storeInHistory: false
 				},
-				() => {
+				(status, response) => {
 					this.disconnectWebsockets();
 					this.pubnub = new PubNub({
 						subscribeKey: SUB_KEY,
@@ -126,6 +130,10 @@ export default class PubNubWrapper {
 					this.channelName = channelName;
 					this.cipherKey = cipherKey;
 					resolve();
+
+					if (status && status.error) {
+						Logger.error(new Error('Sync::error-establishConnection'), { ...status, ...response });
+					}
 				}
 			);
 		});
