@@ -253,7 +253,7 @@ const CONFIRM_PASSWORD = 'confirm_password';
 /**
  * View where users can set their password for the first time
  */
-class ChoosePassword extends PureComponent {
+class ResetPassword extends PureComponent {
 	static navigationOptions = ({ navigation }) =>
 		getNavigationOptionsTitle(strings('reset_password.title'), navigation);
 
@@ -372,8 +372,6 @@ class ChoosePassword extends PureComponent {
 		try {
 			this.setState({ loading: true });
 
-			// const password = await SecureKeychain.getGenericPassword();
-			// console.log(password);
 			await this.recreateVault(originalPassword);
 
 			// Set state in app as it was with password
@@ -436,12 +434,13 @@ class ChoosePassword extends PureComponent {
 	 * @param password - Password to recreate and set the vault with
 	 */
 	recreateVault = async password => {
+		const { originalPassword, password: newPassword } = this.state;
 		const { KeyringController, PreferencesController } = Engine.context;
 		const seedPhrase = await this.getSeedPhrase();
 
 		let importedAccounts = [];
 		try {
-			const keychainPassword = this.keyringControllerPasswordSet ? this.state.originalPassword : '';
+			const keychainPassword = this.keyringControllerPasswordSet ? originalPassword : '';
 			// Get imported accounts
 			const simpleKeyrings = KeyringController.state.keyrings.filter(
 				keyring => keyring.type === 'Simple Key Pair'
@@ -458,9 +457,9 @@ class ChoosePassword extends PureComponent {
 		}
 
 		// Recreate keyring with password given to this method
-		await KeyringController.createNewVaultAndRestore(this.state.password, seedPhrase);
+		await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 		// Keyring is set with empty password or not
-		this.keyringControllerPasswordSet = this.state.password !== '';
+		this.keyringControllerPasswordSet = newPassword !== '';
 
 		// Get props to restore vault
 		const hdKeyring = KeyringController.state.keyrings[0];
@@ -602,8 +601,9 @@ class ChoosePassword extends PureComponent {
 		</View>
 	);
 
+	setConfirmPassword = val => this.setState({ confirmPassword: val });
+
 	renderConfirmPassword() {
-		console.log('wat');
 		const { warningIncorrectPassword } = this.state;
 		return (
 			<KeyboardAvoidingView style={styles.keyboardAvoidingView} behavior={'padding'}>
@@ -732,7 +732,7 @@ class ChoosePassword extends PureComponent {
 										ref={this.confirmPasswordInput}
 										style={[styles.input, inputWidth]}
 										value={confirmPassword}
-										onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
+										onChangeText={this.setConfirmPassword}
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
 										placeholderTextColor={colors.grey100}
@@ -819,4 +819,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(ChoosePassword);
+)(ResetPassword);

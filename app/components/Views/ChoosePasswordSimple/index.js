@@ -214,6 +214,8 @@ class ChoosePasswordSimple extends PureComponent {
 		this.setState({ secureTextEntry: !this.state.secureTextEntry });
 	};
 
+	setConfirmPassword = val => this.setState({ confirmPassword: val });
+
 	render() {
 		const { passwordStrength, startX, startY, width, height, initialScale, endX, endY } = this;
 		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
@@ -328,7 +330,7 @@ class ChoosePasswordSimple extends PureComponent {
 									ref={this.confirmPasswordInput}
 									style={styles.input}
 									value={this.state.confirmPassword}
-									onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
+									onChangeText={this.setConfirmPassword}
 									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
 									placeholderTextColor={colors.grey100}
