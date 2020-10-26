@@ -307,18 +307,12 @@ class ResetPassword extends PureComponent {
 
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		if (biometryType) {
-			this.setState({ biometryType, biometryChoice: true });
-		}
 
-		// TODO: do I actually need credentials?
-		try {
-			const credentials = await SecureKeychain.getGenericPassword();
-			console.log(credentials);
-			this.setState({ view: CONFIRM_PASSWORD });
-		} catch (e) {
-			this.setState({ view: CONFIRM_PASSWORD });
-		}
+		this.setState({
+			view: CONFIRM_PASSWORD,
+			biometryType: biometryType || null,
+			biometryChoice: (biometryType && true) || false
+		});
 
 		setTimeout(() => {
 			this.setState({
