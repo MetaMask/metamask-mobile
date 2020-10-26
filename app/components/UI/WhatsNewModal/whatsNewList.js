@@ -1,3 +1,5 @@
+import { strings } from '../../../../locales/i18n';
+
 export const whatsNew = [
 	{
 		// All users that have <1.0.5 and are updating to >=1.0.5 should see
@@ -6,17 +8,11 @@ export const whatsNew = [
 		minAppVersion: '1.0.5', // Only users who updated to a version >= 1.0.5 will see this
 		features: [
 			{
-				title: 'New seed phrase back up design',
-				text:
-					'In Security & Privacy, find the option to backup your seedphrase again & reset your password. Take these wallet security measures now.',
-				buttonText: 'Back up now',
-				buttonPress: props => props.navigation.navigate('SecuritySettings')
-			},
-			{
-				title: 'It’s now easier to change password',
-				text: 'In Security & Privacy, you can now change your password from within the app. Try it now.',
-				buttonText: 'Visit in settings',
-				buttonPress: props => props.navigation.navigate('SecuritySettings')
+				title: strings('whats_new.feature_security_settings_title'),
+				text: strings('whats_new.feature_security_settings_text'),
+				buttonText: strings('whats_new.feature_security_settings_button'),
+				buttonPress: props => props.navigation.navigate('SecuritySettings'),
+				image: require('../../../images/whats-new-security.png')
 			}
 		]
 	}

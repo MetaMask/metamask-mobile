@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TouchableWithoutFeedback, Image } from 'react-native';
 import ActionModal from '../ActionModal';
 import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -9,6 +9,7 @@ import { whatsNew } from './whatsNewList';
 import AsyncStorage from '@react-native-community/async-storage';
 import { CURRENT_APP_VERSION, LAST_APP_VERSION, WHATS_NEW_APP_VERSION_SEEN } from '../../../constants/storage';
 import compareVersions from 'compare-versions';
+import scaling from '../../../util/scaling';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		marginBottom: 27,
+		marginBottom: 24,
 		paddingHorizontal: 24
 	},
 	headerCenterAux: {
@@ -46,23 +47,42 @@ const styles = StyleSheet.create({
 	},
 	headerText: {
 		...fontStyles.bold,
-		fontSize: 18
+		fontSize: 18,
+		color: colors.black
+	},
+	newFeatureImageContainer: {
+		flexDirection: 'row',
+		flex: 1,
+		borderRadius: 10,
+		marginBottom: 24
+	},
+	newFeatureImage: {
+		flex: 1,
+		borderRadius: 10,
+		width: scaling.scale(280, { baseModel: 1 }),
+		height: scaling.scale(128, { baseModel: 1 })
 	},
 	newFeatureTitle: {
 		...fontStyles.bold,
 		fontSize: 16,
-		marginBottom: 8
+		marginBottom: 12,
+		textAlign: 'center',
+		color: colors.black
 	},
 	newFeatureText: {
 		...fontStyles.normal,
 		fontSize: 14,
-		lineHeight: 22
+		lineHeight: 20,
+		textAlign: 'center',
+		color: colors.black,
+		marginBottom: 12
 	},
 	buttonContainer: {
-		flexDirection: 'row'
+		flexDirection: 'row',
+		justifyContent: 'center'
 	},
 	featureContainer: {
-		marginBottom: 35,
+		marginBottom: 25,
 		paddingHorizontal: 24
 	}
 });
@@ -85,27 +105,19 @@ const WhatsNewModal = props => {
 					!!whatsNewAppVersionSeen &&
 					compareVersions.compare(whatsNewAppVersionSeen, feature.minAppVersion, '>=');
 
-				console.log('seen', seen, whatsNewAppVersionSeen, feature.minAppVersion);
-
 				if (seen) return;
 
 				if (feature.onlyUpdates) {
 					const updatingCorrect = feature.onlyUpdates && isUpdate;
 
-					console.log('updatingCorrect', updatingCorrect, feature.onlyUpdates, isUpdate);
-
 					if (!updatingCorrect) return;
 
 					const lastVersionCorrect = compareVersions.compare(lastAppVersion, feature.maxLastAppVersion, '<');
-
-					console.log('lastVersionCorrect', lastVersionCorrect, lastAppVersion, feature.maxLastAppVersion);
 
 					if (!lastVersionCorrect) return;
 				}
 
 				const versionCorrect = compareVersions.compare(currentAppVersion, feature.minAppVersion, '>=');
-
-				console.log('versionCorrect', versionCorrect, currentAppVersion, feature.minAppVersion);
 
 				if (!versionCorrect) return;
 
@@ -154,9 +166,15 @@ const WhatsNewModal = props => {
 								<View>
 									{featuresToShow.map((feature, index) => (
 										<View key={index} style={styles.featureContainer}>
-											<Text style={styles.newFeatureTitle}>
-												{'\u2022'} {feature.title}
-											</Text>
+											<View style={styles.newFeatureImageContainer}>
+												<Image
+													source={feature.image}
+													style={styles.newFeatureImage}
+													resizeMode={'stretch'}
+												/>
+											</View>
+
+											<Text style={styles.newFeatureTitle}>{feature.title}</Text>
 											<Text style={styles.newFeatureText}>{feature.text}</Text>
 											<View style={styles.buttonContainer}>
 												<TouchableOpacity
