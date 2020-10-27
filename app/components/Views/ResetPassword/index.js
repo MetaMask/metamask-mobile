@@ -141,14 +141,15 @@ const styles = StyleSheet.create({
 	checkbox: {
 		width: 18,
 		height: 18,
-		margin: 10
+		margin: 10,
+		marginTop: -5
 	},
 	label: {
 		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.black,
 		paddingHorizontal: 10,
-		lineHeight: 20
+		lineHeight: 18
 	},
 	learnMore: {
 		color: colors.blue,
