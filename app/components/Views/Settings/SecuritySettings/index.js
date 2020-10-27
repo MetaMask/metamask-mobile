@@ -322,7 +322,7 @@ class Settings extends PureComponent {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
-		const { manualBackup = undefined } = parsedHints;
+		const manualBackup = parsedHints?.manualBackup;
 
 		let bioEnabled = false;
 		let passcodeEnabled = false;
