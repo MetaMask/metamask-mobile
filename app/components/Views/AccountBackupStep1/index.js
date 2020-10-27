@@ -1,26 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, Image, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-community/async-storage';
-// eslint-disable-next-line import/no-unresolved
-import CheckBox from '@react-native-community/checkbox';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/Device';
-import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
+import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
-const warning_skip_backup = require('../../../images/warning.png'); // eslint-disable-line
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -104,50 +100,6 @@ const styles = StyleSheet.create({
 	image: {
 		width: scaling.scale(138),
 		height: scaling.scale(162)
-	},
-	imageWarning: {
-		width: 56,
-		height: 56,
-		alignSelf: 'center'
-	},
-	modalNoBorder: {
-		borderTopWidth: 0
-	},
-	skipTitle: {
-		fontSize: 24,
-		marginTop: 12,
-		marginBottom: 16,
-		color: colors.fontPrimary,
-		textAlign: 'center',
-		...fontStyles.bold
-	},
-	skipModalContainer: {
-		flex: 1,
-		margin: 24,
-		flexDirection: 'column'
-	},
-	skipModalXButton: {
-		flex: 1,
-		alignItems: 'flex-end'
-	},
-	skipModalXIcon: {
-		fontSize: 16
-	},
-	skipModalActionButtons: {
-		flexDirection: 'row',
-		alignItems: 'center'
-	},
-	skipModalCheckbox: {
-		height: 18,
-		width: 18,
-		marginRight: 12
-	},
-	skipModalText: {
-		flex: 1,
-		...fontStyles.normal,
-		lineHeight: 20,
-		fontSize: 14,
-		paddingHorizontal: 10
 	}
 });
 
@@ -284,48 +236,14 @@ const AccountBackupStep1 = props => {
 				</View>
 			</ScrollView>
 			{Device.isAndroid() && <AndroidBackHandler customBackPress={showRemindLater} />}
-			<ActionModal
-				confirmText={strings('account_backup_step_1.skip_button_confirm')}
-				cancelText={strings('account_backup_step_1.skip_button_cancel')}
-				confirmButtonMode={'confirm'}
-				cancelButtonMode={'normal'}
-				displayCancelButton
+			<SkipAccountSecurityModal
 				modalVisible={showRemindLaterModal}
-				actionContainerStyle={styles.modalNoBorder}
-				onCancelPress={secureNow}
-				confirmDisabled={!skipCheckbox}
-				onConfirmPress={skip}
-			>
-				<View style={styles.skipModalContainer}>
-					<TouchableOpacity
-						onPress={hideRemindLaterModal}
-						style={styles.skipModalXButton}
-						hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-					>
-						<Icon name="times" style={styles.skipModalXIcon} />
-					</TouchableOpacity>
-					<Image
-						source={warning_skip_backup}
-						style={styles.imageWarning}
-						resizeMethod={'auto'}
-						testID={'skip_backup_warning'}
-					/>
-					<Text style={styles.skipTitle}>{strings('account_backup_step_1.skip_title')}</Text>
-					<View style={styles.skipModalActionButtons}>
-						<CheckBox
-							style={styles.skipModalCheckbox}
-							value={skipCheckbox}
-							onValueChange={toggleSkipCheckbox}
-							boxType={'square'}
-							tintColors={{ true: colors.blue }}
-							testID={'skip-backup-check'}
-						/>
-						<Text onPress={toggleSkipCheckbox} style={styles.skipModalText} testID={'skip-backup-text'}>
-							{strings('account_backup_step_1.skip_check')}
-						</Text>
-					</View>
-				</View>
-			</ActionModal>
+				onCancel={secureNow}
+				onConfirm={skip}
+				skipCheckbox={skipCheckbox}
+				onPress={hideRemindLaterModal}
+				toggleSkipCheckbox={toggleSkipCheckbox}
+			/>
 			<SeedphraseModal
 				showWhatIsSeedphraseModal={showWhatIsSeedphraseModal}
 				hideWhatIsSeedphrase={hideWhatIsSeedphrase}
