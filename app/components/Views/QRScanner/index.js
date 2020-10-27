@@ -5,10 +5,10 @@ import { RNCamera } from 'react-native-camera';
 import { colors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import PropTypes from 'prop-types';
+import { parse } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
-import { parse } from 'eth-url-parser';
 
 const styles = StyleSheet.create({
 	container: {
@@ -107,7 +107,7 @@ export default class QrScanner extends PureComponent {
 				return;
 			}
 
-			// Checking if it's handled by deeplinks
+			// Checking if it can be handled like deeplinks
 			const handledByDeeplink = SharedDeeplinkManager.parse(
 				content,
 				{
@@ -120,6 +120,7 @@ export default class QrScanner extends PureComponent {
 				return;
 			}
 
+			// I can't be handled by deeplinks, checking other options
 			if (content.length === 64 || (content.substring(0, 2).toLowerCase() === '0x' && content.length === 66)) {
 				this.shouldReadBarCode = false;
 				data = { private_key: content.length === 64 ? content : content.substr(2) };
