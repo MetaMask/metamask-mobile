@@ -169,7 +169,8 @@ const SharedDeeplinkManager = {
 	getPendingDeeplink: () => pendingDeeplink,
 	expireDeeplink: () => {
 		pendingDeeplink = null;
-	}
+	},
+	handleEthereumUrl: (url, origin) => instance.handleEthereumUrl(url, origin)
 };
 
 export default SharedDeeplinkManager;

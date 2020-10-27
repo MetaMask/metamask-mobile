@@ -5,8 +5,9 @@ import { RNCamera } from 'react-native-camera';
 import { colors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import PropTypes from 'prop-types';
-import { parse } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
+import DeeplinkManager from '../../../core/DeeplinkManager';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	container: {
@@ -94,14 +95,11 @@ export default class QrScanner extends PureComponent {
 			}
 		} else {
 			if (content.split('ethereum:').length > 1) {
-				this.shouldReadBarCode = false;
-				data = parse(content);
-				let action = 'send-eth';
-				if (data.function_name === 'transfer') {
-					// Send erc20 token
-					action = 'send-token';
-				}
-				data = { ...data, action };
+				// LET THIS BE HANDLED LIKE A DEEPLINK AND GO TO SEND VIEW
+
+				data = {};
+				this.props.navigation.pop(2);
+				DeeplinkManager.handleEthereumUrl(content, AppConstants.DEEPLINKS.ORIGIN_QR_CODE);
 			} else if (
 				content.length === 64 ||
 				(content.substring(0, 2).toLowerCase() === '0x' && content.length === 66)
