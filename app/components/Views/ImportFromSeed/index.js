@@ -306,11 +306,11 @@ class ImportFromSeed extends PureComponent {
 				if (!metricsOptIn) {
 					this.props.navigation.navigate('OptinMetrics');
 				} else if (onboardingWizard) {
-					this.props.navigation.navigate('HomeNav');
+					this.props.navigation.navigate('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
 					this.props.navigation.navigate(
-						'HomeNav',
+						'ManualBackupStep3',
 						{},
 						NavigationActions.navigate({ routeName: 'WalletView' })
 					);

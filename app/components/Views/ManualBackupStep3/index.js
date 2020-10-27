@@ -119,7 +119,7 @@ class ManualBackupStep3 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		this.steps = props.navigation.getParam('steps');
+		this.steps = props.navigation.getParam('steps') || undefined;
 	}
 
 	state = {
@@ -223,9 +223,11 @@ class ManualBackupStep3 extends PureComponent {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Confetti />
-				<View style={styles.onBoardingWrapper}>
-					<OnboardingProgress currentStep={this.state.currentStep} steps={this.steps} />
-				</View>
+				{this.steps ? (
+					<View style={styles.onBoardingWrapper}>
+						<OnboardingProgress currentStep={this.state.currentStep} steps={this.steps} />
+					</View>
+				) : null}
 				<ActionView
 					confirmTestID={'manual-backup-step-3-done-button'}
 					confirmText={strings('manual_backup_step_3.done')}
