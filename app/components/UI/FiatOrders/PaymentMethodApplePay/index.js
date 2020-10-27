@@ -173,7 +173,7 @@ QuickAmount.propTypes = {
 //* Constants */
 
 const quickAmounts = ['50', '100', '250'];
-const minAmount = 5;
+const minAmount = 50;
 const maxAmount = 250;
 
 const hasTwoDecimals = /^\d+\.\d{2}$/;
