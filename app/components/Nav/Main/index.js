@@ -189,6 +189,20 @@ const MainNavigator = createStackNavigator(
 						PaymentChannelSend: {
 							screen: PaymentChannelSend
 						}
+					}),
+					ManualBackup: createStackNavigator({
+						AccountBackupStep1B: {
+							screen: AccountBackupStep1B
+						},
+						ManualBackupStep1: {
+							screen: ManualBackupStep1
+						},
+						ManualBackupStep2: {
+							screen: ManualBackupStep2
+						},
+						ManualBackupStep3: {
+							screen: ManualBackupStep3
+						}
 					})
 				},
 				{
