@@ -41,6 +41,7 @@ import Logger from '../../../../util/Logger';
 import AppConstants from '../../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../../util/walletconnect';
 import isUrl from 'is-url';
+import { toggleApproveModal } from '../../../../actions/modals';
 
 const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
@@ -311,10 +312,12 @@ class Approve extends PureComponent {
 	customSpendLimitInput = React.createRef();
 
 	componentDidMount = async () => {
+		if (!this.props.transaction.data) this.props.toggleApproveModal();
 		const {
 			transaction: { to, gas, gasPrice, data },
 			conversionRate
 		} = this.props;
+
 		let origin = this.props.transaction.origin;
 		const { AssetsContractController } = Engine.context;
 		if (origin && origin.includes(WALLET_CONNECT_ORIGIN)) {
@@ -363,9 +366,9 @@ class Approve extends PureComponent {
 
 	handleAppStateChange = appState => {
 		if (appState !== 'active') {
+			this.props.toggleApproveModal();
 			const { transaction } = this.props;
 			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
-			this.props.toggleApproveModal();
 		}
 	};
 
@@ -839,7 +842,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
-	showAlert: config => dispatch(showAlert(config))
+	showAlert: config => dispatch(showAlert(config)),
+	toggleApproveModal: show => dispatch(toggleApproveModal(show))
 });
 
 export default connect(
