@@ -66,7 +66,7 @@ class DeeplinkManager {
 		});
 	}
 
-	parse(url, { browserCallBack, origin }) {
+	parse(url, { browserCallBack, origin, onHandled }) {
 		const urlObj = new URL(url);
 		let params;
 
@@ -84,6 +84,7 @@ class DeeplinkManager {
 			case 'http':
 			case 'https':
 				// Universal links
+				onHandled && onHandled();
 				if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
 					// action is the first parth of the pathname
 					const action = urlObj.pathname.split('/')[1];
@@ -120,6 +121,8 @@ class DeeplinkManager {
 					}
 				} else {
 					// Normal links (same as dapp)
+
+					onHandled && onHandled();
 					urlObj.set('protocol', 'https:');
 					this.handleBrowserUrl(urlObj.href, browserCallBack);
 				}
@@ -128,6 +131,7 @@ class DeeplinkManager {
 			// walletconnect related deeplinks
 			// address, transactions, etc
 			case 'wc':
+				onHandled && onHandled();
 				if (!WalletConnect.isValidUri(url)) return;
 				// eslint-disable-next-line no-case-declarations
 				const redirect = params && params.redirect;
@@ -136,6 +140,7 @@ class DeeplinkManager {
 				WalletConnect.newSession(url, redirect, autosign);
 				break;
 			case 'ethereum':
+				onHandled && onHandled();
 				this.handleEthereumUrl(url, origin);
 				break;
 
@@ -143,6 +148,7 @@ class DeeplinkManager {
 			// For ex. navigate to a specific dapp
 			case 'dapp':
 				// Enforce https
+				onHandled && onHandled();
 				urlObj.set('protocol', 'https:');
 				this.handleBrowserUrl(urlObj.href, browserCallBack);
 				break;
@@ -150,8 +156,13 @@ class DeeplinkManager {
 			// Specific to the MetaMask app
 			// For ex. go to settings
 			case 'metamask':
+				onHandled && onHandled();
 				break;
+			default:
+				return false;
 		}
+
+		return true;
 	}
 }
 
