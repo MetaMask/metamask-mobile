@@ -89,6 +89,21 @@ exports[`App should render correctly 1`] = `
                           "getScreenOptions": [Function],
                           "getStateForAction": [Function],
                         },
+                        "ManualBackup": Object {
+                          "childRouters": Object {
+                            "AccountBackupStep1B": null,
+                            "ManualBackupStep1": null,
+                            "ManualBackupStep2": null,
+                            "ManualBackupStep3": null,
+                          },
+                          "getActionCreators": [Function],
+                          "getActionForPathAndParams": [Function],
+                          "getComponentForRouteName": [Function],
+                          "getComponentForState": [Function],
+                          "getPathAndParamsForState": [Function],
+                          "getScreenOptions": [Function],
+                          "getStateForAction": [Function],
+                        },
                         "PaymentChannelHome": Object {
                           "childRouters": Object {
                             "PaymentChannelDeposit": null,
@@ -374,7 +389,7 @@ exports[`App should render correctly 1`] = `
                   "routes": Array [
                     Object {
                       "index": 0,
-                      "key": "id-123-4",
+                      "key": "id-123-5",
                       "routeName": "Home",
                       "routes": Array [
                         Object {
@@ -429,6 +444,19 @@ exports[`App should render correctly 1`] = `
                             },
                           ],
                         },
+                        Object {
+                          "index": 0,
+                          "isTransitioning": false,
+                          "key": "ManualBackup",
+                          "params": undefined,
+                          "routeName": "ManualBackup",
+                          "routes": Array [
+                            Object {
+                              "key": "id-123-4",
+                              "routeName": "AccountBackupStep1B",
+                            },
+                          ],
+                        },
                       ],
                     },
                   ],
@@ -446,11 +474,11 @@ exports[`App should render correctly 1`] = `
                 Object {
                   "index": 0,
                   "isTransitioning": false,
-                  "key": "id-123-6",
+                  "key": "id-123-7",
                   "routeName": "OnboardingNav",
                   "routes": Array [
                     Object {
-                      "key": "id-123-5",
+                      "key": "id-123-6",
                       "routeName": "OnboardingCarousel",
                     },
                   ],
@@ -553,6 +581,21 @@ exports[`App should render correctly 1`] = `
                           "BrowserTabHome": Object {
                             "childRouters": Object {
                               "BrowserView": null,
+                            },
+                            "getActionCreators": [Function],
+                            "getActionForPathAndParams": [Function],
+                            "getComponentForRouteName": [Function],
+                            "getComponentForState": [Function],
+                            "getPathAndParamsForState": [Function],
+                            "getScreenOptions": [Function],
+                            "getStateForAction": [Function],
+                          },
+                          "ManualBackup": Object {
+                            "childRouters": Object {
+                              "AccountBackupStep1B": null,
+                              "ManualBackupStep1": null,
+                              "ManualBackupStep2": null,
+                              "ManualBackupStep3": null,
                             },
                             "getActionCreators": [Function],
                             "getActionForPathAndParams": [Function],
@@ -847,7 +890,7 @@ exports[`App should render correctly 1`] = `
                     "routes": Array [
                       Object {
                         "index": 0,
-                        "key": "id-123-4",
+                        "key": "id-123-5",
                         "routeName": "Home",
                         "routes": Array [
                           Object {
@@ -902,6 +945,19 @@ exports[`App should render correctly 1`] = `
                               },
                             ],
                           },
+                          Object {
+                            "index": 0,
+                            "isTransitioning": false,
+                            "key": "ManualBackup",
+                            "params": undefined,
+                            "routeName": "ManualBackup",
+                            "routes": Array [
+                              Object {
+                                "key": "id-123-4",
+                                "routeName": "AccountBackupStep1B",
+                              },
+                            ],
+                          },
                         ],
                       },
                     ],
@@ -919,11 +975,11 @@ exports[`App should render correctly 1`] = `
                   Object {
                     "index": 0,
                     "isTransitioning": false,
-                    "key": "id-123-6",
+                    "key": "id-123-7",
                     "routeName": "OnboardingNav",
                     "routes": Array [
                       Object {
-                        "key": "id-123-5",
+                        "key": "id-123-6",
                         "routeName": "OnboardingCarousel",
                       },
                     ],
