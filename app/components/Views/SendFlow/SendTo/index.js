@@ -16,7 +16,7 @@ import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
 import StyledButton from '../../../UI/StyledButton';
 import { setSelectedAsset, setRecipient, newAssetTransaction } from '../../../../actions/transaction';
 import { isENS } from '../../../../util/address';
-import { getTicker, getEther } from '../../../../util/transactions';
+import { getTicker, getEther, isSmartContractAddress } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
@@ -277,9 +277,10 @@ class SendFlow extends PureComponent {
 	};
 
 	onToSelectedAddressChange = async toSelectedAddress => {
+		const { AssetsContractController } = Engine.context;
 		const { addressBook, network, identities } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		let addressError, toAddressName, toEnsName;
+		let addressError, toAddressName, toEnsName, isContractAddress;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
@@ -298,6 +299,17 @@ class SendFlow extends PureComponent {
 			} else {
 				// If not in address book nor user accounts
 				addToAddressToAddressBook = true;
+			}
+
+			const decimals = await AssetsContractController.getTokenDecimals(toSelectedAddress);
+			const smart = await isSmartContractAddress(toSelectedAddress);
+
+			if (decimals && Number(decimals) !== 0) {
+				addressError = strings('transaction.tokenContractAddressWarning');
+				isContractAddress = true;
+			} else if (smart) {
+				addressError = strings('transaction.smartContractAddressWarning');
+				isContractAddress = true;
 			}
 		} else if (isENS(toSelectedAddress)) {
 			toEnsName = toSelectedAddress;
@@ -322,7 +334,8 @@ class SendFlow extends PureComponent {
 			addToAddressToAddressBook,
 			toSelectedAddressReady,
 			toSelectedAddressName: toAddressName,
-			toEnsName
+			toEnsName,
+			isContractAddress
 		});
 	};
 
@@ -499,7 +512,8 @@ class SendFlow extends PureComponent {
 			addressError,
 			balanceIsZero,
 			toInputHighlighted,
-			inputWidth
+			inputWidth,
+			isContractAddress
 		} = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
@@ -527,7 +541,11 @@ class SendFlow extends PureComponent {
 				</View>
 				{addressError && (
 					<View style={styles.addressErrorWrapper} testID={'address-error'}>
-						<ErrorMessage errorMessage={addressError} />
+						<ErrorMessage
+							errorMessage={addressError}
+							isContractAddress={!!isContractAddress}
+							onContinue={this.onTransactionDirectionSet}
+						/>
 					</View>
 				)}
 
@@ -565,16 +583,18 @@ class SendFlow extends PureComponent {
 										/>
 									</View>
 								)}
-								<View style={styles.buttonNextWrapper}>
-									<StyledButton
-										type={'confirm'}
-										containerStyle={styles.buttonNext}
-										onPress={this.onTransactionDirectionSet}
-										testID={'address-book-next-button'}
-									>
-										{strings('address_book.next')}
-									</StyledButton>
-								</View>
+								{!isContractAddress && (
+									<View style={styles.buttonNextWrapper}>
+										<StyledButton
+											type={'confirm'}
+											containerStyle={styles.buttonNext}
+											onPress={this.onTransactionDirectionSet}
+											testID={'address-book-next-button'}
+										>
+											{strings('address_book.next')}
+										</StyledButton>
+									</View>
+								)}
 							</View>
 						</View>
 					)}

@@ -580,7 +580,10 @@
 		"pending": "Pending",
 		"submitted": "Submitted",
 		"failed": "Failed",
-		"cancelled": "Cancelled"
+		"cancelled": "Cancelled",
+		"tokenContractAddressWarning": "WARNING: This address is a token contract address. If you send tokens to this address, you will lose them.",
+		"smartContractAddressWarning": "WARNING: This address is a smart contract address. Please make sure you understand what this address is for, otherwise you risk losing your funds.",
+		"continueError": "I understand the risks, continue"
 	},
 	"custom_gas": {
 		"total": "Total",
