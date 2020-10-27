@@ -1,6 +1,17 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { Alert, StyleSheet, Switch, Text, ScrollView, View } from 'react-native';
+import {
+	Alert,
+	StyleSheet,
+	Switch,
+	Text,
+	ScrollView,
+	View,
+	TouchableWithoutFeedback,
+	TouchableOpacity,
+	TextInput,
+	Keyboard
+} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import ActionModal from '../../../UI/ActionModal';
@@ -31,6 +42,7 @@ import {
 } from '../../../../constants/storage';
 import CookieManager from '@react-native-community/cookies';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import OctIcon from 'react-native-vector-icons/Octicons';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -115,8 +127,47 @@ const styles = StyleSheet.create({
 	},
 	warningBold: {
 		...fontStyles.bold,
-		color: colors.blue,
+		color: colors.blue
+	},
+	viewHint: {
 		marginLeft: 'auto'
+	},
+	hintWrapper: {
+		alignSelf: 'center',
+		backgroundColor: colors.white,
+		borderRadius: 16,
+		padding: 24
+	},
+	hintHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		marginBottom: 16
+	},
+	recovery: {
+		fontSize: 18,
+		...fontStyles.extraBold,
+		color: colors.fontPrimary
+	},
+	leaveHint: {
+		fontSize: 14,
+		...fontStyles.regular,
+		color: colors.fontPrimary,
+		marginBottom: 16
+	},
+	noSeedphrase: {
+		fontSize: 14,
+		...fontStyles.regular,
+		color: colors.red,
+		marginBottom: 16
+	},
+	hintInput: {
+		borderRadius: 6,
+		borderWidth: 1,
+		borderColor: colors.grey500,
+		padding: 16,
+		minHeight: 76,
+		paddingTop: 16
 	}
 });
 
@@ -219,7 +270,9 @@ class Settings extends PureComponent {
 		browserHistoryModalVisible: false,
 		cookiesModalVisible: false,
 		metricsOptIn: false,
-		passcodeChoice: false
+		passcodeChoice: false,
+		showHint: false,
+		hintText: ''
 	};
 
 	autolockOptions = [
@@ -268,6 +321,8 @@ class Settings extends PureComponent {
 	componentDidMount = async () => {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
+		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
+		const { manualBackup = undefined } = parsedHints;
 
 		let bioEnabled = false;
 		let passcodeEnabled = false;
@@ -288,7 +343,7 @@ class Settings extends PureComponent {
 			biometryChoice: bioEnabled,
 			metricsOptIn,
 			passcodeChoice: passcodeEnabled,
-			currentSeedphraseHints
+			hintText: manualBackup
 		});
 	};
 
@@ -513,6 +568,56 @@ class Settings extends PureComponent {
 		this.props.navigation.navigate('ResetPassword');
 	};
 
+	saveHint = async () => {
+		const { hintText } = this.state;
+		if (!hintText) return;
+		this.toggleHint();
+		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
+		const parsedHints = JSON.parse(currentSeedphraseHints);
+		await AsyncStorage.setItem(SEED_PHRASE_HINTS, JSON.stringify({ ...parsedHints, manualBackup: hintText }));
+	};
+
+	toggleHint = () => {
+		this.setState(state => ({ showHint: !state.showHint }));
+	};
+
+	handleChangeText = text => this.setState({ hintText: text });
+
+	renderHint = () => {
+		const { showHint, hintText } = this.state;
+		return (
+			<ActionModal
+				confirmText={strings('manual_backup_step_3.save')}
+				confirmButtonMode={'confirm'}
+				onCancelPress={this.toggleHint}
+				onConfirmPress={this.saveHint}
+				modalVisible={showHint}
+				onRequestClose={Keyboard.dismiss}
+			>
+				<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+					<View style={styles.hintWrapper}>
+						<View style={styles.hintHeader}>
+							<Text style={styles.recovery}>{strings('manual_backup_step_3.recovery_hint')}</Text>
+							<TouchableOpacity onPress={this.toggleHint}>
+								<OctIcon name="x" size={16} />
+							</TouchableOpacity>
+						</View>
+						<Text style={styles.leaveHint}>{strings('manual_backup_step_3.leave_hint')}</Text>
+						<Text style={styles.noSeedphrase}>{strings('manual_backup_step_3.no_seedphrase')}</Text>
+						<TextInput
+							style={styles.hintInput}
+							value={hintText}
+							placeholder={strings('manual_backup_step_3.example')}
+							onChangeText={this.handleChangeText}
+							multiline
+							textAlignVertical={'top'}
+						/>
+					</View>
+				</TouchableWithoutFeedback>
+			</ActionModal>
+		);
+	};
+
 	render = () => {
 		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
 		const {
@@ -521,7 +626,7 @@ class Settings extends PureComponent {
 			browserHistoryModalVisible,
 			cookiesModalVisible,
 			metricsOptIn,
-			currentSeedphraseHints
+			hintText
 		} = this.state;
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
@@ -553,10 +658,12 @@ class Settings extends PureComponent {
 										: 'app_settings.seedphrase_not_backed_up'
 								)}
 							</Text>
-							{currentSeedphraseHints && seedphraseBackedUp ? (
-								<Text style={[styles.warningText, styles.warningBold]}>
-									{strings('app_settings.view_hint')}
-								</Text>
+							{hintText && seedphraseBackedUp ? (
+								<TouchableOpacity style={styles.viewHint} onPress={this.toggleHint}>
+									<Text style={[styles.warningText, styles.warningBold]}>
+										{strings('app_settings.view_hint')}
+									</Text>
+								</TouchableOpacity>
 							) : null}
 						</SettingsNotification>
 						{!seedphraseBackedUp ? (
@@ -770,6 +877,7 @@ class Settings extends PureComponent {
 							<Text style={styles.modalText}>{strings('app_settings.clear_cookies_modal_message')}</Text>
 						</View>
 					</ActionModal>
+					{this.renderHint()}
 				</View>
 			</ScrollView>
 		);

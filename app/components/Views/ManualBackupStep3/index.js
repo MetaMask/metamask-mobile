@@ -136,7 +136,7 @@ class ManualBackupStep3 extends PureComponent {
 	};
 
 	toggleHint = () => {
-		this.setState({ showHint: !this.state.showHint });
+		this.setState(state => ({ showHint: !state.showHint }));
 	};
 
 	learnMore = () =>
@@ -154,7 +154,7 @@ class ManualBackupStep3 extends PureComponent {
 		return false;
 	};
 
-	saveSeedphrase = async () => {
+	saveHint = async () => {
 		const { hintText } = this.state;
 		if (!hintText) return;
 		if (this.isHintSeedPhrase(hintText)) {
@@ -191,7 +191,7 @@ class ManualBackupStep3 extends PureComponent {
 				confirmText={strings('manual_backup_step_3.save')}
 				confirmButtonMode={'confirm'}
 				onCancelPress={this.toggleHint}
-				onConfirmPress={this.saveSeedphrase}
+				onConfirmPress={this.saveHint}
 				modalVisible={showHint}
 				onRequestClose={Keyboard.dismiss}
 			>
