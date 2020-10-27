@@ -13,7 +13,7 @@ const getBaseModel = baseModel => {
 		return { width: IPHONE_11_PRO_WIDTH, height: IPHONE_11_PRO_HEIGHT };
 	}
 
-	return { width: IPHONE_11_PRO_WIDTH, height: IPHONE_11_PRO_HEIGHT };
+	return { width: IPHONE_6_WIDTH, height: IPHONE_6_HEIGHT };
 };
 
 const _getSizes = (scaleVertical, baseModel) => {
