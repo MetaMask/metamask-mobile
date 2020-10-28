@@ -23,6 +23,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import Device from '../../../util/Device';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import {
+	SEED_PHRASE_HINTS,
 	EXISTING_USER,
 	BIOMETRY_CHOICE,
 	BIOMETRY_CHOICE_DISABLED,
@@ -343,6 +344,7 @@ class ImportWallet extends PureComponent {
 				pass: opts.password
 			});
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.seedphraseBackedUp();

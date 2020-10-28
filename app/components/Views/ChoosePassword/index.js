@@ -23,6 +23,7 @@ import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
+	SEED_PHRASE_HINTS,
 	EXISTING_USER,
 	NEXT_MAKER_REMINDER,
 	BIOMETRY_CHOICE,
@@ -309,6 +310,7 @@ class ChoosePassword extends PureComponent {
 				this.props.seedphraseNotBackedUp();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
+				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			} else {
 				await this.recreateVault(password);
 			}
@@ -340,6 +342,7 @@ class ChoosePassword extends PureComponent {
 				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 			}
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
@@ -352,6 +355,7 @@ class ChoosePassword extends PureComponent {
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordUnset();
 			this.props.setLockTime(-1);
 			// Should we force people to enable passcode / biometrics?

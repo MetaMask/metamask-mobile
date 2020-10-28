@@ -33,6 +33,7 @@ import Device from '../../../util/Device';
 import { failedSeedPhraseRequirements } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
+	SEED_PHRASE_HINTS,
 	BIOMETRY_CHOICE,
 	BIOMETRY_CHOICE_DISABLED,
 	NEXT_MAKER_REMINDER,
@@ -299,6 +300,7 @@ class ImportFromSeed extends PureComponent {
 				const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
+				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 				this.setState({ loading: false });
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
