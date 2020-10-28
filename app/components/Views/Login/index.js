@@ -20,8 +20,6 @@ import BiometryButton from '../../UI/BiometryButton';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import {
-	PASSCODE_DISABLED,
-	BIOMETRY_CHOICE,
 	BIOMETRY_CHOICE_DISABLED,
 	ONBOARDING_WIZARD,
 	METRICS_OPT_IN,
@@ -156,8 +154,7 @@ class Login extends PureComponent {
 			}
 		} else {
 			const biometryType = await SecureKeychain.getSupportedBiometryType();
-			const passcodeDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-			if (passcodeDisabled !== TRUE && biometryType) {
+			if (biometryType) {
 				let enabled = true;
 				const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 				if (previouslyDisabled && previouslyDisabled === TRUE) {
@@ -203,24 +200,11 @@ class Login extends PureComponent {
 				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			}
 			if (this.state.biometryChoice && this.state.biometryType) {
-				await SecureKeychain.setGenericPassword(this.state.password, true);
-
-				if (!this.state.biometryChoice) {
-					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-					await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-				} else {
-					await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
-					await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-					await AsyncStorage.removeItem(PASSCODE_DISABLED);
-				}
+				await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
+			} else if (this.state.rememberMe) {
+				await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.REMEMBER_ME);
 			} else {
-				if (this.state.rememberMe) {
-					await SecureKeychain.setGenericPassword(this.state.password);
-				} else {
-					await SecureKeychain.resetGenericPassword();
-				}
-				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+				await SecureKeychain.resetGenericPassword();
 			}
 
 			// Get onboarding wizard state

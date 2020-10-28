@@ -33,10 +33,8 @@ import Device from '../../../util/Device';
 import { failedSeedPhraseRequirements } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
-	BIOMETRY_CHOICE,
 	BIOMETRY_CHOICE_DISABLED,
 	NEXT_MAKER_REMINDER,
-	PASSCODE_DISABLED,
 	ONBOARDING_WIZARD,
 	EXISTING_USER,
 	METRICS_OPT_IN,
@@ -267,25 +265,11 @@ class ImportFromSeed extends PureComponent {
 				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
 
 				if (this.state.biometryType && this.state.biometryChoice) {
-					await SecureKeychain.setGenericPassword(this.state.password, true);
-
-					// If the user enables biometrics, we're trying to read the password
-					// immediately so we get the permission prompt
-					if (Device.isIos()) {
-						await SecureKeychain.getGenericPassword();
-					}
-					await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
-					await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-					await AsyncStorage.removeItem(PASSCODE_DISABLED);
+					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
+				} else if (this.state.rememberMe) {
+					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.REMEMBER_ME);
 				} else {
-					if (this.state.rememberMe) {
-						await SecureKeychain.setGenericPassword(this.state.password);
-					} else {
-						await SecureKeychain.resetGenericPassword();
-					}
-					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-					await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+					await SecureKeychain.resetGenericPassword();
 				}
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);

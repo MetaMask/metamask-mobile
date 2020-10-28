@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { Alert, StyleSheet, Switch, Text, ScrollView, View } from 'react-native';
+import { Alert, StyleSheet, Switch, Text, ScrollView, View, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import ActionModal from '../../../UI/ActionModal';
@@ -22,15 +22,12 @@ import AppConstants from '../../../../core/AppConstants';
 import {
 	EXISTING_USER,
 	BIOMETRY_CHOICE,
-	BIOMETRY_CHOICE_DISABLED,
 	PASSCODE_CHOICE,
+	TRUE,
 	PASSCODE_DISABLED,
-	TRUE
+	BIOMETRY_CHOICE_DISABLED
 } from '../../../../constants/storage';
 import CookieManager from '@react-native-community/cookies';
-
-const TYPE_BIOMETRICS = 'biometrics';
-const TYPE_PASSCODE = 'passcode';
 const isIos = Device.isIos();
 
 const styles = StyleSheet.create({
@@ -97,6 +94,11 @@ const styles = StyleSheet.create({
 		borderRadius: 5,
 		borderWidth: 2,
 		marginTop: 16
+	},
+	loader: {
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center'
 	}
 });
 
@@ -153,10 +155,6 @@ class Settings extends PureComponent {
 		 * Active search engine
 		 */
 		lockTime: PropTypes.number,
-		/**
-		 * List of keyrings
-		 */
-		keyrings: PropTypes.array,
 		/**
 		 * Selected address as string
 		 */
@@ -233,7 +231,7 @@ class Settings extends PureComponent {
 		if (biometryType) {
 			let passcodeEnabled = false;
 			const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-			if (biometryChoice === '') {
+			if (!biometryChoice) {
 				const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
 				if (passcodeChoice !== '' && passcodeChoice === TRUE) {
 					passcodeEnabled = true;
@@ -251,120 +249,72 @@ class Settings extends PureComponent {
 	};
 
 	onSingInWithBiometrics = async enabled => {
-		this.setState({ biometryChoice: enabled });
-		// If we're disabling biometrics, let's enable device passcode / pin
-		//  by default because if we disable both we lose the password
-		if (!enabled) {
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-			this.onSignInWithPasscode(true);
-			return;
-		}
-
-		await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-		await AsyncStorage.removeItem(PASSCODE_DISABLED);
-		const credentials = await SecureKeychain.getGenericPassword();
-		if (credentials && credentials.password !== '') {
-			this.storeCredentials(credentials.password, enabled, false, TYPE_BIOMETRICS);
-		} else {
-			this.props.navigation.navigate('EnterPasswordSimple', {
-				onPasswordSet: password => {
-					this.storeCredentials(password, true, false, TYPE_BIOMETRICS, true);
-				}
-			});
-		}
+		this.setState({ loading: true }, async () => {
+			const credentials = await SecureKeychain.getGenericPassword();
+			if (credentials && credentials.password !== '') {
+				this.storeCredentials(credentials.password, enabled, 'biometryChoice');
+			} else {
+				this.props.navigation.navigate('EnterPasswordSimple', {
+					onPasswordSet: password => {
+						this.storeCredentials(password, enabled, 'biometryChoice');
+					}
+				});
+			}
+		});
 	};
 
 	onSignInWithPasscode = async enabled => {
-		this.setState({ passcodeChoice: enabled });
-		if (!enabled) {
-			await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-		} else {
-			await AsyncStorage.removeItem(PASSCODE_DISABLED);
-		}
-
-		const credentials = await SecureKeychain.getGenericPassword();
-		if (credentials && credentials.password !== '') {
-			this.storeCredentials(credentials.password, enabled, false, TYPE_PASSCODE);
-		} else {
-			this.props.navigation.navigate('EnterPasswordSimple', {
-				onPasswordSet: password => {
-					this.storeCredentials(password, true, false, TYPE_PASSCODE, true);
-				}
-			});
-		}
+		this.setState({ loading: true }, async () => {
+			const credentials = await SecureKeychain.getGenericPassword();
+			if (credentials && credentials.password !== '') {
+				this.storeCredentials(credentials.password, enabled, 'passcodeChoice');
+			} else {
+				this.props.navigation.navigate('EnterPasswordSimple', {
+					onPasswordSet: password => {
+						this.storeCredentials(password, enabled, 'passcodeChoice');
+					}
+				});
+			}
+		});
 	};
 
-	storeCredentials = async (password, enabled, restore, type, validate = false) => {
+	storeCredentials = async (password, enabled, type) => {
 		try {
 			await SecureKeychain.resetGenericPassword();
 
-			if (restore) {
-				Logger.log('SecuritySettings::Restoring wallet from SecuritySettings after setting password');
-				// We have to restore the entire keyring
-				// to re-encrypt it with a new password
-				const { KeyringController, PreferencesController } = Engine.context;
-				const { keyrings, selectedAddress } = this.props;
-				const mnemonic = await KeyringController.exportSeedPhrase('');
-				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
-
-				// Also regenerate the accounts
-
-				let accountLength = 1;
-				const allKeyrings =
-					keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
-				for (const keyring of allKeyrings) {
-					if (keyring.type === 'HD Key Tree') {
-						accountLength = keyring.accounts.length;
-						break;
-					}
-				}
-				await KeyringController.createNewVaultAndRestore(password, seed);
-				for (let i = 0; i < accountLength - 1; i++) {
-					await KeyringController.addNewAccount();
-				}
-				// Finally set the same selected address
-				PreferencesController.setSelectedAddress(selectedAddress);
-			}
-
-			// When there's no need to restore and we just need
-			// to store the existing password in the keychain,
-			// we need to validate it first
-			if (validate) {
-				await Engine.context.KeyringController.exportSeedPhrase(password);
-			}
+			await Engine.context.KeyringController.exportSeedPhrase(password);
 
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			if (enabled) {
-				await SecureKeychain.setGenericPassword(password, type === 'biometrics');
 
-				if (type === 'biometrics') {
-					await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
-					await AsyncStorage.removeItem(PASSCODE_CHOICE);
-					// If the user enables biometrics, we're trying to read the password
-					// immediately so we get the permission prompt
-					if (isIos) {
-						await SecureKeychain.getGenericPassword();
-					}
-				} else {
-					await AsyncStorage.setItem(PASSCODE_CHOICE, TRUE);
-					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+			if (!enabled) {
+				this.setState({ [type]: false, loading: false });
+				if (type === 'passcodeChoice') {
+					await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+				} else if (type === 'biometryChoice') {
+					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 				}
-			} else {
-				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-				await AsyncStorage.removeItem(PASSCODE_CHOICE);
+
+				return;
 			}
+
+			if (type === 'passcodeChoice')
+				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.PASSCODE);
+			else if (type === 'biometryChoice')
+				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
 
 			this.props.passwordSet();
 
-			if (enabled && this.props.lockTime === -1) {
+			if (this.props.lockTime === -1) {
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			}
+
+			this.setState({ [type]: true, loading: false });
 		} catch (e) {
 			if (e.message === 'Invalid password') {
 				Alert.alert(strings('app_settings.invalid_password'), strings('app_settings.invalid_password_message'));
 			}
 			Logger.error(e, 'SecuritySettings:biometrics');
-			this.setState({ biometryChoice: !enabled });
+			this.setState({ [type]: !enabled, loading: false });
 		}
 	};
 
@@ -438,10 +388,19 @@ class Settings extends PureComponent {
 			biometryType,
 			browserHistoryModalVisible,
 			cookiesModalVisible,
-			metricsOptIn
+			metricsOptIn,
+			loading
 		} = this.state;
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+
+		if (loading)
+			return (
+				<View style={styles.loader}>
+					<ActivityIndicator size="large" />
+				</View>
+			);
+
 		return (
 			<ScrollView style={styles.wrapper} testID={'security-settings-scrollview'}>
 				<View style={styles.inner}>
@@ -565,7 +524,9 @@ class Settings extends PureComponent {
 					)}
 					<View style={styles.setting} testID={'reveal-private-key-section'}>
 						<Text style={styles.title}>
-							{strings('reveal_credential.private_key_title_for_account', { accountName: account.name })}
+							{strings('reveal_credential.private_key_title_for_account', {
+								accountName: account.name
+							})}
 						</Text>
 						<Text style={[styles.desc, styles.red]}>
 							{strings('reveal_credential.private_key_warning', { accountName: account.name })}

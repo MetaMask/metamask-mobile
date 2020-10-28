@@ -14,9 +14,8 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
-import Device from '../../../util/Device';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
-import { EXISTING_USER, BIOMETRY_CHOICE, NEXT_MAKER_REMINDER, TRUE } from '../../../constants/storage';
+import { EXISTING_USER, NEXT_MAKER_REMINDER, TRUE } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -251,23 +250,11 @@ class SyncWithExtension extends PureComponent {
 			const biometryType = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
 				this.setState({ biometryType, biometryChoice: true });
-			}
 
-			await SecureKeychain.setGenericPassword(password, this.state.biometryChoice);
-
-			if (!this.state.biometryChoice) {
-				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-			} else {
-				// If the user enables biometrics, we're trying to read the password
-				// immediately so we get the permission prompt
 				try {
-					if (Device.isIos()) {
-						await SecureKeychain.getGenericPassword();
-					}
-					await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
+					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
 				} catch (e) {
-					Logger.error(e, 'User cancelled biometrics permission');
-					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+					SecureKeychain.resetGenericPassword();
 				}
 			}
 		}

@@ -22,14 +22,7 @@ import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
-import {
-	EXISTING_USER,
-	NEXT_MAKER_REMINDER,
-	BIOMETRY_CHOICE,
-	BIOMETRY_CHOICE_DISABLED,
-	PASSCODE_DISABLED,
-	TRUE
-} from '../../../constants/storage';
+import { EXISTING_USER, NEXT_MAKER_REMINDER, TRUE } from '../../../constants/storage';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
@@ -313,24 +306,11 @@ class ChoosePassword extends PureComponent {
 
 			// Set state in app as it was with password
 			if (this.state.biometryType && this.state.biometryChoice) {
-				await SecureKeychain.setGenericPassword(password, true);
-				// If the user enables biometrics, we're trying to read the password
-				// immediately so we get the permission prompt
-				if (Device.isIos()) {
-					await SecureKeychain.getGenericPassword();
-				}
-				await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
-				await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-				await AsyncStorage.removeItem(PASSCODE_DISABLED);
+				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
+			} else if (this.state.rememberMe) {
+				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
 			} else {
-				if (this.state.rememberMe) {
-					await SecureKeychain.setGenericPassword(password);
-				} else {
-					await SecureKeychain.resetGenericPassword();
-				}
-				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+				await SecureKeychain.resetGenericPassword();
 			}
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordSet();
@@ -341,8 +321,7 @@ class ChoosePassword extends PureComponent {
 		} catch (error) {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
-			await SecureKeychain.setGenericPassword('');
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+			await SecureKeychain.resetGenericPassword();
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordUnset();

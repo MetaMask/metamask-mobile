@@ -42,7 +42,6 @@ import {
 	EXISTING_USER,
 	BIOMETRY_CHOICE,
 	BIOMETRY_CHOICE_DISABLED,
-	PASSCODE_DISABLED,
 	NEXT_MAKER_REMINDER,
 	METRICS_OPT_IN,
 	TRUE
@@ -342,25 +341,13 @@ class Onboarding extends PureComponent {
 
 	finishSync = async opts => {
 		if (opts.biometrics) {
-			await SecureKeychain.setGenericPassword(opts.password, true);
-
-			// If the user enables biometrics, we're trying to read the password
-			// immediately so we get the permission prompt
 			try {
-				if (Device.isIos()) {
-					await SecureKeychain.getGenericPassword();
-					await AsyncStorage.setItem(BIOMETRY_CHOICE, opts.biometryType);
-				}
+				await SecureKeychain.setGenericPassword(opts.password, SecureKeychain.TYPES.BIOMETRICS);
 			} catch (e) {
-				Logger.error(e, 'User cancelled biometrics permission');
-				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+				SecureKeychain.resetGenericPassword();
 			}
 		} else {
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-			await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+			SecureKeychain.resetGenericPassword();
 		}
 
 		try {
