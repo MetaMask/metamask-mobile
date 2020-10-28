@@ -1,17 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import {
-	Alert,
-	StyleSheet,
-	Switch,
-	Text,
-	ScrollView,
-	View,
-	TouchableWithoutFeedback,
-	TouchableOpacity,
-	TextInput,
-	Keyboard
-} from 'react-native';
+import { Alert, StyleSheet, Switch, Text, ScrollView, View, TouchableOpacity, Keyboard } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import ActionModal from '../../../UI/ActionModal';
@@ -42,7 +31,7 @@ import {
 } from '../../../../constants/storage';
 import CookieManager from '@react-native-community/cookies';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import OctIcon from 'react-native-vector-icons/Octicons';
+import HintModal from '../../../UI/HintModal';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -131,43 +120,6 @@ const styles = StyleSheet.create({
 	},
 	viewHint: {
 		marginLeft: 'auto'
-	},
-	hintWrapper: {
-		alignSelf: 'center',
-		backgroundColor: colors.white,
-		borderRadius: 16,
-		padding: 24
-	},
-	hintHeader: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: 16
-	},
-	recovery: {
-		fontSize: 18,
-		...fontStyles.extraBold,
-		color: colors.fontPrimary
-	},
-	leaveHint: {
-		fontSize: 14,
-		...fontStyles.regular,
-		color: colors.fontPrimary,
-		marginBottom: 16
-	},
-	noSeedphrase: {
-		fontSize: 14,
-		...fontStyles.regular,
-		color: colors.red,
-		marginBottom: 16
-	},
-	hintInput: {
-		borderRadius: 6,
-		borderWidth: 1,
-		borderColor: colors.grey500,
-		padding: 16,
-		minHeight: 76,
-		paddingTop: 16
 	}
 });
 
@@ -586,35 +538,14 @@ class Settings extends PureComponent {
 	renderHint = () => {
 		const { showHint, hintText } = this.state;
 		return (
-			<ActionModal
-				confirmText={strings('manual_backup_step_3.save')}
-				confirmButtonMode={'confirm'}
-				onCancelPress={this.toggleHint}
-				onConfirmPress={this.saveHint}
+			<HintModal
+				onConfirm={this.saveHint}
+				onCancel={this.toggleHint}
 				modalVisible={showHint}
 				onRequestClose={Keyboard.dismiss}
-			>
-				<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-					<View style={styles.hintWrapper}>
-						<View style={styles.hintHeader}>
-							<Text style={styles.recovery}>{strings('manual_backup_step_3.recovery_hint')}</Text>
-							<TouchableOpacity onPress={this.toggleHint}>
-								<OctIcon name="x" size={16} />
-							</TouchableOpacity>
-						</View>
-						<Text style={styles.leaveHint}>{strings('manual_backup_step_3.leave_hint')}</Text>
-						<Text style={styles.noSeedphrase}>{strings('manual_backup_step_3.no_seedphrase')}</Text>
-						<TextInput
-							style={styles.hintInput}
-							value={hintText}
-							placeholder={strings('manual_backup_step_3.example')}
-							onChangeText={this.handleChangeText}
-							multiline
-							textAlignVertical={'top'}
-						/>
-					</View>
-				</TouchableWithoutFeedback>
-			</ActionModal>
+				value={hintText}
+				onChangeText={this.handleChangeText}
+			/>
 		);
 	};
 

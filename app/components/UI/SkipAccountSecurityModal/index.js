@@ -102,12 +102,12 @@ const SkipAccountSecurityModal = ({ modalVisible, onConfirm, onCancel, onPress, 
 );
 
 const propTypes = {
-	modalVisible: PropTypes.bool,
-	onConfirm: PropTypes.func,
-	onCancel: PropTypes.func,
-	onPress: PropTypes.func,
-	toggleSkipCheckbox: PropTypes.func,
-	skipCheckbox: PropTypes.bool
+	modalVisible: PropTypes.bool.isRequired,
+	onConfirm: PropTypes.func.isRequired,
+	onCancel: PropTypes.func.isRequired,
+	onPress: PropTypes.func.isRequired,
+	toggleSkipCheckbox: PropTypes.func.isRequired,
+	skipCheckbox: PropTypes.bool.isRequired
 };
 
 const defaultProps = {
