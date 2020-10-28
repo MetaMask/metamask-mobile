@@ -308,6 +308,12 @@ class ImportWallet extends PureComponent {
 		}
 	}
 
+	cancelledBiometricsPermission = async () => {
+		await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+		await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+		await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+	};
+
 	finishSync = async opts => {
 		if (opts.biometrics) {
 			const authOptions = {
@@ -324,14 +330,10 @@ class ImportWallet extends PureComponent {
 				}
 			} catch (e) {
 				Logger.error(e, 'User cancelled biometrics permission');
-				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+				await this.cancelledBiometricsPermission();
 			}
 		} else {
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-			await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+			await this.cancelledBiometricsPermission();
 		}
 
 		try {
