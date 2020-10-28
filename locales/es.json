@@ -381,7 +381,7 @@
 		"seedphrase_backed_up": "Frase semilla respaldada",
 		"back_up_now": "Copia ahora",
 		"back_up_again": "Retrocede de nuevo",
-		"view_hint": "View hint",
+		"view_hint": "Ver sugerencia",
 		"privacy_mode": "Modo de privacidad",
 		"privacy_mode_desc": "Los sitios web deben solicitar acceso para ver la información de tu cuenta",
 		"show_hex_data": "Mostrar datos hexadecimales",
@@ -444,8 +444,8 @@
 		"create_password": "Crear Contraseña",
 		"invalid_password": "Contraseña inválida",
 		"invalid_password_message": "La contraseña no es correcta. Por favor inténtalo de nuevo.",
-		"security_heading": "Security",
-		"privacy_heading": "Privacy"
+		"security_heading": "Seguridad",
+		"privacy_heading": "Intimidad"
 	},
 	"app_information": {
 		"title": "Información",
