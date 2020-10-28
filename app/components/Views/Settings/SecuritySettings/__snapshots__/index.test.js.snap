@@ -831,109 +831,14 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
       </View>
     </ActionModal>
-    <ActionModal
-      cancelButtonMode="neutral"
-      cancelTestID=""
-      cancelText="Cancel"
-      confirmButtonMode="confirm"
-      confirmDisabled={false}
-      confirmTestID=""
-      confirmText="Save"
-      displayCancelButton={true}
-      displayConfirmButton={true}
+    <HintModal
       modalVisible={false}
-      onCancelPress={[Function]}
-      onConfirmPress={[Function]}
+      onCancel={[Function]}
+      onChangeText={[Function]}
+      onConfirm={[Function]}
       onRequestClose={[Function]}
-    >
-      <TouchableWithoutFeedback
-        accessible={false}
-        onPress={[Function]}
-      >
-        <View
-          style={
-            Object {
-              "alignSelf": "center",
-              "backgroundColor": "#FFFFFF",
-              "borderRadius": 16,
-              "padding": 24,
-            }
-          }
-        >
-          <View
-            style={
-              Object {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-                "marginBottom": 16,
-              }
-            }
-          >
-            <Text
-              style={
-                Object {
-                  "color": "#000000",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 18,
-                  "fontWeight": "bold",
-                }
-              }
-            >
-              Recovery hint
-            </Text>
-            <TouchableOpacity
-              onPress={[Function]}
-            >
-              <Icon
-                allowFontScaling={false}
-                name="x"
-                size={16}
-              />
-            </TouchableOpacity>
-          </View>
-          <Text
-            style={
-              Object {
-                "color": "#000000",
-                "fontSize": 14,
-                "marginBottom": 16,
-              }
-            }
-          >
-            Leave yourself a hint. Write the location / where you saved it to remind yourself how you can access it. This information does not leave your device.
-          </Text>
-          <Text
-            style={
-              Object {
-                "color": "#D73A49",
-                "fontSize": 14,
-                "marginBottom": 16,
-              }
-            }
-          >
-            Do not use this to write your seed phrase.
-          </Text>
-          <TextInput
-            multiline={true}
-            onChangeText={[Function]}
-            placeholder="e.g. Mom's house"
-            style={
-              Object {
-                "borderColor": "#6a737d",
-                "borderRadius": 6,
-                "borderWidth": 1,
-                "minHeight": 76,
-                "padding": 16,
-                "paddingTop": 16,
-              }
-            }
-            textAlignVertical="top"
-            value=""
-          />
-        </View>
-      </TouchableWithoutFeedback>
-    </ActionModal>
+      value=""
+    />
   </View>
 </ScrollViewMock>
 `;
