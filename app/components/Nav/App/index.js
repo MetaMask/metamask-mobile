@@ -187,7 +187,9 @@ class App extends PureComponent {
 				this.navigator.dispatch(NavigationActions.navigate({ routeName, params: opts }));
 			}
 		});
-		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
+		if (!this.unsubscribeFromBranch) {
+			this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
+		}
 	};
 
 	handleDeeplinks = async ({ error, params, uri }) => {
@@ -195,18 +197,15 @@ class App extends PureComponent {
 			Logger.error(error, 'Deeplink: Error from Branch');
 		}
 		const deeplink = params['+non_branch_link'] || uri || null;
-		console.log('APP deeplink', deeplink);
 		try {
 			if (deeplink) {
 				const { KeyringController } = Engine.context;
 				const isUnlocked = KeyringController.isUnlocked();
-				console.log('APP if deeplink isUnlocked', isUnlocked);
 				isUnlocked
 					? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
 					: SharedDeeplinkManager.setDeeplink(deeplink);
 			}
 		} catch (e) {
-			console.log('APP catch deeplink', e);
 			Logger.error(e, `Deeplink: Error parsing deeplink`);
 		}
 	};

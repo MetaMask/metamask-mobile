@@ -304,6 +304,7 @@ export default createStackNavigator(
 	},
 	{
 		mode: 'modal',
-		headerMode: 'none'
+		headerMode: 'none',
+		lazy: true
 	}
 );

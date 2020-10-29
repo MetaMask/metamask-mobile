@@ -14,7 +14,18 @@ import { getNetworkTypeById } from '../util/networks';
 class DeeplinkManager {
 	constructor(_navigation) {
 		this.navigation = _navigation;
+		this.pendingDeeplink = null;
+
+		AppState.addEventListener('change', appState => {
+			if (appState !== 'active') this.pendingDeeplink = null;
+		});
 	}
+
+	setDeeplink = url => (this.pendingDeeplink = url);
+
+	getPendingDeeplink = () => this.pendingDeeplink;
+
+	expireDeeplink = () => (this.pendingDeeplink = null);
 
 	async handleEthereumUrl(url, origin) {
 		let ethUrl = '';
@@ -155,23 +166,15 @@ class DeeplinkManager {
 }
 
 let instance = null;
-let pendingDeeplink = null;
 
 const SharedDeeplinkManager = {
 	init: navigation => {
 		instance = new DeeplinkManager(navigation);
-		AppState.addEventListener('change', appState => {
-			if (appState !== 'active') pendingDeeplink = null;
-		});
 	},
 	parse: (url, args) => instance.parse(url, args),
-	setDeeplink: url => {
-		pendingDeeplink = url;
-	},
-	getPendingDeeplink: () => pendingDeeplink,
-	expireDeeplink: () => {
-		pendingDeeplink = null;
-	}
+	setDeeplink: url => instance.setDeeplink(url),
+	getPendingDeeplink: () => instance.getPendingDeeplink(),
+	expireDeeplink: () => instance.expireDeeplink()
 };
 
 export default SharedDeeplinkManager;
