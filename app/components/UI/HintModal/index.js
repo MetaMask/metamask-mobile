@@ -83,7 +83,7 @@ const propTypes = {
 	onConfirm: PropTypes.func.isRequired,
 	modalVisible: PropTypes.bool.isRequired,
 	onRequestClose: PropTypes.func.isRequired,
-	value: PropTypes.string.isRequired,
+	value: PropTypes.string,
 	onChangeText: PropTypes.func.isRequired
 };
 const defaultProps = {
