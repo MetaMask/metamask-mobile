@@ -7,7 +7,8 @@ import {
 	ActivityIndicator,
 	InteractionManager,
 	TextInput,
-	KeyboardAvoidingView
+	KeyboardAvoidingView,
+	TouchableOpacity
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -79,6 +80,12 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 		paddingVertical: 45
 	},
+	touchableOpacity: {
+		position: 'absolute',
+		width: '100%',
+		height: '100%',
+		borderRadius: 8
+	},
 	blurView: {
 		position: 'absolute',
 		top: 0,
@@ -142,6 +149,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderRadius: 13,
 		textAlign: 'center',
+		textAlignVertical: 'center',
 		lineHeight: 14,
 		flex: 1
 	},
@@ -294,22 +302,24 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	renderSeedPhraseConcealer = () => (
 		<React.Fragment>
-			<BlurView blurType="light" blurAmount={5} style={styles.blurView} />
-			<View style={styles.seedPhraseConcealer}>
-				<FeatherIcons name="eye-off" size={24} style={styles.icon} />
-				<Text style={styles.reveal}>{strings('manual_backup_step_1.reveal')}</Text>
-				<Text style={styles.watching}>{strings('manual_backup_step_1.watching')}</Text>
-				<View style={styles.viewButtonWrapper}>
-					<StyledButton
-						type={'view'}
-						onPress={this.revealSeedPhrase}
-						testID={'view-button'}
-						containerStyle={styles.viewButtonContainer}
-					>
-						{strings('manual_backup_step_1.view')}
-					</StyledButton>
+			<TouchableOpacity onPress={this.revealSeedPhrase} style={styles.touchableOpacity}>
+				<BlurView blurType="light" blurAmount={5} style={styles.blurView} />
+				<View style={styles.seedPhraseConcealer}>
+					<FeatherIcons name="eye-off" size={24} style={styles.icon} />
+					<Text style={styles.reveal}>{strings('manual_backup_step_1.reveal')}</Text>
+					<Text style={styles.watching}>{strings('manual_backup_step_1.watching')}</Text>
+					<View style={styles.viewButtonWrapper}>
+						<StyledButton
+							type={'view'}
+							testID={'view-button'}
+							onPress={this.revealSeedPhrase}
+							containerStyle={styles.viewButtonContainer}
+						>
+							{strings('manual_backup_step_1.view')}
+						</StyledButton>
+					</View>
 				</View>
-			</View>
+			</TouchableOpacity>
 		</React.Fragment>
 	);
 
