@@ -212,8 +212,7 @@ class Settings extends PureComponent {
 		seedphraseBackedUp: PropTypes.bool
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.security_title'), navigation);
+	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(strings('app_settings.back'), navigation);
 
 	state = {
 		approvalModalVisible: false,

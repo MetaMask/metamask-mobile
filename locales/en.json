@@ -428,6 +428,7 @@
 		"contacts_title": "Contacts",
 		"contacts_desc": "Add, edit, remove, and manage your accounts",
 		"security_title": "Security & Privacy",
+		"back": "Back",
 		"security_desc": "Privacy settings, MetaMetrics, private key and wallet seed phrase",
 		"networks_title": "Networks",
 		"networks_desc": "Add and edit custom RPC networks",
