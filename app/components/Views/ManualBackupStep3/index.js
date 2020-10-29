@@ -87,6 +87,15 @@ class ManualBackupStep3 extends PureComponent {
 		navigation: PropTypes.object
 	};
 
+	componentDidMount = async () => {
+		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
+		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
+		const manualBackup = parsedHints?.manualBackup;
+		this.setState({
+			hintText: manualBackup
+		});
+	};
+
 	toggleHint = () => {
 		this.setState(state => ({ showHint: !state.showHint }));
 	};
