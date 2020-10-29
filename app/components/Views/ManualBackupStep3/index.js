@@ -147,8 +147,11 @@ class ManualBackupStep3 extends PureComponent {
 
 	isHintSeedPhrase = hintText => {
 		const words = this.props.navigation.getParam('words');
-		const lower = string => String(string).toLowerCase();
-		return lower(hintText) === lower(words.join(' '));
+		if (words) {
+			const lower = string => String(string).toLowerCase();
+			return lower(hintText) === lower(words.join(' '));
+		}
+		return false;
 	};
 
 	saveSeedphrase = async () => {
