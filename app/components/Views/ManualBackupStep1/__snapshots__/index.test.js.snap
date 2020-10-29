@@ -132,6 +132,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -160,6 +161,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -188,6 +190,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -216,6 +219,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -244,6 +248,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -272,6 +277,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -312,6 +318,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -340,6 +347,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -368,6 +376,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -396,6 +405,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -424,6 +434,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -452,6 +463,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "paddingHorizontal": 8,
                   "paddingVertical": 6,
                   "textAlign": "center",
+                  "textAlignVertical": "center",
                 }
               }
             >
@@ -459,103 +471,115 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             </Text>
           </View>
         </View>
-        <BlurView
-          blurAmount={5}
-          blurType="light"
+        <TouchableOpacity
+          onPress={[Function]}
           style={
             Object {
-              "borderRadius": 8,
-              "bottom": 0,
-              "left": 0,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-            }
-          }
-        />
-        <View
-          style={
-            Object {
-              "alignItems": "center",
-              "backgroundColor": "#3C3F42",
               "borderRadius": 8,
               "height": "100%",
-              "opacity": 0.7,
-              "paddingHorizontal": 24,
-              "paddingVertical": 45,
               "position": "absolute",
               "width": "100%",
             }
           }
         >
-          <Icon
-            allowFontScaling={false}
-            name="eye-off"
-            size={24}
+          <BlurView
+            blurAmount={5}
+            blurType="light"
             style={
               Object {
-                "color": "#FFFFFF",
-                "height": 24,
-                "marginBottom": 32,
-                "textAlign": "center",
-                "width": 24,
+                "borderRadius": 8,
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
               }
             }
           />
-          <Text
+          <View
             style={
               Object {
-                "color": "#FFFFFF",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 16,
-                "fontWeight": "bold",
-                "lineHeight": 22,
-                "marginBottom": 8,
-                "textAlign": "center",
+                "alignItems": "center",
+                "backgroundColor": "#3C3F42",
+                "borderRadius": 8,
+                "height": "100%",
+                "opacity": 0.7,
+                "paddingHorizontal": 24,
+                "paddingVertical": 45,
+                "position": "absolute",
+                "width": "100%",
               }
             }
           >
-            Tap to reveal your seed phrase
-          </Text>
-          <Text
-            style={
-              Object {
-                "color": "#FFFFFF",
-                "fontSize": 12,
-                "lineHeight": 17,
-                "marginBottom": 32,
-                "textAlign": "center",
-              }
-            }
-          >
-            Make sure no one is watching your screen.
-          </Text>
-          <View>
-            <StyledButton
-              containerStyle={
+            <Icon
+              allowFontScaling={false}
+              name="eye-off"
+              size={24}
+              style={
                 Object {
-                  "padding": 12,
-                  "width": 155,
+                  "color": "#FFFFFF",
+                  "height": 24,
+                  "marginBottom": 32,
+                  "textAlign": "center",
+                  "width": 24,
                 }
               }
-              disabledContainerStyle={
+            />
+            <Text
+              style={
                 Object {
-                  "opacity": 0.6,
+                  "color": "#FFFFFF",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 16,
+                  "fontWeight": "bold",
+                  "lineHeight": 22,
+                  "marginBottom": 8,
+                  "textAlign": "center",
                 }
               }
-              onPress={[Function]}
-              styleDisabled={
-                Object {
-                  "opacity": 0.6,
-                }
-              }
-              testID="view-button"
-              type="view"
             >
-              View
-            </StyledButton>
+              Tap to reveal your seed phrase
+            </Text>
+            <Text
+              style={
+                Object {
+                  "color": "#FFFFFF",
+                  "fontSize": 12,
+                  "lineHeight": 17,
+                  "marginBottom": 32,
+                  "textAlign": "center",
+                }
+              }
+            >
+              Make sure no one is watching your screen.
+            </Text>
+            <View>
+              <StyledButton
+                containerStyle={
+                  Object {
+                    "padding": 12,
+                    "width": 155,
+                  }
+                }
+                disabledContainerStyle={
+                  Object {
+                    "opacity": 0.6,
+                  }
+                }
+                onPress={[Function]}
+                styleDisabled={
+                  Object {
+                    "opacity": 0.6,
+                  }
+                }
+                testID="view-button"
+                type="view"
+              >
+                View
+              </StyledButton>
+            </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   </ActionView>
