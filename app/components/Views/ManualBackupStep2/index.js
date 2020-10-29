@@ -243,7 +243,8 @@ class ManualBackupStep2 extends PureComponent {
 		if (this.validateWords()) {
 			seedphraseBackedUp();
 			InteractionManager.runAfterInteractions(() => {
-				navigation.navigate('ManualBackupStep3', { steps: this.steps });
+				const words = navigation.getParam('words');
+				navigation.navigate('ManualBackupStep3', { steps: this.steps, words });
 			});
 		} else {
 			Alert.alert(strings('account_backup_step_5.error_title'), strings('account_backup_step_5.error_message'));
