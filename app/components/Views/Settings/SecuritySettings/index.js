@@ -85,14 +85,14 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginBottom: 20
 	},
-	Confirm: {
+	confirm: {
 		marginTop: 18
 	},
-	Protect: {
+	protect: {
 		flexDirection: 'row',
 		justifyContent: 'space-between'
 	},
-	fifty: {
+	col: {
 		width: '48%'
 	},
 	inner: {
@@ -597,22 +597,22 @@ class Settings extends PureComponent {
 							) : null}
 						</SettingsNotification>
 						{!seedphraseBackedUp ? (
-							<StyledButton type="blue" onPress={this.manualBackup} containerStyle={styles.Confirm}>
+							<StyledButton type="blue" onPress={this.manualBackup} containerStyle={styles.confirm}>
 								{strings('app_settings.back_up_now')}
 							</StyledButton>
 						) : (
-							<View style={styles.Protect}>
+							<View style={styles.protect}>
 								<StyledButton
 									type="normal"
 									onPress={this.manualBackup}
-									containerStyle={[styles.Confirm, styles.fifty]}
+									containerStyle={[styles.confirm, styles.col]}
 								>
 									{strings('app_settings.back_up_again')}
 								</StyledButton>
 								<StyledButton
 									type="blue"
 									onPress={this.goToRevealPrivateCredential}
-									containerStyle={[styles.Confirm, styles.fifty]}
+									containerStyle={[styles.confirm, styles.col]}
 								>
 									{strings('reveal_credential.seed_phrase_title')}
 								</StyledButton>
@@ -622,7 +622,7 @@ class Settings extends PureComponent {
 					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('password_reset.password_title')}</Text>
 						<Text style={styles.desc}>{strings('password_reset.password_desc')}</Text>
-						<StyledButton type="blue" onPress={this.resetPassword} containerStyle={styles.Confirm}>
+						<StyledButton type="normal" onPress={this.resetPassword} containerStyle={styles.confirm}>
 							{strings('password_reset.change_password')}
 						</StyledButton>
 					</View>
@@ -685,7 +685,7 @@ class Settings extends PureComponent {
 						<Text style={styles.desc}>
 							{strings('reveal_credential.private_key_warning', { accountName: account.name })}
 						</Text>
-						<StyledButton type="normal" onPress={this.goToExportPrivateKey} containerStyle={styles.Confirm}>
+						<StyledButton type="normal" onPress={this.goToExportPrivateKey} containerStyle={styles.confirm}>
 							{strings('reveal_credential.show_private_key')}
 						</StyledButton>
 					</View>
@@ -697,7 +697,7 @@ class Settings extends PureComponent {
 							type="normal"
 							onPress={this.toggleClearApprovalsModal}
 							disabled={Object.keys(approvedHosts).length === 0}
-							containerStyle={styles.Confirm}
+							containerStyle={styles.confirm}
 						>
 							{strings('app_settings.clear_privacy_title')}
 						</StyledButton>
@@ -709,7 +709,7 @@ class Settings extends PureComponent {
 							type="normal"
 							onPress={this.toggleClearBrowserHistoryModal}
 							disabled={browserHistory.length === 0}
-							containerStyle={styles.Confirm}
+							containerStyle={styles.confirm}
 						>
 							{strings('app_settings.clear_browser_history_desc')}
 						</StyledButton>
@@ -720,7 +720,7 @@ class Settings extends PureComponent {
 						<StyledButton
 							type="normal"
 							onPress={this.toggleClearCookiesModal}
-							containerStyle={styles.Confirm}
+							containerStyle={styles.confirm}
 						>
 							{strings('app_settings.clear_browser_cookies_desc')}
 						</StyledButton>
