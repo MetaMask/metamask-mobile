@@ -71,6 +71,15 @@ class Browser extends PureComponent {
 		} else {
 			this.props.tabs.length > 0 && this.switchToTab(this.props.tabs[0]);
 		}
+
+		const currentUrl = this.props.navigation.getParam('newTabUrl', null);
+		if (currentUrl) {
+			this.newTab(currentUrl);
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				newTabUrl: null
+			});
+		}
 	}
 
 	componentDidUpdate(prevProps) {
