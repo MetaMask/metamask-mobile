@@ -306,7 +306,11 @@ class ImportFromSeed extends PureComponent {
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
 				if (!metricsOptIn) {
-					this.props.navigation.navigate('OptinMetrics');
+					this.props.navigation.navigate(
+						'ManualBackupStep3',
+						{},
+						NavigationActions.navigate({ routeName: 'OptinMetrics' })
+					);
 				} else if (onboardingWizard) {
 					this.props.navigation.navigate('ManualBackupStep3');
 				} else {
