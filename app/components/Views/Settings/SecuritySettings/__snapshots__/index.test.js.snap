@@ -172,7 +172,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        type="blue"
+        type="normal"
       >
         Change password
       </StyledButton>
