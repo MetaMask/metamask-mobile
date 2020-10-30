@@ -60,6 +60,7 @@ import AccountApproval from '../../UI/AccountApproval';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
+import DeeplinkManager from '../../../core/DeeplinkManager';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -586,6 +587,16 @@ const Main = props => {
 		</Modal>
 	);
 
+	const findBottomTabRouteNameFromNavigatorState = ({ routes }) => {
+		let route = routes[routes.length - 1];
+		let routeName;
+		while (route.index !== undefined) {
+			routeName = route.routeName;
+			route = route.routes[route.index];
+		}
+		return routeName;
+	};
+
 	useEffect(() => {
 		if (locale.current !== I18n.locale) {
 			locale.current = I18n.locale;
@@ -602,6 +613,11 @@ const Main = props => {
 			} else {
 				PaymentChannelsClient.stop();
 			}
+		}
+		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
+		if (pendingDeeplink && findBottomTabRouteNameFromNavigatorState(props.navigation.state)) {
+			DeeplinkManager.expireDeeplink();
+			DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
 		}
 	});
 
