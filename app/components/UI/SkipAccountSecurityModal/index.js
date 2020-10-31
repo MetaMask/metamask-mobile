@@ -40,12 +40,13 @@ const styles = StyleSheet.create({
 	},
 	skipModalActionButtons: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'flex-start'
 	},
 	skipModalCheckbox: {
 		height: 18,
 		width: 18,
-		marginRight: 12
+		marginRight: 12,
+		marginTop: 3
 	},
 	skipModalText: {
 		flex: 1,
