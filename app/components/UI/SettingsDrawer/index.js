@@ -68,6 +68,9 @@ const propTypes = {
 	 * Handler called when this drawer is pressed
 	 */
 	onPress: PropTypes.func,
+	/**
+	 * Display SettingsNotification
+	 */
 	warning: PropTypes.bool
 };
 
