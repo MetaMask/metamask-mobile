@@ -3,14 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { NavigationContext } from 'react-navigation';
 import { strings } from '../../../../../locales/i18n';
-import {
-	useWyreTerms,
-	WYRE_IS_PROMOTION,
-	WYRE_FEE_PERCENT,
-	WYRE_FEE_FLAT,
-	WYRE_REGULAR_FEE_PERCENT,
-	WYRE_REGULAR_FEE_FLAT
-} from '../orderProcessor/wyreApplePay';
+import { useWyreTerms } from '../orderProcessor/wyreApplePay';
 
 import PaymentMethod from '../components/PaymentMethod';
 
@@ -44,25 +37,6 @@ const WyreApplePayPaymentMethod = ({ onPress }) => {
 					<Text reset>
 						<Title>{strings('fiat_on_ramp.apple_pay')}</Title> <Text>{strings('fiat_on_ramp.via')}</Text>{' '}
 						<WyreLogo />
-					</Text>
-					<Text>
-						{WYRE_IS_PROMOTION ? (
-							<>
-								<Text bold strikethrough>
-									${WYRE_REGULAR_FEE_PERCENT.toFixed(2)} + ${WYRE_REGULAR_FEE_FLAT.toFixed(2)}
-								</Text>{' '}
-								<Text bold green>
-									{WYRE_FEE_PERCENT}% {strings('fiat_on_ramp.fee')}
-								</Text>
-								{'\n'}
-								<Text disclaimer>{strings('fiat_on_ramp.limited_time')}</Text>
-							</>
-						) : (
-							<Text bold>
-								{strings('fiat_on_ramp.Fee')} ~{WYRE_FEE_PERCENT.toFixed(2)}% + $
-								{WYRE_FEE_FLAT.toFixed(2)}
-							</Text>
-						)}
 					</Text>
 					<Text>{strings('fiat_on_ramp.wyre_minutes')}</Text>
 					<Text>{strings('fiat_on_ramp.wyre_max')}</Text>
