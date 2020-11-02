@@ -90,7 +90,7 @@ class BackupAlert extends PureComponent {
 		/**
 		 * Dismisses the alert
 		 */
-		backUpSeedphraseAlertNotVisible: PropTypes.func,
+		backUpSeedphraseAlertNotVisible: PropTypes.func.isRequired,
 		onDismiss: PropTypes.func
 	};
 
