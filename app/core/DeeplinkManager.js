@@ -2,7 +2,7 @@
 
 import URL from 'url-parse';
 import qs from 'qs';
-import { InteractionManager, Alert, AppState } from 'react-native';
+import { InteractionManager, Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
@@ -15,10 +15,6 @@ class DeeplinkManager {
 	constructor(_navigation) {
 		this.navigation = _navigation;
 		this.pendingDeeplink = null;
-
-		AppState.addEventListener('change', appState => {
-			if (appState !== 'active') this.pendingDeeplink = null;
-		});
 	}
 
 	setDeeplink = url => (this.pendingDeeplink = url);
