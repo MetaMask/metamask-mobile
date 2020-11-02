@@ -20,7 +20,6 @@ import { showTransactionNotification, hideTransactionNotification } from '../../
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import ErrorBoundary from '../ErrorBoundary';
-import { withNavigationFocus } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -93,11 +92,7 @@ class Wallet extends PureComponent {
 		/**
 		 * Current onboarding wizard step
 		 */
-		wizardStep: PropTypes.number,
-		/**
-		 * React navigation prop to know if this view is focused
-		 */
-		isFocused: PropTypes.bool
+		wizardStep: PropTypes.number
 	};
 
 	state = {
@@ -119,7 +114,6 @@ class Wallet extends PureComponent {
 	};
 
 	componentDidUpdate = () => {
-		if (!this.props.isFocused) return;
 		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
 		if (pendingDeeplink) {
 			DeeplinkManager.expireDeeplink();
@@ -285,4 +279,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(withNavigationFocus(Wallet));
+)(Wallet);
