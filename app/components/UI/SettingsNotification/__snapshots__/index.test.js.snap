@@ -24,9 +24,11 @@ exports[`SettingsNotification should render correctly as warning 1`] = `
   style={
     Array [
       Object {
+        "alignItems": "center",
         "borderRadius": 10,
         "display": "flex",
         "flexDirection": "row",
+        "justifyContent": "center",
         "marginTop": 10,
         "padding": 12,
         "width": "100%",
