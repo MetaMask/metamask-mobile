@@ -621,7 +621,7 @@ class Onboarding extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	selectedAddress: state?.engine?.backgroundState?.PreferencesController?.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	passwordSet: state.user.passwordSet
 });
