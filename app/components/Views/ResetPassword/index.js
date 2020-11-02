@@ -105,9 +105,11 @@ const styles = StyleSheet.create({
 		width: 80,
 		height: 80
 	},
+	passwordRequiredContent: {
+		marginBottom: 20
+	},
 	content: {
-		textAlign: 'center',
-		alignItems: 'center'
+		alignItems: 'flex-start'
 	},
 	title: {
 		fontSize: 24,
@@ -228,9 +230,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		padding: 30,
 		paddingTop: 0
-	},
-	passwordRequiredContent: {
-		marginBottom: 20
 	},
 	buttonWrapper: {
 		flex: 1,

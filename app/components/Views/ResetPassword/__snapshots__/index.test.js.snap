@@ -72,8 +72,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             <View
               style={
                 Object {
-                  "alignItems": "center",
-                  "textAlign": "center",
+                  "alignItems": "flex-start",
                 }
               }
             >
