@@ -367,7 +367,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 testID="i-understand-text"
               >
                 I understand that MetaMask cannot recover this password for me.
-
+                 
                 <Text
                   onPress={[Function]}
                   style={

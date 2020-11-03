@@ -48,7 +48,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
       >
         <WarningIcon />
-
+         
         <Text
           style={
             Object {
