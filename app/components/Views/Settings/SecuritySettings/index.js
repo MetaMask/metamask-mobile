@@ -210,6 +210,10 @@ class Settings extends PureComponent {
 		 * List of accounts from the PreferencesController
 		 */
 		identities: PropTypes.object,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
 		seedphraseBackedUp: PropTypes.bool
 	};
 

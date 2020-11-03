@@ -91,6 +91,10 @@ class BackupAlert extends PureComponent {
 		 * Dismisses the alert
 		 */
 		backUpSeedphraseAlertNotVisible: PropTypes.func.isRequired,
+		/**
+		 * A second prop to be used in conjunction with the above
+		 * currently used to toggle the backup reminder modal (a second time)
+		 */
 		onDismiss: PropTypes.func
 	};
 

@@ -30,6 +30,10 @@ class Settings extends PureComponent {
 		/* navigation object required to push new views
 		*/
 		navigation: PropTypes.object,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
 		seedphraseBackedUp: PropTypes.bool
 	};
 
