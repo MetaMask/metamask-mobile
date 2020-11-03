@@ -27,7 +27,7 @@ import Engine from '../../../core/Engine';
 import Device from '../../../util/Device';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
+		width: '100%',
 		...fontStyles.normal
 	},
 	subtitle: {
@@ -256,8 +257,7 @@ const CONFIRM_PASSWORD = 'confirm_password';
  * View where users can set their password for the first time
  */
 class ResetPassword extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('reset_password.title'), navigation);
+	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
 		/**
