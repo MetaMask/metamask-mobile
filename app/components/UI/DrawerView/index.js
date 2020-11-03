@@ -35,6 +35,7 @@ import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
+import SettingsNotification from '../SettingsNotification';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -185,6 +186,11 @@ const styles = StyleSheet.create({
 		paddingTop: 2,
 		fontSize: 16,
 		color: colors.grey400,
+		...fontStyles.normal
+	},
+	menuItemWarningText: {
+		color: colors.red,
+		fontSize: 12,
 		...fontStyles.normal
 	},
 	noIcon: {
@@ -717,6 +723,7 @@ class DrawerView extends PureComponent {
 				{
 					name: strings('drawer.settings'),
 					icon: this.getFeatherIcon('settings'),
+					warning: strings('drawer.settings_warning'),
 					action: this.showSettings
 				},
 				{
@@ -831,7 +838,16 @@ class DrawerView extends PureComponent {
 	);
 
 	render() {
-		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency, ticker } = this.props;
+		const {
+			network,
+			accounts,
+			identities,
+			selectedAddress,
+			keyrings,
+			currentCurrency,
+			ticker,
+			seedphraseBackedUp
+		} = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
@@ -966,6 +982,11 @@ class DrawerView extends PureComponent {
 											>
 												{item.name}
 											</Text>
+											{!seedphraseBackedUp && item.warning ? (
+												<SettingsNotification isNotification isWarning>
+													<Text style={styles.menuItemWarningText}>{item.warning}</Text>
+												</SettingsNotification>
+											) : null}
 										</TouchableOpacity>
 									))}
 							</View>

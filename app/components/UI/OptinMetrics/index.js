@@ -121,32 +121,10 @@ class OptinMetrics extends PureComponent {
 		clearOnboardingEvents: PropTypes.func
 	};
 
-	actionsList = [
-		{
-			action: 0,
-			description: strings('privacy_policy.action_description_1')
-		},
-		{
-			action: 0,
-			description: strings('privacy_policy.action_description_2')
-		},
-		{
-			action: 0,
-			description: strings('privacy_policy.action_description_3')
-		},
-		{
-			action: 1,
-			description: strings('privacy_policy.action_description_4')
-		},
-		{
-			action: 1,
-			description: strings('privacy_policy.action_description_5')
-		},
-		{
-			action: 1,
-			description: strings('privacy_policy.action_description_6')
-		}
-	];
+	actionsList = [1, 2, 3, 4, 5].map(value => ({
+		action: value <= 2 ? 0 : 1,
+		description: strings(`privacy_policy.action_description_${value}`)
+	}));
 
 	componentDidMount() {
 		Analytics.enable();

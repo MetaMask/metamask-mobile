@@ -1,31 +1,33 @@
+jest.useFakeTimers();
+
 import React from 'react';
 import { shallow } from 'enzyme';
-import Settings from './';
+import ChoosePassword from './';
 import configureMockStore from 'redux-mock-store';
+import { ONBOARDING, PROTECT } from '../../../constants/navigation';
 
-describe('Settings', () => {
+describe('ChoosePassword', () => {
 	const mockStore = configureMockStore();
+
 	it('should render correctly', () => {
 		const initialState = {
-			user: { seedphraseBackedUp: true },
-			privacy: { approvedHosts: [], privacyMode: true },
-			browser: { history: [] },
-			settings: { lockTime: 1000, searchEngine: 'DuckDuckGo', useBlockieIcon: true },
+			user: {
+				passwordSet: true,
+				seedphraseBackedUp: false
+			},
 			engine: {
 				backgroundState: {
-					CurrencyRateController: { currentCurrency: 'USD' },
-					NetworkController: {
-						provider: {
-							type: 'mainnet'
-						}
-					},
-					PreferencesController: { selectedAddress: '0x0' }
+					PreferencesController: {
+						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1'
+					}
 				}
 			}
 		};
+
 		const wrapper = shallow(
-			<Settings
+			<ChoosePassword
 				navigation={{
+					getParam: () => [ONBOARDING, PROTECT],
 					state: { params: {} }
 				}}
 			/>,

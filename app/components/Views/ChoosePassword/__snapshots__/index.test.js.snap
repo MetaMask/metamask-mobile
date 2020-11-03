@@ -329,6 +329,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               Object {
                 "height": 18,
                 "margin": 10,
+                "marginTop": -5,
                 "width": 18,
               }
             }
@@ -348,6 +349,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
+                "lineHeight": 18,
                 "paddingHorizontal": 10,
               }
             }
