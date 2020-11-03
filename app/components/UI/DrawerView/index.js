@@ -190,7 +190,8 @@ const styles = StyleSheet.create({
 	},
 	menuItemWarningText: {
 		color: colors.red,
-		fontSize: 12
+		fontSize: 12,
+		...fontStyles.normal
 	},
 	noIcon: {
 		paddingLeft: 0

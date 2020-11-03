@@ -106,7 +106,8 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		color: colors.black,
-		fontSize: 12
+		fontSize: 12,
+		...fontStyles.normal
 	},
 	warningTextRed: {
 		color: colors.red

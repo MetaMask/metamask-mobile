@@ -10,8 +10,7 @@ const styles = StyleSheet.create({
 	text: {
 		fontSize: 14,
 		textAlign: 'center',
-		...fontStyles.bolder,
-		fontWeight: 'bold'
+		...fontStyles.bold
 	},
 	blue: {
 		backgroundColor: colors.blue
