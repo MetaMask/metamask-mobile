@@ -115,7 +115,8 @@ class Wallet extends PureComponent {
 
 	componentDidUpdate = () => {
 		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
-		if (pendingDeeplink) {
+		const { KeyringController } = Engine.context;
+		if (pendingDeeplink && KeyringController.isUnlocked()) {
 			DeeplinkManager.expireDeeplink();
 			DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
 		}
