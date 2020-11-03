@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SettingsNotification should render correctly as notification 1`] = `
+<View
+  style={
+    Array [
+      Object {
+        "alignSelf": "center",
+        "flex": 1,
+        "flexDirection": "row",
+        "marginRight": 24,
+      },
+      null,
+    ]
+  }
+>
+  <WarningIcon />
+  this is a notification
+</View>
+`;
+
+exports[`SettingsNotification should render correctly as warning 1`] = `
+<View
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "borderRadius": 10,
+        "display": "flex",
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginTop": 10,
+        "padding": 12,
+        "width": "100%",
+      },
+      Object {
+        "backgroundColor": "#fcf2f3",
+      },
+    ]
+  }
+>
+  <WarningIcon />
+  this is a warning
+</View>
+`;

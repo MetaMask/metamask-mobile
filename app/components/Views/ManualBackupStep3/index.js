@@ -1,15 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-	Text,
-	View,
-	SafeAreaView,
-	StyleSheet,
-	Keyboard,
-	TouchableOpacity,
-	TouchableWithoutFeedback,
-	TextInput,
-	Alert
-} from 'react-native';
+import { Alert, Text, View, SafeAreaView, StyleSheet, Keyboard, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -20,12 +10,11 @@ import ActionView from '../../UI/ActionView';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
 import AndroidBackHandler from '../AndroidBackHandler';
-import ActionModal from '../../UI/ActionModal';
 import Device from '../../../util/Device';
-import Icon from 'react-native-vector-icons/Octicons';
 import Confetti from '../../UI/Confetti';
+import HintModal from '../../UI/HintModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
+import { ONBOARDING_WIZARD, METRICS_OPT_IN, SEED_PHRASE_HINTS } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -35,43 +24,6 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		paddingHorizontal: 50
-	},
-	hintWrapper: {
-		alignSelf: 'center',
-		backgroundColor: colors.white,
-		borderRadius: 16,
-		padding: 24
-	},
-	hintHeader: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: 16
-	},
-	recovery: {
-		fontSize: 18,
-		...fontStyles.extraBold,
-		color: colors.fontPrimary
-	},
-	leaveHint: {
-		fontSize: 14,
-		...fontStyles.regular,
-		color: colors.fontPrimary,
-		marginBottom: 16
-	},
-	noSeedphrase: {
-		fontSize: 14,
-		...fontStyles.regular,
-		color: colors.red,
-		marginBottom: 16
-	},
-	hintInput: {
-		borderRadius: 6,
-		borderWidth: 1,
-		borderColor: colors.grey500,
-		padding: 16,
-		minHeight: 76,
-		paddingTop: 16
 	},
 	onBoardingWrapper: {
 		paddingHorizontal: 20
@@ -119,7 +71,7 @@ class ManualBackupStep3 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		this.steps = props.navigation.getParam('steps');
+		this.steps = props.navigation.getParam('steps', undefined);
 	}
 
 	state = {
@@ -135,8 +87,17 @@ class ManualBackupStep3 extends PureComponent {
 		navigation: PropTypes.object
 	};
 
+	componentDidMount = async () => {
+		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
+		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
+		const manualBackup = parsedHints?.manualBackup;
+		this.setState({
+			hintText: manualBackup
+		});
+	};
+
 	toggleHint = () => {
-		this.setState({ showHint: !this.state.showHint });
+		this.setState(state => ({ showHint: !state.showHint }));
 	};
 
 	learnMore = () =>
@@ -154,17 +115,17 @@ class ManualBackupStep3 extends PureComponent {
 		return false;
 	};
 
-	saveSeedphrase = async () => {
+	saveHint = async () => {
 		const { hintText } = this.state;
 		if (!hintText) return;
-		const currentSeedphraseHints = await AsyncStorage.getItem('seedphraseHints');
-		const parsedHints = JSON.parse(currentSeedphraseHints);
 		if (this.isHintSeedPhrase(hintText)) {
 			Alert.alert('Error!', strings('manual_backup_step_3.no_seedphrase'));
 			return;
 		}
 		this.toggleHint();
-		await AsyncStorage.setItem('seedphraseHints', JSON.stringify({ ...parsedHints, manualBackup: hintText }));
+		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
+		const parsedHints = JSON.parse(currentSeedphraseHints);
+		await AsyncStorage.setItem(SEED_PHRASE_HINTS, JSON.stringify({ ...parsedHints, manualBackup: hintText }));
 	};
 
 	done = async () => {
@@ -187,35 +148,14 @@ class ManualBackupStep3 extends PureComponent {
 	renderHint = () => {
 		const { showHint, hintText } = this.state;
 		return (
-			<ActionModal
-				confirmText={strings('manual_backup_step_3.save')}
-				confirmButtonMode={'confirm'}
-				onCancelPress={this.toggleHint}
-				onConfirmPress={this.saveSeedphrase}
+			<HintModal
+				onConfirm={this.saveHint}
+				onCancel={this.toggleHint}
 				modalVisible={showHint}
 				onRequestClose={Keyboard.dismiss}
-			>
-				<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-					<View style={styles.hintWrapper}>
-						<View style={styles.hintHeader}>
-							<Text style={styles.recovery}>{strings('manual_backup_step_3.recovery_hint')}</Text>
-							<TouchableOpacity onPress={this.toggleHint}>
-								<Icon name="x" size={16} />
-							</TouchableOpacity>
-						</View>
-						<Text style={styles.leaveHint}>{strings('manual_backup_step_3.leave_hint')}</Text>
-						<Text style={styles.noSeedphrase}>{strings('manual_backup_step_3.no_seedphrase')}</Text>
-						<TextInput
-							style={styles.hintInput}
-							value={hintText}
-							placeholder={strings('manual_backup_step_3.example')}
-							onChangeText={this.handleChangeText}
-							multiline
-							textAlignVertical={'top'}
-						/>
-					</View>
-				</TouchableWithoutFeedback>
-			</ActionModal>
+				value={hintText}
+				onChangeText={this.handleChangeText}
+			/>
 		);
 	};
 
@@ -223,9 +163,11 @@ class ManualBackupStep3 extends PureComponent {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Confetti />
-				<View style={styles.onBoardingWrapper}>
-					<OnboardingProgress currentStep={this.state.currentStep} steps={this.steps} />
-				</View>
+				{this.steps ? (
+					<View style={styles.onBoardingWrapper}>
+						<OnboardingProgress currentStep={this.state.currentStep} steps={this.steps} />
+					</View>
+				) : null}
 				<ActionView
 					confirmTestID={'manual-backup-step-3-done-button'}
 					confirmText={strings('manual_backup_step_3.done')}
