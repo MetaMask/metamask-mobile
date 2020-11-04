@@ -14,8 +14,17 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
-import { EXISTING_USER, ONBOARDING_WIZARD, METRICS_OPT_IN, ENCRYPTION_LIB, ORIGINAL } from '../../../constants/storage';
+import {
+	EXISTING_USER,
+	ONBOARDING_WIZARD,
+	METRICS_OPT_IN,
+	ENCRYPTION_LIB,
+	ORIGINAL,
+	CURRENT_APP_VERSION,
+	LAST_APP_VERSION
+} from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
+import { getVersion } from 'react-native-device-info';
 
 /**
  * Entry Screen that decides which screen to show
@@ -97,6 +106,18 @@ class Entry extends PureComponent {
 		DeeplinkManager.init(this.props.navigation);
 		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
 		const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+
+		try {
+			const currentVersion = await getVersion();
+			const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+			if (currentVersion !== savedVersion) {
+				if (savedVersion) await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
+				await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
+			}
+		} catch (error) {
+			Logger.error(error);
+		}
+
 		if (existingUser !== null) {
 			await this.unlockKeychain();
 		} else {

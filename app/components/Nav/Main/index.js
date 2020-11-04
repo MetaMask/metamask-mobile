@@ -109,6 +109,7 @@ import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions
 import AccountApproval from '../../UI/AccountApproval';
 import ActivityView from '../../Views/ActivityView';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
+import WhatsNewModal from '../../UI/WhatsNewModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 
 const styles = StyleSheet.create({
@@ -1175,6 +1176,7 @@ class Main extends PureComponent {
 						toggleSkipCheckbox={this.toggleSkipCheckbox}
 					/>
 					<ProtectYourWalletModal navigation={navigation} />
+					<WhatsNewModal navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
