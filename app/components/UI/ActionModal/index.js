@@ -35,7 +35,8 @@ export default function ActionModal({
 	viewContainerStyle,
 	actionContainerStyle,
 	childrenContainerStyle,
-	verticalButtons
+	verticalButtons,
+	propagateSwipe
 }) {
 	return (
 		<Modal
@@ -45,6 +46,7 @@ export default function ActionModal({
 			onBackButtonPress={onRequestClose}
 			onSwipeComplete={onRequestClose}
 			swipeDirection={'down'}
+			propagateSwipe={propagateSwipe}
 		>
 			<ActionContent
 				cancelTestID={cancelTestID}
@@ -162,5 +164,9 @@ ActionModal.propTypes = {
 	/**
 	 * Children container style
 	 */
-	childrenContainerStyle: PropTypes.object
+	childrenContainerStyle: PropTypes.object,
+	/**
+	 * Allows swipe events to propagate to children components (eg a ScrollView inside a modal)
+	 */
+	propagateSwipe: PropTypes.bool
 };

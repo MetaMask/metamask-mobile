@@ -1394,5 +1394,11 @@
 		"save_seedphrase_3": "& re-install the app. Note: you can NOT restore your wallet without your seed phrase.",
 		"copied_clipboard": "Copied to clipboard",
 		"ok": "OK"
+	},
+	"whats_new": {
+		"title": "See what's new",
+		"feature_security_settings_title": "Improved security settings",
+		"feature_security_settings_text": "You can now change your MetaMask app password & review how to backup your wallet seed phrase from Settings > Security & Privacy.",
+		"feature_security_settings_button": "View in Settings"
 	}
 }
