@@ -108,13 +108,11 @@ export default class QrScanner extends PureComponent {
 			}
 
 			// Checking if it can be handled like deeplinks
-			const handledByDeeplink = SharedDeeplinkManager.parse(
-				content,
-				{
-					origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE
-				},
-				{ onHandled: this.props.navigation.pop(2) }
-			);
+			const handledByDeeplink = SharedDeeplinkManager.parse(content, {
+				origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+				onHandled: () => this.props.navigation.pop(2)
+			});
+
 			if (handledByDeeplink) {
 				this.mounted = false;
 				return;

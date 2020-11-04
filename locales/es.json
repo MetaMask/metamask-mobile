@@ -538,7 +538,10 @@
 		"pending": "Pendiente",
 		"submitted": "Enviada",
 		"failed": "Fallida",
-		"cancelled": "Cancelada"
+		"cancelled": "Cancelada",
+		"tokenContractAddressWarning": "ADVERTENCIA: Esta dirección es una dirección de contrato de token. Si envías tokens a esta dirección, los perderás.",
+		"smartContractAddressWarning": "Esta dirección es una dirección de contrato inteligente. Asegúrate de comprender para qué sirve esta dirección; de lo contrario, corre el riesgo de perder sus fondos.",
+		"continueError": "Entiendo los riesgos, continuar"
 	},
 	"custom_gas": {
 		"advanced_options": "Mostrar opciones avanzadas",

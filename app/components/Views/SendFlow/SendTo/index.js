@@ -280,7 +280,7 @@ class SendFlow extends PureComponent {
 		const { AssetsContractController } = Engine.context;
 		const { addressBook, network, identities } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		let addressError, toAddressName, toEnsName, isContractAddress;
+		let addressError, toAddressName, toEnsName, errorContinue, isOnlyWarning;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
@@ -302,14 +302,14 @@ class SendFlow extends PureComponent {
 			}
 
 			const decimals = await AssetsContractController.getTokenDecimals(toSelectedAddress);
+			//const smart = false; // Import isSmartContractAddress from utils/transaction and use this for checking smart contract: await isSmartContractAddress(toSelectedAddress);
 			const smart = await isSmartContractAddress(toSelectedAddress);
-
 			if (decimals && Number(decimals) !== 0) {
 				addressError = strings('transaction.tokenContractAddressWarning');
-				isContractAddress = true;
+				errorContinue = true;
 			} else if (smart) {
 				addressError = strings('transaction.smartContractAddressWarning');
-				isContractAddress = true;
+				isOnlyWarning = true;
 			}
 		} else if (isENS(toSelectedAddress)) {
 			toEnsName = toSelectedAddress;
@@ -335,7 +335,8 @@ class SendFlow extends PureComponent {
 			toSelectedAddressReady,
 			toSelectedAddressName: toAddressName,
 			toEnsName,
-			isContractAddress
+			errorContinue,
+			isOnlyWarning
 		});
 	};
 
@@ -513,7 +514,8 @@ class SendFlow extends PureComponent {
 			balanceIsZero,
 			toInputHighlighted,
 			inputWidth,
-			isContractAddress
+			errorContinue,
+			isOnlyWarning
 		} = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
@@ -543,8 +545,9 @@ class SendFlow extends PureComponent {
 					<View style={styles.addressErrorWrapper} testID={'address-error'}>
 						<ErrorMessage
 							errorMessage={addressError}
-							isContractAddress={!!isContractAddress}
+							errorContinue={!!errorContinue}
 							onContinue={this.onTransactionDirectionSet}
+							isOnlyWarning={!!isOnlyWarning}
 						/>
 					</View>
 				)}
@@ -583,7 +586,7 @@ class SendFlow extends PureComponent {
 										/>
 									</View>
 								)}
-								{!isContractAddress && (
+								{!errorContinue && (
 									<View style={styles.buttonNextWrapper}>
 										<StyledButton
 											type={'confirm'}
