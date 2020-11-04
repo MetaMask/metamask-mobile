@@ -405,7 +405,7 @@ class DrawerView extends PureComponent {
 	}
 
 	componentDidUpdate() {
-		const route = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
+		const route = this.findRouteNameFromNavigatorState(this.props.navigation.state);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
 			if (['SetPasswordFlow', 'Webview'].includes(route)) {
 				// eslint-disable-next-line react/no-did-update-set-state
@@ -425,11 +425,7 @@ class DrawerView extends PureComponent {
 		}
 		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
 		const { KeyringController } = Engine.context;
-		if (
-			pendingDeeplink &&
-			KeyringController.isUnlocked() &&
-			['BrowserTabHome', 'WalletTabHome', 'TransactionsHome'].includes(route)
-		) {
+		if (pendingDeeplink && KeyringController.isUnlocked() && route !== 'LockScreen') {
 			DeeplinkManager.expireDeeplink();
 			DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
 		}
