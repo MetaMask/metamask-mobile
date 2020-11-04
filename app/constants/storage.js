@@ -26,6 +26,8 @@ export const LANGUAGE = `${prefix}language`;
 
 export const ENCRYPTION_LIB = `${prefix}encryptionLib`;
 
+export const SEED_PHRASE_HINTS = 'seedphraseHints';
+
 export const TRUE = 'true';
 
 export const AGREED = 'agreed';

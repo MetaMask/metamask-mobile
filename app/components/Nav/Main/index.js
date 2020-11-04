@@ -46,6 +46,7 @@ import LockScreen from '../../Views/LockScreen';
 import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
+import ResetPassword from '../../Views/ResetPassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
@@ -109,6 +110,7 @@ import AccountApproval from '../../UI/AccountApproval';
 import ActivityView from '../../Views/ActivityView';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import WhatsNewModal from '../../UI/WhatsNewModal';
+import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -188,6 +190,20 @@ const MainNavigator = createStackNavigator(
 						PaymentChannelSend: {
 							screen: PaymentChannelSend
 						}
+					}),
+					ManualBackup: createStackNavigator({
+						AccountBackupStep1B: {
+							screen: AccountBackupStep1B
+						},
+						ManualBackupStep1: {
+							screen: ManualBackupStep1
+						},
+						ManualBackupStep2: {
+							screen: ManualBackupStep2
+						},
+						ManualBackupStep3: {
+							screen: ManualBackupStep3
+						}
 					})
 				},
 				{
@@ -252,6 +268,18 @@ const MainNavigator = createStackNavigator(
 				},
 				ChoosePasswordSimple: {
 					screen: ChoosePasswordSimple
+				},
+				ResetPassword: {
+					screen: ResetPassword
+				},
+				ManualBackupStep1: {
+					screen: ManualBackupStep1
+				},
+				ManualBackupStep2: {
+					screen: ManualBackupStep2
+				},
+				ManualBackupStep3: {
+					screen: ManualBackupStep3
 				},
 				EnterPasswordSimple: {
 					screen: EnterPasswordSimple
@@ -493,7 +521,9 @@ class Main extends PureComponent {
 		paymentChannelRequestInfo: {},
 		showExpandedMessage: false,
 		paymentChannelBalance: null,
-		paymentChannelReady: false
+		paymentChannelReady: false,
+		showRemindLaterModal: false,
+		skipCheckbox: false
 	};
 
 	backgroundMode = false;
@@ -1092,18 +1122,41 @@ class Main extends PureComponent {
 		/>
 	);
 
+	toggleRemindLater = () => {
+		this.setState(state => ({ showRemindLaterModal: !state.showRemindLaterModal }));
+	};
+
+	toggleSkipCheckbox = () => {
+		this.setState(state => ({ skipCheckbox: !state.skipCheckbox }));
+	};
+
+	secureNow = () => {
+		this.toggleRemindLater();
+		this.goNext();
+	};
+
+	skip = () => {
+		const { skipCheckbox } = this.state;
+		if (skipCheckbox) this.toggleRemindLater();
+	};
+
+	goNext = () => {
+		const { navigation } = this.props;
+		navigation.navigate('AccountBackupStep1B', { ...navigation.state.params });
+	};
+
 	renderApproveModal = () =>
 		this.props.approveModalVisible && <Approve modalVisible toggleApproveModal={this.props.toggleApproveModal} />;
 
 	render() {
-		const { isPaymentChannelTransaction, isPaymentRequest } = this.props;
-		const { forceReload } = this.state;
+		const { navigation, isPaymentChannelTransaction, isPaymentRequest } = this.props;
+		const { forceReload, showRemindLaterModal, skipCheckbox } = this.state;
 		return (
 			<React.Fragment>
 				<View style={styles.flex}>
 					{!forceReload ? (
 						<MainNavigator
-							navigation={this.props.navigation}
+							navigation={navigation}
 							screenProps={{ isPaymentChannelTransaction, isPaymentRequest }}
 						/>
 					) : (
@@ -1111,10 +1164,18 @@ class Main extends PureComponent {
 					)}
 					<GlobalAlert />
 					<FadeOutOverlay />
-					<Notification navigation={this.props.navigation} />
+					<Notification navigation={navigation} />
 					<FiatOrders />
-					<BackupAlert navigation={this.props.navigation} />
-					<ProtectYourWalletModal navigation={this.props.navigation} />
+					<BackupAlert onDismiss={this.toggleRemindLater} navigation={navigation} />
+					<SkipAccountSecurityModal
+						modalVisible={showRemindLaterModal}
+						onCancel={this.secureNow}
+						onConfirm={this.skip}
+						skipCheckbox={skipCheckbox}
+						onPress={this.skip}
+						toggleSkipCheckbox={this.toggleSkipCheckbox}
+					/>
+					<ProtectYourWalletModal navigation={navigation} />
 					<WhatsNewModal navigation={this.props.navigation} />
 				</View>
 				{this.renderSigningModal()}

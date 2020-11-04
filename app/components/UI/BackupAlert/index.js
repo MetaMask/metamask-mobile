@@ -90,7 +90,12 @@ class BackupAlert extends PureComponent {
 		/**
 		 * Dismisses the alert
 		 */
-		backUpSeedphraseAlertNotVisible: PropTypes.func
+		backUpSeedphraseAlertNotVisible: PropTypes.func.isRequired,
+		/**
+		 * A second prop to be used in conjunction with the above
+		 * currently used to toggle the backup reminder modal (a second time)
+		 */
+		onDismiss: PropTypes.func
 	};
 
 	state = {
@@ -131,6 +136,12 @@ class BackupAlert extends PureComponent {
 		this.props.navigation.navigate('AccountBackupStep1');
 	};
 
+	onDismiss = () => {
+		const { onDismiss, backUpSeedphraseAlertNotVisible } = this.props;
+		backUpSeedphraseAlertNotVisible();
+		if (onDismiss) onDismiss();
+	};
+
 	render() {
 		const { seedphraseBackedUp, backUpSeedphraseVisible } = this.props;
 		const { inBrowserView, blockedView } = this.state;
@@ -155,7 +166,7 @@ class BackupAlert extends PureComponent {
 									{strings('backup_alert.right_button')}
 								</Text>
 							</TouchableOpacity>
-							<TouchableOpacity onPress={this.props.backUpSeedphraseAlertNotVisible}>
+							<TouchableOpacity onPress={this.onDismiss}>
 								<Text style={styles.backupAlertMessage} testID={'notification-remind-later-button'}>
 									{strings('backup_alert.left_button')}
 								</Text>
