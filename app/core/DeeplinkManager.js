@@ -33,11 +33,15 @@ class DeeplinkManager {
 		}
 
 		const functionName = ethUrl.function_name;
-
 		if (!functionName || functionName === 'transfer') {
-			this.navigation.navigate('SendView', {
-				txMeta: { ...ethUrl, action: !functionName ? 'send-eth' : 'send-token', source: url }
-			});
+			const txMeta = { ...ethUrl, source: url };
+			if (ethUrl.parameters?.value || ethUrl.parameters?.uint256) {
+				this.navigation.navigate('SendView', {
+					txMeta: { ...txMeta, action: !functionName ? 'send-eth' : 'send-token' }
+				});
+			} else {
+				this.navigation.navigate('SendFlowView', { txMeta });
+			}
 		} else if (functionName === 'approve') {
 			// add approve transaction
 			const {
