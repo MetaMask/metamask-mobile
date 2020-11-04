@@ -174,7 +174,7 @@ class ManualBackupStep2 extends PureComponent {
 	}
 
 	state = {
-		confirmedWords: Array(12).fill({ word: undefined, originalPosition: undefined }),
+		confirmedWords: [],
 		wordsDict: {},
 		currentIndex: 0,
 		seedPhraseReady: false,
@@ -182,7 +182,14 @@ class ManualBackupStep2 extends PureComponent {
 	};
 
 	componentDidMount = () => {
-		this.createWordsDictionary();
+		const { navigation } = this.props;
+		const words = navigation.getParam('words', []);
+		this.setState(
+			{
+				confirmedWords: Array(words.length).fill({ word: undefined, originalPosition: undefined })
+			},
+			this.createWordsDictionary
+		);
 	};
 
 	createWordsDictionary = () => {
@@ -253,7 +260,8 @@ class ManualBackupStep2 extends PureComponent {
 
 	validateWords = () => {
 		const words = this.props.navigation.getParam('words', []);
-		const confirmedWords = this.state.confirmedWords.map(confirmedWord => confirmedWord.word);
+		const { confirmedWords: wordMap } = this.state;
+		const confirmedWords = wordMap.map(confirmedWord => confirmedWord.word);
 		if (words.join('') === confirmedWords.join('')) {
 			return true;
 		}
@@ -316,6 +324,8 @@ class ManualBackupStep2 extends PureComponent {
 
 	render = () => {
 		const { confirmedWords, seedPhraseReady } = this.state;
+		const wordLength = confirmedWords.length;
+		const half = wordLength / 2;
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<View style={styles.onBoardingWrapper}>
@@ -343,10 +353,10 @@ class ManualBackupStep2 extends PureComponent {
 							]}
 						>
 							<View style={styles.colLeft}>
-								{confirmedWords.slice(0, 6).map(({ word }, i) => this.renderWordBox(word, i))}
+								{confirmedWords.slice(0, half).map(({ word }, i) => this.renderWordBox(word, i))}
 							</View>
 							<View style={styles.colRight}>
-								{confirmedWords.slice(-6).map(({ word }, i) => this.renderWordBox(word, i + 6))}
+								{confirmedWords.slice(-half).map(({ word }, i) => this.renderWordBox(word, i + half))}
 							</View>
 						</View>
 						{this.validateWords() ? this.renderSuccess() : this.renderWords()}

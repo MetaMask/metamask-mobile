@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		borderWidth: 1,
 		marginBottom: 64,
-		height: 275
+		minHeight: 275
 	},
 	wordColumn: {
 		flex: 1,
@@ -363,40 +363,45 @@ export default class ManualBackupStep1 extends PureComponent {
 		);
 	}
 
-	renderSeedphraseView = () => (
-		<ActionView
-			confirmTestID={'manual-backup-step-1-continue-button'}
-			confirmText={strings('manual_backup_step_1.continue')}
-			onConfirmPress={this.goNext}
-			confirmDisabled={this.state.seedPhraseHidden}
-			showCancelButton={false}
-			confirmButtonMode={'confirm'}
-		>
-			<View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
-				<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
-				<View style={styles.infoWrapper}>
-					<Text style={styles.info}>{strings('manual_backup_step_1.info')}</Text>
-				</View>
-				<View style={styles.seedPhraseWrapper}>
-					<View style={styles.wordColumn}>
-						{this.words.slice(0, 6).map((word, i) => (
-							<View key={`word_${i}`} style={styles.wordWrapper}>
-								<Text style={styles.word}>{`${i + 1}. ${word}`}</Text>
-							</View>
-						))}
+	renderSeedphraseView = () => {
+		const words = this.words || [];
+		const wordLength = words.length;
+		const half = wordLength / 2 || 6;
+		return (
+			<ActionView
+				confirmTestID={'manual-backup-step-1-continue-button'}
+				confirmText={strings('manual_backup_step_1.continue')}
+				onConfirmPress={this.goNext}
+				confirmDisabled={this.state.seedPhraseHidden}
+				showCancelButton={false}
+				confirmButtonMode={'confirm'}
+			>
+				<View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
+					<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
+					<View style={styles.infoWrapper}>
+						<Text style={styles.info}>{strings('manual_backup_step_1.info')}</Text>
 					</View>
-					<View style={styles.wordColumn}>
-						{this.words.slice(-6).map((word, i) => (
-							<View key={`word_${i}`} style={styles.wordWrapper}>
-								<Text style={styles.word}>{`${i + 7}. ${word}`}</Text>
-							</View>
-						))}
+					<View style={styles.seedPhraseWrapper}>
+						<View style={styles.wordColumn}>
+							{this.words.slice(0, half).map((word, i) => (
+								<View key={`word_${i}`} style={styles.wordWrapper}>
+									<Text style={styles.word}>{`${i + 1}. ${word}`}</Text>
+								</View>
+							))}
+						</View>
+						<View style={styles.wordColumn}>
+							{this.words.slice(-half).map((word, i) => (
+								<View key={`word_${i}`} style={styles.wordWrapper}>
+									<Text style={styles.word}>{`${i + (half + 1)}. ${word}`}</Text>
+								</View>
+							))}
+						</View>
+						{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
 					</View>
-					{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
 				</View>
-			</View>
-		</ActionView>
-	);
+			</ActionView>
+		);
+	};
 
 	render() {
 		const { ready, currentStep, view } = this.state;
