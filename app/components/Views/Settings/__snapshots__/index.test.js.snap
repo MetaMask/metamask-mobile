@@ -30,6 +30,7 @@ exports[`Settings should render correctly 1`] = `
     description="Privacy settings, MetaMetrics, private key and wallet seed phrase"
     onPress={[Function]}
     title="Security & Privacy"
+    warning={false}
   />
   <SettingsDrawer
     description="Add and edit custom RPC networks"

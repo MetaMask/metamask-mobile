@@ -7,6 +7,7 @@ import { getClosableNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -28,7 +29,12 @@ class Settings extends PureComponent {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		seedphraseBackedUp: PropTypes.bool
 	};
 
 	onPressGeneral = () => {
@@ -66,41 +72,49 @@ class Settings extends PureComponent {
 		this.props.navigation.push('ContactsSettings');
 	};
 
-	render = () => (
-		<ScrollView style={styles.wrapper}>
-			<SettingsDrawer
-				description={strings('app_settings.general_desc')}
-				onPress={this.onPressGeneral}
-				title={strings('app_settings.general_title')}
-			/>
-			<SettingsDrawer
-				description={strings('app_settings.advanced_desc')}
-				onPress={this.onPressAdvanced}
-				title={strings('app_settings.advanced_title')}
-			/>
-			<SettingsDrawer
-				description={strings('app_settings.contacts_desc')}
-				onPress={this.onPressContacts}
-				title={strings('app_settings.contacts_title')}
-			/>
-			<SettingsDrawer
-				description={strings('app_settings.security_desc')}
-				onPress={this.onPressSecurity}
-				title={strings('app_settings.security_title')}
-			/>
-			<SettingsDrawer
-				title={strings('app_settings.networks_title')}
-				description={strings('app_settings.networks_desc')}
-				onPress={this.onPressNetworks}
-			/>
-			<SettingsDrawer
-				title={strings('app_settings.experimental_title')}
-				description={strings('app_settings.experimental_desc')}
-				onPress={this.onPressExperimental}
-			/>
-			<SettingsDrawer title={strings('app_settings.info_title')} onPress={this.onPressInfo} />
-		</ScrollView>
-	);
+	render = () => {
+		const { seedphraseBackedUp } = this.props;
+		return (
+			<ScrollView style={styles.wrapper}>
+				<SettingsDrawer
+					description={strings('app_settings.general_desc')}
+					onPress={this.onPressGeneral}
+					title={strings('app_settings.general_title')}
+				/>
+				<SettingsDrawer
+					description={strings('app_settings.advanced_desc')}
+					onPress={this.onPressAdvanced}
+					title={strings('app_settings.advanced_title')}
+				/>
+				<SettingsDrawer
+					description={strings('app_settings.contacts_desc')}
+					onPress={this.onPressContacts}
+					title={strings('app_settings.contacts_title')}
+				/>
+				<SettingsDrawer
+					description={strings('app_settings.security_desc')}
+					onPress={this.onPressSecurity}
+					title={strings('app_settings.security_title')}
+					warning={!seedphraseBackedUp}
+				/>
+				<SettingsDrawer
+					title={strings('app_settings.networks_title')}
+					description={strings('app_settings.networks_desc')}
+					onPress={this.onPressNetworks}
+				/>
+				<SettingsDrawer
+					title={strings('app_settings.experimental_title')}
+					description={strings('app_settings.experimental_desc')}
+					onPress={this.onPressExperimental}
+				/>
+				<SettingsDrawer title={strings('app_settings.info_title')} onPress={this.onPressInfo} />
+			</ScrollView>
+		);
+	};
 }
 
-export default Settings;
+const mapStateToProps = state => ({
+	seedphraseBackedUp: state.user.seedphraseBackedUp
+});
+
+export default connect(mapStateToProps)(Settings);

@@ -112,6 +112,7 @@ const { WYRE_MERCHANT_ID, WYRE_MERCHANT_ID_TEST, WYRE_API_ENDPOINT, WYRE_API_END
 export const WYRE_IS_PROMOTION = false;
 export const WYRE_REGULAR_FEE_PERCENT = 2.9;
 export const WYRE_REGULAR_FEE_FLAT = 0.3;
+export const WYRE_MIN_FEE = 5;
 export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_PERCENT;
 export const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_FLAT;
 
@@ -392,7 +393,11 @@ export function useWyreApplePay(amount, address, network) {
 		amount,
 		percentFee
 	]);
-	const fee = useMemo(() => (Number(percentFeeAmount) + Number(flatFee)).toFixed(2), [flatFee, percentFeeAmount]);
+	const fee = useMemo(() => {
+		const totalFee = Number(percentFeeAmount) + Number(flatFee);
+
+		return totalFee < WYRE_MIN_FEE ? WYRE_MIN_FEE : totalFee.toFixed(2);
+	}, [flatFee, percentFeeAmount]);
 	const total = useMemo(() => Number(amount) + Number(fee), [amount, fee]);
 	const methodData = useMemo(() => getMethodData(network), [network]);
 	const paymentDetails = useMemo(() => getPaymentDetails(ETH_CURRENCY_CODE, amount, fee, total), [

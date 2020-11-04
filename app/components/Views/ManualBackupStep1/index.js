@@ -7,7 +7,8 @@ import {
 	ActivityIndicator,
 	InteractionManager,
 	TextInput,
-	KeyboardAvoidingView
+	KeyboardAvoidingView,
+	TouchableOpacity
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -79,6 +80,12 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 		paddingVertical: 45
 	},
+	touchableOpacity: {
+		position: 'absolute',
+		width: '100%',
+		height: '100%',
+		borderRadius: 8
+	},
 	blurView: {
 		position: 'absolute',
 		top: 0,
@@ -120,7 +127,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		borderWidth: 1,
 		marginBottom: 64,
-		height: 275
+		minHeight: 275
 	},
 	wordColumn: {
 		flex: 1,
@@ -142,6 +149,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderRadius: 13,
 		textAlign: 'center',
+		textAlignVertical: 'center',
 		lineHeight: 14,
 		flex: 1
 	},
@@ -294,22 +302,24 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	renderSeedPhraseConcealer = () => (
 		<React.Fragment>
-			<BlurView blurType="light" blurAmount={5} style={styles.blurView} />
-			<View style={styles.seedPhraseConcealer}>
-				<FeatherIcons name="eye-off" size={24} style={styles.icon} />
-				<Text style={styles.reveal}>{strings('manual_backup_step_1.reveal')}</Text>
-				<Text style={styles.watching}>{strings('manual_backup_step_1.watching')}</Text>
-				<View style={styles.viewButtonWrapper}>
-					<StyledButton
-						type={'view'}
-						onPress={this.revealSeedPhrase}
-						testID={'view-button'}
-						containerStyle={styles.viewButtonContainer}
-					>
-						{strings('manual_backup_step_1.view')}
-					</StyledButton>
+			<TouchableOpacity onPress={this.revealSeedPhrase} style={styles.touchableOpacity}>
+				<BlurView blurType="light" blurAmount={5} style={styles.blurView} />
+				<View style={styles.seedPhraseConcealer}>
+					<FeatherIcons name="eye-off" size={24} style={styles.icon} />
+					<Text style={styles.reveal}>{strings('manual_backup_step_1.reveal')}</Text>
+					<Text style={styles.watching}>{strings('manual_backup_step_1.watching')}</Text>
+					<View style={styles.viewButtonWrapper}>
+						<StyledButton
+							type={'view'}
+							testID={'view-button'}
+							onPress={this.revealSeedPhrase}
+							containerStyle={styles.viewButtonContainer}
+						>
+							{strings('manual_backup_step_1.view')}
+						</StyledButton>
+					</View>
 				</View>
-			</View>
+			</TouchableOpacity>
 		</React.Fragment>
 	);
 
@@ -353,40 +363,45 @@ export default class ManualBackupStep1 extends PureComponent {
 		);
 	}
 
-	renderSeedphraseView = () => (
-		<ActionView
-			confirmTestID={'manual-backup-step-1-continue-button'}
-			confirmText={strings('manual_backup_step_1.continue')}
-			onConfirmPress={this.goNext}
-			confirmDisabled={this.state.seedPhraseHidden}
-			showCancelButton={false}
-			confirmButtonMode={'confirm'}
-		>
-			<View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
-				<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
-				<View style={styles.infoWrapper}>
-					<Text style={styles.info}>{strings('manual_backup_step_1.info')}</Text>
-				</View>
-				<View style={styles.seedPhraseWrapper}>
-					<View style={styles.wordColumn}>
-						{this.words.slice(0, 6).map((word, i) => (
-							<View key={`word_${i}`} style={styles.wordWrapper}>
-								<Text style={styles.word}>{`${i + 1}. ${word}`}</Text>
-							</View>
-						))}
+	renderSeedphraseView = () => {
+		const words = this.words || [];
+		const wordLength = words.length;
+		const half = wordLength / 2 || 6;
+		return (
+			<ActionView
+				confirmTestID={'manual-backup-step-1-continue-button'}
+				confirmText={strings('manual_backup_step_1.continue')}
+				onConfirmPress={this.goNext}
+				confirmDisabled={this.state.seedPhraseHidden}
+				showCancelButton={false}
+				confirmButtonMode={'confirm'}
+			>
+				<View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
+					<Text style={styles.action}>{strings('manual_backup_step_1.action')}</Text>
+					<View style={styles.infoWrapper}>
+						<Text style={styles.info}>{strings('manual_backup_step_1.info')}</Text>
 					</View>
-					<View style={styles.wordColumn}>
-						{this.words.slice(-6).map((word, i) => (
-							<View key={`word_${i}`} style={styles.wordWrapper}>
-								<Text style={styles.word}>{`${i + 7}. ${word}`}</Text>
-							</View>
-						))}
+					<View style={styles.seedPhraseWrapper}>
+						<View style={styles.wordColumn}>
+							{this.words.slice(0, half).map((word, i) => (
+								<View key={`word_${i}`} style={styles.wordWrapper}>
+									<Text style={styles.word}>{`${i + 1}. ${word}`}</Text>
+								</View>
+							))}
+						</View>
+						<View style={styles.wordColumn}>
+							{this.words.slice(-half).map((word, i) => (
+								<View key={`word_${i}`} style={styles.wordWrapper}>
+									<Text style={styles.word}>{`${i + (half + 1)}. ${word}`}</Text>
+								</View>
+							))}
+						</View>
+						{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
 					</View>
-					{this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
 				</View>
-			</View>
-		</ActionView>
-	);
+			</ActionView>
+		);
+	};
 
 	render() {
 		const { ready, currentStep, view } = this.state;

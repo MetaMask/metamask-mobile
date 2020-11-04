@@ -1,6 +1,19 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Switch, ActivityIndicator, Alert, Text, View, TextInput, SafeAreaView, StyleSheet, Image } from 'react-native';
+import {
+	KeyboardAvoidingView,
+	Switch,
+	ActivityIndicator,
+	Alert,
+	Text,
+	View,
+	TextInput,
+	SafeAreaView,
+	StyleSheet,
+	ScrollView,
+	Image,
+	InteractionManager
+} from 'react-native';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import AnimatedFox from 'react-native-animated-fox';
@@ -12,18 +25,16 @@ import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/Device';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
-import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
-	SEED_PHRASE_HINTS,
 	EXISTING_USER,
 	NEXT_MAKER_REMINDER,
 	BIOMETRY_CHOICE,
@@ -32,13 +43,39 @@ import {
 	TRUE
 } from '../../../constants/storage';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
-
-import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
+import NotificationManager from '../../../core/NotificationManager';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
 		flex: 1
+	},
+	scrollviewWrapper: {
+		flexGrow: 1
+	},
+	confirm_title: {
+		fontSize: 32,
+		marginTop: 10,
+		marginBottom: 10,
+		color: colors.fontPrimary,
+		justifyContent: 'center',
+		textAlign: 'left',
+		...fontStyles.normal
+	},
+	confirm_input: {
+		borderWidth: 2,
+		borderRadius: 5,
+		width: '100%',
+		borderColor: colors.grey000,
+		padding: 10,
+		height: 40
+	},
+	confirm_label: {
+		fontSize: 16,
+		lineHeight: 23,
+		color: colors.fontPrimary,
+		textAlign: 'left',
+		...fontStyles.normal
 	},
 	wrapper: {
 		flex: 1,
@@ -68,9 +105,11 @@ const styles = StyleSheet.create({
 		width: 80,
 		height: 80
 	},
+	passwordRequiredContent: {
+		marginBottom: 20
+	},
 	content: {
-		textAlign: 'center',
-		alignItems: 'center'
+		alignItems: 'flex-start'
 	},
 	title: {
 		fontSize: 24,
@@ -79,6 +118,7 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
+		width: '100%',
 		...fontStyles.normal
 	},
 	subtitle: {
@@ -186,15 +226,37 @@ const styles = StyleSheet.create({
 		top: 50,
 		right: 17,
 		alignSelf: 'flex-end'
+	},
+	confirmPasswordWrapper: {
+		flex: 1,
+		padding: 30,
+		paddingTop: 0
+	},
+	buttonWrapper: {
+		flex: 1,
+		marginTop: 20,
+		justifyContent: 'flex-end'
+	},
+	warningMessageText: {
+		paddingVertical: 10,
+		color: colors.red,
+		...fontStyles.normal
+	},
+	keyboardAvoidingView: {
+		flex: 1,
+		flexDirection: 'row',
+		alignSelf: 'center'
 	}
 });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const RESET_PASSWORD = 'reset_password';
+const CONFIRM_PASSWORD = 'confirm_password';
 
 /**
  * View where users can set their password for the first time
  */
-class ChoosePassword extends PureComponent {
+class ResetPassword extends PureComponent {
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
@@ -220,11 +282,7 @@ class ChoosePassword extends PureComponent {
 		/**
 		 * A string representing the selected address => account
 		 */
-		selectedAddress: PropTypes.string,
-		/**
-		 * Action to reset the flag seedphraseBackedUp in redux
-		 */
-		seedphraseNotBackedUp: PropTypes.func
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -237,7 +295,10 @@ class ChoosePassword extends PureComponent {
 		rememberMe: false,
 		loading: false,
 		error: null,
-		inputWidth: { width: '99%' }
+		inputWidth: { width: '99%' },
+		view: RESET_PASSWORD,
+		originalPassword: null,
+		ready: true
 	};
 
 	mounted = true;
@@ -248,9 +309,13 @@ class ChoosePassword extends PureComponent {
 
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		if (biometryType) {
-			this.setState({ biometryType, biometryChoice: true });
-		}
+
+		this.setState({
+			view: CONFIRM_PASSWORD,
+			biometryType: biometryType || null,
+			biometryChoice: (biometryType && true) || false
+		});
+
 		setTimeout(() => {
 			this.setState({
 				inputWidth: { width: '100%' }
@@ -287,7 +352,7 @@ class ChoosePassword extends PureComponent {
 	};
 
 	onPressCreate = async () => {
-		const { loading, isSelected, password, confirmPassword } = this.state;
+		const { loading, isSelected, password, confirmPassword, originalPassword } = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
 
@@ -303,17 +368,7 @@ class ChoosePassword extends PureComponent {
 		try {
 			this.setState({ loading: true });
 
-			const previous_screen = this.props.navigation.getParam(PREVIOUS_SCREEN);
-
-			if (previous_screen === ONBOARDING) {
-				await this.createNewVaultAndKeychain(password);
-				this.props.seedphraseNotBackedUp();
-				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-				await AsyncStorage.setItem(EXISTING_USER, TRUE);
-				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
-			} else {
-				await this.recreateVault(password);
-			}
+			await this.recreateVault(originalPassword);
 
 			// Set state in app as it was with password
 			if (this.state.biometryType && this.state.biometryChoice) {
@@ -342,12 +397,19 @@ class ChoosePassword extends PureComponent {
 				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 			}
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
 			this.setState({ loading: false });
-			this.props.navigation.navigate('AccountBackupStep1');
+			InteractionManager.runAfterInteractions(() => {
+				this.props.navigation.navigate('SecuritySettings');
+				NotificationManager.showSimpleNotification({
+					status: 'success',
+					duration: 5000,
+					title: strings('reset_password.password_updated'),
+					description: strings('reset_password.successfully_changed')
+				});
+			});
 		} catch (error) {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
@@ -355,7 +417,6 @@ class ChoosePassword extends PureComponent {
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordUnset();
 			this.props.setLockTime(-1);
 			// Should we force people to enable passcode / biometrics?
@@ -377,12 +438,13 @@ class ChoosePassword extends PureComponent {
 	 * @param password - Password to recreate and set the vault with
 	 */
 	recreateVault = async password => {
+		const { originalPassword, password: newPassword } = this.state;
 		const { KeyringController, PreferencesController } = Engine.context;
 		const seedPhrase = await this.getSeedPhrase();
 
 		let importedAccounts = [];
 		try {
-			const keychainPassword = this.keyringControllerPasswordSet ? this.state.password : '';
+			const keychainPassword = this.keyringControllerPasswordSet ? originalPassword : '';
 			// Get imported accounts
 			const simpleKeyrings = KeyringController.state.keyrings.filter(
 				keyring => keyring.type === 'Simple Key Pair'
@@ -399,9 +461,9 @@ class ChoosePassword extends PureComponent {
 		}
 
 		// Recreate keyring with password given to this method
-		await KeyringController.createNewVaultAndRestore(password, seedPhrase);
+		await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 		// Keyring is set with empty password or not
-		this.keyringControllerPasswordSet = password !== '';
+		this.keyringControllerPasswordSet = newPassword !== '';
 
 		// Get props to restore vault
 		const hdKeyring = KeyringController.state.keyrings[0];
@@ -443,8 +505,8 @@ class ChoosePassword extends PureComponent {
 	 */
 	getSeedPhrase = async () => {
 		const { KeyringController } = Engine.context;
-		const { password } = this.state;
-		const keychainPassword = this.keyringControllerPasswordSet ? password : '';
+		const { originalPassword } = this.state;
+		const keychainPassword = originalPassword;
 		const mnemonic = await KeyringController.exportSeedPhrase(keychainPassword);
 		return JSON.stringify(mnemonic).replace(/"/g, '');
 	};
@@ -489,6 +551,37 @@ class ChoosePassword extends PureComponent {
 		);
 	};
 
+	tryExportSeedPhrase = async password => {
+		// const { originalPassword } = this.state;
+		const { KeyringController } = Engine.context;
+		await KeyringController.exportSeedPhrase(password);
+	};
+
+	tryUnlockWithPassword = async password => {
+		this.setState({ ready: false });
+		try {
+			// Just try
+			await this.tryExportSeedPhrase(password);
+			this.setState({
+				password: null,
+				originalPassword: password,
+				ready: true,
+				view: RESET_PASSWORD
+			});
+		} catch (e) {
+			const msg = strings('reveal_credential.warning_incorrect_password');
+			this.setState({
+				warningIncorrectPassword: msg,
+				ready: true
+			});
+		}
+	};
+
+	tryUnlock = () => {
+		const { password } = this.state;
+		this.tryUnlockWithPassword(password);
+	};
+
 	onPasswordChange = val => {
 		const passInfo = zxcvbn(val);
 
@@ -506,9 +599,57 @@ class ChoosePassword extends PureComponent {
 		});
 	};
 
+	renderLoader = () => (
+		<View style={styles.loader}>
+			<ActivityIndicator size="small" />
+		</View>
+	);
+
 	setConfirmPassword = val => this.setState({ confirmPassword: val });
 
-	render() {
+	renderConfirmPassword() {
+		const { warningIncorrectPassword } = this.state;
+		return (
+			<KeyboardAvoidingView style={styles.keyboardAvoidingView} behavior={'padding'}>
+				<KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
+					<View style={styles.confirmPasswordWrapper}>
+						<View style={[styles.content, styles.passwordRequiredContent]}>
+							<Text style={styles.confirm_title}>{strings('manual_backup_step_1.confirm_password')}</Text>
+							<View style={styles.text}>
+								<Text style={styles.confirm_label}>
+									{strings('manual_backup_step_1.before_continiuing')}
+								</Text>
+							</View>
+							<TextInput
+								style={styles.confirm_input}
+								placeholder={'Password'}
+								placeholderTextColor={colors.grey100}
+								onChangeText={this.onPasswordChange}
+								secureTextEntry
+								onSubmitEditing={this.tryUnlock}
+								testID={'private-credential-password-text-input'}
+							/>
+							{warningIncorrectPassword && (
+								<Text style={styles.warningMessageText}>{warningIncorrectPassword}</Text>
+							)}
+						</View>
+						<View style={styles.buttonWrapper}>
+							<StyledButton
+								containerStyle={styles.button}
+								type={'confirm'}
+								onPress={this.tryUnlock}
+								testID={'submit-button'}
+							>
+								{strings('manual_backup_step_1.confirm')}
+							</StyledButton>
+						</View>
+					</View>
+				</KeyboardAwareScrollView>
+			</KeyboardAvoidingView>
+		);
+	}
+
+	renderResetPassword() {
 		const {
 			isSelected,
 			inputWidth,
@@ -551,7 +692,6 @@ class ChoosePassword extends PureComponent {
 					</View>
 				) : (
 					<View style={styles.wrapper} testID={'choose-password-screen'}>
-						<OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} />
 						<KeyboardAwareScrollView
 							style={styles.scrollableWrapper}
 							contentContainerStyle={styles.keyboardScrollableWrapper}
@@ -559,15 +699,15 @@ class ChoosePassword extends PureComponent {
 						>
 							<View testID={'create-password-screen'}>
 								<View style={styles.content}>
-									<Text style={styles.title}>{strings('choose_password.title')}</Text>
+									<Text style={styles.title}>{strings('reset_password.title')}</Text>
 									<View style={styles.text}>
-										<Text style={styles.subtitle}>{strings('choose_password.subtitle')}</Text>
+										<Text style={styles.subtitle}>{strings('reset_password.subtitle')}</Text>
 									</View>
 								</View>
 								<View style={styles.field}>
-									<Text style={styles.hintLabel}>{strings('choose_password.password')}</Text>
+									<Text style={styles.hintLabel}>{strings('reset_password.password')}</Text>
 									<Text onPress={this.toggleShowHide} style={[styles.hintLabel, styles.showPassword]}>
-										{strings(`choose_password.${secureTextEntry ? 'show' : 'hide'}`)}
+										{strings(`reset_password.${secureTextEntry ? 'show' : 'hide'}`)}
 									</Text>
 									<TextInput
 										style={[styles.input, inputWidth]}
@@ -582,16 +722,16 @@ class ChoosePassword extends PureComponent {
 									/>
 									{(password !== '' && (
 										<Text style={styles.hintLabel}>
-											{strings('choose_password.password_strength')}
+											{strings('reset_password.password_strength')}
 											<Text style={styles[`strength_${passwordStrengthWord}`]}>
 												{' '}
-												{strings(`choose_password.strength_${passwordStrengthWord}`)}
+												{strings(`reset_password.strength_${passwordStrengthWord}`)}
 											</Text>
 										</Text>
 									)) || <Text style={styles.hintLabel} />}
 								</View>
 								<View style={styles.field}>
-									<Text style={styles.hintLabel}>{strings('choose_password.confirm_password')}</Text>
+									<Text style={styles.hintLabel}>{strings('reset_password.confirm_password')}</Text>
 									<TextInput
 										ref={this.confirmPasswordInput}
 										style={[styles.input, inputWidth]}
@@ -611,7 +751,7 @@ class ChoosePassword extends PureComponent {
 										) : null}
 									</View>
 									<Text style={styles.hintLabel}>
-										{strings('choose_password.must_be_at_least', { number: 8 })}
+										{strings('reset_password.must_be_at_least', { number: 8 })}
 									</Text>
 								</View>
 								<View>{this.renderSwitch()}</View>
@@ -625,9 +765,9 @@ class ChoosePassword extends PureComponent {
 										testID={'password-understand-box'}
 									/>
 									<Text style={styles.label} onPress={this.setSelection} testID={'i-understand-text'}>
-										{strings('choose_password.i_understand')}{' '}
+										{strings('reset_password.i_understand')}{' '}
 										<Text onPress={this.learnMore} style={styles.learnMore}>
-											{strings('choose_password.learn_more')}
+											{strings('reset_password.learn_more')}
 										</Text>
 									</Text>
 								</View>
@@ -642,12 +782,28 @@ class ChoosePassword extends PureComponent {
 									testID={'submit-button'}
 									disabled={!canSubmit}
 								>
-									{strings('choose_password.create_button')}
+									{strings('reset_password.reset_button')}
 								</StyledButton>
 							</View>
 						</KeyboardAwareScrollView>
 					</View>
 				)}
+			</SafeAreaView>
+		);
+	}
+
+	render() {
+		const { view, ready } = this.state;
+		if (!ready) return this.renderLoader();
+		return (
+			<SafeAreaView style={styles.mainWrapper}>
+				<ScrollView
+					contentContainerStyle={styles.scrollviewWrapper}
+					style={styles.mainWrapper}
+					testID={'account-backup-step-4-screen'}
+				>
+					{view === RESET_PASSWORD ? this.renderResetPassword() : this.renderConfirmPassword()}
+				</ScrollView>
 			</SafeAreaView>
 		);
 	}
@@ -667,4 +823,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(ChoosePassword);
+)(ResetPassword);

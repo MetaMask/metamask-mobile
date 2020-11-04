@@ -60,6 +60,7 @@ import AccountApproval from '../../UI/AccountApproval';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
+import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -95,6 +96,8 @@ const Main = props => {
 	const [paymentChannelRequestInfo, setPaymentChannelRequestInfo] = useState({});
 	const [paymentChannelBalance, setPaymentChannelBalance] = useState(null);
 	const [paymentChannelReady, setPaymentChannelReady] = useState(false);
+	const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
+	const [skipCheckbox, setSkipCheckbox] = useState(false);
 
 	const backgroundMode = useRef(false);
 	const locale = useRef(I18n.locale);
@@ -586,6 +589,23 @@ const Main = props => {
 		</Modal>
 	);
 
+	const toggleRemindLater = () => {
+		setShowRemindLaterModal(!showRemindLaterModal);
+	};
+
+	const toggleSkipCheckbox = () => {
+		setSkipCheckbox(!skipCheckbox);
+	};
+
+	const skipAccountModalSecureNow = () => {
+		toggleRemindLater();
+		props.navigation.navigate('AccountBackupStep1B', { ...props.navigation.state.params });
+	};
+
+	const skipAccountModalSkip = () => {
+		if (skipCheckbox) toggleRemindLater();
+	};
+
 	useEffect(() => {
 		if (locale.current !== I18n.locale) {
 			locale.current = I18n.locale;
@@ -697,6 +717,14 @@ const Main = props => {
 				<Notification navigation={props.navigation} />
 				<FiatOrders />
 				<BackupAlert navigation={props.navigation} />
+				<SkipAccountSecurityModal
+					modalVisible={showRemindLaterModal}
+					onCancel={skipAccountModalSecureNow}
+					onConfirm={skipAccountModalSkip}
+					skipCheckbox={skipCheckbox}
+					onPress={skipAccountModalSkip}
+					toggleSkipCheckbox={toggleSkipCheckbox}
+				/>
 				<ProtectYourWalletModal navigation={props.navigation} />
 			</View>
 			{renderSigningModal()}
