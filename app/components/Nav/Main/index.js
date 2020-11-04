@@ -716,7 +716,7 @@ const Main = props => {
 				<FadeOutOverlay />
 				<Notification navigation={props.navigation} />
 				<FiatOrders />
-				<BackupAlert navigation={props.navigation} />
+				<BackupAlert onDismiss={toggleRemindLater} navigation={props.navigation} />
 				<SkipAccountSecurityModal
 					modalVisible={showRemindLaterModal}
 					onCancel={skipAccountModalSecureNow}
