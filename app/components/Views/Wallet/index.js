@@ -17,8 +17,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import { showTransactionNotification, hideTransactionNotification } from '../../../actions/notification';
-import DeeplinkManager from '../../../core/DeeplinkManager';
-import AppConstants from '../../../core/AppConstants';
 import ErrorBoundary from '../ErrorBoundary';
 
 const styles = StyleSheet.create({
@@ -111,15 +109,6 @@ class Wallet extends PureComponent {
 
 			this.mounted = true;
 		});
-	};
-
-	componentDidUpdate = () => {
-		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
-		const { KeyringController } = Engine.context;
-		if (pendingDeeplink && KeyringController.isUnlocked()) {
-			DeeplinkManager.expireDeeplink();
-			DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
-		}
 	};
 
 	onRefresh = async () => {
