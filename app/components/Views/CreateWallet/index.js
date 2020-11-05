@@ -25,6 +25,7 @@ import { NavigationActions, withNavigationFocus } from 'react-navigation';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/Device';
 import {
+	SEED_PHRASE_HINTS,
 	BIOMETRY_CHOICE,
 	NEXT_MAKER_REMINDER,
 	EXISTING_USER,
@@ -128,6 +129,7 @@ class CreateWallet extends PureComponent {
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			// Get onboarding wizard state
 			const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 			// Check if user passed through metrics opt-in screen

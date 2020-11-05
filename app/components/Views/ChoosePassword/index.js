@@ -22,7 +22,13 @@ import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
-import { EXISTING_USER, NEXT_MAKER_REMINDER, TRUE } from '../../../constants/storage';
+import {
+	EXISTING_USER,
+	NEXT_MAKER_REMINDER,
+	TRUE,
+	SEED_PHRASE_HINTS,
+	BIOMETRY_CHOICE_DISABLED
+} from '../../../constants/storage';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
@@ -96,13 +102,15 @@ const styles = StyleSheet.create({
 	checkbox: {
 		width: 18,
 		height: 18,
-		margin: 10
+		margin: 10,
+		marginTop: -5
 	},
 	label: {
 		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.black,
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
+		lineHeight: 18
 	},
 	learnMore: {
 		color: colors.blue,
@@ -300,6 +308,7 @@ class ChoosePassword extends PureComponent {
 				this.props.seedphraseNotBackedUp();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
+				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			} else {
 				await this.recreateVault(password);
 			}
@@ -313,6 +322,7 @@ class ChoosePassword extends PureComponent {
 				await SecureKeychain.resetGenericPassword();
 			}
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
@@ -324,6 +334,7 @@ class ChoosePassword extends PureComponent {
 			await SecureKeychain.resetGenericPassword();
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordUnset();
 			this.props.setLockTime(-1);
 			// Should we force people to enable passcode / biometrics?
@@ -422,6 +433,15 @@ class ChoosePassword extends PureComponent {
 		current && current.focus();
 	};
 
+	updateBiometryChoice = async biometryChoice => {
+		if (!biometryChoice) {
+			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+		} else {
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+		}
+		this.setState({ biometryChoice });
+	};
+
 	renderSwitch = () => {
 		const { biometryType, rememberMe, biometryChoice } = this.state;
 		return (
@@ -433,7 +453,7 @@ class ChoosePassword extends PureComponent {
 						</Text>
 						<View>
 							<Switch
-								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+								onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
 								value={biometryChoice}
 								style={styles.biometrySwitch}
 								trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
@@ -474,6 +494,8 @@ class ChoosePassword extends PureComponent {
 		});
 	};
 
+	setConfirmPassword = val => this.setState({ confirmPassword: val });
+
 	render() {
 		const {
 			isSelected,
@@ -487,7 +509,7 @@ class ChoosePassword extends PureComponent {
 		} = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
-		const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
+		const previousScreen = this.props.navigation.getParam(PREVIOUS_SCREEN);
 		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
 		return (
@@ -562,7 +584,7 @@ class ChoosePassword extends PureComponent {
 										ref={this.confirmPasswordInput}
 										style={[styles.input, inputWidth]}
 										value={confirmPassword}
-										onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
+										onChangeText={this.setConfirmPassword}
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
 										placeholderTextColor={colors.grey100}

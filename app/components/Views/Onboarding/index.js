@@ -39,6 +39,7 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import {
+	SEED_PHRASE_HINTS,
 	EXISTING_USER,
 	BIOMETRY_CHOICE,
 	BIOMETRY_CHOICE_DISABLED,
@@ -360,6 +361,7 @@ class Onboarding extends PureComponent {
 				pass: opts.password
 			});
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.seedphraseBackedUp();
