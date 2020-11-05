@@ -361,7 +361,7 @@ class ImportFromSeed extends PureComponent {
 						{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
 					</Text>
 					<Switch
-						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+						onValueChange={this.updateBiometryChoice}
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
 						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
