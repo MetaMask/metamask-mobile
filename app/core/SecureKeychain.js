@@ -101,7 +101,7 @@ export default {
 			//Don't need to add any parameter
 		} else {
 			// Setting a password without a type does not save it
-			return this.resetGenericPassword();
+			return await this.resetGenericPassword();
 		}
 
 		const encryptedPassword = await instance.encryptPassword(password);

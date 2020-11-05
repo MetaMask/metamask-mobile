@@ -34,7 +34,7 @@ import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
-import { EXISTING_USER, NEXT_MAKER_REMINDER, TRUE } from '../../../constants/storage';
+import { EXISTING_USER, NEXT_MAKER_REMINDER, TRUE, BIOMETRY_CHOICE_DISABLED } from '../../../constants/storage';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 
@@ -303,11 +303,13 @@ class ResetPassword extends PureComponent {
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 
-		this.setState({
-			view: CONFIRM_PASSWORD,
-			biometryType: biometryType || null,
-			biometryChoice: (biometryType && true) || false
-		});
+		const state = { view: CONFIRM_PASSWORD };
+		if (biometryType) {
+			state.biometryType = Device.isAndroid() ? 'biometrics' : biometryType;
+			state.biometryChoice = true;
+		}
+
+		this.setState(state);
 
 		setTimeout(() => {
 			this.setState({
@@ -362,14 +364,12 @@ class ResetPassword extends PureComponent {
 			this.setState({ loading: true });
 
 			await this.recreateVault(originalPassword);
-
 			// Set state in app as it was with password
+			await SecureKeychain.resetGenericPassword();
 			if (this.state.biometryType && this.state.biometryChoice) {
 				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
 			} else if (this.state.rememberMe) {
 				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
-			} else {
-				await SecureKeychain.resetGenericPassword();
 			}
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordSet();
@@ -386,7 +386,6 @@ class ResetPassword extends PureComponent {
 				});
 			});
 		} catch (error) {
-			await this.recreateVault('');
 			// Set state in app as it was with no password
 			await SecureKeychain.resetGenericPassword();
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
@@ -490,6 +489,15 @@ class ResetPassword extends PureComponent {
 		current && current.focus();
 	};
 
+	updateBiometryChoice = async biometryChoice => {
+		if (!biometryChoice) {
+			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+		} else {
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+		}
+		this.setState({ biometryChoice });
+	};
+
 	renderSwitch = () => {
 		const { biometryType, rememberMe, biometryChoice } = this.state;
 		return (
@@ -501,7 +509,7 @@ class ResetPassword extends PureComponent {
 						</Text>
 						<View>
 							<Switch
-								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+								onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
 								value={biometryChoice}
 								style={styles.biometrySwitch}
 								trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
