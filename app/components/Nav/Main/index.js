@@ -727,7 +727,7 @@ const Main = props => {
 					toggleSkipCheckbox={toggleSkipCheckbox}
 				/>
 				<ProtectYourWalletModal navigation={props.navigation} />
-				<WhatsNewModal navigation={this.props.navigation} />
+				<WhatsNewModal navigation={props.navigation} />
 			</View>
 			{renderSigningModal()}
 			{renderWalletConnectSessionRequestModal()}
