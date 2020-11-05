@@ -315,7 +315,12 @@ class Settings extends PureComponent {
 
 	onSingInWithBiometrics = async enabled => {
 		this.setState({ loading: true }, async () => {
-			const credentials = await SecureKeychain.getGenericPassword();
+			let credentials;
+			try {
+				credentials = await SecureKeychain.getGenericPassword();
+			} catch (error) {
+				Logger.error(error);
+			}
 			if (credentials && credentials.password !== '') {
 				this.storeCredentials(credentials.password, enabled, 'biometryChoice');
 			} else {
@@ -330,7 +335,13 @@ class Settings extends PureComponent {
 
 	onSignInWithPasscode = async enabled => {
 		this.setState({ loading: true }, async () => {
-			const credentials = await SecureKeychain.getGenericPassword();
+			let credentials;
+			try {
+				credentials = await SecureKeychain.getGenericPassword();
+			} catch (error) {
+				Logger.error(error);
+			}
+
 			if (credentials && credentials.password !== '') {
 				this.storeCredentials(credentials.password, enabled, 'passcodeChoice');
 			} else {
