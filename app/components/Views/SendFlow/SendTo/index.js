@@ -302,7 +302,6 @@ class SendFlow extends PureComponent {
 			}
 
 			const decimals = await AssetsContractController.getTokenDecimals(toSelectedAddress);
-			//const smart = false; // Import isSmartContractAddress from utils/transaction and use this for checking smart contract: await isSmartContractAddress(toSelectedAddress);
 			const smart = await isSmartContractAddress(toSelectedAddress);
 			if (decimals && Number(decimals) !== 0) {
 				addressError = strings('transaction.tokenContractAddressWarning');
