@@ -17,8 +17,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import { showTransactionNotification, hideTransactionNotification } from '../../../actions/notification';
-import DeeplinkManager from '../../../core/DeeplinkManager';
-import AppConstants from '../../../core/AppConstants';
 import ErrorBoundary from '../ErrorBoundary';
 
 const styles = StyleSheet.create({
@@ -108,11 +106,7 @@ class Wallet extends PureComponent {
 			const { AssetsDetectionController, AccountTrackerController } = Engine.context;
 			AssetsDetectionController.detectAssets();
 			AccountTrackerController.refresh();
-			const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
-			if (pendingDeeplink) {
-				DeeplinkManager.expireDeeplink();
-				DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
-			}
+
 			this.mounted = true;
 		});
 	};
