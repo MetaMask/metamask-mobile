@@ -301,8 +301,12 @@ class SendFlow extends PureComponent {
 				addToAddressToAddressBook = true;
 			}
 
+			// Check if it's token contract address
 			const decimals = await AssetsContractController.getTokenDecimals(toSelectedAddress);
+
+			// Check if it's smart contract address
 			const smart = await isSmartContractAddress(toSelectedAddress);
+
 			if (decimals && Number(decimals) !== 0) {
 				addressError = strings('transaction.tokenContractAddressWarning');
 				errorContinue = true;
