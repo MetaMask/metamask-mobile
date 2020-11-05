@@ -14,7 +14,14 @@ import { getNetworkTypeById } from '../util/networks';
 class DeeplinkManager {
 	constructor(_navigation) {
 		this.navigation = _navigation;
+		this.pendingDeeplink = null;
 	}
+
+	setDeeplink = url => (this.pendingDeeplink = url);
+
+	getPendingDeeplink = () => this.pendingDeeplink;
+
+	expireDeeplink = () => (this.pendingDeeplink = null);
 
 	async handleEthereumUrl(url, origin) {
 		let ethUrl = '';
@@ -26,11 +33,15 @@ class DeeplinkManager {
 		}
 
 		const functionName = ethUrl.function_name;
-
 		if (!functionName || functionName === 'transfer') {
-			this.navigation.navigate('SendView', {
-				txMeta: { ...ethUrl, action: !functionName ? 'send-eth' : 'send-token', source: url }
-			});
+			const txMeta = { ...ethUrl, source: url };
+			if (ethUrl.parameters?.value || ethUrl.parameters?.uint256) {
+				this.navigation.navigate('SendView', {
+					txMeta: { ...txMeta, action: !functionName ? 'send-eth' : 'send-token' }
+				});
+			} else {
+				this.navigation.navigate('SendFlowView', { txMeta });
+			}
 		} else if (functionName === 'approve') {
 			// add approve transaction
 			const {
@@ -77,7 +88,6 @@ class DeeplinkManager {
 				Alert.alert(strings('deeplink.invalid'), e.toString());
 			}
 		}
-
 		const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
 
 		switch (urlObj.protocol.replace(':', '')) {
@@ -156,20 +166,15 @@ class DeeplinkManager {
 }
 
 let instance = null;
-let pendingDeeplink = null;
 
 const SharedDeeplinkManager = {
 	init: navigation => {
 		instance = new DeeplinkManager(navigation);
 	},
 	parse: (url, args) => instance.parse(url, args),
-	setDeeplink: url => {
-		pendingDeeplink = url;
-	},
-	getPendingDeeplink: () => pendingDeeplink,
-	expireDeeplink: () => {
-		pendingDeeplink = null;
-	}
+	setDeeplink: url => instance.setDeeplink(url),
+	getPendingDeeplink: () => instance.getPendingDeeplink(),
+	expireDeeplink: () => instance.expireDeeplink()
 };
 
 export default SharedDeeplinkManager;

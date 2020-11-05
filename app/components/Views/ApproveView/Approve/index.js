@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, InteractionManager } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, InteractionManager, AppState } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
@@ -39,6 +39,9 @@ import StyledButton from '../../../UI/StyledButton';
 import currencySymbols from '../../../../util/currency-symbols.json';
 import Logger from '../../../../util/Logger';
 import AppConstants from '../../../../core/AppConstants';
+import { WALLET_CONNECT_ORIGIN } from '../../../../util/walletconnect';
+import isUrl from 'is-url';
+import { toggleApproveModal } from '../../../../actions/modals';
 
 const { BNToHex, hexToBN } = util;
 const styles = StyleSheet.create({
@@ -290,6 +293,7 @@ class Approve extends PureComponent {
 		editPermissionVisible: false,
 		gasError: undefined,
 		host: undefined,
+		origin: undefined,
 		originalApproveAmount: undefined,
 		originalTransactionData: this.props.transaction.data,
 		totalGas: undefined,
@@ -308,11 +312,17 @@ class Approve extends PureComponent {
 	customSpendLimitInput = React.createRef();
 
 	componentDidMount = async () => {
+		if (!this.props.transaction.data) this.props.toggleApproveModal();
 		const {
-			transaction: { origin, to, gas, gasPrice, data },
+			transaction: { to, gas, gasPrice, data },
 			conversionRate
 		} = this.props;
+
+		let origin = this.props.transaction.origin;
 		const { AssetsContractController } = Engine.context;
+		if (origin && origin.includes(WALLET_CONNECT_ORIGIN)) {
+			origin = origin.split(WALLET_CONNECT_ORIGIN)[1];
+		}
 		const host = getHost(origin);
 		let tokenSymbol, tokenDecimals;
 		const contract = contractMap[safeToChecksumAddress(to)];
@@ -332,6 +342,7 @@ class Approve extends PureComponent {
 		const approveAmount = fromTokenMinimalUnit(hexToBN(originalApproveAmount), tokenDecimals);
 		const totalGas = gas.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
+		AppState.addEventListener('change', this.handleAppStateChange);
 
 		this.setState({
 			host,
@@ -341,7 +352,8 @@ class Approve extends PureComponent {
 			tokenSymbol,
 			totalGas: renderFromWei(totalGas),
 			totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
-			spenderAddress
+			spenderAddress,
+			origin
 		});
 	};
 
@@ -349,6 +361,15 @@ class Approve extends PureComponent {
 		const { approved } = this.state;
 		const { transaction } = this.props;
 		if (!approved) Engine.context.TransactionController.cancelTransaction(transaction.id);
+		AppState.removeEventListener('change', this.handleAppStateChange);
+	};
+
+	handleAppStateChange = appState => {
+		if (appState !== 'active') {
+			this.props.toggleApproveModal();
+			const { transaction } = this.props;
+			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
+		}
 	};
 
 	trackApproveEvent = event => {
@@ -709,17 +730,15 @@ class Approve extends PureComponent {
 			editPermissionVisible,
 			ticker,
 			gasError,
-			spenderAddress
+			spenderAddress,
+			origin
 		} = this.state;
-
-		const {
-			transaction: { origin }
-		} = this.props;
 
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
 		const currencySymbol = currencySymbols[currentCurrency];
 		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
+		const url = isUrl(origin) ? origin : activeTabUrl;
 		return (
 			<ActionModal
 				modalVisible={this.props.modalVisible}
@@ -748,7 +767,7 @@ class Approve extends PureComponent {
 						<>
 							<View style={styles.section} testID={'approve-screen'}>
 								<TransactionHeader
-									currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
+									currentPageInformation={{ origin, spenderAddress, title: host, url }}
 								/>
 								<Text style={styles.title} testID={'allow-access'}>
 									{strings(
@@ -823,7 +842,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
-	showAlert: config => dispatch(showAlert(config))
+	showAlert: config => dispatch(showAlert(config)),
+	toggleApproveModal: show => dispatch(toggleApproveModal(show))
 });
 
 export default connect(

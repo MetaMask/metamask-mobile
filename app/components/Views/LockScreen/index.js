@@ -7,8 +7,6 @@ import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
-// eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
 
 const LOGO_SIZE = 175;
@@ -86,17 +84,7 @@ class LockScreen extends PureComponent {
 			this.firstAnimation.play();
 			this.appState = nextAppState;
 			// Avoid trying to unlock with the app in background
-			this.attemptUnlock();
-		}
-	};
-
-	attemptUnlock = () => {
-		if (Device.isAndroid()) {
 			this.unlockKeychain();
-		} else {
-			setTimeout(() => {
-				this.unlockKeychain();
-			}, 500);
 		}
 	};
 
@@ -123,21 +111,11 @@ class LockScreen extends PureComponent {
 				Logger.log('Lockscreen::unlockKeychain - keyring unlocked');
 
 				this.locked = false;
-				this.setState({ ready: true }, () => {
-					Logger.log('Lockscreen::unlockKeychain - state: ready');
-					if (Device.isAndroid()) {
-						setTimeout(() => {
-							this.secondAnimation ? this.secondAnimation.play(0, 25) : this.onAnimationFinished();
-							setTimeout(() => {
-								this.animationName && this.animationName.play();
-							}, 1);
-						}, 50);
-					} else {
-						this.secondAnimation.play();
-						this.animationName.play();
-						Logger.log('Lockscreen::unlockKeychain - playing animations');
-					}
-				});
+				await this.setState({ ready: true });
+				Logger.log('Lockscreen::unlockKeychain - state: ready');
+				this.secondAnimation && this.secondAnimation.play();
+				this.animationName && this.animationName.play();
+				Logger.log('Lockscreen::unlockKeychain - playing animations');
 			} else if (this.props.passwordSet) {
 				this.props.navigation.navigate('Login');
 			} else {
@@ -149,7 +127,7 @@ class LockScreen extends PureComponent {
 			}
 		} catch (error) {
 			if (this.unlockAttempts <= 3) {
-				this.attemptUnlock();
+				this.unlockKeychain();
 			} else {
 				Logger.error(error, { message: 'Lockscreen:maxAttemptsReached', attemptNumber: this.unlockAttempts });
 				this.props.navigation.navigate('Login');

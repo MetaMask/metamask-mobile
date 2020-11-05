@@ -35,6 +35,7 @@ import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
+import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 
 const styles = StyleSheet.create({
@@ -404,8 +405,8 @@ class DrawerView extends PureComponent {
 	}
 
 	componentDidUpdate() {
+		const route = this.findRouteNameFromNavigatorState(this.props.navigation.state);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-			const route = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
 			if (['SetPasswordFlow', 'Webview'].includes(route)) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
@@ -421,6 +422,12 @@ class DrawerView extends PureComponent {
 			if (!this.props.passwordSet || this.currentBalance > 0 || tokenFound || this.props.collectibles.length > 0)
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({ showProtectWalletModal: true });
+		}
+		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
+		const { KeyringController } = Engine.context;
+		if (pendingDeeplink && KeyringController.isUnlocked() && route !== 'LockScreen') {
+			DeeplinkManager.expireDeeplink();
+			DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
 		}
 	}
 

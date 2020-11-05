@@ -688,13 +688,7 @@ export function getOfflineModalNavbar(navigation) {
  */
 export function getWalletNavbarOptions(title, navigation) {
 	const onScanSuccess = (data, content) => {
-		if (data.target_address) {
-			if (data?.parameters?.value || data?.function_name === 'transfer') {
-				navigation.navigate('SendView', { txMeta: data });
-			} else {
-				navigation.navigate('SendFlowView', { txMeta: data });
-			}
-		} else if (data.private_key) {
+		if (data.private_key) {
 			Alert.alert(
 				strings('wallet.private_key_detected'),
 				strings('wallet.do_you_want_to_import_this_account'),
@@ -721,10 +715,6 @@ export function getWalletNavbarOptions(title, navigation) {
 				],
 				{ cancelable: false }
 			);
-		} else if (data.walletConnectURI) {
-			setTimeout(() => {
-				DeeplinkManager.parse(data.walletConnectURI);
-			}, 500);
 		} else if (data.seed) {
 			Alert.alert(strings('wallet.error'), strings('wallet.logout_to_import_seed'));
 		} else {

@@ -44,8 +44,6 @@ import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
-import DeeplinkManager from '../../../core/DeeplinkManager';
-import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -898,44 +896,6 @@ export const BrowserTab = props => {
 	);
 
 	/**
-	 * Handle Branch deeplinking
-	 */
-	const handleBranchDeeplink = useCallback(
-		deeplink_url => {
-			Logger.log('Branch Deeplink detected!', deeplink_url);
-			DeeplinkManager.parse(deeplink_url, url => {
-				openNewTab(url);
-			});
-		},
-		[openNewTab]
-	);
-
-	/**
-	 * Handle deeplinking
-	 */
-	const handleDeeplinks = useCallback(
-		async ({ error, params }) => {
-			if (!isTabActive()) return false;
-			if (error) {
-				Logger.error(error, 'Error from Branch');
-				return;
-			}
-			// QA THIS
-			if (params.spotlight_identifier) {
-				setTimeout(() => {
-					props.navigation.setParams({
-						url: params.spotlight_identifier,
-						silent: false
-					});
-					setShowUrlModal(false);
-				}, 1000);
-			}
-		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[isTabActive]
-	);
-
-	/**
 	 * Hide url input modal
 	 */
 	const hideUrlModal = useCallback(() => {
@@ -1051,29 +1011,6 @@ export const BrowserTab = props => {
 			}
 		};
 	}, [drawerOpenHandler]);
-
-	/**
-	 * Set deeplinking listeners
-	 */
-	useEffect(() => {
-		// Deeplink handling
-		const unsubscribeFromBranch = Branch.subscribe(handleDeeplinks);
-
-		// Check if there's a deeplink pending from launch
-		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
-		if (pendingDeeplink) {
-			// Expire it to avoid duplicate actions
-			DeeplinkManager.expireDeeplink();
-			// Handle it
-			setTimeout(() => {
-				handleBranchDeeplink(pendingDeeplink);
-			}, 1000);
-		}
-
-		return function cleanup() {
-			unsubscribeFromBranch();
-		};
-	}, [handleBranchDeeplink, handleDeeplinks]);
 
 	/**
 	 * Set navigation listeners

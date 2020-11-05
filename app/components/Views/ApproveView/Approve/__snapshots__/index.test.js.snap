@@ -24,6 +24,7 @@ exports[`Approve should render correctly 1`] = `
   setTransactionObject={[Function]}
   showAlert={[Function]}
   ticker="ETH"
+  toggleApproveModal={[Function]}
   tokensLength={0}
   transaction={Object {}}
   transactions={Array []}

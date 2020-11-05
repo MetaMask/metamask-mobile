@@ -54,17 +54,21 @@ export default class LockManager {
 		this.locked = true;
 	};
 
-	lockApp() {
+	lockApp = async () => {
 		if (!SecureKeychain.getInstance().isAuthenticating) {
 			const { KeyringController } = Engine.context;
-			KeyringController.setLocked()
-				.then(this.gotoLockScreen)
-				.catch(this.setLockedError);
+			try {
+				// await SecureKeychain.resetGenericPassword();
+				await KeyringController.setLocked();
+				this.gotoLockScreen();
+			} catch (e) {
+				this.setLockedError(e);
+			}
 		} else if (this.lockTimer) {
 			BackgroundTimer.clearTimeout(this.lockTimer);
 			this.lockTimer = null;
 		}
-	}
+	};
 
 	stopListening() {
 		AppState.removeEventListener('change', this.handleAppStateChange);
