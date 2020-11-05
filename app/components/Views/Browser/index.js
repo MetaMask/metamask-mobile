@@ -71,6 +71,9 @@ class Browser extends PureComponent {
 		} else {
 			this.props.tabs.length > 0 && this.switchToTab(this.props.tabs[0]);
 		}
+
+		const currentUrl = this.props.navigation.getParam('newTabUrl', null);
+		if (currentUrl) this.goToNewTab(currentUrl);
 	}
 
 	componentDidUpdate(prevProps) {
@@ -82,14 +85,18 @@ class Browser extends PureComponent {
 			const currentUrl = navigation.getParam('newTabUrl', null);
 
 			if (currentUrl && prevUrl !== currentUrl) {
-				this.newTab(currentUrl);
-				this.props.navigation.setParams({
-					...this.props.navigation.state.params,
-					newTabUrl: null
-				});
+				this.goToNewTab(currentUrl);
 			}
 		}
 	}
+
+	goToNewTab = url => {
+		this.newTab(url);
+		this.props.navigation.setParams({
+			...this.props.navigation.state.params,
+			newTabUrl: null
+		});
+	};
 
 	showTabs = async () => {
 		try {
