@@ -581,7 +581,9 @@
 		"submitted": "Submitted",
 		"failed": "Failed",
 		"cancelled": "Cancelled",
-		"tokenContractAddressWarning": "WARNING: This address is a token contract address. If you send tokens to this address, you will lose them.",
+		"tokenContractAddressWarning_1": "WARNING: This address is a ",
+		"tokenContractAddressWarning_2": "token contract address",
+		"tokenContractAddressWarning_3": ". If you send tokens to this address, you will lose them.",
 		"smartContractAddressWarning": "This address is a smart contract address. Please make sure you understand what this address is for, otherwise you risk losing your funds.",
 		"continueError": "I understand the risks, continue"
 	},

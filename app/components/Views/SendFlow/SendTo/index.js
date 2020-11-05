@@ -117,6 +117,9 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		color: colors.black,
 		textDecorationLine: 'underline'
+	},
+	bold: {
+		...fontStyles.bold
 	}
 });
 
@@ -305,7 +308,13 @@ class SendFlow extends PureComponent {
 			try {
 				const symbol = await AssetsContractController.getAssetSymbol(toSelectedAddress);
 				if (symbol) {
-					addressError = strings('transaction.tokenContractAddressWarning');
+					addressError = (
+						<Text>
+							<Text>{strings('transaction.tokenContractAddressWarning_1')}</Text>
+							<Text style={styles.bold}>{strings('transaction.tokenContractAddressWarning_2')}</Text>
+							<Text>{strings('transaction.tokenContractAddressWarning_3')}</Text>
+						</Text>
+					);
 					errorContinue = true;
 				}
 			} catch (e) {

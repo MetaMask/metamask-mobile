@@ -60,9 +60,9 @@ export default function ErrorMessage(props) {
 
 ErrorMessage.propTypes = {
 	/**
-	 * Error message to display
+	 * Error message to display, can be a string or a Text component
 	 */
-	errorMessage: PropTypes.string,
+	errorMessage: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.string]),
 	/**
 	 * Show continue button when it is a contract address
 	 */
