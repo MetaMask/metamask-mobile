@@ -16,7 +16,7 @@ import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
 import StyledButton from '../../../UI/StyledButton';
 import { setSelectedAsset, setRecipient, newAssetTransaction } from '../../../../actions/transaction';
 import { isENS } from '../../../../util/address';
-import { getTicker, getEther, isSmartContractAddress } from '../../../../util/transactions';
+import { getTicker, getEther } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
@@ -302,18 +302,28 @@ class SendFlow extends PureComponent {
 			}
 
 			// Check if it's token contract address
-			const decimals = await AssetsContractController.getTokenDecimals(toSelectedAddress);
+			try {
+				const symbol = await AssetsContractController.getAssetSymbol(toSelectedAddress);
+				if (symbol) {
+					addressError = strings('transaction.tokenContractAddressWarning');
+					errorContinue = true;
+				}
+			} catch (e) {
+				// Not a token address
+			}
 
-			// Check if it's smart contract address
-			const smart = await isSmartContractAddress(toSelectedAddress);
+			/**
+			 * Not using this for now; Import isSmartContractAddress from utils/transaction and use this for checking smart contract: await isSmartContractAddress(toSelectedAddress);
+			 * Check if it's smart contract address
+			 */
+			/*
+			const smart = false; //
 
-			if (decimals && Number(decimals) !== 0) {
-				addressError = strings('transaction.tokenContractAddressWarning');
-				errorContinue = true;
-			} else if (smart) {
+			if (smart) {
 				addressError = strings('transaction.smartContractAddressWarning');
 				isOnlyWarning = true;
 			}
+			*/
 		} else if (isENS(toSelectedAddress)) {
 			toEnsName = toSelectedAddress;
 			const resolvedAddress = await doENSLookup(toSelectedAddress, network);
