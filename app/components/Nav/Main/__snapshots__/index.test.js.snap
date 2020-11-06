@@ -260,6 +260,18 @@ exports[`Main should render correctly 1`] = `
               "getScreenOptions": [Function],
               "getStateForAction": [Function],
             },
+            "Swaps": Object {
+              "childRouters": Object {
+                "SwapsAmountView": null,
+              },
+              "getActionCreators": [Function],
+              "getActionForPathAndParams": [Function],
+              "getComponentForRouteName": [Function],
+              "getComponentForState": [Function],
+              "getPathAndParamsForState": [Function],
+              "getScreenOptions": [Function],
+              "getStateForAction": [Function],
+            },
             "Webview": Object {
               "childRouters": Object {
                 "SimpleWebview": null,
@@ -573,6 +585,18 @@ exports[`Main should render correctly 1`] = `
                   "Settings": null,
                   "SyncWithExtensionView": null,
                   "WalletConnectSessionsView": null,
+                },
+                "getActionCreators": [Function],
+                "getActionForPathAndParams": [Function],
+                "getComponentForRouteName": [Function],
+                "getComponentForState": [Function],
+                "getPathAndParamsForState": [Function],
+                "getScreenOptions": [Function],
+                "getStateForAction": [Function],
+              },
+              "Swaps": Object {
+                "childRouters": Object {
+                  "SwapsAmountView": null,
                 },
                 "getActionCreators": [Function],
                 "getActionForPathAndParams": [Function],
