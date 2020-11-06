@@ -359,7 +359,7 @@ class ResetPassword extends PureComponent {
 			this.setState({ loading: true });
 
 			await this.recreateVault(originalPassword);
-			// Set state in app as it was with password
+			// Set biometrics for new password
 			await SecureKeychain.resetGenericPassword();
 			try {
 				if (this.state.biometryType && this.state.biometryChoice) {
