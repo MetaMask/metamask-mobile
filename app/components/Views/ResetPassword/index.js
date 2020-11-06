@@ -34,7 +34,7 @@ import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
-import { EXISTING_USER, NEXT_MAKER_REMINDER, TRUE, BIOMETRY_CHOICE_DISABLED } from '../../../constants/storage';
+import { EXISTING_USER, TRUE, BIOMETRY_CHOICE_DISABLED } from '../../../constants/storage';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 
@@ -263,11 +263,6 @@ class ResetPassword extends PureComponent {
 		 */
 		passwordSet: PropTypes.func,
 		/**
-		 * The action to update the password set flag
-		 * in the redux store to false
-		 */
-		passwordUnset: PropTypes.func,
-		/**
 		 * The action to update the lock time
 		 * in the redux store
 		 */
@@ -386,12 +381,6 @@ class ResetPassword extends PureComponent {
 				});
 			});
 		} catch (error) {
-			// Set state in app as it was with no password
-			await SecureKeychain.resetGenericPassword();
-			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			this.props.passwordUnset();
-			this.props.setLockTime(-1);
 			// Should we force people to enable passcode / biometrics?
 			if (error.toString() === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
