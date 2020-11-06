@@ -176,14 +176,12 @@ workflows:
               only:
                 - master
                 - develop
-                - improvement/update-keychain-lib
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
-                - improvement/update-keychain-lib
       - lint:
           requires:
             - prep-node-deps
