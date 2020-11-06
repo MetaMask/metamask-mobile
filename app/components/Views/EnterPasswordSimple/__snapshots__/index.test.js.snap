@@ -14,7 +14,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
-        "padding": 20,
+        "padding": 16,
       }
     }
     testID="enter-password-screen"
@@ -35,7 +35,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
       style={
         Object {
           "flex": 1,
-          "padding": 20,
+          "padding": 16,
         }
       }
       viewIsInsideTabBar={false}
@@ -51,6 +51,8 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
           <Text
             style={
               Object {
+                "color": "#000000",
+                "fontSize": 16,
                 "marginBottom": 15,
               }
             }
@@ -76,8 +78,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
         <View
           style={
             Object {
-              "marginTop": 20,
-              "paddingHorizontal": 10,
+              "marginTop": 10,
             }
           }
         >

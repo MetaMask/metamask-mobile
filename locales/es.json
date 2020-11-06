@@ -820,6 +820,7 @@
 		"enable_touchid": "Ingresar con Touch ID?",
 		"enable_faceid": "Ingresar con Face ID?",
 		"enable_fingerprint": "Ingresar con Huella Digital?",
+		"enable_biometrics": "Ingresar con Biometria",
 		"enable_device_passcode_ios": "Ingresar con el código de seguridad del móvil?",
 		"enable_device_passcode_android": "Ingresar con el PIN del móvil?"
 	},

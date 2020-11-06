@@ -27,7 +27,6 @@ import {
 	EXISTING_USER,
 	BIOMETRY_CHOICE,
 	BIOMETRY_CHOICE_DISABLED,
-	PASSCODE_DISABLED,
 	NEXT_MAKER_REMINDER,
 	METRICS_OPT_IN,
 	TRUE
@@ -272,8 +271,9 @@ class ImportWallet extends PureComponent {
 		}
 
 		if (password === this.password) {
-			const biometryType = await SecureKeychain.getSupportedBiometryType();
+			let biometryType = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
+				if (Device.isAndroid()) biometryType = 'biometrics';
 				this.setState({ biometryType, biometryChoice: true });
 
 				Alert.alert(
@@ -308,32 +308,16 @@ class ImportWallet extends PureComponent {
 		}
 	}
 
-	cancelledBiometricsPermission = async () => {
-		await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-		await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-		await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-	};
-
 	finishSync = async opts => {
 		if (opts.biometrics) {
-			const authOptions = {
-				accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-			};
-			await SecureKeychain.setGenericPassword('metamask-user', opts.password, authOptions);
-
-			// If the user enables biometrics, we're trying to read the password
-			// immediately so we get the permission prompt
 			try {
-				if (Device.isIos()) {
-					await SecureKeychain.getGenericPassword();
-					await AsyncStorage.setItem(BIOMETRY_CHOICE, opts.biometryType);
-				}
+				await SecureKeychain.setGenericPassword(opts.password, SecureKeychain.TYPES.BIOMETRICS);
 			} catch (e) {
 				Logger.error(e, 'User cancelled biometrics permission');
-				await this.cancelledBiometricsPermission();
+				SecureKeychain.resetGenericPassword();
 			}
 		} else {
-			await this.cancelledBiometricsPermission();
+			SecureKeychain.resetGenericPassword();
 		}
 
 		try {

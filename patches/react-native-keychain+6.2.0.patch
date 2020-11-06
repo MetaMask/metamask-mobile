@@ -1,0 +1,549 @@
+diff --git a/node_modules/react-native-keychain/RNKeychainManager/RNKeychainManager.m b/node_modules/react-native-keychain/RNKeychainManager/RNKeychainManager.m
+index 98e45fe..50602a3 100644
+--- a/node_modules/react-native-keychain/RNKeychainManager/RNKeychainManager.m
++++ b/node_modules/react-native-keychain/RNKeychainManager/RNKeychainManager.m
+@@ -292,7 +292,7 @@ - (OSStatus)deleteCredentialsForServer:(NSString *)server
+ {
+   NSError *aerr = nil;
+   LAContext *context = [LAContext new];
+-  BOOL canBeProtected = [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthentication error:&aerr];
++  BOOL canBeProtected = [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&aerr];
+ 
+   if (!aerr && canBeProtected) {
+     if (@available(iOS 11, *)) {
+diff --git a/node_modules/react-native-keychain/android/src/main/java/com/.DS_Store b/node_modules/react-native-keychain/android/src/main/java/com/.DS_Store
+new file mode 100644
+index 0000000..1c6d23e
+Binary files /dev/null and b/node_modules/react-native-keychain/android/src/main/java/com/.DS_Store differ
+diff --git a/node_modules/react-native-keychain/android/src/main/java/com/oblador/.DS_Store b/node_modules/react-native-keychain/android/src/main/java/com/oblador/.DS_Store
+new file mode 100644
+index 0000000..88e85f6
+Binary files /dev/null and b/node_modules/react-native-keychain/android/src/main/java/com/oblador/.DS_Store differ
+diff --git a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/KeychainModule.java b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/KeychainModule.java
+index d4ded69..0d1fc3a 100644
+--- a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/KeychainModule.java
++++ b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/KeychainModule.java
+@@ -1,6 +1,7 @@
+ package com.oblador.keychain;
+ 
+ import android.os.Build;
++import android.os.Bundle;
+ import android.os.Looper;
+ import android.text.TextUtils;
+ import android.util.Log;
+@@ -11,6 +12,11 @@ import androidx.annotation.StringDef;
+ import androidx.biometric.BiometricPrompt;
+ import androidx.biometric.BiometricPrompt.PromptInfo;
+ import androidx.fragment.app.FragmentActivity;
++import android.security.keystore.UserNotAuthenticatedException;
++
++import com.facebook.react.bridge.ActivityEventListener;
++import com.facebook.react.bridge.Arguments;
++import com.facebook.react.bridge.BaseActivityEventListener;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.AssertionException;
+@@ -42,6 +48,10 @@ import java.util.concurrent.Executors;
+ import java.util.concurrent.TimeUnit;
+ 
+ import javax.crypto.Cipher;
++import android.app.Activity;
++import android.app.KeyguardManager;
++import android.content.Intent;
++
+ 
+ @SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue"})
+ public class KeychainModule extends ReactContextBaseJavaModule {
+@@ -51,9 +61,25 @@ public class KeychainModule extends ReactContextBaseJavaModule {
+   public static final String FACE_SUPPORTED_NAME = "Face";
+   public static final String IRIS_SUPPORTED_NAME = "Iris";
+   public static final String EMPTY_STRING = "";
++  public static final String E_CRYPTO_FAILED = "E_CRYPTO_FAILED";
++  public static final String E_USER_AUTH_FAILED = "E_USER_DIDNT_AUTH";
+ 
+   private static final String LOG_TAG = KeychainModule.class.getSimpleName();
+ 
++  private KeyguardManager mKeyguardManager;
++  final ReactApplicationContext mReactContext;
++
++  private String mUsername;
++  private String mPassword;
++  private Promise mPromise;
++  private ReadableMap mOptions;
++  private String mCurrentAction;
++
++  public static final String AUTH_PROMPT_TITLE_KEY = "authenticationPromptTitle";
++  public static final String AUTH_PROMPT_DESC_KEY = "authenticationPromptDesc";
++
++  private static final int REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS = 1;
++
+   @StringDef({AccessControl.NONE
+     , AccessControl.USER_PRESENCE
+     , AccessControl.BIOMETRY_ANY
+@@ -136,7 +162,9 @@ public class KeychainModule extends ReactContextBaseJavaModule {
+ 
+   /** Default constructor. */
+   public KeychainModule(@NonNull final ReactApplicationContext reactContext) {
+-    super(reactContext);
++	super(reactContext);
++	mReactContext = reactContext;
++
+     prefsStorage = new PrefsStorage(reactContext);
+ 
+     addCipherStorageToMap(new CipherStorageFacebookConceal(reactContext));
+@@ -145,7 +173,10 @@ public class KeychainModule extends ReactContextBaseJavaModule {
+     // we have a references to newer api that will fail load of app classes in old androids OS
+     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+       addCipherStorageToMap(new CipherStorageKeystoreRsaEcb());
+-    }
++	}
++	
++	reactContext.addActivityEventListener(mActivityEventListener);
++
+   }
+ 
+   /** Allow initialization in chain. */
+@@ -170,7 +201,7 @@ public class KeychainModule extends ReactContextBaseJavaModule {
+       final Cipher instance = best.getCachedInstance();
+       final boolean isSecure = best.supportsSecureHardware();
+       final SecurityLevel requiredLevel = isSecure ? SecurityLevel.SECURE_HARDWARE : SecurityLevel.SECURE_SOFTWARE;
+-      best.generateKeyAndStoreUnderAlias("warmingUp", requiredLevel);
++      best.generateKeyAndStoreUnderAlias("warmingUp", requiredLevel, false);
+       best.getKeyStoreAndLoad();
+ 
+       Log.v(KEYCHAIN_MODULE, "warming up takes: " +
+@@ -205,6 +236,54 @@ public class KeychainModule extends ReactContextBaseJavaModule {
+   }
+   //endregion
+ 
++  private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
++		@Override
++		public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent intent) {
++			if (requestCode == REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS) {
++				// Challenge completed, proceed with using cipher
++				if (resultCode == Activity.RESULT_OK) {
++					if (mCurrentAction == "set") {
++						setGenericPasswordForOptions(mOptions, mUsername, mPassword, mPromise);
++					} else {
++						getGenericPasswordForOptions(mOptions, mPromise);
++					}
++				} else {
++					// The user canceled or didn’t complete the lock screen
++					// operation. Go to error/cancellation flow.
++					mPromise.reject(E_USER_AUTH_FAILED, new Exception("Error: Cancel"));
++				}
++			}
++
++			mCurrentAction = null;
++			mOptions = null;
++			mUsername = null;
++			mPassword = null;
++		}
++	};
++
++public void handleUserNotAuthenticatedException(Promise promise) {
++	if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
++		String authPromptTitle = null;
++		String authPromptDesc = null;
++		if (mOptions != null) {
++			if (mOptions.hasKey(AUTH_PROMPT_TITLE_KEY)) {
++				authPromptTitle = mOptions.getString(AUTH_PROMPT_TITLE_KEY);
++			}
++
++			if (mOptions.hasKey(AUTH_PROMPT_DESC_KEY)) {
++				authPromptDesc = mOptions.getString(AUTH_PROMPT_DESC_KEY);
++			}
++		}
++		Intent intent = mKeyguardManager.createConfirmDeviceCredentialIntent(authPromptTitle, authPromptDesc);
++		if (intent != null) {
++			Activity currentActivity = getCurrentActivity();
++			currentActivity.startActivityForResult(intent, REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS);
++		}
++	} else {
++		promise.reject(E_CRYPTO_FAILED, new Exception("no pin supported"));
++	}
++}
++
+   //region React Methods
+   protected void setGenericPassword(@NonNull final String alias,
+                                     @NonNull final String username,
+@@ -217,9 +296,13 @@ public class KeychainModule extends ReactContextBaseJavaModule {
+       final SecurityLevel level = getSecurityLevelOrDefault(options);
+       final CipherStorage storage = getSelectedStorage(options);
+ 
++	  mKeyguardManager = (KeyguardManager) mReactContext.getSystemService(mReactContext.KEYGUARD_SERVICE);
++
+       throwIfInsufficientLevel(storage, level);
+ 
+-      final EncryptionResult result = storage.encrypt(alias, username, password, level);
++	  final String accessControl = getAccessControlOrDefault(options);
++
++	  final EncryptionResult result = storage.encrypt(alias, username, password, level,  mKeyguardManager.isKeyguardSecure() ? accessControl : null);
+       prefsStorage.storeEncryptedEntry(alias, result);
+ 
+       final WritableMap results = Arguments.createMap();
+@@ -227,14 +310,29 @@ public class KeychainModule extends ReactContextBaseJavaModule {
+       results.putString(Maps.STORAGE, storage.getCipherStorageName());
+ 
+       promise.resolve(results);
+-    } catch (EmptyParameterException e) {
++	}catch (EmptyParameterException e) {
+       Log.e(KEYCHAIN_MODULE, e.getMessage(), e);
+ 
+       promise.reject(Errors.E_EMPTY_PARAMETERS, e);
+     } catch (CryptoFailedException e) {
+-      Log.e(KEYCHAIN_MODULE, e.getMessage(), e);
+-
+-      promise.reject(Errors.E_CRYPTO_FAILED, e);
++		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
++			if (e.getCause() != null && e.getCause().getMessage() == "User not authenticated") {
++
++				mPromise = promise;
++				mUsername = username;
++				mPassword = password;
++				mOptions = options;
++				mCurrentAction = "set";
++				this.handleUserNotAuthenticatedException(promise);
++
++			} else {
++				Log.e(KEYCHAIN_MODULE, e.getMessage());
++				promise.reject(E_CRYPTO_FAILED, e);
++			}
++		} else {
++			Log.e(KEYCHAIN_MODULE, e.getMessage());
++			promise.reject(E_CRYPTO_FAILED, e);
++		}
+     } catch (Throwable fail) {
+       Log.e(KEYCHAIN_MODULE, fail.getMessage(), fail);
+ 
+@@ -289,7 +387,11 @@ public class KeychainModule extends ReactContextBaseJavaModule {
+       final String accessControl = getAccessControlOrDefault(options);
+       final boolean useBiometry = getUseBiometry(accessControl);
+       final CipherStorage current = getCipherStorageForCurrentAPILevel(useBiometry);
+-      final String rules = getSecurityRulesOrDefault(options);
++	  final String rules = getSecurityRulesOrDefault(options);
++	  
++	  if (mKeyguardManager == null) {
++		mKeyguardManager = (KeyguardManager) mReactContext.getSystemService(mReactContext.KEYGUARD_SERVICE);
++	  }
+ 
+       final PromptInfo promptInfo = getPromptInfo(options);
+       final DecryptionResult decryptionResult = decryptCredentials(alias, current, resultSet, rules, promptInfo);
+@@ -306,9 +408,20 @@ public class KeychainModule extends ReactContextBaseJavaModule {
+ 
+       promise.reject(Errors.E_KEYSTORE_ACCESS_ERROR, e);
+     } catch (CryptoFailedException e) {
+-      Log.e(KEYCHAIN_MODULE, e.getMessage());
+-
+-      promise.reject(Errors.E_CRYPTO_FAILED, e);
++		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
++			if (e.getCause() != null && e.getCause().getMessage() == "User not authenticated") {
++				mOptions = options;
++				mPromise = promise;
++				mCurrentAction = "get";
++				this.handleUserNotAuthenticatedException(promise);
++			} else {
++				Log.e(KEYCHAIN_MODULE, e.getMessage());
++				promise.reject(E_CRYPTO_FAILED, e);
++			}
++		} else {
++			Log.e(KEYCHAIN_MODULE, e.getMessage());
++			promise.reject(E_CRYPTO_FAILED, e);
++		}
+     } catch (Throwable fail) {
+       Log.e(KEYCHAIN_MODULE, fail.getMessage(), fail);
+ 
+@@ -652,7 +765,7 @@ public class KeychainModule extends ReactContextBaseJavaModule {
+     // storage should be as safe as the old one.
+     final EncryptionResult encryptionResult = newCipherStorage.encrypt(
+       service, decryptionResult.username, decryptionResult.password,
+-      decryptionResult.getSecurityLevel());
++      decryptionResult.getSecurityLevel(), null);
+ 
+     // store the encryption result
+     prefsStorage.storeEncryptedEntry(service, encryptionResult);
+diff --git a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorage.java b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorage.java
+index cce079a..614e17c 100644
+--- a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorage.java
++++ b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorage.java
+@@ -107,7 +107,8 @@ public interface CipherStorage {
+   EncryptionResult encrypt(@NonNull final String alias,
+                            @NonNull final String username,
+                            @NonNull final String password,
+-                           @NonNull final SecurityLevel level)
++						   @NonNull final SecurityLevel level,
++						   String accessControl)
+     throws CryptoFailedException;
+ 
+   /**
+diff --git a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageBase.java b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageBase.java
+index a492c6e..29dee50 100644
+--- a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageBase.java
++++ b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageBase.java
+@@ -149,7 +149,7 @@ abstract public class CipherStorageBase implements CipherStorage {
+ 
+   /** Get encryption algorithm specification builder instance. */
+   @NonNull
+-  protected abstract KeyGenParameterSpec.Builder getKeyGenSpecBuilder(@NonNull final String alias)
++  protected abstract KeyGenParameterSpec.Builder getKeyGenSpecBuilder(@NonNull final String alias, Boolean getKeyGenSpecBuilder)
+     throws GeneralSecurityException;
+ 
+   /** Get information about provided key. */
+@@ -201,7 +201,8 @@ abstract public class CipherStorageBase implements CipherStorage {
+   @NonNull
+   protected Key extractGeneratedKey(@NonNull final String safeAlias,
+                                     @NonNull final SecurityLevel level,
+-                                    @NonNull final AtomicInteger retries)
++									@NonNull final AtomicInteger retries,
++									Boolean requireAuthentication)
+     throws GeneralSecurityException {
+     Key key;
+ 
+@@ -210,7 +211,7 @@ abstract public class CipherStorageBase implements CipherStorage {
+ 
+       // if key is not available yet, try to generate the strongest possible
+       if (!keyStore.containsAlias(safeAlias)) {
+-        generateKeyAndStoreUnderAlias(safeAlias, level);
++        generateKeyAndStoreUnderAlias(safeAlias, level, requireAuthentication);
+       }
+ 
+       // throw exception if cannot extract key in several retries
+@@ -374,7 +375,8 @@ abstract public class CipherStorageBase implements CipherStorage {
+ 
+   /** Get the most secured keystore */
+   public void generateKeyAndStoreUnderAlias(@NonNull final String alias,
+-                                            @NonNull final SecurityLevel requiredLevel)
++											@NonNull final SecurityLevel requiredLevel,
++											Boolean requireAuthentication)
+     throws GeneralSecurityException {
+ 
+     // Firstly, try to generate the key as safe as possible (strongbox).
+@@ -388,7 +390,7 @@ abstract public class CipherStorageBase implements CipherStorage {
+         if (null == isStrongboxAvailable) isStrongboxAvailable = new AtomicBoolean(false);
+ 
+         try {
+-          secretKey = tryGenerateStrongBoxSecurityKey(alias);
++          secretKey = tryGenerateStrongBoxSecurityKey(alias, requireAuthentication);
+ 
+           isStrongboxAvailable.set(true);
+         } catch (GeneralSecurityException | ProviderException ex) {
+@@ -401,7 +403,7 @@ abstract public class CipherStorageBase implements CipherStorage {
+     // (it still might be generated in hardware, but not in StrongBox)
+     if (null == secretKey || !isStrongboxAvailable.get()) {
+       try {
+-        secretKey = tryGenerateRegularSecurityKey(alias);
++        secretKey = tryGenerateRegularSecurityKey(alias, requireAuthentication);
+       } catch (GeneralSecurityException fail) {
+         Log.e(LOG_TAG, "Regular security storage is not available.", fail);
+         throw fail;
+@@ -415,14 +417,14 @@ abstract public class CipherStorageBase implements CipherStorage {
+ 
+   /** Try to get secured keystore instance. */
+   @NonNull
+-  protected Key tryGenerateRegularSecurityKey(@NonNull final String alias)
++  protected Key tryGenerateRegularSecurityKey(@NonNull final String alias, Boolean requireAuthentication)
+     throws GeneralSecurityException {
+     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+       throw new KeyStoreAccessException("Regular security keystore is not supported " +
+         "for old API" + Build.VERSION.SDK_INT + ".");
+     }
+ 
+-    final KeyGenParameterSpec specification = getKeyGenSpecBuilder(alias)
++    final KeyGenParameterSpec specification = getKeyGenSpecBuilder(alias, requireAuthentication)
+       .build();
+ 
+     return generateKey(specification);
+@@ -430,14 +432,14 @@ abstract public class CipherStorageBase implements CipherStorage {
+ 
+   /** Try to get strong secured keystore instance. (StrongBox security chip) */
+   @NonNull
+-  protected Key tryGenerateStrongBoxSecurityKey(@NonNull final String alias)
++  protected Key tryGenerateStrongBoxSecurityKey(@NonNull final String alias, Boolean requireAuthentication)
+     throws GeneralSecurityException {
+     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+       throw new KeyStoreAccessException("Strong box security keystore is not supported " +
+         "for old API" + Build.VERSION.SDK_INT + ".");
+     }
+ 
+-    final KeyGenParameterSpec specification = getKeyGenSpecBuilder(alias)
++    final KeyGenParameterSpec specification = getKeyGenSpecBuilder(alias, requireAuthentication)
+       .setIsStrongBoxBacked(true)
+       .build();
+ 
+@@ -565,7 +567,7 @@ abstract public class CipherStorageBase implements CipherStorage {
+     public final Key key;
+ 
+     public SelfDestroyKey(@NonNull final String name) throws GeneralSecurityException {
+-      this(name, tryGenerateRegularSecurityKey(name));
++      this(name, tryGenerateRegularSecurityKey(name, false));
+     }
+ 
+     public SelfDestroyKey(@NonNull final String name, @NonNull final Key key) {
+diff --git a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageFacebookConceal.java b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageFacebookConceal.java
+index 47beeef..8263e6e 100644
+--- a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageFacebookConceal.java
++++ b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageFacebookConceal.java
+@@ -71,7 +71,8 @@ public class CipherStorageFacebookConceal extends CipherStorageBase {
+   public EncryptionResult encrypt(@NonNull final String alias,
+                                   @NonNull final String username,
+                                   @NonNull final String password,
+-                                  @NonNull final SecurityLevel level)
++								  @NonNull final SecurityLevel level,
++								  String accessControl)
+     throws CryptoFailedException {
+ 
+     throwIfInsufficientLevel(level);
+@@ -146,7 +147,7 @@ public class CipherStorageFacebookConceal extends CipherStorageBase {
+ 
+   @NonNull
+   @Override
+-  protected KeyGenParameterSpec.Builder getKeyGenSpecBuilder(@NonNull final String alias)
++  protected KeyGenParameterSpec.Builder getKeyGenSpecBuilder(@NonNull final String alias, Boolean requireAuthentication)
+     throws GeneralSecurityException {
+     throw new CryptoFailedException("Not designed for a call");
+   }
+diff --git a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreAesCbc.java b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreAesCbc.java
+index cae118c..97630a5 100644
+--- a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreAesCbc.java
++++ b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreAesCbc.java
+@@ -48,6 +48,8 @@ public class CipherStorageKeystoreAesCbc extends CipherStorageBase {
+   public static final int ENCRYPTION_KEY_SIZE = 256;
+ 
+   public static final String DEFAULT_SERVICE = "RN_KEYCHAIN_DEFAULT_ALIAS";
++
++  String DEVICE_PASSCODE = "DevicePasscode";
+   //endregion
+ 
+   //region Configuration
+@@ -102,7 +104,8 @@ public class CipherStorageKeystoreAesCbc extends CipherStorageBase {
+   public EncryptionResult encrypt(@NonNull final String alias,
+                                   @NonNull final String username,
+                                   @NonNull final String password,
+-                                  @NonNull final SecurityLevel level)
++								  @NonNull final SecurityLevel level,
++								  String accessControl)
+     throws CryptoFailedException {
+ 
+     throwIfInsufficientLevel(level);
+@@ -110,8 +113,10 @@ public class CipherStorageKeystoreAesCbc extends CipherStorageBase {
+     final String safeAlias = getDefaultAliasIfEmpty(alias, getDefaultAliasServiceName());
+     final AtomicInteger retries = new AtomicInteger(1);
+ 
++	Boolean requireAuthentication = accessControl != null && accessControl.contains(DEVICE_PASSCODE);
++
+     try {
+-      final Key key = extractGeneratedKey(safeAlias, level, retries);
++      final Key key = extractGeneratedKey(safeAlias, level, retries, requireAuthentication);
+ 
+       return new EncryptionResult(
+         encryptString(key, username),
+@@ -130,7 +135,7 @@ public class CipherStorageKeystoreAesCbc extends CipherStorageBase {
+   public DecryptionResult decrypt(@NonNull final String alias,
+                                   @NonNull final byte[] username,
+                                   @NonNull final byte[] password,
+-                                  @NonNull final SecurityLevel level)
++								  @NonNull final SecurityLevel level)
+     throws CryptoFailedException {
+ 
+     throwIfInsufficientLevel(level);
+@@ -139,7 +144,7 @@ public class CipherStorageKeystoreAesCbc extends CipherStorageBase {
+     final AtomicInteger retries = new AtomicInteger(1);
+ 
+     try {
+-      final Key key = extractGeneratedKey(safeAlias, level, retries);
++      final Key key = extractGeneratedKey(safeAlias, level, retries, false);
+ 
+       return new DecryptionResult(
+         decryptBytes(key, username),
+@@ -175,7 +180,7 @@ public class CipherStorageKeystoreAesCbc extends CipherStorageBase {
+   /** Get encryption algorithm specification builder instance. */
+   @NonNull
+   @Override
+-  protected KeyGenParameterSpec.Builder getKeyGenSpecBuilder(@NonNull final String alias)
++  protected KeyGenParameterSpec.Builder getKeyGenSpecBuilder(@NonNull final String alias, Boolean requireAuthentication)
+     throws GeneralSecurityException {
+     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+       throw new KeyStoreAccessException("Unsupported API" + Build.VERSION.SDK_INT + " version detected.");
+@@ -186,7 +191,9 @@ public class CipherStorageKeystoreAesCbc extends CipherStorageBase {
+     return new KeyGenParameterSpec.Builder(alias, purposes)
+       .setBlockModes(BLOCK_MODE_CBC)
+       .setEncryptionPaddings(PADDING_PKCS7)
+-      .setRandomizedEncryptionRequired(true)
++	  .setRandomizedEncryptionRequired(true)
++	  .setUserAuthenticationRequired(requireAuthentication ? true : false)
++      .setUserAuthenticationValidityDurationSeconds(1)
+       .setKeySize(ENCRYPTION_KEY_SIZE);
+   }
+ 
+diff --git a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.java b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.java
+index f718ba5..43ce218 100644
+--- a/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.java
++++ b/node_modules/react-native-keychain/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.java
+@@ -58,7 +58,8 @@ public class CipherStorageKeystoreRsaEcb extends CipherStorageBase {
+   public EncryptionResult encrypt(@NonNull final String alias,
+                                   @NonNull final String username,
+                                   @NonNull final String password,
+-                                  @NonNull final SecurityLevel level)
++								  @NonNull final SecurityLevel level,
++								  String accessControl)
+     throws CryptoFailedException {
+ 
+     throwIfInsufficientLevel(level);
+@@ -118,18 +119,20 @@ public class CipherStorageKeystoreRsaEcb extends CipherStorageBase {
+ 
+     Key key = null;
+ 
+-    try {
+-      // key is always NOT NULL otherwise GeneralSecurityException raised
+-      key = extractGeneratedKey(safeAlias, level, retries);
++    // try {
++      // // key is always NOT NULL otherwise GeneralSecurityException raised
++      // key = extractGeneratedKey(safeAlias, level, retries);
+ 
+-      final DecryptionResult results = new DecryptionResult(
+-        decryptBytes(key, username),
+-        decryptBytes(key, password)
+-      );
++      // final DecryptionResult results = new DecryptionResult(
++      //   decryptBytes(key, username),
++      //   decryptBytes(key, password)
++      // );
+ 
+-      handler.onDecrypt(results, null);
+-    } catch (final UserNotAuthenticatedException ex) {
+-      Log.d(LOG_TAG, "Unlock of keystore is needed. Error: " + ex.getMessage(), ex);
++      // handler.onDecrypt(results, null);
++    // } catch (final UserNotAuthenticatedException ex) {
++    try {
++      key = extractGeneratedKey(safeAlias, level, retries, false);
++      // Log.d(LOG_TAG, "Unlock of keystore is needed. Error: " + ex.getMessage(), ex);
+ 
+       // expected that KEY instance is extracted and we caught exception on decryptBytes operation
+       @SuppressWarnings("ConstantConditions") final DecryptionContext context =
+@@ -193,7 +196,7 @@ public class CipherStorageKeystoreRsaEcb extends CipherStorageBase {
+ 
+     // on first access create a key for storage
+     if (!store.containsAlias(alias)) {
+-      generateKeyAndStoreUnderAlias(alias, level);
++      generateKeyAndStoreUnderAlias(alias, level, false);
+     }
+ 
+     final KeyFactory kf = KeyFactory.getInstance(ALGORITHM_RSA);
+@@ -212,7 +215,7 @@ public class CipherStorageKeystoreRsaEcb extends CipherStorageBase {
+   @NonNull
+   @Override
+   @SuppressLint("NewApi")
+-  protected KeyGenParameterSpec.Builder getKeyGenSpecBuilder(@NonNull final String alias)
++  protected KeyGenParameterSpec.Builder getKeyGenSpecBuilder(@NonNull final String alias, Boolean requireAuthentication)
+     throws GeneralSecurityException {
+     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+       throw new KeyStoreAccessException("Unsupported API" + Build.VERSION.SDK_INT + " version detected.");
+@@ -225,7 +228,7 @@ public class CipherStorageKeystoreRsaEcb extends CipherStorageBase {
+       .setEncryptionPaddings(PADDING_PKCS1)
+       .setRandomizedEncryptionRequired(true)
+       .setUserAuthenticationRequired(true)
+-      .setUserAuthenticationValidityDurationSeconds(1)
++      .setUserAuthenticationValidityDurationSeconds(60)
+       .setKeySize(ENCRYPTION_KEY_SIZE);
+   }
+ 

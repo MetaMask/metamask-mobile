@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		padding: 20
+		padding: 16
 	},
 	input: {
 		borderWidth: 2,
@@ -25,10 +25,11 @@ const styles = StyleSheet.create({
 		padding: 10
 	},
 	ctaWrapper: {
-		marginTop: 20,
-		paddingHorizontal: 10
+		marginTop: 10
 	},
 	enterPassword: {
+		color: colors.black,
+		fontSize: 16,
 		marginBottom: 15
 	}
 });
