@@ -117,6 +117,9 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		color: colors.black,
 		textDecorationLine: 'underline'
+	},
+	bold: {
+		...fontStyles.bold
 	}
 });
 
@@ -277,9 +280,10 @@ class SendFlow extends PureComponent {
 	};
 
 	onToSelectedAddressChange = async toSelectedAddress => {
+		const { AssetsContractController } = Engine.context;
 		const { addressBook, network, identities } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		let addressError, toAddressName, toEnsName;
+		let addressError, toAddressName, toEnsName, errorContinue, isOnlyWarning;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
@@ -299,6 +303,36 @@ class SendFlow extends PureComponent {
 				// If not in address book nor user accounts
 				addToAddressToAddressBook = true;
 			}
+
+			// Check if it's token contract address
+			try {
+				const symbol = await AssetsContractController.getAssetSymbol(toSelectedAddress);
+				if (symbol) {
+					addressError = (
+						<Text>
+							<Text>{strings('transaction.tokenContractAddressWarning_1')}</Text>
+							<Text style={styles.bold}>{strings('transaction.tokenContractAddressWarning_2')}</Text>
+							<Text>{strings('transaction.tokenContractAddressWarning_3')}</Text>
+						</Text>
+					);
+					errorContinue = true;
+				}
+			} catch (e) {
+				// Not a token address
+			}
+
+			/**
+			 * Not using this for now; Import isSmartContractAddress from utils/transaction and use this for checking smart contract: await isSmartContractAddress(toSelectedAddress);
+			 * Check if it's smart contract address
+			 */
+			/*
+			const smart = false; //
+
+			if (smart) {
+				addressError = strings('transaction.smartContractAddressWarning');
+				isOnlyWarning = true;
+			}
+			*/
 		} else if (isENS(toSelectedAddress)) {
 			toEnsName = toSelectedAddress;
 			const resolvedAddress = await doENSLookup(toSelectedAddress, network);
@@ -322,7 +356,9 @@ class SendFlow extends PureComponent {
 			addToAddressToAddressBook,
 			toSelectedAddressReady,
 			toSelectedAddressName: toAddressName,
-			toEnsName
+			toEnsName,
+			errorContinue,
+			isOnlyWarning
 		});
 	};
 
@@ -499,7 +535,9 @@ class SendFlow extends PureComponent {
 			addressError,
 			balanceIsZero,
 			toInputHighlighted,
-			inputWidth
+			inputWidth,
+			errorContinue,
+			isOnlyWarning
 		} = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
@@ -527,7 +565,12 @@ class SendFlow extends PureComponent {
 				</View>
 				{addressError && (
 					<View style={styles.addressErrorWrapper} testID={'address-error'}>
-						<ErrorMessage errorMessage={addressError} />
+						<ErrorMessage
+							errorMessage={addressError}
+							errorContinue={!!errorContinue}
+							onContinue={this.onTransactionDirectionSet}
+							isOnlyWarning={!!isOnlyWarning}
+						/>
 					</View>
 				)}
 
@@ -565,16 +608,18 @@ class SendFlow extends PureComponent {
 										/>
 									</View>
 								)}
-								<View style={styles.buttonNextWrapper}>
-									<StyledButton
-										type={'confirm'}
-										containerStyle={styles.buttonNext}
-										onPress={this.onTransactionDirectionSet}
-										testID={'address-book-next-button'}
-									>
-										{strings('address_book.next')}
-									</StyledButton>
-								</View>
+								{!errorContinue && (
+									<View style={styles.buttonNextWrapper}>
+										<StyledButton
+											type={'confirm'}
+											containerStyle={styles.buttonNext}
+											onPress={this.onTransactionDirectionSet}
+											testID={'address-book-next-button'}
+										>
+											{strings('address_book.next')}
+										</StyledButton>
+									</View>
+								)}
 							</View>
 						</View>
 					)}
