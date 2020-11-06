@@ -361,11 +361,16 @@ class ResetPassword extends PureComponent {
 			await this.recreateVault(originalPassword);
 			// Set state in app as it was with password
 			await SecureKeychain.resetGenericPassword();
-			if (this.state.biometryType && this.state.biometryChoice) {
-				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
-			} else if (this.state.rememberMe) {
-				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
+			try {
+				if (this.state.biometryType && this.state.biometryChoice) {
+					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
+				} else if (this.state.rememberMe) {
+					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
+				}
+			} catch (error) {
+				Logger.error(error);
 			}
+
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
