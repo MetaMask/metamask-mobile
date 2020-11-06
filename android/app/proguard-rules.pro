@@ -16,3 +16,9 @@
 #   public *;
 #}
 -dontwarn io.branch.**
+
+
+# react native keychain https://github.com/oblador/react-native-keychain#proguard-rules
+-keep class com.facebook.crypto.** {
+   *;
+} 
