@@ -23,6 +23,7 @@ import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
+	SEED_PHRASE_HINTS,
 	EXISTING_USER,
 	NEXT_MAKER_REMINDER,
 	BIOMETRY_CHOICE,
@@ -103,13 +104,15 @@ const styles = StyleSheet.create({
 	checkbox: {
 		width: 18,
 		height: 18,
-		margin: 10
+		margin: 10,
+		marginTop: -5
 	},
 	label: {
 		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.black,
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
+		lineHeight: 18
 	},
 	learnMore: {
 		color: colors.blue,
@@ -307,6 +310,7 @@ class ChoosePassword extends PureComponent {
 				this.props.seedphraseNotBackedUp();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
+				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			} else {
 				await this.recreateVault(password);
 			}
@@ -338,6 +342,7 @@ class ChoosePassword extends PureComponent {
 				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 			}
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
@@ -350,6 +355,7 @@ class ChoosePassword extends PureComponent {
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordUnset();
 			this.props.setLockTime(-1);
 			// Should we force people to enable passcode / biometrics?
@@ -500,6 +506,8 @@ class ChoosePassword extends PureComponent {
 		});
 	};
 
+	setConfirmPassword = val => this.setState({ confirmPassword: val });
+
 	render() {
 		const {
 			isSelected,
@@ -513,7 +521,7 @@ class ChoosePassword extends PureComponent {
 		} = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
-		const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
+		const previousScreen = this.props.navigation.getParam(PREVIOUS_SCREEN);
 		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
 		return (
@@ -588,7 +596,7 @@ class ChoosePassword extends PureComponent {
 										ref={this.confirmPasswordInput}
 										style={[styles.input, inputWidth]}
 										value={confirmPassword}
-										onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
+										onChangeText={this.setConfirmPassword}
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
 										placeholderTextColor={colors.grey100}

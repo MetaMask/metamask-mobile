@@ -19,6 +19,11 @@ exports[`SecuritySettings should render correctly 1`] = `
       }
     }
   >
+    <Heading
+      first={true}
+    >
+      Security
+    </Heading>
     <View
       style={
         Array [
@@ -42,7 +47,21 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Privacy mode
+        <WarningIcon />
+         
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 20,
+              "fontWeight": "400",
+              "lineHeight": 20,
+            }
+          }
+        >
+          Protect your wallet
+        </Text>
       </Text>
       <Text
         style={
@@ -56,27 +75,53 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Websites must request access to view your account information.
+        Protect your wallet by saving your seed phrase in various places like on a piece of paper, password manager and/or the cloud.
       </Text>
-      <View
-        style={
+      <SettingsNotification
+        isHighlighted={false}
+        isWarning={true}
+        style={Object {}}
+      >
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 12,
+                "fontWeight": "400",
+              },
+              Object {
+                "color": "#D73A49",
+              },
+              undefined,
+            ]
+          }
+        >
+          Important! Seed phrase not backed up
+        </Text>
+      </SettingsNotification>
+      <StyledButton
+        containerStyle={
           Object {
             "marginTop": 18,
           }
         }
-      >
-        <Switch
-          ios_backgroundColor="#f2f3f4"
-          onValueChange={[Function]}
-          trackColor={
-            Object {
-              "false": "#f2f3f4",
-              "true": "#037dd6",
-            }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
           }
-          value={true}
-        />
-      </View>
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="blue"
+      >
+        Back up now
+      </StyledButton>
     </View>
     <View
       style={
@@ -96,7 +141,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Participate in MetaMetrics
+        Password
       </Text>
       <Text
         style={
@@ -110,28 +155,29 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Participate in MetaMetrics to help us make MetaMask better.
+        Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your seedphrase to re-import your wallet.
       </Text>
-      <View
-        style={
+      <StyledButton
+        containerStyle={
           Object {
             "marginTop": 18,
           }
         }
-      >
-        <Switch
-          ios_backgroundColor="#f2f3f4"
-          onValueChange={[Function]}
-          testID="metametrics-switch"
-          trackColor={
-            Object {
-              "false": "#f2f3f4",
-              "true": "#037dd6",
-            }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
           }
-          value={false}
-        />
-      </View>
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        Change password
+      </StyledButton>
     </View>
     <View
       style={
@@ -139,7 +185,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
-      testID="third-party-section"
+      testID="auto-lock-section"
     >
       <Text
         style={
@@ -152,7 +198,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Get incoming transactions
+        Auto-lock
       </Text>
       <Text
         style={
@@ -166,24 +212,66 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.
+        Choose the amount of time before the application automatically locks.
       </Text>
       <View
         style={
           Object {
-            "marginTop": 18,
+            "borderColor": "#bbc0c5",
+            "borderRadius": 5,
+            "borderWidth": 2,
+            "marginTop": 16,
           }
         }
       >
-        <Switch
-          ios_backgroundColor="#f2f3f4"
+        <SelectComponent
+          label="Auto-lock"
           onValueChange={[Function]}
-          trackColor={
-            Object {
-              "false": "#f2f3f4",
-              "true": "#037dd6",
-            }
+          options={
+            Array [
+              Object {
+                "key": "0",
+                "label": "Immediately",
+                "value": "0",
+              },
+              Object {
+                "key": "5000",
+                "label": "After 5 seconds",
+                "value": "5000",
+              },
+              Object {
+                "key": "15000",
+                "label": "After 15 seconds",
+                "value": "15000",
+              },
+              Object {
+                "key": "30000",
+                "label": "After 30 seconds",
+                "value": "30000",
+              },
+              Object {
+                "key": "60000",
+                "label": "After 60 seconds",
+                "value": "60000",
+              },
+              Object {
+                "key": "300000",
+                "label": "After 5 minutes",
+                "value": "300000",
+              },
+              Object {
+                "key": "600000",
+                "label": "After 10 minutes",
+                "value": "600000",
+              },
+              Object {
+                "key": "-1",
+                "label": "Never",
+                "value": "-1",
+              },
+            ]
           }
+          selectedValue="1000"
         />
       </View>
     </View>
@@ -192,6 +280,71 @@ exports[`SecuritySettings should render correctly 1`] = `
         Object {
           "marginTop": 50,
         }
+      }
+      testID="reveal-private-key-section"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Show private key for "Account 1"
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        This is the private key for the current selected account: Account 1. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        Show private key
+      </StyledButton>
+    </View>
+    <Heading>
+      Privacy
+    </Heading>
+    <View
+      style={
+        Array [
+          Object {
+            "marginTop": 50,
+          },
+          Object {
+            "marginTop": 0,
+          },
+        ]
       }
       testID="clear-privacy-section"
     >
@@ -364,7 +517,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
-      testID="auto-lock-section"
     >
       <Text
         style={
@@ -377,7 +529,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Auto-lock
+        Privacy mode
       </Text>
       <Text
         style={
@@ -391,66 +543,25 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Choose the amount of time before the application automatically locks.
+        Websites must request access to view your account information.
       </Text>
       <View
         style={
           Object {
-            "borderColor": "#bbc0c5",
-            "borderRadius": 5,
-            "borderWidth": 2,
-            "marginTop": 16,
+            "marginTop": 18,
           }
         }
       >
-        <SelectComponent
-          label="Auto-lock"
+        <Switch
+          ios_backgroundColor="#f2f3f4"
           onValueChange={[Function]}
-          options={
-            Array [
-              Object {
-                "key": "0",
-                "label": "Immediately",
-                "value": "0",
-              },
-              Object {
-                "key": "5000",
-                "label": "After 5 seconds",
-                "value": "5000",
-              },
-              Object {
-                "key": "15000",
-                "label": "After 15 seconds",
-                "value": "15000",
-              },
-              Object {
-                "key": "30000",
-                "label": "After 30 seconds",
-                "value": "30000",
-              },
-              Object {
-                "key": "60000",
-                "label": "After 60 seconds",
-                "value": "60000",
-              },
-              Object {
-                "key": "300000",
-                "label": "After 5 minutes",
-                "value": "300000",
-              },
-              Object {
-                "key": "600000",
-                "label": "After 10 minutes",
-                "value": "600000",
-              },
-              Object {
-                "key": "-1",
-                "label": "Never",
-                "value": "-1",
-              },
-            ]
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
           }
-          selectedValue="1000"
+          value={true}
         />
       </View>
     </View>
@@ -460,7 +571,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
-      testID="reveal-private-key-section"
     >
       <Text
         style={
@@ -473,48 +583,42 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Show private key for "Account 1"
+        Participate in MetaMetrics
       </Text>
       <Text
         style={
-          Array [
-            Object {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
-            },
-            Object {
-              "color": "#D73A49",
-            },
-          ]
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
         }
       >
-        This is the private key for the current selected account: Account 1. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
+        Participate in MetaMetrics to help us make MetaMask better.
       </Text>
-      <StyledButton
-        containerStyle={
+      <View
+        style={
           Object {
             "marginTop": 18,
           }
         }
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        type="danger"
       >
-        Show private key
-      </StyledButton>
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          testID="metametrics-switch"
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+          value={false}
+        />
+      </View>
     </View>
     <View
       style={
@@ -522,6 +626,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
+      testID="third-party-section"
     >
       <Text
         style={
@@ -533,51 +638,41 @@ exports[`SecuritySettings should render correctly 1`] = `
             "lineHeight": 20,
           }
         }
-        testID="reveal-seed-title"
       >
-        Reveal seed phrase
+        Get incoming transactions
       </Text>
       <Text
         style={
-          Array [
-            Object {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
-            },
-            Object {
-              "color": "#D73A49",
-            },
-          ]
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
         }
       >
-        This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.
+        Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.
       </Text>
-      <StyledButton
-        containerStyle={
+      <View
+        style={
           Object {
             "marginTop": 18,
           }
         }
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        testID="reveal-seedphrase-button"
-        type="danger"
       >
-        Reveal seed phrase
-      </StyledButton>
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+        />
+      </View>
     </View>
     <ActionModal
       cancelButtonMode="neutral"
@@ -738,6 +833,14 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
       </View>
     </ActionModal>
+    <HintModal
+      modalVisible={false}
+      onCancel={[Function]}
+      onChangeText={[Function]}
+      onConfirm={[Function]}
+      onRequestClose={[Function]}
+      value=""
+    />
   </View>
 </ScrollViewMock>
 `;

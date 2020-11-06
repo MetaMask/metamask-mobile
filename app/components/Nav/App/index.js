@@ -1,9 +1,5 @@
-import {
-	// eslint-disable-next-line import/named
-	createAppContainer,
-	// eslint-disable-next-line import/named
-	createSwitchNavigator
-} from 'react-navigation';
+import React, { PureComponent } from 'react';
+import { createAppContainer, createSwitchNavigator, NavigationActions } from 'react-navigation';
 
 import { createStackNavigator } from 'react-navigation-stack';
 import { createDrawerNavigator } from 'react-navigation-drawer';
@@ -29,6 +25,11 @@ import DrawerView from '../../UI/DrawerView';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager';
+import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
+import Branch from 'react-native-branch';
+import AppConstants from '../../../core/AppConstants';
 
 /**
  * Stack navigator responsible for the onboarding process
@@ -161,7 +162,7 @@ HomeNav.router.getStateForAction = (action, state) => {
  * Top level switch navigator which decides
  * which top level view to show
  */
-const App = createSwitchNavigator(
+const AppNavigator = createSwitchNavigator(
 	{
 		Entry,
 		HomeNav,
@@ -175,4 +176,52 @@ const App = createSwitchNavigator(
 	}
 );
 
-export default createAppContainer(App);
+const AppContainer = createAppContainer(AppNavigator);
+
+class App extends PureComponent {
+	unsubscribeFromBranch;
+
+	componentDidMount = () => {
+		SharedDeeplinkManager.init({
+			navigate: (routeName, opts) => {
+				this.navigator.dispatch(NavigationActions.navigate({ routeName, params: opts }));
+			}
+		});
+		if (!this.unsubscribeFromBranch) {
+			this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
+		}
+	};
+
+	handleDeeplinks = async ({ error, params, uri }) => {
+		if (error) {
+			Logger.error(error, 'Deeplink: Error from Branch');
+		}
+		const deeplink = params['+non_branch_link'] || uri || null;
+		try {
+			if (deeplink) {
+				const { KeyringController } = Engine.context;
+				const isUnlocked = KeyringController.isUnlocked();
+				isUnlocked
+					? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
+					: SharedDeeplinkManager.setDeeplink(deeplink);
+			}
+		} catch (e) {
+			Logger.error(e, `Deeplink: Error parsing deeplink`);
+		}
+	};
+
+	componentWillUnmount = () => {
+		this.unsubscribeFromBranch && this.unsubscribeFromBranch();
+	};
+
+	render() {
+		return (
+			<AppContainer
+				ref={nav => {
+					this.navigator = nav;
+				}}
+			/>
+		);
+	}
+}
+export default App;

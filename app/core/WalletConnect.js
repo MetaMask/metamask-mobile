@@ -11,6 +11,7 @@ import { WALLETCONNECT_SESSIONS } from '../constants/storage';
 const hub = new EventEmitter();
 let connectors = [];
 let initialized = false;
+const tempCallIds = [];
 
 const persistSessions = async () => {
 	const sessions = connectors
@@ -25,6 +26,15 @@ const waitForInitialization = async () => {
 	while (!initialized) {
 		await new Promise(res => setTimeout(() => res(), 1000));
 		if (i++ > 5) initialized = true;
+	}
+};
+
+const waitForKeychainUnlocked = async () => {
+	let i = 0;
+	const { KeyringController } = Engine.context;
+	while (!KeyringController.isUnlocked()) {
+		await new Promise(res => setTimeout(() => res(), 1000));
+		if (i++ > 60) break;
 	}
 };
 
@@ -47,9 +57,12 @@ class WalletConnect {
 		 *  Subscribe to session requests
 		 */
 		this.walletConnector.on('session_request', async (error, payload) => {
+			Logger.log('WC session_request:', payload);
 			if (error) {
 				throw error;
 			}
+
+			await waitForKeychainUnlocked();
 
 			try {
 				const sessionData = {
@@ -57,7 +70,7 @@ class WalletConnect {
 					autosign: this.autosign
 				};
 
-				Logger.log('requesting session with', sessionData);
+				Logger.log('WC:', sessionData);
 
 				await waitForInitialization();
 				await this.sessionRequest(sessionData);
@@ -80,6 +93,11 @@ class WalletConnect {
 		 *  Subscribe to call requests
 		 */
 		this.walletConnector.on('call_request', async (error, payload) => {
+			if (tempCallIds.includes(payload.id)) return;
+			tempCallIds.push(payload.id);
+
+			await waitForKeychainUnlocked();
+
 			Logger.log('CALL_REQUEST', error, payload);
 			if (error) {
 				throw error;
@@ -215,6 +233,8 @@ class WalletConnect {
 				}
 				this.redirectIfNeeded();
 			}
+			// Clean call ids
+			tempCallIds.length = 0;
 		});
 
 		this.walletConnector.on('disconnect', error => {

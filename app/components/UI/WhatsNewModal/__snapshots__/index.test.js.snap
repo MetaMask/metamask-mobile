@@ -1,0 +1,89 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WhatsNewModal should render correctly 1`] = `
+<ActionModal
+  cancelButtonMode="neutral"
+  cancelTestID=""
+  cancelText="Cancel"
+  confirmButtonMode="warning"
+  confirmDisabled={false}
+  confirmTestID=""
+  confirmText="Confirm"
+  displayCancelButton={false}
+  displayConfirmButton={false}
+  modalVisible={false}
+  propagateSwipe={true}
+  verticalButtons={true}
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "marginTop": 24,
+        "maxHeight": 1134,
+      }
+    }
+    testID="whats-new-modal"
+  >
+    <View>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "marginBottom": 24,
+            "paddingHorizontal": 24,
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        />
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 18,
+              "fontWeight": "600",
+            }
+          }
+        >
+          See what's new
+        </Text>
+        <View
+          style={
+            Object {
+              "alignItems": "flex-end",
+              "flex": 1,
+            }
+          }
+        >
+          <TouchableOpacity
+            hitSlop={
+              Object {
+                "bottom": 10,
+                "left": 10,
+                "right": 10,
+                "top": 10,
+              }
+            }
+            onPress={[Function]}
+          >
+            <Icon
+              allowFontScaling={false}
+              name="times"
+              size={16}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </View>
+</ActionModal>
+`;
