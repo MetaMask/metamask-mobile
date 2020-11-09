@@ -15,5 +15,9 @@
 		<string>merchant.io.metamask</string>
 		<string>merchant.io.metamask-test</string>
 	</array>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.io.metamask</string>
+	</array>
 </dict>
 </plist>

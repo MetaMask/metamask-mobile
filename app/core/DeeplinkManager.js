@@ -12,9 +12,10 @@ import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
 
 class DeeplinkManager {
-	constructor(_navigation) {
+	constructor(_navigation, toggleReceiveModal) {
 		this.navigation = _navigation;
 		this.pendingDeeplink = null;
+		this.toggleReceiveModal = toggleReceiveModal;
 	}
 
 	setDeeplink = url => (this.pendingDeeplink = url);
@@ -170,6 +171,12 @@ class DeeplinkManager {
 			// For ex. go to settings
 			case 'metamask':
 				handled();
+				if (url === 'metamask://wallet') return this.navigation.navigate('WalletTabHome');
+				if (url === 'metamask://browser') return this.navigation.navigate('BrowserTabHome');
+				if (url === 'metamask://send') return this.navigation.navigate('SendFlowView');
+				if (url === 'metamask://receive') return this.toggleReceiveModal?.();
+				if (url === 'metamask://transactions') return this.navigation.navigate('TransactionsHome');
+
 				break;
 			default:
 				return false;
@@ -182,8 +189,8 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-	init: navigation => {
-		instance = new DeeplinkManager(navigation);
+	init: (navigation, toggleReceiveModal) => {
+		instance = new DeeplinkManager(navigation, toggleReceiveModal);
 	},
 	parse: (url, args) => instance.parse(url, args),
 	setDeeplink: url => instance.setDeeplink(url),

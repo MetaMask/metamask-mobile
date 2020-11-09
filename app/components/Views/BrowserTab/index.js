@@ -10,7 +10,8 @@ import {
 	Linking,
 	Keyboard,
 	BackHandler,
-	InteractionManager
+	InteractionManager,
+	NativeModules
 } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import { WebView } from 'react-native-webview';
@@ -1379,6 +1380,10 @@ export const BrowserTab = props => {
 							uri: icon.current || `https://api.faviconkit.com/${getHost(url)}/256`
 						}
 					};
+
+					const SharedStorage = NativeModules.SharedStorage;
+					SharedStorage.set(JSON.stringify({ text: props.bookmarks.map(item => item.url) }));
+
 					try {
 						SearchApi.indexSpotlightItem(item);
 					} catch (e) {

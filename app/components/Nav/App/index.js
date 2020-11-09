@@ -31,6 +31,10 @@ import Logger from '../../../util/Logger';
 import Branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 
+import { toggleReceiveModal } from '../../../actions/modals';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+
 /**
  * Stack navigator responsible for the onboarding process
  * Create Wallet, Import from Seed and Sync
@@ -182,11 +186,14 @@ class App extends PureComponent {
 	unsubscribeFromBranch;
 
 	componentDidMount = () => {
-		SharedDeeplinkManager.init({
-			navigate: (routeName, opts) => {
-				this.navigator.dispatch(NavigationActions.navigate({ routeName, params: opts }));
-			}
-		});
+		SharedDeeplinkManager.init(
+			{
+				navigate: (routeName, opts) => {
+					this.navigator.dispatch(NavigationActions.navigate({ routeName, params: opts }));
+				}
+			},
+			this.props.toggleReceiveModal
+		);
 		if (!this.unsubscribeFromBranch) {
 			this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
 		}
@@ -224,4 +231,18 @@ class App extends PureComponent {
 		);
 	}
 }
-export default App;
+
+App.propTypes = {
+	toggleReceiveModal: PropTypes.func
+};
+
+const mapStateToProps = state => ({});
+
+const mapDispatchToProps = dispatch => ({
+	toggleReceiveModal: () => dispatch(toggleReceiveModal())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(App);
