@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		width: '100%',
 		// position: 'absolute',
-		marginTop: 24
+		marginVertical: 24
 	},
 	warningTextWrapper: {
 		width: '100%',
