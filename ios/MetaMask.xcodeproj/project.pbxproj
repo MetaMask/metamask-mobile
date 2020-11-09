@@ -44,6 +44,7 @@
 		659B5A602555B8D300E4A4AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 659B5A5F2555B8D300E4A4AA /* Assets.xcassets */; };
 		659B5A642555B8D300E4A4AA /* MetaMaskWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 659B5A572555B8D000E4A4AA /* MetaMaskWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		659B5A7A2555D0B300E4A4AA /* SharedStorage.m in Sources */ = {isa = PBXBuildFile; fileRef = 659B5A792555D0B300E4A4AA /* SharedStorage.m */; };
+		65CBD31325599D0F003CC118 /* WidgetHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CBD31225599D0F003CC118 /* WidgetHelper.swift */; };
 		7C0226ABD9694AEDBAF3016F /* Roboto-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CF552F79C77A4184A690513A /* Roboto-ThinItalic.ttf */; };
 		7E08FB90F3754D47994208B4 /* Roboto-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D9A37B5BF2914CF1B49EEF80 /* Roboto-Thin.ttf */; };
 		813214A2220E40C7BBB5ED9E /* Roboto-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A783D1CD7D27456796FE2E1B /* Roboto-Bold.ttf */; };
@@ -241,6 +242,7 @@
 		659B5A712555CF1C00E4A4AA /* MetaMaskWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MetaMaskWidgetExtension.entitlements; sourceTree = "<group>"; };
 		659B5A782555D0B300E4A4AA /* SharedStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SharedStorage.h; sourceTree = "<group>"; };
 		659B5A792555D0B300E4A4AA /* SharedStorage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SharedStorage.m; sourceTree = "<group>"; };
+		65CBD31225599D0F003CC118 /* WidgetHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetHelper.swift; sourceTree = "<group>"; };
 		67FBD519E04742E0AF191782 /* EuclidCircularB-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Bold.otf"; path = "../app/fonts/EuclidCircularB-Bold.otf"; sourceTree = "<group>"; };
 		684F2C84313849199863B5FE /* Roboto-Black.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Black.ttf"; path = "../app/fonts/Roboto-Black.ttf"; sourceTree = "<group>"; };
 		7FF1597C0ACA4902B86140B2 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
@@ -333,6 +335,7 @@
 				FE3C9A2458A1416290DEDAD4 /* branch.json */,
 				659B5A782555D0B300E4A4AA /* SharedStorage.h */,
 				659B5A792555D0B300E4A4AA /* SharedStorage.m */,
+				65CBD31225599D0F003CC118 /* WidgetHelper.swift */,
 			);
 			name = MetaMask;
 			sourceTree = "<group>";
@@ -890,6 +893,7 @@
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
 				15F7796522A1BC8C00B1DF8C /* RCTAnalytics.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				65CBD31325599D0F003CC118 /* WidgetHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

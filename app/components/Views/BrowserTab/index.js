@@ -61,6 +61,8 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import { getVersion } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
 
+const SharedStorage = NativeModules.SharedStorage;
+
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
@@ -392,6 +394,14 @@ export const BrowserTab = props => {
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
+
+	useEffect(() => {
+		const bookmarks = props.bookmarks.map(item => {
+			const { hostname } = new URL(item.url);
+			return hostname.toLowerCase().replace(/^www\./, '');
+		});
+		SharedStorage.set(JSON.stringify({ bookmarks }));
+	}, [props.bookmarks]);
 
 	/**
 	 * Handle RPC methods called by dapps
@@ -1380,9 +1390,6 @@ export const BrowserTab = props => {
 							uri: icon.current || `https://api.faviconkit.com/${getHost(url)}/256`
 						}
 					};
-
-					const SharedStorage = NativeModules.SharedStorage;
-					SharedStorage.set(JSON.stringify({ text: props.bookmarks.map(item => item.url) }));
 
 					try {
 						SearchApi.indexSpotlightItem(item);

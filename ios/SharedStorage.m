@@ -7,7 +7,7 @@
 //
 
 #import "SharedStorage.h"
-
+#import "MetaMask-Swift.h"
 
 @implementation SharedStorage
 
@@ -23,6 +23,11 @@ RCT_EXPORT_METHOD(set:(NSString *)data
     NSUserDefaults *shared = [[NSUserDefaults alloc]initWithSuiteName:@"group.io.metamask"];
     [shared setObject:data forKey:@"data"];
     [shared synchronize];
+    if (@available(iOS 14.0, *)) {
+      [WidgetKitHelper reloadAllWidgets];
+    } else {
+      // Fallback on earlier versions
+    }
     resolve(@"true");
   }@catch(NSException *exception){
     reject(@"get_error",exception.reason, nil);

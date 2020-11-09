@@ -9,21 +9,21 @@
 import WidgetKit
 import SwiftUI
 
-struct BlogPost: Decodable {
+struct BookmarksJson: Decodable {
     enum Category: String, Decodable {
         case swift, combine, debugging, xcode
     }
 
-    let text: Array<String>
+    let bookmarks: Array<String>
 }
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-      SimpleEntry(date: Date(), text: ["placeholder"])
+      SimpleEntry(date: Date(), bookmarks: ["uniswap.exchange", "aave.com", "compound.finance", "1inch.exchange", "opensea.io"])
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-      let entry = SimpleEntry(date: Date(), text: ["snap"])
+      let entry = SimpleEntry(date: Date(), bookmarks: ["uniswap.exchange", "aave.com", "compound.finance", "1inch.exchange", "opensea.io"])
         completion(entry)
     }
 
@@ -31,28 +31,26 @@ struct Provider: TimelineProvider {
       let jsonString = UserDefaults(suiteName: "group.io.metamask")?.string(forKey: "data")
       let jsonData = jsonString!.data(using: .utf8)!
       
-      let blogPost: BlogPost = try! JSONDecoder().decode(BlogPost.self, from: jsonData)
-     
-      print(blogPost.text)
-      
-        var entries: [SimpleEntry] = []
+      let bookmarksJson: BookmarksJson = try! JSONDecoder().decode(BookmarksJson.self, from: jsonData)
+           
+      var entries: [SimpleEntry] = []
 
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-          let entry = SimpleEntry(date: entryDate, text: blogPost.text)
+      // Generate a timeline consisting of five entries an hour apart, starting from the current date.
+      let currentDate = Date()
+      for hourOffset in 0 ..< 5 {
+          let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
+          let entry = SimpleEntry(date: entryDate, bookmarks: bookmarksJson.bookmarks)
             entries.append(entry)
-        }
+      }
 
-        let timeline = Timeline(entries: entries, policy: .atEnd)
-        completion(timeline)
+      let timeline = Timeline(entries: entries, policy: .atEnd)
+      completion(timeline)
     }
 }
 
 struct SimpleEntry: TimelineEntry {
     let date: Date
-    let text: Array<String>
+    let bookmarks: Array<String>
 }
 
 
@@ -115,12 +113,12 @@ struct MetaMaskWidgetEntryView : View {
     
     let firstMaxNumber = widgetFamily == .systemLarge ? 9 : 3
     
-    let isMin3 = self.entry.text.count > firstMaxNumber
+    let isMin3 = self.entry.bookmarks.count > firstMaxNumber
     
-    let firstMax = self.entry.text.count > firstMaxNumber ? firstMaxNumber : self.entry.text.count
+    let firstMax = self.entry.bookmarks.count > firstMaxNumber ? firstMaxNumber : self.entry.bookmarks.count
     
     let maxNumber = widgetFamily == .systemLarge ? 18 : 6
-    let max = self.entry.text.count > maxNumber ? maxNumber : self.entry.text.count
+    let max = self.entry.bookmarks.count > maxNumber ? maxNumber : self.entry.bookmarks.count
     
     return VStack {
       header
@@ -128,7 +126,7 @@ struct MetaMaskWidgetEntryView : View {
         HStack(){
           VStack{
             ForEach(0 ..< firstMax) {
-              let url = self.entry.text[$0]
+              let url = self.entry.bookmarks[$0]
               Link(destination: URL(string: "dapp://" + url)!) {
                 VStack {
                   Text(url).font(.caption).foregroundColor(Color(.darkGray)).bold()
@@ -141,7 +139,7 @@ struct MetaMaskWidgetEntryView : View {
           if isMin3 && widgetFamily != .systemSmall{
             VStack{
               ForEach(firstMaxNumber ..< max) {
-                let url = self.entry.text[$0]
+                let url = self.entry.bookmarks[$0]
                 Link(destination: URL(string: "dapp://" + url)!) {
                   VStack {
                     Text(url).font(.caption).foregroundColor(Color(.darkGray)).bold()
@@ -179,7 +177,7 @@ struct MetaMaskWidget: Widget {
 
 struct MetaMaskWidget_Previews: PreviewProvider {
     static var previews: some View {
-      MetaMaskWidgetEntryView(entry: SimpleEntry(date: Date(), text: ["prev"] ))
+      MetaMaskWidgetEntryView(entry: SimpleEntry(date: Date(), bookmarks: ["uniswap.exchange", "aave.com", "compound.finance", "1inch.exchange", "opensea.io"] ))
             .previewContext(WidgetPreviewContext(family: .systemMedium))
     }
 }
