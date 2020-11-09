@@ -17,57 +17,22 @@ exports[`TransactionEditor should render correctly 1`] = `
     keyboardOpeningTime={250}
     viewIsInsideTabBar={false}
   >
-    <ForwardRef(AnimatedComponentWrapper)
-      onLayout={[Function]}
-      style={
-        Array [
-          Object {
-            "backgroundColor": "#FFFFFF",
-            "borderTopLeftRadius": 20,
-            "borderTopRightRadius": 20,
-            "minHeight": 200,
-            "paddingBottom": 24,
-          },
-          Object {
-            "transform": Array [
-              Object {
-                "translateY": 0,
-              },
-            ],
-          },
-        ]
-      }
+    <AnimatedTransactionModal
+      ready={false}
+      review={[Function]}
     >
-      <ForwardRef(AnimatedComponentWrapper)
-        style={
-          Array [
-            Object {
-              "transform": Array [
-                Object {
-                  "translateX": 0,
-                },
-              ],
-            },
-            Object {
-              "paddingTop": 24,
-            },
-          ]
-        }
-      >
-        <Connect(TransactionReview)
-          animate={[Function]}
-          customGasHeight={null}
-          generateTransform={[Function]}
-          hideData={true}
-          onCancel={[Function]}
-          onConfirm={[Function]}
-          onModeChange={[Function]}
-          ready={false}
-          saveTransactionReviewDataHeight={[Function]}
-          validate={[Function]}
-        />
-      </ForwardRef(AnimatedComponentWrapper)>
-    </ForwardRef(AnimatedComponentWrapper)>
+      <Connect(TransactionReview)
+        onCancel={[Function]}
+        onConfirm={[Function]}
+        ready={false}
+        validate={[Function]}
+      />
+      <Connect(CustomGas)
+        basicGasEstimates={Object {}}
+        gasError=""
+        handleGasFeeSelection={[Function]}
+      />
+    </AnimatedTransactionModal>
   </KeyboardAwareScrollViewMock>
 </Fragment>
 `;
