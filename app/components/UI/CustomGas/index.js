@@ -675,18 +675,15 @@ class CustomGas extends PureComponent {
 				{this.renderCustomGasInput()}
 				{advancedCustomGas && this.renderGasError()}
 
-				<Animated.View style={buttonStyle}>
+				<Animated.View style={Device.isIos() && buttonStyle}>
 					<StyledButton
 						disabled={
-							/*eslint-disable */
-							advancedCustomGas
-								? (!!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError) &&
-								  warningGasPrice !== strings('transaction.low_gas_price')
-								: false
-							/*eslint-enable */
+							(advancedCustomGas &&
+								(!!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError) &&
+								warningGasPrice !== strings('transaction.low_gas_price')) ||
+							false
 						}
 						type={'confirm'}
-						containerStyle={styles.buttonNext}
 						onPress={this.saveCustomGasSelection}
 						testID={'custom-gas-save-button'}
 					>
