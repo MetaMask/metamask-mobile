@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Approve should render correctly 1`] = `
-<Approve
+exports[`ApproveTransactionModal should render correctly 1`] = `
+<ApproveTransactionReview
   accounts={
     Object {
       "0x2": Object {
@@ -10,9 +10,14 @@ exports[`Approve should render correctly 1`] = `
     }
   }
   accountsLength={1}
+  activeTabUrl=""
+  conversionRate={5}
+  primaryCurrency="fiat"
+  providerType="ETH"
   setTransactionObject={[Function]}
+  showAlert={[Function]}
+  ticker="ETH"
   tokensLength={0}
   transaction={Object {}}
-  transactions={Array []}
 />
 `;
