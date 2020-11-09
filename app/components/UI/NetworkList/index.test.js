@@ -16,10 +16,7 @@ describe('NetworkList', () => {
 					NetworkController: {
 						provider: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' }
 					},
-					PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] },
-					NetworkStatusController: {
-						networkStatus: { infura: { mainnet: 'ok', ropsten: 'ok', kovan: 'ok', rinkeby: 'ok' } }
-					}
+					PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] }
 				}
 			}
 		};

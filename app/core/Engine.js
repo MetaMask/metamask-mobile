@@ -10,7 +10,6 @@ import {
 	PersonalMessageManager,
 	MessageManager,
 	NetworkController,
-	NetworkStatusController,
 	PhishingController,
 	PreferencesController,
 	TokenBalancesController,
@@ -104,7 +103,6 @@ class Engine {
 						},
 						{ network: '1', provider: { type: 'mainnet' } }
 					),
-					new NetworkStatusController(),
 					new PhishingController(),
 					new PreferencesController(
 						{},
@@ -422,7 +420,6 @@ export default {
 			KeyringController,
 			PersonalMessageManager,
 			NetworkController,
-			NetworkStatusController,
 			PreferencesController,
 			PhishingController,
 			TokenBalancesController,
@@ -441,7 +438,6 @@ export default {
 			KeyringController,
 			PersonalMessageManager,
 			NetworkController,
-			NetworkStatusController,
 			PhishingController,
 			PreferencesController,
 			TokenBalancesController,
