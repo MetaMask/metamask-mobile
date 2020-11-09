@@ -121,6 +121,7 @@ module.exports = {
 		'react/jsx-pascal-case': 2,
 		'react/jsx-wrap-multilines': 2,
 		'react/no-danger': 2,
+		'react/no-did-update-set-state': 2,
 		'react/no-find-dom-node': 2,
 		'react/no-multi-comp': [
 			2,

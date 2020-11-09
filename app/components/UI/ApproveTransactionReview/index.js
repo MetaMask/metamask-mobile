@@ -324,6 +324,7 @@ class ApproveTransactionReview extends PureComponent {
 			previousProps.transaction.gas !== this.props.transaction.gas ||
 			previousProps.transaction.gasPrice !== this.props.transaction.gasPrice
 		) {
+			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({
 				totalGas: renderFromWei(totalGas),
 				totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
