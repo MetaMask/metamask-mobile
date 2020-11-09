@@ -3,8 +3,8 @@
 exports[`TransactionReviewInformation should render correctly 1`] = `
 <Fragment>
   <TransactionReviewFeeCard
+    edit={[Function]}
     primaryCurrency="ETH"
-    toggleCustomGasModal={[Function]}
     totalGasEth="< 0.00001 ETH"
     totalGasFiat="$0"
   />

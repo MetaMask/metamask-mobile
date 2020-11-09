@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AnimatedTransactionModal should render correctly 1`] = `
+<ForwardRef(AnimatedComponentWrapper)
+  onLayout={[Function]}
+  style={
+    Array [
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderTopLeftRadius": 20,
+        "borderTopRightRadius": 20,
+        "minHeight": 200,
+        "paddingBottom": 24,
+      },
+      Object {
+        "transform": Array [
+          Object {
+            "translateY": 70,
+          },
+        ],
+      },
+      Object {
+        "height": 70,
+      },
+    ]
+  }
+/>
+`;

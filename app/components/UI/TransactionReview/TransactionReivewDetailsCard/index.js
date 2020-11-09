@@ -62,7 +62,9 @@ const styles = StyleSheet.create({
 	},
 	section: {
 		minWidth: '100%',
-		width: '100%'
+		width: '100%',
+		paddingHorizontal: 16,
+		paddingBottom: 16
 	},
 	copyIcon: {
 		marginLeft: 1,
@@ -103,65 +105,58 @@ export default class TransactionReviewDetailsCard extends Component {
 		} = this.props;
 
 		return (
-			<>
-				<View style={styles.section}>
-					<ConnectHeader
-						action={toggleViewDetails}
-						title={strings('spend_limit_edition.transaction_details')}
-					/>
-					<View style={styles.transactionDetails}>
-						<View style={styles.transactionDetailsRow}>
-							<Text style={styles.transactionDetailsTextLeft}>
-								{strings('spend_limit_edition.site_url')}
-							</Text>
-							<Text style={styles.transactionDetailsTextRight}>{host}</Text>
-						</View>
-						<View style={styles.transactionDetailsRow}>
-							<Text style={styles.transactionDetailsTextLeft}>
-								{strings('spend_limit_edition.contract_address')}
-							</Text>
-							<View style={styles.transactionDetailsTextRight}>
-								<Text style={styles.address}>{address}</Text>
-								<Feather
-									name="copy"
-									size={16}
-									color={colors.blue}
-									style={styles.copyIcon}
-									onPress={copyContractAddress}
-								/>
-							</View>
-						</View>
-						<View style={styles.transactionDetailsRow}>
-							<Text style={styles.transactionDetailsTextLeft}>
-								{strings('spend_limit_edition.allowance')}
-							</Text>
-							<Text style={styles.transactionDetailsTextRight}>
-								{allowance} {tokenSymbol}
-							</Text>
+			<View style={styles.section}>
+				<ConnectHeader action={toggleViewDetails} title={strings('spend_limit_edition.transaction_details')} />
+				<View style={styles.transactionDetails}>
+					<View style={styles.transactionDetailsRow}>
+						<Text style={styles.transactionDetailsTextLeft}>{strings('spend_limit_edition.site_url')}</Text>
+						<Text style={styles.transactionDetailsTextRight}>{host}</Text>
+					</View>
+					<View style={styles.transactionDetailsRow}>
+						<Text style={styles.transactionDetailsTextLeft}>
+							{strings('spend_limit_edition.contract_address')}
+						</Text>
+						<View style={styles.transactionDetailsTextRight}>
+							<Text style={styles.address}>{address}</Text>
+							<Feather
+								name="copy"
+								size={16}
+								color={colors.blue}
+								style={styles.copyIcon}
+								onPress={copyContractAddress}
+							/>
 						</View>
 					</View>
-					<View style={styles.viewData}>
-						<TouchableOpacity style={styles.viewDataRow} onPress={toggleViewData}>
-							<Text style={styles.viewDataTitle}>{strings('spend_limit_edition.view_data')}</Text>
-							<View style={styles.viewDataArrow}>
-								<IonicIcon
-									name={`ios-arrow-${displayViewData ? 'up' : 'down'}`}
-									size={16}
-									color={colors.grey500}
-								/>
-							</View>
-						</TouchableOpacity>
-						{displayViewData ? (
-							<>
-								<Text style={[styles.viewDataText, styles.uppercase]}>
-									{strings('spend_limit_edition.function')}: {method}
-								</Text>
-								<Text style={styles.viewDataText}>{data}</Text>
-							</>
-						) : null}
+					<View style={styles.transactionDetailsRow}>
+						<Text style={styles.transactionDetailsTextLeft}>
+							{strings('spend_limit_edition.allowance')}
+						</Text>
+						<Text style={styles.transactionDetailsTextRight}>
+							{allowance} {tokenSymbol}
+						</Text>
 					</View>
 				</View>
-			</>
+				<View style={styles.viewData}>
+					<TouchableOpacity style={styles.viewDataRow} onPress={toggleViewData}>
+						<Text style={styles.viewDataTitle}>{strings('spend_limit_edition.view_data')}</Text>
+						<View style={styles.viewDataArrow}>
+							<IonicIcon
+								name={`ios-arrow-${displayViewData ? 'up' : 'down'}`}
+								size={16}
+								color={colors.grey500}
+							/>
+						</View>
+					</TouchableOpacity>
+					{displayViewData ? (
+						<>
+							<Text style={[styles.viewDataText, styles.uppercase]}>
+								{strings('spend_limit_edition.function')}: {method}
+							</Text>
+							<Text style={styles.viewDataText}>{data}</Text>
+						</>
+					) : null}
+				</View>
+			</View>
 		);
 	}
 }
