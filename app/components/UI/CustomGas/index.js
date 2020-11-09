@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignSelf: 'center',
 		width: '100%',
-		position: 'absolute',
+		// position: 'absolute',
 		marginTop: 24
 	},
 	warningTextWrapper: {
@@ -606,12 +606,11 @@ class CustomGas extends PureComponent {
 	};
 
 	renderGasError = () => {
-		const { warningGasLimit, warningGasPrice, warningSufficientFunds, headerHeight, gasInputHeight } = this.state;
+		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
 		const { gasError } = this.props;
 		const gasErrorMessage = warningGasPrice || warningGasLimit || warningSufficientFunds || gasError;
-		const topOffset = { top: headerHeight + gasInputHeight };
 		return (
-			<View style={[styles.warningWrapper, topOffset]}>
+			<View style={styles.warningWrapper}>
 				<View style={[styles.warningTextWrapper, !gasErrorMessage ? styles.invisible : null]}>
 					<Text style={styles.warningText}>{gasErrorMessage}</Text>
 				</View>
@@ -678,10 +677,12 @@ class CustomGas extends PureComponent {
 				<Animated.View style={Device.isIos() && buttonStyle}>
 					<StyledButton
 						disabled={
-							(advancedCustomGas &&
-								(!!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError) &&
-								warningGasPrice !== strings('transaction.low_gas_price')) ||
-							false
+							/*eslint-disable */
+							advancedCustomGas
+								? (!!warningGasLimit || !!warningGasPrice || !!warningSufficientFunds || !!gasError) &&
+								  warningGasPrice !== strings('transaction.low_gas_price')
+								: false
+							/*eslint-enable */
 						}
 						type={'confirm'}
 						onPress={this.saveCustomGasSelection}
