@@ -67,6 +67,16 @@ describe('Request Token Flow', () => {
 		await TestHelpers.checkIfVisible('backup-alert');
 		// Tap on remind me later
 		await TestHelpers.tap('notification-remind-later-button');
+		// Check the box to state you understand
+		if (device.getPlatform() === 'ios') {
+			await TestHelpers.tap('skip-backup-check');
+		} else {
+			// Tap by the I understand text
+			await TestHelpers.delay(1000);
+			await TestHelpers.tap('skip-backup-text');
+		}
+		// Tap on Skip button
+		await TestHelpers.tapByText('Skip');
 	});
 
 	it('should navigate to the receive view', async () => {

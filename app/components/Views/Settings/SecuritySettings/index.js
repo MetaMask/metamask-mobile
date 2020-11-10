@@ -568,13 +568,14 @@ class Settings extends PureComponent {
 									type="blue"
 									onPress={this.goToRevealPrivateCredential}
 									containerStyle={[styles.confirm, styles.col]}
+									testID={'reveal-seed-button'}
 								>
 									{strings('reveal_credential.seed_phrase_title')}
 								</StyledButton>
 							</View>
 						)}
 					</View>
-					<View style={styles.setting}>
+					<View style={styles.setting} testID={'change-password-section'}>
 						<Text style={styles.title}>{strings('password_reset.password_title')}</Text>
 						<Text style={styles.desc}>{strings('password_reset.password_desc')}</Text>
 						<StyledButton type="normal" onPress={this.resetPassword} containerStyle={styles.confirm}>
@@ -665,7 +666,7 @@ class Settings extends PureComponent {
 							{strings('app_settings.clear_browser_history_desc')}
 						</StyledButton>
 					</View>
-					<View style={styles.setting}>
+					<View style={styles.setting} testID={'clear-cookies-section'}>
 						<Text style={styles.title}>{strings('app_settings.clear_browser_cookies_desc')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.clear_cookies_desc')}</Text>
 						<StyledButton
@@ -676,7 +677,7 @@ class Settings extends PureComponent {
 							{strings('app_settings.clear_browser_cookies_desc')}
 						</StyledButton>
 					</View>
-					<View style={styles.setting}>
+					<View style={styles.setting} testID={'privacy-mode-section'}>
 						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.privacy_mode_desc')}</Text>
 						<View style={styles.switchElement}>
@@ -688,7 +689,7 @@ class Settings extends PureComponent {
 							/>
 						</View>
 					</View>
-					<View style={styles.setting}>
+					<View style={styles.setting} testID={'metametrics-section'}>
 						<Text style={styles.title}>{strings('app_settings.metametrics_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.metametrics_description')}</Text>
 						<View style={styles.switchElement}>
