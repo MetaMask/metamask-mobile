@@ -3,6 +3,7 @@
 ## Current Develop Branch
 
 ## v1.0.6 - Nov 9 2020
+- [#1973](https://github.com/MetaMask/metamask-mobile/pull/1973): Detox: Updated onboarding flows (#1973)
 - [#1780](https://github.com/MetaMask/metamask-mobile/pull/1780): Improvement/update keychain lib (#1780)
 - [#1916](https://github.com/MetaMask/metamask-mobile/pull/1916): Fix QR send (#1916)
 - [#1877](https://github.com/MetaMask/metamask-mobile/pull/1877): Bugfix/deeplink, request modals and wallet connect (#1877)

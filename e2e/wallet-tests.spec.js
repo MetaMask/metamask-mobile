@@ -37,6 +37,10 @@ describe('Wallet Tests', () => {
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, CORRECT_PASSWORD);
 		// Input password confirm
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, CORRECT_PASSWORD);
+		// Check that we are on the congrats screen
+		await TestHelpers.checkIfVisible('import-congrats-screen');
+		// Tap on done CTA
+		await TestHelpers.tap('manual-backup-step-3-done-button');
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
