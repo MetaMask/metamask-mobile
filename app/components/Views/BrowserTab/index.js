@@ -395,7 +395,7 @@ export const BrowserTab = props => {
 	/**
 	 * Handle RPC methods called by dapps
 	 */
-	const getRpcMethodMiddleware = ({ hostname }) =>
+	const getRpcMethodMiddleware = ({ hostname, getProviderState }) =>
 		// all user facing RPC calls not implemented by the provider
 		createAsyncMiddleware(async (req, res, next) => {
 			const getAccounts = async () => {
@@ -668,6 +668,9 @@ export const BrowserTab = props => {
 					}, 1500);
 
 					res.result = true;
+				},
+				wallet_getProviderState: async () => {
+					res.result = getProviderState();
 				}
 			};
 
@@ -688,7 +691,7 @@ export const BrowserTab = props => {
 	};
 
 	/**
-	 * Disabling iframes for now
+	 * Disabling iframes for now´
 	const onFrameLoadStarted = url => {
 		url && initializeBackgroundBridge(url, false);
 	};
