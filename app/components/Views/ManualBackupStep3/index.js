@@ -175,7 +175,7 @@ class ManualBackupStep3 extends PureComponent {
 					showCancelButton={false}
 					confirmButtonMode={'confirm'}
 				>
-					<View style={styles.wrapper}>
+					<View style={styles.wrapper} testID={'import-congrats-screen'}>
 						<Emoji name="tada" style={styles.emoji} />
 						<Text style={styles.congratulations}>{strings('manual_backup_step_3.congratulations')}</Text>
 						<Text style={[styles.baseText, styles.successText]}>
