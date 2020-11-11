@@ -60,7 +60,6 @@ import AccountApproval from '../../UI/AccountApproval';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
-import WhatsNewModal from '../../UI/WhatsNewModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 
 const styles = StyleSheet.create({
@@ -727,7 +726,6 @@ const Main = props => {
 					toggleSkipCheckbox={toggleSkipCheckbox}
 				/>
 				<ProtectYourWalletModal navigation={props.navigation} />
-				<WhatsNewModal navigation={props.navigation} />
 			</View>
 			{renderSigningModal()}
 			{renderWalletConnectSessionRequestModal()}
