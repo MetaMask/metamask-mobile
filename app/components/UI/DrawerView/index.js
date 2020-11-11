@@ -34,7 +34,11 @@ import EthereumAddress from '../EthereumAddress';
 import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { protectWalletModalVisible } from '../../../actions/user';
+import {
+	protectWalletModalVisible,
+	requiredProtectWalletModalNotVisible,
+	requiredProtectWalletModalVisible
+} from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 
@@ -375,11 +379,10 @@ class DrawerView extends PureComponent {
 		/**
 		 * Prompts protect wallet modal
 		 */
-		protectWalletModalVisible: PropTypes.func
-	};
-
-	state = {
-		showProtectWalletModal: false
+		protectWalletModalVisible: PropTypes.func,
+		requiredProtectWalletModal: PropTypes.bool,
+		requiredProtectWalletModalVisible: PropTypes.func,
+		requiredProtectWalletModalNotVisible: PropTypes.func
 	};
 
 	browserSectionRef = React.createRef();
@@ -409,7 +412,7 @@ class DrawerView extends PureComponent {
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
 			if (['SetPasswordFlow', 'Webview'].includes(route)) {
 				// eslint-disable-next-line react/no-did-update-set-state
-				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
+				this.props.requiredProtectWalletModal && this.props.requiredProtectWalletModalNotVisible();
 				return;
 			}
 			let tokenFound = false;
@@ -421,7 +424,7 @@ class DrawerView extends PureComponent {
 			});
 			if (!this.props.passwordSet || this.currentBalance > 0 || tokenFound || this.props.collectibles.length > 0)
 				// eslint-disable-next-line react/no-did-update-set-state
-				this.setState({ showProtectWalletModal: true });
+				this.props.requiredProtectWalletModalVisible();
 		}
 		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
 		const { KeyringController } = Engine.context;
@@ -811,13 +814,13 @@ class DrawerView extends PureComponent {
 	};
 
 	onSecureWalletModalAction = () => {
-		this.setState({ showProtectWalletModal: false });
+		this.props.requiredProtectWalletModalNotVisible();
 		this.props.navigation.navigate(this.props.passwordSet ? 'AccountBackupStep1' : 'SetPasswordFlow');
 	};
 
 	renderProtectModal = () => (
 		<Modal
-			isVisible={this.state.showProtectWalletModal}
+			isVisible={this.props.requiredProtectWalletModal}
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
@@ -1070,7 +1073,8 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	seedphraseBackedUp: state.user.seedphraseBackedUp
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	requiredProtectWalletModal: state.user.requiredProtectWalletModal
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -1079,7 +1083,9 @@ const mapDispatchToProps = dispatch => ({
 	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
 	showAlert: config => dispatch(showAlert(config)),
 	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset)),
-	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
+	requiredProtectWalletModalVisible: () => dispatch(requiredProtectWalletModalVisible()),
+	requiredProtectWalletModalNotVisible: () => dispatch(requiredProtectWalletModalNotVisible())
 });
 
 export default connect(

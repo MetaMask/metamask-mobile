@@ -10,6 +10,8 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { CURRENT_APP_VERSION, LAST_APP_VERSION, WHATS_NEW_APP_VERSION_SEEN } from '../../../constants/storage';
 import compareVersions from 'compare-versions';
 import scaling from '../../../util/scaling';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -123,7 +125,9 @@ const WhatsNewModal = props => {
 
 				showFeatures = [...showFeatures, ...feature.features];
 			});
-			if (showFeatures.length) setFeaturesToShow(showFeatures);
+			if (showFeatures.length) {
+				setTimeout(() => setFeaturesToShow(showFeatures), 2000);
+			}
 		};
 		shouldShow();
 	}, []);
@@ -138,9 +142,10 @@ const WhatsNewModal = props => {
 		closeModal();
 		feature.buttonPress && feature.buttonPress(props);
 	};
+
 	return (
 		<ActionModal
-			modalVisible={!!featuresToShow}
+			modalVisible={!!featuresToShow && !props.requiredProtectWalletModal}
 			displayCancelButton={false}
 			displayConfirmButton={false}
 			verticalButtons
@@ -196,4 +201,17 @@ const WhatsNewModal = props => {
 	);
 };
 
-export default WhatsNewModal;
+WhatsNewModal.propTypes = {
+	requiredProtectWalletModal: PropTypes.bool
+};
+
+const mapStateToProps = state => ({
+	requiredProtectWalletModal: state.user.requiredProtectWalletModal
+});
+
+const mapDispatchToProps = dispatch => ({});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(WhatsNewModal);

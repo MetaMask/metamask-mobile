@@ -45,3 +45,15 @@ export function protectWalletModalNotVisible() {
 		type: 'PROTECT_MODAL_NOT_VISIBLE'
 	};
 }
+
+export function requiredProtectWalletModalVisible() {
+	return {
+		type: 'REQUIRED_PROTECT_WALLET_MODAL_VISIBLE'
+	};
+}
+
+export function requiredProtectWalletModalNotVisible() {
+	return {
+		type: 'REQUIRED_PROTECT_WALLET_MODAL_NOT_VISIBLE'
+	};
+}

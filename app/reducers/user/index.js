@@ -4,7 +4,8 @@ const initialState = {
 	passwordSet: false,
 	seedphraseBackedUp: false,
 	backUpSeedphraseVisible: false,
-	protectWalletModalVisible: false
+	protectWalletModalVisible: false,
+	showProtectWalletModal: false
 };
 
 const userReducer = (state = initialState, action) => {
@@ -58,6 +59,16 @@ const userReducer = (state = initialState, action) => {
 			return {
 				...state,
 				protectWalletModalVisible: false
+			};
+		case 'REQUIRED_PROTECT_WALLET_MODAL_VISIBLE':
+			return {
+				...state,
+				requiredProtectWalletModal: true
+			};
+		case 'REQUIRED_PROTECT_WALLET_MODAL_NOT_VISIBLE':
+			return {
+				...state,
+				requiredProtectWalletModal: false
 			};
 		default:
 			return state;
