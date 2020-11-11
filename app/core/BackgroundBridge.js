@@ -55,6 +55,8 @@ export class BackgroundBridge extends EventEmitter {
 
 		this.engine = null;
 
+		this.chainIdSent = null;
+
 		const portStream = new MobilePortStream(this.port, url);
 		// setup multiplexing
 		const mux = setupMultiplex(portStream);
@@ -99,6 +101,10 @@ export class BackgroundBridge extends EventEmitter {
 			memState = this.getState();
 		}
 		const publicState = this.getProviderNetworkState(memState);
+
+		// Check if update already sent
+		if (this.chainIdSent === publicState.chainId) return;
+		this.chainIdSent = publicState.chainId;
 
 		this.sendNotification({
 			method: NOTIFICATION_NAMES.chainChanged,
