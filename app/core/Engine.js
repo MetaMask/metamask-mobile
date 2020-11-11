@@ -19,6 +19,8 @@ import {
 	TypedMessageManager
 } from '@metamask/controllers';
 
+import { SwapsController } from '@estebanmino/controllers';
+
 import AsyncStorage from '@react-native-community/async-storage';
 
 import Encryptor from './Encryptor';
@@ -115,7 +117,8 @@ class Engine {
 					new TokenBalancesController(),
 					new TokenRatesController(),
 					new TransactionController(),
-					new TypedMessageManager()
+					new TypedMessageManager(),
+					new SwapsController()
 				],
 				initialState
 			);
@@ -428,7 +431,8 @@ export default {
 			TokenBalancesController,
 			TokenRatesController,
 			TransactionController,
-			TypedMessageManager
+			TypedMessageManager,
+			SwapsController
 		} = instance.datamodel.state;
 
 		return {
@@ -447,7 +451,8 @@ export default {
 			TokenBalancesController,
 			TokenRatesController,
 			TransactionController,
-			TypedMessageManager
+			TypedMessageManager,
+			SwapsController
 		};
 	},
 	get datamodel() {

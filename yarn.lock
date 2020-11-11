@@ -735,6 +735,35 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
+"@estebanmino/controllers@3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.2.2.tgz#83de106525957f0cce345e3beb65046d4a47d7cd"
+  integrity sha512-HG6EqiJjf2Yj9t1bD1pEENOlUF8ixLd80UX7+maVXp/lwTYCTkAJ92RHxPZ7gtXoZ0po9OrbV/9ZB4qwpuaHyg==
+  dependencies:
+    await-semaphore "^0.1.3"
+    bignumber.js "^9.0.1"
+    eth-contract-metadata "^1.11.0"
+    eth-ens-namehash "^2.0.8"
+    eth-json-rpc-infura "^5.1.0"
+    eth-keyring-controller "^5.6.1"
+    eth-method-registry "1.1.0"
+    eth-phishing-detect "^1.1.13"
+    eth-query "^2.1.2"
+    eth-rpc-errors "^3.0.0"
+    eth-sig-util "^2.3.0"
+    ethereumjs-util "^6.1.0"
+    ethereumjs-wallet "0.6.0"
+    ethjs-query "^0.3.8"
+    human-standard-collectible-abi "^1.0.2"
+    human-standard-token-abi "^2.0.0"
+    isomorphic-fetch "^3.0.0"
+    jsonschema "^1.2.4"
+    percentile "^1.2.1"
+    single-call-balance-checker-abi "^1.0.0"
+    uuid "^3.3.2"
+    web3 "^0.20.7"
+    web3-provider-engine "^16.0.1"
+
 "@ethersproject/abi@^5.0.5":
   version "5.0.5"
   resolved "https://registry.yarnpkg.com/@ethersproject/abi/-/abi-5.0.5.tgz#6e7bbf9d014791334233ba18da85331327354aa1"
@@ -1336,34 +1365,6 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
-
-"@metamask/controllers-swaps@git+https://github.com/MetaMask/controllers.git#7ed8623bb41318499041bc1da122f6104c2f89e1":
-  version "3.2.0"
-  resolved "git+https://github.com/MetaMask/controllers.git#7ed8623bb41318499041bc1da122f6104c2f89e1"
-  dependencies:
-    await-semaphore "^0.1.3"
-    bignumber.js "^9.0.1"
-    eth-contract-metadata "^1.11.0"
-    eth-ens-namehash "^2.0.8"
-    eth-json-rpc-infura "^5.1.0"
-    eth-keyring-controller "^5.6.1"
-    eth-method-registry "1.1.0"
-    eth-phishing-detect "^1.1.13"
-    eth-query "^2.1.2"
-    eth-rpc-errors "^3.0.0"
-    eth-sig-util "^2.3.0"
-    ethereumjs-util "^6.1.0"
-    ethereumjs-wallet "0.6.0"
-    ethjs-query "^0.3.8"
-    human-standard-collectible-abi "^1.0.2"
-    human-standard-token-abi "^2.0.0"
-    isomorphic-fetch "^3.0.0"
-    jsonschema "^1.2.4"
-    percentile "^1.2.1"
-    single-call-balance-checker-abi "^1.0.0"
-    uuid "^3.3.2"
-    web3 "^0.20.7"
-    web3-provider-engine "^16.0.1"
 
 "@metamask/controllers@3.2.0":
   version "3.2.0"

@@ -82,6 +82,10 @@ function initalizeEngine(state = {}) {
 	Engine.context.TypedMessageManager.subscribe(() => {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TypedMessageManager' });
 	});
+
+	Engine.context.SwapsController.subscribe(() => {
+		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'SwapsController' });
+	});
 }
 
 const engineReducer = (state = initialState, action) => {
