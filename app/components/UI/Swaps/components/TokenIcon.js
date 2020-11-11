@@ -39,12 +39,7 @@ const styles = StyleSheet.create({
 
 const EmptyIcon = ({ medium, ...props }) => (
 	<View
-		style={[
-			styles.icon,
-			props.medium && styles.iconMedium,
-			styles.emptyIcon,
-			props.medium && styles.emptyIconMedium
-		]}
+		style={[styles.icon, medium && styles.iconMedium, styles.emptyIcon, medium && styles.emptyIconMedium]}
 		{...props}
 	/>
 );

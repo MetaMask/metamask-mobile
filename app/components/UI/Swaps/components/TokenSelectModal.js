@@ -61,7 +61,7 @@ function TokenSelectModal({ isVisible, dismiss, title, tokens, onItemPress, excl
 	const searchInput = useRef(null);
 	const [searchString, setSearchString] = useState('');
 
-	const filteredTokens = useMemo(() => tokens.filter(token => !exclude.includes(token.symbol)), [tokens, exclude]);
+	const filteredTokens = useMemo(() => tokens?.filter(token => !exclude.includes(token.symbol)), [tokens, exclude]);
 	const tokenFuse = useMemo(
 		() =>
 			new Fuse(filteredTokens, {
@@ -76,7 +76,7 @@ function TokenSelectModal({ isVisible, dismiss, title, tokens, onItemPress, excl
 		[filteredTokens]
 	);
 	const tokenSearchResults = useMemo(
-		() => (searchString.length > 0 ? tokenFuse.search(searchString) : filteredTokens).slice(0, 5),
+		() => (searchString.length > 0 ? tokenFuse.search(searchString) : filteredTokens)?.slice(0, 5),
 		[searchString, tokenFuse, filteredTokens]
 	);
 
