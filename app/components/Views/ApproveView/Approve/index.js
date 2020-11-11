@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Alert, InteractionManager } from 'react-native';
+import { StyleSheet, Alert, InteractionManager, AppState } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -91,12 +91,22 @@ class Approve extends PureComponent {
 
 	componentDidMount = () => {
 		this.handleFetchBasicEstimates();
+		AppState.addEventListener('change', this.handleAppStateChange);
 	};
 
 	componentWillUnmount = () => {
 		const { approved } = this.state;
 		const { transaction } = this.props;
+		AppState.removeEventListener('change', this.handleAppStateChange);
 		if (!approved) Engine.context.TransactionController.cancelTransaction(transaction.id);
+	};
+
+	handleAppStateChange = appState => {
+		if (appState !== 'active') {
+			const { transaction } = this.props;
+			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
+			this.props.toggleApproveModal(false);
+		}
 	};
 
 	handleFetchBasicEstimates = async () => {
