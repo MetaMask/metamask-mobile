@@ -432,6 +432,9 @@ class DrawerView extends PureComponent {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({ showProtectWalletModal: false });
 			}
+		} else {
+			// eslint-disable-next-line react/no-did-update-set-state
+			this.setState({ showProtectWalletModal: false });
 		}
 		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
 		const { KeyringController } = Engine.context;
