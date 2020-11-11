@@ -300,7 +300,7 @@ class ApproveTransactionReview extends PureComponent {
 		}
 		const [spenderAddress, , originalApproveAmount] = decodeTransferData('transfer', data);
 		const approveAmount = fromTokenMinimalUnit(hexToBN(originalApproveAmount), tokenDecimals);
-		const totalGas = gas && gas.mul(gasPrice);
+		const totalGas = gas?.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
 		this.setState({
@@ -319,7 +319,7 @@ class ApproveTransactionReview extends PureComponent {
 			transaction: { gas, gasPrice },
 			conversionRate
 		} = this.props;
-		const totalGas = gas && gas.mul(gasPrice);
+		const totalGas = gas?.mul(gasPrice);
 		if (
 			previousProps.transaction.gas !== this.props.transaction.gas ||
 			previousProps.transaction.gasPrice !== this.props.transaction.gasPrice
