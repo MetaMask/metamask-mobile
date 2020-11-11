@@ -202,7 +202,7 @@ class Approve extends PureComponent {
 
 	onCancel = () => {
 		this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_CANCEL);
-		this.props.toggleApproveModal();
+		this.props.toggleApproveModal(false);
 	};
 
 	review = () => {
