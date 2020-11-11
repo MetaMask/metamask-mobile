@@ -10,30 +10,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
     }
   }
 >
-  <View
-    style={
-      Object {
-        "alignItems": "center",
-        "borderBottomWidth": 0.5,
-        "borderColor": "#d6d9dc",
-        "height": 33,
-        "justifyContent": "center",
-        "width": "100%",
-      }
-    }
-  >
-    <View
-      style={
-        Object {
-          "backgroundColor": "#848c96",
-          "borderRadius": 4,
-          "height": 5,
-          "opacity": 0.5,
-          "width": 48,
-        }
-      }
-    />
-  </View>
+  <ModalDragger />
   <View
     style={
       Object {
