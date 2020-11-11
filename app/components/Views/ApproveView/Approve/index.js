@@ -90,6 +90,10 @@ class Approve extends PureComponent {
 	};
 
 	componentDidMount = () => {
+		if (!this.props?.transaction?.id) {
+			this.props.toggleApproveModal(false);
+			return null;
+		}
 		this.handleFetchBasicEstimates();
 		AppState.addEventListener('change', this.handleAppStateChange);
 	};
@@ -221,7 +225,7 @@ class Approve extends PureComponent {
 	render = () => {
 		const { gasError, basicGasEstimates, mode, ready } = this.state;
 		const { transaction } = this.props;
-
+		if (!transaction.id) return null;
 		return (
 			<Modal
 				isVisible={this.props.modalVisible}
