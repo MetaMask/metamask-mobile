@@ -2,7 +2,7 @@
 
 ## Current Develop Branch
 
-## v1.0.6 - Nov 9 2020]
+## v1.0.6 - Nov 11 2020]
 - [#1982](https://github.com/MetaMask/metamask-mobile/pull/1982): Bugfix/approve modal (#1982)
 - [#1983](https://github.com/MetaMask/metamask-mobile/pull/1983): Fix whats new modal (#1983)
 - [#1978](https://github.com/MetaMask/metamask-mobile/pull/1978): Make hintText display regardless of biometryType (#1978)
