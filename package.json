@@ -72,7 +72,7 @@
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/controllers": "3.2.0",
-    "@metamask/controllers-swaps": "git+https://github.com/MetaMask/controllers.git#7ed8623bb41318499041bc1da122f6104c2f89e1",
+    "@estebanmino/controllers": "3.2.2",
     "@react-native-community/async-storage": "1.9.0",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
