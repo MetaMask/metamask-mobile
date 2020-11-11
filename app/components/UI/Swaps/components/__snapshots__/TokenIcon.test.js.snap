@@ -1,0 +1,161 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenIcon component should Render correctly 1`] = `<EmptyIcon />`;
+
+exports[`TokenIcon component should Render correctly 2`] = `
+<RemoteImage
+  fadeIn={true}
+  source={
+    Object {
+      "testUri": "../../../app/images/eth-logo.png",
+    }
+  }
+  style={
+    Array [
+      Object {
+        "height": 24,
+        "width": 24,
+      },
+      undefined,
+    ]
+  }
+/>
+`;
+
+exports[`TokenIcon component should Render correctly 3`] = `
+<EmptyIcon>
+  <Text
+    bold={false}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    primary={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Array [
+        Object {
+          "fontSize": 16,
+          "textAlign": "center",
+          "textAlignVertical": "center",
+        },
+        undefined,
+      ]
+    }
+    upper={false}
+  >
+    C
+  </Text>
+</EmptyIcon>
+`;
+
+exports[`TokenIcon component should Render correctly 4`] = `
+<RemoteImage
+  fadeIn={true}
+  source={
+    Object {
+      "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
+    }
+  }
+  style={
+    Array [
+      Object {
+        "height": 24,
+        "width": 24,
+      },
+      undefined,
+    ]
+  }
+/>
+`;
+
+exports[`TokenIcon component should Render correctly 5`] = `
+<EmptyIcon
+  medium={true}
+/>
+`;
+
+exports[`TokenIcon component should Render correctly 6`] = `
+<RemoteImage
+  fadeIn={true}
+  source={
+    Object {
+      "testUri": "../../../app/images/eth-logo.png",
+    }
+  }
+  style={
+    Array [
+      Object {
+        "height": 24,
+        "width": 24,
+      },
+      Object {
+        "height": 36,
+        "width": 36,
+      },
+    ]
+  }
+/>
+`;
+
+exports[`TokenIcon component should Render correctly 7`] = `
+<EmptyIcon
+  medium={true}
+>
+  <Text
+    bold={false}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    primary={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Array [
+        Object {
+          "fontSize": 16,
+          "textAlign": "center",
+          "textAlignVertical": "center",
+        },
+        Object {
+          "fontSize": 22,
+        },
+      ]
+    }
+    upper={false}
+  >
+    C
+  </Text>
+</EmptyIcon>
+`;
+
+exports[`TokenIcon component should Render correctly 8`] = `
+<RemoteImage
+  fadeIn={true}
+  source={
+    Object {
+      "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
+    }
+  }
+  style={
+    Array [
+      Object {
+        "height": 24,
+        "width": 24,
+      },
+      Object {
+        "height": 36,
+        "width": 36,
+      },
+    ]
+  }
+/>
+`;

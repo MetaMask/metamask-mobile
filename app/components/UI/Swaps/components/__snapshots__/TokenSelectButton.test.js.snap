@@ -15,7 +15,15 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
       }
     }
   >
-    <EmptyIcon />
+    <View
+      style={
+        Object {
+          "marginRight": 8,
+        }
+      }
+    >
+      <TokenIcon />
+    </View>
     <Text
       bold={false}
       centered={false}
@@ -64,21 +72,17 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
       }
     }
   >
-    <RemoteImage
-      fadeIn={true}
-      source={
-        Object {
-          "testUri": "../../../app/images/eth-logo.png",
-        }
-      }
+    <View
       style={
         Object {
-          "height": 24,
           "marginRight": 8,
-          "width": 24,
         }
       }
-    />
+    >
+      <TokenIcon
+        symbol="ETH"
+      />
+    </View>
     <Text
       bold={false}
       centered={false}
@@ -127,31 +131,17 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
       }
     }
   >
-    <EmptyIcon>
-      <Text
-        bold={false}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        primary={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        style={
-          Object {
-            "fontSize": 16,
-            "textAlign": "center",
-            "textAlignVertical": "center",
-          }
+    <View
+      style={
+        Object {
+          "marginRight": 8,
         }
-        upper={false}
-      >
-        C
-      </Text>
-    </EmptyIcon>
+      }
+    >
+      <TokenIcon
+        symbol="cDAI"
+      />
+    </View>
     <Text
       bold={false}
       centered={false}
@@ -200,21 +190,18 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
       }
     }
   >
-    <RemoteImage
-      fadeIn={true}
-      source={
-        Object {
-          "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
-        }
-      }
+    <View
       style={
         Object {
-          "height": 24,
           "marginRight": 8,
-          "width": 24,
         }
       }
-    />
+    >
+      <TokenIcon
+        icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+        symbol="DAI"
+      />
+    </View>
     <Text
       bold={false}
       centered={false}
@@ -265,21 +252,18 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
       }
     }
   >
-    <RemoteImage
-      fadeIn={true}
-      source={
-        Object {
-          "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
-        }
-      }
+    <View
       style={
         Object {
-          "height": 24,
           "marginRight": 8,
-          "width": 24,
         }
       }
-    />
+    >
+      <TokenIcon
+        icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+        symbol="DAI"
+      />
+    </View>
     <Text
       bold={false}
       centered={false}
