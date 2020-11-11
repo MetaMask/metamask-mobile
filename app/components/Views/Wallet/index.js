@@ -90,7 +90,10 @@ class Wallet extends PureComponent {
 		/**
 		 * Current onboarding wizard step
 		 */
-		wizardStep: PropTypes.number
+		wizardStep: PropTypes.number,
+
+		// remove this
+		swapsTokens: PropTypes.array
 	};
 
 	state = {
@@ -112,6 +115,11 @@ class Wallet extends PureComponent {
 	};
 
 	onRefresh = async () => {
+		const { SwapsController } = Engine.context;
+		// remove this
+		SwapsController.fetchTokenWithCache();
+		console.log('swapsTokens', this.props.swapsTokens);
+
 		requestAnimationFrame(async () => {
 			this.setState({ refreshing: true });
 			const {
@@ -258,6 +266,8 @@ const mapStateToProps = state => ({
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+	tokensLastFetched: state.engine.backgroundState.SwapsController.tokensLastFetched,
 	wizardStep: state.wizard.step
 });
 
