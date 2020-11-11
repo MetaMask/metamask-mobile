@@ -125,8 +125,9 @@ const WhatsNewModal = props => {
 
 				showFeatures = [...showFeatures, ...feature.features];
 			});
+
 			if (showFeatures.length) {
-				setTimeout(() => setFeaturesToShow(showFeatures), 2000);
+				setFeaturesToShow(showFeatures);
 			}
 		};
 		shouldShow();

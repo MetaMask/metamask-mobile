@@ -160,8 +160,16 @@ const Entry = props => {
 				}
 
 				const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
-				// Setting last version to first version if user exists and lastVersion does not to simulate update
-				if (!lastVersion && existingUser) await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+
+				if (!lastVersion) {
+					if (existingUser) {
+						// Setting last version to first version if user exists and lastVersion does not, to simulate update
+						await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+					} else {
+						// Setting last version to current version so that it's not treated as an update
+						await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
+					}
+				}
 			} catch (error) {
 				Logger.error(error);
 			}
