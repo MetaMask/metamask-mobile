@@ -35,6 +35,7 @@ import TransactionReviewDetailsCard from '../../UI/TransactionReview/Transaction
 import StyledButton from '../../UI/StyledButton';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -275,6 +276,7 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	customSpendLimitInput = React.createRef();
+	originIsWalletConnect = this.props.transaction.origin?.includes(WALLET_CONNECT_ORIGIN);
 
 	componentDidMount = async () => {
 		const {
@@ -282,7 +284,7 @@ class ApproveTransactionReview extends PureComponent {
 			conversionRate
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
-		const host = getHost(origin);
+		const host = getHost(this.originIsWalletConnect ? origin.split(WALLET_CONNECT_ORIGIN)[1] : origin);
 		let tokenSymbol, tokenDecimals;
 		const contract = contractMap[safeToChecksumAddress(to)];
 		if (!contract) {
@@ -300,7 +302,7 @@ class ApproveTransactionReview extends PureComponent {
 		}
 		const [spenderAddress, , originalApproveAmount] = decodeTransferData('transfer', data);
 		const approveAmount = fromTokenMinimalUnit(hexToBN(originalApproveAmount), tokenDecimals);
-		const totalGas = gas.mul(gasPrice);
+		const totalGas = gas?.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
 		this.setState({
@@ -319,7 +321,7 @@ class ApproveTransactionReview extends PureComponent {
 			transaction: { gas, gasPrice },
 			conversionRate
 		} = this.props;
-		const totalGas = gas.mul(gasPrice);
+		const totalGas = gas?.mul(gasPrice);
 		if (
 			previousProps.transaction.gas !== this.props.transaction.gas ||
 			previousProps.transaction.gasPrice !== this.props.transaction.gasPrice
@@ -510,7 +512,7 @@ class ApproveTransactionReview extends PureComponent {
 	renderTransactionReview = () => {
 		const { host, method, viewData, tokenSymbol } = this.state;
 		const {
-			transaction: { to, data, origin }
+			transaction: { to, data }
 		} = this.props;
 		const amount = decodeTransferData('transfer', data)[1];
 
@@ -520,7 +522,7 @@ class ApproveTransactionReview extends PureComponent {
 				toggleViewData={this.toggleViewData}
 				copyContractAddress={this.copyContractAddress}
 				address={renderShortAddress(to)}
-				host={origin || host}
+				host={host}
 				allowance={amount}
 				tokenSymbol={tokenSymbol}
 				data={data}
