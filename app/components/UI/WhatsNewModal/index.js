@@ -143,9 +143,21 @@ const WhatsNewModal = props => {
 		feature.buttonPress && feature.buttonPress(props);
 	};
 
+	const findRouteNameFromNavigatorState = ({ routes }) => {
+		let route = routes[routes.length - 1];
+		while (route.index !== undefined) {
+			route = route.routes[route.index];
+		}
+		return route.routeName;
+	};
+
+	// Show only when Wallet view
+	const route = findRouteNameFromNavigatorState(props.navigation.state);
+	const onWallet = route === 'WalletView';
+
 	return (
 		<ActionModal
-			modalVisible={!!featuresToShow && !props.requiredProtectWalletModal}
+			modalVisible={onWallet && !!featuresToShow && !props.requiredProtectWalletModal}
 			displayCancelButton={false}
 			displayConfirmButton={false}
 			verticalButtons
@@ -202,6 +214,13 @@ const WhatsNewModal = props => {
 };
 
 WhatsNewModal.propTypes = {
+	/**
+	 * navigation object required to push new views
+	 */
+	navigation: PropTypes.object,
+	/**
+	 * Protect your wallet modal is showing
+	 */
 	requiredProtectWalletModal: PropTypes.bool
 };
 

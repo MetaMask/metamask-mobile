@@ -380,8 +380,17 @@ class DrawerView extends PureComponent {
 		 * Prompts protect wallet modal
 		 */
 		protectWalletModalVisible: PropTypes.func,
+		/**
+		 * Required protect your wallet modal is showing
+		 */
 		requiredProtectWalletModal: PropTypes.bool,
+		/**
+		 * Show required protect your wallet modal
+		 */
 		requiredProtectWalletModalVisible: PropTypes.func,
+		/**
+		 * Hide required protect your wallet modal
+		 */
 		requiredProtectWalletModalNotVisible: PropTypes.func
 	};
 
@@ -410,7 +419,7 @@ class DrawerView extends PureComponent {
 	componentDidUpdate() {
 		const route = this.findRouteNameFromNavigatorState(this.props.navigation.state);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-			if (['SetPasswordFlow', 'Webview'].includes(route)) {
+			if (['SetPasswordFlow', 'Webview', 'OnboardingNav', 'ChoosePassword'].includes(route)) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.props.requiredProtectWalletModal && this.props.requiredProtectWalletModalNotVisible();
 				return;
