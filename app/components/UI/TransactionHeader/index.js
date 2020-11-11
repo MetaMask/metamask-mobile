@@ -103,8 +103,11 @@ const TransactionHeader = props => {
 	 */
 	const renderSecureIcon = () => {
 		if (originIsDeeplink) return null;
-		const { url } = props.currentPageInformation;
-		const name = getUrlObj(url).protocol === 'https:' ? 'lock' : 'warning';
+		const { url, origin } = props.currentPageInformation;
+		const name =
+			getUrlObj(originIsWalletConnect ? origin.split(WALLET_CONNECT_ORIGIN)[1] : url).protocol === 'https:'
+				? 'lock'
+				: 'warning';
 		return <FontAwesome name={name} size={15} style={styles.secureIcon} />;
 	};
 
