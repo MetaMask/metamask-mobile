@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TouchableWithoutFeedback, Image } from 'react-native';
+import {
+	StyleSheet,
+	View,
+	Text,
+	TouchableOpacity,
+	ScrollView,
+	TouchableWithoutFeedback,
+	Image,
+	InteractionManager
+} from 'react-native';
 import ActionModal from '../ActionModal';
 import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -10,6 +19,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { CURRENT_APP_VERSION, LAST_APP_VERSION, WHATS_NEW_APP_VERSION_SEEN } from '../../../constants/storage';
 import compareVersions from 'compare-versions';
 import scaling from '../../../util/scaling';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -89,6 +99,7 @@ const styles = StyleSheet.create({
 
 const WhatsNewModal = props => {
 	const [featuresToShow, setFeaturesToShow] = useState(null);
+	const [show, setShow] = useState(false);
 
 	useEffect(() => {
 		const shouldShow = async () => {
@@ -138,9 +149,31 @@ const WhatsNewModal = props => {
 		closeModal();
 		feature.buttonPress && feature.buttonPress(props);
 	};
+
+	const findRouteNameFromNavigatorState = ({ routes }) => {
+		let route = routes[routes.length - 1];
+		while (route.index !== undefined) {
+			route = route.routes[route.index];
+		}
+		return route.routeName;
+	};
+
+	useEffect(() => {
+		if (props.enabled && !!featuresToShow) {
+			const route = findRouteNameFromNavigatorState(props.navigation.state);
+			if (route === 'WalletView') {
+				InteractionManager.runAfterInteractions(() => {
+					setShow(true);
+				});
+			}
+		} else {
+			setShow(false);
+		}
+	}, [featuresToShow, props.enabled, props.navigation.state]);
+
 	return (
 		<ActionModal
-			modalVisible={!!featuresToShow}
+			modalVisible={show}
 			displayCancelButton={false}
 			displayConfirmButton={false}
 			verticalButtons
@@ -194,6 +227,17 @@ const WhatsNewModal = props => {
 			</View>
 		</ActionModal>
 	);
+};
+
+WhatsNewModal.propTypes = {
+	/**
+	 * navigation object required to push new views
+	 */
+	navigation: PropTypes.object,
+	/**
+	 * Showing the modal is enabled
+	 */
+	enabled: PropTypes.bool
 };
 
 export default WhatsNewModal;

@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Alert, InteractionManager } from 'react-native';
+import { StyleSheet, Alert, InteractionManager, AppState } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -90,13 +90,27 @@ class Approve extends PureComponent {
 	};
 
 	componentDidMount = () => {
+		if (!this.props?.transaction?.id) {
+			this.props.toggleApproveModal(false);
+			return null;
+		}
 		this.handleFetchBasicEstimates();
+		AppState.addEventListener('change', this.handleAppStateChange);
 	};
 
 	componentWillUnmount = () => {
 		const { approved } = this.state;
 		const { transaction } = this.props;
+		AppState.removeEventListener('change', this.handleAppStateChange);
 		if (!approved) Engine.context.TransactionController.cancelTransaction(transaction.id);
+	};
+
+	handleAppStateChange = appState => {
+		if (appState !== 'active') {
+			const { transaction } = this.props;
+			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
+			this.props.toggleApproveModal(false);
+		}
 	};
 
 	handleFetchBasicEstimates = async () => {
@@ -192,7 +206,7 @@ class Approve extends PureComponent {
 
 	onCancel = () => {
 		this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_CANCEL);
-		this.props.toggleApproveModal();
+		this.props.toggleApproveModal(false);
 	};
 
 	review = () => {
@@ -211,7 +225,7 @@ class Approve extends PureComponent {
 	render = () => {
 		const { gasError, basicGasEstimates, mode, ready } = this.state;
 		const { transaction } = this.props;
-
+		if (!transaction.id) return null;
 		return (
 			<Modal
 				isVisible={this.props.modalVisible}

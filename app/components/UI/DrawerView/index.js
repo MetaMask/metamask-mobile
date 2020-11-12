@@ -37,6 +37,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
+import WhatsNewModal from '../WhatsNewModal';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -379,7 +380,7 @@ class DrawerView extends PureComponent {
 	};
 
 	state = {
-		showProtectWalletModal: false
+		showProtectWalletModal: undefined
 	};
 
 	browserSectionRef = React.createRef();
@@ -407,7 +408,7 @@ class DrawerView extends PureComponent {
 	componentDidUpdate() {
 		const route = this.findRouteNameFromNavigatorState(this.props.navigation.state);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-			if (['SetPasswordFlow', 'Webview'].includes(route)) {
+			if (['SetPasswordFlow', 'Webview', 'ChoosePassword'].includes(route)) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
 				return;
@@ -419,9 +420,21 @@ class DrawerView extends PureComponent {
 					tokenFound = true;
 				}
 			});
-			if (!this.props.passwordSet || this.currentBalance > 0 || tokenFound || this.props.collectibles.length > 0)
+			if (
+				!this.props.passwordSet ||
+				this.currentBalance > 0 ||
+				tokenFound ||
+				this.props.collectibles.length > 0
+			) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({ showProtectWalletModal: true });
+			} else {
+				// eslint-disable-next-line react/no-did-update-set-state
+				this.setState({ showProtectWalletModal: false });
+			}
+		} else {
+			// eslint-disable-next-line react/no-did-update-set-state
+			this.setState({ showProtectWalletModal: false });
 		}
 		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
 		const { KeyringController } = Engine.context;
@@ -1065,6 +1078,11 @@ class DrawerView extends PureComponent {
 						showReceiveModal={this.showReceiveModal}
 					/>
 				</Modal>
+				<WhatsNewModal
+					navigation={this.props.navigation}
+					enabled={this.state.showProtectWalletModal === false}
+				/>
+
 				{this.renderProtectModal()}
 			</View>
 		);
