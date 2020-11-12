@@ -380,7 +380,7 @@ class DrawerView extends PureComponent {
 	};
 
 	state = {
-		showProtectWalletModal: true
+		showProtectWalletModal: undefined
 	};
 
 	browserSectionRef = React.createRef();
