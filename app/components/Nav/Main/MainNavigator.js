@@ -250,7 +250,6 @@ export default createStackNavigator(
 		LockScreen: {
 			screen: LockScreen
 		},
-
 		PaymentRequestView: {
 			screen: createStackNavigator(
 				{
@@ -266,7 +265,6 @@ export default createStackNavigator(
 				}
 			)
 		},
-
 		FiatOnRamp: {
 			screen: createStackNavigator({
 				PaymentMethodSelector: { screen: PaymentMethodSelector },
@@ -274,7 +272,6 @@ export default createStackNavigator(
 				TransakFlow: { screen: TransakWebView }
 			})
 		},
-
 		SetPasswordFlow: {
 			screen: createStackNavigator(
 				{
