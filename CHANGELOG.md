@@ -2,7 +2,10 @@
 
 ## Current Develop Branch
 
-## v1.0.6 - Nov 9 2020
+## v1.0.6 - Nov 11 2020]
+- [#1982](https://github.com/MetaMask/metamask-mobile/pull/1982): Bugfix/approve modal (#1982)
+- [#1983](https://github.com/MetaMask/metamask-mobile/pull/1983): Fix whats new modal (#1983)
+- [#1978](https://github.com/MetaMask/metamask-mobile/pull/1978): Make hintText display regardless of biometryType (#1978)
 - [#1973](https://github.com/MetaMask/metamask-mobile/pull/1973): Detox: Updated onboarding flows (#1973)
 - [#1780](https://github.com/MetaMask/metamask-mobile/pull/1780): Improvement/update keychain lib (#1780)
 - [#1916](https://github.com/MetaMask/metamask-mobile/pull/1916): Fix QR send (#1916)

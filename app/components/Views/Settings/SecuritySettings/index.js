@@ -309,7 +309,10 @@ class Settings extends PureComponent {
 				hintText: manualBackup
 			});
 		} else {
-			this.setState({ metricsOptIn });
+			this.setState({
+				metricsOptIn,
+				hintText: manualBackup
+			});
 		}
 	};
 
