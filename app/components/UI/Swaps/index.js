@@ -49,6 +49,9 @@ const styles = StyleSheet.create({
 		fontSize: Device.isIphone5() ? 30 : 40,
 		height: Device.isIphone5() ? 40 : 50
 	},
+	amountInvalid: {
+		color: colors.red
+	},
 	horizontalRuleContainer: {
 		flexDirection: 'row',
 		paddingHorizontal: 30,
@@ -102,6 +105,13 @@ function SwapsAmountView({ tokens }) {
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
+
+	const hasInvalidDecimals = useMemo(() => {
+		if (sourceToken) {
+			return amount.replace(/(\d+\.\d*[1-9])(0+$)/g, '$1').split('.')[1]?.length > sourceToken.decimals;
+		}
+		return false;
+	}, [amount, sourceToken]);
 
 	useEffect(() => {
 		(async () => {
@@ -197,7 +207,13 @@ function SwapsAmountView({ tokens }) {
 					<Text style={[styles.amount]} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
 						{amount}
 					</Text>
-					<Text>100 ETH available to swap.</Text>
+					{hasInvalidDecimals ? (
+						<Text style={styles.amountInvalid}>
+							{sourceToken.symbol} allows up to {sourceToken.decimals} decimals
+						</Text>
+					) : (
+						<Text>100 ETH available to swap.</Text>
+					)}
 				</View>
 				<View style={styles.horizontalRuleContainer}>
 					<View style={styles.horizontalRule} />
@@ -262,7 +278,11 @@ function SwapsAmountView({ tokens }) {
 								type="blue"
 								containerStyle={styles.cta}
 								disabled={
-									isInitialLoadingTokens || !sourceToken || !destinationToken || amountBigNumber.eq(0)
+									isInitialLoadingTokens ||
+									!sourceToken ||
+									!destinationToken ||
+									hasInvalidDecimals ||
+									amountBigNumber.eq(0)
 								}
 							>
 								Get quotes
