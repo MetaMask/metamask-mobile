@@ -380,7 +380,7 @@ class DrawerView extends PureComponent {
 	};
 
 	state = {
-		showProtectWalletModal: undefined
+		showProtectWalletModal: true
 	};
 
 	browserSectionRef = React.createRef();
@@ -408,7 +408,8 @@ class DrawerView extends PureComponent {
 	componentDidUpdate() {
 		const route = this.findRouteNameFromNavigatorState(this.props.navigation.state);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-			if (['SetPasswordFlow', 'Webview', 'ChoosePassword'].includes(route)) {
+			const bottomTab = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
+			if (['SetPasswordFlow', 'Webview', 'LockScreen'].includes(bottomTab)) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
 				return;
