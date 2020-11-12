@@ -30,7 +30,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
-import { failedSeedPhraseRequirements } from '../../../util/validators';
+import { failedSeedPhraseRequirements, isValidMnemonic } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
 	SEED_PHRASE_HINTS,
@@ -41,12 +41,9 @@ import {
 	METRICS_OPT_IN,
 	TRUE
 } from '../../../constants/storage';
-import { ethers } from 'ethers';
 import Logger from '../../../util/Logger';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
-
-const { isValidMnemonic } = ethers.utils;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
