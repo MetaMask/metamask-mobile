@@ -47,13 +47,15 @@ const styles = StyleSheet.create({
 	},
 	resultsView: {
 		height: Device.isSmallDevice() ? 200 : 280,
-		marginTop: 10,
-		borderTopWidth: 1,
-		borderTopColor: colors.grey100
+		marginTop: 10
 	},
 	resultRow: {
-		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderTopWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.grey100
+	},
+	emptyList: {
+		marginVertical: 10,
+		marginHorizontal: 30
 	}
 });
 
@@ -110,6 +112,15 @@ function TokenSelectModal({ isVisible, dismiss, title, tokens, onItemPress, excl
 
 	const handleSearchPress = () => searchInput?.current?.focus();
 
+	const renderEmptyList = useMemo(
+		() => (
+			<View style={styles.emptyList}>
+				<Text>No tokens match &ldquo;{searchString}&rdquo;</Text>
+			</View>
+		),
+		[searchString]
+	);
+
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -119,6 +130,7 @@ function TokenSelectModal({ isVisible, dismiss, title, tokens, onItemPress, excl
 			swipeDirection="down"
 			propagateSwipe
 			avoidKeyboard
+			onModalHide={() => setSearchString('')}
 			style={styles.modal}
 		>
 			<SafeAreaView style={styles.modalView}>
@@ -144,6 +156,7 @@ function TokenSelectModal({ isVisible, dismiss, title, tokens, onItemPress, excl
 					data={tokenSearchResults}
 					renderItem={renderItem}
 					keyExtractor={item => item.address}
+					ListEmptyComponent={renderEmptyList}
 				/>
 			</SafeAreaView>
 		</Modal>
