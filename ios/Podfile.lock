@@ -1,8 +1,6 @@
 PODS:
   - boost-for-react-native (1.63.0)
-  - Branch (0.32.0):
-    - Branch/Core (= 0.32.0)
-  - Branch/Core (0.32.0)
+  - Branch (0.35.0)
   - CocoaAsyncSocket (7.6.4)
   - CocoaLibEvent (1.0.0)
   - DoubleConversion (1.1.6)
@@ -257,8 +255,8 @@ PODS:
     - React
   - react-native-blur (0.8.0):
     - React
-  - react-native-branch (5.0.0-beta.1):
-    - Branch (= 0.32.0)
+  - react-native-branch (5.0.0):
+    - Branch (= 0.35.0)
     - React
   - react-native-camera (3.36.0):
     - React
@@ -267,6 +265,8 @@ PODS:
   - react-native-camera/RCT (3.36.0):
     - React
   - react-native-camera/RN (3.36.0):
+    - React
+  - react-native-cookies (4.0.1):
     - React
   - react-native-netinfo (4.1.5):
     - React
@@ -360,7 +360,7 @@ PODS:
     - React
   - RNI18n (2.0.15):
     - React
-  - RNKeychain (3.0.0):
+  - RNKeychain (6.2.0):
     - React
   - RNOS (1.2.6):
     - React
@@ -432,6 +432,7 @@ DEPENDENCIES:
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
+  - "react-native-cookies (from `../node_modules/@react-native-community/cookies`)"
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
@@ -531,6 +532,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-branch"
   react-native-camera:
     :path: "../node_modules/react-native-camera"
+  react-native-cookies:
+    :path: "../node_modules/@react-native-community/cookies"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-randombytes:
@@ -606,7 +609,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
-  Branch: 770a23c04d3f5410cf9231db099a444dd3060784
+  Branch: 9a37f707974a128c37829033c49018b79c7e7a2d
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
   DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
@@ -637,8 +640,9 @@ SPEC CHECKSUMS:
   react-native-aes: ff31f0dd4c791eb423a631ee04570fcf3c618924
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
   react-native-blur: cad4d93b364f91e7b7931b3fa935455487e5c33c
-  react-native-branch: ed90b087f2ff6a2f81643ead0b321531877f2e69
+  react-native-branch: 8bda99ca8dc5a16d32bd81c8a8d937cb3d2c5e0c
   react-native-camera: 8016138a8348b889e22c95b23f668a234f124335
+  react-native-cookies: ff2e6865dff2e5feeca8f1ed082ae7898e4fa912
   react-native-netinfo: 0e563248a4b9a99c33ec29bd03c2d50767db22a6
   react-native-randombytes: 3638d24759d67c68f6ccba60c52a7a8a8faa6a23
   react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
@@ -664,7 +668,7 @@ SPEC CHECKSUMS:
   RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
-  RNKeychain: c2e80f306e4d57e296133051d1e448b5289b3024
+  RNKeychain: b8e0711b959a19c5b057d1e970d3c83d159b6da5
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNReanimated: 6abbbae2e5e72609d85aabd92a982a94566885f1
   RNScreens: f28b48b8345f2f5f39ed6195518291515032a788

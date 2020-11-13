@@ -254,11 +254,17 @@ class Notification extends PureComponent {
 				tx = paymentChannelTransaction
 					? { paymentChannelTransaction, transaction: {} }
 					: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
-				const decoded = await decodeTransaction({ ...this.props, tx });
-				transactionElement = decoded[0];
-				transactionDetails = decoded[1];
-				const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
-				this.existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+				// THIS NEEDS REFACTOR
+				if (tx) {
+					const decoded = await decodeTransaction({ ...this.props, tx });
+					transactionElement = decoded[0];
+					transactionDetails = decoded[1];
+					const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+					this.existingGasPriceDecimal = parseInt(
+						existingGasPrice === undefined ? '0x0' : existingGasPrice,
+						16
+					);
+				}
 			}
 			// eslint-disable-next-line react/no-did-update-set-state
 			await this.setState({
@@ -455,6 +461,7 @@ class Notification extends PureComponent {
 		const { status } = this.props;
 		const { tx, transactionDetailsIsVisible, inBrowserView } = this.state;
 		const isPaymentChannelTransaction = tx && tx.paymentChannelTransaction;
+		const data = tx ? { ...tx.transaction, ...this.props.transaction } : { ...this.props.transaction };
 		return (
 			<ElevatedView
 				style={[
@@ -472,7 +479,7 @@ class Notification extends PureComponent {
 				>
 					<BaseNotification
 						status={status}
-						data={{ ...tx.transaction, ...this.props.transaction }}
+						data={data}
 						onPress={this.onNotificationPress}
 						onHide={this.onClose}
 					/>

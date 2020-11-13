@@ -2,6 +2,51 @@
 
 ## Current Develop Branch
 
+## v1.0.6 - Nov 12 2020]
+- [#1990](https://github.com/MetaMask/metamask-mobile/pull/1990): Fixed importing accounts when reseting password (#1988)
+- [#1988](https://github.com/MetaMask/metamask-mobile/pull/1988): bugfix/protect wallet modal (#1988)
+- [#1985](https://github.com/MetaMask/metamask-mobile/pull/1985): Fix seedphrase handling in QRScanner (#1985)
+- [#1982](https://github.com/MetaMask/metamask-mobile/pull/1982): Bugfix/approve modal (#1982)
+- [#1983](https://github.com/MetaMask/metamask-mobile/pull/1983): Fix whats new modal (#1983)
+- [#1978](https://github.com/MetaMask/metamask-mobile/pull/1978): Make hintText display regardless of biometryType (#1978)
+- [#1973](https://github.com/MetaMask/metamask-mobile/pull/1973): Detox: Updated onboarding flows (#1973)
+- [#1780](https://github.com/MetaMask/metamask-mobile/pull/1780): Improvement/update keychain lib (#1780)
+- [#1916](https://github.com/MetaMask/metamask-mobile/pull/1916): Fix QR send (#1916)
+- [#1877](https://github.com/MetaMask/metamask-mobile/pull/1877): Bugfix/deeplink, request modals and wallet connect (#1877)
+- [#1911](https://github.com/MetaMask/metamask-mobile/pull/1911): Feature/whats new (#1911)
+- [#1954](https://github.com/MetaMask/metamask-mobile/pull/1954): Support 24 word seed phrase game (#1954)
+- [#1892](https://github.com/MetaMask/metamask-mobile/pull/1892): Reminder to backup seed phrase (#1892)
+- [#1908](https://github.com/MetaMask/metamask-mobile/pull/1908): Add missing env keys (#1908)
+- [#1917](https://github.com/MetaMask/metamask-mobile/pull/1917): Update Wyre minimum fee and minimum amount (#1917)
+- [#1915](https://github.com/MetaMask/metamask-mobile/pull/1915): Error boundary - sentry clean-up (#1915)
+- [#1905](https://github.com/MetaMask/metamask-mobile/pull/1905): Ensure seedphrase hint is not the actual seedphrase (#1905)
+- [#1895](https://github.com/MetaMask/metamask-mobile/pull/1895): Make whole blur area clickable (#1895)
+- [#1901](https://github.com/MetaMask/metamask-mobile/pull/1901): sync log errors (#1901)
+- [#1879](https://github.com/MetaMask/metamask-mobile/pull/1879): Feature/show previously created accounts on seed phrase import (#1879)
+- [#1894](https://github.com/MetaMask/metamask-mobile/pull/1894): sentry cleaning (#1894)
+- [#1902](https://github.com/MetaMask/metamask-mobile/pull/1902): use optional chaining and default values so we're not calling toLowerCase() on undefined values (#1902)
+- [#1859](https://github.com/MetaMask/metamask-mobile/pull/1859): Direct to proper screen on address QR code scan (#1859)
+- [#1881](https://github.com/MetaMask/metamask-mobile/pull/1881): Fix/disable iframes support for now (#1881)
+- [#1893](https://github.com/MetaMask/metamask-mobile/pull/1893): bugfix/core env vars (#1893)
+- [#1847](https://github.com/MetaMask/metamask-mobile/pull/1847): feature/approve eip 681 (#1847)
+- [#1827](https://github.com/MetaMask/metamask-mobile/pull/1827): Update infura v3 (#1827)
+- [#1806](https://github.com/MetaMask/metamask-mobile/pull/1806): Allow webview debugging in dev mode + XIP (#1806)
+- [#1874](https://github.com/MetaMask/metamask-mobile/pull/1874): Coerce non error objects into errors before sending to sentry (#1874)
+- [#1887](https://github.com/MetaMask/metamask-mobile/pull/1887): Use eth-contract-metadata@1.16.0 (#1887)
+- [#1883](https://github.com/MetaMask/metamask-mobile/pull/1883): Update Transak params (#1883)
+- [#1876](https://github.com/MetaMask/metamask-mobile/pull/1876): Bugfix/homepage injection (#1876)
+- [#1793](https://github.com/MetaMask/metamask-mobile/pull/1793): Add cookies clearing (#1793)
+- [#1873](https://github.com/MetaMask/metamask-mobile/pull/1873): Provide error feedback without actually submitting (#1873)
+- [#1864](https://github.com/MetaMask/metamask-mobile/pull/1864): Add additional isUrl check, closes #1462 (#1864)
+- [#1866](https://github.com/MetaMask/metamask-mobile/pull/1866): Fix proptype warning for WebviewError (#1866)
+- [#1861](https://github.com/MetaMask/metamask-mobile/pull/1861): Get e2e working for seedphrase and login (#1861)
+
+## v1.0.5 - Oct 26 2020
+- [#1889](https://github.com/MetaMask/metamask-mobile/pull/1889): Fix scientific notation string not convertable to BN (#1889)
+
+## v1.0.4 - Oct 9 2020
+- [#1882](https://github.com/MetaMask/metamask-mobile/pull/1882): Error boundary (#1882)
+
 ## v1.0.3 - Sept 30 2020
 - [#1865](https://github.com/MetaMask/metamask-mobile/pull/1865): bugfix/login (#1865)
 - [#1863](https://github.com/MetaMask/metamask-mobile/pull/1863): transak countries update (#1863)

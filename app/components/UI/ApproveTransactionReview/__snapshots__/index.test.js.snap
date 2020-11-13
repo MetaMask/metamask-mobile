@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ApproveTransactionModal should render correctly 1`] = `
+<ApproveTransactionReview
+  accounts={
+    Object {
+      "0x2": Object {
+        "balance": "0",
+      },
+    }
+  }
+  accountsLength={1}
+  activeTabUrl=""
+  conversionRate={5}
+  primaryCurrency="fiat"
+  providerType="ETH"
+  setTransactionObject={[Function]}
+  showAlert={[Function]}
+  ticker="ETH"
+  tokensLength={0}
+  transaction={Object {}}
+/>
+`;

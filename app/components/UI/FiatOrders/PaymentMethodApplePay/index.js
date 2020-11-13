@@ -173,7 +173,7 @@ QuickAmount.propTypes = {
 //* Constants */
 
 const quickAmounts = ['50', '100', '250'];
-const minAmount = 5;
+const minAmount = 50;
 const maxAmount = 250;
 
 const hasTwoDecimals = /^\d+\.\d{2}$/;
@@ -265,7 +265,7 @@ function PaymentMethodApplePay({
 
 	const handleWyreTerms = useWyreTerms(navigation);
 	const rates = useWyreRates(network, 'USDETH');
-	const [pay, ABORTED, percentFee, flatFee, , fee] = useWyreApplePay(roundAmount, selectedAddress, network);
+	const [pay, ABORTED, , , , fee] = useWyreApplePay(roundAmount, selectedAddress, network);
 
 	const handlePressApplePay = useCallback(async () => {
 		const prevLockTime = lockTime;
@@ -431,9 +431,7 @@ function PaymentMethodApplePay({
 							<>
 								{disabledButton ? (
 									<Text>
-										<Text bold>
-											{strings('fiat_on_ramp.Fee')} ~{percentFee}% + ${flatFee}
-										</Text>
+										<Text bold> </Text>
 									</Text>
 								) : (
 									<Text>

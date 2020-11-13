@@ -32,7 +32,6 @@ import contractMap from 'eth-contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 
-const OPENSEA_API_KEY = process.env.MM_OPENSEA_KEY;
 const encryptor = new Encryptor();
 let refreshing = false;
 /**
@@ -76,6 +75,7 @@ class Engine {
 					new MessageManager(),
 					new NetworkController(
 						{
+							infuraProjectId: process.env.MM_INFURA_PROJECT_ID,
 							providerConfig: {
 								static: {
 									eth_sendTransaction: async (payload, next, end) => {
@@ -127,7 +127,7 @@ class Engine {
 				TransactionController: transaction
 			} = this.datamodel.context;
 
-			assets.setApiKey(OPENSEA_API_KEY);
+			assets.setApiKey(process.env.MM_OPENSEA_KEY);
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 			network.subscribe(this.refreshNetwork);
@@ -218,7 +218,7 @@ class Engine {
 			}
 			await AsyncStorage.setItem(LAST_INCOMING_TX_BLOCK_INFO, JSON.stringify(allLastIncomingTxBlocks));
 		} catch (e) {
-			Logger.log('Error while fetching all txs', e);
+			// Logger.log('Error while fetching all txs', e);
 		}
 	};
 

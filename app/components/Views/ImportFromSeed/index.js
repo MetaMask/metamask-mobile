@@ -30,23 +30,20 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
-import { failedSeedPhraseRequirements } from '../../../util/validators';
+import { failedSeedPhraseRequirements, isValidMnemonic } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
-	BIOMETRY_CHOICE,
+	SEED_PHRASE_HINTS,
 	BIOMETRY_CHOICE_DISABLED,
 	NEXT_MAKER_REMINDER,
-	PASSCODE_DISABLED,
 	ONBOARDING_WIZARD,
 	EXISTING_USER,
 	METRICS_OPT_IN,
 	TRUE
 } from '../../../constants/storage';
-import { ethers } from 'ethers';
 import Logger from '../../../util/Logger';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
-
-const { isValidMnemonic } = ethers.utils;
+import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -229,7 +226,7 @@ class ImportFromSeed extends PureComponent {
 			if (previouslyDisabled && previouslyDisabled === TRUE) {
 				enabled = false;
 			}
-			this.setState({ biometryType, biometryChoice: enabled });
+			this.setState({ biometryType: Device.isAndroid() ? 'biometrics' : biometryType, biometryChoice: enabled });
 		}
 		// Workaround https://github.com/facebook/react-native/issues/9958
 		setTimeout(() => {
@@ -266,31 +263,11 @@ class ImportFromSeed extends PureComponent {
 				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
 
 				if (this.state.biometryType && this.state.biometryChoice) {
-					const authOptions = {
-						accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					};
-
-					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-
-					// If the user enables biometrics, we're trying to read the password
-					// immediately so we get the permission prompt
-					if (Device.isIos()) {
-						await SecureKeychain.getGenericPassword();
-					}
-					await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
-					await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-					await AsyncStorage.removeItem(PASSCODE_DISABLED);
+					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
+				} else if (this.state.rememberMe) {
+					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.REMEMBER_ME);
 				} else {
-					if (this.state.rememberMe) {
-						await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
-							accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
-						});
-					} else {
-						await SecureKeychain.resetGenericPassword();
-					}
-					await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-					await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+					await SecureKeychain.resetGenericPassword();
 				}
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
@@ -298,22 +275,28 @@ class ImportFromSeed extends PureComponent {
 				const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
+				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 				this.setState({ loading: false });
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
 				if (!metricsOptIn) {
-					this.props.navigation.navigate('OptinMetrics');
+					this.props.navigation.navigate(
+						'ManualBackupStep3',
+						{},
+						NavigationActions.navigate({ routeName: 'OptinMetrics' })
+					);
 				} else if (onboardingWizard) {
-					this.props.navigation.navigate('HomeNav');
+					this.props.navigation.navigate('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
 					this.props.navigation.navigate(
-						'HomeNav',
+						'ManualBackupStep3',
 						{},
 						NavigationActions.navigate({ routeName: 'WalletView' })
 					);
 				}
+				await importAdditionalAccounts();
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -375,7 +358,7 @@ class ImportFromSeed extends PureComponent {
 						{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
 					</Text>
 					<Switch
-						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+						onValueChange={this.updateBiometryChoice}
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
 						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}

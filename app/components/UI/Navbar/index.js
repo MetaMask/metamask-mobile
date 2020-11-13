@@ -687,10 +687,8 @@ export function getOfflineModalNavbar(navigation) {
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
 export function getWalletNavbarOptions(title, navigation) {
-	const onScanSuccess = data => {
-		if (data.target_address) {
-			navigation.navigate('SendView', { txMeta: data });
-		} else if (data.private_key) {
+	const onScanSuccess = (data, content) => {
+		if (data.private_key) {
 			Alert.alert(
 				strings('wallet.private_key_detected'),
 				strings('wallet.do_you_want_to_import_this_account'),
@@ -717,19 +715,11 @@ export function getWalletNavbarOptions(title, navigation) {
 				],
 				{ cancelable: false }
 			);
-		} else if (data.walletConnectURI) {
-			setTimeout(() => {
-				DeeplinkManager.parse(data.walletConnectURI);
-			}, 500);
 		} else if (data.seed) {
 			Alert.alert(strings('wallet.error'), strings('wallet.logout_to_import_seed'));
-		} else if (data && data.indexOf(AppConstants.MM_UNIVERSAL_LINK_HOST) !== -1) {
+		} else {
 			setTimeout(() => {
-				DeeplinkManager.parse(data);
-			}, 500);
-		} else if ((data && data.indexOf('https://') !== -1) || data.indexOf('http://')) {
-			setTimeout(() => {
-				DeeplinkManager.parse(data);
+				DeeplinkManager.parse(content, { origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE });
 			}, 500);
 		}
 	};

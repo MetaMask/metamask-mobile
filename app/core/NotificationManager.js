@@ -161,7 +161,9 @@ class NotificationManager {
 		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// If it fails we hide the pending tx notification
 		this._hideTransactionNotification(transactionMeta.id);
-		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
+		const transaction = this._transactionsWatchTable[transactionMeta.transaction.nonce];
+		transaction &&
+			transaction.length &&
 			setTimeout(() => {
 				// Then we show the error notification
 				this._showNotification({

@@ -110,8 +110,9 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
   style={
     Array [
       Object {
+        "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 14,
-        "fontWeight": "bold",
+        "fontWeight": "600",
         "textAlign": "center",
       },
       Object {
@@ -144,8 +145,9 @@ exports[`StyledButton should render correctly on iOS the button with type confir
   style={
     Array [
       Object {
+        "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 14,
-        "fontWeight": "bold",
+        "fontWeight": "600",
         "textAlign": "center",
       },
       Object {
@@ -179,8 +181,9 @@ exports[`StyledButton should render correctly on iOS the button with type normal
   style={
     Array [
       Object {
+        "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 14,
-        "fontWeight": "bold",
+        "fontWeight": "600",
         "textAlign": "center",
       },
       Object {
@@ -212,8 +215,9 @@ exports[`StyledButton should render correctly on iOS the button with type orange
   style={
     Array [
       Object {
+        "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 14,
-        "fontWeight": "bold",
+        "fontWeight": "600",
         "textAlign": "center",
       },
       Object {

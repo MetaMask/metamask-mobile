@@ -25,10 +25,9 @@ import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
 	EXISTING_USER,
 	NEXT_MAKER_REMINDER,
-	BIOMETRY_CHOICE,
-	BIOMETRY_CHOICE_DISABLED,
-	PASSCODE_DISABLED,
-	TRUE
+	TRUE,
+	SEED_PHRASE_HINTS,
+	BIOMETRY_CHOICE_DISABLED
 } from '../../../constants/storage';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 
@@ -103,13 +102,15 @@ const styles = StyleSheet.create({
 	checkbox: {
 		width: 18,
 		height: 18,
-		margin: 10
+		margin: 10,
+		marginTop: -5
 	},
 	label: {
 		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.black,
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
+		lineHeight: 18
 	},
 	learnMore: {
 		color: colors.blue,
@@ -246,7 +247,7 @@ class ChoosePassword extends PureComponent {
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
-			this.setState({ biometryType, biometryChoice: true });
+			this.setState({ biometryType: Device.isAndroid() ? 'biometrics' : biometryType, biometryChoice: true });
 		}
 		setTimeout(() => {
 			this.setState({
@@ -307,37 +308,21 @@ class ChoosePassword extends PureComponent {
 				this.props.seedphraseNotBackedUp();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
+				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			} else {
 				await this.recreateVault(password);
 			}
 
 			// Set state in app as it was with password
 			if (this.state.biometryType && this.state.biometryChoice) {
-				const authOptions = {
-					accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-				};
-				await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
-				// If the user enables biometrics, we're trying to read the password
-				// immediately so we get the permission prompt
-				if (Device.isIos()) {
-					await SecureKeychain.getGenericPassword();
-				}
-				await AsyncStorage.setItem(BIOMETRY_CHOICE, this.state.biometryType);
-				await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-				await AsyncStorage.removeItem(PASSCODE_DISABLED);
+				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
+			} else if (this.state.rememberMe) {
+				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
 			} else {
-				if (this.state.rememberMe) {
-					await SecureKeychain.setGenericPassword('metamask-user', password, {
-						accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
-					});
-				} else {
-					await SecureKeychain.resetGenericPassword();
-				}
-				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-				await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-				await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+				await SecureKeychain.resetGenericPassword();
 			}
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
@@ -346,10 +331,10 @@ class ChoosePassword extends PureComponent {
 		} catch (error) {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
-			await SecureKeychain.setGenericPassword('metamask-user', '');
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+			await SecureKeychain.resetGenericPassword();
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordUnset();
 			this.props.setLockTime(-1);
 			// Should we force people to enable passcode / biometrics?
@@ -448,6 +433,15 @@ class ChoosePassword extends PureComponent {
 		current && current.focus();
 	};
 
+	updateBiometryChoice = async biometryChoice => {
+		if (!biometryChoice) {
+			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+		} else {
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+		}
+		this.setState({ biometryChoice });
+	};
+
 	renderSwitch = () => {
 		const { biometryType, rememberMe, biometryChoice } = this.state;
 		return (
@@ -459,7 +453,7 @@ class ChoosePassword extends PureComponent {
 						</Text>
 						<View>
 							<Switch
-								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+								onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
 								value={biometryChoice}
 								style={styles.biometrySwitch}
 								trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
@@ -500,6 +494,8 @@ class ChoosePassword extends PureComponent {
 		});
 	};
 
+	setConfirmPassword = val => this.setState({ confirmPassword: val });
+
 	render() {
 		const {
 			isSelected,
@@ -513,7 +509,7 @@ class ChoosePassword extends PureComponent {
 		} = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
-		const previousScreen = this.props.navigation.getParam(AppConstants.PREVIOUS_SCREEN);
+		const previousScreen = this.props.navigation.getParam(PREVIOUS_SCREEN);
 		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
 		return (
@@ -588,7 +584,7 @@ class ChoosePassword extends PureComponent {
 										ref={this.confirmPasswordInput}
 										style={[styles.input, inputWidth]}
 										value={confirmPassword}
-										onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
+										onChangeText={this.setConfirmPassword}
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
 										placeholderTextColor={colors.grey100}

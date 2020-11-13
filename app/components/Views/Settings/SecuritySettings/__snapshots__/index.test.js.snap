@@ -19,6 +19,11 @@ exports[`SecuritySettings should render correctly 1`] = `
       }
     }
   >
+    <Heading
+      first={true}
+    >
+      Security
+    </Heading>
     <View
       style={
         Array [
@@ -42,61 +47,21 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Privacy mode
-      </Text>
-      <Text
-        style={
-          Object {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "lineHeight": 20,
-            "marginTop": 12,
-          }
-        }
-      >
-        Websites must request access to view your account information.
-      </Text>
-      <View
-        style={
-          Object {
-            "marginTop": 18,
-          }
-        }
-      >
-        <Switch
-          ios_backgroundColor="#f2f3f4"
-          onValueChange={[Function]}
-          trackColor={
+        <WarningIcon />
+         
+        <Text
+          style={
             Object {
-              "false": "#f2f3f4",
-              "true": "#037dd6",
+              "color": "#000000",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 20,
+              "fontWeight": "400",
+              "lineHeight": 20,
             }
           }
-          value={true}
-        />
-      </View>
-    </View>
-    <View
-      style={
-        Object {
-          "marginTop": 50,
-        }
-      }
-    >
-      <Text
-        style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "lineHeight": 20,
-          }
-        }
-      >
-        Participate in MetaMetrics
+        >
+          Protect your wallet
+        </Text>
       </Text>
       <Text
         style={
@@ -110,125 +75,38 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Participate in MetaMetrics to help us make MetaMask better.
+        Protect your wallet by saving your seed phrase in various places like on a piece of paper, password manager and/or the cloud.
       </Text>
-      <View
-        style={
-          Object {
-            "marginTop": 18,
-          }
-        }
+      <SettingsNotification
+        isHighlighted={false}
+        isWarning={true}
+        style={Object {}}
       >
-        <Switch
-          ios_backgroundColor="#f2f3f4"
-          onValueChange={[Function]}
-          testID="metametrics-switch"
-          trackColor={
-            Object {
-              "false": "#f2f3f4",
-              "true": "#037dd6",
-            }
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 12,
+                "fontWeight": "400",
+              },
+              Object {
+                "color": "#D73A49",
+              },
+              undefined,
+            ]
           }
-          value={false}
-        />
-      </View>
-    </View>
-    <View
-      style={
-        Object {
-          "marginTop": 50,
-        }
-      }
-      testID="third-party-section"
-    >
-      <Text
-        style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "lineHeight": 20,
-          }
-        }
-      >
-        Get incoming transactions
-      </Text>
-      <Text
-        style={
-          Object {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "lineHeight": 20,
-            "marginTop": 12,
-          }
-        }
-      >
-        Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.
-      </Text>
-      <View
-        style={
-          Object {
-            "marginTop": 18,
-          }
-        }
-      >
-        <Switch
-          ios_backgroundColor="#f2f3f4"
-          onValueChange={[Function]}
-          trackColor={
-            Object {
-              "false": "#f2f3f4",
-              "true": "#037dd6",
-            }
-          }
-        />
-      </View>
-    </View>
-    <View
-      style={
-        Object {
-          "marginTop": 50,
-        }
-      }
-      testID="clear-privacy-section"
-    >
-      <Text
-        style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "lineHeight": 20,
-          }
-        }
-      >
-        Clear privacy data
-      </Text>
-      <Text
-        style={
-          Object {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "lineHeight": 20,
-            "marginTop": 12,
-          }
-        }
-      >
-        Clear privacy data so all websites must request access to view account information again.
-      </Text>
+        >
+          Important! Seed phrase not backed up
+        </Text>
+      </SettingsNotification>
       <StyledButton
         containerStyle={
           Object {
             "marginTop": 18,
           }
         }
-        disabled={true}
         disabledContainerStyle={
           Object {
             "opacity": 0.6,
@@ -240,9 +118,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        type="normal"
+        type="blue"
       >
-        Clear privacy data
+        Back up now
       </StyledButton>
     </View>
     <View
@@ -251,6 +129,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           "marginTop": 50,
         }
       }
+      testID="change-password-section"
     >
       <Text
         style={
@@ -263,7 +142,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Clear browser history
+        Password
       </Text>
       <Text
         style={
@@ -277,7 +156,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Choose this option to clear your entire browsing history.
+        Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your seedphrase to re-import your wallet.
       </Text>
       <StyledButton
         containerStyle={
@@ -285,7 +164,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 18,
           }
         }
-        disabled={true}
         disabledContainerStyle={
           Object {
             "opacity": 0.6,
@@ -299,7 +177,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
         type="normal"
       >
-        Clear browser history
+        Change password
       </StyledButton>
     </View>
     <View
@@ -421,19 +299,14 @@ exports[`SecuritySettings should render correctly 1`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
-            },
-            Object {
-              "color": "#D73A49",
-            },
-          ]
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
         }
       >
         This is the private key for the current selected account: Account 1. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
@@ -455,9 +328,75 @@ exports[`SecuritySettings should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        type="danger"
+        type="normal"
       >
         Show private key
+      </StyledButton>
+    </View>
+    <Heading>
+      Privacy
+    </Heading>
+    <View
+      style={
+        Array [
+          Object {
+            "marginTop": 50,
+          },
+          Object {
+            "marginTop": 0,
+          },
+        ]
+      }
+      testID="clear-privacy-section"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Clear privacy data
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Clear privacy data so all websites must request access to view account information again.
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabled={true}
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        Clear privacy data
       </StyledButton>
     </View>
     <View
@@ -477,28 +416,80 @@ exports[`SecuritySettings should render correctly 1`] = `
             "lineHeight": 20,
           }
         }
-        testID="reveal-seed-title"
       >
-        Reveal seed phrase
+        Clear browser history
       </Text>
       <Text
         style={
-          Array [
-            Object {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
-            },
-            Object {
-              "color": "#D73A49",
-            },
-          ]
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
         }
       >
-        This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.
+        Choose this option to clear your entire browsing history.
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabled={true}
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        Clear browser history
+      </StyledButton>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+      testID="clear-cookies-section"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Clear browser cookies
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Choose this option to clear your browser's cookies.
       </Text>
       <StyledButton
         containerStyle={
@@ -517,11 +508,175 @@ exports[`SecuritySettings should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        testID="reveal-seedphrase-button"
-        type="danger"
+        type="normal"
       >
-        Reveal seed phrase
+        Clear browser cookies
       </StyledButton>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+      testID="privacy-mode-section"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Privacy mode
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Websites must request access to view your account information.
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 18,
+          }
+        }
+      >
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+          value={true}
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+      testID="metametrics-section"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Participate in MetaMetrics
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Participate in MetaMetrics to help us make MetaMask better.
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 18,
+          }
+        }
+      >
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          testID="metametrics-switch"
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+          value={false}
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+      testID="third-party-section"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Get incoming transactions
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 18,
+          }
+        }
+      >
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+        />
+      </View>
     </View>
     <ActionModal
       cancelButtonMode="neutral"
@@ -629,6 +784,67 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
       </View>
     </ActionModal>
+    <ActionModal
+      cancelButtonMode="neutral"
+      cancelTestID=""
+      cancelText="Cancel"
+      confirmButtonMode="warning"
+      confirmDisabled={false}
+      confirmTestID=""
+      confirmText="CLEAR"
+      displayCancelButton={true}
+      displayConfirmButton={true}
+      modalVisible={false}
+      onCancelPress={[Function]}
+      onConfirmPress={[Function]}
+      onRequestClose={[Function]}
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "column",
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 22,
+              "fontWeight": "600",
+              "marginBottom": 20,
+              "textAlign": "center",
+            }
+          }
+        >
+          Clear Browser Cookies
+        </Text>
+        <Text
+          style={
+            Object {
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 18,
+              "fontWeight": "400",
+              "textAlign": "center",
+            }
+          }
+        >
+          We are about to remove your browser's cookies. Are you sure?
+        </Text>
+      </View>
+    </ActionModal>
+    <HintModal
+      modalVisible={false}
+      onCancel={[Function]}
+      onChangeText={[Function]}
+      onConfirm={[Function]}
+      onRequestClose={[Function]}
+      value=""
+    />
   </View>
 </ScrollViewMock>
 `;

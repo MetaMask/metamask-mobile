@@ -10,20 +10,7 @@ exports[`Approve should render correctly 1`] = `
     }
   }
   accountsLength={1}
-  activeTabUrl="https://metamask.github.io/test-dapp/"
-  conversionRate={100}
-  currentCurrency="USD"
-  identities={
-    Object {
-      "0x1": Object {
-        "name": "Account 1",
-      },
-    }
-  }
-  primaryCurrency="Fiat"
   setTransactionObject={[Function]}
-  showAlert={[Function]}
-  ticker="ETH"
   tokensLength={0}
   transaction={Object {}}
   transactions={Array []}

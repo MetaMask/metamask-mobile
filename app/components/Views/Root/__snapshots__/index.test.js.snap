@@ -28,9 +28,12 @@ exports[`Root should render correctly 1`] = `
       }
     }
   >
-    <NavigationContainer
-      theme="light"
-    />
+    <ErrorBoundary
+      onError={[Function]}
+      view="Root"
+    >
+      <App />
+    </ErrorBoundary>
   </PersistGate>
 </Provider>
 `;

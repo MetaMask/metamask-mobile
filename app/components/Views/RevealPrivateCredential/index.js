@@ -146,7 +146,6 @@ class RevealPrivateCredential extends PureComponent {
 			strings(`reveal_credential.${navigation.getParam('privateCredentialName', '')}_title`),
 			navigation
 		);
-
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
@@ -163,7 +162,15 @@ class RevealPrivateCredential extends PureComponent {
 		/**
 		 * Boolean that determines if the user has set a password before
 		 */
-		passwordSet: PropTypes.bool
+		passwordSet: PropTypes.bool,
+		/**
+		 * String that determines whether to show the seedphrase or private key export screen
+		 */
+		privateCredentialName: PropTypes.string,
+		/**
+		 * Cancel function to be called when cancel button is clicked. If not provided, we go to previous screen on cancel
+		 */
+		cancel: PropTypes.func
 	};
 
 	async componentDidMount() {
@@ -193,20 +200,17 @@ class RevealPrivateCredential extends PureComponent {
 	};
 
 	cancel = () => {
+		if (this.props.cancel) return this.props.cancel();
 		const { navigation } = this.props;
 		navigation.pop();
 	};
 
 	async tryUnlockWithPassword(password) {
 		const { KeyringController } = Engine.context;
-		const {
-			selectedAddress,
-			navigation: {
-				state: {
-					params: { privateCredentialName }
-				}
-			}
-		} = this.props;
+		const { selectedAddress } = this.props;
+
+		const privateCredentialName =
+			this.props.privateCredentialName || this.props.navigation.state.params.privateCredentialName;
 
 		try {
 			if (privateCredentialName === 'seed_phrase') {
@@ -241,13 +245,9 @@ class RevealPrivateCredential extends PureComponent {
 
 	copyPrivateCredentialToClipboard = async () => {
 		const { privateCredential } = this.state;
-		const {
-			navigation: {
-				state: {
-					params: { privateCredentialName }
-				}
-			}
-		} = this.props;
+		const privateCredentialName =
+			this.props.privateCredentialName || this.props.navigation.state.params.privateCredentialName;
+
 		await Clipboard.setString(privateCredential);
 		this.props.showAlert({
 			isVisible: true,
@@ -272,13 +272,9 @@ class RevealPrivateCredential extends PureComponent {
 
 	render = () => {
 		const { unlocked, privateCredential } = this.state;
-		const {
-			navigation: {
-				state: {
-					params: { privateCredentialName }
-				}
-			}
-		} = this.props;
+		const privateCredentialName =
+			this.props.privateCredentialName || this.props.navigation.state.params.privateCredentialName;
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'reveal-private-credential-screen'}>
 				<ActionView

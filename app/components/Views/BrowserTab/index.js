@@ -44,8 +44,6 @@ import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
-import DeeplinkManager from '../../../core/DeeplinkManager';
-import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -60,6 +58,7 @@ import { ethErrors } from 'eth-json-rpc-errors';
 
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import { getVersion } from 'react-native-device-info';
+import ErrorBoundary from '../ErrorBoundary';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -315,8 +314,8 @@ export const BrowserTab = props => {
 	 */
 	const isHomepage = useCallback((checkUrl = null) => {
 		const currentPage = checkUrl || url.current;
-		const { host: currentHost, pathname: currentPathname } = getUrlObj(currentPage);
-		return currentHost === HOMEPAGE_HOST && currentPathname === '/';
+		const { host: currentHost } = getUrlObj(currentPage);
+		return currentHost === HOMEPAGE_HOST;
 	}, []);
 
 	/**
@@ -688,9 +687,12 @@ export const BrowserTab = props => {
 		backgroundBridges.current.push(newBridge);
 	};
 
+	/**
+	 * Disabling iframes for now
 	const onFrameLoadStarted = url => {
 		url && initializeBackgroundBridge(url, false);
 	};
+	*/
 
 	/**
 	 * Is the current tab the active tab
@@ -779,12 +781,12 @@ export const BrowserTab = props => {
 		const disctinctId = await Analytics.getDistinctId();
 
 		const homepageScripts = `
-      window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
-      window.__mmSearchEngine = "${props.searchEngine}";
-      window.__mmMetametrics = ${analyticsEnabled};
-	  window.__mmDistinctId = "${disctinctId}";
-      window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
-	  `;
+			window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
+			window.__mmSearchEngine = "${props.searchEngine}";
+			window.__mmMetametrics = ${analyticsEnabled};
+			window.__mmDistinctId = "${disctinctId}";
+			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+		`;
 
 		current.injectJavaScript(homepageScripts);
 	};
@@ -891,44 +893,6 @@ export const BrowserTab = props => {
 		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[dismissTextSelectionIfNeeded, toggleOptionsIfNeeded]
-	);
-
-	/**
-	 * Handle Branch deeplinking
-	 */
-	const handleBranchDeeplink = useCallback(
-		deeplink_url => {
-			Logger.log('Branch Deeplink detected!', deeplink_url);
-			DeeplinkManager.parse(deeplink_url, url => {
-				openNewTab(url);
-			});
-		},
-		[openNewTab]
-	);
-
-	/**
-	 * Handle deeplinking
-	 */
-	const handleDeeplinks = useCallback(
-		async ({ error, params }) => {
-			if (!isTabActive()) return false;
-			if (error) {
-				Logger.error(error, 'Error from Branch');
-				return;
-			}
-			// QA THIS
-			if (params.spotlight_identifier) {
-				setTimeout(() => {
-					props.navigation.setParams({
-						url: params.spotlight_identifier,
-						silent: false
-					});
-					setShowUrlModal(false);
-				}, 1000);
-			}
-		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[isTabActive]
 	);
 
 	/**
@@ -1049,29 +1013,6 @@ export const BrowserTab = props => {
 	}, [drawerOpenHandler]);
 
 	/**
-	 * Set deeplinking listeners
-	 */
-	useEffect(() => {
-		// Deeplink handling
-		const unsubscribeFromBranch = Branch.subscribe(handleDeeplinks);
-
-		// Check if there's a deeplink pending from launch
-		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
-		if (pendingDeeplink) {
-			// Expire it to avoid duplicate actions
-			DeeplinkManager.expireDeeplink();
-			// Handle it
-			setTimeout(() => {
-				handleBranchDeeplink(pendingDeeplink);
-			}, 1000);
-		}
-
-		return function cleanup() {
-			unsubscribeFromBranch();
-		};
-	}, [handleBranchDeeplink, handleDeeplinks]);
-
-	/**
 	 * Set navigation listeners
 	 */
 	useEffect(() => {
@@ -1123,10 +1064,6 @@ export const BrowserTab = props => {
 				name: siteInfo.title,
 				url: getMaskedUrl(siteInfo.url)
 			});
-		}
-
-		if (isHomepage(siteInfo.url)) {
-			injectHomePageScripts();
 		}
 	};
 
@@ -1229,7 +1166,9 @@ export const BrowserTab = props => {
 		setError(false);
 		changeUrl(nativeEvent, 'start');
 		icon.current = null;
-
+		if (isHomepage()) {
+			injectHomePageScripts();
+		}
 		// Reset the previous bridges
 		backgroundBridges.current.length && backgroundBridges.current.forEach(bridge => bridge.onDisconnect());
 		backgroundBridges.current = [];
@@ -1286,11 +1225,13 @@ export const BrowserTab = props => {
 			}
 
 			switch (data.type) {
+				/**
+				* Disabling iframes for now
 				case 'FRAME_READY': {
 					const { url } = data.payload;
 					onFrameLoadStarted(url);
 					break;
-				}
+				}*/
 				case 'GET_WEBVIEW_URL':
 					webviewUrlPostMessagePromiseResolve.current &&
 						webviewUrlPostMessagePromiseResolve.current(data.payload);
@@ -1681,42 +1622,44 @@ export const BrowserTab = props => {
 	 * Main render
 	 */
 	return (
-		<View
-			style={[styles.wrapper, !isTabActive() && styles.hide]}
-			{...(Device.isAndroid() ? { collapsable: false } : {})}
-		>
-			<View style={styles.webview}>
-				{!!entryScriptWeb3 && firstUrlLoaded && (
-					<WebView
-						ref={webviewRef}
-						renderError={() => <WebviewError error={error} onReload={() => null} />}
-						source={{ uri: initialUrl }}
-						injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
-						style={styles.webview}
-						onLoadStart={onLoadStart}
-						onLoadEnd={onLoadEnd}
-						onLoadProgress={onLoadProgress}
-						onMessage={onMessage}
-						onError={onError}
-						onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-						userAgent={USER_AGENT}
-						sendCookies
-						javascriptEnabled
-						allowsInlineMediaPlayback
-						useWebkit
-						testID={'browser-webview'}
-					/>
-				)}
+		<ErrorBoundary view="BrowserTab">
+			<View
+				style={[styles.wrapper, !isTabActive() && styles.hide]}
+				{...(Device.isAndroid() ? { collapsable: false } : {})}
+			>
+				<View style={styles.webview}>
+					{!!entryScriptWeb3 && firstUrlLoaded && (
+						<WebView
+							ref={webviewRef}
+							renderError={() => <WebviewError error={error} onReload={() => null} />}
+							source={{ uri: initialUrl }}
+							injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+							style={styles.webview}
+							onLoadStart={onLoadStart}
+							onLoadEnd={onLoadEnd}
+							onLoadProgress={onLoadProgress}
+							onMessage={onMessage}
+							onError={onError}
+							onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+							userAgent={USER_AGENT}
+							sendCookies
+							javascriptEnabled
+							allowsInlineMediaPlayback
+							useWebkit
+							testID={'browser-webview'}
+						/>
+					)}
+				</View>
+				{renderProgressBar()}
+				{isTabActive() && renderPhishingModal()}
+				{isTabActive() && renderUrlModal()}
+				{isTabActive() && renderApprovalModal()}
+				{isTabActive() && renderWatchAssetModal()}
+				{isTabActive() && renderOptions()}
+				{isTabActive() && renderBottomBar()}
+				{isTabActive() && renderOnboardingWizard()}
 			</View>
-			{renderProgressBar()}
-			{isTabActive() && renderPhishingModal()}
-			{isTabActive() && renderUrlModal()}
-			{isTabActive() && renderApprovalModal()}
-			{isTabActive() && renderWatchAssetModal()}
-			{isTabActive() && renderOptions()}
-			{isTabActive() && renderBottomBar()}
-			{isTabActive() && renderOnboardingWizard()}
-		</View>
+		</ErrorBoundary>
 	);
 };
 

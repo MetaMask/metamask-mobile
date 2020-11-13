@@ -54,9 +54,9 @@ class TransactionReviewFeeCard extends PureComponent {
 		 */
 		primaryCurrency: PropTypes.string,
 		/**
-		 * Toggles the gas fee customization modal
+		 * Changes mode to edit
 		 */
-		toggleCustomGasModal: PropTypes.func
+		edit: PropTypes.func
 	};
 
 	renderIfGasEstimationReady = children => {
@@ -80,7 +80,7 @@ class TransactionReviewFeeCard extends PureComponent {
 			transactionValue,
 			primaryCurrency,
 			gasEstimationReady,
-			toggleCustomGasModal
+			edit
 		} = this.props;
 		let amount;
 		let networkFee;
@@ -112,7 +112,7 @@ class TransactionReviewFeeCard extends PureComponent {
 						<Text primary bold>
 							{strings('transaction.gas_fee')}
 						</Text>
-						<TouchableOpacity onPress={toggleCustomGasModal} disabled={!gasEstimationReady}>
+						<TouchableOpacity onPress={edit} disabled={!gasEstimationReady}>
 							<Text link bold>
 								{'  '}
 								{strings('transaction.edit')}

@@ -7,6 +7,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import PropTypes from 'prop-types';
 import { parse } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager';
+import AppConstants from '../../../core/AppConstants';
+import { failedSeedPhraseRequirements, isValidMnemonic } from '../../../util/validators';
 
 const styles = StyleSheet.create({
 	container: {
@@ -70,6 +73,13 @@ export default class QrScanner extends PureComponent {
 		}
 	};
 
+	end = (data, content) => {
+		const { navigation } = this.props;
+		this.mounted = false;
+		navigation.goBack();
+		navigation.state.params.onScanSuccess(data, content);
+	};
+
 	onBarCodeRead = response => {
 		if (!this.mounted) return false;
 		const content = response.data;
@@ -93,19 +103,38 @@ export default class QrScanner extends PureComponent {
 				this.props.navigation.goBack();
 			}
 		} else {
-			if (content.split('ethereum:').length > 1) {
+			// Let ethereum:address go forward
+			if (content.split('ethereum:').length > 1 && !parse(content).function_name) {
 				this.shouldReadBarCode = false;
 				data = parse(content);
-				let action = 'send-eth';
-				if (data.function_name === 'transfer') {
-					// Send erc20 token
-					action = 'send-token';
-				}
+				const action = 'send-eth';
 				data = { ...data, action };
-			} else if (
-				content.length === 64 ||
-				(content.substring(0, 2).toLowerCase() === '0x' && content.length === 66)
-			) {
+				this.mounted = false;
+				this.props.navigation.goBack();
+				this.props.navigation.state.params.onScanSuccess(data, content);
+				return;
+			}
+
+			if (!failedSeedPhraseRequirements(content) && isValidMnemonic(content)) {
+				this.shouldReadBarCode = false;
+				data = { seed: content };
+				this.end(data, content);
+				return;
+			}
+
+			// Checking if it can be handled like deeplinks
+			const handledByDeeplink = SharedDeeplinkManager.parse(content, {
+				origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+				onHandled: () => this.props.navigation.pop(2)
+			});
+
+			if (handledByDeeplink) {
+				this.mounted = false;
+				return;
+			}
+
+			// I can't be handled by deeplinks, checking other options
+			if (content.length === 64 || (content.substring(0, 2).toLowerCase() === '0x' && content.length === 66)) {
 				this.shouldReadBarCode = false;
 				data = { private_key: content.length === 64 ? content : content.substr(2) };
 			} else if (content.substring(0, 2).toLowerCase() === '0x') {
@@ -114,17 +143,13 @@ export default class QrScanner extends PureComponent {
 			} else if (content.split('wc:').length > 1) {
 				this.shouldReadBarCode = false;
 				data = { walletConnectURI: content };
-			} else if (content.split(' ').length === 12) {
-				this.shouldReadBarCode = false;
-				data = { seed: content };
 			} else {
 				// EIP-945 allows scanning arbitrary data
 				data = content;
 			}
-			this.mounted = false;
-			this.props.navigation.goBack();
-			this.props.navigation.state.params.onScanSuccess(data);
 		}
+
+		this.end(data, content);
 	};
 
 	onError = error => {
