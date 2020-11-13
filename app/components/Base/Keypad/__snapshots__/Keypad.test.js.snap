@@ -1,0 +1,78 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Keypad component should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "paddingHorizontal": 25,
+    }
+  }
+>
+  <KeypadRow>
+    <KeypadButton
+      onPress={[MockFunction]}
+    >
+      1
+    </KeypadButton>
+    <KeypadButton
+      onPress={[MockFunction]}
+    >
+      2
+    </KeypadButton>
+    <KeypadButton
+      onPress={[MockFunction]}
+    >
+      3
+    </KeypadButton>
+  </KeypadRow>
+  <KeypadRow>
+    <KeypadButton
+      onPress={[MockFunction]}
+    >
+      4
+    </KeypadButton>
+    <KeypadButton
+      onPress={[MockFunction]}
+    >
+      5
+    </KeypadButton>
+    <KeypadButton
+      onPress={[MockFunction]}
+    >
+      6
+    </KeypadButton>
+  </KeypadRow>
+  <KeypadRow>
+    <KeypadButton
+      onPress={[MockFunction]}
+    >
+      7
+    </KeypadButton>
+    <KeypadButton
+      onPress={[MockFunction]}
+    >
+      8
+    </KeypadButton>
+    <KeypadButton
+      onPress={[MockFunction]}
+    >
+      9
+    </KeypadButton>
+  </KeypadRow>
+  <KeypadRow>
+    <KeypadButton
+      onPress={[MockFunction]}
+    >
+      .
+    </KeypadButton>
+    <KeypadButton
+      onPress={[MockFunction]}
+    >
+      0
+    </KeypadButton>
+    <KeypadDeleteButton
+      onPress={[MockFunction]}
+    />
+  </KeypadRow>
+</View>
+`;
