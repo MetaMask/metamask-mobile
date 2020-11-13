@@ -5,10 +5,12 @@ import { connect } from 'react-redux';
 import { NavigationContext } from 'react-navigation';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import BigNumber from 'bignumber.js';
+import { toChecksumAddress } from 'ethereumjs-util';
 import Engine from '../../../core/Engine';
 import handleInput from '../../Base/Keypad/rules/native';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
+import { renderFromTokenMinimalUnit, renderFromWei } from '../../../util/number';
 import { colors, fontStyles } from '../../../styles/common';
 
 import { getSwapsAmountNavbar } from '../Navbar';
@@ -92,7 +94,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-function SwapsAmountView({ tokens }) {
+function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	const navigation = useContext(NavigationContext);
 	const initialSource = navigation.getParam('sourceToken', 'ETH');
 	const [amount, setAmount] = useState('0');
@@ -108,7 +110,7 @@ function SwapsAmountView({ tokens }) {
 
 	const hasInvalidDecimals = useMemo(() => {
 		if (sourceToken) {
-			return amount.replace(/(\d+\.\d*[1-9])(0+$)/g, '$1').split('.')[1]?.length > sourceToken.decimals;
+			return amount.replace(/(\d+\.\d*[1-9]|\d+\.)(0+$)/g, '$1').split('.')[1]?.length > sourceToken.decimals;
 		}
 		return false;
 	}, [amount, sourceToken]);
@@ -139,6 +141,19 @@ function SwapsAmountView({ tokens }) {
 			setSourceToken(tokens.find(token => token.symbol === initialSource));
 		}
 	}, [tokens, initialSource, sourceToken]);
+
+	const balance = useMemo(() => {
+		if (!sourceToken) {
+			return null;
+		}
+		if (sourceToken.symbol === 'ETH') {
+			return renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
+		}
+		const tokenAddress = toChecksumAddress(sourceToken.address);
+		return tokenAddress in balances ? renderFromTokenMinimalUnit(balances[tokenAddress], sourceToken.decimals) : 0;
+	}, [accounts, balances, selectedAddress, sourceToken]);
+
+	const hasEnoughBalance = useMemo(() => amountBigNumber.lte(new BigNumber(balance)), [amountBigNumber, balance]);
 
 	/* Keypad Handlers */
 	const handleKeypadPress = useCallback(
@@ -207,12 +222,18 @@ function SwapsAmountView({ tokens }) {
 					<Text style={[styles.amount]} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
 						{amount}
 					</Text>
-					{hasInvalidDecimals ? (
+					{sourceToken && (hasInvalidDecimals || !hasEnoughBalance) ? (
 						<Text style={styles.amountInvalid}>
-							{sourceToken.symbol} allows up to {sourceToken.decimals} decimals
+							{!hasEnoughBalance
+								? `Not enough ${sourceToken.symbol} to complete this swap`
+								: `${sourceToken.symbol} allows up to ${sourceToken.decimals} decimals`}
 						</Text>
 					) : (
-						<Text>100 ETH available to swap.</Text>
+						<Text>
+							{sourceToken && balance !== null
+								? `${balance} ${sourceToken.symbol} available to swap`
+								: ''}
+						</Text>
 					)}
 				</View>
 				<View style={styles.horizontalRuleContainer}>
@@ -298,11 +319,26 @@ function SwapsAmountView({ tokens }) {
 SwapsAmountView.navigationOptions = ({ navigation }) => getSwapsAmountNavbar(navigation);
 
 SwapsAmountView.propTypes = {
-	tokens: PropTypes.arrayOf(PropTypes.object)
+	tokens: PropTypes.arrayOf(PropTypes.object),
+	/**
+	 * Map of accounts to information objects including balances
+	 */
+	accounts: PropTypes.object,
+	/**
+	 * A string that represents the selected address
+	 */
+	selectedAddress: PropTypes.string,
+	/**
+	 * An object containing token balances for current account and network in the format address => balance
+	 */
+	balances: PropTypes.object
 };
 
 const mapStateToProps = state => ({
-	tokens: state.engine.backgroundState.SwapsController.tokens
+	tokens: state.engine.backgroundState.SwapsController.tokens,
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	balances: state.engine.backgroundState.TokenBalancesController.contractBalances
 });
 
 export default connect(mapStateToProps)(SwapsAmountView);
