@@ -13,6 +13,7 @@ exports[`TokenIcon component should Render correctly 2`] = `
   style={
     Array [
       Object {
+        "borderRadius": 12,
         "height": 24,
         "width": 24,
       },
@@ -64,6 +65,7 @@ exports[`TokenIcon component should Render correctly 4`] = `
   style={
     Array [
       Object {
+        "borderRadius": 12,
         "height": 24,
         "width": 24,
       },
@@ -90,10 +92,12 @@ exports[`TokenIcon component should Render correctly 6`] = `
   style={
     Array [
       Object {
+        "borderRadius": 12,
         "height": 24,
         "width": 24,
       },
       Object {
+        "borderRadius": 18,
         "height": 36,
         "width": 36,
       },
@@ -148,10 +152,12 @@ exports[`TokenIcon component should Render correctly 8`] = `
   style={
     Array [
       Object {
+        "borderRadius": 12,
         "height": 24,
         "width": 24,
       },
       Object {
+        "borderRadius": 18,
         "height": 36,
         "width": 36,
       },

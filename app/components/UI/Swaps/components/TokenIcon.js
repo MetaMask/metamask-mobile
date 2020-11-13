@@ -9,23 +9,26 @@ import { colors } from '../../../../styles/common';
 // eslint-disable-next-line import/no-commonjs
 const ethLogo = require('../../../../images/eth-logo.png');
 
+const REGULAR_SIZE = 24;
+const REGULAR_RADIUS = 12;
+const MEDIUM_SIZE = 36;
+const MEDIUM_RADIUS = 18;
+
 const styles = StyleSheet.create({
 	icon: {
-		width: 24,
-		height: 24
+		width: REGULAR_SIZE,
+		height: REGULAR_SIZE,
+		borderRadius: REGULAR_RADIUS
 	},
 	iconMedium: {
-		width: 36,
-		height: 36
+		width: MEDIUM_SIZE,
+		height: MEDIUM_SIZE,
+		borderRadius: MEDIUM_RADIUS
 	},
 	emptyIcon: {
-		borderRadius: 12,
 		backgroundColor: colors.grey200,
 		alignItems: 'center',
 		justifyContent: 'center'
-	},
-	emptyIconMedium: {
-		borderRadius: 18
 	},
 	tokenSymbol: {
 		fontSize: 16,
@@ -38,10 +41,7 @@ const styles = StyleSheet.create({
 });
 
 const EmptyIcon = ({ medium, ...props }) => (
-	<View
-		style={[styles.icon, medium && styles.iconMedium, styles.emptyIcon, medium && styles.emptyIconMedium]}
-		{...props}
-	/>
+	<View style={[styles.icon, medium && styles.iconMedium, styles.emptyIcon]} {...props} />
 );
 
 EmptyIcon.propTypes = {
