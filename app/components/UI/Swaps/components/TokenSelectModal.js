@@ -90,7 +90,7 @@ function TokenSelectModal({
 				distance: 100,
 				maxPatternLength: 32,
 				minMatchCharLength: 1,
-				keys: [{ name: 'name', weight: 0.5 }, { name: 'symbol', weight: 0.5 }, { name: 'address', weight: 0.5 }]
+				keys: ['symbol', 'address']
 			}),
 		[filteredTokens]
 	);
