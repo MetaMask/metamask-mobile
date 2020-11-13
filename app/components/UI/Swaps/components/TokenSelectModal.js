@@ -5,7 +5,11 @@ import { FlatList } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
+import { toChecksumAddress } from 'ethereumjs-util';
+import { connect } from 'react-redux';
+
 import Device from '../../../../util/Device';
+import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiat } from '../../../../util/number';
 import { colors, fontStyles } from '../../../../styles/common';
 
 import Text from '../../../Base/Text';
@@ -59,7 +63,20 @@ const styles = StyleSheet.create({
 	}
 });
 
-function TokenSelectModal({ isVisible, dismiss, title, tokens, onItemPress, exclude = [] }) {
+function TokenSelectModal({
+	isVisible,
+	dismiss,
+	title,
+	tokens,
+	onItemPress,
+	exclude = [],
+	accounts,
+	selectedAddress,
+	currentCurrency,
+	conversionRate,
+	tokenExchangeRates,
+	balances
+}) {
 	const searchInput = useRef(null);
 	const [searchString, setSearchString] = useState('');
 
@@ -83,31 +100,40 @@ function TokenSelectModal({ isVisible, dismiss, title, tokens, onItemPress, excl
 	);
 
 	const renderItem = useCallback(
-		({ item }) => (
-			<TouchableOpacity
-				style={styles.resultRow}
-				onPress={() => {
-					setSearchString('');
-					onItemPress(item);
-				}}
-			>
-				<ListItem>
-					<ListItem.Content>
-						<ListItem.Icon>
-							<TokenIcon medium icon={item.iconUrl} symbol={item.symbol} />
-						</ListItem.Icon>
-						<ListItem.Body>
-							<ListItem.Title>{item.symbol}</ListItem.Title>
-						</ListItem.Body>
-						<ListItem.Amounts>
-							<ListItem.Amount>...</ListItem.Amount>
-							<ListItem.FiatAmount>...</ListItem.FiatAmount>
-						</ListItem.Amounts>
-					</ListItem.Content>
-				</ListItem>
-			</TouchableOpacity>
-		),
-		[onItemPress, setSearchString]
+		({ item }) => {
+			const itemAddress = toChecksumAddress(item.address);
+
+			let balance, balanceFiat;
+			if (item.symbol === 'ETH') {
+				balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
+				balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
+			} else {
+				const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
+				balance =
+					itemAddress in balances ? renderFromTokenMinimalUnit(balances[itemAddress], item.decimals) : 0;
+				balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+			}
+
+			return (
+				<TouchableOpacity style={styles.resultRow} onPress={() => onItemPress(item)}>
+					<ListItem>
+						<ListItem.Content>
+							<ListItem.Icon>
+								<TokenIcon medium icon={item.iconUrl} symbol={item.symbol} />
+							</ListItem.Icon>
+							<ListItem.Body>
+								<ListItem.Title>{item.symbol}</ListItem.Title>
+							</ListItem.Body>
+							<ListItem.Amounts>
+								<ListItem.Amount>{balance}</ListItem.Amount>
+								{balanceFiat && <ListItem.FiatAmount>{balanceFiat}</ListItem.FiatAmount>}
+							</ListItem.Amounts>
+						</ListItem.Content>
+					</ListItem>
+				</TouchableOpacity>
+			);
+		},
+		[balances, accounts, selectedAddress, conversionRate, currentCurrency, tokenExchangeRates, onItemPress]
 	);
 
 	const handleSearchPress = () => searchInput?.current?.focus();
@@ -169,7 +195,40 @@ TokenSelectModal.propTypes = {
 	title: PropTypes.string,
 	tokens: PropTypes.arrayOf(PropTypes.object),
 	onItemPress: PropTypes.func,
-	exclude: PropTypes.arrayOf(PropTypes.string)
+	exclude: PropTypes.arrayOf(PropTypes.string),
+	/**
+	 * ETH to current currency conversion rate
+	 */
+	conversionRate: PropTypes.number,
+	/**
+	 * Map of accounts to information objects including balances
+	 */
+	accounts: PropTypes.object,
+	/**
+	 * Currency code of the currently-active currency
+	 */
+	currentCurrency: PropTypes.string,
+	/**
+	 * A string that represents the selected address
+	 */
+	selectedAddress: PropTypes.string,
+	/**
+	 * An object containing token balances for current account and network in the format address => balance
+	 */
+	balances: PropTypes.object,
+	/**
+	 * An object containing token exchange rates in the format address => exchangeRate
+	 */
+	tokenExchangeRates: PropTypes.object
 };
 
-export default TokenSelectModal;
+const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+});
+
+export default connect(mapStateToProps)(TokenSelectModal);
