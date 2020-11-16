@@ -176,12 +176,14 @@ workflows:
               only:
                 - master
                 - develop
+                - android-api-level
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
+                - android-api-level
       - lint:
           requires:
             - prep-node-deps
@@ -200,9 +202,10 @@ workflows:
     #   - upload-coverage:
     #       requires:
     #         - test-unit
-      - publish-pre-release-ios:
-          requires:
-            - prep-deps
+      # - publish-pre-release-ios:
+      #     requires:
+      #       - prep-deps
       - publish-pre-release-android:
           requires:
-            - publish-pre-release-ios
+            - prep-deps
+            # - publish-pre-release-ios
