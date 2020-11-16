@@ -3,7 +3,6 @@
 buildscript {
 
 	ext {
-		buildToolsVersion = "28.0.3"
 		minSdkVersion = 19
 		compileSdkVersion = 29
 		targetSdkVersion = 29
@@ -56,7 +55,6 @@ allprojects {
 				if (project.hasProperty("android")) {
 					android {
 						compileSdkVersion = rootProject.ext.compileSdkVersion
-						buildToolsVersion = rootProject.ext.buildToolsVersion
 					}
 				}
 		}
