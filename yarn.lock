@@ -1565,6 +1565,11 @@
   dependencies:
     any-observable "^0.3.0"
 
+"@segment/analytics-react-native@^1.3.2":
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/@segment/analytics-react-native/-/analytics-react-native-1.3.2.tgz#119fe76f98817a22f68d5848ce167f0b4fae91e1"
+  integrity sha512-q5KZYzlCjm67ufRmYLXkGugN1t9VQlJ+ga8QidJXOLmCPk1+Ac/0oKmgEf6tAwjibOPa8atGA99yy8b4zvlX+w==
+
 "@sentry/browser@^5.12.1":
   version "5.19.1"
   resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-5.19.1.tgz#b22f36fc71f36719ad352a54e6b31722622128c0"
