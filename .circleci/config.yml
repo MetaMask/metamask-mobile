@@ -114,8 +114,6 @@ jobs:
     working_directory:  ~/MetaMask
     environment:
       JAVA_OPTS: "-Xms512m -Xmx1024m"
-      _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
       - image: circleci/android:api-29
     steps:
