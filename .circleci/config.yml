@@ -117,7 +117,7 @@ jobs:
       _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
-      - image: circleci/android:api-29-node8-alpha
+      - image: circleci/android:api-29
     steps:
       - checkout
       - attach_workspace:
