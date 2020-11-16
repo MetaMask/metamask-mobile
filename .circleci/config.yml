@@ -112,8 +112,12 @@ jobs:
           command: echo 'weew - everything passed!'
   publish-pre-release-android:
     working_directory:  ~/MetaMask
+    environment:
+      JAVA_OPTS: "-Xms512m -Xmx1024m"
+      _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
-      - image: circleci/android:api-29-node
+      - image: circleci/android@sha256:b6646fdf7457f61825526e7bfce364d8e533da6ceb1cdb98e371e94348ecc834
     steps:
       - checkout
       - attach_workspace:
