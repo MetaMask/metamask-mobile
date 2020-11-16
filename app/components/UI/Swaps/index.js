@@ -11,6 +11,7 @@ import handleInput from '../../Base/Keypad/rules/native';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
 import { renderFromTokenMinimalUnit, renderFromWei } from '../../../util/number';
+import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 
 import { getSwapsAmountNavbar } from '../Navbar';
@@ -133,6 +134,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 				setInitialLoadingTokens(() => false);
 			}
 		})();
+		// TODO(wachunei) include tokens in deps once controller is updated with cache timestamp
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -203,6 +205,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 						<ActivityIndicator size="small" />
 					) : (
 						<TokenSelectButton
+							label={strings('swaps.select_a_token')}
 							onPress={toggleSourceModal}
 							icon={sourceToken?.iconUrl}
 							symbol={sourceToken?.symbol}
@@ -212,7 +215,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 					<TokenSelectModal
 						isVisible={isSourceModalVisible}
 						dismiss={toggleSourceModal}
-						title="Convert from"
+						title={strings('swaps.convert_from')}
 						tokens={tokens}
 						onItemPress={handleSourceTokenPress}
 						exclude={[destinationToken?.symbol]}
@@ -225,13 +228,17 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 					{sourceToken && (hasInvalidDecimals || !hasEnoughBalance) ? (
 						<Text style={styles.amountInvalid}>
 							{!hasEnoughBalance
-								? `Not enough ${sourceToken.symbol} to complete this swap`
-								: `${sourceToken.symbol} allows up to ${sourceToken.decimals} decimals`}
+								? strings('swaps.not_enough', { symbol: sourceToken.symbol })
+								: strings('swaps.allows_up_to_decimals', {
+										symbol: sourceToken.symbol,
+										decimals: sourceToken.decimals
+										// eslint-disable-next-line no-mixed-spaces-and-tabs
+								  })}
 						</Text>
 					) : (
 						<Text>
 							{sourceToken && balance !== null
-								? `${balance} ${sourceToken.symbol} available to swap`
+								? strings('swaps.available_to_swap', { asset: `${balance} ${sourceToken.symbol}` })
 								: ''}
 						</Text>
 					)}
@@ -239,7 +246,6 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 				<View style={styles.horizontalRuleContainer}>
 					<View style={styles.horizontalRule} />
 					<IonicIcon style={styles.arrowDown} name="md-arrow-down" />
-
 					<View style={styles.horizontalRule} />
 				</View>
 				<View style={styles.tokenButtonContainer}>
@@ -247,6 +253,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 						<ActivityIndicator size="small" />
 					) : (
 						<TokenSelectButton
+							label={strings('swaps.select_a_token')}
 							onPress={toggleDestinationModal}
 							icon={destinationToken?.iconUrl}
 							symbol={destinationToken?.symbol}
@@ -255,7 +262,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 					<TokenSelectModal
 						isVisible={isDestinationModalVisible}
 						dismiss={toggleDestinationModal}
-						title="Convert to"
+						title={strings('swaps.convert_to')}
 						tokens={tokens}
 						onItemPress={handleDestinationTokenPress}
 						exclude={[sourceToken?.symbol]}
@@ -289,7 +296,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 					<View style={styles.column}>
 						<TouchableOpacity disabled>
 							<Text bold style={styles.disabledSlippage}>
-								Max slippage 1%
+								{strings('swaps.max_slippage', { slippage: '1%' })}
 							</Text>
 						</TouchableOpacity>
 					</View>
@@ -306,7 +313,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 									amountBigNumber.eq(0)
 								}
 							>
-								Get quotes
+								{strings('swaps.get_quotes')}
 							</StyledButton>
 						</View>
 					</View>

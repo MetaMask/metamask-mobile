@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 
 import Device from '../../../../util/Device';
 import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiat } from '../../../../util/number';
+import { strings } from '../../../../../locales/i18n';
 import { colors, fontStyles } from '../../../../styles/common';
 
 import Text from '../../../Base/Text';
@@ -141,7 +142,7 @@ function TokenSelectModal({
 	const renderEmptyList = useMemo(
 		() => (
 			<View style={styles.emptyList}>
-				<Text>No tokens match &ldquo;{searchString}&rdquo;</Text>
+				<Text>{strings('swaps.no_tokens_result', { searchString })}</Text>
 			</View>
 		),
 		[searchString]
@@ -169,7 +170,7 @@ function TokenSelectModal({
 					<TextInput
 						ref={searchInput}
 						style={styles.input}
-						placeholder="Search for a token…"
+						placeholder={strings('swaps.search_token')}
 						placeholderTextColor={colors.grey500}
 						value={searchString}
 						onChangeText={setSearchString}

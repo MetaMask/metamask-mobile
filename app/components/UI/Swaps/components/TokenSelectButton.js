@@ -28,14 +28,14 @@ const styles = StyleSheet.create({
 	}
 });
 
-function TokenSelectButton({ icon, symbol, onPress, disabled }) {
+function TokenSelectButton({ icon, symbol, onPress, disabled, label }) {
 	return (
 		<TouchableOpacity onPress={onPress} disabled={disabled}>
 			<View style={styles.container}>
 				<View style={styles.icon}>
 					<TokenIcon icon={icon} symbol={symbol} />
 				</View>
-				<Text primary>{symbol || 'Select a token'}</Text>
+				<Text primary>{symbol || label}</Text>
 				<Icon name="caret-down" size={18} style={styles.caretDown} />
 			</View>
 		</TouchableOpacity>
@@ -45,6 +45,7 @@ function TokenSelectButton({ icon, symbol, onPress, disabled }) {
 TokenSelectButton.propTypes = {
 	icon: PropTypes.string,
 	symbol: PropTypes.string,
+	label: PropTypes.string,
 	onPress: PropTypes.func,
 	disabled: PropTypes.bool
 };
