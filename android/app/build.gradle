@@ -267,6 +267,8 @@ dependencies {
 
 	implementation 'com.mixpanel.android:mixpanel-android:5.+'
 
+	implementation 'javax.xml.bind:jaxb-api:2.3.1'
+
 	androidTestImplementation('com.wix:detox:+') { transitive = true }
 	androidTestImplementation 'junit:junit:4.12'
 
