@@ -55,10 +55,6 @@ function initalizeEngine(state = {}) {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'NetworkController' });
 	});
 
-	Engine.context.NetworkStatusController.subscribe(() => {
-		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'NetworkStatusController' });
-	});
-
 	Engine.context.PhishingController.subscribe(() => {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'PhishingController' });
 	});
