@@ -5,6 +5,7 @@ import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import { SvgCssUri } from 'react-native-svg';
+import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 
 const RemoteImage = props => {
 	const source = resolveAssetSource(props.source);
@@ -19,9 +20,11 @@ const RemoteImage = props => {
 			}
 		}
 		return (
-			<View style={style}>
-				<SvgCssUri {...props} uri={source.uri} width={'100%'} height={'100%'} />
-			</View>
+			<ComponentErrorBoundary onError={props.onError} componentLabel="RemoteImage-SVG">
+				<View style={style}>
+					<SvgCssUri {...props} uri={source.uri} width={'100%'} height={'100%'} />
+				</View>
+			</ComponentErrorBoundary>
 		);
 	}
 
@@ -51,7 +54,11 @@ RemoteImage.propTypes = {
 	/**
 	 * Style for the placeholder (used for fadeIn)
 	 */
-	placeholderStyle: ViewPropTypes.style
+	placeholderStyle: ViewPropTypes.style,
+	/**
+	 * Called when there is an error
+	 */
+	onError: PropTypes.func
 };
 
 export default RemoteImage;

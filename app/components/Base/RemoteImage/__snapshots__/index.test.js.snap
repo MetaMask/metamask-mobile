@@ -1,18 +1,22 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RemoteImage should render correctly 1`] = `
-<View
-  style={Object {}}
+<ComponentErrorBoundary
+  componentLabel="RemoteImage-SVG"
 >
-  <SvgCssUri
-    height="100%"
-    source={
-      Object {
-        "uri": "https://raw.githubusercontent.com/MetaMask/eth-contract-metadata/master/images/dai.svg",
+  <View
+    style={Object {}}
+  >
+    <SvgCssUri
+      height="100%"
+      source={
+        Object {
+          "uri": "https://raw.githubusercontent.com/MetaMask/eth-contract-metadata/master/images/dai.svg",
+        }
       }
-    }
-    uri="https://raw.githubusercontent.com/MetaMask/eth-contract-metadata/master/images/dai.svg"
-    width="100%"
-  />
-</View>
+      uri="https://raw.githubusercontent.com/MetaMask/eth-contract-metadata/master/images/dai.svg"
+      width="100%"
+    />
+  </View>
+</ComponentErrorBoundary>
 `;
