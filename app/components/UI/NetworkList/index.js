@@ -95,13 +95,6 @@ const styles = StyleSheet.create({
 		flex: 0,
 		flexDirection: 'row'
 	},
-	mainnetStatus: {
-		fontSize: 12,
-		marginLeft: 30,
-		marginTop: 5,
-		color: colors.fontSecondary,
-		...fontStyles.normal
-	},
 	selected: {
 		position: 'absolute',
 		marginLeft: 20,
@@ -135,10 +128,6 @@ export class NetworkList extends PureComponent {
 		 * NetworkController povider object
 		 */
 		provider: PropTypes.object,
-		/**
-		 * Networks status object
-		 */
-		networkStatus: PropTypes.object,
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
@@ -218,7 +207,7 @@ export class NetworkList extends PureComponent {
 	};
 
 	renderMainnet() {
-		const { provider, networkStatus } = this.props;
+		const { provider } = this.props;
 		const isMainnet =
 			provider.type === 'mainnet' ? <Icon name="check" size={15} color={colors.fontSecondary} /> : null;
 		const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
@@ -237,13 +226,6 @@ export class NetworkList extends PureComponent {
 						<View style={styles.networkInfo}>
 							<Text style={styles.networkLabel}>{mainnetName}</Text>
 						</View>
-					</View>
-					<View>
-						<Text style={styles.mainnetStatus}>
-							{networkStatus.infura.mainnet
-								? strings('networks.status_ok')
-								: strings('networks.status_not_ok')}
-						</Text>
 					</View>
 				</TouchableOpacity>
 			</View>
@@ -279,7 +261,6 @@ export class NetworkList extends PureComponent {
 const mapStateToProps = state => ({
 	provider: state.engine.backgroundState.NetworkController.provider,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
-	networkStatus: state.engine.backgroundState.NetworkStatusController.networkStatus,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 

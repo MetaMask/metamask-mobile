@@ -177,8 +177,7 @@ TransactionHeader.propTypes = {
 };
 
 const mapStateToProps = state => ({
-	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	networkStatus: state.engine.backgroundState.NetworkStatusController.networkStatus.infura
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 export default connect(mapStateToProps)(TransactionHeader);
