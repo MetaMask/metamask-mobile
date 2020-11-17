@@ -12,7 +12,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
 import { renderFromTokenMinimalUnit, renderFromWei } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors } from '../../../styles/common';
 
 import { getSwapsAmountNavbar } from '../Navbar';
 import Text from '../../Base/Text';
@@ -46,8 +46,6 @@ const styles = StyleSheet.create({
 		marginHorizontal: 25
 	},
 	amount: {
-		...fontStyles.light,
-		color: colors.black,
 		textAlignVertical: 'center',
 		fontSize: Device.isIphone5() ? 30 : 40,
 		height: Device.isIphone5() ? 40 : 50
@@ -220,7 +218,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 					/>
 				</View>
 				<View style={styles.amountContainer}>
-					<Text style={[styles.amount]} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
+					<Text primary style={styles.amount} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
 						{amount}
 					</Text>
 					{sourceToken && (hasInvalidDecimals || !hasEnoughBalance) ? (
