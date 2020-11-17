@@ -86,9 +86,9 @@ exports[`Confirm should render correctly 1`] = `
       />
     </View>
     <TransactionReviewFeeCard
+      edit={[Function]}
       fiat=""
       gasEstimationReady={false}
-      toggleCustomGasModal={[Function]}
       totalFiat={<Text />}
       totalGasFiat=""
       totalValue={<Text />}
@@ -215,63 +215,6 @@ exports[`Confirm should render correctly 1`] = `
       ticker="ETH"
     />
   </ReactNativeModal>
-  <ActionModal
-    actionContainerStyle={
-      Object {
-        "borderTopWidth": 0,
-      }
-    }
-    cancelButtonMode="neutral"
-    cancelTestID=""
-    cancelText="Cancel"
-    childrenContainerStyle={
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "borderTopLeftRadius": 20,
-        "borderTopRightRadius": 20,
-        "paddingTop": 24,
-        "width": "100%",
-      }
-    }
-    confirmButtonMode="confirm"
-    confirmDisabled={true}
-    confirmTestID=""
-    confirmText="Save"
-    displayCancelButton={false}
-    displayConfirmButton={true}
-    modalStyle={
-      Object {
-        "alignItems": "center",
-        "justifyContent": "flex-end",
-        "width": "100%",
-      }
-    }
-    modalVisible={false}
-    onConfirmPress={[Function]}
-    onRequestClose={[Function]}
-    viewContainerStyle={
-      Object {
-        "borderRadius": 20,
-      }
-    }
-    viewWrapperStyle={
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "borderTopLeftRadius": 20,
-        "borderTopRightRadius": 20,
-        "marginHorizontal": 0,
-        "paddingBottom": 24,
-      }
-    }
-  >
-    <Connect(CustomGas)
-      handleGasFeeSelection={[Function]}
-      handleSetGasFee={[Function]}
-      parentStateReady={[Function]}
-      selected="average"
-      toggleCustomGasModal={[Function]}
-    />
-  </ActionModal>
   <ReactNativeModal
     animationIn="slideInUp"
     animationInTiming={300}

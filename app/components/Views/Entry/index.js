@@ -149,7 +149,8 @@ const Entry = props => {
 	}, [animateAndGoTo, props]);
 
 	useEffect(() => {
-		async function appVersion() {
+		async function startApp() {
+			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
 				const currentVersion = await getVersion();
 				const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
@@ -157,19 +158,30 @@ const Entry = props => {
 					if (savedVersion) await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
 					await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
 				}
+
+				const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+				if (!lastVersion) {
+					if (existingUser) {
+						// Setting last version to first version if user exists and lastVersion does not, to simulate update
+						await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+					} else {
+						// Setting last version to current version so that it's not treated as an update
+						await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
+					}
+				}
 			} catch (error) {
 				Logger.error(error);
 			}
-		}
-		appVersion();
 
-		AsyncStorage.getItem(EXISTING_USER).then(existingUser => {
 			if (existingUser !== null) {
 				unlockKeychain();
 			} else {
 				animateAndGoTo('OnboardingRootNav');
 			}
-		});
+		}
+
+		startApp();
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 

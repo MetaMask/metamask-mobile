@@ -63,6 +63,10 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
 		// Input password confirm
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
+		// Check that we are on the congrats screen
+		await TestHelpers.checkIfVisible('import-congrats-screen');
+		// Tap on done CTA
+		await TestHelpers.tap('manual-backup-step-3-done-button');
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
@@ -83,27 +87,8 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.tapByText('Settings');
 		// Tap on the "Security & Privacy" option
 		await TestHelpers.tapByText('Security & Privacy');
-
-		// Scroll to the bottom
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.swipe('third-party-section', 'up');
-			TestHelpers.delay(1000);
-			await TestHelpers.swipe('third-party-section', 'up');
-			TestHelpers.delay(1000);
-			await TestHelpers.swipe('clear-privacy-section', 'up');
-			TestHelpers.delay(1000);
-			await TestHelpers.swipe('auto-lock-section', 'up');
-			TestHelpers.delay(1000);
-			await TestHelpers.swipe('reveal-private-key-section', 'up');
-			TestHelpers.delay(1000);
-		} else {
-			await TestHelpers.swipe('clear-privacy-section', 'up');
-		}
-
-		// Check that you are on bottom of screen
-		await TestHelpers.checkIfVisible('reveal-seed-title');
 		// Tap on Reveal Seed Phrase Button
-		await TestHelpers.waitAndTap('reveal-seedphrase-button');
+		await TestHelpers.waitAndTap('reveal-seed-button');
 		// Check that we are on the reveal seed phrase screen
 		await TestHelpers.checkIfVisible('reveal-private-credential-screen');
 		// Input incorrect password

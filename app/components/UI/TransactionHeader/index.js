@@ -9,6 +9,7 @@ import networkList from '../../../util/networks';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import { renderShortAddress } from '../../../util/address';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
@@ -80,6 +81,7 @@ const TransactionHeader = props => {
 	const originIsDeeplink =
 		props.currentPageInformation.origin === ORIGIN_DEEPLINK ||
 		props.currentPageInformation.origin === ORIGIN_QR_CODE;
+	const originIsWalletConnect = props.currentPageInformation.origin?.includes(WALLET_CONNECT_ORIGIN);
 	/**
 	 * Returns a small circular indicator, red if the current selected network is offline, green if it's online.
 	 *
@@ -101,8 +103,11 @@ const TransactionHeader = props => {
 	 */
 	const renderSecureIcon = () => {
 		if (originIsDeeplink) return null;
-		const { url } = props.currentPageInformation;
-		const name = getUrlObj(url).protocol === 'https:' ? 'lock' : 'warning';
+		const { url, origin } = props.currentPageInformation;
+		const name =
+			getUrlObj(originIsWalletConnect ? origin.split(WALLET_CONNECT_ORIGIN)[1] : url).protocol === 'https:'
+				? 'lock'
+				: 'warning';
 		return <FontAwesome name={name} size={15} style={styles.secureIcon} />;
 	};
 
@@ -120,11 +125,13 @@ const TransactionHeader = props => {
 				</View>
 			);
 		}
+		let iconTitle = getHost(currentEnsName || url);
+		if (originIsWalletConnect) iconTitle = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
 		return (
 			<WebsiteIcon
 				style={styles.domainLogo}
 				viewStyle={styles.assetLogo}
-				title={getHost(currentEnsName || url)}
+				title={iconTitle}
 				url={currentEnsName || url}
 				icon={icon}
 			/>
@@ -132,9 +139,10 @@ const TransactionHeader = props => {
 	};
 
 	const renderTitle = () => {
-		const { url, currentEnsName, spenderAddress } = props.currentPageInformation;
+		const { url, currentEnsName, spenderAddress, origin } = props.currentPageInformation;
 		let title = '';
 		if (originIsDeeplink) title = renderShortAddress(spenderAddress);
+		else if (originIsWalletConnect) title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
 		else title = getHost(currentEnsName || url);
 
 		return <Text style={styles.domainUrl}>{title}</Text>;
