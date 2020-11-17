@@ -130,13 +130,11 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 			} catch (err) {
 				console.error(err);
 			} finally {
-				setLoadingTokens(() => false);
-				setInitialLoadingTokens(() => false);
+				setLoadingTokens(false);
+				setInitialLoadingTokens(false);
 			}
 		})();
-		// TODO(wachunei) include tokens in deps once controller is updated with cache timestamp
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [tokens]);
 
 	useEffect(() => {
 		if (initialSource && tokens && !sourceToken) {
