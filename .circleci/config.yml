@@ -113,7 +113,7 @@ jobs:
   publish-pre-release-android:
     working_directory:  ~/MetaMask
     environment:
-      JAVA_OPTS: "-XX:+IgnoreUnrecognizedVMOptions --add-modules java.se.ee"
+      JAVA_OPTS: "-XX:+IgnoreUnrecognizedVMOptions --add-modules java.xml.bind"
       _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions"
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
