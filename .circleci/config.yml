@@ -113,18 +113,18 @@ jobs:
   publish-pre-release-android:
     working_directory:  ~/MetaMask
     environment:
-      JAVA_OPTS: "-XX:+IgnoreUnrecognizedVMOptions --add-modules java.xml.bind"
-      _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions"
+      JAVA_OPTS: "-Xms512m -Xmx1024m"
+      _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport"
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
-      - image: circleci/android:api-29-ndk
+      - image: circleci/android:api-29
     steps:
       - checkout
       - attach_workspace:
           at: .
       - run:
           name: build:accept-android-licenses
-          command: $ANDROID_HOME/tools/bin/sdkmanager --licenses
+          command: sdkmanager --licenses
       - run:
           name: build:pre-release
           command:
