@@ -22,6 +22,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import { colors, fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
 import ModalHandler from '../../Base/ModalHandler';
+import ModalDragger from '../../Base/ModalDragger';
 import AddressQRCode from '../../Views/AddressQRCode';
 import EthereumAddress from '../EthereumAddress';
 import GlobalAlert from '../GlobalAlert';
@@ -32,21 +33,6 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10
-	},
-	draggerWrapper: {
-		width: '100%',
-		height: 33,
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
-	},
-	dragger: {
-		width: 48,
-		height: 5,
-		borderRadius: 4,
-		backgroundColor: colors.grey400,
-		opacity: Device.isAndroid() ? 0.6 : 0.5
 	},
 	body: {
 		alignItems: 'center',
@@ -222,9 +208,7 @@ class ReceiveRequest extends PureComponent {
 	render() {
 		return (
 			<SafeAreaView style={styles.wrapper}>
-				<View style={styles.draggerWrapper}>
-					<View style={styles.dragger} />
-				</View>
+				<ModalDragger />
 				<View style={styles.titleWrapper}>
 					<Text style={styles.title} testID={'receive-request-screen'}>
 						{strings('receive_request.title')}

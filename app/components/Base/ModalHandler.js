@@ -1,11 +1,7 @@
-import { useState } from 'react';
+import useModalHandler from './hooks/useModalHandler';
 
 function ModalHandler({ children }) {
-	const [isVisible, setVisible] = useState(false);
-
-	const showModal = () => setVisible(true);
-	const hideModal = () => setVisible(true);
-	const toggleModal = () => setVisible(!isVisible);
+	const [isVisible, toggleModal, showModal, hideModal] = useModalHandler(false);
 
 	if (typeof children === 'function') {
 		return children({ isVisible, toggleModal, showModal, hideModal });

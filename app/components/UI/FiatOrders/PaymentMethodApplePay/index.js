@@ -9,6 +9,7 @@ import Logger from '../../../../util/Logger';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import { getNotificationDetails } from '..';
+import handleUSDInput from '../../../Base/Keypad/rules/usd';
 
 import {
 	useWyreTerms,
@@ -129,73 +130,9 @@ const quickAmounts = ['50', '100', '250'];
 const minAmount = 50;
 const maxAmount = 250;
 
-const hasTwoDecimals = /^\d+\.\d{2}$/;
 const hasZeroAsFirstDecimal = /^\d+\.0$/;
 const hasZerosAsDecimals = /^\d+\.00$/;
-const hasOneDigit = /^\d$/;
 const hasPeriodWithoutDecimal = /^\d+\.$/;
-const avoidZerosAsDecimals = false;
-
-//* Handlers
-
-const handleNewAmountInput = (currentAmount, newInput) => {
-	switch (newInput) {
-		case 'PERIOD': {
-			if (currentAmount === '0') {
-				return `${currentAmount}.`;
-			}
-			if (currentAmount.includes('.')) {
-				// TODO: throw error for feedback?
-				return currentAmount;
-			}
-
-			return `${currentAmount}.`;
-		}
-		case 'BACK': {
-			if (currentAmount === '0') {
-				return currentAmount;
-			}
-			if (hasOneDigit.test(currentAmount)) {
-				return '0';
-			}
-
-			return currentAmount.slice(0, -1);
-		}
-		case '0': {
-			if (currentAmount === '0') {
-				return currentAmount;
-			}
-			if (hasTwoDecimals.test(currentAmount)) {
-				return currentAmount;
-			}
-			if (avoidZerosAsDecimals && hasZeroAsFirstDecimal.test(currentAmount)) {
-				return currentAmount;
-			}
-			return `${currentAmount}${newInput}`;
-		}
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9': {
-			if (currentAmount === '0') {
-				return newInput;
-			}
-			if (hasTwoDecimals.test(currentAmount)) {
-				return currentAmount;
-			}
-
-			return `${currentAmount}${newInput}`;
-		}
-		default: {
-			return currentAmount;
-		}
-	}
-};
 
 function PaymentMethodApplePay({
 	lockTime,
@@ -258,7 +195,7 @@ function PaymentMethodApplePay({
 			if (isOverMaximum && newInput !== 'BACK') {
 				return;
 			}
-			const newAmount = handleNewAmountInput(amount, newInput);
+			const newAmount = handleUSDInput(amount, newInput);
 			if (newAmount === amount) {
 				return;
 			}

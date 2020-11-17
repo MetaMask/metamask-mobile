@@ -1372,6 +1372,18 @@
 		"amount": "Amount",
 		"total_amount": "Total amount"
 	},
+	"swaps": {
+		"convert_from": "Convert from",
+		"convert_to": "Convert to",
+		"select_a_token": "Select a token",
+		"search_token": "Search for a token",
+		"no_tokens_result": "No tokens match “{{searchString}}”",
+		"available_to_swap": "{{asset}} available to swap",
+		"not_enough": "Not enough {{symbol}} to complete this swap",
+		"max_slippage": "Max slippage {{slippage}}",
+		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
+		"get_quotes": "Get quotes"
+	},
 	"protect_wallet_modal": {
 		"title": "Protect your wallet",
 		"top_button": "Protect wallet",

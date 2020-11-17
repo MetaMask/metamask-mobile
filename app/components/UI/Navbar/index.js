@@ -902,3 +902,28 @@ export function getSwapsAmountNavbar(navigation) {
 		)
 	};
 }
+export function getSwapsQuotesNavbar(navigation) {
+	const title = navigation.getParam('title', 'Swaps');
+	const rightAction = navigation.dismiss;
+
+	return {
+		headerTitle: <NavbarTitle title={title} disableNetwork translate={false} />,
+		headerLeft: Device.isAndroid() ? (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+			</TouchableOpacity>
+		) : (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
+			</TouchableOpacity>
+		),
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+			</TouchableOpacity>
+		)
+	};
+}
