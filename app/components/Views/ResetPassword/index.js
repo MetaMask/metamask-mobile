@@ -292,8 +292,6 @@ class ResetPassword extends PureComponent {
 	mounted = true;
 
 	confirmPasswordInput = React.createRef();
-	// Flag to know if password in keyring was set or not
-	keyringControllerPasswordSet = false;
 
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
@@ -332,13 +330,6 @@ class ResetPassword extends PureComponent {
 	setSelection = () => {
 		const { isSelected } = this.state;
 		this.setState(() => ({ isSelected: !isSelected }));
-	};
-
-	createNewVaultAndKeychain = async password => {
-		const { KeyringController } = Engine.context;
-		await Engine.resetState();
-		await KeyringController.createNewVaultAndKeychain(password);
-		this.keyringControllerPasswordSet = true;
 	};
 
 	onPressCreate = async () => {
@@ -411,7 +402,7 @@ class ResetPassword extends PureComponent {
 
 		let importedAccounts = [];
 		try {
-			const keychainPassword = this.keyringControllerPasswordSet ? originalPassword : '';
+			const keychainPassword = originalPassword;
 			// Get imported accounts
 			const simpleKeyrings = KeyringController.state.keyrings.filter(
 				keyring => keyring.type === 'Simple Key Pair'
@@ -429,8 +420,6 @@ class ResetPassword extends PureComponent {
 
 		// Recreate keyring with password given to this method
 		await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
-		// Keyring is set with empty password or not
-		this.keyringControllerPasswordSet = newPassword !== '';
 
 		// Get props to restore vault
 		const hdKeyring = KeyringController.state.keyrings[0];

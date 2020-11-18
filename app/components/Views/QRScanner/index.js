@@ -9,6 +9,7 @@ import { parse } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
+import { failedSeedPhraseRequirements, isValidMnemonic } from '../../../util/validators';
 
 const styles = StyleSheet.create({
 	container: {
@@ -72,6 +73,13 @@ export default class QrScanner extends PureComponent {
 		}
 	};
 
+	end = (data, content) => {
+		const { navigation } = this.props;
+		this.mounted = false;
+		navigation.goBack();
+		navigation.state.params.onScanSuccess(data, content);
+	};
+
 	onBarCodeRead = response => {
 		if (!this.mounted) return false;
 		const content = response.data;
@@ -107,6 +115,13 @@ export default class QrScanner extends PureComponent {
 				return;
 			}
 
+			if (!failedSeedPhraseRequirements(content) && isValidMnemonic(content)) {
+				this.shouldReadBarCode = false;
+				data = { seed: content };
+				this.end(data, content);
+				return;
+			}
+
 			// Checking if it can be handled like deeplinks
 			const handledByDeeplink = SharedDeeplinkManager.parse(content, {
 				origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
@@ -128,18 +143,13 @@ export default class QrScanner extends PureComponent {
 			} else if (content.split('wc:').length > 1) {
 				this.shouldReadBarCode = false;
 				data = { walletConnectURI: content };
-			} else if (content.split(' ').length === 12) {
-				this.shouldReadBarCode = false;
-				data = { seed: content };
 			} else {
 				// EIP-945 allows scanning arbitrary data
 				data = content;
 			}
 		}
 
-		this.mounted = false;
-		this.props.navigation.goBack();
-		this.props.navigation.state.params.onScanSuccess(data, content);
+		this.end(data, content);
 	};
 
 	onError = error => {

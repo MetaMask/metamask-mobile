@@ -51,5 +51,8 @@ export default {
 	DEEPLINKS: {
 		ORIGIN_DEEPLINK: 'deeplink',
 		ORIGIN_QR_CODE: 'qr-code'
+	},
+	SWAPS: {
+		ACTIVE: false
 	}
 };

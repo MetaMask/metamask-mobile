@@ -2,7 +2,21 @@
 
 ## Current Develop Branch
 
-## v1.0.6 - Nov 9 2020
+## v1.0.7 - Nov 17 2020
+- [#1992](https://github.com/MetaMask/metamask-mobile/pull/1992): Android api level (#1992)
+- [#1993](https://github.com/MetaMask/metamask-mobile/pull/1993): Catch SVG Errors (#1993)
+- [#1970](https://github.com/MetaMask/metamask-mobile/pull/1970): Remove network status controller (#1970)
+- [#1968](https://github.com/MetaMask/metamask-mobile/pull/1968): Add MetaSwaps feature flag and initial nav stack (#1968)
+- [#1967](https://github.com/MetaMask/metamask-mobile/pull/1967): Add Keypad component (#1967)
+
+
+## v1.0.6 - Nov 12 2020
+- [#1990](https://github.com/MetaMask/metamask-mobile/pull/1990): Fixed importing accounts when reseting password (#1990)
+- [#1988](https://github.com/MetaMask/metamask-mobile/pull/1988): bugfix/protect wallet modal (#1988)
+- [#1985](https://github.com/MetaMask/metamask-mobile/pull/1985): Fix seedphrase handling in QRScanner (#1985)
+- [#1982](https://github.com/MetaMask/metamask-mobile/pull/1982): Bugfix/approve modal (#1982)
+- [#1983](https://github.com/MetaMask/metamask-mobile/pull/1983): Fix whats new modal (#1983)
+- [#1978](https://github.com/MetaMask/metamask-mobile/pull/1978): Make hintText display regardless of biometryType (#1978)
 - [#1973](https://github.com/MetaMask/metamask-mobile/pull/1973): Detox: Updated onboarding flows (#1973)
 - [#1780](https://github.com/MetaMask/metamask-mobile/pull/1780): Improvement/update keychain lib (#1780)
 - [#1916](https://github.com/MetaMask/metamask-mobile/pull/1916): Fix QR send (#1916)

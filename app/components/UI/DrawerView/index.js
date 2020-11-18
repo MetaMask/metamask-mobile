@@ -37,6 +37,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
+import WhatsNewModal from '../WhatsNewModal';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -379,7 +380,7 @@ class DrawerView extends PureComponent {
 	};
 
 	state = {
-		showProtectWalletModal: false
+		showProtectWalletModal: undefined
 	};
 
 	browserSectionRef = React.createRef();
@@ -407,7 +408,8 @@ class DrawerView extends PureComponent {
 	componentDidUpdate() {
 		const route = this.findRouteNameFromNavigatorState(this.props.navigation.state);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-			if (['SetPasswordFlow', 'Webview'].includes(route)) {
+			const bottomTab = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
+			if (['SetPasswordFlow', 'Webview', 'LockScreen'].includes(bottomTab)) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
 				return;
@@ -419,9 +421,21 @@ class DrawerView extends PureComponent {
 					tokenFound = true;
 				}
 			});
-			if (!this.props.passwordSet || this.currentBalance > 0 || tokenFound || this.props.collectibles.length > 0)
+			if (
+				!this.props.passwordSet ||
+				this.currentBalance > 0 ||
+				tokenFound ||
+				this.props.collectibles.length > 0
+			) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({ showProtectWalletModal: true });
+			} else {
+				// eslint-disable-next-line react/no-did-update-set-state
+				this.setState({ showProtectWalletModal: false });
+			}
+		} else {
+			// eslint-disable-next-line react/no-did-update-set-state
+			this.setState({ showProtectWalletModal: false });
 		}
 		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
 		const { KeyringController } = Engine.context;
@@ -599,6 +613,11 @@ class DrawerView extends PureComponent {
 		this.hideDrawer();
 	}
 
+	goToSwaps = () => {
+		this.props.navigation.navigate('Swaps');
+		this.hideDrawer();
+	};
+
 	hideDrawer() {
 		return new Promise(resolve => {
 			this.props.navigation.dispatch(DrawerActions.closeDrawer());
@@ -724,6 +743,13 @@ class DrawerView extends PureComponent {
 						strings('drawer.view_in_etherscan'),
 					icon: this.getIcon('eye'),
 					action: this.viewInEtherscan
+				}
+			],
+			AppConstants.SWAPS.ACTIVE && [
+				{
+					name: 'Swaps',
+					icon: this.getIcon('refresh'),
+					action: this.goToSwaps
 				}
 			],
 			[
@@ -945,59 +971,67 @@ class DrawerView extends PureComponent {
 						</StyledButton>
 					</View>
 					<View style={styles.menu}>
-						{this.getSections().map((section, i) => (
-							<View
-								key={`section_${i}`}
-								style={[styles.menuSection, i === 0 ? styles.noTopBorder : null]}
-							>
-								{section
-									.filter(item => {
-										if (!item) return undefined;
-										const { name = undefined } = item;
-										if (name && name.toLowerCase().indexOf('etherscan') !== -1) {
-											const type = network.provider?.type;
-											return (type && this.hasBlockExplorer(type)) || undefined;
-										}
-										return true;
-									})
-									.map((item, j) => (
-										<TouchableOpacity
-											key={`item_${i}_${j}`}
-											style={[
-												styles.menuItem,
-												item.routeNames && item.routeNames.includes(currentRoute)
-													? styles.selectedRoute
-													: null
-											]}
-											ref={item.name === strings('drawer.browser') && this.browserSectionRef}
-											onPress={() => item.action()} // eslint-disable-line
-										>
-											{item.icon
-												? item.routeNames && item.routeNames.includes(currentRoute)
-													? item.selectedIcon
-													: item.icon
-												: null}
-											<Text
-												style={[
-													styles.menuItemName,
-													!item.icon ? styles.noIcon : null,
-													item.routeNames && item.routeNames.includes(currentRoute)
-														? styles.selectedName
-														: null
-												]}
-												numberOfLines={1}
-											>
-												{item.name}
-											</Text>
-											{!seedphraseBackedUp && item.warning ? (
-												<SettingsNotification isNotification isWarning>
-													<Text style={styles.menuItemWarningText}>{item.warning}</Text>
-												</SettingsNotification>
-											) : null}
-										</TouchableOpacity>
-									))}
-							</View>
-						))}
+						{this.getSections().map(
+							(section, i) =>
+								section?.length > 0 && (
+									<View
+										key={`section_${i}`}
+										style={[styles.menuSection, i === 0 ? styles.noTopBorder : null]}
+									>
+										{section
+											.filter(item => {
+												if (!item) return undefined;
+												const { name = undefined } = item;
+												if (name && name.toLowerCase().indexOf('etherscan') !== -1) {
+													const type = network.provider?.type;
+													return (type && this.hasBlockExplorer(type)) || undefined;
+												}
+												return true;
+											})
+											.map((item, j) => (
+												<TouchableOpacity
+													key={`item_${i}_${j}`}
+													style={[
+														styles.menuItem,
+														item.routeNames && item.routeNames.includes(currentRoute)
+															? styles.selectedRoute
+															: null
+													]}
+													ref={
+														item.name === strings('drawer.browser') &&
+														this.browserSectionRef
+													}
+													onPress={() => item.action()} // eslint-disable-line
+												>
+													{item.icon
+														? item.routeNames && item.routeNames.includes(currentRoute)
+															? item.selectedIcon
+															: item.icon
+														: null}
+													<Text
+														style={[
+															styles.menuItemName,
+															!item.icon ? styles.noIcon : null,
+															item.routeNames && item.routeNames.includes(currentRoute)
+																? styles.selectedName
+																: null
+														]}
+														numberOfLines={1}
+													>
+														{item.name}
+													</Text>
+													{!seedphraseBackedUp && item.warning ? (
+														<SettingsNotification isNotification isWarning>
+															<Text style={styles.menuItemWarningText}>
+																{item.warning}
+															</Text>
+														</SettingsNotification>
+													) : null}
+												</TouchableOpacity>
+											))}
+									</View>
+								)
+						)}
 					</View>
 				</ScrollView>
 				<Modal
@@ -1045,6 +1079,11 @@ class DrawerView extends PureComponent {
 						showReceiveModal={this.showReceiveModal}
 					/>
 				</Modal>
+				<WhatsNewModal
+					navigation={this.props.navigation}
+					enabled={this.state.showProtectWalletModal === false}
+				/>
+
 				{this.renderProtectModal()}
 			</View>
 		);
