@@ -23,6 +23,18 @@ const defaultOptions = {
 	fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
 };
 
+const withRetry = async func =>
+	new Promise((resolve, reject) => {
+		const tryStatement = () => func().then(result => resolve(result));
+		tryStatement().catch(e => {
+			if (e.message.includes('Unknown error')) {
+				tryStatement().catch(e => reject(e));
+			} else {
+				reject(e);
+			}
+		});
+	});
+
 /**
  * Class that wraps Keychain from react-native-keychain
  * abstracting metamask specific functionality and settings
@@ -104,7 +116,7 @@ export default {
 			return await this.resetGenericPassword();
 		}
 
-		const encryptedPassword = await instance.encryptPassword(password);
+		const encryptedPassword = await withRetry(() => instance.encryptPassword(password));
 		await Keychain.setGenericPassword('metamask-user', encryptedPassword, { ...defaultOptions, ...authOptions });
 
 		if (type === this.TYPES.BIOMETRICS) {
