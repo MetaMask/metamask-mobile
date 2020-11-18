@@ -3,6 +3,7 @@
 ## Current Develop Branch
 
 ## v1.0.7 - Nov 17 2020
+- [#2003](https://github.com/MetaMask/metamask-mobile/pull/2003): Bugfix/android choose password (#2003)
 - [#1992](https://github.com/MetaMask/metamask-mobile/pull/1992): Android api level (#1992)
 - [#1993](https://github.com/MetaMask/metamask-mobile/pull/1993): Catch SVG Errors (#1993)
 - [#1970](https://github.com/MetaMask/metamask-mobile/pull/1970): Remove network status controller (#1970)
