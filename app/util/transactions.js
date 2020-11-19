@@ -414,10 +414,5 @@ export function getNormalizedTxState(state) {
 	return { ...state.transaction, ...state.transaction.transaction };
 }
 
-export function getActiveTabUrl({ browser = {} }) {
-	let tab;
-	if (browser.tabs && browser.activeTab) {
-		tab = browser.tabs.find(({ id }) => id === browser.activeTab);
-	}
-	return tab ? tab.url : '';
-}
+export const getActiveTabUrl = ({ browser = {} }) =>
+	browser.tabs && browser.activeTab && browser.tabs.find(({ id }) => id === browser.activeTab)?.url;
