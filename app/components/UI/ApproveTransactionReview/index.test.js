@@ -30,6 +30,10 @@ describe('ApproveTransactionModal', () => {
 			transaction: {},
 			settings: {
 				primaryCurrency: 'fiat'
+			},
+			browser: {
+				activeTab: 1605778647042,
+				tabs: [{ id: 1605778647042, url: 'https://metamask.github.io/test-dapp/' }]
 			}
 		};
 		const wrapper = shallow(<ApproveTransactionModal />, {
