@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { View, StyleSheet, Image, TouchableOpacity, InteractionManager } from 'react-native';
 import { NavigationContext } from 'react-navigation';
 import { connect } from 'react-redux';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import NotificationManager from '../../../../core/NotificationManager';
 import Device from '../../../../util/Device';
 import Logger from '../../../../util/Logger';
@@ -23,6 +22,7 @@ import {
 import ScreenView from '../components/ScreenView';
 import { getPaymentMethodApplePayNavbar } from '../../Navbar';
 import AccountBar from '../components/AccountBar';
+import Keypad from '../../../Base/Keypad';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -76,29 +76,6 @@ const styles = StyleSheet.create({
 	quickAmountSelectedText: {
 		color: colors.white
 	},
-	keypad: {
-		paddingHorizontal: 25
-	},
-	keypadRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-around'
-	},
-	keypadButton: {
-		paddingHorizontal: 20,
-		paddingVertical: Device.isMediumDevice() ? (Device.isIphone5() ? 5 : 10) : 15,
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	keypadButtonText: {
-		color: colors.black,
-		textAlign: 'center',
-		fontSize: 30
-	},
-	deleteIcon: {
-		fontSize: 25,
-		marginTop: 5
-	},
 	buttonContainer: {
 		paddingBottom: 20
 	},
@@ -128,30 +105,6 @@ const ApplePay = ({ disabled }) => (
 
 ApplePay.propTypes = {
 	disabled: PropTypes.bool
-};
-
-const Keypad = props => <View style={styles.keypad} {...props} />;
-Keypad.Row = function Row(props) {
-	return <View style={styles.keypadRow} {...props} />;
-};
-Keypad.Button = function KeypadButton({ children, ...props }) {
-	return (
-		<TouchableOpacity style={styles.keypadButton} {...props}>
-			<Text style={styles.keypadButtonText}>{children}</Text>
-		</TouchableOpacity>
-	);
-};
-
-Keypad.Button.propTypes = {
-	children: PropTypes.node
-};
-
-Keypad.DeleteButton = function DeleteButton(props) {
-	return (
-		<TouchableOpacity style={styles.keypadButton} {...props}>
-			<IonicIcon style={[styles.keypadButtonText, styles.deleteIcon]} name="md-arrow-back" />
-		</TouchableOpacity>
-	);
 };
 
 const QuickAmount = ({ amount, current, ...props }) => {

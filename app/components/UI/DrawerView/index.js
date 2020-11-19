@@ -613,6 +613,11 @@ class DrawerView extends PureComponent {
 		this.hideDrawer();
 	}
 
+	goToSwaps = () => {
+		this.props.navigation.navigate('Swaps');
+		this.hideDrawer();
+	};
+
 	hideDrawer() {
 		return new Promise(resolve => {
 			this.props.navigation.dispatch(DrawerActions.closeDrawer());
@@ -738,6 +743,13 @@ class DrawerView extends PureComponent {
 						strings('drawer.view_in_etherscan'),
 					icon: this.getIcon('eye'),
 					action: this.viewInEtherscan
+				}
+			],
+			AppConstants.SWAPS.ACTIVE && [
+				{
+					name: 'Swaps',
+					icon: this.getIcon('refresh'),
+					action: this.goToSwaps
 				}
 			],
 			[
@@ -959,59 +971,67 @@ class DrawerView extends PureComponent {
 						</StyledButton>
 					</View>
 					<View style={styles.menu}>
-						{this.getSections().map((section, i) => (
-							<View
-								key={`section_${i}`}
-								style={[styles.menuSection, i === 0 ? styles.noTopBorder : null]}
-							>
-								{section
-									.filter(item => {
-										if (!item) return undefined;
-										const { name = undefined } = item;
-										if (name && name.toLowerCase().indexOf('etherscan') !== -1) {
-											const type = network.provider?.type;
-											return (type && this.hasBlockExplorer(type)) || undefined;
-										}
-										return true;
-									})
-									.map((item, j) => (
-										<TouchableOpacity
-											key={`item_${i}_${j}`}
-											style={[
-												styles.menuItem,
-												item.routeNames && item.routeNames.includes(currentRoute)
-													? styles.selectedRoute
-													: null
-											]}
-											ref={item.name === strings('drawer.browser') && this.browserSectionRef}
-											onPress={() => item.action()} // eslint-disable-line
-										>
-											{item.icon
-												? item.routeNames && item.routeNames.includes(currentRoute)
-													? item.selectedIcon
-													: item.icon
-												: null}
-											<Text
-												style={[
-													styles.menuItemName,
-													!item.icon ? styles.noIcon : null,
-													item.routeNames && item.routeNames.includes(currentRoute)
-														? styles.selectedName
-														: null
-												]}
-												numberOfLines={1}
-											>
-												{item.name}
-											</Text>
-											{!seedphraseBackedUp && item.warning ? (
-												<SettingsNotification isNotification isWarning>
-													<Text style={styles.menuItemWarningText}>{item.warning}</Text>
-												</SettingsNotification>
-											) : null}
-										</TouchableOpacity>
-									))}
-							</View>
-						))}
+						{this.getSections().map(
+							(section, i) =>
+								section?.length > 0 && (
+									<View
+										key={`section_${i}`}
+										style={[styles.menuSection, i === 0 ? styles.noTopBorder : null]}
+									>
+										{section
+											.filter(item => {
+												if (!item) return undefined;
+												const { name = undefined } = item;
+												if (name && name.toLowerCase().indexOf('etherscan') !== -1) {
+													const type = network.provider?.type;
+													return (type && this.hasBlockExplorer(type)) || undefined;
+												}
+												return true;
+											})
+											.map((item, j) => (
+												<TouchableOpacity
+													key={`item_${i}_${j}`}
+													style={[
+														styles.menuItem,
+														item.routeNames && item.routeNames.includes(currentRoute)
+															? styles.selectedRoute
+															: null
+													]}
+													ref={
+														item.name === strings('drawer.browser') &&
+														this.browserSectionRef
+													}
+													onPress={() => item.action()} // eslint-disable-line
+												>
+													{item.icon
+														? item.routeNames && item.routeNames.includes(currentRoute)
+															? item.selectedIcon
+															: item.icon
+														: null}
+													<Text
+														style={[
+															styles.menuItemName,
+															!item.icon ? styles.noIcon : null,
+															item.routeNames && item.routeNames.includes(currentRoute)
+																? styles.selectedName
+																: null
+														]}
+														numberOfLines={1}
+													>
+														{item.name}
+													</Text>
+													{!seedphraseBackedUp && item.warning ? (
+														<SettingsNotification isNotification isWarning>
+															<Text style={styles.menuItemWarningText}>
+																{item.warning}
+															</Text>
+														</SettingsNotification>
+													) : null}
+												</TouchableOpacity>
+											))}
+									</View>
+								)
+						)}
 					</View>
 				</ScrollView>
 				<Modal

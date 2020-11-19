@@ -886,3 +886,19 @@ export function getTransakWebviewNavbar(navigation) {
 		)
 	};
 }
+
+export function getSwapsAmountNavbar(navigation) {
+	const title = navigation.getParam('title', 'Swaps');
+	const rightAction = navigation.dismiss;
+
+	return {
+		headerTitle: <NavbarTitle title={title} disableNetwork translate={false} />,
+		headerLeft: <View />,
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+			</TouchableOpacity>
+		)
+	};
+}
