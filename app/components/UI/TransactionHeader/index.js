@@ -112,7 +112,8 @@ const TransactionHeader = props => {
 	};
 
 	const renderTopIcon = () => {
-		const { url, currentEnsName, icon, origin } = props.currentPageInformation;
+		const { currentEnsName, icon, origin } = props.currentPageInformation;
+		let url = props.currentPageInformation.url;
 		if (originIsDeeplink) {
 			return (
 				<View style={styles.deeplinkIconContainer}>
@@ -126,7 +127,10 @@ const TransactionHeader = props => {
 			);
 		}
 		let iconTitle = getHost(currentEnsName || url);
-		if (originIsWalletConnect) iconTitle = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
+		if (originIsWalletConnect) {
+			url = origin.split(WALLET_CONNECT_ORIGIN)[1];
+			iconTitle = getHost(url);
+		}
 		return (
 			<WebsiteIcon
 				style={styles.domainLogo}
@@ -143,7 +147,7 @@ const TransactionHeader = props => {
 		let title = '';
 		if (originIsDeeplink) title = renderShortAddress(spenderAddress);
 		else if (originIsWalletConnect) title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
-		else title = getHost(currentEnsName || url);
+		else title = getHost(currentEnsName || url || origin);
 
 		return <Text style={styles.domainUrl}>{title}</Text>;
 	};
