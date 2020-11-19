@@ -143,7 +143,7 @@ const TransactionHeader = props => {
 		let title = '';
 		if (originIsDeeplink) title = renderShortAddress(spenderAddress);
 		else if (originIsWalletConnect) title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
-		else title = getHost(currentEnsName || url);
+		else title = getHost(currentEnsName || url || origin);
 
 		return <Text style={styles.domainUrl}>{title}</Text>;
 	};
