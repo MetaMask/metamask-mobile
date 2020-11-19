@@ -10,7 +10,7 @@ exports[`ApproveTransactionModal should render correctly 1`] = `
     }
   }
   accountsLength={1}
-  activeTabUrl=""
+  activeTabUrl="https://metamask.github.io/test-dapp/"
   conversionRate={5}
   primaryCurrency="fiat"
   providerType="ETH"
