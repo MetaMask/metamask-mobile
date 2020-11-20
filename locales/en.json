@@ -1351,6 +1351,7 @@
 		"wyre_minimum_deposit": "Minimum deposit is {{amount}}",
 		"wyre_maximum_deposit": "Maximum deposit is {{amount}}",
 		"wyre_purchase": "{{currency}} Purchase",
+		"wyre_total_label": "Wyre (via MetaMask)",
 		"buy_with": "Buy with",
 		"plus_fee": "Plus a {{fee}} fee",
 		"notifications": {
