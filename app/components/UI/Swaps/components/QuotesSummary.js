@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { View, StyleSheet, Image } from 'react-native';
 import { colors } from '../../../../styles/common';
 import Text from '../../../Base/Text';
@@ -79,5 +80,24 @@ QuotesSummary.Body = Body;
 QuotesSummary.Header = Header;
 QuotesSummary.HeaderText = HeaderText;
 QuotesSummary.Separator = Separator;
+
+Header.propTypes = {
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+	/** Wether the piggybank is shown or not */
+	savings: PropTypes.bool,
+	children: PropTypes.node
+};
+
+Body.propTypes = {
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+};
+
+HeaderText.propTypes = {
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+};
+
+Separator.propTypes = {
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+};
 
 export default QuotesSummary;
