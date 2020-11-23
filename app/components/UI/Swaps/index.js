@@ -153,6 +153,9 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 
 	const hasEnoughBalance = useMemo(() => amountBigNumber.lte(new BigNumber(balance)), [amountBigNumber, balance]);
 
+	/* Navigation handler */
+	const handleGetQuotesPress = useCallback(() => navigation.navigate('SwapsQuotesView'), [navigation]);
+
 	/* Keypad Handlers */
 	const handleKeypadPress = useCallback(
 		newInput => {
@@ -300,6 +303,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 						<View style={styles.ctaContainer}>
 							<StyledButton
 								type="blue"
+								onPress={handleGetQuotesPress}
 								containerStyle={styles.cta}
 								disabled={
 									isInitialLoadingTokens ||
