@@ -13,11 +13,10 @@ import Device from '../../../util/Device';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
 
-const timeoutMilliseconds = 10 * 1000;
+const timeoutMilliseconds = 120 * 1000;
 
 const fetchQuotes = () =>
 	new Promise(resolve => {
-		console.log('fetching...');
 		setTimeout(() => {
 			resolve();
 		}, 2000);
