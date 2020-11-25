@@ -12,15 +12,37 @@ import { colors } from '../../../styles/common';
 import Device from '../../../util/Device';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
+import Engine from '../../../core/Engine';
 
 const timeoutMilliseconds = 120 * 1000;
 
-const fetchQuotes = () =>
-	new Promise(resolve => {
-		setTimeout(() => {
-			resolve();
-		}, 2000);
-	});
+const fetchParams = {
+	slippage: 3,
+	sourceToken: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+	destinationToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+	sourceAmount: 10000000000000000,
+	fromAddress: '0xb0da5965d43369968574d399dbe6374683773a65',
+	balanceError: undefined,
+	metaData: {
+		sourceTokenInfo: {
+			address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+			symbol: 'DAI',
+			decimals: 18,
+			iconUrl: 'https://foo.bar/logo.png'
+		},
+		destinationTokenInfo: {
+			address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			symbol: 'USDC',
+			decimals: 18
+		},
+		accountBalance: '0x0'
+	}
+};
+
+const fetchQuotes = async () => {
+	const { SwapsController } = Engine.context;
+	await SwapsController.fetchAndSetQuotes(fetchParams, fetchParams.metaData);
+};
 
 const styles = StyleSheet.create({
 	screen: {
@@ -144,11 +166,12 @@ function SwapsQuotesView() {
 
 	useEffect(() => {
 		(async () => {
+			// remove this
+			await fetchQuotes();
 			if (shouldFetchQuotes) {
 				try {
 					setFetchingQuotes(true);
 					setRemainingTime(timeoutMilliseconds);
-					await fetchQuotes();
 					setNextTimeout(Date.now() + timeoutMilliseconds);
 				} catch (e) {
 					console.error(e);

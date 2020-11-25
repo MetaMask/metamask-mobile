@@ -146,13 +146,15 @@ class Engine {
 			AssetsContractController,
 			AssetsDetectionController,
 			NetworkController: { provider },
-			TransactionController
+			TransactionController,
+			SwapsController
 		} = this.datamodel.context;
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		AccountTrackerController.configure({ provider });
 		AccountTrackerController.refresh();
 		AssetsContractController.configure({ provider });
+		SwapsController.configure({ provider });
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
 		AssetsDetectionController.detectAssets();
