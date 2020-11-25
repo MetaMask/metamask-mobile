@@ -735,10 +735,37 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
-"@estebanmino/controllers@3.2.5":
+"@estebanmino/controllers@../gaba/estebanmino-controllers-v3.2.5.tgz":
   version "3.2.5"
-  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.2.5.tgz#3d19235ffdf621f4c9e95ca0a9412dcd335cb93f"
-  integrity sha512-4xzof8J9UkGCY/N88THmmQek4ky9drocXs5Nz6kqS6R9zY2ZrmNaBL1zbDTHSx1hHmAe4RQp+nVt4VbfDRVUxQ==
+  resolved "../gaba/estebanmino-controllers-v3.2.5.tgz#bc0b4bca477c7ddae77707ca7d15048035c0cc48"
+  dependencies:
+    await-semaphore "^0.1.3"
+    bignumber.js "^9.0.1"
+    eth-contract-metadata "^1.11.0"
+    eth-ens-namehash "^2.0.8"
+    eth-json-rpc-infura "^5.1.0"
+    eth-keyring-controller "^6.1.0"
+    eth-method-registry "1.1.0"
+    eth-phishing-detect "^1.1.13"
+    eth-query "^2.1.2"
+    eth-rpc-errors "^4.0.0"
+    eth-sig-util "^3.0.0"
+    ethereumjs-util "^6.1.0"
+    ethereumjs-wallet "0.6.0"
+    ethjs-query "^0.3.8"
+    human-standard-collectible-abi "^1.0.2"
+    human-standard-token-abi "^2.0.0"
+    isomorphic-fetch "^3.0.0"
+    jsonschema "^1.2.4"
+    nanoid "^3.1.12"
+    single-call-balance-checker-abi "^1.0.0"
+    uuid "^3.3.2"
+    web3 "^0.20.7"
+    web3-provider-engine "^16.0.1"
+
+"@estebanmino/controllers@../gaba/estebanmino-controllers-v3.2.6.tgz":
+  version "3.2.6"
+  resolved "../gaba/estebanmino-controllers-v3.2.6.tgz#42c52153591ae8f843a371b1f08ea291170a1f5b"
   dependencies:
     await-semaphore "^0.1.3"
     bignumber.js "^9.0.1"
