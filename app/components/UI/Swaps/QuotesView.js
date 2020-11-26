@@ -3,6 +3,7 @@ import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-nat
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
+import PropTypes from 'prop-types';
 
 import Text from '../../Base/Text';
 import ScreenView from '../FiatOrders/components/ScreenView';
@@ -13,36 +14,9 @@ import Device from '../../../util/Device';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
 import Engine from '../../../core/Engine';
+import { BNToHex } from '../../../util/number';
 
 const timeoutMilliseconds = 120 * 1000;
-
-const fetchParams = {
-	slippage: 3,
-	sourceToken: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-	destinationToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-	sourceAmount: 10000000000000000,
-	fromAddress: '0xb0da5965d43369968574d399dbe6374683773a65',
-	balanceError: undefined,
-	metaData: {
-		sourceTokenInfo: {
-			address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-			symbol: 'DAI',
-			decimals: 18,
-			iconUrl: 'https://foo.bar/logo.png'
-		},
-		destinationTokenInfo: {
-			address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-			symbol: 'USDC',
-			decimals: 18
-		},
-		accountBalance: '0x0'
-	}
-};
-
-const fetchQuotes = async () => {
-	const { SwapsController } = Engine.context;
-	await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
-};
 
 const styles = StyleSheet.create({
 	screen: {
@@ -140,7 +114,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-function SwapsQuotesView() {
+function SwapsQuotesView(props) {
 	// const navigation = useContext(NavigationContext);
 	const [nextTimeout, setNextTimeout] = useState(Date.now() + timeoutMilliseconds);
 	const [fetchingQuotes, setFetchingQuotes] = useState(false);
@@ -167,6 +141,36 @@ function SwapsQuotesView() {
 	useEffect(() => {
 		(async () => {
 			// remove this
+			const fetchQuotes = async () => {
+				const { SwapsController } = Engine.context;
+				const { accounts, selectedAddress } = props;
+
+				const fetchParams = {
+					slippage: 3,
+					sourceToken: '0x6b175474e89094c44da98b954eedeac495271d0f',
+					destinationToken: '0xdd974d5c2e2928dea5f71b9825b8b646686bd200',
+					sourceAmount: 1000,
+					fromAddress: selectedAddress,
+					balanceError: undefined,
+					metaData: {
+						sourceTokenInfo: {
+							address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+							symbol: 'DAI',
+							decimals: 18,
+							iconUrl: 'https://foo.bar/logo.png'
+						},
+						destinationTokenInfo: {
+							address: '0xdd974d5c2e2928dea5f71b9825b8b646686bd200',
+							symbol: 'knc',
+							decimals: 18
+						},
+						accountBalance: BNToHex(accounts[selectedAddress] && accounts[selectedAddress].balance)
+					}
+				};
+				SwapsController.resetState();
+				await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
+			};
+
 			await fetchQuotes();
 			if (shouldFetchQuotes) {
 				try {
@@ -181,7 +185,7 @@ function SwapsQuotesView() {
 				}
 			}
 		})();
-	}, [shouldFetchQuotes]);
+	}, [shouldFetchQuotes, props]);
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen}>
@@ -287,17 +291,32 @@ function SwapsQuotesView() {
 	);
 }
 
+SwapsQuotesView.propTypes = {
+	// tokens: PropTypes.arrayOf(PropTypes.object),
+	/**
+	 * Map of accounts to information objects including balances
+	 */
+	accounts: PropTypes.object,
+	/**
+	 * A string that represents the selected address
+	 */
+	selectedAddress: PropTypes.string
+};
+
 SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
+
 const mapStateToProps = state => {
 	console.log('----------');
-	console.log('IS IN POLLING', state.engine.backgroundState.SwapsController.isInPolling);
-	console.log('IS IN FETCH', state.engine.backgroundState.SwapsController.isInFetch);
-	console.log('IS IN POLLING CYCLES LEFT', state.engine.backgroundState.SwapsController.pollingCyclesLeft);
-	console.log('IS IN topAggId', state.engine.backgroundState.SwapsController.topAggId);
-	console.log('IS IN errorKey', state.engine.backgroundState.SwapsController.errorKey);
-	console.log('----------');
+	// console.log('SC QUOTES', state.engine.backgroundState.SwapsController.quotes);
+	// console.log('IS IN FETCH', state.engine.backgroundState.SwapsController.isInFetch);
+	// console.log('IS IN POLLING CYCLES LEFT', state.engine.backgroundState.SwapsController.pollingCyclesLeft);
+	// console.log('IS IN topAggId', state.engine.backgroundState.SwapsController.topAggId);
+	// console.log('IS IN errorKey', state.engine.backgroundState.SwapsController.errorKey);
+	// console.log('----------');
 
 	return {
+		accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 		tokens: state.engine.backgroundState.SwapsController.tokens
 	};
 };
