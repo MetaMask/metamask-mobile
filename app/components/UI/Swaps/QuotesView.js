@@ -141,6 +141,7 @@ function SwapsQuotesView(props) {
 	useEffect(() => {
 		(async () => {
 			// remove this
+
 			const fetchQuotes = async () => {
 				const { SwapsController } = Engine.context;
 				const { accounts, selectedAddress } = props;
@@ -170,7 +171,6 @@ function SwapsQuotesView(props) {
 				SwapsController.resetState();
 				await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
 			};
-
 			await fetchQuotes();
 			if (shouldFetchQuotes) {
 				try {
@@ -185,7 +185,8 @@ function SwapsQuotesView(props) {
 				}
 			}
 		})();
-	}, [shouldFetchQuotes, props]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [shouldFetchQuotes]);
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen}>
@@ -305,20 +306,10 @@ SwapsQuotesView.propTypes = {
 
 SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
 
-const mapStateToProps = state => {
-	console.log('----------');
-	// console.log('SC QUOTES', state.engine.backgroundState.SwapsController.quotes);
-	// console.log('IS IN FETCH', state.engine.backgroundState.SwapsController.isInFetch);
-	// console.log('IS IN POLLING CYCLES LEFT', state.engine.backgroundState.SwapsController.pollingCyclesLeft);
-	// console.log('IS IN topAggId', state.engine.backgroundState.SwapsController.topAggId);
-	// console.log('IS IN errorKey', state.engine.backgroundState.SwapsController.errorKey);
-	// console.log('----------');
-
-	return {
-		accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-		tokens: state.engine.backgroundState.SwapsController.tokens
-	};
-};
+const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	tokens: state.engine.backgroundState.SwapsController.tokens
+});
 
 export default connect(mapStateToProps)(SwapsQuotesView);
