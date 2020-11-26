@@ -154,7 +154,7 @@ class Engine {
 		AccountTrackerController.configure({ provider });
 		AccountTrackerController.refresh();
 		AssetsContractController.configure({ provider });
-		SwapsController.configure({ provider });
+		SwapsController.configure({ provider, pollCountLimit: 3, quotePollingInterval: 120 * 1000 });
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
 		AssetsDetectionController.detectAssets();

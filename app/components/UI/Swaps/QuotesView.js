@@ -41,7 +41,7 @@ const fetchParams = {
 
 const fetchQuotes = async () => {
 	const { SwapsController } = Engine.context;
-	await SwapsController.fetchAndSetQuotes(fetchParams, fetchParams.metaData);
+	await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
 };
 
 const styles = StyleSheet.create({
@@ -288,9 +288,18 @@ function SwapsQuotesView() {
 }
 
 SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
+const mapStateToProps = state => {
+	console.log('----------');
+	console.log('IS IN POLLING', state.engine.backgroundState.SwapsController.isInPolling);
+	console.log('IS IN FETCH', state.engine.backgroundState.SwapsController.isInFetch);
+	console.log('IS IN POLLING CYCLES LEFT', state.engine.backgroundState.SwapsController.pollingCyclesLeft);
+	console.log('IS IN topAggId', state.engine.backgroundState.SwapsController.topAggId);
+	console.log('IS IN errorKey', state.engine.backgroundState.SwapsController.errorKey);
+	console.log('----------');
 
-const mapStateToProps = state => ({
-	tokens: state.engine.backgroundState.SwapsController.tokens
-});
+	return {
+		tokens: state.engine.backgroundState.SwapsController.tokens
+	};
+};
 
 export default connect(mapStateToProps)(SwapsQuotesView);
