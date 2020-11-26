@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -14,9 +14,25 @@ import Device from '../../../util/Device';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
 import Engine from '../../../core/Engine';
-import { BNToHex } from '../../../util/number';
+import AppConstants from '../../../core/AppConstants';
+import { NavigationContext } from 'react-navigation';
+import { renderFromTokenMinimalUnit } from '../../../util/number';
 
-const timeoutMilliseconds = 120 * 1000;
+const timeoutMilliseconds = AppConstants.SWAPS.POLLING_INTERVAL;
+
+const getFetchParams = ({ slippage = 1, sourceToken, destinationToken, sourceAmount, fromAddress }) => ({
+	slippage,
+	sourceToken: sourceToken.address,
+	destinationToken: destinationToken.address,
+	sourceAmount,
+	fromAddress,
+	balanceError: undefined,
+	metaData: {
+		sourceTokenInfo: sourceToken,
+		destinationTokenInfo: destinationToken,
+		accountBalance: '0x0'
+	}
+});
 
 const styles = StyleSheet.create({
 	screen: {
@@ -114,126 +130,116 @@ const styles = StyleSheet.create({
 	}
 });
 
-function SwapsQuotesView(props) {
-	// const navigation = useContext(NavigationContext);
-	const [nextTimeout, setNextTimeout] = useState(Date.now() + timeoutMilliseconds);
-	const [fetchingQuotes, setFetchingQuotes] = useState(false);
-	const [shouldFetchQuotes, setShouldFetchQuotes] = useState(false);
+function SwapsQuotesView({
+	tokens,
+	selectedAddress,
+	isInPolling,
+	isInFetch,
+	quotesLastFetched,
+	pollingCyclesLeft
+	// topAggId,
+	// quotes,
+	// errorKey
+}) {
+	const navigation = useContext(NavigationContext);
+	const slippage = navigation.getParam('slippage', 1);
+	const sourceTokenAddress = navigation.getParam('sourceToken', '');
+	const destinationTokenAddress = navigation.getParam('destinationToken', '');
+	const sourceAmount = navigation.getParam('sourceAmount');
+	const sourceToken = tokens?.find(token => token.address?.toLowerCase() === sourceTokenAddress.toLowerCase());
+	const destinationToken = tokens?.find(
+		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
+	);
+
 	const [remainingTime, setRemainingTime] = useState(timeoutMilliseconds);
 
 	useEffect(() => {
-		if (fetchingQuotes) {
+		(async () => {
+			const { SwapsController } = Engine.context;
+			const fetchParams = getFetchParams({
+				slippage,
+				sourceToken,
+				destinationToken,
+				sourceAmount,
+				fromAddress: selectedAddress
+			});
+			// SwapsController.resetState()
+			await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
+		})();
+	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
+
+	useEffect(() => {
+		if (isInFetch) {
+			setRemainingTime(timeoutMilliseconds);
 			return;
 		}
 		const tick = setInterval(() => {
-			const currentTime = Date.now();
-			if (nextTimeout - currentTime < 1000) {
-				setShouldFetchQuotes(true);
-			} else {
-				setRemainingTime(nextTimeout - currentTime);
-			}
+			setRemainingTime(quotesLastFetched + timeoutMilliseconds - Date.now());
 		}, 1000);
 		return () => {
 			clearInterval(tick);
 		};
-	}, [nextTimeout, fetchingQuotes]);
-
-	useEffect(() => {
-		(async () => {
-			// remove this
-
-			const fetchQuotes = async () => {
-				const { SwapsController } = Engine.context;
-				const { accounts, selectedAddress } = props;
-
-				const fetchParams = {
-					slippage: 3,
-					sourceToken: '0x6b175474e89094c44da98b954eedeac495271d0f',
-					destinationToken: '0xdd974d5c2e2928dea5f71b9825b8b646686bd200',
-					sourceAmount: 1000,
-					fromAddress: selectedAddress,
-					balanceError: undefined,
-					metaData: {
-						sourceTokenInfo: {
-							address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-							symbol: 'DAI',
-							decimals: 18,
-							iconUrl: 'https://foo.bar/logo.png'
-						},
-						destinationTokenInfo: {
-							address: '0xdd974d5c2e2928dea5f71b9825b8b646686bd200',
-							symbol: 'knc',
-							decimals: 18
-						},
-						accountBalance: BNToHex(accounts[selectedAddress] && accounts[selectedAddress].balance)
-					}
-				};
-				SwapsController.resetState();
-				await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
-			};
-			await fetchQuotes();
-			if (shouldFetchQuotes) {
-				try {
-					setFetchingQuotes(true);
-					setRemainingTime(timeoutMilliseconds);
-					setNextTimeout(Date.now() + timeoutMilliseconds);
-				} catch (e) {
-					console.error(e);
-				} finally {
-					setShouldFetchQuotes(false);
-					setFetchingQuotes(false);
-				}
-			}
-		})();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [shouldFetchQuotes]);
+	}, [isInFetch, quotesLastFetched]);
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen}>
 			<View style={styles.topBar}>
-				<View style={styles.timerWrapper}>
-					{fetchingQuotes ? (
-						<>
-							<ActivityIndicator size="small" />
-							<Text> Fetching new quotes...</Text>
-						</>
-					) : (
-						<Text primary>
-							New quotes in{' '}
-							<Text bold primary style={[styles.timer, remainingTime < 30000 && styles.timerHiglight]}>
-								{new Date(remainingTime).toISOString().substr(15, 4)}
+				{isInPolling && (
+					<View style={styles.timerWrapper}>
+						{isInFetch ? (
+							<>
+								<ActivityIndicator size="small" />
+								<Text> Fetching new quotes...</Text>
+							</>
+						) : (
+							<Text primary>
+								{pollingCyclesLeft > 0 ? 'New quotes in' : 'Quotes expire in'}{' '}
+								<Text
+									bold
+									primary
+									style={[styles.timer, remainingTime < 30000 && styles.timerHiglight]}
+								>
+									{new Date(remainingTime).toISOString().substr(15, 4)}
+								</Text>
 							</Text>
-						</Text>
-					)}
-				</View>
+						)}
+					</View>
+				)}
+				{!isInPolling && (
+					<View style={styles.timerWrapper}>
+						<Text>Not in polling</Text>
+					</View>
+				)}
 			</View>
+
 			<View style={styles.content}>
 				<View style={styles.sourceTokenContainer}>
-					<Text>100</Text>
-					<TokenIcon
-						icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
-						style={styles.tokenIcon}
-					/>
-					<Text>DAI</Text>
+					<Text>{renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals)}</Text>
+					<TokenIcon style={styles.tokenIcon} icon={sourceToken.iconUrl} symbol={sourceToken.symbol} />
+					<Text>{sourceToken.symbol}</Text>
 				</View>
 				<IonicIcon style={styles.arrowDown} name="md-arrow-down" />
 				<View style={styles.sourceTokenContainer}>
 					<TokenIcon
-						icon="https://cloudflare-ipfs.com/ipfs/QmacKydMVDvc6uqKSva9Mfm7ACskU98ofEbdZuru827JYJ"
 						style={styles.tokenIcon}
+						icon={destinationToken.iconUrl}
+						symbol={destinationToken.symbol}
 					/>
-					<Text>UNI</Text>
+					<Text>{destinationToken.symbol}</Text>
 				</View>
 				<Text primary style={styles.amount} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
 					~2.0292028
 				</Text>
 				<View style={styles.exchangeRate}>
-					<Text>1 DAI = 0.000324342 UNI</Text>
+					<Text>
+						1 {sourceToken.symbol} = 0.000324342 {destinationToken.symbol}
+					</Text>
 				</View>
 			</View>
+
 			<View style={styles.bottomSection}>
 				<QuotesSummary style={styles.quotesSummary}>
-					<QuotesSummary.Header style={styles.quotesSummaryHeader} savings>
+					<QuotesSummary.Header style={styles.quotesSummaryHeader}>
 						<QuotesSummary.HeaderText bold>Saving ~$120.38</QuotesSummary.HeaderText>
 						<TouchableOpacity>
 							<QuotesSummary.HeaderText small>View details →</QuotesSummary.HeaderText>
@@ -293,23 +299,37 @@ function SwapsQuotesView(props) {
 }
 
 SwapsQuotesView.propTypes = {
-	// tokens: PropTypes.arrayOf(PropTypes.object),
+	tokens: PropTypes.arrayOf(PropTypes.object),
 	/**
 	 * Map of accounts to information objects including balances
 	 */
-	accounts: PropTypes.object,
+	// accounts: PropTypes.object,
 	/**
 	 * A string that represents the selected address
 	 */
-	selectedAddress: PropTypes.string
+	selectedAddress: PropTypes.string,
+	isInPolling: PropTypes.bool,
+	isInFetch: PropTypes.bool,
+	quotesLastFetched: PropTypes.number,
+	// topAggId: PropTypes.string,
+	pollingCyclesLeft: PropTypes.number
+	// quotes: PropTypes.object,
+	// errorKey: PropTypes.string
 };
 
 SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
 
 const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	// accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.engine.backgroundState.SwapsController.tokens
+	tokens: state.engine.backgroundState.SwapsController.tokens,
+	isInPolling: state.engine.backgroundState.SwapsController.isInPolling,
+	isInFetch: state.engine.backgroundState.SwapsController.isInFetch,
+	quotesLastFetched: state.engine.backgroundState.SwapsController.quotesLastFetched,
+	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
+	topAggId: state.engine.backgroundState.SwapsController.topAggId,
+	quotes: state.engine.backgroundState.SwapsController.quotes,
+	errorKey: state.engine.backgroundState.SwapsController.errorKey
 });
 
 export default connect(mapStateToProps)(SwapsQuotesView);
