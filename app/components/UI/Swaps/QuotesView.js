@@ -144,7 +144,6 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 		fromAddress
 	});
 	const { SwapsController } = Engine.context;
-	SwapsController.resetState();
 	await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
 }
 
