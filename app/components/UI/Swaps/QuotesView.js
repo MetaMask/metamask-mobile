@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -6,6 +6,7 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 
 import Text from '../../Base/Text';
+import Title from '../../Base/Title';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import StyledButton from '../StyledButton';
 import { getSwapsQuotesNavbar } from '../Navbar';
@@ -60,6 +61,10 @@ const styles = StyleSheet.create({
 	content: {
 		paddingHorizontal: 20,
 		alignItems: 'center'
+	},
+	errorViewContent: {
+		flex: 1,
+		justifyContent: 'center'
 	},
 	sourceTokenContainer: {
 		flexDirection: 'row',
@@ -125,10 +130,23 @@ const styles = StyleSheet.create({
 		margin: 3,
 		color: colors.blue
 	},
-	swapButton: {
+	ctaButton: {
 		width: '100%'
 	}
 });
+
+async function resetAndStartPolling({ slippage, sourceToken, destinationToken, sourceAmount, fromAddress }) {
+	const fetchParams = getFetchParams({
+		slippage,
+		sourceToken,
+		destinationToken,
+		sourceAmount,
+		fromAddress
+	});
+	const { SwapsController } = Engine.context;
+	SwapsController.resetState();
+	await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
+}
 
 function SwapsQuotesView({
 	tokens,
@@ -136,10 +154,10 @@ function SwapsQuotesView({
 	isInPolling,
 	isInFetch,
 	quotesLastFetched,
-	pollingCyclesLeft
+	pollingCyclesLeft,
 	// topAggId,
 	// quotes,
-	// errorKey
+	errorKey
 }) {
 	const navigation = useContext(NavigationContext);
 	const slippage = navigation.getParam('slippage', 1);
@@ -153,19 +171,24 @@ function SwapsQuotesView({
 
 	const [remainingTime, setRemainingTime] = useState(timeoutMilliseconds);
 
+	const handleRetry = useCallback(() => {
+		resetAndStartPolling({
+			slippage,
+			sourceToken,
+			destinationToken,
+			sourceAmount,
+			fromAddress: selectedAddress
+		});
+	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
+
 	useEffect(() => {
-		(async () => {
-			const { SwapsController } = Engine.context;
-			const fetchParams = getFetchParams({
-				slippage,
-				sourceToken,
-				destinationToken,
-				sourceAmount,
-				fromAddress: selectedAddress
-			});
-			// SwapsController.resetState()
-			await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
-		})();
+		resetAndStartPolling({
+			slippage,
+			sourceToken,
+			destinationToken,
+			sourceAmount,
+			fromAddress: selectedAddress
+		});
 	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
 	useEffect(() => {
@@ -180,6 +203,22 @@ function SwapsQuotesView({
 			clearInterval(tick);
 		};
 	}, [isInFetch, quotesLastFetched]);
+
+	if (!isInPolling && errorKey) {
+		return (
+			<ScreenView contentContainerStyle={styles.screen}>
+				<View style={[styles.content, styles.errorViewContent]}>
+					<Title centered>Error View</Title>
+					<Text>{errorKey}</Text>
+				</View>
+				<View style={styles.bottomSection}>
+					<StyledButton type="blue" containerStyle={styles.ctaButton} onPress={handleRetry}>
+						Try again
+					</StyledButton>
+				</View>
+			</ScreenView>
+		);
+	}
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen}>
@@ -290,7 +329,7 @@ function SwapsQuotesView({
 						</View>
 					</QuotesSummary.Body>
 				</QuotesSummary>
-				<StyledButton type="blue" containerStyle={styles.swapButton}>
+				<StyledButton type="blue" containerStyle={styles.ctaButton} disabled={!isInPolling || isInFetch}>
 					Tap to Swap
 				</StyledButton>
 			</View>
@@ -312,9 +351,9 @@ SwapsQuotesView.propTypes = {
 	isInFetch: PropTypes.bool,
 	quotesLastFetched: PropTypes.number,
 	// topAggId: PropTypes.string,
-	pollingCyclesLeft: PropTypes.number
+	pollingCyclesLeft: PropTypes.number,
 	// quotes: PropTypes.object,
-	// errorKey: PropTypes.string
+	errorKey: PropTypes.string
 };
 
 SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
