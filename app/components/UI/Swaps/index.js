@@ -11,6 +11,7 @@ import Engine from '../../../core/Engine';
 import handleInput from '../../Base/Keypad/rules/native';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
+import { setQuotesNavigationsParams } from './utils';
 import { renderFromTokenMinimalUnit, renderFromWei, toTokenMinimalUnit } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
@@ -163,12 +164,15 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	/* Navigation handler */
 	const handleGetQuotesPress = useCallback(
 		() =>
-			navigation.navigate('SwapsQuotesView', {
-				sourceToken: sourceToken?.address,
-				destinationToken: destinationToken?.address,
-				sourceAmount: toTokenMinimalUnit(amount, sourceToken?.decimals).toString(),
-				slippage
-			}),
+			navigation.navigate(
+				'SwapsQuotesView',
+				setQuotesNavigationsParams(
+					sourceToken?.address,
+					destinationToken?.address,
+					toTokenMinimalUnit(amount, sourceToken?.decimals).toString(),
+					slippage
+				)
+			),
 		[amount, destinationToken, navigation, slippage, sourceToken]
 	);
 

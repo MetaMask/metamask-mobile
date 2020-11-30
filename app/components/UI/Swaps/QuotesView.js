@@ -1,39 +1,27 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
-import PropTypes from 'prop-types';
+import { NavigationContext } from 'react-navigation';
+import { colors } from '../../../styles/common';
 
+import Engine from '../../../core/Engine';
+import Device from '../../../util/Device';
+import AppConstants from '../../../core/AppConstants';
+import { renderFromTokenMinimalUnit } from '../../../util/number';
+import { getFetchParams, getQuotesNavigationsParams } from './utils';
+
+import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
 import Title from '../../Base/Title';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import StyledButton from '../StyledButton';
-import { getSwapsQuotesNavbar } from '../Navbar';
-import { colors } from '../../../styles/common';
-import Device from '../../../util/Device';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
-import Engine from '../../../core/Engine';
-import AppConstants from '../../../core/AppConstants';
-import { NavigationContext } from 'react-navigation';
-import { renderFromTokenMinimalUnit } from '../../../util/number';
 
-const timeoutMilliseconds = AppConstants.SWAPS.POLLING_INTERVAL;
-
-const getFetchParams = ({ slippage = 1, sourceToken, destinationToken, sourceAmount, fromAddress }) => ({
-	slippage,
-	sourceToken: sourceToken.address,
-	destinationToken: destinationToken.address,
-	sourceAmount,
-	fromAddress,
-	balanceError: undefined,
-	metaData: {
-		sourceTokenInfo: sourceToken,
-		destinationTokenInfo: destinationToken,
-		accountBalance: '0x0'
-	}
-});
+const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
 const styles = StyleSheet.create({
 	screen: {
@@ -159,16 +147,18 @@ function SwapsQuotesView({
 	errorKey
 }) {
 	const navigation = useContext(NavigationContext);
-	const slippage = navigation.getParam('slippage', 1);
-	const sourceTokenAddress = navigation.getParam('sourceToken', '');
-	const destinationTokenAddress = navigation.getParam('destinationToken', '');
-	const sourceAmount = navigation.getParam('sourceAmount');
+
+	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage } = useMemo(
+		() => getQuotesNavigationsParams(navigation),
+		[navigation]
+	);
+
 	const sourceToken = tokens?.find(token => token.address?.toLowerCase() === sourceTokenAddress.toLowerCase());
 	const destinationToken = tokens?.find(
 		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
 	);
 
-	const [remainingTime, setRemainingTime] = useState(timeoutMilliseconds);
+	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 
 	const handleRetry = useCallback(() => {
 		resetAndStartPolling({
@@ -192,11 +182,11 @@ function SwapsQuotesView({
 
 	useEffect(() => {
 		if (isInFetch) {
-			setRemainingTime(timeoutMilliseconds);
+			setRemainingTime(POLLING_INTERVAL);
 			return;
 		}
 		const tick = setInterval(() => {
-			setRemainingTime(quotesLastFetched + timeoutMilliseconds - Date.now());
+			setRemainingTime(quotesLastFetched + POLLING_INTERVAL - Date.now());
 		}, 1000);
 		return () => {
 			clearInterval(tick);
