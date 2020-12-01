@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { NavigationContext } from 'react-navigation';
 import { colors } from '../../../styles/common';
 
@@ -11,7 +12,7 @@ import Engine from '../../../core/Engine';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import { renderFromTokenMinimalUnit } from '../../../util/number';
-import { getFetchParams, getQuotesNavigationsParams } from './utils';
+import { getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
 
 import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
@@ -132,6 +133,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 		fromAddress
 	});
 	const { SwapsController } = Engine.context;
+	await SwapsController.stopPollingAndResetState();
 	await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
 }
 
@@ -142,25 +144,48 @@ function SwapsQuotesView({
 	isInFetch,
 	quotesLastFetched,
 	pollingCyclesLeft,
-	// topAggId,
-	// quotes,
+	topAggId,
+	quotes,
 	errorKey
 }) {
 	const navigation = useContext(NavigationContext);
 
+	/* Get params from navigation */
 	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage } = useMemo(
 		() => getQuotesNavigationsParams(navigation),
 		[navigation]
 	);
 
+	/* Get tokens from the tokens list */
 	const sourceToken = tokens?.find(token => token.address?.toLowerCase() === sourceTokenAddress.toLowerCase());
 	const destinationToken = tokens?.find(
 		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
 	);
 
+	/* Get the selected quote */
+	const selectedQuote = useMemo(() => quotes[topAggId], [quotes, topAggId]);
+
+	/* Get the ratio between the assets given the selected quote*/
+	const [ratioAsSource, setRatioAsSource] = useState(true);
+
+	const [numerator, denominator] = useMemo(() => {
+		const source = { ...sourceToken, amount: selectedQuote?.sourceAmount };
+		const destination = { ...destinationToken, amount: selectedQuote?.destinationAmount };
+
+		return ratioAsSource ? [destination, source] : [source, destination];
+	}, [destinationToken, ratioAsSource, selectedQuote, sourceToken]);
+
+	const ratio = useRatio(numerator?.amount, numerator?.decimals, denominator?.amount, denominator?.decimals);
+
+	/* State */
+	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
+	const [isFirstLoad, setFirstLoad] = useState(true);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 
+	/* Handlers */
 	const handleRetry = useCallback(() => {
+		setFirstLoadTime(Date.now());
+		setFirstLoad(true);
 		resetAndStartPolling({
 			slippage,
 			sourceToken,
@@ -170,6 +195,9 @@ function SwapsQuotesView({
 		});
 	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
+	const handleRatioSwitch = () => setRatioAsSource(isSource => !isSource);
+
+	/* Effects */
 	useEffect(() => {
 		resetAndStartPolling({
 			slippage,
@@ -178,7 +206,19 @@ function SwapsQuotesView({
 			sourceAmount,
 			fromAddress: selectedAddress
 		});
+		return () => {
+			const { SwapsController } = Engine.context;
+			SwapsController.stopPollingAndResetState();
+		};
 	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
+
+	useEffect(() => {
+		if (isFirstLoad) {
+			if (firstLoadTime < quotesLastFetched || errorKey) {
+				setFirstLoad(false);
+			}
+		}
+	}, [errorKey, firstLoadTime, isFirstLoad, quotesLastFetched]);
 
 	useEffect(() => {
 		if (isInFetch) {
@@ -186,12 +226,24 @@ function SwapsQuotesView({
 			return;
 		}
 		const tick = setInterval(() => {
-			setRemainingTime(quotesLastFetched + POLLING_INTERVAL - Date.now());
+			setRemainingTime(quotesLastFetched + POLLING_INTERVAL - Date.now() + 1000);
 		}, 1000);
 		return () => {
 			clearInterval(tick);
 		};
 	}, [isInFetch, quotesLastFetched]);
+
+	/* Rendering */
+
+	if (isFirstLoad || (!errorKey && !selectedQuote)) {
+		return (
+			<ScreenView contentContainerStyle={styles.screen}>
+				<View style={[styles.content, styles.errorViewContent]}>
+					<ActivityIndicator size="large" />
+				</View>
+			</ScreenView>
+		);
+	}
 
 	if (!isInPolling && errorKey) {
 		return (
@@ -241,28 +293,37 @@ function SwapsQuotesView({
 			</View>
 
 			<View style={styles.content}>
-				<View style={styles.sourceTokenContainer}>
-					<Text>{renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals)}</Text>
-					<TokenIcon style={styles.tokenIcon} icon={sourceToken.iconUrl} symbol={sourceToken.symbol} />
-					<Text>{sourceToken.symbol}</Text>
-				</View>
-				<IonicIcon style={styles.arrowDown} name="md-arrow-down" />
-				<View style={styles.sourceTokenContainer}>
-					<TokenIcon
-						style={styles.tokenIcon}
-						icon={destinationToken.iconUrl}
-						symbol={destinationToken.symbol}
-					/>
-					<Text>{destinationToken.symbol}</Text>
-				</View>
-				<Text primary style={styles.amount} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
-					~2.0292028
-				</Text>
-				<View style={styles.exchangeRate}>
-					<Text>
-						1 {sourceToken.symbol} = 0.000324342 {destinationToken.symbol}
-					</Text>
-				</View>
+				{selectedQuote && (
+					<>
+						<View style={styles.sourceTokenContainer}>
+							<Text>{renderFromTokenMinimalUnit(selectedQuote.sourceAmount, sourceToken.decimals)}</Text>
+							<TokenIcon
+								style={styles.tokenIcon}
+								icon={sourceToken.iconUrl}
+								symbol={sourceToken.symbol}
+							/>
+							<Text>{sourceToken.symbol}</Text>
+						</View>
+						<IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+						<View style={styles.sourceTokenContainer}>
+							<TokenIcon
+								style={styles.tokenIcon}
+								icon={destinationToken.iconUrl}
+								symbol={destinationToken.symbol}
+							/>
+							<Text>{destinationToken.symbol}</Text>
+						</View>
+						<Text primary style={styles.amount} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
+							~{renderFromTokenMinimalUnit(selectedQuote.destinationAmount, destinationToken.decimals)}
+						</Text>
+						<View style={styles.exchangeRate}>
+							<Text>
+								1 {denominator?.symbol} = {ratio.toFormat(10)} {numerator?.symbol}{' '}
+								<FA5Icon name="sync" style={styles.infoIcon} onPress={handleRatioSwitch} />
+							</Text>
+						</View>
+					</>
+				)}
 			</View>
 
 			<View style={styles.bottomSection}>
@@ -339,9 +400,9 @@ SwapsQuotesView.propTypes = {
 	isInPolling: PropTypes.bool,
 	isInFetch: PropTypes.bool,
 	quotesLastFetched: PropTypes.number,
-	// topAggId: PropTypes.string,
+	topAggId: PropTypes.string,
 	pollingCyclesLeft: PropTypes.number,
-	// quotes: PropTypes.object,
+	quotes: PropTypes.object,
 	errorKey: PropTypes.string
 };
 

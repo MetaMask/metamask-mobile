@@ -1,3 +1,6 @@
+import { useMemo } from 'react';
+import BigNumber from 'bignumber.js';
+
 /**
  * Sets required parameters for Swaps Quotes View
  * @param {string} sourceTokenAddress Token contract address used as swaps source
@@ -57,4 +60,16 @@ export function getFetchParams({ slippage = 1, sourceToken, destinationToken, so
 			accountBalance: '0x0'
 		}
 	};
+}
+
+export function useRatio(numeratorAmount, numeratorDecimals, denominatorAmount, denominatorDecimals) {
+	const ratio = useMemo(
+		() =>
+			new BigNumber(numeratorAmount)
+				.dividedBy(denominatorAmount)
+				.multipliedBy(new BigNumber(10).pow(denominatorDecimals - numeratorDecimals)),
+		[denominatorAmount, denominatorDecimals, numeratorAmount, numeratorDecimals]
+	);
+
+	return ratio;
 }
