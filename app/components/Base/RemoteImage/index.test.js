@@ -7,7 +7,7 @@ describe('RemoteImage', () => {
 		const wrapper = shallow(
 			<RemoteImage
 				source={{
-					uri: `https://raw.githubusercontent.com/MetaMask/eth-contract-metadata/master/images/dai.svg`
+					uri: `https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg`
 				}}
 			/>
 		);
