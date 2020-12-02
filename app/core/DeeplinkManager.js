@@ -97,7 +97,6 @@ class DeeplinkManager {
 		const handled = () => onHandled?.();
 
 		const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
-
 		switch (urlObj.protocol.replace(':', '')) {
 			case 'http':
 			case 'https':
@@ -150,6 +149,8 @@ class DeeplinkManager {
 			// address, transactions, etc
 			case 'wc':
 				handled();
+				console.log('---------');
+				console.log('WC URL', url);
 				if (!WalletConnect.isValidUri(url)) return;
 				// eslint-disable-next-line no-case-declarations
 				const redirect = params && params.redirect;
@@ -175,6 +176,14 @@ class DeeplinkManager {
 			// For ex. go to settings
 			case 'metamask':
 				handled();
+				if (urlObj.origin === 'metamask://wc') {
+					const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
+					const href = cleanUrlObj.href;
+					if (!WalletConnect.isValidUri(href)) return;
+					const redirect = params && params.redirect;
+					const autosign = params && params.autosign;
+					WalletConnect.newSession(href, redirect, autosign);
+				}
 				break;
 			default:
 				return false;
