@@ -33,7 +33,7 @@ import {
 import { renderAccountName } from '../../../../util/address';
 import Identicon from '../../../UI/Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import AssetIcon from '../../../UI/AssetIcon';
 import { getTicker } from '../../../../util/transactions';
 import Device from '../../../../util/Device';
