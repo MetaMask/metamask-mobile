@@ -238,7 +238,7 @@ class Login extends PureComponent {
 					'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
 				);
 				this.setState({ loading: false });
-			} else if (error.toLowerCase() === VAULT_ERROR.toLocaleLowerCase()) {
+			} else if (error.toLowerCase() === VAULT_ERROR.toLowerCase()) {
 				this.setState({
 					error: CLEAN_VAULT_ERROR
 				});
