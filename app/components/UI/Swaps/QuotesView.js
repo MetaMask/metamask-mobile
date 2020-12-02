@@ -21,6 +21,7 @@ import ScreenView from '../FiatOrders/components/ScreenView';
 import StyledButton from '../StyledButton';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -124,13 +125,18 @@ const styles = StyleSheet.create({
 	}
 });
 
-async function resetAndStartPolling({ slippage, sourceToken, destinationToken, sourceAmount, fromAddress }) {
+async function resetAndStartPolling(
+	contractExchangeRates,
+	{ slippage, sourceToken, destinationToken, sourceAmount, fromAddress }
+) {
+	// TODO destinationToken could be the 0 address for ETH,m also tokens that aren't on the wallet
 	const fetchParams = getFetchParams({
 		slippage,
 		sourceToken,
 		destinationToken,
 		sourceAmount,
-		fromAddress
+		fromAddress,
+		destinationTokenConversionRate: contractExchangeRates[toChecksumAddress(destinationToken.address)] || 0
 	});
 	const { SwapsController } = Engine.context;
 	await SwapsController.stopPollingAndResetState();
@@ -146,7 +152,8 @@ function SwapsQuotesView({
 	pollingCyclesLeft,
 	topAggId,
 	quotes,
-	errorKey
+	errorKey,
+	contractExchangeRates
 }) {
 	const navigation = useContext(NavigationContext);
 
@@ -186,20 +193,20 @@ function SwapsQuotesView({
 	const handleRetry = useCallback(() => {
 		setFirstLoadTime(Date.now());
 		setFirstLoad(true);
-		resetAndStartPolling({
+		resetAndStartPolling(contractExchangeRates, {
 			slippage,
 			sourceToken,
 			destinationToken,
 			sourceAmount,
 			fromAddress: selectedAddress
 		});
-	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
+	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken, contractExchangeRates]);
 
 	const handleRatioSwitch = () => setRatioAsSource(isSource => !isSource);
 
 	/* Effects */
 	useEffect(() => {
-		resetAndStartPolling({
+		resetAndStartPolling(contractExchangeRates, {
 			slippage,
 			sourceToken,
 			destinationToken,
@@ -210,7 +217,7 @@ function SwapsQuotesView({
 			const { SwapsController } = Engine.context;
 			SwapsController.stopPollingAndResetState();
 		};
-	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
+	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken, contractExchangeRates]);
 
 	useEffect(() => {
 		if (isFirstLoad) {
@@ -403,7 +410,11 @@ SwapsQuotesView.propTypes = {
 	topAggId: PropTypes.string,
 	pollingCyclesLeft: PropTypes.number,
 	quotes: PropTypes.object,
-	errorKey: PropTypes.string
+	errorKey: PropTypes.string,
+	/**
+	 * Object containing token exchange rates in the format address => exchangeRate
+	 */
+	contractExchangeRates: PropTypes.object
 };
 
 SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
@@ -418,7 +429,8 @@ const mapStateToProps = state => ({
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
 	topAggId: state.engine.backgroundState.SwapsController.topAggId,
 	quotes: state.engine.backgroundState.SwapsController.quotes,
-	errorKey: state.engine.backgroundState.SwapsController.errorKey
+	errorKey: state.engine.backgroundState.SwapsController.errorKey,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
 });
 
 export default connect(mapStateToProps)(SwapsQuotesView);
