@@ -20,6 +20,8 @@ import android.webkit.WebView;
 
 import androidx.multidex.MultiDexApplication;
 
+import android.database.CursorWindow;
+import java.lang.reflect.Field;
 
 public class MainApplication extends MultiDexApplication implements ShareApplication, ReactApplication {
 
@@ -55,6 +57,15 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 	@Override
 	public void onCreate() {
 		super.onCreate();
+
+		try {
+			Field field = CursorWindow.class.getDeclaredField("sCursorWindowSize");
+			field.setAccessible(true);
+			field.set(null, 10 * 1024 * 1024); //the 10MB is the new size
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
     if (BuildConfig.DEBUG)
     { WebView.setWebContentsDebuggingEnabled(true); }
 		SoLoader.init(this, /* native exopackage */ false);
