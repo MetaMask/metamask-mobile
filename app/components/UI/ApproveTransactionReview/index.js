@@ -7,7 +7,7 @@ import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';

@@ -1337,6 +1337,11 @@
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
 
+"@metamask/contract-metadata@^1.19.0":
+  version "1.19.0"
+  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.19.0.tgz#2f074bce7ab7ffd0d20e3905b1936da0749a0473"
+  integrity sha512-TklMuz7ZbFJ2Zc6C7I+9qL3J9J+4prs5Ok5MJzoxD/57Iq6espzArhpI275elVCFF9ci8IMvach1kH8+F04/hA==
+
 "@metamask/controllers@3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-3.2.0.tgz#8ad2e63f7953d294712d9b5bacaea1c5261ce588"
@@ -4781,7 +4786,7 @@ eth-block-tracker@^4.4.2:
     pify "^3.0.0"
     safe-event-emitter "^1.0.1"
 
-eth-contract-metadata@^1.11.0, eth-contract-metadata@^1.16.0:
+eth-contract-metadata@^1.11.0:
   version "1.16.0"
   resolved "https://registry.yarnpkg.com/eth-contract-metadata/-/eth-contract-metadata-1.16.0.tgz#a7d643795ba5318f86ce1aae9c4522888aa92d78"
   integrity sha512-WnwYkkIl0RbDQgnV/4V6E8a84fVkP/qmYCUde1UKLQekOFeZXhs/7KgPBAWdZ7otJRo0bPQf4UjAOfESAV3gtw==
