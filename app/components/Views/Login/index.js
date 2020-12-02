@@ -240,6 +240,7 @@ class Login extends PureComponent {
 				this.setState({ loading: false });
 			} else if (error.toLowerCase() === VAULT_ERROR.toLowerCase()) {
 				this.setState({
+					loading: false,
 					error: CLEAN_VAULT_ERROR
 				});
 			} else {
