@@ -101,9 +101,13 @@ const styles = StyleSheet.create({
 	}
 });
 
+/* TODO: we should have translation strings for these */
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
+const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
+const CLEAN_VAULT_ERROR =
+	'An error has occurred due to storage limit. Your funds are safe. Please re-install the app and import your wallet using your seed phrase.';
 
 /**
  * View where returning users can authenticate
@@ -234,6 +238,10 @@ class Login extends PureComponent {
 					'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
 				);
 				this.setState({ loading: false });
+			} else if (error.toLowerCase() === VAULT_ERROR.toLocaleLowerCase()) {
+				this.setState({
+					error: CLEAN_VAULT_ERROR
+				});
 			} else {
 				this.setState({ loading: false, error });
 			}
