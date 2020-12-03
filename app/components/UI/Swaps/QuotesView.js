@@ -125,10 +125,10 @@ const styles = StyleSheet.create({
 	}
 });
 
-async function resetAndStartPolling(
-	contractExchangeRates,
-	{ slippage, sourceToken, destinationToken, sourceAmount, fromAddress }
-) {
+async function resetAndStartPolling({ slippage, sourceToken, destinationToken, sourceAmount, fromAddress }) {
+	const { SwapsController, TokenRatesController } = Engine.context;
+	const destinationTokenConversionRate =
+		TokenRatesController.state.contractExchangeRates[toChecksumAddress(destinationToken.address)] || 0;
 	// TODO destinationToken could be the 0 address for ETH,m also tokens that aren't on the wallet
 	const fetchParams = getFetchParams({
 		slippage,
@@ -136,9 +136,8 @@ async function resetAndStartPolling(
 		destinationToken,
 		sourceAmount,
 		fromAddress,
-		destinationTokenConversionRate: contractExchangeRates[toChecksumAddress(destinationToken.address)] || 0
+		destinationTokenConversionRate
 	});
-	const { SwapsController } = Engine.context;
 	await SwapsController.stopPollingAndResetState();
 	await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
 }
@@ -193,20 +192,20 @@ function SwapsQuotesView({
 	const handleRetry = useCallback(() => {
 		setFirstLoadTime(Date.now());
 		setFirstLoad(true);
-		resetAndStartPolling(contractExchangeRates, {
+		resetAndStartPolling({
 			slippage,
 			sourceToken,
 			destinationToken,
 			sourceAmount,
 			fromAddress: selectedAddress
 		});
-	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken, contractExchangeRates]);
+	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
 	const handleRatioSwitch = () => setRatioAsSource(isSource => !isSource);
 
 	/* Effects */
 	useEffect(() => {
-		resetAndStartPolling(contractExchangeRates, {
+		resetAndStartPolling({
 			slippage,
 			sourceToken,
 			destinationToken,
@@ -217,7 +216,7 @@ function SwapsQuotesView({
 			const { SwapsController } = Engine.context;
 			SwapsController.stopPollingAndResetState();
 		};
-	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken, contractExchangeRates]);
+	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
 	useEffect(() => {
 		if (isFirstLoad) {
@@ -241,7 +240,6 @@ function SwapsQuotesView({
 	}, [isInFetch, quotesLastFetched]);
 
 	/* Rendering */
-
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
 		return (
 			<ScreenView contentContainerStyle={styles.screen}>

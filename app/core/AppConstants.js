@@ -52,7 +52,7 @@ export default {
 	},
 	SWAPS: {
 		ACTIVE: true,
-		POLL_COUNT_LIMIT: 3,
-		POLLING_INTERVAL: 10 * 1000
+		POLL_COUNT_LIMIT: 2,
+		POLLING_INTERVAL: 20 * 1000
 	}
 };
