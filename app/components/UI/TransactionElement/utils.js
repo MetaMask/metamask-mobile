@@ -22,7 +22,7 @@ import {
 	getActionKey,
 	TRANSACTION_TYPES
 } from '../../../util/transactions';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
 
 const {
