@@ -735,10 +735,10 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
-"@estebanmino/controllers@3.2.14":
-  version "3.2.14"
-  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.2.14.tgz#2c5bc054ecf55f3f4a2797e48ad8d7e5b59fc8e4"
-  integrity sha512-N92cXRH0XYNSIifeNVx2PDC7Bi06p6zYTO7ZbiOdCTzwY8N1nBdXGIT5VfDgxFFCjbNhPp/rkL3P2uEIfFuS9A==
+"@estebanmino/controllers@3.2.15":
+  version "3.2.15"
+  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.2.15.tgz#18604671fc0dfb4b1eb7888b4dc92dca5df1f281"
+  integrity sha512-2SaUIhIqFsv7/W8VfqdkhfsPA6/kFfc2Vl7ms6ICnkit/bCBAPMZWprYX46iMvktHYTWvf52uzs0WrX6NomAGQ==
   dependencies:
     await-semaphore "^0.1.3"
     bignumber.js "^9.0.1"
