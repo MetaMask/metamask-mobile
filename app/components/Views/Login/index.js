@@ -107,7 +107,7 @@ const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
 const CLEAN_VAULT_ERROR =
-	'An error has occurred due to storage limit. Your funds are safe. Please re-install the app and import your wallet using your seed phrase.';
+	'MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your seed phrase.';
 
 /**
  * View where returning users can authenticate
