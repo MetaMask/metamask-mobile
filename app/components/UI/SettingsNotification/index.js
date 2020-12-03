@@ -10,7 +10,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignSelf: 'center',
 		flexDirection: 'row',
-		marginRight: 24
+		marginRight: 24,
+		minWidth: 20
 	},
 	wrapper: {
 		padding: 12,
