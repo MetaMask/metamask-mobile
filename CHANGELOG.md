@@ -3,6 +3,7 @@
 ## Current Develop Branch
 
 ## v1.0.8 - Dec 2 2020
+- [#2040](https://github.com/MetaMask/metamask-mobile/pull/2040): Update vault error message (#2040)
 - [#2034](https://github.com/MetaMask/metamask-mobile/pull/2034): Fix asyncstorage limit (#2034)
 - [#2038](https://github.com/MetaMask/metamask-mobile/pull/2038): metamask wc deeplink (#2038)
 - [#2023](https://github.com/MetaMask/metamask-mobile/pull/2023): @metamask/contract-metadata (#2023)
