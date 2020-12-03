@@ -9,6 +9,7 @@ exports[`SettingsNotification should render correctly as notification 1`] = `
         "flex": 1,
         "flexDirection": "row",
         "marginRight": 24,
+        "minWidth": 20,
       },
       null,
     ]
