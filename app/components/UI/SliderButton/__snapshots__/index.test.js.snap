@@ -1,0 +1,168 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SliderButton should render correctly 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    Object {
+      "backgroundColor": "#0074C8",
+      "borderRadius": 50,
+      "marginBottom": 10,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "borderRadius": 50,
+        "bottom": 0,
+        "flexGrow": 1,
+        "justifyContent": "center",
+        "left": 0,
+        "overflow": "hidden",
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  >
+    <SliderBg />
+    <ForwardRef(AnimatedComponentWrapper)
+      style={
+        Array [
+          Object {
+            "left": 0,
+            "position": "absolute",
+          },
+          Object {
+            "transform": Array [
+              Object {
+                "translateX": 0,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <SliderShine />
+    </ForwardRef(AnimatedComponentWrapper)>
+    <ForwardRef(AnimatedComponentWrapper)
+      style={
+        Object {
+          "opacity": 1,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#FFFFFF",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Incomplete Text
+      </Text>
+    </ForwardRef(AnimatedComponentWrapper)>
+  </View>
+  <View
+    style={
+      Object {
+        "elevation": 0,
+        "flexGrow": 0,
+        "shadowColor": "#75C4FD",
+        "shadowOffset": Object {
+          "height": 5,
+          "width": 0,
+        },
+        "shadowOpacity": 0.5,
+        "shadowRadius": 15,
+      }
+    }
+  >
+    <ForwardRef(AnimatedComponentWrapper)
+      style={
+        Array [
+          Object {
+            "alignSelf": "flex-start",
+            "borderRadius": 50,
+            "overflow": "hidden",
+            "top": 0,
+          },
+          Object {
+            "width": 50,
+          },
+          Object {
+            "backgroundColor": "rgba(2, 96, 164, 1)",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          Array [
+            Object {
+              "alignItems": "center",
+              "bottom": 0,
+              "justifyContent": "center",
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            },
+            Object {
+              "width": 0,
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#FFFFFF",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Complete Text
+        </Text>
+      </View>
+      <ForwardRef(AnimatedComponentWrapper)
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          Array [
+            Object {
+              "alignSelf": "flex-end",
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#0260A4",
+              "borderRadius": 50,
+              "borderWidth": 8,
+              "height": 50,
+              "width": 50,
+            },
+            Object {
+              "opacity": 1,
+            },
+          ]
+        }
+      />
+    </ForwardRef(AnimatedComponentWrapper)>
+  </View>
+</View>
+`;
