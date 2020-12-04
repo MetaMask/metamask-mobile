@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import BigNumber from 'bignumber.js';
+import { swapsUtils } from '@estebanmino/controllers';
 
 /**
  * Sets required parameters for Swaps Quotes View
@@ -80,4 +81,24 @@ export function useRatio(numeratorAmount, numeratorDecimals, denominatorAmount, 
 	);
 
 	return ratio;
+}
+
+export function getErrorMessage(errorKey) {
+	const { SwapsError } = swapsUtils;
+	const errorAction = errorKey === SwapsError.QUOTES_EXPIRED_ERROR ? 'Get new quotes' : 'Try again';
+	switch (errorKey) {
+		case SwapsError.QUOTES_EXPIRED_ERROR: {
+			return ['Quotes timeout', 'Please request new quotes to get the latest best rate.', errorAction];
+		}
+		case SwapsError.QUOTES_NOT_AVAILABLE_ERROR: {
+			return ['Quotes not available', 'Try adjusting the amount and try again.', errorAction];
+		}
+		default: {
+			return [
+				'Error fetching quote',
+				`There has been an unexpected error, please request new quotes to get the latest best rate. (error: ${errorKey})`,
+				errorAction
+			];
+		}
+	}
 }

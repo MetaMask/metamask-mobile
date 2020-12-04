@@ -6,6 +6,7 @@ import { NavigationContext } from 'react-navigation';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import BigNumber from 'bignumber.js';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { swapsUtils } from '@estebanmino/controllers';
 
 import Engine from '../../../core/Engine';
 import handleInput from '../../Base/Keypad/rules/native';
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
 });
 
 // Grab this from SwapsController.utils
-const SWAPS_ETH_ADDRESS = '0x0000000000000000000000000000000000000000';
+const SWAPS_ETH_ADDRESS = swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
 
 function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	const navigation = useContext(NavigationContext);

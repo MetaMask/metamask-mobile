@@ -3,16 +3,20 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import AntIcon from 'react-native-vector-icons/AntDesign';
+import FeatherIcon from 'react-native-vector-icons/Feather';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { NavigationContext } from 'react-navigation';
+import { toChecksumAddress } from 'ethereumjs-util';
+import { swapsUtils } from '@estebanmino/controllers';
 import { colors } from '../../../styles/common';
 
 import Engine from '../../../core/Engine';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
-import { renderFromTokenMinimalUnit } from '../../../util/number';
-import { getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
+import { renderFromTokenMinimalUnit, renderFromWei, toBN, toWei, weiToFiat } from '../../../util/number';
+import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
 
 import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
@@ -21,7 +25,10 @@ import ScreenView from '../FiatOrders/components/ScreenView';
 import StyledButton from '../StyledButton';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
-import { toChecksumAddress } from 'ethereumjs-util';
+import useModalHandler from '../../Base/hooks/useModalHandler';
+import FeeModal from './components/FeeModal';
+import useGasPrice from './utils/useGasPrice';
+import { convertApiValueToGWEI } from '../../../util/custom-gas';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -54,6 +61,7 @@ const styles = StyleSheet.create({
 	},
 	errorViewContent: {
 		flex: 1,
+		paddingHorizontal: 40,
 		justifyContent: 'center'
 	},
 	sourceTokenContainer: {
@@ -122,6 +130,14 @@ const styles = StyleSheet.create({
 	},
 	ctaButton: {
 		width: '100%'
+	},
+	errorIcon: {
+		fontSize: 44,
+		marginVertical: 4,
+		color: colors.red
+	},
+	expiredIcon: {
+		color: colors.blue
 	}
 });
 
@@ -129,7 +145,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 	const { SwapsController, TokenRatesController } = Engine.context;
 	const destinationTokenConversionRate =
 		TokenRatesController.state.contractExchangeRates[toChecksumAddress(destinationToken.address)] || 0;
-	// TODO destinationToken could be the 0 address for ETH,m also tokens that aren't on the wallet
+	// TODO: destinationToken could be the 0 address for ETH, also tokens that aren't on the wallet
 	const fetchParams = getFetchParams({
 		slippage,
 		sourceToken,
@@ -145,16 +161,18 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 function SwapsQuotesView({
 	tokens,
 	selectedAddress,
+	currentCurrency,
+	conversionRate,
 	isInPolling,
 	isInFetch,
 	quotesLastFetched,
 	pollingCyclesLeft,
 	topAggId,
 	quotes,
-	errorKey,
-	contractExchangeRates
+	errorKey
 }) {
 	const navigation = useContext(NavigationContext);
+	const [gasPrice] = useGasPrice();
 
 	/* Get params from navigation */
 	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage } = useMemo(
@@ -168,8 +186,41 @@ function SwapsQuotesView({
 		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
 	);
 
-	/* Get the selected quote */
-	const selectedQuote = useMemo(() => quotes[topAggId], [quotes, topAggId]);
+	/* State */
+	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
+	const [isFirstLoad, setFirstLoad] = useState(true);
+	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
+
+	/* Selected quote, initially topAggId (se effects) */
+	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
+
+	/* Get quotes as an array with gasPrices */
+	const allQuotes = useMemo(() => {
+		if (!quotes || Object.keys(quotes).length === 0) {
+			return [];
+		}
+
+		const multiplyGasByGasPrice = quote => ({
+			...quote,
+			estimatedNetworkFee: toBN(quote.estimatedNetworkFee).mul(
+				toWei(convertApiValueToGWEI(gasPrice?.average || 0), 'gwei')
+			),
+			maxNetworkFee: toBN(quote.maxNetworkFee).mul(toWei(convertApiValueToGWEI(gasPrice?.average || 0), 'gwei'))
+		});
+		const all = Object.entries(quotes)
+			.sort((a, b) => a.estimatedNetworkFee - b.estimatedNetworkFee)
+			.map(([, quote]) => multiplyGasByGasPrice(quote));
+		return all;
+	}, [gasPrice, quotes]);
+
+	/* Get the selected quote, by default is topAggId */
+	const selectedQuote = useMemo(() => allQuotes.find(quote => quote.aggregator === selectedQuoteId), [
+		allQuotes,
+		selectedQuoteId
+	]);
+
+	// TODO: use this variable in the future when calculating savings
+	const [isSaving] = useState(false);
 
 	/* Get the ratio between the assets given the selected quote*/
 	const [ratioAsSource, setRatioAsSource] = useState(true);
@@ -183,27 +234,31 @@ function SwapsQuotesView({
 
 	const ratio = useRatio(numerator?.amount, numerator?.decimals, denominator?.amount, denominator?.decimals);
 
-	/* State */
-	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
-	const [isFirstLoad, setFirstLoad] = useState(true);
-	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
+	/* Modals, state and handlers */
+	const [isFeeModalVisible, toggleFeeModal, , hideFeeModal] = useModalHandler(false);
 
 	/* Handlers */
-	const handleRetry = useCallback(() => {
-		setFirstLoadTime(Date.now());
-		setFirstLoad(true);
-		resetAndStartPolling({
-			slippage,
-			sourceToken,
-			destinationToken,
-			sourceAmount,
-			fromAddress: selectedAddress
-		});
-	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
-
 	const handleRatioSwitch = () => setRatioAsSource(isSource => !isSource);
 
+	const handleRetryFetchQuotes = useCallback(() => {
+		if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
+			setFirstLoadTime(Date.now());
+			setFirstLoad(true);
+			resetAndStartPolling({
+				slippage,
+				sourceToken,
+				destinationToken,
+				sourceAmount,
+				fromAddress: selectedAddress
+			});
+		} else {
+			navigation.pop();
+		}
+	}, [errorKey, slippage, sourceToken, destinationToken, sourceAmount, selectedAddress, navigation]);
+
 	/* Effects */
+
+	/* Main polling effect */
 	useEffect(() => {
 		resetAndStartPolling({
 			slippage,
@@ -218,6 +273,7 @@ function SwapsQuotesView({
 		};
 	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
+	/* First load effect: handle initial animation */
 	useEffect(() => {
 		if (isFirstLoad) {
 			if (firstLoadTime < quotesLastFetched || errorKey) {
@@ -226,9 +282,14 @@ function SwapsQuotesView({
 		}
 	}, [errorKey, firstLoadTime, isFirstLoad, quotesLastFetched]);
 
+	/* selectedQuoteId effect: when topAggId changes make it selected by default */
+	useEffect(() => setSelectedQuoteId(topAggId), [topAggId]);
+
+	/* IsInFetch effect: hide every modal, handle countdown */
 	useEffect(() => {
 		if (isInFetch) {
 			setRemainingTime(POLLING_INTERVAL);
+			hideFeeModal();
 			return;
 		}
 		const tick = setInterval(() => {
@@ -237,7 +298,14 @@ function SwapsQuotesView({
 		return () => {
 			clearInterval(tick);
 		};
-	}, [isInFetch, quotesLastFetched]);
+	}, [hideFeeModal, isInFetch, quotesLastFetched]);
+
+	/* errorKey effect: hide every modal*/
+	useEffect(() => {
+		if (errorKey) {
+			hideFeeModal();
+		}
+	}, [errorKey, hideFeeModal]);
 
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
@@ -251,15 +319,24 @@ function SwapsQuotesView({
 	}
 
 	if (!isInPolling && errorKey) {
+		const [errorTitle, errorMessage, errorAction] = getErrorMessage(errorKey);
+		const errorIcon =
+			errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR ? (
+				<FeatherIcon name="clock" style={[styles.errorIcon, styles.expiredIcon]} />
+			) : (
+				<AntIcon name="warning" style={[styles.errorIcon]} />
+			);
+
 		return (
 			<ScreenView contentContainerStyle={styles.screen}>
 				<View style={[styles.content, styles.errorViewContent]}>
-					<Title centered>Error View</Title>
-					<Text>{errorKey}</Text>
+					{errorIcon}
+					<Title centered>{errorTitle}</Title>
+					<Text centered>{errorMessage}</Text>
 				</View>
 				<View style={styles.bottomSection}>
-					<StyledButton type="blue" containerStyle={styles.ctaButton} onPress={handleRetry}>
-						Try again
+					<StyledButton type="blue" containerStyle={styles.ctaButton} onPress={handleRetryFetchQuotes}>
+						{errorAction}
 					</StyledButton>
 				</View>
 			</ScreenView>
@@ -332,62 +409,80 @@ function SwapsQuotesView({
 			</View>
 
 			<View style={styles.bottomSection}>
-				<QuotesSummary style={styles.quotesSummary}>
-					<QuotesSummary.Header style={styles.quotesSummaryHeader}>
-						<QuotesSummary.HeaderText bold>Saving ~$120.38</QuotesSummary.HeaderText>
-						<TouchableOpacity>
-							<QuotesSummary.HeaderText small>View details →</QuotesSummary.HeaderText>
-						</TouchableOpacity>
-					</QuotesSummary.Header>
-					<QuotesSummary.Body>
-						<View style={styles.quotesRow}>
-							<View style={styles.quotesDescription}>
-								<View style={styles.quotesLegend}>
+				{selectedQuote && (
+					<QuotesSummary style={styles.quotesSummary}>
+						<QuotesSummary.Header style={styles.quotesSummaryHeader} savings={isSaving}>
+							<QuotesSummary.HeaderText bold>
+								{isSaving ? 'Saving ~$120.38' : 'Using the best quote'}
+							</QuotesSummary.HeaderText>
+							<TouchableOpacity>
+								<QuotesSummary.HeaderText small>View details →</QuotesSummary.HeaderText>
+							</TouchableOpacity>
+						</QuotesSummary.Header>
+						<QuotesSummary.Body>
+							<View style={styles.quotesRow}>
+								<View style={styles.quotesDescription}>
+									<View style={styles.quotesLegend}>
+										<Text primary bold>
+											Estimated gas fee
+										</Text>
+									</View>
 									<Text primary bold>
-										Estimated gas fee
+										{renderFromWei(selectedQuote.estimatedNetworkFee)} ETH
 									</Text>
 								</View>
-								<Text primary bold>
-									0.001303 ETH
-								</Text>
-							</View>
-							<View style={styles.quotesFiatColumn}>
-								<Text primary bold>
-									$2.33 USD
-								</Text>
-							</View>
-						</View>
-
-						<View style={styles.quotesRow}>
-							<View style={styles.quotesDescription}>
-								<View style={styles.quotesLegend}>
-									<Text>Max gas fee </Text>
-									<TouchableOpacity>
-										<Text style={styles.linkText}>Edit</Text>
-									</TouchableOpacity>
+								<View style={styles.quotesFiatColumn}>
+									<Text primary bold>
+										{weiToFiat(selectedQuote.estimatedNetworkFee, conversionRate, currentCurrency)}
+									</Text>
 								</View>
-								<Text>0.009043 ETH</Text>
 							</View>
-							<View style={styles.quotesFiatColumn}>
-								<Text>$22.33 USD</Text>
-							</View>
-						</View>
 
-						<QuotesSummary.Separator />
-						<View style={styles.quotesRow}>
-							<TouchableOpacity style={styles.quotesRow}>
-								<Text small>
-									Quotes include a 0.875% Metamask fee{' '}
-									<FAIcon name="info-circle" style={styles.infoIcon} />
-								</Text>
-							</TouchableOpacity>
-						</View>
-					</QuotesSummary.Body>
-				</QuotesSummary>
-				<StyledButton type="blue" containerStyle={styles.ctaButton} disabled={!isInPolling || isInFetch}>
+							<View style={styles.quotesRow}>
+								<View style={styles.quotesDescription}>
+									<View style={styles.quotesLegend}>
+										<Text>Max gas fee </Text>
+										<TouchableOpacity>
+											<Text style={styles.linkText}>Edit</Text>
+										</TouchableOpacity>
+									</View>
+									<Text>{renderFromWei(selectedQuote.maxNetworkFee)} ETH</Text>
+								</View>
+								<View style={styles.quotesFiatColumn}>
+									<Text>
+										{weiToFiat(selectedQuote.maxNetworkFee, conversionRate, currentCurrency)}
+									</Text>
+								</View>
+							</View>
+
+							<QuotesSummary.Separator />
+							<View style={styles.quotesRow}>
+								<TouchableOpacity style={styles.quotesRow} onPress={toggleFeeModal}>
+									<Text small>
+										Quotes include a 0.875% Metamask fee{' '}
+										<FAIcon name="info-circle" style={styles.infoIcon} />
+									</Text>
+								</TouchableOpacity>
+							</View>
+						</QuotesSummary.Body>
+					</QuotesSummary>
+				)}
+				<StyledButton
+					type="blue"
+					containerStyle={styles.ctaButton}
+					disabled={!isInPolling || isInFetch || !selectedQuote}
+				>
 					Tap to Swap
 				</StyledButton>
 			</View>
+			{/* Modals */}
+			<FeeModal isVisible={isFeeModalVisible} toggleModal={toggleFeeModal} />
+			{/* <QuotesModal
+				isVisible={false}
+				toggleModal={toggleFeeModal}
+				quotes={allQuotes}
+				selectedQuote={selectedQuoteId}
+			/> */}
 		</ScreenView>
 	);
 }
@@ -399,6 +494,14 @@ SwapsQuotesView.propTypes = {
 	 */
 	// accounts: PropTypes.object,
 	/**
+	 * ETH to current currency conversion rate
+	 */
+	conversionRate: PropTypes.number,
+	/**
+	 * Currency code of the currently-active currency
+	 */
+	currentCurrency: PropTypes.string,
+	/**
 	 * A string that represents the selected address
 	 */
 	selectedAddress: PropTypes.string,
@@ -408,11 +511,7 @@ SwapsQuotesView.propTypes = {
 	topAggId: PropTypes.string,
 	pollingCyclesLeft: PropTypes.number,
 	quotes: PropTypes.object,
-	errorKey: PropTypes.string,
-	/**
-	 * Object containing token exchange rates in the format address => exchangeRate
-	 */
-	contractExchangeRates: PropTypes.object
+	errorKey: PropTypes.string
 };
 
 SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
@@ -420,6 +519,8 @@ SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(nav
 const mapStateToProps = state => ({
 	// accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	tokens: state.engine.backgroundState.SwapsController.tokens,
 	isInPolling: state.engine.backgroundState.SwapsController.isInPolling,
 	isInFetch: state.engine.backgroundState.SwapsController.isInFetch,
@@ -427,8 +528,8 @@ const mapStateToProps = state => ({
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
 	topAggId: state.engine.backgroundState.SwapsController.topAggId,
 	quotes: state.engine.backgroundState.SwapsController.quotes,
-	errorKey: state.engine.backgroundState.SwapsController.errorKey,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,
+	errorKey: state.engine.backgroundState.SwapsController.errorKey
 });
 
 export default connect(mapStateToProps)(SwapsQuotesView);
