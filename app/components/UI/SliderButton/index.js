@@ -146,7 +146,7 @@ class SliderButton extends Component {
 	startBackgroundColorAnimation = () => {
 		Animated.timing(this.bgColor, {
 			toValue: GREEN,
-			duration: 300,
+			duration: 250,
 			useNativeDriver: false
 		}).start(this.startBackgroundColorAnimation);
 	};
@@ -175,9 +175,11 @@ class SliderButton extends Component {
 	/* Action that's triggered when the slider reaches the end */
 	onComplete = () => {
 		this.startBackgroundColorAnimation();
-		if (this.props.onComplete) {
-			this.props.onComplete();
-		}
+		setTimeout(() => {
+			if (this.props.onComplete) {
+				this.props.onComplete();
+			}
+		}, 800);
 	};
 
 	render = () => {
