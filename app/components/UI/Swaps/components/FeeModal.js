@@ -4,10 +4,11 @@ import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-navigation';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import { strings } from '../../../../../locales/i18n';
 
 import Title from '../../../Base/Title';
-import { colors } from '../../../../styles/common';
 import Text from '../../../Base/Text';
+import { colors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
 	modalView: {
@@ -62,16 +63,16 @@ function FeeModal({ isVisible, toggleModal }) {
 		>
 			<SafeAreaView style={styles.modalView}>
 				<View style={styles.title}>
-					<Title>MetaMask Swap fee</Title>
+					<Title>{strings('swaps.metamask_swap_fee')}</Title>
 					<TouchableOpacity onPress={toggleModal}>
 						<IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
 					</TouchableOpacity>
 				</View>
 				<View style={styles.body}>
 					<Text>
-						Get the <Text bold>best price</Text> from the{' '}
-						<Text bold>top liquidity sources, every time</Text>. A fee of 0.875% is automatically factored
-						into each quote, which supports ongoing development to make MetaMask even better.
+						{strings('swaps.fee_text.get_the')} <Text bold>{strings('swaps.fee_text.best_price')}</Text>{' '}
+						{strings('swaps.fee_text.from_the')} <Text bold>{strings('swaps.fee_text.top_liquidity')}</Text>{' '}
+						{strings('swaps.fee_text.fee_is_applied', { fee: '0.875%' })}
 					</Text>
 				</View>
 			</SafeAreaView>

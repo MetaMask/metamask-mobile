@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import BigNumber from 'bignumber.js';
 import { swapsUtils } from '@estebanmino/controllers';
+import { strings } from '../../../../../locales/i18n';
 
 /**
  * Sets required parameters for Swaps Quotes View
@@ -85,18 +86,19 @@ export function useRatio(numeratorAmount, numeratorDecimals, denominatorAmount, 
 
 export function getErrorMessage(errorKey) {
 	const { SwapsError } = swapsUtils;
-	const errorAction = errorKey === SwapsError.QUOTES_EXPIRED_ERROR ? 'Get new quotes' : 'Try again';
+	const errorAction =
+		errorKey === SwapsError.QUOTES_EXPIRED_ERROR ? strings('swaps.get_new_quotes') : strings('swaps.try_again');
 	switch (errorKey) {
 		case SwapsError.QUOTES_EXPIRED_ERROR: {
-			return ['Quotes timeout', 'Please request new quotes to get the latest best rate.', errorAction];
+			return [strings('swaps.quotes_timeout'), strings('swaps.request_new_quotes'), errorAction];
 		}
 		case SwapsError.QUOTES_NOT_AVAILABLE_ERROR: {
-			return ['Quotes not available', 'Try adjusting the amount and try again.', errorAction];
+			return [strings('swaps.quotes_not_available'), strings('swaps.try_adjusting'), errorAction];
 		}
 		default: {
 			return [
-				'Error fetching quote',
-				`There has been an unexpected error, please request new quotes to get the latest best rate. (error: ${errorKey})`,
+				strings('swaps.error_fetching_quote'),
+				strings('swaps.unexpected_error', { error: errorKey }),
 				errorAction
 			];
 		}

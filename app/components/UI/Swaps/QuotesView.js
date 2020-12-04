@@ -1,34 +1,36 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { NavigationContext } from 'react-navigation';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { NavigationContext } from 'react-navigation';
 import { swapsUtils } from '@estebanmino/controllers';
-import { colors } from '../../../styles/common';
 
 import Engine from '../../../core/Engine';
-import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
+import { convertApiValueToGWEI } from '../../../util/custom-gas';
+import Device from '../../../util/Device';
+import { colors } from '../../../styles/common';
 import { renderFromTokenMinimalUnit, renderFromWei, toBN, toWei, weiToFiat } from '../../../util/number';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
+import useGasPrice from './utils/useGasPrice';
 
 import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
 import Title from '../../Base/Title';
+import useModalHandler from '../../Base/hooks/useModalHandler';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import StyledButton from '../StyledButton';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
-import useModalHandler from '../../Base/hooks/useModalHandler';
 import FeeModal from './components/FeeModal';
-import useGasPrice from './utils/useGasPrice';
-import { convertApiValueToGWEI } from '../../../util/custom-gas';
+import QuotesModal from './components/QuotesModal';
+import { strings } from '../../../../locales/i18n';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -191,7 +193,7 @@ function SwapsQuotesView({
 	const [isFirstLoad, setFirstLoad] = useState(true);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 
-	/* Selected quote, initially topAggId (se effects) */
+	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
 
 	/* Get quotes as an array with gasPrices */
@@ -207,10 +209,10 @@ function SwapsQuotesView({
 			),
 			maxNetworkFee: toBN(quote.maxNetworkFee).mul(toWei(convertApiValueToGWEI(gasPrice?.average || 0), 'gwei'))
 		});
-		const all = Object.entries(quotes)
+
+		return Object.values(quotes)
 			.sort((a, b) => a.estimatedNetworkFee - b.estimatedNetworkFee)
-			.map(([, quote]) => multiplyGasByGasPrice(quote));
-		return all;
+			.map(quote => multiplyGasByGasPrice(quote));
 	}, [gasPrice, quotes]);
 
 	/* Get the selected quote, by default is topAggId */
@@ -236,6 +238,7 @@ function SwapsQuotesView({
 
 	/* Modals, state and handlers */
 	const [isFeeModalVisible, toggleFeeModal, , hideFeeModal] = useModalHandler(false);
+	const [isQuotesModalVisible, toggleQuotesModal, , hideQuotesModal] = useModalHandler(false);
 
 	/* Handlers */
 	const handleRatioSwitch = () => setRatioAsSource(isSource => !isSource);
@@ -290,6 +293,7 @@ function SwapsQuotesView({
 		if (isInFetch) {
 			setRemainingTime(POLLING_INTERVAL);
 			hideFeeModal();
+			hideQuotesModal();
 			return;
 		}
 		const tick = setInterval(() => {
@@ -298,14 +302,15 @@ function SwapsQuotesView({
 		return () => {
 			clearInterval(tick);
 		};
-	}, [hideFeeModal, isInFetch, quotesLastFetched]);
+	}, [hideFeeModal, hideQuotesModal, isInFetch, quotesLastFetched]);
 
 	/* errorKey effect: hide every modal*/
 	useEffect(() => {
 		if (errorKey) {
 			hideFeeModal();
+			hideQuotesModal();
 		}
-	}, [errorKey, hideFeeModal]);
+	}, [errorKey, hideFeeModal, hideQuotesModal]);
 
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
@@ -344,18 +349,20 @@ function SwapsQuotesView({
 	}
 
 	return (
-		<ScreenView contentContainerStyle={styles.screen}>
+		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.topBar}>
 				{isInPolling && (
 					<View style={styles.timerWrapper}>
 						{isInFetch ? (
 							<>
 								<ActivityIndicator size="small" />
-								<Text> Fetching new quotes...</Text>
+								<Text> {strings('swaps.fetching_new_quotes')}</Text>
 							</>
 						) : (
 							<Text primary>
-								{pollingCyclesLeft > 0 ? 'New quotes in' : 'Quotes expire in'}{' '}
+								{pollingCyclesLeft > 0
+									? strings('swaps.new_quotes_in')
+									: strings('swaps.quotes_expire_in')}{' '}
 								<Text
 									bold
 									primary
@@ -369,7 +376,7 @@ function SwapsQuotesView({
 				)}
 				{!isInPolling && (
 					<View style={styles.timerWrapper}>
-						<Text>Not in polling</Text>
+						<Text>...</Text>
 					</View>
 				)}
 			</View>
@@ -413,10 +420,12 @@ function SwapsQuotesView({
 					<QuotesSummary style={styles.quotesSummary}>
 						<QuotesSummary.Header style={styles.quotesSummaryHeader} savings={isSaving}>
 							<QuotesSummary.HeaderText bold>
-								{isSaving ? 'Saving ~$120.38' : 'Using the best quote'}
+								{isSaving ? strings('swaps.savings') : strings('swaps.using_best_quote')}
 							</QuotesSummary.HeaderText>
-							<TouchableOpacity>
-								<QuotesSummary.HeaderText small>View details →</QuotesSummary.HeaderText>
+							<TouchableOpacity onPress={toggleQuotesModal}>
+								<QuotesSummary.HeaderText small>
+									{strings('swaps.view_details')} →
+								</QuotesSummary.HeaderText>
 							</TouchableOpacity>
 						</QuotesSummary.Header>
 						<QuotesSummary.Body>
@@ -424,7 +433,7 @@ function SwapsQuotesView({
 								<View style={styles.quotesDescription}>
 									<View style={styles.quotesLegend}>
 										<Text primary bold>
-											Estimated gas fee
+											{strings('swaps.estimated_gas_fee')}
 										</Text>
 									</View>
 									<Text primary bold>
@@ -441,9 +450,9 @@ function SwapsQuotesView({
 							<View style={styles.quotesRow}>
 								<View style={styles.quotesDescription}>
 									<View style={styles.quotesLegend}>
-										<Text>Max gas fee </Text>
+										<Text>{strings('swaps.max_gas_fee')} </Text>
 										<TouchableOpacity>
-											<Text style={styles.linkText}>Edit</Text>
+											<Text style={styles.linkText}>{strings('swaps.edit')}</Text>
 										</TouchableOpacity>
 									</View>
 									<Text>{renderFromWei(selectedQuote.maxNetworkFee)} ETH</Text>
@@ -459,7 +468,7 @@ function SwapsQuotesView({
 							<View style={styles.quotesRow}>
 								<TouchableOpacity style={styles.quotesRow} onPress={toggleFeeModal}>
 									<Text small>
-										Quotes include a 0.875% Metamask fee{' '}
+										{strings('swaps.quotes_include_fee', { fee: '0.875%' })}{' '}
 										<FAIcon name="info-circle" style={styles.infoIcon} />
 									</Text>
 								</TouchableOpacity>
@@ -472,17 +481,18 @@ function SwapsQuotesView({
 					containerStyle={styles.ctaButton}
 					disabled={!isInPolling || isInFetch || !selectedQuote}
 				>
-					Tap to Swap
+					{strings('swaps.tap_to_swap')}
 				</StyledButton>
 			</View>
-			{/* Modals */}
+
 			<FeeModal isVisible={isFeeModalVisible} toggleModal={toggleFeeModal} />
-			{/* <QuotesModal
-				isVisible={false}
-				toggleModal={toggleFeeModal}
+			<QuotesModal
+				isVisible={isQuotesModalVisible}
+				toggleModal={toggleQuotesModal}
 				quotes={allQuotes}
+				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
-			/> */}
+			/>
 		</ScreenView>
 	);
 }

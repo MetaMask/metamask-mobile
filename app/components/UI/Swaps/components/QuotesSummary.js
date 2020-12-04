@@ -11,9 +11,7 @@ const styles = StyleSheet.create({
 	header: {
 		paddingVertical: 10,
 		paddingHorizontal: 15,
-		borderTopWidth: 1,
-		borderLeftWidth: 1,
-		borderRightWidth: 1,
+		borderWidth: 1,
 		borderColor: colors.blue,
 		borderTopRightRadius: 10,
 		borderTopLeftRadius: 10,
@@ -45,6 +43,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 10,
 		paddingHorizontal: 15,
 		borderWidth: 1,
+		borderTopWidth: 0,
 		borderColor: colors.blue,
 		borderBottomRightRadius: 10,
 		borderBottomLeftRadius: 10
