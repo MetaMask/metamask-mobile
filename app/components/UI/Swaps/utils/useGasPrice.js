@@ -8,8 +8,6 @@ function useGasPrice() {
 	const getPrices = useCallback(async () => {
 		try {
 			const basicGasEstimates = await fetchBasicGasEstimates();
-
-			console.log('setting price', basicGasEstimates);
 			setPrice(basicGasEstimates);
 		} catch (error) {
 			Logger.log('Swaps: Error while trying to get gas estimates', error);
