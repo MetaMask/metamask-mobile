@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { View, Animated, PanResponder, StyleSheet, Image, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 const SliderBg = () => <Image style={styles.trackBackGradient} source={SliderBgImg} />;
 const SliderShine = () => <Image style={styles.trackBackShine} source={SliderShineImg} />;
 
-class SliderButton extends Component {
+class SliderButton extends PureComponent {
 	static propTypes = {
 		/**
 		 * Text that prompts the user to interact with the slider
