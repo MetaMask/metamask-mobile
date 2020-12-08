@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.extraBold
+		...fontStyles.bold
 	},
 	baseText: {
 		fontSize: 16,
