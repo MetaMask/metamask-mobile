@@ -3,7 +3,7 @@ import { TextInput, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import Fuse from 'fuse.js';
 import Icon from 'react-native-vector-icons/FontAwesome';
 

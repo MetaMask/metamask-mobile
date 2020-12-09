@@ -14,7 +14,7 @@ import { resetTransaction, setTransactionObject } from '../../../actions/transac
 import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
 import NetworkList, { getNetworkTypeById } from '../../../util/networks';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';

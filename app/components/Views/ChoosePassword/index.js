@@ -314,6 +314,7 @@ class ChoosePassword extends PureComponent {
 			}
 
 			// Set state in app as it was with password
+			await SecureKeychain.resetGenericPassword();
 			if (this.state.biometryType && this.state.biometryChoice) {
 				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
 			} else if (this.state.rememberMe) {

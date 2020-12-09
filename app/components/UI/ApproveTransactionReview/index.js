@@ -7,7 +7,7 @@ import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -257,7 +257,14 @@ class ApproveTransactionReview extends PureComponent {
 		 * Error coming from gas component
 		 */
 		gasError: PropTypes.string,
-		primaryCurrency: PropTypes.string
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Active tab URL, the currently active tab url
+		 */
+		activeTabUrl: PropTypes.string
 	};
 
 	state = {
@@ -534,7 +541,6 @@ class ApproveTransactionReview extends PureComponent {
 
 	render = () => {
 		const {
-			activeTabUrl,
 			host,
 			tokenSymbol,
 			viewDetails,
@@ -549,6 +555,7 @@ class ApproveTransactionReview extends PureComponent {
 			primaryCurrency,
 			currentCurrency,
 			gasError,
+			activeTabUrl,
 			transaction: { origin }
 		} = this.props;
 

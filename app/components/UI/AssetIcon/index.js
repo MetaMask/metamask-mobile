@@ -29,7 +29,7 @@ AssetIcon.propTypes = {
 	 */
 	logo: PropTypes.string,
 	/**
-	 * Whether logo has to be fetched from eth-contract-metadata
+	 * Whether logo has to be fetched from @metamask/contract-metadata
 	 */
 	watchedAsset: PropTypes.bool,
 	/**

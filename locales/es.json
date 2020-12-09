@@ -1210,7 +1210,7 @@
 		"transak_cta": "Comprar ETH con Transak",
 		"transak_modal_text": "Métodos de pago y comisiones varían dependiendo de la ubicación. Países disponibles:",
 		"apple_pay": "Apple Pay",
-		"via": "via",
+		"via": "vía",
 		"fee": "comisión",
 		"Fee": "Comisión",
 		"limited_time": "tiempo limitado",
@@ -1225,6 +1225,7 @@
 		"wyre_minimum_deposit": "El monto mínimo es {{amount}}",
 		"wyre_maximum_deposit": "El monto máximo es {{amount}}",
 		"wyre_purchase": "Comprar {{currency}}",
+		"wyre_total_label": "Wyre (vía MetaMask)",
 		"buy_with": "Comprar con",
 		"plus_fee": "Más {{fee}} de comisión",
 		"notifications": {

@@ -10,13 +10,6 @@ describe('TransactionHeader', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					NetworkStatusController: {
-						networkStatus: {
-							infura: {
-								ropsten: 'ok'
-							}
-						}
-					},
 					NetworkController: {
 						provider: {
 							type: 'ropsten'
