@@ -5,6 +5,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
+import useKeyboard from '@rnhooks/keyboard';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 
@@ -17,6 +18,8 @@ import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import TokenIcon from './TokenIcon';
+
+const isAndroid = Device.isAndroid();
 
 const styles = StyleSheet.create({
 	modal: {
@@ -51,8 +54,11 @@ const styles = StyleSheet.create({
 		marginBottom: Device.isIphone5() ? 5 : 5
 	},
 	resultsView: {
-		height: Device.isSmallDevice() ? 200 : 280,
+		height: Device.isSmallDevice() ? 200 : Device.isMediumDevice() ? 200 : 280,
 		marginTop: 10
+	},
+	resultsViewKeyboardOpen: {
+		height: Device.isSmallDevice() ? 120 : Device.isMediumDevice() ? 200 : 280
 	},
 	resultRow: {
 		borderTopWidth: StyleSheet.hairlineWidth,
@@ -79,6 +85,7 @@ function TokenSelectModal({
 	balances
 }) {
 	const searchInput = useRef(null);
+	const [isKeyboardVisible] = useKeyboard({ useWillShow: !isAndroid, useWillHide: !isAndroid });
 	const [searchString, setSearchString] = useState('');
 
 	const filteredTokens = useMemo(() => tokens?.filter(token => !exclude.includes(token.symbol)), [tokens, exclude]);
@@ -177,7 +184,7 @@ function TokenSelectModal({
 					/>
 				</View>
 				<FlatList
-					style={styles.resultsView}
+					style={[styles.resultsView, isKeyboardVisible && styles.resultsViewKeyboardOpen]}
 					keyboardDismissMode="none"
 					keyboardShouldPersistTaps="always"
 					data={tokenSearchResults}
