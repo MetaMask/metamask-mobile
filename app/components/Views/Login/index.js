@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
 });
 
 /* TODO: we should have translation strings for these */
+const DEVELOPMENT = 'development';
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
@@ -129,7 +130,11 @@ class Login extends PureComponent {
 		/**
 		 * A string representing the selected address => account
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * A boolean that will be true if env is development
+		 */
+		isDev: PropTypes.bool
 	};
 
 	state = {
@@ -385,11 +390,13 @@ class Login extends PureComponent {
 							</StyledButton>
 						</View>
 
-						<View style={styles.footer}>
-							<Button style={styles.goBack} onPress={this.onPressGoBack}>
-								{strings('login.go_back')}
-							</Button>
-						</View>
+						{this.props.isDev ? (
+							<View style={styles.footer}>
+								<Button style={styles.goBack} onPress={this.onPressGoBack}>
+									{strings('login.go_back')}
+								</Button>
+							</View>
+						) : null}
 					</View>
 				</KeyboardAwareScrollView>
 				<FadeOutOverlay />
@@ -400,7 +407,8 @@ class Login extends PureComponent {
 
 const mapStateToProps = state => ({
 	passwordSet: state.user.passwordSet,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	isDev: process.env?.NODE_ENV === DEVELOPMENT
 });
 
 const mapDispatchToProps = dispatch => ({
