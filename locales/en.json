@@ -549,7 +549,7 @@
 		"ok": "Ok",
 		"cancel": "Cancel",
 		"error": "Error",
-		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to Sync your MetaMask mobile wallet with your extension wallet, please re-install the app and choose the 'Import your extension wallet' option at onboarding."
+		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to Sync your MetaMask mobile wallet with your extension wallet, please re-install the app and choose the 'Import your extension wallet' option at onboarding. Make sure your have your current wallet seed phrase safely backed up before uninstalling. Go to Settings > Security & Privacy to backup now."
 	},
 	"action_view": {
 		"cancel": "Cancel",
