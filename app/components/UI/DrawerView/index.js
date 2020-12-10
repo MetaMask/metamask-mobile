@@ -756,7 +756,7 @@ class DrawerView extends PureComponent {
 				{
 					name: strings('drawer.settings'),
 					icon: this.getFeatherIcon('settings'),
-					warning: strings('drawer.settings_warning'),
+					warning: strings('drawer.settings_warning_short'),
 					action: this.showSettings
 				},
 				{

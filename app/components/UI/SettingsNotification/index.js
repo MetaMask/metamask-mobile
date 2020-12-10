@@ -9,9 +9,9 @@ const styles = StyleSheet.create({
 	menuItemWarning: {
 		flex: 1,
 		alignSelf: 'center',
+		justifyContent: 'flex-end',
 		flexDirection: 'row',
-		marginRight: 24,
-		minWidth: 20
+		marginRight: 24
 	},
 	wrapper: {
 		padding: 12,
