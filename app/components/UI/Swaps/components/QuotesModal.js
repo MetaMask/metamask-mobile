@@ -103,6 +103,9 @@ function QuotesModal({
 	tradeFees
 }) {
 	const bestOverallValue = tradeFees[selectedQuote].overallValueOfQuote;
+	const orderedTradeFees = Object.values(tradeFees).sort(
+		(a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote)
+	);
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -144,12 +147,13 @@ function QuotesModal({
 								</View>
 							</View>
 							<View>
-								{quotes.length > 0 &&
-									quotes.map((quote, index) => {
-										const isSelected = quote.aggregator === selectedQuote;
+								{orderedTradeFees.length > 0 &&
+									orderedTradeFees.map(tradeFee => {
+										const quote = quotes.find(quote => quote.aggregator === tradeFee.aggregator);
+										const isSelected = tradeFee.aggregator === selectedQuote;
 										return (
 											<View
-												key={quote.aggregator}
+												key={tradeFee.aggregator}
 												style={[
 													styles.row,
 													styles.quoteRow,
@@ -168,7 +172,7 @@ function QuotesModal({
 												<View style={styles.columnFee}>
 													<Text primary bold={isSelected}>
 														{weiToFiat(
-															toWei(tradeFees[quote.aggregator].ethFee),
+															toWei(tradeFee.ethFee),
 															conversionRate,
 															currentCurrency
 														)}
@@ -189,8 +193,7 @@ function QuotesModal({
 															{weiToFiat(
 																toWei(
 																	(
-																		tradeFees[quote.aggregator]
-																			.overallValueOfQuote - bestOverallValue
+																		tradeFee.overallValueOfQuote - bestOverallValue
 																	).toFixed(18)
 																),
 																conversionRate,
