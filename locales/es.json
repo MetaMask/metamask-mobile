@@ -515,7 +515,7 @@
 		"ok": "Ok",
 		"cancel": "Cancelar",
 		"error": "Error",
-		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to Sync your MetaMask mobile wallet with your extension wallet, please re-install the app and choose the 'Import your extension wallet' option at onboarding."
+		"attempting_sync_from_wallet_error": "Parece que estás intentando sincronizar con la extensión. Para sincronizar su billetera móvil MetaMask con su billetera de extensión, vuelva a instalar la aplicación y elija la opción 'Importar su billetera de extensión' en la incorporación."
 	},
 	"action_view": {
 		"cancel": "Cancelar",
