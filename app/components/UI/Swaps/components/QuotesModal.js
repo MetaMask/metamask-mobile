@@ -9,7 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import Title from '../../../Base/Title';
 import { colors } from '../../../../styles/common';
 import Text from '../../../Base/Text';
-import { renderFromTokenMinimalUnit, weiToFiat } from '../../../../util/number';
+import { renderFromTokenMinimalUnit, toWei, weiToFiat } from '../../../../util/number';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -99,9 +99,10 @@ function QuotesModal({
 	selectedQuote,
 	destinationToken,
 	conversionRate,
-	currentCurrency
+	currentCurrency,
+	tradeFees
 }) {
-	const bestEstimatedFees = quotes?.[0]?.estimatedNetworkFee;
+	const bestOverallValue = tradeFees[selectedQuote].overallValueOfQuote;
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -167,14 +168,14 @@ function QuotesModal({
 												<View style={styles.columnFee}>
 													<Text primary bold={isSelected}>
 														{weiToFiat(
-															quote.estimatedNetworkFee,
+															toWei(tradeFees[quote.aggregator].ethFee),
 															conversionRate,
 															currentCurrency
 														)}
 													</Text>
 												</View>
 												<View style={styles.columnValue}>
-													{index === 0 ? (
+													{quote.aggregator === selectedQuote ? (
 														<View style={styles.bestBadge}>
 															<View style={styles.bestBadgeWrapper}>
 																<Text bold small style={styles.bestBadgeText}>
@@ -186,7 +187,12 @@ function QuotesModal({
 														<Text primary style={styles.red}>
 															-
 															{weiToFiat(
-																quote.estimatedNetworkFee.sub(bestEstimatedFees),
+																toWei(
+																	(
+																		tradeFees[quote.aggregator]
+																			.overallValueOfQuote - bestOverallValue
+																	).toFixed(18)
+																),
 																conversionRate,
 																currentCurrency
 															)}
@@ -222,12 +228,14 @@ QuotesModal.propTypes = {
 	/**
 	 * Currency code of the currently-active currency
 	 */
-	currentCurrency: PropTypes.string
+	currentCurrency: PropTypes.string,
+	tradeFees: PropTypes.object
 };
 
 const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	tradeFees: state.engine.backgroundState.SwapsController.tradeFees
 });
 
 export default connect(mapStateToProps)(QuotesModal);

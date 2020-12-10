@@ -16,7 +16,7 @@ import AppConstants from '../../../core/AppConstants';
 import { convertApiValueToGWEI } from '../../../util/custom-gas';
 import Device from '../../../util/Device';
 import { colors } from '../../../styles/common';
-import { renderFromTokenMinimalUnit, toBN, toWei, weiToFiat } from '../../../util/number';
+import { renderFromTokenMinimalUnit, renderFromWei, toBN, toWei, weiToFiat } from '../../../util/number';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
 import useGasPrice from './utils/useGasPrice';
 
@@ -440,7 +440,7 @@ function SwapsQuotesView({
 										</Text>
 									</View>
 									<Text primary bold>
-										{selectedTradeFee.ethFee} ETH
+										{renderFromWei(toWei(selectedTradeFee.ethFee))} ETH
 									</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
@@ -458,7 +458,7 @@ function SwapsQuotesView({
 											<Text style={styles.linkText}>{strings('swaps.edit')}</Text>
 										</TouchableOpacity>
 									</View>
-									<Text>{selectedTradeFee.maxEthFee} ETH</Text>
+									<Text>{renderFromWei(toWei(selectedTradeFee.maxEthFee))} ETH</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text>
