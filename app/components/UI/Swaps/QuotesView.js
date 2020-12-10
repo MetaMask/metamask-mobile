@@ -16,7 +16,7 @@ import AppConstants from '../../../core/AppConstants';
 import { convertApiValueToGWEI } from '../../../util/custom-gas';
 import Device from '../../../util/Device';
 import { colors } from '../../../styles/common';
-import { renderFromTokenMinimalUnit, renderFromWei, toBN, toWei, weiToFiat } from '../../../util/number';
+import { renderFromTokenMinimalUnit, toBN, toWei, weiToFiat } from '../../../util/number';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
 import useGasPrice from './utils/useGasPrice';
 
@@ -171,7 +171,8 @@ function SwapsQuotesView({
 	pollingCyclesLeft,
 	topAggId,
 	quotes,
-	errorKey
+	errorKey,
+	tradeFees
 }) {
 	const navigation = useContext(NavigationContext);
 	const [gasPrice] = useGasPrice();
@@ -220,6 +221,8 @@ function SwapsQuotesView({
 		allQuotes,
 		selectedQuoteId
 	]);
+
+	const selectedTradeFee = useMemo(() => tradeFees[selectedQuoteId], [tradeFees, selectedQuoteId]);
 
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
@@ -437,12 +440,12 @@ function SwapsQuotesView({
 										</Text>
 									</View>
 									<Text primary bold>
-										{renderFromWei(selectedQuote.estimatedNetworkFee)} ETH
+										{selectedTradeFee.ethFee} ETH
 									</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text primary bold>
-										{weiToFiat(selectedQuote.estimatedNetworkFee, conversionRate, currentCurrency)}
+										{weiToFiat(toWei(selectedTradeFee.ethFee), conversionRate, currentCurrency)}
 									</Text>
 								</View>
 							</View>
@@ -455,11 +458,11 @@ function SwapsQuotesView({
 											<Text style={styles.linkText}>{strings('swaps.edit')}</Text>
 										</TouchableOpacity>
 									</View>
-									<Text>{renderFromWei(selectedQuote.maxNetworkFee)} ETH</Text>
+									<Text>{selectedTradeFee.maxEthFee} ETH</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text>
-										{weiToFiat(selectedQuote.maxNetworkFee, conversionRate, currentCurrency)}
+										{weiToFiat(toWei(selectedTradeFee.maxEthFee), conversionRate, currentCurrency)}
 									</Text>
 								</View>
 							</View>
@@ -521,6 +524,7 @@ SwapsQuotesView.propTypes = {
 	topAggId: PropTypes.string,
 	pollingCyclesLeft: PropTypes.number,
 	quotes: PropTypes.object,
+	tradeFees: PropTypes.object,
 	errorKey: PropTypes.string
 };
 
@@ -538,6 +542,7 @@ const mapStateToProps = state => ({
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
 	topAggId: state.engine.backgroundState.SwapsController.topAggId,
 	quotes: state.engine.backgroundState.SwapsController.quotes,
+	tradeFees: state.engine.backgroundState.SwapsController.tradeFees,
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,
 	errorKey: state.engine.backgroundState.SwapsController.errorKey
 });
