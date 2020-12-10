@@ -254,7 +254,7 @@ class SyncWithExtension extends PureComponent {
 				try {
 					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
 				} catch (e) {
-					SecureKeychain.resetGenericPassword();
+					await SecureKeychain.resetGenericPassword();
 				}
 			}
 		}
