@@ -8,8 +8,8 @@ exports[`SettingsNotification should render correctly as notification 1`] = `
         "alignSelf": "center",
         "flex": 1,
         "flexDirection": "row",
+        "justifyContent": "flex-end",
         "marginRight": 24,
-        "minWidth": 20,
       },
       null,
     ]
