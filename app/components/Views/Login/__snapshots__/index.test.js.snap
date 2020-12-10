@@ -2,6 +2,7 @@
 
 exports[`Login should render correctly 1`] = `
 <Login
+  isDev={false}
   passwordSet={true}
   setOnboardingWizardStep={[Function]}
 />
