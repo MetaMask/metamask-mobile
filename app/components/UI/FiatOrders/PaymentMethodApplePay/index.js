@@ -9,7 +9,6 @@ import Logger from '../../../../util/Logger';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import { getNotificationDetails } from '..';
-import handleUSDInput from '../../../Base/Keypad/rules/usd';
 
 import {
 	useWyreTerms,
@@ -23,7 +22,7 @@ import {
 import ScreenView from '../components/ScreenView';
 import { getPaymentMethodApplePayNavbar } from '../../Navbar';
 import AccountBar from '../components/AccountBar';
-import Keypad from '../../../Base/Keypad';
+import Keypad, { Keys } from '../../../Base/Keypad';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -190,32 +189,19 @@ function PaymentMethodApplePay({
 	}, [ABORTED, addOrder, lockTime, navigation, pay, setLockTime, protectWalletModalVisible]);
 
 	const handleQuickAmountPress = useCallback(amount => setAmount(amount), []);
-	const handleKeypadPress = useCallback(
-		newInput => {
-			if (isOverMaximum && newInput !== 'BACK') {
+	const handleKeypadChange = useCallback(
+		(value, key) => {
+			if (isOverMaximum && key !== Keys.BACK) {
 				return;
 			}
-			const newAmount = handleUSDInput(amount, newInput);
-			if (newAmount === amount) {
+			if (value === amount) {
 				return;
 			}
 
-			setAmount(newAmount);
+			setAmount(value);
 		},
 		[amount, isOverMaximum]
 	);
-	const handleKeypadPress1 = useCallback(() => handleKeypadPress('1'), [handleKeypadPress]);
-	const handleKeypadPress2 = useCallback(() => handleKeypadPress('2'), [handleKeypadPress]);
-	const handleKeypadPress3 = useCallback(() => handleKeypadPress('3'), [handleKeypadPress]);
-	const handleKeypadPress4 = useCallback(() => handleKeypadPress('4'), [handleKeypadPress]);
-	const handleKeypadPress5 = useCallback(() => handleKeypadPress('5'), [handleKeypadPress]);
-	const handleKeypadPress6 = useCallback(() => handleKeypadPress('6'), [handleKeypadPress]);
-	const handleKeypadPress7 = useCallback(() => handleKeypadPress('7'), [handleKeypadPress]);
-	const handleKeypadPress8 = useCallback(() => handleKeypadPress('8'), [handleKeypadPress]);
-	const handleKeypadPress9 = useCallback(() => handleKeypadPress('9'), [handleKeypadPress]);
-	const handleKeypadPress0 = useCallback(() => handleKeypadPress('0'), [handleKeypadPress]);
-	const handleKeypadPressPeriod = useCallback(() => handleKeypadPress('PERIOD'), [handleKeypadPress]);
-	const handleKeypadPressBack = useCallback(() => handleKeypadPress('BACK'), [handleKeypadPress]);
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen}>
@@ -271,29 +257,7 @@ function PaymentMethodApplePay({
 				)}
 			</View>
 			<View style={styles.content}>
-				<Keypad>
-					<Keypad.Row>
-						<Keypad.Button onPress={handleKeypadPress1}>1</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress2}>2</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress3}>3</Keypad.Button>
-					</Keypad.Row>
-					<Keypad.Row>
-						<Keypad.Button onPress={handleKeypadPress4}>4</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress5}>5</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress6}>6</Keypad.Button>
-					</Keypad.Row>
-					<Keypad.Row>
-						<Keypad.Button onPress={handleKeypadPress7}>7</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress8}>8</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress9}>9</Keypad.Button>
-					</Keypad.Row>
-					<Keypad.Row>
-						<Keypad.Button onPress={handleKeypadPressPeriod}>.</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>
-						<Keypad.DeleteButton onPress={handleKeypadPressBack} />
-					</Keypad.Row>
-				</Keypad>
-
+				<Keypad currency="usd" onChange={handleKeypadChange} value={amount} />
 				<View style={styles.buttonContainer}>
 					<StyledButton
 						type="blue"
