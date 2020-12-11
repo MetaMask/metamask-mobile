@@ -1392,7 +1392,7 @@
 		"estimated_gas_fee": "Estimated gas fee",
 		"max_gas_fee": "Max gas fee",
 		"edit": "Edit",
-		"quotes_include_fee": "Quotes include a {{fee}} MetaMask fee",
+		"quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
 		"tap_to_swap": "Tap to Swap",
 		"metamask_swap_fee": "MetaMask Swap fee",
 		"fee_text": {

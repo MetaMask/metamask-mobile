@@ -471,7 +471,7 @@ function SwapsQuotesView({
 							<View style={styles.quotesRow}>
 								<TouchableOpacity style={styles.quotesRow} onPress={toggleFeeModal}>
 									<Text small>
-										{strings('swaps.quotes_include_fee', { fee: '0.875%' })}{' '}
+										{`${strings('swaps.quotes_include_fee', { fee: selectedQuote.fee })} `}
 										<FAIcon name="info-circle" style={styles.infoIcon} />
 									</Text>
 								</TouchableOpacity>

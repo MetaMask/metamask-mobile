@@ -1266,7 +1266,7 @@
 		"estimated_gas_fee": "Tarifa de transacción estimada",
 		"max_gas_fee": "Tarifa de transacción máxima",
 		"edit": "Editar",
-		"quotes_include_fee": "Cotizaciones incluyen {{fee}} de comisión de MetaMask",
+		"quotes_include_fee": "Cotizaciones incluyen {{fee}}% de comisión de MetaMask",
 		"tap_to_swap": "Presiona para hacer Swap",
 		"metamask_swap_fee": "Comisión MetaMask Swap",
 		"fee_text": {
