@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
 	textInfo: { color: colors.blue },
 	textWarning: { color: colors.yellow700 },
 	textError: { color: colors.red },
+	textIconStyle: { marginRight: 12 },
 	iconWrapper: {
 		alignItems: 'center'
 	}
@@ -60,7 +61,7 @@ function Alert({ type = 'info', small, renderIcon, style, onPress, children }) {
 			{typeof children === 'function' ? (
 				children(textStyle)
 			) : (
-				<Text small={small} style={textStyle}>
+				<Text small={small} style={[textStyle, !!renderIcon && styles.textIconStyle]}>
 					{children}
 				</Text>
 			)}
