@@ -51,12 +51,12 @@ function getStyles(type) {
 	}
 }
 
-function Alert({ type = 'info', small, renderIcon, style, onPress, children }) {
+function Alert({ type = 'info', small, renderIcon, style, onPress, children, ...props }) {
 	const [wrapperStyle, textStyle] = useMemo(() => getStyles(type), [type]);
 
 	const Wrapper = onPress ? TouchableOpacity : View;
 	return (
-		<Wrapper style={[styles.base, small && styles.baseSmall, wrapperStyle, style]} onPress={onPress}>
+		<Wrapper style={[styles.base, small && styles.baseSmall, wrapperStyle, style]} onPress={onPress} {...props}>
 			{renderIcon && typeof renderIcon === 'function' && <View style={styles.iconWrapper}>{renderIcon()}</View>}
 			{typeof children === 'function' ? (
 				children(textStyle)
