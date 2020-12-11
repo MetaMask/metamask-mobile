@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
 });
 
 const hardwareBackPress = () => ({});
+const HARDWARE_BACK_PRESS = 'hardwareBackPress';
 
 /**
  * View that's shown during the last step of
@@ -93,7 +94,7 @@ class ManualBackupStep3 extends PureComponent {
 	};
 
 	componentWillUnmount = () => {
-		BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+		BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
 	};
 
 	componentDidMount = async () => {
@@ -103,7 +104,7 @@ class ManualBackupStep3 extends PureComponent {
 		this.setState({
 			hintText: manualBackup
 		});
-		BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+		BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
 	};
 
 	toggleHint = () => {
