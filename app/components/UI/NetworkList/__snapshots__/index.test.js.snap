@@ -132,22 +132,6 @@ exports[`NetworkList should render correctly 1`] = `
             </Text>
           </View>
         </View>
-        <View>
-          <Text
-            style={
-              Object {
-                "color": "#777777",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 12,
-                "fontWeight": "400",
-                "marginLeft": 30,
-                "marginTop": 5,
-              }
-            }
-          >
-            All Systems Operational
-          </Text>
-        </View>
       </TouchableOpacity>
     </View>
     <View

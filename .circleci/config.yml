@@ -114,17 +114,17 @@ jobs:
     working_directory:  ~/MetaMask
     environment:
       JAVA_OPTS: "-Xms512m -Xmx1024m"
-      _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+      _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport"
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
-      - image: circleci/android:api-28-node8-alpha
+      - image: circleci/android:api-29-node
     steps:
       - checkout
       - attach_workspace:
           at: .
       - run:
           name: build:accept-android-licenses
-          command: (echo y; echo y; echo y; echo y; echo y; echo y) | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+          command: sdkmanager --licenses
       - run:
           name: build:pre-release
           command:

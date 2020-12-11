@@ -297,7 +297,7 @@ const getPaymentDetails = (cryptoCurrency, amount, fee, total) => ({
 	],
 	total: {
 		amount: { currency: USD_CURRENCY_CODE, value: `${total}` },
-		label: 'Wyre'
+		label: strings('fiat_on_ramp.wyre_total_label')
 	}
 });
 

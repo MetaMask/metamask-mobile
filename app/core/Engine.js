@@ -10,7 +10,6 @@ import {
 	PersonalMessageManager,
 	MessageManager,
 	NetworkController,
-	NetworkStatusController,
 	PhishingController,
 	PreferencesController,
 	TokenBalancesController,
@@ -30,7 +29,7 @@ import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import NotificationManager from './NotificationManager';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 
@@ -106,7 +105,6 @@ class Engine {
 						},
 						{ network: '1', provider: { type: 'mainnet' } }
 					),
-					new NetworkStatusController(),
 					new PhishingController(),
 					new PreferencesController(
 						{},
@@ -431,7 +429,6 @@ export default {
 			KeyringController,
 			PersonalMessageManager,
 			NetworkController,
-			NetworkStatusController,
 			PreferencesController,
 			PhishingController,
 			TokenBalancesController,
@@ -451,7 +448,6 @@ export default {
 			KeyringController,
 			PersonalMessageManager,
 			NetworkController,
-			NetworkStatusController,
 			PhishingController,
 			PreferencesController,
 			TokenBalancesController,

@@ -2,7 +2,7 @@ import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
 import { hexToBN } from './number';
@@ -414,10 +414,5 @@ export function getNormalizedTxState(state) {
 	return { ...state.transaction, ...state.transaction.transaction };
 }
 
-export function getActiveTabUrl({ browser = {} }) {
-	let tab;
-	if (browser.tabs && browser.activeTab) {
-		tab = browser.tabs.find(({ id }) => id === browser.activeTab);
-	}
-	return tab ? tab.url : '';
-}
+export const getActiveTabUrl = ({ browser = {} }) =>
+	browser.tabs && browser.activeTab && browser.tabs.find(({ id }) => id === browser.activeTab)?.url;

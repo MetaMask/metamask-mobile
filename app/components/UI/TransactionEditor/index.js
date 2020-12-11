@@ -15,7 +15,7 @@ import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../util/cu
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
