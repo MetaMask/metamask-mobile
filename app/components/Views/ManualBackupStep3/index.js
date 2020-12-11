@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Alert, Text, View, SafeAreaView, StyleSheet, Keyboard, TouchableOpacity } from 'react-native';
+import { Alert, BackHandler, Text, View, SafeAreaView, StyleSheet, Keyboard, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -62,6 +62,8 @@ const styles = StyleSheet.create({
 	}
 });
 
+const hardwareBackPress = () => ({});
+
 /**
  * View that's shown during the last step of
  * the backup seed phrase flow
@@ -90,6 +92,10 @@ class ManualBackupStep3 extends PureComponent {
 		navigation: PropTypes.object
 	};
 
+	componentWillUnmount = () => {
+		BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+	};
+
 	componentDidMount = async () => {
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
@@ -97,6 +103,7 @@ class ManualBackupStep3 extends PureComponent {
 		this.setState({
 			hintText: manualBackup
 		});
+		BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
 	};
 
 	toggleHint = () => {
