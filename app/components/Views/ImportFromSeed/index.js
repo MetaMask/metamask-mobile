@@ -318,8 +318,8 @@ class ImportFromSeed extends PureComponent {
 		this.setState({ biometryChoice: value });
 	};
 
-	onSeedWordsChange = value => {
-		this.setState({ seed: value });
+	onSeedWordsChange = seed => {
+		this.setState({ seed });
 	};
 
 	onPasswordChange = val => {
