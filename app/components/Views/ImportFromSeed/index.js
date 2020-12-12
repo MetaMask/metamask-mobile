@@ -30,7 +30,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
-import { failedSeedPhraseRequirements, isValidMnemonic } from '../../../util/validators';
+import { failedSeedPhraseRequirements, isValidMnemonic, parseSeedPhrase } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
 	SEED_PHRASE_HINTS,
@@ -236,18 +236,19 @@ class ImportFromSeed extends PureComponent {
 
 	onPressImport = async () => {
 		const { loading, seed, password, confirmPassword } = this.state;
+		const parsedSeed = parseSeedPhrase(seed);
 
 		if (loading) return;
 		let error = null;
-		if (!passwordRequirementsMet(this.state.password)) {
+		if (!passwordRequirementsMet(password)) {
 			error = strings('import_from_seed.password_length_error');
 		} else if (password !== confirmPassword) {
 			error = strings('import_from_seed.password_dont_match');
 		}
 
-		if (failedSeedPhraseRequirements(seed)) {
+		if (failedSeedPhraseRequirements(parsedSeed)) {
 			error = strings('import_from_seed.seed_phrase_requirements');
-		} else if (!isValidMnemonic(seed)) {
+		} else if (!isValidMnemonic(parsedSeed)) {
 			error = strings('import_from_seed.invalid_seed_phrase');
 		}
 
@@ -260,12 +261,12 @@ class ImportFromSeed extends PureComponent {
 				const { KeyringController } = Engine.context;
 				await Engine.resetState();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
+				await KeyringController.createNewVaultAndRestore(password, parsedSeed);
 
 				if (this.state.biometryType && this.state.biometryChoice) {
-					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
+					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
 				} else if (this.state.rememberMe) {
-					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.REMEMBER_ME);
+					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
 				} else {
 					await SecureKeychain.resetGenericPassword();
 				}
@@ -318,7 +319,7 @@ class ImportFromSeed extends PureComponent {
 	};
 
 	onSeedWordsChange = value => {
-		this.setState({ seed: value.toLowerCase() });
+		this.setState({ seed: value });
 	};
 
 	onPasswordChange = val => {
@@ -565,13 +566,7 @@ class ImportFromSeed extends PureComponent {
 								type={'blue'}
 								onPress={this.onPressImport}
 								testID={'submit'}
-								disabled={
-									!(
-										password !== '' &&
-										password === confirmPassword &&
-										!failedSeedPhraseRequirements(seed)
-									)
-								}
+								disabled={!(password !== '' && password === confirmPassword)}
 							>
 								{loading ? (
 									<ActivityIndicator size="small" color="white" />
