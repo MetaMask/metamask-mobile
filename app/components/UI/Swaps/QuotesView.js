@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-async function resetAndStartPolling({ slippage, sourceToken, destinationToken, sourceAmount, fromAddress }) {
+async function resetAndStartPolling({ slippage, sourceToken, destinationToken, sourceAmount, walletAddress }) {
 	const { SwapsController, TokenRatesController } = Engine.context;
 	const destinationTokenConversionRate =
 		TokenRatesController.state.contractExchangeRates[toChecksumAddress(destinationToken.address)] || 0;
@@ -153,7 +153,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 		sourceToken,
 		destinationToken,
 		sourceAmount,
-		fromAddress,
+		walletAddress,
 		destinationTokenConversionRate
 	});
 	await SwapsController.stopPollingAndResetState();
@@ -271,7 +271,7 @@ function SwapsQuotesView({
 			sourceToken,
 			destinationToken,
 			sourceAmount,
-			fromAddress: selectedAddress
+			walletAddress: selectedAddress
 		});
 		return () => {
 			const { SwapsController } = Engine.context;

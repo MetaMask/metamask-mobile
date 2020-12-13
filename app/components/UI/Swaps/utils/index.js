@@ -53,7 +53,7 @@ export function getFetchParams({
 	sourceToken,
 	destinationToken,
 	sourceAmount,
-	fromAddress,
+	walletAddress,
 	destinationTokenConversionRate
 }) {
 	return {
@@ -61,7 +61,7 @@ export function getFetchParams({
 		sourceToken: sourceToken.address,
 		destinationToken: destinationToken.address,
 		sourceAmount,
-		fromAddress,
+		walletAddress,
 		balanceError: undefined,
 		metaData: {
 			sourceTokenInfo: sourceToken,
