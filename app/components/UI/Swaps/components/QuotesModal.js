@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-navigation';
@@ -103,8 +103,9 @@ function QuotesModal({
 	tradeFees
 }) {
 	const bestOverallValue = tradeFees[selectedQuote].overallValueOfQuote;
-	const orderedTradeFees = Object.values(tradeFees).sort(
-		(a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote)
+	const orderedTradeFees = useMemo(
+		() => Object.values(tradeFees).sort((a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote)),
+		[tradeFees]
 	);
 	return (
 		<Modal
