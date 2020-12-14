@@ -174,7 +174,7 @@ const SlippageSlider = React.memo(({ range, increment, onChange, defaultValue, f
 				}}
 			>
 				<View style={[styles.tooltipTail, { left: (tooltipWidth - 10) / 2 }]} />
-				<Text style={styles.tooltipText}>{formatTooltipText(value)}%</Text>
+				<Text style={styles.tooltipText}>{formatTooltipText(value)}</Text>
 			</Animated.View>
 			<Animated.View
 				{...panResponder.panHandlers}
