@@ -172,7 +172,7 @@ function SwapsQuotesView({
 	topAggId,
 	quotes,
 	errorKey,
-	tradeFees
+	quoteValues
 }) {
 	const navigation = useContext(NavigationContext);
 	const [gasPrice] = useGasPrice();
@@ -222,7 +222,7 @@ function SwapsQuotesView({
 		selectedQuoteId
 	]);
 
-	const selectedTradeFee = useMemo(() => tradeFees[selectedQuoteId], [tradeFees, selectedQuoteId]);
+	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [quoteValues, selectedQuoteId]);
 
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
@@ -440,12 +440,12 @@ function SwapsQuotesView({
 										</Text>
 									</View>
 									<Text primary bold>
-										{renderFromWei(toWei(selectedTradeFee.ethFee))} ETH
+										{renderFromWei(toWei(selectedQuoteValue.ethFee))} ETH
 									</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text primary bold>
-										{weiToFiat(toWei(selectedTradeFee.ethFee), conversionRate, currentCurrency)}
+										{weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, currentCurrency)}
 									</Text>
 								</View>
 							</View>
@@ -458,11 +458,15 @@ function SwapsQuotesView({
 											<Text style={styles.linkText}>{strings('swaps.edit')}</Text>
 										</TouchableOpacity>
 									</View>
-									<Text>{renderFromWei(toWei(selectedTradeFee.maxEthFee))} ETH</Text>
+									<Text>{renderFromWei(toWei(selectedQuoteValue.maxEthFee))} ETH</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text>
-										{weiToFiat(toWei(selectedTradeFee.maxEthFee), conversionRate, currentCurrency)}
+										{weiToFiat(
+											toWei(selectedQuoteValue.maxEthFee),
+											conversionRate,
+											currentCurrency
+										)}
 									</Text>
 								</View>
 							</View>
@@ -524,7 +528,7 @@ SwapsQuotesView.propTypes = {
 	topAggId: PropTypes.string,
 	pollingCyclesLeft: PropTypes.number,
 	quotes: PropTypes.object,
-	tradeFees: PropTypes.object,
+	quoteValues: PropTypes.object,
 	errorKey: PropTypes.string
 };
 
@@ -542,7 +546,7 @@ const mapStateToProps = state => ({
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
 	topAggId: state.engine.backgroundState.SwapsController.topAggId,
 	quotes: state.engine.backgroundState.SwapsController.quotes,
-	tradeFees: state.engine.backgroundState.SwapsController.tradeFees,
+	quoteValues: state.engine.backgroundState.SwapsController.quoteValues,
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,
 	errorKey: state.engine.backgroundState.SwapsController.errorKey
 });

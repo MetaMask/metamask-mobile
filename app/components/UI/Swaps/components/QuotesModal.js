@@ -100,12 +100,12 @@ function QuotesModal({
 	destinationToken,
 	conversionRate,
 	currentCurrency,
-	tradeFees
+	quoteValues
 }) {
-	const bestOverallValue = tradeFees[selectedQuote].overallValueOfQuote;
-	const orderedTradeFees = useMemo(
-		() => Object.values(tradeFees).sort((a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote)),
-		[tradeFees]
+	const bestOverallValue = quoteValues[selectedQuote].overallValueOfQuote;
+	const orderedQuoteValues = useMemo(
+		() => Object.values(quoteValues).sort((a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote)),
+		[quoteValues]
 	);
 	return (
 		<Modal
@@ -148,8 +148,8 @@ function QuotesModal({
 								</View>
 							</View>
 							<View>
-								{orderedTradeFees.length > 0 &&
-									orderedTradeFees.map(tradeFee => {
+								{orderedQuoteValues.length > 0 &&
+									orderedQuoteValues.map(tradeFee => {
 										const quote = quotes.find(quote => quote.aggregator === tradeFee.aggregator);
 										const isSelected = tradeFee.aggregator === selectedQuote;
 										return (
@@ -233,13 +233,13 @@ QuotesModal.propTypes = {
 	 * Currency code of the currently-active currency
 	 */
 	currentCurrency: PropTypes.string,
-	tradeFees: PropTypes.object
+	quoteValues: PropTypes.object
 };
 
 const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	tradeFees: state.engine.backgroundState.SwapsController.tradeFees
+	quoteValues: state.engine.backgroundState.SwapsController.quoteValues
 });
 
 export default connect(mapStateToProps)(QuotesModal);
