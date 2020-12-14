@@ -13,12 +13,10 @@ import { swapsUtils } from '@estebanmino/controllers';
 
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import { convertApiValueToGWEI } from '../../../util/custom-gas';
 import Device from '../../../util/Device';
 import { colors } from '../../../styles/common';
-import { renderFromTokenMinimalUnit, renderFromWei, toBN, toWei, weiToFiat } from '../../../util/number';
+import { renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
-import useGasPrice from './utils/useGasPrice';
 
 import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
@@ -175,7 +173,6 @@ function SwapsQuotesView({
 	quoteValues
 }) {
 	const navigation = useContext(NavigationContext);
-	const [gasPrice] = useGasPrice();
 
 	/* Get params from navigation */
 	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage } = useMemo(
@@ -197,24 +194,18 @@ function SwapsQuotesView({
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
 
-	/* Get quotes as an array with gasPrices */
+	/* Get quotes as an array sorted by overallValue */
 	const allQuotes = useMemo(() => {
-		if (!quotes || Object.keys(quotes).length === 0) {
+		if (!quotes || !quoteValues || Object.keys(quotes).length === 0 || Object.keys(quoteValues).length === 0) {
 			return [];
 		}
 
-		const multiplyGasByGasPrice = quote => ({
-			...quote,
-			estimatedNetworkFee: toBN(quote.estimatedNetworkFee).mul(
-				toWei(convertApiValueToGWEI(gasPrice?.average || 0), 'gwei')
-			),
-			maxNetworkFee: toBN(quote.maxNetworkFee).mul(toWei(convertApiValueToGWEI(gasPrice?.average || 0), 'gwei'))
-		});
+		const orderedValues = Object.values(quoteValues).sort(
+			(a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote)
+		);
 
-		return Object.values(quotes)
-			.sort((a, b) => a.estimatedNetworkFee - b.estimatedNetworkFee)
-			.map(quote => multiplyGasByGasPrice(quote));
-	}, [gasPrice, quotes]);
+		return orderedValues.map(quoteValue => quotes[quoteValue.aggregator]);
+	}, [quoteValues, quotes]);
 
 	/* Get the selected quote, by default is topAggId */
 	const selectedQuote = useMemo(() => allQuotes.find(quote => quote.aggregator === selectedQuoteId), [
