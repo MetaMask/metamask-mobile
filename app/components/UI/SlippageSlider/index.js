@@ -31,7 +31,6 @@ const styles = StyleSheet.create({
 		borderRadius: DIAMETER,
 		borderWidth: 1,
 		borderColor: colors.white,
-		// backgroundColor: colors.spinnerColor,
 		bottom: 0
 	},
 	trackBackContainer: {
@@ -116,12 +115,6 @@ const SlippageSlider = React.memo(({ range, increment, onChange, defaultValue, f
 			const maxTrackWidth = trackWidth;
 			const progressPercent = (gestureState.moveX - margins) / maxTrackWidth;
 			const progress = progressPercent * fullRange + r0;
-			console.log({
-				progressPercent,
-				moveX: gestureState.moveX - margins,
-				maxTrackWidth,
-				progress
-			});
 
 			for (let _value = r0; _value <= r1; _value += increment) {
 				const incrementDiff = Math.abs(_value - progress);
@@ -141,8 +134,8 @@ const SlippageSlider = React.memo(({ range, increment, onChange, defaultValue, f
 		}
 	});
 
+	/* Used to change the color of the slider from blue to red depending on value */
 	const sliderColor = React.useMemo(() => new Animated.Value(r0), [r0]);
-
 	React.useEffect(() => {
 		sliderColor.setValue(value);
 	}, [sliderColor, value]);
