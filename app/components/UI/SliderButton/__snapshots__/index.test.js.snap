@@ -4,11 +4,16 @@ exports[`SliderButton should render correctly 1`] = `
 <View
   onLayout={[Function]}
   style={
-    Object {
-      "backgroundColor": "#0074C8",
-      "borderRadius": 50,
-      "marginBottom": 10,
-    }
+    Array [
+      Object {
+        "backgroundColor": "#0074C8",
+        "borderRadius": 50,
+        "marginBottom": 10,
+      },
+      Object {
+        "opacity": 1,
+      },
+    ]
   }
 >
   <View

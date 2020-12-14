@@ -100,13 +100,18 @@ class SliderButton extends PureComponent {
 		/**
 		 * Action to execute once button completes sliding
 		 */
-		onComplete: PropTypes.func.isRequired
+		onComplete: PropTypes.func.isRequired,
+		/**
+		 * Value that decides whether or not the slider is disabled
+		 */
+		disabled: PropTypes.bool
 	};
 
 	state = {
 		trackBackGradient: null,
 		componentWidth: 0,
-		panX: 0
+		panX: 0,
+		isComplete: false
 	};
 
 	shineAnimating = false;
@@ -118,17 +123,32 @@ class SliderButton extends PureComponent {
 	panResponder = PanResponder.create({
 		onMoveShouldSetPanResponder: () => true,
 		onPanResponderMove: (evt, gestureState) => {
+			if (this.props.disabled) {
+				this.reset();
+				return;
+			}
+			if (this.state.isComplete) {
+				return;
+			}
 			const moveSlider = Animated.event([null, { dx: this.pan.x }], { useNativeDriver: false });
 			const panX = Math.min(Math.max(0.01, this.pan.x._value), this.state.componentWidth - DIAMETER);
 			moveSlider(evt, gestureState);
 			this.setState({ panX });
 		},
-		onPanResponderRelease: () => {
-			if (this.pan.x._value < this.state.componentWidth - DIAMETER) {
-				this.reset();
-			} else {
-				this.onComplete();
+		onPanResponderRelease: evt => {
+			if (this.props.disabled) {
+				return;
 			}
+			const { locationY } = evt.nativeEvent;
+			const fingerInButton = locationY >= 0 && locationY <= DIAMETER;
+			const actionComplete = this.pan.x._value >= this.state.componentWidth - DIAMETER;
+			if (fingerInButton && actionComplete) {
+				this.onComplete();
+				return;
+			} else if (actionComplete && !fingerInButton) {
+				this.pan.x.setValue(this.state.componentWidth - DIAMETER);
+			}
+			this.reset();
 		}
 	});
 
@@ -176,6 +196,7 @@ class SliderButton extends PureComponent {
 	onComplete = () => {
 		this.startBackgroundColorAnimation();
 		setTimeout(() => {
+			this.setState({ isComplete: true });
 			if (this.props.onComplete) {
 				this.props.onComplete();
 			}
@@ -183,22 +204,24 @@ class SliderButton extends PureComponent {
 	};
 
 	render = () => {
-		const { incompleteText, completeText } = this.props;
+		const { incompleteText, completeText, disabled } = this.props;
 		const trackWidth = (this.state.panX || -DIAMETER) + DIAMETER;
 		return (
 			<View
-				style={styles.root}
+				style={[styles.root, { opacity: 1 - (+disabled || 0) / 3 }]}
 				onLayout={e => {
 					this.setState({ componentWidth: e.nativeEvent.layout.width }, this.shine);
 				}}
 			>
 				<View style={styles.trackBack}>
 					<SliderBg />
-					<Animated.View
-						style={[styles.trackBackShineContainer, { transform: [{ translateX: this.shineOffset }] }]}
-					>
-						<SliderShine />
-					</Animated.View>
+					{!disabled && (
+						<Animated.View
+							style={[styles.trackBackShineContainer, { transform: [{ translateX: this.shineOffset }] }]}
+						>
+							<SliderShine />
+						</Animated.View>
+					)}
 					<Animated.View
 						style={{
 							opacity: Animated.subtract(
