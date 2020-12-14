@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
 
 const SlippageSliderBg = () => <Image style={styles.trackFrontGradient} source={SlippageSliderBgImg} />;
 
-const SlippageSlider = React.memo(({ range, increment, onChange, defaultValue, formatTooltipText }) => {
+const SlippageSlider = React.memo(({ range, increment, onChange, defaultValue, formatTooltipText, disabled }) => {
 	/* Reusable/truncated references to the range prop values */
 	const [r0, r1] = range;
 	const fullRange = React.useMemo(() => r1 - r0, [r0, r1]);
@@ -111,6 +111,10 @@ const SlippageSlider = React.memo(({ range, increment, onChange, defaultValue, f
 		 * it should snap to
 		 */
 		onPanResponderMove: (evt, gestureState) => {
+			if (disabled) {
+				return;
+			}
+
 			const margins = (WINDOW_WIDTH - trackWidth) / 2;
 			const maxTrackWidth = trackWidth;
 			const progressPercent = (gestureState.moveX - margins) / maxTrackWidth;
@@ -118,7 +122,7 @@ const SlippageSlider = React.memo(({ range, increment, onChange, defaultValue, f
 
 			for (let _value = r0; _value <= r1; _value += increment) {
 				const incrementDiff = Math.abs(_value - progress);
-				if (incrementDiff < 0.2) {
+				if (incrementDiff < 0.3) {
 					const rangeOffsetRatio = (_value - r0) / fullRange;
 					const moved = (trackWidth - GRADIENT_OFFSET) * rangeOffsetRatio;
 					const _panX = Math.min(Math.max(0, moved), trackWidth - BAR_HEIGHT);
@@ -128,7 +132,7 @@ const SlippageSlider = React.memo(({ range, increment, onChange, defaultValue, f
 			}
 		},
 		onPanResponderRelease: () => {
-			if (onChange) {
+			if (onChange && !disabled) {
 				onChange(value);
 			}
 		}
@@ -136,13 +140,14 @@ const SlippageSlider = React.memo(({ range, increment, onChange, defaultValue, f
 
 	/* Used to change the color of the slider from blue to red depending on value */
 	const sliderColor = React.useMemo(() => new Animated.Value(r0), [r0]);
+
 	React.useEffect(() => {
 		sliderColor.setValue(value);
-	}, [sliderColor, value]);
+	}, [sliderColor, value, disabled]);
 
 	return (
 		<View
-			style={styles.root}
+			style={[styles.root, { opacity: 1 - (disabled || 0) / 3 }]}
 			onLayout={e => {
 				setComponentWidth(e.nativeEvent.layout.width);
 			}}
@@ -215,7 +220,11 @@ SlippageSlider.propTypes = {
 	/**
 	 * Function to format/compose the text in the tooltip
 	 */
-	formatTooltipText: PropTypes.func
+	formatTooltipText: PropTypes.func,
+	/**
+	 * Value that decides whether or not the slider is disabled
+	 */
+	disabled: PropTypes.bool
 };
 
 export default SlippageSlider;
