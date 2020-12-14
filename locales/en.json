@@ -1403,6 +1403,12 @@
 			"top_liquidity": "top liquidity sources every time.",
 			"fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better."
 		},
+		"enable": {
+			"this_will": "This will",
+			"enable_asset": "enable {{asset}}",
+			"for_swapping": "for swapping",
+			"edit_limit": "Edit limit"
+		},
 		"quotes_analyzed": "Quotes analyzed",
 		"receiving": "Receiving",
 		"overall_value": "Overall value",

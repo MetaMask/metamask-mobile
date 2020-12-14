@@ -167,10 +167,11 @@ function SwapsQuotesView({
 	isInFetch,
 	quotesLastFetched,
 	pollingCyclesLeft,
+	approvalTransaction,
 	topAggId,
 	quotes,
-	errorKey,
-	quoteValues
+	quoteValues,
+	errorKey
 }) {
 	const navigation = useContext(NavigationContext);
 
@@ -462,6 +463,22 @@ function SwapsQuotesView({
 								</View>
 							</View>
 
+							{approvalTransaction && (
+								<View style={styles.quotesRow}>
+									<TouchableOpacity style={styles.quotesRow}>
+										<Text>
+											{`${strings('swaps.enable.this_will')} `}
+											<Text bold>
+												{`${strings('swaps.enable.enable_asset', {
+													asset: sourceToken.symbol
+												})} `}
+											</Text>
+											{`${strings('swaps.enable.for_swapping')}`}
+											<Text link>{` ${strings('swaps.enable.edit_limit')}`}</Text>
+										</Text>
+									</TouchableOpacity>
+								</View>
+							)}
 							<QuotesSummary.Separator />
 							<View style={styles.quotesRow}>
 								<TouchableOpacity style={styles.quotesRow} onPress={toggleFeeModal}>
@@ -520,6 +537,7 @@ SwapsQuotesView.propTypes = {
 	pollingCyclesLeft: PropTypes.number,
 	quotes: PropTypes.object,
 	quoteValues: PropTypes.object,
+	approvalTransaction: PropTypes.object,
 	errorKey: PropTypes.string
 };
 

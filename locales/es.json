@@ -1277,6 +1277,12 @@
 			"top_liquidity": "mejores recursos de liquidez, siempre.",
 			"fee_is_applied": "Una comisión de {{fee}} es aplicada automáticamente en cada cotización, lo que apoya el desarrollo continuo para hacer MetaMask aún mejor."
 		},
+		"enable": {
+			"this_will": "Esto",
+			"enable_asset": "permitirá {{asset}}",
+			"for_swapping": "para ser convertido",
+			"edit_limit": "Editar límite"
+		},
 		"quotes_analyzed": "Cotizaciones analizadas",
 		"receiving": "Recibiendo",
 		"overall_value": "Valor total",
