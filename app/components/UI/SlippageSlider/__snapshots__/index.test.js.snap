@@ -4,12 +4,17 @@ exports[`SlippageSlider should render correctly 1`] = `
 <View
   onLayout={[Function]}
   style={
-    Object {
-      "backgroundColor": "transparent",
-      "height": 69,
-      "justifyContent": "center",
-      "position": "relative",
-    }
+    Array [
+      Object {
+        "backgroundColor": "transparent",
+        "height": 69,
+        "justifyContent": "center",
+        "position": "relative",
+      },
+      Object {
+        "opacity": 1,
+      },
+    ]
   }
 >
   <View
@@ -174,8 +179,7 @@ exports[`SlippageSlider should render correctly 1`] = `
         }
       }
     >
-      1%}
-      %
+      1%
     </Text>
   </ForwardRef(AnimatedComponentWrapper)>
   <ForwardRef(AnimatedComponentWrapper)
