@@ -345,10 +345,10 @@ class Onboarding extends PureComponent {
 			try {
 				await SecureKeychain.setGenericPassword(opts.password, SecureKeychain.TYPES.BIOMETRICS);
 			} catch (e) {
-				SecureKeychain.resetGenericPassword();
+				await SecureKeychain.resetGenericPassword();
 			}
 		} else {
-			SecureKeychain.resetGenericPassword();
+			await SecureKeychain.resetGenericPassword();
 		}
 
 		try {

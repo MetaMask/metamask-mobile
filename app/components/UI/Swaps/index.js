@@ -6,11 +6,20 @@ import { NavigationContext } from 'react-navigation';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import BigNumber from 'bignumber.js';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { swapsUtils } from '@estebanmino/controllers';
+
 import Engine from '../../../core/Engine';
 import handleInput from '../../Base/Keypad/rules/native';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
-import { fromTokenMinimalUnit, renderFromTokenMinimalUnit, renderFromWei } from '../../../util/number';
+import {
+	fromTokenMinimalUnit,
+	renderFromTokenMinimalUnit,
+	renderFromWei,
+	toTokenMinimalUnit
+} from '../../../util/number';
+import { setQuotesNavigationsParams } from './utils';
+
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 
@@ -96,15 +105,21 @@ const styles = StyleSheet.create({
 	}
 });
 
+// Grab this from SwapsController.utils
+const SWAPS_ETH_ADDRESS = swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
+
 function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	const navigation = useContext(NavigationContext);
-	const initialSource = navigation.getParam('sourceToken', 'ETH');
+	const initialSource = navigation.getParam('sourceToken', SWAPS_ETH_ADDRESS);
 	const [amount, setAmount] = useState('0');
+	const [slippage] = useState('1');
 	const amountBigNumber = useMemo(() => new BigNumber(amount), [amount]);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
 
-	const [sourceToken, setSourceToken] = useState(() => tokens?.find(token => token.symbol === initialSource));
+	const [sourceToken, setSourceToken] = useState(() =>
+		tokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase())
+	);
 	const [destinationToken, setDestinationToken] = useState(null);
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
@@ -139,7 +154,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 
 	useEffect(() => {
 		if (initialSource && tokens && !sourceToken) {
-			setSourceToken(tokens.find(token => token.symbol === initialSource));
+			setSourceToken(tokens.find(token => token.address?.toLowerCase() === initialSource.toLowerCase()));
 		}
 	}, [tokens, initialSource, sourceToken]);
 
@@ -162,6 +177,21 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		return new BigNumber(balance).gt(0);
 	}, [balance, sourceToken]);
 	const hasEnoughBalance = useMemo(() => amountBigNumber.lte(new BigNumber(balance)), [amountBigNumber, balance]);
+
+	/* Navigation handler */
+	const handleGetQuotesPress = useCallback(
+		() =>
+			navigation.navigate(
+				'SwapsQuotesView',
+				setQuotesNavigationsParams(
+					sourceToken?.address,
+					destinationToken?.address,
+					toTokenMinimalUnit(amount, sourceToken?.decimals).toString(),
+					slippage
+				)
+			),
+		[amount, destinationToken, navigation, slippage, sourceToken]
+	);
 
 	/* Keypad Handlers */
 	const handleKeypadPress = useCallback(
@@ -322,6 +352,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 						<View style={styles.ctaContainer}>
 							<StyledButton
 								type="blue"
+								onPress={handleGetQuotesPress}
 								containerStyle={styles.cta}
 								disabled={
 									isInitialLoadingTokens ||

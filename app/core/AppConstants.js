@@ -51,6 +51,8 @@ export default {
 		ORIGIN_QR_CODE: 'qr-code'
 	},
 	SWAPS: {
-		ACTIVE: false
+		ACTIVE: true,
+		POLL_COUNT_LIMIT: 3,
+		POLLING_INTERVAL: 2 * 60 * 1000
 	}
 };
