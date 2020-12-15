@@ -12,8 +12,14 @@ import Engine from '../../../core/Engine';
 import handleInput from '../../Base/Keypad/rules/native';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
+import {
+	fromTokenMinimalUnit,
+	renderFromTokenMinimalUnit,
+	renderFromWei,
+	toTokenMinimalUnit
+} from '../../../util/number';
 import { setQuotesNavigationsParams } from './utils';
-import { renderFromTokenMinimalUnit, renderFromWei, toTokenMinimalUnit } from '../../../util/number';
+
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 
@@ -55,6 +61,9 @@ const styles = StyleSheet.create({
 	},
 	amountInvalid: {
 		color: colors.red
+	},
+	linkText: {
+		color: colors.blue
 	},
 	horizontalRuleContainer: {
 		flexDirection: 'row',
@@ -160,6 +169,13 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		return tokenAddress in balances ? renderFromTokenMinimalUnit(balances[tokenAddress], sourceToken.decimals) : 0;
 	}, [accounts, balances, selectedAddress, sourceToken]);
 
+	const hasBalance = useMemo(() => {
+		if (!balance || !sourceToken || sourceToken.symbol === 'ETH') {
+			return false;
+		}
+
+		return new BigNumber(balance).gt(0);
+	}, [balance, sourceToken]);
 	const hasEnoughBalance = useMemo(() => amountBigNumber.lte(new BigNumber(balance)), [amountBigNumber, balance]);
 
 	/* Navigation handler */
@@ -217,6 +233,10 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		[toggleDestinationModal]
 	);
 
+	const handleUseMax = useCallback(() => {
+		setAmount(fromTokenMinimalUnit(balances[toChecksumAddress(sourceToken.address)], sourceToken.decimals));
+	}, [balances, sourceToken.address, sourceToken.decimals]);
+
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.content}>
@@ -256,10 +276,18 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 								  })}
 						</Text>
 					) : (
-						<Text>
-							{sourceToken && balance !== null
-								? strings('swaps.available_to_swap', { asset: `${balance} ${sourceToken.symbol}` })
-								: ''}
+						<Text centered>
+							{sourceToken &&
+								balance !== null &&
+								strings('swaps.available_to_swap', {
+									asset: `${balance} ${sourceToken.symbol}`
+								})}
+							{hasBalance && (
+								<Text style={styles.linkText} onPress={handleUseMax}>
+									{' '}
+									{strings('swaps.use_max')}
+								</Text>
+							)}
 						</Text>
 					)}
 				</View>
