@@ -201,6 +201,7 @@
 		"browser": "Navegador",
 		"settings": "Ajustes",
 		"settings_warning": "Billetera desprotegida",
+		"settings_warning_short": "Desprotegida",
 		"help": "Ayuda",
 		"logout": "Salir",
 		"logout_title": "Realmente deseas salir?",
@@ -1246,6 +1247,18 @@
 		"cancelled": "Cancelada",
 		"amount": "Cantidad",
 		"total_amount": "Cantidad total"
+	},
+	"swaps": {
+		"convert_from": "Convertir desde",
+		"convert_to": "Convertir a",
+		"select_a_token": "Selecciona un token",
+		"search_token": "Buscar un token",
+		"no_tokens_result": "No se encontraron tokens para “{{searchString}}”",
+		"available_to_swap": "{{asset}} disponible para convertir",
+		"not_enough": "Insuficiente {{symbol}} para esta conversión",
+		"max_slippage": "Deslizamiento máx. {{slippage}}",
+		"allows_up_to_decimals": "{{symbol}} soporta hasta {{decimals}} decimales",
+		"get_quotes": "Cotizar"
 	},
 	"protect_wallet_modal": {
 		"title": "Protege tu billetera",
