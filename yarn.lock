@@ -735,10 +735,10 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
-"@estebanmino/controllers@3.2.31":
-  version "3.2.31"
-  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.2.31.tgz#98119cdef14c07ad4681b4d7c660a4a6d3a36619"
-  integrity sha512-YxSUhlJm1w0kdVNdUeWeSTDx4Aqki8HMzva7Opk4KimXHVzPSIiFIQJWdMJrCVDUIu1T0P4mKSNRV3OakYKExg==
+"@estebanmino/controllers@3.2.32":
+  version "3.2.32"
+  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.2.32.tgz#963ab5ec79608a442c34dc17d9a2544a837723fe"
+  integrity sha512-KB+9ZcfoMsJQI6ijJ8ViBvdALzUBWo/+/OCx2PTDX0c5RCncD7ne0RiH3+43sey7RkLfmd5/7B87kTTLBzvVzQ==
   dependencies:
     abort-controller "^3.0.0"
     await-semaphore "^0.1.3"
