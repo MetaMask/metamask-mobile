@@ -196,29 +196,31 @@ const Main = props => {
 		[props.navigation, props.transactions]
 	);
 
-	const autoSign = useCallback(async transactionMeta => {
-		console.log('autoSign', transactionMeta);
-		// const { TransactionController } = Engine.context;
-		// try {
-		// 	TransactionController.hub.once(`${transactionMeta.id}:finished`, transactionMeta => {
-		// 		if (transactionMeta.status === 'submitted') {
-		// 			props.navigation.pop();
-		// 			NotificationManager.watchSubmittedTransaction({
-		// 				...transactionMeta,
-		// 				assetType: transactionMeta.transaction.assetType
-		// 			});
-		// 		} else {
-		// 			throw transactionMeta.error;
-		// 		}
-		// 	});
-		// 	await TransactionController.approveTransaction(transactionMeta.id);
-		// } catch (error) {
-		// 	Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-		// 		{ text: strings('navigation.ok') }
-		// 	]);
-		// 	Logger.error(error, 'error while trying to send transaction (Main)');
-		// }
-	}, []);
+	const autoSign = useCallback(
+		async transactionMeta => {
+			const { TransactionController } = Engine.context;
+			try {
+				TransactionController.hub.once(`${transactionMeta.id}:finished`, transactionMeta => {
+					if (transactionMeta.status === 'submitted') {
+						props.navigation.pop();
+						NotificationManager.watchSubmittedTransaction({
+							...transactionMeta,
+							assetType: transactionMeta.transaction.assetType
+						});
+					} else {
+						throw transactionMeta.error;
+					}
+				});
+				await TransactionController.approveTransaction(transactionMeta.id);
+			} catch (error) {
+				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+					{ text: strings('navigation.ok') }
+				]);
+				Logger.error(error, 'error while trying to send transaction (Main)');
+			}
+		},
+		[props.navigation]
+	);
 
 	const onUnapprovedTransaction = useCallback(
 		async transactionMeta => {
@@ -231,15 +233,12 @@ const Main = props => {
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
 
-			if (to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS)) {
-				console.log('trade tx from swaps');
-				autoSign(transactionMeta);
-			} else if (
-				data &&
-				data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-				decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS
+			if (
+				to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
+				(data &&
+					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+					decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS)
 			) {
-				console.log('approval tx from swaps');
 				autoSign(transactionMeta);
 			} else if (
 				props.paymentChannelsEnabled &&
