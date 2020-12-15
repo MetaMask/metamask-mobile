@@ -154,7 +154,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 		await new Promise(resolve =>
 			setTimeout(() => {
 				resolve();
-			}, 200)
+			}, 500)
 		);
 	}
 	const destinationTokenConversionRate =
