@@ -768,7 +768,8 @@ export const BrowserTab = props => {
 
 	const isBookmark = () => {
 		const { bookmarks } = props;
-		return bookmarks.some(({ url: bookmark }) => bookmark === url.current);
+		const maskedUrl = getMaskedUrl(url.current);
+		return bookmarks.some(({ url: bookmark }) => bookmark === maskedUrl);
 	};
 
 	/**
