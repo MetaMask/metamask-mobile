@@ -1,60 +1,36 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
+import Alert from '../../../Base/Alert';
+import Text from '../../../Base/Text';
 
 const styles = StyleSheet.create({
-	wrapperError: {
-		backgroundColor: colors.red000,
-		borderWidth: 1,
-		borderColor: colors.red,
-		borderRadius: 4,
-		padding: 15
-	},
-	errorMessage: {
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.red,
-		flexDirection: 'row',
-		alignItems: 'center'
-	},
 	button: {
-		marginTop: 27
-	},
-	buttonMessage: {
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.blue,
-		textAlign: 'center'
-	},
-	wrapperWarning: {
-		backgroundColor: colors.blue000,
-		borderWidth: 1,
-		borderColor: colors.blue,
-		borderRadius: 4,
-		padding: 15
-	},
-	warningMessage: {
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.blue,
-		flexDirection: 'row',
-		alignItems: 'center'
+		marginTop: 27,
+		marginBottom: 12
 	}
 });
 
 export default function ErrorMessage(props) {
 	const { errorMessage, errorContinue, onContinue, isOnlyWarning } = props;
 	return (
-		<View style={isOnlyWarning ? styles.wrapperWarning : styles.wrapperError} testID={'error-message-warning'}>
-			<Text style={isOnlyWarning ? styles.warningMessage : styles.errorMessage}>{errorMessage}</Text>
-			{errorContinue && (
-				<TouchableOpacity onPress={onContinue} style={styles.button}>
-					<Text style={styles.buttonMessage}>{strings('transaction.continueError')}</Text>
-				</TouchableOpacity>
+		<Alert type={isOnlyWarning ? 'info' : 'error'} testID={'error-message-warning'}>
+			{textStyle => (
+				<View>
+					<Text small style={textStyle}>
+						{errorMessage}
+					</Text>
+					{errorContinue && (
+						<TouchableOpacity onPress={onContinue} style={styles.button}>
+							<Text small link centered>
+								{strings('transaction.continueError')}
+							</Text>
+						</TouchableOpacity>
+					)}
+				</View>
 			)}
-		</View>
+		</Alert>
 	);
 }
 
