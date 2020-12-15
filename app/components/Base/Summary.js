@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 	row: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		marginVertical: 6
+		marginVertical: 2
 	},
 	rowEnd: {
 		justifyContent: 'flex-end'

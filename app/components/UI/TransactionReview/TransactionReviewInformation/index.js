@@ -82,6 +82,23 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		...fontStyles.bold,
 		alignSelf: 'center'
+	},
+	errorWrapper: {
+		marginHorizontal: 24,
+		marginTop: 12,
+		paddingHorizontal: 10,
+		paddingVertical: 8,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
+		borderRadius: 8,
+		borderWidth: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	error: {
+		color: colors.red,
+		fontSize: 12,
+		...fontStyles.normal
 	}
 });
 
@@ -133,7 +150,8 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Whether or not basic gas estimates have been fetched
 		 */
-		ready: PropTypes.bool
+		ready: PropTypes.bool,
+		error: PropTypes.string
 	};
 
 	state = {
@@ -232,7 +250,8 @@ class TransactionReviewInformation extends PureComponent {
 			transaction: { gas, gasPrice },
 			currentCurrency,
 			conversionRate,
-			ticker
+			ticker,
+			error
 		} = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
@@ -257,6 +276,11 @@ class TransactionReviewInformation extends PureComponent {
 						<Text style={styles.overviewAlertText}>
 							{strings('transaction.alert')}: {amountError}.
 						</Text>
+					</View>
+				)}
+				{!!error && (
+					<View style={styles.errorWrapper}>
+						<Text style={styles.error}>{error}</Text>
 					</View>
 				)}
 				<View style={styles.viewDataWrapper}>
