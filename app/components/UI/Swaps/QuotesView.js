@@ -23,12 +23,14 @@ import Title from '../../Base/Title';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import StyledButton from '../StyledButton';
+import SliderButton from '../SliderButton';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
 import FeeModal from './components/FeeModal';
 import QuotesModal from './components/QuotesModal';
 import { strings } from '../../../../locales/i18n';
 import { swapsUtils } from '@estebanmino/controllers';
+import useBalance from './utils/useBalance';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -116,9 +118,6 @@ const styles = StyleSheet.create({
 		flexWrap: 'wrap',
 		marginRight: 2
 	},
-	linkText: {
-		color: colors.blue
-	},
 	quotesFiatColumn: {
 		alignItems: 'flex-end',
 		justifyContent: 'center'
@@ -175,6 +174,8 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 
 function SwapsQuotesView({
 	tokens,
+	accounts,
+	balances,
 	selectedAddress,
 	currentCurrency,
 	conversionRate,
@@ -201,6 +202,11 @@ function SwapsQuotesView({
 	const destinationToken = tokens?.find(
 		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
 	);
+
+	/* Balance */
+	// TODO: use balance to show alerts about not enough balance for swap or not enough balance for gas
+	// eslint-disable-next-line no-unused-vars
+	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
 
 	/* State */
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
@@ -268,6 +274,16 @@ function SwapsQuotesView({
 			navigation.pop();
 		}
 	}, [errorKey, slippage, sourceToken, destinationToken, sourceAmount, selectedAddress, navigation]);
+
+	const handleCompleteSwap = useCallback(() => {
+		if (!selectedQuote) {
+			return;
+		}
+
+		// TODO: collect transactions data and send them
+
+		navigation.dismiss();
+	}, [navigation, selectedQuote]);
 
 	/* Effects */
 
@@ -461,9 +477,10 @@ function SwapsQuotesView({
 								<View style={styles.quotesDescription}>
 									<View style={styles.quotesLegend}>
 										<Text>{strings('swaps.max_gas_fee')} </Text>
-										<TouchableOpacity>
-											<Text style={styles.linkText}>{strings('swaps.edit')}</Text>
-										</TouchableOpacity>
+										{/* TODO: allow max gas fee edit in the future */}
+										{/* <TouchableOpacity>
+											<Text link>{strings('swaps.edit')}</Text>
+										</TouchableOpacity> */}
 									</View>
 									<Text>{renderFromWei(toWei(selectedQuoteValue.maxEthFee))} ETH</Text>
 								</View>
@@ -489,7 +506,8 @@ function SwapsQuotesView({
 												})} `}
 											</Text>
 											{`${strings('swaps.enable.for_swapping')}`}
-											<Text link>{` ${strings('swaps.enable.edit_limit')}`}</Text>
+											{/* TODO: allow token spend limit in the future */}
+											{/* <Text link>{` ${strings('swaps.enable.edit_limit')}`}</Text> */}
 										</Text>
 									</TouchableOpacity>
 								</View>
@@ -506,13 +524,12 @@ function SwapsQuotesView({
 						</QuotesSummary.Body>
 					</QuotesSummary>
 				)}
-				<StyledButton
-					type="blue"
-					containerStyle={styles.ctaButton}
+				<SliderButton
+					incompleteText={strings('swaps.swipe_to_swap')}
+					completeText={strings('swaps.completed_swap')}
 					disabled={!isInPolling || isInFetch || !selectedQuote}
-				>
-					{strings('swaps.tap_to_swap')}
-				</StyledButton>
+					onComplete={handleCompleteSwap}
+				/>
 			</View>
 
 			<FeeModal isVisible={isFeeModalVisible} toggleModal={toggleFeeModal} />
@@ -532,7 +549,11 @@ SwapsQuotesView.propTypes = {
 	/**
 	 * Map of accounts to information objects including balances
 	 */
-	// accounts: PropTypes.object,
+	accounts: PropTypes.object,
+	/**
+	 * An object containing token balances for current account and network in the format address => balance
+	 */
+	balances: PropTypes.object,
 	/**
 	 * ETH to current currency conversion rate
 	 */
@@ -559,8 +580,9 @@ SwapsQuotesView.propTypes = {
 SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
 
 const mapStateToProps = state => ({
-	// accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	tokens: state.engine.backgroundState.SwapsController.tokens,

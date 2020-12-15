@@ -1396,6 +1396,8 @@
 		"edit": "Edit",
 		"quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
 		"tap_to_swap": "Tap to Swap",
+		"swipe_to_swap": "Swipe to swap",
+		"completed_swap": "Swap!",
 		"metamask_swap_fee": "MetaMask Swap fee",
 		"fee_text": {
 			"get_the": "Get the",

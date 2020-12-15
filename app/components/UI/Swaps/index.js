@@ -12,12 +12,7 @@ import Engine from '../../../core/Engine';
 import handleInput from '../../Base/Keypad/rules/native';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
-import {
-	fromTokenMinimalUnit,
-	renderFromTokenMinimalUnit,
-	renderFromWei,
-	toTokenMinimalUnit
-} from '../../../util/number';
+import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import { setQuotesNavigationsParams } from './utils';
 
 import { strings } from '../../../../locales/i18n';
@@ -30,6 +25,7 @@ import StyledButton from '../StyledButton';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
+import useBalance from './utils/useBalance';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -158,16 +154,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		}
 	}, [tokens, initialSource, sourceToken]);
 
-	const balance = useMemo(() => {
-		if (!sourceToken) {
-			return null;
-		}
-		if (sourceToken.symbol === 'ETH') {
-			return renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
-		}
-		const tokenAddress = toChecksumAddress(sourceToken.address);
-		return tokenAddress in balances ? renderFromTokenMinimalUnit(balances[tokenAddress], sourceToken.decimals) : 0;
-	}, [accounts, balances, selectedAddress, sourceToken]);
+	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
 
 	const hasBalance = useMemo(() => {
 		if (!balance || !sourceToken || sourceToken.symbol === 'ETH') {
