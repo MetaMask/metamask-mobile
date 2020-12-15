@@ -9,7 +9,6 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { NavigationContext } from 'react-navigation';
-import { swapsUtils } from '@estebanmino/controllers';
 
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -29,6 +28,7 @@ import QuotesSummary from './components/QuotesSummary';
 import FeeModal from './components/FeeModal';
 import QuotesModal from './components/QuotesModal';
 import { strings } from '../../../../locales/i18n';
+import { swapsUtils } from '@estebanmino/controllers';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -142,9 +142,24 @@ const styles = StyleSheet.create({
 });
 
 async function resetAndStartPolling({ slippage, sourceToken, destinationToken, sourceAmount, walletAddress }) {
-	const { SwapsController, TokenRatesController } = Engine.context;
+	const { SwapsController, TokenRatesController, AssetsController } = Engine.context;
+	const contractExchangeRates = TokenRatesController.state.contractExchangeRates;
+	// ff the token is not in the wallet, we'll add it
+	if (
+		destinationToken.address !== swapsUtils.ETH_SWAPS_TOKEN_ADDRESS &&
+		!contractExchangeRates[toChecksumAddress(destinationToken.address)]
+	) {
+		const { address, symbol, decimals } = destinationToken;
+		await AssetsController.addToken(address, symbol, decimals);
+		await new Promise(resolve =>
+			setTimeout(() => {
+				resolve();
+			}, 200)
+		);
+	}
 	const destinationTokenConversionRate =
 		TokenRatesController.state.contractExchangeRates[toChecksumAddress(destinationToken.address)] || 0;
+
 	// TODO: destinationToken could be the 0 address for ETH, also tokens that aren't on the wallet
 	const fetchParams = getFetchParams({
 		slippage,
