@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Alert, Text, View, SafeAreaView, StyleSheet, Keyboard, TouchableOpacity } from 'react-native';
+import { Alert, BackHandler, Text, View, SafeAreaView, StyleSheet, Keyboard, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.extraBold
+		...fontStyles.bold
 	},
 	baseText: {
 		fontSize: 16,
@@ -62,6 +62,9 @@ const styles = StyleSheet.create({
 	}
 });
 
+const hardwareBackPress = () => ({});
+const HARDWARE_BACK_PRESS = 'hardwareBackPress';
+
 /**
  * View that's shown during the last step of
  * the backup seed phrase flow
@@ -72,6 +75,9 @@ class ManualBackupStep3 extends PureComponent {
 	constructor(props) {
 		super(props);
 		this.steps = props.navigation.getParam('steps', undefined);
+		props.navigation.setParams({
+			headerLeft: <View />
+		});
 	}
 
 	state = {
@@ -87,6 +93,10 @@ class ManualBackupStep3 extends PureComponent {
 		navigation: PropTypes.object
 	};
 
+	componentWillUnmount = () => {
+		BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
+	};
+
 	componentDidMount = async () => {
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
@@ -94,6 +104,7 @@ class ManualBackupStep3 extends PureComponent {
 		this.setState({
 			hintText: manualBackup
 		});
+		BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
 	};
 
 	toggleHint = () => {

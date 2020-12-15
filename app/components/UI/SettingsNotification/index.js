@@ -9,6 +9,7 @@ const styles = StyleSheet.create({
 	menuItemWarning: {
 		flex: 1,
 		alignSelf: 'center',
+		justifyContent: 'flex-end',
 		flexDirection: 'row',
 		marginRight: 24
 	},

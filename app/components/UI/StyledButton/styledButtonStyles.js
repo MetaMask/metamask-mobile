@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
 	},
 	viewText: {
 		fontSize: 18,
-		...fontStyles.extraBold,
+		...fontStyles.bold,
 		color: colors.white
 	},
 	view: {
