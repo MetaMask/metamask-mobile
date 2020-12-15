@@ -269,6 +269,18 @@ function SwapsQuotesView({
 		}
 	}, [errorKey, slippage, sourceToken, destinationToken, sourceAmount, selectedAddress, navigation]);
 
+	const onSwipeToSwap = async () => {
+		const { TransactionController } = Engine.context;
+		// check approval tx
+		if (approvalTransaction) {
+			// send it
+			await TransactionController.addTransaction(approvalTransaction);
+		}
+		// console.log('selectedQuote', selectedQuote.trade)
+		// send swap
+		await TransactionController.addTransaction(selectedQuote.trade);
+	};
+
 	/* Effects */
 
 	/* Main polling effect */
@@ -510,6 +522,7 @@ function SwapsQuotesView({
 					type="blue"
 					containerStyle={styles.ctaButton}
 					disabled={!isInPolling || isInFetch || !selectedQuote}
+					onPress={onSwipeToSwap}
 				>
 					{strings('swaps.tap_to_swap')}
 				</StyledButton>
