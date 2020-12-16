@@ -1386,6 +1386,8 @@
 		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
 		"get_quotes": "Get quotes",
 		"fetching_new_quotes": "Fetching new quotes...",
+		"you_need": "You need",
+		"more_to_complete": "more to complete this swap.",
 		"new_quotes_in": "New quotes in",
 		"quotes_expire_in": "Quotes expire in",
 		"saving": "Saving",

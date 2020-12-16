@@ -7,6 +7,7 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import BigNumber from 'bignumber.js';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { NavigationContext } from 'react-navigation';
 
@@ -19,6 +20,7 @@ import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio }
 
 import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
+import Alert from '../../Base/Alert';
 import Title from '../../Base/Title';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import ScreenView from '../FiatOrders/components/ScreenView';
@@ -40,12 +42,18 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between'
 	},
 	topBar: {
-		alignItems: 'center'
+		alignItems: 'center',
+		marginVertical: 5
+	},
+	alertBar: {
+		paddingHorizontal: 20,
+		marginVertical: 10,
+		width: '100%'
 	},
 	timerWrapper: {
 		backgroundColor: colors.grey000,
 		borderRadius: 20,
-		marginVertical: 15,
+		marginVertical: 10,
 		paddingVertical: 4,
 		paddingHorizontal: 15,
 		flexDirection: 'row',
@@ -204,9 +212,13 @@ function SwapsQuotesView({
 	);
 
 	/* Balance */
-	// TODO: use balance to show alerts about not enough balance for swap or not enough balance for gas
-	// eslint-disable-next-line no-unused-vars
-	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
+	const balance = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
+	const [hasEnoughBalance, missingBalance] = useMemo(() => {
+		const sourceBN = new BigNumber(sourceAmount);
+		const balanceBN = new BigNumber(balance);
+		const hasEnough = balanceBN.gte(sourceBN);
+		return [hasEnough, hasEnough ? null : sourceBN.minus(balanceBN)];
+	}, [balance, sourceAmount]);
 
 	/* State */
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
@@ -341,12 +353,6 @@ function SwapsQuotesView({
 	}, [errorKey, hideFeeModal, hideQuotesModal]);
 
 	/* Rendering */
-	// console.log('-------------')
-	// console.log('isFirstLoad', isFirstLoad)
-	// console.log('errorKey', errorKey)
-	// console.log('isInFetch', isInFetch)
-	// console.log('isInPolling', isInPolling)
-	// console.log('-------------')
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
 		return (
 			<ScreenView contentContainerStyle={styles.screen}>
@@ -385,6 +391,17 @@ function SwapsQuotesView({
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.topBar}>
+				{!hasEnoughBalance && (
+					<View style={styles.alertBar}>
+						<Alert small type="info">
+							{strings('swaps.you_need')}{' '}
+							<Text reset bold>
+								{renderFromTokenMinimalUnit(missingBalance, sourceToken.decimals)} {sourceToken.symbol}
+							</Text>{' '}
+							{strings('swaps.more_to_complete')}
+						</Alert>
+					</View>
+				)}
 				{isInPolling && (
 					<View style={styles.timerWrapper}>
 						{isInFetch ? (
@@ -535,7 +552,7 @@ function SwapsQuotesView({
 				<SliderButton
 					incompleteText={strings('swaps.swipe_to_swap')}
 					completeText={strings('swaps.completed_swap')}
-					disabled={!isInPolling || isInFetch || !selectedQuote}
+					disabled={!isInPolling || isInFetch || !selectedQuote || !hasEnoughBalance}
 					onComplete={handleCompleteSwap}
 				/>
 			</View>

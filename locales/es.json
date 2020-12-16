@@ -1260,6 +1260,8 @@
 		"allows_up_to_decimals": "{{symbol}} soporta hasta {{decimals}} decimales",
 		"get_quotes": "Cotizar",
 		"fetching_new_quotes": "Obteniendo cotización...",
+		"you_need": "Necesitas",
+		"more_to_complete": "más para completar este swap.",
 		"new_quotes_in": "Nueva cotización en",
 		"quotes_expire_in": "Cotización expira en",
 		"saving": "Ahorrando",
