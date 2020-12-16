@@ -580,6 +580,7 @@
 		"review_hex_data": "Hex data",
 		"insufficient": "Insufficient funds",
 		"insufficient_amount": "You need {{amount}} more ETH to complete this transaction.",
+		"buy_more_eth": "Buy more ETH",
 		"insufficient_tokens": "Insufficient {{token}}",
 		"invalid_address": "Invalid address",
 		"invalid_amount": "Invalid amount",

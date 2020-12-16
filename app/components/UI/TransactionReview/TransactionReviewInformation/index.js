@@ -319,7 +319,11 @@ class TransactionReviewInformation extends PureComponent {
 					<View style={styles.errorWrapper}>
 						<TouchableOpacity onPress={this.buyEth}>
 							<Text style={styles.error}>{error}</Text>
-							<Text style={[styles.error, styles.underline]}>Buy more ETH</Text>
+							{over && (
+								<Text style={[styles.error, styles.underline]}>
+									{strings('transaction.buy_more_eth')}
+								</Text>
+							)}
 						</TouchableOpacity>
 					</View>
 				)}
