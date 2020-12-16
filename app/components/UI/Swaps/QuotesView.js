@@ -341,6 +341,12 @@ function SwapsQuotesView({
 	}, [errorKey, hideFeeModal, hideQuotesModal]);
 
 	/* Rendering */
+	// console.log('-------------')
+	// console.log('isFirstLoad', isFirstLoad)
+	// console.log('errorKey', errorKey)
+	// console.log('isInFetch', isInFetch)
+	// console.log('isInPolling', isInPolling)
+	// console.log('-------------')
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
 		return (
 			<ScreenView contentContainerStyle={styles.screen}>
