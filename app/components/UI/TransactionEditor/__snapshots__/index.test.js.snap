@@ -22,8 +22,16 @@ exports[`TransactionEditor should render correctly 1`] = `
       review={[Function]}
     >
       <Connect(TransactionReview)
+        navigation={
+          Object {
+            "state": Object {
+              "params": Object {},
+            },
+          }
+        }
         onCancel={[Function]}
         onConfirm={[Function]}
+        over={false}
         ready={false}
         validate={[Function]}
       />

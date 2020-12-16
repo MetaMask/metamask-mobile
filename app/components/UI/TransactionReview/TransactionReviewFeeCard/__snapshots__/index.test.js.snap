@@ -118,6 +118,11 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       right={false}
       small={false}
       strikethrough={false}
+      style={
+        Array [
+          undefined,
+        ]
+      }
       upper={false}
     >
       Total

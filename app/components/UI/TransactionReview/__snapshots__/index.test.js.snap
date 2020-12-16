@@ -17,7 +17,7 @@ exports[`TransactionReview should render correctly 1`] = `
     <View
       style={
         Object {
-          "height": 385,
+          "height": 415,
         }
       }
     >
@@ -35,7 +35,7 @@ exports[`TransactionReview should render correctly 1`] = `
         <View
           style={
             Object {
-              "height": 300,
+              "height": 340,
             }
           }
         >
@@ -51,6 +51,13 @@ exports[`TransactionReview should render correctly 1`] = `
           </View>
           <Connect(TransactionReviewInformation)
             edit={[Function]}
+            navigation={
+              Object {
+                "state": Object {
+                  "params": Object {},
+                },
+              }
+            }
             toggleDataView={[Function]}
           />
         </View>
