@@ -67,7 +67,8 @@ const styles = StyleSheet.create({
 		paddingLeft: 0,
 		paddingVertical: 10,
 		borderRadius: 4,
-		fontSize: Device.isAndroid() ? 14 : 20,
+		fontSize: 14,
+		height: 50,
 		...fontStyles.normal
 	},
 	ctaWrapper: {

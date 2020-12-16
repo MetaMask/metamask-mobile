@@ -11,10 +11,6 @@ setupSentry();
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
-// eslint-disable-next-line import/no-unresolved
-import { useScreens } from 'react-native-screens';
-// eslint-disable-next-line
-useScreens();
 
 // List of warnings that we're ignoring
 LogBox.ignoreLogs([
