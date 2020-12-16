@@ -166,8 +166,9 @@ exports[`ChoosePassword should render correctly 1`] = `
                   "borderRadius": 6,
                   "borderWidth": 1,
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 20,
+                  "fontSize": 14,
                   "fontWeight": "400",
+                  "height": 50,
                   "padding": 10,
                 },
                 Object {
@@ -229,8 +230,9 @@ exports[`ChoosePassword should render correctly 1`] = `
                   "borderRadius": 6,
                   "borderWidth": 1,
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 20,
+                  "fontSize": 14,
                   "fontWeight": "400",
+                  "height": 50,
                   "padding": 10,
                 },
                 Object {
