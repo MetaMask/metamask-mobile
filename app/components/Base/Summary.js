@@ -13,14 +13,14 @@ const styles = StyleSheet.create({
 	row: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		marginVertical: 2
+		marginVertical: 3
 	},
 	rowEnd: {
 		justifyContent: 'flex-end'
 	},
 	rowLast: {
 		marginBottom: 0,
-		marginTop: 6
+		marginTop: 3
 	},
 	col: {
 		flexDirection: 'row',

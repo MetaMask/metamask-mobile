@@ -279,7 +279,7 @@ class Approval extends PureComponent {
 	}
 
 	render = () => {
-		const { transaction, dappTransactionModalVisible } = this.props;
+		const { transaction, dappTransactionModalVisible, navigation } = this.props;
 		const { mode } = this.state;
 		return (
 			<Modal
@@ -303,7 +303,7 @@ class Approval extends PureComponent {
 					onConfirm={this.onConfirm}
 					onModeChange={this.onModeChange}
 					transaction={transaction}
-					navigation={this.props.navigation}
+					navigation={navigation}
 					dappTransactionModalVisible={dappTransactionModalVisible}
 				/>
 			</Modal>

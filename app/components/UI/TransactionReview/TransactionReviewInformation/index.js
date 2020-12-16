@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -16,6 +16,8 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { getTicker, getNormalizedTxState } from '../../../../util/transactions';
 import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
+import Analytics from '../../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -101,7 +103,11 @@ const styles = StyleSheet.create({
 	error: {
 		color: colors.red,
 		fontSize: 12,
-		...fontStyles.normal
+		...fontStyles.normal,
+		textAlign: 'center'
+	},
+	underline: {
+		textDecorationLine: 'underline'
 	}
 });
 
@@ -155,7 +161,15 @@ class TransactionReviewInformation extends PureComponent {
 		 */
 		ready: PropTypes.bool,
 		error: PropTypes.string,
-		over: PropTypes.bool
+		over: PropTypes.bool,
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
+		 * Called when the cancel button is clicked
+		 */
+		onCancelPress: PropTypes.func
 	};
 
 	state = {
@@ -171,6 +185,16 @@ class TransactionReviewInformation extends PureComponent {
 		const base = Math.pow(10, 5);
 		total = ((parseFloat(gasFeeFiat) + parseFloat(balanceFiat)) * base) / base;
 		return `${total} ${currentCurrency}`;
+	};
+
+	buyEth = () => {
+		const { onCancelPress, navigation } = this.props;
+		/* this is kinda weird, we have to reject the transaction to collapse the modal */
+		onCancelPress();
+		navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+		});
 	};
 
 	edit = () => {
@@ -293,7 +317,10 @@ class TransactionReviewInformation extends PureComponent {
 				)}
 				{!!error && (
 					<View style={styles.errorWrapper}>
-						<Text style={styles.error}>{error}</Text>
+						<TouchableOpacity onPress={this.buyEth}>
+							<Text style={styles.error}>{error}</Text>
+							<Text style={[styles.error, styles.underline]}>Buy more ETH</Text>
+						</TouchableOpacity>
 					</View>
 				)}
 				<View style={styles.viewDataWrapper}>

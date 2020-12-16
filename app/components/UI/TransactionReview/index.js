@@ -151,7 +151,12 @@ class TransactionReview extends PureComponent {
 		/**
 		 * Hides or shows TransactionReviewData
 		 */
-		hideData: PropTypes.bool
+		hideData: PropTypes.bool,
+		over: PropTypes.bool,
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object
 	};
 
 	state = {
@@ -284,7 +289,8 @@ class TransactionReview extends PureComponent {
 			generateTransform,
 			hideData,
 			saveTransactionReviewDataHeight,
-			customGasHeight
+			customGasHeight,
+			over
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
@@ -320,7 +326,9 @@ class TransactionReview extends PureComponent {
 									assetAmount={assetAmount}
 									fiatValue={fiatValue}
 									toggleDataView={this.toggleDataView}
-									// over
+									over={over}
+									navigation={this.props.navigation}
+									onCancelPress={this.props.onCancel}
 								/>
 							</View>
 						</ActionView>

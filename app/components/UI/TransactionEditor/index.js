@@ -5,7 +5,7 @@ import ConfirmSend from '../../Views/SendFlow/Confirm';
 import AnimatedTransactionModal from '../AnimatedTransactionModal';
 import TransactionReview from '../TransactionReview';
 import CustomGas from '../CustomGas';
-import { isBN, hexToBN, toBN, isDecimal, fromWei } from '../../../util/number';
+import { isBN, hexToBN, toBN, isDecimal, fromWei, weiToFiatNumber } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -90,7 +90,12 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Whether was prompted from approval
 		 */
-		promptedFromApproval: PropTypes.bool
+		promptedFromApproval: PropTypes.bool,
+		conversionRate: PropTypes.number,
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object
 	};
 
 	state = {
@@ -101,7 +106,8 @@ class TransactionEditor extends PureComponent {
 		data: undefined,
 		amountError: '',
 		gasError: '',
-		toAddressError: ''
+		toAddressError: '',
+		over: false
 	};
 
 	componentDidMount = async () => {
@@ -389,6 +395,7 @@ class TransactionEditor extends PureComponent {
 		let error;
 		if (!allowEmpty) {
 			const {
+				conversionRate,
 				transaction: { value, gas, gasPrice, from }
 			} = this.props;
 			const checksummedFrom = safeToChecksumAddress(from) || '';
@@ -402,8 +409,14 @@ class TransactionEditor extends PureComponent {
 				isBN(gasPrice) &&
 				isBN(value) &&
 				hexToBN(fromAccount.balance).lt(value.add(gas.mul(gasPrice)))
-			)
-				return strings('transaction.insufficient');
+			) {
+				this.setState({ over: true });
+				const over =
+					weiToFiatNumber(value.add(gas.mul(gasPrice)), conversionRate) -
+					weiToFiatNumber(hexToBN(fromAccount.balance), conversionRate);
+				const amount = Number(over).toFixed(7);
+				return strings('transaction.insufficient_amount', { amount });
+			}
 		}
 		return error;
 	};
@@ -616,8 +629,8 @@ class TransactionEditor extends PureComponent {
 	};
 
 	render = () => {
-		const { mode, transactionConfirmed, transaction, onModeChange } = this.props;
-		const { basicGasEstimates, ready, gasError } = this.state;
+		const { mode, transactionConfirmed, transaction, onModeChange, navigation } = this.props;
+		const { basicGasEstimates, ready, gasError, over } = this.state;
 		const paymentChannelTransaction = transaction ? transaction.paymentChannelTransaction : false;
 		return (
 			<React.Fragment>
@@ -631,6 +644,8 @@ class TransactionEditor extends PureComponent {
 								validate={this.validate}
 								ready={ready}
 								transactionConfirmed={transactionConfirmed}
+								over={over}
+								navigation={navigation}
 							/>
 							<CustomGas
 								handleGasFeeSelection={this.updateGas}
@@ -652,6 +667,7 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
