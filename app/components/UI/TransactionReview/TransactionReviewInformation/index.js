@@ -192,7 +192,7 @@ class TransactionReviewInformation extends PureComponent {
 				const totalValue = (
 					<Text
 						style={totalFiat ? styles.overviewEth : [styles.overviewPrimary, styles.overviewAccent]}
-					>{`${renderFromWei(totalEth)} ${getTicker(ticker)} `}</Text>
+					>{`${renderFromWei(totalEth)} ${getTicker(ticker)}`}</Text>
 				);
 				return [totalFiat, totalValue];
 			},
