@@ -332,7 +332,7 @@ exports[`NetworksSettings should render correctly 1`] = `
         </View>
       </TouchableOpacity>
     </View>
-  </ScrollViewMock>
+  </ScrollView>
   <StyledButton
     disabledContainerStyle={
       Object {

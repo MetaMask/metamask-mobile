@@ -8,7 +8,7 @@ exports[`ActionView should render correctly 1`] = `
     }
   }
 >
-  <KeyboardAwareScrollViewMock
+  <KeyboardAwareScrollView
     enableAutomaticScroll={true}
     enableOnAndroid={false}
     enableResetScrollToCoords={true}

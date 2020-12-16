@@ -199,7 +199,7 @@ exports[`PhishingModal should render correctly 1`] = `
           please file an issue.
         </Text>
       </Text>
-    </ScrollViewMock>
+    </ScrollView>
   </View>
   <View
     style={

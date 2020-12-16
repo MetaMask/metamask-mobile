@@ -686,5 +686,5 @@ exports[`GeneralSettings should render correctly 1`] = `
       </View>
     </View>
   </View>
-</ScrollViewMock>
+</ScrollView>
 `;

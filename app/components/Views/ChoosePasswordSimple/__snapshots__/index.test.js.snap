@@ -18,7 +18,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
     }
     testID="choose-password-screen"
   >
-    <KeyboardAwareScrollViewMock
+    <KeyboardAwareScrollView
       enableAutomaticScroll={true}
       enableOnAndroid={false}
       enableResetScrollToCoords={true}

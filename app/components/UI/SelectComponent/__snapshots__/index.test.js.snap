@@ -208,7 +208,7 @@ exports[`SelectComponent should render correctly 1`] = `
               </Text>
             </TouchableOpacity>
           </View>
-        </ScrollViewMock>
+        </ScrollView>
       </View>
     </ReactNativeModal>
   </View>

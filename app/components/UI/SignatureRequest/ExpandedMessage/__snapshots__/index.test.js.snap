@@ -101,6 +101,6 @@ exports[`ExpandedMessage should render correctly 1`] = `
     <TouchableWithoutFeedback>
       <View />
     </TouchableWithoutFeedback>
-  </ScrollViewMock>
+  </ScrollView>
 </View>
 `;

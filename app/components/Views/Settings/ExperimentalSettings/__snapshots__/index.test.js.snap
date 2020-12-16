@@ -69,5 +69,5 @@ exports[`ExperimentalSettings should render correctly 1`] = `
       </StyledButton>
     </View>
   </View>
-</ScrollViewMock>
+</ScrollView>
 `;

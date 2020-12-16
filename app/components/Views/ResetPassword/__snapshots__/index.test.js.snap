@@ -40,7 +40,7 @@ exports[`ChoosePassword should render correctly 1`] = `
         }
         testID="choose-password-screen"
       >
-        <KeyboardAwareScrollViewMock
+        <KeyboardAwareScrollView
           contentContainerStyle={
             Object {
               "flexGrow": 1,
@@ -415,6 +415,6 @@ exports[`ChoosePassword should render correctly 1`] = `
         </KeyboardAwareScrollViewMock>
       </View>
     </ForwardRef(SafeAreaView)>
-  </ScrollViewMock>
+  </ScrollView>
 </ForwardRef(SafeAreaView)>
 `;

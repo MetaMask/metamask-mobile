@@ -28,7 +28,7 @@ exports[`ChoosePassword should render correctly 1`] = `
         ]
       }
     />
-    <KeyboardAwareScrollViewMock
+    <KeyboardAwareScrollView
       contentContainerStyle={
         Object {
           "flexGrow": 1,

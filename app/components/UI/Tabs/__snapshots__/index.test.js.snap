@@ -40,7 +40,7 @@ exports[`Tabs should render correctly 1`] = `
         }
       }
     />
-  </ScrollViewMock>
+  </ScrollView>
   <View
     style={
       Object {
