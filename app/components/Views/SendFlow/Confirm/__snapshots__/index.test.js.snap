@@ -209,7 +209,16 @@ exports[`Confirm should render correctly 1`] = `
       enableAccountsAddition={false}
       getBalanceError={[Function]}
       identities={Object {}}
-      keyrings={Object {}}
+      keyrings={
+        Array [
+          Object {
+            "accounts": Array [
+              "0x",
+            ],
+            "type": "HD Key Tree",
+          },
+        ]
+      }
       onAccountChange={[Function]}
       selectedAddress="0x1"
       ticker="ETH"
