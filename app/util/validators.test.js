@@ -1,4 +1,4 @@
-import { failedSeedPhraseRequirements } from './validators';
+import { failedSeedPhraseRequirements, parseSeedPhrase } from './validators';
 
 const VALID_24 =
 	'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
@@ -20,5 +20,20 @@ describe('failedSeedPhraseRequirements', () => {
 	it('Should fail for 24 + 1 word mnemonic', () => {
 		const plus_one = VALID_24 + ' lol';
 		expect(failedSeedPhraseRequirements(plus_one)).toEqual(true);
+	});
+});
+
+describe('parseSeedPhrase', () => {
+	it('Should handle leading spaces', () => {
+		expect(parseSeedPhrase(`   ${VALID_12}`)).toEqual(VALID_12);
+	});
+	it('Should handle trailing spaces', () => {
+		expect(parseSeedPhrase(`${VALID_12}   `)).toEqual(VALID_12);
+	});
+	it('Should handle additional spaces', () => {
+		expect(parseSeedPhrase(`${VALID_12.split(' ').join('   ')}   `)).toEqual(VALID_12);
+	});
+	it('Should handle uppercase', () => {
+		expect(parseSeedPhrase(`   ${String(VALID_12).toUpperCase()}`)).toEqual(VALID_12);
 	});
 });
