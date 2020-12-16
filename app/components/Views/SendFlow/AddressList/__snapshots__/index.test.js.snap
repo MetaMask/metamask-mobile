@@ -9,7 +9,7 @@ exports[`AddressList should render correctly 1`] = `
     }
   }
 >
-  <ScrollViewMock
+  <ScrollView
     style={
       Object {
         "flexGrow": 1,
@@ -46,6 +46,6 @@ exports[`AddressList should render correctly 1`] = `
         Transfer between my accounts
       </Text>
     </TouchableOpacity>
-  </ScrollViewMock>
+  </ScrollView>
 </View>
 `;

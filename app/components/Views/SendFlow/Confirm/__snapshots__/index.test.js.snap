@@ -29,7 +29,7 @@ exports[`Confirm should render correctly 1`] = `
       toSelectedAddress=""
     />
   </View>
-  <ScrollViewMock
+  <ScrollView
     style={
       Object {
         "flex": 1,
@@ -124,7 +124,7 @@ exports[`Confirm should render correctly 1`] = `
         </Text>
       </TouchableOpacity>
     </View>
-  </ScrollViewMock>
+  </ScrollView>
   <View
     style={
       Object {
