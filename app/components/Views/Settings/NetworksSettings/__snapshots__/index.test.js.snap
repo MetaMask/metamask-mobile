@@ -13,7 +13,7 @@ exports[`NetworksSettings should render correctly 1`] = `
   }
   testID="networks-screen"
 >
-  <ScrollViewMock>
+  <ScrollView>
     <View>
       <TouchableOpacity
         key="network-mainnet"

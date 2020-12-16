@@ -273,7 +273,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
           </Text>
         </View>
       </View>
-    </KeyboardAwareScrollViewMock>
+    </KeyboardAwareScrollView>
     <View
       style={
         Object {

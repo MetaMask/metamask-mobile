@@ -9,7 +9,7 @@ exports[`ChoosePassword should render correctly 1`] = `
     }
   }
 >
-  <ScrollViewMock
+  <ScrollView
     contentContainerStyle={
       Object {
         "flexGrow": 1,
@@ -412,7 +412,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               Reset password
             </StyledButton>
           </View>
-        </KeyboardAwareScrollViewMock>
+        </KeyboardAwareScrollView>
       </View>
     </ForwardRef(SafeAreaView)>
   </ScrollView>

@@ -400,7 +400,7 @@ exports[`ChoosePassword should render correctly 1`] = `
           Create password
         </StyledButton>
       </View>
-    </KeyboardAwareScrollViewMock>
+    </KeyboardAwareScrollView>
   </View>
 </ForwardRef(SafeAreaView)>
 `;

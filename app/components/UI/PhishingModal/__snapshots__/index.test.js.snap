@@ -70,7 +70,7 @@ exports[`PhishingModal should render correctly 1`] = `
         Ethereum Phishing Detection
       </Text>
     </View>
-    <ScrollViewMock
+    <ScrollView
       contentContainerStyle={
         Object {
           "paddingBottom": 20,

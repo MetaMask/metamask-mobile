@@ -12,7 +12,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
   <OnboardingScreenWithBg
     screen="carousel"
   >
-    <ScrollViewMock
+    <ScrollView
       contentContainerStyle={
         Object {
           "flexGrow": 1,

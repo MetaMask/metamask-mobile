@@ -9,7 +9,7 @@ exports[`Collectible should render correctly 1`] = `
     }
   }
 >
-  <ScrollViewMock
+  <ScrollView
     refreshControl={
       <RefreshControlMock
         onRefresh={[Function]}

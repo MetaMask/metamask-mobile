@@ -418,7 +418,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         </StyledButton>
       </View>
     </View>
-  </KeyboardAwareScrollViewMock>
+  </KeyboardAwareScrollView>
   <View
     style={
       Object {

@@ -10,7 +10,7 @@ exports[`Collectibles should render correctly 1`] = `
   }
   testID="collectibles"
 >
-  <ScrollViewMock
+  <ScrollView
     refreshControl={
       <RefreshControlMock
         refreshing={false}

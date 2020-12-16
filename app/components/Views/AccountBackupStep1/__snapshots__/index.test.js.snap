@@ -9,7 +9,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
     }
   }
 >
-  <ScrollViewMock
+  <ScrollView
     contentContainerStyle={
       Object {
         "flexGrow": 1,

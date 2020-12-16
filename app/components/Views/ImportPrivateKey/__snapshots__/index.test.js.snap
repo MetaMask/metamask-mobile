@@ -270,6 +270,6 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         IMPORT
       </StyledButton>
     </View>
-  </KeyboardAwareScrollViewMock>
+  </KeyboardAwareScrollView>
 </View>
 `;

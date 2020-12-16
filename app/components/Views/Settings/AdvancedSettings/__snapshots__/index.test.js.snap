@@ -385,6 +385,6 @@ exports[`AdvancedSettings should render correctly 1`] = `
         </StyledButton>
       </View>
     </View>
-  </KeyboardAwareScrollViewMock>
+  </KeyboardAwareScrollView>
 </ForwardRef(SafeAreaView)>
 `;
