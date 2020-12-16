@@ -52,11 +52,14 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	overviewEth: {
-		...fontStyles.normal,
+		...fontStyles.bold,
 		color: colors.fontPrimary,
 		fontSize: 14,
 		textAlign: 'right',
 		textTransform: 'uppercase'
+	},
+	over: {
+		color: colors.red
 	},
 	assetName: {
 		maxWidth: 200
@@ -151,7 +154,8 @@ class TransactionReviewInformation extends PureComponent {
 		 * Whether or not basic gas estimates have been fetched
 		 */
 		ready: PropTypes.bool,
-		error: PropTypes.string
+		error: PropTypes.string,
+		over: PropTypes.bool
 	};
 
 	state = {
@@ -180,18 +184,25 @@ class TransactionReviewInformation extends PureComponent {
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates,
-			ticker
+			ticker,
+			over
 		} = this.props;
 
 		const totals = {
 			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 				const totalFiat = (
-					<Text style={styles.overviewEth}>{weiToFiat(totalEth, conversionRate, currentCurrency)}</Text>
+					<Text style={[styles.overviewEth, over && styles.over]}>
+						{weiToFiat(totalEth, conversionRate, currentCurrency)}
+					</Text>
 				);
 				const totalValue = (
 					<Text
-						style={totalFiat ? styles.overviewEth : [styles.overviewPrimary, styles.overviewAccent]}
+						style={
+							totalFiat
+								? [styles.overviewEth, over && styles.over]
+								: [styles.overviewPrimary, styles.overviewAccent]
+						}
 					>{`${renderFromWei(totalEth)} ${getTicker(ticker)}`}</Text>
 				);
 				return [totalFiat, totalValue];
@@ -251,7 +262,8 @@ class TransactionReviewInformation extends PureComponent {
 			currentCurrency,
 			conversionRate,
 			ticker,
-			error
+			error,
+			over
 		} = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
@@ -269,6 +281,7 @@ class TransactionReviewInformation extends PureComponent {
 					primaryCurrency={primaryCurrency}
 					gasEstimationReady={ready}
 					edit={this.edit}
+					over={over}
 				/>
 				{!!amountError && (
 					<View style={styles.overviewAlert}>

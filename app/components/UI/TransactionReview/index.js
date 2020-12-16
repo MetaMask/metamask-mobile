@@ -320,6 +320,7 @@ class TransactionReview extends PureComponent {
 									assetAmount={assetAmount}
 									fiatValue={fiatValue}
 									toggleDataView={this.toggleDataView}
+									// over
 								/>
 							</View>
 						</ActionView>
