@@ -35,7 +35,7 @@ exports[`TransactionReview should render correctly 1`] = `
         <View
           style={
             Object {
-              "height": 340,
+              "height": 330,
             }
           }
         >
