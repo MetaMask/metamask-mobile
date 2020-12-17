@@ -327,11 +327,13 @@ class TransactionReviewInformation extends PureComponent {
 						</TouchableOpacity>
 					</View>
 				)}
-				<View style={styles.viewDataWrapper}>
-					<TouchableOpacity style={styles.viewDataButton} onPress={toggleDataView}>
-						<Text style={styles.viewDataText}>{strings('transaction.view_data')}</Text>
-					</TouchableOpacity>
-				</View>
+				{!over && (
+					<View style={styles.viewDataWrapper}>
+						<TouchableOpacity style={styles.viewDataButton} onPress={toggleDataView}>
+							<Text style={styles.viewDataText}>{strings('transaction.view_data')}</Text>
+						</TouchableOpacity>
+					</View>
+				)}
 			</React.Fragment>
 		);
 	}

@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 		height: Device.isMediumDevice() ? 230 : 415
 	},
 	actionViewChildren: {
-		height: 340
+		height: 330
 	},
 	accountInfoCardWrapper: {
 		paddingHorizontal: 24,
