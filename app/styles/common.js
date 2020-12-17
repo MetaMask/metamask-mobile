@@ -88,9 +88,5 @@ export const fontStyles = {
 	bold: {
 		fontFamily: 'EuclidCircularB-Bold',
 		fontWeight: '600'
-	},
-	extraBold: {
-		fontFamily: 'EuclidCircularB-Regular',
-		fontWeight: 'bold'
 	}
 };

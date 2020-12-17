@@ -201,6 +201,7 @@
 		"browser": "Navegador",
 		"settings": "Ajustes",
 		"settings_warning": "Billetera desprotegida",
+		"settings_warning_short": "Desprotegida",
 		"help": "Ayuda",
 		"logout": "Salir",
 		"logout_title": "Realmente deseas salir?",
