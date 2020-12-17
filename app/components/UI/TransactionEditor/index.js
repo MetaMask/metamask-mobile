@@ -91,6 +91,9 @@ class TransactionEditor extends PureComponent {
 		 * Whether was prompted from approval
 		 */
 		promptedFromApproval: PropTypes.bool,
+		/**
+		 * A number that specifies the ETH/USD conversion rate
+		 */
 		conversionRate: PropTypes.number,
 		/**
 		 * Object that represents the navigator

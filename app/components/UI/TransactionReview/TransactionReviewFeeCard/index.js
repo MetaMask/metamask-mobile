@@ -60,6 +60,9 @@ class TransactionReviewFeeCard extends PureComponent {
 		 * Changes mode to edit
 		 */
 		edit: PropTypes.func,
+		/**
+		 * True if transaction is over the available funds
+		 */
 		over: PropTypes.bool
 	};
 

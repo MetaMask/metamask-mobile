@@ -152,6 +152,9 @@ class TransactionReview extends PureComponent {
 		 * Hides or shows TransactionReviewData
 		 */
 		hideData: PropTypes.bool,
+		/**
+		 * True if transaction is over the available funds
+		 */
 		over: PropTypes.bool,
 		/**
 		 * Object that represents the navigator

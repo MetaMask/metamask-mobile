@@ -160,7 +160,13 @@ class TransactionReviewInformation extends PureComponent {
 		 * Whether or not basic gas estimates have been fetched
 		 */
 		ready: PropTypes.bool,
+		/**
+		 * Transaction error
+		 */
 		error: PropTypes.string,
+		/**
+		 * True if transaction is over the available funds
+		 */
 		over: PropTypes.bool,
 		/**
 		 * Object that represents the navigator
