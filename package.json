@@ -70,10 +70,10 @@
     "react-native-level-fs/**/bl": "^0.9.5"
   },
   "dependencies": {
+    "@estebanmino/controllers": "3.2.34",
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.19.0",
-    "@metamask/controllers": "3.2.0",
-    "@estebanmino/controllers": "3.2.34",
+    "@metamask/controllers": "../gaba/metamask-controllers-v5.1.0.tgz",
     "@react-native-community/async-storage": "1.9.0",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
