@@ -75,7 +75,7 @@ index d4ded69..0d1fc3a 100644
 +  public static final String AUTH_PROMPT_TITLE_KEY = "authenticationPromptTitle";
 +  public static final String AUTH_PROMPT_DESC_KEY = "authenticationPromptDesc";
 +
-+  private static final int REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS = 1;
++  private static final int REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS = 42;
 +
    @StringDef({AccessControl.NONE
      , AccessControl.USER_PRESENCE
