@@ -49,15 +49,8 @@ exports[`TransactionReview should render correctly 1`] = `
           >
             <Connect(AccountInfoCard) />
           </View>
-          <Connect(TransactionReviewInformation)
+          <Connect(withNavigation(TransactionReviewInformation))
             edit={[Function]}
-            navigation={
-              Object {
-                "state": Object {
-                  "params": Object {},
-                },
-              }
-            }
             toggleDataView={[Function]}
           />
         </View>
