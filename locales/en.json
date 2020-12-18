@@ -1385,6 +1385,7 @@
 		"max_slippage": "Max Slippage",
 		"max_slippage_amount": "Max slippage {{slippage}}",
 		"slippage_info": "If the rate changes between the time your order is placed and confirmed it’s called “slippage”. Your Swap will automatically cancel if slippage exceeds your “max slippage” setting.",
+		"slippage_warning": "Make sure you know what you’re doing!",
 		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
 		"get_quotes": "Get quotes",
 		"fetching_new_quotes": "Fetching new quotes...",

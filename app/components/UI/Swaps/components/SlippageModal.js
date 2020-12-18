@@ -25,6 +25,15 @@ const styles = StyleSheet.create({
 	},
 	slippageWrapper: {
 		marginVertical: 10
+	},
+	warningTextWrapper: {
+		position: 'absolute',
+		width: '85%',
+		bottom: 30,
+		left: 10
+	},
+	warningText: {
+		color: colors.red
 	}
 });
 
@@ -47,6 +56,11 @@ function SlippageModal({ isVisible, dismiss, onChange, slippage }) {
 					</Text>
 
 					<View style={styles.slippageWrapper}>
+						<View style={styles.warningTextWrapper}>
+							{slippage >= 5 && (
+								<Text style={styles.warningText}>{strings('swaps.slippage_warning')}</Text>
+							)}
+						</View>
 						<SlippageSlider
 							range={[1, 5]}
 							increment={1}
