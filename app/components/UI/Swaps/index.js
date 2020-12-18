@@ -25,6 +25,7 @@ import StyledButton from '../StyledButton';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
+import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
 
 const styles = StyleSheet.create({
@@ -89,9 +90,6 @@ const styles = StyleSheet.create({
 	column: {
 		flex: 1
 	},
-	disabledSlippage: {
-		color: colors.grey300
-	},
 	ctaContainer: {
 		flexDirection: 'row',
 		justifyContent: 'flex-end'
@@ -108,7 +106,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	const navigation = useContext(NavigationContext);
 	const initialSource = navigation.getParam('sourceToken', SWAPS_ETH_ADDRESS);
 	const [amount, setAmount] = useState('0');
-	const [slippage] = useState('1');
+	const [slippage, setSlippage] = useState(1);
 	const amountBigNumber = useMemo(() => new BigNumber(amount), [amount]);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
@@ -120,6 +118,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
+	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
 
 	const hasInvalidDecimals = useMemo(() => {
 		if (sourceToken) {
@@ -223,6 +222,10 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	const handleUseMax = useCallback(() => {
 		setAmount(fromTokenMinimalUnit(balances[toChecksumAddress(sourceToken.address)], sourceToken.decimals));
 	}, [balances, sourceToken.address, sourceToken.decimals]);
+
+	const handleSlippageChange = useCallback(value => {
+		setSlippage(value);
+	}, []);
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
@@ -329,9 +332,9 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 				</Keypad>
 				<View style={styles.buttonsContainer}>
 					<View style={styles.column}>
-						<TouchableOpacity disabled>
-							<Text bold style={styles.disabledSlippage}>
-								{strings('swaps.max_slippage', { slippage: '1%' })}
+						<TouchableOpacity onPress={toggleSlippageModal}>
+							<Text bold link>
+								{strings('swaps.max_slippage_amount', { slippage: `${slippage}%` })}
 							</Text>
 						</TouchableOpacity>
 					</View>
@@ -355,6 +358,12 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 					</View>
 				</View>
 			</View>
+			<SlippageModal
+				isVisible={isSlippageModalVisible}
+				dismiss={toggleSlippageModal}
+				onChange={handleSlippageChange}
+				slippage={slippage}
+			/>
 		</ScreenView>
 	);
 }
