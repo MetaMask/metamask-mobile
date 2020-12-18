@@ -5,7 +5,7 @@ import ConfirmSend from '../../Views/SendFlow/Confirm';
 import AnimatedTransactionModal from '../AnimatedTransactionModal';
 import TransactionReview from '../TransactionReview';
 import CustomGas from '../CustomGas';
-import { isBN, hexToBN, toBN, isDecimal, fromWei, weiToFiatNumber } from '../../../util/number';
+import { isBN, hexToBN, toBN, isDecimal, fromWei, renderFromWei } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -91,10 +91,6 @@ class TransactionEditor extends PureComponent {
 		 * Whether was prompted from approval
 		 */
 		promptedFromApproval: PropTypes.bool,
-		/**
-		 * A number that specifies the ETH/USD conversion rate
-		 */
-		conversionRate: PropTypes.number,
 		/**
 		 * Object that represents the navigator
 		 */
@@ -398,27 +394,18 @@ class TransactionEditor extends PureComponent {
 		let error;
 		if (!allowEmpty) {
 			const {
-				conversionRate,
 				transaction: { value, gas, gasPrice, from }
 			} = this.props;
 			const checksummedFrom = safeToChecksumAddress(from) || '';
 			const fromAccount = this.props.accounts[checksummedFrom];
+			const total = value.add(gas.mul(gasPrice));
+			const { balance } = fromAccount;
 			if (!value || !gas || !gasPrice || !from) return strings('transaction.invalid_amount');
 			if (value && !isBN(value)) return strings('transaction.invalid_amount');
-			if (
-				value &&
-				fromAccount &&
-				isBN(gas) &&
-				isBN(gasPrice) &&
-				isBN(value) &&
-				hexToBN(fromAccount.balance).lt(value.add(gas.mul(gasPrice)))
-			) {
+			if (value && fromAccount && isBN(gas) && isBN(gasPrice) && isBN(value) && hexToBN(balance).lt(total)) {
 				this.setState({ over: true });
-				const over =
-					weiToFiatNumber(value.add(gas.mul(gasPrice)), conversionRate) -
-					weiToFiatNumber(hexToBN(fromAccount.balance), conversionRate);
-				const amount = Number(over).toFixed(7);
-				return strings('transaction.insufficient_amount', { amount });
+				const diff = total.sub(value);
+				return strings('transaction.insufficient_amount', { amount: renderFromWei(diff) });
 			}
 		}
 		return error;
@@ -670,7 +657,6 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
