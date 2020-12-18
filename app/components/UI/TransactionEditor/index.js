@@ -90,11 +90,7 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Whether was prompted from approval
 		 */
-		promptedFromApproval: PropTypes.bool,
-		/**
-		 * Object that represents the navigator
-		 */
-		navigation: PropTypes.object
+		promptedFromApproval: PropTypes.bool
 	};
 
 	state = {
@@ -619,7 +615,7 @@ class TransactionEditor extends PureComponent {
 	};
 
 	render = () => {
-		const { mode, transactionConfirmed, transaction, onModeChange, navigation } = this.props;
+		const { mode, transactionConfirmed, transaction, onModeChange } = this.props;
 		const { basicGasEstimates, ready, gasError, over } = this.state;
 		const paymentChannelTransaction = transaction ? transaction.paymentChannelTransaction : false;
 		return (
@@ -635,7 +631,6 @@ class TransactionEditor extends PureComponent {
 								ready={ready}
 								transactionConfirmed={transactionConfirmed}
 								over={over}
-								navigation={navigation}
 							/>
 							<CustomGas
 								handleGasFeeSelection={this.updateGas}

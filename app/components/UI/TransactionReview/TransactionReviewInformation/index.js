@@ -18,6 +18,7 @@ import { getTicker, getNormalizedTxState } from '../../../../util/transactions';
 import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { withNavigation } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -354,4 +355,4 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency
 });
 
-export default connect(mapStateToProps)(TransactionReviewInformation);
+export default connect(mapStateToProps)(withNavigation(TransactionReviewInformation));

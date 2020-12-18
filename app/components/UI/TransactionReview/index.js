@@ -155,11 +155,7 @@ class TransactionReview extends PureComponent {
 		/**
 		 * True if transaction is over the available funds
 		 */
-		over: PropTypes.bool,
-		/**
-		 * Object that represents the navigator
-		 */
-		navigation: PropTypes.object
+		over: PropTypes.bool
 	};
 
 	state = {
@@ -330,7 +326,6 @@ class TransactionReview extends PureComponent {
 									fiatValue={fiatValue}
 									toggleDataView={this.toggleDataView}
 									over={over}
-									navigation={this.props.navigation}
 									onCancelPress={this.props.onCancel}
 								/>
 							</View>
