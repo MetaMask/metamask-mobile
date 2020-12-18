@@ -136,7 +136,7 @@ class TransactionReviewFeeCard extends PureComponent {
 				</Summary.Row>
 				<Summary.Separator />
 				<Summary.Row>
-					<Text primary bold style={[over && styles.over]}>
+					<Text primary bold style={(over && styles.over) || null}>
 						{strings('transaction.total')} {strings('transaction.amount')}
 					</Text>
 					{!!totalFiat && this.renderIfGasEstimationReady(totalAmount)}
