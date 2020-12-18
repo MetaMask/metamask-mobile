@@ -10,7 +10,7 @@ import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { generateTransferData, getNormalizedTxState } from '../../../util/transactions';
+import { generateTransferData, getNormalizedTxState, getTicker } from '../../../util/transactions';
 import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
@@ -90,7 +90,11 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Whether was prompted from approval
 		 */
-		promptedFromApproval: PropTypes.bool
+		promptedFromApproval: PropTypes.bool,
+		/**
+		 * Current selected ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -390,6 +394,7 @@ class TransactionEditor extends PureComponent {
 		let error;
 		if (!allowEmpty) {
 			const {
+				ticker,
 				transaction: { value, gas, gasPrice, from }
 			} = this.props;
 			const checksummedFrom = safeToChecksumAddress(from) || '';
@@ -400,8 +405,9 @@ class TransactionEditor extends PureComponent {
 			if (value && !isBN(value)) return strings('transaction.invalid_amount');
 			if (value && fromAccount && isBN(gas) && isBN(gasPrice) && isBN(value) && hexToBN(balance).lt(total)) {
 				this.setState({ over: true });
-				const diff = total.sub(value);
-				return strings('transaction.insufficient_amount', { amount: renderFromWei(diff) });
+				const amount = renderFromWei(total.sub(value));
+				const tokenSymbol = getTicker(ticker);
+				return strings('transaction.insufficient_amount', { amount, tokenSymbol });
 			}
 		}
 		return error;
@@ -655,6 +661,7 @@ const mapStateToProps = state => ({
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state)
 });
 
