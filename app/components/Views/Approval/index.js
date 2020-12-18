@@ -38,7 +38,7 @@ class Approval extends PureComponent {
 		/**
 		 * react-navigation object used for switching between screens
 		 */
-		navigation: PropTypes.object,
+		navigation: PropTypes.object.isRequired,
 		/**
 		 * Action that cleans transaction state
 		 */
