@@ -38,7 +38,8 @@ import {
 	getMethodData,
 	TOKEN_METHOD_TRANSFER,
 	decodeTransferData,
-	APPROVE_FUNCTION_SIGNATURE
+	APPROVE_FUNCTION_SIGNATURE,
+	decodeApproveData
 } from '../../../util/transactions';
 import { BN, isValidAddress } from 'ethereumjs-util';
 import { isENS, safeToChecksumAddress } from '../../../util/address';
@@ -61,6 +62,7 @@ import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
+import { swapsUtils } from '@estebanmino/controllers';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -194,14 +196,51 @@ const Main = props => {
 		[props.navigation, props.transactions]
 	);
 
+	const autoSign = useCallback(
+		async transactionMeta => {
+			const { TransactionController } = Engine.context;
+			try {
+				TransactionController.hub.once(`${transactionMeta.id}:finished`, transactionMeta => {
+					if (transactionMeta.status === 'submitted') {
+						props.navigation.pop();
+						NotificationManager.watchSubmittedTransaction({
+							...transactionMeta,
+							assetType: transactionMeta.transaction.assetType
+						});
+					} else {
+						throw transactionMeta.error;
+					}
+				});
+				await TransactionController.approveTransaction(transactionMeta.id);
+			} catch (error) {
+				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+					{ text: strings('navigation.ok') }
+				]);
+				Logger.error(error, 'error while trying to send transaction (Main)');
+			}
+		},
+		[props.navigation]
+	);
+
 	const onUnapprovedTransaction = useCallback(
 		async transactionMeta => {
 			if (transactionMeta.origin === TransactionTypes.MMM) return;
 
 			const to = safeToChecksumAddress(transactionMeta.transaction.to);
 			const networkId = Networks[props.providerType].networkId;
+			const { data } = transactionMeta.transaction;
+
+			// if approval data includes metaswap contract
+			// if destination address is metaswap contract
 
 			if (
+				to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
+				(data &&
+					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+					decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS)
+			) {
+				autoSign(transactionMeta);
+			} else if (
 				props.paymentChannelsEnabled &&
 				AppConstants.CONNEXT.SUPPORTED_NETWORKS.includes(props.providerType) &&
 				transactionMeta.transaction.data &&
@@ -279,7 +318,8 @@ const Main = props => {
 			setEtherTransaction,
 			setTransactionObject,
 			toggleApproveModal,
-			toggleDappTransactionModal
+			toggleDappTransactionModal,
+			autoSign
 		]
 	);
 

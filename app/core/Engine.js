@@ -60,6 +60,7 @@ class Engine {
 				nativeCurrency: 'eth',
 				currentCurrency: 'usd'
 			};
+
 			this.datamodel = new ComposableController(
 				[
 					new KeyringController({ encryptor }, initialState.KeyringController),

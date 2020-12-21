@@ -12,8 +12,9 @@ import Engine from '../../../core/Engine';
 import handleInput from '../../Base/Keypad/rules/native';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
+import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import { setQuotesNavigationsParams } from './utils';
-import { renderFromTokenMinimalUnit, renderFromWei, toTokenMinimalUnit } from '../../../util/number';
+
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 
@@ -24,6 +25,8 @@ import StyledButton from '../StyledButton';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
+import SlippageModal from './components/SlippageModal';
+import useBalance from './utils/useBalance';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -56,6 +59,9 @@ const styles = StyleSheet.create({
 	amountInvalid: {
 		color: colors.red
 	},
+	linkText: {
+		color: colors.blue
+	},
 	horizontalRuleContainer: {
 		flexDirection: 'row',
 		paddingHorizontal: 30,
@@ -84,9 +90,6 @@ const styles = StyleSheet.create({
 	column: {
 		flex: 1
 	},
-	disabledSlippage: {
-		color: colors.grey300
-	},
 	ctaContainer: {
 		flexDirection: 'row',
 		justifyContent: 'flex-end'
@@ -103,7 +106,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	const navigation = useContext(NavigationContext);
 	const initialSource = navigation.getParam('sourceToken', SWAPS_ETH_ADDRESS);
 	const [amount, setAmount] = useState('0');
-	const [slippage] = useState('1');
+	const [slippage, setSlippage] = useState(1);
 	const amountBigNumber = useMemo(() => new BigNumber(amount), [amount]);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
@@ -115,6 +118,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
+	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
 
 	const hasInvalidDecimals = useMemo(() => {
 		if (sourceToken) {
@@ -149,17 +153,15 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		}
 	}, [tokens, initialSource, sourceToken]);
 
-	const balance = useMemo(() => {
-		if (!sourceToken) {
-			return null;
-		}
-		if (sourceToken.symbol === 'ETH') {
-			return renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
-		}
-		const tokenAddress = toChecksumAddress(sourceToken.address);
-		return tokenAddress in balances ? renderFromTokenMinimalUnit(balances[tokenAddress], sourceToken.decimals) : 0;
-	}, [accounts, balances, selectedAddress, sourceToken]);
+	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
 
+	const hasBalance = useMemo(() => {
+		if (!balance || !sourceToken || sourceToken.symbol === 'ETH') {
+			return false;
+		}
+
+		return new BigNumber(balance).gt(0);
+	}, [balance, sourceToken]);
 	const hasEnoughBalance = useMemo(() => amountBigNumber.lte(new BigNumber(balance)), [amountBigNumber, balance]);
 
 	/* Navigation handler */
@@ -217,6 +219,14 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		[toggleDestinationModal]
 	);
 
+	const handleUseMax = useCallback(() => {
+		setAmount(fromTokenMinimalUnit(balances[toChecksumAddress(sourceToken.address)], sourceToken.decimals));
+	}, [balances, sourceToken.address, sourceToken.decimals]);
+
+	const handleSlippageChange = useCallback(value => {
+		setSlippage(value);
+	}, []);
+
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.content}>
@@ -256,10 +266,18 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 								  })}
 						</Text>
 					) : (
-						<Text>
-							{sourceToken && balance !== null
-								? strings('swaps.available_to_swap', { asset: `${balance} ${sourceToken.symbol}` })
-								: ''}
+						<Text centered>
+							{sourceToken &&
+								balance !== null &&
+								strings('swaps.available_to_swap', {
+									asset: `${balance} ${sourceToken.symbol}`
+								})}
+							{hasBalance && (
+								<Text style={styles.linkText} onPress={handleUseMax}>
+									{' '}
+									{strings('swaps.use_max')}
+								</Text>
+							)}
 						</Text>
 					)}
 				</View>
@@ -314,9 +332,9 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 				</Keypad>
 				<View style={styles.buttonsContainer}>
 					<View style={styles.column}>
-						<TouchableOpacity disabled>
-							<Text bold style={styles.disabledSlippage}>
-								{strings('swaps.max_slippage', { slippage: '1%' })}
+						<TouchableOpacity onPress={toggleSlippageModal}>
+							<Text bold link>
+								{strings('swaps.max_slippage_amount', { slippage: `${slippage}%` })}
 							</Text>
 						</TouchableOpacity>
 					</View>
@@ -340,6 +358,12 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 					</View>
 				</View>
 			</View>
+			<SlippageModal
+				isVisible={isSlippageModalVisible}
+				dismiss={toggleSlippageModal}
+				onChange={handleSlippageChange}
+				slippage={slippage}
+			/>
 		</ScreenView>
 	);
 }

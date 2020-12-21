@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
-import Networks, { isprivateConnection } from '../../../../../util/networks';
+import Networks from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
@@ -165,7 +165,7 @@ class NetworkSettings extends PureComponent {
 		const { navigation } = this.props;
 		if (this.validateRpcUrl()) {
 			const url = new URL(rpcUrl);
-			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+			// !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
 			CurrencyRateController.configure({ nativeCurrency: ticker });
 			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker, nickname, {
 				blockExplorerUrl
@@ -190,12 +190,12 @@ class NetworkSettings extends PureComponent {
 			}
 			return false;
 		}
-		const url = new URL(rpcUrl);
-		const privateConnection = isprivateConnection(url.hostname);
-		if (!privateConnection && url.protocol === 'http:') {
-			this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
-			return false;
-		}
+		// const url = new URL(rpcUrl);
+		// const privateConnection = isprivateConnection(url.hostname);
+		// if (!privateConnection && url.protocol === 'http:') {
+		// 	this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
+		// 	return false;
+		// }
 		this.setState({ validatedRpcURL: true, warningRpcUrl: undefined });
 		return true;
 	};

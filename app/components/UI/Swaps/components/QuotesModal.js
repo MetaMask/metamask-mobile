@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-navigation';
@@ -100,13 +100,9 @@ function QuotesModal({
 	destinationToken,
 	conversionRate,
 	currentCurrency,
-	tradeFees
+	quoteValues
 }) {
-	const bestOverallValue = tradeFees[selectedQuote].overallValueOfQuote;
-	const orderedTradeFees = useMemo(
-		() => Object.values(tradeFees).sort((a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote)),
-		[tradeFees]
-	);
+	const bestOverallValue = quoteValues[quotes[0].aggregator].overallValueOfQuote;
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -148,13 +144,13 @@ function QuotesModal({
 								</View>
 							</View>
 							<View>
-								{orderedTradeFees.length > 0 &&
-									orderedTradeFees.map(tradeFee => {
-										const quote = quotes.find(quote => quote.aggregator === tradeFee.aggregator);
-										const isSelected = tradeFee.aggregator === selectedQuote;
+								{quotes.length > 0 &&
+									quotes.map((quote, index) => {
+										const { aggregator } = quote;
+										const isSelected = aggregator === selectedQuote;
 										return (
 											<View
-												key={tradeFee.aggregator}
+												key={aggregator}
 												style={[
 													styles.row,
 													styles.quoteRow,
@@ -173,14 +169,14 @@ function QuotesModal({
 												<View style={styles.columnFee}>
 													<Text primary bold={isSelected}>
 														{weiToFiat(
-															toWei(tradeFee.ethFee),
+															toWei(quoteValues[aggregator].ethFee),
 															conversionRate,
 															currentCurrency
 														)}
 													</Text>
 												</View>
 												<View style={styles.columnValue}>
-													{quote.aggregator === selectedQuote ? (
+													{index === 0 ? (
 														<View style={styles.bestBadge}>
 															<View style={styles.bestBadgeWrapper}>
 																<Text bold small style={styles.bestBadgeText}>
@@ -194,7 +190,8 @@ function QuotesModal({
 															{weiToFiat(
 																toWei(
 																	(
-																		tradeFee.overallValueOfQuote - bestOverallValue
+																		bestOverallValue -
+																		quoteValues[aggregator].overallValueOfQuote
 																	).toFixed(18)
 																),
 																conversionRate,
@@ -233,13 +230,13 @@ QuotesModal.propTypes = {
 	 * Currency code of the currently-active currency
 	 */
 	currentCurrency: PropTypes.string,
-	tradeFees: PropTypes.object
+	quoteValues: PropTypes.object
 };
 
 const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	tradeFees: state.engine.backgroundState.SwapsController.tradeFees
+	quoteValues: state.engine.backgroundState.SwapsController.quoteValues
 });
 
 export default connect(mapStateToProps)(QuotesModal);
