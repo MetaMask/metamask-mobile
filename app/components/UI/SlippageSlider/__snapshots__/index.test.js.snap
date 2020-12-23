@@ -6,23 +6,21 @@ exports[`SlippageSlider should render correctly 1`] = `
   style={
     Array [
       Object {
-        "backgroundColor": "transparent",
         "height": 69,
         "justifyContent": "center",
         "position": "relative",
       },
-      Object {
-        "opacity": 1,
-      },
+      undefined,
     ]
   }
 >
   <View
+    onLayout={[Function]}
     style={
       Array [
         Object {
-          "bottom": 0,
-          "padding": 11,
+          "bottom": 10.5,
+          "paddingHorizontal": 11,
           "position": "absolute",
         },
         Object {
@@ -32,7 +30,6 @@ exports[`SlippageSlider should render correctly 1`] = `
     }
   >
     <View
-      onLayout={[Function]}
       style={
         Object {
           "alignItems": "center",
@@ -112,18 +109,32 @@ exports[`SlippageSlider should render correctly 1`] = `
     style={
       Array [
         Object {
-          "bottom": 0,
+          "borderRadius": 9,
+          "bottom": 10.5,
+          "height": 9,
+          "left": 11,
           "overflow": "hidden",
-          "padding": 11,
           "position": "absolute",
         },
         Object {
-          "width": 0,
+          "width": 15,
         },
       ]
     }
   >
-    <SlippageSliderBg />
+    <Image
+      resizeMode="stretch"
+      source={
+        Object {
+          "testUri": "../../../app/images/slippage-slider-bg.png",
+        }
+      }
+      style={
+        Object {
+          "width": 0,
+        }
+      }
+    />
   </ForwardRef(AnimatedComponentWrapper)>
   <ForwardRef(AnimatedComponentWrapper)
     onLayout={[Function]}
@@ -179,7 +190,7 @@ exports[`SlippageSlider should render correctly 1`] = `
         }
       }
     >
-      1%
+      undefined%
     </Text>
   </ForwardRef(AnimatedComponentWrapper)>
   <ForwardRef(AnimatedComponentWrapper)
@@ -204,6 +215,13 @@ exports[`SlippageSlider should render correctly 1`] = `
           "bottom": 0,
           "height": 30,
           "position": "absolute",
+          "shadowColor": "#000000",
+          "shadowOffset": Object {
+            "height": 0,
+            "width": 0,
+          },
+          "shadowOpacity": 0.18,
+          "shadowRadius": 14,
           "width": 30,
         },
         Object {
