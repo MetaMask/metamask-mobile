@@ -65,7 +65,7 @@ function SlippageModal({ isVisible, dismiss, onChange, slippage }) {
 							range={[1, 5]}
 							increment={1}
 							onChange={onChange}
-							defaultValue={slippage}
+							value={slippage}
 							formatTooltipText={text => `${text}%`}
 						/>
 					</View>
