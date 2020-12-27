@@ -221,8 +221,11 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	);
 
 	const handleUseMax = useCallback(() => {
+		if (!sourceToken) {
+			return;
+		}
 		setAmount(fromTokenMinimalUnit(balances[toChecksumAddress(sourceToken.address)], sourceToken.decimals));
-	}, [balances, sourceToken.address, sourceToken.decimals]);
+	}, [balances, sourceToken]);
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
