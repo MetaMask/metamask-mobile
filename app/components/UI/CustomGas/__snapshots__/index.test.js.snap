@@ -212,24 +212,17 @@ exports[`CustomGas should render correctly 1`] = `
         </View>
         <Text
           style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 18,
-              "fontWeight": "600",
-              "marginVertical": 4,
-              "textTransform": "none",
-            }
-          }
-        />
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 10,
-              "fontWeight": "400",
-            }
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 10,
+                "fontWeight": "400",
+              },
+              Object {
+                "fontSize": 12,
+              },
+            ]
           }
         >
           0
@@ -308,24 +301,17 @@ exports[`CustomGas should render correctly 1`] = `
         </View>
         <Text
           style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 18,
-              "fontWeight": "600",
-              "marginVertical": 4,
-              "textTransform": "none",
-            }
-          }
-        />
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 10,
-              "fontWeight": "400",
-            }
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 10,
+                "fontWeight": "400",
+              },
+              Object {
+                "fontSize": 12,
+              },
+            ]
           }
         >
           0
@@ -404,24 +390,17 @@ exports[`CustomGas should render correctly 1`] = `
         </View>
         <Text
           style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 18,
-              "fontWeight": "600",
-              "marginVertical": 4,
-              "textTransform": "none",
-            }
-          }
-        />
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 10,
-              "fontWeight": "400",
-            }
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 10,
+                "fontWeight": "400",
+              },
+              Object {
+                "fontSize": 12,
+              },
+            ]
           }
         >
           0
@@ -449,11 +428,10 @@ exports[`CustomGas should render correctly 1`] = `
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 12,
           "fontWeight": "400",
-          "paddingBottom": 20,
         }
       }
     >
-      Select the network fee you are willing to pay. The higher the fee, the better chances and faster your transaction will go through.
+      The network fee covers the cost of processing your transaction and storing it on the Ethereum network. MetaMask does not profit from this fee. Select the fee you are willing to pay. The higher the fee the better chances of your transaction getting processed.
     </Text>
   </ForwardRef(AnimatedComponentWrapper)>
   <ForwardRef(AnimatedComponentWrapper)
