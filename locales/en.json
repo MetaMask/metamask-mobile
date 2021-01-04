@@ -640,7 +640,7 @@
 		"gas_price": "Gas Price: (GWEI)",
 		"save": "Save",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
-		"cost_explanation": "Select the network fee you are willing to pay. The higher the fee, the better chances and faster your transaction will go through."
+		"cost_explanation": "The network fee covers the cost of processing your transaction and storing it on the Ethereum network. MetaMask does not profit from this fee. Select the fee you are willing to pay. The higher the fee the better chances of your transaction getting processed."
 	},
 	"spend_limit_edition": {
 		"save": "Save",
