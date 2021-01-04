@@ -5,6 +5,7 @@ import FSStorage from 'redux-persist-fs-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import AppConstants from '../core/AppConstants';
+import Logger from '../util/Logger';
 import { isEmpty } from 'lodash';
 
 const migrations = {
@@ -35,14 +36,8 @@ const migrations = {
 
 		return state;
 	},
-	// Combine the transactions reducer and newTransaction reducer
-	2: state => {
-		const newState = { ...state };
-		delete newState.newTransaction;
-		return newState;
-	},
 	// migrate persist to FilesystemStorage
-	3: async state => {
+	2: async state => {
 		// check if FilesystemStorage is empty
 		if (isEmpty(state)) {
 			try {
@@ -58,7 +53,7 @@ const migrations = {
 					return asyncState;
 				}
 			} catch (error) {
-				// TODO: properly handle error case
+				Logger.error(error, 'Migration: Failed to run storage migration.');
 			}
 		}
 	}
@@ -66,7 +61,7 @@ const migrations = {
 
 const persistConfig = {
 	key: 'root',
-	version: 3,
+	version: 2,
 	storage: FSStorage(),
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
 	migrate: createMigrate(migrations, { debug: false })
