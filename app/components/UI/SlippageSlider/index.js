@@ -98,12 +98,6 @@ const styles = StyleSheet.create({
 });
 
 const setAnimatedValue = (animatedValue, value) => animatedValue.setValue(value);
-// Animated.timing(animatedValue, {
-// 	toValue: value,
-// 	easing: Easing.linear,
-// 	duration: 20,
-// 	useNativeDriver: false
-// }).start();
 
 const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, disabled, changeOnRelease }) => {
 	/* Reusable/truncated references to the range prop values */
@@ -237,7 +231,7 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 			</Animated.View>
 			<Animated.View
 				{...panResponder.panHandlers}
-				style={[styles.slider, { left: sliderPosition }, { backgroundColor: sliderColor }]}
+				style={[styles.slider, { left: sliderPosition, backgroundColor: sliderColor }]}
 			/>
 		</View>
 	);
