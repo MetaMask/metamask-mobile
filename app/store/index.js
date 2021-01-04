@@ -1,9 +1,11 @@
 import { createStore } from 'redux';
-import { persistStore, persistReducer, createMigrate } from 'redux-persist';
+import { getStoredState, persistStore, persistReducer, createMigrate } from 'redux-persist';
 import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import AppConstants from '../core/AppConstants';
+import { isEmpty } from 'lodash';
 
 const migrations = {
 	// Needed after https://github.com/MetaMask/controllers/pull/152
@@ -38,13 +40,34 @@ const migrations = {
 		const newState = { ...state };
 		delete newState.newTransaction;
 		return newState;
+	},
+	// migrate persist to FilesystemStorage
+	3: async state => {
+		// check if FilesystemStorage is empty
+		if (isEmpty(state)) {
+			try {
+				// getStoredState from old AsyncStorage
+				const asyncState = await getStoredState({
+					key: 'root',
+					// transforms: [encryptor],
+					storage: AsyncStorage
+				});
+				if (!isEmpty(asyncState)) {
+					console.log('Found async state!');
+					console.log(asyncState);
+					return asyncState;
+				}
+			} catch (error) {
+				// TODO: properly handle error case
+			}
+		}
 	}
 };
 
 const persistConfig = {
 	key: 'root',
-	version: 1,
-	storage: AsyncStorage,
+	version: 3,
+	storage: FilesystemStorage,
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
 	migrate: createMigrate(migrations, { debug: false })
 };
