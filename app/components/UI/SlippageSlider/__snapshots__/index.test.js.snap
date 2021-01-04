@@ -225,10 +225,8 @@ exports[`SlippageSlider should render correctly 1`] = `
           "width": 30,
         },
         Object {
-          "left": 0,
-        },
-        Object {
           "backgroundColor": "rgba(3, 125, 214, 1)",
+          "left": 0,
         },
       ]
     }
