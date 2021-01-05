@@ -73,7 +73,7 @@
     "@estebanmino/controllers": "3.2.37",
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.19.0",
-    "@metamask/controllers": "../gaba/metamask-controllers-v5.1.0.tgz",
+    "@metamask/controllers": "5.1.0",
     "@react-native-community/async-storage": "1.9.0",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",

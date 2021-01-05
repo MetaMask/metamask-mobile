@@ -1372,9 +1372,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.19.0.tgz#2f074bce7ab7ffd0d20e3905b1936da0749a0473"
   integrity sha512-TklMuz7ZbFJ2Zc6C7I+9qL3J9J+4prs5Ok5MJzoxD/57Iq6espzArhpI275elVCFF9ci8IMvach1kH8+F04/hA==
 
-"@metamask/controllers@../gaba/metamask-controllers-v5.1.0.tgz":
+"@metamask/controllers@5.1.0":
   version "5.1.0"
-  resolved "../gaba/metamask-controllers-v5.1.0.tgz#766b6e7630cc0f80067dc91fa884508db15fc301"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-5.1.0.tgz#02c1957295bcb6db1655a716d165665d170e7f34"
+  integrity sha512-4piqkIrpphe+9nEy68WH+yBw9wsXZyCMVeBZeRtliVHAJFXUdz+KZDUi/R1Y+568JBzqAvsOtOzbUIU4btD3Fw==
   dependencies:
     "@metamask/contract-metadata" "^1.19.0"
     await-semaphore "^0.1.3"

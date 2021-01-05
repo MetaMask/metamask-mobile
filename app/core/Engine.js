@@ -126,7 +126,8 @@ class Engine {
 				AssetsController: assets,
 				KeyringController: keyring,
 				NetworkController: network,
-				TransactionController: transaction
+				TransactionController: transaction,
+				PreferencesController: preferences
 			} = this.datamodel.context;
 
 			assets.setApiKey(process.env.MM_OPENSEA_KEY);
@@ -135,6 +136,19 @@ class Engine {
 			network.subscribe(this.refreshNetwork);
 			this.configureControllersOnNetworkChange();
 			Engine.instance = this;
+
+			preferences.addToFrequentRpcList(
+				'http://ganache-testnet.airswap-dev.codefi.network/',
+				1337,
+				'ETH',
+				'Swaps Test Network'
+			);
+			network.setRpcTarget(
+				'http://ganache-testnet.airswap-dev.codefi.network/',
+				1337,
+				'ETH',
+				'Swaps Test Network'
+			);
 		}
 		return Engine.instance;
 	}
