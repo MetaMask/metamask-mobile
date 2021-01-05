@@ -1258,7 +1258,7 @@
 		"not_enough": "Insuficiente {{symbol}} para esta conversión",
 		"max_slippage": "Deslizamiento Máximo",
 		"max_slippage_amount": "Deslizamiento máx. {{slippage}}",
-		"slippage_info": "If the rate changes between the time your order is placed and confirmed it’s called “slippage”. Your Swap will automatically cancel if slippage exceeds your “max slippage” setting.",
+		"slippage_info": "Se le llama “deslizamiento” al cambio de tarifa en el tiempo entre que haces y se confirma la orden. Tu conversión se cancelará automáticamente si el deslizamiento excede este máximo.",
 		"slippage_warning": "¡Asegúrate saber lo que haces!",
 		"allows_up_to_decimals": "{{symbol}} soporta hasta {{decimals}} decimales",
 		"get_quotes": "Cotizar",
