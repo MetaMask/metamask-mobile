@@ -735,10 +735,10 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
-"@estebanmino/controllers@3.2.37":
-  version "3.2.37"
-  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.2.37.tgz#d856f2ed97cabf495bc8eb5e6bba86257a2cdabf"
-  integrity sha512-8ihz2eDu4Z1wUyYFBhlP/FqKETQhw7+mzDmPZnczrys676UuqKSq3CjAQolMGq6wORJAi+DUJnJshZrtp2PbLg==
+"@estebanmino/controllers@3.2.38":
+  version "3.2.38"
+  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.2.38.tgz#7c1122bfb7f7ab540257a0b032ea045184f0c0e7"
+  integrity sha512-WQ5R2DQ+WMeEBNHwBIBbgmJH2wVU7ykez4aVseSFJWadTfLN+HV7rJCL/i78qf1mg3/wofm32QAd6h0oFUGOZw==
   dependencies:
     "@metamask/contract-metadata" "^1.19.0"
     abort-controller "^3.0.0"
