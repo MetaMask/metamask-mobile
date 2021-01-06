@@ -304,7 +304,7 @@ class TransactionReviewInformation extends PureComponent {
 
 	isMainNet = () => {
 		const { network } = this.props;
-		return network === 0;
+		return network === String(1);
 	};
 
 	capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
@@ -333,7 +333,7 @@ class TransactionReviewInformation extends PureComponent {
 		const networkName = this.capitalize(getNetworkName(network));
 		const errorLinkText = this.isMainNet()
 			? strings('transaction.buy_more_eth')
-			: strings('transaction.get_ether', { network: networkName });
+			: strings('transaction.get_ether', { networkName });
 
 		return (
 			<React.Fragment>
