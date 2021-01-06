@@ -74,7 +74,7 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: 12.2.1
+      xcode: 11.3.1
     steps:
       - checkout
       - attach_workspace:
@@ -144,7 +144,7 @@ jobs:
           command: yarn build:announce
   publish-pre-release-ios:
     macos:
-      xcode: 12.2.1
+      xcode: 11.3.1
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
