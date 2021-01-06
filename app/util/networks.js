@@ -60,6 +60,9 @@ export const getAllNetworks = () => NetworkListKeys.filter(name => name !== 'rpc
 export const getNetworkName = id => NetworkListKeys.find(key => NetworkList[key].networkId === Number(id));
 
 export function getNetworkTypeById(id) {
+	if (!id) {
+		throw new Error('Missing network Id');
+	}
 	const network = NetworkListKeys.filter(key => NetworkList[key].networkId === parseInt(id, 10));
 	if (network.length > 0) {
 		return network[0];
