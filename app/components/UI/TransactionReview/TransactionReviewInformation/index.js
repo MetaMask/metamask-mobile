@@ -20,6 +20,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { withNavigation } from 'react-navigation';
 import { getNetworkName } from '../../../../util/networks';
+import { capitalize } from '../../../../util/format';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -307,8 +308,6 @@ class TransactionReviewInformation extends PureComponent {
 		return network === String(1);
 	};
 
-	capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
-
 	render() {
 		const { amountError } = this.state;
 		const {
@@ -330,7 +329,7 @@ class TransactionReviewInformation extends PureComponent {
 		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
 		const errorPress = this.isMainNet() ? this.buyEth : this.gotoFaucet;
-		const networkName = this.capitalize(getNetworkName(network));
+		const networkName = capitalize(getNetworkName(network));
 		const errorLinkText = this.isMainNet()
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
