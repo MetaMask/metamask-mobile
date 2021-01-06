@@ -1,7 +1,7 @@
 import { createStore } from 'redux';
 import { getStoredState, persistStore, persistReducer, createMigrate } from 'redux-persist';
 import AsyncStorage from '@react-native-community/async-storage';
-import FSStorage from 'redux-persist-fs-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import AppConstants from '../core/AppConstants';
@@ -62,7 +62,7 @@ const migrations = {
 const persistConfig = {
 	key: 'root',
 	version: 2,
-	storage: FSStorage(),
+	storage: FileSystemStorage,
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
 	migrate: createMigrate(migrations, { debug: false })
 };
