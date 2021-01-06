@@ -581,6 +581,7 @@
 		"insufficient": "Insufficient funds",
 		"insufficient_amount": "You need {{amount}} more {{tokenSymbol}} to complete this transaction.",
 		"buy_more_eth": "Buy more ETH",
+		"get_ether": "Get Ether for the {{network}} network.",
 		"insufficient_tokens": "Insufficient {{token}}",
 		"invalid_address": "Invalid address",
 		"invalid_amount": "Invalid amount",

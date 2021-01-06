@@ -19,6 +19,7 @@ import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { withNavigation } from 'react-navigation';
+import { getNetworkName } from '../../../../util/networks';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -108,7 +109,8 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	underline: {
-		textDecorationLine: 'underline'
+		textDecorationLine: 'underline',
+		...fontStyles.bold
 	}
 });
 
@@ -294,9 +296,8 @@ class TransactionReviewInformation extends PureComponent {
 		const mmFaucetUrl = 'https://faucet.metamask.io/';
 		InteractionManager.runAfterInteractions(() => {
 			this.onCancelPress();
-			this.props.navigation.navigate('Webview', {
-				url: mmFaucetUrl,
-				title: 'MetaMask Faucet'
+			this.props.navigation.navigate('BrowserView', {
+				newTabUrl: mmFaucetUrl
 			});
 		});
 	};
@@ -305,6 +306,8 @@ class TransactionReviewInformation extends PureComponent {
 		const { network } = this.props;
 		return network === 0;
 	};
+
+	capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
 
 	render() {
 		const { amountError } = this.state;
@@ -319,13 +322,18 @@ class TransactionReviewInformation extends PureComponent {
 			conversionRate,
 			ticker,
 			error,
-			over
+			over,
+			network
 		} = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
 		const errorPress = this.isMainNet() ? this.buyEth : this.gotoFaucet;
+		const networkName = this.capitalize(getNetworkName(network));
+		const errorLinkText = this.isMainNet()
+			? strings('transaction.buy_more_eth')
+			: strings('transaction.get_ether', { network: networkName });
 
 		return (
 			<React.Fragment>
@@ -353,11 +361,7 @@ class TransactionReviewInformation extends PureComponent {
 					<View style={styles.errorWrapper}>
 						<TouchableOpacity onPress={errorPress}>
 							<Text style={styles.error}>{error}</Text>
-							{over && (
-								<Text style={[styles.error, styles.underline]}>
-									{strings('transaction.buy_more_eth')}
-								</Text>
-							)}
+							{over && <Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>}
 						</TouchableOpacity>
 					</View>
 				)}

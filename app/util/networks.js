@@ -51,12 +51,19 @@ const NetworkList = {
 	}
 };
 
+const NetworkListKeys = Object.keys(NetworkList);
+
 export default NetworkList;
 
-export const getAllNetworks = () => Object.keys(NetworkList).filter(name => name !== 'rpc');
+export const getAllNetworks = () => NetworkListKeys.filter(name => name !== 'rpc');
+
+export const getNetworkName = id => {
+	const name = NetworkListKeys.find(key => NetworkList[key].networkId === parseInt(id, 10));
+	return name;
+};
 
 export function getNetworkTypeById(id) {
-	const network = Object.keys(NetworkList).filter(key => NetworkList[key].networkId === parseInt(id, 10));
+	const network = NetworkListKeys.filter(key => NetworkList[key].networkId === parseInt(id, 10));
 	if (network.length > 0) {
 		return network[0];
 	}
@@ -69,9 +76,7 @@ export function hasBlockExplorer(key) {
 }
 
 export function isKnownNetwork(id) {
-	const knownNetworks = Object.keys(NetworkList)
-		.map(key => NetworkList[key].networkId)
-		.filter(id => id !== undefined);
+	const knownNetworks = NetworkListKeys.map(key => NetworkList[key].networkId).filter(id => id !== undefined);
 	return knownNetworks.includes(parseInt(id, 10));
 }
 
