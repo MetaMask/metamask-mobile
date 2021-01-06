@@ -176,7 +176,11 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Called when the cancel button is clicked
 		 */
-		onCancelPress: PropTypes.func
+		onCancelPress: PropTypes.func,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string
 	};
 
 	state = {
@@ -195,9 +199,9 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	buyEth = () => {
-		const { onCancelPress, navigation } = this.props;
+		const { navigation } = this.props;
 		/* this is kinda weird, we have to reject the transaction to collapse the modal */
-		onCancelPress();
+		this.onCancelPress();
 		navigation.navigate('PaymentMethodSelector');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
@@ -281,6 +285,27 @@ class TransactionReviewInformation extends PureComponent {
 		return totals[assetType] || totals.default;
 	};
 
+	onCancelPress = () => {
+		const { onCancelPress } = this.props;
+		onCancelPress && onCancelPress();
+	};
+
+	gotoFaucet = () => {
+		const mmFaucetUrl = 'https://faucet.metamask.io/';
+		InteractionManager.runAfterInteractions(() => {
+			this.onCancelPress();
+			this.props.navigation.navigate('Webview', {
+				url: mmFaucetUrl,
+				title: 'MetaMask Faucet'
+			});
+		});
+	};
+
+	isMainNet = () => {
+		const { network } = this.props;
+		return network === 0;
+	};
+
 	render() {
 		const { amountError } = this.state;
 		const {
@@ -300,6 +325,8 @@ class TransactionReviewInformation extends PureComponent {
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
+		const errorPress = this.isMainNet() ? this.buyEth : this.gotoFaucet;
+
 		return (
 			<React.Fragment>
 				<TransactionReviewFeeCard
@@ -324,7 +351,7 @@ class TransactionReviewInformation extends PureComponent {
 				)}
 				{!!error && (
 					<View style={styles.errorWrapper}>
-						<TouchableOpacity onPress={this.buyEth}>
+						<TouchableOpacity onPress={errorPress}>
 							<Text style={styles.error}>{error}</Text>
 							{over && (
 								<Text style={[styles.error, styles.underline]}>
@@ -347,6 +374,7 @@ class TransactionReviewInformation extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController.network,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
