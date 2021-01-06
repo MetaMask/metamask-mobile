@@ -11051,12 +11051,12 @@ redux-mock-store@1.5.3:
   dependencies:
     lodash.isplainobject "^4.0.6"
 
-redux-persist-filesystem-storage@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/redux-persist-filesystem-storage/-/redux-persist-filesystem-storage-3.0.0.tgz#4848825d6157f694af5218d8ebb3ca6db09d3cb9"
-  integrity sha512-rJe8Hb5ULC/rUyqt5E1G62r1cUQA7hmdrVd38q32bWRnv+KiIAORuzpcOW5eDkzaS0w3v1juxUcKciNyZmeCsg==
+redux-persist-filesystem-storage@1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/redux-persist-filesystem-storage/-/redux-persist-filesystem-storage-1.4.1.tgz#9ef4ba1e384596ebda37e40d2a7b79bb04e6ae59"
+  integrity sha512-QDBlRWdFpn4JMrdLZcimwT7d3yc0xkSnA5j9xKWAY2Qw9rd3Uzlt76qXwEuuQ4M3qgKu/nLE8Roazl5BUcxfcA==
   dependencies:
-    rn-fetch-blob "^0.12.0"
+    rn-fetch-blob "0.10.15"
 
 redux-persist@5.10.0:
   version "5.10.0"
@@ -11381,10 +11381,10 @@ rlp@^2.0.0, rlp@^2.2.3:
   dependencies:
     bn.js "^4.11.1"
 
-rn-fetch-blob@^0.12.0:
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/rn-fetch-blob/-/rn-fetch-blob-0.12.0.tgz#ec610d2f9b3f1065556b58ab9c106eeb256f3cba"
-  integrity sha512-+QnR7AsJ14zqpVVUbzbtAjq0iI8c9tCg49tIoKO2ezjzRunN7YL6zFSFSWZm6d+mE/l9r+OeDM3jmb2tBb2WbA==
+rn-fetch-blob@0.10.15:
+  version "0.10.15"
+  resolved "https://registry.yarnpkg.com/rn-fetch-blob/-/rn-fetch-blob-0.10.15.tgz#3526860c1c57e0bf4c09bdbe409c919264afffba"
+  integrity sha512-/m/gurTaPAvR3J843uehHhznj5k89x7XClyO5ejmbspNLNQ4ByF+kZs80wiiKGWntj+Wqo0jJu1goArXEfc0kA==
   dependencies:
     base-64 "0.1.0"
     glob "7.0.6"
