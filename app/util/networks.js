@@ -57,10 +57,7 @@ export default NetworkList;
 
 export const getAllNetworks = () => NetworkListKeys.filter(name => name !== 'rpc');
 
-export const getNetworkName = id => {
-	const name = NetworkListKeys.find(key => NetworkList[key].networkId === Number(id));
-	return name;
-};
+export const getNetworkName = id => NetworkListKeys.find(key => NetworkList[key].networkId === Number(id));
 
 export function getNetworkTypeById(id) {
 	const network = NetworkListKeys.filter(key => NetworkList[key].networkId === parseInt(id, 10));
