@@ -53,9 +53,7 @@ const NetworkList = {
 
 export default NetworkList;
 
-export function getAllNetworks() {
-	return ['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'];
-}
+export const getAllNetworks = () => Object.keys(NetworkList).filter(name => name !== 'rpc');
 
 export function getNetworkTypeById(id) {
 	const network = Object.keys(NetworkList).filter(key => NetworkList[key].networkId === parseInt(id, 10));
