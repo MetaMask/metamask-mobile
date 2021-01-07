@@ -262,7 +262,11 @@ class Login extends PureComponent {
 		if (!biometryChoice) {
 			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			try {
+				await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			} catch (e) {
+				console.log(e);
+			}
 		}
 		this.setState({ biometryChoice });
 	};
