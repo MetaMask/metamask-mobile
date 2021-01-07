@@ -67,8 +67,12 @@ export default {
 
 	async resetGenericPassword() {
 		const options = { service: defaultOptions.service };
-		await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-		await AsyncStorage.removeItem(PASSCODE_CHOICE);
+		try {
+			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+			await AsyncStorage.removeItem(PASSCODE_CHOICE);
+		} catch (e) {
+			//
+		}
 		return Keychain.resetGenericPassword(options);
 	},
 
@@ -124,9 +128,13 @@ export default {
 			await AsyncStorage.setItem(PASSCODE_CHOICE, TRUE);
 			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else if (type === this.TYPES.REMEMBER_ME) {
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+			try {
+				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+				await AsyncStorage.removeItem(PASSCODE_CHOICE);
+			} catch (e) {
+				//
+			}
 			await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-			await AsyncStorage.removeItem(PASSCODE_CHOICE);
 			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 			//Don't need to add any parameter
 		}

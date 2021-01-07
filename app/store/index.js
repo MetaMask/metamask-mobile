@@ -29,7 +29,11 @@ const MigratedStorage = {
 		return FileSystemStorage.setItem(key, value);
 	},
 	removeItem(key) {
-		return FileSystemStorage.removeItem(key);
+		try {
+			return FileSystemStorage.removeItem(key);
+		} catch (e) {
+			//
+		}
 	}
 };
 
