@@ -12,8 +12,8 @@ import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { util } from '@metamask/controllers';
-import { isBN } from '../../../../util/number';
-import { getNormalizedTxState } from '../../../../util/transactions';
+import { isBN, renderFromWei } from '../../../../util/number';
+import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
 import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
@@ -79,14 +79,19 @@ class Approve extends PureComponent {
 		/**
 		/* Token approve modal visible or not
 		*/
-		toggleApproveModal: PropTypes.func
+		toggleApproveModal: PropTypes.func,
+		/**
+		 * Current selected ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
 		approved: false,
 		gasError: undefined,
 		ready: false,
-		mode: REVIEW
+		mode: REVIEW,
+		over: false
 	};
 
 	componentDidMount = () => {
@@ -150,14 +155,19 @@ class Approve extends PureComponent {
 	validateGas = () => {
 		let error;
 		const {
-			transaction: { gas, gasPrice, from },
+			ticker,
+			transaction: { value, gas, gasPrice, from },
 			accounts
 		} = this.props;
 		const fromAccount = accounts[safeToChecksumAddress(from)];
+		const total = value.add(gas.mul(gasPrice));
 		if (!gas) error = strings('transaction.invalid_gas');
 		else if (!gasPrice) error = strings('transaction.invalid_gas_price');
 		else if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice))) {
-			error = strings('transaction.insufficient');
+			this.setState({ over: true });
+			const amount = renderFromWei(total.sub(value));
+			const tokenSymbol = getTicker(ticker);
+			error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
 		}
 		this.setState({ gasError: error });
 		return error;
@@ -223,7 +233,8 @@ class Approve extends PureComponent {
 	};
 
 	render = () => {
-		const { gasError, basicGasEstimates, mode, ready } = this.state;
+		const { gasError, basicGasEstimates, mode, ready, over } = this.state;
+		console.log({ over1: over });
 		const { transaction } = this.props;
 		if (!transaction.id) return null;
 		return (
@@ -247,6 +258,7 @@ class Approve extends PureComponent {
 							gasError={gasError}
 							onCancel={this.onCancel}
 							onConfirm={this.onConfirm}
+							over={over}
 						/>
 						<CustomGas
 							handleGasFeeSelection={this.handleSetGasFee}
@@ -265,6 +277,7 @@ class Approve extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,

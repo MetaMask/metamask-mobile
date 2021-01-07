@@ -401,8 +401,13 @@ class TransactionEditor extends PureComponent {
 			const fromAccount = this.props.accounts[checksummedFrom];
 			const total = value.add(gas.mul(gasPrice));
 			const { balance } = fromAccount;
-			if (!value || !gas || !gasPrice || !from) return strings('transaction.invalid_amount');
-			if (value && !isBN(value)) return strings('transaction.invalid_amount');
+
+			if (!value || !gas || !gasPrice || !from) {
+				return strings('transaction.invalid_amount');
+			}
+			if (value && !isBN(value)) {
+				return strings('transaction.invalid_amount');
+			}
 			if (value && fromAccount && isBN(gas) && isBN(gasPrice) && isBN(value) && hexToBN(balance).lt(total)) {
 				this.setState({ over: true });
 				const amount = renderFromWei(total.sub(value));
