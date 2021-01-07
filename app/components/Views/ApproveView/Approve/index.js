@@ -234,7 +234,6 @@ class Approve extends PureComponent {
 
 	render = () => {
 		const { gasError, basicGasEstimates, mode, ready, over } = this.state;
-		console.log({ over1: over });
 		const { transaction } = this.props;
 		if (!transaction.id) return null;
 		return (

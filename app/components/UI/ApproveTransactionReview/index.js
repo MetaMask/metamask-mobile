@@ -631,8 +631,6 @@ class ApproveTransactionReview extends PureComponent {
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
 		const errorPress = this.isMainNet() ? this.buyEth : this.gotoFaucet;
 		const networkName = capitalize(getNetworkName(network));
-		console.log(this.isMainNet());
-		console.log({ over2: over });
 		const errorLinkText = this.isMainNet()
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
