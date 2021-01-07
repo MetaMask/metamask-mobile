@@ -5,6 +5,7 @@ import FileSystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import AppConstants from '../core/AppConstants';
+import Logger from '../util/Logger';
 
 /*
  * At some point in the not so distant future it'll be safe to delete this one time migration
@@ -22,9 +23,13 @@ const MigratedStorage = {
 		}
 
 		// Using old storage system, should only happen once
-		const res = await AsyncStorage.getItem(key);
-		AsyncStorage.setItem(key, ''); // clear old storage
-		return res;
+		try {
+			const res = await AsyncStorage.getItem(key);
+			AsyncStorage.setItem(key, ''); // clear old storage
+			return res;
+		} catch (e) {
+			Logger.log('Failed to run migration', e);
+		}
 	},
 	setItem(key, value) {
 		return FileSystemStorage.setItem(key, value);
