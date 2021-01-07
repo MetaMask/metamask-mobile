@@ -27,7 +27,7 @@ import Transactions from '../../UI/Transactions';
 import Networks from '../../../util/networks';
 import Modal from 'react-native-modal';
 import PaymentChannelWelcome from './PaymentChannelWelcome';
-import AsyncStorage from 'redux-persist-filesystem-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import AppConstants from '../../../core/AppConstants';
 import Analytics from '../../../core/Analytics';
 // eslint-disable-next-line import/named
@@ -285,7 +285,7 @@ class PaymentChannel extends PureComponent {
 				]);
 			}
 		} else {
-			const paymentChannelFirstTime = await AsyncStorage.getItem(PAYMENT_CHANNEL_FIRST_TIME, '');
+			const paymentChannelFirstTime = await FileSystemStorage.getItem(PAYMENT_CHANNEL_FIRST_TIME, '');
 			if (!paymentChannelFirstTime) {
 				this.setState({ displayWelcomeModal: true });
 			}
@@ -693,7 +693,7 @@ class PaymentChannel extends PureComponent {
 	}
 
 	closeWelcomeModal = async () => {
-		await AsyncStorage.setItem(PAYMENT_CHANNEL_FIRST_TIME, '1');
+		await FileSystemStorage.setItem(PAYMENT_CHANNEL_FIRST_TIME, '1');
 		this.setState({ displayWelcomeModal: false });
 	};
 

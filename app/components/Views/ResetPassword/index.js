@@ -18,7 +18,7 @@ import {
 import CheckBox from '@react-native-community/checkbox';
 import AnimatedFox from 'react-native-animated-fox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from 'redux-persist-filesystem-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import { connect } from 'react-redux';
 import { passwordSet, passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
@@ -362,7 +362,7 @@ class ResetPassword extends PureComponent {
 				Logger.error(error);
 			}
 
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await FileSystemStorage.setItem(EXISTING_USER, TRUE);
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
@@ -474,9 +474,9 @@ class ResetPassword extends PureComponent {
 
 	updateBiometryChoice = async biometryChoice => {
 		if (!biometryChoice) {
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			await FileSystemStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			await FileSystemStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}
 		this.setState({ biometryChoice });
 	};

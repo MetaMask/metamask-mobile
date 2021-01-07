@@ -1,7 +1,7 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Encryptor from './Encryptor';
 import { strings } from '../../locales/i18n';
-import AsyncStorage from 'redux-persist-filesystem-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import { Platform } from 'react-native';
 import {
 	BIOMETRY_CHOICE,
@@ -68,8 +68,8 @@ export default {
 	async resetGenericPassword() {
 		const options = { service: defaultOptions.service };
 		try {
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-			await AsyncStorage.removeItem(PASSCODE_CHOICE);
+			await FileSystemStorage.removeItem(BIOMETRY_CHOICE);
+			await FileSystemStorage.removeItem(PASSCODE_CHOICE);
 		} catch (e) {
 			//
 		}
@@ -112,10 +112,10 @@ export default {
 		await Keychain.setGenericPassword('metamask-user', encryptedPassword, { ...defaultOptions, ...authOptions });
 
 		if (type === this.TYPES.BIOMETRICS) {
-			await AsyncStorage.setItem(BIOMETRY_CHOICE, TRUE);
-			await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-			await AsyncStorage.removeItem(PASSCODE_CHOICE);
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			await FileSystemStorage.setItem(BIOMETRY_CHOICE, TRUE);
+			await FileSystemStorage.setItem(PASSCODE_DISABLED, TRUE);
+			await FileSystemStorage.removeItem(PASSCODE_CHOICE);
+			await FileSystemStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 
 			// If the user enables biometrics, we're trying to read the password
 			// immediately so we get the permission prompt
@@ -123,19 +123,19 @@ export default {
 				await this.getGenericPassword();
 			}
 		} else if (type === this.TYPES.PASSCODE) {
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-			await AsyncStorage.removeItem(PASSCODE_DISABLED);
-			await AsyncStorage.setItem(PASSCODE_CHOICE, TRUE);
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			await FileSystemStorage.removeItem(BIOMETRY_CHOICE);
+			await FileSystemStorage.removeItem(PASSCODE_DISABLED);
+			await FileSystemStorage.setItem(PASSCODE_CHOICE, TRUE);
+			await FileSystemStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else if (type === this.TYPES.REMEMBER_ME) {
 			try {
-				await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-				await AsyncStorage.removeItem(PASSCODE_CHOICE);
+				await FileSystemStorage.removeItem(BIOMETRY_CHOICE);
+				await FileSystemStorage.removeItem(PASSCODE_CHOICE);
 			} catch (e) {
 				//
 			}
-			await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			await FileSystemStorage.setItem(PASSCODE_DISABLED, TRUE);
+			await FileSystemStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 			//Don't need to add any parameter
 		}
 	},

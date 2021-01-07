@@ -11,7 +11,7 @@ import {
 	Image,
 	InteractionManager
 } from 'react-native';
-import AsyncStorage from 'redux-persist-filesystem-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
@@ -222,7 +222,7 @@ class Onboarding extends PureComponent {
 	}
 
 	async checkIfExistingUser() {
-		const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+		const existingUser = await FileSystemStorage.getItem(EXISTING_USER);
 		if (existingUser !== null) {
 			this.setState({ existingUser: true });
 		}
@@ -315,8 +315,8 @@ class Onboarding extends PureComponent {
 						{
 							text: strings('sync_with_extension.warning_cancel_button'),
 							onPress: async () => {
-								await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-								await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+								await FileSystemStorage.removeItem(BIOMETRY_CHOICE);
+								await FileSystemStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 								this.finishSync({ biometrics: false, password });
 							},
 							style: 'cancel'
@@ -324,8 +324,8 @@ class Onboarding extends PureComponent {
 						{
 							text: strings('sync_with_extension.warning_ok_button'),
 							onPress: async () => {
-								await AsyncStorage.setItem(BIOMETRY_CHOICE, biometryType);
-								await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+								await FileSystemStorage.setItem(BIOMETRY_CHOICE, biometryType);
+								await FileSystemStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 								this.finishSync({ biometrics: true, biometryType, password });
 							}
 						}
@@ -352,7 +352,7 @@ class Onboarding extends PureComponent {
 		}
 
 		try {
-			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
+			await FileSystemStorage.removeItem(NEXT_MAKER_REMINDER);
 			await Engine.resetState();
 			await Engine.sync({
 				...this.dataToSync,
@@ -360,8 +360,8 @@ class Onboarding extends PureComponent {
 				importedAccounts: this.importedAccounts,
 				pass: opts.password
 			});
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+			await FileSystemStorage.setItem(EXISTING_USER, TRUE);
+			await FileSystemStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.seedphraseBackedUp();
@@ -475,7 +475,7 @@ class Onboarding extends PureComponent {
 				Analytics.trackEvent(key);
 				return;
 			}
-			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+			const metricsOptIn = await FileSystemStorage.getItem(METRICS_OPT_IN);
 			if (!metricsOptIn) {
 				this.props.saveOnboardingEvent(key);
 			}

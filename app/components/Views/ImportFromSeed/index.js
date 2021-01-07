@@ -11,7 +11,7 @@ import {
 	SafeAreaView,
 	StyleSheet
 } from 'react-native';
-import AsyncStorage from 'redux-persist-filesystem-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -222,7 +222,7 @@ class ImportFromSeed extends PureComponent {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
 			let enabled = true;
-			const previouslyDisabled = await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			const previouslyDisabled = await FileSystemStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 			if (previouslyDisabled && previouslyDisabled === TRUE) {
 				enabled = false;
 			}
@@ -260,7 +260,7 @@ class ImportFromSeed extends PureComponent {
 
 				const { KeyringController } = Engine.context;
 				await Engine.resetState();
-				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
+				await FileSystemStorage.removeItem(NEXT_MAKER_REMINDER);
 				await KeyringController.createNewVaultAndRestore(password, parsedSeed);
 
 				if (this.state.biometryType && this.state.biometryChoice) {
@@ -271,12 +271,12 @@ class ImportFromSeed extends PureComponent {
 					await SecureKeychain.resetGenericPassword();
 				}
 				// Get onboarding wizard state
-				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+				const onboardingWizard = await FileSystemStorage.getItem(ONBOARDING_WIZARD);
 				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+				const metricsOptIn = await FileSystemStorage.getItem(METRICS_OPT_IN);
 				// mark the user as existing so it doesn't see the create password screen again
-				await AsyncStorage.setItem(EXISTING_USER, TRUE);
-				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+				await FileSystemStorage.setItem(EXISTING_USER, TRUE);
+				await FileSystemStorage.removeItem(SEED_PHRASE_HINTS);
 				this.setState({ loading: false });
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -344,9 +344,9 @@ class ImportFromSeed extends PureComponent {
 
 	updateBiometryChoice = async biometryChoice => {
 		if (!biometryChoice) {
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			await FileSystemStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			await FileSystemStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}
 		this.setState({ biometryChoice });
 	};

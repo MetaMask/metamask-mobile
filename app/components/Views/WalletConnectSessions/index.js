@@ -4,7 +4,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import WebsiteIcon from '../../UI/WebsiteIcon';
-import AsyncStorage from 'redux-persist-filesystem-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import ActionSheet from 'react-native-actionsheet';
 import WalletConnect from '../../../core/WalletConnect';
 import Logger from '../../../util/Logger';
@@ -81,7 +81,7 @@ export default class WalletConnectSessions extends PureComponent {
 
 	loadSessions = async () => {
 		let sessions = [];
-		const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
+		const sessionData = await FileSystemStorage.getItem(WALLETCONNECT_SESSIONS);
 		if (sessionData) {
 			sessions = JSON.parse(sessionData);
 		}

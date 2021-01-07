@@ -10,7 +10,7 @@ import {
 	StyleSheet,
 	BackHandler
 } from 'react-native';
-import AsyncStorage from 'redux-persist-filesystem-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import AnimatedFox from 'react-native-animated-fox';
 import { strings } from '../../../../locales/i18n';
@@ -126,14 +126,14 @@ class CreateWallet extends PureComponent {
 			await Engine.resetState();
 			await KeyringController.createNewVaultAndKeychain('');
 			await SecureKeychain.setGenericPassword('');
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+			await FileSystemStorage.removeItem(BIOMETRY_CHOICE);
+			await FileSystemStorage.removeItem(NEXT_MAKER_REMINDER);
+			await FileSystemStorage.setItem(EXISTING_USER, TRUE);
+			await FileSystemStorage.removeItem(SEED_PHRASE_HINTS);
 			// Get onboarding wizard state
-			const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+			const onboardingWizard = await FileSystemStorage.getItem(ONBOARDING_WIZARD);
 			// Check if user passed through metrics opt-in screen
-			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+			const metricsOptIn = await FileSystemStorage.getItem(METRICS_OPT_IN);
 			// Making sure we reset the flag while going to
 			// the first time flow
 			this.props.passwordUnset();

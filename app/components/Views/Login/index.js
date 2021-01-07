@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Switch, Alert, ActivityIndicator, Text, View, SafeAreaView, StyleSheet, Image } from 'react-native';
-import AsyncStorage from 'redux-persist-filesystem-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import Engine from '../../../core/Engine';
@@ -160,7 +160,7 @@ class Login extends PureComponent {
 			const biometryType = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
 				let enabled = true;
-				const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+				const previouslyDisabled = await FileSystemStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 				if (previouslyDisabled && previouslyDisabled === TRUE) {
 					enabled = false;
 				}
@@ -198,10 +198,10 @@ class Login extends PureComponent {
 
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
-			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+			const encryptionLib = await FileSystemStorage.getItem(ENCRYPTION_LIB);
 			if (encryptionLib !== ORIGINAL) {
 				await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
-				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+				await FileSystemStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			}
 			if (this.state.biometryChoice && this.state.biometryType) {
 				await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
@@ -212,9 +212,9 @@ class Login extends PureComponent {
 			}
 
 			// Get onboarding wizard state
-			const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+			const onboardingWizard = await FileSystemStorage.getItem(ONBOARDING_WIZARD);
 			// Check if user passed through metrics opt-in screen
-			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+			const metricsOptIn = await FileSystemStorage.getItem(METRICS_OPT_IN);
 			if (!metricsOptIn) {
 				this.props.navigation.navigate('OptinMetrics');
 			} else if (onboardingWizard) {
@@ -260,9 +260,9 @@ class Login extends PureComponent {
 
 	updateBiometryChoice = async biometryChoice => {
 		if (!biometryChoice) {
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			await FileSystemStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			await FileSystemStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}
 		this.setState({ biometryChoice });
 	};

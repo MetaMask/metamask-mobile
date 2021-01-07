@@ -11,7 +11,7 @@ import {
 	TouchableOpacity,
 	Keyboard
 } from 'react-native';
-import AsyncStorage from 'redux-persist-filesystem-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import { connect } from 'react-redux';
 import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
@@ -288,15 +288,15 @@ class Settings extends PureComponent {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		const metricsOptIn = Analytics.getEnabled();
 
-		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
+		const currentSeedphraseHints = await FileSystemStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
 		const manualBackup = parsedHints?.manualBackup;
 
 		if (biometryType) {
 			let passcodeEnabled = false;
-			const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
+			const biometryChoice = await FileSystemStorage.getItem(BIOMETRY_CHOICE);
 			if (!biometryChoice) {
-				const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
+				const passcodeChoice = await FileSystemStorage.getItem(PASSCODE_CHOICE);
 				if (passcodeChoice !== '' && passcodeChoice === TRUE) {
 					passcodeEnabled = true;
 				}
@@ -363,14 +363,14 @@ class Settings extends PureComponent {
 
 			await Engine.context.KeyringController.exportSeedPhrase(password);
 
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
+			await FileSystemStorage.setItem(EXISTING_USER, TRUE);
 
 			if (!enabled) {
 				this.setState({ [type]: false, loading: false });
 				if (type === 'passcodeChoice') {
-					await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+					await FileSystemStorage.setItem(PASSCODE_DISABLED, TRUE);
 				} else if (type === 'biometryChoice') {
-					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+					await FileSystemStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 				}
 
 				return;
@@ -472,9 +472,9 @@ class Settings extends PureComponent {
 		const { hintText } = this.state;
 		if (!hintText) return;
 		this.toggleHint();
-		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
+		const currentSeedphraseHints = await FileSystemStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = JSON.parse(currentSeedphraseHints);
-		await AsyncStorage.setItem(SEED_PHRASE_HINTS, JSON.stringify({ ...parsedHints, manualBackup: hintText }));
+		await FileSystemStorage.setItem(SEED_PHRASE_HINTS, JSON.stringify({ ...parsedHints, manualBackup: hintText }));
 	};
 
 	toggleHint = () => {

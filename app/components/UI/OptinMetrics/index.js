@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
-import AsyncStorage from 'redux-persist-filesystem-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -150,7 +150,7 @@ class OptinMetrics extends PureComponent {
 	 */
 	continue = async () => {
 		// Get onboarding wizard state
-		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+		const onboardingWizard = await FileSystemStorage.getItem(ONBOARDING_WIZARD);
 		if (onboardingWizard) {
 			this.props.navigation.navigate('HomeNav');
 		} else {
@@ -186,7 +186,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem(METRICS_OPT_IN, DENIED);
+			await FileSystemStorage.setItem(METRICS_OPT_IN, DENIED);
 			Analytics.disableInstance();
 		});
 		this.continue();
@@ -202,7 +202,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem(METRICS_OPT_IN, AGREED);
+			await FileSystemStorage.setItem(METRICS_OPT_IN, AGREED);
 		});
 		this.continue();
 	};

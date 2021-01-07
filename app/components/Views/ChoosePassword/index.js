@@ -5,7 +5,7 @@ import { Switch, ActivityIndicator, Alert, Text, View, TextInput, SafeAreaView, 
 import CheckBox from '@react-native-community/checkbox';
 import AnimatedFox from 'react-native-animated-fox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from 'redux-persist-filesystem-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import { connect } from 'react-redux';
 import { passwordSet, passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
@@ -306,9 +306,9 @@ class ChoosePassword extends PureComponent {
 			if (previous_screen === ONBOARDING) {
 				await this.createNewVaultAndKeychain(password);
 				this.props.seedphraseNotBackedUp();
-				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-				await AsyncStorage.setItem(EXISTING_USER, TRUE);
-				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+				await FileSystemStorage.removeItem(NEXT_MAKER_REMINDER);
+				await FileSystemStorage.setItem(EXISTING_USER, TRUE);
+				await FileSystemStorage.removeItem(SEED_PHRASE_HINTS);
 			} else {
 				await this.recreateVault(password);
 			}
@@ -322,8 +322,8 @@ class ChoosePassword extends PureComponent {
 			} else {
 				await SecureKeychain.resetGenericPassword();
 			}
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+			await FileSystemStorage.setItem(EXISTING_USER, TRUE);
+			await FileSystemStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
@@ -333,9 +333,9 @@ class ChoosePassword extends PureComponent {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
 			await SecureKeychain.resetGenericPassword();
-			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+			await FileSystemStorage.removeItem(NEXT_MAKER_REMINDER);
+			await FileSystemStorage.setItem(EXISTING_USER, TRUE);
+			await FileSystemStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordUnset();
 			this.props.setLockTime(-1);
 			// Should we force people to enable passcode / biometrics?
@@ -436,9 +436,9 @@ class ChoosePassword extends PureComponent {
 
 	updateBiometryChoice = async biometryChoice => {
 		if (!biometryChoice) {
-			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			await FileSystemStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
-			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			await FileSystemStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}
 		this.setState({ biometryChoice });
 	};
