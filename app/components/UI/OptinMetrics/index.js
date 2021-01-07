@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';

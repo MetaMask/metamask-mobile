@@ -4,7 +4,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import WebsiteIcon from '../../UI/WebsiteIcon';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import ActionSheet from 'react-native-actionsheet';
 import WalletConnect from '../../../core/WalletConnect';
 import Logger from '../../../util/Logger';

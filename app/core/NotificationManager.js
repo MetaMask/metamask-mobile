@@ -8,7 +8,7 @@ import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/Device';
 import { strings } from '../../locales/i18n';
 import { Alert, AppState } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import AppConstants from './AppConstants';
 import { PUSH_NOTIFICATIONS_PROMPT_COUNT, PUSH_NOTIFICATIONS_PROMPT_TIME } from '../constants/storage';
 

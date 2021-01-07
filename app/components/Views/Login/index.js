@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Switch, Alert, ActivityIndicator, Text, View, SafeAreaView, StyleSheet, Image } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import Engine from '../../../core/Engine';

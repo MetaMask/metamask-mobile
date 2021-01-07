@@ -11,7 +11,7 @@ import {
 	Image,
 	InteractionManager
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';

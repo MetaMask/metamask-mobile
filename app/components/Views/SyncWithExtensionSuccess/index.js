@@ -14,7 +14,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import setOnboardingWizardStep from '../../../actions/wizard';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';

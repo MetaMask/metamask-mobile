@@ -12,7 +12,7 @@ import Step6 from './Step6';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../locales/i18n';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 import Device from '../../../util/Device';

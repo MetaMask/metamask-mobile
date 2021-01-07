@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { withNavigation } from 'react-navigation';
 import PropTypes from 'prop-types';
 import { Animated, Dimensions, StyleSheet, View } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';

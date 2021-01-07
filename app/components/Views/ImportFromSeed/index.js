@@ -11,7 +11,7 @@ import {
 	SafeAreaView,
 	StyleSheet
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';

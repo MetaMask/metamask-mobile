@@ -11,7 +11,7 @@ import {
 	TouchableOpacity,
 	Keyboard
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import { connect } from 'react-redux';
 import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';

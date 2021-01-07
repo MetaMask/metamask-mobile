@@ -1,7 +1,7 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Encryptor from './Encryptor';
 import { strings } from '../../locales/i18n';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import { Platform } from 'react-native';
 import {
 	BIOMETRY_CHOICE,

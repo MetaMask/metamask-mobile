@@ -18,7 +18,7 @@ import {
 import CheckBox from '@react-native-community/checkbox';
 import AnimatedFox from 'react-native-animated-fox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import { connect } from 'react-redux';
 import { passwordSet, passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';

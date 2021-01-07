@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/Device';
 import { whatsNew } from './whatsNewList';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import { CURRENT_APP_VERSION, LAST_APP_VERSION, WHATS_NEW_APP_VERSION_SEEN } from '../../../constants/storage';
 import compareVersions from 'compare-versions';
 import scaling from '../../../util/scaling';

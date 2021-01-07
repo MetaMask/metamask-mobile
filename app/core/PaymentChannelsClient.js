@@ -1,6 +1,6 @@
 import Engine from './Engine';
 import Logger from '../util/Logger';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 // eslint-disable-next-line
 import * as Connext from 'connext';
 import EthQuery from 'ethjs-query';

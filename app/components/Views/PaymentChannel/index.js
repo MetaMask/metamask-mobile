@@ -27,7 +27,7 @@ import Transactions from '../../UI/Transactions';
 import Networks from '../../../util/networks';
 import Modal from 'react-native-modal';
 import PaymentChannelWelcome from './PaymentChannelWelcome';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import AppConstants from '../../../core/AppConstants';
 import Analytics from '../../../core/Analytics';
 // eslint-disable-next-line import/named

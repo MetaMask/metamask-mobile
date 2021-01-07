@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Alert, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';

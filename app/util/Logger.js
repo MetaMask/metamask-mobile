@@ -1,7 +1,7 @@
 'use strict';
 
 import { addBreadcrumb, captureException, captureMessage, withScope } from '@sentry/react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import { METRICS_OPT_IN, AGREED, DEBUG } from '../constants/storage';
 
 /**

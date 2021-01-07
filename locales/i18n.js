@@ -1,5 +1,5 @@
 import ReactNative from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from 'redux-persist-filesystem-storage';
 import I18n from 'react-native-i18n';
 import { LANGUAGE } from '../app/constants/storage';
 
