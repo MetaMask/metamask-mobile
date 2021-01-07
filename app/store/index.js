@@ -5,9 +5,10 @@ import FileSystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import AppConstants from '../core/AppConstants';
-// import Logger from '../util/Logger';
-// import { isEmpty } from 'lodash';
 
+/*
+ * At some point in the not so distant future it'll be safe to delete this one time migration
+ */
 const MigratedStorage = {
 	async getItem(key) {
 		try {
