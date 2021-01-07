@@ -92,6 +92,10 @@ jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock('@react-native-community/async-storage', () => mockAsyncStorage);
 jest.mock('@react-native-community/cookies', () => 'RNCookies');
 
+jest.mock('redux-persist-filesystem-storage', () => mockAsyncStorage);
+jest.mock('rn-fetch-blob', () => 'RNFetchBlob');
+jest.mock('rn-fetch-blob/fs', () => 'RNFetchBlob');
+
 NativeModules.RNGestureHandlerModule = {
 	attachGestureHandler: jest.fn(),
 	createGestureHandler: jest.fn(),
@@ -118,6 +122,12 @@ NativeModules.RCTAnalytics = {
 
 NativeModules.PlatformConstants = {
 	forceTouchAvailable: false
+};
+
+NativeModules.RNFetchBlob = {
+	fs: {
+		DocumentDir: jest.fn()
+	}
 };
 
 jest.mock('react-native/Libraries/Components/Touchable/TouchableOpacity', () => 'TouchableOpacity');
