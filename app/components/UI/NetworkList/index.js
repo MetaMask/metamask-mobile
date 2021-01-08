@@ -9,7 +9,7 @@ import Networks, { getAllNetworks } from '../../../util/networks';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { MAINNET } from '../../../constants/network';
+import { MAINNET, RPC } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -200,7 +200,7 @@ export class NetworkList extends PureComponent {
 		return frequentRpcList.map(({ nickname, rpcUrl }, i) => {
 			const { color, name } = { name: nickname || rpcUrl, color: null };
 			const selected =
-				provider.rpcTarget === rpcUrl && provider.type === 'rpc' ? (
+				provider.rpcTarget === rpcUrl && provider.type === RPC ? (
 					<Icon name="check" size={20} color={colors.fontSecondary} />
 				) : null;
 			return this.networkElement(selected, this.onSetRpcTarget, name, color, i, rpcUrl);

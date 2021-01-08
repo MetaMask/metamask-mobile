@@ -1,5 +1,5 @@
 import { isMainNet, getNetworkName, getAllNetworks, getNetworkTypeById } from './networks';
-import { MAINNET, ROPSTEN, GOERLI, RPC } from '../../app/constants/network';
+import { MAINNET, ROPSTEN, GOERLI, RPC, KOVAN } from '../../app/constants/network';
 
 describe('getAllNetworks', () => {
 	const allNetworks = getAllNetworks();
@@ -48,7 +48,7 @@ describe('getNetworkName', () => {
 describe('getNetworkTypeById', () => {
 	it('should get network type by Id', () => {
 		const type = getNetworkTypeById(42);
-		expect(type).toEqual('kovan');
+		expect(type).toEqual(KOVAN);
 	});
 	it('should fail if network Id is missing', () => {
 		try {

@@ -2,6 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import SignatureRequest from './';
 import configureMockStore from 'redux-mock-store';
+import { ROPSTEN } from '../../../constants/network';
 
 const mockStore = configureMockStore();
 
@@ -19,7 +20,7 @@ describe('SignatureRequest', () => {
 					},
 					NetworkController: {
 						provider: {
-							type: 'ropsten'
+							type: ROPSTEN
 						}
 					}
 				}
