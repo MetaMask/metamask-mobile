@@ -43,6 +43,3 @@ The project follows the same release process as the other libraries in the MetaM
 7. The commit on the base branch is tagged
 8. The tag can be published as needed
 
-## License
-
-This project is available under the [MIT license](./LICENSE).
