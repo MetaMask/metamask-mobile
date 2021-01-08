@@ -1,5 +1,6 @@
 import { colors } from '../styles/common';
 import URL from 'url-parse';
+import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../app/constants/network';
 
 /**
  * List of the supported networks
@@ -9,42 +10,42 @@ import URL from 'url-parse';
  * navbar and the network switcher.
  */
 const NetworkList = {
-	mainnet: {
+	[MAINNET]: {
 		name: 'Ethereum Main Network',
 		shortName: 'Ethereum',
 		networkId: 1,
 		chainId: 1,
 		color: '#3cc29e'
 	},
-	ropsten: {
+	[ROPSTEN]: {
 		name: 'Ropsten Test Network',
 		shortName: 'Ropsten',
 		networkId: 3,
 		chainId: 3,
 		color: '#ff4a8d'
 	},
-	kovan: {
+	[KOVAN]: {
 		name: 'Kovan Test Network',
 		shortName: 'Kovan',
 		networkId: 42,
 		chainId: 42,
 		color: '#7057ff'
 	},
-	rinkeby: {
+	[RINKEBY]: {
 		name: 'Rinkeby Test Network',
 		shortName: 'Rinkeby',
 		networkId: 4,
 		chainId: 4,
 		color: '#f6c343'
 	},
-	goerli: {
+	[GOERLI]: {
 		name: 'Goerli Test Network',
 		shortName: 'Goerli',
 		networkId: 5,
 		chainId: 5,
 		color: '#3099f2'
 	},
-	rpc: {
+	[RPC]: {
 		name: 'Private Network',
 		shortName: 'Private',
 		color: colors.grey000
@@ -55,10 +56,10 @@ const NetworkListKeys = Object.keys(NetworkList);
 
 export default NetworkList;
 
-export const getAllNetworks = () => NetworkListKeys.filter(name => name !== 'rpc');
+export const getAllNetworks = () => NetworkListKeys.filter(name => name !== RPC);
 
-export const isMainNet = network => {
-	const is_main = network?.provider?.type === 'mainnet' || network === String(1);
+export const isMainNet = (network, provider) => {
+	const is_main = network?.provider?.type === MAINNET || network === String(1);
 	return is_main;
 };
 
@@ -77,7 +78,7 @@ export function getNetworkTypeById(id) {
 }
 
 export function hasBlockExplorer(key) {
-	return key.toLowerCase() !== 'rpc';
+	return key.toLowerCase() !== RPC;
 }
 
 export function isKnownNetwork(id) {

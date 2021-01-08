@@ -9,6 +9,7 @@ import Networks, { getAllNetworks } from '../../../util/networks';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MAINNET } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -209,7 +210,7 @@ export class NetworkList extends PureComponent {
 	renderMainnet() {
 		const { provider } = this.props;
 		const isMainnet =
-			provider.type === 'mainnet' ? <Icon name="check" size={15} color={colors.fontSecondary} /> : null;
+			provider.type === MAINNET ? <Icon name="check" size={15} color={colors.fontSecondary} /> : null;
 		const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
 
 		return (
@@ -217,7 +218,7 @@ export class NetworkList extends PureComponent {
 				<TouchableOpacity
 					style={[styles.network, styles.mainnet]}
 					key={`network-mainnet`}
-					onPress={() => this.onNetworkChange('mainnet')} // eslint-disable-line
+					onPress={() => this.onNetworkChange(MAINNET)} // eslint-disable-line
 					testID={'network-name'}
 				>
 					<View style={styles.networkWrapper}>

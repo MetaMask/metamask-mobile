@@ -19,6 +19,7 @@ import contractMap from '@metamask/contract-metadata';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
+import { MAINNET } from '../../../constants/network';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -553,7 +554,7 @@ class TransactionEditor extends PureComponent {
 			return undefined;
 		}
 		const address = toChecksumAddress(to);
-		if (networkType === 'mainnet') {
+		if (networkType === MAINNET) {
 			const contractMapToken = contractMap[address];
 			if (contractMapToken) return strings('transaction.known_asset_contract');
 		}
