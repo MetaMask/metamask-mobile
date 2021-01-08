@@ -130,7 +130,6 @@ exports[`CustomGas should render correctly 1`] = `
       Array [
         Object {
           "alignSelf": "center",
-          "height": "100%",
           "paddingTop": 24,
           "position": "absolute",
           "width": "100%",
@@ -431,7 +430,7 @@ exports[`CustomGas should render correctly 1`] = `
         }
       }
     >
-      The network fee covers the cost of processing your transaction and storing it on the Ethereum network. MetaMask does not profit from this fee. Select the fee you are willing to pay. The higher the fee the better chances of your transaction getting processed.
+      The network fee covers the cost of processing your transaction on the Ethereum network. MetaMask does not profit from this fee. The higher the fee the better chances of your transaction getting processed.
     </Text>
   </ForwardRef(AnimatedComponentWrapper)>
   <ForwardRef(AnimatedComponentWrapper)
