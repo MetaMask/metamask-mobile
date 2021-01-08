@@ -101,7 +101,6 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		alignSelf: 'center',
 		width: '100%',
-		height: '100%',
 		paddingTop: 24
 	},
 	selectors: {

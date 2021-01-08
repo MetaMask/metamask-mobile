@@ -594,7 +594,7 @@
 		"gas_limit": "Límite de Gas:",
 		"gas_price": "Precio de Gas: (GWEI)",
 		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027",
-		"cost_explanation": "La tarifa de la red cubre el costo de procesar su transacción y almacenarla en la red Ethereum. MetaMask no se beneficia de esta tarifa. Seleccione la tarifa que está dispuesto a pagar. Cuanto mayor sea la tarifa, mayores serán las posibilidades de que se procese tu transacción."
+		"cost_explanation": "La tarifa de la red cubre el costo de procesar tu transacción en la red Ethereum. MetaMask no se beneficia de esta tarifa. Cuanto mayor sea la tarifa, mayores serán las posibilidades de que se procese tu transacción."
 	},
 	"spend_limit_edition": {
 		"save": "Guardar",
