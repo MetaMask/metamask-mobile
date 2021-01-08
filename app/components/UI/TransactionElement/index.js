@@ -148,6 +148,7 @@ class TransactionElement extends PureComponent {
 
 	componentDidMount = async () => {
 		const [transactionElement, transactionDetails] = await decodeTransaction(this.props);
+		console.log('transactionElement', transactionElement);
 		this.mounted = true;
 		this.mounted && this.setState({ transactionElement, transactionDetails });
 	};
