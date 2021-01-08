@@ -26,6 +26,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import StyledButton from '../StyledButton';
 import SliderButton from '../SliderButton';
+import LoadingAnimation from './components/LoadingAnimation';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
 import FeeModal from './components/FeeModal';
@@ -149,6 +150,9 @@ const styles = StyleSheet.create({
 });
 
 async function resetAndStartPolling({ slippage, sourceToken, destinationToken, sourceAmount, walletAddress }) {
+	if (!sourceToken || !destinationToken) {
+		return;
+	}
 	const { SwapsController, TokenRatesController, AssetsController } = Engine.context;
 	const contractExchangeRates = TokenRatesController.state.contractExchangeRates;
 	// ff the token is not in the wallet, we'll add it
@@ -222,7 +226,8 @@ function SwapsQuotesView({
 
 	/* State */
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
-	const [isFirstLoad, setFirstLoad] = useState(true);
+	const [isFirstLoad, setIsFirstLoad] = useState(true);
+	const [shouldFinishFirstLoad, setShouldFinishFirstLoad] = useState(false);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 
 	/* Selected quote, initially topAggId (see effects) */
@@ -269,12 +274,16 @@ function SwapsQuotesView({
 	const [isQuotesModalVisible, toggleQuotesModal, , hideQuotesModal] = useModalHandler(false);
 
 	/* Handlers */
+	const handleAnimationEnd = useCallback(() => {
+		setIsFirstLoad(false);
+	}, []);
+
 	const handleRatioSwitch = () => setRatioAsSource(isSource => !isSource);
 
 	const handleRetryFetchQuotes = useCallback(() => {
 		if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
 			setFirstLoadTime(Date.now());
-			setFirstLoad(true);
+			setIsFirstLoad(true);
 			resetAndStartPolling({
 				slippage,
 				sourceToken,
@@ -320,7 +329,7 @@ function SwapsQuotesView({
 	useEffect(() => {
 		if (isFirstLoad) {
 			if (firstLoadTime < quotesLastFetched || errorKey) {
-				setFirstLoad(false);
+				setShouldFinishFirstLoad(true);
 			}
 		}
 	}, [errorKey, firstLoadTime, isFirstLoad, quotesLastFetched]);
@@ -355,10 +364,8 @@ function SwapsQuotesView({
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
 		return (
-			<ScreenView contentContainerStyle={styles.screen}>
-				<View style={[styles.content, styles.errorViewContent]}>
-					<ActivityIndicator size="large" />
-				</View>
+			<ScreenView contentContainerStyle={styles.screen} scrollEnabled={false}>
+				<LoadingAnimation finish={shouldFinishFirstLoad} onAnimationEnd={handleAnimationEnd} />
 			</ScreenView>
 		);
 	}
