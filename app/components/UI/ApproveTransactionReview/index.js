@@ -23,7 +23,6 @@ import {
 	getMethodData
 } from '../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import ErrorMessage from '../../Views/SendFlow/ErrorMessage';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
