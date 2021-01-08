@@ -37,7 +37,7 @@ import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from 'react-navigation';
-import { getNetworkName } from '../../../util/networks';
+import { getNetworkName, isMainNet } from '../../../util/networks';
 import { capitalize } from '../../../util/format';
 
 const { hexToBN } = util;
@@ -598,11 +598,6 @@ class ApproveTransactionReview extends PureComponent {
 		});
 	};
 
-	isMainNet = () => {
-		const { network } = this.props;
-		return network === String(1);
-	};
-
 	render = () => {
 		const {
 			host,
@@ -624,14 +619,14 @@ class ApproveTransactionReview extends PureComponent {
 			network,
 			over
 		} = this.props;
-
+		const is_main_net = isMainNet(network);
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
 		const currencySymbol = currencySymbols[currentCurrency];
 		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
-		const errorPress = this.isMainNet() ? this.buyEth : this.gotoFaucet;
+		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
 		const networkName = capitalize(getNetworkName(network));
-		const errorLinkText = this.isMainNet()
+		const errorLinkText = is_main_net
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
 
@@ -718,7 +713,7 @@ class ApproveTransactionReview extends PureComponent {
 														<TouchableOpacity onPress={errorPress}>
 															<Text style={styles.error}>{gasError}</Text>
 															{/* only show buy more on mainnet */}
-															{over && this.isMainNet() && (
+															{over && is_main_net && (
 																<Text style={[styles.error, styles.underline]}>
 																	{errorLinkText}
 																</Text>

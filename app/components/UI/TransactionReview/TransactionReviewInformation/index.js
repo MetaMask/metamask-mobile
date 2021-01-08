@@ -19,7 +19,7 @@ import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { withNavigation } from 'react-navigation';
-import { getNetworkName } from '../../../../util/networks';
+import { getNetworkName, isMainNet } from '../../../../util/networks';
 import { capitalize } from '../../../../util/format';
 
 const styles = StyleSheet.create({
@@ -303,11 +303,6 @@ class TransactionReviewInformation extends PureComponent {
 		});
 	};
 
-	isMainNet = () => {
-		const { network } = this.props;
-		return network === String(1);
-	};
-
 	render() {
 		const { amountError } = this.state;
 		const {
@@ -324,13 +319,14 @@ class TransactionReviewInformation extends PureComponent {
 			over,
 			network
 		} = this.props;
+		const is_main_net = isMainNet(network);
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
-		const errorPress = this.isMainNet() ? this.buyEth : this.gotoFaucet;
+		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
 		const networkName = capitalize(getNetworkName(network));
-		const errorLinkText = this.isMainNet()
+		const errorLinkText = is_main_net
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
 
@@ -361,7 +357,7 @@ class TransactionReviewInformation extends PureComponent {
 						<TouchableOpacity onPress={errorPress}>
 							<Text style={styles.error}>{error}</Text>
 							{/* only show buy more on mainnet */}
-							{over && this.isMainNet() && (
+							{over && is_main_net && (
 								<Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>
 							)}
 						</TouchableOpacity>
