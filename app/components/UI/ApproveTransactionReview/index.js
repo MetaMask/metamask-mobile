@@ -717,7 +717,8 @@ class ApproveTransactionReview extends PureComponent {
 													<View style={styles.errorWrapper}>
 														<TouchableOpacity onPress={errorPress}>
 															<Text style={styles.error}>{gasError}</Text>
-															{over && (
+															{/* only show buy more on mainnet */}
+															{over && this.isMainNet() && (
 																<Text style={[styles.error, styles.underline]}>
 																	{errorLinkText}
 																</Text>

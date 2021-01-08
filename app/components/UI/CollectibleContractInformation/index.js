@@ -148,7 +148,7 @@ class CollectibleContractInformation extends PureComponent {
 			collectibleContract: { name, description, totalSupply, address },
 			network
 		} = this.props;
-		const isMainnet = network.provider.type === 'mainnet';
+		const isMainnet = network?.provider?.type === 'mainnet';
 
 		return (
 			<SafeAreaView style={styles.wrapper}>
