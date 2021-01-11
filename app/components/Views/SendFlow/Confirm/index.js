@@ -647,6 +647,8 @@ class Confirm extends PureComponent {
 					const amount = renderFromWei(weiInput.sub(weiBalance));
 					const tokenSymbol = getTicker(ticker);
 					errorMessage = strings('transaction.insufficient_amount', { amount, tokenSymbol });
+				} else {
+					this.setState({ over: false });
 				}
 			} else if (selectedAsset.isETH || selectedAsset.tokenId) {
 				const totalGas = gas ? gas.mul(gasPrice) : toBN('0x0');
@@ -657,6 +659,8 @@ class Confirm extends PureComponent {
 					const amount = renderFromWei(weiInput.sub(weiBalance));
 					const tokenSymbol = getTicker(ticker);
 					errorMessage = strings('transaction.insufficient_amount', { amount, tokenSymbol });
+				} else {
+					this.setState({ over: false });
 				}
 			} else {
 				const [, , amount] = decodeTransferData('transfer', transaction.data);
