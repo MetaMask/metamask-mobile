@@ -415,7 +415,6 @@ class TransactionEditor extends PureComponent {
 				const tokenSymbol = getTicker(ticker);
 				return strings('transaction.insufficient_amount', { amount, tokenSymbol });
 			}
-			this.setState({ over: false });
 		}
 		return error;
 	};

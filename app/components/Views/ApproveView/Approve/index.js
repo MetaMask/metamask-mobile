@@ -169,10 +169,7 @@ class Approve extends PureComponent {
 			const tokenSymbol = getTicker(ticker);
 			error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
 		}
-		this.setState({
-			gasError: error,
-			over: false
-		});
+		this.setState({ gasError: error });
 		return error;
 	};
 
