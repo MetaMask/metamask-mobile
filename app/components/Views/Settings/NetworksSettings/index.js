@@ -9,6 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import Networks, { getAllNetworks } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
+import { MAINNET, RPC } from '../../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -105,7 +106,7 @@ class NetworksSettings extends PureComponent {
 	switchToMainnet = () => {
 		const { NetworkController, CurrencyRateController } = Engine.context;
 		CurrencyRateController.configure({ nativeCurrency: 'ETH' });
-		NetworkController.setProviderType('mainnet');
+		NetworkController.setProviderType(MAINNET);
 		this.props.thirdPartyApiMode &&
 			setTimeout(() => {
 				Engine.refreshTransactionHistory();
@@ -115,7 +116,7 @@ class NetworksSettings extends PureComponent {
 	removeNetwork = () => {
 		// Check if it's the selected network and then switch to mainnet first
 		const { provider } = this.props;
-		if (provider.rpcTarget === this.networkToRemove && provider.type === 'rpc') {
+		if (provider.rpcTarget === this.networkToRemove && provider.type === RPC) {
 			this.switchToMainnet();
 		}
 		const { PreferencesController } = Engine.context;
@@ -180,8 +181,8 @@ class NetworksSettings extends PureComponent {
 			<View style={styles.mainnetHeader}>
 				<TouchableOpacity
 					style={styles.network}
-					key={`network-mainnet`}
-					onPress={() => this.onPress('mainnet')} // eslint-disable-line
+					key={`network-${MAINNET}`}
+					onPress={() => this.onPress(MAINNET)} // eslint-disable-line
 				>
 					<View style={styles.networkWrapper}>
 						<View style={[styles.networkIcon, { backgroundColor: mainnetColor }]} />

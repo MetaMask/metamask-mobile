@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
-import Networks, { isprivateConnection } from '../../../../../util/networks';
+import Networks, { isprivateConnection, getAllNetworks } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const allNetworks = ['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'];
+const allNetworks = getAllNetworks();
 const allNetworksblockExplorerUrl = `https://api.infura.io/v1/jsonrpc/`;
 /**
  * Main view for app configurations
