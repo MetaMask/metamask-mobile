@@ -209,6 +209,10 @@ const styles = StyleSheet.create({
 	underline: {
 		textDecorationLine: 'underline',
 		...fontStyles.bold
+	},
+	over: {
+		color: colors.red,
+		...fontStyles.bold
 	}
 });
 
@@ -446,7 +450,7 @@ class Confirm extends PureComponent {
 			ticker,
 			isPaymentChannelTransaction
 		} = this.props;
-		const { fromSelectedAddress } = this.state;
+		const { fromSelectedAddress, over } = this.state;
 		let fromAccountBalance,
 			transactionValue,
 			transactionValueFiat,
@@ -469,12 +473,12 @@ class Confirm extends PureComponent {
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 			transactionTotalAmount = (
-				<Text style={styles.totalAmount}>
+				<Text style={[styles.totalAmount, over && styles.over]}>
 					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
 				</Text>
 			);
 			transactionTotalAmountFiat = (
-				<Text style={styles.totalAmount}>
+				<Text style={[styles.totalAmount, over && styles.over]}>
 					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
 				</Text>
 			);
@@ -909,8 +913,6 @@ class Confirm extends PureComponent {
 
 	buyEth = () => {
 		const { navigation } = this.props;
-		/* this is kinda weird, we have to reject the transaction to collapse the modal */
-		this.onCancelPress();
 		navigation.navigate('PaymentMethodSelector');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
@@ -920,7 +922,6 @@ class Confirm extends PureComponent {
 	gotoFaucet = () => {
 		const mmFaucetUrl = 'https://faucet.metamask.io/';
 		InteractionManager.runAfterInteractions(() => {
-			this.onCancelPress();
 			this.props.navigation.navigate('BrowserView', {
 				newTabUrl: mmFaucetUrl
 			});
