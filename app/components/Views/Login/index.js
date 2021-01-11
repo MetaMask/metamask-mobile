@@ -29,7 +29,6 @@ import {
 } from '../../../constants/storage';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
-import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -386,13 +385,11 @@ class Login extends PureComponent {
 							</StyledButton>
 						</View>
 
-						{AppConstants?.IS_DEV ? (
-							<View style={styles.footer}>
-								<Button style={styles.goBack} onPress={this.onPressGoBack}>
-									{strings('login.go_back')}
-								</Button>
-							</View>
-						) : null}
+						<View style={styles.footer}>
+							<Button style={styles.goBack} onPress={this.onPressGoBack}>
+								{strings('login.go_back')}
+							</Button>
+						</View>
 					</View>
 				</KeyboardAwareScrollView>
 				<FadeOutOverlay />
