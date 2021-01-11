@@ -1,4 +1,5 @@
 import Device from '../util/Device';
+import { MAINNET, RINKEBY } from '../constants/network';
 
 export default {
 	DEFAULT_LOCK_TIMEOUT: 30000,
@@ -21,7 +22,7 @@ export default {
 			4: '0x0Fa90eC3AC3245112c6955d8F9DD74Ec9D599996',
 			1: '0xdfa6edAe2EC0cF1d4A60542422724A48195A5071'
 		},
-		SUPPORTED_NETWORKS: ['mainnet', 'rinkeby']
+		SUPPORTED_NETWORKS: [MAINNET, RINKEBY]
 	},
 	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 	SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',

@@ -21,6 +21,7 @@ import AppConstants from '../../../../core/AppConstants';
 import StatusText from '../../../Base/StatusText';
 import Text from '../../../Base/Text';
 import DetailsModal from '../../../Base/DetailsModal';
+import { RPC } from '../../../../constants/network';
 
 const styles = StyleSheet.create({
 	viewOnEtherscan: {
@@ -107,7 +108,7 @@ class TransactionDetails extends PureComponent {
 			frequentRpcList
 		} = this.props;
 		let blockExplorer;
-		if (type === 'rpc') {
+		if (type === RPC) {
 			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList) || NO_RPC_BLOCK_EXPLORER;
 		}
 		this.setState({ rpcBlockExplorer: blockExplorer });
@@ -125,7 +126,7 @@ class TransactionDetails extends PureComponent {
 		} = this.props;
 		const { rpcBlockExplorer } = this.state;
 		try {
-			if (type === 'rpc') {
+			if (type === RPC) {
 				const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
 				const title = new URL(rpcBlockExplorer).hostname;
 				navigation.push('Webview', {

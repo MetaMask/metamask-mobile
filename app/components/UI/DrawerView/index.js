@@ -38,6 +38,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 import WhatsNewModal from '../WhatsNewModal';
+import { RPC } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -582,7 +583,7 @@ class DrawerView extends PureComponent {
 			},
 			frequentRpcList
 		} = this.props;
-		if (network.provider.type === 'rpc') {
+		if (network.provider.type === RPC) {
 			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
 			const url = `${blockExplorer}/address/${selectedAddress}`;
 			const title = new URL(blockExplorer).hostname;
@@ -642,7 +643,7 @@ class DrawerView extends PureComponent {
 
 	hasBlockExplorer = providerType => {
 		const { frequentRpcList } = this.props;
-		if (providerType === 'rpc') {
+		if (providerType === RPC) {
 			const {
 				network: {
 					provider: { rpcTarget }
@@ -697,7 +698,7 @@ class DrawerView extends PureComponent {
 			paymentChannelsEnabled
 		} = this.props;
 		let blockExplorer, blockExplorerName;
-		if (type === 'rpc') {
+		if (type === RPC) {
 			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
 			blockExplorerName = getBlockExplorerName(blockExplorer);
 		}

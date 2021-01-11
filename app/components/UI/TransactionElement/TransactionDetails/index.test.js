@@ -2,6 +2,7 @@ import React from 'react';
 import TransactionDetails from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
+import { RPC } from '../../../../constants/network';
 
 const mockStore = configureMockStore();
 
@@ -20,7 +21,7 @@ describe('TransactionDetails', () => {
 					NetworkController: {
 						provider: {
 							rpcTarget: '',
-							type: 'rpc'
+							type: RPC
 						}
 					}
 				}

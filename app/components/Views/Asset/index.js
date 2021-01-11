@@ -9,6 +9,7 @@ import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
+import { RPC } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -140,7 +141,7 @@ class Asset extends PureComponent {
 		return (
 			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
 			((networkId && networkId.toString() === tx.networkID) ||
-				(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
+				(networkType === RPC && !isKnownNetwork(tx.networkID))) &&
 			tx.status !== 'unapproved'
 		);
 	};
@@ -157,7 +158,7 @@ class Asset extends PureComponent {
 		return (
 			(from & (from.toLowerCase() === this.navAddress) || (to && to.toLowerCase() === this.navAddress)) &&
 			((networkId && networkId.toString() === tx.networkID) ||
-				(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
+				(networkType === RPC && !isKnownNetwork(tx.networkID))) &&
 			tx.status !== 'unapproved'
 		);
 	};
