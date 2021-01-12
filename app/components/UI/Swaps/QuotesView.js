@@ -82,7 +82,11 @@ const styles = StyleSheet.create({
 		marginHorizontal: 5
 	},
 	tokenText: {
+		color: colors.grey500,
 		fontSize: Device.isSmallDevice() ? 16 : 18
+	},
+	tokenTextDestination: {
+		color: colors.fontPrimary
 	},
 	arrowDown: {
 		color: colors.grey100,
@@ -465,7 +469,7 @@ function SwapsQuotesView({
 								icon={destinationToken.iconUrl}
 								symbol={destinationToken.symbol}
 							/>
-							<Text primary style={styles.tokenText}>
+							<Text style={[styles.tokenText, styles.tokenTextDestination]}>
 								{destinationToken.symbol}
 							</Text>
 						</View>
