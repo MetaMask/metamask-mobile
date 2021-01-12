@@ -14,6 +14,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/Device';
 import { connect } from 'react-redux';
+import { isMainNet } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -148,7 +149,7 @@ class CollectibleContractInformation extends PureComponent {
 			collectibleContract: { name, description, totalSupply, address },
 			network
 		} = this.props;
-		const isMainnet = network.provider.type === 'mainnet';
+		const is_main_net = isMainNet(network);
 
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -174,7 +175,7 @@ class CollectibleContractInformation extends PureComponent {
 						<Text style={styles.label}>{strings('asset_overview.address')}</Text>
 						<Text style={[styles.content, styles.address]}>{address}</Text>
 					</View>
-					{isMainnet && (
+					{is_main_net && (
 						<View style={styles.creditsView}>
 							<TouchableOpacity style={styles.credits} onPress={this.goToOpenSea}>
 								<View style={styles.creditsElements}>

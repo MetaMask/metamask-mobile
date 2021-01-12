@@ -32,6 +32,7 @@ import NotificationManager from './NotificationManager';
 import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
+import { MAINNET } from '../constants/network';
 
 const encryptor = new Encryptor();
 let refreshing = false;
@@ -103,7 +104,7 @@ class Engine {
 								}
 							}
 						},
-						{ network: '1', provider: { type: 'mainnet' } }
+						{ network: '1', provider: { type: MAINNET } }
 					),
 					new PhishingController(),
 					new PreferencesController(
@@ -353,7 +354,7 @@ class Engine {
 			Object.keys(preferences.accountTokens[address]).forEach(
 				networkType =>
 					(allTokens[checksummedAddress][networkType] =
-						networkType !== 'mainnet'
+						networkType !== MAINNET
 							? preferences.accountTokens[address][networkType]
 							: preferences.accountTokens[address][networkType]
 									.filter(({ address }) =>

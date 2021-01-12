@@ -89,6 +89,7 @@ exports[`Confirm should render correctly 1`] = `
       edit={[Function]}
       fiat=""
       gasEstimationReady={false}
+      over={false}
       totalFiat={<Text />}
       totalGasFiat=""
       totalValue={<Text />}
