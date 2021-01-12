@@ -226,6 +226,7 @@
 		"browser": "Browser",
 		"settings": "Settings",
 		"settings_warning": "Wallet unprotected",
+		"settings_warning_short": "Unprotected",
 		"help": "Get help",
 		"logout": "Log Out",
 		"logout_title": "Do you really want to log out?",
@@ -578,6 +579,9 @@
 		"review_function": "Function",
 		"review_hex_data": "Hex data",
 		"insufficient": "Insufficient funds",
+		"insufficient_amount": "You need {{amount}} more {{tokenSymbol}} to complete this transaction.",
+		"buy_more_eth": "Buy more ETH",
+		"get_ether": "Get Ether for the {{networkName}} network.",
 		"insufficient_tokens": "Insufficient {{token}}",
 		"invalid_address": "Invalid address",
 		"invalid_amount": "Invalid amount",
@@ -1372,6 +1376,18 @@
 		"cancelled": "Canceled",
 		"amount": "Amount",
 		"total_amount": "Total amount"
+	},
+	"swaps": {
+		"convert_from": "Convert from",
+		"convert_to": "Convert to",
+		"select_a_token": "Select a token",
+		"search_token": "Search for a token",
+		"no_tokens_result": "No tokens match “{{searchString}}”",
+		"available_to_swap": "{{asset}} available to swap",
+		"not_enough": "Not enough {{symbol}} to complete this swap",
+		"max_slippage": "Max slippage {{slippage}}",
+		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
+		"get_quotes": "Get quotes"
 	},
 	"protect_wallet_modal": {
 		"title": "Protect your wallet",

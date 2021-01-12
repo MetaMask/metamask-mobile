@@ -59,6 +59,7 @@ import { ethErrors } from 'eth-json-rpc-errors';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import { getVersion } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
+import { RPC } from '../../../constants/network';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -511,7 +512,7 @@ export const BrowserTab = props => {
 					const data = JSON.parse(req.params[1]);
 					const chainId = data.domain.chainId;
 					const activeChainId =
-						props.networkType === 'rpc' ? props.network : Networks[props.networkType].networkId;
+						props.networkType === RPC ? props.network : Networks[props.networkType].networkId;
 
 					// eslint-disable-next-line
 					if (chainId && chainId != activeChainId) {
@@ -545,7 +546,7 @@ export const BrowserTab = props => {
 					const data = JSON.parse(req.params[1]);
 					const chainId = data.domain.chainId;
 					const activeChainId =
-						props.networkType === 'rpc' ? props.network : Networks[props.networkType].networkId;
+						props.networkType === RPC ? props.network : Networks[props.networkType].networkId;
 
 					// eslint-disable-next-line eqeqeq
 					if (chainId && chainId != activeChainId) {
@@ -771,7 +772,8 @@ export const BrowserTab = props => {
 
 	const isBookmark = () => {
 		const { bookmarks } = props;
-		return bookmarks.some(({ url: bookmark }) => bookmark === url.current);
+		const maskedUrl = getMaskedUrl(url.current);
+		return bookmarks.some(({ url: bookmark }) => bookmark === maskedUrl);
 	};
 
 	/**
@@ -1062,12 +1064,10 @@ export const BrowserTab = props => {
 
 		props.updateTabInfo(getMaskedUrl(siteInfo.url), props.id);
 
-		if (type !== 'start') {
-			props.addToBrowserHistory({
-				name: siteInfo.title,
-				url: getMaskedUrl(siteInfo.url)
-			});
-		}
+		props.addToBrowserHistory({
+			name: siteInfo.title,
+			url: getMaskedUrl(siteInfo.url)
+		});
 	};
 
 	/**
@@ -1190,6 +1190,7 @@ export const BrowserTab = props => {
 	 * When website finished loading
 	 */
 	const onLoadEnd = ({ nativeEvent }) => {
+		if (nativeEvent.loading) return;
 		const { current } = webviewRef;
 
 		current && current.injectJavaScript(JS_WEBVIEW_URL);
@@ -1200,7 +1201,9 @@ export const BrowserTab = props => {
 		const promise = current ? new Promise(promiseResolver) : Promise.resolve(url.current);
 
 		promise.then(info => {
-			if (info.url === nativeEvent.url) {
+			const { hostname: currentHostname } = new URL(url.current);
+			const { hostname } = new URL(nativeEvent.url);
+			if (info.url === nativeEvent.url && currentHostname === hostname) {
 				changeUrl({ ...nativeEvent, icon: info.icon }, 'end-promise');
 			}
 		});
@@ -1209,7 +1212,9 @@ export const BrowserTab = props => {
 	/**
 	 * Handle message from website
 	 */
-	const onMessage = ({ nativeEvent: { data } }) => {
+	const onMessage = ({ nativeEvent }) => {
+		let data = nativeEvent.data;
+
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
 			if (!data || (!data.type && !data.name)) {
@@ -1235,9 +1240,12 @@ export const BrowserTab = props => {
 					onFrameLoadStarted(url);
 					break;
 				}*/
-				case 'GET_WEBVIEW_URL':
-					webviewUrlPostMessagePromiseResolve.current &&
-						webviewUrlPostMessagePromiseResolve.current(data.payload);
+				case 'GET_WEBVIEW_URL': {
+					const { url } = data.payload;
+					if (url === nativeEvent.url)
+						webviewUrlPostMessagePromiseResolve.current &&
+							webviewUrlPostMessagePromiseResolve.current(data.payload);
+				}
 			}
 		} catch (e) {
 			Logger.error(e, `Browser::onMessage on ${url.current}`);

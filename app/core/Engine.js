@@ -18,6 +18,8 @@ import {
 	TypedMessageManager
 } from '@metamask/controllers';
 
+import { SwapsController } from '@estebanmino/controllers';
+
 import AsyncStorage from '@react-native-community/async-storage';
 
 import Encryptor from './Encryptor';
@@ -27,9 +29,10 @@ import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import NotificationManager from './NotificationManager';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
+import { MAINNET } from '../constants/network';
 
 const encryptor = new Encryptor();
 let refreshing = false;
@@ -101,7 +104,7 @@ class Engine {
 								}
 							}
 						},
-						{ network: '1', provider: { type: 'mainnet' } }
+						{ network: '1', provider: { type: MAINNET } }
 					),
 					new PhishingController(),
 					new PreferencesController(
@@ -113,7 +116,8 @@ class Engine {
 					new TokenBalancesController(),
 					new TokenRatesController(),
 					new TransactionController(),
-					new TypedMessageManager()
+					new TypedMessageManager(),
+					new SwapsController()
 				],
 				initialState
 			);
@@ -350,7 +354,7 @@ class Engine {
 			Object.keys(preferences.accountTokens[address]).forEach(
 				networkType =>
 					(allTokens[checksummedAddress][networkType] =
-						networkType !== 'mainnet'
+						networkType !== MAINNET
 							? preferences.accountTokens[address][networkType]
 							: preferences.accountTokens[address][networkType]
 									.filter(({ address }) =>
@@ -425,7 +429,8 @@ export default {
 			TokenBalancesController,
 			TokenRatesController,
 			TransactionController,
-			TypedMessageManager
+			TypedMessageManager,
+			SwapsController
 		} = instance.datamodel.state;
 
 		return {
@@ -443,7 +448,8 @@ export default {
 			TokenBalancesController,
 			TokenRatesController,
 			TransactionController,
-			TypedMessageManager
+			TypedMessageManager,
+			SwapsController
 		};
 	},
 	get datamodel() {

@@ -7,7 +7,7 @@ import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -23,7 +23,6 @@ import {
 	getMethodData
 } from '../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import ErrorMessage from '../../Views/SendFlow/ErrorMessage';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -36,6 +35,9 @@ import StyledButton from '../../UI/StyledButton';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { withNavigation } from 'react-navigation';
+import { getNetworkName, isMainNet } from '../../../util/networks';
+import { capitalize } from '../../../util/format';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -186,8 +188,27 @@ const styles = StyleSheet.create({
 	textBlack: {
 		color: colors.black
 	},
-	errorMessageWrapper: {
-		marginTop: 16
+	errorWrapper: {
+		// marginHorizontal: 24,
+		marginTop: 12,
+		paddingHorizontal: 10,
+		paddingVertical: 8,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
+		borderRadius: 8,
+		borderWidth: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	error: {
+		color: colors.red,
+		fontSize: 12,
+		...fontStyles.normal,
+		textAlign: 'center'
+	},
+	underline: {
+		textDecorationLine: 'underline',
+		...fontStyles.bold
 	},
 	actionViewWrapper: {
 		height: Device.isMediumDevice() ? 200 : 350
@@ -264,7 +285,19 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * Active tab URL, the currently active tab url
 		 */
-		activeTabUrl: PropTypes.string
+		activeTabUrl: PropTypes.string,
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string,
+		/**
+		 * True if transaction is over the available funds
+		 */
+		over: PropTypes.bool
 	};
 
 	state = {
@@ -539,6 +572,31 @@ class ApproveTransactionReview extends PureComponent {
 		);
 	};
 
+	buyEth = () => {
+		const { navigation } = this.props;
+		/* this is kinda weird, we have to reject the transaction to collapse the modal */
+		this.onCancelPress();
+		navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+		});
+	};
+
+	onCancelPress = () => {
+		const { onCancel } = this.props;
+		onCancel && onCancel();
+	};
+
+	gotoFaucet = () => {
+		const mmFaucetUrl = 'https://faucet.metamask.io/';
+		InteractionManager.runAfterInteractions(() => {
+			this.onCancelPress();
+			this.props.navigation.navigate('BrowserView', {
+				newTabUrl: mmFaucetUrl
+			});
+		});
+	};
+
 	render = () => {
 		const {
 			host,
@@ -556,13 +614,20 @@ class ApproveTransactionReview extends PureComponent {
 			currentCurrency,
 			gasError,
 			activeTabUrl,
-			transaction: { origin }
+			transaction: { origin },
+			network,
+			over
 		} = this.props;
-
+		const is_main_net = isMainNet(network);
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
 		const currencySymbol = currencySymbols[currentCurrency];
 		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
+		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
+		const networkName = capitalize(getNetworkName(network));
+		const errorLinkText = is_main_net
+			? strings('transaction.buy_more_eth')
+			: strings('transaction.get_ether', { networkName });
 
 		return (
 			<View>
@@ -630,19 +695,29 @@ class ApproveTransactionReview extends PureComponent {
 														</View>
 													</View>
 												</TouchableOpacity>
-												<TouchableOpacity
-													style={styles.actionTouchable}
-													onPress={this.toggleViewDetails}
-												>
-													<View style={styles.viewDetailsWrapper}>
-														<Text style={styles.viewDetailsText}>
-															{strings('spend_limit_edition.view_details')}
-														</Text>
-													</View>
-												</TouchableOpacity>
+												{!gasError && (
+													<TouchableOpacity
+														style={styles.actionTouchable}
+														onPress={this.toggleViewDetails}
+													>
+														<View style={styles.viewDetailsWrapper}>
+															<Text style={styles.viewDetailsText}>
+																{strings('spend_limit_edition.view_details')}
+															</Text>
+														</View>
+													</TouchableOpacity>
+												)}
 												{gasError && (
-													<View style={styles.errorMessageWrapper}>
-														<ErrorMessage errorMessage={gasError} />
+													<View style={styles.errorWrapper}>
+														<TouchableOpacity onPress={errorPress}>
+															<Text style={styles.error}>{gasError}</Text>
+															{/* only show buy more on mainnet */}
+															{over && is_main_net && (
+																<Text style={[styles.error, styles.underline]}>
+																	{errorLinkText}
+																</Text>
+															)}
+														</TouchableOpacity>
 													</View>
 												)}
 											</View>
@@ -668,7 +743,8 @@ const mapStateToProps = state => ({
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	primaryCurrency: state.settings.primaryCurrency,
-	activeTabUrl: getActiveTabUrl(state)
+	activeTabUrl: getActiveTabUrl(state),
+	network: state.engine.backgroundState.NetworkController.network
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -679,4 +755,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(ApproveTransactionReview);
+)(withNavigation(ApproveTransactionReview));

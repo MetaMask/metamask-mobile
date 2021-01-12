@@ -5,20 +5,21 @@ import ConfirmSend from '../../Views/SendFlow/Confirm';
 import AnimatedTransactionModal from '../AnimatedTransactionModal';
 import TransactionReview from '../TransactionReview';
 import CustomGas from '../CustomGas';
-import { isBN, hexToBN, toBN, isDecimal, fromWei } from '../../../util/number';
+import { isBN, hexToBN, toBN, isDecimal, fromWei, renderFromWei } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { generateTransferData, getNormalizedTxState } from '../../../util/transactions';
+import { generateTransferData, getNormalizedTxState, getTicker } from '../../../util/transactions';
 import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
+import { MAINNET } from '../../../constants/network';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -90,7 +91,11 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Whether was prompted from approval
 		 */
-		promptedFromApproval: PropTypes.bool
+		promptedFromApproval: PropTypes.bool,
+		/**
+		 * Current selected ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -101,7 +106,8 @@ class TransactionEditor extends PureComponent {
 		data: undefined,
 		amountError: '',
 		gasError: '',
-		toAddressError: ''
+		toAddressError: '',
+		over: false
 	};
 
 	componentDidMount = async () => {
@@ -389,21 +395,26 @@ class TransactionEditor extends PureComponent {
 		let error;
 		if (!allowEmpty) {
 			const {
+				ticker,
 				transaction: { value, gas, gasPrice, from }
 			} = this.props;
 			const checksummedFrom = safeToChecksumAddress(from) || '';
 			const fromAccount = this.props.accounts[checksummedFrom];
-			if (!value || !gas || !gasPrice || !from) return strings('transaction.invalid_amount');
-			if (value && !isBN(value)) return strings('transaction.invalid_amount');
-			if (
-				value &&
-				fromAccount &&
-				isBN(gas) &&
-				isBN(gasPrice) &&
-				isBN(value) &&
-				hexToBN(fromAccount.balance).lt(value.add(gas.mul(gasPrice)))
-			)
-				return strings('transaction.insufficient');
+			const total = value.add(gas.mul(gasPrice));
+			const { balance } = fromAccount;
+
+			if (!value || !gas || !gasPrice || !from) {
+				return strings('transaction.invalid_amount');
+			}
+			if (value && !isBN(value)) {
+				return strings('transaction.invalid_amount');
+			}
+			if (value && fromAccount && isBN(gas) && isBN(gasPrice) && isBN(value) && hexToBN(balance).lt(total)) {
+				this.setState({ over: true });
+				const amount = renderFromWei(total.sub(value));
+				const tokenSymbol = getTicker(ticker);
+				return strings('transaction.insufficient_amount', { amount, tokenSymbol });
+			}
 		}
 		return error;
 	};
@@ -543,7 +554,7 @@ class TransactionEditor extends PureComponent {
 			return undefined;
 		}
 		const address = toChecksumAddress(to);
-		if (networkType === 'mainnet') {
+		if (networkType === MAINNET) {
 			const contractMapToken = contractMap[address];
 			if (contractMapToken) return strings('transaction.known_asset_contract');
 		}
@@ -617,7 +628,7 @@ class TransactionEditor extends PureComponent {
 
 	render = () => {
 		const { mode, transactionConfirmed, transaction, onModeChange } = this.props;
-		const { basicGasEstimates, ready, gasError } = this.state;
+		const { basicGasEstimates, ready, gasError, over } = this.state;
 		const paymentChannelTransaction = transaction ? transaction.paymentChannelTransaction : false;
 		return (
 			<React.Fragment>
@@ -631,6 +642,7 @@ class TransactionEditor extends PureComponent {
 								validate={this.validate}
 								ready={ready}
 								transactionConfirmed={transactionConfirmed}
+								over={over}
 							/>
 							<CustomGas
 								handleGasFeeSelection={this.updateGas}
@@ -655,6 +667,7 @@ const mapStateToProps = state => ({
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state)
 });
 

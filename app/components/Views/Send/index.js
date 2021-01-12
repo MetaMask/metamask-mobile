@@ -14,7 +14,7 @@ import { resetTransaction, setTransactionObject } from '../../../actions/transac
 import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
 import NetworkList, { getNetworkTypeById } from '../../../util/networks';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -27,6 +27,7 @@ import {
 import Logger from '../../../util/Logger';
 import { isENS } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
+import { MAINNET } from '../../../constants/network';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -440,7 +441,7 @@ class Send extends PureComponent {
 	 */
 	removeCollectible = () => {
 		const { selectedAsset, assetType, providerType } = this.props.transaction;
-		if (assetType === 'ERC721' && providerType !== 'mainnet') {
+		if (assetType === 'ERC721' && providerType !== MAINNET) {
 			const { AssetsController } = Engine.context;
 			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
 		}

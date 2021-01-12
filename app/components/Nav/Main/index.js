@@ -43,7 +43,7 @@ import {
 import { BN, isValidAddress } from 'ethereumjs-util';
 import { isENS, safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
-import contractMap from 'eth-contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -417,7 +417,11 @@ const Main = props => {
 
 	const renderDappTransactionModal = () =>
 		props.dappTransactionModalVisible && (
-			<Approval dappTransactionModalVisible toggleDappTransactionModal={props.toggleDappTransactionModal} />
+			<Approval
+				navigation={props.navigation}
+				dappTransactionModalVisible
+				toggleDappTransactionModal={props.toggleDappTransactionModal}
+			/>
 		);
 
 	const renderApproveModal = () =>

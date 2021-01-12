@@ -1,45 +1,25 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { StyleSheet } from 'react-native';
+import { colors } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import AntIcon from 'react-native-vector-icons/AntDesign';
+import Alert from '../../../Base/Alert';
 
 const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.yellow100,
-		borderWidth: 1,
-		borderColor: colors.yellow,
-		borderRadius: 4,
-		padding: 8,
-		flexDirection: 'row'
-	},
-	errorMessage: {
-		...fontStyles.normal,
-		flex: 1,
-		fontSize: 12,
-		color: colors.grey,
-		flexDirection: 'row',
-		alignItems: 'center'
-	},
 	icon: {
+		paddingTop: 4,
 		paddingRight: 8
-	},
-	iconWrapper: {
-		alignItems: 'center',
-		flexDirection: 'row',
-		alignSelf: 'flex-start'
 	}
 });
 
-export default function WarningMessage(props) {
-	const { warningMessage } = props;
+export default function WarningMessage({ warningMessage }) {
 	return (
-		<View style={styles.wrapper}>
-			<View style={styles.iconWrapper}>
-				<AntIcon style={styles.icon} name="bells" color={colors.yellow} size={15} />
-			</View>
-			<Text style={styles.errorMessage}>{warningMessage}</Text>
-		</View>
+		<Alert
+			type="warning"
+			renderIcon={() => <AntIcon style={styles.icon} name="bells" color={colors.yellow} size={15} />}
+		>
+			{warningMessage}
+		</Alert>
 	);
 }
 
