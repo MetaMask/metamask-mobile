@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index 2190ae7..fce616a 100644
+index 2190ae7..cd05399 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -1,5 +1,27 @@
@@ -162,7 +162,7 @@ index 2190ae7..fce616a 100644
 +    private Charset charset;
 +    private static final String REACT_CLASS = "InputStreamWithInjectedJS";
 +    private static Map<Charset, String> script = new HashMap<>();
- 
++
 +    private boolean hasJS = false;
 +    private boolean headWasFound = false;
 +    private boolean scriptWasInjected = false;
@@ -242,7 +242,7 @@ index 2190ae7..fce616a 100644
 +  }
 +
 +  protected class RNCWebViewClient extends WebViewClient {
-+
+ 
 +    protected static final String REACT_CLASS = "RNCWebViewClient";
      protected boolean mLastLoadFailed = false;
      protected @Nullable
@@ -260,7 +260,7 @@ index 2190ae7..fce616a 100644
 @@ -818,6 +1008,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
-     
+ 
 +    @Override
 +    public WebResourceResponse shouldInterceptRequest(WebView webView, WebResourceRequest request) {
 +        WebResourceResponse response = RNCWebViewManager.this.shouldInterceptRequest(request, true, (RNCWebView)webView);
@@ -274,3 +274,25 @@ index 2190ae7..fce616a 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
+@@ -870,6 +1070,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+     @TargetApi(Build.VERSION_CODES.N)
+     @Override
+     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
++
++      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
++  
++             /*
++              * In order to follow redirects properly, we return null in interceptRequest().
++              * Doing this breaks the web3 injection on the resulting page, so we have to reload to
++              * make sure web3 is available.
++              * */
++  
++          if (request.isForMainFrame() && request.isRedirect()) {
++              view.loadUrl(request.getUrl().toString());
++              return true;
++          }
++      }
++
+       final String url = request.getUrl().toString();
+       return this.shouldOverrideUrlLoading(view, url);
+     }
