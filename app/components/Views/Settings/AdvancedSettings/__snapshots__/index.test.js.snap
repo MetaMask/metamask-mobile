@@ -304,7 +304,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             }
           }
         >
-          This will help MetaMask debug any issue you might encounter. Please send it via email to support@metamask.io
+          This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon &gt; Send Feedback, or reply to your existing ticket if you have one.
         </Text>
         <StyledButton
           containerStyle={
