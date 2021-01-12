@@ -249,7 +249,7 @@ SliderButton.propTypes = {
 	/**
 	 * Action to execute once button completes sliding
 	 */
-	onComplete: PropTypes.func.isRequired,
+	onComplete: PropTypes.func,
 	/**
 	 * Value that decides whether or not the slider is disabled
 	 */
