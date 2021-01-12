@@ -549,7 +549,7 @@
 		"ok": "Ok",
 		"cancel": "Cancel",
 		"error": "Error",
-		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do that, Please go to Settings > Advanced > Sync with MetaMask Extension"
+		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your recovery phrase."
 	},
 	"action_view": {
 		"cancel": "Cancel",
