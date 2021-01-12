@@ -888,7 +888,7 @@ export function getTransakWebviewNavbar(navigation) {
 }
 
 export function getSwapsAmountNavbar(navigation) {
-	const title = navigation.getParam('title', 'Swaps');
+	const title = navigation.getParam('title', 'Swap');
 	const rightAction = navigation.dismiss;
 
 	return {
@@ -903,8 +903,9 @@ export function getSwapsAmountNavbar(navigation) {
 	};
 }
 export function getSwapsQuotesNavbar(navigation) {
-	const title = navigation.getParam('title', 'Swaps');
+	const title = navigation.getParam('title', 'Swap');
 	const rightAction = navigation.dismiss;
+	const leftAction = navigation.getParam('leftAction', strings('navigation.back'));
 
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork translate={false} />,
@@ -916,7 +917,7 @@ export function getSwapsQuotesNavbar(navigation) {
 		) : (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
+				<Text style={styles.closeButtonText}>{leftAction}</Text>
 			</TouchableOpacity>
 		),
 		headerRight: (

@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 	},
 	topBar: {
 		alignItems: 'center',
-		marginVertical: 5
+		marginVertical: 12
 	},
 	alertBar: {
 		paddingHorizontal: 20,
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 	timerWrapper: {
 		backgroundColor: colors.grey000,
 		borderRadius: 20,
-		marginVertical: 10,
+		marginVertical: 12,
 		paddingVertical: 4,
 		paddingHorizontal: 15,
 		flexDirection: 'row',
@@ -81,16 +81,20 @@ const styles = StyleSheet.create({
 	tokenIcon: {
 		marginHorizontal: 5
 	},
+	tokenText: {
+		fontSize: Device.isSmallDevice() ? 16 : 18
+	},
 	arrowDown: {
 		color: colors.grey100,
 		fontSize: Device.isSmallDevice() ? 22 : 25,
 		marginHorizontal: 15,
-		marginTop: 4,
-		marginBottom: 2
+		marginTop: Device.isSmallDevice() ? 2 : 4,
+		marginBottom: Device.isSmallDevice() ? 0 : 2
 	},
 	amount: {
 		textAlignVertical: 'center',
-		fontSize: Device.isSmallDevice() ? 45 : 60
+		fontSize: Device.isSmallDevice() ? 45 : 60,
+		marginBottom: Device.isSmallDevice() ? 8 : 24
 	},
 	exchangeRate: {
 		flexDirection: 'row',
@@ -107,7 +111,7 @@ const styles = StyleSheet.create({
 		color: colors.white
 	},
 	quotesSummary: {
-		marginVertical: Device.isSmallDevice() ? 15 : 30
+		marginVertical: Device.isSmallDevice() ? 12 : 24
 	},
 	quotesSummaryHeader: {
 		flexDirection: 'row',
@@ -277,6 +281,7 @@ function SwapsQuotesView({
 
 	const handleRetryFetchQuotes = useCallback(() => {
 		if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
+			navigation.setParams({ leftAction: strings('navigation.back') });
 			setFirstLoadTime(Date.now());
 			setFirstLoad(true);
 			resetAndStartPolling({
@@ -325,9 +330,12 @@ function SwapsQuotesView({
 		if (isFirstLoad) {
 			if (firstLoadTime < quotesLastFetched || errorKey) {
 				setFirstLoad(false);
+				if (!errorKey) {
+					navigation.setParams({ leftAction: strings('swaps.edit') });
+				}
 			}
 		}
-	}, [errorKey, firstLoadTime, isFirstLoad, quotesLastFetched]);
+	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched]);
 
 	/* selectedQuoteId effect: when topAggId changes make it selected by default */
 	useEffect(() => setSelectedQuoteId(topAggId), [topAggId]);
@@ -440,13 +448,15 @@ function SwapsQuotesView({
 				{selectedQuote && (
 					<>
 						<View style={styles.sourceTokenContainer}>
-							<Text>{renderFromTokenMinimalUnit(selectedQuote.sourceAmount, sourceToken.decimals)}</Text>
+							<Text style={styles.tokenText}>
+								{renderFromTokenMinimalUnit(selectedQuote.sourceAmount, sourceToken.decimals)}
+							</Text>
 							<TokenIcon
 								style={styles.tokenIcon}
 								icon={sourceToken.iconUrl}
 								symbol={sourceToken.symbol}
 							/>
-							<Text>{sourceToken.symbol}</Text>
+							<Text style={styles.tokenText}>{sourceToken.symbol}</Text>
 						</View>
 						<IonicIcon style={styles.arrowDown} name="md-arrow-down" />
 						<View style={styles.sourceTokenContainer}>
@@ -455,7 +465,9 @@ function SwapsQuotesView({
 								icon={destinationToken.iconUrl}
 								symbol={destinationToken.symbol}
 							/>
-							<Text>{destinationToken.symbol}</Text>
+							<Text primary style={styles.tokenText}>
+								{destinationToken.symbol}
+							</Text>
 						</View>
 						<Text primary style={styles.amount} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
 							~{renderFromTokenMinimalUnit(selectedQuote.destinationAmount, destinationToken.decimals)}
