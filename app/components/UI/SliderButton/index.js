@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
 function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 	const [componentWidth, setComponentWidth] = useState(0);
 	const [isComplete, setIsComplete] = useState(false);
+	const [shouldComplete, setShouldComplete] = useState(false);
 	const [isPressed, setIsPressed] = useState(false);
 
 	const shineOffset = useRef(new Animated.Value(0)).current;
@@ -119,8 +120,8 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 	const panResponder = useMemo(
 		() =>
 			PanResponder.create({
-				onStartShouldSetPanResponder: () => !disabled && !isComplete,
-				onMoveShouldSetPanResponder: () => !disabled && !isComplete,
+				onStartShouldSetPanResponder: () => !disabled && !(shouldComplete || isComplete),
+				onMoveShouldSetPanResponder: () => !disabled && !(shouldComplete || isComplete),
 				onPanResponderGrant: () => setIsPressed(true),
 				onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
 				onPanResponderRelease: (evt, gestureState) => {
@@ -129,13 +130,13 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 						Math.abs(gestureState.dy) < COMPLETE_VERTICAL_THRESHOLD &&
 						gestureState.dx / (componentWidth - DIAMETER) >= COMPLETE_THRESHOLD
 					) {
-						setIsComplete(true);
+						setShouldComplete(true);
 					} else {
 						Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
 					}
 				}
 			}),
-		[componentWidth, disabled, isComplete, pan]
+		[componentWidth, disabled, isComplete, pan, shouldComplete]
 	);
 	useEffect(() => {
 		Animated.loop(
@@ -151,13 +152,14 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 	}, [shineOffset]);
 
 	useEffect(() => {
-		if (isComplete) {
+		if (!isComplete && shouldComplete) {
 			let completeTimeout;
 			Animated.parallel([
 				Animated.spring(completion, { toValue: 1, useNativeDriver: false }),
 				Animated.spring(pan, { toValue: { x: componentWidth, y: 0 }, useNativeDriver: false })
 			]).start(() => {
 				completeTimeout = setTimeout(() => {
+					setIsComplete(true);
 					if (onComplete) {
 						onComplete();
 					}
@@ -168,7 +170,7 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 				clearTimeout(completeTimeout);
 			};
 		}
-	}, [completion, componentWidth, isComplete, onComplete, pan]);
+	}, [completion, componentWidth, isComplete, onComplete, pan, shouldComplete]);
 
 	return (
 		<View
