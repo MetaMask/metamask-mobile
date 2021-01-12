@@ -1,3 +1,5 @@
+import { MAINNET } from '../constants/network';
+
 /**
  * Gets the etherscan link for an address in a specific network
  *
@@ -27,6 +29,6 @@ export function getEtherscanTransactionUrl(network, tx_hash) {
  * @returns - string
  */
 export function getEtherscanBaseUrl(network) {
-	const subdomain = network.toLowerCase() === 'mainnet' ? '' : `${network.toLowerCase()}.`;
+	const subdomain = network.toLowerCase() === MAINNET ? '' : `${network.toLowerCase()}.`;
 	return `https://${subdomain}etherscan.io`;
 }
