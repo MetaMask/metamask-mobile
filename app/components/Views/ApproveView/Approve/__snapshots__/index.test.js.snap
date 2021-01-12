@@ -11,6 +11,7 @@ exports[`Approve should render correctly 1`] = `
   }
   accountsLength={1}
   setTransactionObject={[Function]}
+  ticker="ETH"
   tokensLength={0}
   transaction={Object {}}
   transactions={Array []}

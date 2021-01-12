@@ -59,6 +59,7 @@ import { ethErrors } from 'eth-json-rpc-errors';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import { getVersion } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
+import { RPC } from '../../../constants/network';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -511,7 +512,7 @@ export const BrowserTab = props => {
 					const data = JSON.parse(req.params[1]);
 					const chainId = data.domain.chainId;
 					const activeChainId =
-						props.networkType === 'rpc' ? props.network : Networks[props.networkType].networkId;
+						props.networkType === RPC ? props.network : Networks[props.networkType].networkId;
 
 					// eslint-disable-next-line
 					if (chainId && chainId != activeChainId) {
@@ -545,7 +546,7 @@ export const BrowserTab = props => {
 					const data = JSON.parse(req.params[1]);
 					const chainId = data.domain.chainId;
 					const activeChainId =
-						props.networkType === 'rpc' ? props.network : Networks[props.networkType].networkId;
+						props.networkType === RPC ? props.network : Networks[props.networkType].networkId;
 
 					// eslint-disable-next-line eqeqeq
 					if (chainId && chainId != activeChainId) {
@@ -768,7 +769,8 @@ export const BrowserTab = props => {
 
 	const isBookmark = () => {
 		const { bookmarks } = props;
-		return bookmarks.some(({ url: bookmark }) => bookmark === url.current);
+		const maskedUrl = getMaskedUrl(url.current);
+		return bookmarks.some(({ url: bookmark }) => bookmark === maskedUrl);
 	};
 
 	/**

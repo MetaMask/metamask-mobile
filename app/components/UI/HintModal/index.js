@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
 	},
 	recovery: {
 		fontSize: 18,
-		...fontStyles.extraBold,
+		...fontStyles.bold,
 		color: colors.fontPrimary
 	},
 	leaveHint: {

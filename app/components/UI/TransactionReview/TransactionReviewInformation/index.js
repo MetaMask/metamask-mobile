@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -16,6 +16,11 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { getTicker, getNormalizedTxState } from '../../../../util/transactions';
 import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
+import Analytics from '../../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { withNavigation } from 'react-navigation';
+import { getNetworkName, isMainNet } from '../../../../util/networks';
+import { capitalize } from '../../../../util/format';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -52,11 +57,14 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	overviewEth: {
-		...fontStyles.normal,
+		...fontStyles.bold,
 		color: colors.fontPrimary,
 		fontSize: 14,
 		textAlign: 'right',
 		textTransform: 'uppercase'
+	},
+	over: {
+		color: colors.red
 	},
 	assetName: {
 		maxWidth: 200
@@ -82,6 +90,28 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		...fontStyles.bold,
 		alignSelf: 'center'
+	},
+	errorWrapper: {
+		marginHorizontal: 24,
+		marginTop: 12,
+		paddingHorizontal: 10,
+		paddingVertical: 8,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
+		borderRadius: 8,
+		borderWidth: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	error: {
+		color: colors.red,
+		fontSize: 12,
+		...fontStyles.normal,
+		textAlign: 'center'
+	},
+	underline: {
+		textDecorationLine: 'underline',
+		...fontStyles.bold
 	}
 });
 
@@ -133,7 +163,27 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Whether or not basic gas estimates have been fetched
 		 */
-		ready: PropTypes.bool
+		ready: PropTypes.bool,
+		/**
+		 * Transaction error
+		 */
+		error: PropTypes.string,
+		/**
+		 * True if transaction is over the available funds
+		 */
+		over: PropTypes.bool,
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
+		 * Called when the cancel button is clicked
+		 */
+		onCancelPress: PropTypes.func,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string
 	};
 
 	state = {
@@ -151,6 +201,16 @@ class TransactionReviewInformation extends PureComponent {
 		return `${total} ${currentCurrency}`;
 	};
 
+	buyEth = () => {
+		const { navigation } = this.props;
+		/* this is kinda weird, we have to reject the transaction to collapse the modal */
+		this.onCancelPress();
+		navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+		});
+	};
+
 	edit = () => {
 		const { edit } = this.props;
 		edit && edit();
@@ -162,19 +222,26 @@ class TransactionReviewInformation extends PureComponent {
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates,
-			ticker
+			ticker,
+			over
 		} = this.props;
 
 		const totals = {
 			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 				const totalFiat = (
-					<Text style={styles.overviewEth}>{weiToFiat(totalEth, conversionRate, currentCurrency)}</Text>
+					<Text style={[styles.overviewEth, over && styles.over]}>
+						{weiToFiat(totalEth, conversionRate, currentCurrency)}
+					</Text>
 				);
 				const totalValue = (
 					<Text
-						style={totalFiat ? styles.overviewEth : [styles.overviewPrimary, styles.overviewAccent]}
-					>{`${renderFromWei(totalEth)} ${getTicker(ticker)} `}</Text>
+						style={
+							totalFiat
+								? [styles.overviewEth, over && styles.over]
+								: [styles.overviewPrimary, styles.overviewAccent]
+						}
+					>{`${renderFromWei(totalEth)} ${getTicker(ticker)}`}</Text>
 				);
 				return [totalFiat, totalValue];
 			},
@@ -221,6 +288,21 @@ class TransactionReviewInformation extends PureComponent {
 		return totals[assetType] || totals.default;
 	};
 
+	onCancelPress = () => {
+		const { onCancelPress } = this.props;
+		onCancelPress && onCancelPress();
+	};
+
+	gotoFaucet = () => {
+		const mmFaucetUrl = 'https://faucet.metamask.io/';
+		InteractionManager.runAfterInteractions(() => {
+			this.onCancelPress();
+			this.props.navigation.navigate('BrowserView', {
+				newTabUrl: mmFaucetUrl
+			});
+		});
+	};
+
 	render() {
 		const { amountError } = this.state;
 		const {
@@ -232,12 +314,22 @@ class TransactionReviewInformation extends PureComponent {
 			transaction: { gas, gasPrice },
 			currentCurrency,
 			conversionRate,
-			ticker
+			ticker,
+			error,
+			over,
+			network
 		} = this.props;
+		const is_main_net = isMainNet(network);
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
+		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
+		const networkName = capitalize(getNetworkName(network));
+		const errorLinkText = is_main_net
+			? strings('transaction.buy_more_eth')
+			: strings('transaction.get_ether', { networkName });
+
 		return (
 			<React.Fragment>
 				<TransactionReviewFeeCard
@@ -250,6 +342,7 @@ class TransactionReviewInformation extends PureComponent {
 					primaryCurrency={primaryCurrency}
 					gasEstimationReady={ready}
 					edit={this.edit}
+					over={over}
 				/>
 				{!!amountError && (
 					<View style={styles.overviewAlert}>
@@ -259,17 +352,31 @@ class TransactionReviewInformation extends PureComponent {
 						</Text>
 					</View>
 				)}
-				<View style={styles.viewDataWrapper}>
-					<TouchableOpacity style={styles.viewDataButton} onPress={toggleDataView}>
-						<Text style={styles.viewDataText}>{strings('transaction.view_data')}</Text>
-					</TouchableOpacity>
-				</View>
+				{!!error && (
+					<View style={styles.errorWrapper}>
+						<TouchableOpacity onPress={errorPress}>
+							<Text style={styles.error}>{error}</Text>
+							{/* only show buy more on mainnet */}
+							{over && is_main_net && (
+								<Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>
+							)}
+						</TouchableOpacity>
+					</View>
+				)}
+				{!over && (
+					<View style={styles.viewDataWrapper}>
+						<TouchableOpacity style={styles.viewDataButton} onPress={toggleDataView}>
+							<Text style={styles.viewDataText}>{strings('transaction.view_data')}</Text>
+						</TouchableOpacity>
+					</View>
+				)}
 			</React.Fragment>
 		);
 	}
 }
 
 const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController.network,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
@@ -278,4 +385,4 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency
 });
 
-export default connect(mapStateToProps)(TransactionReviewInformation);
+export default connect(mapStateToProps)(withNavigation(TransactionReviewInformation));

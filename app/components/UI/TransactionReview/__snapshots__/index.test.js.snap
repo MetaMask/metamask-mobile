@@ -17,7 +17,7 @@ exports[`TransactionReview should render correctly 1`] = `
     <View
       style={
         Object {
-          "height": 385,
+          "height": 415,
         }
       }
     >
@@ -35,7 +35,7 @@ exports[`TransactionReview should render correctly 1`] = `
         <View
           style={
             Object {
-              "height": 300,
+              "height": 330,
             }
           }
         >
@@ -49,7 +49,7 @@ exports[`TransactionReview should render correctly 1`] = `
           >
             <Connect(AccountInfoCard) />
           </View>
-          <Connect(TransactionReviewInformation)
+          <Connect(withNavigation(TransactionReviewInformation))
             edit={[Function]}
             toggleDataView={[Function]}
           />
