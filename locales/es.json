@@ -515,7 +515,7 @@
 		"ok": "Ok",
 		"cancel": "Cancelar",
 		"error": "Error",
-		"attempting_sync_from_wallet_error": "Hemos detectado que quieres sincronizar con la extensión de MetaMask. Para eso ve a Ajustes > Avanzado > Sincronizar con la extensión de MetaMask"
+		"attempting_sync_from_wallet_error": "Parece que estás intentando sincronizar con la extensión. Para sincronizar su billetera móvil MetaMask con su billetera de extensión, vuelva a instalar la aplicación y elija la opción 'Importar su billetera de extensión' en la incorporación."
 	},
 	"action_view": {
 		"cancel": "Cancelar",
