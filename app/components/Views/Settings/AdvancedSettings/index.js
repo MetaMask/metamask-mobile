@@ -45,10 +45,7 @@ const styles = StyleSheet.create({
 		lineHeight: 20,
 		marginTop: 12
 	},
-	resetConfirm: {
-		marginTop: 18
-	},
-	switchElement: {
+	marginTop: {
 		marginTop: 18
 	},
 	setting: {
@@ -85,9 +82,6 @@ const styles = StyleSheet.create({
 	},
 	inner: {
 		paddingBottom: 48
-	},
-	syncConfirm: {
-		marginTop: 18
 	},
 	ipfsGatewayLoadingWrapper: {
 		height: 37,
@@ -190,10 +184,6 @@ class AdvancedSettings extends PureComponent {
 		this.props.setShowHexData(showHexData);
 	};
 
-	goToSyncWithExtension = () => {
-		this.props.navigation.push('SyncWithExtensionView', { existingUser: true });
-	};
-
 	downloadStateLogs = async () => {
 		const appName = await getApplicationName();
 		const appVersion = await getVersion();
@@ -294,20 +284,9 @@ class AdvancedSettings extends PureComponent {
 							<StyledButton
 								type="info"
 								onPress={this.displayResetAccountModal}
-								containerStyle={styles.resetConfirm}
+								containerStyle={styles.marginTop}
 							>
 								{strings('app_settings.reset_account_button')}
-							</StyledButton>
-						</View>
-						<View style={styles.setting}>
-							<Text style={styles.title}>{strings('app_settings.sync_with_extension')}</Text>
-							<Text style={styles.desc}>{strings('app_settings.sync_with_extension_desc')}</Text>
-							<StyledButton
-								type="info"
-								onPress={this.goToSyncWithExtension}
-								containerStyle={styles.syncConfirm}
-							>
-								{strings('app_settings.sync')}
 							</StyledButton>
 						</View>
 						<View style={[styles.setting]}>
@@ -332,7 +311,7 @@ class AdvancedSettings extends PureComponent {
 						<View style={styles.setting}>
 							<Text style={styles.title}>{strings('app_settings.show_hex_data')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.hex_desc')}</Text>
-							<View style={styles.switchElement}>
+							<View style={styles.marginTop}>
 								<Switch
 									value={showHexData}
 									onValueChange={this.toggleShowHexData}
@@ -347,7 +326,7 @@ class AdvancedSettings extends PureComponent {
 							<StyledButton
 								type="info"
 								onPress={this.downloadStateLogs}
-								containerStyle={styles.syncConfirm}
+								containerStyle={styles.marginTop}
 							>
 								{strings('app_settings.state_logs_button')}
 							</StyledButton>
@@ -359,7 +338,7 @@ class AdvancedSettings extends PureComponent {
 								<StyledButton
 									type="info"
 									onPress={this.downloadInstapayStateLogs}
-									containerStyle={styles.syncConfirm}
+									containerStyle={styles.marginTop}
 								>
 									{strings('app_settings.instapay_state_logs_button')}
 								</StyledButton>
