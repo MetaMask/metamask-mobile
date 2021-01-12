@@ -98,9 +98,13 @@ const styles = StyleSheet.create({
 		marginVertical: Device.isSmallDevice() ? 1 : 1
 	},
 	bottomSection: {
-		marginBottom: 10,
+		marginBottom: 12,
 		alignItems: 'stretch',
 		paddingHorizontal: 20
+	},
+	sliderButtonText: {
+		fontSize: 16,
+		color: colors.white
 	},
 	quotesSummary: {
 		marginVertical: Device.isSmallDevice() ? 15 : 30
@@ -550,8 +554,15 @@ function SwapsQuotesView({
 					</QuotesSummary>
 				)}
 				<SliderButton
-					incompleteText={strings('swaps.swipe_to_swap')}
-					completeText={strings('swaps.completed_swap')}
+					incompleteText={
+						<Text style={styles.sliderButtonText}>
+							{strings('swaps.swipe_to')}{' '}
+							<Text reset bold>
+								{strings('swaps.swap')}
+							</Text>
+						</Text>
+					}
+					completeText={<Text style={styles.sliderButtonText}>{strings('swaps.completed_swap')}</Text>}
 					disabled={!isInPolling || isInFetch || !selectedQuote || !hasEnoughBalance}
 					onComplete={handleCompleteSwap}
 				/>

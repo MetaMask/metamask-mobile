@@ -1276,6 +1276,8 @@
 		"quotes_include_fee": "Cotizaciones incluyen {{fee}}% de comisión de MetaMask",
 		"tap_to_swap": "Presiona para hacer Swap",
 		"swipe_to_swap": "Desliza para hacer swap",
+		"swipe_to": "Desliza para",
+		"swap": "hacer swap",
 		"completed_swap": "Swap!",
 		"metamask_swap_fee": "Comisión MetaMask Swap",
 		"fee_text": {

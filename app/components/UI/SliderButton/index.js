@@ -1,36 +1,32 @@
-import React, { PureComponent } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Animated, PanResponder, StyleSheet, Image, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 
 /* eslint-disable import/no-commonjs */
-const SliderBgImg = require('../../../images/sliderbutton-bg.png');
-const SliderShineImg = require('../../../images/sliderbutton-shine.png');
+const SliderBgImg = require('./assets/slider_button_gradient.png');
+const SliderShineImg = require('./assets/slider_button_shine.png');
 /* eslint-enable import/no-commonjs */
 
-const BLUE = 0;
-const GREEN = 1;
-const GRADIENT_OFFSET = 45;
-const DIAMETER = 50;
-const MARGIN = 8;
-const ABSOLUTE_CENTER = {
-	position: 'absolute',
-	top: 0,
-	left: 0,
-	right: 0,
-	bottom: 0,
-	justifyContent: 'center',
-	alignItems: 'center'
-};
+const DIAMETER = 60;
+const MARGIN = DIAMETER * 0.16;
+const COMPLETE_VERTICAL_THRESHOLD = DIAMETER * 2;
+const COMPLETE_THRESHOLD = 0.85;
+const COMPLETE_DELAY = 1000;
 
 const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.blue700,
-		borderRadius: DIAMETER,
-		marginBottom: 10
+	container: {
+		shadowRadius: 8,
+		shadowOpacity: 0.5,
+		shadowColor: colors.blue200,
+		shadowOffset: { width: 0, height: 3 },
+		elevation: 0 // shadow colors not supported on Android. nothing > gray shadow
+	},
+	disabledContainer: {
+		opacity: 0.66
 	},
 	slider: {
-		alignSelf: 'flex-end',
+		position: 'absolute',
 		width: DIAMETER,
 		height: DIAMETER,
 		borderRadius: DIAMETER,
@@ -39,43 +35,46 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	trackBack: {
-		...ABSOLUTE_CENTER,
-		flexGrow: 1,
+		position: 'relative',
 		overflow: 'hidden',
-		borderRadius: DIAMETER
-	},
-	trackBackShineContainer: {
-		position: 'absolute',
-		left: 0
-	},
-	trackBackShine: {
-		left: -GRADIENT_OFFSET
+		width: '100%',
+		height: DIAMETER,
+		justifyContent: 'center',
+		alignItems: 'center',
+		borderRadius: DIAMETER,
+		backgroundColor: colors.blue700
 	},
 	trackBackGradient: {
 		position: 'absolute',
-		left: -GRADIENT_OFFSET
+		width: '100%',
+		height: '100%'
+	},
+	trackBackGradientPressed: {
+		opacity: 0.66
+	},
+	trackBackShine: {
+		position: 'absolute',
+		height: '200%',
+		left: 0
 	},
 	trackFront: {
-		alignSelf: 'flex-start',
-		borderRadius: DIAMETER,
-		top: 0,
-		overflow: 'hidden'
+		position: 'absolute',
+		overflow: 'hidden',
+		height: '100%',
+		borderRadius: DIAMETER
 	},
-	trackFrontContainer: {
-		flexGrow: 0,
-		shadowRadius: 15,
-		shadowOpacity: 0.5,
-		shadowColor: colors.blue200,
-		shadowOffset: { width: 0, height: 5 },
-		elevation: 0 // shadow colors not supported on Android. nothing > gray shadow
+
+	textFrontContainer: {
+		position: 'absolute',
+		width: '100%',
+		height: '100%',
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 	textBack: {
 		...fontStyles.normal,
 		color: colors.white,
 		fontSize: 16
-	},
-	textFrontContainer: {
-		...ABSOLUTE_CENTER
 	},
 	textFront: {
 		...fontStyles.normal,
@@ -84,181 +83,175 @@ const styles = StyleSheet.create({
 	}
 });
 
-const SliderBg = () => <Image style={styles.trackBackGradient} source={SliderBgImg} />;
-const SliderShine = () => <Image style={styles.trackBackShine} source={SliderShineImg} />;
+function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
+	const [componentWidth, setComponentWidth] = useState(0);
+	const [isComplete, setIsComplete] = useState(false);
+	const [isPressed, setIsPressed] = useState(false);
 
-class SliderButton extends PureComponent {
-	static propTypes = {
-		/**
-		 * Text that prompts the user to interact with the slider
-		 */
-		incompleteText: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
-		/**
-		 * Text during ineraction stating the action being taken
-		 */
-		completeText: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
-		/**
-		 * Action to execute once button completes sliding
-		 */
-		onComplete: PropTypes.func.isRequired,
-		/**
-		 * Value that decides whether or not the slider is disabled
-		 */
-		disabled: PropTypes.bool
-	};
+	const shineOffset = useRef(new Animated.Value(0)).current;
+	const pan = useRef(new Animated.ValueXY(0, 0)).current;
+	const completion = useRef(new Animated.Value(0)).current;
 
-	state = {
-		trackBackGradient: null,
-		componentWidth: 0,
-		panX: 0,
-		isComplete: false
-	};
+	const sliderPosition = useMemo(
+		() =>
+			pan.x.interpolate({
+				inputRange: [0, Math.max(componentWidth - DIAMETER, 0)],
+				outputRange: [0, componentWidth - DIAMETER],
+				extrapolate: 'clamp'
+			}),
+		[componentWidth, pan.x]
+	);
 
-	shineAnimating = false;
-	shineOffset = new Animated.Value(0);
-	sliderWidth = new Animated.Value(DIAMETER);
-	bgColor = new Animated.Value(BLUE);
-	pan = new Animated.ValueXY();
-
-	panResponder = PanResponder.create({
-		onMoveShouldSetPanResponder: () => true,
-		onPanResponderMove: (evt, gestureState) => {
-			if (this.props.disabled) {
-				this.reset();
-				return;
-			}
-			if (this.state.isComplete) {
-				return;
-			}
-			const moveSlider = Animated.event([null, { dx: this.pan.x }], { useNativeDriver: false });
-			const panX = Math.min(Math.max(0.01, this.pan.x._value), this.state.componentWidth - DIAMETER);
-			moveSlider(evt, gestureState);
-			this.setState({ panX });
-		},
-		onPanResponderRelease: evt => {
-			if (this.props.disabled) {
-				return;
-			}
-			const { locationY } = evt.nativeEvent;
-			const fingerInButton = locationY >= 0 && locationY <= DIAMETER;
-			const actionComplete = this.pan.x._value >= this.state.componentWidth - DIAMETER;
-			if (fingerInButton && actionComplete) {
-				this.onComplete();
-				return;
-			} else if (actionComplete && !fingerInButton) {
-				this.pan.x.setValue(this.state.componentWidth - DIAMETER);
-			}
-			this.reset();
-		}
+	const incompleteTextOpacity = sliderPosition.interpolate({
+		inputRange: [0, Math.max(componentWidth - DIAMETER, 0)],
+		outputRange: [1, 0]
+	});
+	const shineOpacity = incompleteTextOpacity.interpolate({
+		inputRange: [0, 0.5, 1],
+		outputRange: [0, 0, 1]
+	});
+	const sliderCompletedOpacity = completion.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
+	const trackFrontBackgroundColor = completion.interpolate({
+		inputRange: [0, 1],
+		outputRange: [colors.blue600, colors.success]
 	});
 
-	/* Reset the slider position to the start */
-	reset = () => {
-		if (this.state.panX !== 0.01) {
-			Animated.timing(this.pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
-		} else {
-			this.pan.x.setValue(0);
+	const panResponder = useMemo(
+		() =>
+			PanResponder.create({
+				onStartShouldSetPanResponder: () => !disabled && !isComplete,
+				onMoveShouldSetPanResponder: () => !disabled && !isComplete,
+				onPanResponderGrant: () => setIsPressed(true),
+				onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
+				onPanResponderRelease: (evt, gestureState) => {
+					setIsPressed(false);
+					if (
+						Math.abs(gestureState.dy) < COMPLETE_VERTICAL_THRESHOLD &&
+						gestureState.dx / (componentWidth - DIAMETER) >= COMPLETE_THRESHOLD
+					) {
+						setIsComplete(true);
+					} else {
+						Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
+					}
+				}
+			}),
+		[componentWidth, disabled, isComplete, pan]
+	);
+	useEffect(() => {
+		Animated.loop(
+			Animated.sequence([
+				Animated.timing(shineOffset, { toValue: 0, duration: 0, useNativeDriver: false }),
+				Animated.timing(shineOffset, {
+					toValue: 100,
+					duration: 2000,
+					useNativeDriver: false
+				})
+			])
+		).start();
+	}, [shineOffset]);
+
+	useEffect(() => {
+		if (isComplete) {
+			let completeTimeout;
+			Animated.parallel([
+				Animated.spring(completion, { toValue: 1, useNativeDriver: false }),
+				Animated.spring(pan, { toValue: { x: componentWidth, y: 0 }, useNativeDriver: false })
+			]).start(() => {
+				completeTimeout = setTimeout(() => {
+					if (onComplete) {
+						onComplete();
+					}
+				}, COMPLETE_DELAY);
+			});
+
+			return () => {
+				clearTimeout(completeTimeout);
+			};
 		}
-		this.setState({ panX: 0 }, this.shine);
-	};
+	}, [completion, componentWidth, isComplete, onComplete, pan]);
 
-	/* Animate the background color from blue to green upon completion */
-	startBackgroundColorAnimation = () => {
-		Animated.timing(this.bgColor, {
-			toValue: GREEN,
-			duration: 250,
-			useNativeDriver: false
-		}).start(this.startBackgroundColorAnimation);
-	};
-
-	/* Restart the "shine" animation if it's allowed to */
-	restartShine = () => {
-		this.shineAnimating = false;
-		if (!this.state.panX) {
-			this.shine();
-		}
-	};
-
-	/* Animate the shine across the track when slider is inactive */
-	shine = () => {
-		if (!this.shineAnimating) {
-			this.shineAnimating = true;
-			this.shineOffset.setValue(-GRADIENT_OFFSET);
-			Animated.timing(this.shineOffset, {
-				toValue: this.state.componentWidth * 2,
-				duration: 2500,
-				useNativeDriver: true
-			}).start(this.restartShine);
-		}
-	};
-
-	/* Action that's triggered when the slider reaches the end */
-	onComplete = () => {
-		this.startBackgroundColorAnimation();
-		setTimeout(() => {
-			this.setState({ isComplete: true });
-			if (this.props.onComplete) {
-				this.props.onComplete();
-			}
-		}, 800);
-	};
-
-	render = () => {
-		const { incompleteText, completeText, disabled } = this.props;
-		const trackWidth = (this.state.panX || -DIAMETER) + DIAMETER;
-		return (
-			<View
-				style={[styles.root, { opacity: 1 - (+disabled || 0) / 3 }]}
-				onLayout={e => {
-					this.setState({ componentWidth: e.nativeEvent.layout.width }, this.shine);
-				}}
-			>
-				<View style={styles.trackBack}>
-					<SliderBg />
-					{!disabled && (
-						<Animated.View
-							style={[styles.trackBackShineContainer, { transform: [{ translateX: this.shineOffset }] }]}
-						>
-							<SliderShine />
-						</Animated.View>
-					)}
-					<Animated.View
-						style={{
-							opacity: Animated.subtract(
-								new Animated.Value(1),
-								Animated.divide(this.pan.x, new Animated.Value(this.state.componentWidth / 2 || 1))
-							)
-						}}
-					>
-						<Text style={styles.textBack}>{incompleteText}</Text>
-					</Animated.View>
-				</View>
-				<View style={styles.trackFrontContainer}>
-					<Animated.View
+	return (
+		<View
+			style={[styles.container, disabled && styles.disabledContainer]}
+			onLayout={e => {
+				setComponentWidth(e.nativeEvent.layout.width);
+			}}
+		>
+			<View style={styles.trackBack}>
+				<Image
+					style={[styles.trackBackGradient, isPressed && styles.trackBackGradientPressed]}
+					source={SliderBgImg}
+					resizeMode="stretch"
+				/>
+				{!disabled && (
+					<Animated.Image
 						style={[
-							styles.trackFront,
-							{ width: trackWidth || Animated.add(this.sliderWidth, this.pan.x) },
+							styles.trackBackShine,
 							{
-								backgroundColor: this.bgColor.interpolate({
-									inputRange: [BLUE, GREEN],
-									outputRange: [colors.blue600, colors.success],
-									useNativeDriver: false
-								})
+								opacity: shineOpacity,
+								transform: [
+									{
+										translateX: shineOffset.interpolate({
+											inputRange: [0, 100],
+											outputRange: [-142, componentWidth + 142]
+										})
+									}
+								]
 							}
 						]}
-					>
-						<View style={[styles.textFrontContainer, { width: this.state.componentWidth }]}>
-							<Text style={styles.textFront}>{completeText}</Text>
-						</View>
-						<Animated.View
-							{...this.panResponder.panHandlers}
-							style={[styles.slider, { opacity: Animated.subtract(new Animated.Value(1), this.bgColor) }]}
-						/>
-					</Animated.View>
-				</View>
+						source={SliderShineImg}
+						resizeMode={'contain'}
+					/>
+				)}
+				<Animated.View
+					style={{
+						opacity: incompleteTextOpacity
+					}}
+				>
+					<Text style={styles.textBack}>{incompleteText}</Text>
+				</Animated.View>
 			</View>
-		);
-	};
+			<Animated.View
+				style={[
+					styles.trackFront,
+					{
+						backgroundColor: trackFrontBackgroundColor,
+						width: Animated.add(sliderPosition, DIAMETER)
+					}
+				]}
+			>
+				<View style={[styles.textFrontContainer, { width: componentWidth }]}>
+					<Text style={styles.textFront}>{completeText}</Text>
+				</View>
+			</Animated.View>
+			<Animated.View
+				{...panResponder.panHandlers}
+				style={[
+					styles.slider,
+					{ opacity: sliderCompletedOpacity, transform: [{ translateX: sliderPosition }] }
+				]}
+			/>
+		</View>
+	);
 }
+
+SliderButton.propTypes = {
+	/**
+	 * Text that prompts the user to interact with the slider
+	 */
+	incompleteText: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
+	/**
+	 * Text during ineraction stating the action being taken
+	 */
+	completeText: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
+	/**
+	 * Action to execute once button completes sliding
+	 */
+	onComplete: PropTypes.func.isRequired,
+	/**
+	 * Value that decides whether or not the slider is disabled
+	 */
+	disabled: PropTypes.bool
+};
 
 export default SliderButton;
