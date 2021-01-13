@@ -377,7 +377,7 @@ export const BrowserTab = props => {
 			notifyAllConnections(
 				{
 					method: NOTIFICATION_NAMES.accountsChanged,
-					result: []
+					params: []
 				},
 				false
 			); // notification should be sent regardless of approval status
@@ -386,7 +386,7 @@ export const BrowserTab = props => {
 		if (numApprovedHosts > 0) {
 			notifyAllConnections({
 				method: NOTIFICATION_NAMES.accountsChanged,
-				result: [selectedAddress]
+				params: [selectedAddress]
 			});
 		}
 
@@ -670,9 +670,10 @@ export const BrowserTab = props => {
 
 					res.result = true;
 				},
-				wallet_getProviderState: async () => {
+				metamask_getProviderState: async () => {
 					res.result = getProviderState();
-				}
+				},
+				metamask_logWeb3ShimUsage: () => (res.result = null)
 			};
 
 			if (!rpcMethods[req.method]) {
