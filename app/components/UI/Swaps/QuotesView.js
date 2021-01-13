@@ -33,6 +33,7 @@ import QuotesModal from './components/QuotesModal';
 import { strings } from '../../../../locales/i18n';
 import { swapsUtils } from '@estebanmino/controllers';
 import useBalance from './utils/useBalance';
+import { fetchBasicGasEstimates } from '../../../util/custom-gas';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -236,6 +237,7 @@ function SwapsQuotesView({
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
 	const [isFirstLoad, setFirstLoad] = useState(true);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
+	const [basicGasEstimates, setBasicGasEstimates] = useState({});
 
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -305,12 +307,19 @@ function SwapsQuotesView({
 			return;
 		}
 		const { TransactionController } = Engine.context;
+		if (basicGasEstimates?.average) {
+			if (approvalTransaction) {
+				approvalTransaction.gasPrice = basicGasEstimates.average;
+			}
+			selectedQuote.trade.gasPrice = basicGasEstimates.average;
+		}
+
 		if (approvalTransaction) {
 			await TransactionController.addTransaction(approvalTransaction);
 		}
 		await TransactionController.addTransaction(selectedQuote.trade);
 		navigation.dismiss();
-	}, [navigation, selectedQuote, approvalTransaction]);
+	}, [navigation, selectedQuote, approvalTransaction, basicGasEstimates]);
 
 	/* Effects */
 
@@ -343,6 +352,14 @@ function SwapsQuotesView({
 
 	/* selectedQuoteId effect: when topAggId changes make it selected by default */
 	useEffect(() => setSelectedQuoteId(topAggId), [topAggId]);
+
+	useEffect(() => {
+		const setGasPriceEstimates = async () => {
+			const basicGasEstimates = await fetchBasicGasEstimates();
+			setBasicGasEstimates(basicGasEstimates);
+		};
+		setGasPriceEstimates();
+	}, []);
 
 	/* IsInFetch effect: hide every modal, handle countdown */
 	useEffect(() => {
