@@ -32,6 +32,11 @@ local.properties
 android/.project
 android/app/.project
 android/app/bin/
+android/app/gradle*
+android/app/_build*
+
+# if we ever want to add google services
+android/app/google-services.json
 
 # node.js
 node_modules/

@@ -40,6 +40,14 @@ yarn install # this will run a lengthy postinstall flow
 cd ios && pod install && cd .. # install pods for iOS
 ```
 
+- _Non-MetaMask Only:_ In the project root folder run
+```
+  cp .ios.env.example .ios.env && \
+  cp .android.env.example .android.env && \
+  cp .js.env.example .js.env
+ ``` 
+- _Non-MetaMask Only:_ Create an account and generate your own API key at [Infura](https://infura.io) in order to connect to main and test nets. Fill `MM_INFURA_PROJECT_ID` in `.js.env`. (App will run without it, but will not be able to connect to actual network.)
+
 - Then, in one terminal, run:
 
 ```bash

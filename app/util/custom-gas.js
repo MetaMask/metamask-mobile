@@ -21,7 +21,7 @@ export function apiEstimateModifiedToWEI(estimate) {
  * @returns {string} - The GWEI value as a string
  */
 export function convertApiValueToGWEI(val) {
-	return (parseInt(val, 10) / 10).toString();
+	return parseInt(val, 10).toString();
 }
 
 /**
@@ -103,46 +103,22 @@ export function parseWaitTime(min) {
  * @returns {Object} - Object containing basic estimates
  */
 export async function fetchBasicGasEstimates() {
-	const apiKey = process.env.ETH_GAS_STATION_API_KEY ? `?api-key=${process.env.ETH_GAS_STATION_API_KEY}` : '';
-	return await fetch(`https://ethgasstation.info/api/ethgasAPI.json${apiKey}`, {
+	return await fetch(`https://api.metaswap.codefi.network/gasPrices`, {
 		headers: {},
-		referrer: 'http://ethgasstation.info/json/',
 		referrerPolicy: 'no-referrer-when-downgrade',
 		body: null,
 		method: 'GET',
 		mode: 'cors'
 	})
 		.then(r => r.json())
-		.then(
-			({
-				average,
-				avgWait,
-				block_time: blockTime,
-				blockNum,
-				fast,
-				fastest,
-				fastestWait,
-				fastWait,
-				safeLow,
-				safeLowWait,
-				speed
-			}) => {
-				const basicEstimates = {
-					average,
-					averageWait: avgWait,
-					blockTime,
-					blockNum,
-					fast,
-					fastest,
-					fastestWait,
-					fastWait,
-					safeLow,
-					safeLowWait,
-					speed
-				};
-				return basicEstimates;
-			}
-		);
+		.then(({ SafeGasPrice, ProposeGasPrice, FastGasPrice }) => {
+			const basicEstimates = {
+				average: ProposeGasPrice,
+				safeLow: SafeGasPrice,
+				fast: FastGasPrice
+			};
+			return basicEstimates;
+		});
 }
 
 /**
@@ -162,17 +138,13 @@ export async function getBasicGasEstimates() {
 		Logger.log('Error while trying to get gas limit estimates', error);
 		basicGasEstimates = {
 			average: AVERAGE_GAS,
-			averageWait: 2,
 			safeLow: LOW_GAS,
-			safeLowWait: 4,
-			fast: FAST_GAS,
-			fastWait: 1
+			fast: FAST_GAS
 		};
 	}
 
 	// Handle api failure returning same gas prices
 	let { average, fast, safeLow } = basicGasEstimates;
-	const { averageWait, fastWait, safeLowWait } = basicGasEstimates;
 
 	if (average === fast && average === safeLow) {
 		average = AVERAGE_GAS;
@@ -183,9 +155,6 @@ export async function getBasicGasEstimates() {
 	return {
 		averageGwei: convertApiValueToGWEI(average),
 		fastGwei: convertApiValueToGWEI(fast),
-		safeLowGwei: convertApiValueToGWEI(safeLow),
-		averageWait: parseWaitTime(averageWait),
-		fastWait: parseWaitTime(fastWait),
-		safeLowWait: parseWaitTime(safeLowWait)
+		safeLowGwei: convertApiValueToGWEI(safeLow)
 	};
 }

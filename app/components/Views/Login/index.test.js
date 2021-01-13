@@ -2,6 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import Login from './';
 import configureMockStore from 'redux-mock-store';
+import { ROPSTEN } from '../../../constants/network';
 
 const mockStore = configureMockStore();
 
@@ -15,7 +16,7 @@ describe('Login', () => {
 					},
 					NetworkController: {
 						provider: {
-							type: 'ropsten'
+							type: ROPSTEN
 						}
 					},
 					AssetsController: {

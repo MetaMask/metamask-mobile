@@ -3,6 +3,7 @@ import Networks, { isKnownNetwork } from './networks';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { toBN, hexToBN, renderFromWei, renderFromTokenMinimalUnit } from './number';
 import { strings } from '../../locales/i18n';
+import { RPC } from '../constants/network';
 
 export default async function findFirstIncomingTransaction(networkType, selectedAddress, thirPartyApiMode) {
 	// Pull txs if allowed
@@ -17,7 +18,7 @@ export default async function findFirstIncomingTransaction(networkType, selected
 				tx.transaction.to &&
 				toChecksumAddress(tx.transaction.to) === selectedAddress &&
 				((networkId && networkId.toString() === tx.networkID) ||
-					(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
+					(networkType === RPC && !isKnownNetwork(tx.networkID))) &&
 				tx.status === 'confirmed'
 		);
 		if (txs.length > 0) {

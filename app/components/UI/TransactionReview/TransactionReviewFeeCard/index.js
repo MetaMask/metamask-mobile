@@ -13,6 +13,9 @@ const styles = StyleSheet.create({
 	loader: {
 		backgroundColor: colors.white,
 		height: 10
+	},
+	over: {
+		color: colors.red
 	}
 });
 
@@ -56,7 +59,11 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * Changes mode to edit
 		 */
-		edit: PropTypes.func
+		edit: PropTypes.func,
+		/**
+		 * True if transaction is over the available funds
+		 */
+		over: PropTypes.bool
 	};
 
 	renderIfGasEstimationReady = children => {
@@ -80,7 +87,8 @@ class TransactionReviewFeeCard extends PureComponent {
 			transactionValue,
 			primaryCurrency,
 			gasEstimationReady,
-			edit
+			edit,
+			over
 		} = this.props;
 		let amount;
 		let networkFee;
@@ -128,13 +136,13 @@ class TransactionReviewFeeCard extends PureComponent {
 				</Summary.Row>
 				<Summary.Separator />
 				<Summary.Row>
-					<Text primary bold>
+					<Text primary bold style={(over && styles.over) || null}>
 						{strings('transaction.total')} {strings('transaction.amount')}
 					</Text>
 					{!!totalFiat && this.renderIfGasEstimationReady(totalAmount)}
 				</Summary.Row>
 				<Summary.Row end last>
-					{this.renderIfGasEstimationReady(<Text bold>{equivalentTotalAmount}</Text>)}
+					{this.renderIfGasEstimationReady(equivalentTotalAmount)}
 				</Summary.Row>
 			</Summary>
 		);

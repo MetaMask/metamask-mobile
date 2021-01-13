@@ -38,7 +38,7 @@ class Approval extends PureComponent {
 		/**
 		 * react-navigation object used for switching between screens
 		 */
-		navigation: PropTypes.object,
+		navigation: PropTypes.object.isRequired,
 		/**
 		 * Action that cleans transaction state
 		 */
@@ -303,7 +303,6 @@ class Approval extends PureComponent {
 					onConfirm={this.onConfirm}
 					onModeChange={this.onModeChange}
 					transaction={transaction}
-					navigation={this.props.navigation}
 					dappTransactionModalVisible={dappTransactionModalVisible}
 				/>
 			</Modal>

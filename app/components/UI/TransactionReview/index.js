@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, InteractionManager, Animated } from 'react-native';
+import { StyleSheet, View, InteractionManager, Animated } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -47,31 +47,14 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	actionViewWrapper: {
-		height: Device.isMediumDevice() ? 200 : 385
+		height: Device.isMediumDevice() ? 230 : 415
 	},
 	actionViewChildren: {
-		height: 300
+		height: 330
 	},
 	accountInfoCardWrapper: {
 		paddingHorizontal: 24,
 		paddingBottom: 12
-	},
-	errorWrapper: {
-		marginHorizontal: 24,
-		marginBottom: 12,
-		paddingHorizontal: 10,
-		paddingVertical: 8,
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
-		borderRadius: 8,
-		borderWidth: 1,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	error: {
-		color: colors.red,
-		fontSize: 12,
-		...fontStyles.normal
 	},
 	transactionData: {
 		position: 'absolute',
@@ -168,7 +151,11 @@ class TransactionReview extends PureComponent {
 		/**
 		 * Hides or shows TransactionReviewData
 		 */
-		hideData: PropTypes.bool
+		hideData: PropTypes.bool,
+		/**
+		 * True if transaction is over the available funds
+		 */
+		over: PropTypes.bool
 	};
 
 	state = {
@@ -301,7 +288,8 @@ class TransactionReview extends PureComponent {
 			generateTransform,
 			hideData,
 			saveTransactionReviewDataHeight,
-			customGasHeight
+			customGasHeight,
+			over
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
@@ -317,11 +305,6 @@ class TransactionReview extends PureComponent {
 						approveTransaction={approveTransaction}
 						primaryCurrency={primaryCurrency}
 					/>
-					{!!error && (
-						<View style={styles.errorWrapper}>
-							<Text style={styles.error}>{error}</Text>
-						</View>
-					)}
 					<View style={styles.actionViewWrapper}>
 						<ActionView
 							confirmButtonMode="confirm"
@@ -336,11 +319,14 @@ class TransactionReview extends PureComponent {
 									<AccountInfoCard />
 								</View>
 								<TransactionReviewInformation
+									error={error}
 									edit={this.edit}
 									ready={ready}
 									assetAmount={assetAmount}
 									fiatValue={fiatValue}
 									toggleDataView={this.toggleDataView}
+									over={over}
+									onCancelPress={this.props.onCancel}
 								/>
 							</View>
 						</ActionView>

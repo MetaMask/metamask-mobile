@@ -14,6 +14,9 @@ describe('TransactionEditor', () => {
 					AccountTrackerController: {
 						accounts: { '0x2': { balance: '0' } }
 					},
+					CurrencyRateController: {
+						conversionRate: 621.92
+					},
 					TokenBalancesController: {
 						contractBalances: { '0x2': new BN(0) }
 					},

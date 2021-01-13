@@ -44,9 +44,9 @@ exports[`HintModal should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
-              "fontWeight": "bold",
+              "fontWeight": "600",
             }
           }
         >

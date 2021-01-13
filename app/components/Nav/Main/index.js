@@ -457,7 +457,11 @@ const Main = props => {
 
 	const renderDappTransactionModal = () =>
 		props.dappTransactionModalVisible && (
-			<Approval dappTransactionModalVisible toggleDappTransactionModal={props.toggleDappTransactionModal} />
+			<Approval
+				navigation={props.navigation}
+				dappTransactionModalVisible
+				toggleDappTransactionModal={props.toggleDappTransactionModal}
+			/>
 		);
 
 	const renderApproveModal = () =>

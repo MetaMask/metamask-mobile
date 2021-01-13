@@ -82,6 +82,12 @@ class Settings extends PureComponent {
 					title={strings('app_settings.general_title')}
 				/>
 				<SettingsDrawer
+					description={strings('app_settings.security_desc')}
+					onPress={this.onPressSecurity}
+					title={strings('app_settings.security_title')}
+					warning={!seedphraseBackedUp}
+				/>
+				<SettingsDrawer
 					description={strings('app_settings.advanced_desc')}
 					onPress={this.onPressAdvanced}
 					title={strings('app_settings.advanced_title')}
@@ -90,12 +96,6 @@ class Settings extends PureComponent {
 					description={strings('app_settings.contacts_desc')}
 					onPress={this.onPressContacts}
 					title={strings('app_settings.contacts_title')}
-				/>
-				<SettingsDrawer
-					description={strings('app_settings.security_desc')}
-					onPress={this.onPressSecurity}
-					title={strings('app_settings.security_title')}
-					warning={!seedphraseBackedUp}
 				/>
 				<SettingsDrawer
 					title={strings('app_settings.networks_title')}

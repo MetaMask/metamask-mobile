@@ -17,6 +17,12 @@ exports[`Settings should render correctly 1`] = `
     title="General"
   />
   <SettingsDrawer
+    description="Privacy settings, MetaMetrics, private key and wallet seed phrase"
+    onPress={[Function]}
+    title="Security & Privacy"
+    warning={false}
+  />
+  <SettingsDrawer
     description="Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC"
     onPress={[Function]}
     title="Advanced"
@@ -25,12 +31,6 @@ exports[`Settings should render correctly 1`] = `
     description="Add, edit, remove, and manage your accounts"
     onPress={[Function]}
     title="Contacts"
-  />
-  <SettingsDrawer
-    description="Privacy settings, MetaMetrics, private key and wallet seed phrase"
-    onPress={[Function]}
-    title="Security & Privacy"
-    warning={false}
   />
   <SettingsDrawer
     description="Add and edit custom RPC networks"
