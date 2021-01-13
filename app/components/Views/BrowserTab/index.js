@@ -692,7 +692,7 @@ export const BrowserTab = props => {
 	};
 
 	/**
-	 * Disabling iframes for now´
+	 * Disabling iframes for now
 	const onFrameLoadStarted = url => {
 		url && initializeBackgroundBridge(url, false);
 	};
