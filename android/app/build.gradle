@@ -166,7 +166,7 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 41
+		versionCode 42
 		versionName "1.0.9"
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
