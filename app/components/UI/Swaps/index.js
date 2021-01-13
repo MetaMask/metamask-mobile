@@ -9,7 +9,6 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@estebanmino/controllers';
 
 import Engine from '../../../core/Engine';
-import handleInput from '../../Base/Keypad/rules/native';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
 import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
@@ -180,29 +179,16 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	);
 
 	/* Keypad Handlers */
-	const handleKeypadPress = useCallback(
-		newInput => {
-			const newAmount = handleInput(amount, newInput);
-			if (newAmount === amount) {
+	const handleKeypadChange = useCallback(
+		value => {
+			if (value === amount) {
 				return;
 			}
 
-			setAmount(newAmount);
+			setAmount(value);
 		},
 		[amount]
 	);
-	const handleKeypadPress1 = useCallback(() => handleKeypadPress('1'), [handleKeypadPress]);
-	const handleKeypadPress2 = useCallback(() => handleKeypadPress('2'), [handleKeypadPress]);
-	const handleKeypadPress3 = useCallback(() => handleKeypadPress('3'), [handleKeypadPress]);
-	const handleKeypadPress4 = useCallback(() => handleKeypadPress('4'), [handleKeypadPress]);
-	const handleKeypadPress5 = useCallback(() => handleKeypadPress('5'), [handleKeypadPress]);
-	const handleKeypadPress6 = useCallback(() => handleKeypadPress('6'), [handleKeypadPress]);
-	const handleKeypadPress7 = useCallback(() => handleKeypadPress('7'), [handleKeypadPress]);
-	const handleKeypadPress8 = useCallback(() => handleKeypadPress('8'), [handleKeypadPress]);
-	const handleKeypadPress9 = useCallback(() => handleKeypadPress('9'), [handleKeypadPress]);
-	const handleKeypadPress0 = useCallback(() => handleKeypadPress('0'), [handleKeypadPress]);
-	const handleKeypadPressPeriod = useCallback(() => handleKeypadPress('PERIOD'), [handleKeypadPress]);
-	const handleKeypadPressBack = useCallback(() => handleKeypadPress('BACK'), [handleKeypadPress]);
 
 	const handleSourceTokenPress = useCallback(
 		item => {
@@ -311,28 +297,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 				</View>
 			</View>
 			<View style={styles.keypad}>
-				<Keypad>
-					<Keypad.Row>
-						<Keypad.Button onPress={handleKeypadPress1}>1</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress2}>2</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress3}>3</Keypad.Button>
-					</Keypad.Row>
-					<Keypad.Row>
-						<Keypad.Button onPress={handleKeypadPress4}>4</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress5}>5</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress6}>6</Keypad.Button>
-					</Keypad.Row>
-					<Keypad.Row>
-						<Keypad.Button onPress={handleKeypadPress7}>7</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress8}>8</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress9}>9</Keypad.Button>
-					</Keypad.Row>
-					<Keypad.Row>
-						<Keypad.Button onPress={handleKeypadPressPeriod}>.</Keypad.Button>
-						<Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>
-						<Keypad.DeleteButton onPress={handleKeypadPressBack} />
-					</Keypad.Row>
-				</Keypad>
+				<Keypad onChange={handleKeypadChange} value={amount} />
 				<View style={styles.buttonsContainer}>
 					<View style={styles.column}>
 						<TouchableOpacity onPress={toggleSlippageModal}>

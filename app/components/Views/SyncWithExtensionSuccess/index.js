@@ -1,6 +1,15 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import {
+	Animated,
+	BackHandler,
+	SafeAreaView,
+	StyleSheet,
+	Text,
+	View,
+	TouchableOpacity,
+	ScrollView
+} from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
@@ -83,6 +92,9 @@ const styles = StyleSheet.create({
 	}
 });
 
+const hardwareBackPress = () => ({});
+const HARDWARE_BACK_PRESS = 'hardwareBackPress';
+
 /**
  * View that shows the success message once
  * the sync with the extension is complete
@@ -106,8 +118,13 @@ class SyncWithExtensionSuccess extends PureComponent {
 
 	iconSpringVal = new Animated.Value(0.4);
 
+	componentWillUnmount = () => {
+		BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
+	};
+
 	componentDidMount() {
 		this.animateIcon();
+		BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
 	}
 
 	animateIcon() {

@@ -1,59 +1,87 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Device from '../../../util/Device';
+import Keypad from './components';
+import rules from './rules';
 
-import Text from '../Text';
-import { colors } from '../../../styles/common';
+// TODO: get displayable keys from the currency (eg: a comma instead of a period)
+// TODO: handle onLongPress for delete button
 
-const styles = StyleSheet.create({
-	keypad: {
-		paddingHorizontal: 25
-	},
-	keypadRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-around'
-	},
-	keypadButton: {
-		paddingHorizontal: 20,
-		paddingVertical: Device.isMediumDevice() ? (Device.isIphone5() ? 5 : 10) : 15,
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	keypadButtonText: {
-		color: colors.black,
-		textAlign: 'center',
-		fontSize: 30
-	},
-	deleteIcon: {
-		fontSize: 25,
-		marginTop: 5
-	}
-});
-
-const KeypadContainer = props => <View style={styles.keypad} {...props} />;
-const KeypadRow = props => <View style={styles.keypadRow} {...props} />;
-const KeypadButton = ({ children, ...props }) => (
-	<TouchableOpacity style={styles.keypadButton} {...props}>
-		<Text style={styles.keypadButtonText}>{children}</Text>
-	</TouchableOpacity>
-);
-
-KeypadButton.propTypes = {
-	children: PropTypes.node
+export const Keys = {
+	DIGIT_1: '1',
+	DIGIT_2: '2',
+	DIGIT_3: '3',
+	DIGIT_4: '4',
+	DIGIT_5: '5',
+	DIGIT_6: '6',
+	DIGIT_7: '7',
+	DIGIT_8: '8',
+	DIGIT_9: '9',
+	DIGIT_0: '0',
+	PERIOD: 'PERIOD',
+	BACK: 'BACK'
 };
 
-const KeypadDeleteButton = props => (
-	<TouchableOpacity style={styles.keypadButton} {...props}>
-		<IonicIcon style={[styles.keypadButtonText, styles.deleteIcon]} name="md-arrow-back" />
-	</TouchableOpacity>
-);
+function KeypadComponent({ onChange, value, currency }) {
+	const handler = useMemo(() => rules[currency?.toLowerCase() || 'native'] || rules.native, [currency]);
+	const handleKeypadPress = useCallback(
+		newInput => {
+			const newValue = handler(value, newInput);
+			onChange(newValue, newInput);
+		},
+		[handler, onChange, value]
+	);
+	const handleKeypadPress1 = useCallback(() => handleKeypadPress(Keys.DIGIT_1), [handleKeypadPress]);
+	const handleKeypadPress2 = useCallback(() => handleKeypadPress(Keys.DIGIT_2), [handleKeypadPress]);
+	const handleKeypadPress3 = useCallback(() => handleKeypadPress(Keys.DIGIT_3), [handleKeypadPress]);
+	const handleKeypadPress4 = useCallback(() => handleKeypadPress(Keys.DIGIT_4), [handleKeypadPress]);
+	const handleKeypadPress5 = useCallback(() => handleKeypadPress(Keys.DIGIT_5), [handleKeypadPress]);
+	const handleKeypadPress6 = useCallback(() => handleKeypadPress(Keys.DIGIT_6), [handleKeypadPress]);
+	const handleKeypadPress7 = useCallback(() => handleKeypadPress(Keys.DIGIT_7), [handleKeypadPress]);
+	const handleKeypadPress8 = useCallback(() => handleKeypadPress(Keys.DIGIT_8), [handleKeypadPress]);
+	const handleKeypadPress9 = useCallback(() => handleKeypadPress(Keys.DIGIT_9), [handleKeypadPress]);
+	const handleKeypadPress0 = useCallback(() => handleKeypadPress(Keys.DIGIT_0), [handleKeypadPress]);
+	const handleKeypadPressPeriod = useCallback(() => handleKeypadPress(Keys.PERIOD), [handleKeypadPress]);
+	const handleKeypadPressBack = useCallback(() => handleKeypadPress(Keys.BACK), [handleKeypadPress]);
 
-const Keypad = KeypadContainer;
-Keypad.Row = KeypadRow;
-Keypad.Button = KeypadButton;
-Keypad.DeleteButton = KeypadDeleteButton;
+	return (
+		<Keypad>
+			<Keypad.Row>
+				<Keypad.Button onPress={handleKeypadPress1}>1</Keypad.Button>
+				<Keypad.Button onPress={handleKeypadPress2}>2</Keypad.Button>
+				<Keypad.Button onPress={handleKeypadPress3}>3</Keypad.Button>
+			</Keypad.Row>
+			<Keypad.Row>
+				<Keypad.Button onPress={handleKeypadPress4}>4</Keypad.Button>
+				<Keypad.Button onPress={handleKeypadPress5}>5</Keypad.Button>
+				<Keypad.Button onPress={handleKeypadPress6}>6</Keypad.Button>
+			</Keypad.Row>
+			<Keypad.Row>
+				<Keypad.Button onPress={handleKeypadPress7}>7</Keypad.Button>
+				<Keypad.Button onPress={handleKeypadPress8}>8</Keypad.Button>
+				<Keypad.Button onPress={handleKeypadPress9}>9</Keypad.Button>
+			</Keypad.Row>
+			<Keypad.Row>
+				<Keypad.Button onPress={handleKeypadPressPeriod}>.</Keypad.Button>
+				<Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>
+				<Keypad.DeleteButton onPress={handleKeypadPressBack} />
+			</Keypad.Row>
+		</Keypad>
+	);
+}
 
-export default Keypad;
+KeypadComponent.propTypes = {
+	/**
+	 * Function that will be called when a key is pressed with arguments `(value, key)`
+	 */
+	onChange: PropTypes.func,
+	/**
+	 * Currency code for the keypad rules and symbols. Defaults to native
+	 */
+	currency: PropTypes.string,
+	/**
+	 * Current value used to create new value when a key is pressed.
+	 */
+	value: PropTypes.string
+};
+
+export default KeypadComponent;

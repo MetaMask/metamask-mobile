@@ -2,6 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import PaymentChannelDeposit from './';
 import configureMockStore from 'redux-mock-store';
+import { ROPSTEN } from '../../../../constants/network';
 
 const mockStore = configureMockStore();
 
@@ -24,7 +25,7 @@ describe('PaymentChannelDeposit', () => {
 					},
 					NetworkController: {
 						provider: {
-							type: 'ropsten',
+							type: ROPSTEN,
 							ticker: 'ETH'
 						}
 					}
