@@ -3,15 +3,21 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
+import AssetActionButton from '../AssetActionButton';
+import AppConstants from '../../../core/AppConstants';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import AssetActionButtons from '../AssetActionButtons';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
+import { isMainNet } from '../../../util/networks';
+import { swapsTokensObjectSelector } from '../../../reducers/swaps';
+
+// TODO(swaps): Replace with controller's ETH address
+const ETH_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -50,6 +56,10 @@ const styles = StyleSheet.create({
 		color: colors.fontSecondary,
 		...fontStyles.light,
 		textTransform: 'uppercase'
+	},
+	actions: {
+		width: '50%',
+		flexDirection: 'row'
 	}
 });
 
@@ -105,7 +115,15 @@ class AssetOverview extends PureComponent {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string,
+		/**
+		 * Object that contains swaps tokens addresses as key
+		 */
+		swapsTokens: PropTypes.object
 	};
 
 	onReceive = () => {
@@ -122,6 +140,12 @@ class AssetOverview extends PureComponent {
 			this.props.newAssetTransaction(asset);
 			this.props.navigation.navigate('SendFlowView');
 		}
+	};
+
+	goToSwaps = () => {
+		this.props.navigation.navigate('Swaps', {
+			sourceToken: this.props.asset.isETH ? ETH_ADDRESS : this.props.asset.address
+		});
 	};
 
 	renderLogo = () => {
@@ -148,7 +172,9 @@ class AssetOverview extends PureComponent {
 			tokenExchangeRates,
 			tokenBalances,
 			conversionRate,
-			currentCurrency
+			currentCurrency,
+			network,
+			swapsTokens
 		} = this.props;
 		let mainBalance, secondaryBalance;
 		const itemAddress = safeToChecksumAddress(address);
@@ -170,7 +196,6 @@ class AssetOverview extends PureComponent {
 			mainBalance = !balanceFiat ? `${balance} ${symbol}` : balanceFiat;
 			secondaryBalance = !balanceFiat ? balanceFiat : `${balance} ${symbol}`;
 		}
-
 		return (
 			<View style={styles.wrapper} testID={'token-asset-overview'}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
@@ -181,14 +206,39 @@ class AssetOverview extends PureComponent {
 					<Text style={styles.amountFiat}>{secondaryBalance}</Text>
 				</View>
 
-				<AssetActionButtons
+				{/* <AssetActionButtons
 					leftText={strings('asset_overview.send_button').toUpperCase()}
 					testID={'token-send-button'}
 					middleText={strings('asset_overview.receive_button').toUpperCase()}
 					onLeftPress={this.onSend}
 					onMiddlePress={this.onReceive}
 					middleType={'receive'}
-				/>
+				/> */}
+
+				<View style={styles.actions}>
+					<AssetActionButton
+						icon="receive"
+						onPress={this.onReceive}
+						label={strings('asset_overview.receive_button')}
+					/>
+					<AssetActionButton
+						testID={'token-send-button'}
+						icon="send"
+						onPress={this.onSend}
+						label={strings('asset_overview.send_button')}
+					/>
+					{AppConstants.SWAPS.ACTIVE && (
+						<AssetActionButton
+							icon="swap"
+							label={strings('asset_overview.swap')}
+							disabled={
+								(AppConstants.SWAPS.ONLY_MAINNET ? !isMainNet(network) : false) ||
+								(!isETH && !(address?.toLowerCase() in swapsTokens))
+							}
+							onPress={this.goToSwaps}
+						/>
+					)}
+				</View>
 			</View>
 		);
 	}
@@ -201,7 +251,9 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	network: state.engine.backgroundState.NetworkController.network,
+	swapsTokens: swapsTokensObjectSelector(state)
 });
 
 const mapDispatchToProps = dispatch => ({

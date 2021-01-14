@@ -92,15 +92,20 @@ const styles = StyleSheet.create({
 	}
 });
 
+// TODO(swaps): Replace with controller's ETH address
+const ETH_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	const navigation = useContext(NavigationContext);
-	const initialSource = navigation.getParam('sourceToken', 'ETH');
+	const initialSource = navigation.getParam('sourceToken', ETH_ADDRESS);
 	const [amount, setAmount] = useState('0');
 	const amountBigNumber = useMemo(() => new BigNumber(amount), [amount]);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
 
-	const [sourceToken, setSourceToken] = useState(() => tokens?.find(token => token.symbol === initialSource));
+	const [sourceToken, setSourceToken] = useState(() =>
+		tokens?.find(token => token?.address === initialSource.toLowerCase())
+	);
 	const [destinationToken, setDestinationToken] = useState(null);
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
@@ -135,7 +140,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 
 	useEffect(() => {
 		if (initialSource && tokens && !sourceToken) {
-			setSourceToken(tokens.find(token => token.symbol === initialSource));
+			setSourceToken(tokens.find(token => token?.address === initialSource));
 		}
 	}, [tokens, initialSource, sourceToken]);
 
