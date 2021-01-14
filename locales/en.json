@@ -533,9 +533,10 @@
 	},
 	"asset_overview": {
 		"send_button": "Send",
-		"receive_button": "RECEIVE",
+		"receive_button": "Receive",
 		"add_collectible_button": "Add",
 		"info": "Info",
+		"swap": "Swap",
 		"description": "Description",
 		"totalSupply": "Total Supply",
 		"address": "Address"

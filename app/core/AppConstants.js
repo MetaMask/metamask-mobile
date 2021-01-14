@@ -58,6 +58,7 @@ export default {
 	},
 	SWAPS: {
 		ACTIVE: false,
+		ONLY_MAINNET: true,
 		POLL_COUNT_LIMIT: 3,
 		POLLING_INTERVAL: 2 * 60 * 1000,
 		DEFAULT_SLIPPAGE: 3
