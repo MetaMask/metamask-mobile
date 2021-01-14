@@ -670,12 +670,14 @@ export const BrowserTab = props => {
 
 					res.result = true;
 				},
+
 				metamask_getProviderState: async () => {
 					res.result = {
 						...getProviderState(),
 						accounts: await getAccounts()
 					};
 				},
+
 				metamask_logWeb3ShimUsage: () => (res.result = null)
 			};
 
