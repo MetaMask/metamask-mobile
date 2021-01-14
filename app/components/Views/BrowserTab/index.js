@@ -678,6 +678,14 @@ export const BrowserTab = props => {
 					};
 				},
 
+				/**
+				 * This method is sent by the window.web3 shim. It can be used to
+				 * record web3 shim usage metrics. These metrics are already collected
+				 * in the extension, and can optionally be added to mobile as well.
+				 *
+				 * For now, we need to respond to this method to not throw errors on
+				 * the page, and we implement it as a no-op.
+				 */
 				metamask_logWeb3ShimUsage: () => (res.result = null)
 			};
 
