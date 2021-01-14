@@ -60,8 +60,7 @@ const styles = StyleSheet.create({
 	message: {
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 12,
-		paddingBottom: 20
+		fontSize: 12
 	},
 	warningWrapper: {
 		height: 50,
@@ -69,7 +68,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignSelf: 'center',
 		width: '100%',
-		// position: 'absolute',
 		marginVertical: 24
 	},
 	warningTextWrapper: {
@@ -103,7 +101,6 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		alignSelf: 'center',
 		width: '100%',
-		height: '100%',
 		paddingTop: 24
 	},
 	selectors: {
@@ -141,17 +138,13 @@ const styles = StyleSheet.create({
 		fontSize: 10,
 		color: colors.black
 	},
+	textGasFee: {
+		fontSize: 12
+	},
 	textTitle: {
 		...fontStyles.bold,
 		fontSize: 10,
 		color: colors.black
-	},
-	textTime: {
-		...fontStyles.bold,
-		color: colors.black,
-		marginVertical: 4,
-		fontSize: 18,
-		textTransform: 'none'
 	},
 	advancedOptionsContainer: {
 		flexDirection: 'column',
@@ -481,7 +474,7 @@ class CustomGas extends PureComponent {
 			gas,
 			generateTransform,
 			hideGasSelectors,
-			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei, averageWait, safeLowWait, fastWait }
+			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei }
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
 		const topOffset = { top: headerHeight };
@@ -509,8 +502,7 @@ class CustomGas extends PureComponent {
 								<Radio selected={gasSlowSelected} />
 							</View>
 						</View>
-						<Text style={styles.textTime}>{safeLowWait}</Text>
-						<Text style={styles.text}>
+						<Text style={[styles.text, styles.textGasFee]}>
 							{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 						</Text>
 						<Text style={styles.text}>
@@ -528,8 +520,7 @@ class CustomGas extends PureComponent {
 								<Radio selected={gasAverageSelected} />
 							</View>
 						</View>
-						<Text style={styles.textTime}>{averageWait}</Text>
-						<Text style={styles.text}>
+						<Text style={[styles.text, styles.textGasFee]}>
 							{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 						</Text>
 						<Text style={styles.text}>
@@ -547,8 +538,7 @@ class CustomGas extends PureComponent {
 								<Radio selected={gasFastSelected} />
 							</View>
 						</View>
-						<Text style={styles.textTime}>{fastWait}</Text>
-						<Text style={styles.text}>
+						<Text style={[styles.text, styles.textGasFee]}>
 							{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 						</Text>
 						<Text style={styles.text}>

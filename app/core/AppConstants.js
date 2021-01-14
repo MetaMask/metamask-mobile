@@ -1,7 +1,10 @@
 import Device from '../util/Device';
 import { MAINNET, RINKEBY } from '../constants/network';
 
+const DEVELOPMENT = 'development';
+
 export default {
+	IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
 	DEFAULT_LOCK_TIMEOUT: 30000,
 	DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
 	TX_CHECK_MAX_FREQUENCY: 5000,
