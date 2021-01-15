@@ -3,24 +3,24 @@ import { fetchBasicGasEstimates } from '../../../../util/custom-gas';
 import Logger from '../../../../util/Logger';
 
 function useGasPrice() {
-	const [price, setPrice] = useState(null);
+	const [gasPrice, setGasPrice] = useState(null);
 
-	const getPrices = useCallback(async () => {
+	const getGasPrice = useCallback(async () => {
 		try {
-			const basicGasEstimates = await fetchBasicGasEstimates();
-			setPrice(basicGasEstimates);
+			const gasEstimates = await fetchBasicGasEstimates();
+			setGasPrice(gasEstimates);
 		} catch (error) {
 			Logger.log('Swaps: Error while trying to get gas estimates', error);
 		}
 	}, []);
 
 	useEffect(() => {
-		getPrices();
-	}, [getPrices]);
+		getGasPrice();
+	}, [getGasPrice]);
 
-	const updatePrice = useCallback(() => getPrices(), [getPrices]);
+	const updateGasPrice = useCallback(() => getGasPrice(), [getGasPrice]);
 
-	return [price, updatePrice];
+	return [gasPrice, updateGasPrice];
 }
 
 export default useGasPrice;
