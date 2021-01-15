@@ -39,9 +39,24 @@ describe('isMainNet', () => {
 });
 
 describe('getNetworkName', () => {
-	it('should get network name', () => {
+	it(`should get network name for ${MAINNET} id`, () => {
 		const main = getNetworkName(String(1));
 		expect(main).toEqual(MAINNET);
+	});
+
+	it(`should get network name for ${ROPSTEN} id`, () => {
+		const main = getNetworkName(String(3));
+		expect(main).toEqual(ROPSTEN);
+	});
+
+	it(`should get network name for ${KOVAN} id`, () => {
+		const main = getNetworkName(String(42));
+		expect(main).toEqual(KOVAN);
+	});
+
+	it(`should return undefined for unknown network id`, () => {
+		const main = getNetworkName(String(99));
+		expect(main).toEqual(undefined);
 	});
 });
 
