@@ -61,7 +61,7 @@ export class BackgroundBridge extends EventEmitter {
 		// setup multiplexing
 		const mux = setupMultiplex(portStream);
 		// connect features
-		this.setupProviderConnection(mux.createStream('provider'));
+		this.setupProviderConnection(mux.createStream('metamask-provider'));
 
 		Engine.context.NetworkController.subscribe(this.sendStateUpdate);
 		Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
@@ -75,14 +75,14 @@ export class BackgroundBridge extends EventEmitter {
 	onUnlock() {
 		this.sendNotification({
 			method: NOTIFICATION_NAMES.unlockStateChanged,
-			result: true
+			params: true
 		});
 	}
 
 	onLock() {
 		this.sendNotification({
 			method: NOTIFICATION_NAMES.unlockStateChanged,
-			result: false
+			params: false
 		});
 	}
 
@@ -108,7 +108,7 @@ export class BackgroundBridge extends EventEmitter {
 
 		this.sendNotification({
 			method: NOTIFICATION_NAMES.chainChanged,
-			result: publicState
+			params: publicState
 		});
 	}
 

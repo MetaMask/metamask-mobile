@@ -198,7 +198,7 @@
   "devDependencies": {
     "@babel/core": "^7.6.2",
     "@babel/runtime": "^7.6.2",
-    "@metamask/mobile-provider": "1.3.0",
+    "@metamask/mobile-provider": "./metamask-mobile-provider-1.3.4.tgz",
     "@react-native-community/eslint-config": "^0.0.5",
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",

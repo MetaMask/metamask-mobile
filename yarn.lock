@@ -1399,10 +1399,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
 
-"@metamask/mobile-provider@1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-1.3.0.tgz#7e79ff2c3ba5eeadf139f4fbcf4bd84d9206af0e"
-  integrity sha512-z5oDBsbnn4VtUU50xQC9EqUw/SYaCYO/mpI6VkBeBLCGBXVndzfS7hi1Emyr6bhqz0H9kdNQN4gPoewyziiOpQ==
+"@metamask/mobile-provider@./metamask-mobile-provider-1.3.4.tgz":
+  version "1.3.4"
+  resolved "./metamask-mobile-provider-1.3.4.tgz#631cbb01428cef6c75cd851cffc44b5cf9439cca"
 
 "@react-native-community/async-storage@1.9.0":
   version "1.9.0"
@@ -4984,10 +4983,10 @@ eth-json-rpc-middleware@^6.0.0:
     pify "^3.0.0"
     safe-event-emitter "^1.0.1"
 
-eth-keyring-controller@^6.1.0:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/eth-keyring-controller/-/eth-keyring-controller-6.1.0.tgz#dc9313d0b793e085dc1badf84dd4f5e3004e127e"
-  integrity sha512-wPxH++98VDBcDv9YkPzxhZC0gF1ixuRbyKR2u/NOT/roBpNQDe4reqyllBRC7jhPehiKnRxzf7r6HEyirRnPxQ==
+eth-keyring-controller@^5.6.1:
+  version "5.6.1"
+  resolved "https://registry.yarnpkg.com/eth-keyring-controller/-/eth-keyring-controller-5.6.1.tgz#7b7268400704c8f5ce98a055910341177dd207ca"
+  integrity sha512-sxJ87bJg7PvvPzj1sY1jJYHQL1HVUhh84Q/a4QPrcnzAAng1yibvvUfww0pCez4XJfHuMkJvUxfF8eAusJM8fQ==
   dependencies:
     bip39 "^2.4.0"
     bluebird "^3.5.0"
@@ -5058,7 +5057,7 @@ eth-sig-util@^1.4.0, eth-sig-util@^1.4.2:
     ethereumjs-abi "git+https://github.com/ethereumjs/ethereumjs-abi.git"
     ethereumjs-util "^5.1.1"
 
-eth-sig-util@^2.4.4, eth-sig-util@^2.5.0:
+eth-sig-util@^2.3.0, eth-sig-util@^2.4.4, eth-sig-util@^2.5.0:
   version "2.5.3"
   resolved "https://registry.yarnpkg.com/eth-sig-util/-/eth-sig-util-2.5.3.tgz#6938308b38226e0b3085435474900b03036abcbe"
   integrity sha512-KpXbCKmmBUNUTGh9MRKmNkIPietfhzBqqYqysDavLseIiMUGl95k6UcPEkALAZlj41e9E6yioYXc1PC333RKqw==
