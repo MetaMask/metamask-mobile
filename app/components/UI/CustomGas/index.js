@@ -296,9 +296,9 @@ class CustomGas extends PureComponent {
 		gasSpeedSelected: this?.props?.gasSpeedSelected || 'average',
 		customGasPrice: '10',
 		customGasLimit: fromWei(this.props.gas, 'wei'),
-		customGasPriceBNWei: this.props.gasPrice,
-		customGasPriceBN: new BN(Math.round(this.props.basicGasEstimates.averageGwei)),
-		customGasLimitBN: this.props.gas,
+		customGasPriceBNWei: toBN(this.props.gasPrice),
+		customGasPriceBN: new BN(Math.round(this.props.basicGasEstimates.average)),
+		customGasLimitBN: toBN(this.props.gas),
 		warningGasLimit: '',
 		warningGasPrice: '',
 		warningSufficientFunds: '',
@@ -311,6 +311,7 @@ class CustomGas extends PureComponent {
 		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
 		const { ticker } = this.props;
 		if (ticker && ticker !== 'ETH') toggleAdvancedCustomGas(true);
+
 		//Applies ISF error if present before any gas modifications
 		this.setState({ warningSufficientFunds, advancedCustomGas: ticker && ticker !== 'ETH' });
 	};
@@ -474,7 +475,7 @@ class CustomGas extends PureComponent {
 			gas,
 			generateTransform,
 			hideGasSelectors,
-			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei }
+			basicGasEstimates: { average, fast, safeLow }
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
 		const topOffset = { top: headerHeight };
@@ -503,10 +504,10 @@ class CustomGas extends PureComponent {
 							</View>
 						</View>
 						<Text style={[styles.text, styles.textGasFee]}>
-							{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
+							{getRenderableEthGasFee(safeLow, gas)} {ticker}
 						</Text>
 						<Text style={styles.text}>
-							{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
+							{getRenderableFiatGasFee(safeLow, conversionRate, currentCurrency, gas)}
 						</Text>
 					</TouchableOpacity>
 					<TouchableOpacity
@@ -521,10 +522,10 @@ class CustomGas extends PureComponent {
 							</View>
 						</View>
 						<Text style={[styles.text, styles.textGasFee]}>
-							{getRenderableEthGasFee(averageGwei, gas)} {ticker}
+							{getRenderableEthGasFee(average, gas)} {ticker}
 						</Text>
 						<Text style={styles.text}>
-							{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
+							{getRenderableFiatGasFee(average, conversionRate, currentCurrency, gas)}
 						</Text>
 					</TouchableOpacity>
 					<TouchableOpacity
@@ -539,10 +540,10 @@ class CustomGas extends PureComponent {
 							</View>
 						</View>
 						<Text style={[styles.text, styles.textGasFee]}>
-							{getRenderableEthGasFee(fastGwei, gas)} {ticker}
+							{getRenderableEthGasFee(fast, gas)} {ticker}
 						</Text>
 						<Text style={styles.text}>
-							{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
+							{getRenderableFiatGasFee(fast, conversionRate, currentCurrency, gas)}
 						</Text>
 					</TouchableOpacity>
 				</View>
@@ -686,12 +687,12 @@ class CustomGas extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state, props) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: getNormalizedTxState(state)
+	transaction: props.transaction || getNormalizedTxState(state)
 });
 
 export default connect(mapStateToProps)(CustomGas);
