@@ -14,10 +14,10 @@ import { NavigationContext } from 'react-navigation';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/Device';
+import Modal from 'react-native-modal';
 import { colors } from '../../../styles/common';
 import { renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
-
 import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
 import Alert from '../../Base/Alert';
@@ -35,6 +35,10 @@ import { swapsUtils } from '@estebanmino/controllers';
 import useBalance from './utils/useBalance';
 import { fetchBasicGasEstimates } from '../../../util/custom-gas';
 import { addHexPrefix } from '@walletconnect/utils';
+import CustomGas from '../CustomGas';
+import useGasPrice from './utils/useGasPrice';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import AnimatedTransactionModal from '../AnimatedTransactionModal';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -159,6 +163,14 @@ const styles = StyleSheet.create({
 	},
 	expiredIcon: {
 		color: colors.blue
+	},
+	keyboardAwareWrapper: {
+		flex: 1,
+		justifyContent: 'flex-end'
+	},
+	bottomModal: {
+		justifyContent: 'flex-end',
+		margin: 0
 	}
 });
 
@@ -239,9 +251,18 @@ function SwapsQuotesView({
 	const [isFirstLoad, setFirstLoad] = useState(true);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 	const [basicGasEstimates, setBasicGasEstimates] = useState({});
+	// TODO: use this variable in the future when calculating savings
+	const [isSaving] = useState(false);
+
+	/* Get the ratio between the assets given the selected quote*/
+	const [ratioAsSource, setRatioAsSource] = useState(true);
 
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
+
+	const [editGasVisible, setEditGasVisible] = useState(false);
+
+	const [gasPrice] = useGasPrice();
 
 	/* Get quotes as an array sorted by overallValue */
 	const allQuotes = useMemo(() => {
@@ -263,12 +284,6 @@ function SwapsQuotesView({
 	]);
 
 	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [quoteValues, selectedQuoteId]);
-
-	// TODO: use this variable in the future when calculating savings
-	const [isSaving] = useState(false);
-
-	/* Get the ratio between the assets given the selected quote*/
-	const [ratioAsSource, setRatioAsSource] = useState(true);
 
 	const [numerator, denominator] = useMemo(() => {
 		const source = { ...sourceToken, amount: selectedQuote?.sourceAmount };
@@ -322,6 +337,9 @@ function SwapsQuotesView({
 		await TransactionController.addTransaction(selectedQuote.trade);
 		navigation.dismiss();
 	}, [navigation, selectedQuote, approvalTransaction, basicGasEstimates]);
+
+	const onEditMaxGas = () => setEditGasVisible(true);
+	const onEditMaxGasCancel = () => setEditGasVisible(false);
 
 	/* Effects */
 
@@ -541,10 +559,9 @@ function SwapsQuotesView({
 								<View style={styles.quotesDescription}>
 									<View style={styles.quotesLegend}>
 										<Text>{strings('swaps.max_gas_fee')} </Text>
-										{/* TODO: allow max gas fee edit in the future */}
-										{/* <TouchableOpacity>
+										<TouchableOpacity onPress={onEditMaxGas}>
 											<Text link>{strings('swaps.edit')}</Text>
-										</TouchableOpacity> */}
+										</TouchableOpacity>
 									</View>
 									<Text>{renderFromWei(toWei(selectedQuoteValue.maxEthFee))} ETH</Text>
 								</View>
@@ -611,6 +628,34 @@ function SwapsQuotesView({
 				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
 			/>
+			<Modal
+				isVisible={editGasVisible}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={onEditMaxGasCancel}
+				onBackButtonPress={onEditMaxGasCancel}
+				onSwipeComplete={onEditMaxGasCancel}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+					<AnimatedTransactionModal onModeChange={() => undefined} ready review={() => undefined}>
+						<CustomGas
+							handleGasFeeSelection={() => undefined}
+							basicGasEstimates={gasPrice}
+							gas={selectedQuote.trade.gas}
+							gasPrice={gasPrice.average}
+							gasError={null}
+							mode={'edit'}
+							transaction={selectedQuote.trade}
+						/>
+					</AnimatedTransactionModal>
+				</KeyboardAwareScrollView>
+			</Modal>
 		</ScreenView>
 	);
 }
