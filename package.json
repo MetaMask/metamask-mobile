@@ -70,7 +70,7 @@
     "react-native-level-fs/**/bl": "^0.9.5"
   },
   "dependencies": {
-    "@estebanmino/controllers": "3.2.38",
+    "@estebanmino/controllers": "3.2.39",
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.19.0",
     "@metamask/controllers": "^6.0.0",
