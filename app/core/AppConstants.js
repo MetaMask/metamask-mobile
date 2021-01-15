@@ -56,6 +56,7 @@ export default {
 	},
 	SWAPS: {
 		ACTIVE: true,
-		ONLY_MAINNET: true
+		ONLY_MAINNET: true,
+		LIVENESS_POLLING_FREQUENCY: 5 * 60 * 1000
 	}
 };

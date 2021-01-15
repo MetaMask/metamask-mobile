@@ -6,6 +6,8 @@ import { NavigationContext } from 'react-navigation';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import BigNumber from 'bignumber.js';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { swapsUtils } from '@estebanmino/controllers';
+
 import Engine from '../../../core/Engine';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
@@ -92,12 +94,9 @@ const styles = StyleSheet.create({
 	}
 });
 
-// TODO(swaps): Replace with controller's ETH address
-const ETH_ADDRESS = '0x0000000000000000000000000000000000000000';
-
 function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	const navigation = useContext(NavigationContext);
-	const initialSource = navigation.getParam('sourceToken', ETH_ADDRESS);
+	const initialSource = navigation.getParam('sourceToken', swapsUtils.ETH_SWAPS_TOKEN_ADDRESS);
 	const [amount, setAmount] = useState('0');
 	const amountBigNumber = useMemo(() => new BigNumber(amount), [amount]);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);

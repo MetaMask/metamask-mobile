@@ -735,22 +735,23 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
-"@estebanmino/controllers@3.2.4":
-  version "3.2.4"
-  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.2.4.tgz#c6e4ed2fb130179553f4efdcfd7d7e485e0f55b2"
-  integrity sha512-gBhELpaUlpVZ0eoVjRl8bMedBX9ndRngM1pP6ChzCPupahZ6pInabNkdIG5w2XDW9c9Z3LW2CxrhePOE1jWmJQ==
+"@estebanmino/controllers@3.2.39":
+  version "3.2.39"
+  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.2.39.tgz#c1db1ebabbebfb66d893d7a10577c5ebb7ae8d52"
+  integrity sha512-M+AjY30M8kmYZ4qDPC+jkkEf9KKfOhk7lv4ARmBwpd7TRClViPpbYQGnaRvpZvWeyNLwKLMCtZR9si7Gdz1hsw==
   dependencies:
+    abort-controller "^3.0.0"
     await-semaphore "^0.1.3"
     bignumber.js "^9.0.1"
     eth-contract-metadata "^1.11.0"
     eth-ens-namehash "^2.0.8"
     eth-json-rpc-infura "^5.1.0"
-    eth-keyring-controller "^5.6.1"
+    eth-keyring-controller "^6.1.0"
     eth-method-registry "1.1.0"
     eth-phishing-detect "^1.1.13"
     eth-query "^2.1.2"
-    eth-rpc-errors "^3.0.0"
-    eth-sig-util "^2.3.0"
+    eth-rpc-errors "^4.0.0"
+    eth-sig-util "^3.0.0"
     ethereumjs-util "^6.1.0"
     ethereumjs-wallet "0.6.0"
     ethjs-query "^0.3.8"
@@ -758,7 +759,7 @@
     human-standard-token-abi "^2.0.0"
     isomorphic-fetch "^3.0.0"
     jsonschema "^1.2.4"
-    percentile "^1.2.1"
+    nanoid "^3.1.12"
     single-call-balance-checker-abi "^1.0.0"
     uuid "^3.3.2"
     web3 "^0.20.7"
@@ -4984,21 +4985,6 @@ eth-json-rpc-middleware@^6.0.0:
     pify "^3.0.0"
     safe-event-emitter "^1.0.1"
 
-eth-keyring-controller@^5.6.1:
-  version "5.6.1"
-  resolved "https://registry.yarnpkg.com/eth-keyring-controller/-/eth-keyring-controller-5.6.1.tgz#7b7268400704c8f5ce98a055910341177dd207ca"
-  integrity sha512-sxJ87bJg7PvvPzj1sY1jJYHQL1HVUhh84Q/a4QPrcnzAAng1yibvvUfww0pCez4XJfHuMkJvUxfF8eAusJM8fQ==
-  dependencies:
-    bip39 "^2.4.0"
-    bluebird "^3.5.0"
-    browser-passworder "^2.0.3"
-    eth-hd-keyring "^3.5.0"
-    eth-sig-util "^1.4.0"
-    eth-simple-keyring "^3.5.0"
-    ethereumjs-util "^5.1.2"
-    loglevel "^1.5.0"
-    obs-store "^4.0.3"
-
 eth-keyring-controller@^6.1.0:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/eth-keyring-controller/-/eth-keyring-controller-6.1.0.tgz#dc9313d0b793e085dc1badf84dd4f5e3004e127e"
@@ -5058,7 +5044,7 @@ eth-sig-util@^1.4.0, eth-sig-util@^1.4.2:
     ethereumjs-abi "git+https://github.com/ethereumjs/ethereumjs-abi.git"
     ethereumjs-util "^5.1.1"
 
-eth-sig-util@^2.3.0, eth-sig-util@^2.4.4, eth-sig-util@^2.5.0:
+eth-sig-util@^2.4.4, eth-sig-util@^2.5.0:
   version "2.5.3"
   resolved "https://registry.yarnpkg.com/eth-sig-util/-/eth-sig-util-2.5.3.tgz#6938308b38226e0b3085435474900b03036abcbe"
   integrity sha512-KpXbCKmmBUNUTGh9MRKmNkIPietfhzBqqYqysDavLseIiMUGl95k6UcPEkALAZlj41e9E6yioYXc1PC333RKqw==
@@ -9930,11 +9916,6 @@ pbkdf2@^3.0.3, pbkdf2@^3.0.9:
     ripemd160 "^2.0.1"
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
-
-percentile@^1.2.1:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/percentile/-/percentile-1.4.0.tgz#84e03f1f37722ddcc1f527d5367743b7bb30f336"
-  integrity sha512-W/Q9I9nUm9Z7JvVHWQ0zRfUUdSu3NVLeiECBCrWqxdMKAOMcUBST0RhAtlvN1itLnR8HI/LSDD96clw3RenzZQ==
 
 performance-now@^2.1.0:
   version "2.1.0"

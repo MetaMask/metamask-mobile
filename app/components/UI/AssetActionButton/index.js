@@ -83,7 +83,7 @@ function AssetActionButton({ onPress, icon, label, disabled }) {
 			disabled={disabled}
 		>
 			<View style={styles.buttonIconWrapper}>{icon && (typeof icon === 'string' ? getIcon(icon) : icon)}</View>
-			<Text centered style={styles.buttonText}>
+			<Text centered style={styles.buttonText} numberOfLines={1}>
 				{label}
 			</Text>
 		</TouchableOpacity>
