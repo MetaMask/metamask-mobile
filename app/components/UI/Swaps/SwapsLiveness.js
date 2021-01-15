@@ -6,6 +6,7 @@ import AppConstants from '../../../core/AppConstants';
 import { setSwapsLiveness, swapsLivenessSelector } from '../../../reducers/swaps';
 import useInterval from '../../hooks/useInterval';
 
+const SWAPS_ACTIVE = AppConstants.SWAPS.ACTIVE;
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
 
 function SwapLiveness({ isLive, setLiveness }) {
@@ -23,7 +24,7 @@ function SwapLiveness({ isLive, setLiveness }) {
 
 	// Check on mount
 	useEffect(() => {
-		if (!isLive && !hasMountChecked) {
+		if (SWAPS_ACTIVE && !isLive && !hasMountChecked) {
 			setHasMountChecked(true);
 			checkLiveness();
 		}
@@ -40,10 +41,12 @@ function SwapLiveness({ isLive, setLiveness }) {
 	);
 
 	useEffect(() => {
-		AppState.addEventListener('change', appStateHandler);
-		return () => {
-			AppState.removeEventListener('change', appStateHandler);
-		};
+		if (SWAPS_ACTIVE) {
+			AppState.addEventListener('change', appStateHandler);
+			return () => {
+				AppState.removeEventListener('change', appStateHandler);
+			};
+		}
 	}, [appStateHandler]);
 
 	// Check on interval
@@ -51,7 +54,7 @@ function SwapLiveness({ isLive, setLiveness }) {
 		async () => {
 			checkLiveness();
 		},
-		isLive ? null : POLLING_FREQUENCY
+		SWAPS_ACTIVE ? (isLive ? null : POLLING_FREQUENCY) : null
 	);
 
 	return null;
