@@ -35,6 +35,7 @@ import { strings } from '../../../../locales/i18n';
 import { swapsUtils } from '@estebanmino/controllers';
 import useBalance from './utils/useBalance';
 import { fetchBasicGasEstimates } from '../../../util/custom-gas';
+import { addHexPrefix } from '@walletconnect/utils';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -320,10 +321,11 @@ function SwapsQuotesView({
 		}
 		const { TransactionController } = Engine.context;
 		if (basicGasEstimates?.average) {
+			const averageGasPrice = addHexPrefix(basicGasEstimates.average.toString(16));
 			if (approvalTransaction) {
-				approvalTransaction.gasPrice = basicGasEstimates.average;
+				approvalTransaction.gasPrice = averageGasPrice;
 			}
-			selectedQuote.trade.gasPrice = basicGasEstimates.average;
+			selectedQuote.trade.gasPrice = averageGasPrice;
 		}
 
 		if (approvalTransaction) {
