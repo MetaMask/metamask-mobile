@@ -16,7 +16,7 @@ import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/Device';
 import Modal from 'react-native-modal';
 import { colors } from '../../../styles/common';
-import { renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
+import { hexToBN, renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
 import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
@@ -341,6 +341,9 @@ function SwapsQuotesView({
 	const onEditMaxGas = () => setEditGasVisible(true);
 	const onEditMaxGasCancel = () => setEditGasVisible(false);
 
+	const onHandleGasFeeSelection = gasPrice => {
+		console.log('onHandleGasFeeSelection', gasPrice);
+	};
 	/* Effects */
 
 	/* Main polling effect */
@@ -645,10 +648,10 @@ function SwapsQuotesView({
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 					<AnimatedTransactionModal onModeChange={() => undefined} ready review={() => undefined}>
 						<CustomGas
-							handleGasFeeSelection={() => undefined}
+							handleGasFeeSelection={onHandleGasFeeSelection}
 							basicGasEstimates={gasPrice}
-							gas={selectedQuote.trade.gas}
-							gasPrice={gasPrice.average}
+							gas={hexToBN(selectedQuote.trade.gas)}
+							gasPrice={toWei(gasPrice.average)}
 							gasError={null}
 							mode={'edit'}
 							transaction={selectedQuote.trade}

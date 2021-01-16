@@ -343,13 +343,13 @@ class CustomGas extends PureComponent {
 	onPressGasFast = () => {
 		const {
 			onPress,
-			basicGasEstimates: { fastGwei }
+			basicGasEstimates: { fast }
 		} = this.props;
 		onPress && onPress('fast');
-		const gasPriceBN = apiEstimateModifiedToWEI(fastGwei);
+		const gasPriceBN = apiEstimateModifiedToWEI(fast);
 		this.setState({
 			gasSpeedSelected: 'fast',
-			customGasPrice: fastGwei,
+			customGasPrice: fast,
 			customGasPriceBNWei: gasPriceBN
 		});
 	};
@@ -357,13 +357,13 @@ class CustomGas extends PureComponent {
 	onPressGasAverage = () => {
 		const {
 			onPress,
-			basicGasEstimates: { averageGwei }
+			basicGasEstimates: { average }
 		} = this.props;
 		onPress && onPress('average');
-		const gasPriceBN = apiEstimateModifiedToWEI(averageGwei);
+		const gasPriceBN = apiEstimateModifiedToWEI(average);
 		this.setState({
 			gasSpeedSelected: 'average',
-			customGasPrice: averageGwei,
+			customGasPrice: average,
 			customGasPriceBNWei: gasPriceBN
 		});
 	};
@@ -371,13 +371,13 @@ class CustomGas extends PureComponent {
 	onPressGasSlow = () => {
 		const {
 			onPress,
-			basicGasEstimates: { safeLowGwei }
+			basicGasEstimates: { safeLow }
 		} = this.props;
 		onPress && onPress('slow');
-		const gasPriceBN = apiEstimateModifiedToWEI(safeLowGwei);
+		const gasPriceBN = apiEstimateModifiedToWEI(safeLow);
 		this.setState({
 			gasSpeedSelected: 'slow',
-			customGasPrice: safeLowGwei,
+			customGasPrice: safeLow,
 			customGasPriceBNWei: gasPriceBN
 		});
 	};
@@ -455,14 +455,14 @@ class CustomGas extends PureComponent {
 			gas,
 			handleGasFeeSelection,
 			advancedCustomGas,
-			basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
+			basicGasEstimates: { fast, average, safeLow }
 		} = this.props;
 		if (advancedCustomGas) {
 			handleGasFeeSelection(new BN(customGasLimit), apiEstimateModifiedToWEI(customGasPrice));
 		} else {
-			if (gasSpeedSelected === 'slow') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
-			if (gasSpeedSelected === 'average') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
-			if (gasSpeedSelected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei));
+			if (gasSpeedSelected === 'slow') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLow));
+			if (gasSpeedSelected === 'average') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(average));
+			if (gasSpeedSelected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fast));
 		}
 		review();
 	};
