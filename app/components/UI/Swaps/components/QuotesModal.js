@@ -115,7 +115,7 @@ function QuotesModal({
 		>
 			<SafeAreaView style={styles.modalView}>
 				<View style={styles.title}>
-					<Title>{strings('swaps.quotes_analyzed')}</Title>
+					<Title>{strings('swaps.quotes_overview')}</Title>
 					<TouchableOpacity onPress={toggleModal} hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}>
 						<IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
 					</TouchableOpacity>
