@@ -3,8 +3,7 @@ import PropTypes from 'prop-types';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import AntIcon from 'react-native-vector-icons/AntDesign';
-import FeatherIcon from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import BigNumber from 'bignumber.js';
@@ -21,7 +20,6 @@ import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio }
 import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
 import Alert from '../../Base/Alert';
-import Title from '../../Base/Title';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import StyledButton from '../StyledButton';
@@ -73,8 +71,15 @@ const styles = StyleSheet.create({
 	},
 	errorViewContent: {
 		flex: 1,
-		paddingHorizontal: 40,
+		marginHorizontal: 55,
 		justifyContent: 'center'
+	},
+	errorTitle: {
+		fontSize: 24,
+		marginVertical: 10
+	},
+	errorText: {
+		fontSize: 14
 	},
 	sourceTokenContainer: {
 		flexDirection: 'row',
@@ -153,12 +158,13 @@ const styles = StyleSheet.create({
 		width: '100%'
 	},
 	errorIcon: {
-		fontSize: 44,
+		fontSize: 46,
 		marginVertical: 4,
 		color: colors.red
 	},
 	expiredIcon: {
-		color: colors.blue
+		color: colors.blue,
+		fontSize: 50
 	}
 });
 
@@ -402,17 +408,21 @@ function SwapsQuotesView({
 		const [errorTitle, errorMessage, errorAction] = getErrorMessage(errorKey);
 		const errorIcon =
 			errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR ? (
-				<FeatherIcon name="clock" style={[styles.errorIcon, styles.expiredIcon]} />
+				<MaterialCommunityIcons name="clock-outline" style={[styles.errorIcon, styles.expiredIcon]} />
 			) : (
-				<AntIcon name="warning" style={[styles.errorIcon]} />
+				<MaterialCommunityIcons name="alert-outline" style={[styles.errorIcon]} />
 			);
 
 		return (
 			<ScreenView contentContainerStyle={styles.screen}>
 				<View style={[styles.content, styles.errorViewContent]}>
 					{errorIcon}
-					<Title centered>{errorTitle}</Title>
-					<Text centered>{errorMessage}</Text>
+					<Text primary centered style={styles.errorTitle}>
+						{errorTitle}
+					</Text>
+					<Text centered style={styles.errorText}>
+						{errorMessage}
+					</Text>
 				</View>
 				<View style={styles.bottomSection}>
 					<StyledButton type="blue" containerStyle={styles.ctaButton} onPress={handleRetryFetchQuotes}>
@@ -605,7 +615,11 @@ function SwapsQuotesView({
 				/>
 			</View>
 
-			<FeeModal isVisible={isFeeModalVisible} toggleModal={toggleFeeModal} fee={`${selectedQuote.fee}%`} />
+			<FeeModal
+				isVisible={isFeeModalVisible}
+				toggleModal={toggleFeeModal}
+				fee={selectedQuote && `${selectedQuote.fee}%`}
+			/>
 			<QuotesModal
 				isVisible={isQuotesModalVisible}
 				toggleModal={toggleQuotesModal}
