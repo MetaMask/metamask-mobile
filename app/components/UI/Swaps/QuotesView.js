@@ -496,10 +496,12 @@ function SwapsQuotesView({
 							~{renderFromTokenMinimalUnit(selectedQuote.destinationAmount, destinationToken.decimals)}
 						</Text>
 						<View style={styles.exchangeRate}>
-							<Text>
-								1 {denominator?.symbol} = {ratio.toFormat(10)} {numerator?.symbol}{' '}
-								<FA5Icon name="sync" style={styles.infoIcon} onPress={handleRatioSwitch} />
-							</Text>
+							<TouchableOpacity onPress={handleRatioSwitch}>
+								<Text>
+									1 {denominator?.symbol} = {ratio.toFormat(10)} {numerator?.symbol}{' '}
+									<FA5Icon name="sync" style={styles.infoIcon} />
+								</Text>
+							</TouchableOpacity>
 						</View>
 					</>
 				)}
