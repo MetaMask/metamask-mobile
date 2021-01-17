@@ -220,11 +220,12 @@ function LoadingAnimation({ finish, onAnimationEnd }) {
 							useNativeDriver: false
 						}),
 						// Make the fox head pan to the aggregator position
-						Animated.timing(foxHeadPan, {
-							toValue: { x: positions[cur.key][0], y: positions[cur.key][1] },
-							duration: PAN_DURATION,
-							useNativeDriver: true
-						})
+						!Device.isAndroid() &&
+							Animated.timing(foxHeadPan, {
+								toValue: { x: positions[cur.key][0], y: positions[cur.key][1] },
+								duration: PAN_DURATION,
+								useNativeDriver: true
+							})
 					])
 				],
 				[]
@@ -239,11 +240,12 @@ function LoadingAnimation({ finish, onAnimationEnd }) {
 					useNativeDriver: true
 				}),
 				// Reset to fox head to origing
-				Animated.timing(foxHeadPan, {
-					toValue: { x: 0, y: 0 },
-					duration: PAN_DURATION,
-					useNativeDriver: true
-				})
+				!Device.isAndroid() &&
+					Animated.timing(foxHeadPan, {
+						toValue: { x: 0, y: 0 },
+						duration: PAN_DURATION,
+						useNativeDriver: true
+					})
 			])
 		],
 		[currentQuoteIndexValue, foxHeadPan, metadata, opacities, positions, progressValue]
