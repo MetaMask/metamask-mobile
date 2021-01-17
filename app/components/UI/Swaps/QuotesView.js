@@ -211,6 +211,7 @@ function SwapsQuotesView({
 	pollingCyclesLeft,
 	approvalTransaction,
 	topAggId,
+	aggregatorMetadata,
 	quotes,
 	quoteValues,
 	errorKey
@@ -400,7 +401,11 @@ function SwapsQuotesView({
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
 		return (
 			<ScreenView contentContainerStyle={styles.screen} scrollEnabled={false}>
-				<LoadingAnimation finish={shouldFinishFirstLoad} onAnimationEnd={handleAnimationEnd} />
+				<LoadingAnimation
+					finish={shouldFinishFirstLoad}
+					onAnimationEnd={handleAnimationEnd}
+					aggregatorMetadata={aggregatorMetadata}
+				/>
 			</ScreenView>
 		);
 	}
@@ -648,6 +653,10 @@ SwapsQuotesView.propTypes = {
 	isInFetch: PropTypes.bool,
 	quotesLastFetched: PropTypes.number,
 	topAggId: PropTypes.string,
+	/**
+	 * Aggregator metada from Swaps controller API
+	 */
+	aggregatorMetadata: PropTypes.object,
 	pollingCyclesLeft: PropTypes.number,
 	quotes: PropTypes.object,
 	quoteValues: PropTypes.object,
@@ -669,6 +678,7 @@ const mapStateToProps = state => ({
 	quotesLastFetched: state.engine.backgroundState.SwapsController.quotesLastFetched,
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
 	topAggId: state.engine.backgroundState.SwapsController.topAggId,
+	aggregatorMetadata: state.engine.backgroundState.SwapsController.aggregatorMetadata,
 	quotes: state.engine.backgroundState.SwapsController.quotes,
 	quoteValues: state.engine.backgroundState.SwapsController.quoteValues,
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,

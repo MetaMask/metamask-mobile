@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import PropTypes from 'prop-types';
 import { Animated, View, StyleSheet, Image } from 'react-native';
+import PropTypes from 'prop-types';
+import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
 import Device from '../../../../../util/Device';
+
 import Text from '../../../../Base/Text';
 import Title from '../../../../Base/Title';
 import { colors } from '../../../../../styles/common';
-
 import Fox from '../../../Fox';
 import backgroundShapes from './backgroundShapes';
-// TODO: replace this with information coming from the controller
-import baseMetadata from './metadata';
 
 const ANIM_MULTIPLIER = 1;
 const INITIAL_DELAY = 1000 * ANIM_MULTIPLIER;
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 		},
 		shadowOpacity: 0.45,
 		shadowRadius: 10,
-		elevation: 17
+		elevation: 15
 	},
 	aggImage: {
 		width: 75,
@@ -105,7 +105,8 @@ function round(value, decimals) {
 	return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 }
 
-function LoadingAnimation({ finish, onAnimationEnd }) {
+function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata }) {
+	const [metadata, setMetadata] = useState([]);
 	const [shouldStart, setShouldStart] = useState(false);
 	const [hasStarted, setHasStarted] = useState(false);
 	const [hasFinished, setHasFinished] = useState(false);
@@ -114,14 +115,6 @@ function LoadingAnimation({ finish, onAnimationEnd }) {
 
 	/* References */
 	const foxRef = useRef();
-	const metadata = useMemo(
-		() =>
-			Object.entries(baseMetadata).map(([key, value]) => ({
-				key,
-				...value
-			})),
-		[]
-	);
 	const foxHeadPan = useRef(new Animated.ValueXY(0, 0)).current;
 	const currentQuoteIndexValue = useRef(new Animated.Value(0)).current;
 	const progressValue = useRef(new Animated.Value(0)).current;
@@ -234,7 +227,7 @@ function LoadingAnimation({ finish, onAnimationEnd }) {
 			Animated.delay(DELAY),
 			Animated.parallel([
 				// Set last aggregator icon opacity to 0
-				Animated.timing(opacities[[...metadata].pop().key], {
+				Animated.timing(opacities[([...metadata].pop()?.key)], {
 					toValue: 0,
 					duration: PAN_DURATION,
 					useNativeDriver: true
@@ -260,12 +253,35 @@ function LoadingAnimation({ finish, onAnimationEnd }) {
 
 	/* Effects */
 
+	/* Check and wait for metadata */
+	useEffect(() => {
+		(async () => {
+			if (hasStarted) {
+				return;
+			}
+			if (!aggregatorMetadata) {
+				try {
+					const { SwapsController } = Engine.context;
+					await SwapsController.fetchAggregatorMetadataWithCache();
+				} catch (error) {
+					Logger.error(error, 'Swaps: Error fetching agg metadata in animation');
+				}
+			} else {
+				const metadata = Object.entries(aggregatorMetadata).map(([key, value]) => ({
+					key,
+					...value
+				}));
+				setMetadata(metadata);
+				setShouldStart(true);
+			}
+		})();
+	}, [aggregatorMetadata, hasStarted]);
+
 	/* Delay the logos rendering to avoid navigation transition lag */
 	useEffect(() => {
 		if (!renderLogos) {
 			const timeout = setTimeout(() => {
 				setRenderLogos(true);
-				setShouldStart(true);
 			}, INITIAL_DELAY);
 			return () => {
 				clearTimeout(timeout);
@@ -275,16 +291,15 @@ function LoadingAnimation({ finish, onAnimationEnd }) {
 
 	/* Effect to start animation. Useful in case we want to wait for metadata to update before start */
 	useEffect(() => {
-		if (!shouldStart) {
+		if (!(shouldStart && renderLogos)) {
 			return;
 		}
-
 		startAnimation();
 
 		return () => {
 			foxHeadPan.setValue({ x: 0, y: 0 });
 		};
-	}, [foxHeadPan, shouldStart, startAnimation]);
+	}, [foxHeadPan, renderLogos, shouldStart, startAnimation]);
 
 	/* Effect to track current aggregator index being animated */
 	useEffect(() => {
@@ -347,7 +362,7 @@ function LoadingAnimation({ finish, onAnimationEnd }) {
 						<>
 							Quote{' '}
 							<Text reset bold>
-								{currentQuoteIndex + 1} of {metadata.length}
+								{currentQuoteIndex + 1} of {metadata?.length}
 							</Text>
 						</>
 					) : (
@@ -355,7 +370,7 @@ function LoadingAnimation({ finish, onAnimationEnd }) {
 					)}
 				</Text>
 				{!hasStarted && <Title centered>Starting...</Title>}
-				{hasStarted && !hasFinished && <Title centered>Checking {metadata[currentQuoteIndex].title}...</Title>}
+				{hasStarted && !hasFinished && <Title centered>Checking {metadata[currentQuoteIndex]?.title}...</Title>}
 				{hasFinished && <Title centered>Finalizing...</Title>}
 
 				<View style={styles.progressWrapper}>
@@ -370,6 +385,7 @@ function LoadingAnimation({ finish, onAnimationEnd }) {
 					renderLoading={() => null}
 				/>
 				{renderLogos &&
+					metadata &&
 					metadata.map(agg => (
 						<Animated.View
 							key={agg.key}
@@ -402,7 +418,11 @@ LoadingAnimation.propTypes = {
 	/**
 	 * Function callback executed once both the main sequence and the finalizing animation ends
 	 */
-	onAnimationEnd: PropTypes.func
+	onAnimationEnd: PropTypes.func,
+	/**
+	 * Aggregator metada from Swaps controller API
+	 */
+	aggregatorMetadata: PropTypes.object
 };
 
 export default LoadingAnimation;
