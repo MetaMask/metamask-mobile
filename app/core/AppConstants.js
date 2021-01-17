@@ -57,6 +57,7 @@ export default {
 	SWAPS: {
 		ACTIVE: true,
 		POLL_COUNT_LIMIT: 3,
-		POLLING_INTERVAL: 2 * 60 * 1000
+		POLLING_INTERVAL: 2 * 60 * 1000,
+		DEFAULT_SLIPPAGE: 3
 	}
 };
