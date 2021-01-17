@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-function FeeModal({ isVisible, toggleModal }) {
+function FeeModal({ fee = '0.875%', isVisible, toggleModal }) {
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -72,7 +72,7 @@ function FeeModal({ isVisible, toggleModal }) {
 					<Text>
 						{strings('swaps.fee_text.get_the')} <Text bold>{strings('swaps.fee_text.best_price')}</Text>{' '}
 						{strings('swaps.fee_text.from_the')} <Text bold>{strings('swaps.fee_text.top_liquidity')}</Text>{' '}
-						{strings('swaps.fee_text.fee_is_applied', { fee: '0.875%' })}
+						{strings('swaps.fee_text.fee_is_applied', { fee })}
 					</Text>
 				</View>
 			</SafeAreaView>
@@ -80,6 +80,7 @@ function FeeModal({ isVisible, toggleModal }) {
 	);
 }
 FeeModal.propTypes = {
+	fee: PropTypes.string,
 	isVisible: PropTypes.bool,
 	toggleModal: PropTypes.func
 };

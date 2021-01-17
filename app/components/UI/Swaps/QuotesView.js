@@ -605,7 +605,7 @@ function SwapsQuotesView({
 				/>
 			</View>
 
-			<FeeModal isVisible={isFeeModalVisible} toggleModal={toggleFeeModal} />
+			<FeeModal isVisible={isFeeModalVisible} toggleModal={toggleFeeModal} fee={`${selectedQuote.fee}%`} />
 			<QuotesModal
 				isVisible={isQuotesModalVisible}
 				toggleModal={toggleQuotesModal}
