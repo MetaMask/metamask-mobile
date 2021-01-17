@@ -64,7 +64,7 @@ function FeeModal({ fee = '0.875%', isVisible, toggleModal }) {
 			<SafeAreaView style={styles.modalView}>
 				<View style={styles.title}>
 					<Title>{strings('swaps.metamask_swap_fee')}</Title>
-					<TouchableOpacity onPress={toggleModal}>
+					<TouchableOpacity onPress={toggleModal} hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}>
 						<IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
 					</TouchableOpacity>
 				</View>
