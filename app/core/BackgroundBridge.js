@@ -7,16 +7,17 @@ import { createOriginMiddleware, createLoggerMiddleware } from '../util/middlewa
 import Engine from './Engine';
 import NetworkList from '../util/networks';
 import Logger from '../util/Logger';
-const ObservableStore = require('obs-store');
+import AppConstants from './AppConstants';
+
 const RpcEngine = require('json-rpc-engine');
 const createEngineStream = require('json-rpc-middleware-stream/engineStream');
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
 const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
 const pump = require('pump');
-const asStream = require('obs-store/lib/asStream');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
+const { NOTIFICATION_NAMES } = AppConstants;
 
 /**
  * Module that listens for and responds to messages from an InpageBridge using postMessage
@@ -54,15 +55,73 @@ export class BackgroundBridge extends EventEmitter {
 
 		this.engine = null;
 
+		this.chainIdSent = null;
+
 		const portStream = new MobilePortStream(this.port, url);
 		// setup multiplexing
 		const mux = setupMultiplex(portStream);
 		// connect features
-		this.setupProviderConnection(mux.createStream('provider'));
-		this.setupPublicConfig(mux.createStream('publicConfig'));
+		this.setupProviderConnection(mux.createStream('metamask-provider'));
 
 		Engine.context.NetworkController.subscribe(this.sendStateUpdate);
 		Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
+
+		Engine.context.KeyringController.onLock(this.onLock.bind(this));
+		Engine.context.KeyringController.onUnlock(this.onUnlock.bind(this));
+
+		this.on('update', this.onStateUpdate);
+	}
+
+	onUnlock() {
+		this.sendNotification({
+			method: NOTIFICATION_NAMES.unlockStateChanged,
+			params: true
+		});
+	}
+
+	onLock() {
+		this.sendNotification({
+			method: NOTIFICATION_NAMES.unlockStateChanged,
+			params: false
+		});
+	}
+
+	getProviderNetworkState({ network }) {
+		const networkType = Engine.context.NetworkController.state.provider.type;
+		const chainId = Object.keys(NetworkList).indexOf(networkType) > -1 && NetworkList[networkType].chainId;
+		const result = {
+			networkVersion: network,
+			chainId: chainId ? `0x${parseInt(chainId, 10).toString(16)}` : null
+		};
+		return result;
+	}
+
+	onStateUpdate(memState) {
+		if (!memState) {
+			memState = this.getState();
+		}
+		const publicState = this.getProviderNetworkState(memState);
+
+		// Check if update already sent
+		if (this.chainIdSent === publicState.chainId) return;
+		this.chainIdSent = publicState.chainId;
+
+		this.sendNotification({
+			method: NOTIFICATION_NAMES.chainChanged,
+			params: publicState
+		});
+	}
+
+	isUnlocked() {
+		return Engine.context.KeyringController.isUnlocked();
+	}
+
+	getProviderState() {
+		const memState = this.getState();
+		return {
+			isUnlocked: this.isUnlocked(),
+			...this.getProviderNetworkState(memState)
+		};
 	}
 
 	sendStateUpdate = () => {
@@ -127,75 +186,14 @@ export class BackgroundBridge extends EventEmitter {
 		// user-facing RPC methods
 		engine.push(
 			this.createMiddleware({
-				hostname: this.hostname
+				hostname: this.hostname,
+				getProviderState: this.getProviderState.bind(this)
 			})
 		);
 
 		// forward to metamask primary provider
 		engine.push(providerAsMiddleware(provider));
 		return engine;
-	}
-
-	/**
-	 * A method for providing our public config info over a stream.
-	 * This includes info we like to be synchronous if possible, like
-	 * the current selected account, and network ID.
-	 *
-	 * Since synchronous methods have been deprecated in web3,
-	 * this is a good candidate for deprecation.
-	 *
-	 * @param {*} outStream - The stream to provide public config over.
-	 */
-	setupPublicConfig(outStream) {
-		const configStore = this.createPublicConfigStore();
-
-		const configStream = asStream(configStore);
-
-		pump(configStream, outStream, err => {
-			configStore.destroy();
-			configStream && configStream.destroy && configStream.destroy();
-			if (err) {
-				console.warn(err);
-			}
-		});
-	}
-
-	/**
-	 * Constructor helper: initialize a public config store.
-	 * This store is used to make some config info available to Dapps synchronously.
-	 */
-	createPublicConfigStore() {
-		// subset of state for metamask inpage provider
-		const publicConfigStore = new ObservableStore();
-
-		const selectPublicState = ({ isUnlocked, network }) => {
-			const networkType = Engine.context.NetworkController.state.provider.type;
-			const chainId = Object.keys(NetworkList).indexOf(networkType) > -1 && NetworkList[networkType].chainId;
-			const result = {
-				isUnlocked,
-				networkVersion: network,
-				chainId: chainId ? `0x${parseInt(chainId, 10).toString(16)}` : null
-			};
-			return result;
-		};
-
-		const updatePublicConfigStore = memState => {
-			if (!memState) {
-				memState = this.getState();
-			}
-			const publicState = selectPublicState(memState);
-			publicConfigStore.putState(publicState);
-		};
-
-		// setup memStore subscription hooks
-		this.on('update', updatePublicConfigStore);
-		updatePublicConfigStore(this.getState());
-
-		publicConfigStore.destroy = () => {
-			this.removeEventListener && this.removeEventListener('update', updatePublicConfigStore);
-		};
-
-		return publicConfigStore;
 	}
 
 	sendNotification(payload) {
