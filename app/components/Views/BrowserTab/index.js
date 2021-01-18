@@ -671,6 +671,10 @@ export const BrowserTab = props => {
 					res.result = true;
 				},
 
+				/**
+				 * This method is used by the inpage provider to get its state on
+				 * initialization.
+				 */
 				metamask_getProviderState: async () => {
 					res.result = {
 						...getProviderState(),
