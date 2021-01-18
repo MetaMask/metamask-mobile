@@ -377,7 +377,7 @@ export const BrowserTab = props => {
 			notifyAllConnections(
 				{
 					method: NOTIFICATION_NAMES.accountsChanged,
-					result: []
+					params: []
 				},
 				false
 			); // notification should be sent regardless of approval status
@@ -386,7 +386,7 @@ export const BrowserTab = props => {
 		if (numApprovedHosts > 0) {
 			notifyAllConnections({
 				method: NOTIFICATION_NAMES.accountsChanged,
-				result: [selectedAddress]
+				params: [selectedAddress]
 			});
 		}
 
@@ -396,7 +396,7 @@ export const BrowserTab = props => {
 	/**
 	 * Handle RPC methods called by dapps
 	 */
-	const getRpcMethodMiddleware = ({ hostname }) =>
+	const getRpcMethodMiddleware = ({ hostname, getProviderState }) =>
 		// all user facing RPC calls not implemented by the provider
 		createAsyncMiddleware(async (req, res, next) => {
 			const getAccounts = async () => {
@@ -669,7 +669,28 @@ export const BrowserTab = props => {
 					}, 1500);
 
 					res.result = true;
-				}
+				},
+
+				/**
+				 * This method is used by the inpage provider to get its state on
+				 * initialization.
+				 */
+				metamask_getProviderState: async () => {
+					res.result = {
+						...getProviderState(),
+						accounts: await getAccounts()
+					};
+				},
+
+				/**
+				 * This method is sent by the window.web3 shim. It can be used to
+				 * record web3 shim usage metrics. These metrics are already collected
+				 * in the extension, and can optionally be added to mobile as well.
+				 *
+				 * For now, we need to respond to this method to not throw errors on
+				 * the page, and we implement it as a no-op.
+				 */
+				metamask_logWeb3ShimUsage: () => (res.result = null)
 			};
 
 			if (!rpcMethods[req.method]) {
