@@ -11,38 +11,38 @@ exports[`Settings should render correctly 1`] = `
     }
   }
 >
-  <SettingsDrawer
+  <withPreventDoubleClick(SettingsDrawer)
     description="Currency conversion, primary currency, language and search engine"
     onPress={[Function]}
     title="General"
   />
-  <SettingsDrawer
+  <withPreventDoubleClick(SettingsDrawer)
     description="Privacy settings, MetaMetrics, private key and wallet seed phrase"
     onPress={[Function]}
     title="Security & Privacy"
     warning={false}
   />
-  <SettingsDrawer
+  <withPreventDoubleClick(SettingsDrawer)
     description="Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC"
     onPress={[Function]}
     title="Advanced"
   />
-  <SettingsDrawer
+  <withPreventDoubleClick(SettingsDrawer)
     description="Add, edit, remove, and manage your accounts"
     onPress={[Function]}
     title="Contacts"
   />
-  <SettingsDrawer
+  <withPreventDoubleClick(SettingsDrawer)
     description="Add and edit custom RPC networks"
     onPress={[Function]}
     title="Networks"
   />
-  <SettingsDrawer
+  <withPreventDoubleClick(SettingsDrawer)
     description="WalletConnect & more..."
     onPress={[Function]}
     title="Experimental"
   />
-  <SettingsDrawer
+  <withPreventDoubleClick(SettingsDrawer)
     onPress={[Function]}
     title="About MetaMask"
   />

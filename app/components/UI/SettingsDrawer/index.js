@@ -5,6 +5,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import SettingsNotification from '../SettingsNotification';
 import { strings } from '../../../../locales/i18n';
+import withPreventDoubleClick from '../WithPreventDoubleClick';
 
 const styles = StyleSheet.create({
 	root: {
@@ -103,4 +104,4 @@ const SettingsDrawer = ({ title, description, noBorder, onPress, warning }) => (
 SettingsDrawer.propTypes = propTypes;
 SettingsDrawer.defaultProps = defaultProps;
 
-export default SettingsDrawer;
+export default withPreventDoubleClick(SettingsDrawer);
