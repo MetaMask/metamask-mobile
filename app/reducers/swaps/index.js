@@ -19,6 +19,8 @@ export const swapsLivenessSelector = state => state.swaps.isLive;
  */
 export const swapsTokensSelector = state => state.engine.backgroundState.SwapsController.tokens;
 
+const topAssets = state => state.engine.backgroundState.SwapsController.topAssets;
+
 /**
  * Returns a memoized object that only has the addesses of the tokens as keys
  * and undefined as value. Useful to check if a token is supported by swaps.
@@ -42,6 +44,9 @@ export const swapsTokensWithBalanceSelector = createSelector(
 	swapsTokensSelector,
 	balances,
 	(tokens, balances) => {
+		if (!tokens) {
+			return [];
+		}
 		const MAX_NUMBER = 5;
 		const baseTokens = tokens;
 		const tokensAddressesWithBalance = Object.entries(balances)
@@ -71,6 +76,21 @@ export const swapsTokensWithBalanceSelector = createSelector(
 			Math.max(tokensWithBalance.length, MAX_NUMBER)
 		);
 		return result;
+	}
+);
+
+/**
+ * Returns an array of tokens to display by default on the selector modal
+ * based on the current account's balances.
+ */
+export const swapsTopAssetsSelector = createSelector(
+	swapsTokensSelector,
+	topAssets,
+	(tokens, topAssets) => {
+		if (!topAssets || !tokens) {
+			return [];
+		}
+		return topAssets.map(({ address }) => tokens?.find(token => token.address === address));
 	}
 );
 
