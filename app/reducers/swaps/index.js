@@ -28,6 +28,52 @@ export const swapsTokensObjectSelector = createSelector(
 	tokens => (tokens?.length > 0 ? tokens.reduce((acc, token) => ({ ...acc, [token.address]: undefined }), {}) : {})
 );
 
+/**
+ * Balances
+ */
+
+const balances = state => state.engine.backgroundState.TokenBalancesController.contractBalances;
+
+/**
+ * Returns an array of tokens to display by default on the selector modal
+ * based on the current account's balances.
+ */
+export const swapsTokensWithBalanceSelector = createSelector(
+	swapsTokensSelector,
+	balances,
+	(tokens, balances) => {
+		const MAX_NUMBER = 5;
+		const baseTokens = tokens;
+		const tokensAddressesWithBalance = Object.entries(balances)
+			.filter(([, balance]) => !balance.isZero())
+			.sort(([, balanceA], [, balanceB]) => (balanceB.lte(balanceA) ? -1 : 1))
+			.map(([address]) => address.toLowerCase());
+		const tokensWithBalance = [];
+		const originalTokens = [];
+
+		for (let i = 0; i < baseTokens.length; i++) {
+			if (tokensAddressesWithBalance.includes(baseTokens[i].address)) {
+				tokensWithBalance.push(baseTokens[i]);
+			} else {
+				originalTokens.push(baseTokens[i]);
+			}
+
+			if (
+				tokensWithBalance.length === tokensAddressesWithBalance.length &&
+				tokensWithBalance.length + originalTokens.length >= MAX_NUMBER
+			) {
+				break;
+			}
+		}
+
+		const result = [...tokensWithBalance, ...originalTokens].slice(
+			0,
+			Math.max(tokensWithBalance.length, MAX_NUMBER)
+		);
+		return result;
+	}
+);
+
 // * Reducer
 export const initialState = {
 	isLive: true

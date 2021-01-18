@@ -8,6 +8,7 @@ import BigNumber from 'bignumber.js';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@estebanmino/controllers';
 
+import { swapsTokensWithBalanceSelector } from '../../../reducers/swaps';
 import Engine from '../../../core/Engine';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
+function SwapsAmountView({ tokens, accounts, selectedAddress, balances, tokensWithBalance }) {
 	const navigation = useContext(NavigationContext);
 	const initialSource = navigation.getParam('sourceToken', swapsUtils.ETH_SWAPS_TOKEN_ADDRESS);
 	const [amount, setAmount] = useState('0');
@@ -203,8 +204,9 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 						dismiss={toggleSourceModal}
 						title={strings('swaps.convert_from')}
 						tokens={tokens}
+						initialTokens={tokensWithBalance}
 						onItemPress={handleSourceTokenPress}
-						exclude={[destinationToken?.symbol]}
+						exclude={[destinationToken?.address]}
 					/>
 				</View>
 				<View style={styles.amountContainer}>
@@ -251,7 +253,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 						title={strings('swaps.convert_to')}
 						tokens={tokens}
 						onItemPress={handleDestinationTokenPress}
-						exclude={[sourceToken?.symbol]}
+						exclude={[sourceToken?.address]}
 					/>
 				</View>
 			</View>
@@ -292,6 +294,7 @@ SwapsAmountView.navigationOptions = ({ navigation }) => getSwapsAmountNavbar(nav
 
 SwapsAmountView.propTypes = {
 	tokens: PropTypes.arrayOf(PropTypes.object),
+	tokensWithBalance: PropTypes.arrayOf(PropTypes.object),
 	/**
 	 * Map of accounts to information objects including balances
 	 */
@@ -310,7 +313,8 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.SwapsController.tokens,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	balances: state.engine.backgroundState.TokenBalancesController.contractBalances
+	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	tokensWithBalance: swapsTokensWithBalanceSelector(state)
 });
 
 export default connect(mapStateToProps)(SwapsAmountView);
