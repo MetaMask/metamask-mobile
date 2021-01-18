@@ -5,10 +5,11 @@ import { connect } from 'react-redux';
 import { NavigationContext } from 'react-navigation';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import BigNumber from 'bignumber.js';
+import Logger from '../../../util/Logger';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@estebanmino/controllers';
 
-import { swapsTokensWithBalanceSelector } from '../../../reducers/swaps';
+import { swapsTokensWithBalanceSelector, swapsTopAssetsSelector } from '../../../reducers/swaps';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import useModalHandler from '../../Base/hooks/useModalHandler';
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
 
 // Grab this from SwapsController.utils
 const SWAPS_ETH_ADDRESS = swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
-function SwapsAmountView({ tokens, accounts, selectedAddress, balances, tokensWithBalance }) {
+function SwapsAmountView({ tokens, accounts, selectedAddress, balances, tokensWithBalance, tokensTopAssets }) {
 	const navigation = useContext(NavigationContext);
 	const initialSource = navigation.getParam('sourceToken', SWAPS_ETH_ADDRESS);
 	const [amount, setAmount] = useState('0');
@@ -126,6 +127,18 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances, tokensWi
 		}
 		return false;
 	}, [amount, sourceToken]);
+
+	useEffect(() => {
+		(async () => {
+			const { SwapsController } = Engine.context;
+			try {
+				await SwapsController.fetchAggregatorMetadataWithCache();
+				await SwapsController.fetchTopAssetsWithCache();
+			} catch (error) {
+				Logger.error(error, 'Swaps: Error while updating agg metadata and top assets in amount view');
+			}
+		})();
+	}, []);
 
 	useEffect(() => {
 		(async () => {
@@ -293,6 +306,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances, tokensWi
 						dismiss={toggleDestinationModal}
 						title={strings('swaps.convert_to')}
 						tokens={tokens}
+						initialTokens={tokensTopAssets.slice(0, 5)}
 						onItemPress={handleDestinationTokenPress}
 						exclude={[sourceToken?.address]}
 					/>
@@ -343,6 +357,7 @@ SwapsAmountView.navigationOptions = ({ navigation }) => getSwapsAmountNavbar(nav
 SwapsAmountView.propTypes = {
 	tokens: PropTypes.arrayOf(PropTypes.object),
 	tokensWithBalance: PropTypes.arrayOf(PropTypes.object),
+	tokensTopAssets: PropTypes.arrayOf(PropTypes.object),
 	/**
 	 * Map of accounts to information objects including balances
 	 */
@@ -362,7 +377,8 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	tokensWithBalance: swapsTokensWithBalanceSelector(state)
+	tokensWithBalance: swapsTokensWithBalanceSelector(state),
+	tokensTopAssets: swapsTopAssetsSelector(state)
 });
 
 export default connect(mapStateToProps)(SwapsAmountView);
