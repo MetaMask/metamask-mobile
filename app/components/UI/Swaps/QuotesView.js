@@ -34,7 +34,6 @@ import { strings } from '../../../../locales/i18n';
 import { swapsUtils } from '@estebanmino/controllers';
 import useBalance from './utils/useBalance';
 import { fetchBasicGasEstimates } from '../../../util/custom-gas';
-import { addHexPrefix } from '@walletconnect/utils';
 import CustomGas from '../CustomGas';
 import useGasPrice from './utils/useGasPrice';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -265,11 +264,7 @@ function SwapsQuotesView({
 
 	const [apiGasPrice] = useGasPrice();
 	const [customGasPrice, setCustomGasPrice] = useState(null);
-
-	const gasPrice = useMemo(() => {
-		if (customGasPrice) return customGasPrice;
-		return apiGasPrice?.average;
-	}, [customGasPrice, apiGasPrice]);
+	const [customGasLimit, setCustomGasLimit] = useState(null);
 
 	/* Get quotes as an array sorted by overallValue */
 	const allQuotes = useMemo(() => {
@@ -290,6 +285,9 @@ function SwapsQuotesView({
 		selectedQuoteId
 	]);
 	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [quoteValues, selectedQuoteId]);
+
+	const gasPrice = useMemo(() => customGasPrice || apiGasPrice?.average, [customGasPrice, apiGasPrice]);
+	const gasLimit = useMemo(() => customGasLimit || selectedQuote?.trade?.gas, [customGasLimit, selectedQuote]);
 
 	const [numerator, denominator] = useMemo(() => {
 		const source = { ...sourceToken, amount: selectedQuote?.sourceAmount };
@@ -330,8 +328,6 @@ function SwapsQuotesView({
 		}
 		const { TransactionController } = Engine.context;
 		if (basicGasEstimates?.average) {
-			const averageGasPrice = addHexPrefix(basicGasEstimates.average.toString(16));
-			const gasPrice = customGasPrice || averageGasPrice;
 			if (approvalTransaction) {
 				approvalTransaction.gasPrice = gasPrice;
 			}
@@ -341,26 +337,28 @@ function SwapsQuotesView({
 		if (approvalTransaction) {
 			await TransactionController.addTransaction(approvalTransaction);
 		}
+		// Modify gas limit for trade transaction only
+		selectedQuote.trade.gas = gasLimit;
 		await TransactionController.addTransaction(selectedQuote.trade);
 		navigation.dismiss();
-	}, [navigation, selectedQuote, approvalTransaction, basicGasEstimates, customGasPrice]);
+	}, [navigation, selectedQuote, approvalTransaction, basicGasEstimates, gasPrice, gasLimit]);
 
 	const onEditMaxGas = () => setEditGasVisible(true);
 	const onEditMaxGasCancel = () => setEditGasVisible(false);
 
 	const onHandleGasFeeSelection = (gas, gasPrice) => {
 		setCustomGasPrice(gasPrice);
+		setCustomGasLimit(gas);
 	};
 
 	const gasFee = useMemo(() => {
-		if (customGasPrice && selectedQuote?.trade?.gas) {
-			return calcTokenAmount(customGasPrice * selectedQuote.trade.gas, 18);
+		if (customGasPrice) {
+			return calcTokenAmount(customGasPrice * gasLimit, 18);
 		}
 		return selectedQuoteValue?.ethFee;
-	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
+	}, [selectedQuoteValue, customGasPrice, gasLimit]);
 
 	const maxGasFee = useMemo(() => {
-		console.log('selectedQuote', selectedQuote);
 		if (customGasPrice && selectedQuote?.maxGas) {
 			return calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
 		}
@@ -667,7 +665,7 @@ function SwapsQuotesView({
 						<CustomGas
 							handleGasFeeSelection={onHandleGasFeeSelection}
 							basicGasEstimates={apiGasPrice}
-							gas={hexToBN(selectedQuote.trade.gas)}
+							gas={hexToBN(gasLimit)}
 							gasPrice={toWei(gasPrice)}
 							gasError={null}
 							mode={'edit'}
