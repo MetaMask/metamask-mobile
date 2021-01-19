@@ -1,6 +1,6 @@
 import React from 'react';
 import Button from '../Button';
-import { withPreventDoubleClickErrorMsg, withPreventDoubleClick } from './';
+import { withPreventDoubleClickErrorMsg, withPreventDoubleClick, withPreventDoubleClickName } from './';
 
 const noop = () => ({});
 
@@ -14,7 +14,7 @@ describe('withPreventDoubleClick', () => {
 
 	it('should be wrapped and named correctly', () => {
 		const ButtonWithOnPress = () => <Button onPress={noop} />;
-		const name = `withPreventDoubleClick(${ButtonWithOnPress.name})`;
+		const name = `${withPreventDoubleClickName}(${ButtonWithOnPress.name})`;
 		const WithPreventDoubleClickButton = withPreventDoubleClick(ButtonWithOnPress);
 		const wrapper = <WithPreventDoubleClickButton onPress={noop} />;
 		expect(wrapper.type.displayName).toBe(name);

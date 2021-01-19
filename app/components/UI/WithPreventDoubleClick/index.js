@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 export const withPreventDoubleClickErrorMsg = 'Expected Component to wrap';
+export const withPreventDoubleClickName = 'withPreventDoubleClick';
 
 export const withPreventDoubleClick = WrappedComponent => {
 	if (!WrappedComponent) {
@@ -24,6 +25,6 @@ export const withPreventDoubleClick = WrappedComponent => {
 	};
 	const name = WrappedComponent.displayName || WrappedComponent.name;
 	PreventDoubleClick.propTypes = propTypes;
-	PreventDoubleClick.displayName = `withPreventDoubleClick(${name})`;
+	PreventDoubleClick.displayName = `${withPreventDoubleClickName}(${name})`;
 	return PreventDoubleClick;
 };
