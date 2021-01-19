@@ -20,11 +20,11 @@ export const withPreventDoubleClick = WrappedComponent => {
 			return <WrappedComponent {...this.props} onPress={this.onPress} />;
 		}
 	}
-	const propTypes = {
+
+	const name = WrappedComponent.displayName || WrappedComponent.name;
+	PreventDoubleClick.propTypes = {
 		onPress: PropTypes.func.isRequired
 	};
-	const name = WrappedComponent.displayName || WrappedComponent.name;
-	PreventDoubleClick.propTypes = propTypes;
 	PreventDoubleClick.displayName = `${withPreventDoubleClickName}(${name})`;
 	return PreventDoubleClick;
 };
