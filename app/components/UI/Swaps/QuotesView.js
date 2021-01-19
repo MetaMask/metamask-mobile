@@ -291,8 +291,13 @@ function SwapsQuotesView({
 	]);
 	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [quoteValues, selectedQuoteId]);
 
+	console.log('- USE MEMO gasPrice', customGasPrice, apiGasPrice?.average);
+	console.log('- USE MEMO gasLimit', customGasLimit, selectedQuote?.trade?.gas);
 	const gasPrice = useMemo(() => customGasPrice || apiGasPrice?.average, [customGasPrice, apiGasPrice]);
-	const gasLimit = useMemo(() => customGasLimit || selectedQuote?.trade?.gas, [customGasLimit, selectedQuote]);
+	const gasLimit = useMemo(
+		() => customGasLimit || selectedQuote?.trade?.gasEstimateWithRefund || selectedQuote?.averageGas,
+		[customGasLimit, selectedQuote]
+	);
 
 	const [numerator, denominator] = useMemo(() => {
 		const source = { ...sourceToken, amount: selectedQuote?.sourceAmount };
@@ -357,6 +362,7 @@ function SwapsQuotesView({
 	};
 
 	const gasFee = useMemo(() => {
+		console.log('gasFee', customGasPrice, gasLimit);
 		if (customGasPrice) {
 			return calcTokenAmount(customGasPrice * gasLimit, 18);
 		}
@@ -364,6 +370,7 @@ function SwapsQuotesView({
 	}, [selectedQuoteValue, customGasPrice, gasLimit]);
 
 	const maxGasFee = useMemo(() => {
+		console.log('maxGasFee', customGasPrice, selectedQuote?.maxGas?.toString(16));
 		if (customGasPrice && selectedQuote?.maxGas) {
 			return calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
 		}
