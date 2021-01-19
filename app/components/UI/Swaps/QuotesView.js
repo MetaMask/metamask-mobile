@@ -365,6 +365,7 @@ function SwapsQuotesView({
 	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
 
 	const maxGasFee = useMemo(() => {
+		console.log('selectedQuote', selectedQuote);
 		if (customGasPrice && selectedQuote?.maxGas) {
 			return calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
 		}
@@ -677,7 +678,7 @@ function SwapsQuotesView({
 				propagateSwipe
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-					<AnimatedTransactionModal onModeChange={() => undefined} ready review={() => undefined}>
+					<AnimatedTransactionModal onModeChange={() => undefined} ready review={onEditMaxGasCancel}>
 						<CustomGas
 							handleGasFeeSelection={onHandleGasFeeSelection}
 							basicGasEstimates={apiGasPrice}
