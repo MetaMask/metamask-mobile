@@ -45,6 +45,10 @@ class AnimatedTransactionModal extends PureComponent {
 		children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]).isRequired
 	};
 
+	static defaultProps = {
+		onModeChange: () => undefined
+	};
+
 	state = {
 		originComponent: React.Children.toArray(this.props?.children).length > 1 ? 'dapp' : 'wallet',
 		modalValue:
