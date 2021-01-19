@@ -41,7 +41,7 @@ Button.propTypes = {
 	/**
 	 * Function to be called on press
 	 */
-	onPress: PropTypes.func.isRequired
+	onPress: PropTypes.func
 };
 
 export default Button;
