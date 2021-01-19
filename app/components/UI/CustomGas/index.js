@@ -296,9 +296,9 @@ class CustomGas extends PureComponent {
 		gasSpeedSelected: this?.props?.gasSpeedSelected || 'average',
 		customGasPrice: '10',
 		customGasLimit: fromWei(this.props.gas, 'wei'),
-		customGasPriceBNWei: toBN(this.props.gasPrice),
-		customGasPriceBN: new BN(Math.round(this.props.basicGasEstimates.average)),
-		customGasLimitBN: toBN(this.props.gas),
+		customGasPriceBNWei: this.props.gasPrice,
+		customGasPriceBN: new BN(Math.round(this.props.basicGasEstimates.averageGwei)),
+		customGasLimitBN: this.props.gas,
 		warningGasLimit: '',
 		warningGasPrice: '',
 		warningSufficientFunds: '',
@@ -343,13 +343,13 @@ class CustomGas extends PureComponent {
 	onPressGasFast = () => {
 		const {
 			onPress,
-			basicGasEstimates: { fast }
+			basicGasEstimates: { fastGwei }
 		} = this.props;
 		onPress && onPress('fast');
-		const gasPriceBN = apiEstimateModifiedToWEI(fast);
+		const gasPriceBN = apiEstimateModifiedToWEI(fastGwei);
 		this.setState({
 			gasSpeedSelected: 'fast',
-			customGasPrice: fast,
+			customGasPrice: fastGwei,
 			customGasPriceBNWei: gasPriceBN
 		});
 	};
@@ -357,13 +357,13 @@ class CustomGas extends PureComponent {
 	onPressGasAverage = () => {
 		const {
 			onPress,
-			basicGasEstimates: { average }
+			basicGasEstimates: { averageGwei }
 		} = this.props;
 		onPress && onPress('average');
-		const gasPriceBN = apiEstimateModifiedToWEI(average);
+		const gasPriceBN = apiEstimateModifiedToWEI(averageGwei);
 		this.setState({
 			gasSpeedSelected: 'average',
-			customGasPrice: average,
+			customGasPrice: averageGwei,
 			customGasPriceBNWei: gasPriceBN
 		});
 	};
@@ -371,13 +371,13 @@ class CustomGas extends PureComponent {
 	onPressGasSlow = () => {
 		const {
 			onPress,
-			basicGasEstimates: { safeLow }
+			basicGasEstimates: { safeLowGwei }
 		} = this.props;
 		onPress && onPress('slow');
-		const gasPriceBN = apiEstimateModifiedToWEI(safeLow);
+		const gasPriceBN = apiEstimateModifiedToWEI(safeLowGwei);
 		this.setState({
 			gasSpeedSelected: 'slow',
-			customGasPrice: safeLow,
+			customGasPrice: safeLowGwei,
 			customGasPriceBNWei: gasPriceBN
 		});
 	};
@@ -455,14 +455,14 @@ class CustomGas extends PureComponent {
 			gas,
 			handleGasFeeSelection,
 			advancedCustomGas,
-			basicGasEstimates: { fast, average, safeLow }
+			basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
 		} = this.props;
 		if (advancedCustomGas) {
 			handleGasFeeSelection(new BN(customGasLimit), apiEstimateModifiedToWEI(customGasPrice));
 		} else {
-			if (gasSpeedSelected === 'slow') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLow));
-			if (gasSpeedSelected === 'average') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(average));
-			if (gasSpeedSelected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fast));
+			if (gasSpeedSelected === 'slow') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
+			if (gasSpeedSelected === 'average') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
+			if (gasSpeedSelected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei));
 		}
 		review();
 	};
@@ -475,7 +475,7 @@ class CustomGas extends PureComponent {
 			gas,
 			generateTransform,
 			hideGasSelectors,
-			basicGasEstimates: { average, fast, safeLow }
+			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei }
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
 		const topOffset = { top: headerHeight };
@@ -504,10 +504,10 @@ class CustomGas extends PureComponent {
 							</View>
 						</View>
 						<Text style={[styles.text, styles.textGasFee]}>
-							{getRenderableEthGasFee(safeLow, gas)} {ticker}
+							{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 						</Text>
 						<Text style={styles.text}>
-							{getRenderableFiatGasFee(safeLow, conversionRate, currentCurrency, gas)}
+							{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
 						</Text>
 					</TouchableOpacity>
 					<TouchableOpacity
@@ -522,10 +522,10 @@ class CustomGas extends PureComponent {
 							</View>
 						</View>
 						<Text style={[styles.text, styles.textGasFee]}>
-							{getRenderableEthGasFee(average, gas)} {ticker}
+							{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 						</Text>
 						<Text style={styles.text}>
-							{getRenderableFiatGasFee(average, conversionRate, currentCurrency, gas)}
+							{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
 						</Text>
 					</TouchableOpacity>
 					<TouchableOpacity
@@ -540,10 +540,10 @@ class CustomGas extends PureComponent {
 							</View>
 						</View>
 						<Text style={[styles.text, styles.textGasFee]}>
-							{getRenderableEthGasFee(fast, gas)} {ticker}
+							{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 						</Text>
 						<Text style={styles.text}>
-							{getRenderableFiatGasFee(fast, conversionRate, currentCurrency, gas)}
+							{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
 						</Text>
 					</TouchableOpacity>
 				</View>
@@ -692,7 +692,7 @@ const mapStateToProps = (state, props) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: props.transaction || getNormalizedTxState(state)
+	transaction: getNormalizedTxState(state)
 });
 
 export default connect(mapStateToProps)(CustomGas);

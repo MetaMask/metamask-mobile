@@ -31,7 +31,6 @@ import QuotesModal from './components/QuotesModal';
 import { strings } from '../../../../locales/i18n';
 import { swapsUtils } from '@estebanmino/controllers';
 import useBalance from './utils/useBalance';
-import { fetchBasicGasEstimates } from '../../../util/custom-gas';
 import CustomGas from '../CustomGas';
 import useGasPrice from './utils/useGasPrice';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -255,7 +254,7 @@ function SwapsQuotesView({
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
 	const [isFirstLoad, setFirstLoad] = useState(true);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
-	const [basicGasEstimates, setBasicGasEstimates] = useState({});
+
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 
@@ -291,7 +290,7 @@ function SwapsQuotesView({
 	]);
 	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [quoteValues, selectedQuoteId]);
 
-	const gasPrice = useMemo(() => customGasPrice || apiGasPrice?.average, [customGasPrice, apiGasPrice]);
+	const gasPrice = useMemo(() => customGasPrice || apiGasPrice?.averageGwei, [customGasPrice, apiGasPrice]);
 	const gasLimit = useMemo(
 		() => customGasLimit || selectedQuote?.trade?.gasEstimateWithRefund || selectedQuote?.averageGas,
 		[customGasLimit, selectedQuote]
@@ -335,7 +334,7 @@ function SwapsQuotesView({
 			return;
 		}
 		const { TransactionController } = Engine.context;
-		if (basicGasEstimates?.average) {
+		if (apiGasPrice?.averageGwei) {
 			if (approvalTransaction) {
 				approvalTransaction.gasPrice = gasPrice;
 			}
@@ -349,7 +348,7 @@ function SwapsQuotesView({
 		selectedQuote.trade.gas = gasLimit;
 		await TransactionController.addTransaction(selectedQuote.trade);
 		navigation.dismiss();
-	}, [navigation, selectedQuote, approvalTransaction, basicGasEstimates, gasPrice, gasLimit]);
+	}, [navigation, selectedQuote, approvalTransaction, apiGasPrice, gasPrice, gasLimit]);
 
 	const onEditMaxGas = () => setEditGasVisible(true);
 	const onEditMaxGasCancel = () => setEditGasVisible(false);
@@ -360,7 +359,6 @@ function SwapsQuotesView({
 	};
 
 	const gasFee = useMemo(() => {
-		console.log('gasFee', customGasPrice, gasLimit);
 		if (customGasPrice) {
 			return calcTokenAmount(customGasPrice * gasLimit, 18);
 		}
@@ -368,7 +366,6 @@ function SwapsQuotesView({
 	}, [selectedQuoteValue, customGasPrice, gasLimit]);
 
 	const maxGasFee = useMemo(() => {
-		console.log('maxGasFee', customGasPrice, selectedQuote?.maxGas?.toString(16));
 		if (customGasPrice && selectedQuote?.maxGas) {
 			return calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
 		}
@@ -406,14 +403,6 @@ function SwapsQuotesView({
 
 	/* selectedQuoteId effect: when topAggId changes make it selected by default */
 	useEffect(() => setSelectedQuoteId(topAggId), [topAggId]);
-
-	useEffect(() => {
-		const setGasPriceEstimates = async () => {
-			const basicGasEstimates = await fetchBasicGasEstimates();
-			setBasicGasEstimates(basicGasEstimates);
-		};
-		setGasPriceEstimates();
-	}, []);
 
 	/* IsInFetch effect: hide every modal, handle countdown */
 	useEffect(() => {
@@ -681,7 +670,7 @@ function SwapsQuotesView({
 				propagateSwipe
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-					<AnimatedTransactionModal onModeChange={() => undefined} ready review={onEditMaxGasCancel}>
+					<AnimatedTransactionModal ready review={onEditMaxGasCancel}>
 						<CustomGas
 							handleGasFeeSelection={onHandleGasFeeSelection}
 							basicGasEstimates={apiGasPrice}
@@ -689,7 +678,7 @@ function SwapsQuotesView({
 							gasPrice={toWei(gasPrice)}
 							gasError={null}
 							mode={'edit'}
-							transaction={selectedQuote.trade}
+							customTransaction={selectedQuote.trade}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>
