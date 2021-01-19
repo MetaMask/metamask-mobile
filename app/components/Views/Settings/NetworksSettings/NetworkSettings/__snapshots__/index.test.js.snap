@@ -151,11 +151,11 @@ exports[`NetworkSettings should render correctly 1`] = `
       <TextInput
         autoCapitalize="none"
         autoCorrect={false}
-        keyboardType="numeric"
+        keyboardType="numbers-and-punctuation"
         onBlur={[Function]}
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
-        placeholder="Chain ID (optional)"
+        placeholder="Chain ID"
         placeholderTextColor="#d6d9dc"
         style={
           Array [

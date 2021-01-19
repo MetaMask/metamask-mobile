@@ -58,5 +58,6 @@ export default {
 	},
 	SWAPS: {
 		ACTIVE: false
-	}
+	},
+	MAX_SAFE_CHAIN_ID: 4503599627370476
 };
