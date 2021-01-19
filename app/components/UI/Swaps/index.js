@@ -14,6 +14,8 @@ import Device from '../../../util/Device';
 import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import { setQuotesNavigationsParams } from './utils';
 
+import { getEtherscanAddressUrl } from '../../../util/etherscan';
+
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 
@@ -198,6 +200,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		},
 		[toggleSourceModal]
 	);
+
 	const handleDestinationTokenPress = useCallback(
 		item => {
 			toggleDestinationModal();
@@ -216,6 +219,16 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	const handleSlippageChange = useCallback(value => {
 		setSlippage(value);
 	}, []);
+
+	const handleVerifyPress = useCallback(() => {
+		if (!destinationToken) {
+			return;
+		}
+		navigation.navigate('Webview', {
+			url: getEtherscanAddressUrl('mainnet', destinationToken.address),
+			title: strings('swaps.verify')
+		});
+	}, [destinationToken, navigation]);
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
@@ -295,6 +308,17 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 						onItemPress={handleDestinationTokenPress}
 						exclude={[sourceToken?.symbol]}
 					/>
+				</View>
+				<View>
+					{destinationToken && destinationToken.symbol !== 'ETH' ? (
+						<TouchableOpacity onPress={handleVerifyPress}>
+							<Text centered>
+								{strings('swaps.verify_on')} <Text link>Etherscan</Text>
+							</Text>
+						</TouchableOpacity>
+					) : (
+						<Text />
+					)}
 				</View>
 			</View>
 			<View style={styles.keypad}>
