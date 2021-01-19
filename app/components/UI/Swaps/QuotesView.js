@@ -291,8 +291,6 @@ function SwapsQuotesView({
 	]);
 	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [quoteValues, selectedQuoteId]);
 
-	console.log('- USE MEMO gasPrice', customGasPrice, apiGasPrice?.average);
-	console.log('- USE MEMO gasLimit', customGasLimit, selectedQuote?.trade?.gas);
 	const gasPrice = useMemo(() => customGasPrice || apiGasPrice?.average, [customGasPrice, apiGasPrice]);
 	const gasLimit = useMemo(
 		() => customGasLimit || selectedQuote?.trade?.gasEstimateWithRefund || selectedQuote?.averageGas,
