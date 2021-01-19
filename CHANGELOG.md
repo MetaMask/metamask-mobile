@@ -3,6 +3,7 @@
 ## Current Develop Branch
 
 ## v1.0.9 - Jan 21 2021
+- [#2134](https://github.com/MetaMask/metamask-mobile/pull/2134): Update podfile (#2134)
 - [#2131](https://github.com/MetaMask/metamask-mobile/pull/2131): controllers v6.0.0 (#2131)
 - [#2120](https://github.com/MetaMask/metamask-mobile/pull/2120): bugfix/accounts undefined (#2120)
 - [#1987](https://github.com/MetaMask/metamask-mobile/pull/1987): Replace public config with rpc (#1987)
