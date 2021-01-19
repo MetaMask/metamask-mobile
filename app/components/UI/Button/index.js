@@ -33,15 +33,15 @@ Button.propTypes = {
 	 * it can be a text node, an image, or an icon
 	 * or an Array with a combination of them
 	 */
-	children: PropTypes.any,
+	children: PropTypes.any.isRequired,
 	/**
 	 * Styles to be applied to the Button
 	 */
-	style: ViewPropTypes.style,
+	style: ViewPropTypes.style.isRequired,
 	/**
 	 * Function to be called on press
 	 */
-	onPress: PropTypes.func
+	onPress: PropTypes.func.isRequired
 };
 
 export default Button;
