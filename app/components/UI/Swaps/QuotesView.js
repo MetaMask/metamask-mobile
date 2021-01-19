@@ -39,6 +39,7 @@ import CustomGas from '../CustomGas';
 import useGasPrice from './utils/useGasPrice';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AnimatedTransactionModal from '../AnimatedTransactionModal';
+import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -262,7 +263,13 @@ function SwapsQuotesView({
 
 	const [editGasVisible, setEditGasVisible] = useState(false);
 
-	const [gasPrice] = useGasPrice();
+	const [apiGasPrice] = useGasPrice();
+	const [customGasPrice, setCustomGasPrice] = useState(null);
+
+	const gasPrice = useMemo(() => {
+		if (customGasPrice) return customGasPrice;
+		return apiGasPrice?.average;
+	}, [customGasPrice, apiGasPrice]);
 
 	/* Get quotes as an array sorted by overallValue */
 	const allQuotes = useMemo(() => {
@@ -282,7 +289,6 @@ function SwapsQuotesView({
 		allQuotes,
 		selectedQuoteId
 	]);
-
 	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [quoteValues, selectedQuoteId]);
 
 	const [numerator, denominator] = useMemo(() => {
@@ -325,10 +331,11 @@ function SwapsQuotesView({
 		const { TransactionController } = Engine.context;
 		if (basicGasEstimates?.average) {
 			const averageGasPrice = addHexPrefix(basicGasEstimates.average.toString(16));
+			const gasPrice = customGasPrice || averageGasPrice;
 			if (approvalTransaction) {
-				approvalTransaction.gasPrice = averageGasPrice;
+				approvalTransaction.gasPrice = gasPrice;
 			}
-			selectedQuote.trade.gasPrice = averageGasPrice;
+			selectedQuote.trade.gasPrice = gasPrice;
 		}
 
 		if (approvalTransaction) {
@@ -336,14 +343,29 @@ function SwapsQuotesView({
 		}
 		await TransactionController.addTransaction(selectedQuote.trade);
 		navigation.dismiss();
-	}, [navigation, selectedQuote, approvalTransaction, basicGasEstimates]);
+	}, [navigation, selectedQuote, approvalTransaction, basicGasEstimates, customGasPrice]);
 
 	const onEditMaxGas = () => setEditGasVisible(true);
 	const onEditMaxGasCancel = () => setEditGasVisible(false);
 
-	const onHandleGasFeeSelection = gasPrice => {
-		console.log('onHandleGasFeeSelection', gasPrice);
+	const onHandleGasFeeSelection = (gas, gasPrice) => {
+		setCustomGasPrice(gasPrice);
 	};
+
+	const gasFee = useMemo(() => {
+		if (customGasPrice && selectedQuote?.trade?.gas) {
+			return calcTokenAmount(customGasPrice * selectedQuote.trade.gas, 18);
+		}
+		return selectedQuoteValue?.ethFee;
+	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
+
+	const maxGasFee = useMemo(() => {
+		if (customGasPrice && selectedQuote?.maxGas) {
+			return calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
+		}
+		return selectedQuoteValue?.maxEthFee;
+	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
+
 	/* Effects */
 
 	/* Main polling effect */
@@ -548,12 +570,12 @@ function SwapsQuotesView({
 										</Text>
 									</View>
 									<Text primary bold>
-										{renderFromWei(toWei(selectedQuoteValue.ethFee))} ETH
+										{renderFromWei(toWei(gasFee))} ETH
 									</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text primary bold>
-										{weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, currentCurrency)}
+										{weiToFiat(toWei(gasFee), conversionRate, currentCurrency)}
 									</Text>
 								</View>
 							</View>
@@ -566,16 +588,10 @@ function SwapsQuotesView({
 											<Text link>{strings('swaps.edit')}</Text>
 										</TouchableOpacity>
 									</View>
-									<Text>{renderFromWei(toWei(selectedQuoteValue.maxEthFee))} ETH</Text>
+									<Text>{renderFromWei(toWei(maxGasFee))} ETH</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text>
-										{weiToFiat(
-											toWei(selectedQuoteValue.maxEthFee),
-											conversionRate,
-											currentCurrency
-										)}
-									</Text>
+									<Text>{weiToFiat(toWei(maxGasFee), conversionRate, currentCurrency)}</Text>
 								</View>
 							</View>
 
@@ -649,9 +665,9 @@ function SwapsQuotesView({
 					<AnimatedTransactionModal onModeChange={() => undefined} ready review={() => undefined}>
 						<CustomGas
 							handleGasFeeSelection={onHandleGasFeeSelection}
-							basicGasEstimates={gasPrice}
+							basicGasEstimates={apiGasPrice}
 							gas={hexToBN(selectedQuote.trade.gas)}
-							gasPrice={toWei(gasPrice.average)}
+							gasPrice={toWei(gasPrice)}
 							gasError={null}
 							mode={'edit'}
 							transaction={selectedQuote.trade}
