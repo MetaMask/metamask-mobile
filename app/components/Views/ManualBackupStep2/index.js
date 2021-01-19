@@ -107,7 +107,8 @@ const styles = StyleSheet.create({
 	selectableWordText: {
 		textAlign: 'center',
 		fontSize: 14,
-		lineHeight: 14
+		lineHeight: 14,
+		color: colors.black
 	},
 	words: {
 		flexDirection: 'row',
