@@ -279,7 +279,7 @@ const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
+	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
 	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
