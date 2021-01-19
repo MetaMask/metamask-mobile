@@ -2,6 +2,29 @@
 
 ## Current Develop Branch
 
+## v1.0.9 - Jan 21 2021
+- [#2131](https://github.com/MetaMask/metamask-mobile/pull/2131): controllers v6.0.0 (#2131)
+- [#2120](https://github.com/MetaMask/metamask-mobile/pull/2120): bugfix/accounts undefined (#2120)
+- [#1987](https://github.com/MetaMask/metamask-mobile/pull/1987): Replace public config with rpc (#1987)
+- [#2070](https://github.com/MetaMask/metamask-mobile/pull/2070): Fix android injection (#2070)
+- [#2109](https://github.com/MetaMask/metamask-mobile/pull/2109): Remove support email (#2109)
+- [#2044](https://github.com/MetaMask/metamask-mobile/pull/2044): Remove sync with extension from settings (#2044)
+- [#2083](https://github.com/MetaMask/metamask-mobile/pull/2083): Improvement/gas estimations (#2083)
+- [#2076](https://github.com/MetaMask/metamask-mobile/pull/2076): Feature/make insufficient fee descriptive (#2076)
+- [#2099](https://github.com/MetaMask/metamask-mobile/pull/2099): Bump axios from 0.19.2 to 0.21.1 (#2099)
+- [#2072](https://github.com/MetaMask/metamask-mobile/pull/2072): Bump ini from 1.3.5 to 1.3.8 (#2072)
+- [#2071](https://github.com/MetaMask/metamask-mobile/pull/2071): Fix uploading files on the browser by modifying fingerprint intent value (#2071)
+- [#2064](https://github.com/MetaMask/metamask-mobile/pull/2064): Add parseSeedPhrase behavior from extension (#2064)
+- [#2061](https://github.com/MetaMask/metamask-mobile/pull/2061): Add Alert component (#2061)
+- [#2059](https://github.com/MetaMask/metamask-mobile/pull/2059): Fix isBookmark functionality (#2059)
+- [#2030](https://github.com/MetaMask/metamask-mobile/pull/2030): @metamask/controllers@5.1.0 (#2030)
+- [#2051](https://github.com/MetaMask/metamask-mobile/pull/2051): [1984] Fixing Invalid value for 'projectId': "undefined" error [Android] [iOS] (#2051)
+- [#2042](https://github.com/MetaMask/metamask-mobile/pull/2042): Bugfix/small UI fixes (#2042)
+- [#2054](https://github.com/MetaMask/metamask-mobile/pull/2054): Make Keypad a functional component (#2054)
+- [#2055](https://github.com/MetaMask/metamask-mobile/pull/2055): Add missing await keywords (#2055)
+- [#2000](https://github.com/MetaMask/metamask-mobile/pull/2000): Remove unused views (#2000)
+- [#1994](https://github.com/MetaMask/metamask-mobile/pull/1994): Feature: Initial Swaps amount view (#1994)
+
 ## v1.0.8 - Dec 2 2020
 - [#2040](https://github.com/MetaMask/metamask-mobile/pull/2040): Update vault error message (#2040)
 - [#2034](https://github.com/MetaMask/metamask-mobile/pull/2034): Fix asyncstorage limit (#2034)
