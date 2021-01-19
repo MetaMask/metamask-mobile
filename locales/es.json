@@ -1251,6 +1251,8 @@
 	"swaps": {
 		"convert_from": "Convertir desde",
 		"convert_to": "Convertir a",
+		"verify": "Verifica",
+		"verify_on": "Verifica este token en",
 		"select_a_token": "Selecciona un token",
 		"search_token": "Buscar un token",
 		"no_tokens_result": "No se encontraron tokens para “{{searchString}}”",
