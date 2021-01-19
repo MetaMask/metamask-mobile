@@ -3,6 +3,27 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '10.0'
 
+def react_native_post_install(installer)
+	projects = installer.aggregate_targets
+	  .map{ |t| t.user_project }
+	  .uniq{ |p| p.path }
+	  .push(installer.pods_project)
+  
+	arm_value = `/usr/sbin/sysctl -n hw.optional.arm64 2>&1`.to_i
+  
+	projects.each do |project|
+	  project.build_configurations.each do |config|
+		if arm_value == 1 then
+		  config.build_settings.delete("EXCLUDED_ARCHS[sdk=iphonesimulator*]")
+		else
+		  config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
+		end
+	  end
+  
+	  project.save()
+	end
+  end
+
 target 'MetaMask' do
   config = use_native_modules!
   # Comment the next line if you don't want to use dynamic frameworks
@@ -13,24 +34,13 @@ target 'MetaMask' do
   # Pods for MetaMask
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
   
-  pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
-  pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
-  pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
-  
-  
-  # Enables Flipper.
-  #
-  # Note that if you have use_frameworks! enabled, Flipper will not work and
-  # you should disable these next few lines.
   use_flipper!
   post_install do |installer|
+	react_native_post_install(installer)
+	# Enables Flipper.
+    #
+    # Note that if you have use_frameworks! enabled, Flipper will not work and
+    # you should disable these next few lines.
     flipper_post_install(installer)
-    installer.pods_project.targets.each do |t|
-      t.build_configurations.each do |config|
-        if Gem::Version.new('8.0') > Gem::Version.new(config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'])
-          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '9.0'
-        end
-      end
-    end
   end
 end
