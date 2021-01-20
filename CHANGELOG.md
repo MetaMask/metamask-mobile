@@ -3,6 +3,11 @@
 ## Current Develop Branch
 
 ## v1.0.9 - Jan 21 2021
+- [#2149](https://github.com/MetaMask/metamask-mobile/pull/2149): update tests for new logic
+- [#2145](https://github.com/MetaMask/metamask-mobile/pull/2145): Add missing brew installation steps
+- [#2146](https://github.com/MetaMask/metamask-mobile/pull/2146): @metamask/mobile-provider@2.0.1
+- [#2144](https://github.com/MetaMask/metamask-mobile/pull/2144): @walletconnect@1.3.4
+- [#2143](https://github.com/MetaMask/metamask-mobile/pull/2143): Fix alert from iframes
 - [#2134](https://github.com/MetaMask/metamask-mobile/pull/2134): Update podfile (#2134)
 - [#2131](https://github.com/MetaMask/metamask-mobile/pull/2131): controllers v6.0.0 (#2131)
 - [#2120](https://github.com/MetaMask/metamask-mobile/pull/2120): bugfix/accounts undefined (#2120)
