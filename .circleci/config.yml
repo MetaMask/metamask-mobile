@@ -176,14 +176,12 @@ workflows:
               only:
                 - master
                 - develop
-                - '@react-native-community/async-storage@1.12.1'
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
-                - '@react-native-community/async-storage@1.12.1'
       - lint:
           requires:
             - prep-node-deps
@@ -202,9 +200,9 @@ workflows:
     #   - upload-coverage:
     #       requires:
     #         - test-unit
-      # - publish-pre-release-ios:
-      #     requires:
-      #       - prep-deps
-      - publish-pre-release-android:
+      - publish-pre-release-ios:
           requires:
             - prep-deps
+      - publish-pre-release-android:
+          requires:
+            - publish-pre-release-ios
