@@ -170,7 +170,8 @@ const CATEGORIES = {
 	SEND_FLOW: 'Send Flow',
 	DAPP_INTERACTIONS: 'Dapp Interactions',
 	WALLET: 'Wallet',
-	PAYMENTS: 'Payments'
+	PAYMENTS: 'Payments',
+	SWAPS: 'Swaps'
 };
 
 export const ANALYTICS_EVENT_OPTS = {
