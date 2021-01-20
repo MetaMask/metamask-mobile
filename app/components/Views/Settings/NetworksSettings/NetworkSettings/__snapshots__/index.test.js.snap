@@ -172,6 +172,7 @@ exports[`NetworkSettings should render correctly 1`] = `
             },
           ]
         }
+        testID="input-chain-id"
       />
       <Text
         style={
