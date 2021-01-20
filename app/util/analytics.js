@@ -151,7 +151,18 @@ const ACTIONS = {
 	APPROVE_REQUEST: 'Approve Request',
 	BUY_ETH: 'Buy ETH',
 	SELECTS_DEBIT_OR_ACH: 'Selects Debit or ACH',
-	SELECTS_APPLE_PAY: 'Selects Apple Pay'
+	SELECTS_APPLE_PAY: 'Selects Apple Pay',
+	// Swap
+	SWAPS_OPENED: 'Swaps Opened',
+	QUOTES_REQUESTED: 'Quotes Requested',
+	QUOTES_RECEIVED: 'Quotes Received',
+	QUOTES_REQUEST_CANCELLED: 'Quotes Request Cancelled',
+	ALL_AVAILABLE_QUOTES_OPENED: 'All Available Quotes Opened',
+	SWAP_STARTED: 'Swap Started',
+	SWAP_COMPLETED: 'Swap Completed',
+	SWAP_FAILED: 'Swap Failed',
+	QUOTES_TIMED_OUT: 'Quotes Timed Out',
+	NO_QUOTES_AVAILABLE: 'No Quotes Available'
 };
 
 const CATEGORIES = {
