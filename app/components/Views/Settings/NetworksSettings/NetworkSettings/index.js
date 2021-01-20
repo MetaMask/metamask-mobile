@@ -494,6 +494,7 @@ class NetworkSettings extends PureComponent {
 							placeholderTextColor={colors.grey100}
 							onSubmitEditing={this.jumpToSymbol}
 							keyboardType={'numbers-and-punctuation'}
+							testID={'input-chain-id'}
 						/>
 						{warningChainId ? (
 							<View style={styles.warningContainer}>
