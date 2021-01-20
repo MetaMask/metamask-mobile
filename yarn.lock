@@ -1404,10 +1404,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-2.0.0.tgz#aba6f75af8afcc04b33895bd4423378b98b44e22"
   integrity sha512-94CYBhgQgYkRIhYYcxZaP+VpulcuYyjcUuo+bMTgfyu8yD6daJU3EwF9KL5ktdbTupXLzz+CrTY9N6qOcGndww==
 
-"@react-native-community/async-storage@1.9.0":
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@react-native-community/async-storage/-/async-storage-1.9.0.tgz#af26a8879bd2987970fbbe81a9623851d29a56f1"
-  integrity sha512-TlGMr02JcmY4huH1P7Mt7p6wJecosPpW+09+CwCFLn875IhpRqU2XiVA+BQppZOYfQdHUfUzIKyCBeXOlCEbEg==
+"@react-native-community/async-storage@1.12.1":
+  version "1.12.1"
+  resolved "https://registry.yarnpkg.com/@react-native-community/async-storage/-/async-storage-1.12.1.tgz#25f821b4f6b13abe005ad67e47c6f1cee9f27b24"
+  integrity sha512-70WGaH3PKYASi4BThuEEKMkyAgE9k7VytBqmgPRx3MzJx9/MkspwqJGmn3QLCgHLIFUgF1pit2mWICbRJ3T3lg==
   dependencies:
     deep-assign "^3.0.0"
 
