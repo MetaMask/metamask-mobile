@@ -176,14 +176,14 @@ workflows:
               only:
                 - master
                 - develop
-                - @react-native-community/async-storage@1.12.1
+                - '@react-native-community/async-storage@1.12.1'
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
-                - @react-native-community/async-storage@1.12.1
+                - '@react-native-community/async-storage@1.12.1'
       - lint:
           requires:
             - prep-node-deps
