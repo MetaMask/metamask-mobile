@@ -181,6 +181,11 @@ class Tokens extends PureComponent {
 			secondaryBalance = !balanceFiat ? balanceFiat : balanceValue;
 		}
 
+		if (asset?.balanceError) {
+			mainBalance = '?';
+			secondaryBalance = asset?.balanceError?.message;
+		}
+
 		asset = { ...asset, ...{ logo, balance, balanceFiat } };
 		return (
 			<AssetElement
