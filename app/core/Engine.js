@@ -14,11 +14,11 @@ import {
 	PreferencesController,
 	TokenBalancesController,
 	TokenRatesController,
-	TransactionController,
+	// TransactionController,
 	TypedMessageManager
 } from '@metamask/controllers';
 
-import { SwapsController } from '@estebanmino/controllers';
+import { SwapsController, TransactionController } from '@estebanmino/controllers';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -61,6 +61,7 @@ class Engine {
 				nativeCurrency: 'eth',
 				currentCurrency: 'usd'
 			};
+
 			this.datamodel = new ComposableController(
 				[
 					new KeyringController({ encryptor }, initialState.KeyringController),
@@ -126,7 +127,8 @@ class Engine {
 				AssetsController: assets,
 				KeyringController: keyring,
 				NetworkController: network,
-				TransactionController: transaction
+				TransactionController: transaction,
+				PreferencesController: preferences
 			} = this.datamodel.context;
 
 			assets.setApiKey(process.env.MM_OPENSEA_KEY);
@@ -135,6 +137,19 @@ class Engine {
 			network.subscribe(this.refreshNetwork);
 			this.configureControllersOnNetworkChange();
 			Engine.instance = this;
+
+			preferences.addToFrequentRpcList(
+				'http://ganache-testnet.airswap-dev.codefi.network/',
+				1337,
+				'ETH',
+				'Swaps Test Network'
+			);
+			network.setRpcTarget(
+				'http://ganache-testnet.airswap-dev.codefi.network/',
+				1337,
+				'ETH',
+				'Swaps Test Network'
+			);
 		}
 		return Engine.instance;
 	}
@@ -145,13 +160,19 @@ class Engine {
 			AssetsContractController,
 			AssetsDetectionController,
 			NetworkController: { provider },
-			TransactionController
+			TransactionController,
+			SwapsController
 		} = this.datamodel.context;
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		AccountTrackerController.configure({ provider });
 		AccountTrackerController.refresh();
 		AssetsContractController.configure({ provider });
+		SwapsController.configure({
+			provider,
+			pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
+			quotePollingInterval: AppConstants.SWAPS.POLLING_INTERVAL
+		});
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
 		AssetsDetectionController.detectAssets();
