@@ -38,6 +38,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 import WhatsNewModal from '../WhatsNewModal';
+import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 
 const styles = StyleSheet.create({
@@ -825,6 +826,16 @@ class DrawerView extends PureComponent {
 		return routeName;
 	}
 
+	closeInvalidCustomNetworkAlert = () => {
+		this.setState({ invalidCustomNetwork: null });
+	};
+
+	showInvalidCustomNetworkAlert = network => {
+		InteractionManager.runAfterInteractions(() => {
+			this.setState({ invalidCustomNetwork: network });
+		});
+	};
+
 	/**
 	 * Return step 5 of onboarding wizard if that is the current step
 	 */
@@ -882,6 +893,9 @@ class DrawerView extends PureComponent {
 			ticker,
 			seedphraseBackedUp
 		} = this.props;
+
+		const { invalidCustomNetwork, showProtectWalletModal } = this.state;
+
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
@@ -1043,7 +1057,17 @@ class DrawerView extends PureComponent {
 					swipeDirection={'down'}
 					propagateSwipe
 				>
-					<NetworkList onClose={this.onNetworksModalClose} />
+					<NetworkList
+						navigation={this.props.navigation}
+						onClose={this.onNetworksModalClose}
+						showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
+					/>
+				</Modal>
+				<Modal isVisible={!!invalidCustomNetwork}>
+					<InvalidCustomNetworkAlert
+						network={invalidCustomNetwork}
+						onClose={this.closeInvalidCustomNetworkAlert}
+					/>
 				</Modal>
 				<Modal
 					isVisible={this.props.accountsModalVisible}
@@ -1080,10 +1104,7 @@ class DrawerView extends PureComponent {
 						showReceiveModal={this.showReceiveModal}
 					/>
 				</Modal>
-				<WhatsNewModal
-					navigation={this.props.navigation}
-					enabled={this.state.showProtectWalletModal === false}
-				/>
+				<WhatsNewModal navigation={this.props.navigation} enabled={showProtectWalletModal === false} />
 
 				{this.renderProtectModal()}
 			</View>

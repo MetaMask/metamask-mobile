@@ -404,7 +404,7 @@
 		"network_rpc_url_label": "RPC Url",
 		"network_rpc_placeholder": "Nueva red RPC",
 		"network_chain_id_label": "Chain ID",
-		"network_chain_id_placeholder": "Chain ID (opcional)",
+		"network_chain_id_placeholder": "Chain ID",
 		"network_symbol_label": "Símbolo",
 		"network_symbol_placeholder": "Símbolo (opcional)",
 		"network_block_explorer_label": "Block Explorer URL",
@@ -1294,7 +1294,7 @@
 			"for_swapping": "para ser convertido",
 			"edit_limit": "Editar límite"
 		},
-		"quotes_analyzed": "Cotizaciones analizadas",
+		"quotes_overview": "Cotizaciones",
 		"receiving": "Recibiendo",
 		"overall_value": "Valor total",
 		"best": "Mejor",

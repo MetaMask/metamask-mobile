@@ -98,7 +98,7 @@ export function getErrorMessage(errorKey) {
 		default: {
 			return [
 				strings('swaps.error_fetching_quote'),
-				strings('swaps.unexpected_error', { error: errorKey }),
+				strings('swaps.unexpected_error', { error: errorKey || 'error-not-provided' }),
 				errorAction
 			];
 		}

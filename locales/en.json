@@ -438,7 +438,7 @@
 		"network_rpc_url_label": "RPC Url",
 		"network_rpc_placeholder": "New RPC Network",
 		"network_chain_id_label": "Chain ID",
-		"network_chain_id_placeholder": "Chain ID (optional)",
+		"network_chain_id_placeholder": "Chain ID",
 		"network_symbol_label": "Symbol",
 		"network_symbol_placeholder": "Symbol (optional)",
 		"network_block_explorer_label": "Block Explorer URL",
@@ -481,7 +481,15 @@
 		"invalid_password": "Invalid password",
 		"invalid_password_message": "The password was not correct. Please try again.",
 		"security_heading": "Security",
-		"privacy_heading": "Privacy"
+		"privacy_heading": "Privacy",
+		"failed_to_fetch_chain_id": "Could not fetch chain ID. Is your RPC URL correct?",
+		"endpoint_returned_different_chain_id": "The endpoint returned a different chain ID: %{chainIdReturned}",
+		"chain_id_required": "The chain ID is required. It must match the chain ID returned by the network. You can enter a decimal or '0x'-prefixed hexadecimal number.",
+		"invalid_hex_number": "Invalid hexadecimal number.",
+		"invalid_hex_number_leading_zeros": "Invalid hexadecimal number. Remove any leading zeros.",
+		"invalid_number": "Invalid number. Enter a decimal or '0x'-prefixed hexadecimal number.",
+		"invalid_number_leading_zeros": "Invalid number. Remove any leading zeros.",
+		"invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}"
 	},
 	"app_information": {
 		"title": "Information",
@@ -1423,7 +1431,7 @@
 			"for_swapping": "for swapping",
 			"edit_limit": "Edit limit"
 		},
-		"quotes_analyzed": "Quotes analyzed",
+		"quotes_overview": "Quotes overview",
 		"receiving": "Receiving",
 		"overall_value": "Overall value",
 		"best": "Best",
@@ -1470,5 +1478,12 @@
 		"feature_security_settings_title": "Improved security settings",
 		"feature_security_settings_text": "You can now change your MetaMask app password & review how to backup your wallet seed phrase from Settings > Security & Privacy.",
 		"feature_security_settings_button": "View in Settings"
+	},
+	"invalid_network": {
+		"title": "The chain ID for custom network \n %{network} \n has to be re-entered.",
+		"message": "To protect you from malicious or faulty network providers, chain IDs are now required for all custom networks.",
+		"hint": "You can find the chain IDs of most popular networks on ",
+		"edit_network_button": "Edit network",
+		"cancel": "Cancel"
 	}
 }

@@ -27,6 +27,7 @@ import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -106,7 +107,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	const navigation = useContext(NavigationContext);
 	const initialSource = navigation.getParam('sourceToken', SWAPS_ETH_ADDRESS);
 	const [amount, setAmount] = useState('0');
-	const [slippage, setSlippage] = useState(1);
+	const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
 	const amountBigNumber = useMemo(() => new BigNumber(amount), [amount]);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
