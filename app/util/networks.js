@@ -1,5 +1,6 @@
 import { colors } from '../styles/common';
 import URL from 'url-parse';
+import AppConstants from '../core/AppConstants';
 import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../app/constants/network';
 
 /**
@@ -119,4 +120,8 @@ export function getBlockExplorerName(blockExplorerUrl) {
 	const tempBlockExplorerName = hostname.split('.')[0];
 	if (!tempBlockExplorerName || !tempBlockExplorerName[0]) return undefined;
 	return tempBlockExplorerName[0].toUpperCase() + tempBlockExplorerName.slice(1);
+}
+
+export function isSafeChainId(chainId) {
+	return Number.isSafeInteger(chainId) && chainId > 0 && chainId <= AppConstants.MAX_SAFE_CHAIN_ID;
 }
