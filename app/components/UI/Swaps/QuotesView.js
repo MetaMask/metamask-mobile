@@ -24,6 +24,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import StyledButton from '../StyledButton';
 import SliderButton from '../SliderButton';
+import LoadingAnimation from './components/LoadingAnimation';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
 import FeeModal from './components/FeeModal';
@@ -172,6 +173,9 @@ const styles = StyleSheet.create({
 });
 
 async function resetAndStartPolling({ slippage, sourceToken, destinationToken, sourceAmount, walletAddress }) {
+	if (!sourceToken || !destinationToken) {
+		return;
+	}
 	const { SwapsController, TokenRatesController, AssetsController } = Engine.context;
 	const contractExchangeRates = TokenRatesController.state.contractExchangeRates;
 	// ff the token is not in the wallet, we'll add it
@@ -216,6 +220,7 @@ function SwapsQuotesView({
 	pollingCyclesLeft,
 	approvalTransaction,
 	topAggId,
+	aggregatorMetadata,
 	quotes,
 	quoteValues,
 	errorKey
@@ -245,7 +250,8 @@ function SwapsQuotesView({
 
 	/* State */
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
-	const [isFirstLoad, setFirstLoad] = useState(true);
+	const [isFirstLoad, setIsFirstLoad] = useState(true);
+	const [shouldFinishFirstLoad, setShouldFinishFirstLoad] = useState(false);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 	const [basicGasEstimates, setBasicGasEstimates] = useState({});
 
@@ -314,13 +320,20 @@ function SwapsQuotesView({
 	const [isQuotesModalVisible, toggleQuotesModal, , hideQuotesModal] = useModalHandler(false);
 
 	/* Handlers */
+	const handleAnimationEnd = useCallback(() => {
+		setIsFirstLoad(false);
+		if (!errorKey) {
+			navigation.setParams({ leftAction: strings('swaps.edit') });
+		}
+	}, [errorKey, navigation]);
+
 	const handleRatioSwitch = () => setRatioAsSource(isSource => !isSource);
 
 	const handleRetryFetchQuotes = useCallback(() => {
 		if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
 			navigation.setParams({ leftAction: strings('navigation.back') });
 			setFirstLoadTime(Date.now());
-			setFirstLoad(true);
+			setIsFirstLoad(true);
 			resetAndStartPolling({
 				slippage,
 				sourceToken,
@@ -372,15 +385,15 @@ function SwapsQuotesView({
 
 	/* First load effect: handle initial animation */
 	useEffect(() => {
-		if (isFirstLoad) {
+		if (isFirstLoad && !shouldFinishFirstLoad) {
 			if (firstLoadTime < quotesLastFetched || errorKey) {
-				setFirstLoad(false);
+				setShouldFinishFirstLoad(true);
 				if (!errorKey) {
 					navigation.setParams({ leftAction: strings('swaps.edit') });
 				}
 			}
 		}
-	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched]);
+	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched, shouldFinishFirstLoad]);
 
 	/* selectedQuoteId effect: when topAggId changes make it selected by default */
 	useEffect(() => setSelectedQuoteId(topAggId), [topAggId]);
@@ -420,10 +433,12 @@ function SwapsQuotesView({
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
 		return (
-			<ScreenView contentContainerStyle={styles.screen}>
-				<View style={[styles.content, styles.errorViewContent]}>
-					<ActivityIndicator size="large" />
-				</View>
+			<ScreenView contentContainerStyle={styles.screen} scrollEnabled={false}>
+				<LoadingAnimation
+					finish={shouldFinishFirstLoad}
+					onAnimationEnd={handleAnimationEnd}
+					aggregatorMetadata={aggregatorMetadata}
+				/>
 			</ScreenView>
 		);
 	}
@@ -731,6 +746,10 @@ SwapsQuotesView.propTypes = {
 	isInFetch: PropTypes.bool,
 	quotesLastFetched: PropTypes.number,
 	topAggId: PropTypes.string,
+	/**
+	 * Aggregator metada from Swaps controller API
+	 */
+	aggregatorMetadata: PropTypes.object,
 	pollingCyclesLeft: PropTypes.number,
 	quotes: PropTypes.object,
 	quoteValues: PropTypes.object,
@@ -752,6 +771,7 @@ const mapStateToProps = state => ({
 	quotesLastFetched: state.engine.backgroundState.SwapsController.quotesLastFetched,
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
 	topAggId: state.engine.backgroundState.SwapsController.topAggId,
+	aggregatorMetadata: state.engine.backgroundState.SwapsController.aggregatorMetadata,
 	quotes: state.engine.backgroundState.SwapsController.quotes,
 	quoteValues: state.engine.backgroundState.SwapsController.quoteValues,
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,

@@ -16,6 +16,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
 import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import { setQuotesNavigationsParams } from './utils';
+
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
@@ -151,8 +152,8 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances, tokensWi
 				await SwapsController.fetchTokenWithCache();
 				setLoadingTokens(false);
 				setInitialLoadingTokens(false);
-			} catch (err) {
-				console.error(err);
+			} catch (error) {
+				Logger.error(error, 'Swaps: Error while fetching tokens in amount view');
 			} finally {
 				setLoadingTokens(false);
 				setInitialLoadingTokens(false);
