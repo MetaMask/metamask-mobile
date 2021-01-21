@@ -346,8 +346,8 @@ PODS:
     - ReactCommon/callinvoker (= 0.62.2)
   - ReactNativePayments (1.5.0):
     - React
-  - RNCAsyncStorage (1.9.0):
-    - React
+  - RNCAsyncStorage (1.12.1):
+    - React-Core
   - RNCCheckbox (0.4.2):
     - React
   - RNCClipboard (1.2.2):
@@ -661,7 +661,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: 4356114dbcba4ce66991096e51a66e61eda51256
   ReactCommon: ed4e11d27609d571e7eee8b65548efc191116eb3
   ReactNativePayments: a4e3ac915256a4e759c8a04338b558494a63a0f5
-  RNCAsyncStorage: 453cd7c335ec9ba3b877e27d02238956b76f3268
+  RNCAsyncStorage: b03032fdbdb725bea0bd9e5ec5a7272865ae7398
   RNCCheckbox: 357578d3b42652c78ee9a1bb9bcfc3195af6e161
   RNCClipboard: 8148e21ac347c51fd6cd4b683389094c216bb543
   RNDeviceInfo: 88099e84466f053bae3f34c307b506738b2b6946

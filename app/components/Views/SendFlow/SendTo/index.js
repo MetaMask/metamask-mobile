@@ -24,6 +24,7 @@ import { util } from '@metamask/controllers';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { allowedToBuy } from '../../../UI/FiatOrders';
+import NetworkList from '../../../../util/networks';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -281,7 +282,7 @@ class SendFlow extends PureComponent {
 
 	onToSelectedAddressChange = async toSelectedAddress => {
 		const { AssetsContractController } = Engine.context;
-		const { addressBook, network, identities } = this.props;
+		const { addressBook, network, identities, providerType } = this.props;
 		const networkAddressBook = addressBook[network] || {};
 		let addressError, toAddressName, toEnsName, errorContinue, isOnlyWarning;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
@@ -304,21 +305,24 @@ class SendFlow extends PureComponent {
 				addToAddressToAddressBook = true;
 			}
 
-			// Check if it's token contract address
-			try {
-				const symbol = await AssetsContractController.getAssetSymbol(toSelectedAddress);
-				if (symbol) {
-					addressError = (
-						<Text>
-							<Text>{strings('transaction.tokenContractAddressWarning_1')}</Text>
-							<Text style={styles.bold}>{strings('transaction.tokenContractAddressWarning_2')}</Text>
-							<Text>{strings('transaction.tokenContractAddressWarning_3')}</Text>
-						</Text>
-					);
-					errorContinue = true;
+			// Check if it's token contract address on mainnet
+			const networkId = NetworkList[providerType].networkId;
+			if (networkId === 1) {
+				try {
+					const symbol = await AssetsContractController.getAssetSymbol(toSelectedAddress);
+					if (symbol) {
+						addressError = (
+							<Text>
+								<Text>{strings('transaction.tokenContractAddressWarning_1')}</Text>
+								<Text style={styles.bold}>{strings('transaction.tokenContractAddressWarning_2')}</Text>
+								<Text>{strings('transaction.tokenContractAddressWarning_3')}</Text>
+							</Text>
+						);
+						errorContinue = true;
+					}
+				} catch (e) {
+					// Not a token address
 				}
-			} catch (e) {
-				// Not a token address
 			}
 
 			/**
