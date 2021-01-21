@@ -735,7 +735,7 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
-"@estebanmino/controllers@3.2.39":
+"@estebanmino/controllers@^3.2.39":
   version "3.2.39"
   resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.2.39.tgz#c1db1ebabbebfb66d893d7a10577c5ebb7ae8d52"
   integrity sha512-M+AjY30M8kmYZ4qDPC+jkkEf9KKfOhk7lv4ARmBwpd7TRClViPpbYQGnaRvpZvWeyNLwKLMCtZR9si7Gdz1hsw==
@@ -11435,6 +11435,11 @@ requires-port@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/requires-port/-/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
   integrity sha1-kl0mAdOaxIXgkc8NpcbmlNw9yv8=
+
+reselect@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/reselect/-/reselect-4.0.0.tgz#f2529830e5d3d0e021408b246a206ef4ea4437f7"
+  integrity sha512-qUgANli03jjAyGlnbYVAV5vvnOmJnODyABz51RdBN7M4WaVu8mecZWgyQNkG8Yqe3KRGRt0l4K4B3XVEULC4CA==
 
 resolve-cwd@^3.0.0:
   version "3.0.0"

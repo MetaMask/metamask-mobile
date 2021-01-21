@@ -63,6 +63,7 @@ import MainNavigator from './MainNavigator';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { swapsUtils } from '@estebanmino/controllers';
+import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -760,6 +761,7 @@ const Main = props => {
 				<FadeOutOverlay />
 				<Notification navigation={props.navigation} />
 				<FiatOrders />
+				<SwapsLiveness />
 				<BackupAlert onDismiss={toggleRemindLater} navigation={props.navigation} />
 				<SkipAccountSecurityModal
 					modalVisible={showRemindLaterModal}

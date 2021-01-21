@@ -51,6 +51,9 @@ const styles = StyleSheet.create({
 		marginVertical: 10,
 		width: '100%'
 	},
+	alertContent: {
+		flex: 1
+	},
 	timerWrapper: {
 		backgroundColor: colors.grey000,
 		borderRadius: 20,
@@ -276,6 +279,27 @@ function SwapsQuotesView({
 
 	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [quoteValues, selectedQuoteId]);
 
+	/* Selected quote slippage */
+
+	const shouldDisplaySlippage = useMemo(
+		() =>
+			(selectedQuote && ['medium', 'high'].includes(selectedQuote?.priceSlippage?.bucket)) ||
+			selectedQuote?.priceSlippage?.calculationError?.length > 0,
+		[selectedQuote]
+	);
+
+	const slippageRatio = useMemo(
+		() =>
+			parseFloat(
+				new BigNumber(selectedQuote?.priceSlippage?.ratio || 0, 10)
+					.minus(1, 10)
+					.times(100, 10)
+					.toFixed(2),
+				10
+			),
+		[selectedQuote]
+	);
+
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 
@@ -364,6 +388,9 @@ function SwapsQuotesView({
 		if (isFirstLoad) {
 			if (firstLoadTime < quotesLastFetched || errorKey) {
 				setShouldFinishFirstLoad(true);
+				if (!errorKey) {
+					navigation.setParams({ leftAction: strings('swaps.edit') });
+				}
 			}
 		}
 	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched]);
@@ -456,6 +483,56 @@ function SwapsQuotesView({
 								{renderFromTokenMinimalUnit(missingBalance, sourceToken.decimals)} {sourceToken.symbol}
 							</Text>{' '}
 							{strings('swaps.more_to_complete')}
+						</Alert>
+					</View>
+				)}
+				{!!selectedQuote && hasEnoughBalance && shouldDisplaySlippage && (
+					<View style={styles.alertBar}>
+						<Alert type={selectedQuote.priceSlippage?.bucket === 'high' ? 'error' : 'warning'}>
+							{textStyle => (
+								<View style={styles.alertContent}>
+									{selectedQuote.priceSlippage?.calculationError?.length > 0 ? (
+										<Text style={textStyle} small centered>
+											{strings('swaps.market_price_unavailable')}
+										</Text>
+									) : (
+										<>
+											<Text style={textStyle} bold centered>
+												{strings('swaps.price_difference', { amount: `~${slippageRatio}%` })}
+											</Text>
+											<Text style={textStyle} centered>
+												{strings('swaps.about_to_swap')}{' '}
+												{renderFromTokenMinimalUnit(
+													selectedQuote.sourceAmount,
+													sourceToken.decimals
+												)}{' '}
+												{sourceToken.symbol} (~
+												<Text reset upper>
+													{weiToFiat(
+														toWei(selectedQuote.priceSlippage?.sourceAmountInETH || 0),
+														conversionRate,
+														currentCurrency
+													)}
+												</Text>
+												) {strings('swaps.for')}{' '}
+												{renderFromTokenMinimalUnit(
+													selectedQuote.destinationAmount,
+													destinationToken.decimals
+												)}{' '}
+												{destinationToken.symbol} (~
+												<Text reset upper>
+													{weiToFiat(
+														toWei(selectedQuote.priceSlippage?.destinationAmountInETH || 0),
+														conversionRate,
+														currentCurrency
+													)}
+												</Text>
+												).
+											</Text>
+										</>
+									)}
+								</View>
+							)}
 						</Alert>
 					</View>
 				)}
@@ -555,7 +632,7 @@ function SwapsQuotesView({
 									</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text primary bold>
+									<Text primary bold upper>
 										{weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, currentCurrency)}
 									</Text>
 								</View>
@@ -573,7 +650,7 @@ function SwapsQuotesView({
 									<Text>{renderFromWei(toWei(selectedQuoteValue.maxEthFee))} ETH</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text>
+									<Text upper>
 										{weiToFiat(
 											toWei(selectedQuoteValue.maxEthFee),
 											conversionRate,
