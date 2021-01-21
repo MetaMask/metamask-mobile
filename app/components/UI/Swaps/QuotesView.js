@@ -385,7 +385,7 @@ function SwapsQuotesView({
 
 	/* First load effect: handle initial animation */
 	useEffect(() => {
-		if (isFirstLoad) {
+		if (isFirstLoad && !shouldFinishFirstLoad) {
 			if (firstLoadTime < quotesLastFetched || errorKey) {
 				setShouldFinishFirstLoad(true);
 				if (!errorKey) {
@@ -393,7 +393,7 @@ function SwapsQuotesView({
 				}
 			}
 		}
-	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched]);
+	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched, shouldFinishFirstLoad]);
 
 	/* selectedQuoteId effect: when topAggId changes make it selected by default */
 	useEffect(() => setSelectedQuoteId(topAggId), [topAggId]);
