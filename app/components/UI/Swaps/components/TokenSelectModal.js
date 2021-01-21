@@ -71,7 +71,7 @@ function TokenSelectModal({
 	tokens,
 	initialTokens,
 	onItemPress,
-	exclude = [],
+	excludeAddresses = [],
 	accounts,
 	selectedAddress,
 	currentCurrency,
@@ -82,13 +82,16 @@ function TokenSelectModal({
 	const searchInput = useRef(null);
 	const [searchString, setSearchString] = useState('');
 
-	const filteredTokens = useMemo(() => tokens?.filter(token => !exclude.includes(token.address)), [tokens, exclude]);
+	const filteredTokens = useMemo(() => tokens?.filter(token => !excludeAddresses.includes(token.address)), [
+		tokens,
+		excludeAddresses
+	]);
 	const filteredInitialTokens = useMemo(
 		() =>
 			initialTokens?.length > 0
-				? initialTokens.filter(token => !exclude.includes(token.address))
+				? initialTokens.filter(token => !excludeAddresses.includes(token.address))
 				: filteredTokens,
-		[exclude, filteredTokens, initialTokens]
+		[excludeAddresses, filteredTokens, initialTokens]
 	);
 	const tokenFuse = useMemo(
 		() =>
@@ -205,7 +208,7 @@ TokenSelectModal.propTypes = {
 	tokens: PropTypes.arrayOf(PropTypes.object),
 	initialTokens: PropTypes.arrayOf(PropTypes.object),
 	onItemPress: PropTypes.func,
-	exclude: PropTypes.arrayOf(PropTypes.string),
+	excludeAddresses: PropTypes.arrayOf(PropTypes.string),
 	/**
 	 * ETH to current currency conversion rate
 	 */

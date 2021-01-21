@@ -252,7 +252,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances, tokensWi
 						tokens={tokens}
 						initialTokens={tokensWithBalance}
 						onItemPress={handleSourceTokenPress}
-						exclude={[destinationToken?.address]}
+						excludeAddresses={[destinationToken?.address]}
 					/>
 				</View>
 				<View style={styles.amountContainer}>
@@ -308,7 +308,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances, tokensWi
 						tokens={tokens}
 						initialTokens={tokensTopAssets.slice(0, 5)}
 						onItemPress={handleDestinationTokenPress}
-						exclude={[sourceToken?.address]}
+						excludeAddresses={[sourceToken?.address]}
 					/>
 				</View>
 			</View>
