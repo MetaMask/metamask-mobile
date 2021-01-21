@@ -78,3 +78,5 @@ coverage
 
 # CocoaPods
 /ios/Pods/
+
+/locales/languagesToUpdate/*.json
