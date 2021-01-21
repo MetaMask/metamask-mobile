@@ -13,9 +13,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
 import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import { setQuotesNavigationsParams } from './utils';
-
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
-
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 
