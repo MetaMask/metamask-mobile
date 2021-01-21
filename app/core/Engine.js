@@ -138,18 +138,20 @@ class Engine {
 			this.configureControllersOnNetworkChange();
 			Engine.instance = this;
 
-			preferences.addToFrequentRpcList(
-				'http://ganache-testnet.airswap-dev.codefi.network/',
-				1337,
-				'ETH',
-				'Swaps Test Network'
-			);
-			network.setRpcTarget(
-				'http://ganache-testnet.airswap-dev.codefi.network/',
-				1337,
-				'ETH',
-				'Swaps Test Network'
-			);
+			if (AppConstants.SWAPS.ACTIVE) {
+				preferences.addToFrequentRpcList(
+					'http://ganache-testnet.airswap-dev.codefi.network/',
+					1337,
+					'ETH',
+					'Swaps Test Network'
+				);
+				network.setRpcTarget(
+					'http://ganache-testnet.airswap-dev.codefi.network/',
+					1337,
+					'ETH',
+					'Swaps Test Network'
+				);
+			}
 		}
 		return Engine.instance;
 	}
