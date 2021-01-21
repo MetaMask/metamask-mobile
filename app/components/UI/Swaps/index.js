@@ -296,7 +296,7 @@ function SwapsAmountView({
 					<Text primary style={styles.amount} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
 						{amount}
 					</Text>
-					{sourceToken &&
+					{!!sourceToken &&
 						(hasInvalidDecimals || !hasEnoughBalance ? (
 							<Text style={styles.amountInvalid}>
 								{!hasEnoughBalance
@@ -309,7 +309,7 @@ function SwapsAmountView({
 							</Text>
 						) : amountBigNumber.eq(0) ? (
 							<Text>
-								{sourceToken &&
+								{!!sourceToken &&
 									balance !== null &&
 									strings('swaps.available_to_swap', {
 										asset: `${balance} ${sourceToken.symbol}`
