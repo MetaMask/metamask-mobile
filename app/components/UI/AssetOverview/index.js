@@ -1,17 +1,24 @@
 import React, { PureComponent } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
+import { swapsUtils } from '@estebanmino/controllers';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
+import AssetActionButton from '../AssetActionButton';
+import AppConstants from '../../../core/AppConstants';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import AssetActionButtons from '../AssetActionButtons';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
+import { isMainNet } from '../../../util/networks';
+import { swapsLivenessSelector, swapsTokensObjectSelector } from '../../../reducers/swaps';
+import Device from '../../../util/Device';
+import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -50,6 +57,12 @@ const styles = StyleSheet.create({
 		color: colors.fontSecondary,
 		...fontStyles.light,
 		textTransform: 'uppercase'
+	},
+	actions: {
+		width: Device.isSmallDevice() ? '65%' : '50%',
+		justifyContent: 'space-around',
+		alignItems: 'flex-start',
+		flexDirection: 'row'
 	}
 });
 
@@ -105,7 +118,19 @@ class AssetOverview extends PureComponent {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string,
+		/**
+		 * Wether Swaps feature is live or not
+		 */
+		swapsIsLive: PropTypes.bool,
+		/**
+		 * Object that contains swaps tokens addresses as key
+		 */
+		swapsTokens: PropTypes.object
 	};
 
 	onReceive = () => {
@@ -124,6 +149,12 @@ class AssetOverview extends PureComponent {
 		}
 	};
 
+	goToSwaps = () => {
+		this.props.navigation.navigate('Swaps', {
+			sourceToken: this.props.asset.isETH ? swapsUtils.ETH_SWAPS_TOKEN_ADDRESS : this.props.asset.address
+		});
+	};
+
 	renderLogo = () => {
 		const {
 			asset: { address, image, logo, isETH }
@@ -139,6 +170,15 @@ class AssetOverview extends PureComponent {
 		);
 	};
 
+	componentDidMount = async () => {
+		const { SwapsController } = Engine.context;
+		try {
+			await SwapsController.fetchTokenWithCache();
+		} catch (error) {
+			Logger.error(error, 'Swaps: error while fetching tokens with catche in AssetOverview');
+		}
+	};
+
 	render() {
 		const {
 			accounts,
@@ -148,7 +188,10 @@ class AssetOverview extends PureComponent {
 			tokenExchangeRates,
 			tokenBalances,
 			conversionRate,
-			currentCurrency
+			currentCurrency,
+			network,
+			swapsIsLive,
+			swapsTokens
 		} = this.props;
 		let mainBalance, secondaryBalance;
 		const itemAddress = safeToChecksumAddress(address);
@@ -170,7 +213,6 @@ class AssetOverview extends PureComponent {
 			mainBalance = !balanceFiat ? `${balance} ${symbol}` : balanceFiat;
 			secondaryBalance = !balanceFiat ? balanceFiat : `${balance} ${symbol}`;
 		}
-
 		return (
 			<View style={styles.wrapper} testID={'token-asset-overview'}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
@@ -181,14 +223,31 @@ class AssetOverview extends PureComponent {
 					<Text style={styles.amountFiat}>{secondaryBalance}</Text>
 				</View>
 
-				<AssetActionButtons
-					leftText={strings('asset_overview.send_button').toUpperCase()}
-					testID={'token-send-button'}
-					middleText={strings('asset_overview.receive_button').toUpperCase()}
-					onLeftPress={this.onSend}
-					onMiddlePress={this.onReceive}
-					middleType={'receive'}
-				/>
+				<View style={styles.actions}>
+					<AssetActionButton
+						icon="receive"
+						onPress={this.onReceive}
+						label={strings('asset_overview.receive_button')}
+					/>
+					<AssetActionButton
+						testID={'token-send-button'}
+						icon="send"
+						onPress={this.onSend}
+						label={strings('asset_overview.send_button')}
+					/>
+					{AppConstants.SWAPS.ACTIVE && (
+						<AssetActionButton
+							icon="swap"
+							label={strings('asset_overview.swap')}
+							disabled={
+								!swapsIsLive ||
+								(AppConstants.SWAPS.ONLY_MAINNET ? !isMainNet(network) : false) ||
+								(!isETH && !(address?.toLowerCase() in swapsTokens))
+							}
+							onPress={this.goToSwaps}
+						/>
+					)}
+				</View>
 			</View>
 		);
 	}
@@ -201,7 +260,10 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	network: state.engine.backgroundState.NetworkController.network,
+	swapsIsLive: swapsLivenessSelector(state),
+	swapsTokens: swapsTokensObjectSelector(state)
 });
 
 const mapDispatchToProps = dispatch => ({

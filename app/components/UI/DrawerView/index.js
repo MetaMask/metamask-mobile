@@ -750,7 +750,7 @@ class DrawerView extends PureComponent {
 			AppConstants.SWAPS.ACTIVE && [
 				{
 					name: 'Swaps',
-					icon: this.getIcon('refresh'),
+					icon: this.getMaterialIcon('repeat'),
 					action: this.goToSwaps
 				}
 			],

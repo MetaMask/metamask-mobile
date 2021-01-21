@@ -9,6 +9,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@estebanmino/controllers';
 
 import Engine from '../../../core/Engine';
+import AppConstants from '../../../core/AppConstants';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
 import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
@@ -26,7 +27,6 @@ import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
-import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	screen: {
