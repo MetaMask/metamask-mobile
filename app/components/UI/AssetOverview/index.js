@@ -18,6 +18,7 @@ import { isMainNet } from '../../../util/networks';
 import { swapsLivenessSelector, swapsTokensObjectSelector } from '../../../reducers/swaps';
 import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -173,8 +174,8 @@ class AssetOverview extends PureComponent {
 		const { SwapsController } = Engine.context;
 		try {
 			await SwapsController.fetchTokenWithCache();
-		} catch (err) {
-			console.error(err);
+		} catch (error) {
+			Logger.error(error, 'Swaps: error while fetching tokens with catche in AssetOverview');
 		}
 	};
 
