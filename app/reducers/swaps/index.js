@@ -20,8 +20,6 @@ export const swapsLivenessSelector = state => state.swaps.isLive;
  */
 export const swapsTokensSelector = state => state.engine.backgroundState.SwapsController.tokens;
 
-const topAssets = state => state.engine.backgroundState.SwapsController.topAssets;
-
 /**
  * Returns a memoized object that only has the addesses of the tokens as keys
  * and undefined as value. Useful to check if a token is supported by swaps.
