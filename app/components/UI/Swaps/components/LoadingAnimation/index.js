@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import Device from '../../../../../util/Device';
+import { strings } from '../../../../../../locales/i18n';
 
 import Text from '../../../../Base/Text';
 import Title from '../../../../Base/Title';
@@ -360,18 +361,22 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata }) {
 				<Text small centered>
 					{hasStarted ? (
 						<>
-							Quote{' '}
+							{strings('swaps.quote')}{' '}
 							<Text reset bold>
-								{currentQuoteIndex + 1} of {metadata?.length}
+								{currentQuoteIndex + 1} {strings('swaps.of')} {metadata?.length}
 							</Text>
 						</>
 					) : (
 						''
 					)}
 				</Text>
-				{!hasStarted && <Title centered>Starting...</Title>}
-				{hasStarted && !hasFinished && <Title centered>Checking {metadata[currentQuoteIndex]?.title}...</Title>}
-				{hasFinished && <Title centered>Finalizing...</Title>}
+				{!hasStarted && <Title centered>{strings('swaps.starting')}</Title>}
+				{hasStarted && !hasFinished && (
+					<Title centered>
+						{strings('swaps.checking')} {metadata[currentQuoteIndex]?.title}...
+					</Title>
+				)}
+				{hasFinished && <Title centered>{strings('swaps.finalizing')}</Title>}
 
 				<View style={styles.progressWrapper}>
 					<Animated.View style={[styles.progressBar, { width: progressWidth }]} />
