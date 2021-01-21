@@ -5,13 +5,18 @@ import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
-import Networks, { isprivateConnection } from '../../../../../util/networks';
+import Networks, { isprivateConnection, getAllNetworks, isSafeChainId } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
 import URL from 'url-parse';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import BigNumber from 'bignumber.js';
+import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
+import Logger from '../../../../../util/Logger';
+import { isPrefixedFormattedHexString } from '../../../../../util/number';
+import AppConstants from '../../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -75,7 +80,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const allNetworks = ['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'];
+const allNetworks = getAllNetworks();
 const allNetworksblockExplorerUrl = `https://api.infura.io/v1/jsonrpc/`;
 /**
  * Main view for app configurations
@@ -155,19 +160,110 @@ class NetworkSettings extends PureComponent {
 	};
 
 	/**
+	 * Attempts to convert the given chainId to a decimal string, for display
+	 * purposes.
+	 *
+	 * Should be called with the props chainId whenever it is used to set the
+	 * component's state.
+	 *
+	 * @param {unknown} chainId - The chainId to convert.
+	 * @returns {string} The props chainId in decimal, or the original value if
+	 * it can't be converted.
+	 */
+	getDecimalChainId(chainId) {
+		if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
+			return chainId;
+		}
+		return parseInt(chainId, 16).toString(10);
+	}
+
+	/**
+	 * Return the decimal chainId string as number
+	 *
+	 * @param {string} chainId - The chainId decimal as string to convert.
+	 * @returns {number} The chainId decimal as number
+	 */
+	getDecimalChainIdNumber(chainId) {
+		const decimalChainIdString = this.getDecimalChainId(chainId);
+		const decimalChainIdNumber = parseInt(decimalChainIdString, 10);
+		return decimalChainIdNumber;
+	}
+
+	/**
+	 * Validates the chain ID by checking it against the `eth_chainId` return
+	 * value from the given RPC URL.
+	 * Assumes that all strings are non-empty and correctly formatted.
+	 *
+	 * @param {string} formChainId - Non-empty, hex or decimal number string from
+	 * the form.
+	 * @param {string} parsedChainId - The parsed, hex string chain ID.
+	 * @param {string} rpcUrl - The RPC URL from the form.
+	 */
+	validateChainIdOnSubmit = async (formChainId, parsedChainId, rpcUrl) => {
+		let errorMessage;
+		let endpointChainId;
+		let providerError;
+
+		try {
+			endpointChainId = await jsonRpcRequest(rpcUrl, 'eth_chainId');
+		} catch (err) {
+			Logger.error('Failed to fetch the chainId from the endpoint.', err);
+			providerError = err;
+		}
+
+		if (providerError || typeof endpointChainId !== 'string') {
+			errorMessage = strings('app_settings.failed_to_fetch_chain_id');
+		} else if (parsedChainId !== endpointChainId) {
+			// Here, we are in an error state. The endpoint should always return a
+			// hexadecimal string. If the user entered a decimal string, we attempt
+			// to convert the endpoint's return value to decimal before rendering it
+			// in an error message in the form.
+			if (!formChainId.startsWith('0x')) {
+				try {
+					endpointChainId = new BigNumber(endpointChainId, 16).toString(10);
+				} catch (err) {
+					Logger.error('Failed to convert endpoint chain ID to decimal', endpointChainId);
+				}
+			}
+
+			errorMessage = strings('app_settings.endpoint_returned_different_chain_id', {
+				chainIdReturned: endpointChainId
+			});
+		}
+
+		if (errorMessage) {
+			this.setState({ warningChainId: errorMessage });
+			return false;
+		}
+		return true;
+	};
+
+	/**
 	 * Add rpc url and parameters to PreferencesController
 	 * Setting NetworkController provider to this custom rpc
 	 */
-	addRpcUrl = () => {
+	addRpcUrl = async () => {
 		const { PreferencesController, NetworkController, CurrencyRateController } = Engine.context;
-		const { rpcUrl, chainId, nickname, blockExplorerUrl } = this.state;
+		const { rpcUrl, chainId: stateChainId, nickname, blockExplorerUrl } = this.state;
 		const ticker = this.state.ticker && this.state.ticker.toUpperCase();
 		const { navigation } = this.props;
+
+		const formChainId = stateChainId.trim().toLowerCase();
+		// Ensure chainId is a 0x-prefixed, lowercase hex string
+		let chainId = formChainId;
+		if (!chainId.startsWith('0x')) {
+			chainId = `0x${parseInt(chainId, 10).toString(16)}`;
+		}
+
+		if (!(await this.validateChainIdOnSubmit(formChainId, chainId, rpcUrl))) {
+			return;
+		}
+
 		if (this.validateRpcUrl()) {
 			const url = new URL(rpcUrl);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
 			CurrencyRateController.configure({ nativeCurrency: ticker });
-			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker, nickname, {
+			PreferencesController.addToFrequentRpcList(url.href, this.getDecimalChainId(chainId), ticker, nickname, {
 				blockExplorerUrl
 			});
 			NetworkController.setRpcTarget(url.href, chainId, ticker, nickname);
@@ -205,11 +301,46 @@ class NetworkSettings extends PureComponent {
 	 */
 	validateChainId = () => {
 		const { chainId } = this.state;
-		if (chainId && !Number.isInteger(Number(chainId))) {
-			this.setState({ warningChainId: strings('app_settings.network_chain_id_warning'), validatedChainId: true });
-		} else {
-			this.setState({ warningChainId: undefined, validatedChainId: true });
+		if (!chainId) {
+			return this.setState({
+				warningChainId: strings('app_settings.chain_id_required'),
+				validatedChainId: true
+			});
 		}
+
+		let errorMessage = '';
+
+		// Check if it's a valid chainId format
+		if (chainId.startsWith('0x')) {
+			if (!/^0x[0-9a-f]+$/iu.test(chainId)) {
+				errorMessage = strings('app_settings.invalid_hex_number');
+			} else if (!isPrefixedFormattedHexString(chainId)) {
+				errorMessage = strings('app_settings.invalid_hex_number_leading_zeros');
+			}
+		} else if (!/^[0-9]+$/u.test(chainId)) {
+			errorMessage = strings('app_settings.invalid_number');
+		} else if (chainId.startsWith('0')) {
+			errorMessage = strings('app_settings.invalid_number_leading_zeros');
+		}
+
+		if (errorMessage) {
+			return this.setState({
+				warningChainId: errorMessage,
+				validatedChainId: true
+			});
+		}
+
+		// Check if it's a valid chainId number
+		if (!isSafeChainId(this.getDecimalChainIdNumber(chainId))) {
+			return this.setState({
+				warningChainId: strings('app_settings.invalid_number_range', {
+					maxSafeChainId: AppConstants.MAX_SAFE_CHAIN_ID
+				}),
+				validatedChainId: true
+			});
+		}
+
+		this.setState({ warningChainId: undefined, validatedChainId: true });
 	};
 
 	/**
@@ -243,7 +374,8 @@ class NetworkSettings extends PureComponent {
 	 */
 	disabledByChainId = () => {
 		const { chainId, validatedChainId, warningChainId } = this.state;
-		return chainId !== undefined && (!validatedChainId || warningChainId !== undefined);
+		if (!chainId) return true;
+		return validatedChainId && !!warningChainId;
 	};
 
 	onRpcUrlChange = async url => {
@@ -361,7 +493,8 @@ class NetworkSettings extends PureComponent {
 							placeholder={strings('app_settings.network_chain_id_placeholder')}
 							placeholderTextColor={colors.grey100}
 							onSubmitEditing={this.jumpToSymbol}
-							keyboardType={'numeric'}
+							keyboardType={'numbers-and-punctuation'}
+							testID={'input-chain-id'}
 						/>
 						{warningChainId ? (
 							<View style={styles.warningContainer}>

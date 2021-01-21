@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ApproveTransactionModal should render correctly 1`] = `
-<ApproveTransactionReview
+<withNavigation(ApproveTransactionReview)
   accounts={
     Object {
       "0x2": Object {

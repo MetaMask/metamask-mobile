@@ -136,7 +136,6 @@ class PaymentChannelSend extends PureComponent {
 		<SafeAreaView style={styles.wrapper}>
 			{this.state.ready ? (
 				<TransactionEditor
-					navigation={this.props.navigation}
 					mode={this.state.mode}
 					onCancel={this.onCancel}
 					onModeChange={this.onModeChange}
