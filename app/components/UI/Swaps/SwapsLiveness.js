@@ -66,7 +66,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	setLiveness: live => dispatch(setSwapsLiveness(live))
+	setLiveness: liveness => dispatch(setSwapsLiveness(liveness))
 });
 
 export default connect(
