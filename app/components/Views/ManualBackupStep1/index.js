@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
 	},
 	reveal: {
 		fontSize: Device.isMediumDevice() ? 13 : 16,
-		...fontStyles.extraBold,
+		...fontStyles.bold,
 		color: colors.white,
 		lineHeight: 22,
 		marginBottom: 8,

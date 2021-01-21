@@ -138,6 +138,14 @@ export function generateApproveData(opts) {
 	);
 }
 
+export function decodeApproveData(data) {
+	console.log('decodeApproveData', data);
+	return {
+		spenderAddress: addHexPrefix(data.substr(34, 40)),
+		encodedAmount: data.substr(74, 138)
+	};
+}
+
 /**
  * Decode transfer data for specified method data
  *

@@ -226,7 +226,8 @@
 		"browser": "Browser",
 		"settings": "Settings",
 		"settings_warning": "Wallet unprotected",
-		"help": "Get help",
+		"settings_warning_short": "Unprotected",
+		"help": "Get Help",
 		"logout": "Log Out",
 		"logout_title": "Do you really want to log out?",
 		"logout_ok": "YES",
@@ -371,8 +372,8 @@
 		"instapay_state_logs": "InstaPay Logs",
 		"auto_lock": "Auto-lock",
 		"auto_lock_desc": "Choose the amount of time before the application automatically locks.",
-		"state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it via email to support@metamask.io",
-		"instapay_state_logs_desc": "This will help MetaMask debug issues with InstaPay. Please send it via email to support@metamask.io",
+		"state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
+		"instapay_state_logs_desc": "This will help MetaMask debug issues with InstaPay. Please send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
 		"autolock_immediately": "Immediately",
 		"autolock_never": "Never",
 		"autolock_after": "After {{time}} seconds",
@@ -437,7 +438,7 @@
 		"network_rpc_url_label": "RPC Url",
 		"network_rpc_placeholder": "New RPC Network",
 		"network_chain_id_label": "Chain ID",
-		"network_chain_id_placeholder": "Chain ID (optional)",
+		"network_chain_id_placeholder": "Chain ID",
 		"network_symbol_label": "Symbol",
 		"network_symbol_placeholder": "Symbol (optional)",
 		"network_block_explorer_label": "Block Explorer URL",
@@ -480,7 +481,15 @@
 		"invalid_password": "Invalid password",
 		"invalid_password_message": "The password was not correct. Please try again.",
 		"security_heading": "Security",
-		"privacy_heading": "Privacy"
+		"privacy_heading": "Privacy",
+		"failed_to_fetch_chain_id": "Could not fetch chain ID. Is your RPC URL correct?",
+		"endpoint_returned_different_chain_id": "The endpoint returned a different chain ID: %{chainIdReturned}",
+		"chain_id_required": "The chain ID is required. It must match the chain ID returned by the network. You can enter a decimal or '0x'-prefixed hexadecimal number.",
+		"invalid_hex_number": "Invalid hexadecimal number.",
+		"invalid_hex_number_leading_zeros": "Invalid hexadecimal number. Remove any leading zeros.",
+		"invalid_number": "Invalid number. Enter a decimal or '0x'-prefixed hexadecimal number.",
+		"invalid_number_leading_zeros": "Invalid number. Remove any leading zeros.",
+		"invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}"
 	},
 	"app_information": {
 		"title": "Information",
@@ -548,7 +557,7 @@
 		"ok": "Ok",
 		"cancel": "Cancel",
 		"error": "Error",
-		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do that, Please go to Settings > Advanced > Sync with MetaMask Extension"
+		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your recovery phrase."
 	},
 	"action_view": {
 		"cancel": "Cancel",
@@ -578,6 +587,9 @@
 		"review_function": "Function",
 		"review_hex_data": "Hex data",
 		"insufficient": "Insufficient funds",
+		"insufficient_amount": "You need {{amount}} more {{tokenSymbol}} to complete this transaction.",
+		"buy_more_eth": "Buy more ETH",
+		"get_ether": "Get Ether for the {{networkName}} network.",
 		"insufficient_tokens": "Insufficient {{token}}",
 		"invalid_address": "Invalid address",
 		"invalid_amount": "Invalid amount",
@@ -640,7 +652,7 @@
 		"gas_price": "Gas Price: (GWEI)",
 		"save": "Save",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
-		"cost_explanation": "Select the network fee you are willing to pay. The higher the fee, the better chances and faster your transaction will go through."
+		"cost_explanation": "The network fee covers the cost of processing your transaction on the Ethereum network. MetaMask does not profit from this fee. The higher the fee the better chances of your transaction getting processed."
 	},
 	"spend_limit_edition": {
 		"save": "Save",
@@ -1254,7 +1266,7 @@
 		"no_funds_desc": "Deposit ETH into your InstaPay card to start making instant free payments with DAI.",
 		"confirm": "Confirm",
 		"cancel": "Cancel",
-		"asset_card_desc": "Free Transactions with Connext Payment Channels.\n This is a beta feature. For help, email support@metamask.io",
+		"asset_card_desc": "Free Transactions with Connext Payment Channels.\n This is a beta feature. For help, hamburger icon > Get Help",
 		"deposit_amount": "Amount to deposit",
 		"load_funds": "Load Funds",
 		"insta_pay": "InstaPay",
@@ -1379,11 +1391,58 @@
 		"select_a_token": "Select a token",
 		"search_token": "Search for a token",
 		"no_tokens_result": "No tokens match “{{searchString}}”",
-		"available_to_swap": "{{asset}} available to swap",
+		"available_to_swap": "{{asset}} available to swap.",
+		"use_max": "Use max",
 		"not_enough": "Not enough {{symbol}} to complete this swap",
-		"max_slippage": "Max slippage {{slippage}}",
+		"max_slippage": "Max Slippage",
+		"max_slippage_amount": "Max slippage {{slippage}}",
+		"slippage_info": "If the rate changes between the time your order is placed and confirmed it’s called “slippage”. Your Swap will automatically cancel if slippage exceeds your “max slippage” setting.",
+		"slippage_warning": "Make sure you know what you’re doing!",
 		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
-		"get_quotes": "Get quotes"
+		"get_quotes": "Get quotes",
+		"fetching_new_quotes": "Fetching new quotes...",
+		"you_need": "You need",
+		"more_to_complete": "more to complete this swap.",
+		"new_quotes_in": "New quotes in",
+		"quotes_expire_in": "Quotes expire in",
+		"saving": "Saving",
+		"using_best_quote": "Using the best quote",
+		"view_details": "View details",
+		"estimated_gas_fee": "Estimated gas fee",
+		"max_gas_fee": "Max gas fee",
+		"edit": "Edit",
+		"quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
+		"tap_to_swap": "Tap to Swap",
+		"swipe_to_swap": "Swipe to swap",
+		"swipe_to": "Swipe to",
+		"swap": "swap",
+		"completed_swap": "Swap!",
+		"metamask_swap_fee": "MetaMask Swap fee",
+		"fee_text": {
+			"get_the": "Get the",
+			"best_price": "best price",
+			"from_the": "from the",
+			"top_liquidity": "top liquidity sources every time.",
+			"fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better."
+		},
+		"enable": {
+			"this_will": "This will",
+			"enable_asset": "enable {{asset}}",
+			"for_swapping": "for swapping",
+			"edit_limit": "Edit limit"
+		},
+		"quotes_overview": "Quotes overview",
+		"receiving": "Receiving",
+		"overall_value": "Overall value",
+		"best": "Best",
+		"quotes_timeout": "Quotes timeout",
+		"request_new_quotes": "Please request new quotes to get the latest best rate.",
+		"quotes_not_available": "Quotes not available",
+		"try_adjusting": "Try adjusting the amount and try again.",
+		"error_fetching_quote": "Error fetching quote",
+		"unexpected_error": "There has been an unexpected error, please request new quotes to get the latest best rate. (error: {{error}})",
+		"get_new_quotes": "Get new quotes",
+		"try_again": "Try again"
 	},
 	"protect_wallet_modal": {
 		"title": "Protect your wallet",
@@ -1419,5 +1478,12 @@
 		"feature_security_settings_title": "Improved security settings",
 		"feature_security_settings_text": "You can now change your MetaMask app password & review how to backup your wallet seed phrase from Settings > Security & Privacy.",
 		"feature_security_settings_button": "View in Settings"
+	},
+	"invalid_network": {
+		"title": "The chain ID for custom network \n %{network} \n has to be re-entered.",
+		"message": "To protect you from malicious or faulty network providers, chain IDs are now required for all custom networks.",
+		"hint": "You can find the chain IDs of most popular networks on ",
+		"edit_network_button": "Edit network",
+		"cancel": "Cancel"
 	}
 }

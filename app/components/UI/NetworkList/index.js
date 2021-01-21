@@ -5,10 +5,11 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { InteractionManager, ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Networks, { getAllNetworks } from '../../../util/networks';
+import Networks, { getAllNetworks, isSafeChainId } from '../../../util/networks';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MAINNET, RPC } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -131,7 +132,11 @@ export class NetworkList extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * Show invalid custom network alert for networks without a chain ID
+		 */
+		showInvalidCustomNetworkAlert: PropTypes.func
 	};
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
@@ -165,6 +170,15 @@ export class NetworkList extends PureComponent {
 		const { NetworkController, CurrencyRateController } = Engine.context;
 		const rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
 		const { rpcUrl, chainId, ticker, nickname } = rpc;
+
+		// If the network does not have chainId then show invalid custom network alert
+		const chainIdNumber = parseInt(chainId, 10);
+		if (!isSafeChainId(chainIdNumber)) {
+			this.props.onClose(false);
+			this.props.showInvalidCustomNetworkAlert(rpcTarget);
+			return;
+		}
+
 		CurrencyRateController.configure({ nativeCurrency: ticker });
 		NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 		this.props.onClose(false);
@@ -199,7 +213,7 @@ export class NetworkList extends PureComponent {
 		return frequentRpcList.map(({ nickname, rpcUrl }, i) => {
 			const { color, name } = { name: nickname || rpcUrl, color: null };
 			const selected =
-				provider.rpcTarget === rpcUrl && provider.type === 'rpc' ? (
+				provider.rpcTarget === rpcUrl && provider.type === RPC ? (
 					<Icon name="check" size={20} color={colors.fontSecondary} />
 				) : null;
 			return this.networkElement(selected, this.onSetRpcTarget, name, color, i, rpcUrl);
@@ -209,7 +223,7 @@ export class NetworkList extends PureComponent {
 	renderMainnet() {
 		const { provider } = this.props;
 		const isMainnet =
-			provider.type === 'mainnet' ? <Icon name="check" size={15} color={colors.fontSecondary} /> : null;
+			provider.type === MAINNET ? <Icon name="check" size={15} color={colors.fontSecondary} /> : null;
 		const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
 
 		return (
@@ -217,7 +231,7 @@ export class NetworkList extends PureComponent {
 				<TouchableOpacity
 					style={[styles.network, styles.mainnet]}
 					key={`network-mainnet`}
-					onPress={() => this.onNetworkChange('mainnet')} // eslint-disable-line
+					onPress={() => this.onNetworkChange(MAINNET)} // eslint-disable-line
 					testID={'network-name'}
 				>
 					<View style={styles.networkWrapper}>
