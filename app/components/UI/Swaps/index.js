@@ -7,6 +7,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import BigNumber from 'bignumber.js';
 import Logger from '../../../util/Logger';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { balanceToFiat, fromTokenMinimalUnit, toTokenMinimalUnit, weiToFiat } from '../../../util/number';
 import { swapsUtils } from '@estebanmino/controllers';
 
 import { swapsTokensWithBalanceSelector, swapsTopAssetsSelector } from '../../../reducers/swaps';
@@ -14,7 +15,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
-import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import { setQuotesNavigationsParams } from './utils';
 
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
@@ -104,7 +104,18 @@ const styles = StyleSheet.create({
 
 // Grab this from SwapsController.utils
 const SWAPS_ETH_ADDRESS = swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
-function SwapsAmountView({ tokens, accounts, selectedAddress, balances, tokensWithBalance, tokensTopAssets }) {
+
+function SwapsAmountView({
+	tokens,
+	accounts,
+	selectedAddress,
+	balances,
+	tokensWithBalance,
+	tokensTopAssets,
+	conversionRate,
+	tokenExchangeRates,
+	currentCurrency
+}) {
 	const navigation = useContext(NavigationContext);
 	const initialSource = navigation.getParam('sourceToken', SWAPS_ETH_ADDRESS);
 	const [amount, setAmount] = useState('0');
@@ -170,13 +181,28 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances, tokensWi
 	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
 
 	const hasBalance = useMemo(() => {
-		if (!balance || !sourceToken || sourceToken.symbol === 'ETH') {
+		if (!balance || !sourceToken || sourceToken.address === SWAPS_ETH_ADDRESS) {
 			return false;
 		}
 
 		return new BigNumber(balance).gt(0);
 	}, [balance, sourceToken]);
 	const hasEnoughBalance = useMemo(() => amountBigNumber.lte(new BigNumber(balance)), [amountBigNumber, balance]);
+
+	const currencyAmount = useMemo(() => {
+		if (!sourceToken) {
+			return undefined;
+		}
+		let balanceFiat;
+		if (sourceToken.address === SWAPS_ETH_ADDRESS) {
+			balanceFiat = weiToFiat(toTokenMinimalUnit(amount, sourceToken?.decimals), conversionRate, currentCurrency);
+		} else {
+			const sourceAddress = toChecksumAddress(sourceToken.address);
+			const exchangeRate = sourceAddress in tokenExchangeRates ? tokenExchangeRates[sourceAddress] : undefined;
+			balanceFiat = balanceToFiat(amount, conversionRate, exchangeRate, currentCurrency);
+		}
+		return balanceFiat;
+	}, [amount, conversionRate, currentCurrency, sourceToken, tokenExchangeRates]);
 
 	/* Navigation handler */
 	const handleGetQuotesPress = useCallback(
@@ -271,31 +297,34 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances, tokensWi
 					<Text primary style={styles.amount} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
 						{amount}
 					</Text>
-					{sourceToken && (hasInvalidDecimals || !hasEnoughBalance) ? (
-						<Text style={styles.amountInvalid}>
-							{!hasEnoughBalance
-								? strings('swaps.not_enough', { symbol: sourceToken.symbol })
-								: strings('swaps.allows_up_to_decimals', {
-										symbol: sourceToken.symbol,
-										decimals: sourceToken.decimals
-										// eslint-disable-next-line no-mixed-spaces-and-tabs
-								  })}
-						</Text>
-					) : (
-						<Text centered>
-							{sourceToken &&
-								balance !== null &&
-								strings('swaps.available_to_swap', {
-									asset: `${balance} ${sourceToken.symbol}`
-								})}
-							{hasBalance && (
-								<Text style={styles.linkText} onPress={handleUseMax}>
-									{' '}
-									{strings('swaps.use_max')}
-								</Text>
-							)}
-						</Text>
-					)}
+					{!!sourceToken &&
+						(hasInvalidDecimals || !hasEnoughBalance ? (
+							<Text style={styles.amountInvalid}>
+								{!hasEnoughBalance
+									? strings('swaps.not_enough', { symbol: sourceToken.symbol })
+									: strings('swaps.allows_up_to_decimals', {
+											symbol: sourceToken.symbol,
+											decimals: sourceToken.decimals
+											// eslint-disable-next-line no-mixed-spaces-and-tabs
+									  })}
+							</Text>
+						) : amountBigNumber.eq(0) ? (
+							<Text>
+								{!!sourceToken &&
+									balance !== null &&
+									strings('swaps.available_to_swap', {
+										asset: `${balance} ${sourceToken.symbol}`
+									})}
+								{hasBalance && (
+									<Text style={styles.linkText} onPress={handleUseMax}>
+										{' '}
+										{strings('swaps.use_max')}
+									</Text>
+								)}
+							</Text>
+						) : (
+							<Text upper>{currencyAmount ? `~${currencyAmount}` : ''}</Text>
+						))}
 				</View>
 				<View style={styles.horizontalRuleContainer}>
 					<View style={styles.horizontalRule} />
@@ -392,7 +421,19 @@ SwapsAmountView.propTypes = {
 	/**
 	 * An object containing token balances for current account and network in the format address => balance
 	 */
-	balances: PropTypes.object
+	balances: PropTypes.object,
+	/**
+	 * ETH to current currency conversion rate
+	 */
+	conversionRate: PropTypes.number,
+	/**
+	 * Currency code of the currently-active currency
+	 */
+	currentCurrency: PropTypes.string,
+	/**
+	 * An object containing token exchange rates in the format address => exchangeRate
+	 */
+	tokenExchangeRates: PropTypes.object
 };
 
 const mapStateToProps = state => ({
@@ -400,6 +441,9 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	tokensWithBalance: swapsTokensWithBalanceSelector(state),
 	tokensTopAssets: swapsTopAssetsSelector(state)
 });

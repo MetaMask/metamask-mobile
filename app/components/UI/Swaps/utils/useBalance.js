@@ -1,3 +1,4 @@
+import { swapsUtils } from '@estebanmino/controllers';
 import { toChecksumAddress } from '@walletconnect/utils';
 import { useMemo } from 'react';
 import { renderFromTokenMinimalUnit, renderFromWei } from '../../../../util/number';
@@ -7,7 +8,7 @@ function useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits 
 		if (!sourceToken) {
 			return null;
 		}
-		if (sourceToken.symbol === 'ETH') {
+		if (sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS) {
 			if (asUnits) {
 				return (accounts[selectedAddress] && accounts[selectedAddress].balance) || 0;
 			}

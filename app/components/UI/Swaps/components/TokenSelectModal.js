@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
+import { swapsUtils } from '@estebanmino/controllers';
 
 import Device from '../../../../util/Device';
 import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiat } from '../../../../util/number';
@@ -116,7 +117,7 @@ function TokenSelectModal({
 			const itemAddress = toChecksumAddress(item.address);
 
 			let balance, balanceFiat;
-			if (item.symbol === 'ETH') {
+			if (item.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS) {
 				balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
 				balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 			} else {
