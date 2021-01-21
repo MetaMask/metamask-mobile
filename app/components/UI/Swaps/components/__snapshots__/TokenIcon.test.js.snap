@@ -18,6 +18,7 @@ exports[`TokenIcon component should Render correctly 2`] = `
         "width": 24,
       },
       undefined,
+      undefined,
     ]
   }
 />
@@ -70,6 +71,7 @@ exports[`TokenIcon component should Render correctly 4`] = `
         "width": 24,
       },
       undefined,
+      undefined,
     ]
   }
 />
@@ -101,6 +103,7 @@ exports[`TokenIcon component should Render correctly 6`] = `
         "height": 36,
         "width": 36,
       },
+      undefined,
     ]
   }
 />
@@ -161,6 +164,7 @@ exports[`TokenIcon component should Render correctly 8`] = `
         "height": 36,
         "width": 36,
       },
+      undefined,
     ]
   }
 />

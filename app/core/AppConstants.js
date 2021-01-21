@@ -57,7 +57,10 @@ export default {
 		ORIGIN_QR_CODE: 'qr-code'
 	},
 	SWAPS: {
-		ACTIVE: false
+		ACTIVE: false,
+		POLL_COUNT_LIMIT: 3,
+		POLLING_INTERVAL: 2 * 60 * 1000,
+		DEFAULT_SLIPPAGE: 3
 	},
 	MAX_SAFE_CHAIN_ID: 4503599627370476
 };
