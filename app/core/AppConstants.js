@@ -1,6 +1,10 @@
 import Device from '../util/Device';
+import { MAINNET, RINKEBY } from '../constants/network';
+
+const DEVELOPMENT = 'development';
 
 export default {
+	IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
 	DEFAULT_LOCK_TIMEOUT: 30000,
 	DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
 	TX_CHECK_MAX_FREQUENCY: 5000,
@@ -21,7 +25,7 @@ export default {
 			4: '0x0Fa90eC3AC3245112c6955d8F9DD74Ec9D599996',
 			1: '0xdfa6edAe2EC0cF1d4A60542422724A48195A5071'
 		},
-		SUPPORTED_NETWORKS: ['mainnet', 'rinkeby']
+		SUPPORTED_NETWORKS: [MAINNET, RINKEBY]
 	},
 	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 	SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
@@ -32,7 +36,9 @@ export default {
 		? 'Mozilla/5.0 (Linux; Android 10; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.92 Mobile Safari/537.36'
 		: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/76.0.3809.123 Mobile/15E148 Safari/605.1',
 	NOTIFICATION_NAMES: {
-		accountsChanged: 'wallet_accountsChanged'
+		accountsChanged: 'metamask_accountsChanged',
+		unlockStateChanged: 'metamask_unlockStateChanged',
+		chainChanged: 'metamask_chainChanged'
 	},
 	FIAT_ORDERS: {
 		TRANSAK_URL: 'https://global.transak.com/',
@@ -52,5 +58,6 @@ export default {
 	},
 	SWAPS: {
 		ACTIVE: false
-	}
+	},
+	MAX_SAFE_CHAIN_ID: 4503599627370476
 };

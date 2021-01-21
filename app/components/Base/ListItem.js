@@ -1,14 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-import Device from '../../util/Device';
+// import Device from '../../util/Device';
 import { colors, fontStyles } from '../../styles/common';
 import Text from './Text';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		padding: 15,
-		minHeight: Device.isIos() ? 95 : 100
+		padding: 15
+		// TODO(wachunei): check if this can be removed without breaking anything
+		// minHeight: Device.isIos() ? 55 : 100
 	},
 	date: {
 		color: colors.fontSecondary,
@@ -17,7 +18,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	content: {
-		flexDirection: 'row'
+		flexDirection: 'row',
+		alignItems: 'center'
 	},
 	actions: {
 		flexDirection: 'row',

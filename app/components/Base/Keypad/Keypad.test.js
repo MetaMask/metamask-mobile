@@ -1,9 +1,9 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import Keypad from '.';
+import Keypad from './components';
 
 describe('Keypad component', () => {
-	test('should render correctly', () => {
+	test('components should render correctly', () => {
 		const dummyHandler = jest.fn();
 		const wrapper = shallow(
 			<Keypad>

@@ -14,7 +14,6 @@ import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
-import ImportWallet from '../../Views/ImportWallet';
 import ImportFromSeed from '../../Views/ImportFromSeed';
 import SyncWithExtension from '../../Views/SyncWithExtension';
 import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
@@ -63,9 +62,6 @@ const OnboardingNav = createStackNavigator(
 		},
 		ManualBackupStep3: {
 			screen: ManualBackupStep3
-		},
-		ImportWallet: {
-			screen: ImportWallet
 		},
 		ImportFromSeed: {
 			screen: ImportFromSeed

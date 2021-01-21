@@ -201,6 +201,7 @@
 		"browser": "Navegador",
 		"settings": "Ajustes",
 		"settings_warning": "Billetera desprotegida",
+		"settings_warning_short": "Desprotegida",
 		"help": "Ayuda",
 		"logout": "Salir",
 		"logout_title": "Realmente deseas salir?",
@@ -356,8 +357,8 @@
 		"search_engine": "Motor de Búsqueda",
 		"auto_lock": "Bloqueo automático",
 		"auto_lock_desc": "Elige la cantidad de tiempo para que la aplicación se bloquee automáticamente.",
-		"state_logs_desc": "Esto nos ayudará a investigar cualquier problema con la app. Envíalo a support@metamask.io",
-		"instapay_state_logs_desc": "Esto nos ayudará a investigar problemas con InstaPay. Envíalo a support@metamask.io",
+		"state_logs_desc": "Esto nos ayudará a investigar cualquier problema con la app. Envíelo al soporte de MetaMask a través del icono de hamburguesa> Enviar comentarios, o responda a su ticket existente si tiene uno.",
+		"instapay_state_logs_desc": "Esto nos ayudará a investigar problemas con InstaPay. Envíelo al soporte de MetaMask a través del icono de hamburguesa> Enviar comentarios, o responda a su ticket existente si tiene uno.",
 		"autolock_immediately": "Inmediatamente",
 		"autolock_never": "Nunca",
 		"autolock_after": "Luego de {{time}} segundos",
@@ -403,7 +404,7 @@
 		"network_rpc_url_label": "RPC Url",
 		"network_rpc_placeholder": "Nueva red RPC",
 		"network_chain_id_label": "Chain ID",
-		"network_chain_id_placeholder": "Chain ID (opcional)",
+		"network_chain_id_placeholder": "Chain ID",
 		"network_symbol_label": "Símbolo",
 		"network_symbol_placeholder": "Símbolo (opcional)",
 		"network_block_explorer_label": "Block Explorer URL",
@@ -514,7 +515,7 @@
 		"ok": "Ok",
 		"cancel": "Cancelar",
 		"error": "Error",
-		"attempting_sync_from_wallet_error": "Hemos detectado que quieres sincronizar con la extensión de MetaMask. Para eso ve a Ajustes > Avanzado > Sincronizar con la extensión de MetaMask"
+		"attempting_sync_from_wallet_error": "Parece que estás intentando sincronizar con la extensión. Para sincronizar su billetera móvil MetaMask con su billetera de extensión, vuelva a instalar la aplicación y elija la opción 'Importar su billetera de extensión' en la incorporación."
 	},
 	"action_view": {
 		"cancel": "Cancelar",
@@ -594,7 +595,7 @@
 		"gas_limit": "Límite de Gas:",
 		"gas_price": "Precio de Gas: (GWEI)",
 		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027",
-		"cost_explanation": "Este es el costo por procesar este pago en la blockchain."
+		"cost_explanation": "La tarifa de la red cubre el costo de procesar tu transacción en la red Ethereum. MetaMask no se beneficia de esta tarifa. Cuanto mayor sea la tarifa, mayores serán las posibilidades de que se procese tu transacción."
 	},
 	"spend_limit_edition": {
 		"save": "Guardar",
@@ -1131,7 +1132,7 @@
 		"no_funds_desc": "Deposita ETH en tu tarjeta InstaPay para empezar a hacer pagos instantáneos con DAI.",
 		"confirm": "Confirmar",
 		"cancel": "Cancelar",
-		"asset_card_desc": "Transacciones gratis con Connext Payment Channels.\n Esta es una funcionalidad beta. Por ayuda, contacta support@metamask.io",
+		"asset_card_desc": "Transacciones gratis con Connext Payment Channels.\n Esta es una funcionalidad beta. Para obtener ayuda, ícono de hamburguesa > Obtener ayuda",
 		"deposit_amount": "Monto a depositar",
 		"load_funds": "Cargar Fondos",
 		"insta_pay": "InstaPay",
@@ -1246,6 +1247,18 @@
 		"cancelled": "Cancelada",
 		"amount": "Cantidad",
 		"total_amount": "Cantidad total"
+	},
+	"swaps": {
+		"convert_from": "Convertir desde",
+		"convert_to": "Convertir a",
+		"select_a_token": "Selecciona un token",
+		"search_token": "Buscar un token",
+		"no_tokens_result": "No se encontraron tokens para “{{searchString}}”",
+		"available_to_swap": "{{asset}} disponible para convertir",
+		"not_enough": "Insuficiente {{symbol}} para esta conversión",
+		"max_slippage": "Deslizamiento máx. {{slippage}}",
+		"allows_up_to_decimals": "{{symbol}} soporta hasta {{decimals}} decimales",
+		"get_quotes": "Cotizar"
 	},
 	"protect_wallet_modal": {
 		"title": "Protege tu billetera",

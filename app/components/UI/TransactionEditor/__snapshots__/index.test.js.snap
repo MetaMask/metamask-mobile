@@ -24,6 +24,7 @@ exports[`TransactionEditor should render correctly 1`] = `
       <Connect(TransactionReview)
         onCancel={[Function]}
         onConfirm={[Function]}
+        over={false}
         ready={false}
         validate={[Function]}
       />
