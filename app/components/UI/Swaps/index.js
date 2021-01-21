@@ -27,6 +27,8 @@ import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
 import AppConstants from '../../../core/AppConstants';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -126,6 +128,14 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		}
 		return false;
 	}, [amount, sourceToken]);
+
+	useEffect(() => {
+		// Triggered when a user enters the MetaMask Swap feature
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
+			source: '',
+			activeCurrency: initialSource
+		});
+	}, [initialSource]);
 
 	useEffect(() => {
 		(async () => {
