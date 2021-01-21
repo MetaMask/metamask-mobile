@@ -57,7 +57,7 @@ export default {
 		ORIGIN_QR_CODE: 'qr-code'
 	},
 	SWAPS: {
-		ACTIVE: false,
+		ACTIVE: true,
 		ONLY_MAINNET: true,
 		LIVENESS_POLLING_FREQUENCY: 5 * 60 * 1000,
 		POLL_COUNT_LIMIT: 3,
