@@ -55,7 +55,7 @@ function SwapLiveness({ isLive, setLiveness }) {
 		async () => {
 			checkLiveness();
 		},
-		SWAPS_ACTIVE ? (isLive ? null : POLLING_FREQUENCY) : null
+		SWAPS_ACTIVE && !isLive ? POLLING_FREQUENCY : null
 	);
 
 	return null;
