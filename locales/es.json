@@ -489,9 +489,10 @@
 	},
 	"asset_overview": {
 		"send_button": "Enviar",
-		"receive_button": "RECIBIR",
+		"receive_button": "Recibir",
 		"add_collectible_button": "Agregar",
 		"info": "Información",
+		"swap": "Swap",
 		"description": "Descripción",
 		"totalSupply": "Cantidad total",
 		"address": "Dirección"
@@ -1251,6 +1252,8 @@
 	"swaps": {
 		"convert_from": "Convertir desde",
 		"convert_to": "Convertir a",
+		"verify": "Verifica",
+		"verify_on": "Verifica este token en",
 		"select_a_token": "Selecciona un token",
 		"search_token": "Buscar un token",
 		"no_tokens_result": "No se encontraron tokens para “{{searchString}}”",
@@ -1266,6 +1269,10 @@
 		"fetching_new_quotes": "Obteniendo cotización...",
 		"you_need": "Necesitas",
 		"more_to_complete": "más para completar este swap.",
+		"market_price_unavailable": "Precio de mercado no disponible. Asegúrate sentirte cómodo con el monto a recibir antes de continuar.",
+		"price_difference": "Diferencia de precio de {{amount}}",
+		"about_to_swap": "Estás a punto de convertir",
+		"for": "por",
 		"new_quotes_in": "Nueva cotización en",
 		"quotes_expire_in": "Cotización expira en",
 		"saving": "Ahorrando",

@@ -5,15 +5,18 @@ import { connect } from 'react-redux';
 import { NavigationContext } from 'react-navigation';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import BigNumber from 'bignumber.js';
+import Logger from '../../../util/Logger';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { balanceToFiat, fromTokenMinimalUnit, toTokenMinimalUnit, weiToFiat } from '../../../util/number';
 import { swapsUtils } from '@estebanmino/controllers';
 
+import { swapsTokensWithBalanceSelector, swapsTopAssetsSelector } from '../../../reducers/swaps';
 import Engine from '../../../core/Engine';
+import AppConstants from '../../../core/AppConstants';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
 import { setQuotesNavigationsParams } from './utils';
-
+import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 
@@ -26,7 +29,6 @@ import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
-import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -107,6 +109,8 @@ function SwapsAmountView({
 	accounts,
 	selectedAddress,
 	balances,
+	tokensWithBalance,
+	tokensTopAssets,
 	conversionRate,
 	tokenExchangeRates,
 	currentCurrency
@@ -134,6 +138,18 @@ function SwapsAmountView({
 		}
 		return false;
 	}, [amount, sourceToken]);
+
+	useEffect(() => {
+		(async () => {
+			const { SwapsController } = Engine.context;
+			try {
+				await SwapsController.fetchAggregatorMetadataWithCache();
+				await SwapsController.fetchTopAssetsWithCache();
+			} catch (error) {
+				Logger.error(error, 'Swaps: Error while updating agg metadata and top assets in amount view');
+			}
+		})();
+	}, []);
 
 	useEffect(() => {
 		(async () => {
@@ -221,6 +237,7 @@ function SwapsAmountView({
 		},
 		[toggleSourceModal]
 	);
+
 	const handleDestinationTokenPress = useCallback(
 		item => {
 			toggleDestinationModal();
@@ -239,6 +256,16 @@ function SwapsAmountView({
 	const handleSlippageChange = useCallback(value => {
 		setSlippage(value);
 	}, []);
+
+	const handleVerifyPress = useCallback(() => {
+		if (!destinationToken) {
+			return;
+		}
+		navigation.navigate('Webview', {
+			url: getEtherscanAddressUrl('mainnet', destinationToken.address),
+			title: strings('swaps.verify')
+		});
+	}, [destinationToken, navigation]);
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
@@ -260,8 +287,9 @@ function SwapsAmountView({
 						dismiss={toggleSourceModal}
 						title={strings('swaps.convert_from')}
 						tokens={tokens}
+						initialTokens={tokensWithBalance}
 						onItemPress={handleSourceTokenPress}
-						exclude={[destinationToken?.symbol]}
+						excludeAddresses={[destinationToken?.address]}
 					/>
 				</View>
 				<View style={styles.amountContainer}>
@@ -318,9 +346,21 @@ function SwapsAmountView({
 						dismiss={toggleDestinationModal}
 						title={strings('swaps.convert_to')}
 						tokens={tokens}
+						initialTokens={tokensTopAssets.slice(0, 5)}
 						onItemPress={handleDestinationTokenPress}
-						exclude={[sourceToken?.symbol]}
+						excludeAddresses={[sourceToken?.address]}
 					/>
+				</View>
+				<View>
+					{destinationToken && destinationToken.symbol !== 'ETH' ? (
+						<TouchableOpacity onPress={handleVerifyPress}>
+							<Text centered>
+								{strings('swaps.verify_on')} <Text link>Etherscan</Text>
+							</Text>
+						</TouchableOpacity>
+					) : (
+						<Text />
+					)}
 				</View>
 			</View>
 			<View style={styles.keypad}>
@@ -367,6 +407,8 @@ SwapsAmountView.navigationOptions = ({ navigation }) => getSwapsAmountNavbar(nav
 
 SwapsAmountView.propTypes = {
 	tokens: PropTypes.arrayOf(PropTypes.object),
+	tokensWithBalance: PropTypes.arrayOf(PropTypes.object),
+	tokensTopAssets: PropTypes.arrayOf(PropTypes.object),
 	/**
 	 * Map of accounts to information objects including balances
 	 */
@@ -400,7 +442,9 @@ const mapStateToProps = state => ({
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	tokensWithBalance: swapsTokensWithBalanceSelector(state),
+	tokensTopAssets: swapsTopAssetsSelector(state)
 });
 
 export default connect(mapStateToProps)(SwapsAmountView);

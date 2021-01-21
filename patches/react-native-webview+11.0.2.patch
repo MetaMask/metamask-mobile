@@ -296,8 +296,6 @@ index 2190ae7..cd05399 100644
        final String url = request.getUrl().toString();
        return this.shouldOverrideUrlLoading(view, url);
      }
-<<<<<<< HEAD
-=======
 diff --git a/node_modules/react-native-webview/apple/RNCWebView.m b/node_modules/react-native-webview/apple/RNCWebView.m
 index 02005db..c9b51d9 100644
 --- a/node_modules/react-native-webview/apple/RNCWebView.m
@@ -321,4 +319,3 @@ index 02005db..c9b51d9 100644
  #else
    NSAlert *alert = [[NSAlert alloc] init];
    [alert setMessageText:message];
->>>>>>> feature/swaps-quotes-view

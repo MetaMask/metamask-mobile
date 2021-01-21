@@ -533,9 +533,10 @@
 	},
 	"asset_overview": {
 		"send_button": "Send",
-		"receive_button": "RECEIVE",
+		"receive_button": "Receive",
 		"add_collectible_button": "Add",
 		"info": "Info",
+		"swap": "Swap",
 		"description": "Description",
 		"totalSupply": "Total Supply",
 		"address": "Address"
@@ -1388,6 +1389,8 @@
 	"swaps": {
 		"convert_from": "Convert from",
 		"convert_to": "Convert to",
+		"verify": "Verify",
+		"verify_on": "Verify this token on",
 		"select_a_token": "Select a token",
 		"search_token": "Search for a token",
 		"no_tokens_result": "No tokens match “{{searchString}}”",
@@ -1403,6 +1406,10 @@
 		"fetching_new_quotes": "Fetching new quotes...",
 		"you_need": "You need",
 		"more_to_complete": "more to complete this swap.",
+		"market_price_unavailable": "Market price is unavailable. Make sure you feel comfortable with the returned amount before proceeding.",
+		"price_difference": "Price difference of {{amount}}",
+		"about_to_swap": "You are about to swap",
+		"for": "for",
 		"new_quotes_in": "New quotes in",
 		"quotes_expire_in": "Quotes expire in",
 		"saving": "Saving",
