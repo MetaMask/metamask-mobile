@@ -5,7 +5,6 @@ import { LANGUAGE } from '../app/constants/storage';
 
 // Import all locales
 import en from './languages/en.json';
-import esXl from './languages/es-xl.json';
 import es from './languages/es.json';
 import hi from './languages/hi-in.json';
 import id from './languages/id-id.json';
@@ -22,7 +21,6 @@ I18n.defaultLocale = 'en';
 // Define the supported translations
 I18n.translations = {
 	en,
-	'es-419': esXl, // Spanish - Latin America
 	es,
 	hi,
 	id,
@@ -53,7 +51,6 @@ export function getLanguages() {
 	return {
 		en: 'English',
 		es: 'Spanish',
-		'es-419': 'Spanish Latin',
 		hi: 'Hindi',
 		id: 'Bahasa Indonesian',
 		ja: 'Japanese',
