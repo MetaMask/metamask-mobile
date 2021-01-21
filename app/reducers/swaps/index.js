@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
+const MAX_TOKENS_WITH_BALANCE = 5;
 
 // * Action Creator
 export const setSwapsLiveness = live => ({ type: SWAPS_SET_LIVENESS, payload: live });
@@ -47,7 +48,6 @@ export const swapsTokensWithBalanceSelector = createSelector(
 		if (!tokens) {
 			return [];
 		}
-		const MAX_NUMBER = 5;
 		const baseTokens = tokens;
 		const tokensAddressesWithBalance = Object.entries(balances)
 			.filter(([, balance]) => !balance.isZero())
@@ -65,7 +65,7 @@ export const swapsTokensWithBalanceSelector = createSelector(
 
 			if (
 				tokensWithBalance.length === tokensAddressesWithBalance.length &&
-				tokensWithBalance.length + originalTokens.length >= MAX_NUMBER
+				tokensWithBalance.length + originalTokens.length >= MAX_TOKENS_WITH_BALANCE
 			) {
 				break;
 			}
@@ -73,7 +73,7 @@ export const swapsTokensWithBalanceSelector = createSelector(
 
 		const result = [...tokensWithBalance, ...originalTokens].slice(
 			0,
-			Math.max(tokensWithBalance.length, MAX_NUMBER)
+			Math.max(tokensWithBalance.length, MAX_TOKENS_WITH_BALANCE)
 		);
 		return result;
 	}
