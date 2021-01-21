@@ -4,6 +4,7 @@ import { AppState } from 'react-native';
 import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import { setSwapsLiveness, swapsLivenessSelector } from '../../../reducers/swaps';
+import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';
 
 const SWAPS_ACTIVE = AppConstants.SWAPS.ACTIVE;
@@ -16,8 +17,8 @@ function SwapLiveness({ isLive, setLiveness }) {
 		try {
 			const liveness = await swapsUtils.fetchSwapsFeatureLiveness();
 			setLiveness(liveness);
-		} catch (err) {
-			console.error(err);
+		} catch (error) {
+			Logger.error(error, 'Swaps: error while fetching swaps liveness');
 			setLiveness(false);
 		}
 	}, [setLiveness]);
