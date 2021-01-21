@@ -507,7 +507,7 @@ function SwapsQuotesView({
 												{destinationToken.symbol} (~
 												<Text reset upper>
 													{weiToFiat(
-														toWei(selectedQuote.priceSlippage?.destinationAmountInEth || 0),
+														toWei(selectedQuote.priceSlippage?.destinationAmountInETH || 0),
 														conversionRate,
 														currentCurrency
 													)}
