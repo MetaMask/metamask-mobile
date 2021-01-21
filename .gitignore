@@ -79,4 +79,5 @@ coverage
 # CocoaPods
 /ios/Pods/
 
+# Language files to add
 /locales/languagesToUpdate/*.json
