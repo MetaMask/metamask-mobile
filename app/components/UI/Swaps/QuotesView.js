@@ -471,7 +471,7 @@ function SwapsQuotesView({
 						</Alert>
 					</View>
 				)}
-				{selectedQuote && hasEnoughBalance && shouldDisplaySlippage && (
+				{!!selectedQuote && hasEnoughBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
 						<Alert type={selectedQuote.priceSlippage?.bucket === 'high' ? 'error' : 'warning'}>
 							{textStyle => (
