@@ -135,7 +135,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 			source: '',
 			activeCurrency: initialSource
 		});
-	}, [initialSource]);
+	});
 
 	useEffect(() => {
 		(async () => {
