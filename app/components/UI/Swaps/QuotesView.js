@@ -418,6 +418,22 @@ function SwapsQuotesView({
 		};
 	}, [hideFeeModal, hideQuotesModal, isInFetch, quotesLastFetched]);
 
+	useEffect(() => {
+		if (errorKey) {
+			console.log(errorKey);
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				request_type: '',
+				slippage,
+				custom_slippage: '',
+				gas_fees: ''
+			});
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [errorKey]);
+
 	/* errorKey effect: hide every modal*/
 	useEffect(() => {
 		if (errorKey) {
