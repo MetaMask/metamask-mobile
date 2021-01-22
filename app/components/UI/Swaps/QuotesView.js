@@ -315,6 +315,22 @@ function SwapsQuotesView({
 		if (!selectedQuote) {
 			return;
 		}
+
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, {
+			token_from: sourceToken.address,
+			token_from_amount: sourceAmount,
+			token_to: destinationToken.address,
+			token_to_amount: '',
+			request_type: '',
+			slippage,
+			custom_slippage: '',
+			best_quote_source: '',
+			available_quotes: '',
+			other_quote_selected: '',
+			network_fees_USD: '',
+			network_fees_ETH: ''
+		});
+
 		const { TransactionController } = Engine.context;
 		if (basicGasEstimates?.average) {
 			const averageGasPrice = addHexPrefix(basicGasEstimates.average.toString(16));
@@ -329,6 +345,7 @@ function SwapsQuotesView({
 		}
 		await TransactionController.addTransaction(selectedQuote.trade);
 		navigation.dismiss();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [navigation, selectedQuote, approvalTransaction, basicGasEstimates]);
 
 	/* Effects */
@@ -355,9 +372,11 @@ function SwapsQuotesView({
 		};
 	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
+	/* First load effect: handle initial animation */
 	useEffect(() => {
 		if (isFirstLoad) {
 			if (firstLoadTime < quotesLastFetched || errorKey) {
+				setFirstLoad(false);
 				if (!errorKey) {
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
 						token_from: sourceToken.address,
@@ -373,22 +392,11 @@ function SwapsQuotesView({
 						network_fees_ETH: '',
 						available_quotes: ''
 					});
-				}
-			}
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [errorKey, firstLoadTime, isFirstLoad, quotesLastFetched]);
-
-	/* First load effect: handle initial animation */
-	useEffect(() => {
-		if (isFirstLoad) {
-			if (firstLoadTime < quotesLastFetched || errorKey) {
-				setFirstLoad(false);
-				if (!errorKey) {
 					navigation.setParams({ leftAction: strings('swaps.edit') });
 				}
 			}
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched]);
 
 	/* selectedQuoteId effect: when topAggId changes make it selected by default */
