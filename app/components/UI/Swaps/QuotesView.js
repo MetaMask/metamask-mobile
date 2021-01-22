@@ -339,6 +339,7 @@ function SwapsQuotesView({
 			token_from: sourceToken.address,
 			token_from_amount: sourceAmount,
 			token_to: destinationToken.address,
+			request_type: '',
 			custom_slippage: slippage
 		});
 		resetAndStartPolling({
@@ -360,6 +361,21 @@ function SwapsQuotesView({
 			if (firstLoadTime < quotesLastFetched || errorKey) {
 				setFirstLoad(false);
 				if (!errorKey) {
+					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
+						token_from: '',
+						token_from_amount: '',
+						token_to: '',
+						token_to_amount: '',
+						request_type: '',
+						slippage: '',
+						custom_slippage: '',
+						response_time: '',
+						best_quote_sources: '',
+						network_fees_USD: '',
+						network_fees_ETH: '',
+						available_quotes: ''
+					});
+					console.log('Quote Received');
 					navigation.setParams({ leftAction: strings('swaps.edit') });
 				}
 			}
