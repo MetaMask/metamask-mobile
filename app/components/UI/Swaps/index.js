@@ -4,7 +4,6 @@ import { ActivityIndicator, StyleSheet, View, TouchableOpacity } from 'react-nat
 import { connect } from 'react-redux';
 import { NavigationContext } from 'react-navigation';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import BigNumber from 'bignumber.js';
 import Logger from '../../../util/Logger';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { balanceToFiat, fromTokenMinimalUnit, toTokenMinimalUnit, weiToFiat } from '../../../util/number';
@@ -120,7 +119,6 @@ function SwapsAmountView({
 	const initialSource = navigation.getParam('sourceToken', SWAPS_ETH_ADDRESS);
 	const [amount, setAmount] = useState('0');
 	const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
-	const amountBigNumber = useMemo(() => new BigNumber(amount), [amount]);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
 
@@ -132,13 +130,6 @@ function SwapsAmountView({
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
 	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
-
-	const hasInvalidDecimals = useMemo(() => {
-		if (sourceToken) {
-			return amount.replace(/(\d+\.\d*[1-9]|\d+\.)(0+$)/g, '$1').split('.')[1]?.length > sourceToken.decimals;
-		}
-		return false;
-	}, [amount, sourceToken]);
 
 	useEffect(() => {
 		(async () => {
@@ -178,19 +169,37 @@ function SwapsAmountView({
 		}
 	}, [tokens, initialSource, sourceToken]);
 
-	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
+	const hasInvalidDecimals = useMemo(() => {
+		if (sourceToken) {
+			return amount?.split('.')[1]?.length > sourceToken.decimals;
+		}
+		return false;
+	}, [amount, sourceToken]);
 
+	const amountAsUnits = useMemo(() => toTokenMinimalUnit(hasInvalidDecimals ? '0' : amount, sourceToken?.decimals), [
+		amount,
+		hasInvalidDecimals,
+		sourceToken
+	]);
+	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
+	const balanceAsUnits = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 	const hasBalance = useMemo(() => {
-		if (!balance || !sourceToken || sourceToken.address === SWAPS_ETH_ADDRESS) {
+		if (!balanceAsUnits || !sourceToken || sourceToken.address === SWAPS_ETH_ADDRESS) {
 			return false;
 		}
 
-		return new BigNumber(balance).gt(0);
-	}, [balance, sourceToken]);
-	const hasEnoughBalance = useMemo(() => amountBigNumber.lte(new BigNumber(balance)), [amountBigNumber, balance]);
+		return balanceAsUnits.gtn(0);
+	}, [balanceAsUnits, sourceToken]);
+
+	const hasEnoughBalance = useMemo(() => {
+		if (hasInvalidDecimals) {
+			return false;
+		}
+		return balanceAsUnits.gte(amountAsUnits);
+	}, [amountAsUnits, balanceAsUnits, hasInvalidDecimals]);
 
 	const currencyAmount = useMemo(() => {
-		if (!sourceToken) {
+		if (!sourceToken || hasInvalidDecimals) {
 			return undefined;
 		}
 		let balanceFiat;
@@ -202,22 +211,23 @@ function SwapsAmountView({
 			balanceFiat = balanceToFiat(amount, conversionRate, exchangeRate, currentCurrency);
 		}
 		return balanceFiat;
-	}, [amount, conversionRate, currentCurrency, sourceToken, tokenExchangeRates]);
+	}, [amount, conversionRate, currentCurrency, hasInvalidDecimals, sourceToken, tokenExchangeRates]);
 
 	/* Navigation handler */
-	const handleGetQuotesPress = useCallback(
-		() =>
-			navigation.navigate(
-				'SwapsQuotesView',
-				setQuotesNavigationsParams(
-					sourceToken?.address,
-					destinationToken?.address,
-					toTokenMinimalUnit(amount, sourceToken?.decimals).toString(),
-					slippage
-				)
-			),
-		[amount, destinationToken, navigation, slippage, sourceToken]
-	);
+	const handleGetQuotesPress = useCallback(() => {
+		if (hasInvalidDecimals) {
+			return;
+		}
+		return navigation.navigate(
+			'SwapsQuotesView',
+			setQuotesNavigationsParams(
+				sourceToken?.address,
+				destinationToken?.address,
+				toTokenMinimalUnit(amount, sourceToken?.decimals).toString(),
+				slippage
+			)
+		);
+	}, [amount, destinationToken, hasInvalidDecimals, navigation, slippage, sourceToken]);
 
 	/* Keypad Handlers */
 	const handleKeypadChange = useCallback(
@@ -300,15 +310,15 @@ function SwapsAmountView({
 					{!!sourceToken &&
 						(hasInvalidDecimals || !hasEnoughBalance ? (
 							<Text style={styles.amountInvalid}>
-								{!hasEnoughBalance
-									? strings('swaps.not_enough', { symbol: sourceToken.symbol })
-									: strings('swaps.allows_up_to_decimals', {
+								{hasInvalidDecimals
+									? strings('swaps.allows_up_to_decimals', {
 											symbol: sourceToken.symbol,
 											decimals: sourceToken.decimals
 											// eslint-disable-next-line no-mixed-spaces-and-tabs
-									  })}
+									  })
+									: strings('swaps.not_enough', { symbol: sourceToken.symbol })}
 							</Text>
-						) : amountBigNumber.eq(0) ? (
+						) : amountAsUnits?.isZero() ? (
 							<Text>
 								{!!sourceToken &&
 									balance !== null &&
@@ -385,7 +395,7 @@ function SwapsAmountView({
 									!sourceToken ||
 									!destinationToken ||
 									hasInvalidDecimals ||
-									amountBigNumber.eq(0)
+									amountAsUnits.isZero()
 								}
 							>
 								{strings('swaps.get_quotes')}
