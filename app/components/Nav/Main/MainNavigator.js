@@ -50,6 +50,7 @@ import PaymentMethodApplePay from '../../UI/FiatOrders/PaymentMethodApplePay';
 import TransakWebView from '../../UI/FiatOrders/TransakWebView';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
+import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 
 const styles = StyleSheet.create({
 	headerLogo: {
@@ -275,7 +276,8 @@ export default createStackNavigator(
 		},
 		Swaps: {
 			screen: createStackNavigator({
-				SwapsAmountView: { screen: SwapsAmountView }
+				SwapsAmountView: { screen: SwapsAmountView },
+				SwapsQuotesView: { screen: SwapsQuotesView }
 			})
 		},
 		SetPasswordFlow: {

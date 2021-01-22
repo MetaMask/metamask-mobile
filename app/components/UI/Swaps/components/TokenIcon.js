@@ -40,34 +40,36 @@ const styles = StyleSheet.create({
 	}
 });
 
-const EmptyIcon = ({ medium, ...props }) => (
-	<View style={[styles.icon, medium && styles.iconMedium, styles.emptyIcon]} {...props} />
+const EmptyIcon = ({ medium, style, ...props }) => (
+	<View style={[styles.icon, medium && styles.iconMedium, styles.emptyIcon, style]} {...props} />
 );
 
 EmptyIcon.propTypes = {
-	medium: PropTypes.bool
+	medium: PropTypes.bool,
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
 };
 
-function TokenIcon({ symbol, icon, medium }) {
+function TokenIcon({ symbol, icon, medium, style }) {
 	if (symbol === 'ETH') {
-		return <RemoteImage fadeIn source={ethLogo} style={[styles.icon, medium && styles.iconMedium]} />;
+		return <RemoteImage fadeIn source={ethLogo} style={[styles.icon, medium && styles.iconMedium, style]} />;
 	} else if (icon) {
-		return <RemoteImage fadeIn source={{ uri: icon }} style={[styles.icon, medium && styles.iconMedium]} />;
+		return <RemoteImage fadeIn source={{ uri: icon }} style={[styles.icon, medium && styles.iconMedium, style]} />;
 	} else if (symbol) {
 		return (
-			<EmptyIcon medium={medium}>
+			<EmptyIcon medium={medium} style={style}>
 				<Text style={[styles.tokenSymbol, medium && styles.tokenSymbolMedium]}>{symbol[0].toUpperCase()}</Text>
 			</EmptyIcon>
 		);
 	}
 
-	return <EmptyIcon medium={medium} />;
+	return <EmptyIcon medium={medium} style={style} />;
 }
 
 TokenIcon.propTypes = {
 	symbol: PropTypes.string,
 	icon: PropTypes.string,
-	medium: PropTypes.bool
+	medium: PropTypes.bool,
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
 };
 
 export default TokenIcon;

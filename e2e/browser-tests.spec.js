@@ -1,8 +1,6 @@
 'use strict';
 import TestHelpers from './helpers';
 
-const ETHEREUM_ENABLE = 'https://brunobar79.github.io/dapp-issues-repro/';
-const Sign_Examples = 'https://danfinlay.github.io/js-eth-personal-sign-examples/';
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
 const UNISWAP = 'https://uniswap.eth';
@@ -96,244 +94,7 @@ describe('Browser Tests', () => {
 		await TestHelpers.checkIfVisible('browser-screen');
 	});
 
-	it('should navigate to eth personal sign examples', async () => {
-		// Tap on search in bottom navbar
-		await TestHelpers.tap('search-button');
-		// Navigate to URL
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.typeTextAndHideKeyboard('url-input', Sign_Examples);
-		} else {
-			await TestHelpers.replaceTextInField('url-input', Sign_Examples);
-			await element(by.id('url-input')).tapReturnKey();
-			await TestHelpers.delay(2500);
-		}
-		// Wait for page to load
-		await TestHelpers.delay(2000);
-		// Check that we are on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap on Connect button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 397 });
-		} else {
-			await TestHelpers.delay(2000);
-			await TestHelpers.tapAtPoint('browser-screen', { x: 240, y: 424 });
-			await TestHelpers.delay(2000);
-		}
-		// Check that the dapp title is correct
-		await TestHelpers.checkIfElementWithTextIsVisible('danfinlay.github.io', 0);
-		// Tap on CONNECT button
-		await TestHelpers.tap('connect-approve-button');
-		await TestHelpers.delay(1000);
-		// Tap on eth_sign button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 458 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 235, y: 485 });
-			await TestHelpers.delay(700);
-		}
-		// Tap on SIGN button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('request-signature-confirm-button');
-		} else {
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('request-signature-confirm-button');
-			await TestHelpers.delay(1000);
-		}
-		// Tap on personal_sign button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 522 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 235, y: 542 });
-			await TestHelpers.delay(700);
-		}
-		// Tap on SIGN button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('request-signature-confirm-button');
-		} else {
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('request-signature-confirm-button');
-			await TestHelpers.delay(1000);
-		}
-		// Tap ok in alert box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAlertWithButton('Ok');
-		} else {
-			await TestHelpers.tapAlertWithButton('OK');
-		}
-		// Tap on personal_ecRecover button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 583 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 235, y: 593 });
-			await TestHelpers.delay(700);
-		}
-		// Tap on SIGN button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('request-signature-confirm-button');
-		} else {
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('request-signature-confirm-button');
-			await TestHelpers.delay(1000);
-		}
-		// Scroll to bottom of browser view
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.swipe('browser-screen', 'up');
-		} else {
-			await TestHelpers.checkIfExists('browser-webview');
-			await TestHelpers.swipe('browser-webview', 'up');
-			await TestHelpers.delay(1000);
-		}
-		// Tap on ethjs personal sign button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 96 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 235, y: 32 });
-			await TestHelpers.delay(700);
-		}
-		// Tap on SIGN button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('request-signature-confirm-button');
-		} else {
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('request-signature-confirm-button');
-			await TestHelpers.delay(1000);
-		}
-		// Tap on sign typed data button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 226 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 235, y: 155 });
-			await TestHelpers.delay(700);
-		}
-		// Tap on SIGN button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('request-signature-confirm-button');
-		} else {
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('request-signature-confirm-button');
-			await TestHelpers.delay(1000);
-		}
-		// Tap ok in alert box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAlertWithButton('Ok');
-		} else {
-			await TestHelpers.tapAlertWithButton('OK');
-		}
-		// Tap on sign typed data v3 button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 330 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 235, y: 245 });
-			await TestHelpers.delay(700);
-		}
-		// Tap on SIGN button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('request-signature-confirm-button');
-		} else {
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('request-signature-confirm-button');
-			await TestHelpers.delay(1000);
-		}
-		// Tap ok in alert box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAlertWithButton('Ok');
-		} else {
-			await TestHelpers.tapAlertWithButton('OK');
-		}
-		// Tap on sign typed data v4 button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 430 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 235, y: 330 });
-			await TestHelpers.delay(700);
-		}
-		// Tap on SIGN button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('request-signature-confirm-button');
-		} else {
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('request-signature-confirm-button');
-			await TestHelpers.delay(1000);
-		}
-		// Tap ok in alert box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAlertWithButton('Ok');
-		} else {
-			await TestHelpers.tapAlertWithButton('OK');
-		}
-		// Tap on sign typed data with ethjs button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 250, y: 530 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 235, y: 475 });
-			await TestHelpers.delay(700);
-		}
-		// Tap on SIGN button
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('request-signature-confirm-button');
-		} else {
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('request-signature-confirm-button');
-			await TestHelpers.delay(1000);
-		}
-	});
-
-	it('should navigate to dapp-issues-repro and reload page', async () => {
-		// Tap on options
-		await TestHelpers.waitAndTap('options-button');
-		// Tap on New tab
-		await TestHelpers.tapByText('New tab');
-		// Tap on search in bottom navbar
-		await TestHelpers.tap('search-button');
-		// Navigate to URL
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.typeTextAndHideKeyboard('url-input', ETHEREUM_ENABLE);
-		} else {
-			await TestHelpers.replaceTextInField('url-input', ETHEREUM_ENABLE);
-			await element(by.id('url-input')).tapReturnKey();
-		}
-		// Dismiss alert box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAlertWithButton('Ok');
-		} else {
-			await TestHelpers.tapAlertWithButton('OK');
-		}
-		// Check that the dapp title is correct
-		await TestHelpers.checkIfElementWithTextIsVisible('brunobar79.github.io', 0);
-		// Tap on CONNECT button
-		if (!device.getPlatform() === 'android') {
-			await TestHelpers.delay(2000);
-		}
-		await TestHelpers.tap('connect-approve-button');
-		// Dismiss alert box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAlertWithButton('Ok');
-		} else {
-			await TestHelpers.tapAlertWithButton('OK');
-		}
-		// Tap on options
-		await TestHelpers.waitAndTap('options-button');
-		// Tap on New tab
-		await TestHelpers.tapByText('Reload');
-		// Dismiss alert box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAlertWithButton('Ok');
-		} else {
-			await TestHelpers.tapAlertWithButton('OK');
-		}
-		// Dismiss alert box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAlertWithButton('Ok');
-		} else {
-			await TestHelpers.tapAlertWithButton('OK');
-		}
-	});
-
 	it('should go to first explore tab and navigate back to homepage', async () => {
-		// Tap on home on bottom navbar
-		await TestHelpers.tap('home-button');
-		// Wait for page to load
-		await TestHelpers.delay(1000);
 		// Tap on first category
 		if (device.getPlatform() === 'android') {
 			await TestHelpers.tapAtPoint('browser-screen', { x: 100, y: 425 });
@@ -367,7 +128,7 @@ describe('Browser Tests', () => {
 			await element(by.id('url-input')).tapReturnKey();
 		}
 		// Wait for page to load
-		await TestHelpers.delay(1000);
+		await TestHelpers.delay(5000);
 		// Check that the dapp title is correct
 		await TestHelpers.checkIfElementWithTextIsVisible('uniswap.eth', 0);
 		// Tap on CANCEL button
@@ -376,7 +137,7 @@ describe('Browser Tests', () => {
 		// THIS SUCKS BUT UNISWAP IS ASKING TO CONNECT TWICE
 		// Tap on CANCEL button
 		// Wait for page to load
-		await TestHelpers.delay(1000);
+		await TestHelpers.delay(3000);
 		await TestHelpers.tap('connect-cancel-button');
 
 		// Check that we are still on the browser screen
@@ -413,6 +174,8 @@ describe('Browser Tests', () => {
 			await TestHelpers.tapAtPoint('browser-screen', { x: 180, y: 275 });
 			await TestHelpers.delay(1500);
 		}
+		// Wait for connect prompt to display
+		await TestHelpers.delay(5000);
 		// Tap on Connect button
 		await TestHelpers.tap('connect-approve-button');
 		// Check that we are still on the browser screen
