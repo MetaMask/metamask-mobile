@@ -33,6 +33,8 @@ import { swapsUtils } from '@estebanmino/controllers';
 import useBalance from './utils/useBalance';
 import { fetchBasicGasEstimates } from '../../../util/custom-gas';
 import { addHexPrefix } from '@walletconnect/utils';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -333,6 +335,12 @@ function SwapsQuotesView({
 
 	/* Main polling effect */
 	useEffect(() => {
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, {
+			token_from: sourceToken.address,
+			token_from_amount: sourceAmount,
+			token_to: destinationToken.address,
+			custom_slippage: slippage
+		});
 		resetAndStartPolling({
 			slippage,
 			sourceToken,
