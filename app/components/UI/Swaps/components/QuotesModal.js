@@ -106,22 +106,23 @@ function QuotesModal({
 }) {
 	useEffect(() => {
 		if (isVisible) {
+			const bestQuote = quotes[0];
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
-				token_from: '',
-				token_from_amount: '',
-				token_to: '',
-				token_to_amount: '',
+				token_from: bestQuote.sourceToken,
+				token_from_amount: bestQuote.sourceAmount,
+				token_to: bestQuote.destinationToken,
+				token_to_amount: bestQuote.destinationAmount,
 				request_type: '',
-				slippage: '',
+				slippage: bestQuote.slippage,
 				custom_slippage: '',
-				response_time: '',
-				best_quote_source: '',
+				response_time: bestQuote.fetchTime,
+				best_quote_source: bestQuote.aggregator,
 				network_fees_USD: '',
 				network_fees_ETH: '',
 				available_quotes: ''
 			});
 		}
-	}, [isVisible]);
+	}, [isVisible, quotes]);
 
 	const bestOverallValue = quoteValues[quotes[0].aggregator].overallValueOfQuote;
 	return (
