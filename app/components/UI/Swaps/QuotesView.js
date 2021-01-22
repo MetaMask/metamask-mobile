@@ -355,27 +355,36 @@ function SwapsQuotesView({
 		};
 	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
+	useEffect(() => {
+		if (isFirstLoad) {
+			if (firstLoadTime < quotesLastFetched || errorKey) {
+				if (!errorKey) {
+					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
+						token_from: sourceToken.address,
+						token_from_amount: sourceAmount,
+						token_to: destinationToken.address,
+						token_to_amount: '',
+						request_type: '',
+						slippage,
+						custom_slippage: '',
+						response_time: firstLoadTime,
+						best_quote_sources: '',
+						network_fees_USD: '',
+						network_fees_ETH: '',
+						available_quotes: ''
+					});
+				}
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [errorKey, firstLoadTime, isFirstLoad, quotesLastFetched]);
+
 	/* First load effect: handle initial animation */
 	useEffect(() => {
 		if (isFirstLoad) {
 			if (firstLoadTime < quotesLastFetched || errorKey) {
 				setFirstLoad(false);
 				if (!errorKey) {
-					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
-						token_from: '',
-						token_from_amount: '',
-						token_to: '',
-						token_to_amount: '',
-						request_type: '',
-						slippage: '',
-						custom_slippage: '',
-						response_time: '',
-						best_quote_sources: '',
-						network_fees_USD: '',
-						network_fees_ETH: '',
-						available_quotes: ''
-					});
-					console.log('Quote Received');
 					navigation.setParams({ leftAction: strings('swaps.edit') });
 				}
 			}
