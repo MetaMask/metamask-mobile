@@ -692,7 +692,7 @@ const mapStateToProps = (state, props) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: getNormalizedTxState(state)
+	transaction: props.customTransaction || getNormalizedTxState(state)
 });
 
 export default connect(mapStateToProps)(CustomGas);
