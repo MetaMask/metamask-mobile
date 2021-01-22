@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-navigation';
@@ -11,6 +11,8 @@ import { colors } from '../../../../styles/common';
 import Text from '../../../Base/Text';
 import { renderFromTokenMinimalUnit, toWei, weiToFiat } from '../../../../util/number';
 import { connect } from 'react-redux';
+import Analytics from '../../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	modalView: {
@@ -102,6 +104,25 @@ function QuotesModal({
 	currentCurrency,
 	quoteValues
 }) {
+	useEffect(() => {
+		if (isVisible) {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
+				token_from: '',
+				token_from_amount: '',
+				token_to: '',
+				token_to_amount: '',
+				request_type: '',
+				slippage: '',
+				custom_slippage: '',
+				response_time: '',
+				best_quote_source: '',
+				network_fees_USD: '',
+				network_fees_ETH: '',
+				available_quotes: ''
+			});
+		}
+	}, [isVisible]);
+
 	const bestOverallValue = quoteValues[quotes[0].aggregator].overallValueOfQuote;
 	return (
 		<Modal
