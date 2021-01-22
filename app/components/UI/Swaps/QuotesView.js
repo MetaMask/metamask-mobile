@@ -420,7 +420,6 @@ function SwapsQuotesView({
 
 	useEffect(() => {
 		if (errorKey) {
-			console.log(errorKey);
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
 				token_from: sourceToken.address,
 				token_from_amount: sourceAmount,
