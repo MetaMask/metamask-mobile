@@ -1,3 +1,4 @@
+import { NetworksChainId } from '@metamask/controllers';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
 
@@ -47,7 +48,30 @@ export const migrations = {
 			};
 		}
 		return state;
+	},
+	3: state => {
+		const provider = state.engine.backgroundState.NetworkController.provider;
+		const chainId = NetworksChainId[provider.type];
+		// if chainId === '' is a rpc
+		if (chainId) {
+			state.engine.backgroundState.NetworkController.provider = { ...provider, chainId };
+			return state;
+		}
+
+		// If provider is rpc, check if the current network has a valid chainId
+		const chainIdNumber = parseInt(provider.chainId, 10);
+		const isCustomRpcWithInvalidChainId = !isSafeChainId(chainIdNumber);
+
+		if (isCustomRpcWithInvalidChainId) {
+			// If the current network does not have a chainId, switch to testnet.
+			state.engine.backgroundState.NetworkController.provider = {
+				ticker: 'ETH',
+				type: 'rinkeby',
+				chainId: NetworksChainId.rinkeby
+			};
+		}
+		return state;
 	}
 };
 
-export const version = 2;
+export const version = 3;
