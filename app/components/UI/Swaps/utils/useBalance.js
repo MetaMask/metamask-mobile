@@ -20,7 +20,7 @@ function useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits 
 
 		if (tokenAddress in balances) {
 			if (asUnits) {
-				return numberToBN(balances[tokenAddress]);
+				return balances[tokenAddress];
 			}
 			return renderFromTokenMinimalUnit(balances[tokenAddress], sourceToken.decimals);
 		}

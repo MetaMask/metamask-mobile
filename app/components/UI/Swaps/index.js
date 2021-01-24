@@ -188,7 +188,7 @@ function SwapsAmountView({
 			return false;
 		}
 
-		return balanceAsUnits.gtn(0);
+		return balanceAsUnits.gt(0);
 	}, [balanceAsUnits, sourceToken]);
 
 	const hasEnoughBalance = useMemo(() => {
@@ -261,8 +261,8 @@ function SwapsAmountView({
 		if (!sourceToken) {
 			return;
 		}
-		setAmount(fromTokenMinimalUnit(balances[toChecksumAddress(sourceToken.address)], sourceToken.decimals));
-	}, [balances, sourceToken]);
+		setAmount(fromTokenMinimalUnit(balanceAsUnits.toString(), sourceToken.decimals));
+	}, [balanceAsUnits, sourceToken]);
 
 	const handleSlippageChange = useCallback(value => {
 		setSlippage(value);
