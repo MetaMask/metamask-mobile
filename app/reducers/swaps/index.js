@@ -90,9 +90,9 @@ export const swapsTopAssetsSelector = createSelector(
 		if (!topAssets || !tokens) {
 			return [];
 		}
-		return topAssets.map(({ address }) =>
-			tokens?.find(token => token.address.toLowerCase() === address.toLowerCase())
-		);
+		return topAssets
+			.map(({ address }) => tokens?.find(token => token.address.toLowerCase() === address.toLowerCase()))
+			.filter(Boolean);
 	}
 );
 
