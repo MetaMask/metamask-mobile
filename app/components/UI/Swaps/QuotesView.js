@@ -51,8 +51,9 @@ const styles = StyleSheet.create({
 	alertBar: {
 		paddingHorizontal: 20,
 		marginVertical: 10,
-		width: '100%',
-		alertContent: {},
+		width: '100%'
+	},
+	alertContent: {
 		flex: 1
 	},
 	timerWrapper: {
