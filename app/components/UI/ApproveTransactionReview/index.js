@@ -1,10 +1,10 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, InteractionManager } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
 import ActionView from '../../UI/ActionView';
 import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
 import contractMap from '@metamask/contract-metadata';
@@ -22,22 +22,20 @@ import {
 	getActiveTabUrl,
 	getMethodData
 } from '../../../util/transactions';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import TransactionHeader from '../../UI/TransactionHeader';
-import ConnectHeader from '../../UI/ConnectHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReivewDetailsCard';
-import StyledButton from '../../UI/StyledButton';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from 'react-navigation';
 import { getNetworkName, isMainNet } from '../../../util/networks';
 import { capitalize } from '../../../util/format';
+import EditPermission from './EditPermission';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -75,10 +73,6 @@ const styles = StyleSheet.create({
 		lineHeight: 20,
 		paddingHorizontal: 16
 	},
-	editPermissionWrapper: {
-		paddingHorizontal: 16,
-		paddingBottom: 16
-	},
 	editPermissionText: {
 		...fontStyles.bold,
 		color: colors.blue,
@@ -104,12 +98,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center'
 	},
-	sectionExplanationText: {
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.grey500,
-		marginVertical: 6
-	},
 	sectionLeft: {
 		...fontStyles.bold,
 		color: colors.black,
@@ -123,70 +111,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		textTransform: 'uppercase',
 		textAlign: 'right'
-	},
-	option: {
-		flexDirection: 'row',
-		marginVertical: 8
-	},
-	optionText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		lineHeight: 20
-	},
-	touchableOption: {
-		flexDirection: 'row'
-	},
-	selectedCircle: {
-		width: 8,
-		height: 8,
-		borderRadius: 8 / 2,
-		margin: 3,
-		backgroundColor: colors.blue
-	},
-	outSelectedCircle: {
-		width: 18,
-		height: 18,
-		borderRadius: 18 / 2,
-		borderWidth: 2,
-		borderColor: colors.blue
-	},
-	circle: {
-		width: 18,
-		height: 18,
-		borderRadius: 18 / 2,
-		backgroundColor: colors.white,
-		opacity: 1,
-		borderWidth: 2,
-		borderColor: colors.grey200
-	},
-	input: {
-		padding: 12,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		borderWidth: 2
-	},
-	spendLimitContent: {
-		marginLeft: 8,
-		flex: 1
-	},
-	spendLimitTitle: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		lineHeight: 20,
-		marginBottom: 8
-	},
-	spendLimitSubtitle: {
-		...fontStyles.normal,
-		fontSize: 12,
-		lineHeight: 18,
-		color: colors.grey500
-	},
-	textBlue: {
-		color: colors.blue
-	},
-	textBlack: {
-		color: colors.black
 	},
 	errorWrapper: {
 		// marginHorizontal: 24,
@@ -448,104 +372,16 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount
 		} = this.state;
 		return (
-			<View style={[baseStyles.section, styles.editPermissionWrapper]}>
-				<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
-					<ConnectHeader action={this.toggleEditPermission} title={strings('spend_limit_edition.title')} />
-					<View>
-						<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
-						<Text style={styles.spendLimitSubtitle}>
-							{strings('spend_limit_edition.allow')}
-							<Text style={fontStyles.bold}>{` ${host} `}</Text>
-							{strings('spend_limit_edition.allow_explanation')}
-						</Text>
-
-						<View style={styles.option}>
-							<TouchableOpacity
-								onPress={this.onPressSpendLimitUnlimitedSelected}
-								style={styles.touchableOption}
-							>
-								{spendLimitUnlimitedSelected ? (
-									<View style={styles.outSelectedCircle}>
-										<View style={styles.selectedCircle} />
-									</View>
-								) : (
-									<View style={styles.circle} />
-								)}
-							</TouchableOpacity>
-							<View style={styles.spendLimitContent}>
-								<Text
-									style={[
-										styles.optionText,
-										spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
-									]}
-								>
-									{strings('spend_limit_edition.proposed')}
-								</Text>
-								<Text style={styles.sectionExplanationText}>
-									{strings('spend_limit_edition.requested_by')}
-									<Text style={fontStyles.bold}>{` ${host}`}</Text>
-								</Text>
-								<Text
-									style={[styles.optionText, styles.textBlack]}
-								>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
-							</View>
-						</View>
-
-						<View style={styles.option}>
-							<TouchableOpacity
-								onPress={this.onPressSpendLimitCustomSelected}
-								style={styles.touchableOption}
-							>
-								{spendLimitUnlimitedSelected ? (
-									<View style={styles.circle} />
-								) : (
-									<View style={styles.outSelectedCircle}>
-										<View style={styles.selectedCircle} />
-									</View>
-								)}
-							</TouchableOpacity>
-							<View style={styles.spendLimitContent}>
-								<Text
-									style={[
-										styles.optionText,
-										!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
-									]}
-								>
-									{strings('spend_limit_edition.custom_spend_limit')}
-								</Text>
-								<Text style={styles.sectionExplanationText}>
-									{strings('spend_limit_edition.max_spend_limit')}
-								</Text>
-								<TextInput
-									ref={this.customSpendLimitInput}
-									autoCapitalize="none"
-									keyboardType="numeric"
-									autoCorrect={false}
-									onChangeText={this.onSpendLimitCustomValueChange}
-									placeholder={`100 ${tokenSymbol}`}
-									placeholderTextColor={colors.grey100}
-									spellCheck={false}
-									style={styles.input}
-									value={spendLimitCustomValue}
-									numberOfLines={1}
-									onFocus={this.onPressSpendLimitCustomSelected}
-									returnKeyType={'done'}
-								/>
-								<Text style={styles.sectionExplanationText}>
-									{strings('spend_limit_edition.minimum', { tokenSymbol })}
-								</Text>
-							</View>
-						</View>
-					</View>
-					<StyledButton
-						// testID={cancelTestID}
-						type="confirm"
-						onPress={this.toggleEditPermission}
-					>
-						{strings('transaction.set_gas')}
-					</StyledButton>
-				</KeyboardAwareScrollView>
-			</View>
+			<EditPermission
+				host={host}
+				spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
+				tokenSymbol={tokenSymbol}
+				spendLimitCustomValue={spendLimitCustomValue}
+				originalApproveAmount={originalApproveAmount}
+				onPressSpendLimitUnlimitedSelected={this.onPressSpendLimitUnlimitedSelected}
+				onPressSpendLimitCustomSelected={this.onPressSpendLimitCustomSelected}
+				toggleEditPermission={this.toggleEditPermission}
+			/>
 		);
 	};
 

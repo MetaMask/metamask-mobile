@@ -36,6 +36,7 @@ import useGasPrice from './utils/useGasPrice';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AnimatedTransactionModal from '../AnimatedTransactionModal';
 import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
+import ApproveTransactionReview from '../ApproveTransactionReview';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -671,6 +672,12 @@ function SwapsQuotesView({
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 					<AnimatedTransactionModal ready review={onEditMaxGasCancel}>
+						<ApproveTransactionReview
+							gasError={null}
+							onCancel={onHandleGasFeeSelection}
+							onConfirm={onHandleGasFeeSelection}
+							// over={over}
+						/>
 						<CustomGas
 							handleGasFeeSelection={onHandleGasFeeSelection}
 							basicGasEstimates={apiGasPrice}
