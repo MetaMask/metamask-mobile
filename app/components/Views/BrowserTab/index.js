@@ -21,12 +21,13 @@ import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
 import { connect } from 'react-redux';
+
 import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
-import Networks from '../../../util/networks';
+import Networks, { getAllNetworks } from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
 import { SPA_urlChangeListener, JS_DESELECT_TEXT, JS_WEBVIEW_URL } from '../../../util/browserScripts';
@@ -377,7 +378,7 @@ export const BrowserTab = props => {
 			notifyAllConnections(
 				{
 					method: NOTIFICATION_NAMES.accountsChanged,
-					result: []
+					params: []
 				},
 				false
 			); // notification should be sent regardless of approval status
@@ -386,7 +387,7 @@ export const BrowserTab = props => {
 		if (numApprovedHosts > 0) {
 			notifyAllConnections({
 				method: NOTIFICATION_NAMES.accountsChanged,
-				result: [selectedAddress]
+				params: [selectedAddress]
 			});
 		}
 
@@ -396,7 +397,7 @@ export const BrowserTab = props => {
 	/**
 	 * Handle RPC methods called by dapps
 	 */
-	const getRpcMethodMiddleware = ({ hostname }) =>
+	const getRpcMethodMiddleware = ({ hostname, getProviderState }) =>
 		// all user facing RPC calls not implemented by the provider
 		createAsyncMiddleware(async (req, res, next) => {
 			const getAccounts = async () => {
@@ -407,6 +408,33 @@ export const BrowserTab = props => {
 			};
 
 			const rpcMethods = {
+				eth_chainId: async () => {
+					const { networkType, networkProvider } = props;
+
+					const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
+
+					let chainId;
+
+					if (isInitialNetwork) {
+						chainId = Networks[networkType].chainId;
+					} else if (networkType === 'rpc') {
+						chainId = networkProvider.chainId;
+					}
+
+					if (chainId) {
+						// Convert to hex
+						res.result = `0x${parseInt(chainId, 10).toString(16)}`;
+					}
+				},
+				net_version: async () => {
+					const { networkType } = props;
+					const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
+					if (isInitialNetwork) {
+						res.result = Networks[networkType].networkId;
+					} else {
+						return next();
+					}
+				},
 				eth_requestAccounts: async () => {
 					const { params } = req;
 					const { privacyMode, selectedAddress } = props;
@@ -669,7 +697,28 @@ export const BrowserTab = props => {
 					}, 1500);
 
 					res.result = true;
-				}
+				},
+
+				/**
+				 * This method is used by the inpage provider to get its state on
+				 * initialization.
+				 */
+				metamask_getProviderState: async () => {
+					res.result = {
+						...getProviderState(),
+						accounts: await getAccounts()
+					};
+				},
+
+				/**
+				 * This method is sent by the window.web3 shim. It can be used to
+				 * record web3 shim usage metrics. These metrics are already collected
+				 * in the extension, and can optionally be added to mobile as well.
+				 *
+				 * For now, we need to respond to this method to not throw errors on
+				 * the page, and we implement it as a no-op.
+				 */
+				metamask_logWeb3ShimUsage: () => (res.result = null)
 			};
 
 			if (!rpcMethods[req.method]) {
@@ -1784,7 +1833,11 @@ BrowserTab.propTypes = {
 	/**
 	 * the current version of the app
 	 */
-	app_version: PropTypes.string
+	app_version: PropTypes.string,
+	/**
+	 * An object representing the selected network provider
+	 */
+	networkProvider: PropTypes.object
 };
 
 BrowserTab.defaultProps = {
@@ -1795,6 +1848,7 @@ const mapStateToProps = state => ({
 	approvedHosts: state.privacy.approvedHosts,
 	bookmarks: state.bookmarks,
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
+	networkProvider: state.engine.backgroundState.NetworkController.provider,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	network: state.engine.backgroundState.NetworkController.network,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress.toLowerCase(),

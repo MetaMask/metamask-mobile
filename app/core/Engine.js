@@ -9,7 +9,7 @@ import {
 	KeyringController,
 	PersonalMessageManager,
 	MessageManager,
-	// NetworkController,
+	NetworkController,
 	PhishingController,
 	PreferencesController,
 	TokenBalancesController,
@@ -18,7 +18,7 @@ import {
 	TypedMessageManager
 } from '@metamask/controllers';
 
-import { SwapsController, TransactionController, NetworkController } from '@estebanmino/controllers';
+import { SwapsController, TransactionController } from '@estebanmino/controllers';
 
 import AsyncStorage from '@react-native-community/async-storage';
 

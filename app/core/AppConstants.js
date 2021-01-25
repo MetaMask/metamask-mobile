@@ -36,7 +36,9 @@ export default {
 		? 'Mozilla/5.0 (Linux; Android 10; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.92 Mobile Safari/537.36'
 		: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/76.0.3809.123 Mobile/15E148 Safari/605.1',
 	NOTIFICATION_NAMES: {
-		accountsChanged: 'wallet_accountsChanged'
+		accountsChanged: 'metamask_accountsChanged',
+		unlockStateChanged: 'metamask_unlockStateChanged',
+		chainChanged: 'metamask_chainChanged'
 	},
 	FIAT_ORDERS: {
 		TRANSAK_URL: 'https://global.transak.com/',
@@ -55,9 +57,10 @@ export default {
 		ORIGIN_QR_CODE: 'qr-code'
 	},
 	SWAPS: {
-		ACTIVE: true,
+		ACTIVE: false,
 		POLL_COUNT_LIMIT: 3,
 		POLLING_INTERVAL: 2 * 60 * 1000,
 		DEFAULT_SLIPPAGE: 3
-	}
+	},
+	MAX_SAFE_CHAIN_ID: 4503599627370476
 };
