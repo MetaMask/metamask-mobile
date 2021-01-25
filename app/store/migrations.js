@@ -59,8 +59,9 @@ export const migrations = {
 		}
 
 		// If provider is rpc, check if the current network has a valid chainId
-		const chainIdNumber = parseInt(provider.chainId, 10);
-		const isCustomRpcWithInvalidChainId = !isSafeChainId(chainIdNumber);
+		const storedChainId = typeof provider.chainId === 'string' ? provider.chainId : '';
+		const isDecimalString = (/^[1-9]\d*$/u).test(storedChainId)
+		const isCustomRpcWithInvalidChainId =  !isDecimalString || !isSafeChainId(parseInt(storedChainId, 10));
 
 		if (isCustomRpcWithInvalidChainId) {
 			// If the current network does not have a chainId, switch to testnet.
