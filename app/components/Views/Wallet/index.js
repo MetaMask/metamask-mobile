@@ -248,24 +248,18 @@ class Wallet extends PureComponent {
 	);
 }
 
-const mapStateToProps = state => {
-	console.log(
-		'state.engine.backgroundState.NetworkController.provider',
-		state.engine.backgroundState.NetworkController.provider
-	);
-	return {
-		accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-		conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-		currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-		identities: state.engine.backgroundState.PreferencesController.identities,
-		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-		tokens: state.engine.backgroundState.AssetsController.tokens,
-		collectibles: state.engine.backgroundState.AssetsController.collectibles,
-		networkType: state.engine.backgroundState.NetworkController.provider.type,
-		ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-		wizardStep: state.wizard.step
-	};
-};
+const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	wizardStep: state.wizard.step
+});
 
 const mapDispatchToProps = dispatch => ({
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
