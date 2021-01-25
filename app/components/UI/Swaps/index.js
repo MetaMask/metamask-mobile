@@ -4,16 +4,18 @@ import { ActivityIndicator, StyleSheet, View, TouchableOpacity } from 'react-nat
 import { connect } from 'react-redux';
 import { NavigationContext } from 'react-navigation';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import BigNumber from 'bignumber.js';
+import Logger from '../../../util/Logger';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { balanceToFiat, fromTokenMinimalUnit, toTokenMinimalUnit, weiToFiat } from '../../../util/number';
 import { swapsUtils } from '@estebanmino/controllers';
 
+import { swapsTokensWithBalanceSelector, swapsTopAssetsSelector } from '../../../reducers/swaps';
 import Engine from '../../../core/Engine';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
-import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import { setQuotesNavigationsParams } from './utils';
 
+import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 
@@ -104,12 +106,21 @@ const styles = StyleSheet.create({
 // Grab this from SwapsController.utils
 const SWAPS_ETH_ADDRESS = swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
 
-function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
+function SwapsAmountView({
+	tokens,
+	accounts,
+	selectedAddress,
+	balances,
+	tokensWithBalance,
+	tokensTopAssets,
+	conversionRate,
+	tokenExchangeRates,
+	currentCurrency
+}) {
 	const navigation = useContext(NavigationContext);
 	const initialSource = navigation.getParam('sourceToken', SWAPS_ETH_ADDRESS);
 	const [amount, setAmount] = useState('0');
 	const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
-	const amountBigNumber = useMemo(() => new BigNumber(amount), [amount]);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
 
@@ -121,14 +132,6 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
 	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
-
-	const hasInvalidDecimals = useMemo(() => {
-		if (sourceToken) {
-			return amount.replace(/(\d+\.\d*[1-9]|\d+\.)(0+$)/g, '$1').split('.')[1]?.length > sourceToken.decimals;
-		}
-		return false;
-	}, [amount, sourceToken]);
-
 	useEffect(() => {
 		// Triggered when a user enters the MetaMask Swap feature
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
@@ -141,6 +144,18 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		(async () => {
 			const { SwapsController } = Engine.context;
 			try {
+				await SwapsController.fetchAggregatorMetadataWithCache();
+				await SwapsController.fetchTopAssetsWithCache();
+			} catch (error) {
+				Logger.error(error, 'Swaps: Error while updating agg metadata and top assets in amount view');
+			}
+		})();
+	}, []);
+
+	useEffect(() => {
+		(async () => {
+			const { SwapsController } = Engine.context;
+			try {
 				if (tokens === null) {
 					setInitialLoadingTokens(true);
 				}
@@ -148,8 +163,8 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 				await SwapsController.fetchTokenWithCache();
 				setLoadingTokens(false);
 				setInitialLoadingTokens(false);
-			} catch (err) {
-				console.error(err);
+			} catch (error) {
+				Logger.error(error, 'Swaps: Error while fetching tokens in amount view');
 			} finally {
 				setLoadingTokens(false);
 				setInitialLoadingTokens(false);
@@ -163,31 +178,65 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		}
 	}, [tokens, initialSource, sourceToken]);
 
-	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
+	const hasInvalidDecimals = useMemo(() => {
+		if (sourceToken) {
+			return amount?.split('.')[1]?.length > sourceToken.decimals;
+		}
+		return false;
+	}, [amount, sourceToken]);
 
+	const amountAsUnits = useMemo(() => toTokenMinimalUnit(hasInvalidDecimals ? '0' : amount, sourceToken?.decimals), [
+		amount,
+		hasInvalidDecimals,
+		sourceToken
+	]);
+	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
+	const balanceAsUnits = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 	const hasBalance = useMemo(() => {
-		if (!balance || !sourceToken || sourceToken.symbol === 'ETH') {
+		if (!balanceAsUnits || !sourceToken || sourceToken.address === SWAPS_ETH_ADDRESS) {
 			return false;
 		}
 
-		return new BigNumber(balance).gt(0);
-	}, [balance, sourceToken]);
-	const hasEnoughBalance = useMemo(() => amountBigNumber.lte(new BigNumber(balance)), [amountBigNumber, balance]);
+		return balanceAsUnits.gt(0);
+	}, [balanceAsUnits, sourceToken]);
+
+	const hasEnoughBalance = useMemo(() => {
+		if (hasInvalidDecimals) {
+			return false;
+		}
+		return balanceAsUnits.gte(amountAsUnits);
+	}, [amountAsUnits, balanceAsUnits, hasInvalidDecimals]);
+
+	const currencyAmount = useMemo(() => {
+		if (!sourceToken || hasInvalidDecimals) {
+			return undefined;
+		}
+		let balanceFiat;
+		if (sourceToken.address === SWAPS_ETH_ADDRESS) {
+			balanceFiat = weiToFiat(toTokenMinimalUnit(amount, sourceToken?.decimals), conversionRate, currentCurrency);
+		} else {
+			const sourceAddress = toChecksumAddress(sourceToken.address);
+			const exchangeRate = sourceAddress in tokenExchangeRates ? tokenExchangeRates[sourceAddress] : undefined;
+			balanceFiat = balanceToFiat(amount, conversionRate, exchangeRate, currentCurrency);
+		}
+		return balanceFiat;
+	}, [amount, conversionRate, currentCurrency, hasInvalidDecimals, sourceToken, tokenExchangeRates]);
 
 	/* Navigation handler */
-	const handleGetQuotesPress = useCallback(
-		() =>
-			navigation.navigate(
-				'SwapsQuotesView',
-				setQuotesNavigationsParams(
-					sourceToken?.address,
-					destinationToken?.address,
-					toTokenMinimalUnit(amount, sourceToken?.decimals).toString(),
-					slippage
-				)
-			),
-		[amount, destinationToken, navigation, slippage, sourceToken]
-	);
+	const handleGetQuotesPress = useCallback(() => {
+		if (hasInvalidDecimals) {
+			return;
+		}
+		return navigation.navigate(
+			'SwapsQuotesView',
+			setQuotesNavigationsParams(
+				sourceToken?.address,
+				destinationToken?.address,
+				toTokenMinimalUnit(amount, sourceToken?.decimals).toString(),
+				slippage
+			)
+		);
+	}, [amount, destinationToken, hasInvalidDecimals, navigation, slippage, sourceToken]);
 
 	/* Keypad Handlers */
 	const handleKeypadChange = useCallback(
@@ -208,6 +257,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		},
 		[toggleSourceModal]
 	);
+
 	const handleDestinationTokenPress = useCallback(
 		item => {
 			toggleDestinationModal();
@@ -220,12 +270,22 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 		if (!sourceToken) {
 			return;
 		}
-		setAmount(fromTokenMinimalUnit(balances[toChecksumAddress(sourceToken.address)], sourceToken.decimals));
-	}, [balances, sourceToken]);
+		setAmount(fromTokenMinimalUnit(balanceAsUnits.toString(), sourceToken.decimals));
+	}, [balanceAsUnits, sourceToken]);
 
 	const handleSlippageChange = useCallback(value => {
 		setSlippage(value);
 	}, []);
+
+	const handleVerifyPress = useCallback(() => {
+		if (!destinationToken) {
+			return;
+		}
+		navigation.navigate('Webview', {
+			url: getEtherscanAddressUrl('mainnet', destinationToken.address),
+			title: strings('swaps.verify')
+		});
+	}, [destinationToken, navigation]);
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
@@ -247,39 +307,43 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 						dismiss={toggleSourceModal}
 						title={strings('swaps.convert_from')}
 						tokens={tokens}
+						initialTokens={tokensWithBalance}
 						onItemPress={handleSourceTokenPress}
-						exclude={[destinationToken?.symbol]}
+						excludeAddresses={[destinationToken?.address]}
 					/>
 				</View>
 				<View style={styles.amountContainer}>
 					<Text primary style={styles.amount} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
 						{amount}
 					</Text>
-					{sourceToken && (hasInvalidDecimals || !hasEnoughBalance) ? (
-						<Text style={styles.amountInvalid}>
-							{!hasEnoughBalance
-								? strings('swaps.not_enough', { symbol: sourceToken.symbol })
-								: strings('swaps.allows_up_to_decimals', {
-										symbol: sourceToken.symbol,
-										decimals: sourceToken.decimals
-										// eslint-disable-next-line no-mixed-spaces-and-tabs
-								  })}
-						</Text>
-					) : (
-						<Text centered>
-							{sourceToken &&
-								balance !== null &&
-								strings('swaps.available_to_swap', {
-									asset: `${balance} ${sourceToken.symbol}`
-								})}
-							{hasBalance && (
-								<Text style={styles.linkText} onPress={handleUseMax}>
-									{' '}
-									{strings('swaps.use_max')}
-								</Text>
-							)}
-						</Text>
-					)}
+					{!!sourceToken &&
+						(hasInvalidDecimals || !hasEnoughBalance ? (
+							<Text style={styles.amountInvalid}>
+								{hasInvalidDecimals
+									? strings('swaps.allows_up_to_decimals', {
+											symbol: sourceToken.symbol,
+											decimals: sourceToken.decimals
+											// eslint-disable-next-line no-mixed-spaces-and-tabs
+									  })
+									: strings('swaps.not_enough', { symbol: sourceToken.symbol })}
+							</Text>
+						) : amountAsUnits?.isZero() ? (
+							<Text>
+								{!!sourceToken &&
+									balance !== null &&
+									strings('swaps.available_to_swap', {
+										asset: `${balance} ${sourceToken.symbol}`
+									})}
+								{hasBalance && (
+									<Text style={styles.linkText} onPress={handleUseMax}>
+										{' '}
+										{strings('swaps.use_max')}
+									</Text>
+								)}
+							</Text>
+						) : (
+							<Text upper>{currencyAmount ? `~${currencyAmount}` : ''}</Text>
+						))}
 				</View>
 				<View style={styles.horizontalRuleContainer}>
 					<View style={styles.horizontalRule} />
@@ -302,9 +366,21 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 						dismiss={toggleDestinationModal}
 						title={strings('swaps.convert_to')}
 						tokens={tokens}
+						initialTokens={tokensTopAssets.slice(0, 5)}
 						onItemPress={handleDestinationTokenPress}
-						exclude={[sourceToken?.symbol]}
+						excludeAddresses={[sourceToken?.address]}
 					/>
+				</View>
+				<View>
+					{destinationToken && destinationToken.symbol !== 'ETH' ? (
+						<TouchableOpacity onPress={handleVerifyPress}>
+							<Text centered>
+								{strings('swaps.verify_on')} <Text link>Etherscan</Text>
+							</Text>
+						</TouchableOpacity>
+					) : (
+						<Text />
+					)}
 				</View>
 			</View>
 			<View style={styles.keypad}>
@@ -328,7 +404,7 @@ function SwapsAmountView({ tokens, accounts, selectedAddress, balances }) {
 									!sourceToken ||
 									!destinationToken ||
 									hasInvalidDecimals ||
-									amountBigNumber.eq(0)
+									amountAsUnits.isZero()
 								}
 							>
 								{strings('swaps.get_quotes')}
@@ -351,6 +427,8 @@ SwapsAmountView.navigationOptions = ({ navigation }) => getSwapsAmountNavbar(nav
 
 SwapsAmountView.propTypes = {
 	tokens: PropTypes.arrayOf(PropTypes.object),
+	tokensWithBalance: PropTypes.arrayOf(PropTypes.object),
+	tokensTopAssets: PropTypes.arrayOf(PropTypes.object),
 	/**
 	 * Map of accounts to information objects including balances
 	 */
@@ -362,14 +440,31 @@ SwapsAmountView.propTypes = {
 	/**
 	 * An object containing token balances for current account and network in the format address => balance
 	 */
-	balances: PropTypes.object
+	balances: PropTypes.object,
+	/**
+	 * ETH to current currency conversion rate
+	 */
+	conversionRate: PropTypes.number,
+	/**
+	 * Currency code of the currently-active currency
+	 */
+	currentCurrency: PropTypes.string,
+	/**
+	 * An object containing token exchange rates in the format address => exchangeRate
+	 */
+	tokenExchangeRates: PropTypes.object
 };
 
 const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.SwapsController.tokens,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	balances: state.engine.backgroundState.TokenBalancesController.contractBalances
+	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	tokensWithBalance: swapsTokensWithBalanceSelector(state),
+	tokensTopAssets: swapsTopAssetsSelector(state)
 });
 
 export default connect(mapStateToProps)(SwapsAmountView);
