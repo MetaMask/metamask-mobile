@@ -1,6 +1,7 @@
 # Changelog
 
 ## Current Develop Branch
+- [#2142](https://github.com/MetaMask/metamask-mobile/pull/2142): Display boolean values when signing typed data
 
 ## v1.0.9 - Jan 21 2021
 - [#2149](https://github.com/MetaMask/metamask-mobile/pull/2149): update tests for new logic
