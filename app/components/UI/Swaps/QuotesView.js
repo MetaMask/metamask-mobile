@@ -358,7 +358,7 @@ function SwapsQuotesView({
 			token_from_amount: sourceAmount,
 			token_to: destinationToken.address,
 			token_to_amount: '',
-			request_type: '',
+			request_type: hasEnoughBalance ? 'Order' : 'Quote',
 			slippage,
 			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 			best_quote_source: '',
@@ -393,7 +393,7 @@ function SwapsQuotesView({
 			token_from: sourceToken.address,
 			token_from_amount: sourceAmount,
 			token_to: destinationToken.address,
-			request_type: '',
+			request_type: hasEnoughBalance ? 'Order' : 'Quote',
 			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 		});
 		resetAndStartPolling({
@@ -407,6 +407,7 @@ function SwapsQuotesView({
 			const { SwapsController } = Engine.context;
 			SwapsController.stopPollingAndResetState();
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
 	/* First load effect: handle initial animation */
@@ -420,7 +421,7 @@ function SwapsQuotesView({
 						token_from_amount: sourceAmount,
 						token_to: destinationToken.address,
 						token_to_amount: '',
-						request_type: '',
+						request_type: hasEnoughBalance ? 'Order' : 'Quote',
 						slippage,
 						custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 						response_time: firstLoadTime,
@@ -473,7 +474,7 @@ function SwapsQuotesView({
 					token_from: sourceToken.address,
 					token_from_amount: sourceAmount,
 					token_to: destinationToken.address,
-					request_type: '',
+					request_type: hasEnoughBalance ? 'Order' : 'Quote',
 					slippage,
 					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 					gas_fees: ''
@@ -483,7 +484,7 @@ function SwapsQuotesView({
 					token_from: sourceToken.address,
 					token_from_amount: sourceAmount,
 					token_to: destinationToken.address,
-					request_type: '',
+					request_type: hasEnoughBalance ? 'Order' : 'Quote',
 					slippage,
 					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 				});
