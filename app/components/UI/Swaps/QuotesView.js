@@ -462,27 +462,34 @@ function SwapsQuotesView({
 		};
 	}, [hideFeeModal, hideQuotesModal, isInFetch, quotesLastFetched]);
 
-	useEffect(() => {
-		if (errorKey) {
-			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
-				token_from: sourceToken.address,
-				token_from_amount: sourceAmount,
-				token_to: destinationToken.address,
-				request_type: '',
-				slippage,
-				custom_slippage: '',
-				gas_fees: ''
-			});
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [errorKey]);
-
 	/* errorKey effect: hide every modal*/
 	useEffect(() => {
 		if (errorKey) {
 			hideFeeModal();
 			hideQuotesModal();
+			if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
+					token_from: sourceToken.address,
+					token_from_amount: sourceAmount,
+					token_to: destinationToken.address,
+					request_type: '',
+					slippage,
+					custom_slippage: '',
+					gas_fees: ''
+				});
+			} else if (errorKey === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, {
+					token_from: sourceToken.address,
+					token_from_amount: sourceAmount,
+					token_to: destinationToken.address,
+					request_type: '',
+					slippage,
+					custom_slippage: '',
+					gas_fees: ''
+				});
+			}
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [errorKey, hideFeeModal, hideQuotesModal]);
 
 	/* Rendering */
