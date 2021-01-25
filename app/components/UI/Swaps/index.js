@@ -135,7 +135,7 @@ function SwapsAmountView({
 	useEffect(() => {
 		// Triggered when a user enters the MetaMask Swap feature
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
-			source: '',
+			source: initialSource === SWAPS_ETH_ADDRESS ? 'MainView' : 'TokenView',
 			activeCurrency: initialSource
 		});
 	}, [initialSource]);

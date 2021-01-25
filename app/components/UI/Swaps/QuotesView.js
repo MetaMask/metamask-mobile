@@ -394,7 +394,7 @@ function SwapsQuotesView({
 			token_from_amount: sourceAmount,
 			token_to: destinationToken.address,
 			request_type: '',
-			custom_slippage: slippage
+			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 		});
 		resetAndStartPolling({
 			slippage,
