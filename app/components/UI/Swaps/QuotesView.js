@@ -485,8 +485,7 @@ function SwapsQuotesView({
 					token_to: destinationToken.address,
 					request_type: '',
 					slippage,
-					custom_slippage: '',
-					gas_fees: ''
+					custom_slippage: ''
 				});
 			}
 		}
