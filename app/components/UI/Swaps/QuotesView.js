@@ -360,7 +360,7 @@ function SwapsQuotesView({
 			token_to_amount: '',
 			request_type: '',
 			slippage,
-			custom_slippage: '',
+			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 			best_quote_source: '',
 			available_quotes: '',
 			other_quote_selected: '',
@@ -422,7 +422,7 @@ function SwapsQuotesView({
 						token_to_amount: '',
 						request_type: '',
 						slippage,
-						custom_slippage: '',
+						custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 						response_time: firstLoadTime,
 						best_quote_sources: '',
 						network_fees_USD: '',
@@ -475,7 +475,7 @@ function SwapsQuotesView({
 					token_to: destinationToken.address,
 					request_type: '',
 					slippage,
-					custom_slippage: '',
+					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 					gas_fees: ''
 				});
 			} else if (errorKey === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
@@ -485,7 +485,7 @@ function SwapsQuotesView({
 					token_to: destinationToken.address,
 					request_type: '',
 					slippage,
-					custom_slippage: ''
+					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 				});
 			}
 		}
