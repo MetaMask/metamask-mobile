@@ -2,6 +2,10 @@
 
 ## Current Develop Branch
 
+## v1.0.10 - Jan 25 2021
+- [#2164](https://github.com/MetaMask/metamask-mobile/pull/2164): Initialize NetworkController.provider with chainId (#2164)
+- [#2161](https://github.com/MetaMask/metamask-mobile/pull/2161): chainid migration (#2161)
+
 ## v1.0.9 - Jan 21 2021
 - [#2149](https://github.com/MetaMask/metamask-mobile/pull/2149): update tests for new logic
 - [#2145](https://github.com/MetaMask/metamask-mobile/pull/2145): Add missing brew installation steps
