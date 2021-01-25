@@ -42,6 +42,11 @@ const styles = StyleSheet.create({
 		right: Device.isIos() ? 1 : 0,
 		bottom: 1,
 		transform: [{ rotate: '90deg' }]
+	},
+	swapsIcon: {
+		padding: 0,
+		right: Device.isAndroid() ? 1 : 0,
+		bottom: Device.isAndroid() ? 1 : 0
 	}
 });
 
@@ -67,7 +72,7 @@ function getIcon(type) {
 			return <Ionicon name={'md-information'} size={30} style={styles.buttonIcon} />;
 		}
 		case 'swap': {
-			return <MaterialCommunityIcon name={'repeat'} size={22} style={styles.buttonIcon} />;
+			return <MaterialCommunityIcon name={'repeat'} size={22} style={[styles.buttonIcon, styles.swapsIcon]} />;
 		}
 		default: {
 			return null;
