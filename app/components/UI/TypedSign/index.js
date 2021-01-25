@@ -138,7 +138,7 @@ export default class TypedSign extends PureComponent {
 					</View>
 				) : (
 					<Text style={styles.messageText}>
-						<Text style={styles.msgKey}>{key}:</Text> {obj[key]}
+						<Text style={styles.msgKey}>{key}:</Text> {`${obj[key]}`}
 					</Text>
 				)}
 			</View>
@@ -153,8 +153,7 @@ export default class TypedSign extends PureComponent {
 						<View key={`${obj.name}_${i}`}>
 							<Text style={[styles.messageText, styles.msgKey]}>{obj.name}:</Text>
 							<Text style={styles.messageText} key={obj.name}>
-								{' '}
-								{obj.value}
+								{` ${obj.value}`}
 							</Text>
 						</View>
 					))}
