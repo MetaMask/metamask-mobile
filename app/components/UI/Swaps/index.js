@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import { NavigationContext } from 'react-navigation';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -134,9 +134,11 @@ function SwapsAmountView({
 	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
 	useEffect(() => {
 		// Triggered when a user enters the MetaMask Swap feature
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
-			source: initialSource === SWAPS_ETH_ADDRESS ? 'MainView' : 'TokenView',
-			activeCurrency: initialSource
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
+				source: initialSource === SWAPS_ETH_ADDRESS ? 'MainView' : 'TokenView',
+				activeCurrency: initialSource
+			});
 		});
 	}, [initialSource]);
 

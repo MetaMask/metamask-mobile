@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -354,19 +354,21 @@ function SwapsQuotesView({
 			return;
 		}
 
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, {
-			token_from: sourceToken.address,
-			token_from_amount: sourceAmount,
-			token_to: destinationToken.address,
-			token_to_amount: selectedQuote.destinationAmount,
-			request_type: hasEnoughBalance ? 'Order' : 'Quote',
-			slippage,
-			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-			best_quote_source: selectedQuote.aggregator,
-			available_quotes: allQuotes,
-			other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
-			network_fees_USD: '',
-			network_fees_ETH: ''
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				token_to_amount: selectedQuote.destinationAmount,
+				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				slippage,
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+				best_quote_source: selectedQuote.aggregator,
+				available_quotes: allQuotes,
+				other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
+				network_fees_USD: '',
+				network_fees_ETH: ''
+			});
 		});
 
 		const { TransactionController } = Engine.context;
@@ -390,12 +392,14 @@ function SwapsQuotesView({
 
 	/* Main polling effect */
 	useEffect(() => {
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, {
-			token_from: sourceToken.address,
-			token_from_amount: sourceAmount,
-			token_to: destinationToken.address,
-			request_type: hasEnoughBalance ? 'Order' : 'Quote',
-			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+			});
 		});
 		resetAndStartPolling({
 			slippage,
@@ -415,19 +419,21 @@ function SwapsQuotesView({
 		if (!selectedQuote) {
 			return;
 		}
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
-			token_from: sourceToken.address,
-			token_from_amount: sourceAmount,
-			token_to: destinationToken.address,
-			token_to_amount: selectedQuote.destinationAmount,
-			request_type: hasEnoughBalance ? 'Order' : 'Quote',
-			slippage,
-			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-			response_time: allQuotesFetchTime,
-			best_quote_source: selectedQuote.aggregator,
-			network_fees_USD: '',
-			network_fees_ETH: '',
-			available_quotes: allQuotes.length
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				token_to_amount: selectedQuote.destinationAmount,
+				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				slippage,
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+				response_time: allQuotesFetchTime,
+				best_quote_source: selectedQuote.aggregator,
+				network_fees_USD: '',
+				network_fees_ETH: '',
+				available_quotes: allQuotes.length
+			});
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedQuote]);
@@ -485,23 +491,27 @@ function SwapsQuotesView({
 			hideFeeModal();
 			hideQuotesModal();
 			if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
-				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
-					token_from: sourceToken.address,
-					token_from_amount: sourceAmount,
-					token_to: destinationToken.address,
-					request_type: hasEnoughBalance ? 'Order' : 'Quote',
-					slippage,
-					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-					gas_fees: ''
+				InteractionManager.runAfterInteractions(() => {
+					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
+						token_from: sourceToken.address,
+						token_from_amount: sourceAmount,
+						token_to: destinationToken.address,
+						request_type: hasEnoughBalance ? 'Order' : 'Quote',
+						slippage,
+						custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+						gas_fees: ''
+					});
 				});
 			} else if (errorKey === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
-				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, {
-					token_from: sourceToken.address,
-					token_from_amount: sourceAmount,
-					token_to: destinationToken.address,
-					request_type: hasEnoughBalance ? 'Order' : 'Quote',
-					slippage,
-					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+				InteractionManager.runAfterInteractions(() => {
+					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, {
+						token_from: sourceToken.address,
+						token_from_amount: sourceAmount,
+						token_to: destinationToken.address,
+						request_type: hasEnoughBalance ? 'Order' : 'Quote',
+						slippage,
+						custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+					});
 				});
 			}
 		}
