@@ -423,7 +423,7 @@ function SwapsQuotesView({
 			slippage,
 			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 			response_time: firstLoadTime,
-			best_quote_sources: '',
+			best_quote_source: selectedQuote.aggregator,
 			network_fees_USD: '',
 			network_fees_ETH: '',
 			available_quotes: allQuotes.length
