@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ScrollView, TouchableOpacity, InteractionManager } from 'react-native';
+import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-navigation';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -11,8 +11,6 @@ import { colors } from '../../../../styles/common';
 import Text from '../../../Base/Text';
 import { renderFromTokenMinimalUnit, toWei, weiToFiat } from '../../../../util/number';
 import { connect } from 'react-redux';
-import Analytics from '../../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	modalView: {
@@ -93,15 +91,6 @@ const styles = StyleSheet.create({
 		color: colors.white
 	}
 });
-
-function findMaxFetchTime(allQuotes) {
-	let maxFetchTime = 0;
-	allQuotes.forEach(quote => {
-		maxFetchTime = Math.max(maxFetchTime, quote.fetchTime);
-	});
-	return maxFetchTime;
-}
-
 function QuotesModal({
 	isVisible,
 	toggleModal,
@@ -110,32 +99,8 @@ function QuotesModal({
 	destinationToken,
 	conversionRate,
 	currentCurrency,
-	quoteValues,
-	requestType
+	quoteValues
 }) {
-	useEffect(() => {
-		if (isVisible) {
-			const bestQuote = quotes[0];
-			const maxFetchTime = findMaxFetchTime(quotes);
-			InteractionManager.runAfterInteractions(() => {
-				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
-					token_from: bestQuote.sourceToken,
-					token_from_amount: bestQuote.sourceAmount,
-					token_to: bestQuote.destinationToken,
-					token_to_amount: bestQuote.destinationAmount,
-					request_type: requestType,
-					slippage: bestQuote.slippage,
-					custom_slippage: '',
-					response_time: maxFetchTime,
-					best_quote_source: bestQuote.aggregator,
-					network_fees_USD: '',
-					network_fees_ETH: '',
-					available_quotes: quotes.length
-				});
-			});
-		}
-	}, [isVisible, quotes, requestType]);
-
 	const bestOverallValue = quoteValues[quotes[0].aggregator].overallValueOfQuote;
 	return (
 		<Modal
@@ -264,8 +229,7 @@ QuotesModal.propTypes = {
 	 * Currency code of the currently-active currency
 	 */
 	currentCurrency: PropTypes.string,
-	quoteValues: PropTypes.object,
-	requestType: PropTypes.string
+	quoteValues: PropTypes.object
 };
 
 const mapStateToProps = state => ({

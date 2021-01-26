@@ -366,8 +366,8 @@ function SwapsQuotesView({
 				best_quote_source: selectedQuote.aggregator,
 				available_quotes: allQuotes,
 				other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
-				network_fees_USD: '',
-				network_fees_ETH: ''
+				network_fees_USD: weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, 'usd'),
+				network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee))
 			});
 		});
 
@@ -430,13 +430,36 @@ function SwapsQuotesView({
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 				response_time: allQuotesFetchTime,
 				best_quote_source: selectedQuote.aggregator,
-				network_fees_USD: '',
-				network_fees_ETH: '',
+				network_fees_USD: weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, 'usd'),
+				network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
 				available_quotes: allQuotes.length
 			});
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedQuote]);
+
+	useEffect(() => {
+		if (!isQuotesModalVisible) {
+			return;
+		}
+		// InteractionManager.runAfterInteractions(() => {
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
+			token_from: sourceToken.address,
+			token_from_amount: sourceAmount,
+			token_to: destinationToken.address,
+			token_to_amount: selectedQuote.destinationAmount,
+			request_type: hasEnoughBalance ? 'Order' : 'Quote',
+			slippage,
+			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+			response_time: allQuotesFetchTime,
+			best_quote_source: selectedQuote.aggregator,
+			network_fees_USD: weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, 'usd'),
+			network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
+			available_quotes: allQuotes.length
+		});
+		// });
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isQuotesModalVisible]);
 
 	/* First load effect: handle initial animation */
 	useEffect(() => {
@@ -803,7 +826,6 @@ function SwapsQuotesView({
 				quotes={allQuotes}
 				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
-				requestType={hasEnoughBalance ? 'Order' : 'Quote'}
 			/>
 		</ScreenView>
 	);
