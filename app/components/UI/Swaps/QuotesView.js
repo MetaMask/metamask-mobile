@@ -353,6 +353,8 @@ function SwapsQuotesView({
 			return;
 		}
 
+		console.log(selectedQuote);
+
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, {
 			token_from: sourceToken.address,
 			token_from_amount: sourceAmount,
@@ -363,7 +365,7 @@ function SwapsQuotesView({
 			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 			best_quote_source: selectedQuote.aggregator,
 			available_quotes: allQuotes,
-			other_quote_selected: '',
+			other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
 			network_fees_USD: '',
 			network_fees_ETH: ''
 		});
