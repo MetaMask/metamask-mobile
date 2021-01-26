@@ -184,7 +184,7 @@ function SwapsAmountView({
 	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
 	const balanceAsUnits = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 	const hasBalance = useMemo(() => {
-		if (!balanceAsUnits || !sourceToken || sourceToken.address === SWAPS_ETH_ADDRESS) {
+		if (!balanceAsUnits || !sourceToken) {
 			return false;
 		}
 
@@ -308,7 +308,7 @@ function SwapsAmountView({
 						{amount}
 					</Text>
 					{!!sourceToken &&
-						(!amountAsUnits?.isZero() && (hasInvalidDecimals || !hasEnoughBalance) ? (
+						(hasInvalidDecimals || (!amountAsUnits?.isZero() && !hasEnoughBalance) ? (
 							<Text style={styles.amountInvalid}>
 								{hasInvalidDecimals
 									? strings('swaps.allows_up_to_decimals', {
@@ -325,7 +325,7 @@ function SwapsAmountView({
 									strings('swaps.available_to_swap', {
 										asset: `${balance} ${sourceToken.symbol}`
 									})}
-								{hasBalance && (
+								{sourceToken.address !== SWAPS_ETH_ADDRESS && hasBalance && (
 									<Text style={styles.linkText} onPress={handleUseMax}>
 										{' '}
 										{strings('swaps.use_max')}
