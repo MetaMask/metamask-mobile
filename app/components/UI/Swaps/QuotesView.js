@@ -256,6 +256,7 @@ function SwapsQuotesView({
 	const [shouldFinishFirstLoad, setShouldFinishFirstLoad] = useState(false);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 	const [basicGasEstimates, setBasicGasEstimates] = useState({});
+	const [allQuotesFetchTime, setAllQuotesFetchTime] = useState(null);
 
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -422,7 +423,7 @@ function SwapsQuotesView({
 			request_type: hasEnoughBalance ? 'Order' : 'Quote',
 			slippage,
 			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-			response_time: firstLoadTime,
+			response_time: allQuotesFetchTime,
 			best_quote_source: selectedQuote.aggregator,
 			network_fees_USD: '',
 			network_fees_ETH: '',
@@ -433,7 +434,6 @@ function SwapsQuotesView({
 
 	/* First load effect: handle initial animation */
 	useEffect(() => {
-		console.log(isFirstLoad, shouldFinishFirstLoad, firstLoadTime, quotesLastFetched, errorKey);
 		if (isFirstLoad && !shouldFinishFirstLoad) {
 			if (firstLoadTime < quotesLastFetched || errorKey) {
 				setShouldFinishFirstLoad(true);
@@ -443,6 +443,14 @@ function SwapsQuotesView({
 			}
 		}
 	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched, shouldFinishFirstLoad]);
+
+	useEffect(() => {
+		let maxFetchTime = 0;
+		allQuotes.forEach(quote => {
+			maxFetchTime = Math.max(maxFetchTime, quote.fetchTime);
+		});
+		setAllQuotesFetchTime(maxFetchTime);
+	}, [allQuotes]);
 
 	/* selectedQuoteId effect: when topAggId changes make it selected by default */
 	useEffect(() => setSelectedQuoteId(topAggId), [topAggId]);
