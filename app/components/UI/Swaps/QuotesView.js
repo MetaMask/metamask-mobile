@@ -48,6 +48,8 @@ import { decodeApproveData, generateApproveData } from '../../../util/transactio
 import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
+const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
+const EDIT_MODE_APPROVE_AMOUNT = 'EDIT_MODE_APPROVE_AMOUNT';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -274,7 +276,7 @@ function SwapsQuotesView({
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
 
-	const [editGasVisible, setEditGasVisible] = useState(false);
+	const [editQuoteTransactionsVisible, setEditQuoteTransactionsVisible] = useState(false);
 
 	const [apiGasPrice] = useGasPrice();
 	const [customGasPrice, setCustomGasPrice] = useState(null);
@@ -320,21 +322,24 @@ function SwapsQuotesView({
 	const [approvalCustomValue, setApprovalCustomValue] = useState(null);
 	const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] = useState(true);
 	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
+	const [editQuoteTransactionsMode, setEditQuoteTransactionsMode] = useState(EDIT_MODE_GAS);
 
 	const onSpendLimitCustomValueChange = approvalCustomValue => setApprovalCustomValue(approvalCustomValue);
 	const onPressSpendLimitUnlimitedSelected = () => setSpendLimitUnlimitedSelected(true);
 	const onPressSpendLimitCustomSelected = () => setSpendLimitUnlimitedSelected(false);
-	const toggleEditApprovalPermission = () => {
-		//
-	};
+	const onCancelEditQuoteTransactions = () => setEditQuoteTransactionsVisible(false);
+
+	const toggleEditApprovalPermission = () => onCancelEditQuoteTransactions();
 	const onSetApprovalAmount = () => {
-		if (spendLimitUnlimitedSelected) return;
-		// calculate new tx data
-		// generate value in minimal units
-		const uint = toTokenMinimalUnit(approvalCustomValue, sourceToken.decimals).toString();
-		const approvalData = generateApproveData({ spender: SWAPS_CONTRACT_ADDRESS, value: uint });
-		const newApprovalTransaction = { ...approvalTransaction, data: approvalData };
-		setApprovalTransaction(newApprovalTransaction);
+		if (!spendLimitUnlimitedSelected) {
+			// calculate new tx data
+			// generate value in minimal units
+			const uint = toTokenMinimalUnit(approvalCustomValue, sourceToken.decimals).toString();
+			const approvalData = generateApproveData({ spender: SWAPS_CONTRACT_ADDRESS, value: uint });
+			const newApprovalTransaction = { ...approvalTransaction, data: approvalData };
+			setApprovalTransaction(newApprovalTransaction);
+		}
+		onCancelEditQuoteTransactions();
 	};
 
 	/* Modals, state and handlers */
@@ -382,8 +387,14 @@ function SwapsQuotesView({
 		navigation.dismiss();
 	}, [navigation, selectedQuote, approvalTransaction, apiGasPrice, gasPrice, gasLimit]);
 
-	const onEditMaxGas = () => setEditGasVisible(true);
-	const onEditMaxGasCancel = () => setEditGasVisible(false);
+	const onEditQuoteTransactionsGas = () => {
+		setEditQuoteTransactionsMode(EDIT_MODE_GAS);
+		setEditQuoteTransactionsVisible(true);
+	};
+	const onEditQuoteTransactionsApproveAmount = () => {
+		setEditQuoteTransactionsMode(EDIT_MODE_APPROVE_AMOUNT);
+		setEditQuoteTransactionsVisible(true);
+	};
 
 	const onHandleGasFeeSelection = (gas, gasPrice) => {
 		setCustomGasPrice(gasPrice);
@@ -628,7 +639,7 @@ function SwapsQuotesView({
 								<View style={styles.quotesDescription}>
 									<View style={styles.quotesLegend}>
 										<Text>{strings('swaps.max_gas_fee')} </Text>
-										<TouchableOpacity onPress={onEditMaxGas}>
+										<TouchableOpacity onPress={onEditQuoteTransactionsGas}>
 											<Text link>{strings('swaps.edit')}</Text>
 										</TouchableOpacity>
 									</View>
@@ -650,8 +661,9 @@ function SwapsQuotesView({
 												})} `}
 											</Text>
 											{`${strings('swaps.enable.for_swapping')}`}
-											{/* TODO: allow token spend limit in the future */}
-											{/* <Text link>{` ${strings('swaps.enable.edit_limit')}`}</Text> */}
+											<TouchableOpacity onPress={onEditQuoteTransactionsApproveAmount}>
+												<Text link>{` ${strings('swaps.enable.edit_limit')}`}</Text>
+											</TouchableOpacity>
 										</Text>
 									</TouchableOpacity>
 								</View>
@@ -696,42 +708,46 @@ function SwapsQuotesView({
 				selectedQuote={selectedQuoteId}
 			/>
 			<Modal
-				isVisible={editGasVisible}
+				isVisible={editQuoteTransactionsVisible}
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
 				backdropOpacity={0.7}
 				animationInTiming={600}
 				animationOutTiming={600}
-				onBackdropPress={onEditMaxGasCancel}
-				onBackButtonPress={onEditMaxGasCancel}
-				onSwipeComplete={onEditMaxGasCancel}
+				onBackdropPress={onCancelEditQuoteTransactions}
+				onBackButtonPress={onCancelEditQuoteTransactions}
+				onSwipeComplete={onCancelEditQuoteTransactions}
 				swipeDirection={'down'}
 				propagateSwipe
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-					<AnimatedTransactionModal ready review={onEditMaxGasCancel}>
-						<EditPermission
-							host={'Swaps'}
-							spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
-							tokenSymbol={sourceToken.symbol}
-							spendLimitCustomValue={approvalCustomValue}
-							originalApproveAmount={approvalTransactionAmount}
-							onSetApprovalAmount={onSetApprovalAmount}
-							onSpendLimitCustomValueChange={onSpendLimitCustomValueChange}
-							onPressSpendLimitUnlimitedSelected={onPressSpendLimitUnlimitedSelected}
-							onPressSpendLimitCustomSelected={onPressSpendLimitCustomSelected}
-							toggleEditPermission={toggleEditApprovalPermission}
-						/>
-						<CustomGas
-							handleGasFeeSelection={onHandleGasFeeSelection}
-							basicGasEstimates={apiGasPrice}
-							gas={hexToBN(gasLimit)}
-							gasPrice={toWei(gasPrice)}
-							gasError={null}
-							mode={'edit'}
-							customTransaction={selectedQuote.trade}
-						/>
+					<AnimatedTransactionModal ready review={onCancelEditQuoteTransactions}>
+						{editQuoteTransactionsMode === EDIT_MODE_GAS && !!approvalTransaction && (
+							<EditPermission
+								host={'Swaps'}
+								spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
+								tokenSymbol={sourceToken.symbol}
+								spendLimitCustomValue={approvalCustomValue}
+								originalApproveAmount={approvalTransactionAmount}
+								onSetApprovalAmount={onSetApprovalAmount}
+								onSpendLimitCustomValueChange={onSpendLimitCustomValueChange}
+								onPressSpendLimitUnlimitedSelected={onPressSpendLimitUnlimitedSelected}
+								onPressSpendLimitCustomSelected={onPressSpendLimitCustomSelected}
+								toggleEditPermission={toggleEditApprovalPermission}
+							/>
+						)}
+						{editQuoteTransactionsMode === EDIT_MODE_APPROVE_AMOUNT && (
+							<CustomGas
+								handleGasFeeSelection={onHandleGasFeeSelection}
+								basicGasEstimates={apiGasPrice}
+								gas={hexToBN(gasLimit)}
+								gasPrice={toWei(gasPrice)}
+								gasError={null}
+								mode={'edit'}
+								customTransaction={selectedQuote.trade}
+							/>
+						)}
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>
 			</Modal>
