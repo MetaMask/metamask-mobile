@@ -15,7 +15,14 @@ import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/Device';
 import Modal from 'react-native-modal';
 import { colors } from '../../../styles/common';
-import { hexToBN, renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
+import {
+	hexToBN,
+	renderFromTokenMinimalUnit,
+	renderFromWei,
+	toTokenMinimalUnit,
+	toWei,
+	weiToFiat
+} from '../../../util/number';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
 import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
@@ -36,7 +43,9 @@ import useGasPrice from './utils/useGasPrice';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AnimatedTransactionModal from '../AnimatedTransactionModal';
 import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
-import ApproveTransactionReview from '../ApproveTransactionReview';
+import EditPermission from '../ApproveTransactionReview/EditPermission';
+import { decodeApproveData, generateApproveData } from '../../../util/transactions';
+import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -222,7 +231,7 @@ function SwapsQuotesView({
 	isInFetch,
 	quotesLastFetched,
 	pollingCyclesLeft,
-	approvalTransaction,
+	approvalTransaction: originalApprovalTransaction,
 	topAggId,
 	quotes,
 	quoteValues,
@@ -305,6 +314,28 @@ function SwapsQuotesView({
 	}, [destinationToken, ratioAsSource, selectedQuote, sourceToken]);
 
 	const ratio = useRatio(numerator?.amount, numerator?.decimals, denominator?.amount, denominator?.decimals);
+
+	/* Approval transaction if any */
+	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState(null);
+	const [approvalCustomValue, setApprovalCustomValue] = useState(null);
+	const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] = useState(true);
+	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
+
+	const onSpendLimitCustomValueChange = approvalCustomValue => setApprovalCustomValue(approvalCustomValue);
+	const onPressSpendLimitUnlimitedSelected = () => setSpendLimitUnlimitedSelected(true);
+	const onPressSpendLimitCustomSelected = () => setSpendLimitUnlimitedSelected(false);
+	const toggleEditApprovalPermission = () => {
+		//
+	};
+	const onSetApprovalAmount = () => {
+		if (spendLimitUnlimitedSelected) return;
+		// calculate new tx data
+		// generate value in minimal units
+		const uint = toTokenMinimalUnit(approvalCustomValue, sourceToken.decimals).toString();
+		const approvalData = generateApproveData({ spender: SWAPS_CONTRACT_ADDRESS, value: uint });
+		const newApprovalTransaction = { ...approvalTransaction, data: approvalData };
+		setApprovalTransaction(newApprovalTransaction);
+	};
 
 	/* Modals, state and handlers */
 	const [isFeeModalVisible, toggleFeeModal, , hideFeeModal] = useModalHandler(false);
@@ -428,6 +459,14 @@ function SwapsQuotesView({
 			hideQuotesModal();
 		}
 	}, [errorKey, hideFeeModal, hideQuotesModal]);
+
+	// approvalTransaction parsing
+	useEffect(() => {
+		if (approvalTransaction) {
+			const approvalTransactionAmount = decodeApproveData(approvalTransaction.data).encodedAmount;
+			setApprovalTransactionAmount(hexToBN(approvalTransactionAmount).toString());
+		}
+	}, [approvalTransaction]);
 
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
@@ -672,11 +711,17 @@ function SwapsQuotesView({
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 					<AnimatedTransactionModal ready review={onEditMaxGasCancel}>
-						<ApproveTransactionReview
-							gasError={null}
-							onCancel={onHandleGasFeeSelection}
-							onConfirm={onHandleGasFeeSelection}
-							// over={over}
+						<EditPermission
+							host={'Swaps'}
+							spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
+							tokenSymbol={sourceToken.symbol}
+							spendLimitCustomValue={approvalCustomValue}
+							originalApproveAmount={approvalTransactionAmount}
+							onSetApprovalAmount={onSetApprovalAmount}
+							onSpendLimitCustomValueChange={onSpendLimitCustomValueChange}
+							onPressSpendLimitUnlimitedSelected={onPressSpendLimitUnlimitedSelected}
+							onPressSpendLimitCustomSelected={onPressSpendLimitCustomSelected}
+							toggleEditPermission={toggleEditApprovalPermission}
 						/>
 						<CustomGas
 							handleGasFeeSelection={onHandleGasFeeSelection}

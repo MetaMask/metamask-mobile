@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import Device from '../../../../util/Device';
-import { colors, fontStyles, baseStyles } from '../../../../styles/common';
+import { colors, fontStyles } from '../../../../styles/common';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
@@ -15,71 +14,15 @@ const styles = StyleSheet.create({
 		width: '100%',
 		paddingVertical: 10
 	},
-	title: {
-		...fontStyles.bold,
-		fontSize: 24,
-		textAlign: 'center',
-		color: colors.black,
-		lineHeight: 34,
-		marginVertical: 16,
-		paddingHorizontal: 16
-	},
-	explanation: {
-		...fontStyles.normal,
-		fontSize: 14,
-		textAlign: 'center',
-		color: colors.black,
-		lineHeight: 20,
-		paddingHorizontal: 16
-	},
 	editPermissionWrapper: {
 		paddingHorizontal: 16,
 		paddingBottom: 16
-	},
-	editPermissionText: {
-		...fontStyles.bold,
-		color: colors.blue,
-		fontSize: 12,
-		lineHeight: 20,
-		textAlign: 'center',
-		marginVertical: 20,
-		borderWidth: 1,
-		borderRadius: 20,
-		borderColor: colors.blue,
-		paddingVertical: 8,
-		paddingHorizontal: 16
-	},
-	viewDetailsText: {
-		...fontStyles.normal,
-		color: colors.blue,
-		fontSize: 12,
-		lineHeight: 16,
-		marginTop: 20,
-		textAlign: 'center'
-	},
-	actionTouchable: {
-		flexDirection: 'column',
-		alignItems: 'center'
 	},
 	sectionExplanationText: {
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.grey500,
 		marginVertical: 6
-	},
-	sectionLeft: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		flex: 1
-	},
-	sectionRight: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		flex: 1,
-		textTransform: 'uppercase',
-		textAlign: 'right'
 	},
 	option: {
 		flexDirection: 'row',
@@ -144,37 +87,6 @@ const styles = StyleSheet.create({
 	},
 	textBlack: {
 		color: colors.black
-	},
-	errorWrapper: {
-		// marginHorizontal: 24,
-		marginTop: 12,
-		paddingHorizontal: 10,
-		paddingVertical: 8,
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
-		borderRadius: 8,
-		borderWidth: 1,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	error: {
-		color: colors.red,
-		fontSize: 12,
-		...fontStyles.normal,
-		textAlign: 'center'
-	},
-	underline: {
-		textDecorationLine: 'underline',
-		...fontStyles.bold
-	},
-	actionViewWrapper: {
-		height: Device.isMediumDevice() ? 200 : 350
-	},
-	actionViewChildren: {
-		height: 300
-	},
-	paddingHorizontal: {
-		paddingHorizontal: 16
 	}
 });
 
@@ -184,12 +96,14 @@ function EditPermission({
 	tokenSymbol,
 	spendLimitCustomValue,
 	originalApproveAmount,
+	onSetApprovalAmount,
+	onSpendLimitCustomValueChange,
 	onPressSpendLimitUnlimitedSelected,
 	onPressSpendLimitCustomSelected,
 	toggleEditPermission
 }) {
 	return (
-		<View style={[baseStyles.section, styles.editPermissionWrapper]}>
+		<View style={[styles.section, styles.editPermissionWrapper]}>
 			<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
 				<ConnectHeader action={toggleEditPermission} title={strings('spend_limit_edition.title')} />
 				<View>
@@ -252,11 +166,11 @@ function EditPermission({
 								{strings('spend_limit_edition.max_spend_limit')}
 							</Text>
 							<TextInput
-								ref={this.customSpendLimitInput}
+								// ref={this.customSpendLimitInput}
 								autoCapitalize="none"
 								keyboardType="numeric"
 								autoCorrect={false}
-								onChangeText={this.onSpendLimitCustomValueChange}
+								onChangeText={onSpendLimitCustomValueChange}
 								placeholder={`100 ${tokenSymbol}`}
 								placeholderTextColor={colors.grey100}
 								spellCheck={false}
@@ -272,7 +186,7 @@ function EditPermission({
 						</View>
 					</View>
 				</View>
-				<StyledButton type="confirm" onPress={toggleEditPermission}>
+				<StyledButton type="confirm" onPress={onSetApprovalAmount}>
 					{strings('transaction.set_gas')}
 				</StyledButton>
 			</KeyboardAwareScrollView>
@@ -281,14 +195,16 @@ function EditPermission({
 }
 
 EditPermission.propTypes = {
-	host: PropTypes.string,
-	spendLimitUnlimitedSelected: PropTypes.bool,
-	tokenSymbol: PropTypes.string,
-	spendLimitCustomValue: PropTypes.string,
-	originalApproveAmount: PropTypes.string,
-	onPressSpendLimitUnlimitedSelected: PropTypes.func,
-	onPressSpendLimitCustomSelected: PropTypes.func,
-	toggleEditPermission: PropTypes.func
+	host: PropTypes.string.isRequired,
+	spendLimitUnlimitedSelected: PropTypes.bool.isRequired,
+	tokenSymbol: PropTypes.string.isRequired,
+	spendLimitCustomValue: PropTypes.string.isRequired,
+	originalApproveAmount: PropTypes.string.isRequired,
+	onPressSpendLimitUnlimitedSelected: PropTypes.func.isRequired,
+	onPressSpendLimitCustomSelected: PropTypes.func.isRequired,
+	onSpendLimitCustomValueChange: PropTypes.func.isRequired,
+	onSetApprovalAmount: PropTypes.func.isRequired,
+	toggleEditPermission: PropTypes.func.isRequired
 };
 
 export default EditPermission;
