@@ -192,11 +192,11 @@ function SwapsAmountView({
 	}, [balanceAsUnits, sourceToken]);
 
 	const hasEnoughBalance = useMemo(() => {
-		if (hasInvalidDecimals) {
+		if (hasInvalidDecimals || !hasBalance || !balanceAsUnits) {
 			return false;
 		}
 		return balanceAsUnits.gte(amountAsUnits);
-	}, [amountAsUnits, balanceAsUnits, hasInvalidDecimals]);
+	}, [amountAsUnits, balanceAsUnits, hasBalance, hasInvalidDecimals]);
 
 	const currencyAmount = useMemo(() => {
 		if (!sourceToken || hasInvalidDecimals) {
@@ -258,7 +258,7 @@ function SwapsAmountView({
 	);
 
 	const handleUseMax = useCallback(() => {
-		if (!sourceToken) {
+		if (!sourceToken || !balanceAsUnits) {
 			return;
 		}
 		setAmount(fromTokenMinimalUnit(balanceAsUnits.toString(), sourceToken.decimals));
@@ -308,7 +308,7 @@ function SwapsAmountView({
 						{amount}
 					</Text>
 					{!!sourceToken &&
-						(hasInvalidDecimals || !hasEnoughBalance ? (
+						(!amountAsUnits?.isZero() && (hasInvalidDecimals || !hasEnoughBalance) ? (
 							<Text style={styles.amountInvalid}>
 								{hasInvalidDecimals
 									? strings('swaps.allows_up_to_decimals', {
