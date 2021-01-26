@@ -428,7 +428,7 @@ function SwapsQuotesView({
 						best_quote_sources: '',
 						network_fees_USD: '',
 						network_fees_ETH: '',
-						available_quotes: ''
+						available_quotes: allQuotes.length
 					});
 					navigation.setParams({ leftAction: strings('swaps.edit') });
 				}
