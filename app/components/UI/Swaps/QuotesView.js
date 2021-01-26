@@ -442,7 +442,6 @@ function SwapsQuotesView({
 		if (!isQuotesModalVisible) {
 			return;
 		}
-		// InteractionManager.runAfterInteractions(() => {
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
 			token_from: sourceToken.address,
 			token_from_amount: sourceAmount,
@@ -457,7 +456,6 @@ function SwapsQuotesView({
 			network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
 			available_quotes: allQuotes.length
 		});
-		// });
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isQuotesModalVisible]);
 
