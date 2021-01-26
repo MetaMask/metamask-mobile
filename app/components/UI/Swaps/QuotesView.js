@@ -243,7 +243,7 @@ function SwapsQuotesView({
 	const balance = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 	const [hasEnoughBalance, missingBalance] = useMemo(() => {
 		const sourceBN = new BigNumber(sourceAmount);
-		const balanceBN = new BigNumber(balance);
+		const balanceBN = new BigNumber(balance.toString());
 		const hasEnough = balanceBN.gte(sourceBN);
 		return [hasEnough, hasEnough ? null : sourceBN.minus(balanceBN)];
 	}, [balance, sourceAmount]);
