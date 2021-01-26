@@ -278,7 +278,11 @@ class Send extends PureComponent {
 			case 'send-token': {
 				const selectedAsset = await this.handleTokenDeeplink(target_address);
 				const { ensRecipient, to } = this.handleNewTxMetaRecipient(parameters.address);
-				const tokenAmount = toBN(parameters.uint256 || '0');
+				const stringTokenAmount =
+					(parameters.uint256 &&
+						Number(parameters.uint256).toLocaleString('fullwide', { useGrouping: false })) ||
+					'0';
+				const tokenAmount = toBN(stringTokenAmount);
 				newTxMeta = {
 					assetType: 'ERC20',
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
