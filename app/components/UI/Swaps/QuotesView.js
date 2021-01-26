@@ -353,8 +353,6 @@ function SwapsQuotesView({
 			return;
 		}
 
-		console.log(selectedQuote);
-
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, {
 			token_from: sourceToken.address,
 			token_from_amount: sourceAmount,

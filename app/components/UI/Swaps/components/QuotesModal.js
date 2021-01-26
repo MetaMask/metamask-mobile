@@ -119,7 +119,7 @@ function QuotesModal({
 				best_quote_source: bestQuote.aggregator,
 				network_fees_USD: '',
 				network_fees_ETH: '',
-				available_quotes: ''
+				available_quotes: quotes.length
 			});
 		}
 	}, [isVisible, quotes]);
