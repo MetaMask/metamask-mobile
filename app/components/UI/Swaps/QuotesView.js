@@ -793,6 +793,7 @@ function SwapsQuotesView({
 				quotes={allQuotes}
 				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
+				requestType={hasEnoughBalance ? 'Order' : 'Quote'}
 			/>
 		</ScreenView>
 	);

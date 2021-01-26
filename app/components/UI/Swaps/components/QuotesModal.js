@@ -94,6 +94,14 @@ const styles = StyleSheet.create({
 	}
 });
 
+function findMaxFetchTime(allQuotes) {
+	let maxFetchTime = 0;
+	allQuotes.forEach(quote => {
+		maxFetchTime = Math.max(maxFetchTime, quote.fetchTime);
+	});
+	return maxFetchTime;
+}
+
 function QuotesModal({
 	isVisible,
 	toggleModal,
@@ -102,27 +110,29 @@ function QuotesModal({
 	destinationToken,
 	conversionRate,
 	currentCurrency,
-	quoteValues
+	quoteValues,
+	requestType
 }) {
 	useEffect(() => {
 		if (isVisible) {
 			const bestQuote = quotes[0];
+			const maxFetchTime = findMaxFetchTime(quotes);
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
 				token_from: bestQuote.sourceToken,
 				token_from_amount: bestQuote.sourceAmount,
 				token_to: bestQuote.destinationToken,
 				token_to_amount: bestQuote.destinationAmount,
-				request_type: '',
+				request_type: requestType,
 				slippage: bestQuote.slippage,
 				custom_slippage: '',
-				response_time: bestQuote.fetchTime,
+				response_time: maxFetchTime,
 				best_quote_source: bestQuote.aggregator,
 				network_fees_USD: '',
 				network_fees_ETH: '',
 				available_quotes: quotes.length
 			});
 		}
-	}, [isVisible, quotes]);
+	}, [isVisible, quotes, requestType]);
 
 	const bestOverallValue = quoteValues[quotes[0].aggregator].overallValueOfQuote;
 	return (
@@ -252,7 +262,8 @@ QuotesModal.propTypes = {
 	 * Currency code of the currently-active currency
 	 */
 	currentCurrency: PropTypes.string,
-	quoteValues: PropTypes.object
+	quoteValues: PropTypes.object,
+	requestType: PropTypes.string
 };
 
 const mapStateToProps = state => ({
