@@ -66,9 +66,10 @@ const styles = StyleSheet.create({
 		flexDirection: 'column'
 	},
 	label: {
-		fontSize: 14,
+		fontSize: 16,
 		marginBottom: 12,
-		...fontStyles.normal
+		...fontStyles.normal,
+		color: colors.black
 	},
 	ctaWrapper: {
 		marginTop: 20
@@ -82,7 +83,8 @@ const styles = StyleSheet.create({
 		lineHeight: 20
 	},
 	goBack: {
-		color: colors.fontSecondary,
+		marginVertical: 14,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	biometrics: {
@@ -94,10 +96,27 @@ const styles = StyleSheet.create({
 	biometryLabel: {
 		flex: 1,
 		fontSize: 16,
-		...fontStyles.normal
+		...fontStyles.normal,
+		color: colors.black
 	},
 	biometrySwitch: {
 		flex: 0
+	},
+	cant: {
+		width: 280,
+		alignSelf: 'center',
+		justifyContent: 'center',
+		textAlign: 'center',
+		...fontStyles.normal,
+		fontSize: 16,
+		lineHeight: 24,
+		color: colors.black
+	},
+	outlinedTextField: {
+		paddingTop: 2,
+		fontSize: 16,
+		lineHeight: 24,
+		...fontStyles.normal
 	}
 });
 
@@ -340,6 +359,7 @@ class Login extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('login.password')}</Text>
 							<OutlinedTextField
+								style={styles.outlinedTextField}
 								placeholder={'Password'}
 								testID={'login-password-input'}
 								returnKeyType={'done'}
@@ -386,8 +406,11 @@ class Login extends PureComponent {
 						</View>
 
 						<View style={styles.footer}>
+							<Text style={styles.cant}>
+								Can’t login? You can ERASE your current wallet and setup new
+							</Text>
 							<Button style={styles.goBack} onPress={this.onPressGoBack}>
-								{strings('login.go_back')}
+								Reset Wallet
 							</Button>
 						</View>
 					</View>
