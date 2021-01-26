@@ -420,7 +420,7 @@ function SwapsQuotesView({
 						token_from: sourceToken.address,
 						token_from_amount: sourceAmount,
 						token_to: destinationToken.address,
-						token_to_amount: '',
+						token_to_amount: selectedQuote.destinationAmount,
 						request_type: hasEnoughBalance ? 'Order' : 'Quote',
 						slippage,
 						custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
