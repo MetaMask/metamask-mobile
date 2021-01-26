@@ -41,7 +41,6 @@ import useBalance from './utils/useBalance';
 import CustomGas from '../CustomGas';
 import useGasPrice from './utils/useGasPrice';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AnimatedTransactionModal from '../AnimatedTransactionModal';
 import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
 import EditPermission from '../ApproveTransactionReview/EditPermission';
 import { decodeApproveData, generateApproveData } from '../../../util/transactions';
@@ -722,33 +721,32 @@ function SwapsQuotesView({
 				propagateSwipe
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-					<AnimatedTransactionModal ready review={onCancelEditQuoteTransactions}>
-						{editQuoteTransactionsMode === EDIT_MODE_GAS && !!approvalTransaction && (
-							<EditPermission
-								host={'Swaps'}
-								spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
-								tokenSymbol={sourceToken.symbol}
-								spendLimitCustomValue={approvalCustomValue}
-								originalApproveAmount={approvalTransactionAmount}
-								onSetApprovalAmount={onSetApprovalAmount}
-								onSpendLimitCustomValueChange={onSpendLimitCustomValueChange}
-								onPressSpendLimitUnlimitedSelected={onPressSpendLimitUnlimitedSelected}
-								onPressSpendLimitCustomSelected={onPressSpendLimitCustomSelected}
-								toggleEditPermission={toggleEditApprovalPermission}
-							/>
-						)}
-						{editQuoteTransactionsMode === EDIT_MODE_APPROVE_AMOUNT && (
-							<CustomGas
-								handleGasFeeSelection={onHandleGasFeeSelection}
-								basicGasEstimates={apiGasPrice}
-								gas={hexToBN(gasLimit)}
-								gasPrice={toWei(gasPrice)}
-								gasError={null}
-								mode={'edit'}
-								customTransaction={selectedQuote.trade}
-							/>
-						)}
-					</AnimatedTransactionModal>
+					{editQuoteTransactionsMode === EDIT_MODE_APPROVE_AMOUNT && !!approvalTransaction && (
+						<EditPermission
+							host={'Swaps'}
+							spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
+							tokenSymbol={sourceToken.symbol}
+							spendLimitCustomValue={approvalCustomValue}
+							originalApproveAmount={approvalTransactionAmount}
+							onSetApprovalAmount={onSetApprovalAmount}
+							onSpendLimitCustomValueChange={onSpendLimitCustomValueChange}
+							onPressSpendLimitUnlimitedSelected={onPressSpendLimitUnlimitedSelected}
+							onPressSpendLimitCustomSelected={onPressSpendLimitCustomSelected}
+							toggleEditPermission={toggleEditApprovalPermission}
+						/>
+					)}
+					{editQuoteTransactionsMode === EDIT_MODE_GAS && (
+						<CustomGas
+							handleGasFeeSelection={onHandleGasFeeSelection}
+							basicGasEstimates={apiGasPrice}
+							gas={hexToBN(gasLimit)}
+							gasPrice={toWei(gasPrice)}
+							gasError={null}
+							mode={'edit'}
+							customTransaction={selectedQuote.trade}
+							generateTransform={() => null}
+						/>
+					)}
 				</KeyboardAwareScrollView>
 			</Modal>
 		</ScreenView>

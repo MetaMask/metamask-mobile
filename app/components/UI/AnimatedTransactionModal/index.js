@@ -213,14 +213,7 @@ class AnimatedTransactionModal extends PureComponent {
 		}
 
 		return (
-			<Animated.View
-				style={[
-					styles.root,
-					modalTransformStyle,
-					originComponent === 'wallet' && { height: customGasHeight + 70 }
-				]}
-				onLayout={this.saveRootHeight}
-			>
+			<Animated.View style={[styles.root, modalTransformStyle]} onLayout={this.saveRootHeight}>
 				{originComponent === 'dapp' && (
 					<Animated.View
 						style={[this.generateTransform('reviewToEdit', [0, -width]), styles.transactionReview]}
