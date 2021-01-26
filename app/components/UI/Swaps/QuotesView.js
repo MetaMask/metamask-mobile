@@ -410,31 +410,38 @@ function SwapsQuotesView({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
+	useEffect(() => {
+		if (!selectedQuote) {
+			return;
+		}
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
+			token_from: sourceToken.address,
+			token_from_amount: sourceAmount,
+			token_to: destinationToken.address,
+			token_to_amount: selectedQuote.destinationAmount,
+			request_type: hasEnoughBalance ? 'Order' : 'Quote',
+			slippage,
+			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+			response_time: firstLoadTime,
+			best_quote_sources: '',
+			network_fees_USD: '',
+			network_fees_ETH: '',
+			available_quotes: allQuotes.length
+		});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedQuote]);
+
 	/* First load effect: handle initial animation */
 	useEffect(() => {
+		console.log(isFirstLoad, shouldFinishFirstLoad, firstLoadTime, quotesLastFetched, errorKey);
 		if (isFirstLoad && !shouldFinishFirstLoad) {
 			if (firstLoadTime < quotesLastFetched || errorKey) {
 				setShouldFinishFirstLoad(true);
 				if (!errorKey) {
-					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
-						token_from: sourceToken.address,
-						token_from_amount: sourceAmount,
-						token_to: destinationToken.address,
-						token_to_amount: selectedQuote.destinationAmount,
-						request_type: hasEnoughBalance ? 'Order' : 'Quote',
-						slippage,
-						custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-						response_time: firstLoadTime,
-						best_quote_sources: '',
-						network_fees_USD: '',
-						network_fees_ETH: '',
-						available_quotes: allQuotes.length
-					});
 					navigation.setParams({ leftAction: strings('swaps.edit') });
 				}
 			}
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched, shouldFinishFirstLoad]);
 
 	/* selectedQuoteId effect: when topAggId changes make it selected by default */
