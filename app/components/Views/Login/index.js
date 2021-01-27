@@ -443,6 +443,7 @@ class Login extends PureComponent {
 						Type ‘delete’ to erase current wallet permanently
 					</Text>
 					<OutlinedTextField
+						autoFocus
 						returnKeyType={'done'}
 						style={styles.outlinedTextField}
 						onChangeText={this.checkDelete}
