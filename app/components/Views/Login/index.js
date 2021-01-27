@@ -71,10 +71,9 @@ const styles = StyleSheet.create({
 		flexDirection: 'column'
 	},
 	label: {
-		fontSize: 16,
+		fontSize: 14,
 		marginBottom: 12,
-		...fontStyles.normal,
-		color: colors.black
+		...fontStyles.normal
 	},
 	ctaWrapper: {
 		marginTop: 20
@@ -101,8 +100,7 @@ const styles = StyleSheet.create({
 	biometryLabel: {
 		flex: 1,
 		fontSize: 16,
-		...fontStyles.normal,
-		color: colors.black
+		...fontStyles.normal
 	},
 	biometrySwitch: {
 		flex: 0
@@ -116,12 +114,6 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		lineHeight: 24,
 		color: colors.black
-	},
-	outlinedTextField: {
-		paddingTop: 2,
-		fontSize: 16,
-		lineHeight: 24,
-		...fontStyles.normal
 	},
 	areYouSure: {
 		margin: 24,
@@ -452,11 +444,10 @@ class Login extends PureComponent {
 					<OutlinedTextField
 						autoFocus
 						returnKeyType={'done'}
-						style={styles.outlinedTextField}
 						onChangeText={this.checkDelete}
 						autoCapitalize="none"
 						value={this.state.password}
-						baseColor={colors.black}
+						baseColor={colors.grey500}
 						tintColor={colors.blue}
 						onSubmitEditing={this.submitDelete}
 					/>
@@ -487,7 +478,6 @@ class Login extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('login.password')}</Text>
 							<OutlinedTextField
-								style={styles.outlinedTextField}
 								placeholder={'Password'}
 								testID={'login-password-input'}
 								returnKeyType={'done'}
@@ -496,7 +486,7 @@ class Login extends PureComponent {
 								ref={this.fieldRef}
 								onChangeText={this.setPassword}
 								value={this.state.password}
-								baseColor={colors.black}
+								baseColor={colors.grey500}
 								tintColor={colors.blue}
 								onSubmitEditing={this.onLogin}
 								renderRightAccessory={() => (
