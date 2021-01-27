@@ -16,6 +16,7 @@ import Device from '../../../util/Device';
 import Modal from 'react-native-modal';
 import { colors } from '../../../styles/common';
 import {
+	fromTokenMinimalUnit,
 	hexToBN,
 	renderFromTokenMinimalUnit,
 	renderFromWei,
@@ -348,9 +349,10 @@ function SwapsQuotesView({
 
 	/* Approval transaction if any */
 	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState(null);
-	const [approvalCustomValue, setApprovalCustomValue] = useState(null);
+	const [approvalCustomValue, setApprovalCustomValue] = useState(0);
 	const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] = useState(true);
 	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
+
 	const [editQuoteTransactionsMode, setEditQuoteTransactionsMode] = useState(EDIT_MODE_GAS);
 
 	const onSpendLimitCustomValueChange = approvalCustomValue => setApprovalCustomValue(approvalCustomValue);
@@ -364,12 +366,24 @@ function SwapsQuotesView({
 			// calculate new tx data
 			// generate value in minimal units
 			const uint = toTokenMinimalUnit(approvalCustomValue, sourceToken.decimals).toString();
-			const approvalData = generateApproveData({ spender: SWAPS_CONTRACT_ADDRESS, value: uint });
+			const approvalData = generateApproveData({
+				spender: SWAPS_CONTRACT_ADDRESS,
+				value: Number(uint).toString(16)
+			});
 			const newApprovalTransaction = { ...approvalTransaction, data: approvalData };
 			setApprovalTransaction(newApprovalTransaction);
 		}
 		onCancelEditQuoteTransactions();
 	};
+
+	useEffect(() => {
+		setApprovalTransaction(originalApprovalTransaction);
+		if (originalApprovalTransaction) {
+			const approvalTransactionAmount = decodeApproveData(originalApprovalTransaction.data).encodedAmount;
+			const amountDec = hexToBN(approvalTransactionAmount).toString();
+			setApprovalTransactionAmount(fromTokenMinimalUnit(amountDec, sourceToken.decimals));
+		}
+	}, [originalApprovalTransaction, sourceToken.decimals]);
 
 	/* Modals, state and handlers */
 	const [isFeeModalVisible, toggleFeeModal, , hideFeeModal] = useModalHandler(false);
@@ -507,14 +521,6 @@ function SwapsQuotesView({
 		}
 	}, [errorKey, hideFeeModal, hideQuotesModal]);
 
-	// approvalTransaction parsing
-	useEffect(() => {
-		if (approvalTransaction) {
-			const approvalTransactionAmount = decodeApproveData(approvalTransaction.data).encodedAmount;
-			setApprovalTransactionAmount(hexToBN(approvalTransactionAmount).toString());
-		}
-	}, [approvalTransaction]);
-
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
 		return (
@@ -556,6 +562,8 @@ function SwapsQuotesView({
 			</ScreenView>
 		);
 	}
+
+	// console.log('aaaa', approvalTransaction, originalApprovalTransaction)
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
@@ -823,7 +831,11 @@ function SwapsQuotesView({
 						/>
 					)}
 					{editQuoteTransactionsMode === EDIT_MODE_GAS && (
-						<AnimatedTransactionModal onModeChange={() => null} ready review={() => null}>
+						<AnimatedTransactionModal
+							onModeChange={onCancelEditQuoteTransactions}
+							ready
+							review={() => null}
+						>
 							<CustomGas
 								handleGasFeeSelection={onHandleGasFeeSelection}
 								basicGasEstimates={apiGasPrice}
