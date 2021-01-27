@@ -31,6 +31,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import StyledButton from '../StyledButton';
 import SliderButton from '../SliderButton';
+import LoadingAnimation from './components/LoadingAnimation';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
 import FeeModal from './components/FeeModal';
@@ -63,6 +64,9 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 		marginVertical: 10,
 		width: '100%'
+	},
+	alertContent: {
+		flex: 1
 	},
 	timerWrapper: {
 		backgroundColor: colors.grey000,
@@ -190,6 +194,9 @@ const styles = StyleSheet.create({
 });
 
 async function resetAndStartPolling({ slippage, sourceToken, destinationToken, sourceAmount, walletAddress }) {
+	if (!sourceToken || !destinationToken) {
+		return;
+	}
 	const { SwapsController, TokenRatesController, AssetsController } = Engine.context;
 	const contractExchangeRates = TokenRatesController.state.contractExchangeRates;
 	// ff the token is not in the wallet, we'll add it
@@ -234,6 +241,7 @@ function SwapsQuotesView({
 	pollingCyclesLeft,
 	approvalTransaction: originalApprovalTransaction,
 	topAggId,
+	aggregatorMetadata,
 	quotes,
 	quoteValues,
 	errorKey
@@ -256,14 +264,15 @@ function SwapsQuotesView({
 	const balance = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 	const [hasEnoughBalance, missingBalance] = useMemo(() => {
 		const sourceBN = new BigNumber(sourceAmount);
-		const balanceBN = new BigNumber(balance);
+		const balanceBN = new BigNumber(balance.toString());
 		const hasEnough = balanceBN.gte(sourceBN);
 		return [hasEnough, hasEnough ? null : sourceBN.minus(balanceBN)];
 	}, [balance, sourceAmount]);
 
 	/* State */
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
-	const [isFirstLoad, setFirstLoad] = useState(true);
+	const [isFirstLoad, setIsFirstLoad] = useState(true);
+	const [shouldFinishFirstLoad, setShouldFinishFirstLoad] = useState(false);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 
 	// TODO: use this variable in the future when calculating savings
@@ -307,6 +316,26 @@ function SwapsQuotesView({
 		[customGasLimit, selectedQuote]
 	);
 
+	/* Selected quote slippage */
+	const shouldDisplaySlippage = useMemo(
+		() =>
+			(selectedQuote && ['medium', 'high'].includes(selectedQuote?.priceSlippage?.bucket)) ||
+			selectedQuote?.priceSlippage?.calculationError?.length > 0,
+		[selectedQuote]
+	);
+
+	const slippageRatio = useMemo(
+		() =>
+			parseFloat(
+				new BigNumber(selectedQuote?.priceSlippage?.ratio || 0, 10)
+					.minus(1, 10)
+					.times(100, 10)
+					.toFixed(2),
+				10
+			),
+		[selectedQuote]
+	);
+
 	const [numerator, denominator] = useMemo(() => {
 		const source = { ...sourceToken, amount: selectedQuote?.sourceAmount };
 		const destination = { ...destinationToken, amount: selectedQuote?.destinationAmount };
@@ -346,13 +375,20 @@ function SwapsQuotesView({
 	const [isQuotesModalVisible, toggleQuotesModal, , hideQuotesModal] = useModalHandler(false);
 
 	/* Handlers */
+	const handleAnimationEnd = useCallback(() => {
+		setIsFirstLoad(false);
+		if (!errorKey) {
+			navigation.setParams({ leftAction: strings('swaps.edit') });
+		}
+	}, [errorKey, navigation]);
+
 	const handleRatioSwitch = () => setRatioAsSource(isSource => !isSource);
 
 	const handleRetryFetchQuotes = useCallback(() => {
 		if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
 			navigation.setParams({ leftAction: strings('navigation.back') });
 			setFirstLoadTime(Date.now());
-			setFirstLoad(true);
+			setIsFirstLoad(true);
 			resetAndStartPolling({
 				slippage,
 				sourceToken,
@@ -433,15 +469,15 @@ function SwapsQuotesView({
 
 	/* First load effect: handle initial animation */
 	useEffect(() => {
-		if (isFirstLoad) {
+		if (isFirstLoad && !shouldFinishFirstLoad) {
 			if (firstLoadTime < quotesLastFetched || errorKey) {
-				setFirstLoad(false);
+				setShouldFinishFirstLoad(true);
 				if (!errorKey) {
 					navigation.setParams({ leftAction: strings('swaps.edit') });
 				}
 			}
 		}
-	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched]);
+	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched, shouldFinishFirstLoad]);
 
 	/* selectedQuoteId effect: when topAggId changes make it selected by default */
 	useEffect(() => setSelectedQuoteId(topAggId), [topAggId]);
@@ -481,10 +517,12 @@ function SwapsQuotesView({
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
 		return (
-			<ScreenView contentContainerStyle={styles.screen}>
-				<View style={[styles.content, styles.errorViewContent]}>
-					<ActivityIndicator size="large" />
-				</View>
+			<ScreenView contentContainerStyle={styles.screen} scrollEnabled={false}>
+				<LoadingAnimation
+					finish={shouldFinishFirstLoad}
+					onAnimationEnd={handleAnimationEnd}
+					aggregatorMetadata={aggregatorMetadata}
+				/>
 			</ScreenView>
 		);
 	}
@@ -529,6 +567,56 @@ function SwapsQuotesView({
 								{renderFromTokenMinimalUnit(missingBalance, sourceToken.decimals)} {sourceToken.symbol}
 							</Text>{' '}
 							{strings('swaps.more_to_complete')}
+						</Alert>
+					</View>
+				)}
+				{!!selectedQuote && hasEnoughBalance && shouldDisplaySlippage && (
+					<View style={styles.alertBar}>
+						<Alert type={selectedQuote.priceSlippage?.bucket === 'high' ? 'error' : 'warning'}>
+							{textStyle => (
+								<View style={styles.alertContent}>
+									{selectedQuote.priceSlippage?.calculationError?.length > 0 ? (
+										<Text style={textStyle} small centered>
+											{strings('swaps.market_price_unavailable')}
+										</Text>
+									) : (
+										<>
+											<Text style={textStyle} bold centered>
+												{strings('swaps.price_difference', { amount: `~${slippageRatio}%` })}
+											</Text>
+											<Text style={textStyle} centered>
+												{strings('swaps.about_to_swap')}{' '}
+												{renderFromTokenMinimalUnit(
+													selectedQuote.sourceAmount,
+													sourceToken.decimals
+												)}{' '}
+												{sourceToken.symbol} (~
+												<Text reset upper>
+													{weiToFiat(
+														toWei(selectedQuote.priceSlippage?.sourceAmountInETH || 0),
+														conversionRate,
+														currentCurrency
+													)}
+												</Text>
+												) {strings('swaps.for')}{' '}
+												{renderFromTokenMinimalUnit(
+													selectedQuote.destinationAmount,
+													destinationToken.decimals
+												)}{' '}
+												{destinationToken.symbol} (~
+												<Text reset upper>
+													{weiToFiat(
+														toWei(selectedQuote.priceSlippage?.destinationAmountInETH || 0),
+														conversionRate,
+														currentCurrency
+													)}
+												</Text>
+												).
+											</Text>
+										</>
+									)}
+								</View>
+							)}
 						</Alert>
 					</View>
 				)}
@@ -779,6 +867,10 @@ SwapsQuotesView.propTypes = {
 	isInFetch: PropTypes.bool,
 	quotesLastFetched: PropTypes.number,
 	topAggId: PropTypes.string,
+	/**
+	 * Aggregator metada from Swaps controller API
+	 */
+	aggregatorMetadata: PropTypes.object,
 	pollingCyclesLeft: PropTypes.number,
 	quotes: PropTypes.object,
 	quoteValues: PropTypes.object,
@@ -800,6 +892,7 @@ const mapStateToProps = state => ({
 	quotesLastFetched: state.engine.backgroundState.SwapsController.quotesLastFetched,
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
 	topAggId: state.engine.backgroundState.SwapsController.topAggId,
+	aggregatorMetadata: state.engine.backgroundState.SwapsController.aggregatorMetadata,
 	quotes: state.engine.backgroundState.SwapsController.quotes,
 	quoteValues: state.engine.backgroundState.SwapsController.quoteValues,
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,

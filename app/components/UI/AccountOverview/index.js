@@ -2,29 +2,36 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
-import Identicon from '../Identicon';
-import Engine from '../../../core/Engine';
-import { setTokensTransaction } from '../../../actions/transaction';
+import { swapsUtils } from '@estebanmino/controllers';
 import { connect } from 'react-redux';
+import Engine from '../../../core/Engine';
+import Analytics from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
+import { strings } from '../../../../locales/i18n';
+
+import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { showAlert } from '../../../actions/alert';
+import { protectWalletModalVisible } from '../../../actions/user';
+import { toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
+import { newAssetTransaction } from '../../../actions/transaction';
+
+import Device from '../../../util/Device';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
-import Device from '../../../util/Device';
-import { showAlert } from '../../../actions/alert';
-import { strings } from '../../../../locales/i18n';
-import { toggleAccountsModal } from '../../../actions/modals';
+import { isMainNet } from '../../../util/networks';
+import { getEther } from '../../../util/transactions';
+
+import Identicon from '../Identicon';
+import AssetActionButton from '../AssetActionButton';
 import EthereumAddress from '../EthereumAddress';
-import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { protectWalletModalVisible } from '../../../actions/user';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	scrollView: {
-		maxHeight: Device.isIos() ? 210 : 220,
 		backgroundColor: colors.white
 	},
 	wrapper: {
-		maxHeight: Device.isIos() ? 210 : 220,
 		paddingTop: 20,
 		paddingHorizontal: 20,
 		paddingBottom: 0,
@@ -79,6 +86,13 @@ const styles = StyleSheet.create({
 		paddingVertical: Device.isIos() ? 2 : -4,
 		paddingHorizontal: Device.isIos() ? 5 : 5,
 		top: Device.isIos() ? 0 : -2
+	},
+	actions: {
+		width: Device.isSmallDevice() ? '65%' : '50%',
+		justifyContent: 'space-around',
+		alignItems: 'flex-start',
+		flexDirection: 'row',
+		marginVertical: 10
 	}
 });
 
@@ -123,7 +137,28 @@ class AccountOverview extends PureComponent {
 		/**
 		 * Prompts protect wallet modal
 		 */
-		protectWalletModalVisible: PropTypes.func
+		protectWalletModalVisible: PropTypes.func,
+		/**
+		 * Start transaction with asset
+		 */
+		newAssetTransaction: PropTypes.func,
+		/**
+		/* navigation object required to access the props
+		/* passed by the parent component
+		*/
+		navigation: PropTypes.object,
+		/**
+		 * Action that toggles the receive modal
+		 */
+		toggleReceiveModal: PropTypes.func,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string,
+		/**
+		 * Wether Swaps feature is live or not
+		 */
+		swapsIsLive: PropTypes.bool
 	};
 
 	state = {
@@ -200,11 +235,26 @@ class AccountOverview extends PureComponent {
 		});
 	};
 
+	onReceive = () => this.props.toggleReceiveModal(getEther());
+
+	onSend = async () => {
+		const { newAssetTransaction, navigation } = this.props;
+		newAssetTransaction(getEther());
+		navigation.navigate('SendFlowView');
+	};
+
+	goToSwaps = () =>
+		this.props.navigation.navigate('Swaps', {
+			sourceToken: swapsUtils.ETH_SWAPS_TOKEN_ADDRESS
+		});
+
 	render() {
 		const {
 			account: { name, address },
 			currentCurrency,
-			onboardingWizard
+			onboardingWizard,
+			network,
+			swapsIsLive
 		} = this.props;
 
 		const fiatBalance = `${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
@@ -273,6 +323,30 @@ class AccountOverview extends PureComponent {
 						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
 							<EthereumAddress address={address} style={styles.address} type={'short'} />
 						</TouchableOpacity>
+
+						<View style={styles.actions}>
+							<AssetActionButton
+								icon="receive"
+								onPress={this.onReceive}
+								label={strings('asset_overview.receive_button')}
+							/>
+							<AssetActionButton
+								testID={'token-send-button'}
+								icon="send"
+								onPress={this.onSend}
+								label={strings('asset_overview.send_button')}
+							/>
+							{AppConstants.SWAPS.ACTIVE && (
+								<AssetActionButton
+									icon="swap"
+									label={strings('asset_overview.swap')}
+									disabled={
+										!swapsIsLive || AppConstants.SWAPS.ONLY_MAINNET ? !isMainNet(network) : false
+									}
+									onPress={this.goToSwaps}
+								/>
+							)}
+						</View>
 					</View>
 				</ScrollView>
 			</View>
@@ -283,14 +357,17 @@ class AccountOverview extends PureComponent {
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	network: state.engine.backgroundState.NetworkController.network,
+	swapsIsLive: swapsLivenessSelector(state)
 });
 
 const mapDispatchToProps = dispatch => ({
-	setTokensTransaction: asset => dispatch(setTokensTransaction(asset)),
 	showAlert: config => dispatch(showAlert(config)),
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
-	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
+	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset)),
+	toggleReceiveModal: asset => dispatch(toggleReceiveModal(asset))
 });
 
 export default connect(

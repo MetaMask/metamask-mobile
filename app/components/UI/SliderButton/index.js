@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Animated, PanResponder, StyleSheet, Image, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
+import Device from '../../../util/Device';
 
 /* eslint-disable import/no-commonjs */
 const SliderBgImg = require('./assets/slider_button_gradient.png');
@@ -185,7 +186,7 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 					source={SliderBgImg}
 					resizeMode="stretch"
 				/>
-				{!disabled && (
+				{!Device.isAndroid() && !disabled && (
 					<Animated.Image
 						style={[
 							styles.trackBackShine,

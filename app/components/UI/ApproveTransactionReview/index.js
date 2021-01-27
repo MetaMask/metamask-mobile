@@ -386,11 +386,10 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderTransactionReview = () => {
-		const { host, method, viewData, tokenSymbol } = this.state;
+		const { host, method, viewData, tokenSymbol, originalApproveAmount } = this.state;
 		const {
 			transaction: { to, data }
 		} = this.props;
-		const amount = decodeTransferData('transfer', data)[1];
 
 		return (
 			<TransactionReviewDetailsCard
@@ -399,7 +398,7 @@ class ApproveTransactionReview extends PureComponent {
 				copyContractAddress={this.copyContractAddress}
 				address={renderShortAddress(to)}
 				host={host}
-				allowance={amount}
+				allowance={originalApproveAmount}
 				tokenSymbol={tokenSymbol}
 				data={data}
 				method={method}
