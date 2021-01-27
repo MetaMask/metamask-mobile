@@ -47,6 +47,7 @@ const Default = () => (
 export default function WarningExistingUserModal({
 	warningModalVisible,
 	onCancelPress,
+	cancelButtonDisabled,
 	onRequestClose,
 	onConfirmPress,
 	children,
@@ -59,6 +60,7 @@ export default function WarningExistingUserModal({
 			cancelText={cancelText || strings('onboarding.warning_proceed')}
 			confirmText={confirmText || strings('onboarding.warning_cancel')}
 			onCancelPress={onCancelPress}
+			cancelButtonDisabled={cancelButtonDisabled}
 			onRequestClose={onRequestClose}
 			onConfirmPress={onConfirmPress}
 			cancelButtonMode={'warning'}
@@ -72,6 +74,7 @@ export default function WarningExistingUserModal({
 
 WarningExistingUserModal.propTypes = {
 	cancelText: PropTypes.string,
+	cancelButtonDisabled: PropTypes.bool,
 	confirmText: PropTypes.string,
 	children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]),
 	/**

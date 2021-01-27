@@ -126,12 +126,16 @@ const styles = StyleSheet.create({
 		alignSelf: 'center'
 	},
 	heading: {
-		marginHorizontal: 24,
+		marginHorizontal: 6,
+		color: colors.black,
 		...fontStyles.bold,
 		fontSize: 20,
 		textAlign: 'center',
-		color: colors.red,
 		lineHeight: 26
+	},
+	red: {
+		marginHorizontal: 24,
+		color: colors.red
 	},
 	warningText: {
 		...fontStyles.normal,
@@ -145,6 +149,12 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		color: colors.red,
 		marginVertical: 10
+	},
+	bold: {
+		...fontStyles.bold
+	},
+	delete: {
+		marginBottom: 20
 	}
 });
 
@@ -188,7 +198,7 @@ class Login extends PureComponent {
 		error: null,
 		biometryPreviouslyDisabled: false,
 		warningModalVisible: false,
-		deleteModalVisible: false
+		deleteModalVisible: true
 	};
 
 	mounted = true;
@@ -377,21 +387,50 @@ class Login extends PureComponent {
 			<WarningExistingUserModal
 				warningModalVisible={this.state.warningModalVisible}
 				cancelText={'I understand, continue'}
-				onCancelPress={() => ({})}
-				onRequestClose={() => ({})}
+				onCancelPress={() => {
+					this.toggleWarningModal();
+					this.toggleDeleteModal();
+				}}
+				onRequestClose={() => this.toggleWarningModal()}
 				onConfirmPress={() => this.toggleWarningModal()}
 			>
 				<View style={styles.areYouSure}>
 					<Icon style={styles.warningIcon} size={46} color={colors.red} name="exclamation-triangle" />
-					<Text style={styles.heading}>Are you sure you want to erase your wallet?</Text>
+					<Text style={[styles.heading, styles.red]}>Are you sure you want to erase your wallet?</Text>
 					<Text style={styles.warningText}>
-						Your current wallet, accounts and assets will be removed from this app perminently. This action
-						cannot be undone.
+						<Text>Your current wallet, accounts and assets will be </Text>
+						<Text style={styles.bold}>removed from this app perminently. </Text>
+						<Text>This action cannot be undone.</Text>
 					</Text>
 					<Text style={[styles.warningText, styles.noMarginBottom]}>
-						You can ONLY recover this wallet with your 12-word Recovery Phrase. MetaMask does not have your
-						recovery phrase.
+						<Text>You can ONLY recover this wallet with your </Text>
+						<Text style={styles.bold}>12-word Recovery Phrase. </Text>
+						<Text>MetaMask does not have your recovery phrase.</Text>
 					</Text>
+				</View>
+			</WarningExistingUserModal>
+
+			<WarningExistingUserModal
+				warningModalVisible={this.state.deleteModalVisible}
+				cancelText={'Delete my wallet'}
+				cancelButtonDisabled
+				onCancelPress={() => ({})}
+				onRequestClose={() => this.toggleDeleteModal()}
+				onConfirmPress={() => this.toggleDeleteModal()}
+			>
+				<View style={styles.areYouSure}>
+					<Text style={[styles.heading, styles.delete]}>
+						Type ‘delete’ to erase current wallet permanently
+					</Text>
+					<OutlinedTextField
+						style={styles.outlinedTextField}
+						onChangeText={this.checkDelete}
+						autoCapitalize="none"
+						placeholder={'delete'}
+						value={this.state.password}
+						baseColor={colors.black}
+						tintColor={colors.blue}
+					/>
 				</View>
 			</WarningExistingUserModal>
 
@@ -422,7 +461,7 @@ class Login extends PureComponent {
 								ref={this.fieldRef}
 								onChangeText={this.setPassword}
 								value={this.state.password}
-								baseColor={colors.grey500}
+								baseColor={colors.black}
 								tintColor={colors.blue}
 								onSubmitEditing={this.onLogin}
 								renderRightAccessory={() => (

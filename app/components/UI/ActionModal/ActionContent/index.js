@@ -53,6 +53,7 @@ export default function ActionContent({
 	confirmText,
 	confirmDisabled,
 	cancelButtonMode,
+	cancelButtonDisabled,
 	confirmButtonMode,
 	displayCancelButton,
 	displayConfirmButton,
@@ -76,6 +77,7 @@ export default function ActionContent({
 				>
 					{displayCancelButton && (
 						<StyledButton
+							disabled={cancelButtonDisabled}
 							testID={cancelTestID}
 							type={cancelButtonMode}
 							onPress={onCancelPress}
@@ -103,6 +105,7 @@ export default function ActionContent({
 
 ActionContent.defaultProps = {
 	cancelButtonMode: 'neutral',
+	cancelButtonDisabled: false,
 	confirmButtonMode: 'warning',
 	confirmTestID: '',
 	cancelTestID: '',
@@ -117,6 +120,7 @@ ActionContent.defaultProps = {
 };
 
 ActionContent.propTypes = {
+	cancelButtonDisabled: PropTypes.bool,
 	/**
 	 * TestID for the cancel button
 	 */
