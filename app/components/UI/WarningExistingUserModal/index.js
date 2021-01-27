@@ -28,6 +28,19 @@ const styles = StyleSheet.create({
 	}
 });
 
+const Default = () => (
+	<View style={styles.warningModalView}>
+		<Text style={styles.warningModalTitle}>{strings('onboarding.warning_title')}</Text>
+		<Text style={styles.warningModalText}>
+			{strings('onboarding.warning_text_1')}
+			<Text style={styles.warningModalTextBold}>{` ${strings('onboarding.warning_text_2')} `}</Text>
+			{strings('onboarding.warning_text_3')}
+		</Text>
+		<Text />
+		<Text style={styles.warningModalText}>{strings('onboarding.warning_text_4')}</Text>
+	</View>
+);
+
 /**
  * View that renders a warning for existing user in a modal
  */
@@ -35,13 +48,16 @@ export default function WarningExistingUserModal({
 	warningModalVisible,
 	onCancelPress,
 	onRequestClose,
-	onConfirmPress
+	onConfirmPress,
+	children,
+	cancelText,
+	confirmText
 }) {
 	return (
 		<ActionModal
 			modalVisible={warningModalVisible}
-			cancelText={strings('onboarding.warning_proceed')}
-			confirmText={strings('onboarding.warning_cancel')}
+			cancelText={cancelText || strings('onboarding.warning_proceed')}
+			confirmText={confirmText || strings('onboarding.warning_cancel')}
 			onCancelPress={onCancelPress}
 			onRequestClose={onRequestClose}
 			onConfirmPress={onConfirmPress}
@@ -49,35 +65,29 @@ export default function WarningExistingUserModal({
 			confirmButtonMode={'neutral'}
 			verticalButtons
 		>
-			<View style={styles.warningModalView}>
-				<Text style={styles.warningModalTitle}>{strings('onboarding.warning_title')}</Text>
-				<Text style={styles.warningModalText}>
-					{strings('onboarding.warning_text_1')}
-					<Text style={styles.warningModalTextBold}>{` ${strings('onboarding.warning_text_2')} `}</Text>
-					{strings('onboarding.warning_text_3')}
-				</Text>
-				<Text />
-				<Text style={styles.warningModalText}>{strings('onboarding.warning_text_4')}</Text>
-			</View>
+			{(children && children) || <Default />}
 		</ActionModal>
 	);
 }
 
 WarningExistingUserModal.propTypes = {
+	cancelText: PropTypes.string,
+	confirmText: PropTypes.string,
+	children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]),
 	/**
 	 * Whether the modal is visible
 	 */
-	warningModalVisible: PropTypes.bool,
+	warningModalVisible: PropTypes.bool.isRequired,
 	/**
 	 * Cancel callback
 	 */
-	onCancelPress: PropTypes.func,
+	onCancelPress: PropTypes.func.isRequired,
 	/**
 	 * Close callback
 	 */
-	onRequestClose: PropTypes.func,
+	onRequestClose: PropTypes.func.isRequired,
 	/**
 	 * Confirm callback
 	 */
-	onConfirmPress: PropTypes.func
+	onConfirmPress: PropTypes.func.isRequired
 };

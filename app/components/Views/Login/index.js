@@ -29,6 +29,8 @@ import {
 } from '../../../constants/storage';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
+import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -117,6 +119,32 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		lineHeight: 24,
 		...fontStyles.normal
+	},
+	areYouSure: {
+		margin: 24,
+		justifyContent: 'center',
+		alignSelf: 'center'
+	},
+	heading: {
+		marginHorizontal: 24,
+		...fontStyles.bold,
+		fontSize: 20,
+		textAlign: 'center',
+		color: colors.red,
+		lineHeight: 26
+	},
+	warningText: {
+		...fontStyles.normal,
+		textAlign: 'center',
+		fontSize: 14,
+		lineHeight: 18,
+		color: colors.black,
+		marginTop: 20
+	},
+	warningIcon: {
+		alignSelf: 'center',
+		color: colors.red,
+		marginVertical: 10
 	}
 });
 
@@ -158,7 +186,9 @@ class Login extends PureComponent {
 		biometryChoice: false,
 		loading: false,
 		error: null,
-		biometryPreviouslyDisabled: false
+		biometryPreviouslyDisabled: false,
+		warningModalVisible: false,
+		deleteModalVisible: false
 	};
 
 	mounted = true;
@@ -277,6 +307,9 @@ class Login extends PureComponent {
 		);
 	};
 
+	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
+	toggleDeleteModal = () => this.setState(state => ({ deleteModalVisible: !state.deleteModalVisible }));
+
 	updateBiometryChoice = async biometryChoice => {
 		if (!biometryChoice) {
 			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
@@ -341,6 +374,27 @@ class Login extends PureComponent {
 
 	render = () => (
 		<ErrorBoundary view="Login">
+			<WarningExistingUserModal
+				warningModalVisible={this.state.warningModalVisible}
+				cancelText={'I understand, continue'}
+				onCancelPress={() => ({})}
+				onRequestClose={() => ({})}
+				onConfirmPress={() => this.toggleWarningModal()}
+			>
+				<View style={styles.areYouSure}>
+					<Icon style={styles.warningIcon} size={46} color={colors.red} name="exclamation-triangle" />
+					<Text style={styles.heading}>Are you sure you want to erase your wallet?</Text>
+					<Text style={styles.warningText}>
+						Your current wallet, accounts and assets will be removed from this app perminently. This action
+						cannot be undone.
+					</Text>
+					<Text style={[styles.warningText, styles.noMarginBottom]}>
+						You can ONLY recover this wallet with your 12-word Recovery Phrase. MetaMask does not have your
+						recovery phrase.
+					</Text>
+				</View>
+			</WarningExistingUserModal>
+
 			<SafeAreaView style={styles.mainWrapper}>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'login'}>
@@ -409,7 +463,7 @@ class Login extends PureComponent {
 							<Text style={styles.cant}>
 								Can’t login? You can ERASE your current wallet and setup new
 							</Text>
-							<Button style={styles.goBack} onPress={this.onPressGoBack}>
+							<Button style={styles.goBack} onPress={this.toggleWarningModal}>
 								Reset Wallet
 							</Button>
 						</View>
