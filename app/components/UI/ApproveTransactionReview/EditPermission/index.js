@@ -7,16 +7,15 @@ import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ConnectHeader from '../../ConnectHeader';
+import Device from '../../../../util/Device';
 
 const styles = StyleSheet.create({
-	section: {
-		minWidth: '100%',
-		width: '100%',
-		paddingVertical: 10
-	},
-	editPermissionWrapper: {
-		paddingHorizontal: 16,
-		paddingBottom: 16
+	wrapper: {
+		flex: 1,
+		paddingHorizontal: 24,
+		paddingTop: 24,
+		paddingBottom: Device.isIphoneX() ? 48 : 24,
+		backgroundColor: colors.white
 	},
 	sectionExplanationText: {
 		...fontStyles.normal,
@@ -103,7 +102,7 @@ function EditPermission({
 	toggleEditPermission
 }) {
 	return (
-		<View style={[styles.section, styles.editPermissionWrapper]}>
+		<View style={styles.wrapper}>
 			<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
 				<ConnectHeader action={toggleEditPermission} title={strings('spend_limit_edition.title')} />
 				<View>

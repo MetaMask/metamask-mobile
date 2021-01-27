@@ -45,10 +45,6 @@ class AnimatedTransactionModal extends PureComponent {
 		children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]).isRequired
 	};
 
-	static defaultProps = {
-		onModeChange: () => undefined
-	};
-
 	state = {
 		originComponent: React.Children.toArray(this.props?.children).length > 1 ? 'dapp' : 'wallet',
 		modalValue:
@@ -213,7 +209,14 @@ class AnimatedTransactionModal extends PureComponent {
 		}
 
 		return (
-			<Animated.View style={[styles.root, modalTransformStyle]} onLayout={this.saveRootHeight}>
+			<Animated.View
+				style={[
+					styles.root,
+					modalTransformStyle,
+					originComponent === 'wallet' && { height: customGasHeight + 70 }
+				]}
+				onLayout={this.saveRootHeight}
+			>
 				{originComponent === 'dapp' && (
 					<Animated.View
 						style={[this.generateTransform('reviewToEdit', [0, -width]), styles.transactionReview]}

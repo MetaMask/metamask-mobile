@@ -46,6 +46,7 @@ import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
 import EditPermission from '../ApproveTransactionReview/EditPermission';
 import { decodeApproveData, generateApproveData } from '../../../util/transactions';
 import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
+import AnimatedTransactionModal from '../AnimatedTransactionModal';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -737,22 +738,20 @@ function SwapsQuotesView({
 								</View>
 							</View>
 
-							{approvalTransaction && (
+							{!!approvalTransaction && (
 								<View style={styles.quotesRow}>
-									<TouchableOpacity style={styles.quotesRow}>
-										<Text>
-											{`${strings('swaps.enable.this_will')} `}
-											<Text bold>
-												{`${strings('swaps.enable.enable_asset', {
-													asset: sourceToken.symbol
-												})} `}
-											</Text>
-											{`${strings('swaps.enable.for_swapping')}`}
-											<TouchableOpacity onPress={onEditQuoteTransactionsApproveAmount}>
-												<Text link>{` ${strings('swaps.enable.edit_limit')}`}</Text>
-											</TouchableOpacity>
+									<View style={styles.quotesRow}>
+										<Text>{`${strings('swaps.enable.this_will')} `}</Text>
+										<Text bold>
+											{`${strings('swaps.enable.enable_asset', {
+												asset: sourceToken.symbol
+											})} `}
 										</Text>
-									</TouchableOpacity>
+										<Text>{`${strings('swaps.enable.for_swapping')}`}</Text>
+										<TouchableOpacity onPress={onEditQuoteTransactionsApproveAmount}>
+											<Text link>{` ${strings('swaps.enable.edit_limit')}`}</Text>
+										</TouchableOpacity>
+									</View>
 								</View>
 							)}
 							<QuotesSummary.Separator />
@@ -770,7 +769,7 @@ function SwapsQuotesView({
 				<SliderButton
 					incompleteText={
 						<Text style={styles.sliderButtonText}>
-							{strings('swaps.swipe_to')}{' '}
+							{`${strings('swaps.swipe_to')} `}
 							<Text reset bold>
 								{strings('swaps.swap')}
 							</Text>
@@ -824,16 +823,17 @@ function SwapsQuotesView({
 						/>
 					)}
 					{editQuoteTransactionsMode === EDIT_MODE_GAS && (
-						<CustomGas
-							handleGasFeeSelection={onHandleGasFeeSelection}
-							basicGasEstimates={apiGasPrice}
-							gas={hexToBN(gasLimit)}
-							gasPrice={toWei(gasPrice)}
-							gasError={null}
-							mode={'edit'}
-							customTransaction={selectedQuote.trade}
-							generateTransform={() => null}
-						/>
+						<AnimatedTransactionModal onModeChange={() => null} ready review={() => null}>
+							<CustomGas
+								handleGasFeeSelection={onHandleGasFeeSelection}
+								basicGasEstimates={apiGasPrice}
+								gas={hexToBN(gasLimit)}
+								gasPrice={toWei(gasPrice)}
+								gasError={null}
+								mode={'edit'}
+								customTransaction={selectedQuote.trade}
+							/>
+						</AnimatedTransactionModal>
 					)}
 				</KeyboardAwareScrollView>
 			</Modal>
