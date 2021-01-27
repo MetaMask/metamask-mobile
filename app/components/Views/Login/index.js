@@ -207,9 +207,10 @@ class Login extends PureComponent {
 		error: null,
 		biometryPreviouslyDisabled: false,
 		warningModalVisible: false,
-		deleteModalVisible: true,
+		deleteModalVisible: false,
 		disableDelete: true,
-		deleteText: ''
+		deleteText: '',
+		showDeleteWarning: false
 	};
 
 	mounted = true;
@@ -320,7 +321,8 @@ class Login extends PureComponent {
 		}
 	};
 
-	onPressGoBack = () => {
+	delete = () => {
+		// actually delete?
 		this.props.navigation.navigate(
 			'OnboardingRootNav',
 			{},
@@ -331,12 +333,16 @@ class Login extends PureComponent {
 	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
 	toggleDeleteModal = () => this.setState(state => ({ deleteModalVisible: !state.deleteModalVisible }));
 	checkDelete = text => {
-		this.setState({ deleteText: text });
-		this.setState({ showDeleteWarning: false });
-		this.setState({ disableDelete: !isTextDelete(text) });
+		this.setState({
+			deleteText: text,
+			showDeleteWarning: false,
+			disableDelete: !isTextDelete(text)
+		});
 	};
 	submitDelete = () => {
-		this.setState({ showDeleteWarning: !isTextDelete(this.state.deleteText) });
+		const { deleteText } = this.state;
+		this.setState({ showDeleteWarning: !isTextDelete(deleteText) });
+		if (isTextDelete(deleteText)) this.delete();
 	};
 
 	updateBiometryChoice = async biometryChoice => {
