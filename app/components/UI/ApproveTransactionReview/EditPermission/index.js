@@ -11,11 +11,12 @@ import Device from '../../../../util/Device';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1,
 		paddingHorizontal: 24,
 		paddingTop: 24,
 		paddingBottom: Device.isIphoneX() ? 48 : 24,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
+		borderTopRightRadius: 20,
+		borderTopLeftRadius: 20
 	},
 	sectionExplanationText: {
 		...fontStyles.normal,
