@@ -25,7 +25,8 @@ import {
 	METRICS_OPT_IN,
 	ENCRYPTION_LIB,
 	TRUE,
-	ORIGINAL
+	ORIGINAL,
+	EXISTING_USER
 } from '../../../constants/storage';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
@@ -322,7 +323,7 @@ class Login extends PureComponent {
 	};
 
 	delete = () => {
-		// actually delete?
+		AsyncStorage.removeItem(EXISTING_USER);
 		this.props.navigation.navigate(
 			'OnboardingRootNav',
 			{},
