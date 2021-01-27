@@ -907,9 +907,11 @@ export function getSwapsQuotesNavbar(navigation) {
 	const trade = navigation.getParam('requestedTrade');
 	const quoteBegin = navigation.getParam('quoteBegin');
 	const rightAction = () => {
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED, {
-			...trade,
-			responseTime: new Date().getTime() - quoteBegin
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED, {
+				...trade,
+				responseTime: new Date().getTime() - quoteBegin
+			});
 		});
 		navigation.dismiss();
 	};
