@@ -155,6 +155,13 @@ const styles = StyleSheet.create({
 	},
 	delete: {
 		marginBottom: 20
+	},
+	deleteWarningMsg: {
+		...fontStyles.normal,
+		fontSize: 16,
+		lineHeight: 20,
+		marginTop: 10,
+		color: colors.red
 	}
 });
 
@@ -198,7 +205,9 @@ class Login extends PureComponent {
 		error: null,
 		biometryPreviouslyDisabled: false,
 		warningModalVisible: false,
-		deleteModalVisible: true
+		deleteModalVisible: true,
+		disableDelete: true,
+		deleteText: ''
 	};
 
 	mounted = true;
@@ -319,6 +328,14 @@ class Login extends PureComponent {
 
 	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
 	toggleDeleteModal = () => this.setState(state => ({ deleteModalVisible: !state.deleteModalVisible }));
+	checkDelete = text => {
+		this.setState({ deleteText: text });
+		this.setState({ showDeleteWarning: false });
+		this.setState({ disableDelete: !(text === 'delete') });
+	};
+	submitDelete = () => {
+		this.setState({ showDeleteWarning: !(this.state.deleteText === 'delete') });
+	};
 
 	updateBiometryChoice = async biometryChoice => {
 		if (!biometryChoice) {
@@ -391,8 +408,8 @@ class Login extends PureComponent {
 					this.toggleWarningModal();
 					this.toggleDeleteModal();
 				}}
-				onRequestClose={() => this.toggleWarningModal()}
-				onConfirmPress={() => this.toggleWarningModal()}
+				onRequestClose={this.toggleWarningModal}
+				onConfirmPress={this.toggleWarningModal}
 			>
 				<View style={styles.areYouSure}>
 					<Icon style={styles.warningIcon} size={46} color={colors.red} name="exclamation-triangle" />
@@ -413,16 +430,18 @@ class Login extends PureComponent {
 			<WarningExistingUserModal
 				warningModalVisible={this.state.deleteModalVisible}
 				cancelText={'Delete my wallet'}
-				cancelButtonDisabled
-				onCancelPress={() => ({})}
-				onRequestClose={() => this.toggleDeleteModal()}
-				onConfirmPress={() => this.toggleDeleteModal()}
+				cancelButtonDisabled={this.state.disableDelete}
+				onCancelPress={this.submitDelete}
+				onRequestClose={this.toggleDeleteModal}
+				onConfirmPress={this.toggleDeleteModal}
+				onSubmitEditing={this.submitDelete}
 			>
 				<View style={styles.areYouSure}>
 					<Text style={[styles.heading, styles.delete]}>
 						Type ‘delete’ to erase current wallet permanently
 					</Text>
 					<OutlinedTextField
+						returnKeyType={'done'}
 						style={styles.outlinedTextField}
 						onChangeText={this.checkDelete}
 						autoCapitalize="none"
@@ -430,7 +449,14 @@ class Login extends PureComponent {
 						value={this.state.password}
 						baseColor={colors.black}
 						tintColor={colors.blue}
+						onSubmitEditing={this.submitDelete}
 					/>
+					{this.state.showDeleteWarning && (
+						<Text style={styles.deleteWarningMsg}>
+							You can’t proceed till you type the word ‘Delete’. With this action you are opting in to
+							erase your current wallet.
+						</Text>
+					)}
 				</View>
 			</WarningExistingUserModal>
 
