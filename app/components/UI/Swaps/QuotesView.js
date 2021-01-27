@@ -400,6 +400,16 @@ function SwapsQuotesView({
 				request_type: hasEnoughBalance ? 'Order' : 'Quote',
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 			});
+			navigation.setParams({
+				requestedTrade: {
+					token_from: sourceToken.address,
+					token_from_amount: sourceAmount,
+					token_to: destinationToken.address,
+					request_type: hasEnoughBalance ? 'Order' : 'Quote',
+					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+					selectedQuote
+				}
+			});
 		});
 		resetAndStartPolling({
 			slippage,

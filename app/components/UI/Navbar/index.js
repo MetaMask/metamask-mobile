@@ -906,6 +906,9 @@ export function getSwapsQuotesNavbar(navigation) {
 	const title = navigation.getParam('title', 'Swap');
 	const rightAction = navigation.dismiss;
 	const leftAction = navigation.getParam('leftAction', strings('navigation.back'));
+	const trade = navigation.getParam('requestedTrade');
+	console.log(navigation);
+	console.log(trade);
 
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork translate={false} />,
