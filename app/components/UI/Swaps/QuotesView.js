@@ -409,6 +409,9 @@ function SwapsQuotesView({
 					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 				}
 			});
+			navigation.setParams({
+				quoteBegin: new Date().getTime()
+			});
 		});
 		resetAndStartPolling({
 			slippage,
