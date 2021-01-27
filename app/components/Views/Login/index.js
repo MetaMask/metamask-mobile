@@ -32,6 +32,8 @@ import ErrorBoundary from '../ErrorBoundary';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
+const isTextDelete = text => String(text).toLowerCase() === 'delete';
+
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
@@ -331,10 +333,10 @@ class Login extends PureComponent {
 	checkDelete = text => {
 		this.setState({ deleteText: text });
 		this.setState({ showDeleteWarning: false });
-		this.setState({ disableDelete: !(text === 'delete') });
+		this.setState({ disableDelete: !isTextDelete(text) });
 	};
 	submitDelete = () => {
-		this.setState({ showDeleteWarning: !(this.state.deleteText === 'delete') });
+		this.setState({ showDeleteWarning: !isTextDelete(this.state.deleteText) });
 	};
 
 	updateBiometryChoice = async biometryChoice => {
@@ -445,7 +447,6 @@ class Login extends PureComponent {
 						style={styles.outlinedTextField}
 						onChangeText={this.checkDelete}
 						autoCapitalize="none"
-						placeholder={'delete'}
 						value={this.state.password}
 						baseColor={colors.black}
 						tintColor={colors.blue}
