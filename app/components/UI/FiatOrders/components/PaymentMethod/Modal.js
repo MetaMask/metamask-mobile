@@ -77,7 +77,7 @@ const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => (
 		<SafeAreaView style={styles.modalView}>
 			<View style={styles.title}>
 				<Title>{title}</Title>
-				<TouchableOpacity onPress={dismiss}>
+				<TouchableOpacity onPress={dismiss} hitSlop={{ top: 20, right: 20, bottom: 20, left: 20 }}>
 					<CloseIcon />
 				</TouchableOpacity>
 			</View>
