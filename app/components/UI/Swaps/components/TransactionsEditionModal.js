@@ -51,17 +51,16 @@ function TransactionsEditionModal({
 	const onPressSpendLimitCustomSelected = () => setSpendLimitUnlimitedSelected(false);
 
 	const onSetApprovalAmount = () => {
-		if (!spendLimitUnlimitedSelected) {
-			// calculate new tx data
-			// generate value in minimal units
-			const uint = toTokenMinimalUnit(approvalCustomValue, sourceToken.decimals).toString();
-			const approvalData = generateApproveData({
-				spender: SWAPS_CONTRACT_ADDRESS,
-				value: Number(uint).toString(16)
-			});
-			const newApprovalTransaction = { ...approvalTransaction, data: approvalData };
-			setApprovalTransaction(newApprovalTransaction);
-		}
+		const uint = toTokenMinimalUnit(
+			spendLimitUnlimitedSelected ? approvalTransactionAmount : approvalCustomValue,
+			sourceToken.decimals
+		).toString();
+		const approvalData = generateApproveData({
+			spender: SWAPS_CONTRACT_ADDRESS,
+			value: Number(uint).toString(16)
+		});
+		const newApprovalTransaction = { ...approvalTransaction, data: approvalData };
+		setApprovalTransaction(newApprovalTransaction);
 		onCancelEditQuoteTransactions();
 	};
 
