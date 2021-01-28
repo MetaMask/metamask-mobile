@@ -14,9 +14,8 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/Device';
 import { colors } from '../../../styles/common';
-import { renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
+import { BNToHex, renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
-import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
 import Alert from '../../Base/Alert';
 import useModalHandler from '../../Base/hooks/useModalHandler';
@@ -34,6 +33,7 @@ import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
 import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
 import TransactionsEditionModal from './components/TransactionsEditionModal';
+import { apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -290,11 +290,38 @@ function SwapsQuotesView({
 	]);
 	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [quoteValues, selectedQuoteId]);
 
-	const gasPrice = useMemo(() => customGasPrice || apiGasPrice?.averageGwei, [customGasPrice, apiGasPrice]);
+	/* gas estimations */
+	const gasPrice = useMemo(
+		() =>
+			customGasPrice
+				? customGasPrice?.toString(16)
+				: !!apiGasPrice && apiEstimateModifiedToWEI(apiGasPrice?.averageGwei).toString(16),
+		[customGasPrice, apiGasPrice]
+	);
+
 	const gasLimit = useMemo(
-		() => customGasLimit || selectedQuote?.trade?.gasEstimateWithRefund || selectedQuote?.averageGas,
+		() =>
+			(customGasLimit && BNToHex(customGasLimit)) ||
+			selectedQuote?.trade?.gasEstimateWithRefund?.toString(16) ||
+			selectedQuote?.averageGas?.toString(16),
 		[customGasLimit, selectedQuote]
 	);
+
+	/* Total gas fee in decimal */
+	const gasFee = useMemo(() => {
+		if (customGasPrice) {
+			return calcTokenAmount(customGasPrice * gasLimit, 18);
+		}
+		return selectedQuoteValue?.ethFee;
+	}, [selectedQuoteValue, customGasPrice, gasLimit]);
+
+	/* Maximum gas fee in decimal */
+	const maxGasFee = useMemo(() => {
+		if (customGasPrice && selectedQuote?.maxGas) {
+			return calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
+		}
+		return selectedQuoteValue?.maxEthFee;
+	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
 
 	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
@@ -400,20 +427,6 @@ function SwapsQuotesView({
 		setCustomGasPrice(gasPrice);
 		setCustomGasLimit(gas);
 	};
-
-	const gasFee = useMemo(() => {
-		if (customGasPrice) {
-			return calcTokenAmount(customGasPrice * gasLimit, 18);
-		}
-		return selectedQuoteValue?.ethFee;
-	}, [selectedQuoteValue, customGasPrice, gasLimit]);
-
-	const maxGasFee = useMemo(() => {
-		if (customGasPrice && selectedQuote?.maxGas) {
-			return calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
-		}
-		return selectedQuoteValue?.maxEthFee;
-	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
 
 	/* Effects */
 
@@ -804,8 +817,6 @@ SwapsQuotesView.propTypes = {
 	approvalTransaction: PropTypes.object,
 	errorKey: PropTypes.string
 };
-
-SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,

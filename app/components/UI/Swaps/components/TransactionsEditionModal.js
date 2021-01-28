@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
 
 import Modal from 'react-native-modal';
-import { fromTokenMinimalUnit, hexToBN, toTokenMinimalUnit, toWei } from '../../../../util/number';
+import { fromTokenMinimalUnit, hexToBN, toTokenMinimalUnit } from '../../../../util/number';
 import { getSwapsQuotesNavbar } from '../../Navbar';
 import CustomGas from '../../CustomGas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -72,7 +72,6 @@ function TransactionsEditionModal({
 			setApprovalTransactionAmount(fromTokenMinimalUnit(amountDec, sourceToken.decimals));
 		}
 	}, [originalApprovalTransaction, sourceToken.decimals]);
-
 	return (
 		<Modal
 			isVisible={editQuoteTransactionsVisible}
@@ -109,7 +108,7 @@ function TransactionsEditionModal({
 							handleGasFeeSelection={onHandleGasFeeSelection}
 							basicGasEstimates={apiGasPrice}
 							gas={hexToBN(gasLimit)}
-							gasPrice={toWei(gasPrice)}
+							gasPrice={hexToBN(gasPrice)}
 							gasError={null}
 							mode={'edit'}
 							customTransaction={selectedQuote.trade}
@@ -127,7 +126,7 @@ TransactionsEditionModal.propTypes = {
 	editQuoteTransactionsMode: PropTypes.string,
 	editQuoteTransactionsVisible: PropTypes.bool,
 	gasLimit: PropTypes.string,
-	gasPrice: PropTypes.number,
+	gasPrice: PropTypes.string,
 	onCancelEditQuoteTransactions: PropTypes.func,
 	onHandleGasFeeSelection: PropTypes.func,
 	selectedQuote: PropTypes.object,
