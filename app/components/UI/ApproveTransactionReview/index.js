@@ -13,14 +13,15 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { util } from '@metamask/controllers';
-import { renderFromWei, weiToFiatNumber, fromTokenMinimalUnit } from '../../../util/number';
+import { renderFromWei, weiToFiatNumber, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import currencySymbols from '../../../util/currency-symbols.json';
 import {
 	getTicker,
-	decodeTransferData,
 	getNormalizedTxState,
 	getActiveTabUrl,
-	getMethodData
+	getMethodData,
+	decodeApproveData,
+	generateApproveData
 } from '../../../util/transactions';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
@@ -236,7 +237,9 @@ class ApproveTransactionReview extends PureComponent {
 		spendLimitCustomValue: undefined,
 		ticker: getTicker(this.props.ticker),
 		viewDetails: false,
-		spenderAddress: '0x...'
+		spenderAddress: '0x...',
+		transaction: this.props.transaction,
+		token: {}
 	};
 
 	customSpendLimitInput = React.createRef();
@@ -255,7 +258,6 @@ class ApproveTransactionReview extends PureComponent {
 			try {
 				tokenDecimals = await AssetsContractController.getTokenDecimals(to);
 				tokenSymbol = await AssetsContractController.getAssetSymbol(to);
-				tokenDecimals = await AssetsContractController.getTokenDecimals(to);
 			} catch (e) {
 				tokenSymbol = 'ERC20 Token';
 				tokenDecimals = 18;
@@ -264,8 +266,8 @@ class ApproveTransactionReview extends PureComponent {
 			tokenSymbol = contract.symbol;
 			tokenDecimals = contract.decimals;
 		}
-		const [spenderAddress, , originalApproveAmount] = decodeTransferData('transfer', data);
-		const approveAmount = fromTokenMinimalUnit(hexToBN(originalApproveAmount), tokenDecimals);
+		const { spenderAddress, encodedAmount } = decodeApproveData(data);
+		const approveAmount = fromTokenMinimalUnit(hexToBN(encodedAmount), tokenDecimals);
 		const totalGas = gas?.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
@@ -274,13 +276,14 @@ class ApproveTransactionReview extends PureComponent {
 			method,
 			originalApproveAmount: approveAmount,
 			tokenSymbol,
+			token: { symbol: tokenSymbol, decimals: tokenDecimals },
 			totalGas: renderFromWei(totalGas),
 			totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
 			spenderAddress
 		});
 	};
 
-	componentDidUpdate(previousProps, previousState) {
+	componentDidUpdate(previousProps) {
 		const {
 			transaction: { gas, gasPrice },
 			conversionRate
@@ -363,6 +366,28 @@ class ApproveTransactionReview extends PureComponent {
 		onModeChange && onModeChange('edit');
 	};
 
+	onEditPermissionSetAmount = () => {
+		const {
+			token,
+			spenderAddress,
+			spendLimitUnlimitedSelected,
+			originalApproveAmount,
+			spendLimitCustomValue,
+			transaction
+		} = this.state;
+		const uint = toTokenMinimalUnit(
+			spendLimitUnlimitedSelected ? originalApproveAmount : spendLimitCustomValue,
+			token.decimals
+		).toString();
+		const approvalData = generateApproveData({
+			spender: spenderAddress,
+			value: Number(uint).toString(16)
+		});
+		const newApprovalTransaction = { ...transaction, data: approvalData };
+		setTransactionObject(newApprovalTransaction);
+		this.toggleEditPermission();
+	};
+
 	renderEditPermission = () => {
 		const {
 			host,
@@ -378,6 +403,8 @@ class ApproveTransactionReview extends PureComponent {
 				tokenSymbol={tokenSymbol}
 				spendLimitCustomValue={spendLimitCustomValue}
 				originalApproveAmount={originalApproveAmount}
+				onSetApprovalAmount={this.onEditPermissionSetAmount}
+				onSpendLimitCustomValueChange={this.onSpendLimitCustomValueChange}
 				onPressSpendLimitUnlimitedSelected={this.onPressSpendLimitUnlimitedSelected}
 				onPressSpendLimitCustomSelected={this.onPressSpendLimitCustomSelected}
 				toggleEditPermission={this.toggleEditPermission}
@@ -386,10 +413,14 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderTransactionReview = () => {
-		const { host, method, viewData, tokenSymbol, originalApproveAmount } = this.state;
 		const {
+			host,
+			method,
+			viewData,
+			tokenSymbol,
+			originalApproveAmount,
 			transaction: { to, data }
-		} = this.props;
+		} = this.state;
 
 		return (
 			<TransactionReviewDetailsCard

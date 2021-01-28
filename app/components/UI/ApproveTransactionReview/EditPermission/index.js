@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/Device';
 
@@ -96,100 +95,105 @@ function EditPermission({
 	tokenSymbol,
 	spendLimitCustomValue,
 	originalApproveAmount,
-	onSetApprovalAmount,
+	onSetApprovalAmount: setApprovalAmount,
 	onSpendLimitCustomValueChange,
 	onPressSpendLimitUnlimitedSelected,
 	onPressSpendLimitCustomSelected,
 	toggleEditPermission
 }) {
+	const onSetApprovalAmount = useCallback(() => {
+		if (!spendLimitUnlimitedSelected && !spendLimitCustomValue) {
+			onPressSpendLimitUnlimitedSelected();
+		} else {
+			setApprovalAmount();
+		}
+	}, [spendLimitUnlimitedSelected, spendLimitCustomValue, onPressSpendLimitUnlimitedSelected, setApprovalAmount]);
+
 	return (
 		<View style={styles.wrapper}>
-			<KeyboardAwareScrollView resetScrollToCoords={{ x: 0, y: 0 }}>
-				<ConnectHeader action={toggleEditPermission} title={strings('spend_limit_edition.title')} />
-				<View>
-					<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
-					<Text style={styles.spendLimitSubtitle}>
-						{strings('spend_limit_edition.allow')}
-						<Text style={fontStyles.bold}>{` ${host} `}</Text>
-						{strings('spend_limit_edition.allow_explanation')}
-					</Text>
+			<ConnectHeader action={toggleEditPermission} title={strings('spend_limit_edition.title')} />
+			<View>
+				<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
+				<Text style={styles.spendLimitSubtitle}>
+					{strings('spend_limit_edition.allow')}
+					<Text style={fontStyles.bold}>{` ${host} `}</Text>
+					{strings('spend_limit_edition.allow_explanation')}
+				</Text>
 
-					<View style={styles.option}>
-						<TouchableOpacity onPress={onPressSpendLimitUnlimitedSelected} style={styles.touchableOption}>
-							{spendLimitUnlimitedSelected ? (
-								<View style={styles.outSelectedCircle}>
-									<View style={styles.selectedCircle} />
-								</View>
-							) : (
-								<View style={styles.circle} />
-							)}
-						</TouchableOpacity>
-						<View style={styles.spendLimitContent}>
-							<Text
-								style={[
-									styles.optionText,
-									spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
-								]}
-							>
-								{strings('spend_limit_edition.proposed')}
-							</Text>
-							<Text style={styles.sectionExplanationText}>
-								{strings('spend_limit_edition.requested_by')}
-								<Text style={fontStyles.bold}>{` ${host}`}</Text>
-							</Text>
-							<Text
-								style={[styles.optionText, styles.textBlack]}
-							>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
-						</View>
-					</View>
-
-					<View style={styles.option}>
-						<TouchableOpacity onPress={onPressSpendLimitCustomSelected} style={styles.touchableOption}>
-							{spendLimitUnlimitedSelected ? (
-								<View style={styles.circle} />
-							) : (
-								<View style={styles.outSelectedCircle}>
-									<View style={styles.selectedCircle} />
-								</View>
-							)}
-						</TouchableOpacity>
-						<View style={styles.spendLimitContent}>
-							<Text
-								style={[
-									styles.optionText,
-									!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
-								]}
-							>
-								{strings('spend_limit_edition.custom_spend_limit')}
-							</Text>
-							<Text style={styles.sectionExplanationText}>
-								{strings('spend_limit_edition.max_spend_limit')}
-							</Text>
-							<TextInput
-								// ref={this.customSpendLimitInput}
-								autoCapitalize="none"
-								keyboardType="numeric"
-								autoCorrect={false}
-								onChangeText={onSpendLimitCustomValueChange}
-								placeholder={`100 ${tokenSymbol}`}
-								placeholderTextColor={colors.grey100}
-								spellCheck={false}
-								style={styles.input}
-								value={spendLimitCustomValue}
-								numberOfLines={1}
-								onFocus={onPressSpendLimitCustomSelected}
-								returnKeyType={'done'}
-							/>
-							<Text style={styles.sectionExplanationText}>
-								{strings('spend_limit_edition.minimum', { tokenSymbol })}
-							</Text>
-						</View>
+				<View style={styles.option}>
+					<TouchableOpacity onPress={onPressSpendLimitUnlimitedSelected} style={styles.touchableOption}>
+						{spendLimitUnlimitedSelected ? (
+							<View style={styles.outSelectedCircle}>
+								<View style={styles.selectedCircle} />
+							</View>
+						) : (
+							<View style={styles.circle} />
+						)}
+					</TouchableOpacity>
+					<View style={styles.spendLimitContent}>
+						<Text
+							style={[
+								styles.optionText,
+								spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
+							]}
+						>
+							{strings('spend_limit_edition.proposed')}
+						</Text>
+						<Text style={styles.sectionExplanationText}>
+							{strings('spend_limit_edition.requested_by')}
+							<Text style={fontStyles.bold}>{` ${host}`}</Text>
+						</Text>
+						<Text
+							style={[styles.optionText, styles.textBlack]}
+						>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
 					</View>
 				</View>
-				<StyledButton type="confirm" onPress={onSetApprovalAmount}>
-					{strings('transaction.set_gas')}
-				</StyledButton>
-			</KeyboardAwareScrollView>
+
+				<View style={styles.option}>
+					<TouchableOpacity onPress={onPressSpendLimitCustomSelected} style={styles.touchableOption}>
+						{spendLimitUnlimitedSelected ? (
+							<View style={styles.circle} />
+						) : (
+							<View style={styles.outSelectedCircle}>
+								<View style={styles.selectedCircle} />
+							</View>
+						)}
+					</TouchableOpacity>
+					<View style={styles.spendLimitContent}>
+						<Text
+							style={[
+								styles.optionText,
+								!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
+							]}
+						>
+							{strings('spend_limit_edition.custom_spend_limit')}
+						</Text>
+						<Text style={styles.sectionExplanationText}>
+							{strings('spend_limit_edition.max_spend_limit')}
+						</Text>
+						<TextInput
+							autoCapitalize="none"
+							keyboardType="numeric"
+							autoCorrect={false}
+							onChangeText={onSpendLimitCustomValueChange}
+							placeholder={`100 ${tokenSymbol}`}
+							placeholderTextColor={colors.grey100}
+							spellCheck={false}
+							style={styles.input}
+							value={spendLimitCustomValue}
+							numberOfLines={1}
+							onFocus={onPressSpendLimitCustomSelected}
+							returnKeyType={'done'}
+						/>
+						<Text style={styles.sectionExplanationText}>
+							{strings('spend_limit_edition.minimum', { tokenSymbol })}
+						</Text>
+					</View>
+				</View>
+			</View>
+			<StyledButton type="confirm" onPress={onSetApprovalAmount}>
+				{strings('transaction.set_gas')}
+			</StyledButton>
 		</View>
 	);
 }
