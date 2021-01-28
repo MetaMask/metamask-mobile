@@ -199,7 +199,7 @@ class Login extends PureComponent {
 		loading: false,
 		error: null,
 		biometryPreviouslyDisabled: false,
-		warningModalVisible: false,
+		warningModalVisible: true,
 		deleteModalVisible: false,
 		disableDelete: true,
 		deleteText: '',
@@ -324,7 +324,9 @@ class Login extends PureComponent {
 	};
 
 	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
+
 	toggleDeleteModal = () => this.setState(state => ({ deleteModalVisible: !state.deleteModalVisible }));
+
 	checkDelete = text => {
 		this.setState({
 			deleteText: text,
@@ -332,6 +334,7 @@ class Login extends PureComponent {
 			disableDelete: !isTextDelete(text)
 		});
 	};
+
 	submitDelete = () => {
 		const { deleteText } = this.state;
 		this.setState({ showDeleteWarning: !isTextDelete(deleteText) });
@@ -404,7 +407,7 @@ class Login extends PureComponent {
 		<ErrorBoundary view="Login">
 			<WarningExistingUserModal
 				warningModalVisible={this.state.warningModalVisible}
-				cancelText={'I understand, continue'}
+				cancelText={strings('login.i_understand')}
 				onCancelPress={() => {
 					this.toggleWarningModal();
 					this.toggleDeleteModal();
@@ -414,23 +417,23 @@ class Login extends PureComponent {
 			>
 				<View style={styles.areYouSure}>
 					<Icon style={styles.warningIcon} size={46} color={colors.red} name="exclamation-triangle" />
-					<Text style={[styles.heading, styles.red]}>Are you sure you want to erase your wallet?</Text>
+					<Text style={[styles.heading, styles.red]}>{strings('login.are_you_sure')}</Text>
 					<Text style={styles.warningText}>
-						<Text>Your current wallet, accounts and assets will be </Text>
-						<Text style={styles.bold}>removed from this app perminently. </Text>
-						<Text>This action cannot be undone.</Text>
+						<Text>{strings('login.your_current_wallet')}</Text>
+						<Text style={styles.bold}>{strings('login.removed_from')}</Text>
+						<Text>{strings('login.this_action')}</Text>
 					</Text>
 					<Text style={[styles.warningText, styles.noMarginBottom]}>
-						<Text>You can ONLY recover this wallet with your </Text>
-						<Text style={styles.bold}>12-word Recovery Phrase. </Text>
-						<Text>MetaMask does not have your recovery phrase.</Text>
+						<Text>{strings('login.you_can_only')}</Text>
+						<Text style={styles.bold}>{strings('login.recovery_phrase')}</Text>
+						<Text>{strings('login.metamask_does_not')}</Text>
 					</Text>
 				</View>
 			</WarningExistingUserModal>
 
 			<WarningExistingUserModal
 				warningModalVisible={this.state.deleteModalVisible}
-				cancelText={'Delete my wallet'}
+				cancelText={strings('login.delete_my')}
 				cancelButtonDisabled={this.state.disableDelete}
 				onCancelPress={this.submitDelete}
 				onRequestClose={this.toggleDeleteModal}
@@ -438,9 +441,7 @@ class Login extends PureComponent {
 				onSubmitEditing={this.submitDelete}
 			>
 				<View style={styles.areYouSure}>
-					<Text style={[styles.heading, styles.delete]}>
-						Type ‘delete’ to erase current wallet permanently
-					</Text>
+					<Text style={[styles.heading, styles.delete]}>{strings('login.type_delete')}</Text>
 					<OutlinedTextField
 						autoFocus
 						returnKeyType={'done'}
@@ -452,10 +453,7 @@ class Login extends PureComponent {
 						onSubmitEditing={this.submitDelete}
 					/>
 					{this.state.showDeleteWarning && (
-						<Text style={styles.deleteWarningMsg}>
-							You can’t proceed till you type the word ‘Delete’. With this action you are opting in to
-							erase your current wallet.
-						</Text>
+						<Text style={styles.deleteWarningMsg}>{strings('login.cant_proceed')}</Text>
 					)}
 				</View>
 			</WarningExistingUserModal>
@@ -524,11 +522,9 @@ class Login extends PureComponent {
 						</View>
 
 						<View style={styles.footer}>
-							<Text style={styles.cant}>
-								Can’t login? You can ERASE your current wallet and setup new
-							</Text>
+							<Text style={styles.cant}>{strings('login.go_back')}</Text>
 							<Button style={styles.goBack} onPress={this.toggleWarningModal}>
-								Reset Wallet
+								{strings('login.reset_wallet')}
 							</Button>
 						</View>
 					</View>

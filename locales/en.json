@@ -126,8 +126,20 @@
 		"title": "Welcome Back!",
 		"password": "Password",
 		"login_button": "LOG IN",
-		"go_back": "Go Back",
-		"invalid_password": "Invalid password"
+		"go_back": "Can’t login? You can ERASE your current wallet and setup new",
+		"reset_wallet": "Reset Wallet",
+		"cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
+		"invalid_password": "Invalid password",
+		"type_delete": "Type ‘delete’ to erase current wallet permanently",
+		"delete_my": "Delete my wallet",
+		"are_you_sure": "Are you sure you want to erase your wallet?",
+		"your_current_wallet": "Your current wallet, accounts and assets will be ",
+		"removed_from": "removed from this app perminently. ",
+		"this_action": "This action cannot be undone.",
+		"you_can_only": "You can ONLY recover this wallet with your ",
+		"recovery_phrase": "12-word Recovery Phrase ",
+		"metamask_does_not": "MetaMask does not have your recovery phrase.",
+		"i_understand": "I understand, continue"
 	},
 	"enter_password": {
 		"title": "Enter your password",
