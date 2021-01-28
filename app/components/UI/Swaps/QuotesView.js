@@ -13,17 +13,8 @@ import { NavigationContext } from 'react-navigation';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/Device';
-import Modal from 'react-native-modal';
 import { colors } from '../../../styles/common';
-import {
-	fromTokenMinimalUnit,
-	hexToBN,
-	renderFromTokenMinimalUnit,
-	renderFromWei,
-	toTokenMinimalUnit,
-	toWei,
-	weiToFiat
-} from '../../../util/number';
+import { renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
 import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
@@ -40,14 +31,9 @@ import QuotesModal from './components/QuotesModal';
 import { strings } from '../../../../locales/i18n';
 import { swapsUtils } from '@estebanmino/controllers';
 import useBalance from './utils/useBalance';
-import CustomGas from '../CustomGas';
 import useGasPrice from './utils/useGasPrice';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
-import EditPermission from '../ApproveTransactionReview/EditPermission';
-import { decodeApproveData, generateApproveData } from '../../../util/transactions';
-import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
-import AnimatedTransactionModal from '../AnimatedTransactionModal';
+import TransactionsEditionModal from './components/TransactionsEditionModal';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -184,14 +170,6 @@ const styles = StyleSheet.create({
 	},
 	expiredIcon: {
 		color: colors.blue
-	},
-	keyboardAwareWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end'
-	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0
 	}
 });
 
@@ -348,42 +326,14 @@ function SwapsQuotesView({
 	const ratio = useRatio(numerator?.amount, numerator?.decimals, denominator?.amount, denominator?.decimals);
 
 	/* Approval transaction if any */
-	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState(null);
-	const [approvalCustomValue, setApprovalCustomValue] = useState(0);
-	const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] = useState(true);
 	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
-
 	const [editQuoteTransactionsMode, setEditQuoteTransactionsMode] = useState(EDIT_MODE_GAS);
 
-	const onSpendLimitCustomValueChange = approvalCustomValue => setApprovalCustomValue(approvalCustomValue);
-	const onPressSpendLimitUnlimitedSelected = () => setSpendLimitUnlimitedSelected(true);
-	const onPressSpendLimitCustomSelected = () => setSpendLimitUnlimitedSelected(false);
 	const onCancelEditQuoteTransactions = () => setEditQuoteTransactionsVisible(false);
-
-	const toggleEditApprovalPermission = () => onCancelEditQuoteTransactions();
-	const onSetApprovalAmount = () => {
-		if (!spendLimitUnlimitedSelected) {
-			// calculate new tx data
-			// generate value in minimal units
-			const uint = toTokenMinimalUnit(approvalCustomValue, sourceToken.decimals).toString();
-			const approvalData = generateApproveData({
-				spender: SWAPS_CONTRACT_ADDRESS,
-				value: Number(uint).toString(16)
-			});
-			const newApprovalTransaction = { ...approvalTransaction, data: approvalData };
-			setApprovalTransaction(newApprovalTransaction);
-		}
-		onCancelEditQuoteTransactions();
-	};
 
 	useEffect(() => {
 		setApprovalTransaction(originalApprovalTransaction);
-		if (originalApprovalTransaction) {
-			const approvalTransactionAmount = decodeApproveData(originalApprovalTransaction.data).encodedAmount;
-			const amountDec = hexToBN(approvalTransactionAmount).toString();
-			setApprovalTransactionAmount(fromTokenMinimalUnit(amountDec, sourceToken.decimals));
-		}
-	}, [originalApprovalTransaction, sourceToken.decimals]);
+	}, [originalApprovalTransaction]);
 
 	/* Modals, state and handlers */
 	const [isFeeModalVisible, toggleFeeModal, , hideFeeModal] = useModalHandler(false);
@@ -801,54 +751,19 @@ function SwapsQuotesView({
 				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
 			/>
-			<Modal
-				isVisible={editQuoteTransactionsVisible}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-				onBackdropPress={onCancelEditQuoteTransactions}
-				onBackButtonPress={onCancelEditQuoteTransactions}
-				onSwipeComplete={onCancelEditQuoteTransactions}
-				swipeDirection={'down'}
-				propagateSwipe
-			>
-				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-					{editQuoteTransactionsMode === EDIT_MODE_APPROVE_AMOUNT && !!approvalTransaction && (
-						<EditPermission
-							host={'Swaps'}
-							spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
-							tokenSymbol={sourceToken.symbol}
-							spendLimitCustomValue={approvalCustomValue}
-							originalApproveAmount={approvalTransactionAmount}
-							onSetApprovalAmount={onSetApprovalAmount}
-							onSpendLimitCustomValueChange={onSpendLimitCustomValueChange}
-							onPressSpendLimitUnlimitedSelected={onPressSpendLimitUnlimitedSelected}
-							onPressSpendLimitCustomSelected={onPressSpendLimitCustomSelected}
-							toggleEditPermission={toggleEditApprovalPermission}
-						/>
-					)}
-					{editQuoteTransactionsMode === EDIT_MODE_GAS && (
-						<AnimatedTransactionModal
-							onModeChange={onCancelEditQuoteTransactions}
-							ready
-							review={() => null}
-						>
-							<CustomGas
-								handleGasFeeSelection={onHandleGasFeeSelection}
-								basicGasEstimates={apiGasPrice}
-								gas={hexToBN(gasLimit)}
-								gasPrice={toWei(gasPrice)}
-								gasError={null}
-								mode={'edit'}
-								customTransaction={selectedQuote.trade}
-							/>
-						</AnimatedTransactionModal>
-					)}
-				</KeyboardAwareScrollView>
-			</Modal>
+
+			<TransactionsEditionModal
+				apiGasPrice={apiGasPrice}
+				approvalTransaction={approvalTransaction}
+				editQuoteTransactionsMode={editQuoteTransactionsMode}
+				editQuoteTransactionsVisible={editQuoteTransactionsVisible}
+				gasLimit={gasLimit}
+				gasPrice={gasPrice}
+				onCancelEditQuoteTransactions={onCancelEditQuoteTransactions}
+				onHandleGasFeeSelection={onHandleGasFeeSelection}
+				selectedQuote={selectedQuote}
+				sourceToken={sourceToken}
+			/>
 		</ScreenView>
 	);
 }
