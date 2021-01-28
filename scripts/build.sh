@@ -236,7 +236,7 @@ buildAndroidRelease(){
 		# Generate sourcemaps
 		yarn sourcemaps:android
 		# Generate checksum
-		yarn build:android-checksum
+		yarn build:android:checksum
 	fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
