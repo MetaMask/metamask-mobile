@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 
 import Modal from 'react-native-modal';
 import { fromTokenMinimalUnit, hexToBN, toTokenMinimalUnit } from '../../../../util/number';
-import { getSwapsQuotesNavbar } from '../../Navbar';
 import CustomGas from '../../CustomGas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EditPermission from '../../ApproveTransactionReview/EditPermission';
@@ -138,8 +137,6 @@ TransactionsEditionModal.propTypes = {
 	selectedQuote: PropTypes.object,
 	sourceToken: PropTypes.object
 };
-
-TransactionsEditionModal.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
 
 const mapStateToProps = state => ({
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction

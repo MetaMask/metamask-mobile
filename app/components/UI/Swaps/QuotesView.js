@@ -34,6 +34,7 @@ import useGasPrice from './utils/useGasPrice';
 import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
 import TransactionsEditionModal from './components/TransactionsEditionModal';
 import { apiEstimateModifiedToWEI } from '../../../util/custom-gas';
+import { getSwapsQuotesNavbar } from '../Navbar';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -780,6 +781,8 @@ function SwapsQuotesView({
 		</ScreenView>
 	);
 }
+
+SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
 
 SwapsQuotesView.propTypes = {
 	tokens: PropTypes.arrayOf(PropTypes.object),
