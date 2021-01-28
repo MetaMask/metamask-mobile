@@ -137,7 +137,7 @@
 		"removed_from": "removed from this app perminently. ",
 		"this_action": "This action cannot be undone.",
 		"you_can_only": "You can ONLY recover this wallet with your ",
-		"recovery_phrase": "12-word Recovery Phrase ",
+		"recovery_phrase": "Recovery Phrase ",
 		"metamask_does_not": "MetaMask does not have your recovery phrase.",
 		"i_understand": "I understand, continue"
 	},
