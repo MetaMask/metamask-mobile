@@ -44,6 +44,7 @@ function TransactionsEditionModal({
 	const [approvalCustomValue, setApprovalCustomValue] = useState('');
 	const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] = useState(true);
 	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
+	const [currentGasSelector, setCurrentGasSelector] = useState(null);
 
 	const onSpendLimitCustomValueChange = approvalCustomValue => setApprovalCustomValue(approvalCustomValue);
 	const onPressSpendLimitUnlimitedSelected = () => setSpendLimitUnlimitedSelected(true);
@@ -62,6 +63,10 @@ function TransactionsEditionModal({
 			setApprovalTransaction(newApprovalTransaction);
 		}
 		onCancelEditQuoteTransactions();
+	};
+
+	const onPressGasSelector = gasSelector => {
+		setCurrentGasSelector(gasSelector);
 	};
 
 	useEffect(() => {
@@ -105,6 +110,8 @@ function TransactionsEditionModal({
 				{editQuoteTransactionsMode === EDIT_MODE_GAS && (
 					<AnimatedTransactionModal onModeChange={onCancelEditQuoteTransactions} ready review={() => null}>
 						<CustomGas
+							gasSpeedSelected={currentGasSelector}
+							onPress={onPressGasSelector}
 							handleGasFeeSelection={onHandleGasFeeSelection}
 							basicGasEstimates={apiGasPrice}
 							gas={hexToBN(gasLimit)}
