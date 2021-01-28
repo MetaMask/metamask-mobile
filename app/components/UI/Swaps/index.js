@@ -378,7 +378,10 @@ function SwapsAmountView({
 				<Keypad onChange={handleKeypadChange} value={amount} />
 				<View style={styles.buttonsContainer}>
 					<View style={styles.column}>
-						<TouchableOpacity onPress={toggleSlippageModal}>
+						<TouchableOpacity
+							onPress={toggleSlippageModal}
+							hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+						>
 							<Text bold link>
 								{strings('swaps.max_slippage_amount', { slippage: `${slippage}%` })}
 							</Text>
