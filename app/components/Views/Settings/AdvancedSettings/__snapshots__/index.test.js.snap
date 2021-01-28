@@ -39,6 +39,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
       }
     >
       <ActionModal
+        cancelButtonDisabled={false}
         cancelButtonMode="neutral"
         cancelTestID=""
         cancelText="Cancel"
