@@ -140,6 +140,9 @@ function QuotesModal({
 	const bestOverallValue = quoteValues[quotes[0].aggregator].overallValueOfQuote;
 	const [displayDetails, setDisplayDetails] = useState(false);
 	const [selectedDetailsQuoteIndex, setSelectedDetailsQuoteIndex] = useState(null);
+
+	// When index/quotes change we get a new selected quote in case it exists
+	// (quotes.length can be shorter than selected index)
 	const selectedDetailsQuote = useMemo(() => {
 		if (selectedDetailsQuoteIndex !== null && quotes?.[selectedDetailsQuoteIndex]) {
 			return quotes[selectedDetailsQuoteIndex];
@@ -147,6 +150,7 @@ function QuotesModal({
 		return null;
 	}, [quotes, selectedDetailsQuoteIndex]);
 
+	// When index/quotes/quoteValues change we get a new selected quoteValaue in case it exists
 	const selectedDetailsQuoteValues = useMemo(() => {
 		if (
 			selectedDetailsQuoteIndex !== null &&
@@ -158,11 +162,13 @@ function QuotesModal({
 		return null;
 	}, [quoteValues, selectedDetailsQuote, selectedDetailsQuoteIndex]);
 
+	// Toggle displaying details
 	const toggleDetails = useCallback(() => {
 		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 		setDisplayDetails(f => !f);
 	}, []);
 
+	// Toggle to the details in case the quote exist
 	const handleQuoteDetailsPress = useCallback(
 		index => {
 			if (quotes?.[index]) {
@@ -173,6 +179,7 @@ function QuotesModal({
 		[toggleDetails, quotes]
 	);
 
+	// Go back from the detail view to the list before dismissing the modal
 	const handleBackButtonPress = useCallback(() => {
 		if (displayDetails) {
 			return toggleDetails();
@@ -180,16 +187,20 @@ function QuotesModal({
 		toggleModal();
 	}, [toggleDetails, displayDetails, toggleModal]);
 
+	// Go back to the list view when modal is visible
 	useEffect(() => {
 		if (isVisible) {
 			setDisplayDetails(false);
 		}
 	}, [isVisible]);
 
+	// When quotes change go back to the first quote as selected
 	useEffect(() => {
 		setSelectedDetailsQuoteIndex(quotes?.[0] || null);
 	}, [quotes]);
 
+	// If details are going to be displayed but the quotes does not exist,
+	// go back to the list
 	useEffect(() => {
 		if (displayDetails && !selectedDetailsQuote) {
 			setDisplayDetails(false);
