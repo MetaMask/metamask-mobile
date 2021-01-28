@@ -385,34 +385,42 @@ function SwapsQuotesView({
 		}
 		await TransactionController.addTransaction(selectedQuote.trade);
 		navigation.dismiss();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [navigation, selectedQuote, approvalTransaction, basicGasEstimates]);
+	}, [
+		navigation,
+		selectedQuote,
+		approvalTransaction,
+		basicGasEstimates,
+		sourceToken,
+		sourceAmount,
+		destinationToken,
+		hasEnoughBalance,
+		slippage,
+		allQuotes,
+		selectedQuoteValue,
+		selectedQuoteId,
+		conversionRate
+	]);
 
 	/* Effects */
 
-	/* Main polling effect */
-	useEffect(() => {
+	const handleQuotesRequestedMetric = useCallback(() => {
 		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, {
+			const data = {
 				token_from: sourceToken.address,
 				token_from_amount: sourceAmount,
 				token_to: destinationToken.address,
 				request_type: hasEnoughBalance ? 'Order' : 'Quote',
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
-			});
-			navigation.setParams({
-				requestedTrade: {
-					token_from: sourceToken.address,
-					token_from_amount: sourceAmount,
-					token_to: destinationToken.address,
-					request_type: hasEnoughBalance ? 'Order' : 'Quote',
-					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
-				}
-			});
-			navigation.setParams({
-				quoteBegin: new Date().getTime()
-			});
+			};
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, data);
+			navigation.setParams({ requestedTrade: data });
+			navigation.setParams({ quoteBegin: new Date().getTime() });
 		});
+	}, [sourceToken, sourceAmount, destinationToken, hasEnoughBalance, slippage, navigation]);
+
+	/* Main polling effect */
+	useEffect(() => {
+		handleQuotesRequestedMetric();
 		resetAndStartPolling({
 			slippage,
 			sourceToken,
@@ -424,13 +432,9 @@ function SwapsQuotesView({
 			const { SwapsController } = Engine.context;
 			SwapsController.stopPollingAndResetState();
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
+	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken, handleQuotesRequestedMetric]);
 
-	useEffect(() => {
-		if (!selectedQuote) {
-			return;
-		}
+	const handleQuotesReceivedMetric = useCallback(() => {
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
 				token_from: sourceToken.address,
@@ -447,13 +451,27 @@ function SwapsQuotesView({
 				available_quotes: allQuotes.length
 			});
 		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedQuote]);
+	}, [
+		sourceToken,
+		sourceAmount,
+		destinationToken,
+		selectedQuote,
+		hasEnoughBalance,
+		slippage,
+		allQuotesFetchTime,
+		selectedQuoteValue,
+		allQuotes,
+		conversionRate
+	]);
 
 	useEffect(() => {
-		if (!isQuotesModalVisible) {
+		if (!selectedQuote) {
 			return;
 		}
+		handleQuotesReceivedMetric();
+	}, [selectedQuote, handleQuotesReceivedMetric]);
+
+	const handleQuotesModalMetric = useCallback(() => {
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
 			token_from: sourceToken.address,
 			token_from_amount: sourceAmount,
@@ -468,8 +486,25 @@ function SwapsQuotesView({
 			network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
 			available_quotes: allQuotes.length
 		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isQuotesModalVisible]);
+	}, [
+		sourceToken,
+		sourceAmount,
+		destinationToken,
+		selectedQuote,
+		hasEnoughBalance,
+		slippage,
+		allQuotesFetchTime,
+		selectedQuoteValue,
+		allQuotes,
+		conversionRate
+	]);
+
+	useEffect(() => {
+		if (!isQuotesModalVisible) {
+			return;
+		}
+		handleQuotesModalMetric();
+	}, [isQuotesModalVisible, handleQuotesModalMetric]);
 
 	/* First load effect: handle initial animation */
 	useEffect(() => {
@@ -518,38 +553,40 @@ function SwapsQuotesView({
 		};
 	}, [hideFeeModal, hideQuotesModal, isInFetch, quotesLastFetched]);
 
-	/* errorKey effect: hide every modal*/
-	useEffect(() => {
-		if (errorKey) {
-			hideFeeModal();
-			hideQuotesModal();
+	const handleQuotesErrorMetrics = useCallback(
+		errorKey => {
+			const data = {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				slippage,
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+			};
 			if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
 				InteractionManager.runAfterInteractions(() => {
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
-						token_from: sourceToken.address,
-						token_from_amount: sourceAmount,
-						token_to: destinationToken.address,
-						request_type: hasEnoughBalance ? 'Order' : 'Quote',
-						slippage,
-						custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+						...data,
 						gas_fees: ''
 					});
 				});
 			} else if (errorKey === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
 				InteractionManager.runAfterInteractions(() => {
-					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, {
-						token_from: sourceToken.address,
-						token_from_amount: sourceAmount,
-						token_to: destinationToken.address,
-						request_type: hasEnoughBalance ? 'Order' : 'Quote',
-						slippage,
-						custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
-					});
+					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, { data });
 				});
 			}
+		},
+		[sourceToken, sourceAmount, destinationToken, hasEnoughBalance, slippage]
+	);
+
+	/* errorKey effect: hide every modal*/
+	useEffect(() => {
+		if (errorKey) {
+			hideFeeModal();
+			hideQuotesModal();
+			handleQuotesErrorMetrics(errorKey);
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [errorKey, hideFeeModal, hideQuotesModal]);
+	}, [errorKey, hideFeeModal, hideQuotesModal, handleQuotesErrorMetrics]);
 
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
