@@ -25,6 +25,9 @@ function handleUSDInput(currentAmount, inputKey) {
 
 			return currentAmount.slice(0, -1);
 		}
+		case 'INITIAL': {
+			return '0';
+		}
 		case '0': {
 			if (currentAmount === '0') {
 				return currentAmount;
