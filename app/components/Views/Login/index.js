@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textAlign: 'center',
 		fontSize: 14,
-		lineHeight: 18,
+		lineHeight: 22,
 		color: colors.black,
 		marginTop: 20
 	},
