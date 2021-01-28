@@ -314,13 +314,17 @@ class Login extends PureComponent {
 		}
 	};
 
-	delete = () => {
-		AsyncStorage.removeItem(EXISTING_USER);
-		this.props.navigation.navigate(
-			'OnboardingRootNav',
-			{},
-			NavigationActions.navigate({ routeName: 'Onboarding' })
-		);
+	delete = async () => {
+		try {
+			await AsyncStorage.removeItem(EXISTING_USER);
+			this.props.navigation.navigate(
+				'OnboardingRootNav',
+				{},
+				NavigationActions.navigate({ routeName: 'Onboarding' })
+			);
+		} catch (error) {
+			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
+		}
 	};
 
 	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
