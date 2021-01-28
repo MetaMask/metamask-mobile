@@ -184,7 +184,7 @@ function SwapsAmountView({
 	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
 	const balanceAsUnits = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 	const hasBalance = useMemo(() => {
-		if (!balanceAsUnits || !sourceToken || sourceToken.address === SWAPS_ETH_ADDRESS) {
+		if (!balanceAsUnits || !sourceToken) {
 			return false;
 		}
 
@@ -192,11 +192,11 @@ function SwapsAmountView({
 	}, [balanceAsUnits, sourceToken]);
 
 	const hasEnoughBalance = useMemo(() => {
-		if (hasInvalidDecimals) {
+		if (hasInvalidDecimals || !hasBalance || !balanceAsUnits) {
 			return false;
 		}
 		return balanceAsUnits.gte(amountAsUnits);
-	}, [amountAsUnits, balanceAsUnits, hasInvalidDecimals]);
+	}, [amountAsUnits, balanceAsUnits, hasBalance, hasInvalidDecimals]);
 
 	const currencyAmount = useMemo(() => {
 		if (!sourceToken || hasInvalidDecimals) {
@@ -258,7 +258,7 @@ function SwapsAmountView({
 	);
 
 	const handleUseMax = useCallback(() => {
-		if (!sourceToken) {
+		if (!sourceToken || !balanceAsUnits) {
 			return;
 		}
 		setAmount(fromTokenMinimalUnit(balanceAsUnits.toString(), sourceToken.decimals));
@@ -308,7 +308,7 @@ function SwapsAmountView({
 						{amount}
 					</Text>
 					{!!sourceToken &&
-						(hasInvalidDecimals || !hasEnoughBalance ? (
+						(hasInvalidDecimals || (!amountAsUnits?.isZero() && !hasEnoughBalance) ? (
 							<Text style={styles.amountInvalid}>
 								{hasInvalidDecimals
 									? strings('swaps.allows_up_to_decimals', {
@@ -325,7 +325,7 @@ function SwapsAmountView({
 									strings('swaps.available_to_swap', {
 										asset: `${balance} ${sourceToken.symbol}`
 									})}
-								{hasBalance && (
+								{sourceToken.address !== SWAPS_ETH_ADDRESS && hasBalance && (
 									<Text style={styles.linkText} onPress={handleUseMax}>
 										{' '}
 										{strings('swaps.use_max')}
@@ -378,7 +378,10 @@ function SwapsAmountView({
 				<Keypad onChange={handleKeypadChange} value={amount} />
 				<View style={styles.buttonsContainer}>
 					<View style={styles.column}>
-						<TouchableOpacity onPress={toggleSlippageModal}>
+						<TouchableOpacity
+							onPress={toggleSlippageModal}
+							hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+						>
 							<Text bold link>
 								{strings('swaps.max_slippage_amount', { slippage: `${slippage}%` })}
 							</Text>
