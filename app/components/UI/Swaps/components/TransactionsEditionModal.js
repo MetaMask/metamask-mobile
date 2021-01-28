@@ -35,6 +35,7 @@ function TransactionsEditionModal({
 	gasPrice,
 	onCancelEditQuoteTransactions,
 	onHandleGasFeeSelection,
+	setApprovalTransaction,
 	selectedQuote,
 	sourceToken
 }) {
@@ -42,7 +43,7 @@ function TransactionsEditionModal({
 	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState(null);
 	const [approvalCustomValue, setApprovalCustomValue] = useState('');
 	const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] = useState(true);
-	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
+	const [approvalTransaction] = useState(originalApprovalTransaction);
 	const [currentGasSelector, setCurrentGasSelector] = useState(null);
 
 	const onSpendLimitCustomValueChange = approvalCustomValue => setApprovalCustomValue(approvalCustomValue);
@@ -74,7 +75,7 @@ function TransactionsEditionModal({
 			const amountDec = hexToBN(approvalTransactionAmount).toString();
 			setApprovalTransactionAmount(fromTokenMinimalUnit(amountDec, sourceToken.decimals));
 		}
-	}, [originalApprovalTransaction, sourceToken.decimals]);
+	}, [originalApprovalTransaction, sourceToken.decimals, setApprovalTransaction]);
 	return (
 		<Modal
 			isVisible={editQuoteTransactionsVisible}
@@ -134,6 +135,7 @@ TransactionsEditionModal.propTypes = {
 	gasPrice: PropTypes.string,
 	onCancelEditQuoteTransactions: PropTypes.func,
 	onHandleGasFeeSelection: PropTypes.func,
+	setApprovalTransaction: PropTypes.func,
 	selectedQuote: PropTypes.object,
 	sourceToken: PropTypes.object
 };

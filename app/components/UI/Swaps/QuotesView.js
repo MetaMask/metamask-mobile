@@ -399,12 +399,10 @@ function SwapsQuotesView({
 			return;
 		}
 		const { TransactionController } = Engine.context;
-		if (apiGasPrice?.averageGwei) {
-			if (approvalTransaction) {
-				approvalTransaction.gasPrice = gasPrice;
-			}
-			selectedQuote.trade.gasPrice = gasPrice;
+		if (approvalTransaction) {
+			approvalTransaction.gasPrice = gasPrice;
 		}
+		selectedQuote.trade.gasPrice = gasPrice;
 
 		if (approvalTransaction) {
 			await TransactionController.addTransaction(approvalTransaction);
@@ -413,7 +411,7 @@ function SwapsQuotesView({
 		selectedQuote.trade.gas = gasLimit;
 		await TransactionController.addTransaction(selectedQuote.trade);
 		navigation.dismiss();
-	}, [navigation, selectedQuote, approvalTransaction, apiGasPrice, gasPrice, gasLimit]);
+	}, [navigation, selectedQuote, approvalTransaction, gasPrice, gasLimit]);
 
 	const onEditQuoteTransactionsGas = () => {
 		setEditQuoteTransactionsMode(EDIT_MODE_GAS);
@@ -775,6 +773,7 @@ function SwapsQuotesView({
 				gasPrice={gasPrice}
 				onCancelEditQuoteTransactions={onCancelEditQuoteTransactions}
 				onHandleGasFeeSelection={onHandleGasFeeSelection}
+				setApprovalTransaction={setApprovalTransaction}
 				selectedQuote={selectedQuote}
 				sourceToken={sourceToken}
 			/>
