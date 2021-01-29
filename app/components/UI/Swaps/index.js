@@ -283,6 +283,13 @@ function SwapsAmountView({
 
 	const handleAmountPress = useCallback(() => keypadViewRef?.current?.shake?.(), []);
 
+	const handleFlipTokens = useCallback(() => {
+		if (sourceToken && destinationToken) {
+			setSourceToken(destinationToken);
+			setDestinationToken(sourceToken);
+		}
+	}, [destinationToken, sourceToken]);
+
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.content}>
@@ -345,7 +352,9 @@ function SwapsAmountView({
 				</View>
 				<View style={styles.horizontalRuleContainer}>
 					<View style={styles.horizontalRule} />
-					<IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+					<TouchableOpacity onPress={handleFlipTokens}>
+						<IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+					</TouchableOpacity>
 					<View style={styles.horizontalRule} />
 				</View>
 				<View style={styles.tokenButtonContainer}>
@@ -377,7 +386,7 @@ function SwapsAmountView({
 							</Text>
 						</TouchableOpacity>
 					) : (
-						<Text />
+						<Text> </Text>
 					)}
 				</View>
 			</View>
