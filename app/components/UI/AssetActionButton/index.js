@@ -11,10 +11,10 @@ import Text from '../../Base/Text';
 const styles = StyleSheet.create({
 	button: {
 		flexShrink: 1,
-		marginHorizontal: 10,
+		marginHorizontal: 0,
 		justifyContent: 'center',
 		alignItems: 'center',
-		maxWidth: 80
+		minWidth: 60
 	},
 	disabledButton: {
 		opacity: 0.5
