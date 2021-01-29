@@ -533,6 +533,7 @@
 	},
 	"asset_overview": {
 		"send_button": "Send",
+		"buy_button": "Buy",
 		"receive_button": "Receive",
 		"add_collectible_button": "Add",
 		"info": "Info",
