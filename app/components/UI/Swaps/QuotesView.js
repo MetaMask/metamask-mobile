@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import BigNumber from 'bignumber.js';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { NavigationContext } from 'react-navigation';
@@ -15,7 +14,7 @@ import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/Device';
 import { colors } from '../../../styles/common';
 import { renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
-import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, useRatio } from './utils';
+import { getErrorMessage, getFetchParams, getQuotesNavigationsParams } from './utils';
 
 import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
@@ -29,6 +28,7 @@ import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
 import FeeModal from './components/FeeModal';
 import QuotesModal from './components/QuotesModal';
+import Ratio from './components/Ratio';
 import { strings } from '../../../../locales/i18n';
 import { swapsUtils } from '@estebanmino/controllers';
 import useBalance from './utils/useBalance';
@@ -303,18 +303,6 @@ function SwapsQuotesView({
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 
-	/* Get the ratio between the assets given the selected quote*/
-	const [ratioAsSource, setRatioAsSource] = useState(true);
-
-	const [numerator, denominator] = useMemo(() => {
-		const source = { ...sourceToken, amount: selectedQuote?.sourceAmount };
-		const destination = { ...destinationToken, amount: selectedQuote?.destinationAmount };
-
-		return ratioAsSource ? [destination, source] : [source, destination];
-	}, [destinationToken, ratioAsSource, selectedQuote, sourceToken]);
-
-	const ratio = useRatio(numerator?.amount, numerator?.decimals, denominator?.amount, denominator?.decimals);
-
 	/* Modals, state and handlers */
 	const [isFeeModalVisible, toggleFeeModal, , hideFeeModal] = useModalHandler(false);
 	const [isQuotesModalVisible, toggleQuotesModal, , hideQuotesModal] = useModalHandler(false);
@@ -326,8 +314,6 @@ function SwapsQuotesView({
 			navigation.setParams({ leftAction: strings('swaps.edit') });
 		}
 	}, [errorKey, navigation]);
-
-	const handleRatioSwitch = () => setRatioAsSource(isSource => !isSource);
 
 	const handleRetryFetchQuotes = useCallback(() => {
 		if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
@@ -595,12 +581,12 @@ function SwapsQuotesView({
 							~{renderFromTokenMinimalUnit(selectedQuote.destinationAmount, destinationToken.decimals)}
 						</Text>
 						<View style={styles.exchangeRate}>
-							<TouchableOpacity onPress={handleRatioSwitch}>
-								<Text>
-									1 {denominator?.symbol} = {ratio.toFormat(10)} {numerator?.symbol}{' '}
-									<FA5Icon name="sync" style={styles.infoIcon} />
-								</Text>
-							</TouchableOpacity>
+							<Ratio
+								sourceAmount={selectedQuote.sourceAmount}
+								sourceToken={sourceToken}
+								destinationAmount={selectedQuote.destinationAmount}
+								destinationToken={destinationToken}
+							/>
 						</View>
 					</>
 				)}
@@ -613,7 +599,7 @@ function SwapsQuotesView({
 							<QuotesSummary.HeaderText bold>
 								{isSaving ? strings('swaps.savings') : strings('swaps.using_best_quote')}
 							</QuotesSummary.HeaderText>
-							<TouchableOpacity onPress={toggleQuotesModal}>
+							<TouchableOpacity onPress={toggleQuotesModal} disabled={isInFetch}>
 								<QuotesSummary.HeaderText small>
 									{strings('swaps.view_details')} →
 								</QuotesSummary.HeaderText>
@@ -713,6 +699,7 @@ function SwapsQuotesView({
 				isVisible={isQuotesModalVisible}
 				toggleModal={toggleQuotesModal}
 				quotes={allQuotes}
+				sourceToken={sourceToken}
 				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
 			/>
