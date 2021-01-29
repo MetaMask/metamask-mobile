@@ -39,37 +39,37 @@ class Settings extends PureComponent {
 
 	onPressGeneral = () => {
 		InteractionManager.runAfterInteractions(() => Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_GENERAL));
-		this.props.navigation.push('GeneralSettings');
+		this.props.navigation.navigate('GeneralSettings');
 	};
 
 	onPressAdvanced = () => {
 		InteractionManager.runAfterInteractions(() => Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_ADVANCED));
-		this.props.navigation.push('AdvancedSettings');
+		this.props.navigation.navigate('AdvancedSettings');
 	};
 
 	onPressSecurity = () => {
 		InteractionManager.runAfterInteractions(() =>
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_SECURITY_AND_PRIVACY)
 		);
-		this.props.navigation.push('SecuritySettings');
+		this.props.navigation.navigate('SecuritySettings');
 	};
 
 	onPressNetworks = () => {
-		this.props.navigation.push('NetworksSettings');
+		this.props.navigation.navigate('NetworksSettings');
 	};
 
 	onPressExperimental = () => {
 		InteractionManager.runAfterInteractions(() => Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_EXPERIMENTAL));
-		this.props.navigation.push('ExperimentalSettings');
+		this.props.navigation.navigate('ExperimentalSettings');
 	};
 
 	onPressInfo = () => {
 		InteractionManager.runAfterInteractions(() => Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_ABOUT));
-		this.props.navigation.push('CompanySettings');
+		this.props.navigation.navigate('CompanySettings');
 	};
 
 	onPressContacts = () => {
-		this.props.navigation.push('ContactsSettings');
+		this.props.navigation.navigate('ContactsSettings');
 	};
 
 	render = () => {
