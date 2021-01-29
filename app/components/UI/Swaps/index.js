@@ -191,7 +191,7 @@ function SwapsAmountView({
 			return false;
 		}
 
-		return balanceAsUnits.gt(0);
+		return !balanceAsUnits.isZero(0);
 	}, [balanceAsUnits, sourceToken]);
 
 	const hasEnoughBalance = useMemo(() => {
