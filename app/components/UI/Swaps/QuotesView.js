@@ -466,7 +466,9 @@ function SwapsQuotesView({
 		if (!selectedQuote) {
 			return;
 		}
-		navigation.setParams({ selectedQuote });
+		if (navigation.getParam('selectedQuote')) {
+			navigation.setParams({ selectedQuote });
+		}
 		handleQuotesReceivedMetric();
 	}, [selectedQuote, navigation, handleQuotesReceivedMetric]);
 
