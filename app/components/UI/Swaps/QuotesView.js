@@ -403,7 +403,8 @@ function SwapsQuotesView({
 
 	/* Effects */
 
-	const handleQuotesRequestedMetric = useCallback(() => {
+	/* Main polling effect */
+	useEffect(() => {
 		InteractionManager.runAfterInteractions(() => {
 			const data = {
 				token_from: sourceToken.address,
@@ -414,13 +415,9 @@ function SwapsQuotesView({
 			};
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, data);
 			navigation.setParams({ requestedTrade: data });
+			navigation.setParams({ selectedQuote });
 			navigation.setParams({ quoteBegin: new Date().getTime() });
 		});
-	}, [sourceToken, sourceAmount, destinationToken, hasEnoughBalance, slippage, navigation]);
-
-	/* Main polling effect */
-	useEffect(() => {
-		handleQuotesRequestedMetric();
 		resetAndStartPolling({
 			slippage,
 			sourceToken,
@@ -432,7 +429,8 @@ function SwapsQuotesView({
 			const { SwapsController } = Engine.context;
 			SwapsController.stopPollingAndResetState();
 		};
-	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken, handleQuotesRequestedMetric]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
 	const handleQuotesReceivedMetric = useCallback(() => {
 		InteractionManager.runAfterInteractions(() => {
@@ -468,8 +466,9 @@ function SwapsQuotesView({
 		if (!selectedQuote) {
 			return;
 		}
+		navigation.setParams({ selectedQuote });
 		handleQuotesReceivedMetric();
-	}, [selectedQuote, handleQuotesReceivedMetric]);
+	}, [selectedQuote, navigation, handleQuotesReceivedMetric]);
 
 	const handleQuotesModalMetric = useCallback(() => {
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
