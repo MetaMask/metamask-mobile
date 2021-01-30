@@ -39,7 +39,7 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * Total transaction value in fiat
 		 */
-		totalFiat: PropTypes.string,
+		totalFiat: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node, PropTypes.string]),
 		/**
 		 * Transaction value in fiat before gas fee
 		 */
