@@ -257,6 +257,7 @@ function SwapsQuotesView({
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 	const [basicGasEstimates, setBasicGasEstimates] = useState({});
 	const [allQuotesFetchTime, setAllQuotesFetchTime] = useState(null);
+	const [lastTrackedFetchTime, setLastTrackedFetchTime] = useState(null);
 
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -401,37 +402,6 @@ function SwapsQuotesView({
 		conversionRate
 	]);
 
-	/* Effects */
-
-	/* Main polling effect */
-	useEffect(() => {
-		InteractionManager.runAfterInteractions(() => {
-			const data = {
-				token_from: sourceToken.address,
-				token_from_amount: sourceAmount,
-				token_to: destinationToken.address,
-				request_type: hasEnoughBalance ? 'Order' : 'Quote',
-				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
-			};
-			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, data);
-			navigation.setParams({ requestedTrade: data });
-			navigation.setParams({ selectedQuote });
-			navigation.setParams({ quoteBegin: new Date().getTime() });
-		});
-		resetAndStartPolling({
-			slippage,
-			sourceToken,
-			destinationToken,
-			sourceAmount,
-			walletAddress: selectedAddress
-		});
-		return () => {
-			const { SwapsController } = Engine.context;
-			SwapsController.stopPollingAndResetState();
-		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
-
 	const handleQuotesReceivedMetric = useCallback(() => {
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
@@ -462,16 +432,6 @@ function SwapsQuotesView({
 		conversionRate
 	]);
 
-	useEffect(() => {
-		if (!selectedQuote) {
-			return;
-		}
-		if (navigation.getParam('selectedQuote')) {
-			navigation.setParams({ selectedQuote });
-		}
-		handleQuotesReceivedMetric();
-	}, [selectedQuote, navigation, handleQuotesReceivedMetric]);
-
 	const handleQuotesModalMetric = useCallback(() => {
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
 			token_from: sourceToken.address,
@@ -499,6 +459,78 @@ function SwapsQuotesView({
 		allQuotes,
 		conversionRate
 	]);
+
+	const handleQuotesErrorMetric = useCallback(
+		errorKey => {
+			const data = {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				slippage,
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+			};
+			if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
+				InteractionManager.runAfterInteractions(() => {
+					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
+						...data,
+						gas_fees: ''
+					});
+				});
+			} else if (errorKey === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
+				InteractionManager.runAfterInteractions(() => {
+					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, { data });
+				});
+			}
+		},
+		[sourceToken, sourceAmount, destinationToken, hasEnoughBalance, slippage]
+	);
+
+	const handleQuotesRequestedMetric = useCallback(() => {
+		InteractionManager.runAfterInteractions(() => {
+			const data = {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+			};
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, data);
+			navigation.setParams({ requestedTrade: data });
+			navigation.setParams({ selectedQuote });
+			navigation.setParams({ quoteBegin: new Date().getTime() });
+		});
+	}, [selectedQuote, sourceToken, sourceAmount, destinationToken, hasEnoughBalance, slippage, navigation]);
+
+	/* Effects */
+
+	/* Main polling effect */
+	useEffect(() => {
+		resetAndStartPolling({
+			slippage,
+			sourceToken,
+			destinationToken,
+			sourceAmount,
+			walletAddress: selectedAddress
+		});
+		return () => {
+			const { SwapsController } = Engine.context;
+			SwapsController.stopPollingAndResetState();
+		};
+	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
+
+	useEffect(() => {
+		if (!selectedQuote) return;
+		if (lastTrackedFetchTime === quotesLastFetched) return;
+		setLastTrackedFetchTime(quotesLastFetched);
+		navigation.setParams({ selectedQuote });
+		handleQuotesReceivedMetric();
+	}, [selectedQuote, navigation, lastTrackedFetchTime, quotesLastFetched, handleQuotesReceivedMetric]);
+
+	useEffect(() => {
+		if (!isInFetch) return;
+		handleQuotesRequestedMetric();
+	}, [isInFetch, handleQuotesRequestedMetric]);
 
 	useEffect(() => {
 		if (!isQuotesModalVisible) {
@@ -554,40 +586,14 @@ function SwapsQuotesView({
 		};
 	}, [hideFeeModal, hideQuotesModal, isInFetch, quotesLastFetched]);
 
-	const handleQuotesErrorMetrics = useCallback(
-		errorKey => {
-			const data = {
-				token_from: sourceToken.address,
-				token_from_amount: sourceAmount,
-				token_to: destinationToken.address,
-				request_type: hasEnoughBalance ? 'Order' : 'Quote',
-				slippage,
-				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
-			};
-			if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
-				InteractionManager.runAfterInteractions(() => {
-					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
-						...data,
-						gas_fees: ''
-					});
-				});
-			} else if (errorKey === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
-				InteractionManager.runAfterInteractions(() => {
-					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, { data });
-				});
-			}
-		},
-		[sourceToken, sourceAmount, destinationToken, hasEnoughBalance, slippage]
-	);
-
 	/* errorKey effect: hide every modal*/
 	useEffect(() => {
 		if (errorKey) {
 			hideFeeModal();
 			hideQuotesModal();
-			handleQuotesErrorMetrics(errorKey);
+			handleQuotesErrorMetric(errorKey);
 		}
-	}, [errorKey, hideFeeModal, hideQuotesModal, handleQuotesErrorMetrics]);
+	}, [errorKey, hideFeeModal, hideQuotesModal, handleQuotesErrorMetric]);
 
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
