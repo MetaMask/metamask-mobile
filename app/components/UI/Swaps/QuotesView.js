@@ -486,21 +486,11 @@ function SwapsQuotesView({
 		[sourceToken, sourceAmount, destinationToken, hasEnoughBalance, slippage]
 	);
 
-	const handleQuotesRequestedMetric = useCallback(() => {
+	const handleQuotesRequestedMetric = useCallback(data => {
 		InteractionManager.runAfterInteractions(() => {
-			const data = {
-				token_from: sourceToken.address,
-				token_from_amount: sourceAmount,
-				token_to: destinationToken.address,
-				request_type: hasEnoughBalance ? 'Order' : 'Quote',
-				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
-			};
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, data);
-			navigation.setParams({ requestedTrade: data });
-			navigation.setParams({ selectedQuote });
-			navigation.setParams({ quoteBegin: new Date().getTime() });
 		});
-	}, [selectedQuote, sourceToken, sourceAmount, destinationToken, hasEnoughBalance, slippage, navigation]);
+	}, []);
 
 	/* Effects */
 
@@ -520,17 +510,38 @@ function SwapsQuotesView({
 	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
 	useEffect(() => {
+		if (isInFetch) return;
 		if (!selectedQuote) return;
 		if (lastTrackedFetchTime === quotesLastFetched) return;
 		setLastTrackedFetchTime(quotesLastFetched);
 		navigation.setParams({ selectedQuote });
 		handleQuotesReceivedMetric();
-	}, [selectedQuote, navigation, lastTrackedFetchTime, quotesLastFetched, handleQuotesReceivedMetric]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedQuote, lastTrackedFetchTime, quotesLastFetched, handleQuotesReceivedMetric]);
 
 	useEffect(() => {
 		if (!isInFetch) return;
-		handleQuotesRequestedMetric();
-	}, [isInFetch, handleQuotesRequestedMetric]);
+		const data = {
+			token_from: sourceToken.address,
+			token_from_amount: sourceAmount,
+			token_to: destinationToken.address,
+			request_type: hasEnoughBalance ? 'Order' : 'Quote',
+			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+		};
+		navigation.setParams({ requestedTrade: data });
+		navigation.setParams({ selectedQuote: undefined });
+		navigation.setParams({ quoteBegin: new Date().getTime() });
+		handleQuotesRequestedMetric(data);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		isInFetch,
+		sourceToken,
+		sourceAmount,
+		destinationToken,
+		hasEnoughBalance,
+		slippage,
+		handleQuotesRequestedMetric
+	]);
 
 	useEffect(() => {
 		if (!isQuotesModalVisible) {

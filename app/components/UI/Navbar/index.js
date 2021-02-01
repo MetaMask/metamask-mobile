@@ -914,7 +914,6 @@ export function getSwapsQuotesNavbar(navigation) {
 					...trade,
 					responseTime: new Date().getTime() - quoteBegin
 				});
-				navigation.getParam({ selectedQuote: undefined });
 			});
 		}
 		navigation.dismiss();
