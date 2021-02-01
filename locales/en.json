@@ -1444,9 +1444,30 @@
 			"edit_limit": "Edit limit"
 		},
 		"quotes_overview": "Quotes overview",
+		"quote_details": "Quote details",
 		"receiving": "Receiving",
 		"overall_value": "Overall value",
 		"best": "Best",
+		"rate": "Rate",
+		"quote_details_max_slippage": "Max slippage",
+		"source": "Source",
+		"estimated_network_fees": "Estimated network fees",
+		"guaranteed_amount": "Guaranteed amount",
+		"quote_source_dex": {
+			"1": "This quote comes directly from a",
+			"2": "decentralized exchange",
+			"3": "protocol."
+		},
+		"quote_source_rfq": {
+			"1": "This quote comes from a",
+			"2": "private market maker",
+			"3": "who responds with a quote directly."
+		},
+		"quote_source_agg": {
+			"1": "This quote comes from an",
+			"2": "aggregator",
+			"3": "which finds the best price by splitting your order between different decentralized exchanges."
+		},
 		"quotes_timeout": "Quotes timeout",
 		"request_new_quotes": "Please request new quotes to get the latest best rate.",
 		"quotes_not_available": "Quotes not available",
