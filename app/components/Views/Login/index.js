@@ -320,7 +320,7 @@ class Login extends PureComponent {
 			this.props.navigation.navigate(
 				'OnboardingRootNav',
 				{},
-				NavigationActions.navigate({ routeName: 'Onboarding' })
+				NavigationActions.navigate({ routeName: 'Onboarding', params: { delete: true } })
 			);
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);

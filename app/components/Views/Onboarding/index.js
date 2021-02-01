@@ -210,6 +210,11 @@ class Onboarding extends PureComponent {
 		this.checkIfExistingUser();
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot.forbid();
+			const del = this.props.navigation.getParam('delete', null);
+			if (del) {
+				// show notification
+				console.log('show notification');
+			}
 		});
 	}
 
