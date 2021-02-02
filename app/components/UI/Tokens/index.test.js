@@ -24,7 +24,7 @@ describe('Tokens', () => {
 						contractBalance: {}
 					},
 					NetworkController: {
-						network: '1'
+						chainId: '1'
 					}
 				}
 			},
