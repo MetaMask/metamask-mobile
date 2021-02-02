@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import { NavigationContext } from 'react-navigation';
 import { View as AnimatableView } from 'react-native-animatable';
@@ -12,7 +12,6 @@ import { swapsUtils } from '@estebanmino/controllers';
 
 import { swapsTokensWithBalanceSelector, swapsTopAssetsSelector } from '../../../reducers/swaps';
 import Engine from '../../../core/Engine';
-import AppConstants from '../../../core/AppConstants';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
 import { setQuotesNavigationsParams } from './utils';
@@ -30,6 +29,9 @@ import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
+import AppConstants from '../../../core/AppConstants';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -131,6 +133,15 @@ function SwapsAmountView({
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
 	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
+	useEffect(() => {
+		// Triggered when a user enters the MetaMask Swap feature
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
+				source: initialSource === SWAPS_ETH_ADDRESS ? 'MainView' : 'TokenView',
+				activeCurrency: initialSource
+			});
+		});
+	}, [initialSource]);
 
 	const keypadViewRef = useRef(null);
 

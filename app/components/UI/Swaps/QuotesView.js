@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -34,6 +34,8 @@ import { swapsUtils } from '@estebanmino/controllers';
 import useBalance from './utils/useBalance';
 import { fetchBasicGasEstimates } from '../../../util/custom-gas';
 import { addHexPrefix } from '@walletconnect/utils';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 
@@ -254,6 +256,9 @@ function SwapsQuotesView({
 	const [shouldFinishFirstLoad, setShouldFinishFirstLoad] = useState(false);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 	const [basicGasEstimates, setBasicGasEstimates] = useState({});
+	const [allQuotesFetchTime, setAllQuotesFetchTime] = useState(null);
+	const [lastTrackedReceivedTime, setLastTrackedReceivedTime] = useState(null);
+	const [lastTrackedRequestedTime, setLastTrackedRequestedTime] = useState(null);
 
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -336,6 +341,24 @@ function SwapsQuotesView({
 		if (!selectedQuote) {
 			return;
 		}
+
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				token_to_amount: selectedQuote.destinationAmount,
+				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				slippage,
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+				best_quote_source: selectedQuote.aggregator,
+				available_quotes: allQuotes,
+				other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
+				network_fees_USD: weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, 'usd'),
+				network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee))
+			});
+		});
+
 		const { TransactionController } = Engine.context;
 		if (basicGasEstimates?.average) {
 			const averageGasPrice = addHexPrefix(basicGasEstimates.average.toString(16));
@@ -350,7 +373,111 @@ function SwapsQuotesView({
 		}
 		await TransactionController.addTransaction(selectedQuote.trade);
 		navigation.dismiss();
-	}, [navigation, selectedQuote, approvalTransaction, basicGasEstimates]);
+	}, [
+		navigation,
+		selectedQuote,
+		approvalTransaction,
+		basicGasEstimates,
+		sourceToken,
+		sourceAmount,
+		destinationToken,
+		hasEnoughBalance,
+		slippage,
+		allQuotes,
+		selectedQuoteValue,
+		selectedQuoteId,
+		conversionRate
+	]);
+
+	const handleQuotesReceivedMetric = useCallback(() => {
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				token_to_amount: selectedQuote.destinationAmount,
+				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				slippage,
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+				response_time: allQuotesFetchTime,
+				best_quote_source: selectedQuote.aggregator,
+				network_fees_USD: weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, 'usd'),
+				network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
+				available_quotes: allQuotes.length
+			});
+		});
+	}, [
+		sourceToken,
+		sourceAmount,
+		destinationToken,
+		selectedQuote,
+		hasEnoughBalance,
+		slippage,
+		allQuotesFetchTime,
+		selectedQuoteValue,
+		allQuotes,
+		conversionRate
+	]);
+
+	const handleQuotesModalMetric = useCallback(() => {
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
+			token_from: sourceToken.address,
+			token_from_amount: sourceAmount,
+			token_to: destinationToken.address,
+			token_to_amount: selectedQuote.destinationAmount,
+			request_type: hasEnoughBalance ? 'Order' : 'Quote',
+			slippage,
+			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+			response_time: allQuotesFetchTime,
+			best_quote_source: selectedQuote.aggregator,
+			network_fees_USD: weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, 'usd'),
+			network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
+			available_quotes: allQuotes.length
+		});
+	}, [
+		sourceToken,
+		sourceAmount,
+		destinationToken,
+		selectedQuote,
+		hasEnoughBalance,
+		slippage,
+		allQuotesFetchTime,
+		selectedQuoteValue,
+		allQuotes,
+		conversionRate
+	]);
+
+	const handleQuotesErrorMetric = useCallback(
+		errorKey => {
+			const data = {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				slippage,
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+			};
+			if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
+				InteractionManager.runAfterInteractions(() => {
+					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
+						...data,
+						gas_fees: ''
+					});
+				});
+			} else if (errorKey === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
+				InteractionManager.runAfterInteractions(() => {
+					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, { data });
+				});
+			}
+		},
+		[sourceToken, sourceAmount, destinationToken, hasEnoughBalance, slippage]
+	);
+
+	const handleQuotesRequestedMetric = useCallback(data => {
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, data);
+		});
+	}, []);
 
 	/* Effects */
 
@@ -369,6 +496,50 @@ function SwapsQuotesView({
 		};
 	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
 
+	useEffect(() => {
+		if (isInFetch) return;
+		if (!selectedQuote) return;
+		if (lastTrackedReceivedTime === quotesLastFetched) return;
+		setLastTrackedReceivedTime(quotesLastFetched);
+		navigation.setParams({ selectedQuote });
+		handleQuotesReceivedMetric();
+	}, [isInFetch, navigation, selectedQuote, lastTrackedReceivedTime, quotesLastFetched, handleQuotesReceivedMetric]);
+
+	useEffect(() => {
+		if (!isInFetch) return;
+		if (lastTrackedRequestedTime === quotesLastFetched) return;
+		setLastTrackedRequestedTime(quotesLastFetched);
+		const data = {
+			token_from: sourceToken.address,
+			token_from_amount: sourceAmount,
+			token_to: destinationToken.address,
+			request_type: hasEnoughBalance ? 'Order' : 'Quote',
+			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+		};
+		navigation.setParams({ requestedTrade: data });
+		navigation.setParams({ selectedQuote: undefined });
+		navigation.setParams({ quoteBegin: new Date().getTime() });
+		handleQuotesRequestedMetric(data);
+	}, [
+		isInFetch,
+		navigation,
+		sourceToken,
+		sourceAmount,
+		destinationToken,
+		hasEnoughBalance,
+		slippage,
+		lastTrackedRequestedTime,
+		quotesLastFetched,
+		handleQuotesRequestedMetric
+	]);
+
+	useEffect(() => {
+		if (!isQuotesModalVisible) {
+			return;
+		}
+		handleQuotesModalMetric();
+	}, [isQuotesModalVisible, handleQuotesModalMetric]);
+
 	/* First load effect: handle initial animation */
 	useEffect(() => {
 		if (isFirstLoad && !shouldFinishFirstLoad) {
@@ -380,6 +551,14 @@ function SwapsQuotesView({
 			}
 		}
 	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched, shouldFinishFirstLoad]);
+
+	useEffect(() => {
+		let maxFetchTime = 0;
+		allQuotes.forEach(quote => {
+			maxFetchTime = Math.max(maxFetchTime, quote.fetchTime);
+		});
+		setAllQuotesFetchTime(maxFetchTime);
+	}, [allQuotes]);
 
 	/* selectedQuoteId effect: when topAggId changes make it selected by default */
 	useEffect(() => setSelectedQuoteId(topAggId), [topAggId]);
@@ -413,8 +592,9 @@ function SwapsQuotesView({
 		if (errorKey) {
 			hideFeeModal();
 			hideQuotesModal();
+			handleQuotesErrorMetric(errorKey);
 		}
-	}, [errorKey, hideFeeModal, hideQuotesModal]);
+	}, [errorKey, hideFeeModal, hideQuotesModal, handleQuotesErrorMetric]);
 
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
