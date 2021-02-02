@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
 	ActivityIndicator,
+	BackHandler,
 	FlatList,
 	Text,
 	View,
@@ -217,6 +218,10 @@ class Onboarding extends PureComponent {
 			if (del) {
 				// show notification
 				console.log('show notification');
+
+				// Disable back press
+				const hardwareBackPress = () => true;
+				BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
 			}
 		});
 	}
