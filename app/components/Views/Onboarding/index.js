@@ -32,6 +32,9 @@ import PubNubWrapper from '../../../util/syncWithExtension';
 import ActionModal from '../../UI/ActionModal';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
+import BaseNotification from '../../UI/Notification/BaseNotification';
+import Animated, { Easing } from 'react-native-reanimated';
+import ElevatedView from 'react-native-elevated-view';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import AppConstants from '../../../core/AppConstants';
@@ -138,6 +141,19 @@ const styles = StyleSheet.create({
 	column: {
 		marginVertical: 24,
 		alignItems: 'flex-start'
+	},
+	modalTypeView: {
+		position: 'absolute',
+		bottom: 0,
+		paddingBottom: Device.isIphoneX() ? 20 : 10,
+		left: 0,
+		right: 0,
+		backgroundColor: colors.transparent
+	},
+	notificationContainer: {
+		flex: 0.1,
+		flexDirection: 'row',
+		alignItems: 'flex-end'
 	}
 });
 
@@ -192,6 +208,20 @@ class Onboarding extends PureComponent {
 		seedphraseBackedUp: PropTypes.func
 	};
 
+	notificationAnimated = new Animated.Value(100);
+	detailsYAnimated = new Animated.Value(0);
+	actionXAnimated = new Animated.Value(0);
+	detailsAnimated = new Animated.Value(0);
+
+	animatedTimingStart = (animatedRef, toValue) => {
+		Animated.timing(animatedRef, {
+			toValue,
+			duration: 500,
+			easing: Easing.linear,
+			useNativeDriver: true
+		}).start();
+	};
+
 	state = {
 		warningModalVisible: false,
 		loading: false,
@@ -217,7 +247,11 @@ class Onboarding extends PureComponent {
 			const del = this.props.navigation.getParam('delete', null);
 			if (del) {
 				// show notification
-				console.log('show notification');
+				this.animatedTimingStart(this.notificationAnimated, 0);
+				// hide notification
+				setTimeout(() => {
+					this.animatedTimingStart(this.notificationAnimated, 400);
+				}, 2000);
 
 				// Disable back press
 				const hardwareBackPress = () => true;
@@ -563,6 +597,25 @@ class Onboarding extends PureComponent {
 		);
 	}
 
+	handleSimpleNotification = () => {
+		const notificationTitle = 'title';
+		const notificationDescription = 'description';
+		const notificationStatus = 'success';
+		return (
+			<ElevatedView style={styles.modalTypeView} elevation={100}>
+				<Animated.View
+					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
+				>
+					<BaseNotification
+						status={notificationStatus}
+						data={{ title: notificationTitle, description: notificationDescription }}
+						onHide={() => ({})}
+					/>
+				</Animated.View>
+			</ElevatedView>
+		);
+	};
+
 	render() {
 		const { qrCodeModalVisible, loading, existingUser } = this.state;
 
@@ -603,6 +656,8 @@ class Onboarding extends PureComponent {
 					</View>
 				</OnboardingScreenWithBg>
 				<FadeOutOverlay />
+
+				<View>{this.handleSimpleNotification()}</View>
 
 				<WarningExistingUserModal
 					warningModalVisible={this.state.warningModalVisible}
