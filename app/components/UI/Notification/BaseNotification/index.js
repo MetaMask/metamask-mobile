@@ -54,8 +54,8 @@ const styles = StyleSheet.create({
 /**
  * BaseNotification component used to render in-app notifications
  */
-export default function BaseNotification(props) {
-	const { status, data, onPress, onHide } = props;
+export default function BaseNotification({ status, data = {}, onPress, onHide, closeButtonDisabled }) {
+	const { description, title, amount = null, nonce, assetType } = data;
 	// eslint-disable-next-line
 	_getIcon = () => {
 		switch (status) {
@@ -92,18 +92,18 @@ export default function BaseNotification(props) {
 			case 'pending_withdrawal':
 				return strings('notifications.pending_withdrawal_title');
 			case 'success':
-				return strings('notifications.success_title', { nonce: parseInt(data.nonce) });
+				return strings('notifications.success_title', { nonce: parseInt(nonce) });
 			case 'success_deposit':
 				return strings('notifications.success_deposit_title');
 			case 'success_withdrawal':
 				return strings('notifications.success_withdrawal_title');
 			case 'received':
 				return strings('notifications.received_title', {
-					amount: data.amount,
-					assetType: data.assetType
+					amount,
+					assetType
 				});
 			case 'speedup':
-				return strings('notifications.speedup_title', { nonce: parseInt(data.nonce) });
+				return strings('notifications.speedup_title', { nonce: parseInt(nonce) });
 			case 'received_payment':
 				return strings('notifications.received_payment_title');
 			case 'cancelled':
@@ -115,8 +115,8 @@ export default function BaseNotification(props) {
 
 	// eslint-disable-next-line no-undef
 	_getDescription = () => {
-		if (data && data.amount) {
-			return strings(`notifications.${status}_message`, { amount: data.amount });
+		if (amount) {
+			return strings(`notifications.${status}_message`, { amount });
 		}
 		return strings(`notifications.${status}_message`);
 	};
@@ -132,13 +132,17 @@ export default function BaseNotification(props) {
 				<View style={styles.flashIcon}>{this._getIcon()}</View>
 				<View style={styles.flashLabel}>
 					<Text style={styles.flashTitle} testID={'notification-title'}>
-						{!data.title ? this._getTitle() : data.title}
+						{!title ? this._getTitle() : title}
 					</Text>
-					<Text style={styles.flashText}>{!data.title ? this._getDescription() : data.description}</Text>
+					<Text style={styles.flashText}>{!title ? this._getDescription() : description}</Text>
 				</View>
-				<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
-					<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
-				</TouchableOpacity>
+				<View>
+					{!closeButtonDisabled && (
+						<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
+							<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
+						</TouchableOpacity>
+					)}
+				</View>
 			</TouchableOpacity>
 		</View>
 	);
@@ -148,5 +152,10 @@ BaseNotification.propTypes = {
 	status: PropTypes.string,
 	data: PropTypes.object,
 	onPress: PropTypes.func,
-	onHide: PropTypes.func
+	onHide: PropTypes.func,
+	closeButtonDisabled: PropTypes.bool
+};
+
+BaseNotification.defaultProps = {
+	closeButtonDisabled: false
 };

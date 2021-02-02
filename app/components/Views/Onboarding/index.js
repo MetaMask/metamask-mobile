@@ -239,24 +239,28 @@ class Onboarding extends PureComponent {
 	// eslint-disable-next-line no-empty-function
 	warningCallback = () => {};
 
+	showNotification = () => {
+		// show notification
+		this.animatedTimingStart(this.notificationAnimated, 0);
+		// hide notification
+		setTimeout(() => {
+			this.animatedTimingStart(this.notificationAnimated, 200);
+		}, 4000);
+		this.disableBackPress();
+	};
+
+	disableBackPress = () => {
+		// Disable back press
+		const hardwareBackPress = () => true;
+		BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+	};
+
 	componentDidMount() {
 		this.mounted = true;
 		this.checkIfExistingUser();
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot.forbid();
-			const del = this.props.navigation.getParam('delete', null);
-			if (del) {
-				// show notification
-				this.animatedTimingStart(this.notificationAnimated, 0);
-				// hide notification
-				setTimeout(() => {
-					this.animatedTimingStart(this.notificationAnimated, 400);
-				}, 2000);
-
-				// Disable back press
-				const hardwareBackPress = () => true;
-				BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
-			}
+			if (this.props.navigation.getParam('delete', null)) this.showNotification();
 		});
 	}
 
@@ -598,8 +602,7 @@ class Onboarding extends PureComponent {
 	}
 
 	handleSimpleNotification = () => {
-		const notificationTitle = 'title';
-		const notificationDescription = 'description';
+		const notificationTitle = 'Wallet succesfully erased';
 		const notificationStatus = 'success';
 		return (
 			<ElevatedView style={styles.modalTypeView} elevation={100}>
@@ -607,8 +610,9 @@ class Onboarding extends PureComponent {
 					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
 				>
 					<BaseNotification
+						closeButtonDisabled
 						status={notificationStatus}
-						data={{ title: notificationTitle, description: notificationDescription }}
+						data={{ title: notificationTitle }}
 						onHide={() => ({})}
 					/>
 				</Animated.View>
