@@ -257,7 +257,8 @@ function SwapsQuotesView({
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 	const [basicGasEstimates, setBasicGasEstimates] = useState({});
 	const [allQuotesFetchTime, setAllQuotesFetchTime] = useState(null);
-	const [lastTrackedFetchTime, setLastTrackedFetchTime] = useState(null);
+	const [lastTrackedReceivedTime, setLastTrackedReceivedTime] = useState(null);
+	const [lastTrackedRequestedTime, setLastTrackedRequestedTime] = useState(null);
 
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -498,16 +499,16 @@ function SwapsQuotesView({
 	useEffect(() => {
 		if (isInFetch) return;
 		if (!selectedQuote) return;
-		if (lastTrackedFetchTime === quotesLastFetched) return;
-		setLastTrackedFetchTime(quotesLastFetched);
+		if (lastTrackedReceivedTime === quotesLastFetched) return;
+		setLastTrackedReceivedTime(quotesLastFetched);
 		navigation.setParams({ selectedQuote });
 		handleQuotesReceivedMetric();
-		// navigation is not included because setParams() updates navigation, which results in this effect being called again
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isInFetch, selectedQuote, lastTrackedFetchTime, quotesLastFetched, handleQuotesReceivedMetric]);
+	}, [isInFetch, navigation, selectedQuote, lastTrackedReceivedTime, quotesLastFetched, handleQuotesReceivedMetric]);
 
 	useEffect(() => {
 		if (!isInFetch) return;
+		if (lastTrackedRequestedTime === quotesLastFetched) return;
+		setLastTrackedRequestedTime(quotesLastFetched);
 		const data = {
 			token_from: sourceToken.address,
 			token_from_amount: sourceAmount,
@@ -519,15 +520,16 @@ function SwapsQuotesView({
 		navigation.setParams({ selectedQuote: undefined });
 		navigation.setParams({ quoteBegin: new Date().getTime() });
 		handleQuotesRequestedMetric(data);
-		// navigation is not included because setParams() updates navigation, which results in this effect being called again
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		isInFetch,
+		navigation,
 		sourceToken,
 		sourceAmount,
 		destinationToken,
 		hasEnoughBalance,
 		slippage,
+		lastTrackedRequestedTime,
+		quotesLastFetched,
 		handleQuotesRequestedMetric
 	]);
 
