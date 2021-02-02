@@ -67,7 +67,8 @@
   "resolutions": {
     "**/ethers/elliptic": "^6.5.3",
     "**/optimist/minimist": "^1.2.5",
-    "react-native-level-fs/**/bl": "^1.2.3"
+    "react-native-level-fs/**/bl": "^1.2.3",
+    "react-native-level-fs/**/semver": "^4.3.2"
   },
   "dependencies": {
     "@estebanmino/controllers": "3.2.38",
@@ -154,7 +155,7 @@
     "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "0.8.0",
     "react-native-keychain": "^6.2.0",
-    "react-native-level-fs": "3.0.1",
+    "react-native-level-fs": "^3.0.1",
     "react-native-material-textfield": "0.16.1",
     "react-native-modal": "^11.5.6",
     "react-native-os": "^1.2.6",
