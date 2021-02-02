@@ -413,14 +413,14 @@ function SwapsQuotesView({
 		navigation.dismiss();
 	}, [navigation, selectedQuote, approvalTransaction, gasPrice, gasLimit]);
 
-	const onEditQuoteTransactionsGas = () => {
+	const onEditQuoteTransactionsGas = useCallback(() => {
 		setEditQuoteTransactionsMode(EDIT_MODE_GAS);
 		setEditQuoteTransactionsVisible(true);
-	};
-	const onEditQuoteTransactionsApproveAmount = () => {
+	}, []);
+	const onEditQuoteTransactionsApproveAmount = useCallback(() => {
 		setEditQuoteTransactionsMode(EDIT_MODE_APPROVE_AMOUNT);
 		setEditQuoteTransactionsVisible(true);
-	};
+	}, []);
 
 	const onHandleGasFeeSelection = useCallback((gas, gasPrice) => {
 		setCustomGasPrice(gasPrice);
