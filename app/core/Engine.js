@@ -37,7 +37,6 @@ import { MAINNET } from '../constants/network';
 const EMPTY = 'EMPTY';
 
 const encryptor = new Encryptor();
-let refreshing = false;
 let currentChainId;
 
 /**
@@ -191,19 +190,6 @@ class Engine {
 		AssetsDetectionController.detectAssets();
 		AccountTrackerController.refresh();
 	}
-
-	/**
-	 * Refreshes all controllers that depend on the network
-	 */
-	refreshNetwork = () => {
-		if (!refreshing) {
-			refreshing = true;
-			setTimeout(() => {
-				this.configureControllersOnNetworkChange();
-				refreshing = false;
-			}, 500);
-		}
-	};
 
 	refreshTransactionHistory = async forceCheck => {
 		const { TransactionController, PreferencesController, NetworkController } = this.datamodel.context;
