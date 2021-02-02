@@ -525,8 +525,6 @@ function SwapsQuotesView({
 		);
 	}
 
-	// console.log('aaaa', approvalTransaction, originalApprovalTransaction)
-
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.topBar}>
