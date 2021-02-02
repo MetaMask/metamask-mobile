@@ -502,8 +502,9 @@ function SwapsQuotesView({
 		setLastTrackedFetchTime(quotesLastFetched);
 		navigation.setParams({ selectedQuote });
 		handleQuotesReceivedMetric();
+		// navigation is not included because setParams() updates navigation, which results in this effect being called again
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedQuote, lastTrackedFetchTime, quotesLastFetched, handleQuotesReceivedMetric]);
+	}, [isInFetch, selectedQuote, lastTrackedFetchTime, quotesLastFetched, handleQuotesReceivedMetric]);
 
 	useEffect(() => {
 		if (!isInFetch) return;
@@ -518,6 +519,7 @@ function SwapsQuotesView({
 		navigation.setParams({ selectedQuote: undefined });
 		navigation.setParams({ quoteBegin: new Date().getTime() });
 		handleQuotesRequestedMetric(data);
+		// navigation is not included because setParams() updates navigation, which results in this effect being called again
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		isInFetch,
