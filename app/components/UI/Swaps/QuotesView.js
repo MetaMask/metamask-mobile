@@ -422,10 +422,10 @@ function SwapsQuotesView({
 		setEditQuoteTransactionsVisible(true);
 	};
 
-	const onHandleGasFeeSelection = (gas, gasPrice) => {
+	const onHandleGasFeeSelection = useCallback((gas, gasPrice) => {
 		setCustomGasPrice(gasPrice);
 		setCustomGasLimit(gas);
-	};
+	}, []);
 
 	/* Effects */
 
@@ -687,7 +687,7 @@ function SwapsQuotesView({
 									</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text primary bold>
+									<Text primary bold upper>
 										{weiToFiat(toWei(gasFee), conversionRate, currentCurrency)}
 									</Text>
 								</View>
@@ -704,7 +704,7 @@ function SwapsQuotesView({
 									<Text>{renderFromWei(toWei(maxGasFee))} ETH</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text>{weiToFiat(toWei(maxGasFee), conversionRate, currentCurrency)}</Text>
+									<Text upper>{weiToFiat(toWei(maxGasFee), conversionRate, currentCurrency)}</Text>
 								</View>
 							</View>
 

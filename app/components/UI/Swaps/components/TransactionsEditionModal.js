@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
@@ -46,11 +46,14 @@ function TransactionsEditionModal({
 	const [approvalTransaction] = useState(originalApprovalTransaction);
 	const [currentGasSelector, setCurrentGasSelector] = useState(null);
 
-	const onSpendLimitCustomValueChange = approvalCustomValue => setApprovalCustomValue(approvalCustomValue);
-	const onPressSpendLimitUnlimitedSelected = () => setSpendLimitUnlimitedSelected(true);
-	const onPressSpendLimitCustomSelected = () => setSpendLimitUnlimitedSelected(false);
+	const onSpendLimitCustomValueChange = useCallback(
+		approvalCustomValue => setApprovalCustomValue(approvalCustomValue),
+		[]
+	);
+	const onPressSpendLimitUnlimitedSelected = useCallback(() => setSpendLimitUnlimitedSelected(true), []);
+	const onPressSpendLimitCustomSelected = useCallback(() => setSpendLimitUnlimitedSelected(false), []);
 
-	const onSetApprovalAmount = () => {
+	const onSetApprovalAmount = useCallback(() => {
 		const uint = toTokenMinimalUnit(
 			spendLimitUnlimitedSelected ? approvalTransactionAmount : approvalCustomValue,
 			sourceToken.decimals
@@ -62,11 +65,19 @@ function TransactionsEditionModal({
 		const newApprovalTransaction = { ...approvalTransaction, data: approvalData };
 		setApprovalTransaction(newApprovalTransaction);
 		onCancelEditQuoteTransactions();
-	};
+	}, [
+		setApprovalTransaction,
+		spendLimitUnlimitedSelected,
+		approvalTransactionAmount,
+		approvalCustomValue,
+		approvalTransaction,
+		sourceToken,
+		onCancelEditQuoteTransactions
+	]);
 
-	const onPressGasSelector = gasSelector => {
+	const onPressGasSelector = useCallback(gasSelector => {
 		setCurrentGasSelector(gasSelector);
-	};
+	}, []);
 
 	useEffect(() => {
 		setApprovalTransaction(originalApprovalTransaction);
