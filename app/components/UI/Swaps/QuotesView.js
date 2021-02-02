@@ -357,7 +357,7 @@ function SwapsQuotesView({
 	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
 	const [editQuoteTransactionsMode, setEditQuoteTransactionsMode] = useState(EDIT_MODE_GAS);
 
-	const onCancelEditQuoteTransactions = () => setEditQuoteTransactionsVisible(false);
+	const onCancelEditQuoteTransactions = useCallback(() => setEditQuoteTransactionsVisible(false), []);
 
 	useEffect(() => {
 		setApprovalTransaction(originalApprovalTransaction);
@@ -465,6 +465,7 @@ function SwapsQuotesView({
 			setRemainingTime(POLLING_INTERVAL);
 			hideFeeModal();
 			hideQuotesModal();
+			onCancelEditQuoteTransactions();
 			return;
 		}
 		const tick = setInterval(() => {
@@ -473,15 +474,16 @@ function SwapsQuotesView({
 		return () => {
 			clearInterval(tick);
 		};
-	}, [hideFeeModal, hideQuotesModal, isInFetch, quotesLastFetched]);
+	}, [hideFeeModal, hideQuotesModal, isInFetch, quotesLastFetched, onCancelEditQuoteTransactions]);
 
 	/* errorKey effect: hide every modal*/
 	useEffect(() => {
 		if (errorKey) {
 			hideFeeModal();
 			hideQuotesModal();
+			onCancelEditQuoteTransactions();
 		}
-	}, [errorKey, hideFeeModal, hideQuotesModal]);
+	}, [errorKey, hideFeeModal, hideQuotesModal, onCancelEditQuoteTransactions]);
 
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
