@@ -35,6 +35,10 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		...fontStyles.bold
 	},
+	flashTitleNoDesc: {
+		marginTop: 8,
+		marginBottom: 0
+	},
 	flashIcon: {
 		marginRight: 15
 	},
@@ -131,7 +135,10 @@ export default function BaseNotification({ status, data = {}, onPress, onHide, c
 			>
 				<View style={styles.flashIcon}>{this._getIcon()}</View>
 				<View style={styles.flashLabel}>
-					<Text style={styles.flashTitle} testID={'notification-title'}>
+					<Text
+						style={[styles.flashTitle, !description && styles.flashTitleNoDesc]}
+						testID={'notification-title'}
+					>
 						{!title ? this._getTitle() : title}
 					</Text>
 					<Text style={styles.flashText}>{!title ? this._getDescription() : description}</Text>
