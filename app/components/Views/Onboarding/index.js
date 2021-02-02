@@ -25,7 +25,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
-import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
+import { getTransparentBackOnboardingNavbarOptions, getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import ScanStep from '../../UI/ScanStep';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import ActionModal from '../../UI/ActionModal';
@@ -152,7 +152,10 @@ const createStep = step => ({
  * View that is displayed to first time (new) users
  */
 class Onboarding extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransparentBackOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation }) =>
+		navigation.getParam('delete', null)
+			? getTransparentOnboardingNavbarOptions(navigation)
+			: getTransparentBackOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
 		/**
