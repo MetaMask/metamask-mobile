@@ -62,8 +62,8 @@ exports[`Confirm should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
-            "fontFamily": "Roboto-Light",
+            "color": "#24292E",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 44,
             "fontWeight": "300",
             "textAlign": "center",
@@ -285,7 +285,7 @@ exports[`Confirm should render correctly 1`] = `
       >
         <Icon
           allowFontScaling={false}
-          color="#000000"
+          color="#24292E"
           name="ios-close"
           size={28}
         />
@@ -307,7 +307,7 @@ exports[`Confirm should render correctly 1`] = `
           style={
             Object {
               "alignItems": "center",
-              "color": "#000000",
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
               "fontWeight": "600",

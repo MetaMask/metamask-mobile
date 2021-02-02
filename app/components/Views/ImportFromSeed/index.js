@@ -162,6 +162,11 @@ const styles = StyleSheet.create({
 	inputFocused: {
 		borderColor: colors.blue,
 		borderWidth: 2
+	},
+	input: {
+		...fontStyles.normal,
+		fontSize: 16,
+		paddingTop: 2
 	}
 });
 
@@ -448,6 +453,7 @@ class ImportFromSeed extends PureComponent {
 						</View>
 						{hideSeedPhraseInput ? (
 							<OutlinedTextField
+								style={styles.input}
 								containerStyle={inputWidth}
 								inputContainerStyle={styles.padding}
 								placeholder={strings('import_from_seed.seed_phrase_placeholder')}
@@ -501,6 +507,7 @@ class ImportFromSeed extends PureComponent {
 								</View>
 							</View>
 							<OutlinedTextField
+								style={styles.input}
 								containerStyle={inputWidth}
 								ref={this.passwordInput}
 								placeholder={strings('import_from_seed.new_password')}
@@ -529,6 +536,7 @@ class ImportFromSeed extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('import_from_seed.confirm_password')}</Text>
 							<OutlinedTextField
+								style={styles.input}
 								containerStyle={inputWidth}
 								ref={this.confirmPasswordInput}
 								testID={'input-password-field-confirm'}

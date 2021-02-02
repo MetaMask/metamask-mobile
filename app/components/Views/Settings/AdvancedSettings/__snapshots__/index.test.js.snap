@@ -68,7 +68,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 24,
                 "fontWeight": "600",
@@ -82,7 +82,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",

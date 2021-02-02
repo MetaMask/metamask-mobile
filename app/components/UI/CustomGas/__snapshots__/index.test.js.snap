@@ -27,7 +27,7 @@ exports[`CustomGas should render correctly 1`] = `
       <TouchableOpacity>
         <Icon
           allowFontScaling={false}
-          color="#000000"
+          color="#24292E"
           name="ios-arrow-back"
           size={24}
         />
@@ -36,7 +36,7 @@ exports[`CustomGas should render correctly 1`] = `
         style={
           Object {
             "alignSelf": "center",
-            "color": "#000000",
+            "color": "#24292E",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 14,
             "fontWeight": "600",
@@ -85,7 +85,7 @@ exports[`CustomGas should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#000000",
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -113,7 +113,7 @@ exports[`CustomGas should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#000000",
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -188,7 +188,7 @@ exports[`CustomGas should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 10,
                 "fontWeight": "600",
@@ -213,7 +213,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Array [
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 10,
                 "fontWeight": "400",
@@ -231,7 +231,7 @@ exports[`CustomGas should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#000000",
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
@@ -277,7 +277,7 @@ exports[`CustomGas should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 10,
                 "fontWeight": "600",
@@ -302,7 +302,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Array [
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 10,
                 "fontWeight": "400",
@@ -320,7 +320,7 @@ exports[`CustomGas should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#000000",
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
@@ -366,7 +366,7 @@ exports[`CustomGas should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 10,
                 "fontWeight": "600",
@@ -391,7 +391,7 @@ exports[`CustomGas should render correctly 1`] = `
           style={
             Array [
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 10,
                 "fontWeight": "400",
@@ -409,7 +409,7 @@ exports[`CustomGas should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#000000",
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 10,
               "fontWeight": "400",
@@ -423,7 +423,7 @@ exports[`CustomGas should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#000000",
+          "color": "#24292E",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 12,
           "fontWeight": "400",
@@ -459,7 +459,7 @@ exports[`CustomGas should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#24292E",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
@@ -484,7 +484,7 @@ exports[`CustomGas should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#000000",
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 14,
               "fontWeight": "600",
@@ -510,7 +510,7 @@ exports[`CustomGas should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#24292E",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
@@ -555,7 +555,7 @@ exports[`CustomGas should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#24292E",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,

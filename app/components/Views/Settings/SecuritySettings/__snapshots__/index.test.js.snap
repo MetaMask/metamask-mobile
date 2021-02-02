@@ -86,7 +86,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Array [
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",

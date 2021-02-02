@@ -347,7 +347,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             onPress={[Function]}
             style={
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",

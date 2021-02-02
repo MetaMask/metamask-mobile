@@ -50,7 +50,7 @@ exports[`Tabs should render correctly 1`] = `
         "marginBottom": 0,
         "paddingHorizontal": 20,
         "paddingTop": 17,
-        "shadowColor": "#000000",
+        "shadowColor": "#24292E",
         "shadowOffset": Object {
           "height": 12,
           "width": 0,
