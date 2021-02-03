@@ -71,6 +71,18 @@ jobs:
     #       paths:
     #         - coverage
 
+  test-deps:
+    <<: *defaults
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: yarn audit
+          command: ./scripts/yarn-audit.sh
+
   test-e2e-ios:
     <<: *defaults
     macos:
@@ -170,6 +182,9 @@ jobs:
 workflows:
   full_test:
     jobs:
+      - test-deps:
+          requires:
+            - prep-node-deps
       - prep-deps:
           filters:
             branches:
@@ -194,6 +209,7 @@ workflows:
     #         - test-unit
       - all-tests-pass:
           requires:
+            - test-deps
             - lint
             - test-unit
     #       - test-e2e-ios
