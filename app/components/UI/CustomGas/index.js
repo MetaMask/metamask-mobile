@@ -63,12 +63,10 @@ const styles = StyleSheet.create({
 		fontSize: 12
 	},
 	warningWrapper: {
-		height: 50,
 		alignItems: 'center',
 		justifyContent: 'center',
 		alignSelf: 'center',
-		width: '100%',
-		marginVertical: 24
+		width: '100%'
 	},
 	warningTextWrapper: {
 		width: '100%',
@@ -162,7 +160,7 @@ const styles = StyleSheet.create({
 		textAlign: 'left',
 		...fontStyles.light,
 		color: colors.black,
-		fontSize: 16
+		fontSize: 14
 	},
 	totalGasWrapper: {
 		flex: 1,
@@ -381,7 +379,7 @@ class CustomGas extends PureComponent {
 		});
 	};
 
-	toggleAdvancedOptions = () => {
+	toggleEditionOption = () => {
 		const {
 			gas,
 			advancedCustomGas,
@@ -591,6 +589,7 @@ class CustomGas extends PureComponent {
 						value={customGasPriceBN ? customGasPriceBN.toString() : ''}
 					/>
 				</View>
+				{this.renderGasError()}
 			</Animated.View>
 		);
 	};
@@ -647,13 +646,13 @@ class CustomGas extends PureComponent {
 					<View style={styles.optionsContainer}>
 						<TouchableOpacity
 							style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
-							onPress={this.toggleAdvancedOptions}
+							onPress={this.toggleEditionOption}
 						>
 							<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
 						</TouchableOpacity>
 						<TouchableOpacity
 							style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
-							onPress={this.toggleAdvancedOptions}
+							onPress={this.toggleEditionOption}
 						>
 							<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
 						</TouchableOpacity>
@@ -662,7 +661,6 @@ class CustomGas extends PureComponent {
 
 				{this.renderCustomGasSelector()}
 				{this.renderCustomGasInput()}
-				{advancedCustomGas && this.renderGasError()}
 
 				<Animated.View style={Device.isIos() && buttonStyle}>
 					<StyledButton
@@ -686,12 +684,12 @@ class CustomGas extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state, props) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: getNormalizedTxState(state)
+	transaction: props.customTransaction || getNormalizedTxState(state)
 });
 
 export default connect(mapStateToProps)(CustomGas);
