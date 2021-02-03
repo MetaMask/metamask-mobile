@@ -5,7 +5,6 @@ import { NavigationContext } from 'react-navigation';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/Device';
 import Text from '../../../Base/Text';
-import Title from '../../../Base/Title';
 import StyledButton from '../../StyledButton';
 
 /* eslint-disable import/no-commonjs */
@@ -22,23 +21,21 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		flex: 1,
-		justifyContent: 'space-around'
+		justifyContent: 'center',
+		marginVertical: 14
 	},
 	images: {
 		alignItems: 'center'
 	},
-	deviceImage: {
-		marginTop: 14
-	},
 	title: {
 		fontSize: Device.isSmallDevice() ? 20 : 24,
 		marginHorizontal: 15,
-		marginBottom: Device.isSmallDevice() ? 16 : 22
+		marginBottom: Device.isSmallDevice() ? 16 : 24
 	},
 	aggregatorsImage: {
 		marginVertical: 14,
-		width: Device.isSmallDevice() ? 270 : 300,
-		height: Device.isSmallDevice() ? 100 : 110
+		width: Device.isSmallDevice() ? 230 : 300,
+		height: Device.isSmallDevice() ? 84 : 110
 	},
 	learnMore: {
 		marginVertical: 14
@@ -64,25 +61,10 @@ function Onboarding({ setHasOnboarded }) {
 		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 		setHasOnboarded(true);
 	}, [setHasOnboarded]);
-	const handleLearnMorePress = useCallback(() => {
-		navigation.navigate('Webview', {
-			// TODO: replace with actual url
-			url: 'https://www.example.org/'
-			// title: strings('swaps.onboarding.learn_more')
-		});
-	}, [navigation]);
-	const handleWhatArePress = useCallback(() => {
-		navigation.navigate('Webview', {
-			// TODO: replace with actual url
-			url: 'https://www.example.org/'
-			// title: strings('swaps.onboarding.what_are')
-		});
-	}, [navigation]);
+
 	const handleReviewAuditsPress = useCallback(() => {
 		navigation.navigate('Webview', {
-			// TODO: replace with actual url
-			url: 'https://www.example.org/'
-			// title: strings('swaps.onboarding.review_audits')
+			url: 'https://consensys.net/diligence/audits/2020/08/metaswap/'
 		});
 	}, [navigation]);
 
@@ -90,7 +72,7 @@ function Onboarding({ setHasOnboarded }) {
 		<View style={styles.screen}>
 			<View style={styles.content}>
 				<View style={styles.images}>
-					<Image source={onboardingDeviceImage} style={styles.deviceImage} />
+					<Image source={onboardingDeviceImage} />
 					<Text centered primary style={styles.title}>
 						{`${strings('swaps.onboarding.get_the')} `}
 						<Text reset bold>
@@ -107,22 +89,11 @@ function Onboarding({ setHasOnboarded }) {
 						<Text reset bold>
 							{strings('swaps.onboarding.best_swap')}
 						</Text>{' '}
-						{strings('swaps.onboarding.best_swap')}
+						{strings('swaps.onboarding.across')}
 					</Text>
 					<Image source={swapsAggregators} style={styles.aggregatorsImage} />
 				</View>
 				<View style={styles.learnMore}>
-					<Title centered>{strings('swaps.onboarding.want_to_learn_more')}</Title>
-					<TouchableOpacity style={styles.learnMoreLink} onPress={handleLearnMorePress}>
-						<Text link centered>
-							{strings('swaps.onboarding.learn_more')}
-						</Text>
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.learnMoreLink} onPress={handleWhatArePress}>
-						<Text link centered>
-							{strings('swaps.onboarding.what_are')}
-						</Text>
-					</TouchableOpacity>
 					<TouchableOpacity style={styles.learnMoreLink} onPress={handleReviewAuditsPress}>
 						<Text link centered>
 							{strings('swaps.onboarding.review_audits')}
