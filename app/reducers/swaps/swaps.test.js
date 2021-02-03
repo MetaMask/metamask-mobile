@@ -1,4 +1,4 @@
-import reducer, { initialState, SWAPS_SET_LIVENESS } from './index';
+import reducer, { initialState, SWAPS_SET_LIVENESS, SWAPS_SET_HAS_ONBOARDED } from './index';
 
 const emptyAction = { type: null };
 
@@ -14,5 +14,13 @@ describe('swaps reducer', () => {
 		expect(notLiveState.isLive).toBe(false);
 		const liveState = reducer(initalState, { type: SWAPS_SET_LIVENESS, payload: true });
 		expect(liveState.isLive).toBe(true);
+	});
+
+	it('sould set has onboarded', () => {
+		const initalState = reducer(undefined, emptyAction);
+		const notOnboardedState = reducer(initalState, { type: SWAPS_SET_HAS_ONBOARDED, payload: false });
+		expect(notOnboardedState.hasOnboarded).toBe(false);
+		const liveState = reducer(initalState, { type: SWAPS_SET_HAS_ONBOARDED, payload: true });
+		expect(liveState.hasOnboarded).toBe(true);
 	});
 });

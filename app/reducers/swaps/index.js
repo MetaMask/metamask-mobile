@@ -2,10 +2,12 @@ import { createSelector } from 'reselect';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
+export const SWAPS_SET_HAS_ONBOARDED = 'SWAPS_SET_HAS_ONBOARDED';
 const MAX_TOKENS_WITH_BALANCE = 5;
 
 // * Action Creator
 export const setSwapsLiveness = live => ({ type: SWAPS_SET_LIVENESS, payload: live });
+export const setSwapsHasOnboarded = hasOnboarded => ({ type: SWAPS_SET_HAS_ONBOARDED, payload: hasOnboarded });
 
 // * Selectors
 
@@ -14,6 +16,12 @@ export const setSwapsLiveness = live => ({ type: SWAPS_SET_LIVENESS, payload: li
  */
 
 export const swapsLivenessSelector = state => state.swaps.isLive;
+
+/**
+ * Returns the swaps onboarded state
+ */
+
+export const swapsHasOnboardedSelector = state => state.swaps.hasOnboarded;
 
 /**
  * Returns the swaps tokens from the state
@@ -98,7 +106,8 @@ export const swapsTopAssetsSelector = createSelector(
 
 // * Reducer
 export const initialState = {
-	isLive: true
+	isLive: true,
+	hasOnboarded: false
 };
 
 function swapsReducer(state = initialState, action) {
@@ -107,6 +116,12 @@ function swapsReducer(state = initialState, action) {
 			return {
 				...state,
 				isLive: Boolean(action.payload)
+			};
+		}
+		case SWAPS_SET_HAS_ONBOARDED: {
+			return {
+				...state,
+				hasOnboarded: Boolean(action.payload)
 			};
 		}
 		default: {
