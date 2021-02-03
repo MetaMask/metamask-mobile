@@ -124,7 +124,7 @@ class AssetOverview extends PureComponent {
 		/**
 		 * Chain id
 		 */
-		chainId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+		chainId: PropTypes.string,
 		/**
 		 * Wether Swaps feature is live or not
 		 */
