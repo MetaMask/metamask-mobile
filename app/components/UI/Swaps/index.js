@@ -124,6 +124,9 @@ function SwapsAmountView({
 	const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
+	const [isSourceSet, setIsSourceSet] = useState(() =>
+		Boolean(tokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase()))
+	);
 
 	const [sourceToken, setSourceToken] = useState(() =>
 		tokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase())
@@ -178,10 +181,11 @@ function SwapsAmountView({
 	}, [tokens]);
 
 	useEffect(() => {
-		if (initialSource && tokens && !sourceToken) {
+		if (!isSourceSet && initialSource && tokens && !sourceToken) {
+			setIsSourceSet(true);
 			setSourceToken(tokens.find(token => token.address?.toLowerCase() === initialSource.toLowerCase()));
 		}
-	}, [tokens, initialSource, sourceToken]);
+	}, [initialSource, isSourceSet, sourceToken, tokens]);
 
 	const hasInvalidDecimals = useMemo(() => {
 		if (sourceToken) {
@@ -294,6 +298,11 @@ function SwapsAmountView({
 
 	const handleAmountPress = useCallback(() => keypadViewRef?.current?.shake?.(), []);
 
+	const handleFlipTokens = useCallback(() => {
+		setSourceToken(destinationToken);
+		setDestinationToken(sourceToken);
+	}, [destinationToken, sourceToken]);
+
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.content}>
@@ -353,10 +362,13 @@ function SwapsAmountView({
 						) : (
 							<Text upper>{currencyAmount ? `~${currencyAmount}` : ''}</Text>
 						))}
+					{!sourceToken && <Text> </Text>}
 				</View>
 				<View style={styles.horizontalRuleContainer}>
 					<View style={styles.horizontalRule} />
-					<IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+					<TouchableOpacity onPress={handleFlipTokens}>
+						<IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+					</TouchableOpacity>
 					<View style={styles.horizontalRule} />
 				</View>
 				<View style={styles.tokenButtonContainer}>
@@ -388,7 +400,7 @@ function SwapsAmountView({
 							</Text>
 						</TouchableOpacity>
 					) : (
-						<Text />
+						<Text> </Text>
 					)}
 				</View>
 			</View>
