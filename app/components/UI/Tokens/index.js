@@ -294,7 +294,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	chainId: state.engine.backgroundState.NetworkController.chainId,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	primaryCurrency: state.settings.primaryCurrency,
