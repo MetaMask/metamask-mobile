@@ -1,8 +1,9 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import { NavigationContext } from 'react-navigation';
+import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Logger from '../../../util/Logger';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -11,7 +12,6 @@ import { swapsUtils } from '@estebanmino/controllers';
 
 import { swapsTokensWithBalanceSelector, swapsTopAssetsSelector } from '../../../reducers/swaps';
 import Engine from '../../../core/Engine';
-import AppConstants from '../../../core/AppConstants';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Device from '../../../util/Device';
 import { setQuotesNavigationsParams } from './utils';
@@ -29,6 +29,9 @@ import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
+import AppConstants from '../../../core/AppConstants';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -130,6 +133,17 @@ function SwapsAmountView({
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
 	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
+	useEffect(() => {
+		// Triggered when a user enters the MetaMask Swap feature
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
+				source: initialSource === SWAPS_ETH_ADDRESS ? 'MainView' : 'TokenView',
+				activeCurrency: initialSource
+			});
+		});
+	}, [initialSource]);
+
+	const keypadViewRef = useRef(null);
 
 	useEffect(() => {
 		(async () => {
@@ -188,7 +202,7 @@ function SwapsAmountView({
 			return false;
 		}
 
-		return balanceAsUnits.gt(0);
+		return !balanceAsUnits.isZero(0);
 	}, [balanceAsUnits, sourceToken]);
 
 	const hasEnoughBalance = useMemo(() => {
@@ -278,6 +292,8 @@ function SwapsAmountView({
 		});
 	}, [destinationToken, navigation]);
 
+	const handleAmountPress = useCallback(() => keypadViewRef?.current?.shake?.(), []);
+
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.content}>
@@ -304,9 +320,11 @@ function SwapsAmountView({
 					/>
 				</View>
 				<View style={styles.amountContainer}>
-					<Text primary style={styles.amount} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
-						{amount}
-					</Text>
+					<TouchableOpacity onPress={handleAmountPress}>
+						<Text primary style={styles.amount} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
+							{amount}
+						</Text>
+					</TouchableOpacity>
 					{!!sourceToken &&
 						(hasInvalidDecimals || (!amountAsUnits?.isZero() && !hasEnoughBalance) ? (
 							<Text style={styles.amountInvalid}>
@@ -375,7 +393,9 @@ function SwapsAmountView({
 				</View>
 			</View>
 			<View style={styles.keypad}>
-				<Keypad onChange={handleKeypadChange} value={amount} />
+				<AnimatableView ref={keypadViewRef}>
+					<Keypad onChange={handleKeypadChange} value={amount} />
+				</AnimatableView>
 				<View style={styles.buttonsContainer}>
 					<View style={styles.column}>
 						<TouchableOpacity
