@@ -9,6 +9,7 @@ import Logger from '../../../util/Logger';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { balanceToFiat, fromTokenMinimalUnit, toTokenMinimalUnit, weiToFiat } from '../../../util/number';
 import { swapsUtils } from '@estebanmino/controllers';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 import {
 	setSwapsHasOnboarded,
@@ -16,16 +17,19 @@ import {
 	swapsTokensWithBalanceSelector,
 	swapsTopAssetsSelector
 } from '../../../reducers/swaps';
-import Engine from '../../../core/Engine';
-import useModalHandler from '../../Base/hooks/useModalHandler';
+import Analytics from '../../../core/Analytics';
 import Device from '../../../util/Device';
-import { setQuotesNavigationsParams } from './utils';
+import Engine from '../../../core/Engine';
+import AppConstants from '../../../core/AppConstants';
 
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
-
+import { setQuotesNavigationsParams } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
+
+import Onboarding from './components/Onboarding';
+import useModalHandler from '../../Base/hooks/useModalHandler';
 import Text from '../../Base/Text';
 import Keypad from '../../Base/Keypad';
 import StyledButton from '../StyledButton';
@@ -34,10 +38,6 @@ import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
-import AppConstants from '../../../core/AppConstants';
-import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import Onboarding from './components/Onboarding';
 
 const styles = StyleSheet.create({
 	screen: {

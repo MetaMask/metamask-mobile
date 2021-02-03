@@ -46,7 +46,6 @@ const styles = StyleSheet.create({
 	learnMoreLink: {
 		paddingVertical: Device.isSmallDevice() ? 4 : 8
 	},
-
 	actionButtonWrapper: {
 		width: '100%'
 	},
@@ -86,6 +85,7 @@ function Onboarding({ setHasOnboarded }) {
 			// title: strings('swaps.onboarding.review_audits')
 		});
 	}, [navigation]);
+
 	return (
 		<View style={styles.screen}>
 			<View style={styles.content}>
