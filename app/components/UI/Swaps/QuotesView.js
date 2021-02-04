@@ -8,39 +8,47 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { NavigationContext } from 'react-navigation';
+import { swapsUtils } from '@estebanmino/controllers';
+import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
+
+import { BNToHex, renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
+import { apiEstimateModifiedToWEI } from '../../../util/custom-gas';
+import { getErrorMessage, getFetchParams, getQuotesNavigationsParams } from './utils';
+import { colors } from '../../../styles/common';
+import { strings } from '../../../../locales/i18n';
 
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
+import Analytics from '../../../core/Analytics';
 import Device from '../../../util/Device';
-import { colors } from '../../../styles/common';
-import { BNToHex, renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
-import { getErrorMessage, getFetchParams, getQuotesNavigationsParams } from './utils';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+
+import { getSwapsQuotesNavbar } from '../Navbar';
+import ScreenView from '../FiatOrders/components/ScreenView';
 import Text from '../../Base/Text';
 import Alert from '../../Base/Alert';
-import useModalHandler from '../../Base/hooks/useModalHandler';
-import ScreenView from '../FiatOrders/components/ScreenView';
 import StyledButton from '../StyledButton';
 import SliderButton from '../SliderButton';
+
 import LoadingAnimation from './components/LoadingAnimation';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
 import FeeModal from './components/FeeModal';
 import QuotesModal from './components/QuotesModal';
 import Ratio from './components/Ratio';
-import { strings } from '../../../../locales/i18n';
-import { swapsUtils } from '@estebanmino/controllers';
-import useBalance from './utils/useBalance';
-import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import ActionAlert from './components/ActionAlert';
 import TransactionsEditionModal from './components/TransactionsEditionModal';
+import useModalHandler from '../../Base/hooks/useModalHandler';
+import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
-import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
-import { apiEstimateModifiedToWEI } from '../../../util/custom-gas';
-import { getSwapsQuotesNavbar } from '../Navbar';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
 const EDIT_MODE_APPROVE_AMOUNT = 'EDIT_MODE_APPROVE_AMOUNT';
+const SLIPPAGE_BUCKETS = {
+	MEDIUM: 'medium',
+	HIGH: 'high'
+};
 
 const styles = StyleSheet.create({
 	screen: {
@@ -55,9 +63,6 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 		marginVertical: 10,
 		width: '100%'
-	},
-	alertContent: {
-		flex: 1
 	},
 	timerWrapper: {
 		backgroundColor: colors.grey000,
@@ -173,6 +178,9 @@ const styles = StyleSheet.create({
 	},
 	expiredIcon: {
 		color: colors.blue
+	},
+	disabled: {
+		opacity: 0.4
 	}
 });
 
@@ -268,6 +276,9 @@ function SwapsQuotesView({
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
 
+	/* Slippage alert dismissed, values: false, 'high', medium, 'low' */
+	const [hasDismissedSlippageAlert, setHasDismissedSlippageAlert] = useState(false);
+
 	const [editQuoteTransactionsVisible, setEditQuoteTransactionsVisible] = useState(false);
 
 	const [apiGasPrice] = useGasPrice();
@@ -330,7 +341,8 @@ function SwapsQuotesView({
 	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
 		() =>
-			(selectedQuote && ['medium', 'high'].includes(selectedQuote?.priceSlippage?.bucket)) ||
+			(selectedQuote &&
+				[SLIPPAGE_BUCKETS.MEDIUM, SLIPPAGE_BUCKETS.HIGH].includes(selectedQuote?.priceSlippage?.bucket)) ||
 			selectedQuote?.priceSlippage?.calculationError?.length > 0,
 		[selectedQuote]
 	);
@@ -542,6 +554,8 @@ function SwapsQuotesView({
 		});
 	}, []);
 
+	const handleSlippageAlertPress = useCallback(bucket => setHasDismissedSlippageAlert(bucket ?? false), []);
+
 	/* Effects */
 
 	/* Main polling effect */
@@ -558,6 +572,16 @@ function SwapsQuotesView({
 			SwapsController.stopPollingAndResetState();
 		};
 	}, [destinationToken, selectedAddress, slippage, sourceAmount, sourceToken]);
+
+	/** selectedQuote alert effect */
+	useEffect(() => {
+		if (!selectedQuote) {
+			return setHasDismissedSlippageAlert(false);
+		}
+		if (Boolean(hasDismissedSlippageAlert) && selectedQuote?.priceSlippage?.bucket !== hasDismissedSlippageAlert) {
+			return setHasDismissedSlippageAlert(false);
+		}
+	}, [hasDismissedSlippageAlert, selectedQuote]);
 
 	useEffect(() => {
 		if (isInFetch) return;
@@ -695,6 +719,8 @@ function SwapsQuotesView({
 		);
 	}
 
+	const disabledView = shouldDisplaySlippage && !hasDismissedSlippageAlert;
+
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.topBar}>
@@ -711,56 +737,58 @@ function SwapsQuotesView({
 				)}
 				{!!selectedQuote && hasEnoughBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
-						<Alert type={selectedQuote.priceSlippage?.bucket === 'high' ? 'error' : 'warning'}>
-							{textStyle => (
-								<View style={styles.alertContent}>
-									{selectedQuote.priceSlippage?.calculationError?.length > 0 ? (
-										<Text style={textStyle} small centered>
-											{strings('swaps.market_price_unavailable')}
+						<ActionAlert
+							type={selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH ? 'error' : 'warning'}
+							action={hasDismissedSlippageAlert ? undefined : strings('swaps.i_understand')}
+							onPress={() => handleSlippageAlertPress(selectedQuote.priceSlippage?.bucket)}
+						>
+							{textStyle =>
+								selectedQuote.priceSlippage?.calculationError?.length > 0 ? (
+									<Text style={textStyle} small centered>
+										{strings('swaps.market_price_unavailable')}
+									</Text>
+								) : (
+									<>
+										<Text style={textStyle} bold centered>
+											{strings('swaps.price_difference', { amount: `~${slippageRatio}%` })}
 										</Text>
-									) : (
-										<>
-											<Text style={textStyle} bold centered>
-												{strings('swaps.price_difference', { amount: `~${slippageRatio}%` })}
+										<Text style={textStyle} centered>
+											{strings('swaps.about_to_swap')}{' '}
+											{renderFromTokenMinimalUnit(
+												selectedQuote.sourceAmount,
+												sourceToken.decimals
+											)}{' '}
+											{sourceToken.symbol} (~
+											<Text reset upper>
+												{weiToFiat(
+													toWei(selectedQuote.priceSlippage?.sourceAmountInETH || 0),
+													conversionRate,
+													currentCurrency
+												)}
 											</Text>
-											<Text style={textStyle} centered>
-												{strings('swaps.about_to_swap')}{' '}
-												{renderFromTokenMinimalUnit(
-													selectedQuote.sourceAmount,
-													sourceToken.decimals
-												)}{' '}
-												{sourceToken.symbol} (~
-												<Text reset upper>
-													{weiToFiat(
-														toWei(selectedQuote.priceSlippage?.sourceAmountInETH || 0),
-														conversionRate,
-														currentCurrency
-													)}
-												</Text>
-												) {strings('swaps.for')}{' '}
-												{renderFromTokenMinimalUnit(
-													selectedQuote.destinationAmount,
-													destinationToken.decimals
-												)}{' '}
-												{destinationToken.symbol} (~
-												<Text reset upper>
-													{weiToFiat(
-														toWei(selectedQuote.priceSlippage?.destinationAmountInETH || 0),
-														conversionRate,
-														currentCurrency
-													)}
-												</Text>
-												).
+											) {strings('swaps.for')}{' '}
+											{renderFromTokenMinimalUnit(
+												selectedQuote.destinationAmount,
+												destinationToken.decimals
+											)}{' '}
+											{destinationToken.symbol} (~
+											<Text reset upper>
+												{weiToFiat(
+													toWei(selectedQuote.priceSlippage?.destinationAmountInETH || 0),
+													conversionRate,
+													currentCurrency
+												)}
 											</Text>
-										</>
-									)}
-								</View>
-							)}
-						</Alert>
+											).
+										</Text>
+									</>
+								)
+							}
+						</ActionAlert>
 					</View>
 				)}
 				{isInPolling && (
-					<View style={styles.timerWrapper}>
+					<View style={[styles.timerWrapper, disabledView && styles.disabled]}>
 						{isInFetch ? (
 							<>
 								<ActivityIndicator size="small" />
@@ -783,13 +811,16 @@ function SwapsQuotesView({
 					</View>
 				)}
 				{!isInPolling && (
-					<View style={styles.timerWrapper}>
+					<View style={[styles.timerWrapper, disabledView && styles.disabled]}>
 						<Text>...</Text>
 					</View>
 				)}
 			</View>
 
-			<View style={styles.content}>
+			<View
+				style={[styles.content, disabledView && styles.disabled]}
+				pointerEvents={disabledView ? 'none' : 'auto'}
+			>
 				{selectedQuote && (
 					<>
 						<View style={styles.sourceTokenContainer}>
@@ -829,7 +860,10 @@ function SwapsQuotesView({
 				)}
 			</View>
 
-			<View style={styles.bottomSection}>
+			<View
+				style={[styles.bottomSection, disabledView && styles.disabled]}
+				pointerEvents={disabledView ? 'none' : 'auto'}
+			>
 				{selectedQuote && (
 					<QuotesSummary style={styles.quotesSummary}>
 						<QuotesSummary.Header style={styles.quotesSummaryHeader} savings={isSaving}>
