@@ -9,7 +9,7 @@ exports[`Collectible should render correctly 1`] = `
     }
   }
 >
-  <ScrollViewMock
+  <ScrollView
     refreshControl={
       <RefreshControlMock
         onRefresh={[Function]}
@@ -72,7 +72,7 @@ exports[`Collectible should render correctly 1`] = `
         />
       </View>
     </View>
-  </ScrollViewMock>
+  </ScrollView>
   <ReactNativeModal
     animationIn="slideInUp"
     animationInTiming={300}

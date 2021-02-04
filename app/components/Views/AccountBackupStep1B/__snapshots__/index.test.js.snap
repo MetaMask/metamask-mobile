@@ -9,7 +9,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
     }
   }
 >
-  <ScrollViewMock
+  <ScrollView
     contentContainerStyle={
       Object {
         "flexGrow": 1,
@@ -373,7 +373,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </StyledButton>
       </View>
     </View>
-  </ScrollViewMock>
+  </ScrollView>
   <ActionModal
     actionContainerStyle={
       Object {
