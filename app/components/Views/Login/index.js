@@ -201,7 +201,7 @@ class Login extends PureComponent {
 		loading: false,
 		error: null,
 		biometryPreviouslyDisabled: false,
-		warningModalVisible: true,
+		warningModalVisible: false,
 		deleteModalVisible: false,
 		disableDelete: true,
 		deleteText: '',
