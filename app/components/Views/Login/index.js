@@ -34,6 +34,8 @@ import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const isTextDelete = text => String(text).toLowerCase() === 'delete';
+const deviceHeight = Device.getDeviceHeight();
+const breakPoint = deviceHeight < 700;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -116,7 +118,7 @@ const styles = StyleSheet.create({
 		color: colors.black
 	},
 	areYouSure: {
-		margin: 24,
+		margin: breakPoint ? 16 : 24,
 		justifyContent: 'center',
 		alignSelf: 'center'
 	},
@@ -126,7 +128,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: 20,
 		textAlign: 'center',
-		lineHeight: 26
+		lineHeight: breakPoint ? 24 : 26
 	},
 	red: {
 		marginHorizontal: 24,
@@ -136,7 +138,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textAlign: 'center',
 		fontSize: 14,
-		lineHeight: 22,
+		lineHeight: breakPoint ? 18 : 22,
 		color: colors.black,
 		marginTop: 20
 	},
@@ -199,7 +201,7 @@ class Login extends PureComponent {
 		loading: false,
 		error: null,
 		biometryPreviouslyDisabled: false,
-		warningModalVisible: false,
+		warningModalVisible: true,
 		deleteModalVisible: false,
 		disableDelete: true,
 		deleteText: '',
