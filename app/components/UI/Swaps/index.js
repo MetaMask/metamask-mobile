@@ -9,18 +9,27 @@ import Logger from '../../../util/Logger';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { balanceToFiat, fromTokenMinimalUnit, toTokenMinimalUnit, weiToFiat } from '../../../util/number';
 import { swapsUtils } from '@estebanmino/controllers';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
-import { swapsTokensWithBalanceSelector, swapsTopAssetsSelector } from '../../../reducers/swaps';
-import Engine from '../../../core/Engine';
-import useModalHandler from '../../Base/hooks/useModalHandler';
+import {
+	setSwapsHasOnboarded,
+	swapsHasOnboardedSelector,
+	swapsTokensWithBalanceSelector,
+	swapsTopAssetsSelector
+} from '../../../reducers/swaps';
+import Analytics from '../../../core/Analytics';
 import Device from '../../../util/Device';
-import { setQuotesNavigationsParams } from './utils';
+import Engine from '../../../core/Engine';
+import AppConstants from '../../../core/AppConstants';
 
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
-
+import { setQuotesNavigationsParams } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
+
+import Onboarding from './components/Onboarding';
+import useModalHandler from '../../Base/hooks/useModalHandler';
 import Text from '../../Base/Text';
 import Keypad from '../../Base/Keypad';
 import StyledButton from '../StyledButton';
@@ -29,9 +38,6 @@ import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
-import AppConstants from '../../../core/AppConstants';
-import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -116,7 +122,9 @@ function SwapsAmountView({
 	tokensTopAssets,
 	conversionRate,
 	tokenExchangeRates,
-	currentCurrency
+	currentCurrency,
+	userHasOnboarded,
+	setHasOnboarded
 }) {
 	const navigation = useContext(NavigationContext);
 	const initialSource = navigation.getParam('sourceToken', SWAPS_ETH_ADDRESS);
@@ -303,6 +311,14 @@ function SwapsAmountView({
 		setDestinationToken(sourceToken);
 	}, [destinationToken, sourceToken]);
 
+	if (!userHasOnboarded) {
+		return (
+			<ScreenView contentContainerStyle={styles.screen}>
+				<Onboarding setHasOnboarded={setHasOnboarded} />
+			</ScreenView>
+		);
+	}
+
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.content}>
@@ -478,7 +494,15 @@ SwapsAmountView.propTypes = {
 	/**
 	 * An object containing token exchange rates in the format address => exchangeRate
 	 */
-	tokenExchangeRates: PropTypes.object
+	tokenExchangeRates: PropTypes.object,
+	/**
+	 * Wether the user has been onboarded or not
+	 */
+	userHasOnboarded: PropTypes.bool,
+	/**
+	 * Function to set hasOnboarded
+	 */
+	setHasOnboarded: PropTypes.func
 };
 
 const mapStateToProps = state => ({
@@ -490,7 +514,15 @@ const mapStateToProps = state => ({
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	tokensWithBalance: swapsTokensWithBalanceSelector(state),
-	tokensTopAssets: swapsTopAssetsSelector(state)
+	tokensTopAssets: swapsTopAssetsSelector(state),
+	userHasOnboarded: swapsHasOnboardedSelector(state)
 });
 
-export default connect(mapStateToProps)(SwapsAmountView);
+const mapDispatchToProps = dispatch => ({
+	setHasOnboarded: hasOnboarded => dispatch(setSwapsHasOnboarded(hasOnboarded))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(SwapsAmountView);
