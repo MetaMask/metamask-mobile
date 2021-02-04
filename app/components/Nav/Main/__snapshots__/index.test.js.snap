@@ -251,6 +251,7 @@ exports[`Main should render correctly 1`] = `
             "Swaps": Object {
               "childRouters": Object {
                 "SwapsAmountView": null,
+                "SwapsQuotesView": null,
               },
               "getActionCreators": [Function],
               "getActionForPathAndParams": [Function],
@@ -582,6 +583,7 @@ exports[`Main should render correctly 1`] = `
               "Swaps": Object {
                 "childRouters": Object {
                   "SwapsAmountView": null,
+                  "SwapsQuotesView": null,
                 },
                 "getActionCreators": [Function],
                 "getActionForPathAndParams": [Function],

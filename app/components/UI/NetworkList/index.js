@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { InteractionManager, ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Networks, { getAllNetworks } from '../../../util/networks';
+import Networks, { getAllNetworks, isSafeChainId } from '../../../util/networks';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -132,7 +132,11 @@ export class NetworkList extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * Show invalid custom network alert for networks without a chain ID
+		 */
+		showInvalidCustomNetworkAlert: PropTypes.func
 	};
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
@@ -166,6 +170,15 @@ export class NetworkList extends PureComponent {
 		const { NetworkController, CurrencyRateController } = Engine.context;
 		const rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
 		const { rpcUrl, chainId, ticker, nickname } = rpc;
+
+		// If the network does not have chainId then show invalid custom network alert
+		const chainIdNumber = parseInt(chainId, 10);
+		if (!isSafeChainId(chainIdNumber)) {
+			this.props.onClose(false);
+			this.props.showInvalidCustomNetworkAlert(rpcTarget);
+			return;
+		}
+
 		CurrencyRateController.configure({ nativeCurrency: ticker });
 		NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 		this.props.onClose(false);
