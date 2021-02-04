@@ -11,7 +11,7 @@ exports[`NetworkSettings should render correctly 1`] = `
   }
   testID="new-rpc-screen"
 >
-  <KeyboardAwareScrollViewMock
+  <KeyboardAwareScrollView
     enableAutomaticScroll={true}
     enableOnAndroid={false}
     enableResetScrollToCoords={true}
@@ -286,6 +286,6 @@ exports[`NetworkSettings should render correctly 1`] = `
         </StyledButton>
       </View>
     </View>
-  </KeyboardAwareScrollViewMock>
+  </KeyboardAwareScrollView>
 </ForwardRef(SafeAreaView)>
 `;

@@ -19,7 +19,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
     }
     testID="enter-password-screen"
   >
-    <KeyboardAwareScrollViewMock
+    <KeyboardAwareScrollView
       enableAutomaticScroll={true}
       enableOnAndroid={false}
       enableResetScrollToCoords={true}
@@ -102,7 +102,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
           </StyledButton>
         </View>
       </View>
-    </KeyboardAwareScrollViewMock>
+    </KeyboardAwareScrollView>
   </View>
 </RCTSafeAreaView>
 `;

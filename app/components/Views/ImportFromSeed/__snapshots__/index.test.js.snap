@@ -9,7 +9,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
     }
   }
 >
-  <KeyboardAwareScrollViewMock
+  <KeyboardAwareScrollView
     enableAutomaticScroll={true}
     enableOnAndroid={false}
     enableResetScrollToCoords={true}
@@ -418,7 +418,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         </StyledButton>
       </View>
     </View>
-  </KeyboardAwareScrollViewMock>
+  </KeyboardAwareScrollView>
   <View
     style={
       Object {

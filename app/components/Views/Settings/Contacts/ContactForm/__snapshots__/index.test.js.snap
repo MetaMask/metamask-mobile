@@ -11,7 +11,7 @@ exports[`ContactForm should render correctly 1`] = `
   }
   testID="add-contact-screen"
 >
-  <KeyboardAwareScrollViewMock
+  <KeyboardAwareScrollView
     enableAutomaticScroll={true}
     enableOnAndroid={false}
     enableResetScrollToCoords={true}
@@ -289,6 +289,6 @@ exports[`ContactForm should render correctly 1`] = `
       }
       title="Delete contact"
     />
-  </KeyboardAwareScrollViewMock>
+  </KeyboardAwareScrollView>
 </ForwardRef(SafeAreaView)>
 `;

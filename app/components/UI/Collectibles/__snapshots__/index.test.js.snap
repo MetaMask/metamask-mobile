@@ -10,7 +10,7 @@ exports[`Collectibles should render correctly 1`] = `
   }
   testID="collectibles"
 >
-  <ScrollViewMock
+  <ScrollView
     refreshControl={
       <RefreshControlMock
         refreshing={false}
@@ -40,7 +40,7 @@ exports[`Collectibles should render correctly 1`] = `
         You don't have any collectibles!
       </Text>
     </View>
-  </ScrollViewMock>
+  </ScrollView>
   <ActionSheet
     cancelButtonIndex={1}
     destructiveButtonIndex={0}

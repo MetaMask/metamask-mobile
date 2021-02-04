@@ -145,7 +145,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
         }
       }
     >
-      <KeyboardAwareScrollViewMock
+      <KeyboardAwareScrollView
         enableAutomaticScroll={true}
         enableOnAndroid={false}
         enableResetScrollToCoords={true}
@@ -179,7 +179,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
             }
           />
         </TouchableWithoutFeedback>
-      </KeyboardAwareScrollViewMock>
+      </KeyboardAwareScrollView>
     </View>
   </View>
 </View>
