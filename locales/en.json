@@ -126,7 +126,7 @@
 		"title": "Welcome Back!",
 		"password": "Password",
 		"login_button": "LOG IN",
-		"go_back": "Can’t login? You can ERASE your current wallet and setup new one",
+		"go_back": "Can’t login? You can ERASE your current wallet and setup a new one",
 		"reset_wallet": "Reset Wallet",
 		"cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
 		"invalid_password": "Invalid password",
