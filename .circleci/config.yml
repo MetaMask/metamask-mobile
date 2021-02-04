@@ -181,14 +181,12 @@ workflows:
               only:
                 - master
                 - develop
-                - improvement/react-native-update-0.63
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
-                - improvement/react-native-update-0.63
       - lint:
           requires:
             - prep-node-deps
