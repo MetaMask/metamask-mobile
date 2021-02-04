@@ -67,7 +67,8 @@
   "resolutions": {
     "**/ethers/elliptic": "^6.5.3",
     "**/optimist/minimist": "^1.2.5",
-    "react-native-level-fs/**/bl": "^0.9.5"
+    "react-native-level-fs/**/bl": "^1.2.3",
+    "react-native-level-fs/**/semver": "^4.3.2"
   },
   "dependencies": {
     "@estebanmino/controllers": "3.2.38",
