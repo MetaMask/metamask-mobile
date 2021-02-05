@@ -1430,6 +1430,8 @@
 		"fetching_new_quotes": "Fetching new quotes...",
 		"you_need": "You need",
 		"more_to_complete": "more to complete this swap.",
+		"more_gas_to_complete": "more for gas to complete this swap.",
+		"buy_more_eth": "Buy more ETH.",
 		"market_price_unavailable": "Market price is unavailable. Make sure you feel comfortable with the returned amount before proceeding.",
 		"price_difference": "Price difference of {{amount}}",
 		"about_to_swap": "You are about to swap",
