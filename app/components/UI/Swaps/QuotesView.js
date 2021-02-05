@@ -305,14 +305,14 @@ function SwapsQuotesView({
 	const gasPrice = useMemo(
 		() =>
 			customGasPrice
-				? customGasPrice?.toString(16)
+				? customGasPrice.toString(16)
 				: !!apiGasPrice && apiEstimateModifiedToWEI(apiGasPrice?.averageGwei).toString(16),
 		[customGasPrice, apiGasPrice]
 	);
 
 	const gasLimit = useMemo(
 		() =>
-			(customGasLimit && BNToHex(customGasLimit)) ||
+			(Boolean(customGasLimit) && BNToHex(customGasLimit)) ||
 			selectedQuote?.trade?.gasEstimateWithRefund?.toString(16) ||
 			selectedQuote?.averageGas?.toString(16),
 		[customGasLimit, selectedQuote]
