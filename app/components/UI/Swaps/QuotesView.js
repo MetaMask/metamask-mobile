@@ -227,7 +227,6 @@ function SwapsQuotesView({
 	currentCurrency,
 	conversionRate,
 	isInPolling,
-	isInFetch,
 	quotesLastFetched,
 	pollingCyclesLeft,
 	approvalTransaction: originalApprovalTransaction,
@@ -235,10 +234,10 @@ function SwapsQuotesView({
 	aggregatorMetadata,
 	quotes,
 	quoteValues,
-	errorKey
+	errorKey,
+	quoteRefreshSeconds
 }) {
 	const navigation = useContext(NavigationContext);
-
 	/* Get params from navigation */
 	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage } = useMemo(
 		() => getQuotesNavigationsParams(navigation),
@@ -265,9 +264,6 @@ function SwapsQuotesView({
 	const [isFirstLoad, setIsFirstLoad] = useState(true);
 	const [shouldFinishFirstLoad, setShouldFinishFirstLoad] = useState(false);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
-
-	// TODO: use this variable in the future when calculating savings
-	const [isSaving] = useState(false);
 
 	const [allQuotesFetchTime, setAllQuotesFetchTime] = useState(null);
 	const [lastTrackedReceivedTime, setLastTrackedReceivedTime] = useState(null);
@@ -358,6 +354,10 @@ function SwapsQuotesView({
 			),
 		[selectedQuote]
 	);
+
+	// TODO: use this variable in the future when calculating savings
+	const [isSaving] = useState(false);
+	const [isInFetch, setIsInFetch] = useState(false);
 
 	/* Approval transaction if any */
 	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
@@ -572,6 +572,7 @@ function SwapsQuotesView({
 			sourceAmount,
 			walletAddress: selectedAddress
 		});
+
 		return () => {
 			const { SwapsController } = Engine.context;
 			SwapsController.stopPollingAndResetState();
@@ -657,20 +658,37 @@ function SwapsQuotesView({
 
 	/* IsInFetch effect: hide every modal, handle countdown */
 	useEffect(() => {
-		if (isInFetch) {
-			setRemainingTime(POLLING_INTERVAL);
-			hideFeeModal();
-			hideQuotesModal();
-			onCancelEditQuoteTransactions();
-			return;
-		}
 		const tick = setInterval(() => {
-			setRemainingTime(quotesLastFetched + POLLING_INTERVAL - Date.now() + 1000);
+			const newRemainingTime = quotesLastFetched + quoteRefreshSeconds * 1000 - Date.now() + 1000;
+			// If newRemainingTime > remainingTime means that a new set of quotes were fetched
+			if (newRemainingTime > remainingTime) {
+				hideFeeModal();
+				hideQuotesModal();
+				onCancelEditQuoteTransactions();
+			}
+
+			// If newRemainingTime < 0 means that quotes are still being fetched
+			// then we show a loader
+			if (!isInFetch && newRemainingTime < 0) {
+				setIsInFetch(true);
+			} else if (isInFetch && newRemainingTime > 0) {
+				setIsInFetch(false);
+			}
+
+			setRemainingTime(newRemainingTime);
 		}, 1000);
 		return () => {
 			clearInterval(tick);
 		};
-	}, [hideFeeModal, hideQuotesModal, isInFetch, quotesLastFetched, onCancelEditQuoteTransactions]);
+	}, [
+		hideFeeModal,
+		hideQuotesModal,
+		onCancelEditQuoteTransactions,
+		isInFetch,
+		quotesLastFetched,
+		quoteRefreshSeconds,
+		remainingTime
+	]);
 
 	/* errorKey effect: hide every modal */
 	useEffect(() => {
@@ -1014,7 +1032,6 @@ SwapsQuotesView.propTypes = {
 	 */
 	selectedAddress: PropTypes.string,
 	isInPolling: PropTypes.bool,
-	isInFetch: PropTypes.bool,
 	quotesLastFetched: PropTypes.number,
 	topAggId: PropTypes.string,
 	/**
@@ -1025,7 +1042,8 @@ SwapsQuotesView.propTypes = {
 	quotes: PropTypes.object,
 	quoteValues: PropTypes.object,
 	approvalTransaction: PropTypes.object,
-	errorKey: PropTypes.string
+	errorKey: PropTypes.string,
+	quoteRefreshSeconds: PropTypes.number
 };
 
 const mapStateToProps = state => ({
@@ -1036,7 +1054,6 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	tokens: state.engine.backgroundState.SwapsController.tokens,
 	isInPolling: state.engine.backgroundState.SwapsController.isInPolling,
-	isInFetch: state.engine.backgroundState.SwapsController.isInFetch,
 	quotesLastFetched: state.engine.backgroundState.SwapsController.quotesLastFetched,
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
 	topAggId: state.engine.backgroundState.SwapsController.topAggId,
@@ -1044,7 +1061,8 @@ const mapStateToProps = state => ({
 	quotes: state.engine.backgroundState.SwapsController.quotes,
 	quoteValues: state.engine.backgroundState.SwapsController.quoteValues,
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,
-	errorKey: state.engine.backgroundState.SwapsController.errorKey
+	errorKey: state.engine.backgroundState.SwapsController.errorKey,
+	quoteRefreshSeconds: state.engine.backgroundState.SwapsController.quoteRefreshSeconds
 });
 
 export default connect(mapStateToProps)(SwapsQuotesView);
