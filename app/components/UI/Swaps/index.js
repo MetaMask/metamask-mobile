@@ -34,6 +34,7 @@ import Text from '../../Base/Text';
 import Keypad from '../../Base/Keypad';
 import StyledButton from '../StyledButton';
 import ScreenView from '../FiatOrders/components/ScreenView';
+import ActionAlert from './components/ActionAlert';
 import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
@@ -69,6 +70,13 @@ const styles = StyleSheet.create({
 	},
 	amountInvalid: {
 		color: colors.red
+	},
+	verifyToken: {
+		marginHorizontal: 40
+	},
+	tokenAlert: {
+		marginTop: 10,
+		marginHorizontal: 30
 	},
 	linkText: {
 		color: colors.blue
@@ -107,12 +115,14 @@ const styles = StyleSheet.create({
 	},
 	cta: {
 		paddingHorizontal: Device.isIphone5() ? 10 : 20
+	},
+	disabled: {
+		opacity: 0.4
 	}
 });
 
-// Grab this from SwapsController.utils
 const SWAPS_ETH_ADDRESS = swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
-
+const TOKEN_MINIMUM_SOURCES = 1;
 function SwapsAmountView({
 	tokens,
 	accounts,
@@ -140,6 +150,7 @@ function SwapsAmountView({
 		tokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase())
 	);
 	const [destinationToken, setDestinationToken] = useState(null);
+	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
@@ -195,6 +206,10 @@ function SwapsAmountView({
 		}
 	}, [initialSource, isSourceSet, sourceToken, tokens]);
 
+	useEffect(() => {
+		setHasDismissedTokenAlert(false);
+	}, [destinationToken]);
+
 	const hasInvalidDecimals = useMemo(() => {
 		if (sourceToken) {
 			return amount?.split('.')[1]?.length > sourceToken.decimals;
@@ -238,6 +253,13 @@ function SwapsAmountView({
 		}
 		return balanceFiat;
 	}, [amount, conversionRate, currentCurrency, hasInvalidDecimals, sourceToken, tokenExchangeRates]);
+
+	const destinationTokenHasEnoughOcurrances = useMemo(() => {
+		if (!destinationToken || destinationToken?.address === SWAPS_ETH_ADDRESS) {
+			return true;
+		}
+		return destinationToken?.occurances > TOKEN_MINIMUM_SOURCES;
+	}, [destinationToken]);
 
 	/* Navigation handler */
 	const handleGetQuotesPress = useCallback(() => {
@@ -294,6 +316,10 @@ function SwapsAmountView({
 		setSlippage(value);
 	}, []);
 
+	const handleDimissTokenAlert = useCallback(() => {
+		setHasDismissedTokenAlert(true);
+	}, []);
+
 	const handleVerifyPress = useCallback(() => {
 		if (!destinationToken) {
 			return;
@@ -311,6 +337,8 @@ function SwapsAmountView({
 		setDestinationToken(sourceToken);
 	}, [destinationToken, sourceToken]);
 
+	const disabledView = !destinationTokenHasEnoughOcurrances && !hasDismissedTokenAlert;
+
 	if (!userHasOnboarded) {
 		return (
 			<ScreenView contentContainerStyle={styles.screen}>
@@ -322,7 +350,10 @@ function SwapsAmountView({
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.content}>
-				<View style={styles.tokenButtonContainer}>
+				<View
+					style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
+					pointerEvents={disabledView ? 'none' : 'auto'}
+				>
 					{isInitialLoadingTokens ? (
 						<ActivityIndicator size="small" />
 					) : (
@@ -344,7 +375,10 @@ function SwapsAmountView({
 						excludeAddresses={[destinationToken?.address]}
 					/>
 				</View>
-				<View style={styles.amountContainer}>
+				<View
+					style={[styles.amountContainer, disabledView && styles.disabled]}
+					pointerEvents={disabledView ? 'none' : 'auto'}
+				>
 					<TouchableOpacity onPress={handleAmountPress}>
 						<Text primary style={styles.amount} numberOfLines={1} adjustsFontSizeToFit allowFontScaling>
 							{amount}
@@ -380,7 +414,10 @@ function SwapsAmountView({
 						))}
 					{!sourceToken && <Text> </Text>}
 				</View>
-				<View style={styles.horizontalRuleContainer}>
+				<View
+					style={[styles.horizontalRuleContainer, disabledView && styles.disabled]}
+					pointerEvents={disabledView ? 'none' : 'auto'}
+				>
 					<View style={styles.horizontalRule} />
 					<TouchableOpacity onPress={handleFlipTokens}>
 						<IonicIcon style={styles.arrowDown} name="md-arrow-down" />
@@ -409,18 +446,55 @@ function SwapsAmountView({
 					/>
 				</View>
 				<View>
-					{destinationToken && destinationToken.symbol !== 'ETH' ? (
-						<TouchableOpacity onPress={handleVerifyPress}>
-							<Text centered>
-								{strings('swaps.verify_on')} <Text link>Etherscan</Text>
-							</Text>
-						</TouchableOpacity>
+					{Boolean(destinationToken) && destinationToken.symbol !== 'ETH' ? (
+						destinationTokenHasEnoughOcurrances ? (
+							<TouchableOpacity onPress={handleVerifyPress} style={styles.verifyToken}>
+								<Text small centered>
+									<Text reset bold>
+										{strings('swaps.verified_on_sources', { sources: destinationToken.occurances })}
+									</Text>
+									{` ${strings('swaps.verify_on')} `}
+									<Text reset link>
+										Etherscan
+									</Text>
+									.
+								</Text>
+							</TouchableOpacity>
+						) : (
+							<ActionAlert
+								type="warning"
+								style={styles.tokenAlert}
+								action={hasDismissedTokenAlert ? null : strings('swaps.continue')}
+								onPress={handleDimissTokenAlert}
+							>
+								{textStyle => (
+									<TouchableOpacity onPress={handleVerifyPress}>
+										<Text style={textStyle} bold centered>
+											{strings('swaps.only_verified_on', {
+												symbol: destinationToken.symbol,
+												occurances: destinationToken.occurances
+											})}
+										</Text>
+										<Text style={textStyle} centered>
+											{`${strings('swaps.verify_address_on')} `}
+											<Text reset link>
+												Etherscan
+											</Text>
+											.
+										</Text>
+									</TouchableOpacity>
+								)}
+							</ActionAlert>
+						)
 					) : (
 						<Text> </Text>
 					)}
 				</View>
 			</View>
-			<View style={styles.keypad}>
+			<View
+				style={[styles.keypad, disabledView && styles.disabled]}
+				pointerEvents={disabledView ? 'none' : 'auto'}
+			>
 				<AnimatableView ref={keypadViewRef}>
 					<Keypad onChange={handleKeypadChange} value={amount} />
 				</AnimatableView>
