@@ -13,6 +13,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 import {
 	setSwapsHasOnboarded,
+	setSwapsLiveness,
 	swapsHasOnboardedSelector,
 	swapsTokensWithBalanceSelector,
 	swapsTopAssetsSelector
@@ -134,7 +135,8 @@ function SwapsAmountView({
 	tokenExchangeRates,
 	currentCurrency,
 	userHasOnboarded,
-	setHasOnboarded
+	setHasOnboarded,
+	setLiveness
 }) {
 	const navigation = useContext(NavigationContext);
 	const initialSource = navigation.getParam('sourceToken', SWAPS_ETH_ADDRESS);
@@ -155,15 +157,31 @@ function SwapsAmountView({
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
 	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
+
 	useEffect(() => {
-		// Triggered when a user enters the MetaMask Swap feature
-		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
-				source: initialSource === SWAPS_ETH_ADDRESS ? 'MainView' : 'TokenView',
-				activeCurrency: initialSource
-			});
-		});
-	}, [initialSource]);
+		(async () => {
+			try {
+				console.log('checkingLiveness');
+				const liveness = await swapsUtils.fetchSwapsFeatureLiveness();
+				setLiveness(liveness);
+				if (liveness) {
+					// Triggered when a user enters the MetaMask Swap feature
+					InteractionManager.runAfterInteractions(() => {
+						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
+							source: initialSource === SWAPS_ETH_ADDRESS ? 'MainView' : 'TokenView',
+							activeCurrency: initialSource
+						});
+					});
+				} else {
+					navigation.pop();
+				}
+			} catch (error) {
+				Logger.error(error, 'Swaps: error while fetching swaps liveness');
+				setLiveness(false);
+				navigation.pop();
+			}
+		})();
+	}, [initialSource, navigation, setLiveness]);
 
 	const keypadViewRef = useRef(null);
 
@@ -576,7 +594,11 @@ SwapsAmountView.propTypes = {
 	/**
 	 * Function to set hasOnboarded
 	 */
-	setHasOnboarded: PropTypes.func
+	setHasOnboarded: PropTypes.func,
+	/**
+	 * Function to set liveness
+	 */
+	setLiveness: PropTypes.func
 };
 
 const mapStateToProps = state => ({
@@ -593,7 +615,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	setHasOnboarded: hasOnboarded => dispatch(setSwapsHasOnboarded(hasOnboarded))
+	setHasOnboarded: hasOnboarded => dispatch(setSwapsHasOnboarded(hasOnboarded)),
+	setLiveness: liveness => dispatch(setSwapsLiveness(liveness))
 });
 
 export default connect(

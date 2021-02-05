@@ -615,11 +615,6 @@ class DrawerView extends PureComponent {
 		this.hideDrawer();
 	}
 
-	goToSwaps = () => {
-		this.props.navigation.navigate('Swaps');
-		this.hideDrawer();
-	};
-
 	hideDrawer() {
 		return new Promise(resolve => {
 			this.props.navigation.dispatch(DrawerActions.closeDrawer());
@@ -745,13 +740,6 @@ class DrawerView extends PureComponent {
 						strings('drawer.view_in_etherscan'),
 					icon: this.getIcon('eye'),
 					action: this.viewInEtherscan
-				}
-			],
-			AppConstants.SWAPS.ACTIVE && [
-				{
-					name: 'Swaps',
-					icon: this.getMaterialIcon('repeat'),
-					action: this.goToSwaps
 				}
 			],
 			[
