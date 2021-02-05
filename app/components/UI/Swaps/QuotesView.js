@@ -13,10 +13,8 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/Device';
 import { colors } from '../../../styles/common';
-import { renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
+import { BNToHex, renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams } from './utils';
-
-import { getSwapsQuotesNavbar } from '../Navbar';
 import Text from '../../Base/Text';
 import Alert from '../../Base/Alert';
 import useModalHandler from '../../Base/hooks/useModalHandler';
@@ -32,12 +30,17 @@ import Ratio from './components/Ratio';
 import { strings } from '../../../../locales/i18n';
 import { swapsUtils } from '@estebanmino/controllers';
 import useBalance from './utils/useBalance';
-import { fetchBasicGasEstimates } from '../../../util/custom-gas';
-import { addHexPrefix } from '@walletconnect/utils';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import TransactionsEditionModal from './components/TransactionsEditionModal';
+import useGasPrice from './utils/useGasPrice';
+import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
+import { apiEstimateModifiedToWEI } from '../../../util/custom-gas';
+import { getSwapsQuotesNavbar } from '../Navbar';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
+const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
+const EDIT_MODE_APPROVE_AMOUNT = 'EDIT_MODE_APPROVE_AMOUNT';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -169,8 +172,7 @@ const styles = StyleSheet.create({
 		color: colors.red
 	},
 	expiredIcon: {
-		color: colors.blue,
-		fontSize: 50
+		color: colors.blue
 	}
 });
 
@@ -219,7 +221,7 @@ function SwapsQuotesView({
 	isInPolling,
 	quotesLastFetched,
 	pollingCyclesLeft,
-	approvalTransaction,
+	approvalTransaction: originalApprovalTransaction,
 	topAggId,
 	aggregatorMetadata,
 	quotes,
@@ -254,13 +256,19 @@ function SwapsQuotesView({
 	const [isFirstLoad, setIsFirstLoad] = useState(true);
 	const [shouldFinishFirstLoad, setShouldFinishFirstLoad] = useState(false);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
-	const [basicGasEstimates, setBasicGasEstimates] = useState({});
+
 	const [allQuotesFetchTime, setAllQuotesFetchTime] = useState(null);
 	const [lastTrackedReceivedTime, setLastTrackedReceivedTime] = useState(null);
 	const [lastTrackedRequestedTime, setLastTrackedRequestedTime] = useState(null);
 
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
+
+	const [editQuoteTransactionsVisible, setEditQuoteTransactionsVisible] = useState(false);
+
+	const [apiGasPrice] = useGasPrice();
+	const [customGasPrice, setCustomGasPrice] = useState(null);
+	const [customGasLimit, setCustomGasLimit] = useState(null);
 
 	/* Get quotes as an array sorted by overallValue */
 	const allQuotes = useMemo(() => {
@@ -280,11 +288,42 @@ function SwapsQuotesView({
 		allQuotes,
 		selectedQuoteId
 	]);
-
 	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [quoteValues, selectedQuoteId]);
 
-	/* Selected quote slippage */
+	/* gas estimations */
+	const gasPrice = useMemo(
+		() =>
+			customGasPrice
+				? customGasPrice?.toString(16)
+				: !!apiGasPrice && apiEstimateModifiedToWEI(apiGasPrice?.averageGwei).toString(16),
+		[customGasPrice, apiGasPrice]
+	);
 
+	const gasLimit = useMemo(
+		() =>
+			(customGasLimit && BNToHex(customGasLimit)) ||
+			selectedQuote?.trade?.gasEstimateWithRefund?.toString(16) ||
+			selectedQuote?.averageGas?.toString(16),
+		[customGasLimit, selectedQuote]
+	);
+
+	/* Total gas fee in decimal */
+	const gasFee = useMemo(() => {
+		if (customGasPrice) {
+			return calcTokenAmount(customGasPrice * gasLimit, 18);
+		}
+		return selectedQuoteValue?.ethFee;
+	}, [selectedQuoteValue, customGasPrice, gasLimit]);
+
+	/* Maximum gas fee in decimal */
+	const maxGasFee = useMemo(() => {
+		if (customGasPrice && selectedQuote?.maxGas) {
+			return calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
+		}
+		return selectedQuoteValue?.maxEthFee;
+	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
+
+	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
 		() =>
 			(selectedQuote && ['medium', 'high'].includes(selectedQuote?.priceSlippage?.bucket)) ||
@@ -307,6 +346,16 @@ function SwapsQuotesView({
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 	const [isInFetch, setIsInFetch] = useState(false);
+
+	/* Approval transaction if any */
+	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
+	const [editQuoteTransactionsMode, setEditQuoteTransactionsMode] = useState(EDIT_MODE_GAS);
+
+	const onCancelEditQuoteTransactions = useCallback(() => setEditQuoteTransactionsVisible(false), []);
+
+	useEffect(() => {
+		setApprovalTransaction(originalApprovalTransaction);
+	}, [originalApprovalTransaction]);
 
 	/* Modals, state and handlers */
 	const [isFeeModalVisible, toggleFeeModal, , hideFeeModal] = useModalHandler(false);
@@ -360,24 +409,22 @@ function SwapsQuotesView({
 		});
 
 		const { TransactionController } = Engine.context;
-		if (basicGasEstimates?.average) {
-			const averageGasPrice = addHexPrefix(basicGasEstimates.average.toString(16));
-			if (approvalTransaction) {
-				approvalTransaction.gasPrice = averageGasPrice;
-			}
-			selectedQuote.trade.gasPrice = averageGasPrice;
+		if (approvalTransaction) {
+			approvalTransaction.gasPrice = gasPrice;
 		}
+		selectedQuote.trade.gasPrice = gasPrice;
 
 		if (approvalTransaction) {
 			await TransactionController.addTransaction(approvalTransaction);
 		}
+		// Modify gas limit for trade transaction only
+		selectedQuote.trade.gas = gasLimit;
 		await TransactionController.addTransaction(selectedQuote.trade);
 		navigation.dismiss();
 	}, [
 		navigation,
 		selectedQuote,
 		approvalTransaction,
-		basicGasEstimates,
 		sourceToken,
 		sourceAmount,
 		destinationToken,
@@ -386,8 +433,24 @@ function SwapsQuotesView({
 		allQuotes,
 		selectedQuoteValue,
 		selectedQuoteId,
-		conversionRate
+		conversionRate,
+		gasPrice,
+		gasLimit
 	]);
+
+	const onEditQuoteTransactionsGas = useCallback(() => {
+		setEditQuoteTransactionsMode(EDIT_MODE_GAS);
+		setEditQuoteTransactionsVisible(true);
+	}, []);
+	const onEditQuoteTransactionsApproveAmount = useCallback(() => {
+		setEditQuoteTransactionsMode(EDIT_MODE_APPROVE_AMOUNT);
+		setEditQuoteTransactionsVisible(true);
+	}, []);
+
+	const onHandleGasFeeSelection = useCallback((gas, gasPrice) => {
+		setCustomGasPrice(gasPrice);
+		setCustomGasLimit(gas);
+	}, []);
 
 	const handleQuotesReceivedMetric = useCallback(() => {
 		InteractionManager.runAfterInteractions(() => {
@@ -490,7 +553,7 @@ function SwapsQuotesView({
 			sourceAmount,
 			walletAddress: selectedAddress
 		});
-		console.log('SWAPS USEEFFECT resetAndStartPolling');
+
 		return () => {
 			const { SwapsController } = Engine.context;
 			SwapsController.stopPollingAndResetState();
@@ -564,14 +627,6 @@ function SwapsQuotesView({
 	/* selectedQuoteId effect: when topAggId changes make it selected by default */
 	useEffect(() => setSelectedQuoteId(topAggId), [topAggId]);
 
-	useEffect(() => {
-		const setGasPriceEstimates = async () => {
-			const basicGasEstimates = await fetchBasicGasEstimates();
-			setBasicGasEstimates(basicGasEstimates);
-		};
-		setGasPriceEstimates();
-	}, []);
-
 	/* IsInFetch effect: hide every modal, handle countdown */
 	useEffect(() => {
 		const tick = setInterval(() => {
@@ -580,6 +635,7 @@ function SwapsQuotesView({
 			if (newRemainingTime > remainingTime) {
 				hideFeeModal();
 				hideQuotesModal();
+				onCancelEditQuoteTransactions();
 			}
 
 			// If newRemainingTime < 0 means that quotes are still being fetched
@@ -595,16 +651,25 @@ function SwapsQuotesView({
 		return () => {
 			clearInterval(tick);
 		};
-	}, [hideFeeModal, hideQuotesModal, isInFetch, quotesLastFetched, quoteRefreshSeconds, remainingTime]);
+	}, [
+		hideFeeModal,
+		hideQuotesModal,
+		onCancelEditQuoteTransactions,
+		isInFetch,
+		quotesLastFetched,
+		quoteRefreshSeconds,
+		remainingTime
+	]);
 
-	/* errorKey effect: hide every modal*/
+	/* errorKey effect: hide every modal */
 	useEffect(() => {
 		if (errorKey) {
 			hideFeeModal();
 			hideQuotesModal();
 			handleQuotesErrorMetric(errorKey);
+			onCancelEditQuoteTransactions();
 		}
-	}, [errorKey, hideFeeModal, hideQuotesModal, handleQuotesErrorMetric]);
+	}, [errorKey, hideFeeModal, hideQuotesModal, handleQuotesErrorMetric, onCancelEditQuoteTransactions]);
 
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
@@ -804,12 +869,12 @@ function SwapsQuotesView({
 										</Text>
 									</View>
 									<Text primary bold>
-										{renderFromWei(toWei(selectedQuoteValue.ethFee))} ETH
+										{renderFromWei(toWei(gasFee))} ETH
 									</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text primary bold upper>
-										{weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, currentCurrency)}
+										{weiToFiat(toWei(gasFee), conversionRate, currentCurrency)}
 									</Text>
 								</View>
 							</View>
@@ -818,39 +883,31 @@ function SwapsQuotesView({
 								<View style={styles.quotesDescription}>
 									<View style={styles.quotesLegend}>
 										<Text>{strings('swaps.max_gas_fee')} </Text>
-										{/* TODO: allow max gas fee edit in the future */}
-										{/* <TouchableOpacity>
+										<TouchableOpacity onPress={onEditQuoteTransactionsGas}>
 											<Text link>{strings('swaps.edit')}</Text>
-										</TouchableOpacity> */}
+										</TouchableOpacity>
 									</View>
-									<Text>{renderFromWei(toWei(selectedQuoteValue.maxEthFee))} ETH</Text>
+									<Text>{renderFromWei(toWei(maxGasFee))} ETH</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text upper>
-										{weiToFiat(
-											toWei(selectedQuoteValue.maxEthFee),
-											conversionRate,
-											currentCurrency
-										)}
-									</Text>
+									<Text upper>{weiToFiat(toWei(maxGasFee), conversionRate, currentCurrency)}</Text>
 								</View>
 							</View>
 
-							{approvalTransaction && (
+							{!!approvalTransaction && (
 								<View style={styles.quotesRow}>
-									<TouchableOpacity style={styles.quotesRow}>
-										<Text>
-											{`${strings('swaps.enable.this_will')} `}
-											<Text bold>
-												{`${strings('swaps.enable.enable_asset', {
-													asset: sourceToken.symbol
-												})} `}
-											</Text>
-											{`${strings('swaps.enable.for_swapping')}`}
-											{/* TODO: allow token spend limit in the future */}
-											{/* <Text link>{` ${strings('swaps.enable.edit_limit')}`}</Text> */}
+									<View style={styles.quotesRow}>
+										<Text>{`${strings('swaps.enable.this_will')} `}</Text>
+										<Text bold>
+											{`${strings('swaps.enable.enable_asset', {
+												asset: sourceToken.symbol
+											})} `}
 										</Text>
-									</TouchableOpacity>
+										<Text>{`${strings('swaps.enable.for_swapping')}`}</Text>
+										<TouchableOpacity onPress={onEditQuoteTransactionsApproveAmount}>
+											<Text link>{` ${strings('swaps.enable.edit_limit')}`}</Text>
+										</TouchableOpacity>
+									</View>
 								</View>
 							)}
 							<QuotesSummary.Separator />
@@ -868,7 +925,7 @@ function SwapsQuotesView({
 				<SliderButton
 					incompleteText={
 						<Text style={styles.sliderButtonText}>
-							{strings('swaps.swipe_to')}{' '}
+							{`${strings('swaps.swipe_to')} `}
 							<Text reset bold>
 								{strings('swaps.swap')}
 							</Text>
@@ -893,9 +950,25 @@ function SwapsQuotesView({
 				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
 			/>
+
+			<TransactionsEditionModal
+				apiGasPrice={apiGasPrice}
+				approvalTransaction={approvalTransaction}
+				editQuoteTransactionsMode={editQuoteTransactionsMode}
+				editQuoteTransactionsVisible={editQuoteTransactionsVisible}
+				gasLimit={gasLimit}
+				gasPrice={gasPrice}
+				onCancelEditQuoteTransactions={onCancelEditQuoteTransactions}
+				onHandleGasFeeSelection={onHandleGasFeeSelection}
+				setApprovalTransaction={setApprovalTransaction}
+				selectedQuote={selectedQuote}
+				sourceToken={sourceToken}
+			/>
 		</ScreenView>
 	);
 }
+
+SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
 
 SwapsQuotesView.propTypes = {
 	tokens: PropTypes.arrayOf(PropTypes.object),
@@ -933,8 +1006,6 @@ SwapsQuotesView.propTypes = {
 	errorKey: PropTypes.string,
 	quoteRefreshSeconds: PropTypes.number
 };
-
-SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
