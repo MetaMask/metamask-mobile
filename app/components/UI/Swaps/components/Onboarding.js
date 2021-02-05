@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 	aggregatorsImage: {
 		marginVertical: 14,
 		width: Device.isSmallDevice() ? 230 : 300,
-		height: Device.isSmallDevice() ? 84 : 110
+		height: Device.isSmallDevice() ? 85 : 110
 	},
 	learnMore: {
 		marginVertical: 14
