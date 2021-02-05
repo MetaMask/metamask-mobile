@@ -462,7 +462,7 @@ exports[`CustomGas should render correctly 1`] = `
             "color": "#000000",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "300",
             "textAlign": "left",
           }
@@ -513,7 +513,7 @@ exports[`CustomGas should render correctly 1`] = `
             "color": "#000000",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "300",
             "textAlign": "left",
           }
@@ -558,7 +558,7 @@ exports[`CustomGas should render correctly 1`] = `
             "color": "#000000",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "300",
             "textAlign": "left",
           }
@@ -586,6 +586,48 @@ exports[`CustomGas should render correctly 1`] = `
         }
         value="10"
       />
+    </View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "center",
+          "justifyContent": "center",
+          "width": "100%",
+        }
+      }
+    >
+      <View
+        style={
+          Array [
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#fcf2f3",
+              "borderColor": "#D73A49",
+              "borderRadius": 8,
+              "borderWidth": 1,
+              "justifyContent": "center",
+              "paddingHorizontal": 10,
+              "paddingVertical": 8,
+              "width": "100%",
+            },
+            null,
+          ]
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#D73A49",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Insufficient funds
+        </Text>
+      </View>
     </View>
   </ForwardRef(AnimatedComponentWrapper)>
   <ForwardRef(AnimatedComponentWrapper)>

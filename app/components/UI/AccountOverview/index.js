@@ -355,7 +355,7 @@ class AccountOverview extends PureComponent {
 									icon="swap"
 									label={strings('asset_overview.swap')}
 									disabled={
-										!swapsIsLive || AppConstants.SWAPS.ONLY_MAINNET ? !isMainNet(chainId) : false
+										!swapsIsLive || (AppConstants.SWAPS.ONLY_MAINNET ? !isMainNet(chainId) : false)
 									}
 									onPress={this.goToSwaps}
 								/>

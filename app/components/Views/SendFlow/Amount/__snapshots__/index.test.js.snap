@@ -10,7 +10,7 @@ exports[`Amount should render correctly 1`] = `
   }
   testID="amount-screen"
 >
-  <ScrollViewMock
+  <ScrollView
     style={
       Object {
         "marginBottom": 60,
@@ -180,7 +180,7 @@ exports[`Amount should render correctly 1`] = `
         </View>
       </View>
     </View>
-  </ScrollViewMock>
+  </ScrollView>
   <KeyboardAvoidingView
     behavior="padding"
     enabled={true}
