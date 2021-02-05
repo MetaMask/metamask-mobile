@@ -554,7 +554,12 @@ function SwapsQuotesView({
 		});
 	}, []);
 
-	const handleSlippageAlertPress = useCallback(bucket => setHasDismissedSlippageAlert(bucket ?? false), []);
+	const handleSlippageAlertPress = useCallback(() => {
+		if (!selectedQuote) {
+			return;
+		}
+		setHasDismissedSlippageAlert(selectedQuote.priceSlippage?.bucket ?? false);
+	}, [selectedQuote]);
 
 	/* Effects */
 
@@ -740,7 +745,7 @@ function SwapsQuotesView({
 						<ActionAlert
 							type={selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH ? 'error' : 'warning'}
 							action={hasDismissedSlippageAlert ? undefined : strings('swaps.i_understand')}
-							onPress={() => handleSlippageAlertPress(selectedQuote.priceSlippage?.bucket)}
+							onPress={handleSlippageAlertPress}
 						>
 							{textStyle =>
 								selectedQuote.priceSlippage?.calculationError?.length > 0 ? (
