@@ -222,7 +222,7 @@
     "jest": "^25.2.7",
     "jest-serializer": "24.4.0",
     "jetifier": "^1.6.6",
-    "lint-staged": "8.1.5",
+    "lint-staged": "10.5.3",
     "metro": "^0.59.0",
     "metro-react-native-babel-preset": "^0.59.0",
     "octonode": "0.9.5",
