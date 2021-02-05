@@ -128,6 +128,7 @@ const styles = StyleSheet.create({
 	error: {
 		color: colors.red,
 		fontSize: 12,
+		lineHeight: 16,
 		...fontStyles.normal,
 		textAlign: 'center'
 	},

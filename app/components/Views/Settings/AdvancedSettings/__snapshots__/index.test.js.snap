@@ -8,7 +8,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
     }
   }
 >
-  <KeyboardAwareScrollViewMock
+  <KeyboardAwareScrollView
     enableAutomaticScroll={true}
     enableOnAndroid={false}
     enableResetScrollToCoords={true}
@@ -329,6 +329,6 @@ exports[`AdvancedSettings should render correctly 1`] = `
         </StyledButton>
       </View>
     </View>
-  </KeyboardAwareScrollViewMock>
+  </KeyboardAwareScrollView>
 </ForwardRef(SafeAreaView)>
 `;

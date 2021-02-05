@@ -18,7 +18,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
     }
     testID="choose-password-screen"
   >
-    <KeyboardAwareScrollViewMock
+    <KeyboardAwareScrollView
       enableAutomaticScroll={true}
       enableOnAndroid={false}
       enableResetScrollToCoords={true}
@@ -128,8 +128,9 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
                 "borderBottomWidth": 1,
                 "borderRadius": 4,
                 "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
+                "fontSize": 14,
                 "fontWeight": "400",
+                "height": 50,
                 "paddingLeft": 0,
                 "paddingVertical": 10,
               }
@@ -236,8 +237,9 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
                 "borderBottomWidth": 1,
                 "borderRadius": 4,
                 "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
+                "fontSize": 14,
                 "fontWeight": "400",
+                "height": 50,
                 "paddingLeft": 0,
                 "paddingVertical": 10,
               }
@@ -273,7 +275,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
           </Text>
         </View>
       </View>
-    </KeyboardAwareScrollViewMock>
+    </KeyboardAwareScrollView>
     <View
       style={
         Object {
