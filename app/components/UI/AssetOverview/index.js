@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, InteractionManager, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { swapsUtils } from '@estebanmino/controllers';
 import AssetIcon from '../AssetIcon';
@@ -16,9 +16,11 @@ import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { isMainNet } from '../../../util/networks';
 import { swapsLivenessSelector, swapsTokensObjectSelector } from '../../../reducers/swaps';
-import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { allowedToBuy } from '../FiatOrders';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -59,8 +61,8 @@ const styles = StyleSheet.create({
 		textTransform: 'uppercase'
 	},
 	actions: {
-		width: Device.isSmallDevice() ? '65%' : '50%',
-		justifyContent: 'space-around',
+		flex: 1,
+		justifyContent: 'center',
 		alignItems: 'flex-start',
 		flexDirection: 'row'
 	}
@@ -120,9 +122,9 @@ class AssetOverview extends PureComponent {
 		 */
 		primaryCurrency: PropTypes.string,
 		/**
-		 * Network id
+		 * Chain id
 		 */
-		network: PropTypes.string,
+		chainId: PropTypes.string,
 		/**
 		 * Wether Swaps feature is live or not
 		 */
@@ -136,6 +138,13 @@ class AssetOverview extends PureComponent {
 	onReceive = () => {
 		const { asset } = this.props;
 		this.props.toggleReceiveModal(asset);
+	};
+
+	onBuy = () => {
+		this.props.navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+		});
 	};
 
 	onSend = async () => {
@@ -189,7 +198,7 @@ class AssetOverview extends PureComponent {
 			tokenBalances,
 			conversionRate,
 			currentCurrency,
-			network,
+			chainId,
 			swapsIsLive,
 			swapsTokens
 		} = this.props;
@@ -229,6 +238,13 @@ class AssetOverview extends PureComponent {
 						onPress={this.onReceive}
 						label={strings('asset_overview.receive_button')}
 					/>
+					{isETH && allowedToBuy(chainId) && (
+						<AssetActionButton
+							icon="buy"
+							onPress={this.onBuy}
+							label={strings('asset_overview.buy_button')}
+						/>
+					)}
 					<AssetActionButton
 						testID={'token-send-button'}
 						icon="send"
@@ -241,7 +257,7 @@ class AssetOverview extends PureComponent {
 							label={strings('asset_overview.swap')}
 							disabled={
 								!swapsIsLive ||
-								(AppConstants.SWAPS.ONLY_MAINNET ? !isMainNet(network) : false) ||
+								(AppConstants.SWAPS.ONLY_MAINNET ? !isMainNet(chainId) : false) ||
 								(!isETH && !(address?.toLowerCase() in swapsTokens))
 							}
 							onPress={this.goToSwaps}
@@ -261,7 +277,7 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	network: state.engine.backgroundState.NetworkController.network,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	swapsIsLive: swapsLivenessSelector(state),
 	swapsTokens: swapsTokensObjectSelector(state)
 });

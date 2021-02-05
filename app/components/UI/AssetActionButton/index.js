@@ -3,16 +3,18 @@ import PropTypes from 'prop-types';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicon from 'react-native-vector-icons/Ionicons';
+import FeatherIcon from 'react-native-vector-icons/Feather';
 import { colors } from '../../../styles/common';
 import Device from '../../../util/Device';
 import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
 	button: {
-		flex: 1,
+		flexShrink: 1,
+		marginHorizontal: 0,
 		justifyContent: 'center',
-		alignContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		minWidth: 60
 	},
 	disabledButton: {
 		opacity: 0.5
@@ -44,9 +46,12 @@ const styles = StyleSheet.create({
 		transform: [{ rotate: '90deg' }]
 	},
 	swapsIcon: {
-		padding: 0,
 		right: Device.isAndroid() ? 1 : 0,
 		bottom: Device.isAndroid() ? 1 : 0
+	},
+	buyIcon: {
+		right: Device.isAndroid() ? 0.5 : 0,
+		bottom: Device.isAndroid() ? 1 : 2
 	}
 });
 
@@ -66,13 +71,16 @@ function getIcon(type) {
 			);
 		}
 		case 'add': {
-			return <Ionicon name={'ios-add'} size={30} style={styles.buttonIcon} />;
+			return <Ionicon name="ios-add" size={30} style={styles.buttonIcon} />;
 		}
 		case 'information': {
-			return <Ionicon name={'md-information'} size={30} style={styles.buttonIcon} />;
+			return <Ionicon name="md-information" size={30} style={styles.buttonIcon} />;
 		}
 		case 'swap': {
-			return <MaterialCommunityIcon name={'repeat'} size={22} style={[styles.buttonIcon, styles.swapsIcon]} />;
+			return <MaterialCommunityIcon name="repeat" size={22} style={[styles.buttonIcon, styles.swapsIcon]} />;
+		}
+		case 'buy': {
+			return <FeatherIcon name="credit-card" size={20} style={[styles.buttonIcon, styles.buyIcon]} />;
 		}
 		default: {
 			return null;

@@ -26,6 +26,7 @@ import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
 import EthereumAddress from '../EthereumAddress';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { allowedToBuy } from '../FiatOrders';
 
 const styles = StyleSheet.create({
 	scrollView: {
@@ -88,11 +89,10 @@ const styles = StyleSheet.create({
 		top: Device.isIos() ? 0 : -2
 	},
 	actions: {
-		width: Device.isSmallDevice() ? '65%' : '50%',
-		justifyContent: 'space-around',
+		flex: 1,
+		justifyContent: 'center',
 		alignItems: 'flex-start',
-		flexDirection: 'row',
-		marginVertical: 10
+		flexDirection: 'row'
 	}
 });
 
@@ -152,7 +152,7 @@ class AccountOverview extends PureComponent {
 		 */
 		toggleReceiveModal: PropTypes.func,
 		/**
-		 * Chaind id
+		 * Chain id
 		 */
 		chainId: PropTypes.string,
 		/**
@@ -237,10 +237,17 @@ class AccountOverview extends PureComponent {
 
 	onReceive = () => this.props.toggleReceiveModal(getEther());
 
-	onSend = async () => {
+	onSend = () => {
 		const { newAssetTransaction, navigation } = this.props;
 		newAssetTransaction(getEther());
 		navigation.navigate('SendFlowView');
+	};
+
+	onBuy = () => {
+		this.props.navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+		});
 	};
 
 	goToSwaps = () =>
@@ -330,6 +337,13 @@ class AccountOverview extends PureComponent {
 								onPress={this.onReceive}
 								label={strings('asset_overview.receive_button')}
 							/>
+							{allowedToBuy(chainId) && (
+								<AssetActionButton
+									icon="buy"
+									onPress={this.onBuy}
+									label={strings('asset_overview.buy_button')}
+								/>
+							)}
 							<AssetActionButton
 								testID={'token-send-button'}
 								icon="send"
