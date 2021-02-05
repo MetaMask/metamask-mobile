@@ -334,6 +334,14 @@ function SwapsQuotesView({
 		return selectedQuoteValue?.maxEthFee;
 	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
 
+	const [hasEnoughEthBalance, missingEthBalance] = useMemo(() => {
+		const balanceBN = new BigNumber(accounts[selectedAddress].balance);
+		const gasBN = new BigNumber((gasFee && toWei(gasFee)) || 0);
+		const ethAmountBN = new BigNumber(sourceToken.symbol === 'ETH' ? sourceAmount : 0);
+		const hasEnough = balanceBN.gte(gasBN.plus(ethAmountBN));
+		return [hasEnough, hasEnough ? null : gasBN.plus(ethAmountBN).minus(balanceBN)];
+	}, [sourceAmount, sourceToken, accounts, selectedAddress, gasFee]);
+
 	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
 		() =>
@@ -758,7 +766,18 @@ function SwapsQuotesView({
 						</Alert>
 					</View>
 				)}
-				{!!selectedQuote && hasEnoughBalance && shouldDisplaySlippage && (
+				{hasEnoughBalance && !hasEnoughEthBalance && (
+					<View style={styles.alertBar}>
+						<Alert small type="info">
+							{strings('swaps.you_need')}{' '}
+							<Text reset bold>
+								{renderFromWei(missingEthBalance)} ETH
+							</Text>{' '}
+							{strings('swaps.more_to_complete')}
+						</Alert>
+					</View>
+				)}
+				{!!selectedQuote && hasEnoughBalance && hasEnoughEthBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
 						<ActionAlert
 							type={selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH ? 'error' : 'warning'}
@@ -971,7 +990,7 @@ function SwapsQuotesView({
 						</Text>
 					}
 					completeText={<Text style={styles.sliderButtonText}>{strings('swaps.completed_swap')}</Text>}
-					disabled={!isInPolling || isInFetch || !selectedQuote || !hasEnoughBalance}
+					disabled={!isInPolling || isInFetch || !selectedQuote || !hasEnoughBalance || !hasEnoughEthBalance}
 					onComplete={handleCompleteSwap}
 				/>
 			</View>
