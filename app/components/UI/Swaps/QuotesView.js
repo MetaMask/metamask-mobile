@@ -778,7 +778,8 @@ function SwapsQuotesView({
 							{!hasEnoughTokenBalance
 								? `${strings('swaps.more_to_complete')} `
 								: `${strings('swaps.more_gas_to_complete')} `}
-							{(sourceToken.symbol === 'ETH' || (hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
+							{(sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ||
+								(hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
 								<TouchableOpacity onPress={buyEth}>
 									<Text reset link underline small>
 										{strings('swaps.buy_more_eth')}
