@@ -12,7 +12,7 @@ import { colors } from '../../../../../styles/common';
 import Fox from '../../../Fox';
 import backgroundShapes from './backgroundShapes';
 
-const ANIM_MULTIPLIER = 1;
+const ANIM_MULTIPLIER = 0.67;
 const INITIAL_DELAY = 1000 * ANIM_MULTIPLIER;
 const DELAY = 1000 * ANIM_MULTIPLIER;
 const PAN_DURATION = 500 * ANIM_MULTIPLIER;
