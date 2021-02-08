@@ -328,19 +328,19 @@ function SwapsQuotesView({
 	/* Balance */
 	const balance = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 	const [hasEnoughTokenBalance, missingTokenBalance] = useMemo(() => {
-		const sourceBN = new BigNumber(sourceToken.symbol === 'ETH' ? 0 : sourceAmount);
+		const sourceBN = new BigNumber(sourceAmount);
 		const balanceBN = new BigNumber(balance.toString());
 		const hasEnough = balanceBN.gte(sourceBN);
 		return [hasEnough, hasEnough ? null : sourceBN.minus(balanceBN)];
-	}, [balance, sourceAmount, sourceToken.symbol]);
+	}, [balance, sourceAmount]);
 
 	const [hasEnoughEthBalance, missingEthBalance] = useMemo(() => {
-		const ethAmountBN = new BigNumber(sourceToken.symbol === 'ETH' ? balance.toString() : 0);
+		const ethAmountBN = new BigNumber(sourceToken.symbol === 'ETH' ? sourceAmount.toString() : 0);
 		const balanceBN = new BigNumber(accounts[selectedAddress].balance);
 		const gasBN = new BigNumber((gasFee && toWei(gasFee)) || 0);
 		const hasEnough = balanceBN.gte(gasBN.plus(ethAmountBN));
 		return [hasEnough, hasEnough ? null : gasBN.plus(ethAmountBN).minus(balanceBN)];
-	}, [balance, sourceToken.symbol, accounts, selectedAddress, gasFee]);
+	}, [sourceAmount, sourceToken.symbol, accounts, selectedAddress, gasFee]);
 
 	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
@@ -762,34 +762,33 @@ function SwapsQuotesView({
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.topBar}>
-				{!hasEnoughTokenBalance && (
+				{(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
 					<View style={styles.alertBar}>
 						<Alert small type="info">
-							{strings('swaps.you_need')}{' '}
+							{`${strings('swaps.you_need')} `}
 							<Text reset bold>
-								{renderFromTokenMinimalUnit(missingTokenBalance, sourceToken.decimals)}{' '}
-								{sourceToken.symbol}
-							</Text>{' '}
-							{strings('swaps.more_to_complete')}
-						</Alert>
-					</View>
-				)}
-				{hasEnoughTokenBalance && !hasEnoughEthBalance && (
-					<View style={styles.alertBar}>
-						<Alert small type="info">
-							{strings('swaps.you_need')}{' '}
-							<Text reset bold>
-								{`${renderFromWei(missingEthBalance)} ETH `}
+								{!hasEnoughTokenBalance && sourceToken.symbol !== 'ETH'
+									? `${renderFromTokenMinimalUnit(missingTokenBalance, sourceToken.decimals)} ${
+											sourceToken.symbol
+											// eslint-disable-next-line no-mixed-spaces-and-tabs
+									  } `
+									: // eslint-disable-next-line no-mixed-spaces-and-tabs
+									  `${renderFromWei(missingEthBalance)} ETH `}
 							</Text>
-							{`${strings('swaps.more_gas_to_complete')} `}
-							<TouchableOpacity onPress={buyEth}>
-								<Text reset link underline>
-									{strings('swaps.buy_more_eth')}
-								</Text>
-							</TouchableOpacity>
+							{!hasEnoughTokenBalance
+								? `${strings('swaps.more_to_complete')} `
+								: `${strings('swaps.more_gas_to_complete')} `}
+							{(sourceToken.symbol === 'ETH' || (hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
+								<TouchableOpacity onPress={buyEth}>
+									<Text reset link underline>
+										{strings('swaps.buy_more_eth')}
+									</Text>
+								</TouchableOpacity>
+							)}
 						</Alert>
 					</View>
 				)}
+
 				{!!selectedQuote && hasEnoughTokenBalance && hasEnoughEthBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
 						<ActionAlert

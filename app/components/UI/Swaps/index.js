@@ -161,7 +161,6 @@ function SwapsAmountView({
 	useEffect(() => {
 		(async () => {
 			try {
-				console.log('checkingLiveness');
 				const liveness = await swapsUtils.fetchSwapsFeatureLiveness();
 				setLiveness(liveness);
 				if (liveness) {
