@@ -334,15 +334,14 @@ function SwapsQuotesView({
 		const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
 		const missingTokenBalance = hasEnoughTokenBalance ? null : sourceBN.minus(tokenBalanceBN);
 
-		// ETH
-		const ethAmountBN = sourceToken.symbol === 'ETH' ? sourceBN : new BigNumber(0);
+		const ethAmountBN = sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ? sourceBN : new BigNumber(0);
 		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
 		const gasBN = new BigNumber((gasFee && toWei(gasFee)) || 0);
 		const hasEnoughEthBalance = ethBalanceBN.gte(gasBN.plus(ethAmountBN));
 		const missingEthBalance = hasEnoughEthBalance ? null : gasBN.plus(ethAmountBN).minus(ethBalanceBN);
 
 		return [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance];
-	}, [accounts, balance, gasFee, selectedAddress, sourceAmount, sourceToken.symbol]);
+	}, [accounts, balance, gasFee, selectedAddress, sourceAmount, sourceToken.address]);
 
 	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
@@ -769,7 +768,7 @@ function SwapsQuotesView({
 						<Alert small type="info">
 							{`${strings('swaps.you_need')} `}
 							<Text reset bold>
-								{!hasEnoughTokenBalance && sourceToken.symbol !== 'ETH'
+								{!hasEnoughTokenBalance && sourceToken.address !== swapsUtils.ETH_SWAPS_TOKEN_ADDRESS
 									? `${renderFromTokenMinimalUnit(missingTokenBalance, sourceToken.decimals)} ${
 											sourceToken.symbol
 											// eslint-disable-next-line no-mixed-spaces-and-tabs
