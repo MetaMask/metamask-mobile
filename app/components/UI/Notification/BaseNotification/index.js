@@ -35,10 +35,6 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		...fontStyles.bold
 	},
-	flashTitleNoDesc: {
-		marginTop: 8,
-		marginBottom: 0
-	},
 	flashIcon: {
 		marginRight: 15
 	},
@@ -135,10 +131,7 @@ const BaseNotification = ({
 		>
 			<View style={styles.flashIcon}>{getIcon(status)}</View>
 			<View style={styles.flashLabel}>
-				<Text
-					style={[styles.flashTitle, !description && styles.flashTitleNoDesc]}
-					testID={'notification-title'}
-				>
+				<Text style={styles.flashTitle} testID={'notification-title'}>
 					{!title ? getTitle(status, data) : title}
 				</Text>
 				<Text style={styles.flashText}>{!title ? getDescription(status, data) : description}</Text>
