@@ -250,15 +250,6 @@ function SwapsQuotesView({
 		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
 	);
 
-	/* Balance */
-	const balance = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
-	const [hasEnoughBalance, missingBalance] = useMemo(() => {
-		const sourceBN = new BigNumber(sourceAmount);
-		const balanceBN = new BigNumber(balance.toString());
-		const hasEnough = balanceBN.gte(sourceBN);
-		return [hasEnough, hasEnough ? null : sourceBN.minus(balanceBN)];
-	}, [balance, sourceAmount]);
-
 	/* State */
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
 	const [isFirstLoad, setIsFirstLoad] = useState(true);
@@ -333,6 +324,24 @@ function SwapsQuotesView({
 		}
 		return selectedQuoteValue?.maxEthFee;
 	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
+
+	/* Balance */
+	const balance = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
+	const [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance] = useMemo(() => {
+		// Token
+		const sourceBN = new BigNumber(sourceAmount);
+		const tokenBalanceBN = new BigNumber(balance.toString());
+		const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
+		const missingTokenBalance = hasEnoughTokenBalance ? null : sourceBN.minus(tokenBalanceBN);
+
+		const ethAmountBN = sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ? sourceBN : new BigNumber(0);
+		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
+		const gasBN = new BigNumber((gasFee && toWei(gasFee)) || 0);
+		const hasEnoughEthBalance = ethBalanceBN.gte(gasBN.plus(ethAmountBN));
+		const missingEthBalance = hasEnoughEthBalance ? null : gasBN.plus(ethAmountBN).minus(ethBalanceBN);
+
+		return [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance];
+	}, [accounts, balance, gasFee, selectedAddress, sourceAmount, sourceToken.address]);
 
 	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
@@ -409,7 +418,7 @@ function SwapsQuotesView({
 				token_from_amount: sourceAmount,
 				token_to: destinationToken.address,
 				token_to_amount: selectedQuote.destinationAmount,
-				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 				best_quote_source: selectedQuote.aggregator,
@@ -440,7 +449,7 @@ function SwapsQuotesView({
 		sourceToken,
 		sourceAmount,
 		destinationToken,
-		hasEnoughBalance,
+		hasEnoughTokenBalance,
 		slippage,
 		allQuotes,
 		selectedQuoteValue,
@@ -471,7 +480,7 @@ function SwapsQuotesView({
 				token_from_amount: sourceAmount,
 				token_to: destinationToken.address,
 				token_to_amount: selectedQuote.destinationAmount,
-				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 				response_time: allQuotesFetchTime,
@@ -486,7 +495,7 @@ function SwapsQuotesView({
 		sourceAmount,
 		destinationToken,
 		selectedQuote,
-		hasEnoughBalance,
+		hasEnoughTokenBalance,
 		slippage,
 		allQuotesFetchTime,
 		selectedQuoteValue,
@@ -500,7 +509,7 @@ function SwapsQuotesView({
 			token_from_amount: sourceAmount,
 			token_to: destinationToken.address,
 			token_to_amount: selectedQuote.destinationAmount,
-			request_type: hasEnoughBalance ? 'Order' : 'Quote',
+			request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 			slippage,
 			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 			response_time: allQuotesFetchTime,
@@ -514,7 +523,7 @@ function SwapsQuotesView({
 		sourceAmount,
 		destinationToken,
 		selectedQuote,
-		hasEnoughBalance,
+		hasEnoughTokenBalance,
 		slippage,
 		allQuotesFetchTime,
 		selectedQuoteValue,
@@ -528,7 +537,7 @@ function SwapsQuotesView({
 				token_from: sourceToken.address,
 				token_from_amount: sourceAmount,
 				token_to: destinationToken.address,
-				request_type: hasEnoughBalance ? 'Order' : 'Quote',
+				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 			};
@@ -545,7 +554,7 @@ function SwapsQuotesView({
 				});
 			}
 		},
-		[sourceToken, sourceAmount, destinationToken, hasEnoughBalance, slippage]
+		[sourceToken, sourceAmount, destinationToken, hasEnoughTokenBalance, slippage]
 	);
 
 	const handleQuotesRequestedMetric = useCallback(data => {
@@ -560,6 +569,13 @@ function SwapsQuotesView({
 		}
 		setHasDismissedSlippageAlert(selectedQuote.priceSlippage?.bucket ?? false);
 	}, [selectedQuote]);
+
+	const buyEth = () => {
+		navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+		});
+	};
 
 	/* Effects */
 
@@ -606,7 +622,7 @@ function SwapsQuotesView({
 			token_from: sourceToken.address,
 			token_from_amount: sourceAmount,
 			token_to: destinationToken.address,
-			request_type: hasEnoughBalance ? 'Order' : 'Quote',
+			request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 		};
 		navigation.setParams({ requestedTrade: data });
@@ -619,7 +635,7 @@ function SwapsQuotesView({
 		sourceToken,
 		sourceAmount,
 		destinationToken,
-		hasEnoughBalance,
+		hasEnoughTokenBalance,
 		slippage,
 		lastTrackedRequestedTime,
 		quotesLastFetched,
@@ -747,18 +763,34 @@ function SwapsQuotesView({
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.topBar}>
-				{!hasEnoughBalance && (
+				{(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
 					<View style={styles.alertBar}>
 						<Alert small type="info">
-							{strings('swaps.you_need')}{' '}
+							{`${strings('swaps.you_need')} `}
 							<Text reset bold>
-								{renderFromTokenMinimalUnit(missingBalance, sourceToken.decimals)} {sourceToken.symbol}
-							</Text>{' '}
-							{strings('swaps.more_to_complete')}
+								{!hasEnoughTokenBalance && sourceToken.address !== swapsUtils.ETH_SWAPS_TOKEN_ADDRESS
+									? `${renderFromTokenMinimalUnit(missingTokenBalance, sourceToken.decimals)} ${
+											sourceToken.symbol
+											// eslint-disable-next-line no-mixed-spaces-and-tabs
+									  } `
+									: `${renderFromWei(missingEthBalance)} ETH `}
+							</Text>
+							{!hasEnoughTokenBalance
+								? `${strings('swaps.more_to_complete')} `
+								: `${strings('swaps.more_gas_to_complete')} `}
+							{(sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ||
+								(hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
+								<TouchableOpacity onPress={buyEth}>
+									<Text reset link underline small>
+										{strings('swaps.buy_more_eth')}
+									</Text>
+								</TouchableOpacity>
+							)}
 						</Alert>
 					</View>
 				)}
-				{!!selectedQuote && hasEnoughBalance && shouldDisplaySlippage && (
+
+				{!!selectedQuote && hasEnoughTokenBalance && hasEnoughEthBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
 						<ActionAlert
 							type={selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH ? 'error' : 'warning'}
@@ -971,7 +1003,9 @@ function SwapsQuotesView({
 						</Text>
 					}
 					completeText={<Text style={styles.sliderButtonText}>{strings('swaps.completed_swap')}</Text>}
-					disabled={!isInPolling || isInFetch || !selectedQuote || !hasEnoughBalance}
+					disabled={
+						!isInPolling || isInFetch || !selectedQuote || !hasEnoughTokenBalance || !hasEnoughEthBalance
+					}
 					onComplete={handleCompleteSwap}
 				/>
 			</View>

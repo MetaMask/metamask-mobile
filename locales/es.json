@@ -1279,6 +1279,8 @@
 		"fetching_new_quotes": "Obteniendo cotización...",
 		"you_need": "Necesitas",
 		"more_to_complete": "más para completar este swap.",
+		"more_gas_to_complete": "más gas para completar este swap.",
+		"buy_more_eth": "Compra más ETH.",
 		"market_price_unavailable": "Precio de mercado no disponible. Asegúrate sentirte cómodo con el monto a recibir antes de continuar.",
 		"price_difference": "Diferencia de precio de {{amount}}",
 		"about_to_swap": "Estás a punto de convertir",

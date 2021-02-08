@@ -48,6 +48,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
         undefined,
       ]
     }
+    underline={false}
     upper={false}
   >
     C
@@ -137,6 +138,7 @@ exports[`TokenIcon component should Render correctly 7`] = `
         },
       ]
     }
+    underline={false}
     upper={false}
   >
     C
