@@ -327,20 +327,22 @@ function SwapsQuotesView({
 
 	/* Balance */
 	const balance = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
-	const [hasEnoughTokenBalance, missingTokenBalance] = useMemo(() => {
+	const [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance] = useMemo(() => {
+		// Token
 		const sourceBN = new BigNumber(sourceAmount);
-		const balanceBN = new BigNumber(balance.toString());
-		const hasEnough = balanceBN.gte(sourceBN);
-		return [hasEnough, hasEnough ? null : sourceBN.minus(balanceBN)];
-	}, [balance, sourceAmount]);
+		const tokenBalanceBN = new BigNumber(balance.toString());
+		const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
+		const missingTokenBalance = hasEnoughTokenBalance ? null : sourceBN.minus(tokenBalanceBN);
 
-	const [hasEnoughEthBalance, missingEthBalance] = useMemo(() => {
-		const ethAmountBN = new BigNumber(sourceToken.symbol === 'ETH' ? sourceAmount.toString() : 0);
-		const balanceBN = new BigNumber(accounts[selectedAddress].balance);
+		// ETH
+		const ethAmountBN = sourceToken.symbol === 'ETH' ? sourceBN : new BigNumber(0);
+		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
 		const gasBN = new BigNumber((gasFee && toWei(gasFee)) || 0);
-		const hasEnough = balanceBN.gte(gasBN.plus(ethAmountBN));
-		return [hasEnough, hasEnough ? null : gasBN.plus(ethAmountBN).minus(balanceBN)];
-	}, [sourceAmount, sourceToken.symbol, accounts, selectedAddress, gasFee]);
+		const hasEnoughEthBalance = ethBalanceBN.gte(gasBN.plus(ethAmountBN));
+		const missingEthBalance = hasEnoughEthBalance ? null : gasBN.plus(ethAmountBN).minus(ethBalanceBN);
+
+		return [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance];
+	}, [accounts, balance, gasFee, selectedAddress, sourceAmount, sourceToken.symbol]);
 
 	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
