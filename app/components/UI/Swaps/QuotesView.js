@@ -781,7 +781,7 @@ function SwapsQuotesView({
 								: `${strings('swaps.more_gas_to_complete')} `}
 							{(sourceToken.symbol === 'ETH' || (hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
 								<TouchableOpacity onPress={buyEth}>
-									<Text reset link underline>
+									<Text reset link underline small>
 										{strings('swaps.buy_more_eth')}
 									</Text>
 								</TouchableOpacity>
