@@ -772,8 +772,7 @@ function SwapsQuotesView({
 											sourceToken.symbol
 											// eslint-disable-next-line no-mixed-spaces-and-tabs
 									  } `
-									: // eslint-disable-next-line no-mixed-spaces-and-tabs
-									  `${renderFromWei(missingEthBalance)} ETH `}
+									: `${renderFromWei(missingEthBalance)} ETH `}
 							</Text>
 							{!hasEnoughTokenBalance
 								? `${strings('swaps.more_to_complete')} `
