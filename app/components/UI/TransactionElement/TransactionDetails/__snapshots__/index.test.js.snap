@@ -32,6 +32,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         right={false}
         small={true}
         strikethrough={false}
+        underline={false}
         upper={false}
       >
         [missing "en.date.months.NaN" translation] NaN at NaN:NaNam
@@ -57,6 +58,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         right={false}
         small={true}
         strikethrough={false}
+        underline={false}
         upper={false}
       >
         <Connect(EthereumAddress)
@@ -83,6 +85,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         right={false}
         small={true}
         strikethrough={false}
+        underline={false}
         upper={false}
       >
         <Connect(EthereumAddress)
