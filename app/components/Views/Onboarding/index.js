@@ -236,8 +236,7 @@ class Onboarding extends PureComponent {
 	dataToSync = null;
 	mounted = false;
 
-	// eslint-disable-next-line no-empty-function
-	warningCallback = () => {};
+	warningCallback = () => ({});
 
 	showNotification = () => {
 		// show notification
