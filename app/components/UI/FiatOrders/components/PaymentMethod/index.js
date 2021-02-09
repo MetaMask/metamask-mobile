@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { colors } from '../../../../../styles/common';
+import { colors, fontStyles } from '../../../../../styles/common';
 
+import Text from '../../../../Base/Text';
 import InfoIcon from '../InfoIcon';
 import Modal from './Modal';
 
@@ -18,6 +19,24 @@ const style = StyleSheet.create({
 	},
 	content: {
 		flexDirection: 'row'
+	},
+	badgeWrapper: {
+		position: 'absolute',
+		alignItems: 'center',
+		top: -14,
+		left: 0,
+		right: 0
+	},
+	badge: {
+		fontSize: 12,
+		paddingVertical: 4,
+		paddingHorizontal: 8,
+		backgroundColor: colors.blue,
+		color: colors.white,
+		margin: 0,
+		borderRadius: 12,
+		overflow: 'hidden',
+		...fontStyles.bold
 	},
 	details: {
 		flex: 2
@@ -52,6 +71,12 @@ PaymentMethod.defaultProps = {
 	children: undefined
 };
 
+const Badge = props => (
+	<View style={style.badgeWrapper}>
+		<Text style={style.badge} {...props} />
+	</View>
+);
+
 const Content = props => <View style={style.content} {...props} />;
 const Details = props => <View style={style.details} {...props} />;
 const Terms = props => <View style={style.terms} {...props} />;
@@ -63,6 +88,7 @@ const PaymentMethodInfoIcon = props => (
 	</View>
 );
 
+PaymentMethod.Badge = Badge;
 PaymentMethod.Content = Content;
 PaymentMethod.Details = Details;
 PaymentMethod.Terms = Terms;
