@@ -75,8 +75,7 @@ export function fromTokenMinimalUnitString(minimalInput, decimals) {
 	const tokenFormat = ethersUtils.formatUnits(minimalInput, decimals);
 	const isInteger = Boolean(INTEGER_REGEX.exec(tokenFormat));
 
-	// eslint-disable-next-line prefer-const
-	let [integerPart, decimalPart] = tokenFormat.split('.');
+	const [integerPart, decimalPart] = tokenFormat.split('.');
 	if (isInteger) {
 		return integerPart;
 	}
