@@ -169,8 +169,9 @@ class AssetOverview extends PureComponent {
 		return (
 			<TouchableOpacity onPress={() => this.goToBrowserUrl(supportArticleUrl)}>
 				<Text style={styles.warning}>
-					We’re unable to load your {symbol} balance. See the support article{' '}
-					<Text style={styles.warningLinks}>troubleshooting missing balances</Text> for help.
+					{strings('asset_overview.were_unable')} {symbol} {strings('asset_overview.balance')}{' '}
+					<Text style={styles.warningLinks}>{strings('asset_overview.troubleshooting_missing')}</Text>{' '}
+					{strings('asset_overview.for_help')}
 				</Text>
 			</TouchableOpacity>
 		);

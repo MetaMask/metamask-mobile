@@ -186,7 +186,7 @@ class Tokens extends PureComponent {
 
 		if (asset?.balanceError) {
 			mainBalance = asset.symbol;
-			secondaryBalance = 'Unable to load balance';
+			secondaryBalance = strings('wallet.unable_to_load');
 		}
 
 		asset = { ...asset, ...{ logo, balance, balanceFiat } };
