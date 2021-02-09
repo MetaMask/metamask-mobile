@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
@@ -161,24 +161,18 @@ class AssetOverview extends PureComponent {
 
 	renderWarning = () => {
 		const {
-			selectedAddress,
-			asset: { address, symbol }
+			asset: { symbol }
 		} = this.props;
-		const etherscanUrl = `https://etherscan.io/token/${address}?a=${selectedAddress}`;
+		// const etherscanUrl = `https://etherscan.io/token/${address}?a=${selectedAddress}`;
 		const supportArticleUrl =
 			'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate';
 		return (
-			<Text style={styles.warning}>
-				<Text>We’re unable to load your {symbol} balance but you can verify your balance on </Text>
-				<Text style={styles.warningLinks} onPress={() => this.goToBrowserUrl(etherscanUrl)}>
-					Etherscan
+			<TouchableOpacity onPress={() => this.goToBrowserUrl(supportArticleUrl)}>
+				<Text style={styles.warning}>
+					We’re unable to load your {symbol} balance. See the support article{' '}
+					<Text style={styles.warningLinks}>troubleshooting missing balances</Text> for help.
 				</Text>
-				<Text>. See the support article </Text>
-				<Text style={styles.warningLinks} onPress={() => this.goToBrowserUrl(supportArticleUrl)}>
-					troubleshooting missing balances{' '}
-				</Text>
-				<Text>for help.</Text>
-			</Text>
+			</TouchableOpacity>
 		);
 	};
 
