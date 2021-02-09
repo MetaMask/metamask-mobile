@@ -163,7 +163,7 @@ class AssetOverview extends PureComponent {
 		const {
 			asset: { symbol }
 		} = this.props;
-		// const etherscanUrl = `https://etherscan.io/token/${address}?a=${selectedAddress}`;
+
 		const supportArticleUrl =
 			'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate';
 		return (
