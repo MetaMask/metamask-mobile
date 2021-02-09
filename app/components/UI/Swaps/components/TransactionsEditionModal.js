@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
 
 import Modal from 'react-native-modal';
-import { fromTokenMinimalUnit, hexToBN, toTokenMinimalUnit } from '../../../../util/number';
+import { fromTokenMinimalUnitString, hexToBN, toTokenMinimalUnit } from '../../../../util/number';
 import CustomGas from '../../CustomGas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EditPermission from '../../ApproveTransactionReview/EditPermission';
@@ -84,7 +84,7 @@ function TransactionsEditionModal({
 		if (originalApprovalTransaction) {
 			const approvalTransactionAmount = decodeApproveData(originalApprovalTransaction.data).encodedAmount;
 			const amountDec = hexToBN(approvalTransactionAmount).toString();
-			setApprovalTransactionAmount(fromTokenMinimalUnit(amountDec, sourceToken.decimals));
+			setApprovalTransactionAmount(fromTokenMinimalUnitString(amountDec, sourceToken.decimals));
 		}
 	}, [originalApprovalTransaction, sourceToken.decimals, setApprovalTransaction]);
 	return (

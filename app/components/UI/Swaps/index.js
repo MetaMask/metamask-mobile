@@ -7,7 +7,7 @@ import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Logger from '../../../util/Logger';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { balanceToFiat, fromTokenMinimalUnit, toTokenMinimalUnit, weiToFiat } from '../../../util/number';
+import { balanceToFiat, fromTokenMinimalUnitString, toTokenMinimalUnit, weiToFiat } from '../../../util/number';
 import { swapsUtils } from '@estebanmino/controllers';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
@@ -326,7 +326,7 @@ function SwapsAmountView({
 		if (!sourceToken || !balanceAsUnits) {
 			return;
 		}
-		setAmount(fromTokenMinimalUnit(balanceAsUnits.toString(), sourceToken.decimals));
+		setAmount(fromTokenMinimalUnitString(balanceAsUnits.toString(), sourceToken.decimals));
 	}, [balanceAsUnits, sourceToken]);
 
 	const handleSlippageChange = useCallback(value => {
