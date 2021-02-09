@@ -50,6 +50,20 @@ const styles = StyleSheet.create({
 		color: colors.fontSecondary,
 		...fontStyles.light,
 		textTransform: 'uppercase'
+	},
+	warning: {
+		borderRadius: 8,
+		color: colors.black,
+		...fontStyles.normal,
+		fontSize: 14,
+		lineHeight: 20,
+		borderWidth: 1,
+		borderColor: colors.yellow,
+		backgroundColor: colors.yellow100,
+		padding: 20
+	},
+	warningLinks: {
+		color: colors.blue
 	}
 });
 
@@ -124,6 +138,12 @@ class AssetOverview extends PureComponent {
 		}
 	};
 
+	goToBrowserUrl(url) {
+		this.props.navigation.navigate('BrowserView', {
+			newTabUrl: url
+		});
+	}
+
 	renderLogo = () => {
 		const {
 			asset: { address, image, logo, isETH }
@@ -139,10 +159,33 @@ class AssetOverview extends PureComponent {
 		);
 	};
 
+	renderWarning = () => {
+		const {
+			selectedAddress,
+			asset: { address, symbol }
+		} = this.props;
+		const etherscanUrl = `https://etherscan.io/token/${address}?a=${selectedAddress}`;
+		const supportArticleUrl =
+			'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate';
+		return (
+			<Text style={styles.warning}>
+				<Text>We’re unable to load your {symbol} balance but you can verify your balance on </Text>
+				<Text style={styles.warningLinks} onPress={() => this.goToBrowserUrl(etherscanUrl)}>
+					Etherscan
+				</Text>
+				<Text>. See the support article </Text>
+				<Text style={styles.warningLinks} onPress={() => this.goToBrowserUrl(supportArticleUrl)}>
+					troubleshooting missing balances{' '}
+				</Text>
+				<Text>for help.</Text>
+			</Text>
+		);
+	};
+
 	render() {
 		const {
 			accounts,
-			asset: { address, isETH = undefined, decimals, symbol },
+			asset: { address, isETH = undefined, decimals, symbol, balanceError = null },
 			primaryCurrency,
 			selectedAddress,
 			tokenExchangeRates,
@@ -175,20 +218,28 @@ class AssetOverview extends PureComponent {
 			<View style={styles.wrapper} testID={'token-asset-overview'}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.balance}>
-					<Text style={styles.amount} testID={'token-amount'}>
-						{mainBalance}
-					</Text>
-					<Text style={styles.amountFiat}>{secondaryBalance}</Text>
+					{balanceError ? (
+						this.renderWarning()
+					) : (
+						<>
+							<Text style={styles.amount} testID={'token-amount'}>
+								{mainBalance}
+							</Text>
+							<Text style={styles.amountFiat}>{secondaryBalance}</Text>
+						</>
+					)}
 				</View>
 
-				<AssetActionButtons
-					leftText={strings('asset_overview.send_button').toUpperCase()}
-					testID={'token-send-button'}
-					middleText={strings('asset_overview.receive_button').toUpperCase()}
-					onLeftPress={this.onSend}
-					onMiddlePress={this.onReceive}
-					middleType={'receive'}
-				/>
+				{!balanceError && (
+					<AssetActionButtons
+						leftText={strings('asset_overview.send_button').toUpperCase()}
+						testID={'token-send-button'}
+						middleText={strings('asset_overview.receive_button').toUpperCase()}
+						onLeftPress={this.onSend}
+						onMiddlePress={this.onReceive}
+						middleType={'receive'}
+					/>
+				)}
 			</View>
 		);
 	}

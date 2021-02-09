@@ -83,6 +83,9 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textTransform: 'uppercase'
 	},
+	balanceFiatTokenError: {
+		textTransform: 'capitalize'
+	},
 	ethLogo: {
 		width: 50,
 		height: 50,
@@ -205,7 +208,9 @@ class Tokens extends PureComponent {
 
 				<View style={styles.balances} testID={'balance'}>
 					<Text style={styles.balance}>{mainBalance}</Text>
-					{secondaryBalance ? <Text style={styles.balanceFiat}>{secondaryBalance}</Text> : null}
+					{secondaryBalance ? (
+						<Text style={[styles.balanceFiat, styles.balanceFiatTokenError]}>{secondaryBalance}</Text>
+					) : null}
 				</View>
 			</AssetElement>
 		);
