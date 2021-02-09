@@ -1498,7 +1498,8 @@
 		"error_fetching_quote": "Error fetching quote",
 		"unexpected_error": "There has been an unexpected error, please request new quotes to get the latest best rate. (error: {{error}})",
 		"get_new_quotes": "Get new quotes",
-		"try_again": "Try again"
+		"try_again": "Try again",
+		"terms_of_service": "Terms of service"
 	},
 	"protect_wallet_modal": {
 		"title": "Protect your wallet",
