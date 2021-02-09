@@ -7,7 +7,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import {
-	fromTokenMinimalUnit,
+	fromTokenMinimalUnitString,
 	renderFromTokenMinimalUnit,
 	renderFromWei,
 	toWei,
@@ -258,7 +258,7 @@ function QuotesModal({
 									<View style={styles.detailsRow}>
 										<Text small>{strings('swaps.guaranteed_amount')}</Text>
 										<Text primary>
-											{fromTokenMinimalUnit(
+											{fromTokenMinimalUnitString(
 												selectedDetailsQuote.destinationAmount,
 												destinationToken.decimals
 											)}{' '}
