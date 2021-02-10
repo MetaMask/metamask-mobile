@@ -125,6 +125,7 @@ const styles = StyleSheet.create({
 	warningText: {
 		color: colors.black,
 		fontSize: 12,
+		flex: 1,
 		...fontStyles.normal
 	},
 	warningTextRed: {
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	viewHint: {
-		marginLeft: 'auto'
+		padding: 5
 	}
 });
 

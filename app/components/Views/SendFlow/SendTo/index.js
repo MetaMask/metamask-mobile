@@ -3,7 +3,16 @@ import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import AddressList from './../AddressList';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity, Text, TextInput, SafeAreaView, InteractionManager } from 'react-native';
+import {
+	StyleSheet,
+	View,
+	TouchableOpacity,
+	Text,
+	TextInput,
+	SafeAreaView,
+	InteractionManager,
+	ScrollView
+} from 'react-native';
 import { AddressFrom, AddressTo } from './../AddressInputs';
 import Modal from 'react-native-modal';
 import AccountList from '../../../UI/AccountList';
@@ -111,6 +120,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end'
 	},
 	warningContainer: {
+		marginTop: 20,
 		marginHorizontal: 24,
 		marginBottom: 32
 	},
@@ -567,18 +577,17 @@ class SendFlow extends PureComponent {
 						inputWidth={inputWidth}
 					/>
 				</View>
-				{addressError && (
-					<View style={styles.addressErrorWrapper} testID={'address-error'}>
-						<ErrorMessage
-							errorMessage={addressError}
-							errorContinue={!!errorContinue}
-							onContinue={this.onTransactionDirectionSet}
-							isOnlyWarning={!!isOnlyWarning}
-						/>
-					</View>
-				)}
-
-				<View style={baseStyles.flexGrow}>
+				<ScrollView>
+					{addressError && (
+						<View style={styles.addressErrorWrapper} testID={'address-error'}>
+							<ErrorMessage
+								errorMessage={addressError}
+								errorContinue={!!errorContinue}
+								onContinue={this.onTransactionDirectionSet}
+								isOnlyWarning={!!isOnlyWarning}
+							/>
+						</View>
+					)}
 					{!toSelectedAddressReady ? (
 						<AddressList
 							inputSearch={toSelectedAddress}
@@ -627,7 +636,7 @@ class SendFlow extends PureComponent {
 							</View>
 						</View>
 					)}
-				</View>
+				</ScrollView>
 
 				{this.renderFromAccountModal()}
 				{this.renderAddToAddressBookModal()}
