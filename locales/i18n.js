@@ -35,10 +35,11 @@ I18n.translations = {
 // If language selected get locale
 getUserPreferableLocale();
 
-const currentLocale = I18n.currentLocale();
+// Uncomment this for using RTL
+//const currentLocale = I18n.currentLocale();
 
 // Is it a RTL language?
-export const isRTL = currentLocale.indexOf('jaJp') === 0;
+export const isRTL = false; // currentLocale.indexOf('jaJp') === 0;
 
 // Set locale
 export async function setLocale(locale) {
