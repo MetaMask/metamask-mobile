@@ -277,7 +277,8 @@
 		"do_you_want_to_import_this_account": "Do you want to import this account?",
 		"error": "Error",
 		"logout_to_import_seed": "You need to log out first in order to import a seed phrase.",
-		"ready_to_explore": "Ready to start exploring blockchain applications?"
+		"ready_to_explore": "Ready to start exploring blockchain applications?",
+		"unable_to_load": "Unable to load balance"
 	},
 	"activity_view": {
 		"title": "Activity"
@@ -538,7 +539,11 @@
 		"info": "Info",
 		"description": "Description",
 		"totalSupply": "Total Supply",
-		"address": "Address"
+		"address": "Address",
+		"were_unable": "We’re unable to load your",
+		"balance": "balance. See the support article",
+		"troubleshooting_missing": "troubleshooting missing balances",
+		"for_help": "for help."
 	},
 	"account_details": {
 		"title": "Account Details",
