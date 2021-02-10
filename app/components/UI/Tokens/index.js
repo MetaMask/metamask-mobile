@@ -209,7 +209,9 @@ class Tokens extends PureComponent {
 				<View style={styles.balances} testID={'balance'}>
 					<Text style={styles.balance}>{mainBalance}</Text>
 					{secondaryBalance ? (
-						<Text style={[styles.balanceFiat, styles.balanceFiatTokenError]}>{secondaryBalance}</Text>
+						<Text style={[styles.balanceFiat, asset?.balanceError && styles.balanceFiatTokenError]}>
+							{secondaryBalance}
+						</Text>
 					) : null}
 				</View>
 			</AssetElement>
