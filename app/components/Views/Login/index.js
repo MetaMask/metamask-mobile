@@ -1,6 +1,16 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Switch, Alert, ActivityIndicator, Text, View, SafeAreaView, StyleSheet, Image } from 'react-native';
+import {
+	Switch,
+	Alert,
+	ActivityIndicator,
+	Text,
+	View,
+	SafeAreaView,
+	StyleSheet,
+	Image,
+	InteractionManager
+} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
@@ -390,6 +400,13 @@ class Login extends PureComponent {
 
 	setPassword = val => this.setState({ password: val });
 
+	onCancelPress = () => {
+		this.toggleWarningModal();
+		InteractionManager.runAfterInteractions(() => {
+			this.toggleDeleteModal();
+		});
+	};
+
 	tryBiometric = async e => {
 		if (e) e.preventDefault();
 		const { current: field } = this.fieldRef;
@@ -414,10 +431,7 @@ class Login extends PureComponent {
 			<WarningExistingUserModal
 				warningModalVisible={this.state.warningModalVisible}
 				cancelText={strings('login.i_understand')}
-				onCancelPress={() => {
-					this.toggleWarningModal();
-					this.toggleDeleteModal();
-				}}
+				onCancelPress={this.onCancelPress}
 				onRequestClose={this.toggleWarningModal}
 				onConfirmPress={this.toggleWarningModal}
 			>
