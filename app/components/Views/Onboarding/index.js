@@ -601,19 +601,15 @@ class Onboarding extends PureComponent {
 	}
 
 	handleSimpleNotification = () => {
-		const notificationTitle = strings('onboarding.success');
-		const notificationDesc = strings('onboarding.your_wallet');
+		const title = strings('onboarding.success');
+		const description = strings('onboarding.your_wallet');
 
 		return (
 			<ElevatedView style={styles.modalTypeView} elevation={100}>
 				<Animated.View
 					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
 				>
-					<BaseNotification
-						closeButtonDisabled
-						status="success"
-						data={{ title: notificationTitle, description: notificationDesc }}
-					/>
+					<BaseNotification closeButtonDisabled status="success" data={{ title, description }} />
 				</Animated.View>
 			</ElevatedView>
 		);
@@ -621,9 +617,7 @@ class Onboarding extends PureComponent {
 
 	render() {
 		const { qrCodeModalVisible, loading, existingUser } = this.state;
-
 		const renderScanStep = ({ item: { step, text } }) => <ScanStep step={step}>{text}</ScanStep>;
-
 		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(createStep);
 
 		return (
