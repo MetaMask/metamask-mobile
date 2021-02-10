@@ -25,6 +25,9 @@ const styles = StyleSheet.create({
 	},
 	warningModalTextBold: {
 		...fontStyles.bold
+	},
+	wrap: {
+		flexDirection: 'row'
 	}
 });
 
@@ -56,6 +59,7 @@ export default function WarningExistingUserModal({
 }) {
 	return (
 		<ActionModal
+			modalStyle={styles.wrap}
 			modalVisible={warningModalVisible}
 			cancelText={cancelText || strings('onboarding.warning_proceed')}
 			confirmText={confirmText || strings('onboarding.warning_cancel')}
