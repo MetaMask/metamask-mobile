@@ -601,8 +601,9 @@ class Onboarding extends PureComponent {
 	}
 
 	handleSimpleNotification = () => {
-		const notificationTitle = 'Wallet succesfully erased';
-		const notificationStatus = 'success';
+		const notificationTitle = strings('onboarding.success');
+		const notificationDesc = strings('onboarding.your_wallet');
+
 		return (
 			<ElevatedView style={styles.modalTypeView} elevation={100}>
 				<Animated.View
@@ -610,8 +611,8 @@ class Onboarding extends PureComponent {
 				>
 					<BaseNotification
 						closeButtonDisabled
-						status={notificationStatus}
-						data={{ title: notificationTitle }}
+						status="success"
+						data={{ title: notificationTitle, description: notificationDesc }}
 					/>
 				</Animated.View>
 			</ElevatedView>

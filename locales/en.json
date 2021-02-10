@@ -56,7 +56,9 @@
 		"scan_step_1": "Open the extension on desktop",
 		"scan_step_2": "Go to Settings > Advanced",
 		"scan_step_3": "Click on “Sync with Mobile”",
-		"scan_step_4": "Scan the QR code to start syncing"
+		"scan_step_4": "Scan the QR code to start syncing",
+		"success": "Success",
+		"your_wallet": "Your wallet was successfully erased"
 	},
 	"onboarding_carousel": {
 		"title1": "Welcome to MetaMask",
