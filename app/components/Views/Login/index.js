@@ -9,7 +9,9 @@ import {
 	SafeAreaView,
 	StyleSheet,
 	Image,
-	InteractionManager
+	InteractionManager,
+	TouchableWithoutFeedback,
+	Keyboard
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -458,22 +460,24 @@ class Login extends PureComponent {
 				onConfirmPress={this.toggleDeleteModal}
 				onSubmitEditing={this.submitDelete}
 			>
-				<View style={styles.areYouSure}>
-					<Text style={[styles.heading, styles.delete]}>{strings('login.type_delete')}</Text>
-					<OutlinedTextField
-						autoFocus
-						returnKeyType={'done'}
-						onChangeText={this.checkDelete}
-						autoCapitalize="none"
-						value={this.state.password}
-						baseColor={colors.grey500}
-						tintColor={colors.blue}
-						onSubmitEditing={this.submitDelete}
-					/>
-					{this.state.showDeleteWarning && (
-						<Text style={styles.deleteWarningMsg}>{strings('login.cant_proceed')}</Text>
-					)}
-				</View>
+				<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+					<View style={styles.areYouSure}>
+						<Text style={[styles.heading, styles.delete]}>{strings('login.type_delete')}</Text>
+						<OutlinedTextField
+							autoFocus
+							returnKeyType={'done'}
+							onChangeText={this.checkDelete}
+							autoCapitalize="none"
+							value={this.state.password}
+							baseColor={colors.grey500}
+							tintColor={colors.blue}
+							onSubmitEditing={this.submitDelete}
+						/>
+						{this.state.showDeleteWarning && (
+							<Text style={styles.deleteWarningMsg}>{strings('login.cant_proceed')}</Text>
+						)}
+					</View>
+				</TouchableWithoutFeedback>
 			</WarningExistingUserModal>
 
 			<SafeAreaView style={styles.mainWrapper}>
