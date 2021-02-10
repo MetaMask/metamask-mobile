@@ -236,7 +236,7 @@ class Onboarding extends PureComponent {
 	dataToSync = null;
 	mounted = false;
 
-	warningCallback = () => ({});
+	warningCallback = () => true;
 
 	showNotification = () => {
 		// show notification
