@@ -14,11 +14,11 @@ import {
 	PreferencesController,
 	TokenBalancesController,
 	TokenRatesController,
-	TransactionController,
+	// TransactionController,
 	TypedMessageManager
 } from '@metamask/controllers';
 
-import { SwapsController } from '@estebanmino/controllers';
+import { SwapsController, TransactionController } from '@estebanmino/controllers';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -33,6 +33,8 @@ import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { MAINNET } from '../constants/network';
+
+const EMPTY = 'EMPTY';
 
 const encryptor = new Encryptor();
 let refreshing = false;
@@ -61,6 +63,7 @@ class Engine {
 				nativeCurrency: 'eth',
 				currentCurrency: 'usd'
 			};
+
 			this.datamodel = new ComposableController(
 				[
 					new KeyringController({ encryptor }, initialState.KeyringController),
@@ -75,37 +78,34 @@ class Engine {
 					}),
 					new PersonalMessageManager(),
 					new MessageManager(),
-					new NetworkController(
-						{
-							infuraProjectId: process.env.MM_INFURA_PROJECT_ID,
-							providerConfig: {
-								static: {
-									eth_sendTransaction: async (payload, next, end) => {
-										const { TransactionController } = this.datamodel.context;
-										try {
-											const hash = await (await TransactionController.addTransaction(
-												payload.params[0],
-												payload.origin
-											)).result;
-											end(undefined, hash);
-										} catch (error) {
-											end(error);
-										}
+					new NetworkController({
+						infuraProjectId: process.env.MM_INFURA_PROJECT_ID || EMPTY,
+						providerConfig: {
+							static: {
+								eth_sendTransaction: async (payload, next, end) => {
+									const { TransactionController } = this.datamodel.context;
+									try {
+										const hash = await (await TransactionController.addTransaction(
+											payload.params[0],
+											payload.origin
+										)).result;
+										end(undefined, hash);
+									} catch (error) {
+										end(error);
 									}
-								},
-								getAccounts: (end, payload) => {
-									const { approvedHosts, privacyMode } = store.getState();
-									const isEnabled = !privacyMode || approvedHosts[payload.hostname];
-									const { KeyringController } = this.datamodel.context;
-									const isUnlocked = KeyringController.isUnlocked();
-									const selectedAddress = this.datamodel.context.PreferencesController.state
-										.selectedAddress;
-									end(null, isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : []);
 								}
+							},
+							getAccounts: (end, payload) => {
+								const { approvedHosts, privacyMode } = store.getState();
+								const isEnabled = !privacyMode || approvedHosts[payload.hostname];
+								const { KeyringController } = this.datamodel.context;
+								const isUnlocked = KeyringController.isUnlocked();
+								const selectedAddress = this.datamodel.context.PreferencesController.state
+									.selectedAddress;
+								end(null, isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : []);
 							}
-						},
-						{ network: '1', provider: { type: MAINNET } }
-					),
+						}
+					}),
 					new PhishingController(),
 					new PreferencesController(
 						{},
@@ -126,7 +126,8 @@ class Engine {
 				AssetsController: assets,
 				KeyringController: keyring,
 				NetworkController: network,
-				TransactionController: transaction
+				TransactionController: transaction,
+				PreferencesController: preferences
 			} = this.datamodel.context;
 
 			assets.setApiKey(process.env.MM_OPENSEA_KEY);
@@ -135,6 +136,21 @@ class Engine {
 			network.subscribe(this.refreshNetwork);
 			this.configureControllersOnNetworkChange();
 			Engine.instance = this;
+
+			if (AppConstants.SWAPS.ACTIVE) {
+				preferences.addToFrequentRpcList(
+					'http://ganache-testnet.airswap-dev.codefi.network/',
+					1337,
+					'ETH',
+					'Swaps Test Network'
+				);
+				network.setRpcTarget(
+					'http://ganache-testnet.airswap-dev.codefi.network/',
+					1337,
+					'ETH',
+					'Swaps Test Network'
+				);
+			}
 		}
 		return Engine.instance;
 	}
@@ -145,13 +161,19 @@ class Engine {
 			AssetsContractController,
 			AssetsDetectionController,
 			NetworkController: { provider },
-			TransactionController
+			TransactionController,
+			SwapsController
 		} = this.datamodel.context;
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		AccountTrackerController.configure({ provider });
 		AccountTrackerController.refresh();
 		AssetsContractController.configure({ provider });
+		SwapsController.configure({
+			provider,
+			pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
+			quotePollingInterval: AppConstants.SWAPS.POLLING_INTERVAL
+		});
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
 		AssetsDetectionController.detectAssets();

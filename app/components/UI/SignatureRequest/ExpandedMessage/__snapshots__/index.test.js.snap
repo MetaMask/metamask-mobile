@@ -91,7 +91,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
       url
     </Text>
   </View>
-  <ScrollViewMock
+  <ScrollView
     style={
       Object {
         "flex": 1,
@@ -101,6 +101,6 @@ exports[`ExpandedMessage should render correctly 1`] = `
     <TouchableWithoutFeedback>
       <View />
     </TouchableWithoutFeedback>
-  </ScrollViewMock>
+  </ScrollView>
 </View>
 `;

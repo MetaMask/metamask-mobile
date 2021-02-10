@@ -138,7 +138,7 @@ exports[`SelectComponent should render correctly 1`] = `
             Choose an option
           </Text>
         </View>
-        <ScrollViewMock
+        <ScrollView
           style={
             Object {
               "width": "100%",
@@ -208,7 +208,7 @@ exports[`SelectComponent should render correctly 1`] = `
               </Text>
             </TouchableOpacity>
           </View>
-        </ScrollViewMock>
+        </ScrollView>
       </View>
     </ReactNativeModal>
   </View>

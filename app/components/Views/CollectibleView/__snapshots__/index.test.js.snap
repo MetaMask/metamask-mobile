@@ -9,7 +9,7 @@ exports[`CollectibleView should render correctly 1`] = `
     }
   }
 >
-  <ScrollViewMock
+  <ScrollView
     style={
       Object {
         "flex": 0.9,
@@ -36,7 +36,7 @@ exports[`CollectibleView should render correctly 1`] = `
         }
       />
     </View>
-  </ScrollViewMock>
+  </ScrollView>
   <View
     style={
       Object {
