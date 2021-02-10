@@ -329,6 +329,17 @@ class Login extends PureComponent {
 	};
 
 	delete = async () => {
+		const { KeyringController } = Engine.context;
+		try {
+			await Engine.resetState();
+			await KeyringController.createNewVaultAndKeychain('');
+			this.deleteExistingUser();
+		} catch (error) {
+			Logger.log(error, `Failed to createNewVaultAndKeychain: ${error}`);
+		}
+	};
+
+	deleteExistingUser = async () => {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
 			this.props.navigation.navigate(
