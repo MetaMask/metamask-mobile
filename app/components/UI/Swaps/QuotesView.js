@@ -308,7 +308,7 @@ function SwapsQuotesView({
 	const gasLimit = useMemo(
 		() =>
 			(Boolean(customGasLimit) && BNToHex(customGasLimit)) ||
-			selectedQuote?.trade?.gasEstimateWithRefund?.toString(16) ||
+			selectedQuote?.trade?.gasEstimateWithRefund ||
 			selectedQuote?.averageGas?.toString(16),
 		[customGasLimit, selectedQuote]
 	);
@@ -340,12 +340,12 @@ function SwapsQuotesView({
 
 		const ethAmountBN = sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ? sourceBN : new BigNumber(0);
 		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
-		const gasBN = new BigNumber((gasFee && toWei(gasFee)) || 0);
+		const gasBN = new BigNumber((maxGasFee && toWei(maxGasFee)) || 0);
 		const hasEnoughEthBalance = ethBalanceBN.gte(gasBN.plus(ethAmountBN));
 		const missingEthBalance = hasEnoughEthBalance ? null : gasBN.plus(ethAmountBN).minus(ethBalanceBN);
 
 		return [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance];
-	}, [accounts, balance, gasFee, selectedAddress, sourceAmount, sourceToken.address]);
+	}, [accounts, balance, maxGasFee, selectedAddress, sourceAmount, sourceToken.address]);
 
 	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
@@ -371,6 +371,11 @@ function SwapsQuotesView({
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 	const [isInFetch, setIsInFetch] = useState(false);
+
+	const unableToSwap = useMemo(
+		() => !isInPolling || isInFetch || !selectedQuote || !hasEnoughTokenBalance || !hasEnoughEthBalance,
+		[isInPolling, isInFetch, selectedQuote, hasEnoughTokenBalance, hasEnoughEthBalance]
+	);
 
 	/* Approval transaction if any */
 	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
@@ -966,9 +971,11 @@ function SwapsQuotesView({
 								<View style={styles.quotesDescription}>
 									<View style={styles.quotesLegend}>
 										<Text>{strings('swaps.max_gas_fee')} </Text>
-										<TouchableOpacity onPress={onEditQuoteTransactionsGas}>
-											<Text link>{strings('swaps.edit')}</Text>
-										</TouchableOpacity>
+										{!unableToSwap && (
+											<TouchableOpacity onPress={onEditQuoteTransactionsGas}>
+												<Text link>{strings('swaps.edit')}</Text>
+											</TouchableOpacity>
+										)}
 									</View>
 									<Text>{renderFromWei(toWei(maxGasFee))} ETH</Text>
 								</View>
@@ -977,7 +984,7 @@ function SwapsQuotesView({
 								</View>
 							</View>
 
-							{!!approvalTransaction && (
+							{!!approvalTransaction && !unableToSwap && (
 								<View style={styles.quotesRow}>
 									<View style={styles.quotesRow}>
 										<Text>{`${strings('swaps.enable.this_will')} `}</Text>
@@ -1015,9 +1022,7 @@ function SwapsQuotesView({
 						</Text>
 					}
 					completeText={<Text style={styles.sliderButtonText}>{strings('swaps.completed_swap')}</Text>}
-					disabled={
-						!isInPolling || isInFetch || !selectedQuote || !hasEnoughTokenBalance || !hasEnoughEthBalance
-					}
+					disabled={unableToSwap}
 					onComplete={handleCompleteSwap}
 				/>
 				<TouchableOpacity onPress={handleTermsPress} style={styles.termsButton}>
