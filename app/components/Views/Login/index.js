@@ -402,9 +402,7 @@ class Login extends PureComponent {
 
 	onCancelPress = () => {
 		this.toggleWarningModal();
-		InteractionManager.runAfterInteractions(() => {
-			this.toggleDeleteModal();
-		});
+		InteractionManager.runAfterInteractions(this.toggleDeleteModal);
 	};
 
 	tryBiometric = async e => {
