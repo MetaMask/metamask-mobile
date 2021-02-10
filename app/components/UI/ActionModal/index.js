@@ -7,6 +7,7 @@ import ActionContent from './ActionContent';
 
 const styles = StyleSheet.create({
 	modal: {
+		flexDirection: 'row',
 		margin: 0,
 		width: '100%'
 	}
