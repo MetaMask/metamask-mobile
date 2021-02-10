@@ -612,7 +612,6 @@ class Onboarding extends PureComponent {
 						closeButtonDisabled
 						status={notificationStatus}
 						data={{ title: notificationTitle }}
-						onHide={() => ({})}
 					/>
 				</Animated.View>
 			</ElevatedView>
