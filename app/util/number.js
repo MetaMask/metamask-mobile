@@ -296,6 +296,7 @@ export function weiToFiat(wei, conversionRate, currencyCode, decimalsToShow = 5)
 		}
 		return `0.00 ${currencyCode}`;
 	}
+	decimalsToShow = currencyCode === 'usd' && 2;
 	const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
 	if (currencySymbols[currencyCode]) {
 		return `${currencySymbols[currencyCode]}${value}`;

@@ -304,7 +304,7 @@ function SwapsQuotesView({
 	const gasLimit = useMemo(
 		() =>
 			(Boolean(customGasLimit) && BNToHex(customGasLimit)) ||
-			selectedQuote?.trade?.gasEstimateWithRefund?.toString(16) ||
+			selectedQuote?.trade?.gasEstimateWithRefund ||
 			selectedQuote?.averageGas?.toString(16),
 		[customGasLimit, selectedQuote]
 	);
@@ -367,6 +367,11 @@ function SwapsQuotesView({
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 	const [isInFetch, setIsInFetch] = useState(false);
+
+	const unableToSwap = useMemo(
+		() => !isInPolling || isInFetch || !selectedQuote || !hasEnoughTokenBalance || !hasEnoughEthBalance,
+		[isInPolling, isInFetch, selectedQuote, hasEnoughTokenBalance, hasEnoughEthBalance]
+	);
 
 	/* Approval transaction if any */
 	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
@@ -954,9 +959,11 @@ function SwapsQuotesView({
 								<View style={styles.quotesDescription}>
 									<View style={styles.quotesLegend}>
 										<Text>{strings('swaps.max_gas_fee')} </Text>
-										<TouchableOpacity onPress={onEditQuoteTransactionsGas}>
-											<Text link>{strings('swaps.edit')}</Text>
-										</TouchableOpacity>
+										{!unableToSwap && (
+											<TouchableOpacity onPress={onEditQuoteTransactionsGas}>
+												<Text link>{strings('swaps.edit')}</Text>
+											</TouchableOpacity>
+										)}
 									</View>
 									<Text>{renderFromWei(toWei(maxGasFee))} ETH</Text>
 								</View>
@@ -965,7 +972,7 @@ function SwapsQuotesView({
 								</View>
 							</View>
 
-							{!!approvalTransaction && (
+							{!!approvalTransaction && !unableToSwap && (
 								<View style={styles.quotesRow}>
 									<View style={styles.quotesRow}>
 										<Text>{`${strings('swaps.enable.this_will')} `}</Text>
@@ -1003,9 +1010,7 @@ function SwapsQuotesView({
 						</Text>
 					}
 					completeText={<Text style={styles.sliderButtonText}>{strings('swaps.completed_swap')}</Text>}
-					disabled={
-						!isInPolling || isInFetch || !selectedQuote || !hasEnoughTokenBalance || !hasEnoughEthBalance
-					}
+					disabled={unableToSwap}
 					onComplete={handleCompleteSwap}
 				/>
 			</View>
