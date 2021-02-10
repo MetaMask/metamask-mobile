@@ -1326,7 +1326,8 @@
 		"error_fetching_quote": "Error al cotizar",
 		"unexpected_error": "Ha ocurrido un error, por favor cotiza de nuevo para obtener la mejor tarifa. (error: {{error}})",
 		"get_new_quotes": "Cotizar nuevamente",
-		"try_again": "Intentar de nuevo"
+		"try_again": "Intentar de nuevo",
+		"terms_of_service": "Términos de servicio"
 	},
 	"protect_wallet_modal": {
 		"title": "Protege tu billetera",

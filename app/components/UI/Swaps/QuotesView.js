@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
 		marginVertical: Device.isSmallDevice() ? 1 : 1
 	},
 	bottomSection: {
-		marginBottom: 12,
+		marginBottom: 6,
 		alignItems: 'stretch',
 		paddingHorizontal: 20
 	},
@@ -181,6 +181,10 @@ const styles = StyleSheet.create({
 	},
 	disabled: {
 		opacity: 0.4
+	},
+	termsButton: {
+		marginTop: 10,
+		marginBottom: 6
 	}
 });
 
@@ -570,12 +574,20 @@ function SwapsQuotesView({
 		setHasDismissedSlippageAlert(selectedQuote.priceSlippage?.bucket ?? false);
 	}, [selectedQuote]);
 
-	const buyEth = () => {
+	const buyEth = useCallback(() => {
 		navigation.navigate('PaymentMethodSelector');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
-	};
+	}, [navigation]);
+
+	const handleTermsPress = useCallback(
+		() =>
+			navigation.navigate('Webview', {
+				url: 'https://metamask.io/terms.html'
+			}),
+		[navigation]
+	);
 
 	/* Effects */
 
@@ -1008,6 +1020,11 @@ function SwapsQuotesView({
 					}
 					onComplete={handleCompleteSwap}
 				/>
+				<TouchableOpacity onPress={handleTermsPress} style={styles.termsButton}>
+					<Text link centered>
+						{strings('swaps.terms_of_service')}
+					</Text>
+				</TouchableOpacity>
 			</View>
 
 			<FeeModal
