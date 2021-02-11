@@ -35,7 +35,7 @@ import Device from '../../../util/Device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
-import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { passwordSet, seedphraseBackedUp, loadingSet, loadingUnset } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import AppConstants from '../../../core/AppConstants';
 import AnimatedFox from 'react-native-animated-fox';
@@ -205,7 +205,19 @@ class Onboarding extends PureComponent {
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
 		 */
-		seedphraseBackedUp: PropTypes.func
+		seedphraseBackedUp: PropTypes.func,
+		/**
+		 * loading status
+		 */
+		loading: PropTypes.bool,
+		/**
+		 * set loading status
+		 */
+		setLoading: PropTypes.func,
+		/**
+		 * unset loading status
+		 */
+		unsetLoading: PropTypes.func
 	};
 
 	notificationAnimated = new Animated.Value(100);
@@ -259,7 +271,13 @@ class Onboarding extends PureComponent {
 		this.checkIfExistingUser();
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot.forbid();
-			if (this.props.navigation.getParam('delete', null)) this.showNotification();
+			if (this.props.navigation.getParam('delete', false)) {
+				this.props.setLoading();
+				setTimeout(() => {
+					this.showNotification();
+					this.props.unsetLoading();
+				}, 2000);
+			}
 		});
 	}
 
@@ -284,13 +302,13 @@ class Onboarding extends PureComponent {
 
 	initWebsockets() {
 		this.loading = true;
-		this.mounted && this.setState({ loading: true });
+		this.mounted && this.props.setLoading();
 
 		this.pubnubWrapper.addMessageListener(
 			() => {
 				Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
 				this.loading = false;
-				this.setState({ loading: false });
+				this.props.unsetLoading();
 				return false;
 			},
 			data => {
@@ -421,7 +439,7 @@ class Onboarding extends PureComponent {
 		} catch (e) {
 			Logger.error(e, 'Sync::disconnect');
 			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
-			this.setState({ loading: false });
+			this.props.unsetLoading();
 			this.props.navigation.goBack();
 		}
 	};
@@ -546,11 +564,14 @@ class Onboarding extends PureComponent {
 	};
 
 	renderLoader() {
+		const is_delete = this.props.navigation.getParam('delete', false);
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.loader}>
 					<ActivityIndicator size="small" />
-					<Text style={styles.loadingText}>{strings('sync_with_extension.please_wait')}</Text>
+					<Text style={styles.loadingText}>
+						{is_delete ? strings('onboarding.delete_current') : strings('sync_with_extension.please_wait')}
+					</Text>
 				</View>
 			</View>
 		);
@@ -616,7 +637,8 @@ class Onboarding extends PureComponent {
 	};
 
 	render() {
-		const { qrCodeModalVisible, loading, existingUser } = this.state;
+		const { loading } = this.props;
+		const { qrCodeModalVisible, existingUser } = this.state;
 		const renderScanStep = ({ item: { step, text } }) => <ScanStep step={step}>{text}</ScanStep>;
 		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(createStep);
 
@@ -690,10 +712,13 @@ class Onboarding extends PureComponent {
 const mapStateToProps = state => ({
 	selectedAddress: state?.engine?.backgroundState?.PreferencesController?.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	loading: state.user.loadingSet
 });
 
 const mapDispatchToProps = dispatch => ({
+	setLoading: () => dispatch(loadingSet()),
+	unsetLoading: () => dispatch(loadingUnset()),
 	passwordHasBeenSet: () => dispatch(passwordSet()),
 	setLockTime: time => dispatch(setLockTime(time)),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),

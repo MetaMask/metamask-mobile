@@ -58,7 +58,8 @@
 		"scan_step_3": "Click on “Sync with Mobile”",
 		"scan_step_4": "Scan the QR code to start syncing",
 		"success": "Success",
-		"your_wallet": "Your wallet was successfully erased"
+		"your_wallet": "Your wallet was successfully erased",
+		"delete_current": "Deleting current wallet"
 	},
 	"onboarding_carousel": {
 		"title1": "Welcome to MetaMask",
