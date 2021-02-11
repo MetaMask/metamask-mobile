@@ -49,6 +49,7 @@ exports[`ActionModal should render correctly 1`] = `
   useNativeDriver={false}
 >
   <ActionContent
+    cancelButtonDisabled={false}
     cancelButtonMode="neutral"
     cancelTestID=""
     cancelText="Cancel"
