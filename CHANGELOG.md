@@ -1,6 +1,7 @@
 # Changelog
 
 ## v1.0.11 - Feb 15 2021
+- [#2176](https://github.com/MetaMask/metamask-mobile/pull/2176): Feature/warn when replacing
 - [#2233](https://github.com/MetaMask/metamask-mobile/pull/2233): contract metadata images bump
 - [#2148](https://github.com/MetaMask/metamask-mobile/pull/2148): Handle `balanceError` case
 - [#2228](https://github.com/MetaMask/metamask-mobile/pull/2228): Remove best deals badge from WYRE transfers.
