@@ -56,7 +56,10 @@
 		"scan_step_1": "Open the extension on desktop",
 		"scan_step_2": "Go to Settings > Advanced",
 		"scan_step_3": "Click on “Sync with Mobile”",
-		"scan_step_4": "Scan the QR code to start syncing"
+		"scan_step_4": "Scan the QR code to start syncing",
+		"success": "Success",
+		"your_wallet": "Your wallet was successfully erased",
+		"delete_current": "Deleting current wallet"
 	},
 	"onboarding_carousel": {
 		"title1": "Welcome to MetaMask",
@@ -126,8 +129,20 @@
 		"title": "Welcome Back!",
 		"password": "Password",
 		"login_button": "LOG IN",
-		"go_back": "Go Back",
-		"invalid_password": "Invalid password"
+		"go_back": "Can’t login? You can ERASE your current wallet and setup a new one",
+		"reset_wallet": "Reset Wallet",
+		"cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
+		"invalid_password": "Invalid password",
+		"type_delete": "Type ‘delete’ to erase current wallet permanently",
+		"delete_my": "Delete my wallet",
+		"are_you_sure": "Are you sure you want to erase your wallet?",
+		"your_current_wallet": "Your current wallet, accounts and assets will be ",
+		"removed_from": "removed from this app permanently. ",
+		"this_action": "This action cannot be undone.",
+		"you_can_only": "You can ONLY recover this wallet with your ",
+		"recovery_phrase": "Recovery Phrase ",
+		"metamask_does_not": "MetaMask does not have your recovery phrase.",
+		"i_understand": "I understand, continue"
 	},
 	"enter_password": {
 		"title": "Enter your password",
