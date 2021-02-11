@@ -7,6 +7,8 @@ import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/Device';
+import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
+import { useMemo } from 'react/cjs/react.development';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -26,6 +28,9 @@ const styles = StyleSheet.create({
 	option: {
 		flexDirection: 'row',
 		marginVertical: 8
+	},
+	errorMessageWrapper: {
+		marginVertical: 6
 	},
 	optionText: {
 		...fontStyles.normal,
@@ -91,6 +96,7 @@ const styles = StyleSheet.create({
 
 function EditPermission({
 	host,
+	minimumSpendLimit,
 	spendLimitUnlimitedSelected,
 	tokenSymbol,
 	spendLimitCustomValue,
@@ -101,6 +107,11 @@ function EditPermission({
 	onPressSpendLimitCustomSelected,
 	toggleEditPermission
 }) {
+	const displayErrorMessage = useMemo(
+		() => !spendLimitUnlimitedSelected && minimumSpendLimit > spendLimitCustomValue,
+		[spendLimitUnlimitedSelected, spendLimitCustomValue, minimumSpendLimit]
+	);
+
 	const onSetApprovalAmount = useCallback(() => {
 		if (!spendLimitUnlimitedSelected && !spendLimitCustomValue) {
 			onPressSpendLimitUnlimitedSelected();
@@ -185,21 +196,27 @@ function EditPermission({
 							onFocus={onPressSpendLimitCustomSelected}
 							returnKeyType={'done'}
 						/>
-						<Text style={styles.sectionExplanationText}>
-							{strings('spend_limit_edition.minimum', { tokenSymbol })}
-						</Text>
+						{displayErrorMessage && (
+							<View style={styles.errorMessageWrapper}>
+								<ErrorMessage errorMessage={`Must be at least ${minimumSpendLimit}`} />
+							</View>
+						)}
 					</View>
 				</View>
 			</View>
-			<StyledButton type="confirm" onPress={onSetApprovalAmount}>
+			<StyledButton disabled={displayErrorMessage} type="confirm" onPress={onSetApprovalAmount}>
 				{strings('transaction.set_gas')}
 			</StyledButton>
 		</View>
 	);
 }
+EditPermission.defaultProps = {
+	minimumSpendLimit: 1
+};
 
 EditPermission.propTypes = {
 	host: PropTypes.string.isRequired,
+	minimumSpendLimit: PropTypes.string,
 	spendLimitUnlimitedSelected: PropTypes.bool.isRequired,
 	tokenSymbol: PropTypes.string.isRequired,
 	spendLimitCustomValue: PropTypes.string.isRequired,

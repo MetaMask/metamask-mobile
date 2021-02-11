@@ -11,7 +11,14 @@ import { NavigationContext } from 'react-navigation';
 import { swapsUtils } from '@estebanmino/controllers';
 import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
 
-import { BNToHex, renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
+import {
+	BNToHex,
+	fromTokenMinimalUnit,
+	renderFromTokenMinimalUnit,
+	renderFromWei,
+	toWei,
+	weiToFiat
+} from '../../../util/number';
 import { apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams } from './utils';
 import { colors } from '../../../styles/common';
@@ -380,6 +387,11 @@ function SwapsQuotesView({
 	/* Approval transaction if any */
 	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
 	const [editQuoteTransactionsMode, setEditQuoteTransactionsMode] = useState(EDIT_MODE_GAS);
+
+	const approvalMinimumSpendLimit = useMemo(() => {
+		if (!approvalTransaction) return 0;
+		return fromTokenMinimalUnit(sourceAmount, sourceToken.decimals);
+	}, [approvalTransaction, sourceAmount, sourceToken.decimals]);
 
 	const onCancelEditQuoteTransactions = useCallback(() => setEditQuoteTransactionsVisible(false), []);
 
@@ -1056,6 +1068,7 @@ function SwapsQuotesView({
 				onCancelEditQuoteTransactions={onCancelEditQuoteTransactions}
 				onHandleGasFeeSelection={onHandleGasFeeSelection}
 				setApprovalTransaction={setApprovalTransaction}
+				minimumSpendLimit={approvalMinimumSpendLimit}
 				selectedQuote={selectedQuote}
 				sourceToken={sourceToken}
 			/>
