@@ -83,6 +83,9 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textTransform: 'uppercase'
 	},
+	balanceFiatTokenError: {
+		textTransform: 'capitalize'
+	},
 	ethLogo: {
 		width: 50,
 		height: 50,
@@ -181,6 +184,11 @@ class Tokens extends PureComponent {
 			secondaryBalance = !balanceFiat ? balanceFiat : balanceValue;
 		}
 
+		if (asset?.balanceError) {
+			mainBalance = asset.symbol;
+			secondaryBalance = strings('wallet.unable_to_load');
+		}
+
 		asset = { ...asset, ...{ logo, balance, balanceFiat } };
 		return (
 			<AssetElement
@@ -200,7 +208,11 @@ class Tokens extends PureComponent {
 
 				<View style={styles.balances} testID={'balance'}>
 					<Text style={styles.balance}>{mainBalance}</Text>
-					{secondaryBalance ? <Text style={styles.balanceFiat}>{secondaryBalance}</Text> : null}
+					{secondaryBalance ? (
+						<Text style={[styles.balanceFiat, asset?.balanceError && styles.balanceFiatTokenError]}>
+							{secondaryBalance}
+						</Text>
+					) : null}
 				</View>
 			</AssetElement>
 		);

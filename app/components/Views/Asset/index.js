@@ -251,6 +251,7 @@ class Asset extends PureComponent {
 	};
 
 	render = () => {
+		const { loading, transactions, submittedTxs, confirmedTxs, transactionsUpdated } = this.state;
 		const {
 			navigation: {
 				state: { params }
@@ -264,7 +265,7 @@ class Asset extends PureComponent {
 
 		return (
 			<View style={styles.wrapper}>
-				{this.state.loading ? (
+				{loading ? (
 					this.renderLoader()
 				) : (
 					<Transactions
@@ -274,14 +275,14 @@ class Asset extends PureComponent {
 							</View>
 						}
 						navigation={navigation}
-						transactions={this.state.transactions}
-						submittedTransactions={this.state.submittedTxs}
-						confirmedTransactions={this.state.confirmedTxs}
+						transactions={transactions}
+						submittedTransactions={submittedTxs}
+						confirmedTransactions={confirmedTxs}
 						selectedAddress={selectedAddress}
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
 						networkType={networkType}
-						loading={!this.state.transactionsUpdated}
+						loading={!transactionsUpdated}
 						headerHeight={280}
 					/>
 				)}
