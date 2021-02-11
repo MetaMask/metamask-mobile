@@ -36,7 +36,8 @@ export default function ActionModal({
 	actionContainerStyle,
 	childrenContainerStyle,
 	verticalButtons,
-	propagateSwipe
+	propagateSwipe,
+	cancelButtonDisabled
 }) {
 	return (
 		<Modal
@@ -55,6 +56,7 @@ export default function ActionModal({
 				confirmText={confirmText}
 				confirmDisabled={confirmDisabled}
 				cancelButtonMode={cancelButtonMode}
+				cancelButtonDisabled={cancelButtonDisabled}
 				confirmButtonMode={confirmButtonMode}
 				displayCancelButton={displayCancelButton}
 				displayConfirmButton={displayConfirmButton}
@@ -74,6 +76,7 @@ export default function ActionModal({
 
 ActionModal.defaultProps = {
 	cancelButtonMode: 'neutral',
+	cancelButtonDisabled: false,
 	confirmButtonMode: 'warning',
 	confirmTestID: '',
 	cancelTestID: '',
@@ -85,6 +88,7 @@ ActionModal.defaultProps = {
 };
 
 ActionModal.propTypes = {
+	cancelButtonDisabled: PropTypes.bool,
 	/**
 	 * TestID for the cancel button
 	 */
