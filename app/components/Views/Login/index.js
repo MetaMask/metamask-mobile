@@ -130,7 +130,8 @@ const styles = StyleSheet.create({
 		color: colors.black
 	},
 	areYouSure: {
-		margin: breakPoint ? 16 : 24,
+		width: '100%',
+		padding: breakPoint ? 16 : 24,
 		justifyContent: 'center',
 		alignSelf: 'center'
 	},
