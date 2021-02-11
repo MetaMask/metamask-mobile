@@ -7,7 +7,6 @@
 - [#2228](https://github.com/MetaMask/metamask-mobile/pull/2228): Remove best deals badge from WYRE transfers.
 - [#2217](https://github.com/MetaMask/metamask-mobile/pull/2217): @metamask/controllers@6.0.1
 - [#2180](https://github.com/MetaMask/metamask-mobile/pull/2180): Fix cloudflare redirects
-- Merge pull request from GHSA-wmvx-96jh-gcr4
 - [#2203](https://github.com/MetaMask/metamask-mobile/pull/2203): Update @metamask/contract-metadata
 - [#2078](https://github.com/MetaMask/metamask-mobile/pull/2078): React Native update to 0.63
 - [#2204](https://github.com/MetaMask/metamask-mobile/pull/2204): Create dependabot.yml
