@@ -2,7 +2,7 @@ import {
 	generateTransferData,
 	decodeTransferData,
 	getMethodData,
-	isSmartContractAddress,
+	// isSmartContractAddress,
 	getTransactionActionKey,
 	TOKEN_METHOD_TRANSFER,
 	CONTRACT_METHOD_DEPLOY,
@@ -87,36 +87,36 @@ describe('Transactions utils :: getMethodData', () => {
 	});
 });
 
-describe('Transactions utils :: isSmartContractAddress', () => {
-	it('isSmartContractAddress', async () => {
-		Engine.context = MOCK_ENGINE.context;
-		const isFirst = await isSmartContractAddress('0x0');
-		const isSecond = await isSmartContractAddress('0x1');
-		expect(isFirst).toEqual(false);
-		expect(isSecond).toEqual(true);
-	});
+// describe('Transactions utils :: isSmartContractAddress', () => {
+// 	it('isSmartContractAddress', async () => {
+// 		Engine.context = MOCK_ENGINE.context;
+// 		const isFirst = await isSmartContractAddress('0x0');
+// 		const isSecond = await isSmartContractAddress('0x1');
+// 		expect(isFirst).toEqual(false);
+// 		expect(isSecond).toEqual(true);
+// 	});
 
-	it('isSmartContractAddress should work with contract map', async () => {
-		Engine.context = MOCK_ENGINE.context;
-		const stub = spyOn(Engine.context.TransactionController, 'query');
-		await isSmartContractAddress('0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359');
-		expect(stub).not.toBeCalled();
-	});
+// 	it('isSmartContractAddress should work with contract map', async () => {
+// 		Engine.context = MOCK_ENGINE.context;
+// 		const stub = spyOn(Engine.context.TransactionController, 'query');
+// 		await isSmartContractAddress('0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359');
+// 		expect(stub).not.toBeCalled();
+// 	});
 
-	it('isSmartContractAddress should call query if not cached', async () => {
-		Engine.context = MOCK_ENGINE.context;
-		const stub = spyOn(Engine.context.TransactionController, 'query');
-		await isSmartContractAddress('0x1', '0x123');
-		expect(stub).toBeCalled();
-	});
+// 	it('isSmartContractAddress should call query if not cached', async () => {
+// 		Engine.context = MOCK_ENGINE.context;
+// 		const stub = spyOn(Engine.context.TransactionController, 'query');
+// 		await isSmartContractAddress('0x1', '0x123');
+// 		expect(stub).toBeCalled();
+// 	});
 
-	it('isSmartContractAddress should call query if only address was provided', async () => {
-		Engine.context = MOCK_ENGINE.context;
-		const stub = spyOn(Engine.context.TransactionController, 'query');
-		await isSmartContractAddress('0x1');
-		expect(stub).toBeCalled();
-	});
-});
+// 	it('isSmartContractAddress should call query if only address was provided', async () => {
+// 		Engine.context = MOCK_ENGINE.context;
+// 		const stub = spyOn(Engine.context.TransactionController, 'query');
+// 		await isSmartContractAddress('0x1');
+// 		expect(stub).toBeCalled();
+// 	});
+// });
 
 describe('Transactions utils :: getTransactionActionKey', () => {
 	Engine.context = MOCK_ENGINE.context;
