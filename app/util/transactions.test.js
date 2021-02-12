@@ -3,31 +3,31 @@ import {
 	decodeTransferData,
 	getMethodData,
 	// isSmartContractAddress,
-	getTransactionActionKey,
+	// getTransactionActionKey,
 	TOKEN_METHOD_TRANSFER,
 	CONTRACT_METHOD_DEPLOY,
-	SEND_ETHER_ACTION_KEY,
-	DEPLOY_CONTRACT_ACTION_KEY,
-	SEND_TOKEN_ACTION_KEY,
-	TOKEN_METHOD_TRANSFER_FROM,
-	TRANSFER_FROM_ACTION_KEY,
-	SMART_CONTRACT_INTERACTION_ACTION_KEY
+	// SEND_ETHER_ACTION_KEY,
+	// DEPLOY_CONTRACT_ACTION_KEY,
+	// SEND_TOKEN_ACTION_KEY,
+	TOKEN_METHOD_TRANSFER_FROM
+	// TRANSFER_FROM_ACTION_KEY,
+	// SMART_CONTRACT_INTERACTION_ACTION_KEY
 } from './transactions';
-import Engine from '../core/Engine';
+// import Engine from '../core/Engine';
 
-const MOCK_ENGINE = {
-	context: {
-		TransactionController: {
-			query(get, [address]) {
-				if (address === '0x0') {
-					return '0x';
-				} else if (address === '0x1') {
-					return '0x1';
-				}
-			}
-		}
-	}
-};
+// const MOCK_ENGINE = {
+// 	context: {
+// 		TransactionController: {
+// 			query(get, [address]) {
+// 				if (address === '0x0') {
+// 					return '0x';
+// 				} else if (address === '0x1') {
+// 					return '0x1';
+// 				}
+// 			}
+// 		}
+// 	}
+// };
 
 describe('Transactions utils :: generateTransferData', () => {
 	it('generateTransferData should throw if undefined values', () => {
@@ -118,68 +118,68 @@ describe('Transactions utils :: getMethodData', () => {
 // 	});
 // });
 
-describe('Transactions utils :: getTransactionActionKey', () => {
-	Engine.context = MOCK_ENGINE.context;
-	const transferData =
-		'0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001';
-	const contractData =
-		'0x60a060405260046060527f48302e31000000000000000000000000000000000000000000000000000000006080526006805460008290527f48302e310000000000000000000000000000000000000000000000000000000882556100b5907ff652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f602060026001841615610100026000190190931692909204601f01919091048101905b8082111561017957600081556001016100a1565b505060405161094b38038061094b833981';
-	const randomData = '0x987654321';
-	const transferFromData = '0x23b872dd0000000000000000000000000000';
-	it('getTransactionActionKey send ether', async () => {
-		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: { to: '0x0' } });
-		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
-	});
+// describe('Transactions utils :: getTransactionActionKey', () => {
+// 	Engine.context = MOCK_ENGINE.context;
+// 	const transferData =
+// 		'0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001';
+// 	const contractData =
+// 		'0x60a060405260046060527f48302e31000000000000000000000000000000000000000000000000000000006080526006805460008290527f48302e310000000000000000000000000000000000000000000000000000000882556100b5907ff652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f602060026001841615610100026000190190931692909204601f01919091048101905b8082111561017957600081556001016100a1565b505060405161094b38038061094b833981';
+// 	const randomData = '0x987654321';
+// 	const transferFromData = '0x23b872dd0000000000000000000000000000';
+// 	it('getTransactionActionKey send ether', async () => {
+// 		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: { to: '0x0' } });
+// 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
+// 	});
 
-	it('getTransactionActionKey send ether with empty data', async () => {
-		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: { data: '0x', to: '0x0' } });
-		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
-	});
-	it('getTransactionActionKey send token', async () => {
-		const get = await getTransactionActionKey({
-			transactionHash: '0x2',
-			transaction: { data: transferData, to: '0x0' }
-		});
-		expect(get).toEqual(SEND_TOKEN_ACTION_KEY);
-	});
+// 	it('getTransactionActionKey send ether with empty data', async () => {
+// 		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: { data: '0x', to: '0x0' } });
+// 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
+// 	});
+// 	it('getTransactionActionKey send token', async () => {
+// 		const get = await getTransactionActionKey({
+// 			transactionHash: '0x2',
+// 			transaction: { data: transferData, to: '0x0' }
+// 		});
+// 		expect(get).toEqual(SEND_TOKEN_ACTION_KEY);
+// 	});
 
-	it('getTransactionActionKey send collectible', async () => {
-		const get = await getTransactionActionKey({
-			transactionHash: '0x6',
-			transaction: { data: transferFromData, to: '0x0' }
-		});
-		expect(get).toEqual(TRANSFER_FROM_ACTION_KEY);
-	});
+// 	it('getTransactionActionKey send collectible', async () => {
+// 		const get = await getTransactionActionKey({
+// 			transactionHash: '0x6',
+// 			transaction: { data: transferFromData, to: '0x0' }
+// 		});
+// 		expect(get).toEqual(TRANSFER_FROM_ACTION_KEY);
+// 	});
 
-	it('getTransactionActionKey deploy contract', async () => {
-		const get = await getTransactionActionKey({
-			transactionHash: '0x3',
-			transaction: { data: contractData, to: '0x1' }
-		});
-		expect(get).toEqual(DEPLOY_CONTRACT_ACTION_KEY);
-	});
+// 	it('getTransactionActionKey deploy contract', async () => {
+// 		const get = await getTransactionActionKey({
+// 			transactionHash: '0x3',
+// 			transaction: { data: contractData, to: '0x1' }
+// 		});
+// 		expect(get).toEqual(DEPLOY_CONTRACT_ACTION_KEY);
+// 	});
 
-	it('getTransactionActionKey send ether to contract', async () => {
-		const get = await getTransactionActionKey({
-			transactionHash: '0x4',
-			transaction: { data: randomData, to: '0x1' }
-		});
-		expect(get).toEqual(SMART_CONTRACT_INTERACTION_ACTION_KEY);
-	});
+// 	it('getTransactionActionKey send ether to contract', async () => {
+// 		const get = await getTransactionActionKey({
+// 			transactionHash: '0x4',
+// 			transaction: { data: randomData, to: '0x1' }
+// 		});
+// 		expect(get).toEqual(SMART_CONTRACT_INTERACTION_ACTION_KEY);
+// 	});
 
-	it('getTransactionActionKey send ether to address', async () => {
-		const get = await getTransactionActionKey({
-			transactionHash: '0x5',
-			transaction: { to: '0x0' }
-		});
-		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
-	});
+// 	it('getTransactionActionKey send ether to address', async () => {
+// 		const get = await getTransactionActionKey({
+// 			transactionHash: '0x5',
+// 			transaction: { to: '0x0' }
+// 		});
+// 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
+// 	});
 
-	it('getTransactionActionKey unknown interaction with smart contract', async () => {
-		const get = await getTransactionActionKey({
-			transactionHash: '0x7',
-			transaction: { data: randomData, to: '0x1' }
-		});
-		expect(get).toEqual(SMART_CONTRACT_INTERACTION_ACTION_KEY);
-	});
-});
+// 	it('getTransactionActionKey unknown interaction with smart contract', async () => {
+// 		const get = await getTransactionActionKey({
+// 			transactionHash: '0x7',
+// 			transaction: { data: randomData, to: '0x1' }
+// 		});
+// 		expect(get).toEqual(SMART_CONTRACT_INTERACTION_ACTION_KEY);
+// 	});
+// });
