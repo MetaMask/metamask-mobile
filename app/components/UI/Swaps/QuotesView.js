@@ -41,6 +41,7 @@ import TransactionsEditionModal from './components/TransactionsEditionModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
+import { decodeApproveData } from '../../../util/transactions';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -49,7 +50,6 @@ const SLIPPAGE_BUCKETS = {
 	MEDIUM: 'medium',
 	HIGH: 'high'
 };
-const MM_FOX_CODE = process.env.MM_FOX_CODE;
 
 const styles = StyleSheet.create({
 	screen: {
@@ -444,15 +444,39 @@ function SwapsQuotesView({
 			approvalTransaction.gasPrice = gasPrice;
 		}
 		selectedQuote.trade.gasPrice = gasPrice;
-
+		const newswapTransactions = TransactionController.state.swapTransactions || {};
 		if (approvalTransaction) {
-			await TransactionController.addTransaction(approvalTransaction, MM_FOX_CODE);
+			const { transactionMeta } = await TransactionController.addTransaction(
+				approvalTransaction,
+				process.env.MM_FOX_CODE
+			);
+			newswapTransactions[transactionMeta.id] = {
+				action: 'approval',
+				sourceToken: sourceToken.address,
+				destinationToken: { symbol: 'swaps' },
+				upTo: decodeApproveData(approvalTransaction.data).encodedAmount
+			};
 		}
 		// Modify gas limit for trade transaction only
 		selectedQuote.trade.gas = gasLimit;
-		await TransactionController.addTransaction(selectedQuote.trade, MM_FOX_CODE);
+		const { transactionMeta } = await TransactionController.addTransaction(
+			selectedQuote.trade,
+			process.env.MM_FOX_CODE
+		);
+		newswapTransactions[transactionMeta.id] = {
+			action: 'swap',
+			sourceToken: sourceToken.address,
+			destinationToken: destinationToken.address,
+			sourceAmountInFiat: weiToFiat(
+				toWei(selectedQuote.priceSlippage?.sourceAmountInETH),
+				conversionRate,
+				currentCurrency
+			)
+		};
+		TransactionController.update({ swapTransactions: newswapTransactions });
 		navigation.dismiss();
 	}, [
+		currentCurrency,
 		navigation,
 		selectedQuote,
 		approvalTransaction,

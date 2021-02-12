@@ -233,15 +233,15 @@ const Main = props => {
 
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
-
 			if (
-				transactionMeta.origin === process.env.MM_FOX_CODE &&
-				(to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
-					(data &&
-						data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-						decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS))
+				to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
+				(data &&
+					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+					decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS)
 			) {
-				autoSign(transactionMeta);
+				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
+					autoSign(transactionMeta);
+				}
 			} else if (
 				props.paymentChannelsEnabled &&
 				AppConstants.CONNEXT.SUPPORTED_NETWORKS.includes(props.providerType) &&
