@@ -130,6 +130,7 @@ jobs:
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
       - image: circleci/android:api-29-node
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:

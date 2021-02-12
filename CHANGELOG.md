@@ -1,6 +1,7 @@
 # Changelog
 
 ## v1.0.11 - Feb 15 2021
+- [#2240](https://github.com/MetaMask/metamask-mobile/pull/2240): Fix circleci apk
 - [#2176](https://github.com/MetaMask/metamask-mobile/pull/2176): Feature/warn when replacing
 - [#2233](https://github.com/MetaMask/metamask-mobile/pull/2233): contract metadata images bump
 - [#2148](https://github.com/MetaMask/metamask-mobile/pull/2148): Handle `balanceError` case
