@@ -31,7 +31,6 @@ const WyreApplePayPaymentMethod = ({ onPress }) => {
 
 	return (
 		<PaymentMethod onPress={onPress}>
-			<PaymentMethod.Badge>{strings('fiat_on_ramp.best_deal')}</PaymentMethod.Badge>
 			<PaymentMethod.Content>
 				<PaymentMethod.Details>
 					<Text reset>
