@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import { ActivityIndicator, InteractionManager, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import Networks, { isKnownNetwork } from '../../../util/networks';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import AssetOverview from '../../UI/AssetOverview';
@@ -9,7 +8,6 @@ import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
-import { RPC } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -54,7 +52,7 @@ class Asset extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		networkType: PropTypes.string,
+		chainId: PropTypes.string,
 		/**
 		 * An array that represents the user transactions
 		 */
@@ -81,7 +79,7 @@ class Asset extends PureComponent {
 	txs = [];
 	txsPending = [];
 	isNormalizing = false;
-	networkType = '';
+	chainId = '';
 	filter = undefined;
 	navSymbol = undefined;
 	navAddress = undefined;
@@ -104,10 +102,7 @@ class Asset extends PureComponent {
 	}
 
 	componentDidUpdate(prevProps) {
-		if (
-			prevProps.networkType !== this.props.networkType ||
-			prevProps.selectedAddress !== this.props.selectedAddress
-		) {
+		if (prevProps.chainId !== this.props.chainId || prevProps.selectedAddress !== this.props.selectedAddress) {
 			this.showLoaderAndNormalize();
 		} else {
 			this.normalizeTransactions();
@@ -127,8 +122,7 @@ class Asset extends PureComponent {
 	didTxStatusesChange = newTxsPending => this.txsPending.length !== newTxsPending.length;
 
 	ethFilter = tx => {
-		const { selectedAddress, networkType } = this.props;
-		const networkId = Networks[networkType].networkId;
+		const { selectedAddress, chainId } = this.props;
 		const {
 			transaction: { from, to },
 			isTransfer,
@@ -140,15 +134,13 @@ class Asset extends PureComponent {
 			);
 		return (
 			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
-			((networkId && networkId.toString() === tx.networkID) ||
-				(networkType === RPC && !isKnownNetwork(tx.networkID))) &&
+			chainId === tx.networkID &&
 			tx.status !== 'unapproved'
 		);
 	};
 
 	noEthFilter = tx => {
-		const { networkType } = this.props;
-		const networkId = Networks[networkType].networkId;
+		const { chainId } = this.props;
 		const {
 			transaction: { to, from },
 			isTransfer,
@@ -157,8 +149,7 @@ class Asset extends PureComponent {
 		if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
 		return (
 			(from & (from.toLowerCase() === this.navAddress) || (to && to.toLowerCase() === this.navAddress)) &&
-			((networkId && networkId.toString() === tx.networkID) ||
-				(networkType === RPC && !isKnownNetwork(tx.networkID))) &&
+			chainId === tx.networkID &&
 			tx.status !== 'unapproved'
 		);
 	};
@@ -169,7 +160,7 @@ class Asset extends PureComponent {
 		let submittedTxs = [];
 		const newPendingTxs = [];
 		const confirmedTxs = [];
-		const { networkType, transactions } = this.props;
+		const { chainId, transactions } = this.props;
 		if (transactions.length) {
 			const txs = transactions.filter(tx => {
 				const filerResult = this.filter(tx);
@@ -218,7 +209,7 @@ class Asset extends PureComponent {
 			if (
 				(this.txs.length === 0 && !this.state.transactionsUpdated) ||
 				this.txs.length !== txs.length ||
-				this.networkType !== networkType ||
+				this.chainId !== chainId ||
 				this.didTxStatusesChange(newPendingTxs)
 			) {
 				this.txs = txs;
@@ -235,7 +226,7 @@ class Asset extends PureComponent {
 			this.setState({ transactionsUpdated: true, loading: false });
 		}
 		this.isNormalizing = false;
-		this.networkType = networkType;
+		this.chainId = chainId;
 	}
 
 	renderLoader = () => (
@@ -259,7 +250,7 @@ class Asset extends PureComponent {
 			conversionRate,
 			currentCurrency,
 			selectedAddress,
-			networkType
+			chainId
 		} = this.props;
 
 		return (
@@ -280,7 +271,7 @@ class Asset extends PureComponent {
 						selectedAddress={selectedAddress}
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
-						networkType={networkType}
+						networkType={chainId}
 						loading={!this.state.transactionsUpdated}
 						headerHeight={280}
 					/>
@@ -294,7 +285,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode

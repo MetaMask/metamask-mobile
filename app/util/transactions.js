@@ -5,6 +5,7 @@ import { strings } from '../../locales/i18n';
 import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
+import { util as sUtils } from '@estebanmino/controllers';
 import { hexToBN } from './number';
 import AppConstants from '../core/AppConstants';
 const { SAI_ADDRESS } = AppConstants;
@@ -226,7 +227,7 @@ export async function isSmartContractAddress(address) {
 		return Promise.resolve(true);
 	}
 	const { TransactionController } = Engine.context;
-	const code = address ? await TransactionController.query('getCode', [address]) : undefined;
+	const code = address ? await sUtils.query(TransactionController.ethQuery, 'getCode', [address]) : undefined;
 	const isSmartContract = util.isSmartContractCode(code);
 	return isSmartContract;
 }
