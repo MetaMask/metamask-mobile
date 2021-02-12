@@ -197,12 +197,14 @@ workflows:
               only:
                 - master
                 - develop
+                - fix-circleci-apk
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
+                - fix-circleci-apk
       - lint:
           requires:
             - prep-node-deps
@@ -224,7 +226,7 @@ workflows:
     #         - test-unit
       - publish-pre-release-ios:
           requires:
-            - prep-deps
+            - prep-node-deps
       - publish-pre-release-android:
           requires:
-            - publish-pre-release-ios
+            - prep-deps
