@@ -8,6 +8,7 @@ import { util } from '@metamask/controllers';
 import { util as sUtils } from '@estebanmino/controllers';
 import { hexToBN } from './number';
 import AppConstants from '../core/AppConstants';
+import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
 const { SAI_ADDRESS } = AppConstants;
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
@@ -23,6 +24,7 @@ export const SEND_TOKEN_ACTION_KEY = 'transfer';
 export const TRANSFER_FROM_ACTION_KEY = 'transferfrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
+export const SWAPS_TRANSACTION_ACTION_KEY = 'swapsTransaction';
 export const CONNEXT_DEPOSIT_ACTION_KEY = 'connextdeposit';
 
 export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
@@ -75,6 +77,7 @@ const actionKeys = {
 	[TRANSFER_FROM_ACTION_KEY]: strings('transactions.sent_collectible'),
 	[DEPLOY_CONTRACT_ACTION_KEY]: strings('transactions.contract_deploy'),
 	[SMART_CONTRACT_INTERACTION_ACTION_KEY]: strings('transactions.smart_contract_interaction'),
+	[SWAPS_TRANSACTION_ACTION_KEY]: strings('transactions.swaps_transaction'),
 	[APPROVE_ACTION_KEY]: strings('transactions.approve'),
 	[CONNEXT_DEPOSIT_ACTION_KEY]: strings('transactions.instant_payment_deposit')
 };
@@ -262,6 +265,7 @@ export async function isCollectibleAddress(address, tokenId) {
 export async function getTransactionActionKey(transaction) {
 	const { transaction: { data, to } = {} } = transaction;
 	if (!to) return CONTRACT_METHOD_DEPLOY;
+	if (to === SWAPS_CONTRACT_ADDRESS) return SWAPS_TRANSACTION_ACTION_KEY;
 	let ret;
 	// if data in transaction try to get method data
 	if (data && data !== '0x') {
