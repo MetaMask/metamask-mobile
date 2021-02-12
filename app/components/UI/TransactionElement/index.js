@@ -67,21 +67,6 @@ class TransactionElement extends PureComponent {
 		 */
 		tx: PropTypes.object,
 		/**
-		 * Object containing token exchange rates in the format address => exchangeRate
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		contractExchangeRates: PropTypes.object,
-		/**
-		 * ETH to current currency conversion rate
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		conversionRate: PropTypes.number,
-		/**
-		 * Currency code of the currently-active currency
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		currentCurrency: PropTypes.string,
-		/**
 		 * String of selected address
 		 */
 		selectedAddress: PropTypes.string,
@@ -94,21 +79,6 @@ class TransactionElement extends PureComponent {
 		 */
 		onPressItem: PropTypes.func,
 		/**
-		 * An array that represents the user collectible contracts
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		collectibleContracts: PropTypes.array,
-		/**
-		 * Current provider ticker
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		ticker: PropTypes.string,
-		/**
-		 * Current exchange rate
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		exchangeRate: PropTypes.number,
-		/**
 		 * Callback to speed up tx
 		 */
 		onSpeedUpAction: PropTypes.func,
@@ -116,11 +86,6 @@ class TransactionElement extends PureComponent {
 		 * Callback to cancel tx
 		 */
 		onCancelAction: PropTypes.func,
-		/**
-		 * Primary currency, either ETH or Fiat
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		primaryCurrency: PropTypes.string,
 		swapTransactions: PropTypes.object,
 		tokens: PropTypes.arrayOf(PropTypes.object)
 	};

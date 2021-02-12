@@ -24,6 +24,7 @@ import {
 } from '../../../util/transactions';
 import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -612,6 +613,86 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 	return [transactionElement, transactionDetails];
 }
 
+function decodeSwapsTx(args) {
+	const { swapTransactions, tx, tokens, conversionRate, currentCurrency, primaryCurrency } = args;
+
+	if (swapTransactions && swapTransactions[tx.id]) {
+		const {
+			tx: {
+				transaction: { gas, gasPrice, from, to },
+				transactionHash
+			}
+		} = args;
+		const gasBN = hexToBN(gas);
+		const gasPriceBN = hexToBN(gasPrice);
+		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+
+		const swapTransaction = swapTransactions[tx.id];
+		const fiatValue = swapTransaction.sourceAmountInFiat;
+		const sourceToken = tokens?.find(
+			token => token.address?.toLowerCase() === swapTransaction.sourceToken.toLowerCase()
+		);
+		const destinationToken = tokens?.find(
+			token => token.address?.toLowerCase() === swapTransaction.destinationToken.toLowerCase()
+		);
+		const renderFrom = renderFullAddress(from);
+		const renderTo = renderFullAddress(to);
+		const ticker = getTicker(args.ticker);
+		const transactionElement = {
+			renderTo,
+			renderFrom,
+			actionKey: `Swap ${sourceToken.symbol} to ${destinationToken.symbol}`,
+			value: `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
+			fiatValue
+		};
+		let transactionDetails = {
+			renderFrom,
+			renderTo,
+			transactionHash,
+			renderValue: `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
+			renderGas: parseInt(gas, 16).toString(),
+			renderGasPrice: renderToGwei(gasPrice),
+			renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`
+		};
+		console.log('transactionDetails', transactionDetails);
+		if (primaryCurrency === 'ETH') {
+			transactionDetails = {
+				...transactionDetails,
+				summaryAmount: `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
+				summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
+				summarySecondaryTotalAmount: swapTransaction.sourceAmountInFiat,
+				summaryTotalAmount: `${swapTransaction.sourceAmount} ${sourceToken.symbol} + ${renderFromWei(
+					totalGas
+				)} ${ticker}`
+			};
+		} else {
+			transactionDetails = {
+				...transactionDetails,
+				summaryAmount: `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
+				summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency)
+				// summarySecondaryTotalAmount: `${renderFromWei(totalValue)} ${ticker}`,
+				// summaryTotalAmount: weiToFiat(totalValue, conversionRate, currentCurrency)
+			};
+
+			// transactionDetails = {
+			// 	...transactionDetails,
+			// 	summaryAmount: renderTokenFiatAmount
+			// 		? `${renderTokenFiatAmount}`
+			// 		: `${addCurrencySymbol(0, currentCurrency)}`,
+			// 	summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+			// 	summaryTotalAmount: totalFiatNumber
+			// 		? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}`
+			// 		: undefined,
+			// 	summarySecondaryTotalAmount: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(
+			// 		totalGas
+			// 	)} ${ticker}`
+			// };
+		}
+		return [transactionElement, transactionDetails];
+	}
+	return decodeConfirmTx(args);
+}
+
 /**
  * Parse transaction with wallet information to render
  *
@@ -625,6 +706,10 @@ export default async function decodeTransaction(args) {
 
 	const actionKey = await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction);
 	let transactionElement, transactionDetails;
+
+	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS) {
+		return ([transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey }));
+	}
 	if (paymentChannelTransaction) {
 		[transactionElement, transactionDetails] = decodePaymentChannelTx({ ...args, actionKey });
 	} else if (isTransfer) {
