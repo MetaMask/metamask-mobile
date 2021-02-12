@@ -466,7 +466,9 @@ function SwapsQuotesView({
 		newswapTransactions[transactionMeta.id] = {
 			action: 'swap',
 			sourceToken: sourceToken.address,
+			sourceAmount: renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals),
 			destinationToken: destinationToken.address,
+			destinationAmount: renderFromTokenMinimalUnit(selectedQuote.destinationAmount, destinationToken.decimals),
 			sourceAmountInFiat: weiToFiat(
 				toWei(selectedQuote.priceSlippage?.sourceAmountInETH),
 				conversionRate,

@@ -7,9 +7,7 @@ import { toDateFormat } from '../../../util/date';
 import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
 import { connect } from 'react-redux';
-import AppConstants from '../../../core/AppConstants';
 import StyledButton from '../StyledButton';
-import Networks from '../../../util/networks';
 import Modal from 'react-native-modal';
 import decodeTransaction from './utils';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
@@ -96,11 +94,6 @@ class TransactionElement extends PureComponent {
 		 */
 		onPressItem: PropTypes.func,
 		/**
-		 * An array that represents the user tokens
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		tokens: PropTypes.object,
-		/**
 		 * An array that represents the user collectible contracts
 		 */
 		// eslint-disable-next-line react/no-unused-prop-types
@@ -124,14 +117,12 @@ class TransactionElement extends PureComponent {
 		 */
 		onCancelAction: PropTypes.func,
 		/**
-		 * A string representing the network name
-		 */
-		providerType: PropTypes.string,
-		/**
 		 * Primary currency, either ETH or Fiat
 		 */
 		// eslint-disable-next-line react/no-unused-prop-types
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		swapTransactions: PropTypes.object,
+		tokens: PropTypes.arrayOf(PropTypes.object)
 	};
 
 	state = {
@@ -211,16 +202,24 @@ class TransactionElement extends PureComponent {
 	 */
 	renderTxElement = transactionElement => {
 		const {
-			tx: {
-				status,
-				transaction: { to }
-			},
-			providerType
+			tx: { status },
+			swapTransactions,
+			tokens
 		} = this.props;
-		const { value, fiatValue = false, actionKey } = transactionElement;
-		const networkId = Networks[providerType].networkId;
+		let { value, fiatValue = false, actionKey } = transactionElement;
+		if (swapTransactions[this.props.tx.id]) {
+			const swapTransaction = swapTransactions[this.props.tx.id];
+			fiatValue = swapTransaction.sourceAmountInFiat;
+			const sourceToken = tokens?.find(
+				token => token.address?.toLowerCase() === swapTransaction.sourceToken.toLowerCase()
+			);
+			const destinationToken = tokens?.find(
+				token => token.address?.toLowerCase() === swapTransaction.destinationToken.toLowerCase()
+			);
+			actionKey = `Swap ${sourceToken.symbol} to ${destinationToken.symbol}`;
+			value = `${swapTransaction.sourceAmount} ${sourceToken.symbol}`;
+		}
 		const renderTxActions = status === 'submitted' || status === 'approved';
-		const renderSpeedUpAction = safeToChecksumAddress(to) !== AppConstants.CONNEXT.CONTRACTS[networkId];
 		return (
 			<ListItem>
 				<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
@@ -237,7 +236,7 @@ class TransactionElement extends PureComponent {
 				</ListItem.Content>
 				{!!renderTxActions && (
 					<ListItem.Actions>
-						{renderSpeedUpAction && this.renderSpeedUpButton()}
+						{this.renderSpeedUpButton()}
 						{this.renderCancelButton()}
 					</ListItem.Actions>
 				)}
@@ -329,7 +328,8 @@ class TransactionElement extends PureComponent {
 
 const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	swapTransactions: state.engine.backgroundState.TransactionController.swapTransactions,
+	tokens: state.engine.backgroundState.SwapsController.tokens
 });
 export default connect(mapStateToProps)(TransactionElement);
