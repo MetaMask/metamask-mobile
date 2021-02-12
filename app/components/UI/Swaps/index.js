@@ -40,6 +40,7 @@ import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
+import InfoModal from './components/InfoModal';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -157,6 +158,12 @@ function SwapsAmountView({
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
 	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
+	const [
+		isTokenVerificationModalVisisble,
+		toggleTokenVerificationModal,
+		,
+		hideTokenVerificationModal
+	] = useModalHandler(false);
 
 	useEffect(() => {
 		(async () => {
@@ -341,11 +348,12 @@ function SwapsAmountView({
 		if (!destinationToken) {
 			return;
 		}
+		hideTokenVerificationModal();
 		navigation.navigate('Webview', {
 			url: getEtherscanAddressUrl('mainnet', destinationToken.address),
 			title: strings('swaps.verify')
 		});
-	}, [destinationToken, navigation]);
+	}, [destinationToken, hideTokenVerificationModal, navigation]);
 
 	const handleAmountPress = useCallback(() => keypadViewRef?.current?.shake?.(), []);
 
@@ -483,6 +491,7 @@ function SwapsAmountView({
 								style={styles.tokenAlert}
 								action={hasDismissedTokenAlert ? null : strings('swaps.continue')}
 								onPress={handleDimissTokenAlert}
+								onInfoPress={toggleTokenVerificationModal}
 							>
 								{textStyle => (
 									<TouchableOpacity onPress={handleVerifyPress}>
@@ -546,6 +555,21 @@ function SwapsAmountView({
 					</View>
 				</View>
 			</View>
+			<InfoModal
+				isVisible={isTokenVerificationModalVisisble}
+				toggleModal={toggleTokenVerificationModal}
+				title={strings('swaps.token_verification')}
+				body={
+					<Text>
+						{strings('swaps.token_multiple')}
+						{` ${strings('swaps.token_check')} `}
+						<Text reset link onPress={handleVerifyPress}>
+							Etherscan
+						</Text>
+						{` ${strings('swaps.token_to_verify')}`}
+					</Text>
+				}
+			/>
 			<SlippageModal
 				isVisible={isSlippageModalVisible}
 				dismiss={toggleSlippageModal}
