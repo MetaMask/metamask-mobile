@@ -235,10 +235,11 @@ const Main = props => {
 			// if destination address is metaswap contract
 
 			if (
-				to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
-				(data &&
-					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-					decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS)
+				transactionMeta.origin === process.env.MM_FOX_CODE &&
+				(to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
+					(data &&
+						data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+						decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS))
 			) {
 				autoSign(transactionMeta);
 			} else if (

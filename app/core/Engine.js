@@ -338,6 +338,7 @@ class Engine {
 
 		TransactionController.update({
 			internalTransactions: [],
+			swapsTransactions: [],
 			methodData: {},
 			transactions: []
 		});

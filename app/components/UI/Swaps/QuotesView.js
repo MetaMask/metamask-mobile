@@ -49,6 +49,7 @@ const SLIPPAGE_BUCKETS = {
 	MEDIUM: 'medium',
 	HIGH: 'high'
 };
+const MM_FOX_CODE = process.env.MM_FOX_CODE;
 
 const styles = StyleSheet.create({
 	screen: {
@@ -445,11 +446,11 @@ function SwapsQuotesView({
 		selectedQuote.trade.gasPrice = gasPrice;
 
 		if (approvalTransaction) {
-			await TransactionController.addTransaction(approvalTransaction);
+			await TransactionController.addTransaction(approvalTransaction, MM_FOX_CODE);
 		}
 		// Modify gas limit for trade transaction only
 		selectedQuote.trade.gas = gasLimit;
-		await TransactionController.addTransaction(selectedQuote.trade);
+		await TransactionController.addTransaction(selectedQuote.trade, MM_FOX_CODE);
 		navigation.dismiss();
 	}, [
 		navigation,
