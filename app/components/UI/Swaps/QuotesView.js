@@ -33,11 +33,11 @@ import SliderButton from '../SliderButton';
 import LoadingAnimation from './components/LoadingAnimation';
 import TokenIcon from './components/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
-import FeeModal from './components/FeeModal';
 import QuotesModal from './components/QuotesModal';
 import Ratio from './components/Ratio';
 import ActionAlert from './components/ActionAlert';
 import TransactionsEditionModal from './components/TransactionsEditionModal';
+import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
@@ -390,6 +390,10 @@ function SwapsQuotesView({
 	/* Modals, state and handlers */
 	const [isFeeModalVisible, toggleFeeModal, , hideFeeModal] = useModalHandler(false);
 	const [isQuotesModalVisible, toggleQuotesModal, , hideQuotesModal] = useModalHandler(false);
+	const [isUpdateModalVisible, toggleUpdateModal, , hideUpdateModal] = useModalHandler(false);
+	const [isPriceDifferenceModalVisible, togglePriceDifferenceModal, , hidePriceDifferenceModal] = useModalHandler(
+		false
+	);
 
 	/* Handlers */
 	const handleAnimationEnd = useCallback(() => {
@@ -697,6 +701,7 @@ function SwapsQuotesView({
 			if (newRemainingTime > remainingTime) {
 				hideFeeModal();
 				hideQuotesModal();
+				hidePriceDifferenceModal();
 				onCancelEditQuoteTransactions();
 			}
 
@@ -720,7 +725,8 @@ function SwapsQuotesView({
 		isInFetch,
 		quotesLastFetched,
 		quoteRefreshSeconds,
-		remainingTime
+		remainingTime,
+		hidePriceDifferenceModal
 	]);
 
 	/* errorKey effect: hide every modal */
@@ -728,10 +734,20 @@ function SwapsQuotesView({
 		if (errorKey) {
 			hideFeeModal();
 			hideQuotesModal();
+			hideUpdateModal();
+			hidePriceDifferenceModal();
 			handleQuotesErrorMetric(errorKey);
 			onCancelEditQuoteTransactions();
 		}
-	}, [errorKey, hideFeeModal, hideQuotesModal, handleQuotesErrorMetric, onCancelEditQuoteTransactions]);
+	}, [
+		errorKey,
+		hideFeeModal,
+		hideQuotesModal,
+		handleQuotesErrorMetric,
+		onCancelEditQuoteTransactions,
+		hidePriceDifferenceModal,
+		hideUpdateModal
+	]);
 
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
@@ -813,6 +829,11 @@ function SwapsQuotesView({
 							type={selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH ? 'error' : 'warning'}
 							action={hasDismissedSlippageAlert ? undefined : strings('swaps.i_understand')}
 							onPress={handleSlippageAlertPress}
+							onInfoPress={
+								selectedQuote.priceSlippage?.calculationError?.length > 0
+									? undefined
+									: togglePriceDifferenceModal
+							}
 						>
 							{textStyle =>
 								selectedQuote.priceSlippage?.calculationError?.length > 0 ? (
@@ -860,7 +881,11 @@ function SwapsQuotesView({
 					</View>
 				)}
 				{isInPolling && (
-					<View style={[styles.timerWrapper, disabledView && styles.disabled]}>
+					<TouchableOpacity
+						onPress={toggleUpdateModal}
+						disabled={disabledView}
+						style={[styles.timerWrapper, disabledView && styles.disabled]}
+					>
 						{isInFetch ? (
 							<>
 								<ActivityIndicator size="small" />
@@ -880,7 +905,7 @@ function SwapsQuotesView({
 								</Text>
 							</Text>
 						)}
-					</View>
+					</TouchableOpacity>
 				)}
 				{!isInPolling && (
 					<View style={[styles.timerWrapper, disabledView && styles.disabled]}>
@@ -1032,10 +1057,31 @@ function SwapsQuotesView({
 				</TouchableOpacity>
 			</View>
 
-			<FeeModal
+			<InfoModal
+				isVisible={isUpdateModalVisible}
+				toggleModal={toggleUpdateModal}
+				title={strings('swaps.quotes_update_often')}
+				body={<Text>{strings('swaps.quotes_update_often_text')}</Text>}
+			/>
+			<InfoModal
+				isVisible={isPriceDifferenceModalVisible}
+				toggleModal={togglePriceDifferenceModal}
+				title={strings('swaps.price_difference_title')}
+				body={<Text>{strings('swaps.price_difference_body')}</Text>}
+			/>
+			<InfoModal
 				isVisible={isFeeModalVisible}
 				toggleModal={toggleFeeModal}
-				fee={selectedQuote && `${selectedQuote.fee}%`}
+				title={strings('swaps.metamask_swap_fee')}
+				body={
+					<Text>
+						{strings('swaps.fee_text.get_the')} <Text bold>{strings('swaps.fee_text.best_price')}</Text>{' '}
+						{strings('swaps.fee_text.from_the')} <Text bold>{strings('swaps.fee_text.top_liquidity')}</Text>{' '}
+						{strings('swaps.fee_text.fee_is_applied', {
+							fee: selectedQuote && selectedQuote?.fee ? `${selectedQuote.fee}%` : '0.875%'
+						})}
+					</Text>
+				}
 			/>
 			<QuotesModal
 				isVisible={isQuotesModalVisible}

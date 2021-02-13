@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../../styles/common';
 
 import Alert from '../../../Base/Alert';
@@ -38,6 +39,17 @@ const styles = StyleSheet.create({
 	},
 	errorButtonText: {
 		color: colors.white
+	},
+	infoWrapper: {
+		position: 'absolute',
+		top: 3,
+		right: 3
+	},
+	warningInfoIcon: {
+		color: colors.grey500
+	},
+	errorInfoIcon: {
+		color: colors.red
 	}
 });
 
@@ -49,6 +61,18 @@ const getButtonStyle = type => {
 		case 'warning':
 		default: {
 			return styles.warningButton;
+		}
+	}
+};
+
+const getInfoIconStyle = type => {
+	switch (type) {
+		case 'error': {
+			return styles.errorInfoIcon;
+		}
+		case 'warning':
+		default: {
+			return styles.warningInfoIcon;
 		}
 	}
 };
@@ -69,20 +93,31 @@ Button.propTypes = {
 	children: PropTypes.string
 };
 
-function ActionAlert({ type, style, action, onPress, children }) {
+function ActionAlert({ type, style, action, onInfoPress, onPress, children }) {
 	return (
 		<Alert small type={type} style={[style, Boolean(action) && styles.contentWithAction]}>
 			{textStyle => (
-				<View style={styles.wrapper}>
-					<View style={[styles.content]}>{children(textStyle)}</View>
-					{Boolean(action) && (
-						<View style={[styles.action]}>
-							<Button onPress={onPress} type={type}>
-								{action}
-							</Button>
-						</View>
+				<>
+					<View style={styles.wrapper}>
+						<View style={[styles.content]}>{children(textStyle)}</View>
+						{Boolean(action) && (
+							<View style={[styles.action]}>
+								<Button onPress={onPress} type={type}>
+									{action}
+								</Button>
+							</View>
+						)}
+					</View>
+					{Boolean(onInfoPress) && (
+						<TouchableOpacity
+							style={styles.infoWrapper}
+							hitSlop={{ top: 15, right: 15, bottom: 15, left: 15 }}
+							onPress={onInfoPress}
+						>
+							<MaterialIcon name="info" size={16} style={getInfoIconStyle(type)} />
+						</TouchableOpacity>
 					)}
-				</View>
+				</>
 			)}
 		</Alert>
 	);
@@ -92,6 +127,7 @@ ActionAlert.propTypes = {
 	type: PropTypes.oneOf(['info', 'warning', 'error']),
 	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 	onPress: PropTypes.func,
+	onInfoPress: PropTypes.func,
 	action: PropTypes.string,
 	children: PropTypes.oneOfType([PropTypes.node, PropTypes.func])
 };
