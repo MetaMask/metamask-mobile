@@ -656,7 +656,8 @@ function decodeSwapsTx(args) {
 			renderFrom,
 			actionKey: `Swap ${sourceToken.symbol} to ${destinationToken.symbol}`,
 			value: `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
-			fiatValue: renderTokenFiatNumber
+			fiatValue: renderTokenFiatNumber,
+			transactionType: TRANSACTION_TYPES.SITE_INTERACTION
 		};
 		let transactionDetails = {
 			renderFrom,
