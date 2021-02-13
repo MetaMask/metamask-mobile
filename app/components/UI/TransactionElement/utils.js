@@ -622,7 +622,7 @@ function decodeSwapsTx(args) {
 				transaction: { gas, gasPrice, from, to },
 				transactionHash
 			},
-			exchangeRate
+			contractExchangeRates
 		} = args;
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
@@ -635,12 +635,14 @@ function decodeSwapsTx(args) {
 		const destinationToken = tokens?.find(
 			token => token.address?.toLowerCase() === swapTransaction.destinationToken.toLowerCase()
 		);
+		const exchangeRate = sourceToken
+			? contractExchangeRates[safeToChecksumAddress(sourceToken.address)]
+			: undefined;
 		const renderTokenFiatNumber = balanceToFiatNumber(
 			swapTransaction.sourceAmount,
 			conversionRate,
 			sourceToken.address === ETH_SWAPS_TOKEN_ADDRESS ? 1 : exchangeRate
 		);
-
 		const renderFrom = renderFullAddress(from);
 		const renderTo = renderFullAddress(to);
 		const ticker = getTicker(args.ticker);
@@ -649,14 +651,14 @@ function decodeSwapsTx(args) {
 		const cryptoSummaryTotalAmount =
 			sourceToken.symbol === 'ETH'
 				? `${Number(totalEthGas) + Number(swapTransaction.sourceAmount)} ${ticker}`
-				: `${swapTransaction.sourceAmount} ${sourceToken.symbol} ${totalEthGas} ${ticker}`;
+				: `${swapTransaction.sourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`;
 
 		const transactionElement = {
 			renderTo,
 			renderFrom,
 			actionKey: `Swap ${sourceToken.symbol} to ${destinationToken.symbol}`,
 			value: `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
-			fiatValue: renderTokenFiatNumber,
+			fiatValue: addCurrencySymbol(renderTokenFiatNumber, currentCurrency),
 			transactionType: TRANSACTION_TYPES.SITE_INTERACTION
 		};
 		let transactionDetails = {
@@ -669,13 +671,16 @@ function decodeSwapsTx(args) {
 			renderTotalGas: `${totalEthGas} ${ticker}`
 		};
 
-		if (primaryCurrency === 'ETH') {
+		if (primaryCurrency !== 'ETH') {
 			transactionDetails = {
 				...transactionDetails,
 				summaryAmount: `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
 				summaryFee: `${totalEthGas} ${ticker}`,
 				summaryTotalAmount: cryptoSummaryTotalAmount,
-				summarySecondaryTotalAmount: addCurrencySymbol(renderTokenFiatNumber, currentCurrency)
+				summarySecondaryTotalAmount: addCurrencySymbol(
+					renderTokenFiatNumber + weiToFiatNumber(totalGas, conversionRate),
+					currentCurrency
+				)
 			};
 		} else {
 			transactionDetails = {

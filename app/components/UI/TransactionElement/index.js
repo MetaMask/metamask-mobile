@@ -85,9 +85,7 @@ class TransactionElement extends PureComponent {
 		/**
 		 * Callback to cancel tx
 		 */
-		onCancelAction: PropTypes.func,
-		swapTransactions: PropTypes.object,
-		tokens: PropTypes.arrayOf(PropTypes.object)
+		onCancelAction: PropTypes.func
 	};
 
 	state = {
@@ -167,23 +165,9 @@ class TransactionElement extends PureComponent {
 	 */
 	renderTxElement = transactionElement => {
 		const {
-			tx: { status },
-			swapTransactions,
-			tokens
+			tx: { status }
 		} = this.props;
-		let { value, fiatValue = false, actionKey } = transactionElement;
-		if (swapTransactions[this.props.tx.id]) {
-			const swapTransaction = swapTransactions[this.props.tx.id];
-			fiatValue = swapTransaction.sourceAmountInFiat;
-			const sourceToken = tokens?.find(
-				token => token.address?.toLowerCase() === swapTransaction.sourceToken.toLowerCase()
-			);
-			const destinationToken = tokens?.find(
-				token => token.address?.toLowerCase() === swapTransaction.destinationToken.toLowerCase()
-			);
-			actionKey = `Swap ${sourceToken.symbol} to ${destinationToken.symbol}`;
-			value = `${swapTransaction.sourceAmount} ${sourceToken.symbol}`;
-		}
+		const { value, fiatValue = false, actionKey } = transactionElement;
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		return (
 			<ListItem>
@@ -293,8 +277,6 @@ class TransactionElement extends PureComponent {
 
 const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	primaryCurrency: state.settings.primaryCurrency,
-	swapTransactions: state.engine.backgroundState.TransactionController.swapTransactions,
-	tokens: state.engine.backgroundState.SwapsController.tokens
+	primaryCurrency: state.settings.primaryCurrency
 });
 export default connect(mapStateToProps)(TransactionElement);
