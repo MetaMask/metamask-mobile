@@ -615,7 +615,7 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 
 function decodeSwapsTx(args) {
 	const { swapTransactions, tx, tokens, conversionRate, currentCurrency, primaryCurrency } = args;
-
+	console.log('swapTransactions', swapTransactions[tx.id]);
 	if (swapTransactions && swapTransactions[tx.id]) {
 		const {
 			tx: {
@@ -656,7 +656,10 @@ function decodeSwapsTx(args) {
 		const transactionElement = {
 			renderTo,
 			renderFrom,
-			actionKey: `Swap ${sourceToken.symbol} to ${destinationToken.symbol}`,
+			actionKey:
+				swapTransaction.action === 'swap'
+					? `Swap ${sourceToken.symbol} to ${destinationToken.symbol}`
+					: `Approve ${sourceToken.symbol} for swaps: Up to ${swapTransaction.upTo}`,
 			value: `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
 			fiatValue: addCurrencySymbol(renderTokenFiatNumber, currentCurrency),
 			transactionType: TRANSACTION_TYPES.SITE_INTERACTION
