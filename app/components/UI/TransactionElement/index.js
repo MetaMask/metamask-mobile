@@ -184,10 +184,12 @@ class TransactionElement extends PureComponent {
 						<ListItem.Title numberOfLines={1}>{actionKey}</ListItem.Title>
 						<StatusText status={status} />
 					</ListItem.Body>
-					<ListItem.Amounts>
-						<ListItem.Amount>{value}</ListItem.Amount>
-						<ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
-					</ListItem.Amounts>
+					{Boolean(value) && (
+						<ListItem.Amounts>
+							<ListItem.Amount>{value}</ListItem.Amount>
+							<ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
+						</ListItem.Amounts>
+					)}
 				</ListItem.Content>
 				{!!renderTxActions && (
 					<ListItem.Actions>
