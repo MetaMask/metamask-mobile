@@ -139,7 +139,6 @@ export function generateApproveData(opts) {
 }
 
 export function decodeApproveData(data) {
-	console.log('decodeApproveData', data);
 	return {
 		spenderAddress: addHexPrefix(data.substr(34, 40)),
 		encodedAmount: data.substr(74, 138)
@@ -298,7 +297,6 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 		if (tx.transferInformation.contractAddress === SAI_ADDRESS.toLowerCase()) tx.transferInformation.symbol = 'SAI';
 		return strings(translationKey, { unit: tx.transferInformation.symbol });
 	}
-
 	const actionKey = await getTransactionActionKey(tx);
 
 	if (actionKey === SEND_ETHER_ACTION_KEY) {

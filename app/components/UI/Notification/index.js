@@ -1,27 +1,31 @@
-import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { StyleSheet, View, Text, Dimensions, InteractionManager } from 'react-native';
-import { hideTransactionNotification } from '../../../actions/notification';
 import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import Animated, { Easing } from 'react-native-reanimated';
+import { strings } from '../../../../locales/i18n';
+import { hideTransactionNotification } from '../../../actions/notification';
+import Engine from '../../../core/Engine';
+import { renderFromWei } from '../../../util/number';
+import { validateTransactionActionBalance } from '../../../util/transactions';
 import { colors, fontStyles } from '../../../styles/common';
+import decodeTransaction from '../TransactionElement/utils';
+import notificationTypes from '../../../util/notifications';
+import TransactionActionContent from '../TransactionActionModal/TransactionActionContent';
+import ActionContent from '../ActionModal/ActionContent';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TransactionDetails from '../TransactionElement/TransactionDetails';
-import decodeTransaction from '../TransactionElement/utils';
 import BaseNotification from './BaseNotification';
 import Device from '../../../util/Device';
-import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
-import { strings } from '../../../../locales/i18n';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
-import ActionContent from '../ActionModal/ActionContent';
-import TransactionActionContent from '../TransactionActionModal/TransactionActionContent';
-import { renderFromWei } from '../../../util/number';
-import Engine from '../../../core/Engine';
-import notificationTypes from '../../../util/notifications';
-import { validateTransactionActionBalance } from '../../../util/transactions';
+import BigNumber from 'bignumber.js';
 
 const { TRANSACTION, SIMPLE } = notificationTypes;
 
+const WINDOW_WIDTH = Dimensions.get('window').width;
+const ACTION_CANCEL = 'cancel';
+const ACTION_SPEEDUP = 'speedup';
 const BROWSER_ROUTE = 'BrowserView';
 
 const styles = StyleSheet.create({
@@ -90,127 +94,47 @@ const styles = StyleSheet.create({
 	}
 });
 
-const WINDOW_WIDTH = Dimensions.get('window').width;
-const ACTION_CANCEL = 'cancel';
-const ACTION_SPEEDUP = 'speedup';
+function Notification(props) {
+	const {
+		autodismiss,
+		isVisible,
+		navigation,
+		hideTransactionNotification,
+		accounts,
+		status,
+		transaction,
+		notificationTitle,
+		notificationDescription,
+		notificationStatus,
+		notificationType,
+		transactions
+	} = props;
 
-/**
- * Wrapper component for a global Notification
- */
-class Notification extends PureComponent {
-	static propTypes = {
-		/**
-		 * Map of accounts to information objects including balances
-		 */
-		accounts: PropTypes.object,
-		/**
-		/* navigation object required to push new views
-		*/
-		navigation: PropTypes.object,
-		/**
-		 * Boolean that determines if the modal should be shown
-		 */
-		isVisible: PropTypes.bool.isRequired,
-		/**
-		 * Number that determines when it should be autodismissed (in miliseconds)
-		 */
-		autodismiss: PropTypes.number,
-		/**
-		 * function that dismisses de modal
-		 */
-		hideTransactionNotification: PropTypes.func,
-		/**
-		 * An array that represents the user transactions on chain
-		 */
-		transactions: PropTypes.array,
-		/**
-		 * Corresponding transaction can contain id, nonce and amount
-		 */
-		transaction: PropTypes.object,
-		/**
-		 * String of selected address
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		selectedAddress: PropTypes.string,
-		/**
-		 * Current provider ticker
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		ticker: PropTypes.string,
-		/**
-		 * ETH to current currency conversion rate
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		conversionRate: PropTypes.number,
-		/**
-		 * Currency code of the currently-active currency
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		currentCurrency: PropTypes.string,
-		/**
-		 * Current exchange rate
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		exchangeRate: PropTypes.number,
-		/**
-		 * Object containing token exchange rates in the format address => exchangeRate
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		contractExchangeRates: PropTypes.object,
-		/**
-		 * An array that represents the user collectible contracts
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		collectibleContracts: PropTypes.array,
-		/**
-		 * An array that represents the user tokens
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		tokens: PropTypes.object,
-		/**
-		 * Transaction status
-		 */
-		status: PropTypes.string,
-		/**
-		 * Primary currency, either ETH or Fiat
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		primaryCurrency: PropTypes.string,
-		/**
-		 * Title for notification if defined
-		 */
-		notificationTitle: PropTypes.string,
-		/**
-		 * Description for notification if defined
-		 */
-		notificationDescription: PropTypes.string,
-		/**
-		 * Status for notification if defined
-		 */
-		notificationStatus: PropTypes.string,
-		/**
-		 * Type of notification, transaction or simple
-		 */
-		notificationType: PropTypes.string
+	const [transactionDetails, setTransactionDetails] = useState(undefined);
+	const [transactionElement, setTransactionElement] = useState(undefined);
+	const [tx, setTx] = useState({});
+	const [transactionDetailsIsVisible, setTransactionDetailsIsVisible] = useState(false);
+	const [internalIsVisible, setInternalIsVisible] = useState(isVisible);
+	const [transactionAction, setTransactionAction] = useState(undefined);
+	const [transactionActionDisabled, setTransactionActionDisabled] = useState(false);
+
+	const notificationAnimated = useRef(new Animated.Value(100)).current;
+	const detailsYAnimated = useRef(new Animated.Value(0)).current;
+	const actionXAnimated = useRef(new Animated.Value(0)).current;
+	const detailsAnimated = useRef(new Animated.Value(0)).current;
+
+	const usePrevious = value => {
+		const ref = useRef();
+		useEffect(() => {
+			ref.current = value;
+		});
+		return ref.current;
 	};
 
-	state = {
-		transactionDetails: undefined,
-		transactionElement: undefined,
-		tx: {},
-		transactionDetailsIsVisible: false,
-		internalIsVisible: true,
-		inBrowserView: false
-	};
+	const prevIsVisible = usePrevious(isVisible);
+	const prevNavigationState = usePrevious(navigation.state);
 
-	notificationAnimated = new Animated.Value(100);
-	detailsYAnimated = new Animated.Value(0);
-	actionXAnimated = new Animated.Value(0);
-	detailsAnimated = new Animated.Value(0);
-
-	existingGasPriceDecimal = '0x0';
-
-	animatedTimingStart = (animatedRef, toValue) => {
+	const animatedTimingStart = (animatedRef, toValue) => {
 		Animated.timing(animatedRef, {
 			toValue,
 			duration: 500,
@@ -219,205 +143,100 @@ class Notification extends PureComponent {
 		}).start();
 	};
 
-	detailsFadeIn = async () => {
-		await this.setState({ transactionDetailsIsVisible: true });
-		this.animatedTimingStart(this.detailsAnimated, 1);
+	const detailsFadeIn = async () => {
+		setTransactionDetailsIsVisible(true);
+		animatedTimingStart(detailsAnimated, 1);
 	};
 
-	componentDidMount = () => {
-		this.props.hideTransactionNotification();
-		// To get the notificationAnimated ref when component mounts
-		setTimeout(() => this.setState({ internalIsVisible: this.props.isVisible }), 100);
-	};
-
-	isInBrowserView = () => {
-		const currentRouteName = this.findRouteNameFromNavigatorState(this.props.navigation.state);
-		return currentRouteName === BROWSER_ROUTE;
-	};
-
-	componentDidUpdate = async prevProps => {
-		// Check whether current view is browser
-		if (this.props.isVisible && prevProps.navigation.state !== this.props.navigation.state) {
-			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({ inBrowserView: this.isInBrowserView(prevProps) });
-		}
-		if (!prevProps.isVisible && this.props.isVisible) {
-			// Auto dismiss notification in case of confirmations
-			this.props.autodismiss &&
-				setTimeout(() => {
-					this.props.hideTransactionNotification();
-				}, this.props.autodismiss);
-
-			let tx, transactionElement, transactionDetails;
-			if (this.props.notificationType === TRANSACTION) {
-				const { paymentChannelTransaction } = this.props.transaction;
-				tx = paymentChannelTransaction
-					? { paymentChannelTransaction, transaction: {} }
-					: this.props.transactions.find(({ id }) => id === this.props.transaction.id);
-				// THIS NEEDS REFACTOR
-				if (tx) {
-					const decoded = await decodeTransaction({ ...this.props, tx });
-					transactionElement = decoded[0];
-					transactionDetails = decoded[1];
-					const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
-					this.existingGasPriceDecimal = parseInt(
-						existingGasPrice === undefined ? '0x0' : existingGasPrice,
-						16
-					);
-				}
-			}
-			// eslint-disable-next-line react/no-did-update-set-state
-			await this.setState({
-				tx,
-				transactionElement,
-				transactionDetails,
-				internalIsVisible: true,
-				transactionDetailsIsVisible: false,
-				inBrowserView: this.isInBrowserView(prevProps)
-			});
-
-			setTimeout(() => this.animatedTimingStart(this.notificationAnimated, 0), 100);
-		} else if (prevProps.isVisible && !this.props.isVisible) {
-			this.animatedTimingStart(this.notificationAnimated, 200);
-			this.animatedTimingStart(this.detailsAnimated, 0);
-			// eslint-disable-next-line react/no-did-update-set-state
-			setTimeout(
-				() =>
-					this.setState({
-						internalIsVisible: false,
-						tx: undefined,
-						transactionElement: undefined,
-						transactionDetails: undefined
-					}),
-				500
-			);
-		}
-	};
-
-	findRouteNameFromNavigatorState({ routes }) {
+	const isInBrowserView = useMemo(() => {
+		const routes = navigation.state.routes;
 		let route = routes[routes.length - 1];
 		while (route.index !== undefined) route = route.routes[route.index];
-		return route.routeName;
-	}
+		return route.routeName === BROWSER_ROUTE;
+	}, [navigation.state]);
 
-	componentWillUnmount = () => {
-		this.props.hideTransactionNotification();
+	const animateActionTo = position => {
+		animatedTimingStart(detailsYAnimated, position);
+		animatedTimingStart(actionXAnimated, position);
 	};
 
-	onClose = () => {
-		this.onCloseDetails();
-		this.props.hideTransactionNotification();
+	const onCloseDetails = () => {
+		animatedTimingStart(detailsAnimated, 0);
+		setTimeout(() => setTransactionDetailsIsVisible(false), 1000);
 	};
 
-	onCloseDetails = () => {
-		this.animatedTimingStart(this.detailsAnimated, 0);
-		setTimeout(() => this.setState({ transactionDetailsIsVisible: false }), 1000);
+	const onClose = () => {
+		onCloseDetails();
+		hideTransactionNotification();
 	};
 
-	onPress = () => {
-		this.setState({ transactionDetailsIsVisible: true });
+	const onSpeedUpPress = () => {
+		const transactionActionDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, accounts);
+		setTransactionAction(ACTION_SPEEDUP);
+		setTransactionActionDisabled(transactionActionDisabled);
+		animateActionTo(-WINDOW_WIDTH);
 	};
 
-	onNotificationPress = () => {
-		const {
-			tx: { paymentChannelTransaction }
-		} = this.state;
-		if (paymentChannelTransaction) {
-			this.props.navigation.navigate('PaymentChannelHome');
-		} else {
-			this.detailsFadeIn();
-		}
+	const onCancelPress = () => {
+		const transactionActionDisabled = validateTransactionActionBalance(tx, CANCEL_RATE, accounts);
+		setTransactionAction(ACTION_CANCEL);
+		setTransactionActionDisabled(transactionActionDisabled);
+		animateActionTo(-WINDOW_WIDTH);
 	};
 
-	onSpeedUpPress = () => {
-		const transactionActionDisabled = validateTransactionActionBalance(
-			this.state.tx,
-			SPEED_UP_RATE,
-			this.props.accounts
-		);
-		this.setState({ transactionAction: ACTION_SPEEDUP, transactionActionDisabled });
-		this.animateActionTo(-WINDOW_WIDTH);
-	};
+	const onActionFinish = () => animateActionTo(0);
 
-	onCancelPress = () => {
-		const transactionActionDisabled = validateTransactionActionBalance(
-			this.state.tx,
-			CANCEL_RATE,
-			this.props.accounts
-		);
-		this.setState({ transactionAction: ACTION_CANCEL, transactionActionDisabled });
-		this.animateActionTo(-WINDOW_WIDTH);
-	};
-
-	onActionFinish = () => this.animateActionTo(0);
-
-	animateActionTo = position => {
-		this.animatedTimingStart(this.detailsYAnimated, position);
-		this.animatedTimingStart(this.actionXAnimated, position);
-	};
-
-	speedUpTransaction = () => {
+	const speedUpTransaction = () => {
 		InteractionManager.runAfterInteractions(() => {
 			try {
-				Engine.context.TransactionController.speedUpTransaction(this.state.tx.id);
+				Engine.context.TransactionController.speedUpTransaction(tx?.id);
 			} catch (e) {
 				// ignore because transaction already went through
 			}
-			this.onActionFinish();
+			onActionFinish();
 		});
 	};
 
-	cancelTransaction = () => {
+	const cancelTransaction = () => {
 		InteractionManager.runAfterInteractions(() => {
 			try {
-				Engine.context.TransactionController.stopTransaction(this.state.tx.id);
+				Engine.context.TransactionController.stopTransaction(tx?.id);
 			} catch (e) {
 				// ignore because transaction already went through
 			}
-			this.onActionFinish();
+			onActionFinish();
 		});
 	};
 
-	notificationOverlay = () => {
-		const { navigation } = this.props;
-		const {
-			transactionElement,
-			transactionDetails,
-			tx,
-			inBrowserView,
-			transactionAction,
-			transactionActionDisabled
-		} = this.state;
-		const isActionCancel = transactionAction === ACTION_CANCEL;
+	const renderTransactionDetails = () => {
+		const existingGasPrice = new BigNumber(tx?.transaction?.gasPrice || '0x0');
+		const gasFee = existingGasPrice
+			.times(transactionAction === ACTION_CANCEL ? CANCEL_RATE : SPEED_UP_RATE)
+			.toString();
 		return (
 			<View style={styles.detailsContainer}>
 				<Animated.View
 					style={[
 						styles.modalView,
-						{ opacity: this.detailsAnimated },
-						inBrowserView ? styles.modalViewInBrowserView : {},
-						{ transform: [{ translateX: this.detailsYAnimated }] }
+						{ opacity: detailsAnimated },
+						isInBrowserView ? styles.modalViewInBrowserView : {},
+						{ transform: [{ translateX: detailsYAnimated }] }
 					]}
 				>
 					<View style={styles.modalContainer}>
 						<View style={styles.titleWrapper}>
-							<Text style={styles.title} onPress={this.onCloseDetails}>
+							<Text style={styles.title} onPress={onCloseDetails}>
 								{transactionElement.actionKey}
 							</Text>
-							<Ionicons
-								onPress={this.onCloseDetails}
-								name={'ios-close'}
-								size={38}
-								style={styles.closeIcon}
-							/>
+							<Ionicons onPress={onCloseDetails} name={'ios-close'} size={38} style={styles.closeIcon} />
 						</View>
 						<TransactionDetails
 							transactionObject={tx}
 							transactionDetails={transactionDetails}
 							navigation={navigation}
-							close={this.onClose}
-							showSpeedUpModal={this.onSpeedUpPress}
-							showCancelModal={this.onCancelPress}
+							close={onClose}
+							showSpeedUpModal={onSpeedUpPress}
+							showCancelModal={onCancelPress}
 						/>
 					</View>
 				</Animated.View>
@@ -425,15 +244,17 @@ class Notification extends PureComponent {
 				<Animated.View
 					style={[
 						styles.modalView,
-						{ opacity: this.detailsAnimated },
-						inBrowserView ? styles.modalViewInBrowserView : {},
-						{ transform: [{ translateX: this.actionXAnimated }] }
+						{ opacity: detailsAnimated },
+						isInBrowserView ? styles.modalViewInBrowserView : {},
+						{ transform: [{ translateX: actionXAnimated }] }
 					]}
 				>
 					<View style={styles.transactionAction}>
 						<ActionContent
-							onCancelPress={this.onActionFinish}
-							onConfirmPress={isActionCancel ? this.cancelTransaction : this.speedUpTransaction}
+							onCancelPress={onActionFinish}
+							onConfirmPress={
+								transactionAction === ACTION_CANCEL ? cancelTransaction : speedUpTransaction
+							}
 							confirmText={strings('transaction.lets_try')}
 							confirmButtonMode={'confirm'}
 							cancelText={strings('transaction.nevermind')}
@@ -441,11 +262,7 @@ class Notification extends PureComponent {
 						>
 							<TransactionActionContent
 								confirmDisabled={transactionActionDisabled}
-								feeText={`${renderFromWei(
-									Math.floor(
-										this.existingGasPriceDecimal * isActionCancel ? CANCEL_RATE : SPEED_UP_RATE
-									)
-								)} ${strings('unit.eth')}`}
+								feeText={`${renderFromWei(gasFee)} ${strings('unit.eth')}`}
 								titleText={strings(`transaction.${transactionAction}_tx_title`)}
 								gasTitleText={strings(`transaction.gas_${transactionAction}_fee`)}
 								descriptionText={strings(`transaction.${transactionAction}_tx_message`)}
@@ -457,65 +274,186 @@ class Notification extends PureComponent {
 		);
 	};
 
-	handleTransactionNotification = () => {
-		const { status } = this.props;
-		const { tx, transactionDetailsIsVisible, inBrowserView } = this.state;
-		const isPaymentChannelTransaction = tx && tx.paymentChannelTransaction;
-		const data = tx ? { ...tx.transaction, ...this.props.transaction } : { ...this.props.transaction };
-		return (
-			<ElevatedView
-				style={[
-					styles.modalTypeView,
-					inBrowserView ? styles.modalTypeViewBrowser : {},
-					transactionDetailsIsVisible && !isPaymentChannelTransaction
-						? styles.modalTypeViewDetailsVisible
-						: {}
-				]}
-				elevation={100}
+	const handleTransactionNotification = () => (
+		<ElevatedView
+			style={[
+				styles.modalTypeView,
+				isInBrowserView ? styles.modalTypeViewBrowser : {},
+				transactionDetailsIsVisible && styles.modalTypeViewDetailsVisible
+			]}
+			elevation={100}
+		>
+			{transactionDetailsIsVisible && renderTransactionDetails()}
+			<Animated.View
+				style={[styles.notificationContainer, { transform: [{ translateY: notificationAnimated }] }]}
 			>
-				{transactionDetailsIsVisible && !isPaymentChannelTransaction && this.notificationOverlay()}
-				<Animated.View
-					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
-				>
-					<BaseNotification
-						status={status}
-						data={data}
-						onPress={this.onNotificationPress}
-						onHide={this.onClose}
-					/>
-				</Animated.View>
-			</ElevatedView>
-		);
-	};
+				<BaseNotification
+					status={status}
+					data={tx ? { ...tx.transaction, ...transaction } : { ...transaction }}
+					onPress={detailsFadeIn}
+					onHide={onClose}
+				/>
+			</Animated.View>
+		</ElevatedView>
+	);
 
-	handleSimpleNotification = () => {
-		const { inBrowserView } = this.state;
-		const { notificationTitle, notificationDescription, notificationStatus } = this.props;
-		return (
-			<ElevatedView
-				style={[styles.modalTypeView, inBrowserView ? styles.modalTypeViewBrowser : {}]}
-				elevation={100}
+	const handleSimpleNotification = () => (
+		<ElevatedView
+			style={[styles.modalTypeView, isInBrowserView ? styles.modalTypeViewBrowser : {}]}
+			elevation={100}
+		>
+			<Animated.View
+				style={[styles.notificationContainer, { transform: [{ translateY: notificationAnimated }] }]}
 			>
-				<Animated.View
-					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
-				>
-					<BaseNotification
-						status={notificationStatus}
-						data={{ title: notificationTitle, description: notificationDescription }}
-						onHide={this.onClose}
-					/>
-				</Animated.View>
-			</ElevatedView>
-		);
-	};
+				<BaseNotification
+					status={notificationStatus}
+					data={{ title: notificationTitle, description: notificationDescription }}
+					onHide={onClose}
+				/>
+			</Animated.View>
+		</ElevatedView>
+	);
 
-	render = () => {
-		if (!this.state.internalIsVisible) return null;
-		if (this.props.notificationType === TRANSACTION) return this.handleTransactionNotification();
-		if (this.props.notificationType === SIMPLE) return this.handleSimpleNotification();
-		return null;
-	};
+	useEffect(() => {
+		hideTransactionNotification();
+	}, [hideTransactionNotification]);
+
+	useEffect(() => {
+		async function getTransactionInfo(tx) {
+			if (internalIsVisible && notificationType === TRANSACTION) {
+				const tx = transactions.find(({ id }) => id === transaction.id);
+				const [transactionElement, transactionDetails] = await decodeTransaction({ ...props, tx });
+				setTx(tx);
+				setTransactionElement(transactionElement);
+				setTransactionDetails(transactionDetails);
+			}
+		}
+		getTransactionInfo();
+	}, [notificationType, internalIsVisible, transactions, transaction, props]);
+
+	useEffect(() => {
+		if (!prevIsVisible && isVisible) {
+			// Auto dismiss notification in case of confirmations
+			autodismiss &&
+				setTimeout(() => {
+					hideTransactionNotification();
+				}, autodismiss);
+			setInternalIsVisible(true);
+			setTransactionDetailsIsVisible(false);
+			setTimeout(() => animatedTimingStart(notificationAnimated, 0), 100);
+		} else if (prevIsVisible && !isVisible) {
+			animatedTimingStart(notificationAnimated, 200);
+			animatedTimingStart(detailsAnimated, 0);
+			setTimeout(() => {
+				setInternalIsVisible(false);
+				// setTx(undefined)
+				setTransactionElement(undefined);
+				setTransactionDetails(undefined);
+			}, 500);
+		}
+	}, [
+		isVisible,
+		prevIsVisible,
+		navigation.state,
+		prevNavigationState,
+		autodismiss,
+		detailsAnimated,
+		hideTransactionNotification,
+		notificationAnimated
+	]);
+
+	if (!internalIsVisible) return null;
+	if (notificationType === TRANSACTION) return handleTransactionNotification();
+	if (notificationType === SIMPLE) return handleSimpleNotification();
+	return null;
 }
+
+Notification.propTypes = {
+	/**
+	 * Map of accounts to information objects including balances
+	 */
+	accounts: PropTypes.object,
+	/**
+    /* navigation object required to push new views
+    */
+	navigation: PropTypes.object,
+	/**
+	 * Boolean that determines if the modal should be shown
+	 */
+	isVisible: PropTypes.bool.isRequired,
+	/**
+	 * Number that determines when it should be autodismissed (in miliseconds)
+	 */
+	autodismiss: PropTypes.number,
+	/**
+	 * function that dismisses de modal
+	 */
+	hideTransactionNotification: PropTypes.func,
+	/**
+	 * An array that represents the user transactions on chain
+	 */
+	transactions: PropTypes.array,
+	/**
+	 * Corresponding transaction can contain id, nonce and amount
+	 */
+	transaction: PropTypes.object,
+	/**
+	 * String of selected address
+	 */
+	selectedAddress: PropTypes.string,
+	/**
+	 * Current provider ticker
+	 */
+	ticker: PropTypes.string,
+	/**
+	 * ETH to current currency conversion rate
+	 */
+	conversionRate: PropTypes.number,
+	/**
+	 * Currency code of the currently-active currency
+	 */
+	currentCurrency: PropTypes.string,
+	/**
+	 * Current exchange rate
+	 */
+	exchangeRate: PropTypes.number,
+	/**
+	 * Object containing token exchange rates in the format address => exchangeRate
+	 */
+	contractExchangeRates: PropTypes.object,
+	/**
+	 * An array that represents the user collectible contracts
+	 */
+	collectibleContracts: PropTypes.array,
+	/**
+	 * An array that represents the user tokens
+	 */
+	tokens: PropTypes.object,
+	/**
+	 * Transaction status
+	 */
+	status: PropTypes.string,
+	/**
+	 * Primary currency, either ETH or Fiat
+	 */
+	primaryCurrency: PropTypes.string,
+	/**
+	 * Title for notification if defined
+	 */
+	notificationTitle: PropTypes.string,
+	/**
+	 * Description for notification if defined
+	 */
+	notificationDescription: PropTypes.string,
+	/**
+	 * Status for notification if defined
+	 */
+	notificationStatus: PropTypes.string,
+	/**
+	 * Type of notification, transaction or simple
+	 */
+	notificationType: PropTypes.string
+};
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
