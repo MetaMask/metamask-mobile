@@ -21,6 +21,7 @@ import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
 import { connect } from 'react-redux';
+import { NetworksChainId } from '@metamask/controllers';
 
 import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
@@ -412,16 +413,15 @@ export const BrowserTab = props => {
 					const { networkType, networkProvider } = props;
 
 					const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
-
 					let chainId;
 
 					if (isInitialNetwork) {
-						chainId = Networks[networkType].chainId;
+						chainId = NetworksChainId[networkType];
 					} else if (networkType === 'rpc') {
 						chainId = networkProvider.chainId;
 					}
 
-					if (chainId) {
+					if (chainId && !chainId.startsWith('0x')) {
 						// Convert to hex
 						res.result = `0x${parseInt(chainId, 10).toString(16)}`;
 					}
