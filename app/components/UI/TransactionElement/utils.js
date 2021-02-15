@@ -566,6 +566,8 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 	let transactionType;
 	if (paymentChannelTransaction) transactionType = TRANSACTION_TYPES.PAYMENT_CHANNEL_DEPOSIT;
 	else if (actionKey === strings('transactions.approve')) transactionType = TRANSACTION_TYPES.APPROVE;
+	else if (actionKey === strings('transactions.swaps_transaction'))
+		transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
 	else if (
 		actionKey === strings('transactions.smart_contract_interaction') ||
 		(!actionKey.includes(strings('transactions.sent')) && !actionKey.includes(strings('transactions.received')))
@@ -635,6 +637,8 @@ function decodeSwapsTx(args) {
 	const destinationToken =
 		!swapTransaction.destinationToken.symbol &&
 		tokens?.find(({ address }) => address === swapTransaction.destinationToken);
+
+	if (!sourceToken || !destinationToken) return [undefined, undefined];
 
 	const exchangeRate = sourceToken ? contractExchangeRates[safeToChecksumAddress(sourceToken.address)] : undefined;
 	const renderTokenFiatNumber = balanceToFiatNumber(
@@ -730,7 +734,8 @@ export default async function decodeTransaction(args) {
 	let transactionElement, transactionDetails;
 
 	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS && swapTransactions && swapTransactions[tx.id]) {
-		return ([transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey }));
+		const [transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey });
+		if (transactionElement && transactionDetails) return [transactionElement, transactionDetails];
 	}
 	if (paymentChannelTransaction) {
 		[transactionElement, transactionDetails] = decodePaymentChannelTx({ ...args, actionKey });

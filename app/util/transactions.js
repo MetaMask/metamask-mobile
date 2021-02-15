@@ -5,7 +5,7 @@ import { strings } from '../../locales/i18n';
 import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
-import { util as sUtils } from '@estebanmino/controllers';
+import { swapsUtils } from '@estebanmino/controllers';
 import { hexToBN } from './number';
 import AppConstants from '../core/AppConstants';
 const { SAI_ADDRESS } = AppConstants;
@@ -47,7 +47,7 @@ export const TRANSACTION_TYPES = {
 	APPROVE: 'transaction_approve'
 };
 
-const SWAPS_CONTRACT_ADDRESS = sUtils.SWAPS_CONTRACT_ADDRESS;
+const { SWAPS_CONTRACT_ADDRESS } = swapsUtils;
 /**
  * Utility class with the single responsibility
  * of caching CollectibleAddresses
@@ -230,7 +230,7 @@ export async function isSmartContractAddress(address) {
 		return Promise.resolve(true);
 	}
 	const { TransactionController } = Engine.context;
-	const code = address ? await sUtils.query(TransactionController.ethQuery, 'getCode', [address]) : undefined;
+	const code = address ? await util.query(TransactionController.ethQuery, 'getCode', [address]) : undefined;
 	const isSmartContract = util.isSmartContractCode(code);
 	return isSmartContract;
 }
@@ -303,7 +303,6 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 	}
 
 	const actionKey = await getTransactionActionKey(tx);
-
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		ticker = paymentChannelTransaction ? strings('unit.sai') : ticker;
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
