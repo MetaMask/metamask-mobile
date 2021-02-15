@@ -30,6 +30,12 @@ const {
 	CONNEXT: { CONTRACTS }
 } = AppConstants;
 
+function calculateTotalGas(gas, gasPrice) {
+	const gasBN = hexToBN(gas);
+	const gasPriceBN = hexToBN(gasPrice);
+	return isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+}
+
 function decodePaymentChannelTx(args) {
 	const {
 		tx: {
@@ -371,9 +377,7 @@ async function decodeTransferTx(args) {
 		//
 	}
 
-	const gasBN = hexToBN(gas);
-	const gasPriceBN = hexToBN(gasPrice);
-	const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+	const totalGas = calculateTotalGas(gas, gasPrice);
 	const renderGas = parseInt(gas, 16).toString();
 	const renderGasPrice = renderToGwei(gasPrice);
 
@@ -415,9 +419,7 @@ function decodeTransferFromTx(args) {
 		actionKey = `${strings('transactions.sent')} ${collectible.name}`;
 	}
 
-	const gasBN = hexToBN(gas);
-	const gasPriceBN = hexToBN(gasPrice);
-	const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+	const totalGas = calculateTotalGas(gas, gasPrice);
 	const renderCollectible = collectible
 		? `${strings('unit.token_id')}${tokenId} ${collectible.symbol}`
 		: `${strings('unit.token_id')}${tokenId}`;
@@ -483,10 +485,8 @@ function decodeDeploymentTx(args) {
 		primaryCurrency
 	} = args;
 	const ticker = getTicker(args.ticker);
-	const gasBN = hexToBN(gas);
-	const gasPriceBN = hexToBN(gasPrice);
-	const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 
+	const totalGas = calculateTotalGas(gas, gasPrice);
 	const renderTotalEth = `${renderFromWei(totalGas)} ${ticker}`;
 	const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 	const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
@@ -546,14 +546,13 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 		primaryCurrency,
 		selectedAddress
 	} = args;
+
 	const ticker = getTicker(args.ticker);
 	const totalEth = hexToBN(value);
 	const renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
 	const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 
-	const gasBN = hexToBN(gas);
-	const gasPriceBN = hexToBN(gasPrice);
-	const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+	const totalGas = calculateTotalGas(gas, gasPrice);
 	const totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
 
 	const renderFrom = renderFullAddress(from);
@@ -614,27 +613,28 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 }
 
 function decodeSwapsTx(args) {
-	const { swapTransactions, tx, tokens, conversionRate, currentCurrency, primaryCurrency } = args;
 	const {
+		swapTransactions,
+		tx,
+		tokens,
+		conversionRate,
+		currentCurrency,
+		primaryCurrency,
 		tx: {
 			transaction: { gas, gasPrice, from, to },
 			transactionHash
 		},
 		contractExchangeRates
 	} = args;
-	const swapTransaction = swapTransactions[tx.id];
-	const gasBN = hexToBN(gas);
-	const gasPriceBN = hexToBN(gasPrice);
-	const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+	const swapTransaction = swapTransactions[tx.id] || {};
 
-	const sourceToken = tokens?.find(
-		token => token.address?.toLowerCase() === swapTransaction.sourceToken?.toLowerCase()
-	);
+	const totalGas = calculateTotalGas(gas, gasPrice);
 
-	// look at approval data structure
+	const sourceToken = tokens?.find(({ address }) => address === swapTransaction.sourceToken);
 	const destinationToken =
 		!swapTransaction.destinationToken.symbol &&
-		tokens?.find(token => token.address?.toLowerCase() === swapTransaction.destinationToken?.toLowerCase());
+		tokens?.find(({ address }) => address === swapTransaction.destinationToken);
+
 	const exchangeRate = sourceToken ? contractExchangeRates[safeToChecksumAddress(sourceToken.address)] : undefined;
 	const renderTokenFiatNumber = balanceToFiatNumber(
 		swapTransaction.sourceAmount,
@@ -653,22 +653,22 @@ function decodeSwapsTx(args) {
 			? `${swapTransaction.sourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
 			: `${totalEthGas} ${ticker}`;
 
+	const isSwap = swapTransaction.action === 'swap';
+
 	const transactionElement = {
 		renderTo,
 		renderFrom,
-		actionKey:
-			swapTransaction.action === 'swap'
-				? `Swap ${sourceToken.symbol} to ${destinationToken.symbol}`
-				: `Approve ${sourceToken.symbol} for swaps: Up to ${renderFromTokenMinimalUnit(
-						hexToBN(swapTransaction.upTo),
-						sourceToken.decimals
-						// eslint-disable-next-line no-mixed-spaces-and-tabs
-				  )}`,
+		actionKey: isSwap
+			? `Swap ${sourceToken.symbol} to ${destinationToken.symbol}`
+			: `Approve ${sourceToken.symbol} for swaps: Up to ${renderFromTokenMinimalUnit(
+					hexToBN(swapTransaction.upTo),
+					sourceToken.decimals
+					// eslint-disable-next-line no-mixed-spaces-and-tabs
+			  )}`,
 		// eslint-disable-next-line no-mixed-spaces-and-tabs
-		value: swapTransaction.action === 'swap' && `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
-		fiatValue: swapTransaction.action === 'swap' && addCurrencySymbol(renderTokenFiatNumber, currentCurrency),
-		transactionType:
-			swapTransaction.action === 'swap' ? TRANSACTION_TYPES.SITE_INTERACTION : TRANSACTION_TYPES.APPROVE
+		value: isSwap && `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
+		fiatValue: isSwap && addCurrencySymbol(renderTokenFiatNumber, currentCurrency),
+		transactionType: isSwap ? TRANSACTION_TYPES.SITE_INTERACTION : TRANSACTION_TYPES.APPROVE
 	};
 
 	let transactionDetails = {
@@ -686,10 +686,7 @@ function decodeSwapsTx(args) {
 	if (primaryCurrency === 'ETH') {
 		transactionDetails = {
 			...transactionDetails,
-			summaryAmount:
-				swapTransaction.action === 'swap'
-					? `${swapTransaction.sourceAmount} ${sourceToken.symbol}`
-					: `0 ${ticker}`,
+			summaryAmount: isSwap ? `${swapTransaction.sourceAmount} ${sourceToken.symbol}` : `0 ${ticker}`,
 			summaryFee: `${totalEthGas} ${ticker}`,
 			summaryTotalAmount: cryptoSummaryTotalAmount,
 			summarySecondaryTotalAmount: addCurrencySymbol(
@@ -726,7 +723,7 @@ export default async function decodeTransaction(args) {
 	const actionKey = await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction);
 	let transactionElement, transactionDetails;
 
-	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS || (swapTransactions && swapTransactions[tx.id])) {
+	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS && swapTransactions[tx.id]) {
 		return ([transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey }));
 	}
 	if (paymentChannelTransaction) {
