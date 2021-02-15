@@ -616,19 +616,19 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 function decodeSwapsTx(args) {
 	const {
 		swapTransactions,
-		tx,
 		tokens,
 		conversionRate,
 		currentCurrency,
 		primaryCurrency,
 		tx: {
+			id,
 			transaction: { gas, gasPrice, from, to },
 			transactionHash
 		},
 		contractExchangeRates
 	} = args;
-	const swapTransaction = swapTransactions[tx.id] || {};
 
+	const swapTransaction = (swapTransactions && swapTransactions[id]) || {};
 	const totalGas = calculateTotalGas(gas, gasPrice);
 
 	const sourceToken = tokens?.find(({ address }) => address === swapTransaction.sourceToken);
@@ -729,7 +729,7 @@ export default async function decodeTransaction(args) {
 	const actionKey = await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction);
 	let transactionElement, transactionDetails;
 
-	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS && swapTransactions[tx.id]) {
+	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS && swapTransactions && swapTransactions[tx.id]) {
 		return ([transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey }));
 	}
 	if (paymentChannelTransaction) {
