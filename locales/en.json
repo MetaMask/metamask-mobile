@@ -1520,7 +1520,13 @@
 		"unexpected_error": "There has been an unexpected error, please request new quotes to get the latest best rate. (error: {{error}})",
 		"get_new_quotes": "Get new quotes",
 		"try_again": "Try again",
-		"terms_of_service": "Terms of service"
+		"terms_of_service": "Terms of service",
+		"transaction_label": {
+			"swap_initial_word": "Swap",
+			"swap_middle_word": "to",
+			"approve_initial_word": "Approve",
+			"approve_middle_word": "for swaps: Up to"
+		}
 	},
 	"protect_wallet_modal": {
 		"title": "Protect your wallet",

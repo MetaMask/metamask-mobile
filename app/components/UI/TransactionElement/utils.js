@@ -659,13 +659,18 @@ function decodeSwapsTx(args) {
 		renderTo,
 		renderFrom,
 		actionKey: isSwap
-			? `Swap ${sourceToken.symbol} to ${destinationToken.symbol}`
-			: `Approve ${sourceToken.symbol} for swaps: Up to ${renderFromTokenMinimalUnit(
+			? `${strings('swaps.transaction_label.swap_initial_word')} ${sourceToken.symbol} ${strings(
+					'swaps.transaction_label.swap_middle_word'
+					// eslint-disable-next-line no-mixed-spaces-and-tabs
+			  )} ${destinationToken.symbol}`
+			: `${strings('swaps.transaction_label.approve_initial_word')} ${sourceToken.symbol} ${strings(
+					'swaps.transaction_label.approve_middle_word'
+					// eslint-disable-next-line no-mixed-spaces-and-tabs
+			  )} ${renderFromTokenMinimalUnit(
 					hexToBN(swapTransaction.upTo),
 					sourceToken.decimals
 					// eslint-disable-next-line no-mixed-spaces-and-tabs
 			  )}`,
-		// eslint-disable-next-line no-mixed-spaces-and-tabs
 		value: isSwap && `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
 		fiatValue: isSwap && addCurrencySymbol(renderTokenFiatNumber, currentCurrency),
 		transactionType: isSwap ? TRANSACTION_TYPES.SITE_INTERACTION : TRANSACTION_TYPES.APPROVE
