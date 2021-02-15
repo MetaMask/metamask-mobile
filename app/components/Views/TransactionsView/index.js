@@ -6,9 +6,7 @@ import { withNavigation } from 'react-navigation';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
-import Networks, { isKnownNetwork } from '../../../util/networks';
 import { safeToChecksumAddress } from '../../../util/address';
-import { RPC } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -33,7 +31,6 @@ const TransactionsView = ({
 
 	const filterTransactions = useCallback(() => {
 		const ethFilter = tx => {
-			const networkId = Networks[networkType].networkId;
 			const {
 				transaction: { from, to },
 				isTransfer,
@@ -45,8 +42,7 @@ const TransactionsView = ({
 				);
 			return (
 				(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
-				((networkId && networkId.toString() === tx.networkID) ||
-					(networkType === RPC && !isKnownNetwork(tx.networkID))) &&
+				(chainId === tx.chainId || chainId === tx.networkID) &&
 				tx.status !== 'unapproved'
 			);
 		};
@@ -98,9 +94,11 @@ const TransactionsView = ({
 		setAllTransactions(allTransactions);
 		setSubmittedTxs(submittedTxsFiltered);
 		setConfirmedTxs(confirmedTxs);
-	}, [transactions, networkType, selectedAddress, tokens]);
+	}, [transactions, selectedAddress, tokens, chainId]);
 
 	useEffect(() => {
+		const { network } = Engine.context.NetworkController.state;
+		if (network === 'loading') return;
 		setLoading(true);
 
 		/*
