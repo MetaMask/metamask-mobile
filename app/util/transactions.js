@@ -8,7 +8,6 @@ import { util } from '@metamask/controllers';
 import { util as sUtils } from '@estebanmino/controllers';
 import { hexToBN } from './number';
 import AppConstants from '../core/AppConstants';
-import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
 const { SAI_ADDRESS } = AppConstants;
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
@@ -48,6 +47,7 @@ export const TRANSACTION_TYPES = {
 	APPROVE: 'transaction_approve'
 };
 
+const SWAPS_CONTRACT_ADDRESS = sUtils.SWAPS_CONTRACT_ADDRESS;
 /**
  * Utility class with the single responsibility
  * of caching CollectibleAddresses

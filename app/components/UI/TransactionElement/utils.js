@@ -24,8 +24,9 @@ import {
 } from '../../../util/transactions';
 import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { ETH_SWAPS_TOKEN_ADDRESS, SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
+import { swapsUtils } from '@estebanmino/controllers';
 
+const { ETH_SWAPS_TOKEN_ADDRESS, SWAPS_CONTRACT_ADDRESS } = swapsUtils;
 const {
 	CONNEXT: { CONTRACTS }
 } = AppConstants;
