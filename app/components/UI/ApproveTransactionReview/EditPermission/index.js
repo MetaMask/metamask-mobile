@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -8,7 +8,6 @@ import { strings } from '../../../../../locales/i18n';
 import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/Device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
-import { useMemo } from 'react/cjs/react.development';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -198,7 +197,11 @@ function EditPermission({
 						/>
 						{displayErrorMessage && (
 							<View style={styles.errorMessageWrapper}>
-								<ErrorMessage errorMessage={`Must be at least ${minimumSpendLimit}`} />
+								<ErrorMessage
+									errorMessage={strings('spend_limit_edition.spend_limit_edition', {
+										allowance: minimumSpendLimit
+									})}
+								/>
 							</View>
 						)}
 					</View>
