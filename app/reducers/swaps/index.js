@@ -58,7 +58,7 @@ export const swapsTokensWithBalanceSelector = createSelector(
 		}
 		const baseTokens = tokens;
 		const tokensAddressesWithBalance = Object.entries(balances)
-			.filter(([, balance]) => !balance.isZero())
+			.filter(([, balance]) => Boolean(balance) && balance?.isZero && !balance.isZero())
 			.sort(([, balanceA], [, balanceB]) => (balanceB.lte(balanceA) ? -1 : 1))
 			.map(([address]) => address.toLowerCase());
 		const tokensWithBalance = [];
