@@ -19,6 +19,9 @@ describe('TransactionElement', () => {
 							ticker: 'ETH',
 							type: 'mainnet'
 						}
+					},
+					TransactionController: {
+						swapTransactions: []
 					}
 				}
 			},
