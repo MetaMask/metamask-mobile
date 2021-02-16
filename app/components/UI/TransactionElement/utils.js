@@ -617,7 +617,7 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 
 function decodeSwapsTx(args) {
 	const {
-		swapTransactions,
+		swapsTransactions,
 		swapsTokens,
 		conversionRate,
 		currentCurrency,
@@ -629,7 +629,7 @@ function decodeSwapsTx(args) {
 		},
 		contractExchangeRates
 	} = args;
-	const swapTransaction = (swapTransactions && swapTransactions[id]) || {};
+	const swapTransaction = (swapsTransactions && swapsTransactions[id]) || {};
 	const totalGas = calculateTotalGas(gas, gasPrice);
 	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction.sourceToken);
 	const destinationToken =
@@ -723,13 +723,13 @@ function decodeSwapsTx(args) {
  * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens
  */
 export default async function decodeTransaction(args) {
-	const { tx, selectedAddress, ticker, swapTransactions = {} } = args;
+	const { tx, selectedAddress, ticker, swapsTransactions = {} } = args;
 	const { paymentChannelTransaction, isTransfer } = tx || {};
 
 	const actionKey = await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction);
 	let transactionElement, transactionDetails;
 
-	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS || swapTransactions[tx.id]) {
+	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS || swapsTransactions[tx.id]) {
 		const [transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey });
 		if (transactionElement && transactionDetails) return [transactionElement, transactionDetails];
 	}

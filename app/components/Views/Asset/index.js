@@ -66,7 +66,7 @@ class Asset extends PureComponent {
 		 * Indicates whether third party API mode is enabled
 		 */
 		thirdPartyApiMode: PropTypes.bool,
-		swapTransactions: PropTypes.object
+		swapsTransactions: PropTypes.object
 	};
 
 	state = {
@@ -142,7 +142,7 @@ class Asset extends PureComponent {
 	};
 
 	noEthFilter = tx => {
-		const { chainId, swapTransactions } = this.props;
+		const { chainId, swapsTransactions } = this.props;
 		const {
 			transaction: { to, from },
 			isTransfer,
@@ -155,9 +155,8 @@ class Asset extends PureComponent {
 			tx.status !== 'unapproved'
 		)
 			return true;
-
-		if (to?.toLowerCase() === SWAPS_CONTRACT_ADDRESS) {
-			const { destinationToken, sourceToken } = swapTransactions[tx.id];
+		if (swapsTransactions[tx.id] && to?.toLowerCase() === SWAPS_CONTRACT_ADDRESS) {
+			const { destinationToken, sourceToken } = swapsTransactions[tx.id];
 			return destinationToken === this.navAddress || sourceToken === this.navAddress;
 		}
 		return false;
@@ -281,7 +280,7 @@ class Asset extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	swapTransactions: state.engine.backgroundState.TransactionController.swapTransactions,
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

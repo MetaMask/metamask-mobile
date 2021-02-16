@@ -21,7 +21,7 @@ describe('TransactionElement', () => {
 						}
 					},
 					TransactionController: {
-						swapTransactions: []
+						swapsTransactions: {}
 					},
 					SwapsController: {
 						tokens: []

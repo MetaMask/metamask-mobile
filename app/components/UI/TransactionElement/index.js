@@ -86,7 +86,7 @@ class TransactionElement extends PureComponent {
 		 * Callback to cancel tx
 		 */
 		onCancelAction: PropTypes.func,
-		swapTransactions: PropTypes.object,
+		swapsTransactions: PropTypes.object,
 		swapsTokens: PropTypes.arrayOf(PropTypes.object)
 	};
 
@@ -105,7 +105,7 @@ class TransactionElement extends PureComponent {
 	componentDidMount = async () => {
 		const [transactionElement, transactionDetails] = await decodeTransaction({
 			...this.props,
-			swapTransactions: this.props.swapTransactions,
+			swapsTransactions: this.props.swapsTransactions,
 			swapsTokens: this.props.swapsTokens
 		});
 		this.mounted = true;
@@ -286,7 +286,7 @@ class TransactionElement extends PureComponent {
 const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	primaryCurrency: state.settings.primaryCurrency,
-	swapTransactions: state.engine.backgroundState.TransactionController.swapTransactions,
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
 	swapsTokens: state.engine.backgroundState.SwapsController.tokens
 });
 export default connect(mapStateToProps)(TransactionElement);

@@ -441,7 +441,7 @@ function SwapsQuotesView({
 
 		const { TransactionController } = Engine.context;
 
-		const newswapTransactions = TransactionController.state.swapTransactions || {};
+		const newSwapsTransactions = TransactionController.state.swapsTransactions || {};
 
 		if (approvalTransaction) {
 			approvalTransaction.gasPrice = gasPrice;
@@ -450,7 +450,7 @@ function SwapsQuotesView({
 					approvalTransaction,
 					process.env.MM_FOX_CODE
 				);
-				newswapTransactions[transactionMeta.id] = {
+				newSwapsTransactions[transactionMeta.id] = {
 					action: 'approval',
 					sourceToken: sourceToken.address,
 					destinationToken: { swaps: 'swaps' },
@@ -469,7 +469,7 @@ function SwapsQuotesView({
 				selectedQuote.trade,
 				process.env.MM_FOX_CODE
 			);
-			newswapTransactions[transactionMeta.id] = {
+			newSwapsTransactions[transactionMeta.id] = {
 				action: 'swap',
 				sourceToken: sourceToken.address,
 				sourceAmount: renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals),
@@ -488,7 +488,7 @@ function SwapsQuotesView({
 			// send analytics
 		}
 
-		TransactionController.update({ swapTransactions: newswapTransactions });
+		TransactionController.update({ swapsTransactions: newSwapsTransactions });
 		navigation.dismiss();
 	}, [
 		currentCurrency,
