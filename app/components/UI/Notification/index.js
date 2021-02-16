@@ -219,7 +219,7 @@ function Notification(props) {
 					style={[
 						styles.modalView,
 						{ opacity: detailsAnimated },
-						isInBrowserView ? styles.modalViewInBrowserView : {},
+						isInBrowserView && styles.modalViewInBrowserView,
 						{ transform: [{ translateX: detailsYAnimated }] }
 					]}
 				>
@@ -245,7 +245,7 @@ function Notification(props) {
 					style={[
 						styles.modalView,
 						{ opacity: detailsAnimated },
-						isInBrowserView ? styles.modalViewInBrowserView : {},
+						isInBrowserView && styles.modalViewInBrowserView,
 						{ transform: [{ translateX: actionXAnimated }] }
 					]}
 				>
@@ -278,7 +278,7 @@ function Notification(props) {
 		<ElevatedView
 			style={[
 				styles.modalTypeView,
-				isInBrowserView ? styles.modalTypeViewBrowser : {},
+				isInBrowserView && styles.modalTypeViewBrowser,
 				transactionDetailsIsVisible && styles.modalTypeViewDetailsVisible
 			]}
 			elevation={100}
@@ -298,10 +298,7 @@ function Notification(props) {
 	);
 
 	const handleSimpleNotification = () => (
-		<ElevatedView
-			style={[styles.modalTypeView, isInBrowserView ? styles.modalTypeViewBrowser : {}]}
-			elevation={100}
-		>
+		<ElevatedView style={[styles.modalTypeView, isInBrowserView && styles.modalTypeViewBrowser]} elevation={100}>
 			<Animated.View
 				style={[styles.notificationContainer, { transform: [{ translateY: notificationAnimated }] }]}
 			>
@@ -319,9 +316,10 @@ function Notification(props) {
 	}, [hideTransactionNotification]);
 
 	useEffect(() => {
-		async function getTransactionInfo(tx) {
+		async function getTransactionInfo() {
 			if (internalIsVisible && notificationType === TRANSACTION) {
 				const tx = transactions.find(({ id }) => id === transaction.id);
+				if (tx) return;
 				const [transactionElement, transactionDetails] = await decodeTransaction({ ...props, tx });
 				setTx(tx);
 				setTransactionElement(transactionElement);
