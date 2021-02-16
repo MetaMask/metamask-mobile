@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { StyleSheet, View, Text, Dimensions, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import Animated, { Easing } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { renderFromWei } from '../../../../util/number';
@@ -98,7 +98,8 @@ function TransactionNotification(props) {
 		onClose,
 		status,
 		transaction,
-		transactions
+		transactions,
+		animatedTimingStart
 	} = props;
 
 	const [transactionDetails, setTransactionDetails] = useState(undefined);
@@ -112,15 +113,6 @@ function TransactionNotification(props) {
 	const detailsYAnimated = useRef(new Animated.Value(0)).current;
 	const actionXAnimated = useRef(new Animated.Value(0)).current;
 	const detailsAnimated = useRef(new Animated.Value(0)).current;
-
-	const animatedTimingStart = (animatedRef, toValue) => {
-		Animated.timing(animatedRef, {
-			toValue,
-			duration: 500,
-			easing: Easing.linear,
-			useNativeDriver: true
-		}).start();
-	};
 
 	const detailsFadeIn = async () => {
 		setTransactionDetailsIsVisible(true);
@@ -163,6 +155,7 @@ function TransactionNotification(props) {
 			onActionFinish();
 		});
 	};
+
 	const speedUpTransaction = () => transactionControllerDo('speedUpTransaction');
 
 	const stopTransaction = () => transactionControllerDo('stopTransaction');
@@ -170,7 +163,7 @@ function TransactionNotification(props) {
 	useEffect(() => {
 		async function getTransactionInfo() {
 			const tx = transactions.find(({ id }) => id === transaction.id);
-			if (tx) return;
+			if (!tx) return;
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...props, tx });
 			const existingGasPrice = new BigNumber(tx?.transaction?.gasPrice || '0x0');
 			const gasFee = existingGasPrice
@@ -197,6 +190,8 @@ function TransactionNotification(props) {
 		props.tokens,
 		props.primaryCurrency
 	]);
+
+	useEffect(() => () => animatedTimingStart(detailsAnimated, 0), [animatedTimingStart, detailsAnimated]);
 
 	return (
 		<ElevatedView
@@ -289,6 +284,7 @@ TransactionNotification.propTypes = {
 	isInBrowserView: PropTypes.bool,
 	notificationAnimated: PropTypes.object,
 	onClose: PropTypes.func,
+	animatedTimingStart: PropTypes.func,
 	/**
 	 * Map of accounts to information objects including balances
 	 */
