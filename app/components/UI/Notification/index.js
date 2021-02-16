@@ -344,7 +344,7 @@ function Notification(props) {
 			animatedTimingStart(detailsAnimated, 0);
 			setTimeout(() => {
 				setInternalIsVisible(false);
-				// setTx(undefined)
+				setTx(undefined);
 				setTransactionElement(undefined);
 				setTransactionDetails(undefined);
 			}, 500);
