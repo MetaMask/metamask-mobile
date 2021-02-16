@@ -239,7 +239,7 @@ class Asset extends PureComponent {
 	};
 
 	render = () => {
-		const { loading, transactions, submittedTxs, confirmedTxs } = this.state;
+		const { loading, transactions, submittedTxs, confirmedTxs, transactionsUpdated } = this.state;
 		const {
 			navigation: {
 				state: { params }
@@ -270,7 +270,7 @@ class Asset extends PureComponent {
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
 						networkType={chainId}
-						loading={!this.state.transactionsUpdated}
+						loading={!transactionsUpdated}
 						headerHeight={280}
 					/>
 				)}

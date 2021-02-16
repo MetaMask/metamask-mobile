@@ -276,38 +276,40 @@ class AssetOverview extends PureComponent {
 					)}
 				</View>
 
-				<View style={styles.actions}>
-					<AssetActionButton
-						icon="receive"
-						onPress={this.onReceive}
-						label={strings('asset_overview.receive_button')}
-					/>
-					{isETH && allowedToBuy(chainId) && (
+				{!balanceError && (
+					<View style={styles.actions}>
 						<AssetActionButton
-							icon="buy"
-							onPress={this.onBuy}
-							label={strings('asset_overview.buy_button')}
+							icon="receive"
+							onPress={this.onReceive}
+							label={strings('asset_overview.receive_button')}
 						/>
-					)}
-					<AssetActionButton
-						testID={'token-send-button'}
-						icon="send"
-						onPress={this.onSend}
-						label={strings('asset_overview.send_button')}
-					/>
-					{AppConstants.SWAPS.ACTIVE && (
+						{isETH && allowedToBuy(chainId) && (
+							<AssetActionButton
+								icon="buy"
+								onPress={this.onBuy}
+								label={strings('asset_overview.buy_button')}
+							/>
+						)}
 						<AssetActionButton
-							icon="swap"
-							label={strings('asset_overview.swap')}
-							disabled={
-								!swapsIsLive ||
-								(AppConstants.SWAPS.ONLY_MAINNET ? !isMainNet(chainId) : false) ||
-								(!isETH && !(address?.toLowerCase() in swapsTokens))
-							}
-							onPress={this.goToSwaps}
+							testID={'token-send-button'}
+							icon="send"
+							onPress={this.onSend}
+							label={strings('asset_overview.send_button')}
 						/>
-					)}
-				</View>
+						{AppConstants.SWAPS.ACTIVE && (
+							<AssetActionButton
+								icon="swap"
+								label={strings('asset_overview.swap')}
+								disabled={
+									!swapsIsLive ||
+									(AppConstants.SWAPS.ONLY_MAINNET ? !isMainNet(chainId) : false) ||
+									(!isETH && !(address?.toLowerCase() in swapsTokens))
+								}
+								onPress={this.goToSwaps}
+							/>
+						)}
+					</View>
+				)}
 			</View>
 		);
 	}
