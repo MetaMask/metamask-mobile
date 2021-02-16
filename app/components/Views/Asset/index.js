@@ -8,6 +8,7 @@ import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
+import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -64,7 +65,8 @@ class Asset extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+		thirdPartyApiMode: PropTypes.bool,
+		swapTransactions: PropTypes.object
 	};
 
 	state = {
@@ -140,18 +142,25 @@ class Asset extends PureComponent {
 	};
 
 	noEthFilter = tx => {
-		const { chainId } = this.props;
+		const { chainId, swapTransactions } = this.props;
 		const {
 			transaction: { to, from },
 			isTransfer,
 			transferInformation
 		} = tx;
 		if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
-		return (
-			(from & (from.toLowerCase() === this.navAddress) || (to && to.toLowerCase() === this.navAddress)) &&
+		if (
+			(from?.toLowerCase() === this.navAddress || to?.toLowerCase() === this.navAddress) &&
 			chainId === tx.networkID &&
 			tx.status !== 'unapproved'
-		);
+		)
+			return true;
+
+		if (to?.toLowerCase() === SWAPS_CONTRACT_ADDRESS) {
+			const { destinationToken, sourceToken } = swapTransactions[tx.id];
+			return destinationToken === this.navAddress || sourceToken === this.navAddress;
+		}
+		return false;
 	};
 
 	normalizeTransactions() {
@@ -272,6 +281,7 @@ class Asset extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	swapTransactions: state.engine.backgroundState.TransactionController.swapTransactions,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
