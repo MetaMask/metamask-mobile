@@ -3,11 +3,7 @@ import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
-import NetworkList, {
-	getNetworkTypeById,
-	findBlockExplorerForRpc,
-	getBlockExplorerName
-} from '../../../../util/networks';
+import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
@@ -16,8 +12,6 @@ import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
 import StyledButton from '../../StyledButton';
-import { safeToChecksumAddress } from '../../../../util/address';
-import AppConstants from '../../../../core/AppConstants';
 import StatusText from '../../../Base/StatusText';
 import Text from '../../../Base/Text';
 import DetailsModal from '../../../Base/DetailsModal';
@@ -90,7 +84,6 @@ class TransactionDetails extends PureComponent {
 		/**
 		 * A string representing the network name
 		 */
-		providerType: PropTypes.string,
 		showSpeedUpModal: PropTypes.func,
 		showCancelModal: PropTypes.func
 	};
@@ -178,13 +171,10 @@ class TransactionDetails extends PureComponent {
 			transactionObject: {
 				status,
 				time,
-				transaction: { nonce, to }
-			},
-			providerType
+				transaction: { nonce }
+			}
 		} = this.props;
-		const networkId = NetworkList[providerType].networkId;
 		const renderTxActions = status === 'submitted' || status === 'approved';
-		const renderSpeedUpAction = safeToChecksumAddress(to) !== AppConstants.CONNEXT.CONTRACTS[networkId];
 		const { rpcBlockExplorer } = this.state;
 		return (
 			<DetailsModal.Body>
@@ -194,7 +184,7 @@ class TransactionDetails extends PureComponent {
 						<StatusText status={status} />
 						{!!renderTxActions && (
 							<View style={styles.transactionActionsContainer}>
-								{renderSpeedUpAction && this.renderSpeedUpButton()}
+								{this.renderSpeedUpButton()}
 								{this.renderCancelButton()}
 							</View>
 						)}
@@ -257,7 +247,6 @@ class TransactionDetails extends PureComponent {
 
 const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController,
-	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
 });
 export default connect(mapStateToProps)(TransactionDetails);

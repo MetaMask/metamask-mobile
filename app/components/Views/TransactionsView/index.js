@@ -3,7 +3,6 @@ import { ActivityIndicator, InteractionManager, StyleSheet, View } from 'react-n
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { withNavigation } from 'react-navigation';
-import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import { colors } from '../../../styles/common';
 import Transactions from '../../UI/Transactions';
@@ -155,21 +154,8 @@ class TransactionsView extends PureComponent {
 			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 			submittedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 			confirmedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-
-			const currentAccountConfirmedTxs = confirmedTxs.filter(
-				tx => tx.transaction.from === this.props.selectedAddress.toLowerCase()
-			);
 			const submittedNonces = [];
 			submittedTxs = submittedTxs.filter(transaction => {
-				const alreadyConfirmed = currentAccountConfirmedTxs.find(
-					tx => tx.transaction.nonce === transaction.transaction.nonce
-				);
-				if (alreadyConfirmed) {
-					InteractionManager.runAfterInteractions(() => {
-						Engine.context.TransactionController.cancelTransaction(transaction.id);
-					});
-					return false;
-				}
 				const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
 				submittedNonces.push(transaction.transaction.nonce);
 				return !alreadySubmitted;

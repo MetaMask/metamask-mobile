@@ -9,11 +9,12 @@ import CustomGas from '../../CustomGas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EditPermission from '../../ApproveTransactionReview/EditPermission';
 import { decodeApproveData, generateApproveData } from '../../../../util/transactions';
-import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
+import { swapsUtils } from '@estebanmino/controllers';
 import AnimatedTransactionModal from '../../AnimatedTransactionModal';
 
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
 const EDIT_MODE_APPROVE_AMOUNT = 'EDIT_MODE_APPROVE_AMOUNT';
+const SWAPS_CONTRACT_ADDRESS = swapsUtils.SWAPS_CONTRACT_ADDRESS;
 
 const styles = StyleSheet.create({
 	keyboardAwareWrapper: {

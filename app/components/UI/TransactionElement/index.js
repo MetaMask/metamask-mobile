@@ -7,9 +7,7 @@ import { toDateFormat } from '../../../util/date';
 import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
 import { connect } from 'react-redux';
-import AppConstants from '../../../core/AppConstants';
 import StyledButton from '../StyledButton';
-import Networks from '../../../util/networks';
 import Modal from 'react-native-modal';
 import decodeTransaction from './utils';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
@@ -69,21 +67,6 @@ class TransactionElement extends PureComponent {
 		 */
 		tx: PropTypes.object,
 		/**
-		 * Object containing token exchange rates in the format address => exchangeRate
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		contractExchangeRates: PropTypes.object,
-		/**
-		 * ETH to current currency conversion rate
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		conversionRate: PropTypes.number,
-		/**
-		 * Currency code of the currently-active currency
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		currentCurrency: PropTypes.string,
-		/**
 		 * String of selected address
 		 */
 		selectedAddress: PropTypes.string,
@@ -96,26 +79,6 @@ class TransactionElement extends PureComponent {
 		 */
 		onPressItem: PropTypes.func,
 		/**
-		 * An array that represents the user tokens
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		tokens: PropTypes.object,
-		/**
-		 * An array that represents the user collectible contracts
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		collectibleContracts: PropTypes.array,
-		/**
-		 * Current provider ticker
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		ticker: PropTypes.string,
-		/**
-		 * Current exchange rate
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		exchangeRate: PropTypes.number,
-		/**
 		 * Callback to speed up tx
 		 */
 		onSpeedUpAction: PropTypes.func,
@@ -123,15 +86,8 @@ class TransactionElement extends PureComponent {
 		 * Callback to cancel tx
 		 */
 		onCancelAction: PropTypes.func,
-		/**
-		 * A string representing the network name
-		 */
-		providerType: PropTypes.string,
-		/**
-		 * Primary currency, either ETH or Fiat
-		 */
-		// eslint-disable-next-line react/no-unused-prop-types
-		primaryCurrency: PropTypes.string
+		swapsTransactions: PropTypes.object,
+		swapsTokens: PropTypes.arrayOf(PropTypes.object)
 	};
 
 	state = {
@@ -147,7 +103,11 @@ class TransactionElement extends PureComponent {
 	mounted = false;
 
 	componentDidMount = async () => {
-		const [transactionElement, transactionDetails] = await decodeTransaction(this.props);
+		const [transactionElement, transactionDetails] = await decodeTransaction({
+			...this.props,
+			swapsTransactions: this.props.swapsTransactions,
+			swapsTokens: this.props.swapsTokens
+		});
 		this.mounted = true;
 		this.mounted && this.setState({ transactionElement, transactionDetails });
 	};
@@ -211,16 +171,10 @@ class TransactionElement extends PureComponent {
 	 */
 	renderTxElement = transactionElement => {
 		const {
-			tx: {
-				status,
-				transaction: { to }
-			},
-			providerType
+			tx: { status }
 		} = this.props;
 		const { value, fiatValue = false, actionKey } = transactionElement;
-		const networkId = Networks[providerType].networkId;
 		const renderTxActions = status === 'submitted' || status === 'approved';
-		const renderSpeedUpAction = safeToChecksumAddress(to) !== AppConstants.CONNEXT.CONTRACTS[networkId];
 		return (
 			<ListItem>
 				<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
@@ -230,14 +184,16 @@ class TransactionElement extends PureComponent {
 						<ListItem.Title numberOfLines={1}>{actionKey}</ListItem.Title>
 						<StatusText status={status} />
 					</ListItem.Body>
-					<ListItem.Amounts>
-						<ListItem.Amount>{value}</ListItem.Amount>
-						<ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
-					</ListItem.Amounts>
+					{Boolean(value) && (
+						<ListItem.Amounts>
+							<ListItem.Amount>{value}</ListItem.Amount>
+							<ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
+						</ListItem.Amounts>
+					)}
 				</ListItem.Content>
 				{!!renderTxActions && (
 					<ListItem.Actions>
-						{renderSpeedUpAction && this.renderSpeedUpButton()}
+						{this.renderSpeedUpButton()}
 						{this.renderCancelButton()}
 					</ListItem.Actions>
 				)}
@@ -329,7 +285,8 @@ class TransactionElement extends PureComponent {
 
 const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens
 });
 export default connect(mapStateToProps)(TransactionElement);

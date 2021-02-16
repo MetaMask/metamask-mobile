@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
 const SWAPS_ETH_ADDRESS = swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
 const TOKEN_MINIMUM_SOURCES = 1;
 function SwapsAmountView({
-	tokens,
+	swapsTokens,
 	accounts,
 	selectedAddress,
 	balances,
@@ -146,11 +146,11 @@ function SwapsAmountView({
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
 	const [isSourceSet, setIsSourceSet] = useState(() =>
-		Boolean(tokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase()))
+		Boolean(swapsTokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase()))
 	);
 
 	const [sourceToken, setSourceToken] = useState(() =>
-		tokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase())
+		swapsTokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase())
 	);
 	const [destinationToken, setDestinationToken] = useState(null);
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
@@ -207,7 +207,7 @@ function SwapsAmountView({
 		(async () => {
 			const { SwapsController } = Engine.context;
 			try {
-				if (tokens === null) {
+				if (swapsTokens === null) {
 					setInitialLoadingTokens(true);
 				}
 				setLoadingTokens(true);
@@ -221,14 +221,14 @@ function SwapsAmountView({
 				setInitialLoadingTokens(false);
 			}
 		})();
-	}, [tokens]);
+	}, [swapsTokens]);
 
 	useEffect(() => {
-		if (!isSourceSet && initialSource && tokens && !sourceToken) {
+		if (!isSourceSet && initialSource && swapsTokens && !sourceToken) {
 			setIsSourceSet(true);
-			setSourceToken(tokens.find(token => token.address?.toLowerCase() === initialSource.toLowerCase()));
+			setSourceToken(swapsTokens.find(token => token.address?.toLowerCase() === initialSource.toLowerCase()));
 		}
-	}, [initialSource, isSourceSet, sourceToken, tokens]);
+	}, [initialSource, isSourceSet, sourceToken, swapsTokens]);
 
 	useEffect(() => {
 		setHasDismissedTokenAlert(false);
@@ -394,7 +394,7 @@ function SwapsAmountView({
 						isVisible={isSourceModalVisible}
 						dismiss={toggleSourceModal}
 						title={strings('swaps.convert_from')}
-						tokens={tokens}
+						tokens={swapsTokens}
 						initialTokens={tokensWithBalance}
 						onItemPress={handleSourceTokenPress}
 						excludeAddresses={[destinationToken?.address]}
@@ -464,7 +464,7 @@ function SwapsAmountView({
 						isVisible={isDestinationModalVisible}
 						dismiss={toggleDestinationModal}
 						title={strings('swaps.convert_to')}
-						tokens={tokens}
+						tokens={swapsTokens}
 						initialTokens={[swapsUtils.ETH_SWAPS_TOKEN_OBJECT, ...tokensTopAssets.slice(0, 5)]}
 						onItemPress={handleDestinationTokenPress}
 						excludeAddresses={[sourceToken?.address]}
@@ -583,7 +583,7 @@ function SwapsAmountView({
 SwapsAmountView.navigationOptions = ({ navigation }) => getSwapsAmountNavbar(navigation);
 
 SwapsAmountView.propTypes = {
-	tokens: PropTypes.arrayOf(PropTypes.object),
+	swapsTokens: PropTypes.arrayOf(PropTypes.object),
 	tokensWithBalance: PropTypes.arrayOf(PropTypes.object),
 	tokensTopAssets: PropTypes.arrayOf(PropTypes.object),
 	/**
@@ -625,7 +625,7 @@ SwapsAmountView.propTypes = {
 };
 
 const mapStateToProps = state => ({
-	tokens: state.engine.backgroundState.SwapsController.tokens,
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
