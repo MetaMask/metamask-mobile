@@ -694,7 +694,8 @@
 		"function": "Function",
 		"close": "Close",
 		"all_set": "All set!",
-		"all_set_desc": "You’ve successfully set permissions for this site."
+		"all_set_desc": "You’ve successfully set permissions for this site.",
+		"must_be_at_least": "Must be at least {{allowance}}"
 	},
 	"browser": {
 		"title": "Browser",
