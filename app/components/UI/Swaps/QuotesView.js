@@ -225,7 +225,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 }
 
 function SwapsQuotesView({
-	tokens,
+	swapsTokens,
 	accounts,
 	balances,
 	selectedAddress,
@@ -250,8 +250,8 @@ function SwapsQuotesView({
 	);
 
 	/* Get tokens from the tokens list */
-	const sourceToken = tokens?.find(token => token.address?.toLowerCase() === sourceTokenAddress.toLowerCase());
-	const destinationToken = tokens?.find(
+	const sourceToken = swapsTokens?.find(token => token.address?.toLowerCase() === sourceTokenAddress.toLowerCase());
+	const destinationToken = swapsTokens?.find(
 		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
 	);
 
@@ -440,41 +440,54 @@ function SwapsQuotesView({
 		});
 
 		const { TransactionController } = Engine.context;
+
+		const newswapTransactions = TransactionController.state.swapTransactions || {};
+
 		if (approvalTransaction) {
 			approvalTransaction.gasPrice = gasPrice;
+			try {
+				const { transactionMeta } = await TransactionController.addTransaction(
+					approvalTransaction,
+					process.env.MM_FOX_CODE
+				);
+				newswapTransactions[transactionMeta.id] = {
+					action: 'approval',
+					sourceToken: sourceToken.address,
+					destinationToken: { swaps: 'swaps' },
+					upTo: decodeApproveData(approvalTransaction.data).encodedAmount
+				};
+			} catch (e) {
+				// send analytics
+			}
 		}
+
+		// Modify gas limit for trade transaction only
 		selectedQuote.trade.gasPrice = gasPrice;
-		const newswapTransactions = TransactionController.state.swapTransactions || {};
-		if (approvalTransaction) {
+		selectedQuote.trade.gas = gasLimit;
+		try {
 			const { transactionMeta } = await TransactionController.addTransaction(
-				approvalTransaction,
+				selectedQuote.trade,
 				process.env.MM_FOX_CODE
 			);
 			newswapTransactions[transactionMeta.id] = {
-				action: 'approval',
+				action: 'swap',
 				sourceToken: sourceToken.address,
-				destinationToken: { symbol: 'swaps' },
-				upTo: decodeApproveData(approvalTransaction.data).encodedAmount
+				sourceAmount: renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals),
+				destinationToken: destinationToken.address,
+				destinationAmount: renderFromTokenMinimalUnit(
+					selectedQuote.destinationAmount,
+					destinationToken.decimals
+				),
+				sourceAmountInFiat: weiToFiat(
+					toWei(selectedQuote.priceSlippage?.sourceAmountInETH),
+					conversionRate,
+					currentCurrency
+				)
 			};
+		} catch (e) {
+			// send analytics
 		}
-		// Modify gas limit for trade transaction only
-		selectedQuote.trade.gas = gasLimit;
-		const { transactionMeta } = await TransactionController.addTransaction(
-			selectedQuote.trade,
-			process.env.MM_FOX_CODE
-		);
-		newswapTransactions[transactionMeta.id] = {
-			action: 'swap',
-			sourceToken: sourceToken.address,
-			sourceAmount: renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals),
-			destinationToken: destinationToken.address,
-			destinationAmount: renderFromTokenMinimalUnit(selectedQuote.destinationAmount, destinationToken.decimals),
-			sourceAmountInFiat: weiToFiat(
-				toWei(selectedQuote.priceSlippage?.sourceAmountInETH),
-				conversionRate,
-				currentCurrency
-			)
-		};
+
 		TransactionController.update({ swapTransactions: newswapTransactions });
 		navigation.dismiss();
 	}, [
@@ -1093,7 +1106,7 @@ function SwapsQuotesView({
 SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
 
 SwapsQuotesView.propTypes = {
-	tokens: PropTypes.arrayOf(PropTypes.object),
+	swapsTokens: PropTypes.arrayOf(PropTypes.object),
 	/**
 	 * Map of accounts to information objects including balances
 	 */
@@ -1135,7 +1148,7 @@ const mapStateToProps = state => ({
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	tokens: state.engine.backgroundState.SwapsController.tokens,
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
 	isInPolling: state.engine.backgroundState.SwapsController.isInPolling,
 	quotesLastFetched: state.engine.backgroundState.SwapsController.quotesLastFetched,
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,

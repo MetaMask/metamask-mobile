@@ -14,11 +14,10 @@ import {
 	PreferencesController,
 	TokenBalancesController,
 	TokenRatesController,
-	TransactionController,
 	TypedMessageManager
 } from '@metamask/controllers';
 
-import { SwapsController } from '@estebanmino/controllers';
+import { TransactionController, SwapsController } from '@estebanmino/controllers';
 
 import AsyncStorage from '@react-native-community/async-storage';
 

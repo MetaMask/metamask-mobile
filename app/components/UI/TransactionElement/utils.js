@@ -618,7 +618,7 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 function decodeSwapsTx(args) {
 	const {
 		swapTransactions,
-		tokens,
+		swapsTokens,
 		conversionRate,
 		currentCurrency,
 		primaryCurrency,
@@ -629,15 +629,12 @@ function decodeSwapsTx(args) {
 		},
 		contractExchangeRates
 	} = args;
-
 	const swapTransaction = (swapTransactions && swapTransactions[id]) || {};
 	const totalGas = calculateTotalGas(gas, gasPrice);
-
-	const sourceToken = tokens?.find(({ address }) => address === swapTransaction.sourceToken);
+	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction.sourceToken);
 	const destinationToken =
-		!swapTransaction.destinationToken.symbol &&
-		tokens?.find(({ address }) => address === swapTransaction.destinationToken);
-
+		swapTransaction?.destinationToken?.swaps ||
+		swapsTokens?.find(({ address }) => address === swapTransaction.destinationToken);
 	if (!sourceToken || !destinationToken) return [undefined, undefined];
 
 	const exchangeRate = sourceToken ? contractExchangeRates[safeToChecksumAddress(sourceToken.address)] : undefined;
@@ -726,14 +723,13 @@ function decodeSwapsTx(args) {
  * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens
  */
 export default async function decodeTransaction(args) {
-	const { tx, selectedAddress, ticker, swapTransactions } = args;
-
+	const { tx, selectedAddress, ticker, swapTransactions = {} } = args;
 	const { paymentChannelTransaction, isTransfer } = tx || {};
 
 	const actionKey = await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction);
 	let transactionElement, transactionDetails;
 
-	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS && swapTransactions && swapTransactions[tx.id]) {
+	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS || swapTransactions[tx.id]) {
 		const [transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey });
 		if (transactionElement && transactionDetails) return [transactionElement, transactionDetails];
 	}
