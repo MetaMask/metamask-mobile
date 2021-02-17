@@ -43,8 +43,9 @@ export function removeCurrentNotification() {
 	};
 }
 
-export function showSimpleNotification({ autodismiss, title, description, status }) {
+export function showSimpleNotification({ autodismiss, title, description, status, id }) {
 	return {
+		id,
 		type: 'SHOW_SIMPLE_NOTIFICATION',
 		autodismiss,
 		title,

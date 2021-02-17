@@ -28,23 +28,15 @@ const styles = StyleSheet.create({
 });
 
 function SimpleNotification(props) {
-	const {
-		isInBrowserView,
-		notificationAnimated,
-		hideCurrentNotification,
-		notificationTitle,
-		notificationDescription,
-		notificationStatus
-	} = props;
-
+	const { isInBrowserView, notificationAnimated, hideCurrentNotification, currentNotification } = props;
 	return (
 		<ElevatedView style={[styles.modalTypeView, isInBrowserView && styles.modalTypeViewBrowser]} elevation={100}>
 			<Animated.View
 				style={[styles.notificationContainer, { transform: [{ translateY: notificationAnimated }] }]}
 			>
 				<BaseNotification
-					status={notificationStatus}
-					data={{ title: notificationTitle, description: notificationDescription }}
+					status={currentNotification.status}
+					data={{ title: currentNotification.title, description: currentNotification.description }}
 					onHide={hideCurrentNotification}
 				/>
 			</Animated.View>
@@ -55,29 +47,12 @@ function SimpleNotification(props) {
 SimpleNotification.propTypes = {
 	isInBrowserView: PropTypes.bool,
 	notificationAnimated: PropTypes.object,
-	/**
-	 * function that dismisses de modal
-	 */
-	hideCurrentNotification: PropTypes.func,
-	/**
-	 * Title for notification if defined
-	 */
-	notificationTitle: PropTypes.string,
-	/**
-	 * Description for notification if defined
-	 */
-	notificationDescription: PropTypes.string,
-	/**
-	 * Status for notification if defined
-	 */
-	notificationStatus: PropTypes.string
+	currentNotification: PropTypes.object,
+	hideCurrentNotification: PropTypes.func
 };
 
 const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	notificationTitle: state.notification.title,
-	notificationStatus: state.notification.status,
-	notificationDescription: state.notification.description
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts
 });
 
 export default connect(mapStateToProps)(SimpleNotification);

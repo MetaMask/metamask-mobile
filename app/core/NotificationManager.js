@@ -441,7 +441,7 @@ export default {
 		return instance.requestPushNotificationsPermission();
 	},
 	showSimpleNotification(data) {
-		return instance.showSimpleNotification(data);
+		return instance && instance.showSimpleNotification(data);
 	},
 	showInstantPaymentNotification(type) {
 		setTimeout(() => {

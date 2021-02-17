@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated, { Easing } from 'react-native-reanimated';
@@ -49,11 +49,6 @@ function Notification(props) {
 		return route.routeName === BROWSER_ROUTE;
 	}, [navigation.state]);
 
-	const hideAndRemoveNotification = useCallback(() => {
-		hideCurrentNotification();
-		setTimeout(() => removeCurrentNotification(), 500);
-	}, [hideCurrentNotification, removeCurrentNotification]);
-
 	useEffect(() => () => removeCurrentNotification(), [removeCurrentNotification]);
 
 	useEffect(() => {
@@ -61,15 +56,14 @@ function Notification(props) {
 			// Auto dismiss notification in case of confirmations
 			currentNotification.autodismiss &&
 				setTimeout(() => {
-					hideAndRemoveNotification();
+					hideCurrentNotification();
+					setTimeout(() => removeCurrentNotification(), 500);
 				}, currentNotification.autodismiss);
 			animatedTimingStart(notificationAnimated, 0);
-		} else if (prevNotificationIsVisible && !currentNotificationIsVisible) {
-			animatedTimingStart(notificationAnimated, 200);
-			hideAndRemoveNotification();
 		}
 	}, [
-		hideAndRemoveNotification,
+		hideCurrentNotification,
+		removeCurrentNotification,
 		currentNotificationIsVisible,
 		prevNotificationIsVisible,
 		currentNotification.autodismiss,
