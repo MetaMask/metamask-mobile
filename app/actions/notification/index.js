@@ -4,6 +4,12 @@ export function hideTransactionNotification() {
 	};
 }
 
+export function removeCurrentNotification() {
+	return {
+		type: 'REMOVE_CURRENT_NOTIFICATION'
+	};
+}
+
 export function showTransactionNotification({ autodismiss, transaction, status }) {
 	return {
 		type: 'SHOW_TRANSACTION_NOTIFICATION',

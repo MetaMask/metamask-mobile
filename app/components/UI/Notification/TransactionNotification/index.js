@@ -92,12 +92,11 @@ const styles = StyleSheet.create({
 function TransactionNotification(props) {
 	const {
 		accounts,
+		currentNotification,
 		isInBrowserView,
 		navigation,
 		notificationAnimated,
 		onClose,
-		status,
-		transaction,
 		transactions,
 		animatedTimingStart
 	} = props;
@@ -162,7 +161,7 @@ function TransactionNotification(props) {
 
 	useEffect(() => {
 		async function getTransactionInfo() {
-			const tx = transactions.find(({ id }) => id === transaction.id);
+			const tx = transactions.find(({ id }) => id === currentNotification.transaction.id);
 			if (!tx) return;
 			const [transactionElement, transactionDetails] = await decodeTransaction({ ...props, tx });
 			const existingGasPrice = new BigNumber(tx?.transaction?.gasPrice || '0x0');
@@ -177,7 +176,7 @@ function TransactionNotification(props) {
 		getTransactionInfo();
 	}, [
 		transactions,
-		transaction,
+		currentNotification.transaction.id,
 		transactionAction,
 		props,
 		props.selectedAddress,
@@ -270,8 +269,10 @@ function TransactionNotification(props) {
 				style={[styles.notificationContainer, { transform: [{ translateY: notificationAnimated }] }]}
 			>
 				<BaseNotification
-					status={status}
-					data={tx ? { ...tx.transaction, ...transaction } : { ...transaction }}
+					status={currentNotification.status}
+					data={
+						tx ? { ...tx.transaction, ...currentNotification.transaction } : currentNotification.transaction
+					}
 					onPress={detailsFadeIn}
 					onHide={onClose}
 				/>
@@ -285,6 +286,7 @@ TransactionNotification.propTypes = {
 	notificationAnimated: PropTypes.object,
 	onClose: PropTypes.func,
 	animatedTimingStart: PropTypes.func,
+	currentNotification: PropTypes.object,
 	/**
 	 * Map of accounts to information objects including balances
 	 */
@@ -297,10 +299,7 @@ TransactionNotification.propTypes = {
 	 * An array that represents the user transactions on chain
 	 */
 	transactions: PropTypes.array,
-	/**
-	 * Corresponding transaction can contain id, nonce and amount
-	 */
-	transaction: PropTypes.object,
+
 	/**
 	 * String of selected address
 	 */
@@ -333,10 +332,7 @@ TransactionNotification.propTypes = {
 	 * An array that represents the user tokens
 	 */
 	tokens: PropTypes.object,
-	/**
-	 * Transaction status
-	 */
-	status: PropTypes.string,
+
 	/**
 	 * Primary currency, either ETH or Fiat
 	 */
@@ -345,8 +341,6 @@ TransactionNotification.propTypes = {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	transaction: state.notification.transaction,
-	status: state.notification.status,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,

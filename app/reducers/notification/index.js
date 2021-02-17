@@ -2,41 +2,52 @@ import notificationTypes from '../../util/notifications';
 const { TRANSACTION, SIMPLE } = notificationTypes;
 
 const initialState = {
-	type: undefined,
-	isVisible: false,
-	autodismiss: null,
-	status: undefined,
-	transaction: undefined,
-	title: undefined,
-	description: undefined
+	notifications: []
 };
+
+const enqueue = (notifications, notification) => {
+	notifications.push(notification);
+	return notifications;
+};
+const dequeue = notifications => {
+	notifications.shift();
+	return notifications;
+};
+export const currentNotificationSelector = state => state?.notifications[0] || {};
 
 const notificationReducer = (state = initialState, action) => {
 	switch (action.type) {
 		case 'SHOW_TRANSACTION_NOTIFICATION':
 			return {
-				...state,
-				type: TRANSACTION,
-				isVisible: true,
-				autodismiss: action.autodismiss,
-				transaction: action.transaction,
-				status: action.status
+				notifications: enqueue(state.notifications, {
+					id: Date.now(),
+					type: TRANSACTION,
+					isVisible: true,
+					autodismiss: action.autodismiss,
+					transaction: action.transaction,
+					status: action.status
+				})
 			};
 		case 'HIDE_TRANSACTION_NOTIFICATION':
+			if (state.notifications[0]) state.notifications[0].isVisible = false;
 			return {
-				...state,
-				isVisible: false,
-				autodismiss: null
+				notifications: [...state.notifications]
+			};
+		case 'REMOVE_CURRENT_NOTIFICATION':
+			return {
+				notifications: dequeue(state.notifications)
 			};
 		case 'SHOW_SIMPLE_NOTIFICATION': {
 			return {
-				...state,
-				type: SIMPLE,
-				isVisible: true,
-				autodismiss: action.autodismiss,
-				title: action.title,
-				description: action.description,
-				status: action.status
+				notifications: enqueue(state.notifications, {
+					id: Date.now(),
+					type: SIMPLE,
+					isVisible: true,
+					autodismiss: action.autodismiss,
+					title: action.title,
+					description: action.description,
+					status: action.status
+				})
 			};
 		}
 		default:
