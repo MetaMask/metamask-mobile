@@ -30,10 +30,18 @@ export function modifyOrShowSimpleNotificationById({ autodismiss, title, descrip
 	};
 }
 
-export function replaceTransactionNotificationById(notification) {
+export function replaceNotificationById(notification) {
 	return {
 		type: 'REPLACE_NOTIFICATION_BY_ID',
-		notification
+		notification,
+		id: notification.id
+	};
+}
+
+export function removeNotificationById(id) {
+	return {
+		type: 'REMOVE_NOTIFICATION_BY_ID',
+		id
 	};
 }
 

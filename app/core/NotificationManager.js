@@ -144,7 +144,7 @@ class NotificationManager {
 
 	_finishedCallback = transactionMeta => {
 		// If it fails we hide the pending tx notification
-		this._hideTransactionNotification(transactionMeta.id);
+		this._removeNotificationById(transactionMeta.id);
 		const transaction = this._transactionsWatchTable[transactionMeta.transaction.nonce];
 		transaction &&
 			transaction.length &&
@@ -164,7 +164,7 @@ class NotificationManager {
 
 	_confirmedCallback = (transactionMeta, originalTransaction) => {
 		// Once it's confirmed we hide the pending tx notification
-		this._hideTransactionNotification(transactionMeta.id);
+		this._removeNotificationById(transactionMeta.id);
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
 			setTimeout(() => {
 				// Then we show the success notification
@@ -224,12 +224,19 @@ class NotificationManager {
 	/**
 	 * Creates a NotificationManager instance
 	 */
-	constructor(_navigation, _showTransactionNotification, _hideTransactionNotification, _showSimpleNotification) {
+	constructor(
+		_navigation,
+		_showTransactionNotification,
+		_hideTransactionNotification,
+		_showSimpleNotification,
+		_removeNotificationById
+	) {
 		if (!NotificationManager.instance) {
 			this._navigation = _navigation;
 			this._showTransactionNotification = _showTransactionNotification;
 			this._hideTransactionNotification = _hideTransactionNotification;
 			this._showSimpleNotification = _showSimpleNotification;
+			this._removeNotificationById = _removeNotificationById;
 			this._transactionToView = [];
 			this._backgroundMode = false;
 			NotificationManager.instance = this;
@@ -399,32 +406,39 @@ class NotificationManager {
 let instance;
 
 export default {
-	init(_navigation, _showTransactionNotification, _hideTransactionNotification, _showSimpleNotification) {
+	init({
+		navigation,
+		showTransactionNotification,
+		hideCurrentNotification,
+		showSimpleNotification,
+		removeNotificationById
+	}) {
 		instance = new NotificationManager(
-			_navigation,
-			_showTransactionNotification,
-			_hideTransactionNotification,
-			_showSimpleNotification
+			navigation,
+			showTransactionNotification,
+			hideCurrentNotification,
+			showSimpleNotification,
+			removeNotificationById
 		);
 		return instance;
 	},
 	watchSubmittedTransaction(transaction) {
-		return instance.watchSubmittedTransaction(transaction);
+		return instance?.watchSubmittedTransaction(transaction);
 	},
 	getTransactionToView() {
-		return instance.getTransactionToView();
+		return instance?.getTransactionToView();
 	},
 	setTransactionToView(id) {
-		return instance.setTransactionToView(id);
+		return instance?.setTransactionToView(id);
 	},
 	gotIncomingTransaction(lastBlock) {
-		return instance.gotIncomingTransaction(lastBlock);
+		return instance?.gotIncomingTransaction(lastBlock);
 	},
 	requestPushNotificationsPermission() {
-		return instance.requestPushNotificationsPermission();
+		return instance?.requestPushNotificationsPermission();
 	},
 	showSimpleNotification(data) {
-		return instance && instance.showSimpleNotification(data);
+		return instance?.showSimpleNotification(data);
 	},
 	showInstantPaymentNotification(type) {
 		setTimeout(() => {

@@ -73,6 +73,12 @@ const notificationReducer = (state = initialState, action) => {
 			return {
 				notifications: [...state.notifications]
 			};
+		case 'REMOVE_NOTIFICATION_BY_ID':
+			index = state.notifications.findIndex(({ id }) => id === action.id);
+			if (index > 0) state.notifications.splice(index);
+			return {
+				notifications: [...state.notifications]
+			};
 		case 'REMOVE_CURRENT_NOTIFICATION':
 			return {
 				notifications: dequeue(state.notifications)

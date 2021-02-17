@@ -54,7 +54,8 @@ import FiatOrders from '../../UI/FiatOrders';
 import {
 	showTransactionNotification,
 	hideCurrentNotification,
-	showSimpleNotification
+	showSimpleNotification,
+	removeNotificationById
 } from '../../../actions/notification';
 import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
@@ -712,12 +713,13 @@ const Main = props => {
 		);
 
 		setTimeout(() => {
-			NotificationManager.init(
-				props.navigation,
-				props.showTransactionNotification,
-				props.hideCurrentNotification,
-				props.showSimpleNotification
-			);
+			NotificationManager.init({
+				navigation: props.navigation,
+				showTransactionNotification: props.showTransactionNotification,
+				hideCurrentNotification: props.hideCurrentNotification,
+				showSimpleNotification: props.showSimpleNotification,
+				removeNotificationById: props.removeNotificationById
+			});
 			pollForIncomingTransactions();
 
 			// Only if enabled under settings
@@ -815,6 +817,7 @@ Main.propTypes = {
 	 * Dispatch hiding a transaction notification
 	 */
 	hideCurrentNotification: PropTypes.func,
+	removeNotificationById: PropTypes.func,
 	/**
 	 * Indicates whether the current transaction is a deep link transaction
 	 */
@@ -886,6 +889,7 @@ const mapDispatchToProps = dispatch => ({
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
 	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
 	hideCurrentNotification: () => dispatch(hideCurrentNotification()),
+	removeNotificationById: id => dispatch(removeNotificationById(id)),
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
 	toggleApproveModal: show => dispatch(toggleApproveModal(show))
 });

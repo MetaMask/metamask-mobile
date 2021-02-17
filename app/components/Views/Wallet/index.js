@@ -18,6 +18,8 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import { showTransactionNotification, hideCurrentNotification } from '../../../actions/notification';
 import ErrorBoundary from '../ErrorBoundary';
+// import NotificationManager from '../../../core/NotificationManager';
+// import TransactionTypes from '../../../core/TransactionTypes';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -112,6 +114,65 @@ class Wallet extends PureComponent {
 	};
 
 	onRefresh = async () => {
+		// const id1 = NotificationManager.showSimpleNotification({
+		// 	status: `simple_notification_rejected`,
+		// 	duration: 5000,
+		// 	title: 'Notification 1',
+		// 	description: 'Notification 1 description'
+		// });
+
+		// const tx1 = {
+		// 	data: undefined,
+		// 	from: '0x56CED0d816c668d7c0Bcc3FBF0aB2c6896F589a2',
+		// 	gas: '0x5208',
+		// 	gasPrice: '0x34630b8a00',
+		// 	to: '0x56CED0d816c668d7c0Bcc3FBF0aB2c6896F589a2',
+		// 	value: '0xde0b6b3a7640000'
+		// };
+		// const tx2 = {
+		// 	data: undefined,
+		// 	from: '0x56CED0d816c668d7c0Bcc3FBF0aB2c6896F589a2',
+		// 	gas: '0x5208',
+		// 	gasPrice: '0x34630b8a00',
+		// 	to: '0x56CED0d816c668d7c0Bcc3FBF0aB2c6896F589a2',
+		// 	value: '0xde0b6b3a7640000'
+		// };
+		// const tx3 = {
+		// 	data: undefined,
+		// 	from: '0x56CED0d816c668d7c0Bcc3FBF0aB2c6896F589a2',
+		// 	gas: '0x5208',
+		// 	gasPrice: '0x34630b8a00',
+		// 	to: '0x56CED0d816c668d7c0Bcc3FBF0aB2c6896F589a2',
+		// 	value: '0xde0b6b3a7640000'
+		// };
+
+		// const { TransactionController } = Engine.context;
+
+		// const { transactionMeta: tx1meta } = await TransactionController.addTransaction(tx1, TransactionTypes.MMM);
+		// await TransactionController.approveTransaction(tx1meta.id);
+
+		// const id2 = NotificationManager.showSimpleNotification({
+		// 	status: `simple_notification_rejected`,
+		// 	duration: 5000,
+		// 	title: 'Notification 2',
+		// 	description: 'Notification 2 description'
+		// });
+
+		// NotificationManager.watchSubmittedTransaction({ ...tx1meta, assetType: 'ETH' });
+		// const { transactionMeta: tx2meta } = await TransactionController.addTransaction(tx2, TransactionTypes.MMM);
+		// await TransactionController.approveTransaction(tx2meta.id);
+		// NotificationManager.watchSubmittedTransaction({ ...tx2meta, assetType: 'ETH' });
+		// const { transactionMeta: tx3meta } = await TransactionController.addTransaction(tx3, TransactionTypes.MMM);
+		// await TransactionController.approveTransaction(tx3meta.id);
+		// NotificationManager.watchSubmittedTransaction({ ...tx3meta, assetType: 'ETH' });
+
+		// const id3 = NotificationManager.showSimpleNotification({
+		// 	status: `simple_notification_rejected`,
+		// 	duration: 5000,
+		// 	title: 'Notification 3',
+		// 	description: 'Notification 3 description'
+		// });
+
 		requestAnimationFrame(async () => {
 			this.setState({ refreshing: true });
 			const {
