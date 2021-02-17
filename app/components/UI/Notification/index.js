@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated, { Easing } from 'react-native-reanimated';
@@ -32,16 +32,16 @@ function Notification(props) {
 	};
 
 	const prevNotificationIsVisible = usePrevious(currentNotificationIsVisible);
-	const prevNavigationState = usePrevious(navigation.state);
 
-	const animatedTimingStart = (animatedRef, toValue) => {
+	const animatedTimingStart = useCallback((animatedRef, toValue) => {
 		Animated.timing(animatedRef, {
 			toValue,
 			duration: 500,
 			easing: Easing.linear,
 			useNativeDriver: true
 		}).start();
-	};
+	}, []);
+
 	const isInBrowserView = useMemo(() => {
 		const routes = navigation.state.routes;
 		let route = routes[routes.length - 1];
@@ -53,22 +53,20 @@ function Notification(props) {
 
 	useEffect(() => {
 		if (!prevNotificationIsVisible && currentNotificationIsVisible) {
-			// Auto dismiss notification in case of confirmations
-			currentNotification.autodismiss &&
-				setTimeout(() => {
-					hideCurrentNotification();
-					setTimeout(() => removeCurrentNotification(), 500);
-				}, currentNotification.autodismiss);
 			animatedTimingStart(notificationAnimated, 0);
+			setTimeout(() => {
+				animatedTimingStart(notificationAnimated, 200);
+				hideCurrentNotification();
+				setTimeout(() => removeCurrentNotification(), 500);
+			}, currentNotification.autodismiss || 5000);
 		}
 	}, [
+		animatedTimingStart,
 		hideCurrentNotification,
 		removeCurrentNotification,
 		currentNotificationIsVisible,
 		prevNotificationIsVisible,
 		currentNotification.autodismiss,
-		navigation.state,
-		prevNavigationState,
 		notificationAnimated
 	]);
 

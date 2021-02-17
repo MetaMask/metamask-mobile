@@ -42,7 +42,7 @@ const notificationReducer = (state = initialState, action) => {
 				notifications: enqueue(state.notifications, {
 					id: action.transaction.id,
 					isVisible: true,
-					autodismiss: action.autodismiss || 5000,
+					autodismiss: action.autodismiss,
 					transaction: action.transaction,
 					status: action.status,
 					type: TRANSACTION
@@ -60,7 +60,7 @@ const notificationReducer = (state = initialState, action) => {
 				notifications: enqueue(state.notifications, {
 					id: action.id,
 					isVisible: true,
-					autodismiss: action.autodismiss || 5000,
+					autodismiss: action.autodismiss,
 					title: action.title,
 					description: action.description,
 					status: action.status,
