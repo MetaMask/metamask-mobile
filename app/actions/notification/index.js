@@ -1,6 +1,6 @@
-export function hideTransactionNotification() {
+export function hideCurrentNotification() {
 	return {
-		type: 'HIDE_TRANSACTION_NOTIFICATION'
+		type: 'HIDE_CURRENT_NOTIFICATION'
 	};
 }
 

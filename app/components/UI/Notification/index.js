@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated, { Easing } from 'react-native-reanimated';
-import { removeCurrentNotification, hideTransactionNotification } from '../../../actions/notification';
+import { removeCurrentNotification, hideCurrentNotification } from '../../../actions/notification';
 import notificationTypes from '../../../util/notifications';
 import TransactionNotification from './TransactionNotification';
 import SimpleNotification from './SimpleNotification';
@@ -17,7 +17,7 @@ function Notification(props) {
 		currentNotification,
 		currentNotificationIsVisible,
 		navigation,
-		hideTransactionNotification,
+		hideCurrentNotification,
 		removeCurrentNotification
 	} = props;
 
@@ -50,9 +50,9 @@ function Notification(props) {
 	}, [navigation.state]);
 
 	const hideAndRemoveNotification = useCallback(() => {
-		hideTransactionNotification();
+		hideCurrentNotification();
 		setTimeout(() => removeCurrentNotification(), 500);
-	}, [hideTransactionNotification, removeCurrentNotification]);
+	}, [hideCurrentNotification, removeCurrentNotification]);
 
 	useEffect(() => () => removeCurrentNotification(), [removeCurrentNotification]);
 
@@ -82,7 +82,7 @@ function Notification(props) {
 	if (currentNotification.type === TRANSACTION)
 		return (
 			<TransactionNotification
-				onClose={hideTransactionNotification}
+				onClose={hideCurrentNotification}
 				isInBrowserView={isInBrowserView}
 				notificationAnimated={notificationAnimated}
 				animatedTimingStart={animatedTimingStart}
@@ -104,7 +104,7 @@ Notification.propTypes = {
 	navigation: PropTypes.object,
 	currentNotification: PropTypes.object,
 	currentNotificationIsVisible: PropTypes.bool,
-	hideTransactionNotification: PropTypes.func,
+	hideCurrentNotification: PropTypes.func,
 	removeCurrentNotification: PropTypes.func
 };
 
@@ -118,7 +118,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
 	removeCurrentNotification: () => dispatch(removeCurrentNotification()),
-	hideTransactionNotification: () => dispatch(hideTransactionNotification())
+	hideCurrentNotification: () => dispatch(hideCurrentNotification())
 });
 
 export default connect(

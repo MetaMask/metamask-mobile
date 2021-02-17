@@ -18,7 +18,8 @@ export const currentNotificationSelector = state => state?.notifications[0] || {
 const notificationReducer = (state = initialState, action) => {
 	let index = 0;
 	switch (action.type) {
-		case 'HIDE_TRANSACTION_NOTIFICATION':
+		// make current notification isVisible props false
+		case 'HIDE_CURRENT_NOTIFICATION':
 			if (state.notifications[0]) state.notifications[0].isVisible = false;
 			return {
 				notifications: [...state.notifications]
@@ -47,7 +48,6 @@ const notificationReducer = (state = initialState, action) => {
 					type: TRANSACTION
 				})
 			};
-
 		case 'MODIFY_OR_SHOW_SIMPLE_NOTIFICATION':
 			index = state.notifications.findIndex(({ id }) => id === action.id);
 			if (index >= 0) {
@@ -67,7 +67,6 @@ const notificationReducer = (state = initialState, action) => {
 					type: SIMPLE
 				})
 			};
-
 		case 'REPLACE_NOTIFICATION_BY_ID':
 			index = state.notifications.findIndex(({ id }) => id === action.id);
 			state.notifications[index] = action.notification;

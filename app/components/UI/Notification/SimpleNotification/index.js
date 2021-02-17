@@ -31,7 +31,7 @@ function SimpleNotification(props) {
 	const {
 		isInBrowserView,
 		notificationAnimated,
-		hideTransactionNotification,
+		hideCurrentNotification,
 		notificationTitle,
 		notificationDescription,
 		notificationStatus
@@ -45,7 +45,7 @@ function SimpleNotification(props) {
 				<BaseNotification
 					status={notificationStatus}
 					data={{ title: notificationTitle, description: notificationDescription }}
-					onHide={hideTransactionNotification}
+					onHide={hideCurrentNotification}
 				/>
 			</Animated.View>
 		</ElevatedView>
@@ -58,7 +58,7 @@ SimpleNotification.propTypes = {
 	/**
 	 * function that dismisses de modal
 	 */
-	hideTransactionNotification: PropTypes.func,
+	hideCurrentNotification: PropTypes.func,
 	/**
 	 * Title for notification if defined
 	 */
