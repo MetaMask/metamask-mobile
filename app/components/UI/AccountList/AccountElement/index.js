@@ -130,32 +130,36 @@ class AccountElement extends PureComponent {
 		) : null;
 
 		return (
-			<TouchableOpacity
-				style={[styles.account, disabled ? styles.disabledAccount : null]}
-				key={`account-${address}`}
-				onPress={this.onPress}
-				onLongPress={this.onLongPress}
-				disabled={disabled}
-			>
-				<Identicon address={address} diameter={38} />
-				<View style={styles.accountInfo}>
-					<View style={styles.accountMain}>
-						<Text numberOfLines={1} style={[styles.accountLabel]}>
-							{name}
-						</Text>
-						<View style={styles.accountBalanceWrapper}>
-							<Text style={styles.accountBalance}>
-								{renderFromWei(updatedBalanceFromStore)} {getTicker(ticker)}
+			<View onStartShouldSetResponder={() => true}>
+				<TouchableOpacity
+					style={[styles.account, disabled ? styles.disabledAccount : null]}
+					key={`account-${address}`}
+					onPress={this.onPress}
+					onLongPress={this.onLongPress}
+					disabled={disabled}
+				>
+					<Identicon address={address} diameter={38} />
+					<View style={styles.accountInfo}>
+						<View style={styles.accountMain}>
+							<Text numberOfLines={1} style={[styles.accountLabel]}>
+								{name}
 							</Text>
-							{!!balanceError && (
-								<Text style={[styles.accountBalance, styles.accountBalanceError]}>{balanceError}</Text>
-							)}
+							<View style={styles.accountBalanceWrapper}>
+								<Text style={styles.accountBalance}>
+									{renderFromWei(updatedBalanceFromStore)} {getTicker(ticker)}
+								</Text>
+								{!!balanceError && (
+									<Text style={[styles.accountBalance, styles.accountBalanceError]}>
+										{balanceError}
+									</Text>
+								)}
+							</View>
 						</View>
+						{!!imported && <View style={styles.importedView}>{imported}</View>}
+						<View style={styles.selectedWrapper}>{selected}</View>
 					</View>
-					{!!imported && <View style={styles.importedView}>{imported}</View>}
-					<View style={styles.selectedWrapper}>{selected}</View>
-				</View>
-			</TouchableOpacity>
+				</TouchableOpacity>
+			</View>
 		);
 	}
 }
