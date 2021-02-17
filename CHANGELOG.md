@@ -1,6 +1,8 @@
 # Changelog
 
 ## v1.0.11 - Feb 15 2021
+- [#2257](https://github.com/MetaMask/metamask-mobile/pull/2257): bugfix/use bignumber for transfer deeplinks
+- [#2256](https://github.com/MetaMask/metamask-mobile/pull/2256): Fix account list scroll
 - [#2243](https://github.com/MetaMask/metamask-mobile/pull/2243): TransactionController from controllers
 - [#2240](https://github.com/MetaMask/metamask-mobile/pull/2240): Fix circleci apk
 - [#2176](https://github.com/MetaMask/metamask-mobile/pull/2176): Feature/warn when replacing
