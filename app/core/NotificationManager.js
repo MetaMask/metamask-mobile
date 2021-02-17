@@ -142,23 +142,7 @@ class NotificationManager {
 		}
 	}
 
-	_handleTransactionsWatchListUpdate = transactionMeta => {
-		const nonce = transactionMeta.transaction.nonce;
-		if (this._transactionsWatchTable[nonce]) {
-			// Clean up of other txs listeners
-			this._transactionsWatchTable[nonce].forEach(id => {
-				if (id !== transactionMeta.id) {
-					this._removeListeners(id);
-				}
-			});
-			this._transactionsWatchTable[nonce] = this._transactionsWatchTable[nonce].filter(
-				id => id === transactionMeta.id
-			);
-		}
-	};
-
 	_finishedCallback = transactionMeta => {
-		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// If it fails we hide the pending tx notification
 		this._hideTransactionNotification(transactionMeta.id);
 		const transaction = this._transactionsWatchTable[transactionMeta.transaction.nonce];
@@ -179,7 +163,6 @@ class NotificationManager {
 	};
 
 	_confirmedCallback = (transactionMeta, originalTransaction) => {
-		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// Once it's confirmed we hide the pending tx notification
 		this._hideTransactionNotification(transactionMeta.id);
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
