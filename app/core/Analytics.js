@@ -42,17 +42,17 @@ class Analytics {
 	 * Track event if enabled and not DEV mode
 	 */
 	_trackEvent(name, { event, params = {}, value, info }) {
-		if (!this.enabled) return;
-		if (!__DEV__) {
-			RCTAnalytics.trackEvent({
-				...event,
-				...params,
-				value,
-				info
-			});
-		} else {
-			Logger.log(`Analytics '${name}' -`, event, params, value, info);
-		}
+		// if (!this.enabled) return;
+		// if (!__DEV__) {
+		RCTAnalytics.trackEvent({
+			...event,
+			...params,
+			value,
+			info
+		});
+		// } else {
+		Logger.log(`Analytics '${name}' -`, event, params, value, info);
+		// }
 	}
 
 	/**
@@ -63,10 +63,10 @@ class Analytics {
 			this.enabled = enabled;
 			this.listeners = [];
 			Analytics.instance = this;
-			if (!__DEV__) {
-				RCTAnalytics.optIn(this.enabled);
-				this._peopleIdentify();
-			}
+			// if (!__DEV__) {
+			RCTAnalytics.optIn(this.enabled);
+			this._peopleIdentify();
+			// }
 		}
 		return Analytics.instance;
 	}

@@ -904,7 +904,20 @@ export function getSwapsAmountNavbar(navigation) {
 }
 export function getSwapsQuotesNavbar(navigation) {
 	const title = navigation.getParam('title', 'Swap');
-	const rightAction = navigation.dismiss;
+	const trade = navigation.getParam('requestedTrade');
+	const selectedQuote = navigation.getParam('selectedQuote');
+	const quoteBegin = navigation.getParam('quoteBegin');
+	const rightAction = () => {
+		if (!selectedQuote) {
+			InteractionManager.runAfterInteractions(() => {
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED, {
+					...trade,
+					responseTime: new Date().getTime() - quoteBegin
+				});
+			});
+		}
+		navigation.dismiss();
+	};
 	const leftAction = navigation.getParam('leftAction', strings('navigation.back'));
 
 	return {

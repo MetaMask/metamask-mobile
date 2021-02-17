@@ -64,6 +64,7 @@ import MainNavigator from './MainNavigator';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { swapsUtils } from '@estebanmino/controllers';
+import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -233,14 +234,15 @@ const Main = props => {
 
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
-
 			if (
 				to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
 				(data &&
 					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
 					decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS)
 			) {
-				autoSign(transactionMeta);
+				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
+					autoSign(transactionMeta);
+				}
 			} else if (
 				props.paymentChannelsEnabled &&
 				AppConstants.CONNEXT.SUPPORTED_NETWORKS.includes(props.providerType) &&
@@ -762,6 +764,7 @@ const Main = props => {
 				<FadeOutOverlay />
 				<Notification navigation={props.navigation} />
 				<FiatOrders />
+				<SwapsLiveness />
 				<BackupAlert onDismiss={toggleRemindLater} navigation={props.navigation} />
 				<SkipAccountSecurityModal
 					modalVisible={showRemindLaterModal}

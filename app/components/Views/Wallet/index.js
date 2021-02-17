@@ -317,7 +317,6 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	wizardStep: state.wizard.step
 });
