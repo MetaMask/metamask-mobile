@@ -20,10 +20,10 @@ const notificationReducer = (state = initialState, action) => {
 		case 'SHOW_TRANSACTION_NOTIFICATION':
 			return {
 				notifications: enqueue(state.notifications, {
-					id: Date.now(),
+					id: action.transaction.id,
 					type: TRANSACTION,
 					isVisible: true,
-					autodismiss: action.autodismiss,
+					autodismiss: action.autodismiss || 5000,
 					transaction: action.transaction,
 					status: action.status
 				})
@@ -43,7 +43,7 @@ const notificationReducer = (state = initialState, action) => {
 					id: Date.now(),
 					type: SIMPLE,
 					isVisible: true,
-					autodismiss: action.autodismiss,
+					autodismiss: action.autodismiss || 5000,
 					title: action.title,
 					description: action.description,
 					status: action.status

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated, { Easing } from 'react-native-reanimated';
@@ -49,29 +49,32 @@ function Notification(props) {
 		return route.routeName === BROWSER_ROUTE;
 	}, [navigation.state]);
 
-	useEffect(() => {
-		removeCurrentNotification();
-	}, [removeCurrentNotification]);
+	const hideAndRemoveNotification = useCallback(() => {
+		hideTransactionNotification();
+		setTimeout(() => removeCurrentNotification(), 1000);
+	}, [hideTransactionNotification, removeCurrentNotification]);
+
+	useEffect(() => () => removeCurrentNotification(), [removeCurrentNotification]);
 
 	useEffect(() => {
 		if (!prevNotificationIsVisible && currentNotificationIsVisible) {
 			// Auto dismiss notification in case of confirmations
 			currentNotification.autodismiss &&
-				setTimeout(() => removeCurrentNotification(), currentNotification.autodismiss);
-			setTimeout(() => animatedTimingStart(notificationAnimated, 0), 100);
+				setTimeout(() => {
+					hideAndRemoveNotification();
+				}, currentNotification.autodismiss);
+			animatedTimingStart(notificationAnimated, 0);
 		} else if (prevNotificationIsVisible && !currentNotificationIsVisible) {
-			hideTransactionNotification();
 			animatedTimingStart(notificationAnimated, 200);
-			setTimeout(() => removeCurrentNotification(), 500);
+			hideAndRemoveNotification();
 		}
 	}, [
+		hideAndRemoveNotification,
 		currentNotificationIsVisible,
 		prevNotificationIsVisible,
 		currentNotification.autodismiss,
 		navigation.state,
 		prevNavigationState,
-		removeCurrentNotification,
-		hideTransactionNotification,
 		notificationAnimated
 	]);
 
