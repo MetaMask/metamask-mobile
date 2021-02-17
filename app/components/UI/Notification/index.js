@@ -51,7 +51,7 @@ function Notification(props) {
 
 	const hideAndRemoveNotification = useCallback(() => {
 		hideTransactionNotification();
-		setTimeout(() => removeCurrentNotification(), 1000);
+		setTimeout(() => removeCurrentNotification(), 500);
 	}, [hideTransactionNotification, removeCurrentNotification]);
 
 	useEffect(() => () => removeCurrentNotification(), [removeCurrentNotification]);

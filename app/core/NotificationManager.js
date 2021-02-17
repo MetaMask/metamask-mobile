@@ -316,12 +316,15 @@ class NotificationManager {
 	 * Shows a notification with title and description
 	 */
 	showSimpleNotification = data => {
+		const id = Date.now();
 		this._showSimpleNotification({
+			id,
 			autodismiss: data.duration,
 			title: data.title,
 			description: data.description,
 			status: data.status
 		});
+		return id;
 	};
 
 	/**
