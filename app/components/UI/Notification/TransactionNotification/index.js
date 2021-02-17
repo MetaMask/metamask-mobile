@@ -187,7 +187,9 @@ function TransactionNotification(props) {
 		props.contractExchangeRates,
 		props.collectibleContracts,
 		props.tokens,
-		props.primaryCurrency
+		props.primaryCurrency,
+		props.swapsTransactions,
+		props.swapsTokens
 	]);
 
 	useEffect(() => () => animatedTimingStart(detailsAnimated, 0), [animatedTimingStart, detailsAnimated]);
@@ -270,9 +272,11 @@ function TransactionNotification(props) {
 			>
 				<BaseNotification
 					status={currentNotification.status}
-					data={
-						tx ? { ...tx.transaction, ...currentNotification.transaction } : currentNotification.transaction
-					}
+					data={{
+						...tx?.transaction,
+						...currentNotification.transaction,
+						title: transactionElement?.notificationKey
+					}}
 					onPress={detailsFadeIn}
 					onHide={onClose}
 				/>
@@ -287,6 +291,8 @@ TransactionNotification.propTypes = {
 	onClose: PropTypes.func,
 	animatedTimingStart: PropTypes.func,
 	currentNotification: PropTypes.object,
+	swapsTransactions: PropTypes.object,
+	swapsTokens: PropTypes.array,
 	/**
 	 * Map of accounts to information objects including balances
 	 */
@@ -352,7 +358,9 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens
 });
 
 export default connect(mapStateToProps)(TransactionNotification);

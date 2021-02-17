@@ -1535,6 +1535,13 @@
 			"swap_middle_word": "to",
 			"approve_initial_word": "Approve",
 			"approve_middle_word": "for swaps: Up to"
+		},
+		"notification_label": {
+			"swap_middle_word": "to",
+			"swap_pending": "",
+			"swap_confirmed": "",
+			"approve_pending": "",
+			"approve_confirmed": ""
 		}
 	},
 	"protect_wallet_modal": {

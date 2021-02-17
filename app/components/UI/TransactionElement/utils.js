@@ -627,8 +627,10 @@ function decodeSwapsTx(args) {
 			transaction: { gas, gasPrice, from, to },
 			transactionHash
 		},
+		tx,
 		contractExchangeRates
 	} = args;
+
 	const swapTransaction = (swapsTransactions && swapsTransactions[id]) || {};
 	const totalGas = calculateTotalGas(gas, gasPrice);
 	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction.sourceToken);
@@ -657,6 +659,28 @@ function decodeSwapsTx(args) {
 
 	const isSwap = swapTransaction.action === 'swap';
 
+	let notificationKey;
+
+	if (isSwap) {
+		notificationKey = `${
+			tx.status === 'submitted'
+				? strings('swaps.notification_label.swap_pending')
+				: strings('swaps.notification_label.swap_confirmed')
+		} (${sourceToken.symbol} ${strings('swaps.notification_label.swap_middle_word')} ${destinationToken.symbol})`;
+	} else {
+		notificationKey = `${
+			tx.status === 'submitted'
+				? `${strings('swaps.notification_label.approve_pending')} ${sourceToken.symbol} ${strings(
+						'swaps.notification_label.approve_ending_word'
+						// eslint-disable-next-line no-mixed-spaces-and-tabs
+				  )}`
+				: `${sourceToken.symbol} ${strings('swaps.notification_label.approve_pending')} ${strings(
+						'swaps.notification_label.approve_ending_word'
+						// eslint-disable-next-line no-mixed-spaces-and-tabs
+				  )}`
+		}`;
+	}
+
 	const transactionElement = {
 		renderTo,
 		renderFrom,
@@ -673,6 +697,7 @@ function decodeSwapsTx(args) {
 					sourceToken.decimals
 					// eslint-disable-next-line no-mixed-spaces-and-tabs
 			  )}`,
+		notificationKey,
 		value: isSwap && `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
 		fiatValue: isSwap && addCurrencySymbol(renderTokenFiatNumber, currentCurrency),
 		transactionType: isSwap ? TRANSACTION_TYPES.SITE_INTERACTION : TRANSACTION_TYPES.APPROVE
