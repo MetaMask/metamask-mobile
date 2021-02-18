@@ -11,7 +11,14 @@ import { NavigationContext } from 'react-navigation';
 import { swapsUtils } from '@estebanmino/controllers';
 import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
 
-import { BNToHex, renderFromTokenMinimalUnit, renderFromWei, toWei, weiToFiat } from '../../../util/number';
+import {
+	BNToHex,
+	fromTokenMinimalUnit,
+	renderFromTokenMinimalUnit,
+	renderFromWei,
+	toWei,
+	weiToFiat
+} from '../../../util/number';
 import { apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams } from './utils';
 import { colors } from '../../../styles/common';
@@ -41,6 +48,7 @@ import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
+import { decodeApproveData } from '../../../util/transactions';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -224,7 +232,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 }
 
 function SwapsQuotesView({
-	tokens,
+	swapsTokens,
 	accounts,
 	balances,
 	selectedAddress,
@@ -249,8 +257,8 @@ function SwapsQuotesView({
 	);
 
 	/* Get tokens from the tokens list */
-	const sourceToken = tokens?.find(token => token.address?.toLowerCase() === sourceTokenAddress.toLowerCase());
-	const destinationToken = tokens?.find(
+	const sourceToken = swapsTokens?.find(token => token.address?.toLowerCase() === sourceTokenAddress.toLowerCase());
+	const destinationToken = swapsTokens?.find(
 		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
 	);
 
@@ -381,6 +389,11 @@ function SwapsQuotesView({
 	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
 	const [editQuoteTransactionsMode, setEditQuoteTransactionsMode] = useState(EDIT_MODE_GAS);
 
+	const approvalMinimumSpendLimit = useMemo(() => {
+		if (!approvalTransaction) return 0;
+		return fromTokenMinimalUnit(sourceAmount, sourceToken.decimals);
+	}, [approvalTransaction, sourceAmount, sourceToken.decimals]);
+
 	const onCancelEditQuoteTransactions = useCallback(() => setEditQuoteTransactionsVisible(false), []);
 
 	useEffect(() => {
@@ -443,19 +456,58 @@ function SwapsQuotesView({
 		});
 
 		const { TransactionController } = Engine.context;
-		if (approvalTransaction) {
-			approvalTransaction.gasPrice = gasPrice;
-		}
-		selectedQuote.trade.gasPrice = gasPrice;
+
+		const newSwapsTransactions = TransactionController.state.swapsTransactions || {};
 
 		if (approvalTransaction) {
-			await TransactionController.addTransaction(approvalTransaction);
+			approvalTransaction.gasPrice = gasPrice;
+			try {
+				const { transactionMeta } = await TransactionController.addTransaction(
+					approvalTransaction,
+					process.env.MM_FOX_CODE
+				);
+				newSwapsTransactions[transactionMeta.id] = {
+					action: 'approval',
+					sourceToken: sourceToken.address,
+					destinationToken: { swaps: 'swaps' },
+					upTo: decodeApproveData(approvalTransaction.data).encodedAmount
+				};
+			} catch (e) {
+				// send analytics
+			}
 		}
+
 		// Modify gas limit for trade transaction only
+		selectedQuote.trade.gasPrice = gasPrice;
 		selectedQuote.trade.gas = gasLimit;
-		await TransactionController.addTransaction(selectedQuote.trade);
+		try {
+			const { transactionMeta } = await TransactionController.addTransaction(
+				selectedQuote.trade,
+				process.env.MM_FOX_CODE
+			);
+			newSwapsTransactions[transactionMeta.id] = {
+				action: 'swap',
+				sourceToken: sourceToken.address,
+				sourceAmount: renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals),
+				destinationToken: destinationToken.address,
+				destinationAmount: renderFromTokenMinimalUnit(
+					selectedQuote.destinationAmount,
+					destinationToken.decimals
+				),
+				sourceAmountInFiat: weiToFiat(
+					toWei(selectedQuote.priceSlippage?.sourceAmountInETH),
+					conversionRate,
+					currentCurrency
+				)
+			};
+		} catch (e) {
+			// send analytics
+		}
+
+		TransactionController.update({ swapsTransactions: newSwapsTransactions });
 		navigation.dismiss();
 	}, [
+		currentCurrency,
 		navigation,
 		selectedQuote,
 		approvalTransaction,
@@ -1102,6 +1154,7 @@ function SwapsQuotesView({
 				onCancelEditQuoteTransactions={onCancelEditQuoteTransactions}
 				onHandleGasFeeSelection={onHandleGasFeeSelection}
 				setApprovalTransaction={setApprovalTransaction}
+				minimumSpendLimit={approvalMinimumSpendLimit}
 				selectedQuote={selectedQuote}
 				sourceToken={sourceToken}
 			/>
@@ -1112,7 +1165,7 @@ function SwapsQuotesView({
 SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
 
 SwapsQuotesView.propTypes = {
-	tokens: PropTypes.arrayOf(PropTypes.object),
+	swapsTokens: PropTypes.arrayOf(PropTypes.object),
 	/**
 	 * Map of accounts to information objects including balances
 	 */
@@ -1154,7 +1207,7 @@ const mapStateToProps = state => ({
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	tokens: state.engine.backgroundState.SwapsController.tokens,
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
 	isInPolling: state.engine.backgroundState.SwapsController.isInPolling,
 	quotesLastFetched: state.engine.backgroundState.SwapsController.quotesLastFetched,
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,

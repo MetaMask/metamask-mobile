@@ -45,3 +45,15 @@ export function protectWalletModalNotVisible() {
 		type: 'PROTECT_MODAL_NOT_VISIBLE'
 	};
 }
+
+export function loadingSet() {
+	return {
+		type: 'LOADING_SET'
+	};
+}
+
+export function loadingUnset() {
+	return {
+		type: 'LOADING_UNSET'
+	};
+}

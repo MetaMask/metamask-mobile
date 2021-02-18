@@ -460,7 +460,7 @@ class Notification extends PureComponent {
 	handleTransactionNotification = () => {
 		const { status } = this.props;
 		const { tx, transactionDetailsIsVisible, inBrowserView } = this.state;
-		const isPaymentChannelTransaction = tx && tx.paymentChannelTransaction;
+		const isPaymentChannelTransaction = !!tx && tx.paymentChannelTransaction;
 		const data = tx ? { ...tx.transaction, ...this.props.transaction } : { ...this.props.transaction };
 		return (
 			<ElevatedView

@@ -9,11 +9,12 @@ import CustomGas from '../../CustomGas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EditPermission from '../../ApproveTransactionReview/EditPermission';
 import { decodeApproveData, generateApproveData } from '../../../../util/transactions';
-import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
+import { swapsUtils } from '@estebanmino/controllers';
 import AnimatedTransactionModal from '../../AnimatedTransactionModal';
 
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
 const EDIT_MODE_APPROVE_AMOUNT = 'EDIT_MODE_APPROVE_AMOUNT';
+const SWAPS_CONTRACT_ADDRESS = swapsUtils.SWAPS_CONTRACT_ADDRESS;
 
 const styles = StyleSheet.create({
 	keyboardAwareWrapper: {
@@ -37,11 +38,12 @@ function TransactionsEditionModal({
 	onHandleGasFeeSelection,
 	setApprovalTransaction,
 	selectedQuote,
-	sourceToken
+	sourceToken,
+	minimumSpendLimit
 }) {
 	/* Approval transaction if any */
 	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState(null);
-	const [approvalCustomValue, setApprovalCustomValue] = useState('');
+	const [approvalCustomValue, setApprovalCustomValue] = useState(minimumSpendLimit);
 	const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] = useState(true);
 	const [approvalTransaction] = useState(originalApprovalTransaction);
 	const [currentGasSelector, setCurrentGasSelector] = useState(null);
@@ -106,6 +108,7 @@ function TransactionsEditionModal({
 				{editQuoteTransactionsMode === EDIT_MODE_APPROVE_AMOUNT && !!approvalTransaction && (
 					<EditPermission
 						host={'Swaps'}
+						minimumSpendLimit={minimumSpendLimit}
 						spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
 						tokenSymbol={sourceToken.symbol}
 						spendLimitCustomValue={approvalCustomValue}
@@ -144,6 +147,7 @@ TransactionsEditionModal.propTypes = {
 	editQuoteTransactionsVisible: PropTypes.bool,
 	gasLimit: PropTypes.string,
 	gasPrice: PropTypes.string,
+	minimumSpendLimit: PropTypes.number.isRequired,
 	onCancelEditQuoteTransactions: PropTypes.func,
 	onHandleGasFeeSelection: PropTypes.func,
 	setApprovalTransaction: PropTypes.func,

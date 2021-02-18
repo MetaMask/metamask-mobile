@@ -5,6 +5,7 @@ import { strings } from '../../locales/i18n';
 import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
+import { swapsUtils } from '@estebanmino/controllers';
 import { hexToBN } from './number';
 import AppConstants from '../core/AppConstants';
 const { SAI_ADDRESS } = AppConstants;
@@ -22,6 +23,7 @@ export const SEND_TOKEN_ACTION_KEY = 'transfer';
 export const TRANSFER_FROM_ACTION_KEY = 'transferfrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
+export const SWAPS_TRANSACTION_ACTION_KEY = 'swapsTransaction';
 export const CONNEXT_DEPOSIT_ACTION_KEY = 'connextdeposit';
 
 export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
@@ -45,6 +47,7 @@ export const TRANSACTION_TYPES = {
 	APPROVE: 'transaction_approve'
 };
 
+const { SWAPS_CONTRACT_ADDRESS } = swapsUtils;
 /**
  * Utility class with the single responsibility
  * of caching CollectibleAddresses
@@ -74,6 +77,7 @@ const actionKeys = {
 	[TRANSFER_FROM_ACTION_KEY]: strings('transactions.sent_collectible'),
 	[DEPLOY_CONTRACT_ACTION_KEY]: strings('transactions.contract_deploy'),
 	[SMART_CONTRACT_INTERACTION_ACTION_KEY]: strings('transactions.smart_contract_interaction'),
+	[SWAPS_TRANSACTION_ACTION_KEY]: strings('transactions.swaps_transaction'),
 	[APPROVE_ACTION_KEY]: strings('transactions.approve'),
 	[CONNEXT_DEPOSIT_ACTION_KEY]: strings('transactions.instant_payment_deposit')
 };
@@ -261,6 +265,7 @@ export async function isCollectibleAddress(address, tokenId) {
 export async function getTransactionActionKey(transaction) {
 	const { transaction: { data, to } = {} } = transaction;
 	if (!to) return CONTRACT_METHOD_DEPLOY;
+	if (to === SWAPS_CONTRACT_ADDRESS) return SWAPS_TRANSACTION_ACTION_KEY;
 	let ret;
 	// if data in transaction try to get method data
 	if (data && data !== '0x') {
@@ -298,7 +303,6 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 	}
 
 	const actionKey = await getTransactionActionKey(tx);
-
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		ticker = paymentChannelTransaction ? strings('unit.sai') : ticker;
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
