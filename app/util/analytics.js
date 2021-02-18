@@ -111,7 +111,7 @@ const NAMES = {
 	PAYMENTS_SELECTS_DEBIT_OR_ACH: 'Selects debit card or bank account as payment method',
 	PAYMENTS_SELECTS_APPLE_PAY: 'Selects Apple Pay as payment method',
 
-	// Swap
+	// Swaps
 	SWAPS_OPENED: 'Swaps Opened',
 	QUOTES_REQUESTED: 'Quotes Requested',
 	QUOTES_RECEIVED: 'Quotes Received',

@@ -22,7 +22,7 @@ export default class Logger {
 		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		if (__DEV__) {
 			args.unshift(DEBUG);
-			// console.log.apply(null, args); // eslint-disable-line no-console
+			console.log.apply(null, args); // eslint-disable-line no-console
 		} else if (metricsOptIn === AGREED) {
 			addBreadcrumb({
 				message: JSON.stringify(args)

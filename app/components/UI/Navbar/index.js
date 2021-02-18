@@ -904,10 +904,27 @@ export function getSwapsAmountNavbar(navigation) {
 }
 export function getSwapsQuotesNavbar(navigation) {
 	const title = navigation.getParam('title', 'Swap');
-	const trade = navigation.getParam('requestedTrade');
-	const selectedQuote = navigation.getParam('selectedQuote');
-	const quoteBegin = navigation.getParam('quoteBegin');
+	const leftActionText = navigation.getParam('leftAction', strings('navigation.back'));
+
+	const leftAction = () => {
+		const trade = navigation.getParam('requestedTrade');
+		const selectedQuote = navigation.getParam('selectedQuote');
+		const quoteBegin = navigation.getParam('quoteBegin');
+		if (!selectedQuote) {
+			InteractionManager.runAfterInteractions(() => {
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED, {
+					...trade,
+					responseTime: new Date().getTime() - quoteBegin
+				});
+			});
+		}
+		navigation.pop();
+	};
+
 	const rightAction = () => {
+		const trade = navigation.getParam('requestedTrade');
+		const selectedQuote = navigation.getParam('selectedQuote');
+		const quoteBegin = navigation.getParam('quoteBegin');
 		if (!selectedQuote) {
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED, {
@@ -918,19 +935,18 @@ export function getSwapsQuotesNavbar(navigation) {
 		}
 		navigation.dismiss();
 	};
-	const leftAction = navigation.getParam('leftAction', strings('navigation.back'));
 
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork translate={false} />,
 		headerLeft: Device.isAndroid() ? (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+			<TouchableOpacity onPress={leftAction} style={styles.backButton}>
 				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 			</TouchableOpacity>
 		) : (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{leftAction}</Text>
+			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{leftActionText}</Text>
 			</TouchableOpacity>
 		),
 		headerRight: (

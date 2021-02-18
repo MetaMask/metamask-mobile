@@ -279,8 +279,9 @@ function SwapsQuotesView({
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 
 	const [allQuotesFetchTime, setAllQuotesFetchTime] = useState(null);
-	const [lastTrackedReceivedTime, setLastTrackedReceivedTime] = useState(null);
-	const [lastTrackedRequestedTime, setLastTrackedRequestedTime] = useState(null);
+	const [trackedRequestedQuotes, setTrackedRequestedQuotes] = useState(false);
+	const [trackedReceivedQuotes, setTrackedReceivedQuotes] = useState(false);
+	const [trackedError, setTrackedError] = useState(false);
 
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -293,6 +294,9 @@ function SwapsQuotesView({
 	const [apiGasPrice] = useGasPrice();
 	const [customGasPrice, setCustomGasPrice] = useState(null);
 	const [customGasLimit, setCustomGasLimit] = useState(null);
+	// TODO: use this variable in the future when calculating savings
+	const [isSaving] = useState(false);
+	const [isInFetch, setIsInFetch] = useState(false);
 
 	/* Get quotes as an array sorted by overallValue */
 	const allQuotes = useMemo(() => {
@@ -386,10 +390,6 @@ function SwapsQuotesView({
 		[selectedQuote]
 	);
 
-	// TODO: use this variable in the future when calculating savings
-	const [isSaving] = useState(false);
-	const [isInFetch, setIsInFetch] = useState(false);
-
 	const unableToSwap = useMemo(
 		() => !isInPolling || isInFetch || !selectedQuote || !hasEnoughTokenBalance || !hasEnoughEthBalance,
 		[isInPolling, isInFetch, selectedQuote, hasEnoughTokenBalance, hasEnoughEthBalance]
@@ -431,6 +431,9 @@ function SwapsQuotesView({
 			navigation.setParams({ leftAction: strings('navigation.back') });
 			setFirstLoadTime(Date.now());
 			setIsFirstLoad(true);
+			setTrackedRequestedQuotes(false);
+			setTrackedReceivedQuotes(false);
+			setTrackedError(false);
 			resetAndStartPolling({
 				slippage,
 				sourceToken,
@@ -549,6 +552,7 @@ function SwapsQuotesView({
 	}, []);
 
 	const handleQuotesReceivedMetric = useCallback(() => {
+		if (!selectedQuote || !selectedQuoteValue) return;
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
 				token_from: sourceToken.address,
@@ -578,32 +582,37 @@ function SwapsQuotesView({
 		conversionRate
 	]);
 
-	const handleQuotesModalMetric = useCallback(() => {
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
-			token_from: sourceToken.address,
-			token_from_amount: sourceAmount,
-			token_to: destinationToken.address,
-			token_to_amount: selectedQuote.destinationAmount,
-			request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
-			slippage,
-			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-			response_time: allQuotesFetchTime,
-			best_quote_source: selectedQuote.aggregator,
-			network_fees_USD: weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, 'usd'),
-			network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
-			available_quotes: allQuotes.length
+	const handleOpenQuotesModal = useCallback(() => {
+		if (!selectedQuote || !selectedQuoteValue) return;
+		toggleQuotesModal();
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				token_to_amount: selectedQuote.destinationAmount,
+				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
+				slippage,
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+				response_time: allQuotesFetchTime,
+				best_quote_source: selectedQuote.aggregator,
+				network_fees_USD: weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, 'usd'),
+				network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
+				available_quotes: allQuotes.length
+			});
 		});
 	}, [
-		sourceToken,
-		sourceAmount,
-		destinationToken,
 		selectedQuote,
+		selectedQuoteValue,
+		toggleQuotesModal,
+		sourceToken.address,
+		sourceAmount,
+		destinationToken.address,
 		hasEnoughTokenBalance,
 		slippage,
 		allQuotesFetchTime,
-		selectedQuoteValue,
-		allQuotes,
-		conversionRate
+		conversionRate,
+		allQuotes.length
 	]);
 
 	const handleQuotesErrorMetric = useCallback(
@@ -631,12 +640,6 @@ function SwapsQuotesView({
 		},
 		[sourceToken, sourceAmount, destinationToken, hasEnoughTokenBalance, slippage]
 	);
-
-	const handleQuotesRequestedMetric = useCallback(data => {
-		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, data);
-		});
-	}, []);
 
 	const handleSlippageAlertPress = useCallback(() => {
 		if (!selectedQuote) {
@@ -687,50 +690,6 @@ function SwapsQuotesView({
 			return setHasDismissedSlippageAlert(false);
 		}
 	}, [hasDismissedSlippageAlert, selectedQuote]);
-
-	useEffect(() => {
-		if (isInFetch) return;
-		if (!selectedQuote) return;
-		if (lastTrackedReceivedTime === quotesLastFetched) return;
-		setLastTrackedReceivedTime(quotesLastFetched);
-		navigation.setParams({ selectedQuote });
-		handleQuotesReceivedMetric();
-	}, [isInFetch, navigation, selectedQuote, lastTrackedReceivedTime, quotesLastFetched, handleQuotesReceivedMetric]);
-
-	useEffect(() => {
-		if (!isInFetch) return;
-		if (lastTrackedRequestedTime === quotesLastFetched) return;
-		setLastTrackedRequestedTime(quotesLastFetched);
-		const data = {
-			token_from: sourceToken.address,
-			token_from_amount: sourceAmount,
-			token_to: destinationToken.address,
-			request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
-			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
-		};
-		navigation.setParams({ requestedTrade: data });
-		navigation.setParams({ selectedQuote: undefined });
-		navigation.setParams({ quoteBegin: new Date().getTime() });
-		handleQuotesRequestedMetric(data);
-	}, [
-		isInFetch,
-		navigation,
-		sourceToken,
-		sourceAmount,
-		destinationToken,
-		hasEnoughTokenBalance,
-		slippage,
-		lastTrackedRequestedTime,
-		quotesLastFetched,
-		handleQuotesRequestedMetric
-	]);
-
-	useEffect(() => {
-		if (!isQuotesModalVisible) {
-			return;
-		}
-		handleQuotesModalMetric();
-	}, [isQuotesModalVisible, handleQuotesModalMetric]);
 
 	/* First load effect: handle initial animation */
 	useEffect(() => {
@@ -798,7 +757,6 @@ function SwapsQuotesView({
 			hideQuotesModal();
 			hideUpdateModal();
 			hidePriceDifferenceModal();
-			handleQuotesErrorMetric(errorKey);
 			onCancelEditQuoteTransactions();
 		}
 	}, [
@@ -810,6 +768,53 @@ function SwapsQuotesView({
 		hidePriceDifferenceModal,
 		hideUpdateModal
 	]);
+
+	/** Metrics Effects */
+	/* Metrics: Quotes requested */
+	useEffect(() => {
+		if (!isInFetch) return;
+		if (trackedRequestedQuotes) return;
+		setTrackedRequestedQuotes(true);
+		const data = {
+			token_from: sourceToken.address,
+			token_from_amount: sourceAmount,
+			token_to: destinationToken.address,
+			request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
+			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+		};
+		navigation.setParams({ requestedTrade: data });
+		navigation.setParams({ selectedQuote: undefined });
+		navigation.setParams({ quoteBegin: Date.now() });
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, data);
+		});
+	}, [
+		destinationToken.address,
+		hasEnoughTokenBalance,
+		isInFetch,
+		navigation,
+		slippage,
+		sourceAmount,
+		sourceToken.address,
+		trackedRequestedQuotes
+	]);
+
+	/* Metrics: Quotes received */
+	useEffect(() => {
+		if (isInFetch) return;
+		if (!selectedQuote) return;
+		if (trackedReceivedQuotes) return;
+		setTrackedReceivedQuotes(true);
+		navigation.setParams({ selectedQuote });
+		handleQuotesReceivedMetric();
+	}, [isInFetch, navigation, selectedQuote, quotesLastFetched, handleQuotesReceivedMetric, trackedReceivedQuotes]);
+
+	/* Metrics: Quotes error */
+	useEffect(() => {
+		if (!errorKey || trackedError) return;
+		setTrackedError(true);
+		handleQuotesErrorMetric(errorKey);
+	}, [errorKey, handleQuotesErrorMetric, trackedError]);
 
 	/* Rendering */
 	if (isFirstLoad || (!errorKey && !selectedQuote)) {
@@ -1029,7 +1034,7 @@ function SwapsQuotesView({
 							<QuotesSummary.HeaderText bold>
 								{isSaving ? strings('swaps.savings') : strings('swaps.using_best_quote')}
 							</QuotesSummary.HeaderText>
-							<TouchableOpacity onPress={toggleQuotesModal} disabled={isInFetch}>
+							<TouchableOpacity onPress={handleOpenQuotesModal} disabled={isInFetch}>
 								<QuotesSummary.HeaderText small>
 									{strings('swaps.view_details')} →
 								</QuotesSummary.HeaderText>
