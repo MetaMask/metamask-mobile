@@ -70,7 +70,7 @@ function Notification(props) {
 		notificationAnimated
 	]);
 
-	if (!currentNotification.type) return null;
+	if (!currentNotification?.type) return null;
 	if (currentNotification.type === TRANSACTION)
 		return (
 			<TransactionNotification

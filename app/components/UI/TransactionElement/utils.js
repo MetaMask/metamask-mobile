@@ -659,44 +659,32 @@ function decodeSwapsTx(args) {
 
 	const isSwap = swapTransaction.action === 'swap';
 
-	let notificationKey;
+	let notificationKey, actionKey;
 
 	if (isSwap) {
-		notificationKey = `${
-			tx.status === 'submitted'
-				? strings('swaps.notification_label.swap_pending')
-				: strings('swaps.notification_label.swap_confirmed')
-		} (${sourceToken.symbol} ${strings('swaps.notification_label.swap_middle_word')} ${destinationToken.symbol})`;
+		actionKey = strings('swaps.transaction_label.swap', {
+			sourceToken: sourceToken.symbol,
+			destinationToken: destinationToken.symbol
+		});
+		notificationKey = strings(
+			`swaps.notification_label.${tx.status === 'submitted' ? 'swap_pending' : 'swap_confirmed'}`,
+			{ sourceToken: sourceToken.symbol, destinationToken: destinationToken.symbol }
+		);
 	} else {
-		notificationKey = `${
-			tx.status === 'submitted'
-				? `${strings('swaps.notification_label.approve_pending')} ${sourceToken.symbol} ${strings(
-						'swaps.notification_label.approve_ending_word'
-						// eslint-disable-next-line no-mixed-spaces-and-tabs
-				  )}`
-				: `${sourceToken.symbol} ${strings('swaps.notification_label.approve_pending')} ${strings(
-						'swaps.notification_label.approve_ending_word'
-						// eslint-disable-next-line no-mixed-spaces-and-tabs
-				  )}`
-		}`;
+		actionKey = strings('swaps.transaction_label.approve', {
+			sourceToken: sourceToken.symbol,
+			upTo: renderFromTokenMinimalUnit(hexToBN(swapTransaction.upTo), sourceToken.decimals)
+		});
+		notificationKey = strings(
+			`swaps.notification_label.${tx.status === 'submitted' ? 'approve_pending' : 'approve_confirmed'}`,
+			{ sourceToken: sourceToken.symbol }
+		);
 	}
 
 	const transactionElement = {
 		renderTo,
 		renderFrom,
-		actionKey: isSwap
-			? `${strings('swaps.transaction_label.swap_initial_word')} ${sourceToken.symbol} ${strings(
-					'swaps.transaction_label.swap_middle_word'
-					// eslint-disable-next-line no-mixed-spaces-and-tabs
-			  )} ${destinationToken.symbol}`
-			: `${strings('swaps.transaction_label.approve_initial_word')} ${sourceToken.symbol} ${strings(
-					'swaps.transaction_label.approve_middle_word'
-					// eslint-disable-next-line no-mixed-spaces-and-tabs
-			  )} ${renderFromTokenMinimalUnit(
-					hexToBN(swapTransaction.upTo),
-					sourceToken.decimals
-					// eslint-disable-next-line no-mixed-spaces-and-tabs
-			  )}`,
+		actionKey,
 		notificationKey,
 		value: isSwap && `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
 		fiatValue: isSwap && addCurrencySymbol(renderTokenFiatNumber, currentCurrency),
