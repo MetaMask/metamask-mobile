@@ -546,10 +546,20 @@ function SwapsQuotesView({
 		setEditQuoteTransactionsVisible(true);
 	}, []);
 
-	const onHandleGasFeeSelection = useCallback((gas, gasPrice) => {
-		setCustomGasPrice(gasPrice);
-		setCustomGasLimit(gas);
-	}, []);
+	const onHandleGasFeeSelection = useCallback(
+		(gas, gasPrice, details) => {
+			setCustomGasPrice(gasPrice);
+			setCustomGasLimit(gas);
+			InteractionManager.runAfterInteractions(() => {
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, {
+					speed_set: details.mode === 'advanced' ? undefined : details.mode,
+					gas_mode: details.mode === 'advanced' ? 'Advanced' : 'Basic',
+					gas_fees: weiToFiat(toWei(calcTokenAmount(gasPrice * gas, 18)), conversionRate, currentCurrency)
+				});
+			});
+		},
+		[conversionRate, currentCurrency]
+	);
 
 	const handleQuotesReceivedMetric = useCallback(() => {
 		if (!selectedQuote || !selectedQuoteValue) return;
