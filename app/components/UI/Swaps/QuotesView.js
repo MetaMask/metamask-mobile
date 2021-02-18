@@ -316,8 +316,8 @@ function SwapsQuotesView({
 	const gasLimit = useMemo(
 		() =>
 			(Boolean(customGasLimit) && BNToHex(customGasLimit)) ||
-			selectedQuote?.trade?.gasEstimateWithRefund ||
-			selectedQuote?.averageGas?.toString(16),
+			selectedQuote?.trade?.gasEstimate ||
+			selectedQuote?.maxGas?.toString(16),
 		[customGasLimit, selectedQuote]
 	);
 
