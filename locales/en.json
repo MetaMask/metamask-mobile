@@ -1538,10 +1538,11 @@
 		},
 		"notification_label": {
 			"swap_middle_word": "to",
-			"swap_pending": "",
-			"swap_confirmed": "",
-			"approve_pending": "",
-			"approve_confirmed": ""
+			"swap_pending": "Pending Swap",
+			"swap_confirmed": "Swap complete",
+			"approve_pending": "Approving",
+			"approve_confirmed": "approved",
+			"approve_ending_word": "for swaps"
 		}
 	},
 	"protect_wallet_modal": {
