@@ -30,6 +30,8 @@ const TransactionsView = ({
 	const [loading, setLoading] = useState();
 
 	const filterTransactions = useCallback(() => {
+		const network = Engine.context.NetworkController.state.network;
+		if (network === 'loading') return;
 		const ethFilter = tx => {
 			const {
 				transaction: { from, to },
@@ -42,7 +44,7 @@ const TransactionsView = ({
 				);
 			return (
 				(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
-				(chainId === tx.chainId || chainId === tx.networkID) &&
+				(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
 				tx.status !== 'unapproved'
 			);
 		};
@@ -94,11 +96,10 @@ const TransactionsView = ({
 		setAllTransactions(allTransactions);
 		setSubmittedTxs(submittedTxsFiltered);
 		setConfirmedTxs(confirmedTxs);
+		setLoading(false);
 	}, [transactions, selectedAddress, tokens, chainId]);
 
 	useEffect(() => {
-		const { network } = Engine.context.NetworkController.state;
-		if (network === 'loading') return;
 		setLoading(true);
 
 		/*
@@ -109,7 +110,6 @@ const TransactionsView = ({
 		*/
 		InteractionManager.runAfterInteractions(() => {
 			filterTransactions();
-			setLoading(false);
 		});
 	}, [filterTransactions]);
 
