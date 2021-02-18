@@ -150,28 +150,29 @@ function TransactionNotification(props) {
 		animateActionTo(-WINDOW_WIDTH);
 	}, [setTransactionAction, setTransactionActionDisabled, animateActionTo, tx, accounts]);
 
-	const onActionFinish = () => animateActionTo(0);
+	const onActionFinish = useCallback(() => animateActionTo(0), [animateActionTo]);
 
-	const transactionControllerDo = callback => {
-		InteractionManager.runAfterInteractions(() => {
-			try {
-				callback();
-			} catch (e) {
-				// ignore because transaction already went through
-			}
-			onActionFinish();
-		});
-	};
+	const safelyExecute = useCallback(
+		callback => {
+			InteractionManager.runAfterInteractions(() => {
+				try {
+					callback();
+				} catch (e) {
+					// ignore because transaction already went through
+				}
+				onActionFinish();
+			});
+		},
+		[onActionFinish]
+	);
 
-	const speedUpTransaction = () => {
-		const callback = () => Engine.context.TransactionController.speedUpTransaction(tx?.id);
-		transactionControllerDo(callback);
-	};
+	const speedUpTransaction = useCallback(() => {
+		safelyExecute(() => Engine.context.TransactionController.speedUpTransaction(tx?.id));
+	}, [safelyExecute, tx]);
 
-	const stopTransaction = () => {
-		const callback = () => Engine.context.TransactionController.stopTransaction(tx?.id);
-		transactionControllerDo(callback);
-	};
+	const stopTransaction = useCallback(() => {
+		safelyExecute(() => Engine.context.TransactionController.stopTransaction(tx?.id));
+	}, [safelyExecute, tx]);
 
 	useEffect(() => {
 		async function getTransactionInfo() {
