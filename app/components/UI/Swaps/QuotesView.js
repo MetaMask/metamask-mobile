@@ -231,6 +231,16 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 	await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
 }
 
+/**
+ * Multiplies gasLimit by multiplier if both defined
+ * @param {string} gasLimit
+ * @param {number} multiplier
+ */
+const gasLimitWithMultiplier = (gasLimit, multiplier) => {
+	if (!gasLimit || !multiplier) return;
+	return new BigNumber(gasLimit).times(multiplier).toString(16);
+};
+
 function SwapsQuotesView({
 	swapsTokens,
 	accounts,
@@ -316,7 +326,7 @@ function SwapsQuotesView({
 	const gasLimit = useMemo(
 		() =>
 			(Boolean(customGasLimit) && BNToHex(customGasLimit)) ||
-			selectedQuote?.trade?.gasEstimate ||
+			gasLimitWithMultiplier(selectedQuote?.trade?.gasEstimate, selectedQuote?.gasMultiplier) ||
 			selectedQuote?.maxGas?.toString(16),
 		[customGasLimit, selectedQuote]
 	);
