@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated from 'react-native-reanimated';
 import { colors } from '../../../../styles/common';
@@ -50,8 +49,4 @@ SimpleNotification.propTypes = {
 	hideCurrentNotification: PropTypes.func
 };
 
-const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts
-});
-
-export default connect(mapStateToProps)(SimpleNotification);
+export default SimpleNotification;
