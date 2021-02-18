@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Text, Dimensions, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -113,34 +113,42 @@ function TransactionNotification(props) {
 	const actionXAnimated = useRef(new Animated.Value(0)).current;
 	const detailsAnimated = useRef(new Animated.Value(0)).current;
 
-	const detailsFadeIn = async () => {
+	const detailsFadeIn = useCallback(async () => {
 		setTransactionDetailsIsVisible(true);
-		animatedTimingStart(detailsAnimated, 1);
-	};
+		setTimeout(() => animatedTimingStart(detailsAnimated, 1), 500);
+	}, [setTransactionDetailsIsVisible, animatedTimingStart, detailsAnimated]);
 
-	const animateActionTo = position => {
-		animatedTimingStart(detailsYAnimated, position);
-		animatedTimingStart(actionXAnimated, position);
-	};
+	const animateActionTo = useCallback(
+		position => {
+			animatedTimingStart(detailsYAnimated, position);
+			animatedTimingStart(actionXAnimated, position);
+		},
+		[animatedTimingStart, actionXAnimated, detailsYAnimated]
+	);
 
-	const onCloseDetails = () => {
+	const onCloseDetails = useCallback(() => {
 		animatedTimingStart(detailsAnimated, 0);
 		setTimeout(() => setTransactionDetailsIsVisible(false), 1000);
-	};
+	}, [animatedTimingStart, setTransactionDetailsIsVisible, detailsAnimated]);
 
-	const onSpeedUpPress = () => {
+	const onCloseNotification = useCallback(() => {
+		onCloseDetails();
+		setTimeout(() => onClose(), 1000);
+	}, [onCloseDetails, onClose]);
+
+	const onSpeedUpPress = useCallback(() => {
 		const transactionActionDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, accounts);
 		setTransactionAction(ACTION_SPEEDUP);
 		setTransactionActionDisabled(transactionActionDisabled);
 		animateActionTo(-WINDOW_WIDTH);
-	};
+	}, [setTransactionAction, setTransactionActionDisabled, animateActionTo, tx, accounts]);
 
-	const onCancelPress = () => {
+	const onCancelPress = useCallback(() => {
 		const transactionActionDisabled = validateTransactionActionBalance(tx, CANCEL_RATE, accounts);
 		setTransactionAction(ACTION_CANCEL);
 		setTransactionActionDisabled(transactionActionDisabled);
 		animateActionTo(-WINDOW_WIDTH);
-	};
+	}, [setTransactionAction, setTransactionActionDisabled, animateActionTo, tx, accounts]);
 
 	const onActionFinish = () => animateActionTo(0);
 
@@ -192,7 +200,7 @@ function TransactionNotification(props) {
 		props.swapsTokens
 	]);
 
-	useEffect(() => () => animatedTimingStart(detailsAnimated, 0), [animatedTimingStart, detailsAnimated]);
+	useEffect(() => onCloseNotification(), [onCloseNotification]);
 
 	return (
 		<ElevatedView
@@ -278,7 +286,7 @@ function TransactionNotification(props) {
 						title: transactionElement?.notificationKey
 					}}
 					onPress={detailsFadeIn}
-					onHide={onClose}
+					onHide={onCloseNotification}
 				/>
 			</Animated.View>
 		</ElevatedView>
