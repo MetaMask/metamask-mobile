@@ -1531,10 +1531,14 @@
 		"try_again": "Try again",
 		"terms_of_service": "Terms of service",
 		"transaction_label": {
-			"swap_initial_word": "Swap",
-			"swap_middle_word": "to",
-			"approve_initial_word": "Approve",
-			"approve_middle_word": "for swaps: Up to"
+			"swap": "Swap {{sourceToken}} to {{destinationToken}}",
+			"approve": "Approve {{sourceToken}} for swaps: Up to {{upTo}}"
+		},
+		"notification_label": {
+			"swap_pending": "Pending Swap ({{sourceToken}} to {{destinationToken}})",
+			"swap_confirmed": "Swap complete ({{sourceToken}} to {{destinationToken}})",
+			"approve_pending": "Approving {{sourceToken}} for swaps",
+			"approve_confirmed": "{{sourceToken}} approved for swaps"
 		}
 	},
 	"protect_wallet_modal": {

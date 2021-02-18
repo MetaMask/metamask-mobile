@@ -627,8 +627,10 @@ function decodeSwapsTx(args) {
 			transaction: { gas, gasPrice, from, to },
 			transactionHash
 		},
+		tx,
 		contractExchangeRates
 	} = args;
+
 	const swapTransaction = (swapsTransactions && swapsTransactions[id]) || {};
 	const totalGas = calculateTotalGas(gas, gasPrice);
 	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction.sourceToken);
@@ -657,22 +659,33 @@ function decodeSwapsTx(args) {
 
 	const isSwap = swapTransaction.action === 'swap';
 
+	let notificationKey, actionKey;
+
+	if (isSwap) {
+		actionKey = strings('swaps.transaction_label.swap', {
+			sourceToken: sourceToken.symbol,
+			destinationToken: destinationToken.symbol
+		});
+		notificationKey = strings(
+			`swaps.notification_label.${tx.status === 'submitted' ? 'swap_pending' : 'swap_confirmed'}`,
+			{ sourceToken: sourceToken.symbol, destinationToken: destinationToken.symbol }
+		);
+	} else {
+		actionKey = strings('swaps.transaction_label.approve', {
+			sourceToken: sourceToken.symbol,
+			upTo: renderFromTokenMinimalUnit(hexToBN(swapTransaction.upTo), sourceToken.decimals)
+		});
+		notificationKey = strings(
+			`swaps.notification_label.${tx.status === 'submitted' ? 'approve_pending' : 'approve_confirmed'}`,
+			{ sourceToken: sourceToken.symbol }
+		);
+	}
+
 	const transactionElement = {
 		renderTo,
 		renderFrom,
-		actionKey: isSwap
-			? `${strings('swaps.transaction_label.swap_initial_word')} ${sourceToken.symbol} ${strings(
-					'swaps.transaction_label.swap_middle_word'
-					// eslint-disable-next-line no-mixed-spaces-and-tabs
-			  )} ${destinationToken.symbol}`
-			: `${strings('swaps.transaction_label.approve_initial_word')} ${sourceToken.symbol} ${strings(
-					'swaps.transaction_label.approve_middle_word'
-					// eslint-disable-next-line no-mixed-spaces-and-tabs
-			  )} ${renderFromTokenMinimalUnit(
-					hexToBN(swapTransaction.upTo),
-					sourceToken.decimals
-					// eslint-disable-next-line no-mixed-spaces-and-tabs
-			  )}`,
+		actionKey,
+		notificationKey,
 		value: isSwap && `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
 		fiatValue: isSwap && addCurrencySymbol(renderTokenFiatNumber, currentCurrency),
 		transactionType: isSwap ? TRANSACTION_TYPES.SITE_INTERACTION : TRANSACTION_TYPES.APPROVE

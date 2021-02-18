@@ -301,7 +301,6 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 		if (tx.transferInformation.contractAddress === SAI_ADDRESS.toLowerCase()) tx.transferInformation.symbol = 'SAI';
 		return strings(translationKey, { unit: tx.transferInformation.symbol });
 	}
-
 	const actionKey = await getTransactionActionKey(tx);
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		ticker = paymentChannelTransaction ? strings('unit.sai') : ticker;

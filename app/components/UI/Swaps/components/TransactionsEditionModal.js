@@ -147,7 +147,7 @@ TransactionsEditionModal.propTypes = {
 	editQuoteTransactionsVisible: PropTypes.bool,
 	gasLimit: PropTypes.string,
 	gasPrice: PropTypes.string,
-	minimumSpendLimit: PropTypes.number.isRequired,
+	minimumSpendLimit: PropTypes.string.isRequired,
 	onCancelEditQuoteTransactions: PropTypes.func,
 	onHandleGasFeeSelection: PropTypes.func,
 	setApprovalTransaction: PropTypes.func,
