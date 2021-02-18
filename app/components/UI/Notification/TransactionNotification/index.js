@@ -152,10 +152,10 @@ function TransactionNotification(props) {
 
 	const onActionFinish = () => animateActionTo(0);
 
-	const transactionControllerDo = action => {
+	const transactionControllerDo = callback => {
 		InteractionManager.runAfterInteractions(() => {
 			try {
-				Engine.context.TransactionController[action](tx?.id);
+				callback();
 			} catch (e) {
 				// ignore because transaction already went through
 			}
@@ -163,9 +163,15 @@ function TransactionNotification(props) {
 		});
 	};
 
-	const speedUpTransaction = () => transactionControllerDo('speedUpTransaction');
+	const speedUpTransaction = () => {
+		const callback = () => Engine.context.TransactionController.speedUpTransaction(tx?.id);
+		transactionControllerDo(callback);
+	};
 
-	const stopTransaction = () => transactionControllerDo('stopTransaction');
+	const stopTransaction = () => {
+		const callback = () => Engine.context.TransactionController.stopTransaction(tx?.id);
+		transactionControllerDo(callback);
+	};
 
 	useEffect(() => {
 		async function getTransactionInfo() {
