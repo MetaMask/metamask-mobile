@@ -214,7 +214,7 @@ function EditPermission({
 	);
 }
 EditPermission.defaultProps = {
-	minimumSpendLimit: 1
+	minimumSpendLimit: '1'
 };
 
 EditPermission.propTypes = {

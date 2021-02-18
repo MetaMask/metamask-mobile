@@ -27,8 +27,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-function SimpleNotification(props) {
-	const { isInBrowserView, notificationAnimated, hideCurrentNotification, currentNotification } = props;
+function SimpleNotification({ isInBrowserView, notificationAnimated, hideCurrentNotification, currentNotification }) {
 	return (
 		<ElevatedView style={[styles.modalTypeView, isInBrowserView && styles.modalTypeViewBrowser]} elevation={100}>
 			<Animated.View

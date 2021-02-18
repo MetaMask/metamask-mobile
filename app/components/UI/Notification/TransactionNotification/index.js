@@ -177,7 +177,34 @@ function TransactionNotification(props) {
 		async function getTransactionInfo() {
 			const tx = transactions.find(({ id }) => id === currentNotification.transaction.id);
 			if (!tx) return;
-			const [transactionElement, transactionDetails] = await decodeTransaction({ ...props, tx });
+			const {
+				selectedAddress,
+				ticker,
+				conversionRate,
+				currentCurrency,
+				exchangeRate,
+				contractExchangeRates,
+				collectibleContracts,
+				tokens,
+				primaryCurrency,
+				swapsTransactions,
+				swapsTokens
+			} = props;
+			const [transactionElement, transactionDetails] = await decodeTransaction({
+				...props,
+				tx,
+				selectedAddress,
+				ticker,
+				conversionRate,
+				currentCurrency,
+				exchangeRate,
+				contractExchangeRates,
+				collectibleContracts,
+				tokens,
+				primaryCurrency,
+				swapsTransactions,
+				swapsTokens
+			});
 			const existingGasPrice = new BigNumber(tx?.transaction?.gasPrice || '0x0');
 			const gasFee = existingGasPrice
 				.times(transactionAction === ACTION_CANCEL ? CANCEL_RATE : SPEED_UP_RATE)
@@ -188,23 +215,7 @@ function TransactionNotification(props) {
 			setTransactionDetails(transactionDetails);
 		}
 		getTransactionInfo();
-	}, [
-		transactions,
-		currentNotification.transaction.id,
-		transactionAction,
-		props,
-		props.selectedAddress,
-		props.ticker,
-		props.conversionRate,
-		props.currentCurrency,
-		props.exchangeRate,
-		props.contractExchangeRates,
-		props.collectibleContracts,
-		props.tokens,
-		props.primaryCurrency,
-		props.swapsTransactions,
-		props.swapsTokens
-	]);
+	}, [transactions, currentNotification.transaction.id, transactionAction, props]);
 
 	useEffect(() => onCloseNotification(), [onCloseNotification]);
 
