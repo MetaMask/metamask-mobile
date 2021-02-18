@@ -14,6 +14,8 @@ import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
 import {
 	BNToHex,
 	fromTokenMinimalUnit,
+	fromTokenMinimalUnitString,
+	hexToBN,
 	renderFromTokenMinimalUnit,
 	renderFromWei,
 	toWei,
@@ -541,10 +543,61 @@ function SwapsQuotesView({
 		setEditQuoteTransactionsMode(EDIT_MODE_GAS);
 		setEditQuoteTransactionsVisible(true);
 	}, []);
+
 	const onEditQuoteTransactionsApproveAmount = useCallback(() => {
+		if (!approvalTransaction || !originalApprovalTransaction) {
+			return;
+		}
+		const originalApprovalTransactionEncodedAmount = decodeApproveData(originalApprovalTransaction.data)
+			.encodedAmount;
+		const originalAmount = fromTokenMinimalUnitString(
+			hexToBN(originalApprovalTransactionEncodedAmount).toString(),
+			sourceToken.decimals
+		);
+		const currentApprovalTransactionEncodedAmount = approvalTransaction
+			? decodeApproveData(approvalTransaction.data).encodedAmount
+			: '0';
+		const currentAmount = fromTokenMinimalUnitString(
+			hexToBN(currentApprovalTransactionEncodedAmount).toString(),
+			sourceToken.decimals
+		);
+
 		setEditQuoteTransactionsMode(EDIT_MODE_APPROVE_AMOUNT);
 		setEditQuoteTransactionsVisible(true);
-	}, []);
+
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.EDIT_SPEND_LIMIT_OPENED, {
+				token_from: sourceToken.address,
+				token_from_amount: sourceAmount,
+				token_to: destinationToken.address,
+				token_to_amount: selectedQuote.destinationAmount,
+				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
+				slippage,
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+				available_quotes: allQuotes.length,
+				best_quote_source: selectedQuote.aggregator,
+				other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
+				gas_fees: weiToFiat(toWei(gasFee), conversionRate, currentCurrency),
+				custom_spend_limit_set: originalAmount !== currentAmount,
+				custom_spend_limit_amount: currentAmount
+			});
+		});
+	}, [
+		allQuotes,
+		approvalTransaction,
+		conversionRate,
+		currentCurrency,
+		destinationToken.address,
+		gasFee,
+		hasEnoughTokenBalance,
+		originalApprovalTransaction,
+		selectedQuote,
+		selectedQuoteId,
+		slippage,
+		sourceAmount,
+		sourceToken.address,
+		sourceToken.decimals
+	]);
 
 	const onHandleGasFeeSelection = useCallback(
 		(gas, gasPrice, details) => {
