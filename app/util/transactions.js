@@ -231,7 +231,6 @@ export async function isSmartContractAddress(address) {
 	}
 	const { TransactionController } = Engine.context;
 	const code = address ? await util.query(TransactionController.ethQuery, 'getCode', [address]) : undefined;
-
 	const isSmartContract = util.isSmartContractCode(code);
 	return isSmartContract;
 }
