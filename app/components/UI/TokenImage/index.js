@@ -26,7 +26,7 @@ export function TokenImage({ asset, containerStyle, iconStyle, logoDefined, swap
 				asset.logo = contractMap[checksumAddress].logo;
 			} else {
 				const swapAsset = swapsTokens.find(({ address }) => asset.address.toLowerCase() === address);
-				asset.image = swapAsset.iconUrl;
+				asset.image = swapAsset?.iconUrl;
 			}
 		}
 		return asset;
