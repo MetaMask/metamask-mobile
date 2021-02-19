@@ -107,8 +107,39 @@ describe('notifications reducer', () => {
 
 		it.todo('MODIFY_OR_SHOW_TRANSACTION_NOTIFICATION');
 		it.todo('MODIFY_OR_SHOW_SIMPLE_NOTIFICATION');
-		it.todo('REPLACE_NOTIFICATION_BY_ID');
-		it.todo('REMOVE_NOTIFICATION_BY_ID');
-		it.todo('REMOVE_CURRENT_NOTIFICATION');
+
+		it('should replace notifications by id', () => {
+			const currentCount = stateWithNotifications.notifications.length;
+			const notificationId = txNotification(2).transaction.id;
+			const notification = { ...txNotification(2), description: 'Replaced notification', id: notificationId };
+			const state = reducer(stateWithNotifications, {
+				type: ACTIONS.REPLACE_NOTIFICATION_BY_ID,
+				id: notificationId,
+				notification
+			});
+
+			const replacedNotification = state.notifications.find(notification => notification.id === notificationId);
+			expect(state.notifications.length).toBe(currentCount);
+			expect(replacedNotification.description).toEqual('Replaced notification');
+		});
+
+		it('should remove notification by id', () => {
+			const currentCount = stateWithNotifications.notifications.length;
+			const notificationId = simpleNotification(2).id;
+			const state = reducer(stateWithNotifications, {
+				type: ACTIONS.REMOVE_NOTIFICATION_BY_ID,
+				id: notificationId
+			});
+			expect(state.notifications.length).toEqual(currentCount - 1);
+			expect(state.notifications.find(notification => notification.id === notificationId)).toBeUndefined();
+		});
+
+		it('should remove current notification', () => {
+			const currentCount = stateWithNotifications.notifications.length;
+			const currentNotificationId = stateWithNotifications.notifications[0].id;
+			const state = reducer(stateWithNotifications, { type: ACTIONS.REMOVE_CURRENT_NOTIFICATION });
+			expect(state.notifications.length).toEqual(currentCount - 1);
+			expect(state.notifications.find(notification => notification.id === currentNotificationId)).toBeUndefined();
+		});
 	});
 });
