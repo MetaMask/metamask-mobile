@@ -402,7 +402,7 @@ function SwapsQuotesView({
 	const [editQuoteTransactionsMode, setEditQuoteTransactionsMode] = useState(EDIT_MODE_GAS);
 
 	const approvalMinimumSpendLimit = useMemo(() => {
-		if (!approvalTransaction) return 0;
+		if (!approvalTransaction) return '0';
 		return fromTokenMinimalUnit(sourceAmount, sourceToken.decimals);
 	}, [approvalTransaction, sourceAmount, sourceToken.decimals]);
 
