@@ -63,4 +63,52 @@ describe('notifications reducer', () => {
 		expect(state2.notifications[1].type).toEqual(TRANSACTION);
 		expect(state2.notifications[1].id).toEqual(txNotification(1).transaction.id);
 	});
+
+	it('should show simple and transaction notifications', () => {
+		const state = reducer(undefined, { type: ACTIONS.SHOW_SIMPLE_NOTIFICATION, ...simpleNotification(0) });
+		expect(state.notifications.length).toEqual(1);
+		expect(state.notifications[0].type).toEqual(SIMPLE);
+		expect(state.notifications[0].id).toEqual(simpleNotification(0).id);
+
+		const state2 = reducer(state, { type: ACTIONS.SHOW_TRANSACTION_NOTIFICATION, ...txNotification(1) });
+		expect(state2.notifications.length).toEqual(2);
+		expect(state2.notifications[1].type).toEqual(TRANSACTION);
+		expect(state2.notifications[1].id).toEqual(txNotification(1).transaction.id);
+	});
+
+	describe('actions', () => {
+		let stateWithNotifications;
+
+		beforeEach(() => {
+			stateWithNotifications = [
+				state => reducer(state, { type: ACTIONS.SHOW_SIMPLE_NOTIFICATION, ...simpleNotification(0) }),
+				state => reducer(state, { type: ACTIONS.SHOW_TRANSACTION_NOTIFICATION, ...txNotification(1) }),
+				state => reducer(state, { type: ACTIONS.SHOW_SIMPLE_NOTIFICATION, ...simpleNotification(1) }),
+				state => reducer(state, { type: ACTIONS.SHOW_TRANSACTION_NOTIFICATION, ...txNotification(2) }),
+				state => reducer(state, { type: ACTIONS.SHOW_SIMPLE_NOTIFICATION, ...simpleNotification(2) }),
+				state => reducer(state, { type: ACTIONS.SHOW_SIMPLE_NOTIFICATION, ...simpleNotification(3) })
+			].reduce((acc, current) => current(acc), undefined);
+		});
+
+		it('should hide current notification', () => {
+			const state = reducer(stateWithNotifications, { type: ACTIONS.HIDE_CURRENT_NOTIFICATION });
+			expect(state.notifications[0].isVisible).toBe(false);
+		});
+
+		it('should hide notification by id', () => {
+			const id = txNotification(2).transaction.id;
+			const state = reducer(stateWithNotifications, {
+				type: ACTIONS.HIDE_NOTIFICATION_BY_ID,
+				id
+			});
+			const notification = state.notifications.find(notification => notification.id === id);
+			expect(notification.isVisible).toBe(false);
+		});
+
+		it.todo('MODIFY_OR_SHOW_TRANSACTION_NOTIFICATION');
+		it.todo('MODIFY_OR_SHOW_SIMPLE_NOTIFICATION');
+		it.todo('REPLACE_NOTIFICATION_BY_ID');
+		it.todo('REMOVE_NOTIFICATION_BY_ID');
+		it.todo('REMOVE_CURRENT_NOTIFICATION');
+	});
 });
