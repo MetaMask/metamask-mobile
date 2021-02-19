@@ -28,7 +28,10 @@ const notificationReducer = (state = initialState, action) => {
 		// make current notification isVisible props false
 		case ACTIONS.HIDE_CURRENT_NOTIFICATION: {
 			if (notifications[0]) {
-				return [{ ...notifications[0], isVisible: false }, ...notifications.slice(1)];
+				return {
+					...state,
+					notifications: [{ ...notifications[0], isVisible: false }, ...notifications.slice(1)]
+				};
 			}
 			return state;
 		}
@@ -38,6 +41,7 @@ const notificationReducer = (state = initialState, action) => {
 				return state;
 			}
 			return {
+				...state,
 				notifications: [
 					...notifications.slice(0, index),
 					{ ...notifications[index], isVisible: false },
@@ -49,6 +53,7 @@ const notificationReducer = (state = initialState, action) => {
 			const index = notifications.findIndex(({ id }) => id === action.id);
 			if (index >= 0) {
 				return {
+					...state,
 					notifications: [
 						...notifications.slice(0, index),
 						{ ...notifications[index], isVisible: false },
@@ -57,6 +62,7 @@ const notificationReducer = (state = initialState, action) => {
 				};
 			}
 			return {
+				...state,
 				notifications: enqueue(notifications, {
 					id: action.transaction.id,
 					isVisible: true,
@@ -71,6 +77,7 @@ const notificationReducer = (state = initialState, action) => {
 			const index = notifications.findIndex(({ id }) => id === action.id);
 			if (index >= 0) {
 				return {
+					...state,
 					notifications: [
 						...notifications.slice(0, index),
 						{ ...notifications[index], isVisible: false },
@@ -79,6 +86,7 @@ const notificationReducer = (state = initialState, action) => {
 				};
 			}
 			return {
+				...state,
 				notifications: enqueue(notifications, {
 					id: action.id,
 					isVisible: true,
@@ -96,6 +104,7 @@ const notificationReducer = (state = initialState, action) => {
 				return state;
 			}
 			return {
+				...state,
 				notifications: [
 					...notifications.slice(0, index),
 					action.notification,
@@ -105,16 +114,19 @@ const notificationReducer = (state = initialState, action) => {
 		}
 		case ACTIONS.REMOVE_NOTIFICATION_BY_ID: {
 			return {
+				...state,
 				notifications: notifications.filter(({ id }) => id !== action.id)
 			};
 		}
 		case ACTIONS.REMOVE_CURRENT_NOTIFICATION: {
 			return {
+				...state,
 				notifications: dequeue(notifications)
 			};
 		}
 		case ACTIONS.SHOW_SIMPLE_NOTIFICATION: {
 			return {
+				...state,
 				notifications: enqueue(notifications, {
 					id: action.id,
 					isVisible: true,
@@ -128,7 +140,8 @@ const notificationReducer = (state = initialState, action) => {
 		}
 		case ACTIONS.SHOW_TRANSACTION_NOTIFICATION: {
 			return {
-				notifications: enqueue(state.notifications, {
+				...state,
+				notifications: enqueue(notifications, {
 					id: action.transaction.id,
 					isVisible: true,
 					autodismiss: action.autodismiss || 5000,
