@@ -150,7 +150,6 @@ class Transactions extends PureComponent {
 			this.init();
 			this.props.onRefSet && this.props.onRefSet(this.flatList);
 		}, 100);
-		console.log('assetasset', this.props.assetSymbol);
 	}
 
 	init() {
