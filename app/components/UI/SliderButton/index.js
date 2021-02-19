@@ -140,16 +140,22 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 		[componentWidth, disabled, isComplete, pan, shouldComplete]
 	);
 	useEffect(() => {
-		Animated.loop(
+		const animation = Animated.loop(
 			Animated.sequence([
-				Animated.timing(shineOffset, { toValue: 0, duration: 0, useNativeDriver: false }),
+				Animated.timing(shineOffset, { toValue: 0, duration: 0, useNativeDriver: false, isInteraction: false }),
 				Animated.timing(shineOffset, {
 					toValue: 100,
 					duration: 2000,
-					useNativeDriver: false
+					useNativeDriver: false,
+					isInteraction: false
 				})
 			])
-		).start();
+		);
+		animation.start();
+
+		return () => {
+			animation.stop();
+		};
 	}, [shineOffset]);
 
 	useEffect(() => {

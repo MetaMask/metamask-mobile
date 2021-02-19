@@ -111,6 +111,7 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata }) {
 	const [shouldStart, setShouldStart] = useState(false);
 	const [hasStarted, setHasStarted] = useState(false);
 	const [hasFinished, setHasFinished] = useState(false);
+	const [hasStartedFinishing, setHasStartedFinishing] = useState(false);
 	const [renderLogos, setRenderLogos] = useState(false);
 	const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
@@ -252,6 +253,19 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata }) {
 		});
 	}, [animationSequence]);
 
+	const endAnimation = useCallback(() => {
+		setHasStartedFinishing(true);
+		Animated.timing(progressValue, {
+			toValue: 100,
+			duration: FINISH_DURATION,
+			useNativeDriver: false
+		}).start(() => {
+			if (onAnimationEnd) {
+				onAnimationEnd();
+			}
+		});
+	}, [onAnimationEnd, progressValue]);
+
 	/* Effects */
 
 	/* Check and wait for metadata */
@@ -292,15 +306,18 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata }) {
 
 	/* Effect to start animation. Useful in case we want to wait for metadata to update before start */
 	useEffect(() => {
-		if (!(shouldStart && renderLogos)) {
+		if (!(shouldStart && renderLogos) || hasStarted) {
 			return;
 		}
 		startAnimation();
+	}, [hasStarted, renderLogos, shouldStart, startAnimation]);
 
-		return () => {
-			foxHeadPan.setValue({ x: 0, y: 0 });
-		};
-	}, [foxHeadPan, renderLogos, shouldStart, startAnimation]);
+	/* Effect to finish animation once sequence is completed */
+	useEffect(() => {
+		if (hasFinished && finish && !hasStartedFinishing) {
+			endAnimation();
+		}
+	}, [endAnimation, finish, hasFinished, hasStartedFinishing]);
 
 	/* Effect to track current aggregator index being animated */
 	useEffect(() => {
