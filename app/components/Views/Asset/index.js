@@ -262,6 +262,7 @@ class Asset extends PureComponent {
 								<AssetOverview navigation={navigation} asset={navigation && params} />
 							</View>
 						}
+						assetSymbol={navigation && params.symbol}
 						navigation={navigation}
 						transactions={transactions}
 						submittedTransactions={submittedTxs}

@@ -628,7 +628,8 @@ function decodeSwapsTx(args) {
 			transactionHash
 		},
 		tx,
-		contractExchangeRates
+		contractExchangeRates,
+		assetSymbol
 	} = args;
 
 	const swapTransaction = (swapsTransactions && swapsTransactions[id]) || {};
@@ -639,12 +640,6 @@ function decodeSwapsTx(args) {
 		swapsTokens?.find(({ address }) => address === swapTransaction.destinationToken);
 	if (!sourceToken || !destinationToken) return [undefined, undefined];
 
-	const exchangeRate = sourceToken ? contractExchangeRates[safeToChecksumAddress(sourceToken.address)] : undefined;
-	const renderTokenFiatNumber = balanceToFiatNumber(
-		swapTransaction.sourceAmount,
-		conversionRate,
-		sourceToken.address === ETH_SWAPS_TOKEN_ADDRESS ? 1 : exchangeRate
-	);
 	const renderFrom = renderFullAddress(from);
 	const renderTo = renderFullAddress(to);
 	const ticker = getTicker(args.ticker);
@@ -658,8 +653,7 @@ function decodeSwapsTx(args) {
 			: `${totalEthGas} ${ticker}`;
 
 	const isSwap = swapTransaction.action === 'swap';
-
-	let notificationKey, actionKey;
+	let notificationKey, actionKey, value, fiatValue;
 
 	if (isSwap) {
 		actionKey = strings('swaps.transaction_label.swap', {
@@ -681,13 +675,43 @@ function decodeSwapsTx(args) {
 		);
 	}
 
+	const sourceExchangeRate =
+		sourceToken.address === ETH_SWAPS_TOKEN_ADDRESS
+			? 1
+			: contractExchangeRates[safeToChecksumAddress(sourceToken.address)];
+	const renderSourceTokenFiatNumber = balanceToFiatNumber(
+		swapTransaction.sourceAmount,
+		conversionRate,
+		sourceExchangeRate
+	);
+
+	const destinationExchangeRate =
+		destinationToken.address === ETH_SWAPS_TOKEN_ADDRESS
+			? 1
+			: contractExchangeRates[safeToChecksumAddress(destinationToken.address)];
+	const renderDestinationTokenFiatNumber = balanceToFiatNumber(
+		swapTransaction.destinationAmount,
+		conversionRate,
+		destinationExchangeRate
+	);
+
+	if (isSwap) {
+		if (!assetSymbol || sourceToken.symbol === assetSymbol) {
+			value = `-${swapTransaction.sourceAmount} ${sourceToken.symbol}`;
+			fiatValue = addCurrencySymbol(renderSourceTokenFiatNumber, currentCurrency);
+		} else {
+			value = `+${swapTransaction.destinationAmount} ${destinationToken.symbol}`;
+			fiatValue = addCurrencySymbol(renderDestinationTokenFiatNumber, currentCurrency);
+		}
+	}
+
 	const transactionElement = {
 		renderTo,
 		renderFrom,
 		actionKey,
 		notificationKey,
-		value: isSwap && `${swapTransaction.sourceAmount} ${sourceToken.symbol}`,
-		fiatValue: isSwap && addCurrencySymbol(renderTokenFiatNumber, currentCurrency),
+		value,
+		fiatValue,
 		transactionType: isSwap ? TRANSACTION_TYPES.SITE_INTERACTION : TRANSACTION_TYPES.APPROVE
 	};
 
@@ -710,17 +734,17 @@ function decodeSwapsTx(args) {
 			summaryFee: `${totalEthGas} ${ticker}`,
 			summaryTotalAmount: cryptoSummaryTotalAmount,
 			summarySecondaryTotalAmount: addCurrencySymbol(
-				renderTokenFiatNumber + weiToFiatNumber(totalGas, conversionRate),
+				renderSourceTokenFiatNumber + weiToFiatNumber(totalGas, conversionRate),
 				currentCurrency
 			)
 		};
 	} else {
 		transactionDetails = {
 			...transactionDetails,
-			summaryAmount: addCurrencySymbol(renderTokenFiatNumber, currentCurrency),
+			summaryAmount: addCurrencySymbol(renderSourceTokenFiatNumber, currentCurrency),
 			summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
 			summaryTotalAmount: addCurrencySymbol(
-				renderTokenFiatNumber + weiToFiatNumber(totalGas, conversionRate),
+				renderSourceTokenFiatNumber + weiToFiatNumber(totalGas, conversionRate),
 				currentCurrency
 			),
 			summarySecondaryTotalAmount: cryptoSummaryTotalAmount

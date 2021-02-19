@@ -113,7 +113,7 @@ class Engine {
 							ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL
 						}
 					),
-					new TokenBalancesController({ interval: 5000 }),
+					new TokenBalancesController({ interval: 10000 }),
 					new TokenRatesController(),
 					new TransactionController(),
 					new TypedMessageManager(),

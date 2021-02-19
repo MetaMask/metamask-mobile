@@ -58,6 +58,7 @@ const transactionIconReceivedFailed = require('../../../images/transaction-icons
  */
 class TransactionElement extends PureComponent {
 	static propTypes = {
+		assetSymbol: PropTypes.string,
 		/**
 		/* navigation object required to push new views
 		*/
@@ -106,7 +107,8 @@ class TransactionElement extends PureComponent {
 		const [transactionElement, transactionDetails] = await decodeTransaction({
 			...this.props,
 			swapsTransactions: this.props.swapsTransactions,
-			swapsTokens: this.props.swapsTokens
+			swapsTokens: this.props.swapsTokens,
+			assetSymbol: this.props.assetSymbol
 		});
 		this.mounted = true;
 		this.mounted && this.setState({ transactionElement, transactionDetails });
