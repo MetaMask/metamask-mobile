@@ -1,4 +1,6 @@
 import reducer, { ACTIONS, initialState } from './index';
+import notificationTypes from '../../util/notifications';
+const { TRANSACTION, SIMPLE } = notificationTypes;
 
 const emptyAction = { type: null };
 
@@ -36,5 +38,29 @@ describe('notifications reducer', () => {
 			reducer(state3, { type: ACTIONS.REMOVE_CURRENT_NOTIFICATION });
 			// TODO: cover all actions
 		}).not.toThrow();
+	});
+
+	it('should show simple notification', () => {
+		const state = reducer(undefined, { type: ACTIONS.SHOW_SIMPLE_NOTIFICATION, ...simpleNotification(0) });
+		expect(state.notifications.length).toEqual(1);
+		expect(state.notifications[0].type).toEqual(SIMPLE);
+		expect(state.notifications[0].id).toEqual(simpleNotification(0).id);
+
+		const state2 = reducer(state, { type: ACTIONS.SHOW_SIMPLE_NOTIFICATION, ...simpleNotification(1) });
+		expect(state2.notifications.length).toEqual(2);
+		expect(state2.notifications[1].type).toEqual(SIMPLE);
+		expect(state2.notifications[1].id).toEqual(simpleNotification(1).id);
+	});
+
+	it('should show transaction notification', () => {
+		const state = reducer(undefined, { type: ACTIONS.SHOW_TRANSACTION_NOTIFICATION, ...txNotification(0) });
+		expect(state.notifications.length).toEqual(1);
+		expect(state.notifications[0].type).toEqual(TRANSACTION);
+		expect(state.notifications[0].id).toEqual(txNotification(0).transaction.id);
+
+		const state2 = reducer(state, { type: ACTIONS.SHOW_TRANSACTION_NOTIFICATION, ...txNotification(1) });
+		expect(state2.notifications.length).toEqual(2);
+		expect(state2.notifications[1].type).toEqual(TRANSACTION);
+		expect(state2.notifications[1].id).toEqual(txNotification(1).transaction.id);
 	});
 });
