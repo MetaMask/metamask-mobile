@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -106,18 +106,29 @@ function EditPermission({
 	onPressSpendLimitCustomSelected,
 	toggleEditPermission
 }) {
+	const [approvalSet, setApprovalSet] = useState(false);
+
 	const displayErrorMessage = useMemo(
 		() => !spendLimitUnlimitedSelected && minimumSpendLimit > spendLimitCustomValue,
 		[spendLimitUnlimitedSelected, spendLimitCustomValue, minimumSpendLimit]
 	);
 
 	const onSetApprovalAmount = useCallback(() => {
+		setApprovalSet(true);
 		if (!spendLimitUnlimitedSelected && !spendLimitCustomValue) {
 			onPressSpendLimitUnlimitedSelected();
 		} else {
 			setApprovalAmount();
 		}
 	}, [spendLimitUnlimitedSelected, spendLimitCustomValue, onPressSpendLimitUnlimitedSelected, setApprovalAmount]);
+
+	useEffect(
+		() =>
+			function cleanup() {
+				if (!spendLimitUnlimitedSelected && !approvalSet) onPressSpendLimitUnlimitedSelected();
+			},
+		[spendLimitUnlimitedSelected, approvalSet, onPressSpendLimitUnlimitedSelected]
+	);
 
 	return (
 		<View style={styles.wrapper}>
@@ -198,7 +209,7 @@ function EditPermission({
 						{displayErrorMessage && (
 							<View style={styles.errorMessageWrapper}>
 								<ErrorMessage
-									errorMessage={strings('spend_limit_edition.spend_limit_edition', {
+									errorMessage={strings('spend_limit_edition.must_be_at_least', {
 										allowance: minimumSpendLimit
 									})}
 								/>

@@ -53,6 +53,7 @@ const ROW_HEIGHT = (Device.isIos() ? 95 : 100) + StyleSheet.hairlineWidth;
  */
 class Transactions extends PureComponent {
 	static propTypes = {
+		assetSymbol: PropTypes.string,
 		/**
 		 * Map of accounts to information objects including balances
 		 */
@@ -285,6 +286,7 @@ class Transactions extends PureComponent {
 		<TransactionElement
 			tx={item}
 			i={index}
+			assetSymbol={this.props.assetSymbol}
 			onSpeedUpAction={this.onSpeedUpAction}
 			onCancelAction={this.onCancelAction}
 			testID={'txn-item'}
