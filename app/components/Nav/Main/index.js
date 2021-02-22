@@ -65,6 +65,8 @@ import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { swapsUtils } from '@estebanmino/controllers';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -210,7 +212,29 @@ const Main = props => {
 							assetType: transactionMeta.transaction.assetType
 						});
 					} else {
+						const newSwapsTransactions = props.swapsTransactions;
+						if (newSwapsTransactions[transactionMeta.id]?.analytics) {
+							InteractionManager.runAfterInteractions(() => {
+								Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_FAILED, {
+									...newSwapsTransactions[transactionMeta.id]?.analytics
+								});
+								delete newSwapsTransactions[transactionMeta.id].analytics;
+								TransactionController.update({ swapsTransactions: newSwapsTransactions });
+							});
+						}
 						throw transactionMeta.error;
+					}
+				});
+				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, transactionMeta => {
+					const newSwapsTransactions = props.swapsTransactions;
+					if (newSwapsTransactions[transactionMeta.id]?.analytics) {
+						InteractionManager.runAfterInteractions(() => {
+							Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, {
+								...newSwapsTransactions[transactionMeta.id]?.analytics
+							});
+							delete newSwapsTransactions[transactionMeta.id].analytics;
+							TransactionController.update({ swapsTransactions: newSwapsTransactions });
+						});
 					}
 				});
 				await TransactionController.approveTransaction(transactionMeta.id);
@@ -221,7 +245,7 @@ const Main = props => {
 				Logger.error(error, 'error while trying to send transaction (Main)');
 			}
 		},
-		[props.navigation]
+		[props.navigation, props.swapsTransactions]
 	);
 
 	const onUnapprovedTransaction = useCallback(
@@ -788,6 +812,7 @@ const Main = props => {
 Main.router = MainNavigator.router;
 
 Main.propTypes = {
+	swapsTransactions: PropTypes.object,
 	/**
 	 * Object that represents the navigator
 	 */
@@ -883,7 +908,8 @@ const mapStateToProps = state => ({
 	isPaymentRequest: state.transaction.paymentRequest,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
-	approveModalVisible: state.modals.approveModalVisible
+	approveModalVisible: state.modals.approveModalVisible,
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {}
 });
 
 const mapDispatchToProps = dispatch => ({

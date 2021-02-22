@@ -513,7 +513,24 @@ function SwapsQuotesView({
 					toWei(selectedQuote.priceSlippage?.sourceAmountInETH),
 					conversionRate,
 					currentCurrency
-				)
+				),
+				analytics: {
+					token_from: sourceToken.symbol,
+					token_from_amount: sourceAmount,
+					token_to: destinationToken.symbol,
+					token_to_amount: selectedQuote.destinationAmount,
+					request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
+					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+					best_quote_source: selectedQuote.aggregator,
+					available_quotes: allQuotes.length,
+					network_fees_USD: weiToFiat(toWei(gasFee), conversionRate, currentCurrency),
+					network_fees_ETH: renderFromWei(toWei(gasFee)),
+					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote
+					// quote_vs_executionRatio: '',
+					// average_savings: '',
+					// estimated_vs_used_gasRatio: '',
+					// time_to_mine: '', is the tx id (timestamp when tx was aded)
+				}
 			};
 		} catch (e) {
 			// send analytics
@@ -536,7 +553,8 @@ function SwapsQuotesView({
 		selectedQuoteId,
 		conversionRate,
 		gasPrice,
-		gasLimit
+		gasLimit,
+		gasFee
 	]);
 
 	const onEditQuoteTransactionsGas = useCallback(() => {
