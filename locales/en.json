@@ -56,7 +56,10 @@
 		"scan_step_1": "Open the extension on desktop",
 		"scan_step_2": "Go to Settings > Advanced",
 		"scan_step_3": "Click on “Sync with Mobile”",
-		"scan_step_4": "Scan the QR code to start syncing"
+		"scan_step_4": "Scan the QR code to start syncing",
+		"success": "Success",
+		"your_wallet": "Your wallet was successfully erased",
+		"delete_current": "Deleting current wallet"
 	},
 	"onboarding_carousel": {
 		"title1": "Welcome to MetaMask",
@@ -126,8 +129,20 @@
 		"title": "Welcome Back!",
 		"password": "Password",
 		"login_button": "LOG IN",
-		"go_back": "Go Back",
-		"invalid_password": "Invalid password"
+		"go_back": "Can’t login? You can ERASE your current wallet and setup a new one",
+		"reset_wallet": "Reset Wallet",
+		"cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
+		"invalid_password": "Invalid password",
+		"type_delete": "Type ‘delete’ to erase current wallet permanently",
+		"delete_my": "Delete my wallet",
+		"are_you_sure": "Are you sure you want to erase your wallet?",
+		"your_current_wallet": "Your current wallet, accounts and assets will be ",
+		"removed_from": "removed from this app permanently. ",
+		"this_action": "This action cannot be undone.",
+		"you_can_only": "You can ONLY recover this wallet with your ",
+		"recovery_phrase": "Recovery Phrase ",
+		"metamask_does_not": "MetaMask does not have your recovery phrase.",
+		"i_understand": "I understand, continue"
 	},
 	"enter_password": {
 		"title": "Enter your password",
@@ -277,7 +292,8 @@
 		"do_you_want_to_import_this_account": "Do you want to import this account?",
 		"error": "Error",
 		"logout_to_import_seed": "You need to log out first in order to import a seed phrase.",
-		"ready_to_explore": "Ready to start exploring blockchain applications?"
+		"ready_to_explore": "Ready to start exploring blockchain applications?",
+		"unable_to_load": "Unable to load balance"
 	},
 	"activity_view": {
 		"title": "Activity"
@@ -538,7 +554,11 @@
 		"info": "Info",
 		"description": "Description",
 		"totalSupply": "Total Supply",
-		"address": "Address"
+		"address": "Address",
+		"were_unable": "We’re unable to load your",
+		"balance": "balance. See the support article",
+		"troubleshooting_missing": "troubleshooting missing balances",
+		"for_help": "for help."
 	},
 	"account_details": {
 		"title": "Account Details",
@@ -1391,11 +1411,58 @@
 		"select_a_token": "Select a token",
 		"search_token": "Search for a token",
 		"no_tokens_result": "No tokens match “{{searchString}}”",
-		"available_to_swap": "{{asset}} available to swap",
+		"available_to_swap": "{{asset}} available to swap.",
+		"use_max": "Use max",
 		"not_enough": "Not enough {{symbol}} to complete this swap",
-		"max_slippage": "Max slippage {{slippage}}",
+		"max_slippage": "Max Slippage",
+		"max_slippage_amount": "Max slippage {{slippage}}",
+		"slippage_info": "If the rate changes between the time your order is placed and confirmed it’s called “slippage”. Your Swap will automatically cancel if slippage exceeds your “max slippage” setting.",
+		"slippage_warning": "Make sure you know what you’re doing!",
 		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
-		"get_quotes": "Get quotes"
+		"get_quotes": "Get quotes",
+		"fetching_new_quotes": "Fetching new quotes...",
+		"you_need": "You need",
+		"more_to_complete": "more to complete this swap.",
+		"new_quotes_in": "New quotes in",
+		"quotes_expire_in": "Quotes expire in",
+		"saving": "Saving",
+		"using_best_quote": "Using the best quote",
+		"view_details": "View details",
+		"estimated_gas_fee": "Estimated gas fee",
+		"max_gas_fee": "Max gas fee",
+		"edit": "Edit",
+		"quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
+		"tap_to_swap": "Tap to Swap",
+		"swipe_to_swap": "Swipe to swap",
+		"swipe_to": "Swipe to",
+		"swap": "swap",
+		"completed_swap": "Swap!",
+		"metamask_swap_fee": "MetaMask Swap fee",
+		"fee_text": {
+			"get_the": "Get the",
+			"best_price": "best price",
+			"from_the": "from the",
+			"top_liquidity": "top liquidity sources every time.",
+			"fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better."
+		},
+		"enable": {
+			"this_will": "This will",
+			"enable_asset": "enable {{asset}}",
+			"for_swapping": "for swapping",
+			"edit_limit": "Edit limit"
+		},
+		"quotes_overview": "Quotes overview",
+		"receiving": "Receiving",
+		"overall_value": "Overall value",
+		"best": "Best",
+		"quotes_timeout": "Quotes timeout",
+		"request_new_quotes": "Please request new quotes to get the latest best rate.",
+		"quotes_not_available": "Quotes not available",
+		"try_adjusting": "Try adjusting the amount and try again.",
+		"error_fetching_quote": "Error fetching quote",
+		"unexpected_error": "There has been an unexpected error, please request new quotes to get the latest best rate. (error: {{error}})",
+		"get_new_quotes": "Get new quotes",
+		"try_again": "Try again"
 	},
 	"protect_wallet_modal": {
 		"title": "Protect your wallet",

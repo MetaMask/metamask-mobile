@@ -138,6 +138,14 @@ export function generateApproveData(opts) {
 	);
 }
 
+export function decodeApproveData(data) {
+	console.log('decodeApproveData', data);
+	return {
+		spenderAddress: addHexPrefix(data.substr(34, 40)),
+		encodedAmount: data.substr(74, 138)
+	};
+}
+
 /**
  * Decode transfer data for specified method data
  *
@@ -219,7 +227,8 @@ export async function isSmartContractAddress(address) {
 		return Promise.resolve(true);
 	}
 	const { TransactionController } = Engine.context;
-	const code = address ? await TransactionController.query('getCode', [address]) : undefined;
+	const code = address ? await util.query(TransactionController.ethQuery, 'getCode', [address]) : undefined;
+
 	const isSmartContract = util.isSmartContractCode(code);
 	return isSmartContract;
 }

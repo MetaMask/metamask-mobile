@@ -14,7 +14,7 @@ exports[`Tabs should render correctly 1`] = `
     }
   }
 >
-  <ScrollViewMock
+  <ScrollView
     contentContainerStyle={
       Object {
         "backgroundColor": "transparent",
@@ -40,7 +40,7 @@ exports[`Tabs should render correctly 1`] = `
         }
       }
     />
-  </ScrollViewMock>
+  </ScrollView>
   <View
     style={
       Object {

@@ -117,8 +117,8 @@ function getTokenTransfer(args) {
 		selectedAddress
 	} = args;
 
-	const [, encodedAmount] = decodeTransferData('transfer', data);
-	const amount = toBN(encodedAmount);
+	const [, , encodedAmount] = decodeTransferData('transfer', data);
+	const amount = hexToBN(encodedAmount);
 	const userHasToken = safeToChecksumAddress(to) in tokens;
 	const token = userHasToken ? tokens[safeToChecksumAddress(to)] : null;
 	const renderActionKey = token ? `${strings('transactions.sent')} ${token.symbol}` : actionKey;
@@ -183,7 +183,7 @@ function getTokenTransfer(args) {
 	const transactionElement = {
 		actionKey: renderActionKey,
 		value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
-		fiatValue: `- ${renderTokenFiatAmount}`,
+		fiatValue: !!renderTokenFiatAmount && `- ${renderTokenFiatAmount}`,
 		transactionType,
 		nonce
 	};

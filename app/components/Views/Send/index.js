@@ -28,6 +28,7 @@ import Logger from '../../../util/Logger';
 import { isENS } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
+import BigNumber from 'bignumber.js';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -278,7 +279,7 @@ class Send extends PureComponent {
 			case 'send-token': {
 				const selectedAsset = await this.handleTokenDeeplink(target_address);
 				const { ensRecipient, to } = this.handleNewTxMetaRecipient(parameters.address);
-				const tokenAmount = toBN(parameters.uint256 || '0');
+				const tokenAmount = (parameters.uint256 && new BigNumber(parameters.uint256).toString(16)) || '0';
 				newTxMeta = {
 					assetType: 'ERC20',
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
@@ -289,7 +290,7 @@ class Send extends PureComponent {
 					transactionTo: to,
 					data: generateTransferData('transfer', {
 						toAddress: parameters.address,
-						amount: BNToHex(tokenAmount)
+						amount: tokenAmount
 					}),
 					value: '0x0',
 					readableValue: fromTokenMinimalUnit(parameters.uint256 || '0', selectedAsset.decimals) || '0'
