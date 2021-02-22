@@ -1565,6 +1565,11 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.22.0.tgz#55cc84756c703c433176b484b1d34f0e03d16d1e"
   integrity sha512-t4ijbU+4OH9UAlrPkfLPFo6KmkRTRZJHB+Vly4ajF8oZMnota5YjVVl/SmltsoRC9xvJtRn9DUVf3YMHMIdofw==
 
+"@metamask/contract-metadata@^1.23.0":
+  version "1.23.0"
+  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.23.0.tgz#c70be7f3eaeeb791651ce793b7cdc230e9780b18"
+  integrity sha512-oTUqL9dtXtbng60DZMRsBmZ5HiOUUfEsZjuswOJ0yHO24YsW0ktCcgCJVYPv1HcOsF0SVrRtG4rtrvOl4nY+HA==
+
 "@metamask/controllers@^6.0.1":
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-6.0.1.tgz#957ea51e032ef03d93222623a19e5c9d5e36f81f"
