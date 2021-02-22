@@ -56,7 +56,17 @@ const notificationReducer = (state = initialState, action) => {
 					...state,
 					notifications: [
 						...notifications.slice(0, index),
-						{ ...notifications[index], isVisible: false },
+						{
+							...notifications[index],
+							...{
+								id: action.transaction.id,
+								isVisible: true,
+								autodismiss: action.autodismiss,
+								transaction: action.transaction,
+								status: action.status,
+								type: TRANSACTION
+							}
+						},
 						...notifications.slice(index + 1)
 					]
 				};
@@ -80,7 +90,18 @@ const notificationReducer = (state = initialState, action) => {
 					...state,
 					notifications: [
 						...notifications.slice(0, index),
-						{ ...notifications[index], isVisible: false },
+						{
+							...notifications[index],
+							...{
+								id: action.id,
+								isVisible: true,
+								autodismiss: action.autodismiss,
+								title: action.title,
+								description: action.description,
+								status: action.status,
+								type: SIMPLE
+							}
+						},
 						...notifications.slice(index + 1)
 					]
 				};

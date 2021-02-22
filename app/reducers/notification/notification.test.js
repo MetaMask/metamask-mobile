@@ -109,12 +109,16 @@ describe('notifications reducer', () => {
 			const currentCount = stateWithNotifications.notifications.length;
 
 			const notificationId = txNotification(1).transaction.id;
+			const status = 'Status from modify action test';
 			const state = reducer(stateWithNotifications, {
 				type: ACTIONS.MODIFY_OR_SHOW_TRANSACTION_NOTIFICATION,
-				id: notificationId
+				id: notificationId,
+				...{ ...txNotification(1), status }
 			});
 			expect(state.notifications.length).toBe(currentCount);
-			expect(state.notifications.find(notification => notification.id === notificationId)?.isVisible).toBe(false);
+			expect(state.notifications.find(notification => notification.id === notificationId)?.status).toEqual(
+				status
+			);
 
 			const newNotification = txNotification(3);
 			const state2 = reducer(stateWithNotifications, {
@@ -131,12 +135,16 @@ describe('notifications reducer', () => {
 			const currentCount = stateWithNotifications.notifications.length;
 
 			const notificationId = simpleNotification(1).id;
+			const description = 'Description from modify action test';
 			const state = reducer(stateWithNotifications, {
 				type: ACTIONS.MODIFY_OR_SHOW_SIMPLE_NOTIFICATION,
-				id: notificationId
+				id: notificationId,
+				...{ ...simpleNotification(1), description }
 			});
 			expect(state.notifications.length).toBe(currentCount);
-			expect(state.notifications.find(notification => notification.id === notificationId)?.isVisible).toBe(false);
+			expect(state.notifications.find(notification => notification.id === notificationId)?.description).toBe(
+				description
+			);
 
 			const newNotification = simpleNotification(4);
 			const state2 = reducer(stateWithNotifications, {
