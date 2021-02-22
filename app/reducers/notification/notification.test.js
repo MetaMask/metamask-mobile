@@ -105,8 +105,49 @@ describe('notifications reducer', () => {
 			expect(notification.isVisible).toBe(false);
 		});
 
-		it.todo('MODIFY_OR_SHOW_TRANSACTION_NOTIFICATION');
-		it.todo('MODIFY_OR_SHOW_SIMPLE_NOTIFICATION');
+		it('should modify or show transaction notification', () => {
+			const currentCount = stateWithNotifications.notifications.length;
+
+			const notificationId = txNotification(1).transaction.id;
+			const state = reducer(stateWithNotifications, {
+				type: ACTIONS.MODIFY_OR_SHOW_TRANSACTION_NOTIFICATION,
+				id: notificationId
+			});
+			expect(state.notifications.length).toBe(currentCount);
+			expect(state.notifications.find(notification => notification.id === notificationId)?.isVisible).toBe(false);
+
+			const newNotification = txNotification(3);
+			const state2 = reducer(stateWithNotifications, {
+				type: ACTIONS.MODIFY_OR_SHOW_TRANSACTION_NOTIFICATION,
+				...newNotification
+			});
+			expect(state2.notifications.length).toBe(currentCount + 1);
+			expect(
+				state2.notifications.find(notification => notification.id === newNotification.transaction.id)
+			).not.toBeUndefined();
+		});
+
+		it('should modify or show simple notification', () => {
+			const currentCount = stateWithNotifications.notifications.length;
+
+			const notificationId = simpleNotification(1).id;
+			const state = reducer(stateWithNotifications, {
+				type: ACTIONS.MODIFY_OR_SHOW_SIMPLE_NOTIFICATION,
+				id: notificationId
+			});
+			expect(state.notifications.length).toBe(currentCount);
+			expect(state.notifications.find(notification => notification.id === notificationId)?.isVisible).toBe(false);
+
+			const newNotification = simpleNotification(4);
+			const state2 = reducer(stateWithNotifications, {
+				type: ACTIONS.MODIFY_OR_SHOW_SIMPLE_NOTIFICATION,
+				...newNotification
+			});
+			expect(state2.notifications.length).toBe(currentCount + 1);
+			expect(
+				state2.notifications.find(notification => notification.id === newNotification.id)
+			).not.toBeUndefined();
+		});
 
 		it('should replace notifications by id', () => {
 			const currentCount = stateWithNotifications.notifications.length;
