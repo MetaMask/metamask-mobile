@@ -209,17 +209,27 @@ const Main = props => {
 				const swapTransaction = newSwapsTransactions[transactionMeta.id];
 				const analytics = swapTransaction.analytics;
 				delete analytics.sent_at;
+				const approvalTransactionMetaId = analytics.approvalTransactionMetaId;
+				const approvalTransaction = TransactionController.state.transactions.find(
+					({ id }) => id === approvalTransactionMetaId
+				);
 				const receipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
 					transactionMeta.transactionHash
 				]);
+				let approvalReceipt;
+				if (approvalTransaction?.transactionHash) {
+					approvalReceipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
+						approvalTransaction.transactionHash
+					]);
+				}
 				const analyticsInformation = swapsUtils.getSwapTransactionAnalyticsInformation(
 					receipt,
-					undefined,
-					transactionMeta.transaction,
-					undefined,
+					approvalReceipt,
+					transactionMeta?.transaction?.gasPrice,
+					approvalTransaction?.transaction?.gasPrice,
 					{ address: swapTransaction.destinationToken, decimals: swapTransaction.destinationTokenDecimals },
-					'0x0',
-					'0x0'
+					analytics.ethAccountBalance,
+					props.accounts[props.selectedAddress].balance
 				);
 
 				console.log('analyticsInformation', analyticsInformation);
@@ -239,7 +249,7 @@ const Main = props => {
 				TransactionController.update({ swapsTransactions: newSwapsTransactions });
 			});
 		},
-		[props.swapsTransactions]
+		[props.accounts, props.selectedAddress, props.swapsTransactions]
 	);
 
 	const autoSign = useCallback(
@@ -840,6 +850,7 @@ const Main = props => {
 Main.router = MainNavigator.router;
 
 Main.propTypes = {
+	accounts: PropTypes.object,
 	swapsTransactions: PropTypes.object,
 	/**
 	 * Object that represents the navigator
@@ -925,6 +936,7 @@ Main.propTypes = {
 };
 
 const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	lockTime: state.settings.lockTime,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

@@ -473,7 +473,7 @@ function SwapsQuotesView({
 		const { TransactionController } = Engine.context;
 
 		const newSwapsTransactions = TransactionController.state.swapsTransactions || {};
-
+		let approvalTransactionMetaId;
 		if (approvalTransaction) {
 			approvalTransaction.gasPrice = gasPrice;
 			try {
@@ -481,6 +481,7 @@ function SwapsQuotesView({
 					approvalTransaction,
 					process.env.MM_FOX_CODE
 				);
+				approvalTransactionMetaId = transactionMeta.id;
 				newSwapsTransactions[transactionMeta.id] = {
 					action: 'approval',
 					sourceToken: sourceToken.address,
@@ -500,12 +501,7 @@ function SwapsQuotesView({
 				selectedQuote.trade,
 				process.env.MM_FOX_CODE
 			);
-			console.log(
-				'ADDING selectedQuote?.trade?.gasEstimate',
-				selectedQuoteValue,
-				selectedQuote.gasEstimate,
-				selectedQuote.maxGas
-			);
+
 			newSwapsTransactions[transactionMeta.id] = {
 				action: 'swap',
 				sourceToken: sourceToken.address,
@@ -534,7 +530,9 @@ function SwapsQuotesView({
 					network_fees_ETH: renderFromWei(toWei(gasFee)),
 					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
 					sentAt: Date.now(),
-					gasEstimate: approvalTransaction ? selectedQuote?.maxGas : selectedQuote?.gasEstimate
+					gasEstimate: approvalTransaction ? selectedQuote?.maxGas : selectedQuote?.gasEstimate,
+					ethAccountBalance: accounts[selectedAddress].balance,
+					approvalTransactionMetaId
 					// quote_vs_executionRatio: '',
 					// average_savings: '',
 					// estimated_vs_used_gasRatio: '',
@@ -547,6 +545,8 @@ function SwapsQuotesView({
 		TransactionController.update({ swapsTransactions: newSwapsTransactions });
 		navigation.dismiss();
 	}, [
+		accounts,
+		selectedAddress,
 		currentCurrency,
 		navigation,
 		selectedQuote,

@@ -16,7 +16,6 @@ function SwapLiveness({ isLive, setLiveness }) {
 	const checkLiveness = useCallback(async () => {
 		try {
 			const { mobile_active: liveness } = await swapsUtils.fetchSwapsFeatureLiveness();
-			console.log('await swapsUtils.fetchSwapsFeatureLiveness()', await swapsUtils.fetchSwapsFeatureLiveness());
 			setLiveness(liveness);
 		} catch (error) {
 			Logger.error(error, 'Swaps: error while fetching swaps liveness');
