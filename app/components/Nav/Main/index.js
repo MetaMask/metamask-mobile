@@ -215,8 +215,10 @@ const Main = props => {
 						const newSwapsTransactions = props.swapsTransactions;
 						if (newSwapsTransactions[transactionMeta.id]?.analytics) {
 							InteractionManager.runAfterInteractions(() => {
+								const analytics = newSwapsTransactions[transactionMeta.id]?.analytics;
 								Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_FAILED, {
-									...newSwapsTransactions[transactionMeta.id]?.analytics
+									...analytics,
+									time_to_mine: Date.now() - analytics.sent_at
 								});
 								delete newSwapsTransactions[transactionMeta.id].analytics;
 								TransactionController.update({ swapsTransactions: newSwapsTransactions });
@@ -229,8 +231,10 @@ const Main = props => {
 					const newSwapsTransactions = props.swapsTransactions;
 					if (newSwapsTransactions[transactionMeta.id]?.analytics) {
 						InteractionManager.runAfterInteractions(() => {
+							const analytics = newSwapsTransactions[transactionMeta.id]?.analytics;
 							Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, {
-								...newSwapsTransactions[transactionMeta.id]?.analytics
+								...analytics,
+								time_to_mine: Date.now() - analytics.sent_at
 							});
 							delete newSwapsTransactions[transactionMeta.id].analytics;
 							TransactionController.update({ swapsTransactions: newSwapsTransactions });

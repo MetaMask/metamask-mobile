@@ -42,6 +42,7 @@ class Analytics {
 	 * Track event if enabled and not DEV mode
 	 */
 	_trackEvent(name, { event, params = {}, value, info }) {
+		console.log('_trackEvent', event);
 		if (!this.enabled) return;
 		if (!__DEV__) {
 			RCTAnalytics.trackEvent({
