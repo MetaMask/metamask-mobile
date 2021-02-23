@@ -633,7 +633,7 @@ function decodeSwapsTx(args) {
 	} = args;
 
 	const swapTransaction = (swapsTransactions && swapsTransactions[id]) || {};
-	const totalGas = calculateTotalGas(gas, gasPrice);
+	const totalGas = calculateTotalGas(swapTransaction.gasUsed || gas, gasPrice);
 	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction.sourceToken);
 	const destinationToken =
 		swapTransaction?.destinationToken?.swaps ||

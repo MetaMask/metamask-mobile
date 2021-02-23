@@ -332,7 +332,7 @@ function SwapsQuotesView({
 	const gasLimit = useMemo(
 		() =>
 			(Boolean(customGasLimit) && BNToHex(customGasLimit)) ||
-			gasLimitWithMultiplier(selectedQuote?.trade?.gasEstimate, selectedQuote?.gasMultiplier) ||
+			gasLimitWithMultiplier(selectedQuote?.gasEstimate, selectedQuote?.gasMultiplier) ||
 			selectedQuote?.maxGas?.toString(16),
 		[customGasLimit, selectedQuote]
 	);
@@ -500,6 +500,12 @@ function SwapsQuotesView({
 				selectedQuote.trade,
 				process.env.MM_FOX_CODE
 			);
+			console.log(
+				'ADDING selectedQuote?.trade?.gasEstimate',
+				selectedQuoteValue,
+				selectedQuote.gasEstimate,
+				selectedQuote.maxGas
+			);
 			newSwapsTransactions[transactionMeta.id] = {
 				action: 'swap',
 				sourceToken: sourceToken.address,
@@ -526,7 +532,8 @@ function SwapsQuotesView({
 					network_fees_USD: weiToFiat(toWei(gasFee), conversionRate, currentCurrency),
 					network_fees_ETH: renderFromWei(toWei(gasFee)),
 					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
-					sent_at: Date.now()
+					sentAt: Date.now(),
+					gasEstimate: approvalTransaction ? selectedQuote?.gasEstimate : selectedQuote?.maxGas
 					// quote_vs_executionRatio: '',
 					// average_savings: '',
 					// estimated_vs_used_gasRatio: '',

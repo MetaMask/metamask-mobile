@@ -63,10 +63,11 @@ import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils, util } from '@estebanmino/controllers';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import BigNumber from 'bignumber.js';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -202,17 +203,27 @@ const Main = props => {
 
 	const trackSwaps = useCallback(
 		(event, transactionMeta) => {
-			InteractionManager.runAfterInteractions(() => {
+			InteractionManager.runAfterInteractions(async () => {
+				const { TransactionController } = Engine.context;
 				const newSwapsTransactions = props.swapsTransactions;
-				const analytics = newSwapsTransactions[transactionMeta.id]?.analytics;
-				const time_to_mine = Date.now() - analytics.sent_at;
+				const analytics = newSwapsTransactions[transactionMeta.id].analytics;
 				delete analytics.sent_at;
+				const receipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
+					transactionMeta.transactionHash
+				]);
+				const timeToMine = Date.now() - analytics.sentAt;
+				const estimatedVsUsedGasRatio = `${new BigNumber(receipt.gasUsed)
+					.div(analytics.gasEstimate)
+					.times(100)
+					.toFixed(2)}%`;
 				Analytics.trackEventWithParameters(event, {
 					...analytics,
-					time_to_mine
+					time_to_mine: timeToMine,
+					estimated_vs_used_gasRatio: estimatedVsUsedGasRatio
 				});
 				delete newSwapsTransactions[transactionMeta.id].analytics;
-				Engine.context.TransactionController.update({ swapsTransactions: newSwapsTransactions });
+				newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
+				TransactionController.update({ swapsTransactions: newSwapsTransactions });
 			});
 		},
 		[props.swapsTransactions]
