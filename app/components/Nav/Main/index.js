@@ -237,8 +237,7 @@ const Main = props => {
 					}
 				});
 				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, transactionMeta => {
-					const newSwapsTransactions = props.swapsTransactions;
-					if (newSwapsTransactions[transactionMeta.id]?.analytics) {
+					if (props.swapsTransactions[transactionMeta.id]?.analytics) {
 						trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
 					}
 				});
