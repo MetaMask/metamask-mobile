@@ -71,13 +71,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	title: {
-		fontSize: 24,
+		fontSize: Device.isAndroid() ? 20 : 25,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.normal
+		...fontStyles.bold
 	},
 	subtitle: {
 		fontSize: 16,
@@ -144,11 +144,10 @@ const styles = StyleSheet.create({
 		marginBottom: 30
 	},
 	biometryLabel: {
-		fontSize: 14,
-		color: colors.fontPrimary,
-		position: 'absolute',
-		top: 0,
-		left: 0
+		flex: 1,
+		fontSize: 16,
+		color: colors.black,
+		...fontStyles.normal
 	},
 	biometrySwitch: {
 		position: 'absolute',
@@ -156,11 +155,17 @@ const styles = StyleSheet.create({
 		right: 0
 	},
 	hintLabel: {
-		height: 20,
 		marginTop: 14,
-		fontSize: 12,
-		color: colors.grey450,
-		textAlign: 'left',
+		color: colors.black,
+		fontSize: 16,
+		marginBottom: 12,
+		...fontStyles.normal
+	},
+	passwordStrengthLabel: {
+		height: 20,
+		marginTop: 10,
+		fontSize: 16,
+		color: colors.black,
 		...fontStyles.normal
 	},
 	showPassword: {
@@ -571,14 +576,14 @@ class ChoosePassword extends PureComponent {
 										autoCapitalize="none"
 									/>
 									{(password !== '' && (
-										<Text style={styles.hintLabel}>
+										<Text style={styles.passwordStrengthLabel}>
 											{strings('choose_password.password_strength')}
 											<Text style={styles[`strength_${passwordStrengthWord}`]}>
 												{' '}
 												{strings(`choose_password.strength_${passwordStrengthWord}`)}
 											</Text>
 										</Text>
-									)) || <Text style={styles.hintLabel} />}
+									)) || <Text style={styles.passwordStrengthLabel} />}
 								</View>
 								<View style={styles.field}>
 									<Text style={styles.hintLabel}>{strings('choose_password.confirm_password')}</Text>
@@ -600,7 +605,7 @@ class ChoosePassword extends PureComponent {
 											<Icon name="check" size={16} color={colors.green300} />
 										) : null}
 									</View>
-									<Text style={styles.hintLabel}>
+									<Text style={styles.passwordStrengthLabel}>
 										{strings('choose_password.must_be_at_least', { number: 8 })}
 									</Text>
 								</View>

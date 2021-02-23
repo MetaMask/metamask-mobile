@@ -77,7 +77,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'row-reverse'
 	},
 	label: {
-		fontSize: 14,
+		color: colors.black,
+		fontSize: 16,
 		marginBottom: 12,
 		...fontStyles.normal
 	},
@@ -113,6 +114,7 @@ const styles = StyleSheet.create({
 	biometryLabel: {
 		flex: 1,
 		fontSize: 16,
+		color: colors.black,
 		...fontStyles.normal
 	},
 	biometrySwitch: {
@@ -124,11 +126,9 @@ const styles = StyleSheet.create({
 	},
 	passwordStrengthLabel: {
 		height: 20,
-		marginLeft: 5,
 		marginTop: 10,
-		fontSize: 12,
-		color: colors.fontSecondary,
-		textAlign: 'left',
+		fontSize: 16,
+		color: colors.black,
 		...fontStyles.normal
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
