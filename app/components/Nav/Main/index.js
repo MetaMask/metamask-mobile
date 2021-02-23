@@ -200,6 +200,24 @@ const Main = props => {
 		[props.navigation, props.transactions]
 	);
 
+	const trackSwaps = useCallback(
+		(event, transactionMeta) => {
+			InteractionManager.runAfterInteractions(() => {
+				const newSwapsTransactions = props.swapsTransactions;
+				const analytics = newSwapsTransactions[transactionMeta.id]?.analytics;
+				const time_to_mine = Date.now() - analytics.sent_at;
+				delete analytics.sent_at;
+				Analytics.trackEventWithParameters(event, {
+					...analytics,
+					time_to_mine
+				});
+				delete newSwapsTransactions[transactionMeta.id].analytics;
+				Engine.context.TransactionController.update({ swapsTransactions: newSwapsTransactions });
+			});
+		},
+		[props.swapsTransactions]
+	);
+
 	const autoSign = useCallback(
 		async transactionMeta => {
 			const { TransactionController } = Engine.context;
@@ -212,17 +230,8 @@ const Main = props => {
 							assetType: transactionMeta.transaction.assetType
 						});
 					} else {
-						const newSwapsTransactions = props.swapsTransactions;
-						if (newSwapsTransactions[transactionMeta.id]?.analytics) {
-							InteractionManager.runAfterInteractions(() => {
-								const analytics = newSwapsTransactions[transactionMeta.id]?.analytics;
-								Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_FAILED, {
-									...analytics,
-									time_to_mine: Date.now() - analytics.sent_at
-								});
-								delete newSwapsTransactions[transactionMeta.id].analytics;
-								TransactionController.update({ swapsTransactions: newSwapsTransactions });
-							});
+						if (props.swapsTransactions[transactionMeta.id]?.analytics) {
+							trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_FAILED, transactionMeta);
 						}
 						throw transactionMeta.error;
 					}
@@ -230,15 +239,7 @@ const Main = props => {
 				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, transactionMeta => {
 					const newSwapsTransactions = props.swapsTransactions;
 					if (newSwapsTransactions[transactionMeta.id]?.analytics) {
-						InteractionManager.runAfterInteractions(() => {
-							const analytics = newSwapsTransactions[transactionMeta.id]?.analytics;
-							Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, {
-								...analytics,
-								time_to_mine: Date.now() - analytics.sent_at
-							});
-							delete newSwapsTransactions[transactionMeta.id].analytics;
-							TransactionController.update({ swapsTransactions: newSwapsTransactions });
-						});
+						trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
 					}
 				});
 				await TransactionController.approveTransaction(transactionMeta.id);
@@ -249,7 +250,7 @@ const Main = props => {
 				Logger.error(error, 'error while trying to send transaction (Main)');
 			}
 		},
-		[props.navigation, props.swapsTransactions]
+		[props.navigation, props.swapsTransactions, trackSwaps]
 	);
 
 	const onUnapprovedTransaction = useCallback(
