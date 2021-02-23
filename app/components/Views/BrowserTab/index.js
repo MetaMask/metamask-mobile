@@ -27,7 +27,7 @@ import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
-import Networks, { getAllNetworks } from '../../../util/networks';
+import Networks, { getAllNetworks, isPrefixedFormattedHexString, isSafeChainId } from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
 import { SPA_urlChangeListener, JS_DESELECT_TEXT, JS_WEBVIEW_URL } from '../../../util/browserScripts';
@@ -61,6 +61,12 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import { getVersion } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
 import { RPC } from '../../../constants/network';
+
+// Remove from here
+import validUrl from 'valid-url';
+import { NetworksChainId } from '@metamask/controllers';
+import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
+//
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -408,6 +414,149 @@ export const BrowserTab = props => {
 			};
 
 			const rpcMethods = {
+				wallet_addEthereumChain: async () => {
+					const params = {
+						chainId: '0x1F',
+						chainName: 'RSK Testnet',
+						blockExplorerUrls: ['https://explorer.testnet.rsk.co'],
+						nativeCurrency: { symbol: 'tR-BTC', decimals: 18 },
+						rpcUrls: ['https://public-node.testnet.rsk.co']
+					};
+					const {
+						chainId,
+						chainName = null,
+						blockExplorerUrls = null,
+						nativeCurrency = null,
+						rpcUrls
+					} = params;
+
+					const allowedKeys = {
+						chainId: true,
+						chainName: true,
+						blockExplorerUrls: true,
+						nativeCurrency: true,
+						rpcUrls: true
+					};
+
+					const extraKeys = Object.keys(params).filter(key => !allowedKeys[key]);
+					if (extraKeys.length) {
+						throw ethErrors.rpc.invalidParams(
+							`Received unexpected keys on object parameter. Unsupported keys:\n${extraKeys}`
+						);
+					}
+
+					const firstValidRPCUrl = Array.isArray(rpcUrls)
+						? rpcUrls.find(rpcUrl => validUrl.isHttpsUri(rpcUrl))
+						: null;
+
+					const firstValidBlockExplorerUrl =
+						blockExplorerUrls !== null && Array.isArray(blockExplorerUrls)
+							? blockExplorerUrls.find(blockExplorerUrl => validUrl.isHttpsUri(blockExplorerUrl))
+							: null;
+
+					if (!firstValidRPCUrl) {
+						throw ethErrors.rpc.invalidParams(
+							`Expected an array with at least one valid string HTTPS url 'rpcUrls', Received:\n${rpcUrls}`
+						);
+					}
+
+					if (blockExplorerUrls !== null && !firstValidBlockExplorerUrl) {
+						throw ethErrors.rpc.invalidParams(
+							`Expected null or array with at least one valid string HTTPS URL 'blockExplorerUrl'. Received: ${blockExplorerUrls}`
+						);
+					}
+
+					const _chainId = typeof chainId === 'string' && chainId.toLowerCase();
+
+					if (!isPrefixedFormattedHexString(_chainId)) {
+						throw ethErrors.rpc.invalidParams(
+							`Expected 0x-prefixed, unpadded, non-zero hexadecimal string 'chainId'. Received:\n${chainId}`
+						);
+					}
+
+					if (!isSafeChainId(parseInt(_chainId, 16))) {
+						throw ethErrors.rpc.invalidParams(
+							`Invalid chain ID "${_chainId}": numerical value greater than max safe value. Received:\n${chainId}`
+						);
+					}
+
+					if (NetworksChainId[_chainId]) {
+						throw ethErrors.rpc.invalidParams(`May not specify default MetaMask chain.`);
+					}
+
+					/**
+					 * TODO existingNetwork?
+					 */
+
+					let endpointChainId;
+
+					try {
+						endpointChainId = await jsonRpcRequest(firstValidRPCUrl, 'eth_chainId');
+					} catch (err) {
+						throw ethErrors.rpc.internal({
+							message: `Request for method 'eth_chainId on ${firstValidRPCUrl} failed`,
+							data: { networkErr: err }
+						});
+					}
+
+					if (_chainId !== endpointChainId) {
+						throw ethErrors.rpc.invalidParams({
+							message: `Chain ID returned by RPC URL ${firstValidRPCUrl} does not match ${_chainId}`,
+							data: { chainId: endpointChainId }
+						});
+					}
+
+					if (typeof chainName !== 'string' || !chainName) {
+						throw ethErrors.rpc.invalidParams({
+							message: `Expected non-empty string 'chainName'. Received:\n${chainName}`
+						});
+					}
+					const _chainName = chainName.length > 100 ? chainName.substring(0, 100) : chainName;
+
+					if (nativeCurrency !== null) {
+						if (typeof nativeCurrency !== 'object' || Array.isArray(nativeCurrency)) {
+							throw ethErrors.rpc.invalidParams({
+								message: `Expected null or object 'nativeCurrency'. Received:\n${nativeCurrency}`
+							});
+						}
+						if (nativeCurrency.decimals !== 18) {
+							throw ethErrors.rpc.invalidParams({
+								message: `Expected the number 18 for 'nativeCurrency.decimals' when 'nativeCurrency' is provided. Received: ${
+									nativeCurrency.decimals
+								}`
+							});
+						}
+
+						if (!nativeCurrency.symbol || typeof nativeCurrency.symbol !== 'string') {
+							throw ethErrors.rpc.invalidParams({
+								message: `Expected a string 'nativeCurrency.symbol'. Received: ${nativeCurrency.symbol}`
+							});
+						}
+					}
+					const ticker = nativeCurrency?.symbol || 'ETH';
+
+					if (typeof ticker !== 'string' || ticker.length < 2 || ticker.length > 6) {
+						throw ethErrors.rpc.invalidParams({
+							message: `Expected 2-6 character string 'nativeCurrency.symbol'. Received:\n${ticker}`
+						});
+					}
+
+					const requestData = {
+						chainId: _chainId,
+						blockExplorerUrl: firstValidBlockExplorerUrl,
+						chainName: _chainName,
+						rpcUrl: firstValidRPCUrl,
+						ticker
+					};
+
+					/**
+					 * TODO add new network
+					 */
+
+					console.log(requestData);
+
+					res.result = requestData;
+				},
 				eth_chainId: async () => {
 					const { networkType, networkProvider } = props;
 
