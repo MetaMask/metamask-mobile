@@ -203,53 +203,59 @@ const Main = props => {
 
 	const trackSwaps = useCallback(
 		(event, transactionMeta) => {
-			InteractionManager.runAfterInteractions(async () => {
-				const { TransactionController } = Engine.context;
-				const newSwapsTransactions = props.swapsTransactions;
-				const swapTransaction = newSwapsTransactions[transactionMeta.id];
-				const analytics = swapTransaction.analytics;
-				delete analytics.sent_at;
-				const approvalTransactionMetaId = analytics.approvalTransactionMetaId;
-				const approvalTransaction = TransactionController.state.transactions.find(
-					({ id }) => id === approvalTransactionMetaId
-				);
-				const receipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
-					transactionMeta.transactionHash
-				]);
-				let approvalReceipt;
-				if (approvalTransaction?.transactionHash) {
-					approvalReceipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
-						approvalTransaction.transactionHash
+			InteractionManager.runAfterInteractions(() => {
+				setTimeout(async () => {
+					const { TransactionController, AccountTrackerController } = Engine.context;
+					const newSwapsTransactions = props.swapsTransactions;
+					const swapTransaction = newSwapsTransactions[transactionMeta.id];
+					const analytics = swapTransaction.analytics;
+					delete analytics.sent_at;
+					const approvalTransactionMetaId = analytics.approvalTransactionMetaId;
+					const approvalTransaction = TransactionController.state.transactions.find(
+						({ id }) => id === approvalTransactionMetaId
+					);
+					const receipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
+						transactionMeta.transactionHash
 					]);
-				}
-				const analyticsInformation = swapsUtils.getSwapTransactionAnalyticsInformation(
-					receipt,
-					approvalReceipt,
-					transactionMeta?.transaction?.gasPrice,
-					approvalTransaction?.transaction?.gasPrice,
-					{ address: swapTransaction.destinationToken, decimals: swapTransaction.destinationTokenDecimals },
-					analytics.ethAccountBalance,
-					props.accounts[props.selectedAddress].balance
-				);
+					let approvalReceipt;
+					if (approvalTransaction?.transactionHash) {
+						approvalReceipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
+							approvalTransaction.transactionHash
+						]);
+					}
+					const accounts = AccountTrackerController.state.accounts;
+					const analyticsInformation = swapsUtils.getSwapTransactionAnalyticsInformation(
+						receipt,
+						approvalReceipt,
+						transactionMeta?.transaction,
+						approvalTransaction?.transaction,
+						{
+							address: swapTransaction.destinationToken,
+							decimals: swapTransaction.destinationTokenDecimals
+						},
+						analytics.ethAccountBalance,
+						accounts[props.selectedAddress].balance
+					);
 
-				console.log('analyticsInformation', analyticsInformation);
+					console.log('analyticsInformation', analyticsInformation);
 
-				const timeToMine = Date.now() - analytics.sentAt;
-				const estimatedVsUsedGasRatio = `${new BigNumber(receipt.gasUsed)
-					.div(analytics.gasEstimate)
-					.times(100)
-					.toFixed(2)}%`;
-				Analytics.trackEventWithParameters(event, {
-					...analytics,
-					time_to_mine: timeToMine,
-					estimated_vs_used_gasRatio: estimatedVsUsedGasRatio
-				});
-				delete newSwapsTransactions[transactionMeta.id].analytics;
-				newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
-				TransactionController.update({ swapsTransactions: newSwapsTransactions });
+					const timeToMine = Date.now() - analytics.sentAt;
+					const estimatedVsUsedGasRatio = `${new BigNumber(receipt.gasUsed)
+						.div(analytics.gasEstimate)
+						.times(100)
+						.toFixed(2)}%`;
+					Analytics.trackEventWithParameters(event, {
+						...analytics,
+						time_to_mine: timeToMine,
+						estimated_vs_used_gasRatio: estimatedVsUsedGasRatio
+					});
+					delete newSwapsTransactions[transactionMeta.id].analytics;
+					newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
+					TransactionController.update({ swapsTransactions: newSwapsTransactions });
+				}, 10000);
 			});
 		},
-		[props.accounts, props.selectedAddress, props.swapsTransactions]
+		[props.selectedAddress, props.swapsTransactions]
 	);
 
 	const autoSign = useCallback(
@@ -850,7 +856,6 @@ const Main = props => {
 Main.router = MainNavigator.router;
 
 Main.propTypes = {
-	accounts: PropTypes.object,
 	swapsTransactions: PropTypes.object,
 	/**
 	 * Object that represents the navigator
@@ -936,7 +941,6 @@ Main.propTypes = {
 };
 
 const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	lockTime: state.settings.lockTime,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
