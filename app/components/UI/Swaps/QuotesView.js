@@ -161,8 +161,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexWrap: 'wrap',
 		flexDirection: 'row',
-		justifyContent: 'space-between',
-		marginRight: 6
+		marginRight: 3
 	},
 	quotesLegend: {
 		flexDirection: 'row',
@@ -170,8 +169,11 @@ const styles = StyleSheet.create({
 		marginRight: 2
 	},
 	quotesFiatColumn: {
-		alignItems: 'flex-end',
-		justifyContent: 'center'
+		flex: 1,
+		marginLeft: 3,
+		flexWrap: 'wrap',
+		flexDirection: 'row',
+		justifyContent: 'flex-end'
 	},
 	infoIcon: {
 		fontSize: 12,
@@ -1110,13 +1112,13 @@ function SwapsQuotesView({
 											{strings('swaps.estimated_gas_fee')}
 										</Text>
 									</View>
+								</View>
+								<View style={styles.quotesFiatColumn}>
 									<Text primary bold>
 										{renderFromWei(toWei(gasFee))} ETH
 									</Text>
-								</View>
-								<View style={styles.quotesFiatColumn}>
 									<Text primary bold upper>
-										{weiToFiat(toWei(gasFee), conversionRate, currentCurrency)}
+										{`  ${weiToFiat(toWei(gasFee), conversionRate, currentCurrency)}`}
 									</Text>
 								</View>
 							</View>
@@ -1131,10 +1133,12 @@ function SwapsQuotesView({
 											</TouchableOpacity>
 										)}
 									</View>
-									<Text>{renderFromWei(toWei(maxGasFee))} ETH</Text>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text upper>{weiToFiat(toWei(maxGasFee), conversionRate, currentCurrency)}</Text>
+									<Text>{renderFromWei(toWei(maxGasFee))} ETH</Text>
+									<Text upper>
+										{`  ${weiToFiat(toWei(maxGasFee), conversionRate, currentCurrency)}`}
+									</Text>
 								</View>
 							</View>
 
