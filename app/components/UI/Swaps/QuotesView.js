@@ -511,6 +511,7 @@ function SwapsQuotesView({
 				sourceToken: sourceToken.address,
 				sourceAmount: renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals),
 				destinationToken: destinationToken.address,
+				destinationTokenDecimals: destinationToken.decimals,
 				destinationAmount: renderFromTokenMinimalUnit(
 					selectedQuote.destinationAmount,
 					destinationToken.decimals
@@ -533,7 +534,7 @@ function SwapsQuotesView({
 					network_fees_ETH: renderFromWei(toWei(gasFee)),
 					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
 					sentAt: Date.now(),
-					gasEstimate: approvalTransaction ? selectedQuote?.gasEstimate : selectedQuote?.maxGas
+					gasEstimate: approvalTransaction ? selectedQuote?.maxGas : selectedQuote?.gasEstimate
 					// quote_vs_executionRatio: '',
 					// average_savings: '',
 					// estimated_vs_used_gasRatio: '',

@@ -206,11 +206,24 @@ const Main = props => {
 			InteractionManager.runAfterInteractions(async () => {
 				const { TransactionController } = Engine.context;
 				const newSwapsTransactions = props.swapsTransactions;
-				const analytics = newSwapsTransactions[transactionMeta.id].analytics;
+				const swapTransaction = newSwapsTransactions[transactionMeta.id];
+				const analytics = swapTransaction.analytics;
 				delete analytics.sent_at;
 				const receipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
 					transactionMeta.transactionHash
 				]);
+				const analyticsInformation = swapsUtils.getSwapTransactionAnalyticsInformation(
+					receipt,
+					undefined,
+					transactionMeta.transaction,
+					undefined,
+					{ address: swapTransaction.destinationToken, decimals: swapTransaction.destinationTokenDecimals },
+					'0x0',
+					'0x0'
+				);
+
+				console.log('analyticsInformation', analyticsInformation);
+
 				const timeToMine = Date.now() - analytics.sentAt;
 				const estimatedVsUsedGasRatio = `${new BigNumber(receipt.gasUsed)
 					.div(analytics.gasEstimate)
