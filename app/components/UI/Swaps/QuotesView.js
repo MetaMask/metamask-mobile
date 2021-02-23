@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
 	},
 	errorViewContent: {
 		flex: 1,
-		marginHorizontal: 55,
+		marginHorizontal: Device.isSmallDevice() ? 20 : 55,
 		justifyContent: 'center'
 	},
 	errorTitle: {
