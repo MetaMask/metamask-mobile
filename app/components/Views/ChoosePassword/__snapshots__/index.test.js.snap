@@ -110,6 +110,7 @@ exports[`ChoosePassword should render correctly 1`] = `
         <View
           style={
             Object {
+              "marginVertical": 5,
               "position": "relative",
             }
           }
@@ -193,6 +194,7 @@ exports[`ChoosePassword should render correctly 1`] = `
         <View
           style={
             Object {
+              "marginVertical": 5,
               "position": "relative",
             }
           }

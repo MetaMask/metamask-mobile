@@ -180,6 +180,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         style={
           Object {
             "marginVertical": 5,
+            "position": "relative",
           }
         }
       >
@@ -299,6 +300,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         style={
           Object {
             "marginVertical": 5,
+            "position": "relative",
           }
         }
       >
@@ -358,8 +360,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
           style={
             Object {
               "alignSelf": "flex-end",
-              "marginTop": 8,
               "position": "absolute",
+              "right": 17,
+              "top": 52,
             }
           }
         />
