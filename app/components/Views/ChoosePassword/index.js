@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
 		textDecorationColor: colors.blue
 	},
 	field: {
+		marginVertical: 5,
 		position: 'relative'
 	},
 	input: {

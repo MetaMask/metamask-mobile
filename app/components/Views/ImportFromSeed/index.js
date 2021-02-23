@@ -64,7 +64,8 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	field: {
-		marginVertical: 5
+		marginVertical: 5,
+		position: 'relative'
 	},
 	fieldRow: {
 		flexDirection: 'row',
@@ -145,7 +146,8 @@ const styles = StyleSheet.create({
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
-		marginTop: 8,
+		top: 52,
+		right: 17,
 		alignSelf: 'flex-end'
 	},
 	qrCode: {
@@ -553,7 +555,7 @@ class ImportFromSeed extends PureComponent {
 
 							<View style={styles.showMatchingPasswords}>
 								{password !== '' && password === confirmPassword ? (
-									<Icon name="check" size={12} color={colors.green300} />
+									<Icon name="check" size={16} color={colors.green300} />
 								) : null}
 							</View>
 							<Text style={styles.passwordStrengthLabel}>
