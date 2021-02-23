@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
 	},
 	errorViewContent: {
 		flex: 1,
-		marginHorizontal: 55,
+		marginHorizontal: Device.isSmallDevice() ? 20 : 55,
 		justifyContent: 'center'
 	},
 	errorTitle: {
@@ -155,7 +155,8 @@ const styles = StyleSheet.create({
 		flexWrap: 'wrap'
 	},
 	quotesRow: {
-		flexDirection: 'row'
+		flexDirection: 'row',
+		flexWrap: 'wrap'
 	},
 	quotesDescription: {
 		flex: 1,
@@ -1144,18 +1145,18 @@ function SwapsQuotesView({
 
 							{!!approvalTransaction && !unableToSwap && (
 								<View style={styles.quotesRow}>
-									<View style={styles.quotesRow}>
+									<Text>
 										<Text>{`${strings('swaps.enable.this_will')} `}</Text>
 										<Text bold>
 											{`${strings('swaps.enable.enable_asset', {
 												asset: sourceToken.symbol
 											})} `}
 										</Text>
-										<Text>{`${strings('swaps.enable.for_swapping')}`}</Text>
-										<TouchableOpacity onPress={onEditQuoteTransactionsApproveAmount}>
-											<Text link>{` ${strings('swaps.enable.edit_limit')}`}</Text>
-										</TouchableOpacity>
-									</View>
+										<Text>{`${strings('swaps.enable.for_swapping')} `}</Text>
+									</Text>
+									<TouchableOpacity onPress={onEditQuoteTransactionsApproveAmount}>
+										<Text link>{`${strings('swaps.enable.edit_limit')}`}</Text>
+									</TouchableOpacity>
 								</View>
 							)}
 							<QuotesSummary.Separator />
