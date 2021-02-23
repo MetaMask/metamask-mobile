@@ -921,7 +921,8 @@ function SwapsQuotesView({
 		);
 	}
 
-	const disabledView = shouldDisplaySlippage && !hasDismissedSlippageAlert;
+	const disabledView =
+		shouldDisplaySlippage && !hasDismissedSlippageAlert && hasEnoughTokenBalance && hasEnoughEthBalance;
 
 	return (
 		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
@@ -943,11 +944,9 @@ function SwapsQuotesView({
 								: `${strings('swaps.more_gas_to_complete')} `}
 							{(sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ||
 								(hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
-								<TouchableOpacity onPress={buyEth}>
-									<Text reset link underline small>
-										{strings('swaps.buy_more_eth')}
-									</Text>
-								</TouchableOpacity>
+								<Text link underline small onPress={buyEth}>
+									{strings('swaps.buy_more_eth')}
+								</Text>
 							)}
 						</Alert>
 					</View>
