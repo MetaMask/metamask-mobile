@@ -67,8 +67,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
           <Text
             style={
               Object {
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "marginBottom": 12,
               }
@@ -95,8 +96,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
             <Text
               style={
                 Object {
+                  "color": "#24292E",
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "marginBottom": 12,
                 }
@@ -199,8 +201,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
             <Text
               style={
                 Object {
+                  "color": "#24292E",
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "marginBottom": 12,
                 }
@@ -227,8 +230,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
               <Text
                 style={
                   Object {
+                    "color": "#24292E",
                     "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "marginBottom": 12,
                   }
@@ -281,14 +285,12 @@ exports[`ImportFromSeed should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#777777",
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontSize": 16,
               "fontWeight": "400",
               "height": 20,
-              "marginLeft": 5,
               "marginTop": 10,
-              "textAlign": "left",
             }
           }
         />
@@ -303,8 +305,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
         <Text
           style={
             Object {
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "400",
               "marginBottom": 12,
             }
@@ -363,14 +366,12 @@ exports[`ImportFromSeed should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#777777",
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontSize": 16,
               "fontWeight": "400",
               "height": 20,
-              "marginLeft": 5,
               "marginTop": 10,
-              "textAlign": "left",
             }
           }
         >
@@ -388,6 +389,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         <Text
           style={
             Object {
+              "color": "#24292E",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
