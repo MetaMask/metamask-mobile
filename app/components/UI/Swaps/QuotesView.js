@@ -499,11 +499,14 @@ function SwapsQuotesView({
 				selectedQuote.trade,
 				process.env.MM_FOX_CODE
 			);
+			console.log('added rx');
 			const blockNumber = await util.query(TransactionController.ethQuery, 'blockNumber', []);
+			console.log('added blockNumber0', blockNumber);
 			const currentBlock = await util.query(TransactionController.ethQuery, 'getBlockByNumber', [
 				blockNumber,
 				false
 			]);
+			console.log('added currentBlock', currentBlock);
 			newSwapsTransactions[transactionMeta.id] = {
 				action: 'swap',
 				sourceToken: sourceToken.address,
