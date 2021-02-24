@@ -261,25 +261,21 @@ class Transactions extends PureComponent {
 	};
 
 	speedUpTransaction = () => {
-		InteractionManager.runAfterInteractions(() => {
-			try {
-				Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId);
-			} catch (e) {
-				// ignore because transaction already went through
-			}
-			this.onSpeedUpCompleted();
-		});
+		try {
+			Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId);
+		} catch (e) {
+			// ignore because transaction already went through
+		}
+		this.onSpeedUpCompleted();
 	};
 
 	cancelTransaction = () => {
-		InteractionManager.runAfterInteractions(() => {
-			try {
-				Engine.context.TransactionController.stopTransaction(this.cancelTxId);
-			} catch (e) {
-				// ignore because transaction already went through
-			}
-			this.onCancelCompleted();
-		});
+		try {
+			Engine.context.TransactionController.stopTransaction(this.cancelTxId);
+		} catch (e) {
+			// ignore because transaction already went through
+		}
+		this.onCancelCompleted();
 	};
 
 	renderItem = ({ item, index }) => (

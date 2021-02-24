@@ -584,7 +584,7 @@ exports[`CustomGas should render correctly 1`] = `
             "position": "relative",
           }
         }
-        value="10"
+        value="0"
       />
     </View>
     <View

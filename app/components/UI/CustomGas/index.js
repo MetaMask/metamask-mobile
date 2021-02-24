@@ -296,7 +296,7 @@ class CustomGas extends PureComponent {
 		customGasPrice: '10',
 		customGasLimit: fromWei(this.props.gas, 'wei'),
 		customGasPriceBNWei: this.props.gasPrice,
-		customGasPriceBN: new BN(Math.round(this.props.basicGasEstimates.averageGwei)),
+		customGasPriceBN: fromWei(this.props.gasPrice, 'gwei'),
 		customGasLimitBN: this.props.gas,
 		warningGasLimit: '',
 		warningGasPrice: '',

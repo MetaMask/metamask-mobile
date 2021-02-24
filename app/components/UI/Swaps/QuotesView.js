@@ -450,6 +450,68 @@ function SwapsQuotesView({
 		}
 	}, [errorKey, slippage, sourceToken, destinationToken, sourceAmount, selectedAddress, navigation]);
 
+	const updateSwapsTransactions = useCallback(
+		async (transactionMeta, approvalTransactionMetaId, newSwapsTransactions) => {
+			const { TransactionController } = Engine.context;
+			const blockNumber = await util.query(TransactionController.ethQuery, 'blockNumber', []);
+			const currentBlock = await util.query(TransactionController.ethQuery, 'getBlockByNumber', [
+				blockNumber,
+				false
+			]);
+			newSwapsTransactions[transactionMeta.id] = {
+				action: 'swap',
+				sourceToken: sourceToken.address,
+				sourceAmount: renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals),
+				destinationToken: destinationToken.address,
+				destinationTokenDecimals: destinationToken.decimals,
+				destinationAmount: renderFromTokenMinimalUnit(
+					selectedQuote.destinationAmount,
+					destinationToken.decimals
+				),
+				sourceAmountInFiat: weiToFiat(
+					toWei(selectedQuote.priceSlippage?.sourceAmountInETH),
+					conversionRate,
+					currentCurrency
+				),
+				analytics: {
+					token_from: sourceToken.symbol,
+					token_from_amount: sourceAmount,
+					token_to: destinationToken.symbol,
+					token_to_amount: selectedQuote.destinationAmount,
+					request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
+					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+					best_quote_source: selectedQuote.aggregator,
+					available_quotes: allQuotes.length,
+					network_fees_USD: weiToFiat(toWei(gasFee), conversionRate, currentCurrency),
+					network_fees_ETH: renderFromWei(toWei(gasFee)),
+					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote
+				},
+				paramsForAnalytics: {
+					sentAt: currentBlock.timestamp,
+					gasEstimate: selectedQuote?.gasEstimate || selectedQuote?.maxGas,
+					ethAccountBalance: accounts[selectedAddress].balance,
+					approvalTransactionMetaId
+				}
+			};
+			TransactionController.update({ swapsTransactions: newSwapsTransactions });
+		},
+		[
+			accounts,
+			selectedAddress,
+			currentCurrency,
+			selectedQuote,
+			sourceToken,
+			sourceAmount,
+			destinationToken,
+			hasEnoughTokenBalance,
+			slippage,
+			allQuotes,
+			selectedQuoteId,
+			conversionRate,
+			gasFee
+		]
+	);
+
 	const handleCompleteSwap = useCallback(async () => {
 		if (!selectedQuote) {
 			return;
@@ -502,59 +564,13 @@ function SwapsQuotesView({
 				selectedQuote.trade,
 				process.env.MM_FOX_CODE
 			);
-			const blockNumber = await util.query(TransactionController.ethQuery, 'blockNumber', []);
-			const currentBlock = await util.query(TransactionController.ethQuery, 'getBlockByNumber', [
-				blockNumber,
-				false
-			]);
-			newSwapsTransactions[transactionMeta.id] = {
-				action: 'swap',
-				sourceToken: sourceToken.address,
-				sourceAmount: renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals),
-				destinationToken: destinationToken.address,
-				destinationTokenDecimals: destinationToken.decimals,
-				destinationAmount: renderFromTokenMinimalUnit(
-					selectedQuote.destinationAmount,
-					destinationToken.decimals
-				),
-				sourceAmountInFiat: weiToFiat(
-					toWei(selectedQuote.priceSlippage?.sourceAmountInETH),
-					conversionRate,
-					currentCurrency
-				),
-				analytics: {
-					token_from: sourceToken.symbol,
-					token_from_amount: fromTokenMinimalUnitString(sourceAmount, sourceToken.decimals),
-					token_to: destinationToken.symbol,
-					token_to_amount: fromTokenMinimalUnitString(
-						selectedQuote.destinationAmount,
-						destinationToken.decimals
-					),
-					request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
-					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-					best_quote_source: selectedQuote.aggregator,
-					available_quotes: allQuotes.length,
-					network_fees_USD: weiToFiat(toWei(gasFee), conversionRate, currentCurrency),
-					network_fees_ETH: renderFromWei(toWei(gasFee)),
-					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote
-				},
-				paramsForAnalytics: {
-					sentAt: currentBlock.timestamp,
-					gasEstimate: selectedQuote?.gasEstimate || selectedQuote?.maxGas,
-					ethAccountBalance: accounts[selectedAddress].balance,
-					approvalTransactionMetaId
-				}
-			};
+			updateSwapsTransactions(transactionMeta, approvalTransactionMetaId, newSwapsTransactions);
 		} catch (e) {
 			// send analytics
 		}
 
-		TransactionController.update({ swapsTransactions: newSwapsTransactions });
 		navigation.dismiss();
 	}, [
-		accounts,
-		selectedAddress,
-		currentCurrency,
 		navigation,
 		selectedQuote,
 		approvalTransaction,
@@ -569,7 +585,7 @@ function SwapsQuotesView({
 		conversionRate,
 		gasPrice,
 		gasLimit,
-		gasFee
+		updateSwapsTransactions
 	]);
 
 	const onEditQuoteTransactionsGas = useCallback(() => {
