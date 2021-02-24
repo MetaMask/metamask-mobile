@@ -520,9 +520,9 @@ function SwapsQuotesView({
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, {
 				token_from: sourceToken.symbol,
-				token_from_amount: sourceAmount,
+				token_from_amount: fromTokenMinimalUnitString(sourceAmount, sourceToken.decimals),
 				token_to: destinationToken.symbol,
-				token_to_amount: selectedQuote.destinationAmount,
+				token_to_amount: fromTokenMinimalUnitString(selectedQuote.destinationAmount, destinationToken.decimals),
 				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
@@ -617,9 +617,9 @@ function SwapsQuotesView({
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.EDIT_SPEND_LIMIT_OPENED, {
 				token_from: sourceToken.symbol,
-				token_from_amount: sourceAmount,
+				token_from_amount: fromTokenMinimalUnitString(sourceAmount, sourceToken.decimals),
 				token_to: destinationToken.symbol,
-				token_to_amount: selectedQuote.destinationAmount,
+				token_to_amount: fromTokenMinimalUnitString(selectedQuote.destinationAmount, destinationToken.decimals),
 				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
@@ -671,9 +671,9 @@ function SwapsQuotesView({
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
 				token_from: sourceToken.symbol,
-				token_from_amount: sourceAmount,
+				token_from_amount: fromTokenMinimalUnitString(sourceAmount, sourceToken.decimals),
 				token_to: destinationToken.symbol,
-				token_to_amount: selectedQuote.destinationAmount,
+				token_to_amount: fromTokenMinimalUnitString(selectedQuote.destinationAmount, destinationToken.decimals),
 				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
@@ -703,9 +703,9 @@ function SwapsQuotesView({
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
 				token_from: sourceToken.symbol,
-				token_from_amount: sourceAmount,
+				token_from_amount: fromTokenMinimalUnitString(sourceAmount, sourceToken.decimals),
 				token_to: destinationToken.symbol,
-				token_to_amount: selectedQuote.destinationAmount,
+				token_to_amount: fromTokenMinimalUnitString(selectedQuote.destinationAmount, destinationToken.decimals),
 				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
@@ -734,7 +734,7 @@ function SwapsQuotesView({
 		errorKey => {
 			const data = {
 				token_from: sourceToken.symbol,
-				token_from_amount: sourceAmount,
+				token_from_amount: fromTokenMinimalUnitString(sourceAmount, sourceToken.decimals),
 				token_to: destinationToken.symbol,
 				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
@@ -892,7 +892,7 @@ function SwapsQuotesView({
 		setTrackedRequestedQuotes(true);
 		const data = {
 			token_from: sourceToken.symbol,
-			token_from_amount: sourceAmount,
+			token_from_amount: fromTokenMinimalUnitString(sourceAmount, sourceToken.decimals),
 			token_to: destinationToken.symbol,
 			request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
