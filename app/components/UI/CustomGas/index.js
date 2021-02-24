@@ -66,7 +66,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		alignSelf: 'center',
-		width: '100%'
+		width: '100%',
+		marginBottom: 10
 	},
 	warningTextWrapper: {
 		width: '100%',
