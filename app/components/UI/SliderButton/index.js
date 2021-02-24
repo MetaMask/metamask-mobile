@@ -13,7 +13,7 @@ const DIAMETER = 60;
 const MARGIN = DIAMETER * 0.16;
 const COMPLETE_VERTICAL_THRESHOLD = DIAMETER * 2;
 const COMPLETE_THRESHOLD = 0.85;
-const COMPLETE_DELAY = 1000;
+const COMPLETE_DELAY = 0;
 
 const styles = StyleSheet.create({
 	container: {
