@@ -527,7 +527,9 @@ function SwapsQuotesView({
 					available_quotes: allQuotes.length,
 					network_fees_USD: weiToFiat(toWei(gasFee), conversionRate, currentCurrency),
 					network_fees_ETH: renderFromWei(toWei(gasFee)),
-					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
+					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote
+				},
+				paramsForAnalytics: {
 					sentAt: Date.now(),
 					gasEstimate: selectedQuote?.gasEstimate || selectedQuote?.maxGas,
 					ethAccountBalance: accounts[selectedAddress].balance,

@@ -209,9 +209,13 @@ const Main = props => {
 						const { TransactionController, AccountTrackerController } = Engine.context;
 						const newSwapsTransactions = props.swapsTransactions;
 						const swapTransaction = newSwapsTransactions[transactionMeta.id];
-						const analytics = swapTransaction.analytics;
-						delete analytics.sent_at;
-						const approvalTransactionMetaId = analytics.approvalTransactionMetaId;
+						const {
+							sentAt,
+							gasEstimate,
+							ethAccountBalance,
+							approvalTransactionMetaId
+						} = swapTransaction.paramsForAnalytics;
+
 						const approvalTransaction = TransactionController.state.transactions.find(
 							({ id }) => id === approvalTransactionMetaId
 						);
@@ -236,13 +240,13 @@ const Main = props => {
 								address: swapTransaction.destinationToken,
 								decimals: swapTransaction.destinationTokenDecimals
 							},
-							analytics.ethAccountBalance,
+							ethAccountBalance,
 							accounts[props.selectedAddress].balance
 						);
 
-						const timeToMine = Date.now() - analytics.sentAt;
+						const timeToMine = Date.now() - sentAt;
 						const estimatedVsUsedGasRatio = `${new BigNumber(receipt.gasUsed)
-							.div(analytics.gasEstimate)
+							.div(gasEstimate)
 							.times(100)
 							.toFixed(2)}%`;
 						const quoteVsExecutionRatio = `${new BigNumber(tokensReceived)
@@ -251,13 +255,14 @@ const Main = props => {
 							.toFixed(2)}%`;
 
 						Analytics.trackEventWithParameters(event, {
-							...analytics,
+							...swapTransaction.analytics,
 							time_to_mine: timeToMine,
 							estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
 							quote_vs_executionRatio: quoteVsExecutionRatio,
 							token_to_amount_received: tokensReceived
 						});
 						delete newSwapsTransactions[transactionMeta.id].analytics;
+						delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 						newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
 						newSwapsTransactions[transactionMeta.id].destinationAmount = tokensReceived;
 						TransactionController.update({ swapsTransactions: newSwapsTransactions });
