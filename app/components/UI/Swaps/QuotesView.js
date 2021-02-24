@@ -8,8 +8,7 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { NavigationContext } from 'react-navigation';
-import { swapsUtils } from '@estebanmino/controllers';
-import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
+import { swapsUtils, util } from '@estebanmino/controllers';
 
 import {
 	BNToHex,
@@ -335,7 +334,7 @@ function SwapsQuotesView({
 	const gasLimit = useMemo(
 		() =>
 			(Boolean(customGasLimit) && BNToHex(customGasLimit)) ||
-			gasLimitWithMultiplier(selectedQuote?.trade?.gasEstimate, selectedQuote?.gasMultiplier) ||
+			gasLimitWithMultiplier(selectedQuote?.gasEstimate, selectedQuote?.gasMultiplier) ||
 			selectedQuote?.maxGas?.toString(16),
 		[customGasLimit, selectedQuote]
 	);
@@ -343,7 +342,7 @@ function SwapsQuotesView({
 	/* Total gas fee in decimal */
 	const gasFee = useMemo(() => {
 		if (customGasPrice) {
-			return calcTokenAmount(customGasPrice * gasLimit, 18);
+			return util.calcTokenAmount(customGasPrice * gasLimit, 18);
 		}
 		return selectedQuoteValue?.ethFee;
 	}, [selectedQuoteValue, customGasPrice, gasLimit]);
@@ -351,7 +350,7 @@ function SwapsQuotesView({
 	/* Maximum gas fee in decimal */
 	const maxGasFee = useMemo(() => {
 		if (customGasPrice && selectedQuote?.maxGas) {
-			return calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
+			return util.calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
 		}
 		return selectedQuoteValue?.maxEthFee;
 	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
@@ -458,9 +457,9 @@ function SwapsQuotesView({
 
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, {
-				token_from: sourceToken.address,
+				token_from: sourceToken.symbol,
 				token_from_amount: sourceAmount,
-				token_to: destinationToken.address,
+				token_to: destinationToken.symbol,
 				token_to_amount: selectedQuote.destinationAmount,
 				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
@@ -476,7 +475,7 @@ function SwapsQuotesView({
 		const { TransactionController } = Engine.context;
 
 		const newSwapsTransactions = TransactionController.state.swapsTransactions || {};
-
+		let approvalTransactionMetaId;
 		if (approvalTransaction) {
 			approvalTransaction.gasPrice = gasPrice;
 			try {
@@ -484,6 +483,7 @@ function SwapsQuotesView({
 					approvalTransaction,
 					process.env.MM_FOX_CODE
 				);
+				approvalTransactionMetaId = transactionMeta.id;
 				newSwapsTransactions[transactionMeta.id] = {
 					action: 'approval',
 					sourceToken: sourceToken.address,
@@ -494,7 +494,6 @@ function SwapsQuotesView({
 				// send analytics
 			}
 		}
-
 		// Modify gas limit for trade transaction only
 		selectedQuote.trade.gasPrice = gasPrice;
 		selectedQuote.trade.gas = gasLimit;
@@ -503,11 +502,17 @@ function SwapsQuotesView({
 				selectedQuote.trade,
 				process.env.MM_FOX_CODE
 			);
+			const blockNumber = await util.query(TransactionController.ethQuery, 'blockNumber', []);
+			const currentBlock = await util.query(TransactionController.ethQuery, 'getBlockByNumber', [
+				blockNumber,
+				false
+			]);
 			newSwapsTransactions[transactionMeta.id] = {
 				action: 'swap',
 				sourceToken: sourceToken.address,
 				sourceAmount: renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals),
 				destinationToken: destinationToken.address,
+				destinationTokenDecimals: destinationToken.decimals,
 				destinationAmount: renderFromTokenMinimalUnit(
 					selectedQuote.destinationAmount,
 					destinationToken.decimals
@@ -516,7 +521,26 @@ function SwapsQuotesView({
 					toWei(selectedQuote.priceSlippage?.sourceAmountInETH),
 					conversionRate,
 					currentCurrency
-				)
+				),
+				analytics: {
+					token_from: sourceToken.symbol,
+					token_from_amount: sourceAmount,
+					token_to: destinationToken.symbol,
+					token_to_amount: selectedQuote.destinationAmount,
+					request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
+					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+					best_quote_source: selectedQuote.aggregator,
+					available_quotes: allQuotes.length,
+					network_fees_USD: weiToFiat(toWei(gasFee), conversionRate, currentCurrency),
+					network_fees_ETH: renderFromWei(toWei(gasFee)),
+					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote
+				},
+				paramsForAnalytics: {
+					sentAt: currentBlock.timestamp,
+					gasEstimate: selectedQuote?.gasEstimate || selectedQuote?.maxGas,
+					ethAccountBalance: accounts[selectedAddress].balance,
+					approvalTransactionMetaId
+				}
 			};
 		} catch (e) {
 			// send analytics
@@ -525,6 +549,8 @@ function SwapsQuotesView({
 		TransactionController.update({ swapsTransactions: newSwapsTransactions });
 		navigation.dismiss();
 	}, [
+		accounts,
+		selectedAddress,
 		currentCurrency,
 		navigation,
 		selectedQuote,
@@ -539,7 +565,8 @@ function SwapsQuotesView({
 		selectedQuoteId,
 		conversionRate,
 		gasPrice,
-		gasLimit
+		gasLimit,
+		gasFee
 	]);
 
 	const onEditQuoteTransactionsGas = useCallback(() => {
@@ -570,9 +597,9 @@ function SwapsQuotesView({
 
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.EDIT_SPEND_LIMIT_OPENED, {
-				token_from: sourceToken.address,
+				token_from: sourceToken.symbol,
 				token_from_amount: sourceAmount,
-				token_to: destinationToken.address,
+				token_to: destinationToken.symbol,
 				token_to_amount: selectedQuote.destinationAmount,
 				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
@@ -590,7 +617,7 @@ function SwapsQuotesView({
 		approvalTransaction,
 		conversionRate,
 		currentCurrency,
-		destinationToken.address,
+		destinationToken,
 		gasFee,
 		hasEnoughTokenBalance,
 		originalApprovalTransaction,
@@ -598,8 +625,7 @@ function SwapsQuotesView({
 		selectedQuoteId,
 		slippage,
 		sourceAmount,
-		sourceToken.address,
-		sourceToken.decimals
+		sourceToken
 	]);
 
 	const onHandleGasFeeSelection = useCallback(
@@ -610,7 +636,11 @@ function SwapsQuotesView({
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, {
 					speed_set: details.mode === 'advanced' ? undefined : details.mode,
 					gas_mode: details.mode === 'advanced' ? 'Advanced' : 'Basic',
-					gas_fees: weiToFiat(toWei(calcTokenAmount(gasPrice * gas, 18)), conversionRate, currentCurrency)
+					gas_fees: weiToFiat(
+						toWei(util.calcTokenAmount(gasPrice * gas, 18)),
+						conversionRate,
+						currentCurrency
+					)
 				});
 			});
 		},
@@ -621,9 +651,9 @@ function SwapsQuotesView({
 		if (!selectedQuote || !selectedQuoteValue) return;
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {
-				token_from: sourceToken.address,
+				token_from: sourceToken.symbol,
 				token_from_amount: sourceAmount,
-				token_to: destinationToken.address,
+				token_to: destinationToken.symbol,
 				token_to_amount: selectedQuote.destinationAmount,
 				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
@@ -653,9 +683,9 @@ function SwapsQuotesView({
 		toggleQuotesModal();
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {
-				token_from: sourceToken.address,
+				token_from: sourceToken.symbol,
 				token_from_amount: sourceAmount,
-				token_to: destinationToken.address,
+				token_to: destinationToken.symbol,
 				token_to_amount: selectedQuote.destinationAmount,
 				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
@@ -671,9 +701,9 @@ function SwapsQuotesView({
 		selectedQuote,
 		selectedQuoteValue,
 		toggleQuotesModal,
-		sourceToken.address,
+		sourceToken,
 		sourceAmount,
-		destinationToken.address,
+		destinationToken,
 		hasEnoughTokenBalance,
 		slippage,
 		allQuotesFetchTime,
@@ -684,9 +714,9 @@ function SwapsQuotesView({
 	const handleQuotesErrorMetric = useCallback(
 		errorKey => {
 			const data = {
-				token_from: sourceToken.address,
+				token_from: sourceToken.symbol,
 				token_from_amount: sourceAmount,
-				token_to: destinationToken.address,
+				token_to: destinationToken.symbol,
 				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
@@ -842,9 +872,9 @@ function SwapsQuotesView({
 		if (trackedRequestedQuotes) return;
 		setTrackedRequestedQuotes(true);
 		const data = {
-			token_from: sourceToken.address,
+			token_from: sourceToken.symbol,
 			token_from_amount: sourceAmount,
-			token_to: destinationToken.address,
+			token_to: destinationToken.symbol,
 			request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 		};
@@ -855,13 +885,13 @@ function SwapsQuotesView({
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, data);
 		});
 	}, [
-		destinationToken.address,
+		destinationToken,
 		hasEnoughTokenBalance,
 		isInFetch,
 		navigation,
 		slippage,
 		sourceAmount,
-		sourceToken.address,
+		sourceToken,
 		trackedRequestedQuotes
 	]);
 

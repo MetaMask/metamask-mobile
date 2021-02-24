@@ -63,8 +63,11 @@ import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils, util } from '@estebanmino/controllers';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import BigNumber from 'bignumber.js';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -198,6 +201,86 @@ const Main = props => {
 		[props.navigation, props.transactions]
 	);
 
+	const trackSwaps = useCallback(
+		async (event, transactionMeta) => {
+			try {
+				const { TransactionController } = Engine.context;
+				const newSwapsTransactions = props.swapsTransactions;
+				const swapTransaction = newSwapsTransactions[transactionMeta.id];
+				const {
+					sentAt,
+					gasEstimate,
+					ethAccountBalance,
+					approvalTransactionMetaId
+				} = swapTransaction.paramsForAnalytics;
+
+				const approvalTransaction = TransactionController.state.transactions.find(
+					({ id }) => id === approvalTransactionMetaId
+				);
+				const ethBalance = await util.query(TransactionController.ethQuery, 'getBalance', [
+					props.selectedAddress
+				]);
+				const receipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
+					transactionMeta.transactionHash
+				]);
+
+				const currentBlock = await util.query(TransactionController.ethQuery, 'getBlockByHash', [
+					receipt.blockHash,
+					false
+				]);
+				let approvalReceipt;
+				if (approvalTransaction?.transactionHash) {
+					approvalReceipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
+						approvalTransaction.transactionHash
+					]);
+				}
+				const tokensReceived = swapsUtils.getSwapsTokensReceived(
+					receipt,
+					approvalReceipt,
+					transactionMeta?.transaction,
+					approvalTransaction?.transaction,
+					{
+						address: swapTransaction.destinationToken,
+						decimals: swapTransaction.destinationTokenDecimals
+					},
+					ethAccountBalance,
+					ethBalance
+				);
+
+				const timeToMine = currentBlock.timestamp - sentAt;
+				const estimatedVsUsedGasRatio = `${new BigNumber(receipt.gasUsed)
+					.div(gasEstimate)
+					.times(100)
+					.toFixed(2)}%`;
+				const quoteVsExecutionRatio = `${new BigNumber(tokensReceived)
+					.div(swapTransaction.destinationAmount)
+					.times(100)
+					.toFixed(2)}%`;
+				const analyticsParams = { ...swapTransaction.analytics };
+				delete newSwapsTransactions[transactionMeta.id].analytics;
+				delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
+				newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
+				newSwapsTransactions[transactionMeta.id].destinationAmount = tokensReceived;
+				TransactionController.update({ swapsTransactions: newSwapsTransactions });
+				InteractionManager.runAfterInteractions(() => {
+					Analytics.trackEventWithParameters(event, {
+						...analyticsParams,
+						time_to_mine: timeToMine,
+						estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
+						quote_vs_executionRatio: quoteVsExecutionRatio,
+						token_to_amount_received: tokensReceived
+					});
+				});
+			} catch (e) {
+				Logger.error(e, ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED);
+				InteractionManager.runAfterInteractions(() => {
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED, { error: e });
+				});
+			}
+		},
+		[props.selectedAddress, props.swapsTransactions]
+	);
+
 	const autoSign = useCallback(
 		async transactionMeta => {
 			const { TransactionController } = Engine.context;
@@ -210,7 +293,15 @@ const Main = props => {
 							assetType: transactionMeta.transaction.assetType
 						});
 					} else {
+						if (props.swapsTransactions[transactionMeta.id]?.analytics) {
+							trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_FAILED, transactionMeta);
+						}
 						throw transactionMeta.error;
+					}
+				});
+				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, transactionMeta => {
+					if (props.swapsTransactions[transactionMeta.id]?.analytics) {
+						trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
 					}
 				});
 				await TransactionController.approveTransaction(transactionMeta.id);
@@ -221,7 +312,7 @@ const Main = props => {
 				Logger.error(error, 'error while trying to send transaction (Main)');
 			}
 		},
-		[props.navigation]
+		[props.navigation, props.swapsTransactions, trackSwaps]
 	);
 
 	const onUnapprovedTransaction = useCallback(
@@ -788,6 +879,7 @@ const Main = props => {
 Main.router = MainNavigator.router;
 
 Main.propTypes = {
+	swapsTransactions: PropTypes.object,
 	/**
 	 * Object that represents the navigator
 	 */
@@ -883,7 +975,8 @@ const mapStateToProps = state => ({
 	isPaymentRequest: state.transaction.paymentRequest,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
-	approveModalVisible: state.modals.approveModalVisible
+	approveModalVisible: state.modals.approveModalVisible,
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {}
 });
 
 const mapDispatchToProps = dispatch => ({

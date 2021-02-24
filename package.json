@@ -71,7 +71,7 @@
     "react-native-level-fs/**/semver": "^4.3.2"
   },
   "dependencies": {
-    "@estebanmino/controllers": "3.3.7",
+    "@estebanmino/controllers": "3.3.8",
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.22.0",
     "@metamask/controllers": "^6.0.1",
