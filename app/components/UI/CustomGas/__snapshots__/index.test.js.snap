@@ -593,6 +593,7 @@ exports[`CustomGas should render correctly 1`] = `
           "alignItems": "center",
           "alignSelf": "center",
           "justifyContent": "center",
+          "marginBottom": 10,
           "width": "100%",
         }
       }
