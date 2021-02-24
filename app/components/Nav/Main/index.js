@@ -256,7 +256,7 @@ const Main = props => {
 					.div(swapTransaction.destinationAmount)
 					.times(100)
 					.toFixed(2)}%`;
-
+				const analyticsParams = { ...swapTransaction.analytics };
 				delete newSwapsTransactions[transactionMeta.id].analytics;
 				delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 				newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
@@ -264,7 +264,7 @@ const Main = props => {
 				TransactionController.update({ swapsTransactions: newSwapsTransactions });
 				InteractionManager.runAfterInteractions(() => {
 					Analytics.trackEventWithParameters(event, {
-						...swapTransaction.analytics,
+						...analyticsParams,
 						time_to_mine: timeToMine,
 						estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
 						quote_vs_executionRatio: quoteVsExecutionRatio,
