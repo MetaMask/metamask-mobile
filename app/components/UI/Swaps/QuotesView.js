@@ -492,7 +492,6 @@ function SwapsQuotesView({
 				// send analytics
 			}
 		}
-
 		// Modify gas limit for trade transaction only
 		selectedQuote.trade.gasPrice = gasPrice;
 		selectedQuote.trade.gas = gasLimit;
@@ -530,12 +529,9 @@ function SwapsQuotesView({
 					network_fees_ETH: renderFromWei(toWei(gasFee)),
 					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
 					sentAt: Date.now(),
-					gasEstimate: approvalTransaction ? selectedQuote?.maxGas : selectedQuote?.gasEstimate,
+					gasEstimate: selectedQuote?.gasEstimate || selectedQuote?.maxGas,
 					ethAccountBalance: accounts[selectedAddress].balance,
 					approvalTransactionMetaId
-					// quote_vs_executionRatio: '',
-					// average_savings: '',
-					// estimated_vs_used_gasRatio: '',
 				}
 			};
 		} catch (e) {
