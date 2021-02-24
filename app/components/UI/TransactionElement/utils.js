@@ -697,10 +697,10 @@ function decodeSwapsTx(args) {
 
 	if (isSwap) {
 		if (!assetSymbol || sourceToken.symbol === assetSymbol) {
-			value = `-${Number(swapTransaction.sourceAmount).toFixed(5)} ${sourceToken.symbol}`;
+			value = `-${swapTransaction.sourceAmount} ${sourceToken.symbol}`;
 			fiatValue = addCurrencySymbol(renderSourceTokenFiatNumber, currentCurrency);
 		} else {
-			value = `+${Number(swapTransaction.destinationAmount).toFixed(5)} ${destinationToken.symbol}`;
+			value = `+${swapTransaction.destinationAmount} ${destinationToken.symbol}`;
 			fiatValue = addCurrencySymbol(renderDestinationTokenFiatNumber, currentCurrency);
 		}
 	}
