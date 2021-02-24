@@ -259,6 +259,7 @@ const Main = props => {
 						});
 						delete newSwapsTransactions[transactionMeta.id].analytics;
 						newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
+						newSwapsTransactions[transactionMeta.id].destinationAmount = tokensReceived;
 						TransactionController.update({ swapsTransactions: newSwapsTransactions });
 					} catch (e) {
 						Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED, { error: e });
