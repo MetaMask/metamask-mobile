@@ -175,7 +175,9 @@ function SwapsAmountView({
 					InteractionManager.runAfterInteractions(() => {
 						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
 							source: initialSource === SWAPS_ETH_ADDRESS ? 'MainView' : 'TokenView',
-							activeCurrency: initialSource
+							activeCurrency: swapsTokens?.find(
+								token => token.address?.toLowerCase() === initialSource.toLowerCase()
+							)?.symbol
 						});
 					});
 				} else {
@@ -187,6 +189,7 @@ function SwapsAmountView({
 				navigation.pop();
 			}
 		})();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [initialSource, navigation, setLiveness]);
 
 	const keypadViewRef = useRef(null);
