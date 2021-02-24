@@ -8,8 +8,7 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { NavigationContext } from 'react-navigation';
-import { swapsUtils } from '@estebanmino/controllers';
-import { calcTokenAmount } from '@estebanmino/controllers/dist/util';
+import { swapsUtils, util } from '@estebanmino/controllers';
 
 import {
 	BNToHex,
@@ -340,7 +339,7 @@ function SwapsQuotesView({
 	/* Total gas fee in decimal */
 	const gasFee = useMemo(() => {
 		if (customGasPrice) {
-			return calcTokenAmount(customGasPrice * gasLimit, 18);
+			return util.calcTokenAmount(customGasPrice * gasLimit, 18);
 		}
 		return selectedQuoteValue?.ethFee;
 	}, [selectedQuoteValue, customGasPrice, gasLimit]);
@@ -348,7 +347,7 @@ function SwapsQuotesView({
 	/* Maximum gas fee in decimal */
 	const maxGasFee = useMemo(() => {
 		if (customGasPrice && selectedQuote?.maxGas) {
-			return calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
+			return util.calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
 		}
 		return selectedQuoteValue?.maxEthFee;
 	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
@@ -500,7 +499,11 @@ function SwapsQuotesView({
 				selectedQuote.trade,
 				process.env.MM_FOX_CODE
 			);
-
+			const blockNumber = await util.query(TransactionController.ethQuery, 'blockNumber', []);
+			const currentBlock = await util.query(TransactionController.ethQuery, 'getBlockByNumber', [
+				blockNumber,
+				false
+			]);
 			newSwapsTransactions[transactionMeta.id] = {
 				action: 'swap',
 				sourceToken: sourceToken.address,
@@ -530,7 +533,7 @@ function SwapsQuotesView({
 					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote
 				},
 				paramsForAnalytics: {
-					sentAt: Date.now(),
+					sentAt: currentBlock.timestamp,
 					gasEstimate: selectedQuote?.gasEstimate || selectedQuote?.maxGas,
 					ethAccountBalance: accounts[selectedAddress].balance,
 					approvalTransactionMetaId
@@ -630,7 +633,11 @@ function SwapsQuotesView({
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, {
 					speed_set: details.mode === 'advanced' ? undefined : details.mode,
 					gas_mode: details.mode === 'advanced' ? 'Advanced' : 'Basic',
-					gas_fees: weiToFiat(toWei(calcTokenAmount(gasPrice * gas, 18)), conversionRate, currentCurrency)
+					gas_fees: weiToFiat(
+						toWei(util.calcTokenAmount(gasPrice * gas, 18)),
+						conversionRate,
+						currentCurrency
+					)
 				});
 			});
 		},
