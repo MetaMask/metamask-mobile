@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, Dimensions, InteractionManager } from 'react-native';
+import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated from 'react-native-reanimated';
@@ -154,14 +154,12 @@ function TransactionNotification(props) {
 
 	const safelyExecute = useCallback(
 		callback => {
-			InteractionManager.runAfterInteractions(() => {
-				try {
-					callback();
-				} catch (e) {
-					// ignore because transaction already went through
-				}
-				onActionFinish();
-			});
+			try {
+				callback();
+			} catch (e) {
+				// ignore because transaction already went through
+			}
+			onActionFinish();
 		},
 		[onActionFinish]
 	);
