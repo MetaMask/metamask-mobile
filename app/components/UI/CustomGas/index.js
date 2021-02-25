@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		alignSelf: 'center',
+		textAlign: 'center',
 		width: '100%',
 		marginVertical: 24
 	},
@@ -79,11 +80,13 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		borderWidth: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		flexWrap: 'wrap'
 	},
 	warningText: {
 		color: colors.red,
 		fontSize: 12,
+		textAlign: 'center',
 		...fontStyles.normal
 	},
 	invisible: {
