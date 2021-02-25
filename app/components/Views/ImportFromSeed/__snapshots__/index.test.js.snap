@@ -288,10 +288,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
             Object {
               "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 16,
+              "fontSize": 15,
               "fontWeight": "400",
               "height": 20,
-              "marginTop": 10,
             }
           }
         />
@@ -371,10 +370,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
             Object {
               "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 16,
+              "fontSize": 15,
               "fontWeight": "400",
               "height": 20,
-              "marginTop": 10,
             }
           }
         >
