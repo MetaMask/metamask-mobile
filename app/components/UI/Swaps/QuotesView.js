@@ -243,7 +243,10 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
  */
 const gasLimitWithMultiplier = (gasLimit, multiplier) => {
 	if (!gasLimit || !multiplier) return;
-	return new BigNumber(gasLimit).times(multiplier).toString(16);
+	return new BigNumber(gasLimit)
+		.times(multiplier)
+		.integerValue()
+		.toString(16);
 };
 
 function SwapsQuotesView({
