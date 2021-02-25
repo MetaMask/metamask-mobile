@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
@@ -50,6 +50,20 @@ const styles = StyleSheet.create({
 		color: colors.fontSecondary,
 		...fontStyles.light,
 		textTransform: 'uppercase'
+	},
+	warning: {
+		borderRadius: 8,
+		color: colors.black,
+		...fontStyles.normal,
+		fontSize: 14,
+		lineHeight: 20,
+		borderWidth: 1,
+		borderColor: colors.yellow,
+		backgroundColor: colors.yellow100,
+		padding: 20
+	},
+	warningLinks: {
+		color: colors.blue
 	}
 });
 
@@ -124,6 +138,12 @@ class AssetOverview extends PureComponent {
 		}
 	};
 
+	goToBrowserUrl(url) {
+		this.props.navigation.navigate('BrowserView', {
+			newTabUrl: url
+		});
+	}
+
 	renderLogo = () => {
 		const {
 			asset: { address, image, logo, isETH }
@@ -139,10 +159,28 @@ class AssetOverview extends PureComponent {
 		);
 	};
 
+	renderWarning = () => {
+		const {
+			asset: { symbol }
+		} = this.props;
+
+		const supportArticleUrl =
+			'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate';
+		return (
+			<TouchableOpacity onPress={() => this.goToBrowserUrl(supportArticleUrl)}>
+				<Text style={styles.warning}>
+					{strings('asset_overview.were_unable')} {symbol} {strings('asset_overview.balance')}{' '}
+					<Text style={styles.warningLinks}>{strings('asset_overview.troubleshooting_missing')}</Text>{' '}
+					{strings('asset_overview.for_help')}
+				</Text>
+			</TouchableOpacity>
+		);
+	};
+
 	render() {
 		const {
 			accounts,
-			asset: { address, isETH = undefined, decimals, symbol },
+			asset: { address, isETH = undefined, decimals, symbol, balanceError = null },
 			primaryCurrency,
 			selectedAddress,
 			tokenExchangeRates,
@@ -175,20 +213,28 @@ class AssetOverview extends PureComponent {
 			<View style={styles.wrapper} testID={'token-asset-overview'}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.balance}>
-					<Text style={styles.amount} testID={'token-amount'}>
-						{mainBalance}
-					</Text>
-					<Text style={styles.amountFiat}>{secondaryBalance}</Text>
+					{balanceError ? (
+						this.renderWarning()
+					) : (
+						<>
+							<Text style={styles.amount} testID={'token-amount'}>
+								{mainBalance}
+							</Text>
+							<Text style={styles.amountFiat}>{secondaryBalance}</Text>
+						</>
+					)}
 				</View>
 
-				<AssetActionButtons
-					leftText={strings('asset_overview.send_button').toUpperCase()}
-					testID={'token-send-button'}
-					middleText={strings('asset_overview.receive_button').toUpperCase()}
-					onLeftPress={this.onSend}
-					onMiddlePress={this.onReceive}
-					middleType={'receive'}
-				/>
+				{!balanceError && (
+					<AssetActionButtons
+						leftText={strings('asset_overview.send_button').toUpperCase()}
+						testID={'token-send-button'}
+						middleText={strings('asset_overview.receive_button').toUpperCase()}
+						onLeftPress={this.onSend}
+						onMiddlePress={this.onReceive}
+						middleType={'receive'}
+					/>
+				)}
 			</View>
 		);
 	}

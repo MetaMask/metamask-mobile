@@ -11,7 +11,7 @@ exports[`NetworkSettings should render correctly 1`] = `
   }
   testID="new-rpc-screen"
 >
-  <KeyboardAwareScrollViewMock
+  <KeyboardAwareScrollView
     enableAutomaticScroll={true}
     enableOnAndroid={false}
     enableResetScrollToCoords={true}
@@ -151,11 +151,11 @@ exports[`NetworkSettings should render correctly 1`] = `
       <TextInput
         autoCapitalize="none"
         autoCorrect={false}
-        keyboardType="numeric"
+        keyboardType="numbers-and-punctuation"
         onBlur={[Function]}
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
-        placeholder="Chain ID (optional)"
+        placeholder="Chain ID"
         placeholderTextColor="#d6d9dc"
         style={
           Array [
@@ -172,6 +172,7 @@ exports[`NetworkSettings should render correctly 1`] = `
             },
           ]
         }
+        testID="input-chain-id"
       />
       <Text
         style={
@@ -285,6 +286,6 @@ exports[`NetworkSettings should render correctly 1`] = `
         </StyledButton>
       </View>
     </View>
-  </KeyboardAwareScrollViewMock>
+  </KeyboardAwareScrollView>
 </ForwardRef(SafeAreaView)>
 `;

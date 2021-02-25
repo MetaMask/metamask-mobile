@@ -2,7 +2,7 @@
 
 exports[`TransactionEditor should render correctly 1`] = `
 <Fragment>
-  <KeyboardAwareScrollViewMock
+  <KeyboardAwareScrollView
     contentContainerStyle={
       Object {
         "flex": 1,
@@ -24,6 +24,7 @@ exports[`TransactionEditor should render correctly 1`] = `
       <Connect(TransactionReview)
         onCancel={[Function]}
         onConfirm={[Function]}
+        over={false}
         ready={false}
         validate={[Function]}
       />
@@ -33,6 +34,6 @@ exports[`TransactionEditor should render correctly 1`] = `
         handleGasFeeSelection={[Function]}
       />
     </AnimatedTransactionModal>
-  </KeyboardAwareScrollViewMock>
+  </KeyboardAwareScrollView>
 </Fragment>
 `;

@@ -9,6 +9,7 @@ import { colors } from '../../../styles/common';
 import Transactions from '../../UI/Transactions';
 import Networks, { isKnownNetwork } from '../../../util/networks';
 import { safeToChecksumAddress } from '../../../util/address';
+import { RPC } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -120,7 +121,7 @@ class TransactionsView extends PureComponent {
 		return (
 			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
 			((networkId && networkId.toString() === tx.networkID) ||
-				(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
+				(networkType === RPC && !isKnownNetwork(tx.networkID))) &&
 			tx.status !== 'unapproved'
 		);
 	};

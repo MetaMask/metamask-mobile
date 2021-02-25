@@ -14,6 +14,7 @@ import AppConstants from './AppConstants';
 import byteArrayToHex from '../util/bytes';
 import Networks from '../util/networks';
 import { LAST_KNOWN_INSTANT_PAYMENT_ID } from '../constants/storage';
+import { MAINNET, RINKEBY } from '../constants/network';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -94,10 +95,10 @@ class PaymentChannelsClient {
 		let hubUrl;
 		const ethprovider = new EthQuery(infuraProvider);
 		switch (type) {
-			case 'rinkeby':
+			case RINKEBY:
 				hubUrl = `https://rinkeby.${PUBLIC_URL}/api/hub`;
 				break;
-			case 'mainnet':
+			case MAINNET:
 				hubUrl = `https://${PUBLIC_URL}/api/hub`;
 				break;
 			default:

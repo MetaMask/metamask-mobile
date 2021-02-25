@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
 	ActivityIndicator,
+	BackHandler,
 	FlatList,
 	Text,
 	View,
@@ -25,13 +26,16 @@ import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
-import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
+import { getTransparentBackOnboardingNavbarOptions, getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import ScanStep from '../../UI/ScanStep';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import ActionModal from '../../UI/ActionModal';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
-import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import BaseNotification from '../../UI/Notification/BaseNotification';
+import Animated, { Easing } from 'react-native-reanimated';
+import ElevatedView from 'react-native-elevated-view';
+import { passwordSet, seedphraseBackedUp, loadingSet, loadingUnset } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import AppConstants from '../../../core/AppConstants';
 import AnimatedFox from 'react-native-animated-fox';
@@ -137,6 +141,19 @@ const styles = StyleSheet.create({
 	column: {
 		marginVertical: 24,
 		alignItems: 'flex-start'
+	},
+	modalTypeView: {
+		position: 'absolute',
+		bottom: 0,
+		paddingBottom: Device.isIphoneX() ? 20 : 10,
+		left: 0,
+		right: 0,
+		backgroundColor: colors.transparent
+	},
+	notificationContainer: {
+		flex: 0.1,
+		flexDirection: 'row',
+		alignItems: 'flex-end'
 	}
 });
 
@@ -152,7 +169,10 @@ const createStep = step => ({
  * View that is displayed to first time (new) users
  */
 class Onboarding extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransparentBackOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation }) =>
+		navigation.getParam('delete', null)
+			? getTransparentOnboardingNavbarOptions(navigation)
+			: getTransparentBackOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
 		/**
@@ -185,7 +205,33 @@ class Onboarding extends PureComponent {
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
 		 */
-		seedphraseBackedUp: PropTypes.func
+		seedphraseBackedUp: PropTypes.func,
+		/**
+		 * loading status
+		 */
+		loading: PropTypes.bool,
+		/**
+		 * set loading status
+		 */
+		setLoading: PropTypes.func,
+		/**
+		 * unset loading status
+		 */
+		unsetLoading: PropTypes.func
+	};
+
+	notificationAnimated = new Animated.Value(100);
+	detailsYAnimated = new Animated.Value(0);
+	actionXAnimated = new Animated.Value(0);
+	detailsAnimated = new Animated.Value(0);
+
+	animatedTimingStart = (animatedRef, toValue) => {
+		Animated.timing(animatedRef, {
+			toValue,
+			duration: 500,
+			easing: Easing.linear,
+			useNativeDriver: true
+		}).start();
 	};
 
 	state = {
@@ -202,14 +248,36 @@ class Onboarding extends PureComponent {
 	dataToSync = null;
 	mounted = false;
 
-	// eslint-disable-next-line no-empty-function
-	warningCallback = () => {};
+	warningCallback = () => true;
+
+	showNotification = () => {
+		// show notification
+		this.animatedTimingStart(this.notificationAnimated, 0);
+		// hide notification
+		setTimeout(() => {
+			this.animatedTimingStart(this.notificationAnimated, 200);
+		}, 4000);
+		this.disableBackPress();
+	};
+
+	disableBackPress = () => {
+		// Disable back press
+		const hardwareBackPress = () => true;
+		BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+	};
 
 	componentDidMount() {
 		this.mounted = true;
 		this.checkIfExistingUser();
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot.forbid();
+			if (this.props.navigation.getParam('delete', false)) {
+				this.props.setLoading();
+				setTimeout(() => {
+					this.showNotification();
+					this.props.unsetLoading();
+				}, 2000);
+			}
 		});
 	}
 
@@ -234,13 +302,13 @@ class Onboarding extends PureComponent {
 
 	initWebsockets() {
 		this.loading = true;
-		this.mounted && this.setState({ loading: true });
+		this.mounted && this.props.setLoading();
 
 		this.pubnubWrapper.addMessageListener(
 			() => {
 				Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
 				this.loading = false;
-				this.setState({ loading: false });
+				this.props.unsetLoading();
 				return false;
 			},
 			data => {
@@ -371,7 +439,7 @@ class Onboarding extends PureComponent {
 		} catch (e) {
 			Logger.error(e, 'Sync::disconnect');
 			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
-			this.setState({ loading: false });
+			this.props.unsetLoading();
 			this.props.navigation.goBack();
 		}
 	};
@@ -496,11 +564,14 @@ class Onboarding extends PureComponent {
 	};
 
 	renderLoader() {
+		const is_delete = this.props.navigation.getParam('delete', false);
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.loader}>
 					<ActivityIndicator size="small" />
-					<Text style={styles.loadingText}>{strings('sync_with_extension.please_wait')}</Text>
+					<Text style={styles.loadingText}>
+						{is_delete ? strings('onboarding.delete_current') : strings('sync_with_extension.please_wait')}
+					</Text>
 				</View>
 			</View>
 		);
@@ -550,11 +621,25 @@ class Onboarding extends PureComponent {
 		);
 	}
 
+	handleSimpleNotification = () => {
+		const title = strings('onboarding.success');
+		const description = strings('onboarding.your_wallet');
+
+		return (
+			<ElevatedView style={styles.modalTypeView} elevation={100}>
+				<Animated.View
+					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
+				>
+					<BaseNotification closeButtonDisabled status="success" data={{ title, description }} />
+				</Animated.View>
+			</ElevatedView>
+		);
+	};
+
 	render() {
-		const { qrCodeModalVisible, loading, existingUser } = this.state;
-
+		const { loading } = this.props;
+		const { qrCodeModalVisible, existingUser } = this.state;
 		const renderScanStep = ({ item: { step, text } }) => <ScanStep step={step}>{text}</ScanStep>;
-
 		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(createStep);
 
 		return (
@@ -591,6 +676,8 @@ class Onboarding extends PureComponent {
 				</OnboardingScreenWithBg>
 				<FadeOutOverlay />
 
+				<View>{this.handleSimpleNotification()}</View>
+
 				<WarningExistingUserModal
 					warningModalVisible={this.state.warningModalVisible}
 					onCancelPress={this.warningCallback}
@@ -625,10 +712,13 @@ class Onboarding extends PureComponent {
 const mapStateToProps = state => ({
 	selectedAddress: state?.engine?.backgroundState?.PreferencesController?.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	loading: state.user.loadingSet
 });
 
 const mapDispatchToProps = dispatch => ({
+	setLoading: () => dispatch(loadingSet()),
+	unsetLoading: () => dispatch(loadingUnset()),
 	passwordHasBeenSet: () => dispatch(passwordSet()),
 	setLockTime: time => dispatch(setLockTime(time)),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),

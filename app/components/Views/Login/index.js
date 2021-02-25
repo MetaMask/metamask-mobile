@@ -1,7 +1,19 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Switch, Alert, ActivityIndicator, Text, View, SafeAreaView, StyleSheet, Image } from 'react-native';
-import FileSystemStorage from 'redux-persist-filesystem-storage';
+import {
+	Switch,
+	Alert,
+	ActivityIndicator,
+	Text,
+	View,
+	SafeAreaView,
+	StyleSheet,
+	Image,
+	InteractionManager,
+	TouchableWithoutFeedback,
+	Keyboard
+} from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import Engine from '../../../core/Engine';
@@ -25,10 +37,17 @@ import {
 	METRICS_OPT_IN,
 	ENCRYPTION_LIB,
 	TRUE,
-	ORIGINAL
+	ORIGINAL,
+	EXISTING_USER
 } from '../../../constants/storage';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
+import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
+import Icon from 'react-native-vector-icons/FontAwesome';
+
+const isTextDelete = text => String(text).toLowerCase() === 'delete';
+const deviceHeight = Device.getDeviceHeight();
+const breakPoint = deviceHeight < 700;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -82,7 +101,8 @@ const styles = StyleSheet.create({
 		lineHeight: 20
 	},
 	goBack: {
-		color: colors.fontSecondary,
+		marginVertical: 14,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	biometrics: {
@@ -98,6 +118,60 @@ const styles = StyleSheet.create({
 	},
 	biometrySwitch: {
 		flex: 0
+	},
+	cant: {
+		width: 280,
+		alignSelf: 'center',
+		justifyContent: 'center',
+		textAlign: 'center',
+		...fontStyles.normal,
+		fontSize: 16,
+		lineHeight: 24,
+		color: colors.black
+	},
+	areYouSure: {
+		width: '100%',
+		padding: breakPoint ? 16 : 24,
+		justifyContent: 'center',
+		alignSelf: 'center'
+	},
+	heading: {
+		marginHorizontal: 6,
+		color: colors.black,
+		...fontStyles.bold,
+		fontSize: 20,
+		textAlign: 'center',
+		lineHeight: breakPoint ? 24 : 26
+	},
+	red: {
+		marginHorizontal: 24,
+		color: colors.red
+	},
+	warningText: {
+		...fontStyles.normal,
+		textAlign: 'center',
+		fontSize: 14,
+		lineHeight: breakPoint ? 18 : 22,
+		color: colors.black,
+		marginTop: 20
+	},
+	warningIcon: {
+		alignSelf: 'center',
+		color: colors.red,
+		marginVertical: 10
+	},
+	bold: {
+		...fontStyles.bold
+	},
+	delete: {
+		marginBottom: 20
+	},
+	deleteWarningMsg: {
+		...fontStyles.normal,
+		fontSize: 16,
+		lineHeight: 20,
+		marginTop: 10,
+		color: colors.red
 	}
 });
 
@@ -139,7 +213,12 @@ class Login extends PureComponent {
 		biometryChoice: false,
 		loading: false,
 		error: null,
-		biometryPreviouslyDisabled: false
+		biometryPreviouslyDisabled: false,
+		warningModalVisible: false,
+		deleteModalVisible: false,
+		disableDelete: true,
+		deleteText: '',
+		showDeleteWarning: false
 	};
 
 	mounted = true;
@@ -250,12 +329,46 @@ class Login extends PureComponent {
 		}
 	};
 
-	onPressGoBack = () => {
-		this.props.navigation.navigate(
-			'OnboardingRootNav',
-			{},
-			NavigationActions.navigate({ routeName: 'Onboarding' })
-		);
+	delete = async () => {
+		const { KeyringController } = Engine.context;
+		try {
+			await Engine.resetState();
+			await KeyringController.createNewVaultAndKeychain('');
+			this.deleteExistingUser();
+		} catch (error) {
+			Logger.log(error, `Failed to createNewVaultAndKeychain: ${error}`);
+		}
+	};
+
+	deleteExistingUser = async () => {
+		try {
+			await AsyncStorage.removeItem(EXISTING_USER);
+			this.props.navigation.navigate(
+				'OnboardingRootNav',
+				{},
+				NavigationActions.navigate({ routeName: 'Onboarding', params: { delete: true } })
+			);
+		} catch (error) {
+			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
+		}
+	};
+
+	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
+
+	toggleDeleteModal = () => this.setState(state => ({ deleteModalVisible: !state.deleteModalVisible }));
+
+	checkDelete = text => {
+		this.setState({
+			deleteText: text,
+			showDeleteWarning: false,
+			disableDelete: !isTextDelete(text)
+		});
+	};
+
+	submitDelete = () => {
+		const { deleteText } = this.state;
+		this.setState({ showDeleteWarning: !isTextDelete(deleteText) });
+		if (isTextDelete(deleteText)) this.delete();
 	};
 
 	updateBiometryChoice = async biometryChoice => {
@@ -301,6 +414,11 @@ class Login extends PureComponent {
 
 	setPassword = val => this.setState({ password: val });
 
+	onCancelPress = () => {
+		this.toggleWarningModal();
+		InteractionManager.runAfterInteractions(this.toggleDeleteModal);
+	};
+
 	tryBiometric = async e => {
 		if (e) e.preventDefault();
 		const { current: field } = this.fieldRef;
@@ -322,6 +440,58 @@ class Login extends PureComponent {
 
 	render = () => (
 		<ErrorBoundary view="Login">
+			<WarningExistingUserModal
+				warningModalVisible={this.state.warningModalVisible}
+				cancelText={strings('login.i_understand')}
+				onCancelPress={this.onCancelPress}
+				onRequestClose={this.toggleWarningModal}
+				onConfirmPress={this.toggleWarningModal}
+			>
+				<View style={styles.areYouSure}>
+					<Icon style={styles.warningIcon} size={46} color={colors.red} name="exclamation-triangle" />
+					<Text style={[styles.heading, styles.red]}>{strings('login.are_you_sure')}</Text>
+					<Text style={styles.warningText}>
+						<Text>{strings('login.your_current_wallet')}</Text>
+						<Text style={styles.bold}>{strings('login.removed_from')}</Text>
+						<Text>{strings('login.this_action')}</Text>
+					</Text>
+					<Text style={[styles.warningText, styles.noMarginBottom]}>
+						<Text>{strings('login.you_can_only')}</Text>
+						<Text style={styles.bold}>{strings('login.recovery_phrase')}</Text>
+						<Text>{strings('login.metamask_does_not')}</Text>
+					</Text>
+				</View>
+			</WarningExistingUserModal>
+
+			<WarningExistingUserModal
+				warningModalVisible={this.state.deleteModalVisible}
+				cancelText={strings('login.delete_my')}
+				cancelButtonDisabled={this.state.disableDelete}
+				onCancelPress={this.submitDelete}
+				onRequestClose={this.toggleDeleteModal}
+				onConfirmPress={this.toggleDeleteModal}
+				onSubmitEditing={this.submitDelete}
+			>
+				<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+					<View style={styles.areYouSure}>
+						<Text style={[styles.heading, styles.delete]}>{strings('login.type_delete')}</Text>
+						<OutlinedTextField
+							autoFocus
+							returnKeyType={'done'}
+							onChangeText={this.checkDelete}
+							autoCapitalize="none"
+							value={this.state.deleteText}
+							baseColor={colors.grey500}
+							tintColor={colors.blue}
+							onSubmitEditing={this.submitDelete}
+						/>
+						{this.state.showDeleteWarning && (
+							<Text style={styles.deleteWarningMsg}>{strings('login.cant_proceed')}</Text>
+						)}
+					</View>
+				</TouchableWithoutFeedback>
+			</WarningExistingUserModal>
+
 			<SafeAreaView style={styles.mainWrapper}>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'login'}>
@@ -386,8 +556,9 @@ class Login extends PureComponent {
 						</View>
 
 						<View style={styles.footer}>
-							<Button style={styles.goBack} onPress={this.onPressGoBack}>
-								{strings('login.go_back')}
+							<Text style={styles.cant}>{strings('login.go_back')}</Text>
+							<Button style={styles.goBack} onPress={this.toggleWarningModal}>
+								{strings('login.reset_wallet')}
 							</Button>
 						</View>
 					</View>

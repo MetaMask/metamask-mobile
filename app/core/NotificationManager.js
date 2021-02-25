@@ -11,6 +11,7 @@ import { Alert, AppState } from 'react-native';
 import FileSystemStorage from 'redux-persist-filesystem-storage';
 import AppConstants from './AppConstants';
 import { PUSH_NOTIFICATIONS_PROMPT_COUNT, PUSH_NOTIFICATIONS_PROMPT_TIME } from '../constants/storage';
+import { RPC } from '../constants/network';
 
 /**
  * Singleton class responsible for managing all the
@@ -382,7 +383,7 @@ class NotificationManager {
 						toChecksumAddress(tx.transaction.to) === selectedAddress &&
 						toChecksumAddress(tx.transaction.from) !== selectedAddress &&
 						((networkId && networkId.toString() === tx.networkID) ||
-							(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
+							(networkType === RPC && !isKnownNetwork(tx.networkID))) &&
 						tx.status === 'confirmed' &&
 						lastBlock <= parseInt(tx.blockNumber, 10) &&
 						tx.time > oldestTimeAllowed

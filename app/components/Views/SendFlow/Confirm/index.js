@@ -45,7 +45,6 @@ import AccountList from '../../../UI/AccountList';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
 import TransactionReviewFeeCard from '../../../UI/TransactionReview/TransactionReviewFeeCard';
 import CustomGas from '../../../UI/CustomGas';
-import ErrorMessage from '../ErrorMessage';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import NotificationManager from '../../../../core/NotificationManager';
 import { strings } from '../../../../../locales/i18n';
@@ -56,6 +55,8 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { capitalize } from '../../../../util/format';
+import { isMainNet, getNetworkName } from '../../../../util/networks';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -116,10 +117,6 @@ const styles = StyleSheet.create({
 	},
 	actionsWrapper: {
 		margin: 24
-	},
-	errorMessageWrapper: {
-		marginTop: 16,
-		marginHorizontal: 24
 	},
 	collectibleImageWrapper: {
 		flexDirection: 'column',
@@ -190,6 +187,33 @@ const styles = StyleSheet.create({
 	keyboardAwareWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end'
+	},
+	errorWrapper: {
+		marginHorizontal: 24,
+		marginTop: 12,
+		paddingHorizontal: 10,
+		paddingVertical: 8,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
+		borderRadius: 8,
+		borderWidth: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	error: {
+		color: colors.red,
+		fontSize: 12,
+		lineHeight: 16,
+		...fontStyles.normal,
+		textAlign: 'center'
+	},
+	underline: {
+		textDecorationLine: 'underline',
+		...fontStyles.bold
+	},
+	over: {
+		color: colors.red,
+		...fontStyles.bold
 	}
 });
 
@@ -299,7 +323,8 @@ class Confirm extends PureComponent {
 		fromAccountModalVisible: false,
 		paymentChannelBalance: this.props.selectedAsset.assetBalance,
 		paymentChannelReady: false,
-		mode: REVIEW
+		mode: REVIEW,
+		over: false
 	};
 
 	componentDidMount = async () => {
@@ -426,7 +451,7 @@ class Confirm extends PureComponent {
 			ticker,
 			isPaymentChannelTransaction
 		} = this.props;
-		const { fromSelectedAddress } = this.state;
+		const { fromSelectedAddress, over } = this.state;
 		let fromAccountBalance,
 			transactionValue,
 			transactionValueFiat,
@@ -449,12 +474,12 @@ class Confirm extends PureComponent {
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 			transactionTotalAmount = (
-				<Text style={styles.totalAmount}>
+				<Text style={[styles.totalAmount, over && styles.over]}>
 					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
 				</Text>
 			);
 			transactionTotalAmountFiat = (
-				<Text style={styles.totalAmount}>
+				<Text style={[styles.totalAmount, over && styles.over]}>
 					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
 				</Text>
 			);
@@ -607,22 +632,37 @@ class Confirm extends PureComponent {
 			contractBalances,
 			selectedAsset,
 			transactionState: {
+				ticker,
 				paymentChannelTransaction,
-				transaction: { gas, gasPrice }
+				transaction: { value, gas, gasPrice }
 			}
 		} = this.props;
 		const selectedAddress = transaction.from;
 		let weiBalance, weiInput, errorMessage;
-		if (isDecimal(transaction.value)) {
+		if (isDecimal(value)) {
 			if (paymentChannelTransaction) {
 				weiBalance = toWei(Number(selectedAsset.assetBalance));
-				weiInput = toWei(transaction.value);
-				errorMessage = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');
+				weiInput = toWei(value);
+				if (!weiBalance.gte(weiInput)) {
+					this.setState({ over: true });
+					const amount = renderFromWei(weiInput.sub(weiBalance));
+					const tokenSymbol = getTicker(ticker);
+					errorMessage = strings('transaction.insufficient_amount', { amount, tokenSymbol });
+				} else {
+					this.setState({ over: false });
+				}
 			} else if (selectedAsset.isETH || selectedAsset.tokenId) {
 				const totalGas = gas ? gas.mul(gasPrice) : toBN('0x0');
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
-				weiInput = hexToBN(transaction.value).add(totalGas);
-				errorMessage = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');
+				weiInput = hexToBN(value).add(totalGas);
+				if (!weiBalance.gte(weiInput)) {
+					this.setState({ over: true });
+					const amount = renderFromWei(weiInput.sub(weiBalance));
+					const tokenSymbol = getTicker(ticker);
+					errorMessage = strings('transaction.insufficient_amount', { amount, tokenSymbol });
+				} else {
+					this.setState({ over: false });
+				}
 			} else {
 				const [, , amount] = decodeTransferData('transfer', transaction.data);
 				weiBalance = contractBalances[selectedAsset.address];
@@ -876,9 +916,26 @@ class Confirm extends PureComponent {
 		);
 	};
 
+	buyEth = () => {
+		const { navigation } = this.props;
+		navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+		});
+	};
+
+	gotoFaucet = () => {
+		const mmFaucetUrl = 'https://faucet.metamask.io/';
+		InteractionManager.runAfterInteractions(() => {
+			this.props.navigation.navigate('BrowserView', {
+				newTabUrl: mmFaucetUrl
+			});
+		});
+	};
+
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, isPaymentChannelTransaction, primaryCurrency } = this.props;
+		const { showHexData, isPaymentChannelTransaction, primaryCurrency, network } = this.props;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -894,8 +951,16 @@ class Confirm extends PureComponent {
 			errorMessage,
 			transactionConfirmed,
 			paymentChannelBalance,
-			mode
+			mode,
+			over
 		} = this.state;
+
+		const is_main_net = isMainNet(network);
+		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
+		const networkName = capitalize(getNetworkName(network));
+		const errorLinkText = is_main_net
+			? strings('transaction.buy_more_eth')
+			: strings('transaction.get_ether', { networkName });
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
@@ -949,11 +1014,18 @@ class Confirm extends PureComponent {
 							primaryCurrency={primaryCurrency}
 							gasEstimationReady={gasEstimationReady}
 							edit={this.edit}
+							over={over}
 						/>
 					)}
 					{errorMessage && (
-						<View style={styles.errorMessageWrapper}>
-							<ErrorMessage errorMessage={errorMessage} />
+						<View style={styles.errorWrapper}>
+							<TouchableOpacity onPress={errorPress}>
+								<Text style={styles.error}>{errorMessage}</Text>
+								{/* only show buy more on mainnet */}
+								{over && is_main_net && (
+									<Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>
+								)}
+							</TouchableOpacity>
 						</View>
 					)}
 					<View style={styles.actionsWrapper}>
