@@ -42,7 +42,7 @@ import {
 	TRUE
 } from '../../../constants/storage';
 import Logger from '../../../util/Logger';
-import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
+import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 
 const styles = StyleSheet.create({
@@ -558,7 +558,7 @@ class ImportFromSeed extends PureComponent {
 								) : null}
 							</View>
 							<Text style={styles.passwordStrengthLabel}>
-								{strings('choose_password.must_be_at_least', { number: 8 })}
+								{strings('choose_password.must_be_at_least', { number: MIN_PASSWORD_LENGTH })}
 							</Text>
 						</View>
 

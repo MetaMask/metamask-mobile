@@ -29,7 +29,7 @@ import {
 	SEED_PHRASE_HINTS,
 	BIOMETRY_CHOICE_DISABLED
 } from '../../../constants/storage';
-import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
+import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 
@@ -607,7 +607,7 @@ class ChoosePassword extends PureComponent {
 										) : null}
 									</View>
 									<Text style={styles.passwordStrengthLabel}>
-										{strings('choose_password.must_be_at_least', { number: 8 })}
+										{strings('choose_password.must_be_at_least', { number: MIN_PASSWORD_LENGTH })}
 									</Text>
 								</View>
 								<View>{this.renderSwitch()}</View>
