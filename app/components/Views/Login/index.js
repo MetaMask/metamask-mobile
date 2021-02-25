@@ -13,7 +13,7 @@ import {
 	TouchableWithoutFeedback,
 	Keyboard
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import FileSystemStorage from 'redux-persist-filesystem-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import Engine from '../../../core/Engine';
@@ -342,14 +342,14 @@ class Login extends PureComponent {
 
 	deleteExistingUser = async () => {
 		try {
-			await AsyncStorage.removeItem(EXISTING_USER);
+			await FileSystemStorage.removeItem(EXISTING_USER);
 			this.props.navigation.navigate(
 				'OnboardingRootNav',
 				{},
 				NavigationActions.navigate({ routeName: 'Onboarding', params: { delete: true } })
 			);
 		} catch (error) {
-			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
+			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from FileSystemStorage`);
 		}
 	};
 
