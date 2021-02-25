@@ -443,7 +443,7 @@ function SwapsQuotesView({
 				sourceToken,
 				destinationToken,
 				sourceAmount,
-				fromAddress: selectedAddress
+				walletAddress: selectedAddress
 			});
 		} else {
 			navigation.pop();
