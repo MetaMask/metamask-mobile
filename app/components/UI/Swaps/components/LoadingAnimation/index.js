@@ -330,21 +330,6 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata }) {
 		};
 	});
 
-	/* Effect to finish animation once sequence is completed */
-	useEffect(() => {
-		if (hasFinished && finish) {
-			Animated.timing(progressValue, {
-				toValue: 100,
-				duration: FINISH_DURATION,
-				useNativeDriver: false
-			}).start(() => {
-				if (onAnimationEnd) {
-					onAnimationEnd();
-				}
-			});
-		}
-	}, [finish, hasFinished, onAnimationEnd, progressValue]);
-
 	/* Fox Head Pan listener and web view reload effect */
 	useEffect(() => {
 		const listener = foxHeadPan.addListener(({ x, y }) => {
