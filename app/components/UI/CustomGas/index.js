@@ -188,6 +188,19 @@ const styles = StyleSheet.create({
 		paddingVertical: 8,
 		position: 'relative'
 	},
+	gasInputError: {
+		flex: 1,
+		...fontStyles.bold,
+		backgroundColor: colors.white,
+		borderColor: colors.grey100,
+		color: colors.red,
+		borderRadius: 8,
+		borderWidth: 1,
+		fontSize: 14,
+		paddingHorizontal: 10,
+		paddingVertical: 8,
+		position: 'relative'
+	},
 	buttonTransform: {
 		transform: [
 			{
@@ -432,8 +445,18 @@ class CustomGas extends PureComponent {
 		const gasPriceBNWei = apiEstimateModifiedToWEI(gasPrice);
 		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBNWei);
 		let warningGasPrice;
+		let currentGasPrice;
 		if (parseInt(gasPrice) < parseInt(this.props.basicGasEstimates.safeLowGwei))
 			warningGasPrice = strings('transaction.low_gas_price');
+		if (parseInt(gasPrice) > parseInt(this.props.basicGasEstimates.fastGwei)) {
+			currentGasPrice = getRenderableFiatGasFee(
+				gasPrice,
+				this.props.conversionRate,
+				this.props.currentCurrency,
+				customGasLimitBN
+			);
+			warningGasPrice = strings('transaction.high_gas_price', { currentGasPrice });
+		}
 		if (!value || value === '' || !isDecimal(value) || value <= 0)
 			warningGasPrice = strings('transaction.invalid_gas_price');
 		if (gasPriceBNWei && !isBN(gasPriceBNWei)) warningGasPrice = strings('transaction.invalid_gas_price');
@@ -552,10 +575,11 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasInput = () => {
-		const { customGasLimitBN, customGasPriceBNWei, customGasPriceBN } = this.state;
+		const { customGasLimitBN, customGasPriceBNWei, customGasPriceBN, warningGasPrice } = this.state;
 		const { generateTransform } = this.props;
 		const totalGas = customGasLimitBN && customGasLimitBN.mul(customGasPriceBNWei);
 		const ticker = getTicker(this.props.ticker);
+
 		return (
 			<Animated.View
 				style={[
@@ -586,7 +610,7 @@ class CustomGas extends PureComponent {
 					<Text style={styles.advancedOptionsText}>{strings('custom_gas.gas_price')}</Text>
 					<TextInput
 						keyboardType="numeric"
-						style={styles.gasInput}
+						style={warningGasPrice ? styles.gasInputError : styles.gasInput}
 						onChangeText={this.onGasPriceChange}
 						value={customGasPriceBN ? customGasPriceBN.toString() : ''}
 					/>
@@ -599,6 +623,7 @@ class CustomGas extends PureComponent {
 		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
 		const { gasError } = this.props;
 		const gasErrorMessage = warningGasPrice || warningGasLimit || warningSufficientFunds || gasError;
+
 		return (
 			<View style={styles.warningWrapper}>
 				<View style={[styles.warningTextWrapper, !gasErrorMessage ? styles.invisible : null]}>

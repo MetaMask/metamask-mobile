@@ -615,6 +615,7 @@
 		"invalid_amount": "Invalid amount",
 		"invalid_gas": "Invalid gas amount",
 		"invalid_gas_price": "Invalid gas price",
+		"high_gas_price": "Your gas fee is set unnecessarily high ({{currentGasPrice}}).\n Consider lowering the ammount.",
 		"low_gas_price": "Gas price extremely low",
 		"invalid_collectible_ownership": "You don't own this collectible",
 		"known_asset_contract": "Known asset contract address",
