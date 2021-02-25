@@ -229,7 +229,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 		sourceToken,
 		destinationToken,
 		sourceAmount,
-		fromAddress: walletAddress,
+		walletAddress,
 		destinationTokenConversionRate
 	});
 	await SwapsController.stopPollingAndResetState();
@@ -741,16 +741,15 @@ function SwapsQuotesView({
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 			};
+			Logger.error(error?.description, `Swaps: ${error?.key}`);
 			if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
 				InteractionManager.runAfterInteractions(() => {
-					Logger.error(error?.description, `Swaps: ${error?.key}`);
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
 						...data,
 						gas_fees: ''
 					});
 				});
 			} else if (error?.key === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
-				Logger.error(error?.description, `Swaps: ${error?.key}`);
 				InteractionManager.runAfterInteractions(() => {
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, { data });
 				});
