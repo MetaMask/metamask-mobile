@@ -50,6 +50,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
 import { decodeApproveData } from '../../../util/transactions';
+import Logger from '../../../util/Logger';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -228,7 +229,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 		sourceToken,
 		destinationToken,
 		sourceAmount,
-		walletAddress,
+		fromAddress: walletAddress,
 		destinationTokenConversionRate
 	});
 	await SwapsController.stopPollingAndResetState();
@@ -260,7 +261,7 @@ function SwapsQuotesView({
 	aggregatorMetadata,
 	quotes,
 	quoteValues,
-	errorKey,
+	error,
 	quoteRefreshSeconds
 }) {
 	const navigation = useContext(NavigationContext);
@@ -425,13 +426,13 @@ function SwapsQuotesView({
 	/* Handlers */
 	const handleAnimationEnd = useCallback(() => {
 		setIsFirstLoad(false);
-		if (!errorKey) {
+		if (!error?.key) {
 			navigation.setParams({ leftAction: strings('swaps.edit') });
 		}
-	}, [errorKey, navigation]);
+	}, [error, navigation]);
 
 	const handleRetryFetchQuotes = useCallback(() => {
-		if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
+		if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
 			navigation.setParams({ leftAction: strings('navigation.back') });
 			setFirstLoadTime(Date.now());
 			setIsFirstLoad(true);
@@ -448,7 +449,7 @@ function SwapsQuotesView({
 		} else {
 			navigation.pop();
 		}
-	}, [errorKey, slippage, sourceToken, destinationToken, sourceAmount, selectedAddress, navigation]);
+	}, [error, slippage, sourceToken, destinationToken, sourceAmount, selectedAddress, navigation]);
 
 	const updateSwapsTransactions = useCallback(
 		async (transactionMeta, approvalTransactionMetaId, newSwapsTransactions) => {
@@ -731,7 +732,7 @@ function SwapsQuotesView({
 	]);
 
 	const handleQuotesErrorMetric = useCallback(
-		errorKey => {
+		error => {
 			const data = {
 				token_from: sourceToken.symbol,
 				token_from_amount: fromTokenMinimalUnitString(sourceAmount, sourceToken.decimals),
@@ -740,14 +741,16 @@ function SwapsQuotesView({
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 			};
-			if (errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
+			if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
 				InteractionManager.runAfterInteractions(() => {
+					Logger.error(error?.description, `Swaps: ${error?.key}`);
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT, {
 						...data,
 						gas_fees: ''
 					});
 				});
-			} else if (errorKey === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
+			} else if (error?.key === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
+				Logger.error(error?.description, `Swaps: ${error?.key}`);
 				InteractionManager.runAfterInteractions(() => {
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, { data });
 				});
@@ -809,14 +812,14 @@ function SwapsQuotesView({
 	/* First load effect: handle initial animation */
 	useEffect(() => {
 		if (isFirstLoad && !shouldFinishFirstLoad) {
-			if (firstLoadTime < quotesLastFetched || errorKey) {
+			if (firstLoadTime < quotesLastFetched || error) {
 				setShouldFinishFirstLoad(true);
-				if (!errorKey) {
+				if (!error) {
 					navigation.setParams({ leftAction: strings('swaps.edit') });
 				}
 			}
 		}
-	}, [errorKey, firstLoadTime, isFirstLoad, navigation, quotesLastFetched, shouldFinishFirstLoad]);
+	}, [error, firstLoadTime, isFirstLoad, navigation, quotesLastFetched, shouldFinishFirstLoad]);
 
 	useEffect(() => {
 		let maxFetchTime = 0;
@@ -867,7 +870,7 @@ function SwapsQuotesView({
 
 	/* errorKey effect: hide every modal */
 	useEffect(() => {
-		if (errorKey) {
+		if (error) {
 			hideFeeModal();
 			hideQuotesModal();
 			hideUpdateModal();
@@ -875,7 +878,7 @@ function SwapsQuotesView({
 			onCancelEditQuoteTransactions();
 		}
 	}, [
-		errorKey,
+		error,
 		hideFeeModal,
 		hideQuotesModal,
 		handleQuotesErrorMetric,
@@ -926,13 +929,13 @@ function SwapsQuotesView({
 
 	/* Metrics: Quotes error */
 	useEffect(() => {
-		if (!errorKey || trackedError) return;
+		if (!error?.key || trackedError) return;
 		setTrackedError(true);
-		handleQuotesErrorMetric(errorKey);
-	}, [errorKey, handleQuotesErrorMetric, trackedError]);
+		handleQuotesErrorMetric(error);
+	}, [error, handleQuotesErrorMetric, trackedError]);
 
 	/* Rendering */
-	if (isFirstLoad || (!errorKey && !selectedQuote)) {
+	if (isFirstLoad || (!error?.key && !selectedQuote)) {
 		return (
 			<ScreenView contentContainerStyle={styles.screen} scrollEnabled={false}>
 				<LoadingAnimation
@@ -944,10 +947,10 @@ function SwapsQuotesView({
 		);
 	}
 
-	if (!isInPolling && errorKey) {
-		const [errorTitle, errorMessage, errorAction] = getErrorMessage(errorKey);
+	if (!isInPolling && error?.key) {
+		const [errorTitle, errorMessage, errorAction] = getErrorMessage(error?.key);
 		const errorIcon =
-			errorKey === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR ? (
+			error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR ? (
 				<MaterialCommunityIcons name="clock-outline" style={[styles.errorIcon, styles.expiredIcon]} />
 			) : (
 				<MaterialCommunityIcons name="alert-outline" style={[styles.errorIcon]} />
@@ -1328,7 +1331,7 @@ SwapsQuotesView.propTypes = {
 	quotes: PropTypes.object,
 	quoteValues: PropTypes.object,
 	approvalTransaction: PropTypes.object,
-	errorKey: PropTypes.string,
+	error: PropTypes.object,
 	quoteRefreshSeconds: PropTypes.number
 };
 
@@ -1347,7 +1350,7 @@ const mapStateToProps = state => ({
 	quotes: state.engine.backgroundState.SwapsController.quotes,
 	quoteValues: state.engine.backgroundState.SwapsController.quoteValues,
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,
-	errorKey: state.engine.backgroundState.SwapsController.errorKey,
+	error: state.engine.backgroundState.SwapsController.error,
 	quoteRefreshSeconds: state.engine.backgroundState.SwapsController.quoteRefreshSeconds
 });
 
