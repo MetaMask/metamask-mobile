@@ -127,8 +127,7 @@ const styles = StyleSheet.create({
 	},
 	passwordStrengthLabel: {
 		height: 20,
-		marginTop: 10,
-		fontSize: 16,
+		fontSize: 15,
 		color: colors.black,
 		...fontStyles.normal
 	},
