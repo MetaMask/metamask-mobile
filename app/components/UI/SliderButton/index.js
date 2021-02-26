@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { View, Animated, PanResponder, StyleSheet, Image, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -85,8 +85,9 @@ const styles = StyleSheet.create({
 
 function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 	const [componentWidth, setComponentWidth] = useState(0);
-	const [isComplete, setIsComplete] = useState(false);
+	const [hasCompletedCalled, setHasCompletedCalled] = useState(false);
 	const [shouldComplete, setShouldComplete] = useState(false);
+	const [hasStartedCompleteAnimation, setHasStartedCompleteAnimation] = useState(false);
 	const [isPressed, setIsPressed] = useState(false);
 
 	const shineOffset = useRef(new Animated.Value(0)).current;
@@ -120,8 +121,8 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 	const panResponder = useMemo(
 		() =>
 			PanResponder.create({
-				onStartShouldSetPanResponder: () => !disabled && !(shouldComplete || isComplete),
-				onMoveShouldSetPanResponder: () => !disabled && !(shouldComplete || isComplete),
+				onStartShouldSetPanResponder: () => !disabled && !(shouldComplete || hasCompletedCalled),
+				onMoveShouldSetPanResponder: () => !disabled && !(shouldComplete || hasCompletedCalled),
 				onPanResponderGrant: () => setIsPressed(true),
 				onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
 				onPanResponderRelease: (evt, gestureState) => {
@@ -136,7 +137,7 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 					}
 				}
 			}),
-		[componentWidth, disabled, isComplete, pan, shouldComplete]
+		[componentWidth, disabled, hasCompletedCalled, pan, shouldComplete]
 	);
 	useEffect(() => {
 		const animation = Animated.loop(
@@ -157,19 +158,24 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 		};
 	}, [shineOffset]);
 
+	const handleComplete = useCallback(() => {
+		if (onComplete && !hasCompletedCalled) {
+			setHasCompletedCalled(true);
+			onComplete();
+		}
+	}, [hasCompletedCalled, onComplete]);
+
 	useEffect(() => {
-		if (!isComplete && shouldComplete) {
+		if (shouldComplete && !hasStartedCompleteAnimation) {
+			setHasStartedCompleteAnimation(true);
 			Animated.parallel([
 				Animated.spring(completion, { toValue: 1, useNativeDriver: false }),
 				Animated.spring(pan, { toValue: { x: componentWidth, y: 0 }, useNativeDriver: false })
 			]).start(() => {
-				setIsComplete(true);
-				if (onComplete) {
-					onComplete();
-				}
+				handleComplete();
 			});
 		}
-	}, [completion, componentWidth, isComplete, onComplete, pan, shouldComplete]);
+	}, [completion, componentWidth, handleComplete, hasStartedCompleteAnimation, onComplete, pan, shouldComplete]);
 
 	return (
 		<View
