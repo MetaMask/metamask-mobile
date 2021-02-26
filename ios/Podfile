@@ -35,6 +35,8 @@ target 'MetaMask' do
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
   
   use_flipper!
+  pod 'rn-fetch-blob', :path => '../node_modules/rn-fetch-blob'
+
   post_install do |installer|
 	react_native_post_install(installer)
 	# Enables Flipper.
