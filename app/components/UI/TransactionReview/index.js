@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, InteractionManager, Animated } from 'react-native';
+import { StyleSheet, View, InteractionManager, Animated, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -317,6 +317,9 @@ class TransactionReview extends PureComponent {
 							<View style={styles.actionViewChildren}>
 								<View style={styles.accountInfoCardWrapper}>
 									<AccountInfoCard />
+								</View>
+								<View>
+									<Text style={styles.warning}>TEST</Text>
 								</View>
 								<TransactionReviewInformation
 									error={error}

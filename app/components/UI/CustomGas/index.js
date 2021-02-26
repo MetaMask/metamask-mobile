@@ -317,6 +317,7 @@ class CustomGas extends PureComponent {
 		customGasLimitBN: this.props.gas,
 		warningGasLimit: '',
 		warningGasPrice: '',
+		warningGasPriceHigh: '',
 		warningSufficientFunds: '',
 		headerHeight: null,
 		gasInputHeight: null
@@ -447,7 +448,7 @@ class CustomGas extends PureComponent {
 		const gasPriceBN = new BN(gasPrice);
 		const gasPriceBNWei = apiEstimateModifiedToWEI(gasPrice);
 		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBNWei);
-		let warningGasPrice;
+		let warningGasPrice, warningGasPriceHigh;
 		let currentGasPrice;
 		if (parseInt(gasPrice) < parseInt(this.props.basicGasEstimates.safeLowGwei))
 			warningGasPrice = strings('transaction.low_gas_price');
@@ -458,7 +459,7 @@ class CustomGas extends PureComponent {
 				this.props.currentCurrency,
 				customGasLimitBN
 			);
-			warningGasPrice = strings('transaction.high_gas_price', { currentGasPrice });
+			warningGasPriceHigh = strings('transaction.high_gas_price', { currentGasPrice });
 		}
 		if (!value || value === '' || !isDecimal(value) || value <= 0)
 			warningGasPrice = strings('transaction.invalid_gas_price');
@@ -468,13 +469,14 @@ class CustomGas extends PureComponent {
 			customGasPriceBNWei: gasPriceBNWei,
 			customGasPriceBN: gasPriceBN,
 			warningGasPrice,
+			warningGasPriceHigh,
 			warningSufficientFunds
 		});
 	};
 
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
 	saveCustomGasSelection = () => {
-		const { gasSpeedSelected, customGasLimit, customGasPrice } = this.state;
+		const { gasSpeedSelected, customGasLimit, customGasPrice, warningGasPriceHigh } = this.state;
 		const {
 			review,
 			gas,
@@ -483,7 +485,12 @@ class CustomGas extends PureComponent {
 			basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
 		} = this.props;
 		if (advancedCustomGas) {
-			handleGasFeeSelection(new BN(customGasLimit), apiEstimateModifiedToWEI(customGasPrice));
+			console.log('DEBUG ISSUE', warningGasPriceHigh);
+			handleGasFeeSelection(
+				new BN(customGasLimit),
+				apiEstimateModifiedToWEI(customGasPrice),
+				warningGasPriceHigh
+			);
 		} else {
 			if (gasSpeedSelected === 'slow') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
 			if (gasSpeedSelected === 'average') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
@@ -623,10 +630,10 @@ class CustomGas extends PureComponent {
 	};
 
 	renderGasError = () => {
-		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
+		const { warningGasLimit, warningGasPrice, warningGasPriceHigh, warningSufficientFunds } = this.state;
 		const { gasError } = this.props;
-		const gasErrorMessage = warningGasPrice || warningGasLimit || warningSufficientFunds || gasError;
-
+		const gasErrorMessage =
+			warningGasPrice || warningGasPriceHigh || warningGasLimit || warningSufficientFunds || gasError;
 		return (
 			<View style={styles.warningWrapper}>
 				<View style={[styles.warningTextWrapper, !gasErrorMessage ? styles.invisible : null]}>

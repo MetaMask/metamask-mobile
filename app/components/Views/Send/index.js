@@ -129,6 +129,7 @@ class Send extends PureComponent {
 	async reset() {
 		const { transaction } = this.props;
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
+		console.log('Test', gas);
 		this.props.setTransactionObject({
 			gas: hexToBN(gas),
 			gasPrice: hexToBN(gasPrice)

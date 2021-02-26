@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
 import AnimatedTransactionModal from '../AnimatedTransactionModal';
@@ -106,6 +106,7 @@ class TransactionEditor extends PureComponent {
 		data: undefined,
 		amountError: '',
 		gasError: '',
+		warningGasPriceHigh: undefined,
 		toAddressError: '',
 		over: false
 	};
@@ -179,8 +180,10 @@ class TransactionEditor extends PureComponent {
 	 *
 	 * @param {object} gasLimit - BN object containing gasLimit value
 	 * @param {object} gasPrice - BN object containing gasPrice value
+	 * @param {object} warningGasPriceHigh - string object warning for custom gas price set higher than 'Fast'
 	 */
-	handleGasFeeSelection = (gasLimit, gasPrice) => {
+	handleGasFeeSelection = (gasLimit, gasPrice, warningGasPriceHigh) => {
+		this.setState({ warningGasPriceHigh });
 		this.props.setTransactionObject({ gas: gasLimit, gasPrice });
 	};
 
@@ -584,8 +587,8 @@ class TransactionEditor extends PureComponent {
 		return amountError || gasError || toAddressError;
 	};
 
-	updateGas = async (gas, gasLimit) => {
-		await this.handleGasFeeSelection(gas, gasLimit);
+	updateGas = async (gas, gasLimit, warningGasPriceHigh) => {
+		await this.handleGasFeeSelection(gas, gasLimit, warningGasPriceHigh);
 		const gasError = this.validateGas();
 		this.setState({ gasError });
 	};
@@ -643,7 +646,13 @@ class TransactionEditor extends PureComponent {
 								ready={ready}
 								transactionConfirmed={transactionConfirmed}
 								over={over}
-							/>
+							>
+								<View style={styles.warningWrapper}>
+									<View style={styles.warningTextWrapper}>
+										<Text style={styles.warningText}>{'Test'}</Text>
+									</View>
+								</View>
+							</TransactionReview>
 							<CustomGas
 								handleGasFeeSelection={this.updateGas}
 								basicGasEstimates={basicGasEstimates}

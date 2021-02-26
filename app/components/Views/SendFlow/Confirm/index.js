@@ -313,6 +313,7 @@ class Confirm extends PureComponent {
 		fromSelectedAddress: this.props.transactionState.transaction.from,
 		hexDataModalVisible: false,
 		gasError: undefined,
+		warningGasPriceHigh: undefined,
 		ready: false,
 		transactionValue: undefined,
 		transactionValueFiat: undefined,
@@ -561,17 +562,22 @@ class Confirm extends PureComponent {
 		);
 	};
 
-	handleSetGasFee = (customGas, customGasPrice) => {
+	handleSetGasFee = (customGas, customGasPrice, warningGasPriceHigh) => {
 		const { prepareTransaction, transactionState } = this.props;
 		let transaction = transactionState.transaction;
 		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
 		prepareTransaction(transaction);
+		if (warningGasPriceHigh) {
+			this.setState({ warningGasPriceHigh });
+			console.log('DEBUG Handle', warningGasPriceHigh);
+		}
 		setTimeout(() => {
 			this.parseTransactionData();
 			this.setState({
 				errorMessage: undefined
 			});
 		}, 100);
+
 		this.onModeChange(REVIEW);
 	};
 
@@ -684,6 +690,7 @@ class Confirm extends PureComponent {
 	};
 
 	onPaymentChannelSend = async () => {
+		console.log('Payment SEND');
 		this.setState({ transactionConfirmed: true });
 		const {
 			navigation,
@@ -831,6 +838,7 @@ class Confirm extends PureComponent {
 		const {
 			transaction: { gas, gasPrice }
 		} = this.props;
+		console.log('DEBUG TEST');
 		return (
 			<Modal
 				isVisible
@@ -951,6 +959,7 @@ class Confirm extends PureComponent {
 			errorMessage,
 			transactionConfirmed,
 			paymentChannelBalance,
+			warningGasPriceHigh,
 			mode,
 			over
 		} = this.state;
@@ -1017,10 +1026,10 @@ class Confirm extends PureComponent {
 							over={over}
 						/>
 					)}
-					{errorMessage && (
+					{(errorMessage || warningGasPriceHigh) && (
 						<View style={styles.errorWrapper}>
 							<TouchableOpacity onPress={errorPress}>
-								<Text style={styles.error}>{errorMessage}</Text>
+								<Text style={styles.error}>{!errorMessage ? warningGasPriceHigh : errorMessage}</Text>
 								{/* only show buy more on mainnet */}
 								{over && is_main_net && (
 									<Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>
