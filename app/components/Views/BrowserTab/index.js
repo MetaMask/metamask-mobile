@@ -66,6 +66,8 @@ import { RPC } from '../../../constants/network';
 import validUrl from 'valid-url';
 import { NetworksChainId } from '@metamask/controllers';
 import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
+import AddCustomNetwork from '../../UI/AddCustomNetwork';
+import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 //
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
@@ -250,6 +252,11 @@ export const BrowserTab = props => {
 	const [watchAsset, setWatchAsset] = useState(false);
 	const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
 
+	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
+	const [showAddCustomNetworkDialog, setShowAddCustomNetworkDialog] = useState(false);
+	const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
+	const [showSwitchCustomNetworkDialog, setShowSwitchCustomNetworkDialog] = useState(false);
+
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
 
@@ -260,6 +267,8 @@ export const BrowserTab = props => {
 	const backgroundBridges = useRef([]);
 	const approvalRequest = useRef(null);
 	const fromHomepage = useRef(false);
+	const addCustomNetworkRequest = useRef(null);
+	const switchCustomNetworkRequest = useRef(null);
 
 	/**
 	 * Gets the url to be displayed to the user
@@ -415,6 +424,12 @@ export const BrowserTab = props => {
 
 			const rpcMethods = {
 				wallet_addEthereumChain: async () => {
+					if (showAddCustomNetworkDialog || showSwitchCustomNetworkDialog) return;
+					addCustomNetworkRequest.current = null;
+					switchCustomNetworkRequest.current = null;
+
+					const { PreferencesController, CurrencyRateController, NetworkController } = Engine.context;
+
 					const params = {
 						chainId: '0x1F',
 						chainName: 'RSK Testnet',
@@ -422,6 +437,7 @@ export const BrowserTab = props => {
 						nativeCurrency: { symbol: 'tR-BTC', decimals: 18 },
 						rpcUrls: ['https://public-node.testnet.rsk.co']
 					};
+
 					const {
 						chainId,
 						chainName = null,
@@ -480,13 +496,46 @@ export const BrowserTab = props => {
 						);
 					}
 
-					if (NetworksChainId[_chainId]) {
+					const chainIdDecimal = parseInt(_chainId, 16).toString(10);
+
+					if (NetworksChainId[chainIdDecimal]) {
 						throw ethErrors.rpc.invalidParams(`May not specify default MetaMask chain.`);
 					}
 
-					/**
-					 * TODO existingNetwork?
-					 */
+					const existingNetwork = props.frequentRpcList.find(rpc => rpc.chainId === chainIdDecimal);
+
+					if (existingNetwork) {
+						const currentChainId = props.networkProvider.chainId;
+						if (currentChainId === chainIdDecimal) {
+							res.result = null;
+							return;
+						}
+
+						setCustomNetworkToSwitch({
+							rpcUrl: existingNetwork.rpcUrl,
+							chainId: _chainId,
+							chainName: existingNetwork.nickname,
+							ticker: existingNetwork.ticker
+						});
+						setShowSwitchCustomNetworkDialog('switch');
+
+						const switchCustomNetworkApprove = await new Promise((resolve, reject) => {
+							switchCustomNetworkRequest.current = { resolve, reject };
+						});
+
+						if (!switchCustomNetworkApprove)
+							throw ethErrors.provider.userRejectedRequest('User rejected the request.');
+
+						CurrencyRateController.configure({ nativeCurrency: existingNetwork.ticker });
+						NetworkController.setRpcTarget(
+							existingNetwork.rpcUrl,
+							chainIdDecimal,
+							existingNetwork.ticker,
+							existingNetwork.nickname
+						);
+						res.result = null;
+						return;
+					}
 
 					let endpointChainId;
 
@@ -549,13 +598,36 @@ export const BrowserTab = props => {
 						ticker
 					};
 
-					/**
-					 * TODO add new network
-					 */
+					setCustomNetworkToAdd(requestData);
+					setShowAddCustomNetworkDialog(true);
 
-					console.log(requestData);
+					const addCustomNetworkApprove = await new Promise((resolve, reject) => {
+						addCustomNetworkRequest.current = { resolve, reject };
+					});
 
-					res.result = requestData;
+					if (!addCustomNetworkApprove)
+						throw ethErrors.provider.userRejectedRequest('User rejected the request.');
+
+					PreferencesController.addToFrequentRpcList(firstValidRPCUrl, chainIdDecimal, ticker, _chainName, {
+						blockExplorerUrl: firstValidBlockExplorerUrl
+					});
+
+					InteractionManager.runAfterInteractions(() => {
+						setCustomNetworkToSwitch(requestData);
+						setShowSwitchCustomNetworkDialog('new');
+					});
+
+					const switchCustomNetworkApprove = await new Promise((resolve, reject) => {
+						switchCustomNetworkRequest.current = { resolve, reject };
+					});
+
+					if (!switchCustomNetworkApprove)
+						throw ethErrors.provider.userRejectedRequest('User rejected the request.');
+
+					CurrencyRateController.configure({ nativeCurrency: ticker });
+					NetworkController.setRpcTarget(firstValidBlockExplorerUrl, chainIdDecimal, ticker, _chainName);
+
+					res.result = null;
 				},
 				eth_chainId: async () => {
 					const { networkType, networkProvider } = props;
@@ -1775,6 +1847,93 @@ export const BrowserTab = props => {
 		);
 	};
 
+	const onAddCustomNetworkReject = () => {
+		setShowAddCustomNetworkDialog(false);
+		addCustomNetworkRequest.current &&
+			addCustomNetworkRequest.current.reject &&
+			addCustomNetworkRequest.current.reject(new Error('User rejected the request.'));
+	};
+
+	const onAddCustomNetworkConfirm = () => {
+		setShowAddCustomNetworkDialog(false);
+		addCustomNetworkRequest.current &&
+			addCustomNetworkRequest.current.resolve &&
+			addCustomNetworkRequest.current.resolve('Approved');
+	};
+
+	/**
+	 * Render the modal that asks the user to approve/reject connections to a dapp
+	 */
+	const renderAddCustomNetworkModal = () => (
+		<Modal
+			isVisible={showAddCustomNetworkDialog}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={300}
+			animationOutTiming={300}
+			onSwipeComplete={onAddCustomNetworkReject}
+			onBackdropPress={onAddCustomNetworkReject}
+			swipeDirection={'down'}
+		>
+			<AddCustomNetwork
+				onCancel={onAddCustomNetworkReject}
+				onConfirm={onAddCustomNetworkConfirm}
+				currentPageInformation={{
+					title: title.current,
+					url: getMaskedUrl(url.current),
+					icon: icon.current
+				}}
+				customNetworkInformation={customNetworkToAdd}
+			/>
+		</Modal>
+	);
+
+	const onSwitchCustomNetworkReject = () => {
+		setShowSwitchCustomNetworkDialog(false);
+		switchCustomNetworkRequest.current &&
+			switchCustomNetworkRequest.current.reject &&
+			switchCustomNetworkRequest.current.reject(new Error('User rejected the request.'));
+	};
+
+	const onSwitchCustomNetworkConfirm = () => {
+		setShowSwitchCustomNetworkDialog(false);
+		switchCustomNetworkRequest.current &&
+			switchCustomNetworkRequest.current.resolve &&
+			switchCustomNetworkRequest.current.resolve('Approved');
+	};
+
+	/**
+	 * Render the modal that asks the user to approve/reject connections to a dapp
+	 */
+	const renderSwitchCustomNetworkModal = () => (
+		<Modal
+			isVisible={!!showSwitchCustomNetworkDialog}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={300}
+			animationOutTiming={300}
+			onSwipeComplete={onSwitchCustomNetworkReject}
+			onBackdropPress={onSwitchCustomNetworkReject}
+			swipeDirection={'down'}
+		>
+			<SwitchCustomNetwork
+				onCancel={onSwitchCustomNetworkReject}
+				onConfirm={onSwitchCustomNetworkConfirm}
+				currentPageInformation={{
+					title: title.current,
+					url: getMaskedUrl(url.current),
+					icon: icon.current
+				}}
+				customNetworkInformation={customNetworkToSwitch}
+				type={showSwitchCustomNetworkDialog}
+			/>
+		</Modal>
+	);
+
 	/**
 	 * On rejection addinga an asset
 	 */
@@ -1864,6 +2023,8 @@ export const BrowserTab = props => {
 				{isTabActive() && renderOptions()}
 				{isTabActive() && renderBottomBar()}
 				{isTabActive() && renderOnboardingWizard()}
+				{isTabActive() && renderAddCustomNetworkModal()}
+				{isTabActive() && renderSwitchCustomNetworkModal()}
 			</View>
 		</ErrorBoundary>
 	);
@@ -1986,7 +2147,11 @@ BrowserTab.propTypes = {
 	/**
 	 * An object representing the selected network provider
 	 */
-	networkProvider: PropTypes.object
+	networkProvider: PropTypes.object,
+	/**
+	 * An array representing the list of added custom networks
+	 */
+	frequentRpcList: PropTypes.array
 };
 
 BrowserTab.defaultProps = {
@@ -2005,7 +2170,8 @@ const mapStateToProps = state => ({
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
 	activeTab: state.browser.activeTab,
-	wizardStep: state.wizard.step
+	wizardStep: state.wizard.step,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
 });
 
 const mapDispatchToProps = dispatch => ({
