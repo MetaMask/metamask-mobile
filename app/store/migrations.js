@@ -99,4 +99,4 @@ export const migrations = {
 	}
 };
 
-export const version = 3;
+export const version = 4;
