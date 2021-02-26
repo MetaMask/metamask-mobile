@@ -86,7 +86,6 @@ const styles = StyleSheet.create({
 function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 	const [componentWidth, setComponentWidth] = useState(0);
 	const [hasCompletedCalled, setHasCompletedCalled] = useState(false);
-	const [shouldComplete, setShouldComplete] = useState(false);
 	const [hasStartedCompleteAnimation, setHasStartedCompleteAnimation] = useState(false);
 	const [isPressed, setIsPressed] = useState(false);
 
@@ -118,11 +117,30 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 		outputRange: [colors.blue600, colors.success]
 	});
 
+	const startCompleteAnimation = useCallback(() => {
+		if (!hasStartedCompleteAnimation) {
+			setHasStartedCompleteAnimation(true);
+			Animated.parallel([
+				Animated.spring(completion, { toValue: 1, useNativeDriver: false, isInteraction: false }),
+				Animated.spring(pan, {
+					toValue: { x: componentWidth, y: 0 },
+					useNativeDriver: false,
+					isInteraction: false
+				})
+			]).start(() => {
+				if (onComplete && !hasCompletedCalled) {
+					setHasCompletedCalled(true);
+					onComplete();
+				}
+			});
+		}
+	}, [completion, componentWidth, hasCompletedCalled, hasStartedCompleteAnimation, onComplete, pan]);
+
 	const panResponder = useMemo(
 		() =>
 			PanResponder.create({
-				onStartShouldSetPanResponder: () => !disabled && !(shouldComplete || hasCompletedCalled),
-				onMoveShouldSetPanResponder: () => !disabled && !(shouldComplete || hasCompletedCalled),
+				onStartShouldSetPanResponder: () => !disabled && !hasCompletedCalled,
+				onMoveShouldSetPanResponder: () => !disabled && !hasCompletedCalled,
 				onPanResponderGrant: () => setIsPressed(true),
 				onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
 				onPanResponderRelease: (evt, gestureState) => {
@@ -131,14 +149,15 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 						Math.abs(gestureState.dy) < COMPLETE_VERTICAL_THRESHOLD &&
 						gestureState.dx / (componentWidth - DIAMETER) >= COMPLETE_THRESHOLD
 					) {
-						setShouldComplete(true);
+						startCompleteAnimation();
 					} else {
 						Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
 					}
 				}
 			}),
-		[componentWidth, disabled, hasCompletedCalled, pan, shouldComplete]
+		[componentWidth, disabled, hasCompletedCalled, pan, startCompleteAnimation]
 	);
+
 	useEffect(() => {
 		const animation = Animated.loop(
 			Animated.sequence([
@@ -157,25 +176,6 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 			animation.stop();
 		};
 	}, [shineOffset]);
-
-	const handleComplete = useCallback(() => {
-		if (onComplete && !hasCompletedCalled) {
-			setHasCompletedCalled(true);
-			onComplete();
-		}
-	}, [hasCompletedCalled, onComplete]);
-
-	useEffect(() => {
-		if (shouldComplete && !hasStartedCompleteAnimation) {
-			setHasStartedCompleteAnimation(true);
-			Animated.parallel([
-				Animated.spring(completion, { toValue: 1, useNativeDriver: false }),
-				Animated.spring(pan, { toValue: { x: componentWidth, y: 0 }, useNativeDriver: false })
-			]).start(() => {
-				handleComplete();
-			});
-		}
-	}, [completion, componentWidth, handleComplete, hasStartedCompleteAnimation, onComplete, pan, shouldComplete]);
 
 	return (
 		<View
