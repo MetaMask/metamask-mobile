@@ -25,6 +25,7 @@ import {
 import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@estebanmino/controllers';
+import BigNumber from 'bignumber.js';
 
 const { ETH_SWAPS_TOKEN_ADDRESS, SWAPS_CONTRACT_ADDRESS } = swapsUtils;
 const {
@@ -697,10 +698,12 @@ function decodeSwapsTx(args) {
 
 	if (isSwap) {
 		if (!assetSymbol || sourceToken.symbol === assetSymbol) {
-			value = `-${swapTransaction.sourceAmount} ${sourceToken.symbol}`;
+			const sourceAmount = new BigNumber(swapTransaction.sourceAmount).decimalPlaces(5).toString();
+			value = `-${sourceAmount} ${sourceToken.symbol}`;
 			fiatValue = addCurrencySymbol(renderSourceTokenFiatNumber, currentCurrency);
 		} else {
-			value = `+${swapTransaction.destinationAmount} ${destinationToken.symbol}`;
+			const destinationAmount = new BigNumber(swapTransaction.destinationAmount).decimalPlaces(5).toString();
+			value = `+${destinationAmount} ${destinationToken.symbol}`;
 			fiatValue = addCurrencySymbol(renderDestinationTokenFiatNumber, currentCurrency);
 		}
 	}
