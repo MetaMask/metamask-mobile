@@ -344,7 +344,7 @@ export function addCurrencySymbol(amount, currencyCode) {
 		return `${currencySymbols[currencyCode]}${amount}`;
 	}
 
-	const lowercaseCurrencyCode = currencyCode.toLowerCase();
+	const lowercaseCurrencyCode = currencyCode?.toLowerCase();
 
 	if (currencySymbols[lowercaseCurrencyCode]) {
 		return `${currencySymbols[lowercaseCurrencyCode]}${amount}`;

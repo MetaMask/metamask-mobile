@@ -254,6 +254,7 @@ const Main = props => {
 					.div(swapTransaction.destinationAmount)
 					.times(100)
 					.toFixed(2)}%`;
+				console.log('quoteVsExecutionRatio', quoteVsExecutionRatio);
 				const analyticsParams = { ...swapTransaction.analytics };
 				delete newSwapsTransactions[transactionMeta.id].analytics;
 				delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;

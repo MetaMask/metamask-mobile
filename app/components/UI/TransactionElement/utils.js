@@ -631,10 +631,9 @@ function decodeSwapsTx(args) {
 		contractExchangeRates,
 		assetSymbol
 	} = args;
-
 	const swapTransaction = (swapsTransactions && swapsTransactions[id]) || {};
 	const totalGas = calculateTotalGas(swapTransaction.gasUsed || gas, gasPrice);
-	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction.sourceToken.address);
+	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction?.sourceToken?.address);
 	const destinationToken =
 		swapTransaction?.destinationToken?.swaps ||
 		swapsTokens?.find(({ address }) => address === swapTransaction.destinationToken.address);
@@ -735,7 +734,8 @@ function decodeSwapsTx(args) {
 			summaryFee: `${totalEthGas} ${ticker}`,
 			summaryTotalAmount: cryptoSummaryTotalAmount,
 			summarySecondaryTotalAmount: addCurrencySymbol(
-				renderSourceTokenFiatNumber + weiToFiatNumber(totalGas, conversionRate)
+				renderSourceTokenFiatNumber + weiToFiatNumber(totalGas, conversionRate),
+				currentCurrency
 			)
 		};
 	} else {
