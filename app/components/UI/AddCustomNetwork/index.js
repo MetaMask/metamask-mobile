@@ -198,7 +198,7 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, on
 						<Icon name="angle-left" size={24} style={styles.detailsBackIcon} />
 					</TouchableOpacity>
 				</View>
-				<Text style={styles.detailsTitle}>{strings('add_custom_networkdetails_title')}</Text>
+				<Text style={styles.detailsTitle}>{strings('add_custom_network.details_title')}</Text>
 				<View style={styles.flexAux} />
 			</View>
 			{renderNetworkInfo(true)}
