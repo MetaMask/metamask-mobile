@@ -2,7 +2,7 @@ import { NetworksChainId } from '@metamask/controllers';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
 import AsyncStorage from '@react-native-community/async-storage';
-import getStoredState from 'redux-persist';
+import { getStoredState } from 'redux-persist';
 import Logger from '../util/Logger';
 import isEmpty from 'lodash.isempty';
 
