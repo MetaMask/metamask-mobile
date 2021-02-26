@@ -1,6 +1,10 @@
 import { NetworksChainId } from '@metamask/controllers';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
+import AsyncStorage from '@react-native-community/async-storage';
+import getStoredState from 'redux-persist';
+import Logger from '../util/Logger';
+import isEmpty from 'lodash.isempty';
 
 export const migrations = {
 	// Needed after https://github.com/MetaMask/controllers/pull/152
@@ -71,6 +75,26 @@ export const migrations = {
 				chainId: NetworksChainId.rinkeby
 			};
 		}
+		return state;
+	},
+	// Migrate from async storage to fs https://github.com/robwalkerco/redux-persist-filesystem-storage#migration-from-previous-storage
+	4: async state => {
+		Logger.log('Attempting migration');
+		if (isEmpty(state)) {
+			try {
+				const asyncState = await getStoredState({
+					key: 'root',
+					storage: AsyncStorage
+				});
+				if (!isEmpty(asyncState)) {
+					// if data exists in `AsyncStorage` - rehydrate fs persistor with it
+					return asyncState;
+				}
+			} catch (getStateError) {
+				console.warn('getStoredState error', getStateError);
+			}
+		}
+		// FS state not empty
 		return state;
 	}
 };
