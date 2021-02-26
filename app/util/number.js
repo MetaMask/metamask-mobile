@@ -337,6 +337,9 @@ export function weiToFiat(wei, conversionRate, currencyCode, decimalsToShow = 5)
  * @returns {string} - Currency-formatted string
  */
 export function addCurrencySymbol(amount, currencyCode) {
+	if (currencyCode === 'usd') {
+		amount = parseFloat(amount).toFixed(2);
+	}
 	if (currencySymbols[currencyCode]) {
 		return `${currencySymbols[currencyCode]}${amount}`;
 	}

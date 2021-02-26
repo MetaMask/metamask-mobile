@@ -239,10 +239,7 @@ const Main = props => {
 					approvalReceipt,
 					transactionMeta?.transaction,
 					approvalTransaction?.transaction,
-					{
-						address: swapTransaction.destinationToken,
-						decimals: swapTransaction.destinationTokenDecimals
-					},
+					swapTransaction.destinationToken,
 					ethAccountBalance,
 					ethBalance
 				);
@@ -252,7 +249,8 @@ const Main = props => {
 					.div(gasEstimate)
 					.times(100)
 					.toFixed(2)}%`;
-				const quoteVsExecutionRatio = `${new BigNumber(tokensReceived)
+				const quoteVsExecutionRatio = `${util
+					.calcTokenAmount(tokensReceived, swapTransaction.destinationTokenDecimals)
 					.div(swapTransaction.destinationAmount)
 					.times(100)
 					.toFixed(2)}%`;
