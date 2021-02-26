@@ -1527,6 +1527,6 @@
 		"block_explorer_url": "Block explorer URL",
 		"details_title": "Network details",
 		"cancel": "Cancel",
-		"approvee": "Approve"
+		"approve": "Approve"
 	}
 }
