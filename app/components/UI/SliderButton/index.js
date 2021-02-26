@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { View, Animated, PanResponder, StyleSheet, Image, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -13,7 +13,6 @@ const DIAMETER = 60;
 const MARGIN = DIAMETER * 0.16;
 const COMPLETE_VERTICAL_THRESHOLD = DIAMETER * 2;
 const COMPLETE_THRESHOLD = 0.85;
-const COMPLETE_DELAY = 0;
 
 const styles = StyleSheet.create({
 	container: {
@@ -86,8 +85,8 @@ const styles = StyleSheet.create({
 
 function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 	const [componentWidth, setComponentWidth] = useState(0);
-	const [isComplete, setIsComplete] = useState(false);
-	const [shouldComplete, setShouldComplete] = useState(false);
+	const [hasCompletedCalled, setHasCompletedCalled] = useState(false);
+	const [hasStartedCompleteAnimation, setHasStartedCompleteAnimation] = useState(false);
 	const [isPressed, setIsPressed] = useState(false);
 
 	const shineOffset = useRef(new Animated.Value(0)).current;
@@ -118,11 +117,30 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 		outputRange: [colors.blue600, colors.success]
 	});
 
+	const startCompleteAnimation = useCallback(() => {
+		if (!hasStartedCompleteAnimation) {
+			setHasStartedCompleteAnimation(true);
+			Animated.parallel([
+				Animated.spring(completion, { toValue: 1, useNativeDriver: false, isInteraction: false }),
+				Animated.spring(pan, {
+					toValue: { x: componentWidth, y: 0 },
+					useNativeDriver: false,
+					isInteraction: false
+				})
+			]).start(() => {
+				if (onComplete && !hasCompletedCalled) {
+					setHasCompletedCalled(true);
+					onComplete();
+				}
+			});
+		}
+	}, [completion, componentWidth, hasCompletedCalled, hasStartedCompleteAnimation, onComplete, pan]);
+
 	const panResponder = useMemo(
 		() =>
 			PanResponder.create({
-				onStartShouldSetPanResponder: () => !disabled && !(shouldComplete || isComplete),
-				onMoveShouldSetPanResponder: () => !disabled && !(shouldComplete || isComplete),
+				onStartShouldSetPanResponder: () => !disabled && !hasCompletedCalled,
+				onMoveShouldSetPanResponder: () => !disabled && !hasCompletedCalled,
 				onPanResponderGrant: () => setIsPressed(true),
 				onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
 				onPanResponderRelease: (evt, gestureState) => {
@@ -131,14 +149,15 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 						Math.abs(gestureState.dy) < COMPLETE_VERTICAL_THRESHOLD &&
 						gestureState.dx / (componentWidth - DIAMETER) >= COMPLETE_THRESHOLD
 					) {
-						setShouldComplete(true);
+						startCompleteAnimation();
 					} else {
 						Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
 					}
 				}
 			}),
-		[componentWidth, disabled, isComplete, pan, shouldComplete]
+		[componentWidth, disabled, hasCompletedCalled, pan, startCompleteAnimation]
 	);
+
 	useEffect(() => {
 		const animation = Animated.loop(
 			Animated.sequence([
@@ -157,27 +176,6 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 			animation.stop();
 		};
 	}, [shineOffset]);
-
-	useEffect(() => {
-		if (!isComplete && shouldComplete) {
-			let completeTimeout;
-			Animated.parallel([
-				Animated.spring(completion, { toValue: 1, useNativeDriver: false }),
-				Animated.spring(pan, { toValue: { x: componentWidth, y: 0 }, useNativeDriver: false })
-			]).start(() => {
-				completeTimeout = setTimeout(() => {
-					setIsComplete(true);
-					if (onComplete) {
-						onComplete();
-					}
-				}, COMPLETE_DELAY);
-			});
-
-			return () => {
-				clearTimeout(completeTimeout);
-			};
-		}
-	}, [completion, componentWidth, isComplete, onComplete, pan, shouldComplete]);
 
 	return (
 		<View
