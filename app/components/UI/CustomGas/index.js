@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'stretch',
 		textAlign: 'center',
 		alignItems: 'flex-start',
-		width: '33.333333333%',
+		flex: 1,
 		paddingVertical: 10,
 		paddingHorizontal: 12,
 		borderWidth: 1,
@@ -124,11 +124,11 @@ const styles = StyleSheet.create({
 		borderColor: colors.blue,
 		zIndex: 1
 	},
-	slow: {
+	first: {
 		borderBottomStartRadius: 6,
 		borderTopStartRadius: 6
 	},
-	fast: {
+	last: {
 		borderBottomEndRadius: 6,
 		borderTopEndRadius: 6
 	},
@@ -281,6 +281,9 @@ class CustomGas extends PureComponent {
 		 * gas selectors are hidden or not
 		 */
 		hideGasSelectors: PropTypes.bool,
+		hideSlow: PropTypes.bool,
+		hideAverage: PropTypes.bool,
+		hideFast: PropTypes.bool,
 		/**
 		 * review or edit
 		 */
@@ -476,6 +479,9 @@ class CustomGas extends PureComponent {
 			gas,
 			generateTransform,
 			hideGasSelectors,
+			hideSlow,
+			hideAverage,
+			hideFast,
 			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei }
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
@@ -493,60 +499,78 @@ class CustomGas extends PureComponent {
 				]}
 			>
 				<View style={styles.selectors}>
-					<TouchableOpacity
-						key={'safeLow'}
-						onPress={this.onPressGasSlow}
-						style={[styles.selector, styles.slow, gasSlowSelected && styles.selectorSelected]}
-					>
-						<View style={styles.titleContainer}>
-							<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
-							<View style={styles.radio}>
-								<Radio selected={gasSlowSelected} />
-							</View>
-						</View>
-						<Text style={[styles.text, styles.textGasFee]}>
-							{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
-						</Text>
-						<Text style={styles.text}>
-							{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
-						</Text>
-					</TouchableOpacity>
-					<TouchableOpacity
-						key={'average'}
-						onPress={this.onPressGasAverage}
-						style={[styles.selector, gasAverageSelected && styles.selectorSelected]}
-					>
-						<View style={styles.titleContainer}>
-							<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
-							<View style={styles.radio}>
-								<Radio selected={gasAverageSelected} />
-							</View>
-						</View>
-						<Text style={[styles.text, styles.textGasFee]}>
-							{getRenderableEthGasFee(averageGwei, gas)} {ticker}
-						</Text>
-						<Text style={styles.text}>
-							{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
-						</Text>
-					</TouchableOpacity>
-					<TouchableOpacity
-						key={'fast'}
-						onPress={this.onPressGasFast}
-						style={[styles.selector, styles.fast, gasFastSelected && styles.selectorSelected]}
-					>
-						<View style={styles.titleContainer}>
-							<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
-							<View style={styles.radio}>
-								<Radio selected={gasFastSelected} />
-							</View>
-						</View>
-						<Text style={[styles.text, styles.textGasFee]}>
-							{getRenderableEthGasFee(fastGwei, gas)} {ticker}
-						</Text>
-						<Text style={styles.text}>
-							{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
-						</Text>
-					</TouchableOpacity>
+					{[
+						!hideSlow && (
+							<TouchableOpacity
+								key={'safeLow'}
+								onPress={this.onPressGasSlow}
+								style={[styles.selector, gasSlowSelected && styles.selectorSelected]}
+							>
+								<View style={styles.titleContainer}>
+									<Text style={styles.textTitle}>{strings('transaction.gas_fee_slow')}</Text>
+									<View style={styles.radio}>
+										<Radio selected={gasSlowSelected} />
+									</View>
+								</View>
+								<Text style={[styles.text, styles.textGasFee]}>
+									{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
+								</Text>
+								<Text style={styles.text}>
+									{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas)}
+								</Text>
+							</TouchableOpacity>
+						),
+						!hideAverage && (
+							<TouchableOpacity
+								key={'average'}
+								onPress={this.onPressGasAverage}
+								style={[styles.selector, gasAverageSelected && styles.selectorSelected]}
+							>
+								<View style={styles.titleContainer}>
+									<Text style={styles.textTitle}>{strings('transaction.gas_fee_average')}</Text>
+									<View style={styles.radio}>
+										<Radio selected={gasAverageSelected} />
+									</View>
+								</View>
+								<Text style={[styles.text, styles.textGasFee]}>
+									{getRenderableEthGasFee(averageGwei, gas)} {ticker}
+								</Text>
+								<Text style={styles.text}>
+									{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas)}
+								</Text>
+							</TouchableOpacity>
+						),
+						!hideFast && (
+							<TouchableOpacity
+								key={'fast'}
+								onPress={this.onPressGasFast}
+								style={[styles.selector, gasFastSelected && styles.selectorSelected]}
+							>
+								<View style={styles.titleContainer}>
+									<Text style={styles.textTitle}>{strings('transaction.gas_fee_fast')}</Text>
+									<View style={styles.radio}>
+										<Radio selected={gasFastSelected} />
+									</View>
+								</View>
+								<Text style={[styles.text, styles.textGasFee]}>
+									{getRenderableEthGasFee(fastGwei, gas)} {ticker}
+								</Text>
+								<Text style={styles.text}>
+									{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
+								</Text>
+							</TouchableOpacity>
+						)
+					]
+						.filter(Boolean)
+						.map((Component, index, array) =>
+							React.cloneElement(Component, {
+								style: [
+									...Component.props.style,
+									index === 0 && styles.first,
+									index === array.length - 1 && styles.last
+								]
+							})
+						)}
 				</View>
 				<Text style={styles.message}>{strings('custom_gas.cost_explanation')}</Text>
 			</Animated.View>
