@@ -341,7 +341,7 @@ describe('Number utils :: fiatNumberToTokenMinimalUnit', () => {
 describe('Number utils :: balanceToFiat', () => {
 	it('balanceToFiat', () => {
 		expect(balanceToFiat(0.1, 0.1, 0.1, 'usd')).toEqual('$0.00');
-		expect(balanceToFiat(0.0001, 0.1, 0.1, 'usd')).toEqual('$0');
+		expect(balanceToFiat(0.0001, 0.1, 0.1, 'usd')).toEqual('$0.00');
 	});
 });
 
