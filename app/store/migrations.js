@@ -87,6 +87,7 @@ export const migrations = {
 					key: 'root',
 					storage: AsyncStorage
 				});
+				console.log(asyncState);
 				if (!isEmpty(asyncState)) {
 					// if data exists in `AsyncStorage` - rehydrate fs persistor with it
 					console.log('rehydrate');
