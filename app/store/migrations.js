@@ -81,6 +81,7 @@ export const migrations = {
 	4: async state => {
 		Logger.log('Attempting migration');
 		if (isEmpty(state)) {
+			console.log(isEmpty(state));
 			try {
 				const asyncState = await getStoredState({
 					key: 'root',
@@ -88,6 +89,8 @@ export const migrations = {
 				});
 				if (!isEmpty(asyncState)) {
 					// if data exists in `AsyncStorage` - rehydrate fs persistor with it
+					console.log('rehydrate');
+					console.log(asyncState);
 					return asyncState;
 				}
 			} catch (getStateError) {
