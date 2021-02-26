@@ -647,10 +647,9 @@ function decodeSwapsTx(args) {
 	const decimalSourceAmount =
 		swapTransaction.sourceAmount &&
 		renderFromTokenMinimalUnit(swapTransaction.sourceAmount, swapTransaction.sourceToken.decimals);
-	const decimalDestinationAmount = renderFromTokenMinimalUnit(
-		swapTransaction.destinationAmount,
-		swapTransaction.destinationToken.decimals
-	);
+	const decimalDestinationAmount =
+		swapTransaction.destinationToken.decimals &&
+		renderFromTokenMinimalUnit(swapTransaction.destinationAmount, swapTransaction.destinationToken.decimals);
 	const cryptoSummaryTotalAmount =
 		sourceToken.symbol === 'ETH'
 			? `${Number(totalEthGas) + Number(decimalSourceAmount)} ${ticker}`
