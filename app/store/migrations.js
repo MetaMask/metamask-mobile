@@ -98,6 +98,8 @@ export const migrations = {
 			}
 		}
 		// FS state not empty
+		console.log('FS state not empty');
+		console.log(state);
 		return state;
 	}
 };
