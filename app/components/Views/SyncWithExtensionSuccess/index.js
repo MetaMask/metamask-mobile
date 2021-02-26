@@ -14,7 +14,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import setOnboardingWizardStep from '../../../actions/wizard';
 // eslint-disable-next-line import/named
 import { NavigationActions } from 'react-navigation';
@@ -138,9 +138,9 @@ class SyncWithExtensionSuccess extends PureComponent {
 
 	continue = async () => {
 		// Get onboarding wizard state
-		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+		const onboardingWizard = await FilesystemStorage.getItem(ONBOARDING_WIZARD);
 		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+		const metricsOptIn = await FilesystemStorage.getItem(METRICS_OPT_IN);
 		if (!metricsOptIn) {
 			this.props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {

@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import Emoji from 'react-native-emoji';
-import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import ActionView from '../../UI/ActionView';
 import { strings } from '../../../../locales/i18n';
@@ -96,7 +96,7 @@ class ManualBackupStep3 extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
+		const currentSeedphraseHints = await FilesystemStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
 		const manualBackup = parsedHints?.manualBackup;
 		this.setState({
@@ -132,15 +132,15 @@ class ManualBackupStep3 extends PureComponent {
 			return;
 		}
 		this.toggleHint();
-		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
+		const currentSeedphraseHints = await FilesystemStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = JSON.parse(currentSeedphraseHints);
-		await AsyncStorage.setItem(SEED_PHRASE_HINTS, JSON.stringify({ ...parsedHints, manualBackup: hintText }));
+		await FilesystemStorage.setItem(SEED_PHRASE_HINTS, JSON.stringify({ ...parsedHints, manualBackup: hintText }));
 	};
 
 	done = async () => {
-		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+		const onboardingWizard = await FilesystemStorage.getItem(ONBOARDING_WIZARD);
 		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+		const metricsOptIn = await FilesystemStorage.getItem(METRICS_OPT_IN);
 		if (!metricsOptIn) {
 			this.props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {

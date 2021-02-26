@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { withNavigation } from 'react-navigation';
 import PropTypes from 'prop-types';
 import { Animated, Dimensions, StyleSheet, View } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -118,15 +118,15 @@ const Entry = props => {
 				// Restore vault with existing credentials
 
 				await KeyringController.submitPassword(credentials.password);
-				const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+				const encryptionLib = await FilesystemStorage.getItem(ENCRYPTION_LIB);
 				if (encryptionLib !== ORIGINAL) {
 					await recreateVaultWithSamePassword(credentials.password, props.selectedAddress);
-					await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+					await FilesystemStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 				}
 				// Get onboarding wizard state
-				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+				const onboardingWizard = await FilesystemStorage.getItem(ONBOARDING_WIZARD);
 				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+				const metricsOptIn = await FilesystemStorage.getItem(METRICS_OPT_IN);
 				if (!metricsOptIn) {
 					animateAndGoTo('OptinMetrics');
 				} else if (onboardingWizard) {
@@ -150,23 +150,23 @@ const Entry = props => {
 
 	useEffect(() => {
 		async function startApp() {
-			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+			const existingUser = await FilesystemStorage.getItem(EXISTING_USER);
 			try {
 				const currentVersion = await getVersion();
-				const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+				const savedVersion = await FilesystemStorage.getItem(CURRENT_APP_VERSION);
 				if (currentVersion !== savedVersion) {
-					if (savedVersion) await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
-					await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
+					if (savedVersion) await FilesystemStorage.setItem(LAST_APP_VERSION, savedVersion);
+					await FilesystemStorage.setItem(CURRENT_APP_VERSION, currentVersion);
 				}
 
-				const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+				const lastVersion = await FilesystemStorage.getItem(LAST_APP_VERSION);
 				if (!lastVersion) {
 					if (existingUser) {
 						// Setting last version to first version if user exists and lastVersion does not, to simulate update
-						await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+						await FilesystemStorage.setItem(LAST_APP_VERSION, '0.0.1');
 					} else {
 						// Setting last version to current version so that it's not treated as an update
-						await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
+						await FilesystemStorage.setItem(LAST_APP_VERSION, currentVersion);
 					}
 				}
 			} catch (error) {

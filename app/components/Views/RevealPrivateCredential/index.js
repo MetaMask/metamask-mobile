@@ -10,7 +10,7 @@ import {
 	InteractionManager
 } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
-import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
@@ -180,7 +180,7 @@ class RevealPrivateCredential extends PureComponent {
 		if (!this.props.passwordSet) {
 			this.tryUnlockWithPassword('');
 		} else if (biometryType) {
-			const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
+			const biometryChoice = await FilesystemStorage.getItem(BIOMETRY_CHOICE);
 			if (biometryChoice !== '' && biometryChoice === biometryType) {
 				const credentials = await SecureKeychain.getGenericPassword();
 				if (credentials) {

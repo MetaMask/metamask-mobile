@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/Device';
 import { whatsNew } from './whatsNewList';
-import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { CURRENT_APP_VERSION, LAST_APP_VERSION, WHATS_NEW_APP_VERSION_SEEN } from '../../../constants/storage';
 import compareVersions from 'compare-versions';
 import scaling from '../../../util/scaling';
@@ -103,10 +103,10 @@ const WhatsNewModal = props => {
 
 	useEffect(() => {
 		const shouldShow = async () => {
-			const whatsNewAppVersionSeen = await AsyncStorage.getItem(WHATS_NEW_APP_VERSION_SEEN);
+			const whatsNewAppVersionSeen = await FilesystemStorage.getItem(WHATS_NEW_APP_VERSION_SEEN);
 
-			const currentAppVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-			const lastAppVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+			const currentAppVersion = await FilesystemStorage.getItem(CURRENT_APP_VERSION);
+			const lastAppVersion = await FilesystemStorage.getItem(LAST_APP_VERSION);
 			const isUpdate = !!lastAppVersion && currentAppVersion !== lastAppVersion;
 
 			let showFeatures = [];
@@ -141,8 +141,8 @@ const WhatsNewModal = props => {
 
 	const closeModal = async () => {
 		setFeaturesToShow(false);
-		const version = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-		await AsyncStorage.setItem(WHATS_NEW_APP_VERSION_SEEN, version);
+		const version = await FilesystemStorage.getItem(CURRENT_APP_VERSION);
+		await FilesystemStorage.setItem(WHATS_NEW_APP_VERSION_SEEN, version);
 	};
 
 	const callButton = feature => {

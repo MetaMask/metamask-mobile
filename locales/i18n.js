@@ -1,5 +1,5 @@
 import ReactNative from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import I18n from 'react-native-i18n';
 import { LANGUAGE } from '../app/constants/storage';
 
@@ -26,7 +26,7 @@ export const isRTL = currentLocale.indexOf('he') === 0 || currentLocale.indexOf(
 // Set locale
 export async function setLocale(locale) {
 	I18n.locale = locale;
-	await AsyncStorage.setItem(LANGUAGE, locale);
+	await FilesystemStorage.setItem(LANGUAGE, locale);
 }
 
 // Get languages
@@ -44,7 +44,7 @@ export function strings(name, params = {}) {
 
 // Allow persist locale after app closed
 async function getUserPreferableLocale() {
-	const locale = await AsyncStorage.getItem(LANGUAGE);
+	const locale = await FilesystemStorage.getItem(LANGUAGE);
 	if (locale) {
 		I18n.locale = locale;
 	}

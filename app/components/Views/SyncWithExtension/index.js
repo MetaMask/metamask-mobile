@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Alert, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
@@ -260,7 +260,7 @@ class SyncWithExtension extends PureComponent {
 		}
 
 		try {
-			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
+			await FilesystemStorage.removeItem(NEXT_MAKER_REMINDER);
 			await Engine.resetState();
 			await Engine.sync({
 				...this.dataToSync,
@@ -268,8 +268,8 @@ class SyncWithExtension extends PureComponent {
 				pass: password,
 				importedAccounts: this.importedAccounts
 			});
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+			await FilesystemStorage.setItem(EXISTING_USER, TRUE);
+			await FilesystemStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.seedphraseBackedUp();

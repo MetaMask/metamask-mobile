@@ -1,6 +1,6 @@
 import Engine from './Engine';
 import Logger from '../util/Logger';
-import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 // eslint-disable-next-line
 import * as Connext from 'connext';
 import EthQuery from 'ethjs-query';
@@ -248,7 +248,7 @@ class PaymentChannelsClient {
 
 	checkPaymentHistory = async () => {
 		const paymentHistory = await this.state.connext.getPaymentHistory();
-		const lastKnownPaymentIDStr = await AsyncStorage.getItem(LAST_KNOWN_INSTANT_PAYMENT_ID);
+		const lastKnownPaymentIDStr = await FilesystemStorage.getItem(LAST_KNOWN_INSTANT_PAYMENT_ID);
 		let lastKnownPaymentID = 0;
 		const latestPayment = paymentHistory.find(
 			payment => payment.recipient.toLowerCase() === this.selectedAddress.toLowerCase()
@@ -262,11 +262,11 @@ class PaymentChannelsClient {
 					setTimeout(() => {
 						NotificationManager.showIncomingPaymentNotification(amountToken);
 					}, 300);
-					await AsyncStorage.setItem(LAST_KNOWN_INSTANT_PAYMENT_ID, latestPaymentID.toString());
+					await FilesystemStorage.setItem(LAST_KNOWN_INSTANT_PAYMENT_ID, latestPaymentID.toString());
 				}
 			} else {
 				// For first time flow
-				await AsyncStorage.setItem(LAST_KNOWN_INSTANT_PAYMENT_ID, latestPaymentID.toString());
+				await FilesystemStorage.setItem(LAST_KNOWN_INSTANT_PAYMENT_ID, latestPaymentID.toString());
 			}
 		}
 		this.setState({ transactions: paymentHistory });

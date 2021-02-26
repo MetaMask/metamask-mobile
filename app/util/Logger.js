@@ -1,7 +1,7 @@
 'use strict';
 
 import { addBreadcrumb, captureException, captureMessage, withScope } from '@sentry/react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { METRICS_OPT_IN, AGREED, DEBUG } from '../constants/storage';
 
 /**
@@ -19,7 +19,7 @@ export default class Logger {
 	 */
 	static async log(...args) {
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+		const metricsOptIn = await FilesystemStorage.getItem(METRICS_OPT_IN);
 		if (__DEV__) {
 			args.unshift(DEBUG);
 			console.log.apply(null, args); // eslint-disable-line no-console
@@ -39,7 +39,7 @@ export default class Logger {
 	 */
 	static async error(error, extra) {
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+		const metricsOptIn = await FilesystemStorage.getItem(METRICS_OPT_IN);
 		if (__DEV__) {
 			console.warn(DEBUG, error); // eslint-disable-line no-console
 		} else if (metricsOptIn === AGREED) {
@@ -80,7 +80,7 @@ export default class Logger {
 	 */
 	static async message(...args) {
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+		const metricsOptIn = await FilesystemStorage.getItem(METRICS_OPT_IN);
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
 			console.log.apply(null, args); // eslint-disable-line no-console

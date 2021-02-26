@@ -8,7 +8,7 @@ import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/Device';
 import { strings } from '../../locales/i18n';
 import { Alert, AppState } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import AppConstants from './AppConstants';
 import { PUSH_NOTIFICATIONS_PROMPT_COUNT, PUSH_NOTIFICATIONS_PROMPT_TIME } from '../constants/storage';
 import { RPC } from '../constants/network';
@@ -269,7 +269,7 @@ class NotificationManager {
 	 * with a custom set of rules, like max. number of attempts
 	 */
 	requestPushNotificationsPermission = async () => {
-		const promptCount = await AsyncStorage.getItem(PUSH_NOTIFICATIONS_PROMPT_COUNT);
+		const promptCount = await FilesystemStorage.getItem(PUSH_NOTIFICATIONS_PROMPT_COUNT);
 		if (!promptCount || Number(promptCount) < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES) {
 			PushNotification.checkPermissions(permissions => {
 				if (!permissions || !permissions.alert) {
@@ -291,9 +291,9 @@ class NotificationManager {
 					);
 
 					const times = (promptCount && Number(promptCount) + 1) || 1;
-					AsyncStorage.setItem(PUSH_NOTIFICATIONS_PROMPT_COUNT, times.toString());
+					FilesystemStorage.setItem(PUSH_NOTIFICATIONS_PROMPT_COUNT, times.toString());
 					// In case we want to prompt again after certain time.
-					AsyncStorage.setItem(PUSH_NOTIFICATIONS_PROMPT_TIME, Date.now().toString());
+					FilesystemStorage.setItem(PUSH_NOTIFICATIONS_PROMPT_TIME, Date.now().toString());
 				}
 			});
 		}
