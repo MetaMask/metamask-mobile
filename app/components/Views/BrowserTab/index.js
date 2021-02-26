@@ -430,13 +430,13 @@ export const BrowserTab = props => {
 
 					const { PreferencesController, CurrencyRateController, NetworkController } = Engine.context;
 
-					const params = {
-						chainId: '0x1F',
-						chainName: 'RSK Testnet',
-						blockExplorerUrls: ['https://explorer.testnet.rsk.co'],
-						nativeCurrency: { symbol: 'tR-BTC', decimals: 18 },
-						rpcUrls: ['https://public-node.testnet.rsk.co']
-					};
+					if (!req.params?.[0] || typeof req.params[0] !== 'object') {
+						throw ethErrors.rpc.invalidParams({
+							message: `Expected single, object parameter. Received:\n${JSON.stringify(req.params)}`
+						});
+					}
+
+					const params = req.params[0];
 
 					const {
 						chainId,
