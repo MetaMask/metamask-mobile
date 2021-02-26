@@ -548,7 +548,7 @@ function SwapsQuotesView({
 				approvalTransactionMetaId = transactionMeta.id;
 				newSwapsTransactions[transactionMeta.id] = {
 					action: 'approval',
-					sourceToken: sourceToken.address,
+					sourceToken,
 					destinationToken: { swaps: 'swaps' },
 					upTo: decodeApproveData(approvalTransaction.data).encodedAmount
 				};
