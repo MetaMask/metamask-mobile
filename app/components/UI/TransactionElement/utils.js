@@ -631,13 +631,12 @@ function decodeSwapsTx(args) {
 		contractExchangeRates,
 		assetSymbol
 	} = args;
-
 	const swapTransaction = (swapsTransactions && swapsTransactions[id]) || {};
 	const totalGas = calculateTotalGas(swapTransaction.gasUsed || gas, gasPrice);
-	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction.sourceToken);
+	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction?.sourceToken?.address);
 	const destinationToken =
 		swapTransaction?.destinationToken?.swaps ||
-		swapsTokens?.find(({ address }) => address === swapTransaction.destinationToken);
+		swapsTokens?.find(({ address }) => address === swapTransaction?.destinationToken?.address);
 	if (!sourceToken || !destinationToken) return [undefined, undefined];
 
 	const renderFrom = renderFullAddress(from);
@@ -645,11 +644,18 @@ function decodeSwapsTx(args) {
 	const ticker = getTicker(args.ticker);
 	const totalEthGas = renderFromWei(totalGas);
 
+	const decimalSourceAmount =
+		swapTransaction.sourceAmount &&
+		renderFromTokenMinimalUnit(swapTransaction.sourceAmount, swapTransaction.sourceToken.decimals);
+	const decimalDestinationAmount = renderFromTokenMinimalUnit(
+		swapTransaction.destinationAmount,
+		swapTransaction.destinationToken.decimals
+	);
 	const cryptoSummaryTotalAmount =
 		sourceToken.symbol === 'ETH'
-			? `${Number(totalEthGas) + Number(swapTransaction.sourceAmount)} ${ticker}`
-			: swapTransaction.sourceAmount
-			? `${swapTransaction.sourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
+			? `${Number(totalEthGas) + Number(decimalSourceAmount)} ${ticker}`
+			: decimalSourceAmount
+			? `${decimalSourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
 			: `${totalEthGas} ${ticker}`;
 
 	const isSwap = swapTransaction.action === 'swap';
@@ -679,28 +685,24 @@ function decodeSwapsTx(args) {
 		sourceToken.address === ETH_SWAPS_TOKEN_ADDRESS
 			? 1
 			: contractExchangeRates[safeToChecksumAddress(sourceToken.address)];
-	const renderSourceTokenFiatNumber = balanceToFiatNumber(
-		swapTransaction.sourceAmount,
-		conversionRate,
-		sourceExchangeRate
-	);
+	const renderSourceTokenFiatNumber = balanceToFiatNumber(decimalSourceAmount, conversionRate, sourceExchangeRate);
 
 	const destinationExchangeRate =
 		destinationToken.address === ETH_SWAPS_TOKEN_ADDRESS
 			? 1
 			: contractExchangeRates[safeToChecksumAddress(destinationToken.address)];
 	const renderDestinationTokenFiatNumber = balanceToFiatNumber(
-		swapTransaction.destinationAmount,
+		decimalSourceAmount,
 		conversionRate,
 		destinationExchangeRate
 	);
 
 	if (isSwap) {
 		if (!assetSymbol || sourceToken.symbol === assetSymbol) {
-			value = `-${swapTransaction.sourceAmount} ${sourceToken.symbol}`;
+			value = `-${decimalSourceAmount} ${sourceToken.symbol}`;
 			fiatValue = addCurrencySymbol(renderSourceTokenFiatNumber, currentCurrency);
 		} else {
-			value = `+${swapTransaction.destinationAmount} ${destinationToken.symbol}`;
+			value = `+${decimalDestinationAmount} ${destinationToken.symbol}`;
 			fiatValue = addCurrencySymbol(renderDestinationTokenFiatNumber, currentCurrency);
 		}
 	}
@@ -719,9 +721,7 @@ function decodeSwapsTx(args) {
 		renderFrom,
 		renderTo,
 		transactionHash,
-		renderValue: swapTransaction.sourceAmount
-			? `${swapTransaction.sourceAmount} ${sourceToken.symbol}`
-			: `0 ${ticker}`,
+		renderValue: decimalSourceAmount ? `${decimalSourceAmount} ${sourceToken.symbol}` : `0 ${ticker}`,
 		renderGas: parseInt(gas, 16),
 		renderGasPrice: renderToGwei(gasPrice),
 		renderTotalGas: `${totalEthGas} ${ticker}`
@@ -730,7 +730,7 @@ function decodeSwapsTx(args) {
 	if (primaryCurrency === 'ETH') {
 		transactionDetails = {
 			...transactionDetails,
-			summaryAmount: isSwap ? `${swapTransaction.sourceAmount} ${sourceToken.symbol}` : `0 ${ticker}`,
+			summaryAmount: isSwap ? `${decimalSourceAmount} ${sourceToken.symbol}` : `0 ${ticker}`,
 			summaryFee: `${totalEthGas} ${ticker}`,
 			summaryTotalAmount: cryptoSummaryTotalAmount,
 			summarySecondaryTotalAmount: addCurrencySymbol(

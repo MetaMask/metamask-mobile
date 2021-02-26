@@ -239,36 +239,42 @@ const Main = props => {
 					approvalReceipt,
 					transactionMeta?.transaction,
 					approvalTransaction?.transaction,
-					{
-						address: swapTransaction.destinationToken,
-						decimals: swapTransaction.destinationTokenDecimals
-					},
+					swapTransaction.destinationToken,
 					ethAccountBalance,
 					ethBalance
 				);
+
+				newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
+				if (tokensReceived) {
+					newSwapsTransactions[transactionMeta.id].destinationAmount = tokensReceived;
+				}
+				TransactionController.update({ swapsTransactions: newSwapsTransactions });
 
 				const timeToMine = currentBlock.timestamp - sentAt;
 				const estimatedVsUsedGasRatio = `${new BigNumber(receipt.gasUsed)
 					.div(gasEstimate)
 					.times(100)
 					.toFixed(2)}%`;
-				const quoteVsExecutionRatio = `${new BigNumber(tokensReceived)
+				const quoteVsExecutionRatio = `${util
+					.calcTokenAmount(tokensReceived || '0x0', swapTransaction.destinationTokenDecimals)
 					.div(swapTransaction.destinationAmount)
 					.times(100)
 					.toFixed(2)}%`;
+				const tokenToAmountReceived = util.calcTokenAmount(
+					tokensReceived,
+					swapTransaction.destinationToken.decimals
+				);
 				const analyticsParams = { ...swapTransaction.analytics };
 				delete newSwapsTransactions[transactionMeta.id].analytics;
 				delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
-				newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
-				newSwapsTransactions[transactionMeta.id].destinationAmount = tokensReceived;
-				TransactionController.update({ swapsTransactions: newSwapsTransactions });
+
 				InteractionManager.runAfterInteractions(() => {
 					Analytics.trackEventWithParameters(event, {
 						...analyticsParams,
 						time_to_mine: timeToMine,
 						estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
 						quote_vs_executionRatio: quoteVsExecutionRatio,
-						token_to_amount_received: tokensReceived
+						token_to_amount_received: tokenToAmountReceived
 					});
 				});
 			} catch (e) {

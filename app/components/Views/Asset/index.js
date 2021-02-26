@@ -157,7 +157,7 @@ class Asset extends PureComponent {
 			return true;
 		if (swapsTransactions[tx.id] && to?.toLowerCase() === SWAPS_CONTRACT_ADDRESS) {
 			const { destinationToken, sourceToken } = swapsTransactions[tx.id];
-			return destinationToken === this.navAddress || sourceToken === this.navAddress;
+			return destinationToken.address === this.navAddress || sourceToken.address === this.navAddress;
 		}
 		return false;
 	};

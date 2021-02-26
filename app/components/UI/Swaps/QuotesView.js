@@ -464,14 +464,10 @@ function SwapsQuotesView({
 			]);
 			newSwapsTransactions[transactionMeta.id] = {
 				action: 'swap',
-				sourceToken: sourceToken.address,
-				sourceAmount: renderFromTokenMinimalUnit(sourceAmount, sourceToken.decimals),
-				destinationToken: destinationToken.address,
-				destinationTokenDecimals: destinationToken.decimals,
-				destinationAmount: renderFromTokenMinimalUnit(
-					selectedQuote.destinationAmount,
-					destinationToken.decimals
-				),
+				sourceToken: { address: sourceToken.address, decimals: sourceToken.decimals },
+				destinationToken: { address: destinationToken.address, decimals: destinationToken.decimals },
+				sourceAmount,
+				destinationAmount: selectedQuote.destinationAmount,
 				sourceAmountInFiat: weiToFiat(
 					toWei(selectedQuote.priceSlippage?.sourceAmountInETH),
 					conversionRate,
