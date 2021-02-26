@@ -13,7 +13,6 @@ const DIAMETER = 60;
 const MARGIN = DIAMETER * 0.16;
 const COMPLETE_VERTICAL_THRESHOLD = DIAMETER * 2;
 const COMPLETE_THRESHOLD = 0.85;
-const COMPLETE_DELAY = 0;
 
 const styles = StyleSheet.create({
 	container: {
@@ -160,22 +159,15 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 
 	useEffect(() => {
 		if (!isComplete && shouldComplete) {
-			let completeTimeout;
 			Animated.parallel([
 				Animated.spring(completion, { toValue: 1, useNativeDriver: false }),
 				Animated.spring(pan, { toValue: { x: componentWidth, y: 0 }, useNativeDriver: false })
 			]).start(() => {
-				completeTimeout = setTimeout(() => {
-					setIsComplete(true);
-					if (onComplete) {
-						onComplete();
-					}
-				}, COMPLETE_DELAY);
+				setIsComplete(true);
+				if (onComplete) {
+					onComplete();
+				}
 			});
-
-			return () => {
-				clearTimeout(completeTimeout);
-			};
 		}
 	}, [completion, componentWidth, isComplete, onComplete, pan, shouldComplete]);
 
