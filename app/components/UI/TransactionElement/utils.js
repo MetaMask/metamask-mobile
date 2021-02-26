@@ -636,7 +636,7 @@ function decodeSwapsTx(args) {
 	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction?.sourceToken?.address);
 	const destinationToken =
 		swapTransaction?.destinationToken?.swaps ||
-		swapsTokens?.find(({ address }) => address === swapTransaction.destinationToken.address);
+		swapsTokens?.find(({ address }) => address === swapTransaction?.destinationToken?.address);
 	if (!sourceToken || !destinationToken) return [undefined, undefined];
 
 	const renderFrom = renderFullAddress(from);
