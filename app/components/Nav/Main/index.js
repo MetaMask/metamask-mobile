@@ -260,7 +260,9 @@ const Main = props => {
 				delete newSwapsTransactions[transactionMeta.id].analytics;
 				delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 				newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
-				newSwapsTransactions[transactionMeta.id].destinationAmount = tokensReceived;
+				if (tokensReceived) {
+					newSwapsTransactions[transactionMeta.id].destinationAmount = tokensReceived;
+				}
 				TransactionController.update({ swapsTransactions: newSwapsTransactions });
 				InteractionManager.runAfterInteractions(() => {
 					Analytics.trackEventWithParameters(event, {
