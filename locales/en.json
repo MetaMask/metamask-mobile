@@ -1527,6 +1527,10 @@
 		"block_explorer_url": "Block explorer URL",
 		"details_title": "Network details",
 		"cancel": "Cancel",
-		"approve": "Approve"
+		"approve": "Approve",
+		"unrecognized_chain": "This custom network is not recongized",
+		"invalid_chain": "The %{rpcUrl} for this Chain ID does not match the chainid.network listing",
+		"alert_recommend": "We recommend you",
+		"alert_verify": "verify the chain ID"
 	}
 }

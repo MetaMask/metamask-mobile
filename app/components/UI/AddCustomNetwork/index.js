@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, ScrollView } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Alert from '../../Base/Alert';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import { withNavigation } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	root: {
@@ -127,13 +130,29 @@ const styles = StyleSheet.create({
 	},
 	flexAux: {
 		flex: 1
+	},
+	alertText: {
+		...fontStyles.normal,
+		fontSize: 14
+	},
+	alertContainer: {
+		marginHorizontal: 24,
+		marginBottom: 16
+	},
+	alertIcon: {
+		fontSize: 20,
+		...fontStyles.bold,
+		color: colors.yellow
+	},
+	alertTextContainer: {
+		paddingLeft: 6
 	}
 });
 
 /**
  * Account access approval component
  */
-const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, onCancel, onConfirm }) => {
+const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, navigation, onCancel, onConfirm }) => {
 	const [viewDetails, setViewDetails] = useState(false);
 
 	/**
@@ -205,8 +224,49 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, on
 		</View>
 	);
 
+	const openLink = () => {
+		cancel();
+		navigation.navigate('SimpleWebview', { url: 'https://chainid.network' });
+	};
+
+	const renderAlert = () => {
+		if (!customNetworkInformation.alert) return null;
+		let alertText;
+		if (customNetworkInformation.alert === 'INVALID_CHAIN') {
+			alertText = strings('add_custom_network.invalid_chain', { rpcUrl: customNetworkInformation.rpcUrl });
+		}
+		if (customNetworkInformation.alert === 'UNRECOGNIZED_CHAIN') {
+			alertText = strings('add_custom_network.unrecognized_chain');
+		}
+
+		return (
+			<Alert
+				type={'warning'}
+				testID={'error-message-warning'}
+				style={styles.alertContainer}
+				renderIcon={() => <EvilIcons name="bell" style={styles.alertIcon} />}
+			>
+				<View style={styles.alertTextContainer}>
+					<Text style={styles.alertText}>
+						<Text style={styles.bold}>
+							{alertText}
+							{'\n'}
+						</Text>
+						<Text>
+							{strings('add_custom_network.alert_recommend')}{' '}
+							<Text onPress={openLink} style={styles.link}>
+								{strings('add_custom_network.alert_verify')}
+							</Text>
+							.
+						</Text>
+					</Text>
+				</View>
+			</Alert>
+		);
+	};
+
 	const renderApproval = () => (
-		<View>
+		<ScrollView>
 			<TransactionHeader currentPageInformation={currentPageInformation} />
 			<Text style={styles.intro}>{strings('add_custom_network.title')}</Text>
 			<Text style={styles.warning}>{strings('add_custom_network.warning')}</Text>
@@ -216,6 +276,7 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, on
 				<Text style={styles.link}> {strings('add_custom_network.warning_subtext_3')}</Text>.
 			</Text>
 			{renderNetworkInfo()}
+			{renderAlert()}
 			<TouchableOpacity style={styles.actionTouchable} onPress={toggleViewDetails}>
 				<View style={styles.viewDetailsWrapper}>
 					<Text style={styles.viewDetailsText}>{strings('spend_limit_edition.view_details')}</Text>
@@ -239,7 +300,7 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, on
 					{strings('spend_limit_edition.approve')}
 				</StyledButton>
 			</View>
-		</View>
+		</ScrollView>
 	);
 
 	return <View style={styles.root}>{viewDetails ? renderDetails() : renderApproval()}</View>;
@@ -261,9 +322,13 @@ AddCustomNetwork.propTypes = {
 	/**
 	 * Object containing info of the network to add
 	 */
-	customNetworkInformation: PropTypes.object
+	customNetworkInformation: PropTypes.object,
+	/**
+	 * Object that represents the navigator
+	 */
+	navigation: PropTypes.object
 };
 
 const mapStateToProps = state => ({});
 
-export default connect(mapStateToProps)(AddCustomNetwork);
+export default connect(mapStateToProps)(withNavigation(AddCustomNetwork));

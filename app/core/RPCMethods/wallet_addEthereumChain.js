@@ -5,6 +5,7 @@ import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import { isPrefixedFormattedHexString, isSafeChainId } from '../../util/networks';
+import URL from 'url-parse';
 
 const wallet_addEthereumChain = async ({
 	req,
@@ -184,6 +185,34 @@ const wallet_addEthereumChain = async ({
 		rpcUrl: firstValidRPCUrl,
 		ticker
 	};
+
+	let alert = null;
+	const safeChainsListRequest = await fetch('https://chainid.network/chains.json');
+	const safeChainsList = await safeChainsListRequest.json();
+	const matchedChain = safeChainsList.find(chain => chain.chainId.toString() === chainIdDecimal);
+	let validated = !!matchedChain;
+
+	if (matchedChain) {
+		if (
+			matchedChain.nativeCurrency?.decimals !== 18 ||
+			matchedChain.name.toLowerCase() !== requestData.chainName.toLowerCase() ||
+			matchedChain.nativeCurrency?.symbol !== requestData.ticker
+		) {
+			validated = false;
+		}
+
+		const { origin } = new URL(requestData.rpcUrl);
+		if (!matchedChain.rpc.map(rpc => new URL(rpc).origin).includes(origin)) {
+			validated = false;
+		}
+	}
+
+	if (!matchedChain) {
+		alert = 'UNRECOGNIZED_CHAIN';
+	} else if (!validated) {
+		alert = 'INVALID_CHAIN';
+	}
+	requestData.alert = alert;
 
 	setCustomNetworkToAdd(requestData);
 	setShowAddCustomNetworkDialog(true);
