@@ -63,10 +63,10 @@ class Analytics {
 			this.enabled = enabled;
 			this.listeners = [];
 			Analytics.instance = this;
-			// if (!__DEV__) {
-			RCTAnalytics.optIn(this.enabled);
-			this._peopleIdentify();
-			// }
+			if (!__DEV__) {
+				RCTAnalytics.optIn(this.enabled);
+				this._peopleIdentify();
+			}
 		}
 		return Analytics.instance;
 	}
