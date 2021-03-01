@@ -197,14 +197,12 @@ workflows:
               only:
                 - master
                 - develop
-                - feature/swaps-alpha-2
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
-                - feature/swaps-alpha-2
       - lint:
           requires:
             - prep-node-deps
