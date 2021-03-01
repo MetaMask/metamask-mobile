@@ -434,6 +434,8 @@
 		"privacy_mode_desc": "Websites must request access to view your account information.",
 		"show_hex_data": "Show Hex Data",
 		"show_hex_data_desc": "Select this to show the hex data field on the send screen.",
+		"show_custom_nonce": "Customize transaction nonce",
+		"custom_nonce_desc": "Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.",
 		"accounts_identicon_title": "Account Identicon",
 		"accounts_identicon_desc": "Jazzicons and Blockies are two different styles of unique icons that help you identify an account at a glance.",
 		"jazzicons": "Jazzicons",
