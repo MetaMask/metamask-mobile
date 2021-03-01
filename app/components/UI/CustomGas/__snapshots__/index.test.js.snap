@@ -162,12 +162,13 @@ exports[`CustomGas should render correctly 1`] = `
               "alignSelf": "stretch",
               "borderColor": "#d6d9dc",
               "borderWidth": 1,
+              "flex": 1,
               "marginLeft": -2,
               "paddingHorizontal": 12,
               "paddingVertical": 10,
               "textAlign": "center",
-              "width": "33.333333333%",
             },
+            false,
             Object {
               "borderBottomStartRadius": 6,
               "borderTopStartRadius": 6,
@@ -251,17 +252,19 @@ exports[`CustomGas should render correctly 1`] = `
               "alignSelf": "stretch",
               "borderColor": "#d6d9dc",
               "borderWidth": 1,
+              "flex": 1,
               "marginLeft": -2,
               "paddingHorizontal": 12,
               "paddingVertical": 10,
               "textAlign": "center",
-              "width": "33.333333333%",
             },
             Object {
               "backgroundColor": "#eaf6ff",
               "borderColor": "#037dd6",
               "zIndex": 1,
             },
+            false,
+            false,
           ]
         }
       >
@@ -340,17 +343,18 @@ exports[`CustomGas should render correctly 1`] = `
               "alignSelf": "stretch",
               "borderColor": "#d6d9dc",
               "borderWidth": 1,
+              "flex": 1,
               "marginLeft": -2,
               "paddingHorizontal": 12,
               "paddingVertical": 10,
               "textAlign": "center",
-              "width": "33.333333333%",
             },
+            false,
+            false,
             Object {
               "borderBottomEndRadius": 6,
               "borderTopEndRadius": 6,
             },
-            false,
           ]
         }
       >
