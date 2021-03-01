@@ -132,6 +132,7 @@ function TransactionsEditionModal({
 							gasError={null}
 							mode={'edit'}
 							customTransaction={selectedQuote.trade}
+							hideSlow
 						/>
 					</AnimatedTransactionModal>
 				)}
