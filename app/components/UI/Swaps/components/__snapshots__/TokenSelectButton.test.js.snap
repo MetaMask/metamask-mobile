@@ -36,6 +36,7 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
       right={false}
       small={false}
       strikethrough={false}
+      underline={false}
       upper={false}
     >
       Select a token
@@ -95,6 +96,7 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
       right={false}
       small={false}
       strikethrough={false}
+      underline={false}
       upper={false}
     >
       ETH
@@ -154,6 +156,7 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
       right={false}
       small={false}
       strikethrough={false}
+      underline={false}
       upper={false}
     >
       cDAI
@@ -214,6 +217,7 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
       right={false}
       small={false}
       strikethrough={false}
+      underline={false}
       upper={false}
     >
       DAI
@@ -276,6 +280,7 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
       right={false}
       small={false}
       strikethrough={false}
+      underline={false}
       upper={false}
     >
       DAI

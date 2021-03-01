@@ -1,6 +1,7 @@
 import { REHYDRATE } from 'redux-persist';
 
 const initialState = {
+	loadingSet: false,
 	passwordSet: false,
 	seedphraseBackedUp: false,
 	backUpSeedphraseVisible: false,
@@ -14,6 +15,16 @@ const userReducer = (state = initialState, action) => {
 				return { ...state, ...action.payload.user };
 			}
 			return state;
+		case 'LOADING_SET':
+			return {
+				...state,
+				loadingSet: true
+			};
+		case 'LOADING_UNSET':
+			return {
+				...state,
+				loadingSet: false
+			};
 		case 'PASSWORD_SET':
 			return {
 				...state,

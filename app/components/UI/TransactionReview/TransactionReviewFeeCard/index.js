@@ -39,7 +39,7 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * Total transaction value in fiat
 		 */
-		totalFiat: PropTypes.object,
+		totalFiat: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node, PropTypes.string]),
 		/**
 		 * Transaction value in fiat before gas fee
 		 */
@@ -142,7 +142,7 @@ class TransactionReviewFeeCard extends PureComponent {
 					{!!totalFiat && this.renderIfGasEstimationReady(totalAmount)}
 				</Summary.Row>
 				<Summary.Row end last>
-					{this.renderIfGasEstimationReady(equivalentTotalAmount)}
+					{this.renderIfGasEstimationReady(<Text bold>{equivalentTotalAmount}</Text>)}
 				</Summary.Row>
 			</Summary>
 		);

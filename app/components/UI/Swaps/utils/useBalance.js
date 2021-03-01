@@ -1,5 +1,7 @@
+import { swapsUtils } from '@estebanmino/controllers';
 import { toChecksumAddress } from '@walletconnect/utils';
 import { useMemo } from 'react';
+import numberToBN from 'number-to-bn';
 import { renderFromTokenMinimalUnit, renderFromWei } from '../../../../util/number';
 
 function useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits = false } = {}) {
@@ -7,9 +9,10 @@ function useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits 
 		if (!sourceToken) {
 			return null;
 		}
-		if (sourceToken.symbol === 'ETH') {
+		if (sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS) {
 			if (asUnits) {
-				return (accounts[selectedAddress] && accounts[selectedAddress].balance) || 0;
+				// Controller stores balances in hex for ETH
+				return numberToBN((accounts[selectedAddress] && accounts[selectedAddress].balance) || 0);
 			}
 			return renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
 		}
@@ -21,7 +24,7 @@ function useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits 
 			}
 			return renderFromTokenMinimalUnit(balances[tokenAddress], sourceToken.decimals);
 		}
-		return 0;
+		return numberToBN(0);
 	}, [accounts, asUnits, balances, selectedAddress, sourceToken]);
 
 	return balance;

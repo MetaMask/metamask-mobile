@@ -1,6 +1,29 @@
 # Changelog
 
-## Current Develop Branch
+## v1.0.11 - Feb 15 2021
+- [#2257](https://github.com/MetaMask/metamask-mobile/pull/2257): bugfix/use bignumber for transfer deeplinks
+- [#2256](https://github.com/MetaMask/metamask-mobile/pull/2256): Fix account list scroll
+- [#2243](https://github.com/MetaMask/metamask-mobile/pull/2243): TransactionController from controllers
+- [#2240](https://github.com/MetaMask/metamask-mobile/pull/2240): Fix circleci apk
+- [#2176](https://github.com/MetaMask/metamask-mobile/pull/2176): Feature/warn when replacing
+- [#2233](https://github.com/MetaMask/metamask-mobile/pull/2233): contract metadata images bump
+- [#2148](https://github.com/MetaMask/metamask-mobile/pull/2148): Handle `balanceError` case
+- [#2228](https://github.com/MetaMask/metamask-mobile/pull/2228): Remove best deals badge from WYRE transfers.
+- [#2217](https://github.com/MetaMask/metamask-mobile/pull/2217): @metamask/controllers@6.0.1
+- [#2180](https://github.com/MetaMask/metamask-mobile/pull/2180): Fix cloudflare redirects
+- [#2203](https://github.com/MetaMask/metamask-mobile/pull/2203): Update @metamask/contract-metadata
+- [#2078](https://github.com/MetaMask/metamask-mobile/pull/2078): React Native update to 0.63
+- [#2204](https://github.com/MetaMask/metamask-mobile/pull/2204): Create dependabot.yml
+- [#2193](https://github.com/MetaMask/metamask-mobile/pull/2193): Fix "Text strings must be rendered within a <Text> component"
+- [#2191](https://github.com/MetaMask/metamask-mobile/pull/2191): Use navigate instead of push
+- [#2174](https://github.com/MetaMask/metamask-mobile/pull/2174): Add fiat on ramp modal close button extra hit area
+- [#2104](https://github.com/MetaMask/metamask-mobile/pull/2104): bugfix/token tx ui amount parsing
+- [#2166](https://github.com/MetaMask/metamask-mobile/pull/2166): v1.0.10
+- [#2142](https://github.com/MetaMask/metamask-mobile/pull/2142): Display boolean values when signing typed data
+- [#2079](https://github.com/MetaMask/metamask-mobile/pull/2079): bugfix/tx to contract validation
+- [#2103](https://github.com/MetaMask/metamask-mobile/pull/2103): bugfix/erc20 allowance ui
+- [#2158](https://github.com/MetaMask/metamask-mobile/pull/2158): engine swaps flag
+- [#2060](https://github.com/MetaMask/metamask-mobile/pull/2060): MetaSwaps Alpha
 - [#2142](https://github.com/MetaMask/metamask-mobile/pull/2142): Display boolean values when signing typed data
 
 ## v1.0.10 - Jan 25 2021

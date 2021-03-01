@@ -297,7 +297,6 @@ exports[`Main should render correctly 1`] = `
                   "index": 0,
                   "isTransitioning": false,
                   "key": "WalletTabHome",
-                  "params": undefined,
                   "routeName": "WalletTabHome",
                   "routes": Array [
                     Object {
@@ -310,7 +309,6 @@ exports[`Main should render correctly 1`] = `
                   "index": 0,
                   "isTransitioning": false,
                   "key": "BrowserTabHome",
-                  "params": undefined,
                   "routeName": "BrowserTabHome",
                   "routes": Array [
                     Object {
@@ -323,7 +321,6 @@ exports[`Main should render correctly 1`] = `
                   "index": 0,
                   "isTransitioning": false,
                   "key": "TransactionsHome",
-                  "params": undefined,
                   "routeName": "TransactionsHome",
                   "routes": Array [
                     Object {
@@ -632,7 +629,6 @@ exports[`Main should render correctly 1`] = `
                     "index": 0,
                     "isTransitioning": false,
                     "key": "WalletTabHome",
-                    "params": undefined,
                     "routeName": "WalletTabHome",
                     "routes": Array [
                       Object {
@@ -645,7 +641,6 @@ exports[`Main should render correctly 1`] = `
                     "index": 0,
                     "isTransitioning": false,
                     "key": "BrowserTabHome",
-                    "params": undefined,
                     "routeName": "BrowserTabHome",
                     "routes": Array [
                       Object {
@@ -658,7 +653,6 @@ exports[`Main should render correctly 1`] = `
                     "index": 0,
                     "isTransitioning": false,
                     "key": "TransactionsHome",
-                    "params": undefined,
                     "routeName": "TransactionsHome",
                     "routes": Array [
                       Object {

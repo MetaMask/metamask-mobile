@@ -14,11 +14,10 @@ import {
 	PreferencesController,
 	TokenBalancesController,
 	TokenRatesController,
-	// TransactionController,
 	TypedMessageManager
 } from '@metamask/controllers';
 
-import { SwapsController, TransactionController } from '@estebanmino/controllers';
+import { TransactionController, SwapsController } from '@estebanmino/controllers';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -114,7 +113,7 @@ class Engine {
 							ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL
 						}
 					),
-					new TokenBalancesController(),
+					new TokenBalancesController({ interval: 10000 }),
 					new TokenRatesController(),
 					new TransactionController(),
 					new TypedMessageManager(),
@@ -338,6 +337,7 @@ class Engine {
 
 		TransactionController.update({
 			internalTransactions: [],
+			swapsTransactions: {},
 			methodData: {},
 			transactions: []
 		});

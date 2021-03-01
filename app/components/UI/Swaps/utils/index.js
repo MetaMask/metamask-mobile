@@ -104,3 +104,30 @@ export function getErrorMessage(errorKey) {
 		}
 	}
 }
+
+export function getQuotesSourceMessage(type) {
+	switch (type) {
+		case 'DEX': {
+			return [
+				strings('swaps.quote_source_dex.1'),
+				strings('swaps.quote_source_dex.2'),
+				strings('swaps.quote_source_dex.3')
+			];
+		}
+		case 'RFQ': {
+			return [
+				strings('swaps.quote_source_rfq.1'),
+				strings('swaps.quote_source_rfq.2'),
+				strings('swaps.quote_source_rfq.3')
+			];
+		}
+		case 'AGG':
+		default: {
+			return [
+				strings('swaps.quote_source_agg.1'),
+				strings('swaps.quote_source_agg.2'),
+				strings('swaps.quote_source_agg.3')
+			];
+		}
+	}
+}
