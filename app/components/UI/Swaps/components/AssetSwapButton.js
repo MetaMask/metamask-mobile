@@ -23,6 +23,7 @@ function AssetSwapButton({ isFeatureLive, isNetworkAllowed, isAssetAllowed, onPr
 		if (!isNetworkAllowed) return [strings('swaps.wrong_network_title'), strings('swaps.wrong_network_body')];
 		if (!isAssetAllowed) return [strings('swaps.unallowed_asset_title'), strings('swaps.unallowed_asset_body')];
 		if (!isFeatureLive) return [strings('swaps.feature_off_title'), strings('swaps.feature_off_body')];
+		return ['', ''];
 	}, [isAssetAllowed, isFeatureLive, isNetworkAllowed]);
 	return (
 		<>
@@ -32,7 +33,12 @@ function AssetSwapButton({ isFeatureLive, isNetworkAllowed, isAssetAllowed, onPr
 				onPress={isDisabled ? showModal : onPress}
 				style={isDisabled && styles.disabledButton}
 			/>
-			<InfoModal isVisible={isModalOpen} toggleModal={hideModal} title={title} body={<Text>{body}</Text>} />
+			<InfoModal
+				isVisible={isDisabled && isModalOpen}
+				toggleModal={hideModal}
+				title={title}
+				body={<Text>{body}</Text>}
+			/>
 		</>
 	);
 }
