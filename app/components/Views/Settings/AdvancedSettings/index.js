@@ -9,7 +9,7 @@ import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { setShowHexData } from '../../../../actions/settings';
+import { setShowCustomNonce, setShowHexData } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import { getApplicationName, getVersion, getBuildNumber } from 'react-native-device-info';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -116,6 +116,14 @@ class AdvancedSettings extends PureComponent {
 		 */
 		setShowHexData: PropTypes.func,
 		/**
+		 * Called to toggle show custom nonce
+		 */
+		setShowCustomNonce: PropTypes.func,
+		/**
+		 * Indicates whether custom nonce should be shown in transaction editor
+		 */
+		showCustomNonce: PropTypes.bool,
+		/**
 		 * Entire redux state used to generate state logs
 		 */
 		fullState: PropTypes.object
@@ -182,6 +190,10 @@ class AdvancedSettings extends PureComponent {
 
 	toggleShowHexData = showHexData => {
 		this.props.setShowHexData(showHexData);
+	};
+
+	toggleShowCustomNonce = showCustomNonce => {
+		this.props.setShowCustomNonce(showCustomNonce);
 	};
 
 	downloadStateLogs = async () => {
@@ -255,7 +267,7 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	render = () => {
-		const { showHexData, ipfsGateway, paymentChannelsEnabled } = this.props;
+		const { showHexData, showCustomNonce, ipfsGateway, paymentChannelsEnabled } = this.props;
 		const { resetModalVisible, onlineIpfsGateways } = this.state;
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
@@ -321,6 +333,18 @@ class AdvancedSettings extends PureComponent {
 							</View>
 						</View>
 						<View style={styles.setting}>
+							<Text style={styles.title}>{strings('app_settings.show_custom_nonce')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.custom_nonce_desc')}</Text>
+							<View style={styles.marginTop}>
+								<Switch
+									value={showCustomNonce}
+									onValueChange={this.toggleShowCustomNonce}
+									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
+									ios_backgroundColor={colors.grey000}
+								/>
+							</View>
+						</View>
+						<View style={styles.setting}>
 							<Text style={styles.title}>{strings('app_settings.state_logs')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.state_logs_desc')}</Text>
 							<StyledButton
@@ -354,12 +378,14 @@ class AdvancedSettings extends PureComponent {
 const mapStateToProps = state => ({
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	showHexData: state.settings.showHexData,
+	showCustomNonce: state.settings.showCustomNonce,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	fullState: state
 });
 
 const mapDispatchToProps = dispatch => ({
-	setShowHexData: showHexData => dispatch(setShowHexData(showHexData))
+	setShowHexData: showHexData => dispatch(setShowHexData(showHexData)),
+	setShowCustomNonce: showCustomNonce => dispatch(setShowCustomNonce(showCustomNonce))
 });
 
 export default connect(
