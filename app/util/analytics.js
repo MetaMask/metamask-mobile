@@ -178,7 +178,7 @@ const CATEGORIES = {
 	PAYMENTS: 'Payments',
 	// Swaps
 	SWAPS_OPENED: 'Swaps Opened',
-	SWAP_TRACKING_FAILED: 'Swap Tracking failed',
+	SWAP_TRACKING_FAILED: 'Swap Tracking Failed',
 	QUOTES_REQUESTED: 'Quotes Requested',
 	QUOTES_RECEIVED: 'Quotes Received',
 	QUOTES_REQUEST_CANCELLED: 'Quotes Request Cancelled',
