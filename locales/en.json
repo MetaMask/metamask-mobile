@@ -549,9 +549,11 @@
 	},
 	"asset_overview": {
 		"send_button": "Send",
-		"receive_button": "RECEIVE",
+		"buy_button": "Buy",
+		"receive_button": "Receive",
 		"add_collectible_button": "Add",
 		"info": "Info",
+		"swap": "Swap",
 		"description": "Description",
 		"totalSupply": "Total Supply",
 		"address": "Address",
@@ -712,7 +714,8 @@
 		"function": "Function",
 		"close": "Close",
 		"all_set": "All set!",
-		"all_set_desc": "You’ve successfully set permissions for this site."
+		"all_set_desc": "You’ve successfully set permissions for this site.",
+		"must_be_at_least": "Must be at least {{allowance}}"
 	},
 	"browser": {
 		"title": "Browser",
@@ -795,7 +798,8 @@
 		"instant_payment_withdraw_tx": "Withdraw",
 		"tx_details_free": "Free",
 		"tx_details_not_available": "Not available",
-		"smart_contract_interaction": "Smart Contract Interaction",
+		"smart_contract_interaction": "Smart contract interaction",
+		"swaps_transaction": "Swaps transaction",
 		"approve": "Approve",
 		"hash": "Hash",
 		"from": "From",
@@ -1406,8 +1410,33 @@
 		"total_amount": "Total amount"
 	},
 	"swaps": {
+		"onboarding": {
+			"get_the": "Get the",
+			"best_price": "best price",
+			"from_the": "from the",
+			"top_liquidity": "top liquidity",
+			"sources": "sources.",
+			"find_the": "Find the",
+			"best_swap": "best swap",
+			"across": "across...",
+			"want_to_learn_more": "Want to learn more?",
+			"learn_more": "Learn more about MetaMask Swaps",
+			"what_are": "What are token swaps?",
+			"review_audits": "Review our official contracts audit",
+			"start_swapping": "Start swapping"
+		},
 		"convert_from": "Convert from",
 		"convert_to": "Convert to",
+		"verify": "Verify",
+		"verified_on_sources": "Verified on {{sources} sources.",
+		"verify_on": "Always verify the token address on",
+		"verify_address_on": "Verify token address on",
+		"only_verified_on": "{{symbol}} is only verified on {{occurances}} source.",
+		"token_verification": "Token verification",
+		"token_multiple": "Multiple tokens can use the same name and symbol.",
+		"token_check": "Check",
+		"token_to_verify": "to verify this is the token you're looking for.",
+		"continue": "Continue",
 		"select_a_token": "Select a token",
 		"search_token": "Search for a token",
 		"no_tokens_result": "No tokens match “{{searchString}}”",
@@ -1420,10 +1449,26 @@
 		"slippage_warning": "Make sure you know what you’re doing!",
 		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
 		"get_quotes": "Get quotes",
+		"starting": "Starting...",
+		"finalizing": "Finalizing...",
+		"quote": "Quote",
+		"of": "of",
+		"checking": "Checking",
 		"fetching_new_quotes": "Fetching new quotes...",
 		"you_need": "You need",
 		"more_to_complete": "more to complete this swap.",
+		"more_gas_to_complete": "more for gas to complete this swap.",
+		"buy_more_eth": "Buy more ETH.",
+		"market_price_unavailable": "Market price is unavailable. Make sure you feel comfortable with the returned amount before proceeding.",
+		"price_difference": "Price difference of {{amount}}",
+		"price_difference_title": "Price difference",
+		"price_difference_body": "The difference in market prices can be affected by fees taken by intermediaries, size of market, size of trade, or market inefficiencies.",
+		"quotes_update_often": "Quotes update often",
+		"quotes_update_often_text": "Quotes are updated often to reflect current market conditions.",
+		"about_to_swap": "You are about to swap",
+		"for": "for",
 		"new_quotes_in": "New quotes in",
+		"i_understand": "I understand",
 		"quotes_expire_in": "Quotes expire in",
 		"saving": "Saving",
 		"using_best_quote": "Using the best quote",
@@ -1452,9 +1497,30 @@
 			"edit_limit": "Edit limit"
 		},
 		"quotes_overview": "Quotes overview",
+		"quote_details": "Quote details",
 		"receiving": "Receiving",
 		"overall_value": "Overall value",
 		"best": "Best",
+		"rate": "Rate",
+		"quote_details_max_slippage": "Max slippage",
+		"source": "Source",
+		"estimated_network_fees": "Estimated network fees",
+		"guaranteed_amount": "Guaranteed amount",
+		"quote_source_dex": {
+			"1": "This quote comes directly from a",
+			"2": "decentralized exchange",
+			"3": "protocol."
+		},
+		"quote_source_rfq": {
+			"1": "This quote comes from a",
+			"2": "private market maker",
+			"3": "who responds with a quote directly."
+		},
+		"quote_source_agg": {
+			"1": "This quote comes from an",
+			"2": "aggregator",
+			"3": "which finds the best price by splitting your order between different decentralized exchanges."
+		},
 		"quotes_timeout": "Quotes timeout",
 		"request_new_quotes": "Please request new quotes to get the latest best rate.",
 		"quotes_not_available": "Quotes not available",
@@ -1462,7 +1528,18 @@
 		"error_fetching_quote": "Error fetching quote",
 		"unexpected_error": "There has been an unexpected error, please request new quotes to get the latest best rate. (error: {{error}})",
 		"get_new_quotes": "Get new quotes",
-		"try_again": "Try again"
+		"try_again": "Try again",
+		"terms_of_service": "Terms of service",
+		"transaction_label": {
+			"swap": "Swap {{sourceToken}} to {{destinationToken}}",
+			"approve": "Approve {{sourceToken}} for swaps: Up to {{upTo}}"
+		},
+		"notification_label": {
+			"swap_pending": "Pending Swap ({{sourceToken}} to {{destinationToken}})",
+			"swap_confirmed": "Swap complete ({{sourceToken}} to {{destinationToken}})",
+			"approve_pending": "Approving {{sourceToken}} for swaps",
+			"approve_confirmed": "{{sourceToken}} approved for swaps"
+		}
 	},
 	"protect_wallet_modal": {
 		"title": "Protect your wallet",

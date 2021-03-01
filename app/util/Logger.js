@@ -83,7 +83,7 @@ export default class Logger {
 		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
-			console.log.apply(null, args); // eslint-disable-line no-console
+			// console.log.apply(null, args); // eslint-disable-line no-console
 		} else if (metricsOptIn === 'agreed') {
 			captureMessage(JSON.stringify(args));
 		}

@@ -134,7 +134,7 @@ const BaseNotification = ({
 				<Text style={styles.flashTitle} testID={'notification-title'}>
 					{!title ? getTitle(status, data) : title}
 				</Text>
-				<Text style={styles.flashText}>{!title ? getDescription(status, data) : description}</Text>
+				<Text style={styles.flashText}>{!description ? getDescription(status, data) : description}</Text>
 			</View>
 			<View>
 				{autoDismiss && (

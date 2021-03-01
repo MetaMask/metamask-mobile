@@ -4,10 +4,8 @@ import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-navigation';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import { strings } from '../../../../../locales/i18n';
 
 import Title from '../../../Base/Title';
-import Text from '../../../Base/Text';
 import { colors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
@@ -51,7 +49,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-function FeeModal({ fee = '0.875%', isVisible, toggleModal }) {
+function InfoModal({ title, body, isVisible, toggleModal }) {
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -63,26 +61,21 @@ function FeeModal({ fee = '0.875%', isVisible, toggleModal }) {
 		>
 			<SafeAreaView style={styles.modalView}>
 				<View style={styles.title}>
-					<Title>{strings('swaps.metamask_swap_fee')}</Title>
+					<Title>{title}</Title>
 					<TouchableOpacity onPress={toggleModal} hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}>
 						<IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
 					</TouchableOpacity>
 				</View>
-				<View style={styles.body}>
-					<Text>
-						{strings('swaps.fee_text.get_the')} <Text bold>{strings('swaps.fee_text.best_price')}</Text>{' '}
-						{strings('swaps.fee_text.from_the')} <Text bold>{strings('swaps.fee_text.top_liquidity')}</Text>{' '}
-						{strings('swaps.fee_text.fee_is_applied', { fee })}
-					</Text>
-				</View>
+				<View style={styles.body}>{body}</View>
 			</SafeAreaView>
 		</Modal>
 	);
 }
-FeeModal.propTypes = {
-	fee: PropTypes.string,
+InfoModal.propTypes = {
 	isVisible: PropTypes.bool,
+	title: PropTypes.node,
+	body: PropTypes.node,
 	toggleModal: PropTypes.func
 };
 
-export default FeeModal;
+export default InfoModal;
