@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
+import { swapsUtils } from '@estebanmino/controllers';
 
 import Device from '../../../../util/Device';
 import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiat } from '../../../../util/number';
@@ -69,8 +70,9 @@ function TokenSelectModal({
 	dismiss,
 	title,
 	tokens,
+	initialTokens,
 	onItemPress,
-	exclude = [],
+	excludeAddresses = [],
 	accounts,
 	selectedAddress,
 	currentCurrency,
@@ -81,7 +83,17 @@ function TokenSelectModal({
 	const searchInput = useRef(null);
 	const [searchString, setSearchString] = useState('');
 
-	const filteredTokens = useMemo(() => tokens?.filter(token => !exclude.includes(token.symbol)), [tokens, exclude]);
+	const filteredTokens = useMemo(() => tokens?.filter(token => !excludeAddresses.includes(token.address)), [
+		tokens,
+		excludeAddresses
+	]);
+	const filteredInitialTokens = useMemo(
+		() =>
+			initialTokens?.length > 0
+				? initialTokens.filter(token => !excludeAddresses.includes(token.address))
+				: filteredTokens,
+		[excludeAddresses, filteredTokens, initialTokens]
+	);
 	const tokenFuse = useMemo(
 		() =>
 			new Fuse(filteredTokens, {
@@ -96,8 +108,8 @@ function TokenSelectModal({
 		[filteredTokens]
 	);
 	const tokenSearchResults = useMemo(
-		() => (searchString.length > 0 ? tokenFuse.search(searchString) : filteredTokens)?.slice(0, 5),
-		[searchString, tokenFuse, filteredTokens]
+		() => (searchString.length > 0 ? tokenFuse.search(searchString)?.slice(0, 5) : filteredInitialTokens),
+		[searchString, tokenFuse, filteredInitialTokens]
 	);
 
 	const renderItem = useCallback(
@@ -105,7 +117,7 @@ function TokenSelectModal({
 			const itemAddress = toChecksumAddress(item.address);
 
 			let balance, balanceFiat;
-			if (item.symbol === 'ETH') {
+			if (item.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS) {
 				balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
 				balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 			} else {
@@ -195,8 +207,9 @@ TokenSelectModal.propTypes = {
 	dismiss: PropTypes.func,
 	title: PropTypes.string,
 	tokens: PropTypes.arrayOf(PropTypes.object),
+	initialTokens: PropTypes.arrayOf(PropTypes.object),
 	onItemPress: PropTypes.func,
-	exclude: PropTypes.arrayOf(PropTypes.string),
+	excludeAddresses: PropTypes.arrayOf(PropTypes.string),
 	/**
 	 * ETH to current currency conversion rate
 	 */
