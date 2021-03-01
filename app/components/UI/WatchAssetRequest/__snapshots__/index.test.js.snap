@@ -127,7 +127,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
                   }
                 }
               >
-                <TokenElement
+                <Connect(TokenImage)
                   asset={
                     Object {
                       "address": "0x2",

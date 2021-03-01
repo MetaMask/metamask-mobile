@@ -14,11 +14,10 @@ import {
 	PreferencesController,
 	TokenBalancesController,
 	TokenRatesController,
-	TransactionController,
 	TypedMessageManager
 } from '@metamask/controllers';
 
-import { SwapsController } from '@estebanmino/controllers';
+import { TransactionController, SwapsController } from '@estebanmino/controllers';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -37,7 +36,8 @@ import { MAINNET } from '../constants/network';
 const EMPTY = 'EMPTY';
 
 const encryptor = new Encryptor();
-let refreshing = false;
+let currentChainId;
+
 /**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
@@ -113,7 +113,7 @@ class Engine {
 							ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL
 						}
 					),
-					new TokenBalancesController(),
+					new TokenBalancesController({ interval: 10000 }),
 					new TokenRatesController(),
 					new TransactionController(),
 					new TypedMessageManager(),
@@ -133,23 +133,34 @@ class Engine {
 			assets.setApiKey(process.env.MM_OPENSEA_KEY);
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
-			network.subscribe(this.refreshNetwork);
+			network.subscribe(state => {
+				if (state.network !== 'loading' && state.provider.chainId !== currentChainId) {
+					// We should add a state or event emitter saying the provider changed
+					setTimeout(() => {
+						this.configureControllersOnNetworkChange();
+						currentChainId = state.provider.chainId;
+					}, 500);
+				}
+			});
 			this.configureControllersOnNetworkChange();
 			Engine.instance = this;
 
 			if (AppConstants.SWAPS.ACTIVE) {
-				preferences.addToFrequentRpcList(
-					'http://ganache-testnet.airswap-dev.codefi.network/',
-					1337,
-					'ETH',
-					'Swaps Test Network'
-				);
-				network.setRpcTarget(
-					'http://ganache-testnet.airswap-dev.codefi.network/',
-					1337,
-					'ETH',
-					'Swaps Test Network'
-				);
+				const swapsTestInState = preferences.state.frequentRpcList.find(({ chainId }) => chainId === 1337);
+				if (!swapsTestInState) {
+					preferences.addToFrequentRpcList(
+						'https://ganache-testnet.airswap-dev.codefi.network/',
+						'1337',
+						'ETH',
+						'Swaps Test Network'
+					);
+					network.setRpcTarget(
+						'https://ganache-testnet.airswap-dev.codefi.network/',
+						'1337',
+						'ETH',
+						'Swaps Test Network'
+					);
+				}
 			}
 		}
 		return Engine.instance;
@@ -167,7 +178,6 @@ class Engine {
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		AccountTrackerController.configure({ provider });
-		AccountTrackerController.refresh();
 		AssetsContractController.configure({ provider });
 		SwapsController.configure({
 			provider,
@@ -177,20 +187,8 @@ class Engine {
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
 		AssetsDetectionController.detectAssets();
+		AccountTrackerController.refresh();
 	}
-
-	/**
-	 * Refreshes all controllers that depend on the network
-	 */
-	refreshNetwork = () => {
-		if (!refreshing) {
-			refreshing = true;
-			setTimeout(() => {
-				this.configureControllersOnNetworkChange();
-				refreshing = false;
-			}, 500);
-		}
-	};
 
 	refreshTransactionHistory = async forceCheck => {
 		const { TransactionController, PreferencesController, NetworkController } = this.datamodel.context;
@@ -339,6 +337,7 @@ class Engine {
 
 		TransactionController.update({
 			internalTransactions: [],
+			swapsTransactions: {},
 			methodData: {},
 			transactions: []
 		});

@@ -3,6 +3,7 @@ import {
 	BNToHex,
 	fromWei,
 	fromTokenMinimalUnit,
+	fromTokenMinimalUnitString,
 	toTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
 	renderFromWei,
@@ -66,6 +67,88 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
 		expect(fromTokenMinimalUnit(1e2, 6)).toEqual('0.0001');
 		expect(fromTokenMinimalUnit(1e16, 6)).toEqual('10000000000');
 		expect(fromTokenMinimalUnit(1e18, 18)).toEqual('1');
+	});
+});
+
+describe('Number utils :: fromTokenMinimalUnitString', () => {
+	it('fromTokenMinimalUnit using number', () => {
+		expect(() => fromTokenMinimalUnitString(1337, 6)).toThrow();
+		expect(() => fromTokenMinimalUnitString(1337, 0)).toThrow();
+		expect(() => fromTokenMinimalUnitString(1337, 18)).toThrow();
+	});
+
+	it('fromTokenMinimalUnitString using string', () => {
+		expect(fromTokenMinimalUnitString('1337', 6)).toEqual('0.001337');
+		expect(fromTokenMinimalUnitString('1337', 0)).toEqual('1337');
+		expect(fromTokenMinimalUnitString('1337', 18)).toEqual('0.000000000000001337');
+		expect(fromTokenMinimalUnitString('1234560000000000000', 18)).toEqual('1.23456');
+		expect(fromTokenMinimalUnitString('1000000000000000000', 18)).toEqual('1');
+		expect(fromTokenMinimalUnitString('1', 18)).toEqual('0.000000000000000001');
+		expect(fromTokenMinimalUnitString('0', 18)).toEqual('0');
+		expect(fromTokenMinimalUnitString('123456789', 5)).toEqual('1234.56789');
+		expect(fromTokenMinimalUnitString('1234567890000000000987654321', 18)).toEqual('1234567890.000000000987654321');
+		expect(fromTokenMinimalUnitString('10000000000000000000000000000001', 18)).toEqual(
+			'10000000000000.000000000000000001'
+		);
+		expect(fromTokenMinimalUnitString('10000000000000000000000000000000', 18)).toEqual('10000000000000');
+		expect(fromTokenMinimalUnitString('3900229504248293869', 18)).toEqual('3.900229504248293869');
+		expect(fromTokenMinimalUnitString('92836465327282987373728723', 18)).toEqual('92836465.327282987373728723');
+		expect(fromTokenMinimalUnitString('6123512631253', 16)).toEqual('0.0006123512631253');
+		expect(fromTokenMinimalUnitString('92836465327282987373728723', 0)).toEqual('92836465327282987373728723');
+		expect(fromTokenMinimalUnitString('9283646532728212312312312312312987373728723', 32)).toEqual(
+			'92836465327.28212312312312312312987373728723'
+		);
+		expect(fromTokenMinimalUnitString('-1234560000000000000', 18)).toEqual('-1.23456');
+		expect(fromTokenMinimalUnitString('-1000000000000000000', 18)).toEqual('-1');
+		expect(fromTokenMinimalUnitString('-1', 18)).toEqual('-0.000000000000000001');
+		expect(fromTokenMinimalUnitString('-0', 18)).toEqual('0');
+		expect(fromTokenMinimalUnitString('-123456789', 5)).toEqual('-1234.56789');
+		expect(fromTokenMinimalUnitString('-1234567890000000000987654321', 18)).toEqual(
+			'-1234567890.000000000987654321'
+		);
+		expect(fromTokenMinimalUnitString('-10000000000000000000000000000001', 18)).toEqual(
+			'-10000000000000.000000000000000001'
+		);
+		expect(fromTokenMinimalUnitString('-10000000000000000000000000000000', 18)).toEqual('-10000000000000');
+		expect(fromTokenMinimalUnitString('-3900229504248293869', 18)).toEqual('-3.900229504248293869');
+		expect(fromTokenMinimalUnitString('-92836465327282987373728723', 18)).toEqual('-92836465.327282987373728723');
+		expect(fromTokenMinimalUnitString('-6123512631253', 16)).toEqual('-0.0006123512631253');
+		expect(fromTokenMinimalUnitString('-92836465327282987373728723', 0)).toEqual('-92836465327282987373728723');
+		expect(fromTokenMinimalUnitString('-9283646532728212312312312312312987373728723', 32)).toEqual(
+			'-92836465327.28212312312312312312987373728723'
+		);
+	});
+
+	it('fromTokenMinimalUnitString using BN number', () => {
+		expect(fromTokenMinimalUnitString(new BN('1337').toString(10), 6)).toEqual('0.001337');
+		expect(fromTokenMinimalUnitString(new BN('1337').toString(10), 0)).toEqual('1337');
+		expect(fromTokenMinimalUnitString(new BN('1337').toString(10), 18)).toEqual('0.000000000000001337');
+		expect(fromTokenMinimalUnitString(new BN('123456').toString(), 5)).toEqual('1.23456');
+		expect(fromTokenMinimalUnitString(new BN('123456').toString(), 5)).toEqual('1.23456');
+		expect(fromTokenMinimalUnitString(new BN('1234560000000000000').toString(), 18)).toEqual('1.23456');
+		expect(fromTokenMinimalUnitString(new BN('1000000000000000000').toString(), 18)).toEqual('1');
+		expect(fromTokenMinimalUnitString(new BN('1').toString(), 18)).toEqual('0.000000000000000001');
+		expect(fromTokenMinimalUnitString(new BN('0').toString(), 18)).toEqual('0');
+		expect(fromTokenMinimalUnitString(new BN('123456789').toString(), 5)).toEqual('1234.56789');
+		expect(fromTokenMinimalUnitString(new BN('1234567890000000000987654321').toString(), 18)).toEqual(
+			'1234567890.000000000987654321'
+		);
+		expect(fromTokenMinimalUnitString(new BN('10000000000000000000000000000001').toString(), 18)).toEqual(
+			'10000000000000.000000000000000001'
+		);
+		expect(fromTokenMinimalUnitString(new BN('10000000000000000000000000000000').toString(), 18)).toEqual(
+			'10000000000000'
+		);
+		expect(fromTokenMinimalUnitString(new BN('3900229504248293869').toString(), 18)).toEqual(
+			'3.900229504248293869'
+		);
+		expect(fromTokenMinimalUnitString(new BN('92836465327282987373728723').toString(), 18)).toEqual(
+			'92836465.327282987373728723'
+		);
+		expect(fromTokenMinimalUnitString(new BN('6123512631253').toString(), 16)).toEqual('0.0006123512631253');
+		expect(fromTokenMinimalUnitString(new BN('92836465327282987373728723').toString(), 0)).toEqual(
+			'92836465327282987373728723'
+		);
 	});
 });
 
@@ -257,8 +340,8 @@ describe('Number utils :: fiatNumberToTokenMinimalUnit', () => {
 
 describe('Number utils :: balanceToFiat', () => {
 	it('balanceToFiat', () => {
-		expect(balanceToFiat(0.1, 0.1, 0.1, 'usd')).toEqual('$0.001');
-		expect(balanceToFiat(0.0001, 0.1, 0.1, 'usd')).toEqual('$0');
+		expect(balanceToFiat(0.1, 0.1, 0.1, 'usd')).toEqual('$0.00');
+		expect(balanceToFiat(0.0001, 0.1, 0.1, 'usd')).toEqual('$0.00');
 	});
 });
 
