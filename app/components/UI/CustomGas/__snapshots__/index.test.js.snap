@@ -598,6 +598,7 @@ exports[`CustomGas should render correctly 1`] = `
           "alignSelf": "center",
           "justifyContent": "center",
           "marginBottom": 10,
+          "textAlign": "center",
           "width": "100%",
         }
       }
@@ -611,6 +612,7 @@ exports[`CustomGas should render correctly 1`] = `
               "borderColor": "#D73A49",
               "borderRadius": 8,
               "borderWidth": 1,
+              "flexWrap": "wrap",
               "justifyContent": "center",
               "paddingHorizontal": 10,
               "paddingVertical": 8,
@@ -627,6 +629,7 @@ exports[`CustomGas should render correctly 1`] = `
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
+              "textAlign": "center",
             }
           }
         >

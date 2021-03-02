@@ -92,21 +92,21 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
         </Text>
       </TouchableOpacity>
     </SummaryCol>
-    <View
-      style={
-        Object {
-          "backgroundColor": "#FFFFFF",
-          "height": 10,
-        }
-      }
-    >
-      <ActivityIndicator
-        animating={true}
-        color="#999999"
-        hidesWhenStopped={true}
-        size="small"
-      />
-    </View>
+    <Text
+      bold={true}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      primary={true}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
+      underline={false}
+      upper={true}
+    />
   </SummaryRow>
   <SummarySeparator />
   <SummaryRow>
