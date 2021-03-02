@@ -188,14 +188,6 @@ class AdvancedSettings extends PureComponent {
 		this.setState({ resetModalVisible: false });
 	};
 
-	toggleShowHexData = showHexData => {
-		this.props.setShowHexData(showHexData);
-	};
-
-	toggleShowCustomNonce = showCustomNonce => {
-		this.props.setShowCustomNonce(showCustomNonce);
-	};
-
 	downloadStateLogs = async () => {
 		const appName = await getApplicationName();
 		const appVersion = await getVersion();
@@ -267,7 +259,14 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	render = () => {
-		const { showHexData, showCustomNonce, ipfsGateway, paymentChannelsEnabled } = this.props;
+		const {
+			showHexData,
+			showCustomNonce,
+			setShowHexData,
+			setShowCustomNonce,
+			ipfsGateway,
+			paymentChannelsEnabled
+		} = this.props;
 		const { resetModalVisible, onlineIpfsGateways } = this.state;
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
@@ -326,7 +325,7 @@ class AdvancedSettings extends PureComponent {
 							<View style={styles.marginTop}>
 								<Switch
 									value={showHexData}
-									onValueChange={this.toggleShowHexData}
+									onValueChange={setShowHexData}
 									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
 									ios_backgroundColor={colors.grey000}
 								/>
@@ -338,7 +337,7 @@ class AdvancedSettings extends PureComponent {
 							<View style={styles.marginTop}>
 								<Switch
 									value={showCustomNonce}
-									onValueChange={this.toggleShowCustomNonce}
+									onValueChange={setShowCustomNonce}
 									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
 									ios_backgroundColor={colors.grey000}
 								/>
