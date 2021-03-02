@@ -31,10 +31,10 @@ RCT_EXPORT_METHOD(trackEvent:(NSDictionary *)event)
 
 RCT_EXPORT_METHOD(trackEventAnonymously:(NSDictionary *)event)
 {
-  NSString *distinctId = [[Mixpanel sharedInstance] distinctId];
+  NSString *const distinctId = [[Mixpanel sharedInstance] distinctId];
   [[Mixpanel sharedInstance] identify:@"0x0000000000000000"];
   [[Mixpanel sharedInstance] track: [self getCategory:event] properties:[self getInfo:event]];
-  [[Mixpanel sharedInstance] identify:[[Mixpanel sharedInstance] distinctId]];
+  [[Mixpanel sharedInstance] identify:distinctId];
 }
 
 
