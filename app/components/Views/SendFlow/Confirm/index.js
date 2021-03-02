@@ -109,6 +109,25 @@ const styles = StyleSheet.create({
 	actionTouchable: {
 		padding: 12
 	},
+	customNonce: {
+		borderWidth: 1,
+		borderColor: colors.grey050,
+		borderRadius: 8,
+		paddingVertical: 14,
+		paddingHorizontal: 16,
+		display: 'flex',
+		flexDirection: 'row'
+	},
+	nonceText: {
+		color: colors.black,
+		...fontStyles.bold
+	},
+	editText: {
+		color: colors.blue
+	},
+	nonceNumber: {
+		marginLeft: 'auto'
+	},
 	actionText: {
 		...fontStyles.normal,
 		color: colors.blue,
@@ -273,6 +292,10 @@ class Confirm extends PureComponent {
 		 * Indicates whether hex data should be shown in transaction editor
 		 */
 		showHexData: PropTypes.bool,
+		/**
+		 * Indicates whether custom nonce should be shown in transaction editor
+		 */
+		showCustomNonce: PropTypes.bool,
 		/**
 		 * Network provider type as mainnet
 		 */
@@ -935,7 +958,7 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, isPaymentChannelTransaction, primaryCurrency, network } = this.props;
+		const { showHexData, showCustomNonce, isPaymentChannelTransaction, primaryCurrency, network } = this.props;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -1034,6 +1057,16 @@ class Confirm extends PureComponent {
 								<Text style={styles.actionText}>{strings('transaction.hex_data')}</Text>
 							</TouchableOpacity>
 						)}
+						{showCustomNonce && (
+							<TouchableOpacity style={styles.customNonce} onPress={() => ({})}>
+								<Text style={styles.nonceText}>{strings('transaction.custom_nonce')}</Text>
+								<Text style={[styles.nonceText, styles.editText]}>
+									{'  '}
+									{strings('transaction.edit')}
+								</Text>
+								<Text style={[styles.nonceText, styles.nonceNumber]}>3</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 				</ScrollView>
 				<View style={styles.buttonNextWrapper}>
@@ -1069,6 +1102,7 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	showHexData: state.settings.showHexData,
+	showCustomNonce: state.settings.showCustomNonce,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	transaction: getNormalizedTxState(state),
