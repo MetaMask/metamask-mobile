@@ -475,9 +475,12 @@ function SwapsQuotesView({
 				),
 				analytics: {
 					token_from: sourceToken.symbol,
-					token_from_amount: sourceAmount,
+					token_from_amount: fromTokenMinimalUnitString(sourceAmount, sourceToken.decimals),
 					token_to: destinationToken.symbol,
-					token_to_amount: selectedQuote.destinationAmount,
+					token_to_amount: fromTokenMinimalUnitString(
+						selectedQuote.destinationAmount,
+						destinationToken.decimals
+					),
 					request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 					best_quote_source: selectedQuote.aggregator,

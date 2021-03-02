@@ -274,7 +274,7 @@ const Main = props => {
 						time_to_mine: timeToMine,
 						estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
 						quote_vs_executionRatio: quoteVsExecutionRatio,
-						token_to_amount_received: tokenToAmountReceived
+						token_to_amount_received: tokenToAmountReceived.toString()
 					});
 				});
 			} catch (e) {
