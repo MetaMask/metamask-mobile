@@ -480,7 +480,7 @@ class Login extends PureComponent {
 							returnKeyType={'done'}
 							onChangeText={this.checkDelete}
 							autoCapitalize="none"
-							value={this.state.password}
+							value={this.state.deleteText}
 							baseColor={colors.grey500}
 							tintColor={colors.blue}
 							onSubmitEditing={this.submitDelete}

@@ -29,6 +29,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       right={false}
       small={false}
       strikethrough={false}
+      underline={false}
       upper={false}
     >
       Amount
@@ -45,6 +46,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       right={false}
       small={false}
       strikethrough={false}
+      underline={false}
       upper={true}
     />
   </SummaryRow>
@@ -62,6 +64,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
         right={false}
         small={false}
         strikethrough={false}
+        underline={false}
         upper={false}
       >
         Network fee
@@ -81,6 +84,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
           right={false}
           small={false}
           strikethrough={false}
+          underline={false}
           upper={false}
         >
             
@@ -119,6 +123,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       small={false}
       strikethrough={false}
       style={null}
+      underline={false}
       upper={false}
     >
       Total
