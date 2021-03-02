@@ -597,7 +597,7 @@ class TransactionEditor extends PureComponent {
 	};
 
 	updateGas = async (gas, gasLimit, warningGasPriceHigh) => {
-		await this.handleGasFeeSelection(gas, gasLimit, warningGasPriceHigh);
+		this.handleGasFeeSelection(gas, gasLimit, warningGasPriceHigh);
 		const gasError = this.validateGas();
 		this.setState({ gasError });
 	};

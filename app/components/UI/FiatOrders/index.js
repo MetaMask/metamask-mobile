@@ -8,7 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
 
 import { FIAT_ORDER_STATES, getPendingOrders } from '../../../reducers/fiatOrders';
-import useInterval from './hooks/useInterval';
+import useInterval from '../../hooks/useInterval';
 import processOrder from './orderProcessor';
 
 /**
