@@ -43,25 +43,22 @@ class Analytics {
 	 */
 	_trackEvent(name, { event, params = {}, value, info, anonymously = false }) {
 		if (!this.enabled) return;
-		if (!__DEV__) {
-			if (!anonymously) {
-				RCTAnalytics.trackEvent({
-					...event,
-					...params,
-					value,
-					info
-				});
-			} else {
-				RCTAnalytics.trackEventAnonymously({
-					...event,
-					...params,
-					value,
-					info
-				});
-			}
+		if (!anonymously) {
+			RCTAnalytics.trackEvent({
+				...event,
+				...params,
+				value,
+				info
+			});
 		} else {
-			Logger.log(`Analytics '${name}' -`, event, params, value, info);
+			RCTAnalytics.trackEventAnonymously({
+				...event,
+				...params,
+				value,
+				info
+			});
 		}
+		Logger.log(`Analytics '${name}' -`, event, params, value, info);
 	}
 
 	/**
@@ -236,11 +233,11 @@ export default {
 	getDistinctId() {
 		return instance && instance.getDistinctId();
 	},
-	trackEvent(event) {
-		return instance && instance.trackEvent(event);
+	trackEvent(event, anonymously) {
+		return instance && instance.trackEvent(event, anonymously);
 	},
-	trackEventWithParameters(event, parameters) {
-		return instance && instance.trackEventWithParameters(event, parameters);
+	trackEventWithParameters(event, parameters, anonymously) {
+		return instance && instance.trackEventWithParameters(event, parameters, anonymously);
 	},
 	getRemoteVariables() {
 		return instance.remoteVariables;
