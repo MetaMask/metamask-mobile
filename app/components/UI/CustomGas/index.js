@@ -450,12 +450,12 @@ class CustomGas extends PureComponent {
 		const gasPriceBN = new BN(gasPrice);
 		const gasPriceBNWei = apiEstimateModifiedToWEI(gasPrice);
 		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBNWei);
-		let warningGasPrice, warningGasPriceHigh;
-		let currentGasPrice;
+		let warningGasPrice;
+		let warningGasPriceHigh = '';
 		if (parseInt(gasPrice) < parseInt(this.props.basicGasEstimates.safeLowGwei))
 			warningGasPrice = strings('transaction.low_gas_price');
 		if (parseInt(gasPrice) > parseInt(this.props.basicGasEstimates.fastGwei)) {
-			currentGasPrice = getRenderableFiatGasFee(
+			const currentGasPrice = getRenderableFiatGasFee(
 				gasPrice,
 				this.props.conversionRate,
 				this.props.currentCurrency,
@@ -466,9 +466,6 @@ class CustomGas extends PureComponent {
 		if (!value || value === '' || !isDecimal(value) || value <= 0)
 			warningGasPrice = strings('transaction.invalid_gas_price');
 		if (gasPriceBNWei && !isBN(gasPriceBNWei)) warningGasPrice = strings('transaction.invalid_gas_price');
-
-		console.log('Custom Gas Warning', warningGasPriceHigh);
-
 		this.setState({
 			customGasPrice: gasPrice,
 			customGasPriceBNWei: gasPriceBNWei,

@@ -294,6 +294,7 @@ class TransactionReview extends PureComponent {
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
+		console.log('TransactionReview', this.props.transaction.warningGasPriceHigh);
 		return (
 			<>
 				<Animated.View style={generateTransform('reviewToData', [0, -Device.getDeviceWidth()])}>
@@ -319,7 +320,6 @@ class TransactionReview extends PureComponent {
 								<View style={styles.accountInfoCardWrapper}>
 									<AccountInfoCard />
 								</View>
-								{console.log('TransactionReview', this.props.transaction.warningGasPriceHigh)}
 								<TransactionReviewInformation
 									error={error}
 									edit={this.edit}

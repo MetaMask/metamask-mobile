@@ -88,11 +88,7 @@ const transactionReducer = (state = initialState, action) => {
 				action.transaction.assetType = assetType;
 			}
 			const txMeta = getTxMeta(action.transaction);
-			console.log('txMeta', txMeta);
-			console.log('state', state);
-			console.log('transaction', action.transaction);
-			console.log('transaction', ...state.transaction);
-			return {
+			const transactionNew = {
 				...state,
 				transaction: {
 					...state.transaction,
@@ -100,6 +96,7 @@ const transactionReducer = (state = initialState, action) => {
 				},
 				...txMeta
 			};
+			return transactionNew;
 		}
 		case 'SET_TOKENS_TRANSACTION': {
 			const selectedAsset = action.asset;

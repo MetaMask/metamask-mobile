@@ -183,17 +183,11 @@ class TransactionEditor extends PureComponent {
 	 */
 	handleGasFeeSelection = (gasLimit, gasPrice, warningGasPriceHigh) => {
 		const transactionObject = {
-			...this.props.transaction,
 			gas: gasLimit,
 			gasPrice,
 			warningGasPriceHigh
 		};
 		this.props.setTransactionObject(transactionObject);
-		console.log(
-			'#################SET TRANSACTION STATE',
-			'State: ' + this.props.transaction.warningGasPriceHigh,
-			'Set Value: ' + warningGasPriceHigh
-		);
 	};
 
 	/**
@@ -648,7 +642,6 @@ class TransactionEditor extends PureComponent {
 				{!paymentChannelTransaction && (
 					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 						<AnimatedTransactionModal onModeChange={onModeChange} ready={ready} review={this.review}>
-							{console.log('TransactionEditor', this.props.transaction.warningGasPriceHigh)}
 							<TransactionReview
 								onCancel={this.onCancel}
 								onConfirm={this.onConfirm}
@@ -656,7 +649,6 @@ class TransactionEditor extends PureComponent {
 								ready={ready}
 								transactionConfirmed={transactionConfirmed}
 								over={over}
-								transaction={transaction}
 							/>
 							<CustomGas
 								handleGasFeeSelection={this.updateGas}
