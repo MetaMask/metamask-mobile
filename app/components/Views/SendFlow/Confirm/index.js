@@ -958,9 +958,6 @@ class Confirm extends PureComponent {
 
 	renderCustomNonceModal = () => {
 		const { nonceValue } = this.state;
-		// const {
-		// 	transaction: { gas, gasPrice }
-		// } = this.props;
 		return (
 			<Modal
 				isVisible
@@ -1005,14 +1002,10 @@ class Confirm extends PureComponent {
 									<IncrementDecrementSvg plus />
 								</TouchableOpacity>
 							</View>
-							<Text style={styles.customNonceModalDesc}>
-								The nonce is an abbreviation for “number only used once”. Think of the nonce as the
-								transaction number of an account. Every accounts nonce begins with 0 for the first
-								transaction and continues in sequential order.
-							</Text>
 							<Text style={[styles.customNonceModalDesc, styles.bold]}>
-								This is an advanced feature used to cancel or speed up older transactions.
+								{strings('transaction.this_is_an_advanced')}
 							</Text>
+							<Text style={styles.customNonceModalDesc}>{strings('transaction.think_of_the_nonce')}</Text>
 						</View>
 					</View>
 				</KeyboardAwareScrollView>
