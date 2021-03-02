@@ -41,15 +41,24 @@ class Analytics {
 	/**
 	 * Track event if enabled and not DEV mode
 	 */
-	_trackEvent(name, { event, params = {}, value, info }) {
+	_trackEvent(name, { event, params = {}, value, info, anonymously = false }) {
 		if (!this.enabled) return;
 		if (!__DEV__) {
-			RCTAnalytics.trackEvent({
-				...event,
-				...params,
-				value,
-				info
-			});
+			if (!anonymously) {
+				RCTAnalytics.trackEvent({
+					...event,
+					...params,
+					value,
+					info
+				});
+			} else {
+				RCTAnalytics.trackEventAnonymously({
+					...event,
+					...params,
+					value,
+					info
+				});
+			}
 		} else {
 			Logger.log(`Analytics '${name}' -`, event, params, value, info);
 		}
@@ -119,8 +128,9 @@ class Analytics {
 	 * Track event
 	 *
 	 * @param {object} event - Object containing event category, action and name
+	 * @param {boolean} anonymously - Whether the tracking should be without the right distinctId
 	 */
-	trackEvent = event => {
+	trackEvent = (event, anonymously = false) => {
 		this._trackEvent('trackEvent', { event });
 	};
 
@@ -129,9 +139,10 @@ class Analytics {
 	 *
 	 * @param {object} event - Object containing event category, action and name
 	 * @param {number} value - Value number to send with event
+	 * @param {boolean} anonymously - Whether the tracking should be without the right distinctId
 	 */
-	trackEventWithValue = (event, value) => {
-		this._trackEvent('trackEventWithValue', { event, value });
+	trackEventWithValue = (event, value, anonymously = false) => {
+		this._trackEvent('trackEventWithValue', { event, value, anonymously });
 	};
 
 	/**
@@ -139,9 +150,10 @@ class Analytics {
 	 *
 	 * @param {object} event - Object containing event category, action and name
 	 * @param {string} info - Information string to send with event
+	 * @param {boolean} anonymously - Whether the tracking should be without the right distinctId
 	 */
-	trackEventWithInfo = (event, info) => {
-		this._trackEvent('trackEventWithInfo', { event, info });
+	trackEventWithInfo = (event, info, anonymously = false) => {
+		this._trackEvent('trackEventWithInfo', { event, info, anonymously });
 	};
 
 	/**
@@ -150,9 +162,10 @@ class Analytics {
 	 * @param {object} event - Object containing event category, action and name
 	 * @param {number} value - Value number to send with event
 	 * @param {string} info - Information string to send with event
+	 * @param {boolean} anonymously - Whether the tracking should be without the right distinctId
 	 */
-	trackEventWithValueAndInfo = (event, value, info) => {
-		this._trackEvent('trackEventWithValueAndInfo', { event, value, info });
+	trackEventWithValueAndInfo = (event, value, info, anonymously = false) => {
+		this._trackEvent('trackEventWithValueAndInfo', { event, value, info, anonymously });
 	};
 
 	/**
@@ -160,9 +173,10 @@ class Analytics {
 	 *
 	 * @param {object} event - Object containing event category, action and name
 	 * @param {object} params - Object containing other params to send with event
+	 * @param {boolean} anonymously - Whether the tracking should be without the right distinctId
 	 */
-	trackEventWithParameters = (event, params) => {
-		this._trackEvent('trackEventWithParameters', { event, params });
+	trackEventWithParameters = (event, params, anonymously = false) => {
+		this._trackEvent('trackEventWithParameters', { event, params, anonymously });
 	};
 
 	/**
@@ -171,9 +185,10 @@ class Analytics {
 	 * @param {object} event - Object containing event category, action and name
 	 * @param {number} value - Value number to send with event
 	 * @param {object} params - Object containing other params to send with event
+	 * @param {boolean} anonymously - Whether the tracking should be without the right distinctId
 	 */
-	trackEventWithValueAndParameters = (event, value, params) => {
-		this._trackEvent('trackEventWithValueAndParameters', { event, value, params });
+	trackEventWithValueAndParameters = (event, value, params, anonymously = false) => {
+		this._trackEvent('trackEventWithValueAndParameters', { event, value, params, anonymously });
 	};
 
 	/**
@@ -183,9 +198,10 @@ class Analytics {
 	 * @param {number} value - Value number to send with event
 	 * @param {string} info - Information string to send with event
 	 * @param {object} params - Object containing other params to send with event
+	 * @param {boolean} anonymously - Whether the tracking should be without the right distinctId
 	 */
-	trackEventWithValueAndInfoAndParameters = (event, value, info, params) => {
-		this._trackEvent('trackEventWithValueAndInfoAndParameters', { event, value, info, params });
+	trackEventWithValueAndInfoAndParameters = (event, value, info, params, anonymously = false) => {
+		this._trackEvent('trackEventWithValueAndInfoAndParameters', { event, value, info, params, anonymously });
 	};
 }
 
