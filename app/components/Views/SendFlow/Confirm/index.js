@@ -7,6 +7,7 @@ import {
 	View,
 	Alert,
 	Text,
+	TextInput,
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator
@@ -57,8 +58,10 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/format';
 import { isMainNet, getNetworkName } from '../../../../util/networks';
+import { Svg, Circle, Path } from 'react-native-svg';
 
 const EDIT = 'edit';
+const EDIT_NONCE = 'edit_nonce';
 const REVIEW = 'review';
 
 const { hexToBN, BNToHex } = util;
@@ -207,6 +210,45 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'flex-end'
 	},
+	customNonceModal: {
+		minHeight: 200,
+		backgroundColor: colors.white,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20
+	},
+	customNonceModalContainer: {
+		margin: 24
+	},
+	customNonceModalTitle: {
+		fontSize: 14,
+		color: colors.black,
+		...fontStyles.bold,
+		textAlign: 'center'
+	},
+	nonceInput: {
+		fontSize: 36,
+		...fontStyles.bold,
+		color: colors.black,
+		textAlign: 'center',
+		marginHorizontal: 24
+	},
+	customNonceModalDesc: {
+		color: colors.black,
+		fontSize: 12,
+		lineHeight: 16,
+		...fontStyles.normal,
+		marginVertical: 10
+	},
+	bold: {
+		...fontStyles.bold
+	},
+	nonceInputContainer: {
+		display: 'flex',
+		flexDirection: 'row',
+		alignItems: 'center',
+		alignSelf: 'center',
+		marginVertical: 24
+	},
 	errorWrapper: {
 		marginHorizontal: 24,
 		marginTop: 12,
@@ -235,6 +277,24 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	}
 });
+
+const IncrementDecrementSvg = ({ plus }) => (
+	<Svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+		<Circle cx="22" cy="22" r="21.5" fill="white" stroke="#037DD6" />
+		<Path
+			d={
+				plus
+					? 'M30.25 20.6875H24.0625V14.5C24.0625 13.7695 23.418 13.125 22.6875 13.125H21.3125C20.5391 13.125 19.9375 13.7695 19.9375 14.5V20.6875H13.75C12.9766 20.6875 12.375 21.332 12.375 22.0625V23.4375C12.375 24.2109 12.9766 24.8125 13.75 24.8125H19.9375V31C19.9375 31.7734 20.5391 32.375 21.3125 32.375H22.6875C23.418 32.375 24.0625 31.7734 24.0625 31V24.8125H30.25C30.9805 24.8125 31.625 24.2109 31.625 23.4375V22.0625C31.625 21.332 30.9805 20.6875 30.25 20.6875Z'
+					: 'M30.25 20.6875H13.75C12.9766 20.6875 12.375 21.332 12.375 22.0625V23.4375C12.375 24.2109 12.9766 24.8125 13.75 24.8125H30.25C30.9805 24.8125 31.625 24.2109 31.625 23.4375V22.0625C31.625 21.332 30.9805 20.6875 30.25 20.6875Z'
+			}
+			fill="#037DD6"
+		/>
+	</Svg>
+);
+
+IncrementDecrementSvg.propTypes = {
+	plus: PropTypes.bool
+};
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -347,7 +407,9 @@ class Confirm extends PureComponent {
 		paymentChannelBalance: this.props.selectedAsset.assetBalance,
 		paymentChannelReady: false,
 		mode: REVIEW,
-		over: false
+		over: false,
+		// TODO: get this from props?
+		nonceValue: '3'
 	};
 
 	componentDidMount = async () => {
@@ -400,8 +462,8 @@ class Confirm extends PureComponent {
 		this.onModeChange(REVIEW);
 	};
 
-	edit = () => {
-		this.onModeChange(EDIT);
+	edit = MODE => {
+		this.onModeChange(MODE);
 	};
 
 	onModeChange = mode => {
@@ -887,6 +949,77 @@ class Confirm extends PureComponent {
 		);
 	};
 
+	incrementDecrementNonce = decrement => {
+		const { nonceValue } = this.state;
+		let parsedNonceValue = parseInt(nonceValue);
+		const newValue = decrement ? --parsedNonceValue : ++parsedNonceValue;
+		this.setState({ nonceValue: newValue > 1 ? String(newValue) : '1' });
+	};
+
+	renderCustomNonceModal = () => {
+		const { nonceValue } = this.state;
+		// const {
+		// 	transaction: { gas, gasPrice }
+		// } = this.props;
+		return (
+			<Modal
+				isVisible
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.review}
+				onBackButtonPress={this.review}
+				onSwipeComplete={this.review}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+					<View style={styles.customNonceModal}>
+						<View style={styles.customNonceModalContainer}>
+							<Text style={styles.customNonceModalTitle}>Edit transaction nonce</Text>
+							<View style={styles.nonceInputContainer}>
+								<TouchableOpacity onPress={() => this.incrementDecrementNonce(true)}>
+									<IncrementDecrementSvg />
+								</TouchableOpacity>
+								<TextInput
+									keyboardType="numeric"
+									autoFocus
+									autoCapitalize="none"
+									autoCorrect={false}
+									// onChangeText={this.onChange}
+									// placeholder={3}
+									placeholderTextColor={colors.grey100}
+									spellCheck={false}
+									editable
+									style={styles.nonceInput}
+									value={nonceValue}
+									numberOfLines={1}
+									// onBlur={this.onBlur}
+									// onFocus={this.onInputFocus}
+									// onSubmitEditing={this.onFocus}
+								/>
+								<TouchableOpacity onPress={() => this.incrementDecrementNonce(false)}>
+									<IncrementDecrementSvg plus />
+								</TouchableOpacity>
+							</View>
+							<Text style={styles.customNonceModalDesc}>
+								The nonce is an abbreviation for “number only used once”. Think of the nonce as the
+								transaction number of an account. Every accounts nonce begins with 0 for the first
+								transaction and continues in sequential order.
+							</Text>
+							<Text style={[styles.customNonceModalDesc, styles.bold]}>
+								This is an advanced feature used to cancel or speed up older transactions.
+							</Text>
+						</View>
+					</View>
+				</KeyboardAwareScrollView>
+			</Modal>
+		);
+	};
+
 	renderHexDataModal = () => {
 		const { hexDataModalVisible } = this.state;
 		const { data } = this.props.transactionState.transaction;
@@ -1036,7 +1169,7 @@ class Confirm extends PureComponent {
 							transactionValue={transactionValue}
 							primaryCurrency={primaryCurrency}
 							gasEstimationReady={gasEstimationReady}
-							edit={this.edit}
+							edit={() => this.edit(EDIT)}
 							over={over}
 						/>
 					)}
@@ -1052,19 +1185,19 @@ class Confirm extends PureComponent {
 						</View>
 					)}
 					<View style={styles.actionsWrapper}>
-						{!isPaymentChannelTransaction && showHexData && (
-							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleHexDataModal}>
-								<Text style={styles.actionText}>{strings('transaction.hex_data')}</Text>
-							</TouchableOpacity>
-						)}
 						{showCustomNonce && (
-							<TouchableOpacity style={styles.customNonce} onPress={() => ({})}>
+							<TouchableOpacity style={styles.customNonce} onPress={() => this.edit(EDIT_NONCE)}>
 								<Text style={styles.nonceText}>{strings('transaction.custom_nonce')}</Text>
 								<Text style={[styles.nonceText, styles.editText]}>
 									{'  '}
 									{strings('transaction.edit')}
 								</Text>
 								<Text style={[styles.nonceText, styles.nonceNumber]}>3</Text>
+							</TouchableOpacity>
+						)}
+						{!isPaymentChannelTransaction && showHexData && (
+							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleHexDataModal}>
+								<Text style={styles.actionText}>{strings('transaction.hex_data')}</Text>
 							</TouchableOpacity>
 						)}
 					</View>
@@ -1086,6 +1219,7 @@ class Confirm extends PureComponent {
 				</View>
 				{this.renderFromAccountModal()}
 				{mode === EDIT && this.renderCustomGasModal()}
+				{mode === EDIT_NONCE && this.renderCustomNonceModal()}
 				{this.renderHexDataModal()}
 			</SafeAreaView>
 		);
