@@ -31,7 +31,7 @@ function AssetSwapButton({ isFeatureLive, isNetworkAllowed, isAssetAllowed, onPr
 				icon="swap"
 				label={strings('asset_overview.swap')}
 				onPress={isDisabled ? showModal : onPress}
-				style={isDisabled && styles.disabledButton}
+				style={isDisabled ? styles.disabledButton : undefined}
 			/>
 			<InfoModal
 				isVisible={isDisabled && isModalOpen}
