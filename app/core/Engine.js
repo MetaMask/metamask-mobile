@@ -117,7 +117,7 @@ class Engine {
 					new TokenRatesController(),
 					new TransactionController(),
 					new TypedMessageManager(),
-					new SwapsController({ clientId: 'mobile' })
+					new SwapsController({ clientId: AppConstants.SWAPS.CLIENT_ID })
 				],
 				initialState
 			);
