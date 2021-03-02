@@ -289,12 +289,10 @@ class TransactionReview extends PureComponent {
 			hideData,
 			saveTransactionReviewDataHeight,
 			customGasHeight,
-			transaction,
 			over
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
-		console.log('TransactionReview', this.props.transaction.warningGasPriceHigh);
 		return (
 			<>
 				<Animated.View style={generateTransform('reviewToData', [0, -Device.getDeviceWidth()])}>
@@ -329,7 +327,6 @@ class TransactionReview extends PureComponent {
 									toggleDataView={this.toggleDataView}
 									over={over}
 									onCancelPress={this.props.onCancel}
-									transaction={transaction}
 								/>
 							</View>
 						</ActionView>

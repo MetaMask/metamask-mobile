@@ -497,9 +497,12 @@ class CustomGas extends PureComponent {
 			);
 		} else {
 			const mode = { mode: gasSpeedSelected };
-			if (gasSpeedSelected === 'slow') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei), mode);
-			if (gasSpeedSelected === 'average') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei), mode);
-			if (gasSpeedSelected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), mode);
+			if (gasSpeedSelected === 'slow')
+				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei), warningGasPriceHigh, mode);
+			if (gasSpeedSelected === 'average')
+				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei), warningGasPriceHigh, mode);
+			if (gasSpeedSelected === 'fast')
+				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), warningGasPriceHigh, mode);
 		}
 		review();
 	};
