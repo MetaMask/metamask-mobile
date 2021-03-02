@@ -9,8 +9,8 @@ function getDefinedProperties(object) {
  * @returns {object} - An object containing the standard properties of a transaction
  */
 export function getTxData(txMeta = {}) {
-	const { data, from, gas, gasPrice, to, value } = txMeta; // eslint-disable-line no-unused-vars
-	const txData = { data, from, gas, gasPrice, to, value };
+	const { data, from, gas, gasPrice, to, value, warningGasPriceHigh } = txMeta; // eslint-disable-line no-unused-vars
+	const txData = { data, from, gas, gasPrice, to, value, warningGasPriceHigh };
 	return getDefinedProperties(txData);
 }
 
@@ -21,6 +21,6 @@ export function getTxData(txMeta = {}) {
  * @returns {object} - An object containing the standard properties of a transaction
  */
 export function getTxMeta(txMeta = {}) {
-	const { data, from, gas, gasPrice, to, value, ...rest } = txMeta; // eslint-disable-line no-unused-vars
+	const { data, from, gas, gasPrice, to, value, warningGasPriceHigh, ...rest } = txMeta; // eslint-disable-line no-unused-vars
 	return getDefinedProperties(rest);
 }

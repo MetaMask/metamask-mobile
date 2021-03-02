@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
 import AnimatedTransactionModal from '../AnimatedTransactionModal';
@@ -106,7 +106,6 @@ class TransactionEditor extends PureComponent {
 		data: undefined,
 		amountError: '',
 		gasError: '',
-		warningGasPriceHigh: undefined,
 		toAddressError: '',
 		over: false
 	};
@@ -183,8 +182,18 @@ class TransactionEditor extends PureComponent {
 	 * @param {object} warningGasPriceHigh - string object warning for custom gas price set higher than 'Fast'
 	 */
 	handleGasFeeSelection = (gasLimit, gasPrice, warningGasPriceHigh) => {
-		this.setState({ warningGasPriceHigh });
-		this.props.setTransactionObject({ gas: gasLimit, gasPrice });
+		const transactionObject = {
+			...this.props.transaction,
+			gas: gasLimit,
+			gasPrice,
+			warningGasPriceHigh
+		};
+		this.props.setTransactionObject(transactionObject);
+		console.log(
+			'#################SET TRANSACTION STATE',
+			'State: ' + this.props.transaction.warningGasPriceHigh,
+			'Set Value: ' + warningGasPriceHigh
+		);
 	};
 
 	/**
@@ -639,6 +648,7 @@ class TransactionEditor extends PureComponent {
 				{!paymentChannelTransaction && (
 					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 						<AnimatedTransactionModal onModeChange={onModeChange} ready={ready} review={this.review}>
+							{console.log('TransactionEditor', this.props.transaction.warningGasPriceHigh)}
 							<TransactionReview
 								onCancel={this.onCancel}
 								onConfirm={this.onConfirm}
@@ -646,13 +656,8 @@ class TransactionEditor extends PureComponent {
 								ready={ready}
 								transactionConfirmed={transactionConfirmed}
 								over={over}
-							>
-								<View style={styles.warningWrapper}>
-									<View style={styles.warningTextWrapper}>
-										<Text style={styles.warningText}>{'Test'}</Text>
-									</View>
-								</View>
-							</TransactionReview>
+								transaction={transaction}
+							/>
 							<CustomGas
 								handleGasFeeSelection={this.updateGas}
 								basicGasEstimates={basicGasEstimates}

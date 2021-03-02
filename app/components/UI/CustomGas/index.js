@@ -464,6 +464,9 @@ class CustomGas extends PureComponent {
 		if (!value || value === '' || !isDecimal(value) || value <= 0)
 			warningGasPrice = strings('transaction.invalid_gas_price');
 		if (gasPriceBNWei && !isBN(gasPriceBNWei)) warningGasPrice = strings('transaction.invalid_gas_price');
+
+		console.log('Custom Gas Warning', warningGasPriceHigh);
+
 		this.setState({
 			customGasPrice: gasPrice,
 			customGasPriceBNWei: gasPriceBNWei,
@@ -485,7 +488,6 @@ class CustomGas extends PureComponent {
 			basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
 		} = this.props;
 		if (advancedCustomGas) {
-			console.log('DEBUG ISSUE', warningGasPriceHigh);
 			handleGasFeeSelection(
 				new BN(customGasLimit),
 				apiEstimateModifiedToWEI(customGasPrice),
@@ -585,7 +587,7 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasInput = () => {
-		const { customGasLimitBN, customGasPriceBNWei, customGasPriceBN, warningGasPrice } = this.state;
+		const { customGasLimitBN, customGasPriceBNWei, customGasPriceBN, warningGasPriceHigh } = this.state;
 		const { generateTransform } = this.props;
 		const totalGas = customGasLimitBN && customGasLimitBN.mul(customGasPriceBNWei);
 		const ticker = getTicker(this.props.ticker);
@@ -620,7 +622,7 @@ class CustomGas extends PureComponent {
 					<Text style={styles.advancedOptionsText}>{strings('custom_gas.gas_price')}</Text>
 					<TextInput
 						keyboardType="numeric"
-						style={warningGasPrice ? styles.gasInputError : styles.gasInput}
+						style={warningGasPriceHigh ? styles.gasInputError : styles.gasInput}
 						onChangeText={this.onGasPriceChange}
 						value={customGasPriceBN ? customGasPriceBN.toString() : ''}
 					/>
@@ -633,7 +635,7 @@ class CustomGas extends PureComponent {
 		const { warningGasLimit, warningGasPrice, warningGasPriceHigh, warningSufficientFunds } = this.state;
 		const { gasError } = this.props;
 		const gasErrorMessage =
-			warningGasPrice || warningGasPriceHigh || warningGasLimit || warningSufficientFunds || gasError;
+			warningGasPrice || warningGasLimit || warningSufficientFunds || warningGasPriceHigh || gasError;
 		return (
 			<View style={styles.warningWrapper}>
 				<View style={[styles.warningTextWrapper, !gasErrorMessage ? styles.invisible : null]}>

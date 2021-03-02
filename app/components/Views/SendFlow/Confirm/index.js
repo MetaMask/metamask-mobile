@@ -567,10 +567,9 @@ class Confirm extends PureComponent {
 		let transaction = transactionState.transaction;
 		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
 		prepareTransaction(transaction);
-		if (warningGasPriceHigh) {
-			this.setState({ warningGasPriceHigh });
-			console.log('DEBUG Handle', warningGasPriceHigh);
-		}
+		warningGasPriceHigh
+			? this.setState({ warningGasPriceHigh })
+			: this.setState({ warningGasPriceHigh: undefined });
 		setTimeout(() => {
 			this.parseTransactionData();
 			this.setState({
@@ -690,7 +689,6 @@ class Confirm extends PureComponent {
 	};
 
 	onPaymentChannelSend = async () => {
-		console.log('Payment SEND');
 		this.setState({ transactionConfirmed: true });
 		const {
 			navigation,
@@ -838,7 +836,6 @@ class Confirm extends PureComponent {
 		const {
 			transaction: { gas, gasPrice }
 		} = this.props;
-		console.log('DEBUG TEST');
 		return (
 			<Modal
 				isVisible
@@ -1024,6 +1021,7 @@ class Confirm extends PureComponent {
 							gasEstimationReady={gasEstimationReady}
 							edit={this.edit}
 							over={over}
+							warningGasPriceHigh={warningGasPriceHigh}
 						/>
 					)}
 					{(errorMessage || warningGasPriceHigh) && (
