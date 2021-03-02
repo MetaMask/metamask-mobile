@@ -601,6 +601,7 @@
 		"gas_fee_average": "AVERAGE",
 		"gas_fee_slow": "SLOW",
 		"hex_data": "Hex Data",
+		"custom_nonce": "Nonce",
 		"review_details": "DETAILS",
 		"review_data": "DATA",
 		"data": "Data",
