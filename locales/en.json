@@ -602,6 +602,8 @@
 		"gas_fee_slow": "SLOW",
 		"hex_data": "Hex Data",
 		"custom_nonce": "Nonce",
+		"this_is_an_advanced": "This is an advanced feature used to cancel or speed up older transactions.",
+		"think_of_the_nonce": "Think of the nonce as the transaction number of an account. Every accounts nonce begins with 0 for the first transaction and continues in sequential order.",
 		"review_details": "DETAILS",
 		"review_data": "DATA",
 		"data": "Data",
