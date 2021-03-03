@@ -1,14 +1,49 @@
 import { createStore } from 'redux';
 import { persistStore, persistReducer, createMigrate } from 'redux-persist';
 import AsyncStorage from '@react-native-community/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import { migrations, version } from './migrations';
 
+const MigratedStorage = {
+	async getItem(key) {
+		try {
+			const res = await FilesystemStorage.getItem(key);
+
+			if (res) {
+				// Using new storage system
+				return res;
+			}
+		} catch (e) {
+			//
+		}
+
+		// Using old storage system, should only happen once
+		try {
+			const res = await AsyncStorage.getItem(key);
+			//AsyncStorage.setItem(key, ''); // clear old storage
+			return res;
+		} catch (e) {
+			//Logger.log('Failed to run migration', e);
+		}
+	},
+	setItem(key, value) {
+		return FilesystemStorage.setItem(key, value);
+	},
+	removeItem(key) {
+		try {
+			return FilesystemStorage.removeItem(key);
+		} catch (e) {
+			console.warn(e);
+		}
+	}
+};
+
 const persistConfig = {
 	key: 'root',
 	version,
-	storage: AsyncStorage,
+	storage: MigratedStorage,
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
 	migrate: createMigrate(migrations, { debug: false })
 };
