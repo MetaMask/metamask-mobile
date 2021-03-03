@@ -52,18 +52,6 @@ exports[`TransactionReview should render correctly 1`] = `
           <Connect(withNavigation(TransactionReviewInformation))
             edit={[Function]}
             toggleDataView={[Function]}
-            transaction={
-              Object {
-                "assetType": undefined,
-                "data": "",
-                "from": "0x1",
-                "gas": "",
-                "gasPrice": "",
-                "selectedAsset": undefined,
-                "to": "0x2",
-                "value": "",
-              }
-            }
           />
         </View>
       </ActionView>
