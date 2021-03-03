@@ -1561,7 +1561,7 @@
 
 "@metamask/controllers@./metamask-controllers-v6.0.1.tgz":
   version "6.0.1"
-  resolved "./metamask-controllers-v6.0.1.tgz#5340d4e02183a33b30bc795367351a63983e02c0"
+  resolved "./metamask-controllers-v6.0.1.tgz#87b2995c46c2e23c35514b9023d80418f0c91e97a699a3b5b0a73462917b1ac075665d4d3712e1a312219191295470197f4a40a2d3074de78ef0b0b68b713088"
   dependencies:
     "@metamask/contract-metadata" "^1.22.0"
     async-mutex "^0.2.6"
