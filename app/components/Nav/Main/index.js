@@ -276,7 +276,7 @@ const Main = props => {
 						quote_vs_executionRatio: quoteVsExecutionRatio,
 						token_to_amount_received: tokenToAmountReceived.toString()
 					};
-					Analytics.trackEventWithParameters(event, parameters);
+					Analytics.trackEventWithParameters(event, {});
 					Analytics.trackEventWithParameters(event, parameters, true);
 				});
 			} catch (e) {

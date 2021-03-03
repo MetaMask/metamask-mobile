@@ -179,7 +179,7 @@ function SwapsAmountView({
 								token => token.address?.toLowerCase() === initialSource.toLowerCase()
 							)?.symbol
 						};
-						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, parameters);
+						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {});
 						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, parameters, true);
 					});
 				} else {
