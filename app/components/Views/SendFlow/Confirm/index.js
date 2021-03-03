@@ -567,9 +567,7 @@ class Confirm extends PureComponent {
 		let transaction = transactionState.transaction;
 		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
 		prepareTransaction(transaction);
-		warningGasPriceHigh
-			? this.setState({ warningGasPriceHigh })
-			: this.setState({ warningGasPriceHigh: undefined });
+		this.setState({ warningGasPriceHigh });
 		setTimeout(() => {
 			this.parseTransactionData();
 			this.setState({
@@ -1024,15 +1022,20 @@ class Confirm extends PureComponent {
 							warningGasPriceHigh={warningGasPriceHigh}
 						/>
 					)}
-					{(errorMessage || warningGasPriceHigh) && (
+					{errorMessage && (
 						<View style={styles.errorWrapper}>
 							<TouchableOpacity onPress={errorPress}>
-								<Text style={styles.error}>{!errorMessage ? warningGasPriceHigh : errorMessage}</Text>
+								<Text style={styles.error}>{errorMessage}</Text>
 								{/* only show buy more on mainnet */}
 								{over && is_main_net && (
 									<Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>
 								)}
 							</TouchableOpacity>
+						</View>
+					)}
+					{!!warningGasPriceHigh && (
+						<View style={styles.errorWrapper}>
+							<Text style={styles.error}>{warningGasPriceHigh}</Text>
 						</View>
 					)}
 					<View style={styles.actionsWrapper}>

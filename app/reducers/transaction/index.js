@@ -10,10 +10,10 @@ const initialState = {
 		from: undefined,
 		gas: undefined,
 		gasPrice: undefined,
-		warningGasPriceHigh: undefined,
 		to: undefined,
 		value: undefined
 	},
+	warningGasPriceHigh: undefined,
 	transactionTo: undefined,
 	transactionToName: undefined,
 	transactionFromName: undefined,
@@ -88,7 +88,7 @@ const transactionReducer = (state = initialState, action) => {
 				action.transaction.assetType = assetType;
 			}
 			const txMeta = getTxMeta(action.transaction);
-			const transactionNew = {
+			return {
 				...state,
 				transaction: {
 					...state.transaction,
@@ -96,7 +96,6 @@ const transactionReducer = (state = initialState, action) => {
 				},
 				...txMeta
 			};
-			return transactionNew;
 		}
 		case 'SET_TOKENS_TRANSACTION': {
 			const selectedAsset = action.asset;

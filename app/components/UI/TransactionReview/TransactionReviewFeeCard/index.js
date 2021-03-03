@@ -132,9 +132,11 @@ class TransactionReviewFeeCard extends PureComponent {
 							</Text>
 						</TouchableOpacity>
 					</Summary.Col>
-					<Text primary bold upper style={warningGasPriceHigh ? styles.over : styles.primary}>
-						{networkFee}
-					</Text>
+					{this.renderIfGasEstimationReady(
+						<Text primary bold upper style={warningGasPriceHigh ? styles.over : styles.primary}>
+							{networkFee}
+						</Text>
+					)}
 				</Summary.Row>
 				<Summary.Separator />
 				<Summary.Row>
