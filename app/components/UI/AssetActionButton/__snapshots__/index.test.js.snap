@@ -1,0 +1,331 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetActionButtons should render correctly 1`] = `
+<TouchableOpacity
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      Object {
+        "alignContent": "center",
+        "backgroundColor": "#037dd6",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  />
+  <Text
+    bold={false}
+    centered={true}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    numberOfLines={1}
+    primary={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Object {
+        "color": "#037dd6",
+        "fontSize": 14,
+        "marginTop": 8,
+      }
+    }
+    underline={false}
+    upper={false}
+  />
+</TouchableOpacity>
+`;
+
+exports[`AssetActionButtons should render type add correctly 1`] = `
+<TouchableOpacity
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      Object {
+        "alignContent": "center",
+        "backgroundColor": "#037dd6",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  />
+  <Text
+    bold={false}
+    centered={true}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    numberOfLines={1}
+    primary={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Object {
+        "color": "#037dd6",
+        "fontSize": 14,
+        "marginTop": 8,
+      }
+    }
+    underline={false}
+    upper={false}
+  />
+</TouchableOpacity>
+`;
+
+exports[`AssetActionButtons should render type information correctly 1`] = `
+<TouchableOpacity
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      Object {
+        "alignContent": "center",
+        "backgroundColor": "#037dd6",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  />
+  <Text
+    bold={false}
+    centered={true}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    numberOfLines={1}
+    primary={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Object {
+        "color": "#037dd6",
+        "fontSize": 14,
+        "marginTop": 8,
+      }
+    }
+    underline={false}
+    upper={false}
+  />
+</TouchableOpacity>
+`;
+
+exports[`AssetActionButtons should render type receive correctly 1`] = `
+<TouchableOpacity
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      Object {
+        "alignContent": "center",
+        "backgroundColor": "#037dd6",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  />
+  <Text
+    bold={false}
+    centered={true}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    numberOfLines={1}
+    primary={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Object {
+        "color": "#037dd6",
+        "fontSize": 14,
+        "marginTop": 8,
+      }
+    }
+    underline={false}
+    upper={false}
+  />
+</TouchableOpacity>
+`;
+
+exports[`AssetActionButtons should render type send correctly 1`] = `
+<TouchableOpacity
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      Object {
+        "alignContent": "center",
+        "backgroundColor": "#037dd6",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  />
+  <Text
+    bold={false}
+    centered={true}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    numberOfLines={1}
+    primary={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Object {
+        "color": "#037dd6",
+        "fontSize": 14,
+        "marginTop": 8,
+      }
+    }
+    underline={false}
+    upper={false}
+  />
+</TouchableOpacity>
+`;
+
+exports[`AssetActionButtons should render type swap correctly 1`] = `
+<TouchableOpacity
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      Object {
+        "alignContent": "center",
+        "backgroundColor": "#037dd6",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  />
+  <Text
+    bold={false}
+    centered={true}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    numberOfLines={1}
+    primary={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Object {
+        "color": "#037dd6",
+        "fontSize": 14,
+        "marginTop": 8,
+      }
+    }
+    underline={false}
+    upper={false}
+  />
+</TouchableOpacity>
+`;

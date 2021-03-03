@@ -74,20 +74,8 @@ const TransactionsView = ({
 			return filter;
 		});
 
-		const currentAccountConfirmedTxs = confirmedTxs.filter(
-			tx => tx.transaction.from === selectedAddress.toLowerCase()
-		);
 		const submittedNonces = [];
 		const submittedTxsFiltered = submittedTxs.filter(transaction => {
-			const alreadyConfirmed = currentAccountConfirmedTxs.find(
-				tx => tx.transaction.nonce === transaction.transaction.nonce
-			);
-			if (alreadyConfirmed) {
-				InteractionManager.runAfterInteractions(() => {
-					Engine.context.TransactionController.cancelTransaction(transaction.id);
-				});
-				return false;
-			}
 			const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
 			submittedNonces.push(transaction.transaction.nonce);
 			return !alreadySubmitted;

@@ -135,9 +135,9 @@ class Tokens extends PureComponent {
 		 */
 		primaryCurrency: PropTypes.string,
 		/**
-		 * Network id
+		 * Chain id
 		 */
-		network: PropTypes.string
+		chainId: PropTypes.string
 	};
 
 	actionSheet = null;
@@ -226,8 +226,8 @@ class Tokens extends PureComponent {
 	};
 
 	renderBuyEth() {
-		const { tokens, network, tokenBalances } = this.props;
-		if (!allowedToBuy(network)) {
+		const { tokens, chainId, tokenBalances } = this.props;
+		if (!allowedToBuy(chainId)) {
 			return null;
 		}
 		const eth = tokens.find(token => token.isETH);
@@ -306,7 +306,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	network: state.engine.backgroundState.NetworkController.network,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	primaryCurrency: state.settings.primaryCurrency,
