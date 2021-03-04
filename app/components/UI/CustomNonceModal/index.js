@@ -50,6 +50,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	nonceInput: {
+		minWidth: 80,
 		fontSize: 36,
 		...fontStyles.bold,
 		color: colors.black,
@@ -72,6 +73,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		alignSelf: 'center',
 		marginVertical: 24
+	},
+	currentSuggested: {
+		textAlign: 'center',
+		...fontStyles.normal,
+		fontSize: 14,
+		color: colors.grey500,
+		marginBottom: 20
 	}
 });
 
@@ -96,7 +104,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, review, incrementDecremen
 			<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 				<View style={styles.modal}>
 					<View style={styles.modalContainer}>
-						<Text style={styles.title}>Edit transaction nonce</Text>
+						<Text style={styles.title}>{strings('transaction.edit_transaction_nonce')}</Text>
 						<View style={styles.nonceInputContainer}>
 							<TouchableOpacity onPress={() => incrementDecrementNonce(true)}>
 								<IncrementDecrementSvg />
@@ -122,6 +130,10 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, review, incrementDecremen
 								<IncrementDecrementSvg plus />
 							</TouchableOpacity>
 						</View>
+						<Text style={styles.currentSuggested}>
+							{strings('transaction.current_suggested_nonce')}{' '}
+							<Text style={styles.bold}>{proposedNonce}</Text>
+						</Text>
 						<Text style={[styles.desc, styles.bold]}>{strings('transaction.this_is_an_advanced')}</Text>
 						<Text style={styles.desc}>{strings('transaction.think_of_the_nonce')}</Text>
 					</View>
