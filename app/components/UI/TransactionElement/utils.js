@@ -691,7 +691,7 @@ function decodeSwapsTx(args) {
 			? 1
 			: contractExchangeRates[safeToChecksumAddress(destinationToken.address)];
 	const renderDestinationTokenFiatNumber = balanceToFiatNumber(
-		decimalSourceAmount,
+		decimalDestinationAmount,
 		conversionRate,
 		destinationExchangeRate
 	);
