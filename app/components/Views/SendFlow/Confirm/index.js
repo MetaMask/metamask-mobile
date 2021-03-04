@@ -326,8 +326,9 @@ class Confirm extends PureComponent {
 		 * ETH or fiat, depending on user setting
 		 */
 		primaryCurrency: PropTypes.string,
-		// transactions: PropTypes.array,
-		// selectedAddress: PropTypes.string
+		/**
+		 * proposedNonce based on the state of transactions
+		 */
 		proposedNonce: PropTypes.number
 	};
 
