@@ -125,6 +125,8 @@ const styles = StyleSheet.create({
 
 const SWAPS_ETH_ADDRESS = swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
 const TOKEN_MINIMUM_SOURCES = 1;
+const MAX_TOP_ASSETS = 20;
+
 function SwapsAmountView({
 	swapsTokens,
 	accounts,
@@ -468,13 +470,13 @@ function SwapsAmountView({
 						dismiss={toggleDestinationModal}
 						title={strings('swaps.convert_to')}
 						tokens={swapsTokens}
-						initialTokens={[swapsUtils.ETH_SWAPS_TOKEN_OBJECT, ...tokensTopAssets.slice(0, 5)]}
+						initialTokens={[swapsUtils.ETH_SWAPS_TOKEN_OBJECT, ...tokensTopAssets.slice(0, MAX_TOP_ASSETS)]}
 						onItemPress={handleDestinationTokenPress}
 						excludeAddresses={[sourceToken?.address]}
 					/>
 				</View>
 				<View>
-					{Boolean(destinationToken) && destinationToken.symbol !== 'ETH' ? (
+					{Boolean(destinationToken) && destinationToken?.address !== SWAPS_ETH_ADDRESS ? (
 						destinationTokenHasEnoughOcurrances ? (
 							<TouchableOpacity onPress={handleVerifyPress} style={styles.verifyToken}>
 								<Text small centered>
