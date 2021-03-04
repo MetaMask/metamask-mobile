@@ -173,12 +173,14 @@ function SwapsAmountView({
 				if (liveness) {
 					// Triggered when a user enters the MetaMask Swap feature
 					InteractionManager.runAfterInteractions(() => {
-						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
+						const parameters = {
 							source: initialSource === SWAPS_ETH_ADDRESS ? 'MainView' : 'TokenView',
 							activeCurrency: swapsTokens?.find(
 								token => token.address?.toLowerCase() === initialSource.toLowerCase()
 							)?.symbol
-						});
+						};
+						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {});
+						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, parameters, true);
 					});
 				} else {
 					navigation.pop();
