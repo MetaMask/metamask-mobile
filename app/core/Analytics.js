@@ -43,22 +43,25 @@ class Analytics {
 	 */
 	_trackEvent(name, { event, params = {}, value, info, anonymously = false }) {
 		if (!this.enabled) return;
-		if (!anonymously) {
-			RCTAnalytics.trackEvent({
-				...event,
-				...params,
-				value,
-				info
-			});
+		if (!__DEV__) {
+			if (!anonymously) {
+				RCTAnalytics.trackEvent({
+					...event,
+					...params,
+					value,
+					info
+				});
+			} else {
+				RCTAnalytics.trackEventAnonymously({
+					...event,
+					...params,
+					value,
+					info
+				});
+			}
 		} else {
-			RCTAnalytics.trackEventAnonymously({
-				...event,
-				...params,
-				value,
-				info
-			});
+			Logger.log(`Analytics '${name}' -`, event, params, value, info);
 		}
-		Logger.log(`Analytics '${name}' -`, event, params, value, info);
 	}
 
 	/**
