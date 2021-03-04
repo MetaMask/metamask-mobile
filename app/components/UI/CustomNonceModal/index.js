@@ -83,13 +83,18 @@ const styles = StyleSheet.create({
 	}
 });
 
-const CustomModalNonce = ({ proposedNonce, nonceValue, review }) => {
+const CustomModalNonce = ({ proposedNonce, nonceValue, review, save }) => {
 	const [nonce, onChangeText] = React.useState(nonceValue);
 
 	const incrementDecrementNonce = decrement => {
 		let newValue = nonce;
 		newValue = decrement ? --newValue : ++newValue;
 		onChangeText(newValue > 1 ? newValue : 1);
+	};
+
+	const saveAndClose = value => {
+		save(value);
+		review();
 	};
 
 	// const displayWarning = proposedNonce !== nonceValue;
@@ -132,7 +137,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, review }) => {
 								numberOfLines={1}
 								// onBlur={this.onBlur}
 								// onFocus={this.onInputFocus}
-								// onSubmitEditing={this.onFocus}
+								onSubmitEditing={() => saveAndClose(nonce)}
 							/>
 							<TouchableOpacity onPress={() => incrementDecrementNonce(false)}>
 								<IncrementDecrementSvg plus />
@@ -154,7 +159,8 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, review }) => {
 CustomModalNonce.propTypes = {
 	proposedNonce: PropTypes.number.isRequired,
 	nonceValue: PropTypes.number.isRequired,
-	review: PropTypes.func.isRequired
+	review: PropTypes.func.isRequired,
+	save: PropTypes.func.isRequired
 };
 
 export default CustomModalNonce;

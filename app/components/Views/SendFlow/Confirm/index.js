@@ -900,9 +900,15 @@ class Confirm extends PureComponent {
 				proposedNonce={proposedNonce}
 				nonceValue={this.state.nonceValue}
 				review={() => this.review()}
+				save={this.saveNonceValue}
 			/>
 		);
 	};
+
+	saveNonceValue = value =>
+		this.setState({
+			nonceValue: value
+		});
 
 	renderHexDataModal = () => {
 		const { hexDataModalVisible } = this.state;
@@ -975,14 +981,7 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const {
-			showHexData,
-			showCustomNonce,
-			isPaymentChannelTransaction,
-			primaryCurrency,
-			network,
-			proposedNonce
-		} = this.props;
+		const { showHexData, showCustomNonce, isPaymentChannelTransaction, primaryCurrency, network } = this.props;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -999,7 +998,8 @@ class Confirm extends PureComponent {
 			transactionConfirmed,
 			paymentChannelBalance,
 			mode,
-			over
+			over,
+			nonceValue
 		} = this.state;
 
 		const is_main_net = isMainNet(network);
@@ -1083,7 +1083,7 @@ class Confirm extends PureComponent {
 									{'  '}
 									{strings('transaction.edit')}
 								</Text>
-								<Text style={[styles.nonceText, styles.nonceNumber]}>{proposedNonce}</Text>
+								<Text style={[styles.nonceText, styles.nonceNumber]}>{nonceValue}</Text>
 							</TouchableOpacity>
 						)}
 						{!isPaymentChannelTransaction && showHexData && (
