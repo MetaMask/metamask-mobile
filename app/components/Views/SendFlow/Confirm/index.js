@@ -325,7 +325,10 @@ class Confirm extends PureComponent {
 		/**
 		 * ETH or fiat, depending on user setting
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		// transactions: PropTypes.array,
+		// selectedAddress: PropTypes.string
+		proposedNonce: PropTypes.number
 	};
 
 	state = {
@@ -350,12 +353,10 @@ class Confirm extends PureComponent {
 		paymentChannelReady: false,
 		mode: REVIEW,
 		over: false,
-		// TODO: get this from props?
-		nonceValue: 3
+		nonceValue: this.props.proposedNonce
 	};
 
 	componentDidMount = async () => {
-		// For analytics
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
 		navigation.setParams({ providerType });
@@ -893,17 +894,17 @@ class Confirm extends PureComponent {
 
 	incrementDecrementNonce = decrement => {
 		let { nonceValue } = this.state;
-		// let parsedNonceValue = parseInt(nonceValue);
 		const newValue = decrement ? --nonceValue : ++nonceValue;
 		this.setState({ nonceValue: newValue > 1 ? newValue : 1 });
 	};
 
 	renderCustomNonceModal = () => {
-		const { nonceValue } = this.state;
+		const { proposedNonce } = this.props;
 		return (
 			<CustomNonceModal
-				nonceValue={nonceValue}
-				review={this.review}
+				proposedNonce={proposedNonce}
+				nonceValue={this.state.nonceValue}
+				review={() => this.review()}
 				incrementDecrementNonce={this.incrementDecrementNonce}
 			/>
 		);
@@ -980,7 +981,14 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, showCustomNonce, isPaymentChannelTransaction, primaryCurrency, network } = this.props;
+		const {
+			showHexData,
+			showCustomNonce,
+			isPaymentChannelTransaction,
+			primaryCurrency,
+			network,
+			proposedNonce
+		} = this.props;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -1081,7 +1089,7 @@ class Confirm extends PureComponent {
 									{'  '}
 									{strings('transaction.edit')}
 								</Text>
-								<Text style={[styles.nonceText, styles.nonceNumber]}>3</Text>
+								<Text style={[styles.nonceText, styles.nonceNumber]}>{proposedNonce}</Text>
 							</TouchableOpacity>
 						)}
 						{!isPaymentChannelTransaction && showHexData && (
@@ -1132,6 +1140,25 @@ const mapStateToProps = state => ({
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
+	proposedNonce: (() => {
+		const { selectedAddress } = state.engine.backgroundState.PreferencesController;
+		const { transactions } = state.engine.backgroundState.TransactionController;
+
+		const confirmed = transactions.filter(({ status, transaction }) => {
+			const { from } = transaction;
+			const tlc = address => String(address).toLowerCase();
+			// TODO: account for 'pending'
+			// see about pending transactions, do we keep a list, can you had multiple pending transactions?
+			return status === 'confirmed' && tlc(from) === tlc(selectedAddress);
+		});
+
+		const nonces = confirmed.map(({ transaction }) => {
+			const { nonce } = transaction;
+			return parseInt(nonce, 16);
+		});
+
+		return Math.max(...nonces) + 1;
+	})(),
 	primaryCurrency: state.settings.primaryCurrency
 });
 
