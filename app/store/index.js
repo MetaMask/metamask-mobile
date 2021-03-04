@@ -5,6 +5,7 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import { migrations, version } from './migrations';
+import Logger from '../util/Logger';
 
 const MigratedStorage = {
 	async getItem(key) {
@@ -24,8 +25,8 @@ const MigratedStorage = {
 			const res = await AsyncStorage.getItem(key);
 			//AsyncStorage.setItem(key, ''); // clear old storage
 			return res;
-		} catch (e) {
-			//Logger.log('Failed to run migration', e);
+		} catch (error) {
+			Logger.error(error, { message: 'Failed to run migration' });
 		}
 	},
 	setItem(key, value) {
@@ -34,8 +35,8 @@ const MigratedStorage = {
 	removeItem(key) {
 		try {
 			return FilesystemStorage.removeItem(key);
-		} catch (e) {
-			console.warn(e);
+		} catch (error) {
+			Logger.error(error, { message: 'Failed to remove item' });
 		}
 	}
 };
@@ -45,7 +46,8 @@ const persistConfig = {
 	version,
 	storage: MigratedStorage,
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-	migrate: createMigrate(migrations, { debug: false })
+	migrate: createMigrate(migrations, { debug: false }),
+	writeFailHandler: error => Logger.error(error, { message: 'Error persisting data' }) // Log error if saving state fails
 };
 
 const pReducer = persistReducer(persistConfig, rootReducer);
