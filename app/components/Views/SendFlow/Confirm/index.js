@@ -357,6 +357,7 @@ class Confirm extends PureComponent {
 	};
 
 	componentDidMount = async () => {
+		// For analytics
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
 		navigation.setParams({ providerType });
