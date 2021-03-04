@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	nonceInput: {
-		minWidth: 80,
+		width: 80,
 		fontSize: 36,
 		...fontStyles.bold,
 		color: colors.black,
