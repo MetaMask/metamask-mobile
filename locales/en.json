@@ -1425,6 +1425,12 @@
 			"review_audits": "Review our official contracts audit",
 			"start_swapping": "Start swapping"
 		},
+		"feature_off_title": "Temporarily unavailable",
+		"feature_off_body": "MetaMask Swaps is undergoing maintenance. Please check back later.",
+		"wrong_network_title": "Swaps not available",
+		"wrong_network_body": "You’re only able to swap tokens on the Ethereum Main Network.",
+		"unallowed_asset_title": "Can’t swap this token",
+		"unallowed_asset_body": "Some tokens with unique mechanics are currently not supported for swapping.",
 		"convert_from": "Convert from",
 		"convert_to": "Convert to",
 		"verify": "Verify",
