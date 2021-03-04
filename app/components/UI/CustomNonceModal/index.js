@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const CustomModalNonce = ({ proposedNonce, nonceValue, review, save }) => {
+const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 	const [nonce, onChangeText] = React.useState(nonceValue);
 
 	const incrementDecrementNonce = decrement => {
@@ -76,7 +76,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, review, save }) => {
 
 	const saveAndClose = value => {
 		save(value);
-		review();
+		close();
 	};
 
 	// const displayWarning = proposedNonce !== nonceValue;
@@ -90,9 +90,9 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, review, save }) => {
 			backdropOpacity={0.7}
 			animationInTiming={600}
 			animationOutTiming={600}
-			onBackdropPress={review}
-			onBackButtonPress={review}
-			onSwipeComplete={review}
+			onBackdropPress={close}
+			onBackButtonPress={close}
+			onSwipeComplete={close}
 			swipeDirection={'down'}
 			propagateSwipe
 		>
@@ -141,8 +141,8 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, review, save }) => {
 CustomModalNonce.propTypes = {
 	proposedNonce: PropTypes.number.isRequired,
 	nonceValue: PropTypes.number.isRequired,
-	review: PropTypes.func.isRequired,
-	save: PropTypes.func.isRequired
+	save: PropTypes.func.isRequired,
+	close: PropTypes.func.isRequired
 };
 
 export default CustomModalNonce;

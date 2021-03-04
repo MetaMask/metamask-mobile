@@ -900,7 +900,7 @@ class Confirm extends PureComponent {
 			<CustomNonceModal
 				proposedNonce={proposedNonce}
 				nonceValue={this.state.nonceValue}
-				review={() => this.review()}
+				close={() => this.review()}
 				save={this.saveNonceValue}
 			/>
 		);
