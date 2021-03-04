@@ -359,7 +359,7 @@ function SwapsQuotesView({
 
 		const ethAmountBN = sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ? sourceBN : new BigNumber(0);
 		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
-		const gasBN = new BigNumber((selectedQuoteValue?.maxEthFee && toWei(selectedQuoteValue?.maxEthFee)) || 0);
+		const gasBN = new BigNumber(selectedQuoteValue?.maxEthFee ? toWei(selectedQuoteValue.maxEthFee) : 0);
 		const hasEnoughEthBalance = ethBalanceBN.gte(gasBN.plus(ethAmountBN));
 		const missingEthBalance = hasEnoughEthBalance ? null : gasBN.plus(ethAmountBN).minus(ethBalanceBN);
 
