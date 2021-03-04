@@ -909,10 +909,10 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
-"@estebanmino/controllers@^3.3.14":
-  version "3.3.14"
-  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.3.14.tgz#67d2f1e1e1176bb270df05c8dc00e92f488934ed"
-  integrity sha512-NxUrN5kLOKN3aBRu+aPTUvmDGKJQiwjLAMavBDDbCjlckmgh3yVyDwVOHcKSpOpDKjpoa8hEuLBbzR+0R+Sqyg==
+"@estebanmino/controllers@^3.3.16":
+  version "3.3.16"
+  resolved "https://registry.yarnpkg.com/@estebanmino/controllers/-/controllers-3.3.16.tgz#bcf299b5c98716b711543ca14d289d43c6cc74b5"
+  integrity sha512-Se/JSLuzmjw0yOdDlsI3lagas6T0VxZlVIs0VqoC/cSmowmgJiIxQzlpWYYLzHAYYvfBs569jDgTI2Bs6bZUFg==
   dependencies:
     "@metamask/contract-metadata" "^1.22.0"
     abort-controller "^3.0.0"
