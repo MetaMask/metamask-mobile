@@ -62,6 +62,24 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: colors.grey500,
 		marginBottom: 20
+	},
+	nonceWarning: {
+		borderWidth: 1,
+		borderColor: colors.yellow,
+		backgroundColor: colors.yellow100,
+		padding: 16,
+		display: 'flex',
+		borderRadius: 8,
+		marginBottom: 16
+	},
+	nonceWarningText: {
+		...fontStyles.normal,
+		color: colors.black,
+		fontSize: 12,
+		lineHeight: 16
+	},
+	descWarningContainer: {
+		height: 240
 	}
 });
 
@@ -79,8 +97,8 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 		close();
 	};
 
-	// const displayWarning = proposedNonce !== nonceValue;
-	// console.log(displayWarning);
+	const displayWarning = proposedNonce !== nonce;
+
 	return (
 		<Modal
 			isVisible
@@ -129,8 +147,15 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 							{strings('transaction.current_suggested_nonce')}{' '}
 							<Text style={styles.bold}>{proposedNonce}</Text>
 						</Text>
-						<Text style={[styles.desc, styles.bold]}>{strings('transaction.this_is_an_advanced')}</Text>
-						<Text style={styles.desc}>{strings('transaction.think_of_the_nonce')}</Text>
+						<View style={styles.descWarningContainer}>
+							{displayWarning ? (
+								<View style={styles.nonceWarning}>
+									<Text style={styles.nonceWarningText}>{strings('transaction.nonce_warning')}</Text>
+								</View>
+							) : null}
+							<Text style={[styles.desc, styles.bold]}>{strings('transaction.this_is_an_advanced')}</Text>
+							<Text style={styles.desc}>{strings('transaction.think_of_the_nonce')}</Text>
+						</View>
 					</View>
 				</View>
 			</KeyboardAwareScrollView>

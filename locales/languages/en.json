@@ -609,6 +609,7 @@
 		"current_suggested_nonce": "Current suggested nonce:",
 		"edit_transaction_nonce": "Edit transaction nonce",
 		"think_of_the_nonce": "Think of the nonce as the transaction number of an account. Every accounts nonce begins with 0 for the first transaction and continues in sequential order.",
+		"nonce_warning": "Warning: There are older transactions pending. This is an advanced feature and should only be used with caution.",
 		"review_details": "DETAILS",
 		"review_data": "DATA",
 		"data": "Data",
