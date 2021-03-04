@@ -893,12 +893,6 @@ class Confirm extends PureComponent {
 		);
 	};
 
-	incrementDecrementNonce = decrement => {
-		let { nonceValue } = this.state;
-		const newValue = decrement ? --nonceValue : ++nonceValue;
-		this.setState({ nonceValue: newValue > 1 ? newValue : 1 });
-	};
-
 	renderCustomNonceModal = () => {
 		const { proposedNonce } = this.props;
 		return (
@@ -906,7 +900,6 @@ class Confirm extends PureComponent {
 				proposedNonce={proposedNonce}
 				nonceValue={this.state.nonceValue}
 				review={() => this.review()}
-				incrementDecrementNonce={this.incrementDecrementNonce}
 			/>
 		);
 	};

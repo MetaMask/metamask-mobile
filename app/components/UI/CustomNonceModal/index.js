@@ -83,9 +83,17 @@ const styles = StyleSheet.create({
 	}
 });
 
-const CustomModalNonce = ({ proposedNonce, nonceValue, review, incrementDecrementNonce }) => {
-	const displayWarning = proposedNonce !== nonceValue;
-	console.log(displayWarning);
+const CustomModalNonce = ({ proposedNonce, nonceValue, review }) => {
+	const [nonce, onChangeText] = React.useState(nonceValue);
+
+	const incrementDecrementNonce = decrement => {
+		let newValue = nonce;
+		newValue = decrement ? --newValue : ++newValue;
+		onChangeText(newValue > 1 ? newValue : 1);
+	};
+
+	// const displayWarning = proposedNonce !== nonceValue;
+	// console.log(displayWarning);
 	return (
 		<Modal
 			isVisible
@@ -114,13 +122,13 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, review, incrementDecremen
 								autoFocus
 								autoCapitalize="none"
 								autoCorrect={false}
-								// onChangeText={this.onChange}
+								onChangeText={text => onChangeText(text)}
 								placeholder={String(proposedNonce)}
 								placeholderTextColor={colors.grey100}
 								spellCheck={false}
 								editable
 								style={styles.nonceInput}
-								value={String(nonceValue)}
+								value={String(nonce)}
 								numberOfLines={1}
 								// onBlur={this.onBlur}
 								// onFocus={this.onInputFocus}
@@ -146,8 +154,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, review, incrementDecremen
 CustomModalNonce.propTypes = {
 	proposedNonce: PropTypes.number.isRequired,
 	nonceValue: PropTypes.number.isRequired,
-	review: PropTypes.func.isRequired,
-	incrementDecrementNonce: PropTypes.func.isRequired
+	review: PropTypes.func.isRequired
 };
 
 export default CustomModalNonce;
