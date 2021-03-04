@@ -75,59 +75,64 @@ const styles = StyleSheet.create({
 	}
 });
 
-const CustomModalNonce = ({ nonceValue, review, incrementDecrementNonce }) => (
-	<Modal
-		isVisible
-		animationIn="slideInUp"
-		animationOut="slideOutDown"
-		style={styles.bottomModal}
-		backdropOpacity={0.7}
-		animationInTiming={600}
-		animationOutTiming={600}
-		onBackdropPress={review}
-		onBackButtonPress={review}
-		onSwipeComplete={review}
-		swipeDirection={'down'}
-		propagateSwipe
-	>
-		<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-			<View style={styles.modal}>
-				<View style={styles.modalContainer}>
-					<Text style={styles.title}>Edit transaction nonce</Text>
-					<View style={styles.nonceInputContainer}>
-						<TouchableOpacity onPress={() => incrementDecrementNonce(true)}>
-							<IncrementDecrementSvg />
-						</TouchableOpacity>
-						<TextInput
-							keyboardType="numeric"
-							autoFocus
-							autoCapitalize="none"
-							autoCorrect={false}
-							// onChangeText={this.onChange}
-							// placeholder={3}
-							placeholderTextColor={colors.grey100}
-							spellCheck={false}
-							editable
-							style={styles.nonceInput}
-							value={String(nonceValue)}
-							numberOfLines={1}
-							// onBlur={this.onBlur}
-							// onFocus={this.onInputFocus}
-							// onSubmitEditing={this.onFocus}
-						/>
-						<TouchableOpacity onPress={() => incrementDecrementNonce(false)}>
-							<IncrementDecrementSvg plus />
-						</TouchableOpacity>
+const CustomModalNonce = ({ proposedNonce, nonceValue, review, incrementDecrementNonce }) => {
+	const displayWarning = proposedNonce !== nonceValue;
+	console.log(displayWarning);
+	return (
+		<Modal
+			isVisible
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={600}
+			animationOutTiming={600}
+			onBackdropPress={review}
+			onBackButtonPress={review}
+			onSwipeComplete={review}
+			swipeDirection={'down'}
+			propagateSwipe
+		>
+			<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+				<View style={styles.modal}>
+					<View style={styles.modalContainer}>
+						<Text style={styles.title}>Edit transaction nonce</Text>
+						<View style={styles.nonceInputContainer}>
+							<TouchableOpacity onPress={() => incrementDecrementNonce(true)}>
+								<IncrementDecrementSvg />
+							</TouchableOpacity>
+							<TextInput
+								keyboardType="numeric"
+								autoFocus
+								autoCapitalize="none"
+								autoCorrect={false}
+								// onChangeText={this.onChange}
+								placeholder={String(proposedNonce)}
+								placeholderTextColor={colors.grey100}
+								spellCheck={false}
+								editable
+								style={styles.nonceInput}
+								value={String(nonceValue)}
+								numberOfLines={1}
+								// onBlur={this.onBlur}
+								// onFocus={this.onInputFocus}
+								// onSubmitEditing={this.onFocus}
+							/>
+							<TouchableOpacity onPress={() => incrementDecrementNonce(false)}>
+								<IncrementDecrementSvg plus />
+							</TouchableOpacity>
+						</View>
+						<Text style={[styles.desc, styles.bold]}>{strings('transaction.this_is_an_advanced')}</Text>
+						<Text style={styles.desc}>{strings('transaction.think_of_the_nonce')}</Text>
 					</View>
-					<Text style={[styles.desc, styles.bold]}>{strings('transaction.this_is_an_advanced')}</Text>
-					<Text style={styles.desc}>{strings('transaction.think_of_the_nonce')}</Text>
 				</View>
-			</View>
-		</KeyboardAwareScrollView>
-	</Modal>
-);
+			</KeyboardAwareScrollView>
+		</Modal>
+	);
+};
 
 CustomModalNonce.propTypes = {
+	proposedNonce: PropTypes.number.isRequired,
 	nonceValue: PropTypes.number.isRequired,
 	review: PropTypes.func.isRequired,
 	incrementDecrementNonce: PropTypes.func.isRequired
