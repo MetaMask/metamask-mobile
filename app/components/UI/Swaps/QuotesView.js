@@ -320,11 +320,16 @@ function SwapsQuotesView({
 	}, [quoteValues, quotes]);
 
 	/* Get the selected quote, by default is topAggId */
-	const selectedQuote = useMemo(() => allQuotes.find(quote => quote.aggregator === selectedQuoteId), [
+	const selectedQuote = useMemo(() => allQuotes.find(quote => quote?.aggregator === selectedQuoteId), [
 		allQuotes,
 		selectedQuoteId
 	]);
-	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [quoteValues, selectedQuoteId]);
+	const selectedQuoteValue = useMemo(() => quoteValues[selectedQuoteId], [
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		quoteValues[selectedQuoteId],
+		quoteValues,
+		selectedQuoteId
+	]);
 
 	/* gas estimations */
 	const gasPrice = useMemo(
@@ -343,22 +348,6 @@ function SwapsQuotesView({
 		[customGasLimit, selectedQuote]
 	);
 
-	/* Total gas fee in decimal */
-	const gasFee = useMemo(() => {
-		if (customGasPrice) {
-			return util.calcTokenAmount(customGasPrice * gasLimit, 18);
-		}
-		return selectedQuoteValue?.ethFee;
-	}, [selectedQuoteValue, customGasPrice, gasLimit]);
-
-	/* Maximum gas fee in decimal */
-	const maxGasFee = useMemo(() => {
-		if (customGasPrice && selectedQuote?.maxGas) {
-			return util.calcTokenAmount(customGasPrice * selectedQuote?.maxGas, 18);
-		}
-		return selectedQuoteValue?.maxEthFee;
-	}, [selectedQuote, selectedQuoteValue, customGasPrice]);
-
 	/* Balance */
 	const balance = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 	const [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance] = useMemo(() => {
@@ -370,12 +359,12 @@ function SwapsQuotesView({
 
 		const ethAmountBN = sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ? sourceBN : new BigNumber(0);
 		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
-		const gasBN = new BigNumber((maxGasFee && toWei(maxGasFee)) || 0);
+		const gasBN = new BigNumber(selectedQuoteValue?.maxEthFee ? toWei(selectedQuoteValue.maxEthFee) : 0);
 		const hasEnoughEthBalance = ethBalanceBN.gte(gasBN.plus(ethAmountBN));
 		const missingEthBalance = hasEnoughEthBalance ? null : gasBN.plus(ethAmountBN).minus(ethBalanceBN);
 
 		return [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance];
-	}, [accounts, balance, maxGasFee, selectedAddress, sourceAmount, sourceToken.address]);
+	}, [accounts, balance, selectedQuoteValue, selectedAddress, sourceAmount, sourceToken.address]);
 
 	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
@@ -485,8 +474,8 @@ function SwapsQuotesView({
 					custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 					best_quote_source: selectedQuote.aggregator,
 					available_quotes: allQuotes.length,
-					network_fees_USD: weiToFiat(toWei(gasFee), conversionRate, currentCurrency),
-					network_fees_ETH: renderFromWei(toWei(gasFee)),
+					network_fees_USD: weiToFiat(toWei(selectedQuoteValue?.ethFee), conversionRate, currentCurrency),
+					network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
 					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote
 				},
 				paramsForAnalytics: {
@@ -511,7 +500,7 @@ function SwapsQuotesView({
 			allQuotes,
 			selectedQuoteId,
 			conversionRate,
-			gasFee
+			selectedQuoteValue
 		]
 	);
 
@@ -631,7 +620,7 @@ function SwapsQuotesView({
 				available_quotes: allQuotes.length,
 				best_quote_source: selectedQuote.aggregator,
 				other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
-				gas_fees: weiToFiat(toWei(gasFee), conversionRate, currentCurrency),
+				gas_fees: weiToFiat(toWei(selectedQuoteValue?.ethFee), conversionRate, currentCurrency),
 				custom_spend_limit_set: originalAmount !== currentAmount,
 				custom_spend_limit_amount: currentAmount
 			};
@@ -644,7 +633,7 @@ function SwapsQuotesView({
 		conversionRate,
 		currentCurrency,
 		destinationToken,
-		gasFee,
+		selectedQuoteValue,
 		hasEnoughTokenBalance,
 		originalApprovalTransaction,
 		selectedQuote,
@@ -656,8 +645,11 @@ function SwapsQuotesView({
 
 	const onHandleGasFeeSelection = useCallback(
 		(gas, gasPrice, details) => {
+			const { SwapsController } = Engine.context;
 			setCustomGasPrice(gasPrice);
 			setCustomGasLimit(gas);
+			const hexGasPrice = new BigNumber(gasPrice).toString(16);
+			SwapsController.updateSelectedQuoteWithGasPrice(hexGasPrice);
 			InteractionManager.runAfterInteractions(() => {
 				const parameters = {
 					speed_set: details.mode === 'advanced' ? undefined : details.mode,
@@ -839,7 +831,7 @@ function SwapsQuotesView({
 	useEffect(() => {
 		let maxFetchTime = 0;
 		allQuotes.forEach(quote => {
-			maxFetchTime = Math.max(maxFetchTime, quote.fetchTime);
+			maxFetchTime = Math.max(maxFetchTime, quote?.fetchTime);
 		});
 		setAllQuotesFetchTime(maxFetchTime);
 	}, [allQuotes]);
@@ -1184,10 +1176,14 @@ function SwapsQuotesView({
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text primary bold>
-										{renderFromWei(toWei(gasFee))} ETH
+										{renderFromWei(toWei(selectedQuoteValue?.ethFee))} ETH
 									</Text>
 									<Text primary bold upper>
-										{`  ${weiToFiat(toWei(gasFee), conversionRate, currentCurrency)}`}
+										{`  ${weiToFiat(
+											toWei(selectedQuoteValue?.ethFee),
+											conversionRate,
+											currentCurrency
+										)}`}
 									</Text>
 								</View>
 							</View>
@@ -1204,9 +1200,13 @@ function SwapsQuotesView({
 									</View>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text>{renderFromWei(toWei(maxGasFee))} ETH</Text>
+									<Text>{renderFromWei(toWei(selectedQuoteValue?.maxEthFee))} ETH</Text>
 									<Text upper>
-										{`  ${weiToFiat(toWei(maxGasFee), conversionRate, currentCurrency)}`}
+										{`  ${weiToFiat(
+											toWei(selectedQuoteValue?.maxEthFee),
+											conversionRate,
+											currentCurrency
+										)}`}
 									</Text>
 								</View>
 							</View>
