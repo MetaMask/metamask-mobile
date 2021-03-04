@@ -28,7 +28,7 @@ import {
 	isDecimal,
 	toBN
 } from '../../../../util/number';
-import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
+import { getTicker, decodeTransferData, getNormalizedTxState, getProposedNonce } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { util } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
@@ -1135,24 +1135,7 @@ const mapStateToProps = state => ({
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
-	proposedNonce: (() => {
-		const { selectedAddress } = state.engine.backgroundState.PreferencesController;
-		const { transactions } = state.engine.backgroundState.TransactionController;
-
-		const confirmed = transactions.filter(({ status, transaction: { from } }) => {
-			const tlc = address => String(address).toLowerCase();
-			// TODO: account for 'pending'
-			// see about pending transactions, do we keep a list, can you had multiple pending transactions?
-			return status === 'confirmed' && tlc(from) === tlc(selectedAddress);
-		});
-
-		const nonces = confirmed.map(({ transaction }) => {
-			const { nonce } = transaction;
-			return parseInt(nonce, 16);
-		});
-
-		return Math.max(...nonces) + 1;
-	})(),
+	proposedNonce: getProposedNonce(state),
 	primaryCurrency: state.settings.primaryCurrency
 });
 

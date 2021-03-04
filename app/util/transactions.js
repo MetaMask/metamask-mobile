@@ -424,5 +424,28 @@ export function getNormalizedTxState(state) {
 	return { ...state.transaction, ...state.transaction.transaction };
 }
 
+export const getProposedNonce = ({
+	engine: {
+		backgroundState: { PreferencesController, TransactionController }
+	}
+}) => {
+	const { selectedAddress } = PreferencesController;
+	const { transactions } = TransactionController;
+
+	const nonces = transactions
+		.filter(({ status, transaction: { from } }) => {
+			const tlc = address => String(address).toLowerCase();
+			// TODO: account for 'pending'
+			// see about pending transactions, do we keep a list, can you had multiple pending transactions?
+			return status === 'confirmed' && tlc(from) === tlc(selectedAddress);
+		})
+		.map(({ transaction }) => {
+			const { nonce } = transaction;
+			return parseInt(nonce, 16);
+		});
+
+	return Math.max(...nonces) + 1;
+};
+
 export const getActiveTabUrl = ({ browser = {} }) =>
 	browser.tabs && browser.activeTab && browser.tabs.find(({ id }) => id === browser.activeTab)?.url;
