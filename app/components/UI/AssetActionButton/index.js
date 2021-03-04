@@ -88,11 +88,11 @@ function getIcon(type) {
 	}
 }
 
-function AssetActionButton({ onPress, icon, label, disabled, style }) {
+function AssetActionButton({ onPress, icon, label, disabled }) {
 	return (
 		<TouchableOpacity
 			onPress={onPress}
-			style={[styles.button, disabled && styles.disabledButton, style]}
+			style={[styles.button, disabled && styles.disabledButton]}
 			disabled={disabled}
 		>
 			<View style={styles.buttonIconWrapper}>{icon && (typeof icon === 'string' ? getIcon(icon) : icon)}</View>
@@ -107,8 +107,7 @@ AssetActionButton.propTypes = {
 	onPress: PropTypes.func,
 	icon: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
 	label: PropTypes.string,
-	disabled: PropTypes.bool,
-	style: PropTypes.object
+	disabled: PropTypes.bool
 };
 
 export default AssetActionButton;

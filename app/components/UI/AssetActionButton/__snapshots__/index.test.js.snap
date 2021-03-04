@@ -12,7 +12,6 @@ exports[`AssetActionButtons should render correctly 1`] = `
         "minWidth": 60,
       },
       undefined,
-      undefined,
     ]
   }
 >
@@ -67,7 +66,6 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
         "marginHorizontal": 0,
         "minWidth": 60,
       },
-      undefined,
       undefined,
     ]
   }
@@ -124,7 +122,6 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
         "minWidth": 60,
       },
       undefined,
-      undefined,
     ]
   }
 >
@@ -179,7 +176,6 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
         "marginHorizontal": 0,
         "minWidth": 60,
       },
-      undefined,
       undefined,
     ]
   }
@@ -236,7 +232,6 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
         "minWidth": 60,
       },
       undefined,
-      undefined,
     ]
   }
 >
@@ -291,7 +286,6 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
         "marginHorizontal": 0,
         "minWidth": 60,
       },
-      undefined,
       undefined,
     ]
   }
