@@ -164,9 +164,62 @@ exports[`CustomNonceModal should render correctly 1`] = `
             26
           </Text>
         </Text>
-        <Text
+        <View
           style={
-            Array [
+            Object {
+              "height": 240,
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "backgroundColor": "#fffcdb",
+                "borderColor": "#FFD33D",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "display": "flex",
+                "marginBottom": 16,
+                "padding": 16,
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "color": "#000000",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 16,
+                }
+              }
+            >
+              Warning: There are older transactions pending. This is an advanced feature and should only be used with caution.
+            </Text>
+          </View>
+          <Text
+            style={
+              Array [
+                Object {
+                  "color": "#000000",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 16,
+                  "marginVertical": 10,
+                },
+                Object {
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontWeight": "600",
+                },
+              ]
+            }
+          >
+            This is an advanced feature used to cancel or speed up older transactions.
+          </Text>
+          <Text
+            style={
               Object {
                 "color": "#000000",
                 "fontFamily": "EuclidCircularB-Regular",
@@ -174,30 +227,12 @@ exports[`CustomNonceModal should render correctly 1`] = `
                 "fontWeight": "400",
                 "lineHeight": 16,
                 "marginVertical": 10,
-              },
-              Object {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontWeight": "600",
-              },
-            ]
-          }
-        >
-          This is an advanced feature used to cancel or speed up older transactions.
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "lineHeight": 16,
-              "marginVertical": 10,
+              }
             }
-          }
-        >
-          Think of the nonce as the transaction number of an account. Every accounts nonce begins with 0 for the first transaction and continues in sequential order.
-        </Text>
+          >
+            Think of the nonce as the transaction number of an account. Every accounts nonce begins with 0 for the first transaction and continues in sequential order.
+          </Text>
+        </View>
       </View>
     </View>
   </KeyboardAwareScrollView>

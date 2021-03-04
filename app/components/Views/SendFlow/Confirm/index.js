@@ -1139,8 +1139,7 @@ const mapStateToProps = state => ({
 		const { selectedAddress } = state.engine.backgroundState.PreferencesController;
 		const { transactions } = state.engine.backgroundState.TransactionController;
 
-		const confirmed = transactions.filter(({ status, transaction }) => {
-			const { from } = transaction;
+		const confirmed = transactions.filter(({ status, transaction: { from } }) => {
 			const tlc = address => String(address).toLowerCase();
 			// TODO: account for 'pending'
 			// see about pending transactions, do we keep a list, can you had multiple pending transactions?
