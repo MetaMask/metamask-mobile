@@ -97,7 +97,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 		close();
 	};
 
-	const displayWarning = proposedNonce !== nonce;
+	const displayWarning = String(proposedNonce) !== String(nonce);
 
 	return (
 		<Modal
@@ -127,7 +127,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								autoFocus
 								autoCapitalize="none"
 								autoCorrect={false}
-								onChangeText={text => onChangeText(text)}
+								onChangeText={onChangeText}
 								placeholder={String(proposedNonce)}
 								placeholderTextColor={colors.grey100}
 								spellCheck={false}
