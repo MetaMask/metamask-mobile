@@ -906,9 +906,9 @@ class Confirm extends PureComponent {
 		);
 	};
 
-	saveNonceValue = value =>
+	saveNonceValue = nonceValue =>
 		this.setState({
-			nonceValue: value
+			nonceValue
 		});
 
 	renderHexDataModal = () => {
