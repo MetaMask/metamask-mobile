@@ -372,19 +372,23 @@ class Engine {
 		Object.keys(preferences.accountTokens).forEach(address => {
 			const checksummedAddress = toChecksumAddress(address);
 			allTokens[checksummedAddress] = {};
-			Object.keys(preferences.accountTokens[address]).forEach(
-				networkType =>
-					(allTokens[checksummedAddress][networkType] =
-						networkType !== MAINNET
-							? preferences.accountTokens[address][networkType]
-							: preferences.accountTokens[address][networkType]
-									.filter(({ address }) =>
-										contractMap[toChecksumAddress(address)]
-											? contractMap[toChecksumAddress(address)].erc20
-											: true
-									)
-									.map(token => ({ ...token, address: toChecksumAddress(token.address) })))
-			);
+			Object.keys(preferences.accountTokens[address]).forEach(chainId => {
+				const networkType = Object.values(Networks).find(
+					({ chainId: networkChainId }) => `${networkChainId}` === chainId
+				)?.networkType;
+				// !networkType this will probably happen on custom rpc networks
+				if (!networkType) return;
+				allTokens[checksummedAddress][chainId] =
+					chainId !== MAINNET
+						? preferences.accountTokens[address][networkType]
+						: preferences.accountTokens[address][networkType]
+								.filter(({ address }) =>
+									contractMap[toChecksumAddress(address)]
+										? contractMap[toChecksumAddress(address)].erc20
+										: true
+								)
+								.map(token => ({ ...token, address: toChecksumAddress(token.address) }));
+			});
 		});
 		await AssetsController.update({ allTokens });
 
