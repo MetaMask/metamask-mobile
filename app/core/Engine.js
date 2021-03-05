@@ -31,7 +31,6 @@ import NotificationManager from './NotificationManager';
 import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
-import { MAINNET } from '../constants/network';
 
 const EMPTY = 'EMPTY';
 
@@ -374,13 +373,13 @@ class Engine {
 			allTokens[checksummedAddress] = {};
 			Object.keys(preferences.accountTokens[address]).forEach(chainId => {
 				const network = Object.values(Networks).find(
-					({ chainId: networkChainId }) => `${networkChainId}` === chainId
+					({ hexChainId: networkChainId }) => networkChainId === chainId
 				);
 				const networkType = network?.networkType;
 				// !networkType this will probably happen on custom rpc networks
 				if (!networkType) return;
 				allTokens[checksummedAddress][chainId] =
-					chainId !== `${Networks[MAINNET].chainId}`
+					chainId !== `0x1`
 						? preferences.accountTokens[address][networkType]
 						: preferences.accountTokens[address][networkType]
 								.filter(({ address }) =>

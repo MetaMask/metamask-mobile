@@ -16,6 +16,7 @@ const NetworkList = {
 		shortName: 'Ethereum',
 		networkId: 1,
 		chainId: 1,
+		hexChainId: '0x1',
 		color: '#3cc29e',
 		networkType: 'mainnet'
 	},
@@ -24,6 +25,7 @@ const NetworkList = {
 		shortName: 'Ropsten',
 		networkId: 3,
 		chainId: 3,
+		hexChainId: '0x3',
 		color: '#ff4a8d',
 		networkType: 'ropsten'
 	},
@@ -32,6 +34,7 @@ const NetworkList = {
 		shortName: 'Kovan',
 		networkId: 42,
 		chainId: 42,
+		hexChainId: '0x2a',
 		color: '#7057ff',
 		networkType: 'kovan'
 	},
@@ -40,6 +43,7 @@ const NetworkList = {
 		shortName: 'Rinkeby',
 		networkId: 4,
 		chainId: 4,
+		hexChainId: '0x4',
 		color: '#f6c343',
 		networkType: 'rinkeby'
 	},
@@ -48,6 +52,7 @@ const NetworkList = {
 		shortName: 'Goerli',
 		networkId: 5,
 		chainId: 5,
+		hexChainId: '0x5',
 		color: '#3099f2',
 		networkType: 'goerly'
 	},
