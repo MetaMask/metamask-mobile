@@ -56,7 +56,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { capitalize } from '../../../../util/format';
+import { capitalize } from '../../../../util/general';
 import { isMainNet, getNetworkName } from '../../../../util/networks';
 
 const EDIT = 'edit';

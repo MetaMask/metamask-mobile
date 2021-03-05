@@ -5,6 +5,7 @@ import { strings } from '../../locales/i18n';
 import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
+import { toLowerCaseCompare } from '../util/general';
 import { hexToBN } from './number';
 import AppConstants from '../core/AppConstants';
 const { SAI_ADDRESS } = AppConstants;
@@ -432,12 +433,11 @@ export const getProposedNonce = ({
 	const { transactions } = TransactionController;
 
 	const nonces = transactions
-		.filter(({ status, transaction: { from } }) => {
-			const tlc = address => String(address).toLowerCase();
+		.filter(
 			// TODO: account for 'pending'
 			// see about pending transactions, do we keep a list, can you had multiple pending transactions?
-			return status === 'confirmed' && tlc(from) === tlc(selectedAddress);
-		})
+			({ status, transaction: { from } }) => status === 'confirmed' && toLowerCaseCompare(from, selectedAddress)
+		)
 		.map(({ transaction }) => {
 			const { nonce } = transaction;
 			return parseInt(nonce, 16);

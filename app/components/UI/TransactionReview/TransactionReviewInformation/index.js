@@ -20,7 +20,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { withNavigation } from 'react-navigation';
 import { getNetworkName, isMainNet } from '../../../../util/networks';
-import { capitalize } from '../../../../util/format';
+import { capitalize } from '../../../../util/general';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
