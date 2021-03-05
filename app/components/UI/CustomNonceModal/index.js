@@ -5,6 +5,7 @@ import IncrementDecrementSvg from '../IncrementDecrementSvg';
 import { StyleSheet, View, Text, TextInput, SafeAreaView, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ModalDragger from '../../Base/ModalDragger';
+import StyledButton from '../../UI/StyledButton';
 import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
 
@@ -81,6 +82,14 @@ const styles = StyleSheet.create({
 	},
 	descWarningContainer: {
 		height: 240
+	},
+	actionRow: {
+		flexDirection: 'row',
+		marginBottom: 15
+	},
+	actionButton: {
+		flex: 1,
+		marginHorizontal: 8
 	}
 });
 
@@ -158,6 +167,18 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 							<Text style={[styles.desc, styles.bold]}>{strings('transaction.this_is_an_advanced')}</Text>
 							<Text style={styles.desc}>{strings('transaction.think_of_the_nonce')}</Text>
 						</View>
+					</View>
+					<View style={styles.actionRow}>
+						<StyledButton type={'normal'} containerStyle={styles.actionButton} onPress={close}>
+							Cancel
+						</StyledButton>
+						<StyledButton
+							type={'blue'}
+							onPress={() => saveAndClose(nonce)}
+							containerStyle={styles.actionButton}
+						>
+							Save
+						</StyledButton>
 					</View>
 				</SafeAreaView>
 			</KeyboardAwareScrollView>
