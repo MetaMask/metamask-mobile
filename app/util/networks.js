@@ -16,40 +16,46 @@ const NetworkList = {
 		shortName: 'Ethereum',
 		networkId: 1,
 		chainId: 1,
-		color: '#3cc29e'
+		color: '#3cc29e',
+		networkType: 'mainnet'
 	},
 	[ROPSTEN]: {
 		name: 'Ropsten Test Network',
 		shortName: 'Ropsten',
 		networkId: 3,
 		chainId: 3,
-		color: '#ff4a8d'
+		color: '#ff4a8d',
+		networkType: 'ropsten'
 	},
 	[KOVAN]: {
 		name: 'Kovan Test Network',
 		shortName: 'Kovan',
 		networkId: 42,
 		chainId: 42,
-		color: '#7057ff'
+		color: '#7057ff',
+		networkType: 'kovan'
 	},
 	[RINKEBY]: {
 		name: 'Rinkeby Test Network',
 		shortName: 'Rinkeby',
 		networkId: 4,
 		chainId: 4,
-		color: '#f6c343'
+		color: '#f6c343',
+		networkType: 'rinkeby'
 	},
 	[GOERLI]: {
 		name: 'Goerli Test Network',
 		shortName: 'Goerli',
 		networkId: 5,
 		chainId: 5,
-		color: '#3099f2'
+		color: '#3099f2',
+		networkType: 'goerly'
 	},
 	[RPC]: {
 		name: 'Private Network',
 		shortName: 'Private',
-		color: colors.grey000
+		color: colors.grey000,
+		networkType: 'rpc'
 	}
 };
 

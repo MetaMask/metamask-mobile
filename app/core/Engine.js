@@ -373,9 +373,10 @@ class Engine {
 			const checksummedAddress = toChecksumAddress(address);
 			allTokens[checksummedAddress] = {};
 			Object.keys(preferences.accountTokens[address]).forEach(chainId => {
-				const networkType = Object.values(Networks).find(
+				const network = Object.values(Networks).find(
 					({ chainId: networkChainId }) => `${networkChainId}` === chainId
-				)?.networkType;
+				);
+				const networkType = network?.networkType;
 				// !networkType this will probably happen on custom rpc networks
 				if (!networkType) return;
 				allTokens[checksummedAddress][chainId] =
