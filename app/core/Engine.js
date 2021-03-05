@@ -380,7 +380,7 @@ class Engine {
 				// !networkType this will probably happen on custom rpc networks
 				if (!networkType) return;
 				allTokens[checksummedAddress][chainId] =
-					chainId !== MAINNET
+					chainId !== `${Networks[MAINNET].chainId}`
 						? preferences.accountTokens[address][networkType]
 						: preferences.accountTokens[address][networkType]
 								.filter(({ address }) =>
