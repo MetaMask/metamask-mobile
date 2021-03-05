@@ -2,8 +2,9 @@ import React from 'react';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import IncrementDecrementSvg from '../IncrementDecrementSvg';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TextInput, SafeAreaView, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import ModalDragger from '../../Base/ModalDragger';
 import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
 
@@ -115,7 +116,8 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 			propagateSwipe
 		>
 			<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-				<View style={styles.modal}>
+				<SafeAreaView style={styles.modal}>
+					<ModalDragger />
 					<View style={styles.modalContainer}>
 						<Text style={styles.title}>{strings('transaction.edit_transaction_nonce')}</Text>
 						<View style={styles.nonceInputContainer}>
@@ -157,7 +159,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 							<Text style={styles.desc}>{strings('transaction.think_of_the_nonce')}</Text>
 						</View>
 					</View>
-				</View>
+				</SafeAreaView>
 			</KeyboardAwareScrollView>
 		</Modal>
 	);
