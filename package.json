@@ -330,6 +330,10 @@
     "net": "react-native-tcp",
     "fs": "react-native-level-fs"
   },
+  "engines": {
+    "node": "^10.17.0",
+    "yarn": "^1.22.0"
+  },
   "rnpm": {
     "assets": [
       "./app/fonts"
