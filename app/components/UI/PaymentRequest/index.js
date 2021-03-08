@@ -359,7 +359,7 @@ class PaymentRequest extends PureComponent {
 		const { tokens } = this.props;
 		const { chainId, inputWidth } = this.state;
 		let results;
-		if (chainId === 1) {
+		if (chainId === '1') {
 			results = this.state.searchInputValue ? this.state.results : defaultAssets;
 		} else {
 			results = defaultEth;
@@ -374,7 +374,7 @@ class PaymentRequest extends PureComponent {
 				<View>
 					<Text style={styles.title}>{strings('payment_request.choose_asset')}</Text>
 				</View>
-				{chainId === 1 && (
+				{chainId === '1' && (
 					<View style={styles.searchWrapper}>
 						<TextInput
 							style={[styles.searchInput, inputWidth]}

@@ -314,7 +314,7 @@ class PaymentChannelsClient {
 
 	handleInternalTransactions = txHash => {
 		const { withdrawalPendingValue } = this.state;
-		const networkID = Networks[Engine.context.NetworkController.state.provider.type].networkId.toString();
+		const networkID = Networks[Engine.context.NetworkController.state.provider.type].networkId;
 		const newInternalTxs = Engine.context.TransactionController.state.internalTransactions || [];
 		newInternalTxs.push({
 			time: Date.now(),

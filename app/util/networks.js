@@ -14,36 +14,36 @@ const NetworkList = {
 	[MAINNET]: {
 		name: 'Ethereum Main Network',
 		shortName: 'Ethereum',
-		networkId: 1,
-		chainId: 1,
+		networkId: '1',
+		chainId: '1',
 		color: '#3cc29e'
 	},
 	[ROPSTEN]: {
 		name: 'Ropsten Test Network',
 		shortName: 'Ropsten',
-		networkId: 3,
-		chainId: 3,
+		networkId: '3',
+		chainId: '3',
 		color: '#ff4a8d'
 	},
 	[KOVAN]: {
 		name: 'Kovan Test Network',
 		shortName: 'Kovan',
-		networkId: 42,
-		chainId: 42,
+		networkId: '42',
+		chainId: '42',
 		color: '#7057ff'
 	},
 	[RINKEBY]: {
 		name: 'Rinkeby Test Network',
 		shortName: 'Rinkeby',
-		networkId: 4,
-		chainId: 4,
+		networkId: '4',
+		chainId: '4',
 		color: '#f6c343'
 	},
 	[GOERLI]: {
 		name: 'Goerli Test Network',
 		shortName: 'Goerli',
-		networkId: 5,
-		chainId: 5,
+		networkId: '5',
+		chainId: '5',
 		color: '#3099f2'
 	},
 	[RPC]: {
@@ -59,15 +59,15 @@ export default NetworkList;
 
 export const getAllNetworks = () => NetworkListKeys.filter(name => name !== RPC);
 
-export const isMainNet = network => network?.provider?.type === MAINNET || network === String(1);
+export const isMainNet = network => network?.provider?.type === MAINNET || network === '1';
 
-export const getNetworkName = id => NetworkListKeys.find(key => NetworkList[key].networkId === Number(id));
+export const getNetworkName = id => NetworkListKeys.find(key => NetworkList[key].networkId === id);
 
 export function getNetworkTypeById(id) {
 	if (!id) {
 		throw new Error('Missing network Id');
 	}
-	const network = NetworkListKeys.filter(key => NetworkList[key].networkId === parseInt(id, 10));
+	const network = NetworkListKeys.filter(key => NetworkList[key].networkId === id);
 	if (network.length > 0) {
 		return network[0];
 	}
@@ -81,7 +81,7 @@ export function hasBlockExplorer(key) {
 
 export function isKnownNetwork(id) {
 	const knownNetworks = NetworkListKeys.map(key => NetworkList[key].networkId).filter(id => id !== undefined);
-	return knownNetworks.includes(parseInt(id, 10));
+	return knownNetworks.includes(id);
 }
 
 export function isprivateConnection(hostname) {

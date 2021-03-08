@@ -346,7 +346,7 @@ class PaymentChannel extends PureComponent {
 			if (
 				tx.transaction.from.toLowerCase() === selectedAddress.toLowerCase() &&
 				tx.toSmartContract &&
-				Networks[provider.type].networkId.toString() === tx.networkID &&
+				Networks[provider.type].networkId === tx.networkID &&
 				tx.transaction.data.substring(0, 10) === '0xea682e37' &&
 				tx.status === 'confirmed'
 			) {
@@ -360,7 +360,7 @@ class PaymentChannel extends PureComponent {
 		internalTransactions &&
 			internalTransactions.forEach(tx => {
 				if (
-					Networks[provider.type].networkId.toString() === tx.networkID &&
+					Networks[provider.type].networkId === tx.networkID &&
 					(tx.transaction.to && tx.transaction.to.toLowerCase()) === selectedAddress.toLowerCase()
 				) {
 					parsedTransactions.push({
