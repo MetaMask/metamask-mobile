@@ -78,7 +78,7 @@ const {
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-const TRANSAK_API_BASE_URL = `${isDevelopment ? TRANSAK_API_URL_STAGING : TRANSAK_API_URL_PRODUCTION}api/v1/`;
+const TRANSAK_API_BASE_URL = `${isDevelopment ? TRANSAK_API_URL_STAGING : TRANSAK_API_URL_PRODUCTION}api/v2/`;
 const TRANSAK_API_KEY = isDevelopment ? TRANSAK_API_KEY_STAGING : TRANSAK_API_KEY_PRODUCTION;
 const TRANSAK_API_KEY_SECRET = isDevelopment ? TRANSAK_API_KEY_SECRET_STAGING : TRANSAK_API_KEY_SECRET_PRODUCTION;
 
@@ -169,7 +169,7 @@ const transakCallbackOrderToFiatOrder = transakRedirectOrder => ({
 	fee: Number(transakRedirectOrder.totalFee),
 	currency: transakRedirectOrder.fiatCurrency,
 	cryptoAmount: transakRedirectOrder.cryptoAmount,
-	cryptocurrency: transakRedirectOrder.cryptocurrency,
+	cryptocurrency: transakRedirectOrder.cryptoCurrency,
 	state: transakOrderStateToFiatOrderState(transakRedirectOrder.status),
 	account: transakRedirectOrder.walletAddress,
 	data: transakRedirectOrder
