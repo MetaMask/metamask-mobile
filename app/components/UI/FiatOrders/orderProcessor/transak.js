@@ -26,7 +26,7 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  * @property {string} updatedAt
  * @property {string} completedAt
  * @property {string} fiatCurrency
- * @property {string} cryptocurrency
+ * @property {string} cryptoCurrency
  * @property {number} fiatAmount
  * @property {string} walletLink
  * @property {string} paymentOptionId Paymenth method ID, see: https://integrate.transak.com/Coverage-Payment-Methods-Fees-Limits-30c0954fbdf04beca68622d9734c59f9
@@ -55,7 +55,7 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  * @type {object}
  * @property {string} orderId
  * @property {string} fiatCurrency
- * @property {string} cryptocurrency
+ * @property {string} cryptoCurrency
  * @property {string} fiatAmount
  * @property {string} cryptoAmount
  * @property {string} isBuyOrSell
@@ -149,7 +149,7 @@ const transakOrderToFiatOrder = transakOrder => ({
 	cryptoAmount: transakOrder.cryptoAmount,
 	cryptoFee: transakOrder.totalFeeInCrypto,
 	currency: transakOrder.fiatCurrency,
-	cryptocurrency: transakOrder.cryptocurrency,
+	cryptocurrency: transakOrder.cryptoCurrency,
 	state: transakOrderStateToFiatOrderState(transakOrder.status),
 	account: transakOrder.walletAddress,
 	txHash: transakOrder.transactionHash || null,
@@ -180,7 +180,7 @@ const transakCallbackOrderToFiatOrder = transakRedirectOrder => ({
 /**
  * Function to handle Transak flow redirect after order creation
  * @param {String} url Custom URL with query params transak flow redirected to.
- * Query parameters are: `orderId`, `fiatCurrency`, `cryptocurrency`, `fiatAmount`,
+ * Query parameters are: `orderId`, `fiatCurrency`, `cryptoCurrency`, `fiatAmount`,
  * `cryptoAmount`, `isBuyOrSell`, `status`, `walletAddress`,
  * `totalFee`, `partnerCustomerId`, `partnerOrderId`.
  * @param {String} network Current network selected in the app
