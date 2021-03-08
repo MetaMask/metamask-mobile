@@ -78,7 +78,7 @@ class WalletConnect {
 				const { network } = Engine.context.NetworkController.state;
 				this.selectedAddress = Engine.context.PreferencesController.state.selectedAddress;
 				const approveData = {
-					chainId: parseInt(network, 10),
+					chainId: network,
 					accounts: [this.selectedAddress]
 				};
 				await this.walletConnector.approveSession(approveData);
@@ -285,7 +285,7 @@ class WalletConnect {
 		const { network } = Engine.context.NetworkController.state;
 		const { selectedAddress } = Engine.context.PreferencesController.state;
 		const sessionData = {
-			chainId: parseInt(network, 10),
+			chainId: network,
 			accounts: [selectedAddress]
 		};
 		try {

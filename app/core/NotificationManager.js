@@ -378,7 +378,7 @@ class NotificationManager {
 					tx =>
 						safeToChecksumAddress(tx.transaction?.to) === selectedAddress &&
 						safeToChecksumAddress(tx.transaction?.from) !== selectedAddress &&
-						((networkId && networkId.toString() === tx.networkID) ||
+						((networkId && networkId === tx.networkID) ||
 							(networkType === RPC && !isKnownNetwork(tx.networkID))) &&
 						tx.status === 'confirmed' &&
 						lastBlock <= parseInt(tx.blockNumber, 10) &&

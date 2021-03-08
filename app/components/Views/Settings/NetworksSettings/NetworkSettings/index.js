@@ -134,7 +134,7 @@ class NetworkSettings extends PureComponent {
 				blockExplorerUrl = getEtherscanBaseUrl(network);
 				const networkInformation = Networks[network];
 				nickname = networkInformation.name;
-				chainId = networkInformation.chainId.toString();
+				chainId = networkInformation.chainId;
 				editable = false;
 				rpcUrl = allNetworksblockExplorerUrl + network;
 				ticker = strings('unit.eth');

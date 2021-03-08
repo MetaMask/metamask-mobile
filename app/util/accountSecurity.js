@@ -17,7 +17,7 @@ export default async function findFirstIncomingTransaction(networkType, selected
 			tx =>
 				tx.transaction.to &&
 				toChecksumAddress(tx.transaction.to) === selectedAddress &&
-				((networkId && networkId.toString() === tx.networkID) ||
+				((networkId && networkId === tx.networkID) ||
 					(networkType === RPC && !isKnownNetwork(tx.networkID))) &&
 				tx.status === 'confirmed'
 		);
