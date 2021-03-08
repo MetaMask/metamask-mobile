@@ -73,7 +73,7 @@
   "dependencies": {
     "@estebanmino/controllers": "^3.3.14",
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
-    "@metamask/contract-metadata": "^1.22.0",
+    "@metamask/contract-metadata": "^1.23.0",
     "@metamask/controllers": "^6.0.1",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
