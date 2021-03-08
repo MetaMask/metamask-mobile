@@ -71,7 +71,7 @@ function Alert({ type = 'info', small, renderIcon, style, onPress, children, ...
 
 Alert.propTypes = {
 	type: PropTypes.oneOf(['info', 'warning', 'error']),
-	style: PropTypes.object,
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 	small: PropTypes.bool,
 	renderIcon: PropTypes.func,
 	onPress: PropTypes.func,

@@ -20,7 +20,8 @@ const styles = StyleSheet.create({
 	header: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.grey100,
-		flexDirection: 'row'
+		flexDirection: 'row',
+		paddingHorizontal: 16
 	},
 	title: {
 		flex: 1,

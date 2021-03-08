@@ -2,6 +2,7 @@
  * Collection of utility functions for consistent formatting and conversion
  */
 import { addHexPrefix, BN } from 'ethereumjs-util';
+import { utils as ethersUtils } from 'ethers';
 import convert from 'ethjs-unit';
 import { util } from '@metamask/controllers';
 import numberToBN from 'number-to-bn';
@@ -55,6 +56,30 @@ export function fromTokenMinimalUnit(minimalInput, decimals) {
 		value = '-' + value;
 	}
 	return value;
+}
+
+const INTEGER_REGEX = /^-?\d*(\.0+|\.)?$/;
+
+/**
+ * Converts token minimal unit to readable string value
+ *
+ * @param {string} minimalInput - Token minimal unit to convert
+ * @param {number} decimals - Token decimals to convert
+ * @returns {string} - String containing the new number
+ */
+export function fromTokenMinimalUnitString(minimalInput, decimals) {
+	if (typeof minimalInput !== 'string') {
+		throw new TypeError('minimalInput must be a string');
+	}
+
+	const tokenFormat = ethersUtils.formatUnits(minimalInput, decimals);
+	const isInteger = Boolean(INTEGER_REGEX.exec(tokenFormat));
+
+	const [integerPart, decimalPart] = tokenFormat.split('.');
+	if (isInteger) {
+		return integerPart;
+	}
+	return `${integerPart}.${decimalPart}`;
 }
 
 /**
@@ -296,6 +321,7 @@ export function weiToFiat(wei, conversionRate, currencyCode, decimalsToShow = 5)
 		}
 		return `0.00 ${currencyCode}`;
 	}
+	decimalsToShow = currencyCode === 'usd' && 2;
 	const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
 	if (currencySymbols[currencyCode]) {
 		return `${currencySymbols[currencyCode]}${value}`;
@@ -311,11 +337,14 @@ export function weiToFiat(wei, conversionRate, currencyCode, decimalsToShow = 5)
  * @returns {string} - Currency-formatted string
  */
 export function addCurrencySymbol(amount, currencyCode) {
+	if (currencyCode === 'usd') {
+		amount = parseFloat(amount).toFixed(2);
+	}
 	if (currencySymbols[currencyCode]) {
 		return `${currencySymbols[currencyCode]}${amount}`;
 	}
 
-	const lowercaseCurrencyCode = currencyCode.toLowerCase();
+	const lowercaseCurrencyCode = currencyCode?.toLowerCase();
 
 	if (currencySymbols[lowercaseCurrencyCode]) {
 		return `${currencySymbols[lowercaseCurrencyCode]}${amount}`;
