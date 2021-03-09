@@ -6,7 +6,6 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { NavigationContext } from 'react-navigation';
 import { swapsUtils, util } from '@estebanmino/controllers';
 
@@ -20,6 +19,7 @@ import {
 	toWei,
 	weiToFiat
 } from '../../../util/number';
+import { safeToChecksumAddress } from '../../../util/address';
 import { apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams } from './utils';
 import { colors } from '../../../styles/common';
@@ -210,7 +210,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 	// ff the token is not in the wallet, we'll add it
 	if (
 		destinationToken.address !== swapsUtils.ETH_SWAPS_TOKEN_ADDRESS &&
-		!contractExchangeRates[toChecksumAddress(destinationToken.address)]
+		!contractExchangeRates[safeToChecksumAddress(destinationToken.address)]
 	) {
 		const { address, symbol, decimals } = destinationToken;
 		await AssetsController.addToken(address, symbol, decimals);
@@ -221,7 +221,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 		);
 	}
 	const destinationTokenConversionRate =
-		TokenRatesController.state.contractExchangeRates[toChecksumAddress(destinationToken.address)] || 0;
+		TokenRatesController.state.contractExchangeRates[safeToChecksumAddress(destinationToken.address)] || 0;
 
 	// TODO: destinationToken could be the 0 address for ETH, also tokens that aren't on the wallet
 	const fetchParams = getFetchParams({
@@ -284,7 +284,7 @@ function SwapsQuotesView({
 		Boolean(destinationToken) &&
 		Boolean(
 			Engine.context.TokenRatesController.state.contractExchangeRates?.[
-				toChecksumAddress(destinationToken.address)
+				safeToChecksumAddress(destinationToken.address)
 			]
 		);
 
