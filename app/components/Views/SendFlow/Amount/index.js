@@ -43,7 +43,7 @@ import { getTicker, generateTransferData, getEther } from '../../../../util/tran
 import { util } from '@metamask/controllers';
 import FadeIn from 'react-native-fade-in-image';
 import ErrorMessage from '../ErrorMessage';
-import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
+import { fetchBasicGasEstimates, convertApiValueToGWEI, getValueFromWeiHex } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import CollectibleImage from '../../../UI/CollectibleImage';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
@@ -648,6 +648,7 @@ class Amount extends PureComponent {
 	 */
 	estimateTransactionTotalGas = async () => {
 		const { TransactionController } = Engine.context;
+		const { providerType } = this.props;
 		const {
 			transaction: { from },
 			transactionTo
@@ -662,7 +663,17 @@ class Amount extends PureComponent {
 			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
 		}
 		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
+			if (providerType === 'mainnet') {
+				basicGasEstimates = await fetchBasicGasEstimates();
+			} else {
+				basicGasEstimates = {
+					average: getValueFromWeiHex({
+						value: estimation.gasPrice.toString(16),
+						numberOfDecimals: 4,
+						toDenomination: 'GWEI'
+					})
+				};
+			}
 		} catch (error) {
 			basicGasEstimates = { average: 20 };
 		}
@@ -1025,7 +1036,6 @@ class Amount extends PureComponent {
 			selectedAsset,
 			transactionState: { paymentChannelTransaction, isPaymentRequest }
 		} = this.props;
-
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'amount-screen'}>
 				<ScrollView style={styles.scrollWrapper}>
@@ -1060,7 +1070,7 @@ class Amount extends PureComponent {
 										disabled={!paymentChannelTransaction && !estimatedTotalGas}
 										onPress={this.useMax}
 									>
-										<Text style={styles.maxText}>{strings('transaction.use_max')}</Text>
+										<Text style={styles.maxText}>asd{strings('transaction.use_max')}</Text>
 									</TouchableOpacity>
 								)}
 							</View>

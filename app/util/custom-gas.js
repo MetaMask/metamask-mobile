@@ -1,8 +1,11 @@
 import { BN } from 'ethereumjs-util';
-import { renderFromWei, weiToFiat, toWei } from './number';
+import { renderFromWei, weiToFiat, toWei, conversionUtil } from './number';
 import { strings } from '../../locales/i18n';
 import Logger from '../util/Logger';
 import TransactionTypes from '../core/TransactionTypes';
+export const ETH = 'ETH';
+export const GWEI = 'GWEI';
+export const WEI = 'WEI';
 
 /**
  * Calculates wei value of estimate gas price in gwei
@@ -157,4 +160,24 @@ export async function getBasicGasEstimates() {
 		fastGwei: convertApiValueToGWEI(fast),
 		safeLowGwei: convertApiValueToGWEI(safeLow)
 	};
+}
+
+export function getValueFromWeiHex({
+	value,
+	fromCurrency = ETH,
+	toCurrency,
+	conversionRate,
+	numberOfDecimals,
+	toDenomination
+}) {
+	return conversionUtil(value, {
+		fromNumericBase: 'hex',
+		toNumericBase: 'dec',
+		fromCurrency,
+		toCurrency,
+		numberOfDecimals,
+		fromDenomination: WEI,
+		toDenomination,
+		conversionRate
+	});
 }
