@@ -256,6 +256,8 @@ function SwapsAmountView({
 	useEffect(() => {
 		(async () => {
 			if (sourceToken && !isSwapsETH(sourceToken) && !isTokenInBalances) {
+				setContractBalance(null);
+				setContractBalanceAsUnits(numberToBN(0));
 				const { AssetsContractController } = Engine.context;
 				try {
 					const balance = await AssetsContractController.getBalanceOf(sourceToken.address, selectedAddress);
