@@ -644,27 +644,37 @@ function SwapsQuotesView({
 	]);
 
 	const onHandleGasFeeSelection = useCallback(
-		(gas, gasPrice, details) => {
+		(customGasLimit, customGasPrice, details) => {
 			const { SwapsController } = Engine.context;
-			setCustomGasPrice(gasPrice);
-			setCustomGasLimit(gas);
-			const hexGasPrice = new BigNumber(gasPrice).toString(16);
-			SwapsController.updateSelectedQuoteWithGasPrice(hexGasPrice);
-			InteractionManager.runAfterInteractions(() => {
-				const parameters = {
-					speed_set: details.mode === 'advanced' ? undefined : details.mode,
-					gas_mode: details.mode === 'advanced' ? 'Advanced' : 'Basic',
-					gas_fees: weiToFiat(
-						toWei(util.calcTokenAmount(gasPrice * gas, 18)),
-						conversionRate,
-						currentCurrency
-					)
-				};
-				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, {});
-				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, parameters, true);
-			});
+			const newGasLimit = new BigNumber(customGasLimit);
+			const newGasPrice = new BigNumber(customGasPrice);
+			console.log('customGasLimit', newGasLimit.toString(16) === gasLimit);
+			console.log('customGasPrice', newGasPrice.toString(16) === gasPrice);
+			if (newGasPrice.toString(16) !== gasPrice) {
+				setCustomGasPrice(newGasPrice);
+				SwapsController.updateQuotesWithGasPrice(newGasPrice.toString(16));
+			}
+			if (newGasLimit.toString(16) !== gasLimit) {
+				setCustomGasLimit(newGasLimit);
+				SwapsController.updateSelectedQuoteWithGasLimit(newGasLimit.toString(16));
+			}
+			if (newGasLimit?.toString(16) !== gasLimit || newGasPrice?.toString(16) !== gasPrice) {
+				InteractionManager.runAfterInteractions(() => {
+					const parameters = {
+						speed_set: details.mode === 'advanced' ? undefined : details.mode,
+						gas_mode: details.mode === 'advanced' ? 'Advanced' : 'Basic',
+						gas_fees: weiToFiat(
+							toWei(util.calcTokenAmount(newGasLimit.times(newGasPrice), 18)),
+							conversionRate,
+							currentCurrency
+						)
+					};
+					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, {});
+					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, parameters, true);
+				});
+			}
 		},
-		[conversionRate, currentCurrency]
+		[conversionRate, currentCurrency, gasLimit, gasPrice]
 	);
 
 	const handleQuotesReceivedMetric = useCallback(() => {
@@ -1200,7 +1210,7 @@ function SwapsQuotesView({
 									</View>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text>{renderFromWei(toWei(selectedQuoteValue?.maxEthFee))} ETH</Text>
+									<Text>{renderFromWei(toWei(selectedQuoteValue?.maxEthFee || '0x0'))} ETH</Text>
 									<Text upper>
 										{`  ${weiToFiat(
 											toWei(selectedQuoteValue?.maxEthFee),

@@ -450,7 +450,7 @@ class CustomGas extends PureComponent {
 
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
 	saveCustomGasSelection = () => {
-		const { gasSpeedSelected, customGasLimit, customGasPrice } = this.state;
+		const { gasSpeedSelected, customGasLimit, customGasPriceBNWei } = this.state;
 		const {
 			review,
 			gas,
@@ -459,7 +459,7 @@ class CustomGas extends PureComponent {
 			basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
 		} = this.props;
 		if (advancedCustomGas) {
-			handleGasFeeSelection(new BN(customGasLimit), apiEstimateModifiedToWEI(customGasPrice), {
+			handleGasFeeSelection(new BN(customGasLimit), customGasPriceBNWei, {
 				mode: 'advanced'
 			});
 		} else {
