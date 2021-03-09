@@ -285,14 +285,9 @@ function SwapsAmountView({
 	const controllerBalance = useBalance(accounts, balances, selectedAddress, sourceToken);
 	const controllerBalanceAsUnits = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 
-	const balance =
-		isSwapsETH(sourceToken) || (!isSwapsETH(sourceToken) && isTokenInBalances)
-			? controllerBalance
-			: contractBalance;
+	const balance = isSwapsETH(sourceToken) || isTokenInBalances ? controllerBalance : contractBalance;
 	const balanceAsUnits =
-		isSwapsETH(sourceToken) || (!isSwapsETH(sourceToken) && isTokenInBalances)
-			? controllerBalanceAsUnits
-			: contractBalanceAsUnits;
+		isSwapsETH(sourceToken) || isTokenInBalances ? controllerBalanceAsUnits : contractBalanceAsUnits;
 	const hasBalance = useMemo(() => {
 		if (!balanceAsUnits || !sourceToken) {
 			return false;
