@@ -3,6 +3,10 @@ import BigNumber from 'bignumber.js';
 import { swapsUtils } from '@estebanmino/controllers';
 import { strings } from '../../../../../locales/i18n';
 
+export function isSwapsETH(token) {
+	return Boolean(token) && token?.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
+}
+
 /**
  * Sets required parameters for Swaps Quotes View
  * @param {string} sourceTokenAddress Token contract address used as swaps source
