@@ -60,7 +60,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
     keyboardOpeningTime={250}
     viewIsInsideTabBar={false}
   >
-    <View
+    <ForwardRef(SafeAreaView)
       style={
         Object {
           "backgroundColor": "#FFFFFF",
@@ -70,6 +70,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
         }
       }
     >
+      <ModalDragger />
       <View
         style={
           Object {
@@ -234,7 +235,59 @@ exports[`CustomNonceModal should render correctly 1`] = `
           </Text>
         </View>
       </View>
-    </View>
+      <View
+        style={
+          Object {
+            "flexDirection": "row",
+            "marginBottom": 15,
+          }
+        }
+      >
+        <StyledButton
+          containerStyle={
+            Object {
+              "flex": 1,
+              "marginHorizontal": 8,
+            }
+          }
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          type="normal"
+        >
+          Cancel
+        </StyledButton>
+        <StyledButton
+          containerStyle={
+            Object {
+              "flex": 1,
+              "marginHorizontal": 8,
+            }
+          }
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          type="blue"
+        >
+          Save
+        </StyledButton>
+      </View>
+    </ForwardRef(SafeAreaView)>
   </KeyboardAwareScrollView>
 </ReactNativeModal>
 `;
