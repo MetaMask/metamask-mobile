@@ -1315,6 +1315,7 @@ function SwapsQuotesView({
 				onHandleGasFeeSelection={onHandleGasFeeSelection}
 				setApprovalTransaction={setApprovalTransaction}
 				minimumSpendLimit={approvalMinimumSpendLimit}
+				minimumGasLimit={selectedQuote?.gasEstimate?.toString()}
 				selectedQuote={selectedQuote}
 				sourceToken={sourceToken}
 			/>

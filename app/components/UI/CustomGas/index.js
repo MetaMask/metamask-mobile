@@ -226,6 +226,10 @@ class CustomGas extends PureComponent {
 		 */
 		gas: PropTypes.object,
 		/**
+		 * Gas limit estimation that should be the minimum value to set
+		 */
+		minimumGasLimit: PropTypes.string,
+		/**
 		 * Object BN containing gas price
 		 */
 		gasPrice: PropTypes.object,
@@ -417,7 +421,10 @@ class CustomGas extends PureComponent {
 		else if (bnValue && !isBN(bnValue)) warningGasLimit = strings('transaction.invalid_gas');
 		else if (bnValue.lt(new BN(21000)) || bnValue.gt(new BN(7920028)))
 			warningGasLimit = strings('custom_gas.warning_gas_limit');
-
+		else if (this.props.minimumGasLimit && bnValue.lt(hexToBN(this.props.minimumGasLimit)))
+			warningGasLimit = strings('custom_gas.warning_gas_limit_estimated', {
+				gas: this.props.minimumGasLimit.toString()
+			});
 		this.setState({
 			customGasLimit: value,
 			customGasLimitBN: bnValue,

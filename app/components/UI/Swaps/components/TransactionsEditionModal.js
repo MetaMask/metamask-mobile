@@ -39,7 +39,8 @@ function TransactionsEditionModal({
 	setApprovalTransaction,
 	selectedQuote,
 	sourceToken,
-	minimumSpendLimit
+	minimumSpendLimit,
+	minimumGasLimit
 }) {
 	/* Approval transaction if any */
 	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState(null);
@@ -89,6 +90,7 @@ function TransactionsEditionModal({
 			setApprovalTransactionAmount(fromTokenMinimalUnitString(amountDec, sourceToken.decimals));
 		}
 	}, [originalApprovalTransaction, sourceToken.decimals, setApprovalTransaction]);
+
 	return (
 		<Modal
 			isVisible={editQuoteTransactionsVisible}
@@ -129,6 +131,7 @@ function TransactionsEditionModal({
 							basicGasEstimates={apiGasPrice}
 							gas={hexToBN(gasLimit)}
 							gasPrice={hexToBN(gasPrice)}
+							minimumGasLimit={minimumGasLimit}
 							gasError={null}
 							mode={'edit'}
 							customTransaction={selectedQuote.trade}
@@ -149,6 +152,7 @@ TransactionsEditionModal.propTypes = {
 	gasLimit: PropTypes.string,
 	gasPrice: PropTypes.string,
 	minimumSpendLimit: PropTypes.string.isRequired,
+	minimumGasLimit: PropTypes.string,
 	onCancelEditQuoteTransactions: PropTypes.func,
 	onHandleGasFeeSelection: PropTypes.func,
 	setApprovalTransaction: PropTypes.func,
