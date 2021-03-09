@@ -280,6 +280,10 @@ function SwapsQuotesView({
 		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
 	);
 
+	const hasConversionRate =
+		Boolean(destinationToken) &&
+		toChecksumAddress(destinationToken.address) in Engine.context.TokenRatesController.state.contractExchangeRates;
+
 	/* State */
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
 	const [isFirstLoad, setIsFirstLoad] = useState(true);
@@ -312,12 +316,12 @@ function SwapsQuotesView({
 			return [];
 		}
 
-		const orderedValues = Object.values(quoteValues).sort(
-			(a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote)
-		);
+		const orderedAggregators = hasConversionRate
+			? Object.values(quoteValues).sort((a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote))
+			: Object.values(quotes).sort((a, b) => new BigNumber(b.destinationAmount).comparedTo(a.destinationAmount));
 
-		return orderedValues.map(quoteValue => quotes[quoteValue.aggregator]);
-	}, [quoteValues, quotes]);
+		return orderedAggregators.map(quoteValue => quotes[quoteValue.aggregator]);
+	}, [hasConversionRate, quoteValues, quotes]);
 
 	/* Get the selected quote, by default is topAggId */
 	const selectedQuote = useMemo(() => allQuotes.find(quote => quote?.aggregator === selectedQuoteId), [
@@ -1292,6 +1296,7 @@ function SwapsQuotesView({
 				sourceToken={sourceToken}
 				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
+				showOverallValue={hasConversionRate}
 			/>
 
 			<TransactionsEditionModal
