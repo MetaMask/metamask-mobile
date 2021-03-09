@@ -625,7 +625,8 @@ class Confirm extends PureComponent {
 
 	prepareTransactionToSend = () => {
 		const {
-			transactionState: { transaction }
+			transactionState: { transaction },
+			showCustomNonce
 		} = this.props;
 		const { nonceValue } = this.state;
 		const { fromSelectedAddress } = this.state;
@@ -633,7 +634,7 @@ class Confirm extends PureComponent {
 		transactionToSend.gas = BNToHex(transaction.gas);
 		transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
 		transactionToSend.from = fromSelectedAddress;
-		transactionToSend.nonce = BNToHex(nonceValue);
+		if (showCustomNonce) transactionToSend.nonce = BNToHex(nonceValue);
 		return transactionToSend;
 	};
 
