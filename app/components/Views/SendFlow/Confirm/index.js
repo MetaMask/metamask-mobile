@@ -627,11 +627,13 @@ class Confirm extends PureComponent {
 		const {
 			transactionState: { transaction }
 		} = this.props;
+		const { nonceValue } = this.state;
 		const { fromSelectedAddress } = this.state;
 		const transactionToSend = { ...transaction };
 		transactionToSend.gas = BNToHex(transaction.gas);
 		transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
 		transactionToSend.from = fromSelectedAddress;
+		transactionToSend.nonce = BNToHex(nonceValue);
 		return transactionToSend;
 	};
 
@@ -783,7 +785,6 @@ class Confirm extends PureComponent {
 				transaction,
 				TransactionTypes.MMM
 			);
-
 			await TransactionController.approveTransaction(transactionMeta.id);
 			await new Promise(resolve => resolve(result));
 
