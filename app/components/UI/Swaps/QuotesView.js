@@ -21,7 +21,7 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { apiEstimateModifiedToWEI } from '../../../util/custom-gas';
-import { getErrorMessage, getFetchParams, getQuotesNavigationsParams } from './utils';
+import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsETH } from './utils';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 
@@ -282,11 +282,12 @@ function SwapsQuotesView({
 
 	const hasConversionRate =
 		Boolean(destinationToken) &&
-		Boolean(
-			Engine.context.TokenRatesController.state.contractExchangeRates?.[
-				safeToChecksumAddress(destinationToken.address)
-			]
-		);
+		(isSwapsETH(destinationToken) ||
+			Boolean(
+				Engine.context.TokenRatesController.state.contractExchangeRates?.[
+					safeToChecksumAddress(destinationToken.address)
+				]
+			));
 
 	/* State */
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
