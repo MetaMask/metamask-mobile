@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-navigation';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
+import BigNumber from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
 import {
 	fromTokenMinimalUnitString,
@@ -135,7 +136,8 @@ function QuotesModal({
 	destinationToken,
 	conversionRate,
 	currentCurrency,
-	quoteValues
+	quoteValues,
+	showOverallValue
 }) {
 	const bestOverallValue = quoteValues[quotes[0].aggregator].overallValueOfQuote;
 	const [displayDetails, setDisplayDetails] = useState(false);
@@ -386,14 +388,18 @@ function QuotesModal({
 													</View>
 													<View style={styles.columnValue}>
 														{index === 0 ? (
-															<View style={styles.bestBadge}>
-																<View style={styles.bestBadgeWrapper}>
-																	<Text bold small style={styles.bestBadgeText}>
-																		{strings('swaps.best')}
-																	</Text>
+															showOverallValue ? (
+																<View style={styles.bestBadge}>
+																	<View style={styles.bestBadgeWrapper}>
+																		<Text bold small style={styles.bestBadgeText}>
+																			{strings('swaps.best')}
+																		</Text>
+																	</View>
 																</View>
-															</View>
-														) : (
+															) : (
+																<Text> - </Text>
+															)
+														) : showOverallValue ? (
 															<Text primary style={styles.red}>
 																-
 																{weiToFiat(
@@ -405,6 +411,16 @@ function QuotesModal({
 																	),
 																	conversionRate,
 																	currentCurrency
+																)}
+															</Text>
+														) : (
+															<Text style={styles.red}>
+																-
+																{renderFromTokenMinimalUnit(
+																	new BigNumber(quotes[0].destinationAmount)
+																		.minus(quote.destinationAmount)
+																		.toString(10),
+																	destinationToken.decimals
 																)}
 															</Text>
 														)}
@@ -450,7 +466,8 @@ QuotesModal.propTypes = {
 	 * Currency code of the currently-active currency
 	 */
 	currentCurrency: PropTypes.string,
-	quoteValues: PropTypes.object
+	quoteValues: PropTypes.object,
+	showOverallValue: PropTypes.bool
 };
 
 const mapStateToProps = state => ({

@@ -1,8 +1,8 @@
 import { swapsUtils } from '@estebanmino/controllers';
-import { toChecksumAddress } from '@walletconnect/utils';
 import { useMemo } from 'react';
 import numberToBN from 'number-to-bn';
 import { renderFromTokenMinimalUnit, renderFromWei } from '../../../../util/number';
+import { safeToChecksumAddress } from '../../../../util/address';
 
 function useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits = false } = {}) {
 	const balance = useMemo(() => {
@@ -16,7 +16,7 @@ function useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits 
 			}
 			return renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
 		}
-		const tokenAddress = toChecksumAddress(sourceToken.address);
+		const tokenAddress = safeToChecksumAddress(sourceToken.address);
 
 		if (tokenAddress in balances) {
 			if (asUnits) {
