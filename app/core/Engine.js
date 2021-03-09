@@ -378,10 +378,10 @@ class Engine {
 				const networkType = network?.networkType;
 				// !networkType this will probably happen on custom rpc networks
 				if (!networkType) return;
-				allTokens[checksummedAddress][chainId] =
+				allTokens[checksummedAddress][networkType] =
 					chainId !== `0x1`
-						? preferences.accountTokens[address][networkType]
-						: preferences.accountTokens[address][networkType]
+						? preferences.accountTokens[address][chainId]
+						: preferences.accountTokens[address][chainId]
 								.filter(({ address }) =>
 									contractMap[toChecksumAddress(address)]
 										? contractMap[toChecksumAddress(address)].erc20
