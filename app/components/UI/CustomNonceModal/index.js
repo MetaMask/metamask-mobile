@@ -2,9 +2,10 @@ import React from 'react';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import IncrementDecrementSvg from '../IncrementDecrementSvg';
-import { StyleSheet, View, Text, TextInput, SafeAreaView, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TextInput, SafeAreaView, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ModalDragger from '../../Base/ModalDragger';
+import Text from '../../Base/Text';
 import StyledButton from '../../UI/StyledButton';
 import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
@@ -29,9 +30,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 14,
-		color: colors.black,
-		...fontStyles.bold,
-		textAlign: 'center'
+		color: colors.black
 	},
 	nonceInput: {
 		width: 80,
@@ -45,11 +44,7 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		fontSize: 12,
 		lineHeight: 16,
-		...fontStyles.normal,
 		marginVertical: 10
-	},
-	bold: {
-		...fontStyles.bold
 	},
 	nonceInputContainer: {
 		display: 'flex',
@@ -59,8 +54,6 @@ const styles = StyleSheet.create({
 		marginVertical: 24
 	},
 	currentSuggested: {
-		textAlign: 'center',
-		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.grey500,
 		marginBottom: 20
@@ -75,7 +68,6 @@ const styles = StyleSheet.create({
 		marginBottom: 16
 	},
 	nonceWarningText: {
-		...fontStyles.normal,
 		color: colors.black,
 		fontSize: 12,
 		lineHeight: 16
@@ -128,7 +120,9 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 				<SafeAreaView style={styles.modal}>
 					<ModalDragger />
 					<View style={styles.modalContainer}>
-						<Text style={styles.title}>{strings('transaction.edit_transaction_nonce')}</Text>
+						<Text bold centered style={styles.title}>
+							{strings('transaction.edit_transaction_nonce')}
+						</Text>
 						<View style={styles.nonceInputContainer}>
 							<TouchableOpacity onPress={() => incrementDecrementNonce(true)}>
 								<IncrementDecrementSvg />
@@ -154,9 +148,8 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								<IncrementDecrementSvg plus />
 							</TouchableOpacity>
 						</View>
-						<Text style={styles.currentSuggested}>
-							{strings('transaction.current_suggested_nonce')}{' '}
-							<Text style={styles.bold}>{proposedNonce}</Text>
+						<Text centered style={styles.currentSuggested}>
+							{strings('transaction.current_suggested_nonce')} <Text bold>{proposedNonce}</Text>
 						</Text>
 						<View style={styles.descWarningContainer}>
 							{displayWarning ? (
@@ -164,7 +157,9 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 									<Text style={styles.nonceWarningText}>{strings('transaction.nonce_warning')}</Text>
 								</View>
 							) : null}
-							<Text style={[styles.desc, styles.bold]}>{strings('transaction.this_is_an_advanced')}</Text>
+							<Text bold style={styles.desc}>
+								{strings('transaction.this_is_an_advanced')}
+							</Text>
 							<Text style={styles.desc}>{strings('transaction.think_of_the_nonce')}</Text>
 						</View>
 					</View>
