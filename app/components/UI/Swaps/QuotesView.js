@@ -282,7 +282,9 @@ function SwapsQuotesView({
 
 	const hasConversionRate =
 		Boolean(destinationToken) &&
-		toChecksumAddress(destinationToken.address) in Engine.context.TokenRatesController.state.contractExchangeRates;
+		Engine.context.TokenRatesController.state.contractExchangeRates?.[
+			toChecksumAddress(destinationToken.address)
+		] !== 0;
 
 	/* State */
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
