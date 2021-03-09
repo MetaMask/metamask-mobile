@@ -59,7 +59,7 @@ function TransactionsEditionModal({
 		const uint = toTokenMinimalUnit(
 			spendLimitUnlimitedSelected ? approvalTransactionAmount : approvalCustomValue,
 			sourceToken.decimals
-		).toString();
+		).toString(10);
 		const approvalData = generateApproveData({
 			spender: SWAPS_CONTRACT_ADDRESS,
 			value: Number(uint).toString(16)
@@ -85,7 +85,7 @@ function TransactionsEditionModal({
 		setApprovalTransaction(originalApprovalTransaction);
 		if (originalApprovalTransaction) {
 			const approvalTransactionAmount = decodeApproveData(originalApprovalTransaction.data).encodedAmount;
-			const amountDec = hexToBN(approvalTransactionAmount).toString();
+			const amountDec = hexToBN(approvalTransactionAmount).toString(10);
 			setApprovalTransactionAmount(fromTokenMinimalUnitString(amountDec, sourceToken.decimals));
 		}
 	}, [originalApprovalTransaction, sourceToken.decimals, setApprovalTransaction]);

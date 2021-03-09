@@ -302,7 +302,7 @@ function SwapsAmountView({
 			setQuotesNavigationsParams(
 				sourceToken?.address,
 				destinationToken?.address,
-				toTokenMinimalUnit(amount, sourceToken?.decimals).toString(),
+				toTokenMinimalUnit(amount, sourceToken?.decimals).toString(10),
 				slippage
 			)
 		);
@@ -340,7 +340,7 @@ function SwapsAmountView({
 		if (!sourceToken || !balanceAsUnits) {
 			return;
 		}
-		setAmount(fromTokenMinimalUnitString(balanceAsUnits.toString(), sourceToken.decimals));
+		setAmount(fromTokenMinimalUnitString(balanceAsUnits.toString(10), sourceToken.decimals));
 	}, [balanceAsUnits, sourceToken]);
 
 	const handleSlippageChange = useCallback(value => {

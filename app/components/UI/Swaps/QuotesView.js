@@ -353,7 +353,7 @@ function SwapsQuotesView({
 	const [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance] = useMemo(() => {
 		// Token
 		const sourceBN = new BigNumber(sourceAmount);
-		const tokenBalanceBN = new BigNumber(balance.toString());
+		const tokenBalanceBN = new BigNumber(balance.toString(10));
 		const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
 		const missingTokenBalance = hasEnoughTokenBalance ? null : sourceBN.minus(tokenBalanceBN);
 
@@ -594,14 +594,14 @@ function SwapsQuotesView({
 		const originalApprovalTransactionEncodedAmount = decodeApproveData(originalApprovalTransaction.data)
 			.encodedAmount;
 		const originalAmount = fromTokenMinimalUnitString(
-			hexToBN(originalApprovalTransactionEncodedAmount).toString(),
+			hexToBN(originalApprovalTransactionEncodedAmount).toString(10),
 			sourceToken.decimals
 		);
 		const currentApprovalTransactionEncodedAmount = approvalTransaction
 			? decodeApproveData(approvalTransaction.data).encodedAmount
 			: '0';
 		const currentAmount = fromTokenMinimalUnitString(
-			hexToBN(currentApprovalTransactionEncodedAmount).toString(),
+			hexToBN(currentApprovalTransactionEncodedAmount).toString(10),
 			sourceToken.decimals
 		);
 
