@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.1.0 - Mar 16 2021
+## v2.0.0 - Mar 16 2021
 - [#2321](https://github.com/MetaMask/metamask-mobile/pull/2321): Swaps v1
 - [#2365](https://github.com/MetaMask/metamask-mobile/pull/2365): bugfix/transactions filtering
 - [#2253](https://github.com/MetaMask/metamask-mobile/pull/2253): Use Etherscan API for incoming token transactions
