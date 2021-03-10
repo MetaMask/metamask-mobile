@@ -40,7 +40,7 @@ const TransactionsView = ({
 			} = tx;
 			if (
 				(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
-				(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
+				(tx.chainId ? chainId === tx.chainId : chainId === tx.networkID) &&
 				tx.status !== 'unapproved'
 			) {
 				if (isTransfer)
