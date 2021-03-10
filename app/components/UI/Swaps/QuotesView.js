@@ -242,10 +242,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
  */
 const gasLimitWithMultiplier = (gasLimit, multiplier) => {
 	if (!gasLimit || !multiplier) return;
-	return new BigNumber(gasLimit)
-		.times(multiplier)
-		.integerValue()
-		.toString(16);
+	return new BigNumber(gasLimit).times(multiplier).integerValue();
 };
 
 function SwapsQuotesView({
@@ -349,7 +346,7 @@ function SwapsQuotesView({
 	const gasLimit = useMemo(
 		() =>
 			(Boolean(customGasLimit) && BNToHex(customGasLimit)) ||
-			gasLimitWithMultiplier(selectedQuote?.gasEstimate, selectedQuote?.gasMultiplier) ||
+			gasLimitWithMultiplier(selectedQuote?.gasEstimate, selectedQuote?.gasMultiplier)?.toString(16) ||
 			selectedQuote?.maxGas?.toString(16),
 		[customGasLimit, selectedQuote]
 	);
@@ -1320,7 +1317,10 @@ function SwapsQuotesView({
 				onHandleGasFeeSelection={onHandleGasFeeSelection}
 				setApprovalTransaction={setApprovalTransaction}
 				minimumSpendLimit={approvalMinimumSpendLimit}
-				minimumGasLimit={selectedQuote?.gasEstimate?.toString(10)}
+				minimumGasLimit={gasLimitWithMultiplier(
+					selectedQuote?.gasEstimate,
+					selectedQuote?.gasMultiplier
+				).toString(10)}
 				selectedQuote={selectedQuote}
 				sourceToken={sourceToken}
 			/>
