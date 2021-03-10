@@ -44,7 +44,7 @@ const TransactionsView = ({
 				);
 			return (
 				(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
-				(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
+				(chainId === tx.chainId || chainId === tx.networkID) &&
 				tx.status !== 'unapproved'
 			);
 		};
