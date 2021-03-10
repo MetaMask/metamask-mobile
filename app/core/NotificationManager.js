@@ -188,11 +188,11 @@ class NotificationManager {
 				const pollPromises = [AccountTrackerController.refresh()];
 				switch (originalTransaction.assetType) {
 					case 'ERC20': {
-						pollPromises.push(...[TokenBalancesController.refresh(), AssetsDetectionController.refresh()]);
+						pollPromises.push(...[TokenBalancesController.poll(), AssetsDetectionController.poll()]);
 						break;
 					}
 					case 'ERC721':
-						pollPromises.push(AssetsDetectionController.refresh());
+						pollPromises.push(AssetsDetectionController.poll());
 						break;
 				}
 				Promise.all(pollPromises);
