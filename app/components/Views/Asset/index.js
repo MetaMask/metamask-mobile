@@ -130,15 +130,18 @@ class Asset extends PureComponent {
 			isTransfer,
 			transferInformation
 		} = tx;
-		if (isTransfer)
-			return this.props.tokens.find(
-				({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+
+		if (tx.chainId ? chainId === tx.chainId : chainId === tx.networkID) {
+			if (isTransfer)
+				return this.props.tokens.find(
+					({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+				);
+			return (
+				(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
+				tx.status !== 'unapproved'
 			);
-		return (
-			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
-			chainId === tx.networkID &&
-			tx.status !== 'unapproved'
-		);
+		}
+		return false;
 	};
 
 	noEthFilter = tx => {
@@ -148,16 +151,18 @@ class Asset extends PureComponent {
 			isTransfer,
 			transferInformation
 		} = tx;
-		if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
-		if (
-			(from?.toLowerCase() === this.navAddress || to?.toLowerCase() === this.navAddress) &&
-			chainId === tx.networkID &&
-			tx.status !== 'unapproved'
-		)
-			return true;
-		if (swapsTransactions[tx.id] && to?.toLowerCase() === SWAPS_CONTRACT_ADDRESS) {
-			const { destinationToken, sourceToken } = swapsTransactions[tx.id];
-			return destinationToken.address === this.navAddress || sourceToken.address === this.navAddress;
+		if (tx.chainId ? chainId === tx.chainId : chainId === tx.networkID) {
+			if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
+			if (
+				(from?.toLowerCase() === this.navAddress || to?.toLowerCase() === this.navAddress) &&
+				tx.status !== 'unapproved'
+			) {
+				return true;
+			}
+			if (swapsTransactions[tx.id] && to?.toLowerCase() === SWAPS_CONTRACT_ADDRESS) {
+				const { destinationToken, sourceToken } = swapsTransactions[tx.id];
+				return destinationToken.address === this.navAddress || sourceToken.address === this.navAddress;
+			}
 		}
 		return false;
 	};

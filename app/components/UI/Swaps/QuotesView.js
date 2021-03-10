@@ -1320,7 +1320,7 @@ function SwapsQuotesView({
 				minimumGasLimit={gasLimitWithMultiplier(
 					selectedQuote?.gasEstimate,
 					selectedQuote?.gasMultiplier
-				).toString(10)}
+				)?.toString(10)}
 				selectedQuote={selectedQuote}
 				sourceToken={sourceToken}
 			/>

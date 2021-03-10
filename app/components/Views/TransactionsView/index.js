@@ -38,15 +38,19 @@ const TransactionsView = ({
 				isTransfer,
 				transferInformation
 			} = tx;
-			if (isTransfer)
-				return tokens.find(
-					({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+			if (tx.chainId ? chainId === tx.chainId : chainId === tx.networkID) {
+				if (isTransfer) {
+					return tokens.find(
+						({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+					);
+				}
+				return (
+					(safeToChecksumAddress(from) === selectedAddress ||
+						safeToChecksumAddress(to) === selectedAddress) &&
+					tx.status !== 'unapproved'
 				);
-			return (
-				(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
-				(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
-				tx.status !== 'unapproved'
-			);
+			}
+			return false;
 		};
 
 		const submittedTxs = [];
