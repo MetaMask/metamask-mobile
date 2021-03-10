@@ -38,17 +38,16 @@ const TransactionsView = ({
 				isTransfer,
 				transferInformation
 			} = tx;
-			if (chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) {
-				if (isTransfer) {
+			if (
+				(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
+				(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
+				tx.status !== 'unapproved'
+			) {
+				if (isTransfer)
 					return tokens.find(
 						({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
 					);
-				}
-				return (
-					(safeToChecksumAddress(from) === selectedAddress ||
-						safeToChecksumAddress(to) === selectedAddress) &&
-					tx.status !== 'unapproved'
-				);
+				return true;
 			}
 			return false;
 		};
