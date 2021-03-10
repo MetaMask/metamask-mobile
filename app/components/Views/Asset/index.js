@@ -131,7 +131,8 @@ class Asset extends PureComponent {
 			transferInformation
 		} = tx;
 
-		if (tx.chainId ? chainId === tx.chainId : chainId === tx.networkID) {
+		const network = Engine.context.NetworkController.state.network;
+		if (chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) {
 			if (isTransfer)
 				return this.props.tokens.find(
 					({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
@@ -151,7 +152,8 @@ class Asset extends PureComponent {
 			isTransfer,
 			transferInformation
 		} = tx;
-		if (tx.chainId ? chainId === tx.chainId : chainId === tx.networkID) {
+		const network = Engine.context.NetworkController.state.network;
+		if (chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) {
 			if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
 			if (
 				(from?.toLowerCase() === this.navAddress || to?.toLowerCase() === this.navAddress) &&

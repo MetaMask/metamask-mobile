@@ -38,7 +38,7 @@ const TransactionsView = ({
 				isTransfer,
 				transferInformation
 			} = tx;
-			if (tx.chainId ? chainId === tx.chainId : chainId === tx.networkID) {
+			if (chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) {
 				if (isTransfer) {
 					return tokens.find(
 						({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
