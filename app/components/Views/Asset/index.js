@@ -131,9 +131,10 @@ class Asset extends PureComponent {
 			transferInformation
 		} = tx;
 
+		const network = Engine.context.NetworkController.state.network;
 		if (
 			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
-			(tx.chainId ? chainId === tx.chainId : chainId === tx.networkID) &&
+			(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
 			tx.status !== 'unapproved'
 		) {
 			if (isTransfer)
@@ -152,9 +153,10 @@ class Asset extends PureComponent {
 			isTransfer,
 			transferInformation
 		} = tx;
+		const network = Engine.context.NetworkController.state.network;
 		if (
 			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
-			(tx.chainId ? chainId === tx.chainId : chainId === tx.networkID) &&
+			(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
 			tx.status !== 'unapproved'
 		) {
 			if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
