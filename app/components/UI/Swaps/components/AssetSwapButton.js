@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import Text from '../../../Base/Text';
 import AssetActionButton from '../../AssetActionButton';
@@ -27,12 +27,13 @@ function AssetSwapButton({ isFeatureLive, isNetworkAllowed, isAssetAllowed, onPr
 	}, [isAssetAllowed, isFeatureLive, isNetworkAllowed]);
 	return (
 		<>
-			<AssetActionButton
-				icon="swap"
-				label={strings('asset_overview.swap')}
-				onPress={isDisabled ? showModal : onPress}
-				style={isDisabled ? styles.disabledButton : undefined}
-			/>
+			<View style={isDisabled && styles.disabledButton}>
+				<AssetActionButton
+					icon="swap"
+					label={strings('asset_overview.swap')}
+					onPress={isDisabled ? showModal : onPress}
+				/>
+			</View>
 			<InfoModal
 				isVisible={isDisabled && isModalOpen}
 				toggleModal={hideModal}

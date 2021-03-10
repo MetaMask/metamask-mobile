@@ -5,12 +5,12 @@ import { FlatList } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import { swapsUtils } from '@estebanmino/controllers';
 
 import Device from '../../../../util/Device';
 import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiat } from '../../../../util/number';
+import { safeToChecksumAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import { colors, fontStyles } from '../../../../styles/common';
 
@@ -120,7 +120,7 @@ function TokenSelectModal({
 
 	const renderItem = useCallback(
 		({ item }) => {
-			const itemAddress = toChecksumAddress(item.address);
+			const itemAddress = safeToChecksumAddress(item.address);
 
 			let balance, balanceFiat;
 			if (item.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS) {

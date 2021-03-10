@@ -6,7 +6,6 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { NavigationContext } from 'react-navigation';
 import { swapsUtils, util } from '@estebanmino/controllers';
 
@@ -20,7 +19,8 @@ import {
 	toWei,
 	weiToFiat
 } from '../../../util/number';
-import { getErrorMessage, getFetchParams, getQuotesNavigationsParams } from './utils';
+import { safeToChecksumAddress } from '../../../util/address';
+import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsETH } from './utils';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 
@@ -209,7 +209,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 	// ff the token is not in the wallet, we'll add it
 	if (
 		destinationToken.address !== swapsUtils.ETH_SWAPS_TOKEN_ADDRESS &&
-		!contractExchangeRates[toChecksumAddress(destinationToken.address)]
+		!contractExchangeRates[safeToChecksumAddress(destinationToken.address)]
 	) {
 		const { address, symbol, decimals } = destinationToken;
 		await AssetsController.addToken(address, symbol, decimals);
@@ -220,7 +220,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 		);
 	}
 	const destinationTokenConversionRate =
-		TokenRatesController.state.contractExchangeRates[toChecksumAddress(destinationToken.address)] || 0;
+		TokenRatesController.state.contractExchangeRates[safeToChecksumAddress(destinationToken.address)] || 0;
 
 	// TODO: destinationToken could be the 0 address for ETH, also tokens that aren't on the wallet
 	const fetchParams = getFetchParams({
@@ -280,6 +280,15 @@ function SwapsQuotesView({
 		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
 	);
 
+	const hasConversionRate =
+		Boolean(destinationToken) &&
+		(isSwapsETH(destinationToken) ||
+			Boolean(
+				Engine.context.TokenRatesController.state.contractExchangeRates?.[
+					safeToChecksumAddress(destinationToken.address)
+				]
+			));
+
 	/* State */
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
 	const [isFirstLoad, setIsFirstLoad] = useState(true);
@@ -312,12 +321,12 @@ function SwapsQuotesView({
 			return [];
 		}
 
-		const orderedValues = Object.values(quoteValues).sort(
-			(a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote)
-		);
+		const orderedAggregators = hasConversionRate
+			? Object.values(quoteValues).sort((a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote))
+			: Object.values(quotes).sort((a, b) => new BigNumber(b.destinationAmount).comparedTo(a.destinationAmount));
 
-		return orderedValues.map(quoteValue => quotes[quoteValue.aggregator]);
-	}, [quoteValues, quotes]);
+		return orderedAggregators.map(quoteValue => quotes[quoteValue.aggregator]);
+	}, [hasConversionRate, quoteValues, quotes]);
 
 	/* Get the selected quote, by default is topAggId */
 	const selectedQuote = useMemo(() => allQuotes.find(quote => quote?.aggregator === selectedQuoteId), [
@@ -350,7 +359,7 @@ function SwapsQuotesView({
 	const [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance] = useMemo(() => {
 		// Token
 		const sourceBN = new BigNumber(sourceAmount);
-		const tokenBalanceBN = new BigNumber(balance.toString());
+		const tokenBalanceBN = new BigNumber(balance.toString(10));
 		const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
 		const missingTokenBalance = hasEnoughTokenBalance ? null : sourceBN.minus(tokenBalanceBN);
 
@@ -591,14 +600,14 @@ function SwapsQuotesView({
 		const originalApprovalTransactionEncodedAmount = decodeApproveData(originalApprovalTransaction.data)
 			.encodedAmount;
 		const originalAmount = fromTokenMinimalUnitString(
-			hexToBN(originalApprovalTransactionEncodedAmount).toString(),
+			hexToBN(originalApprovalTransactionEncodedAmount).toString(10),
 			sourceToken.decimals
 		);
 		const currentApprovalTransactionEncodedAmount = approvalTransaction
 			? decodeApproveData(approvalTransaction.data).encodedAmount
 			: '0';
 		const currentAmount = fromTokenMinimalUnitString(
-			hexToBN(currentApprovalTransactionEncodedAmount).toString(),
+			hexToBN(currentApprovalTransactionEncodedAmount).toString(10),
 			sourceToken.decimals
 		);
 
@@ -1297,6 +1306,7 @@ function SwapsQuotesView({
 				sourceToken={sourceToken}
 				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
+				showOverallValue={hasConversionRate}
 			/>
 
 			<TransactionsEditionModal
