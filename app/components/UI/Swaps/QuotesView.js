@@ -362,12 +362,12 @@ function SwapsQuotesView({
 
 		const ethAmountBN = sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ? sourceBN : new BigNumber(0);
 		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
-		const gasBN = new BigNumber(selectedQuoteValue?.maxEthFee || '0x0');
-		const hasEnoughEthBalance = ethBalanceBN.gte(gasBN.plus(ethAmountBN));
-		const missingEthBalance = hasEnoughEthBalance ? null : gasBN.plus(ethAmountBN).minus(ethBalanceBN);
+		const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
+		const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
+		const missingEthBalance = hasEnoughEthBalance ? null : ethAmountBN.plus(gasBN).minus(ethBalanceBN);
 
 		return [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance];
-	}, [accounts, balance, selectedQuoteValue, selectedAddress, sourceAmount, sourceToken.address]);
+	}, [accounts, balance, selectedQuoteValue, selectedAddress, sourceAmount, sourceToken]);
 
 	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
