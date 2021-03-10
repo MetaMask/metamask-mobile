@@ -285,7 +285,7 @@ class SyncWithExtension extends PureComponent {
 	}
 
 	goBack = () => {
-		this.props.navigation.navigate('HomeNav');
+		this.props.navigation.pop();
 	};
 
 	renderLoader() {
