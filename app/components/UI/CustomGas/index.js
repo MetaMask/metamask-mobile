@@ -226,6 +226,10 @@ class CustomGas extends PureComponent {
 		 */
 		gas: PropTypes.object,
 		/**
+		 * Gas limit estimation that should be the minimum value to set
+		 */
+		minimumGasLimit: PropTypes.string,
+		/**
 		 * Object BN containing gas price
 		 */
 		gasPrice: PropTypes.object,
@@ -417,7 +421,10 @@ class CustomGas extends PureComponent {
 		else if (bnValue && !isBN(bnValue)) warningGasLimit = strings('transaction.invalid_gas');
 		else if (bnValue.lt(new BN(21000)) || bnValue.gt(new BN(7920028)))
 			warningGasLimit = strings('custom_gas.warning_gas_limit');
-
+		else if (this.props.minimumGasLimit && bnValue.lt(new BN(this.props.minimumGasLimit)))
+			warningGasLimit = strings('custom_gas.warning_gas_limit_estimated', {
+				gas: this.props.minimumGasLimit.toString(10)
+			});
 		this.setState({
 			customGasLimit: value,
 			customGasLimitBN: bnValue,
@@ -450,7 +457,7 @@ class CustomGas extends PureComponent {
 
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
 	saveCustomGasSelection = () => {
-		const { gasSpeedSelected, customGasLimit, customGasPrice } = this.state;
+		const { gasSpeedSelected, customGasLimit, customGasPriceBNWei } = this.state;
 		const {
 			review,
 			gas,
@@ -459,7 +466,7 @@ class CustomGas extends PureComponent {
 			basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
 		} = this.props;
 		if (advancedCustomGas) {
-			handleGasFeeSelection(new BN(customGasLimit), apiEstimateModifiedToWEI(customGasPrice), {
+			handleGasFeeSelection(new BN(customGasLimit), customGasPriceBNWei, {
 				mode: 'advanced'
 			});
 		} else {
