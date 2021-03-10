@@ -201,14 +201,12 @@ workflows:
               only:
                 - master
                 - develop
-                - swaps-v1
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
-                - swaps-v1
       - lint:
           requires:
             - prep-node-deps
