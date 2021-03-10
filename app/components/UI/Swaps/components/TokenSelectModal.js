@@ -1,16 +1,16 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, TextInput, SafeAreaView, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TextInput, SafeAreaView, TouchableOpacity, View, TouchableWithoutFeedback } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import { swapsUtils } from '@estebanmino/controllers';
 
 import Device from '../../../../util/Device';
 import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiat } from '../../../../util/number';
+import { safeToChecksumAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import { colors, fontStyles } from '../../../../styles/common';
 
@@ -65,6 +65,8 @@ const styles = StyleSheet.create({
 	}
 });
 
+const MAX_TOKENS_RESULTS = 20;
+
 function TokenSelectModal({
 	isVisible,
 	dismiss,
@@ -81,6 +83,7 @@ function TokenSelectModal({
 	balances
 }) {
 	const searchInput = useRef(null);
+	const list = useRef();
 	const [searchString, setSearchString] = useState('');
 
 	const filteredTokens = useMemo(() => tokens?.filter(token => !excludeAddresses.includes(token.address)), [
@@ -108,13 +111,16 @@ function TokenSelectModal({
 		[filteredTokens]
 	);
 	const tokenSearchResults = useMemo(
-		() => (searchString.length > 0 ? tokenFuse.search(searchString)?.slice(0, 5) : filteredInitialTokens),
+		() =>
+			searchString.length > 0
+				? tokenFuse.search(searchString)?.slice(0, MAX_TOKENS_RESULTS)
+				: filteredInitialTokens,
 		[searchString, tokenFuse, filteredInitialTokens]
 	);
 
 	const renderItem = useCallback(
 		({ item }) => {
-			const itemAddress = toChecksumAddress(item.address);
+			const itemAddress = safeToChecksumAddress(item.address);
 
 			let balance, balanceFiat;
 			if (item.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS) {
@@ -160,6 +166,11 @@ function TokenSelectModal({
 		[searchString]
 	);
 
+	const handleSearchTextChange = useCallback(text => {
+		setSearchString(text);
+		if (list.current) list.current.scrollToOffset({ animated: false, y: 0 });
+	}, []);
+
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -177,18 +188,21 @@ function TokenSelectModal({
 				<Text bold centered primary style={styles.modalTitle}>
 					{title}
 				</Text>
-				<View style={styles.inputWrapper}>
-					<Icon name="ios-search" size={20} style={styles.searchIcon} onPress={handleSearchPress} />
-					<TextInput
-						ref={searchInput}
-						style={styles.input}
-						placeholder={strings('swaps.search_token')}
-						placeholderTextColor={colors.grey500}
-						value={searchString}
-						onChangeText={setSearchString}
-					/>
-				</View>
+				<TouchableWithoutFeedback onPress={handleSearchPress}>
+					<View style={styles.inputWrapper}>
+						<Icon name="ios-search" size={20} style={styles.searchIcon} />
+						<TextInput
+							ref={searchInput}
+							style={styles.input}
+							placeholder={strings('swaps.search_token')}
+							placeholderTextColor={colors.grey500}
+							value={searchString}
+							onChangeText={handleSearchTextChange}
+						/>
+					</View>
+				</TouchableWithoutFeedback>
 				<FlatList
+					ref={list}
 					style={styles.resultsView}
 					keyboardDismissMode="none"
 					keyboardShouldPersistTaps="always"

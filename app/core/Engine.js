@@ -14,11 +14,11 @@ import {
 	PreferencesController,
 	TokenBalancesController,
 	TokenRatesController,
-	TypedMessageManager,
-	TransactionController
+	TransactionController,
+	TypedMessageManager
 } from '@metamask/controllers';
 
-import { /*TransactionController,*/ SwapsController } from '@estebanmino/controllers';
+import { SwapsController } from '@estebanmino/controllers';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -117,7 +117,7 @@ class Engine {
 					new TokenRatesController(),
 					new TransactionController(),
 					new TypedMessageManager(),
-					new SwapsController()
+					new SwapsController({ clientId: AppConstants.SWAPS.CLIENT_ID })
 				],
 				initialState
 			);
@@ -126,8 +126,7 @@ class Engine {
 				AssetsController: assets,
 				KeyringController: keyring,
 				NetworkController: network,
-				TransactionController: transaction,
-				PreferencesController: preferences
+				TransactionController: transaction
 			} = this.datamodel.context;
 
 			assets.setApiKey(process.env.MM_OPENSEA_KEY);
@@ -144,24 +143,6 @@ class Engine {
 			});
 			this.configureControllersOnNetworkChange();
 			Engine.instance = this;
-
-			if (AppConstants.SWAPS.ACTIVE) {
-				const swapsTestInState = preferences.state.frequentRpcList.find(({ chainId }) => chainId === 1337);
-				if (!swapsTestInState) {
-					preferences.addToFrequentRpcList(
-						'https://ganache-testnet.airswap-dev.codefi.network/',
-						'1337',
-						'ETH',
-						'Swaps Test Network'
-					);
-					network.setRpcTarget(
-						'https://ganache-testnet.airswap-dev.codefi.network/',
-						'1337',
-						'ETH',
-						'Swaps Test Network'
-					);
-				}
-			}
 		}
 		return Engine.instance;
 	}

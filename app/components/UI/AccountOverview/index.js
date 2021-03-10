@@ -27,6 +27,7 @@ import AssetActionButton from '../AssetActionButton';
 import EthereumAddress from '../EthereumAddress';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { allowedToBuy } from '../FiatOrders';
+import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 
 const styles = StyleSheet.create({
 	scrollView: {
@@ -351,13 +352,11 @@ class AccountOverview extends PureComponent {
 								label={strings('asset_overview.send_button')}
 							/>
 							{AppConstants.SWAPS.ACTIVE && (
-								<AssetActionButton
-									icon="swap"
-									label={strings('asset_overview.swap')}
-									disabled={
-										!swapsIsLive || (AppConstants.SWAPS.ONLY_MAINNET ? !isMainNet(chainId) : false)
-									}
+								<AssetSwapButton
+									isFeatureLive={swapsIsLive}
+									isNetworkAllowed={AppConstants.SWAPS.ONLY_MAINNET ? isMainNet(chainId) : true}
 									onPress={this.goToSwaps}
+									isAssetAllowed
 								/>
 							)}
 						</View>
