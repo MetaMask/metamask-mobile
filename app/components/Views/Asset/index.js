@@ -130,34 +130,40 @@ class Asset extends PureComponent {
 			isTransfer,
 			transferInformation
 		} = tx;
-		if (isTransfer)
-			return this.props.tokens.find(
-				({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
-			);
-		return (
+
+		const network = Engine.context.NetworkController.state.network;
+		if (
 			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
-			chainId === tx.networkID &&
+			(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
 			tx.status !== 'unapproved'
-		);
+		) {
+			if (isTransfer)
+				return this.props.tokens.find(
+					({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+				);
+			return true;
+		}
+		return false;
 	};
 
 	noEthFilter = tx => {
-		const { chainId, swapsTransactions } = this.props;
+		const { chainId, swapsTransactions, selectedAddress } = this.props;
 		const {
 			transaction: { to, from },
 			isTransfer,
 			transferInformation
 		} = tx;
-		if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
+		const network = Engine.context.NetworkController.state.network;
 		if (
-			(from?.toLowerCase() === this.navAddress || to?.toLowerCase() === this.navAddress) &&
-			chainId === tx.networkID &&
+			(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
+			(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
 			tx.status !== 'unapproved'
-		)
-			return true;
-		if (swapsTransactions[tx.id] && to?.toLowerCase() === SWAPS_CONTRACT_ADDRESS) {
-			const { destinationToken, sourceToken } = swapsTransactions[tx.id];
-			return destinationToken.address === this.navAddress || sourceToken.address === this.navAddress;
+		) {
+			if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
+			if (swapsTransactions[tx.id] && to?.toLowerCase() === SWAPS_CONTRACT_ADDRESS) {
+				const { destinationToken, sourceToken } = swapsTransactions[tx.id];
+				return destinationToken.address === this.navAddress || sourceToken.address === this.navAddress;
+			}
 		}
 		return false;
 	};
