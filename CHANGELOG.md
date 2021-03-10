@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.1.0 - Mar 16 2021
+- [#2321](https://github.com/MetaMask/metamask-mobile/pull/2321): Swaps v1
+- [#2365](https://github.com/MetaMask/metamask-mobile/pull/2365): bugfix/transactions filtering
+- [#2253](https://github.com/MetaMask/metamask-mobile/pull/2253): Use Etherscan API for incoming token transactions
+- [#2245](https://github.com/MetaMask/metamask-mobile/pull/2245): Fix transaction history
+- [#2363](https://github.com/MetaMask/metamask-mobile/pull/2363): fix: `poll` after notification don't `refresh`
+- [#2344](https://github.com/MetaMask/metamask-mobile/pull/2344): Sync with extension chain id
+- [#2269](https://github.com/MetaMask/metamask-mobile/pull/2269): @metamask/contract-metadata@1.23.0
+- [#2357](https://github.com/MetaMask/metamask-mobile/pull/2357): Update `elliptic` to v6.5.4 to address security advisory
+- [#2247](https://github.com/MetaMask/metamask-mobile/pull/2247): Provide chainId correctly
+- [#2196](https://github.com/MetaMask/metamask-mobile/pull/2196): improvement/handle provider updates
+- [#2157](https://github.com/MetaMask/metamask-mobile/pull/2157): Swaps: Alpha 2
+- [#2272](https://github.com/MetaMask/metamask-mobile/pull/2272): Update twitter handle in README
+- [#2265](https://github.com/MetaMask/metamask-mobile/pull/2265): Fix input state
+
 ## v1.0.11 - Feb 15 2021
 - [#2257](https://github.com/MetaMask/metamask-mobile/pull/2257): bugfix/use bignumber for transfer deeplinks
 - [#2256](https://github.com/MetaMask/metamask-mobile/pull/2256): Fix account list scroll
