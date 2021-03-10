@@ -217,7 +217,7 @@ class Engine {
 			//Fetch txs and get the new lastIncomingTxBlock number
 			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, {
 				blockNumber,
-				alethioApiKey: process.env.MM_ALETHIO_KEY
+				etherscanApiKey: process.env.MM_ETHERSCAN_KEY
 			});
 			// Check if it's a newer block and store it so next time we ask for the newer txs only
 			if (
