@@ -1077,7 +1077,7 @@ class Confirm extends PureComponent {
 								<Text bold black>
 									{strings('transaction.custom_nonce')}
 								</Text>
-								<Text bold blue>
+								<Text bold link>
 									{'  '}
 									{strings('transaction.edit')}
 								</Text>
