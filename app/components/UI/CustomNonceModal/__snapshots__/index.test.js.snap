@@ -117,7 +117,6 @@ exports[`CustomNonceModal should render correctly 1`] = `
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
-            autoFocus={true}
             editable={true}
             keyboardType="numeric"
             numberOfLines={1}
@@ -125,6 +124,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             onSubmitEditing={[Function]}
             placeholder="26"
             placeholderTextColor="#d6d9dc"
+            showSoftInputOnFocus={false}
             spellCheck={false}
             style={
               Object {
