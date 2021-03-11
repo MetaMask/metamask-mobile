@@ -56,8 +56,6 @@ exports[`Amount should render correctly 1`] = `
                 "backgroundColor": "#037dd6",
                 "borderRadius": 100,
                 "flexDirection": "row",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontWeight": "400",
                 "paddingHorizontal": 16,
                 "paddingVertical": 2,
               }
@@ -149,8 +147,7 @@ exports[`Amount should render correctly 1`] = `
               placeholder="0"
               style={
                 Object {
-                  "color": "#24292E",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "Roboto-Light",
                   "fontSize": 44,
                   "fontWeight": "300",
                   "textAlign": "center",

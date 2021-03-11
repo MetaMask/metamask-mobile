@@ -170,7 +170,7 @@ exports[`SendTo should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#24292E",
+                "color": "#000000",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 24,
                 "fontWeight": "400",
@@ -227,7 +227,7 @@ exports[`SendTo should render correctly 1`] = `
                 spellCheck={false}
                 style={
                   Object {
-                    "color": "#24292E",
+                    "color": "#000000",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 20,
                     "fontWeight": "400",

@@ -45,7 +45,7 @@ exports[`AccountInfoCard should render correctly 1`] = `
         numberOfLines={1}
         style={
           Object {
-            "color": "#24292E",
+            "color": "#000000",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 16,
             "fontWeight": "600",
@@ -60,7 +60,7 @@ exports[`AccountInfoCard should render correctly 1`] = `
         numberOfLines={1}
         style={
           Object {
-            "color": "#24292E",
+            "color": "#000000",
             "flexGrow": 1,
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 16,
@@ -78,7 +78,7 @@ exports[`AccountInfoCard should render correctly 1`] = `
       style={
         Object {
           "alignSelf": "flex-start",
-          "color": "#24292E",
+          "color": "#000000",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "100",
