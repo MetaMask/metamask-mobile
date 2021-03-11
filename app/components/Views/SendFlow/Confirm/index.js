@@ -6,7 +6,6 @@ import {
 	SafeAreaView,
 	View,
 	Alert,
-	Text,
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator
@@ -58,6 +57,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/general';
 import { isMainNet, getNetworkName } from '../../../../util/networks';
+import Text from '../../../Base/Text';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -119,13 +119,6 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 		display: 'flex',
 		flexDirection: 'row'
-	},
-	nonceText: {
-		color: colors.black,
-		...fontStyles.bold
-	},
-	editText: {
-		color: colors.blue
 	},
 	nonceNumber: {
 		marginLeft: 'auto'
@@ -1081,12 +1074,16 @@ class Confirm extends PureComponent {
 					<View style={styles.actionsWrapper}>
 						{showCustomNonce && (
 							<TouchableOpacity style={styles.customNonce} onPress={() => this.edit(EDIT_NONCE)}>
-								<Text style={styles.nonceText}>{strings('transaction.custom_nonce')}</Text>
-								<Text style={[styles.nonceText, styles.editText]}>
+								<Text bold black>
+									{strings('transaction.custom_nonce')}
+								</Text>
+								<Text bold blue>
 									{'  '}
 									{strings('transaction.edit')}
 								</Text>
-								<Text style={[styles.nonceText, styles.nonceNumber]}>{nonceValue}</Text>
+								<Text bold black style={styles.nonceNumber}>
+									{nonceValue}
+								</Text>
 							</TouchableOpacity>
 						)}
 						{!isPaymentChannelTransaction && showHexData && (
