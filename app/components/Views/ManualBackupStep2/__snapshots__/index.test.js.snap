@@ -727,7 +727,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",
@@ -764,7 +764,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",
@@ -801,7 +801,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",
@@ -838,7 +838,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",
@@ -875,7 +875,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",
@@ -912,7 +912,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",
@@ -949,7 +949,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",
@@ -986,7 +986,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",
@@ -1023,7 +1023,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",
@@ -1060,7 +1060,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",
@@ -1097,7 +1097,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",
@@ -1134,7 +1134,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#24292E",
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "textAlign": "center",

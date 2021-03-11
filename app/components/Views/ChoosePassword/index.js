@@ -29,7 +29,7 @@ import {
 	SEED_PHRASE_HINTS,
 	BIOMETRY_CHOICE_DISABLED
 } from '../../../constants/storage';
-import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH } from '../../../util/password';
+import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 
@@ -71,13 +71,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	title: {
-		fontSize: Device.isAndroid() ? 20 : 25,
+		fontSize: 24,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.normal
 	},
 	subtitle: {
 		fontSize: 16,
@@ -118,7 +118,6 @@ const styles = StyleSheet.create({
 		textDecorationColor: colors.blue
 	},
 	field: {
-		marginVertical: 5,
 		position: 'relative'
 	},
 	input: {
@@ -145,10 +144,11 @@ const styles = StyleSheet.create({
 		marginBottom: 30
 	},
 	biometryLabel: {
-		flex: 1,
-		fontSize: 16,
-		color: colors.black,
-		...fontStyles.normal
+		fontSize: 14,
+		color: colors.fontPrimary,
+		position: 'absolute',
+		top: 0,
+		left: 0
 	},
 	biometrySwitch: {
 		position: 'absolute',
@@ -156,17 +156,11 @@ const styles = StyleSheet.create({
 		right: 0
 	},
 	hintLabel: {
-		marginTop: 14,
-		color: colors.black,
-		fontSize: 16,
-		marginBottom: 12,
-		...fontStyles.normal
-	},
-	passwordStrengthLabel: {
 		height: 20,
-		marginTop: 10,
-		fontSize: 15,
-		color: colors.black,
+		marginTop: 14,
+		fontSize: 12,
+		color: colors.grey450,
+		textAlign: 'left',
 		...fontStyles.normal
 	},
 	showPassword: {
@@ -188,7 +182,7 @@ const styles = StyleSheet.create({
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
-		top: 62,
+		top: 50,
 		right: 17,
 		alignSelf: 'flex-end'
 	}
@@ -577,14 +571,14 @@ class ChoosePassword extends PureComponent {
 										autoCapitalize="none"
 									/>
 									{(password !== '' && (
-										<Text style={styles.passwordStrengthLabel}>
+										<Text style={styles.hintLabel}>
 											{strings('choose_password.password_strength')}
 											<Text style={styles[`strength_${passwordStrengthWord}`]}>
 												{' '}
 												{strings(`choose_password.strength_${passwordStrengthWord}`)}
 											</Text>
 										</Text>
-									)) || <Text style={styles.passwordStrengthLabel} />}
+									)) || <Text style={styles.hintLabel} />}
 								</View>
 								<View style={styles.field}>
 									<Text style={styles.hintLabel}>{strings('choose_password.confirm_password')}</Text>
@@ -606,8 +600,8 @@ class ChoosePassword extends PureComponent {
 											<Icon name="check" size={16} color={colors.green300} />
 										) : null}
 									</View>
-									<Text style={styles.passwordStrengthLabel}>
-										{strings('choose_password.must_be_at_least', { number: MIN_PASSWORD_LENGTH })}
+									<Text style={styles.hintLabel}>
+										{strings('choose_password.must_be_at_least', { number: 8 })}
 									</Text>
 								</View>
 								<View>{this.renderSwitch()}</View>

@@ -94,7 +94,6 @@ const styles = StyleSheet.create({
 		flex: 0.8
 	},
 	actionDropdown: {
-		...fontStyles.normal,
 		backgroundColor: colors.blue,
 		paddingHorizontal: 16,
 		paddingVertical: 2,
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	inputCurrencyText: {
-		...fontStyles.normal,
+		fontFamily: 'Roboto-Light',
 		fontWeight: fontStyles.light.fontWeight,
 		color: colors.black,
 		fontSize: 44,
@@ -143,11 +142,10 @@ const styles = StyleSheet.create({
 		textTransform: 'uppercase'
 	},
 	textInput: {
-		...fontStyles.normal,
+		fontFamily: 'Roboto-Light',
 		fontWeight: fontStyles.light.fontWeight,
 		fontSize: 44,
-		textAlign: 'center',
-		color: colors.black
+		textAlign: 'center'
 	},
 	switch: {
 		flex: 1,
