@@ -234,11 +234,26 @@ exports[`CustomNonceModal should render correctly 1`] = `
                 "borderRadius": 8,
                 "borderWidth": 1,
                 "display": "flex",
+                "flexDirection": "row",
                 "marginBottom": 16,
+                "marginTop": 10,
                 "padding": 16,
               }
             }
           >
+            <Icon
+              allowFontScaling={false}
+              color="#FFD33D"
+              name="exclamation-circle"
+              size={16}
+              style={
+                Object {
+                  "flex": 0,
+                  "marginTop": 6,
+                  "paddingRight": 14,
+                }
+              }
+            />
             <Text
               black={false}
               blue={false}
@@ -256,8 +271,10 @@ exports[`CustomNonceModal should render correctly 1`] = `
               style={
                 Object {
                   "color": "#000000",
+                  "flex": 1,
                   "fontSize": 12,
                   "lineHeight": 16,
+                  "width": "100%",
                 }
               }
               underline={false}
