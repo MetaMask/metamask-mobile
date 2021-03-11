@@ -261,8 +261,6 @@ const ICON_IMAGES = {
 	wallet: require('../../../images/wallet-icon.png'),
 	'selected-wallet': require('../../../images/selected-wallet-icon.png')
 };
-const instapay_logo_selected = require('../../../images/mm-instapay-selected.png'); // eslint-disable-line
-const instapay_logo = require('../../../images/mm-instapay.png'); // eslint-disable-line
 
 /**
  * View component that displays the MetaMask fox
