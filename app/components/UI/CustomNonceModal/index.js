@@ -51,12 +51,18 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		alignSelf: 'center',
-		marginVertical: 24
+		marginVertical: 10
+	},
+	incrementDecrementNonceContainer: {
+		display: 'flex',
+		flexDirection: 'row',
+		alignItems: 'center',
+		alignSelf: 'center'
 	},
 	currentSuggested: {
 		fontSize: 14,
 		color: colors.grey500,
-		marginBottom: 20
+		marginBottom: 10
 	},
 	nonceWarning: {
 		borderWidth: 1,
@@ -82,6 +88,9 @@ const styles = StyleSheet.create({
 	actionButton: {
 		flex: 1,
 		marginHorizontal: 8
+	},
+	incrementHit: {
+		padding: 10
 	}
 });
 
@@ -124,9 +133,6 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 							{strings('transaction.edit_transaction_nonce')}
 						</Text>
 						<View style={styles.nonceInputContainer}>
-							<TouchableOpacity onPress={() => incrementDecrementNonce(true)}>
-								<IncrementDecrementSvg />
-							</TouchableOpacity>
 							<TextInput
 								keyboardType="numeric"
 								autoFocus
@@ -144,13 +150,21 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								// onFocus={this.onInputFocus}
 								onSubmitEditing={() => saveAndClose(nonce)}
 							/>
-							<TouchableOpacity onPress={() => incrementDecrementNonce(false)}>
-								<IncrementDecrementSvg plus />
-							</TouchableOpacity>
 						</View>
 						<Text centered style={styles.currentSuggested}>
 							{strings('transaction.current_suggested_nonce')} <Text bold>{proposedNonce}</Text>
 						</Text>
+						<View style={styles.incrementDecrementNonceContainer}>
+							<TouchableOpacity style={styles.incrementHit} onPress={() => incrementDecrementNonce(true)}>
+								<IncrementDecrementSvg />
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={styles.incrementHit}
+								onPress={() => incrementDecrementNonce(false)}
+							>
+								<IncrementDecrementSvg plus />
+							</TouchableOpacity>
+						</View>
 						<View style={styles.descWarningContainer}>
 							{displayWarning ? (
 								<View style={styles.nonceWarning}>
