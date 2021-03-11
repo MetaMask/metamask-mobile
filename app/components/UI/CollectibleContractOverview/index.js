@@ -4,7 +4,8 @@ import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
-import AssetActionButtons from '../AssetActionButtons';
+import AssetActionButton from '../AssetActionButton';
+import Device from '../../../util/Device';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
@@ -34,6 +35,12 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.fontPrimary,
 		...fontStyles.normal
+	},
+	actions: {
+		width: Device.isSmallDevice() ? '65%' : '50%',
+		justifyContent: 'space-around',
+		alignItems: 'flex-start',
+		flexDirection: 'row'
 	}
 });
 
@@ -112,16 +119,20 @@ class CollectibleContractOverview extends PureComponent {
 					</Text>
 				</View>
 
-				<AssetActionButtons
-					leftText={leftActionButtonText}
-					middleText={strings('asset_overview.add_collectible_button')}
-					rightText={strings('asset_overview.info')}
-					onLeftPress={this.onSend}
-					onMiddlePress={this.onAdd}
-					testID={'collectible-info-button'}
-					onRightPress={this.onInfo}
-					middleType={'add'}
-				/>
+				<View style={styles.actions}>
+					<AssetActionButton icon="send" onPress={this.onSend} label={leftActionButtonText} />
+					<AssetActionButton
+						icon="add"
+						onPress={this.onAdd}
+						label={strings('asset_overview.add_collectible_button')}
+					/>
+					<AssetActionButton
+						testID={'collectible-info-button'}
+						icon="add"
+						onPress={this.onInfo}
+						label={strings('asset_overview.info')}
+					/>
+				</View>
 			</View>
 		);
 	}

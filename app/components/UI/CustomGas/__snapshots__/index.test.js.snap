@@ -162,12 +162,13 @@ exports[`CustomGas should render correctly 1`] = `
               "alignSelf": "stretch",
               "borderColor": "#d6d9dc",
               "borderWidth": 1,
+              "flex": 1,
               "marginLeft": -2,
               "paddingHorizontal": 12,
               "paddingVertical": 10,
               "textAlign": "center",
-              "width": "33.333333333%",
             },
+            false,
             Object {
               "borderBottomStartRadius": 6,
               "borderTopStartRadius": 6,
@@ -251,17 +252,19 @@ exports[`CustomGas should render correctly 1`] = `
               "alignSelf": "stretch",
               "borderColor": "#d6d9dc",
               "borderWidth": 1,
+              "flex": 1,
               "marginLeft": -2,
               "paddingHorizontal": 12,
               "paddingVertical": 10,
               "textAlign": "center",
-              "width": "33.333333333%",
             },
             Object {
               "backgroundColor": "#eaf6ff",
               "borderColor": "#037dd6",
               "zIndex": 1,
             },
+            false,
+            false,
           ]
         }
       >
@@ -340,17 +343,18 @@ exports[`CustomGas should render correctly 1`] = `
               "alignSelf": "stretch",
               "borderColor": "#d6d9dc",
               "borderWidth": 1,
+              "flex": 1,
               "marginLeft": -2,
               "paddingHorizontal": 12,
               "paddingVertical": 10,
               "textAlign": "center",
-              "width": "33.333333333%",
             },
+            false,
+            false,
             Object {
               "borderBottomEndRadius": 6,
               "borderTopEndRadius": 6,
             },
-            false,
           ]
         }
       >
@@ -462,7 +466,7 @@ exports[`CustomGas should render correctly 1`] = `
             "color": "#24292E",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "300",
             "textAlign": "left",
           }
@@ -513,7 +517,7 @@ exports[`CustomGas should render correctly 1`] = `
             "color": "#24292E",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "300",
             "textAlign": "left",
           }
@@ -558,7 +562,7 @@ exports[`CustomGas should render correctly 1`] = `
             "color": "#24292E",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "300",
             "textAlign": "left",
           }
@@ -584,8 +588,51 @@ exports[`CustomGas should render correctly 1`] = `
             "position": "relative",
           }
         }
-        value="10"
+        value="0"
       />
+    </View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "center",
+          "justifyContent": "center",
+          "marginBottom": 10,
+          "width": "100%",
+        }
+      }
+    >
+      <View
+        style={
+          Array [
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#fcf2f3",
+              "borderColor": "#D73A49",
+              "borderRadius": 8,
+              "borderWidth": 1,
+              "justifyContent": "center",
+              "paddingHorizontal": 10,
+              "paddingVertical": 8,
+              "width": "100%",
+            },
+            null,
+          ]
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#D73A49",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Insufficient funds
+        </Text>
+      </View>
     </View>
   </ForwardRef(AnimatedComponentWrapper)>
   <ForwardRef(AnimatedComponentWrapper)>
