@@ -9,6 +9,7 @@ import Text from '../../Base/Text';
 import StyledButton from '../../UI/StyledButton';
 import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	bottomModal: {
@@ -70,13 +71,17 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.yellow100,
 		padding: 16,
 		display: 'flex',
+		flexDirection: 'row',
 		borderRadius: 8,
+		marginTop: 10,
 		marginBottom: 16
 	},
 	nonceWarningText: {
 		color: colors.black,
 		fontSize: 12,
-		lineHeight: 16
+		lineHeight: 16,
+		width: '100%',
+		flex: 1
 	},
 	descWarningContainer: {
 		height: 240
@@ -91,6 +96,11 @@ const styles = StyleSheet.create({
 	},
 	incrementHit: {
 		padding: 10
+	},
+	icon: {
+		flex: 0,
+		marginTop: 6,
+		paddingRight: 14
 	}
 });
 
@@ -168,6 +178,12 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 						<View style={styles.descWarningContainer}>
 							{displayWarning ? (
 								<View style={styles.nonceWarning}>
+									<Icon
+										name="exclamation-circle"
+										color={colors.yellow}
+										size={16}
+										style={styles.icon}
+									/>
 									<Text style={styles.nonceWarningText}>{strings('transaction.nonce_warning')}</Text>
 								</View>
 							) : null}
