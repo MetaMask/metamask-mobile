@@ -45,6 +45,19 @@ exports[`Confirm should render correctly 1`] = `
       }
     >
       <Text
+        black={false}
+        blue={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#6a737d",
@@ -56,10 +69,25 @@ exports[`Confirm should render correctly 1`] = `
             "textTransform": "uppercase",
           }
         }
+        underline={false}
+        upper={false}
       >
         Amount
       </Text>
       <Text
+        black={false}
+        blue={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#000000",
@@ -70,8 +98,23 @@ exports[`Confirm should render correctly 1`] = `
           }
         }
         testID="confirm-txn-amount"
+        underline={false}
+        upper={false}
       />
       <Text
+        black={false}
+        blue={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#6a737d",
@@ -83,6 +126,8 @@ exports[`Confirm should render correctly 1`] = `
             "textTransform": "uppercase",
           }
         }
+        underline={false}
+        upper={false}
       />
     </View>
     <TransactionReviewFeeCard
@@ -90,9 +135,45 @@ exports[`Confirm should render correctly 1`] = `
       fiat=""
       gasEstimationReady={false}
       over={false}
-      totalFiat={<Text />}
+      totalFiat={
+        <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        />
+      }
       totalGasFiat=""
-      totalValue={<Text />}
+      totalValue={
+        <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        />
+      }
       transactionValue=""
     />
     <View
@@ -111,6 +192,19 @@ exports[`Confirm should render correctly 1`] = `
         }
       >
         <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "alignSelf": "center",
@@ -120,6 +214,8 @@ exports[`Confirm should render correctly 1`] = `
               "fontWeight": "400",
             }
           }
+          underline={false}
+          upper={false}
         >
           Hex Data
         </Text>
@@ -304,6 +400,19 @@ exports[`Confirm should render correctly 1`] = `
         }
       >
         <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "alignItems": "center",
@@ -316,15 +425,32 @@ exports[`Confirm should render correctly 1`] = `
               "textAlign": "center",
             }
           }
+          underline={false}
+          upper={false}
         >
           Hex Data
         </Text>
         <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "textAlign": "justify",
             }
           }
+          underline={false}
+          upper={false}
         >
           0x
         </Text>

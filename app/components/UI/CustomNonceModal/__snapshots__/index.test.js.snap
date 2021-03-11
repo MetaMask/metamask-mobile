@@ -79,15 +79,27 @@ exports[`CustomNonceModal should render correctly 1`] = `
         }
       >
         <Text
+          black={false}
+          blue={false}
+          bold={true}
+          centered={true}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "color": "#000000",
-              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 14,
-              "fontWeight": "600",
-              "textAlign": "center",
             }
           }
+          underline={false}
+          upper={false}
         >
           Edit transaction nonce
         </Text>
@@ -98,15 +110,10 @@ exports[`CustomNonceModal should render correctly 1`] = `
               "alignSelf": "center",
               "display": "flex",
               "flexDirection": "row",
-              "marginVertical": 24,
+              "marginVertical": 10,
             }
           }
         >
-          <TouchableOpacity
-            onPress={[Function]}
-          >
-            <IncrementDecrementSvg />
-          </TouchableOpacity>
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
@@ -132,39 +139,86 @@ exports[`CustomNonceModal should render correctly 1`] = `
             }
             value="undefined"
           />
+        </View>
+        <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={true}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          style={
+            Object {
+              "color": "#6a737d",
+              "fontSize": 14,
+              "marginBottom": 10,
+            }
+          }
+          underline={false}
+          upper={false}
+        >
+          Current suggested nonce:
+
+          <Text
+            black={false}
+            blue={false}
+            bold={true}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={false}
+            modal={false}
+            primary={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
+            underline={false}
+            upper={false}
+          >
+            26
+          </Text>
+        </Text>
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
           <TouchableOpacity
             onPress={[Function]}
+            style={
+              Object {
+                "padding": 10,
+              }
+            }
+          >
+            <IncrementDecrementSvg />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              Object {
+                "padding": 10,
+              }
+            }
           >
             <IncrementDecrementSvg
               plus={true}
             />
           </TouchableOpacity>
         </View>
-        <Text
-          style={
-            Object {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "marginBottom": 20,
-              "textAlign": "center",
-            }
-          }
-        >
-          Current suggested nonce:
-
-          <Text
-            style={
-              Object {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontWeight": "600",
-              }
-            }
-          >
-            26
-          </Text>
-        </Text>
         <View
           style={
             Object {
@@ -186,50 +240,83 @@ exports[`CustomNonceModal should render correctly 1`] = `
             }
           >
             <Text
+              black={false}
+              blue={false}
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              green={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "color": "#000000",
-                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 12,
-                  "fontWeight": "400",
                   "lineHeight": 16,
                 }
               }
+              underline={false}
+              upper={false}
             >
               Warning: There are older transactions pending. This is an advanced feature and should only be used with caution.
             </Text>
           </View>
           <Text
-            style={
-              Array [
-                Object {
-                  "color": "#000000",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 16,
-                  "marginVertical": 10,
-                },
-                Object {
-                  "fontFamily": "EuclidCircularB-Bold",
-                  "fontWeight": "600",
-                },
-              ]
-            }
-          >
-            This is an advanced feature used to cancel or speed up older transactions.
-          </Text>
-          <Text
+            black={false}
+            blue={false}
+            bold={true}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={false}
+            modal={false}
+            primary={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
             style={
               Object {
                 "color": "#000000",
-                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
-                "fontWeight": "400",
                 "lineHeight": 16,
                 "marginVertical": 10,
               }
             }
+            underline={false}
+            upper={false}
+          >
+            This is an advanced feature used to cancel or speed up older transactions.
+          </Text>
+          <Text
+            black={false}
+            blue={false}
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={false}
+            modal={false}
+            primary={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
+            style={
+              Object {
+                "color": "#000000",
+                "fontSize": 12,
+                "lineHeight": 16,
+                "marginVertical": 10,
+              }
+            }
+            underline={false}
+            upper={false}
           >
             Think of the nonce as the transaction number of an account. Every accounts nonce begins with 0 for the first transaction and continues in sequential order.
           </Text>

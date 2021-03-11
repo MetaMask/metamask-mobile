@@ -18,6 +18,8 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
 >
   <SummaryRow>
     <Text
+      black={false}
+      blue={false}
       bold={true}
       centered={false}
       disclaimer={false}
@@ -35,6 +37,8 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       Amount
     </Text>
     <Text
+      black={false}
+      blue={false}
       bold={true}
       centered={false}
       disclaimer={false}
@@ -53,6 +57,8 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
   <SummaryRow>
     <SummaryCol>
       <Text
+        black={false}
+        blue={false}
         bold={true}
         centered={false}
         disclaimer={false}
@@ -73,6 +79,8 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
         disabled={true}
       >
         <Text
+          black={false}
+          blue={false}
           bold={true}
           centered={false}
           disclaimer={false}
@@ -111,6 +119,8 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
   <SummarySeparator />
   <SummaryRow>
     <Text
+      black={false}
+      blue={false}
       bold={true}
       centered={false}
       disclaimer={false}
