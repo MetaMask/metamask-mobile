@@ -20,6 +20,7 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-start'
 	},
 	text: {
+		...fontStyles.normal,
 		padding: 16
 	},
 	normalText: {
