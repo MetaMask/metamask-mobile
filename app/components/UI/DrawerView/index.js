@@ -222,10 +222,6 @@ const styles = StyleSheet.create({
 		fontSize: 10,
 		...fontStyles.bold
 	},
-	instapayLogo: {
-		width: 24,
-		height: 24
-	},
 	protectWalletContainer: {
 		backgroundColor: colors.white,
 		paddingTop: 24,
@@ -350,14 +346,6 @@ class DrawerView extends PureComponent {
 		 * Frequent RPC list from PreferencesController
 		 */
 		frequentRpcList: PropTypes.array,
-		/**
-		/* flag that determines the state of payment channels
-		*/
-		paymentChannelsEnabled: PropTypes.bool,
-		/**
-		 * Current provider type
-		 */
-		providerType: PropTypes.string,
 		/**
 		 * Array of ERC20 assets
 		 */
@@ -505,20 +493,6 @@ class DrawerView extends PureComponent {
 		this.props.navigation.navigate('BrowserTabHome');
 		this.hideDrawer();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
-	};
-
-	goToPaymentChannel = () => {
-		const { providerType } = this.props;
-		if (AppConstants.CONNEXT.SUPPORTED_NETWORKS.indexOf(providerType) !== -1) {
-			this.props.navigation.navigate('PaymentChannelHome');
-			this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_INSTAPAY);
-		} else {
-			Alert.alert(
-				strings('experimental_settings.network_not_supported'),
-				strings('experimental_settings.switch_network')
-			);
-		}
-		this.hideDrawer();
 	};
 
 	showWallet = () => {
@@ -690,8 +664,7 @@ class DrawerView extends PureComponent {
 			network: {
 				provider: { type, rpcTarget }
 			},
-			frequentRpcList,
-			paymentChannelsEnabled
+			frequentRpcList
 		} = this.props;
 		let blockExplorer, blockExplorerName;
 		if (type === RPC) {
@@ -713,12 +686,6 @@ class DrawerView extends PureComponent {
 					selectedIcon: this.getSelectedImageIcon('wallet'),
 					action: this.showWallet,
 					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
-				},
-				paymentChannelsEnabled && {
-					name: strings('drawer.insta_pay'),
-					icon: <Image source={instapay_logo} style={styles.instapayLogo} />,
-					selectedIcon: <Image source={instapay_logo_selected} style={styles.instapayLogo} />,
-					action: this.goToPaymentChannel
 				},
 				{
 					name: strings('drawer.transaction_history'),
@@ -1114,8 +1081,6 @@ const mapStateToProps = state => ({
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
