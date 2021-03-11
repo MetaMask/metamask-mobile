@@ -50,7 +50,7 @@ exports[`TransactionHeader should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#24292E",
+          "color": "#000000",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 14,
           "fontWeight": "600",
@@ -87,7 +87,7 @@ exports[`TransactionHeader should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#24292E",
+          "color": "#000000",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 12,
           "fontWeight": "400",

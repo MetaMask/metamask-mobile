@@ -1,4 +1,4 @@
-export const MIN_PASSWORD_LENGTH = 8;
+const MIN_PASSWORD_LENGTH = 8;
 export const getPasswordStrengthWord = strength => {
 	switch (strength) {
 		case 0:
