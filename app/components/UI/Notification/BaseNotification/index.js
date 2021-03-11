@@ -25,7 +25,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontSize: 12,
 		lineHeight: 18,
-		color: colors.white
+		color: colors.white,
+		...fontStyles.normal
 	},
 	flashTitle: {
 		flex: 1,
