@@ -134,8 +134,10 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 						</Text>
 						<View style={styles.nonceInputContainer}>
 							<TextInput
+								// disable keyboard for now
+								showSoftInputOnFocus={false}
 								keyboardType="numeric"
-								autoFocus
+								// autoFocus
 								autoCapitalize="none"
 								autoCorrect={false}
 								onChangeText={onChangeText}
@@ -146,8 +148,6 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								style={styles.nonceInput}
 								value={String(nonce)}
 								numberOfLines={1}
-								// onBlur={this.onBlur}
-								// onFocus={this.onInputFocus}
 								onSubmitEditing={() => saveAndClose(nonce)}
 							/>
 						</View>
