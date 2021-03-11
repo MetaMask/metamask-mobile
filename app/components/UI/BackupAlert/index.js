@@ -56,7 +56,6 @@ const styles = StyleSheet.create({
 });
 
 const BLOCKED_LIST = [
-	'PaymentChannelDeposit',
 	'PaymentChannelSend',
 	'ImportPrivateKey',
 	'Send',
