@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 		marginVertical: 3
 	},
 	textAmount: {
-		...fontStyles.normal,
+		fontFamily: 'Roboto-Light',
 		fontWeight: fontStyles.light.fontWeight,
 		color: colors.black,
 		fontSize: 44,

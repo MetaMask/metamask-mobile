@@ -48,7 +48,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24292E",
+              "color": "#000000",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
