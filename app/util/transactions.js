@@ -442,7 +442,8 @@ export const getProposedNonce = ({
 		.map(({ transaction }) => {
 			const { nonce } = transaction;
 			return parseInt(nonce, 16);
-		});
+		})
+		.filter(nonce => !isNaN(nonce));
 
 	return Math.max(...nonces) + 1;
 };
