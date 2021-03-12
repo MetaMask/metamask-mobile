@@ -246,7 +246,10 @@ const Main = props => {
 
 				newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
 				if (tokensReceived) {
-					newSwapsTransactions[transactionMeta.id].destinationAmount = tokensReceived;
+					newSwapsTransactions[transactionMeta.id].destinationAmount = new BigNumber(
+						tokensReceived,
+						16
+					).toString(10);
 				}
 				TransactionController.update({ swapsTransactions: newSwapsTransactions });
 

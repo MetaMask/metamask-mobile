@@ -643,7 +643,6 @@ function decodeSwapsTx(args) {
 	const renderTo = renderFullAddress(to);
 	const ticker = getTicker(args.ticker);
 	const totalEthGas = renderFromWei(totalGas);
-
 	const decimalSourceAmount =
 		swapTransaction.sourceAmount &&
 		renderFromTokenMinimalUnit(swapTransaction.sourceAmount, swapTransaction.sourceToken.decimals);
@@ -659,7 +658,6 @@ function decodeSwapsTx(args) {
 
 	const isSwap = swapTransaction.action === 'swap';
 	let notificationKey, actionKey, value, fiatValue;
-
 	if (isSwap) {
 		actionKey = strings('swaps.transaction_label.swap', {
 			sourceToken: sourceToken.symbol,
@@ -672,7 +670,7 @@ function decodeSwapsTx(args) {
 	} else {
 		actionKey = strings('swaps.transaction_label.approve', {
 			sourceToken: sourceToken.symbol,
-			upTo: renderFromTokenMinimalUnit(hexToBN(swapTransaction.upTo), sourceToken.decimals)
+			upTo: renderFromTokenMinimalUnit(swapTransaction.upTo, sourceToken.decimals)
 		});
 		notificationKey = strings(
 			`swaps.notification_label.${tx.status === 'submitted' ? 'approve_pending' : 'approve_confirmed'}`,
