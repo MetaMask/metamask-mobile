@@ -7,7 +7,6 @@ import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import numberToBN from 'number-to-bn';
 import Logger from '../../../util/Logger';
-import { toChecksumAddress } from 'ethereumjs-util';
 import {
 	balanceToFiat,
 	fromTokenMinimalUnitString,
@@ -15,6 +14,7 @@ import {
 	toTokenMinimalUnit,
 	weiToFiat
 } from '../../../util/number';
+import { safeToChecksumAddress } from '../../../util/address';
 import { swapsUtils } from '@estebanmino/controllers';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
@@ -251,7 +251,7 @@ function SwapsAmountView({
 	}, [destinationToken]);
 
 	const isTokenInBalances =
-		sourceToken && !isSwapsETH(sourceToken) ? toChecksumAddress(sourceToken.address) in balances : false;
+		sourceToken && !isSwapsETH(sourceToken) ? safeToChecksumAddress(sourceToken.address) in balances : false;
 
 	useEffect(() => {
 		(async () => {
@@ -311,7 +311,7 @@ function SwapsAmountView({
 		if (isSwapsETH(sourceToken)) {
 			balanceFiat = weiToFiat(toTokenMinimalUnit(amount, sourceToken?.decimals), conversionRate, currentCurrency);
 		} else {
-			const sourceAddress = toChecksumAddress(sourceToken.address);
+			const sourceAddress = safeToChecksumAddress(sourceToken.address);
 			const exchangeRate = sourceAddress in tokenExchangeRates ? tokenExchangeRates[sourceAddress] : undefined;
 			balanceFiat = balanceToFiat(amount, conversionRate, exchangeRate, currentCurrency);
 		}

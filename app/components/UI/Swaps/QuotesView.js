@@ -320,7 +320,17 @@ function SwapsQuotesView({
 
 		const orderedAggregators = hasConversionRate
 			? Object.values(quoteValues).sort((a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote))
-			: Object.values(quotes).sort((a, b) => new BigNumber(b.destinationAmount).comparedTo(a.destinationAmount));
+			: Object.values(quotes).sort((a, b) => {
+					const comparison = new BigNumber(b.destinationAmount).comparedTo(a.destinationAmount);
+					if (comparison === 0) {
+						// If the  destination amount is the same, we sort by fees ascending
+						return (
+							Number(quoteValues[a.aggregator]?.ethFee) - Number(quoteValues[b.aggregator]?.ethFee) || 0
+						);
+					}
+					return comparison;
+					// eslint-disable-next-line no-mixed-spaces-and-tabs
+			  });
 
 		return orderedAggregators.map(quoteValue => quotes[quoteValue.aggregator]);
 	}, [hasConversionRate, quoteValues, quotes]);
