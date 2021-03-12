@@ -85,7 +85,8 @@ class TransactionDetails extends PureComponent {
 		 * A string representing the network name
 		 */
 		showSpeedUpModal: PropTypes.func,
-		showCancelModal: PropTypes.func
+		showCancelModal: PropTypes.func,
+		swapsTransactions: PropTypes.object
 	};
 
 	state = {
@@ -172,7 +173,8 @@ class TransactionDetails extends PureComponent {
 				status,
 				time,
 				transaction: { nonce }
-			}
+			},
+			swapsTransactions
 		} = this.props;
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		const { rpcBlockExplorer } = this.state;
@@ -184,7 +186,7 @@ class TransactionDetails extends PureComponent {
 						<StatusText status={status} />
 						{!!renderTxActions && (
 							<View style={styles.transactionActionsContainer}>
-								{this.renderSpeedUpButton()}
+								{!swapsTransactions[transactionObject.id] && this.renderSpeedUpButton()}
 								{this.renderCancelButton()}
 							</View>
 						)}
@@ -247,6 +249,7 @@ class TransactionDetails extends PureComponent {
 
 const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController,
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
 });
 export default connect(mapStateToProps)(TransactionDetails);

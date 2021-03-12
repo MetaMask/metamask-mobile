@@ -173,7 +173,9 @@ class TransactionElement extends PureComponent {
 	 */
 	renderTxElement = transactionElement => {
 		const {
-			tx: { status }
+			tx: { status },
+			tx,
+			swapsTransactions
 		} = this.props;
 		const { value, fiatValue = false, actionKey } = transactionElement;
 		const renderTxActions = status === 'submitted' || status === 'approved';
@@ -195,7 +197,7 @@ class TransactionElement extends PureComponent {
 				</ListItem.Content>
 				{!!renderTxActions && (
 					<ListItem.Actions>
-						{this.renderSpeedUpButton()}
+						{!swapsTransactions[tx.id] && this.renderSpeedUpButton()}
 						{this.renderCancelButton()}
 					</ListItem.Actions>
 				)}
