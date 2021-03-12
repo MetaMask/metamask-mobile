@@ -1608,10 +1608,9 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.23.0.tgz#c70be7f3eaeeb791651ce793b7cdc230e9780b18"
   integrity sha512-oTUqL9dtXtbng60DZMRsBmZ5HiOUUfEsZjuswOJ0yHO24YsW0ktCcgCJVYPv1HcOsF0SVrRtG4rtrvOl4nY+HA==
 
-"@metamask/controllers@^6.1.1":
-  version "6.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-6.1.1.tgz#9ce6b2d58e7205ad7e5bf30449f84385c6bed4bd"
-  integrity sha512-RZ4YRT34+uV2dk1pITKc7+F4zvd5jJO3y3U1xP16C/ATu1rSw57EM4pOlJmERTbRZ2ImP8wFZm9e4wpbpQuUQg==
+"@metamask/controllers@file:./metamask-controllers-v6.1.2.tgz":
+  version "6.1.2"
+  resolved "file:./metamask-controllers-v6.1.2.tgz#24fabf023cc4a302642f539fd86e50efeccf682e"
   dependencies:
     "@metamask/contract-metadata" "^1.23.0"
     async-mutex "^0.2.6"
