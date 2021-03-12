@@ -212,7 +212,7 @@
     "concat-cli": "4.0.0",
     "detox": "17.3.1",
     "enzyme": "3.9.0",
-    "enzyme-adapter-react-16": "1.10.0",
+    "enzyme-adapter-react-16": "1.15.6",
     "enzyme-to-json": "3.3.5",
     "eslint": "^6.5.1",
     "eslint-config-react-native": "4.0.0",
