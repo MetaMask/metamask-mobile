@@ -557,7 +557,7 @@ function SwapsQuotesView({
 					action: 'approval',
 					sourceToken: { address: sourceToken.address, decimals: sourceToken.decimals },
 					destinationToken: { swaps: 'swaps' },
-					upTo: decodeApproveData(approvalTransaction.data).encodedAmount
+					upTo: new BigNumber(decodeApproveData(approvalTransaction.data).encodedAmount, 16).toString(10)
 				};
 			} catch (e) {
 				// send analytics
