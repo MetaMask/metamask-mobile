@@ -1,6 +1,7 @@
 # Changelog
 
 ## v2.0.0 - Mar 16 2021
+- [#2379](https://github.com/MetaMask/metamask-mobile/pull/2379): Swaps/fix decode tx render amounts
 - [#2377](https://github.com/MetaMask/metamask-mobile/pull/2377): bugfix/dont modify local transactions
 - [#2376](https://github.com/MetaMask/metamask-mobile/pull/2376): Swaps: Sort quotes by asc fees when destination amount is the same
 - [#2370](https://github.com/MetaMask/metamask-mobile/pull/2370): bugfix/swaps bugs
