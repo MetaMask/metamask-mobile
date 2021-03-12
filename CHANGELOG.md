@@ -1,6 +1,8 @@
 # Changelog
 
 ## v2.0.0 - Mar 16 2021
+- [#2377](https://github.com/MetaMask/metamask-mobile/pull/2377): bugfix/dont modify local transactions
+- [#2376](https://github.com/MetaMask/metamask-mobile/pull/2376): Swaps: Sort quotes by asc fees when destination amount is the same
 - [#2370](https://github.com/MetaMask/metamask-mobile/pull/2370): bugfix/swaps bugs
 - [#2321](https://github.com/MetaMask/metamask-mobile/pull/2321): Swaps v1
 - [#2365](https://github.com/MetaMask/metamask-mobile/pull/2365): bugfix/transactions filtering
