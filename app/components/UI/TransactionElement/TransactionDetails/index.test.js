@@ -23,6 +23,9 @@ describe('TransactionDetails', () => {
 							rpcTarget: '',
 							type: RPC
 						}
+					},
+					TransactionController: {
+						swapsTransactions: {}
 					}
 				}
 			}
