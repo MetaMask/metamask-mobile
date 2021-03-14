@@ -648,7 +648,12 @@ function decodeSwapsTx(args) {
 		renderFromTokenMinimalUnit(swapTransaction.sourceAmount, swapTransaction.sourceToken.decimals);
 	const decimalDestinationAmount =
 		swapTransaction.destinationToken.decimals &&
-		renderFromTokenMinimalUnit(swapTransaction.destinationAmount, swapTransaction.destinationToken.decimals);
+		renderFromTokenMinimalUnit(
+			!!swapTransaction.receivedDestinationAmount && swapTransaction.receivedDestinationAmount > 0
+				? swapTransaction.receivedDestinationAmount
+				: swapTransaction.destinationAmount,
+			swapTransaction.destinationToken.decimals
+		);
 	const cryptoSummaryTotalAmount =
 		sourceToken.symbol === 'ETH'
 			? `${Number(totalEthGas) + Number(decimalSourceAmount)} ${ticker}`
@@ -703,7 +708,6 @@ function decodeSwapsTx(args) {
 			fiatValue = addCurrencySymbol(renderDestinationTokenFiatNumber, currentCurrency);
 		}
 	}
-
 	const transactionElement = {
 		renderTo,
 		renderFrom,
