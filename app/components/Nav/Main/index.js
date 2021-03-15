@@ -246,7 +246,7 @@ const Main = props => {
 
 				newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
 				if (tokensReceived) {
-					newSwapsTransactions[transactionMeta.id].destinationAmount = new BigNumber(
+					newSwapsTransactions[transactionMeta.id].receivedDestinationAmount = new BigNumber(
 						tokensReceived,
 						16
 					).toString(10);
