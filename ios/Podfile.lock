@@ -629,7 +629,7 @@ SPEC CHECKSUMS:
   Branch: 9a37f707974a128c37829033c49018b79c7e7a2d
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
-  DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
+  DoubleConversion: cde416483dac037923206447da6e1454df403714
   FBLazyVector: 3bb422f41b18121b71783a905c10e58606f7dc3e
   FBReactNativeSpec: f2c97f2529dd79c083355182cc158c9f98f4bd6e
   Flipper: be611d4b742d8c87fbae2ca5f44603a02539e365
@@ -640,7 +640,7 @@ SPEC CHECKSUMS:
   Flipper-RSocket: 64e7431a55835eb953b0bf984ef3b90ae9fdddd7
   FlipperKit: ab353d41aea8aae2ea6daaf813e67496642f3d7d
   Folly: b73c3869541e86821df3c387eb0af5f65addfab4
-  glog: 1f3da668190260b06b429bb211bfbee5cd790c28
+  glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
   lottie-ios: a50d5c0160425cd4b01b852bb9578963e6d92d31
   lottie-react-native: 7ca15c46249b61e3f9ffcf114cb4123e907a2156
   OpenSSL-Universal: ff34003318d5e1163e9529b08470708e389ffcdd

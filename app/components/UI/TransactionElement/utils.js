@@ -643,13 +643,17 @@ function decodeSwapsTx(args) {
 	const renderTo = renderFullAddress(to);
 	const ticker = getTicker(args.ticker);
 	const totalEthGas = renderFromWei(totalGas);
-
 	const decimalSourceAmount =
 		swapTransaction.sourceAmount &&
 		renderFromTokenMinimalUnit(swapTransaction.sourceAmount, swapTransaction.sourceToken.decimals);
 	const decimalDestinationAmount =
 		swapTransaction.destinationToken.decimals &&
-		renderFromTokenMinimalUnit(swapTransaction.destinationAmount, swapTransaction.destinationToken.decimals);
+		renderFromTokenMinimalUnit(
+			!!swapTransaction?.receivedDestinationAmount && swapTransaction?.receivedDestinationAmount > 0
+				? swapTransaction.receivedDestinationAmount
+				: swapTransaction.destinationAmount,
+			swapTransaction.destinationToken.decimals
+		);
 	const cryptoSummaryTotalAmount =
 		sourceToken.symbol === 'ETH'
 			? `${Number(totalEthGas) + Number(decimalSourceAmount)} ${ticker}`
@@ -659,7 +663,6 @@ function decodeSwapsTx(args) {
 
 	const isSwap = swapTransaction.action === 'swap';
 	let notificationKey, actionKey, value, fiatValue;
-
 	if (isSwap) {
 		actionKey = strings('swaps.transaction_label.swap', {
 			sourceToken: sourceToken.symbol,
@@ -672,7 +675,7 @@ function decodeSwapsTx(args) {
 	} else {
 		actionKey = strings('swaps.transaction_label.approve', {
 			sourceToken: sourceToken.symbol,
-			upTo: renderFromTokenMinimalUnit(hexToBN(swapTransaction.upTo), sourceToken.decimals)
+			upTo: renderFromTokenMinimalUnit(swapTransaction.upTo, sourceToken.decimals)
 		});
 		notificationKey = strings(
 			`swaps.notification_label.${tx.status === 'submitted' ? 'approve_pending' : 'approve_confirmed'}`,
@@ -705,7 +708,6 @@ function decodeSwapsTx(args) {
 			fiatValue = addCurrencySymbol(renderDestinationTokenFiatNumber, currentCurrency);
 		}
 	}
-
 	const transactionElement = {
 		renderTo,
 		renderFrom,

@@ -320,7 +320,17 @@ function SwapsQuotesView({
 
 		const orderedAggregators = hasConversionRate
 			? Object.values(quoteValues).sort((a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote))
-			: Object.values(quotes).sort((a, b) => new BigNumber(b.destinationAmount).comparedTo(a.destinationAmount));
+			: Object.values(quotes).sort((a, b) => {
+					const comparison = new BigNumber(b.destinationAmount).comparedTo(a.destinationAmount);
+					if (comparison === 0) {
+						// If the  destination amount is the same, we sort by fees ascending
+						return (
+							Number(quoteValues[a.aggregator]?.ethFee) - Number(quoteValues[b.aggregator]?.ethFee) || 0
+						);
+					}
+					return comparison;
+					// eslint-disable-next-line no-mixed-spaces-and-tabs
+			  });
 
 		return orderedAggregators.map(quoteValue => quotes[quoteValue.aggregator]);
 	}, [hasConversionRate, quoteValues, quotes]);
@@ -362,12 +372,12 @@ function SwapsQuotesView({
 
 		const ethAmountBN = sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ? sourceBN : new BigNumber(0);
 		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
-		const gasBN = new BigNumber(selectedQuoteValue?.maxEthFee || '0x0');
-		const hasEnoughEthBalance = ethBalanceBN.gte(gasBN.plus(ethAmountBN));
-		const missingEthBalance = hasEnoughEthBalance ? null : gasBN.plus(ethAmountBN).minus(ethBalanceBN);
+		const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
+		const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
+		const missingEthBalance = hasEnoughEthBalance ? null : ethAmountBN.plus(gasBN).minus(ethBalanceBN);
 
 		return [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance];
-	}, [accounts, balance, selectedQuoteValue, selectedAddress, sourceAmount, sourceToken.address]);
+	}, [accounts, balance, selectedQuoteValue, selectedAddress, sourceAmount, sourceToken]);
 
 	/* Selected quote slippage */
 	const shouldDisplaySlippage = useMemo(
@@ -547,7 +557,7 @@ function SwapsQuotesView({
 					action: 'approval',
 					sourceToken: { address: sourceToken.address, decimals: sourceToken.decimals },
 					destinationToken: { swaps: 'swaps' },
-					upTo: decodeApproveData(approvalTransaction.data).encodedAmount
+					upTo: new BigNumber(decodeApproveData(approvalTransaction.data).encodedAmount, 16).toString(10)
 				};
 			} catch (e) {
 				// send analytics

@@ -159,8 +159,12 @@ class Asset extends PureComponent {
 			(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
 			tx.status !== 'unapproved'
 		) {
+			if (to?.toLowerCase() === this.navAddress) return true;
 			if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
-			if (swapsTransactions[tx.id] && to?.toLowerCase() === SWAPS_CONTRACT_ADDRESS) {
+			if (
+				swapsTransactions[tx.id] &&
+				(to?.toLowerCase() === SWAPS_CONTRACT_ADDRESS || to?.toLowerCase() === this.navAddress)
+			) {
 				const { destinationToken, sourceToken } = swapsTransactions[tx.id];
 				return destinationToken.address === this.navAddress || sourceToken.address === this.navAddress;
 			}
