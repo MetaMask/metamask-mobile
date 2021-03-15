@@ -259,7 +259,7 @@ class Engine {
 		}
 
 		const total = ethFiat + tokenFiat;
-		return total;
+		return +total.toFixed(2);
 	};
 
 	/**
