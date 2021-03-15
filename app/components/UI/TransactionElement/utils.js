@@ -649,7 +649,7 @@ function decodeSwapsTx(args) {
 	const decimalDestinationAmount =
 		swapTransaction.destinationToken.decimals &&
 		renderFromTokenMinimalUnit(
-			!!swapTransaction.receivedDestinationAmount && swapTransaction.receivedDestinationAmount > 0
+			!!swapTransaction?.receivedDestinationAmount && swapTransaction?.receivedDestinationAmount > 0
 				? swapTransaction.receivedDestinationAmount
 				: swapTransaction.destinationAmount,
 			swapTransaction.destinationToken.decimals
