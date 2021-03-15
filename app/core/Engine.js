@@ -235,13 +235,14 @@ class Engine {
 			TokenRatesController
 		} = this.datamodel.context;
 		const { selectedAddress } = PreferencesController.state;
-		const { conversionRate } = CurrencyRateController.state;
+		const { conversionRate, currentCurrency } = CurrencyRateController.state;
 		const { accounts } = AccountTrackerController.state;
 		const { tokens } = AssetsController.state;
 		let ethFiat = 0;
 		let tokenFiat = 0;
 		if (accounts[selectedAddress]) {
-			ethFiat = weiToFiatNumber(accounts[selectedAddress].balance, conversionRate);
+			const decimalsToShow = currentCurrency === 'usd' && 2;
+			ethFiat = weiToFiatNumber(accounts[selectedAddress].balance, conversionRate, decimalsToShow);
 		}
 		if (tokens.length > 0) {
 			const { contractBalances: tokenBalances } = TokenBalancesController.state;
@@ -259,7 +260,7 @@ class Engine {
 		}
 
 		const total = ethFiat + tokenFiat;
-		return +total.toFixed(2);
+		return total;
 	};
 
 	/**
