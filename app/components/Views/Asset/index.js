@@ -159,6 +159,7 @@ class Asset extends PureComponent {
 			(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
 			tx.status !== 'unapproved'
 		) {
+			if (to?.toLowerCase() === this.navAddress) return true;
 			if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
 			if (
 				swapsTransactions[tx.id] &&
