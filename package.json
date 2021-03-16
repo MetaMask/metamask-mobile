@@ -93,7 +93,7 @@
     "axios": "^0.21.1",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
-    "base-64": "0.1.0",
+    "base-64": "1.0.0",
     "bignumber.js": "8.1.1",
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
