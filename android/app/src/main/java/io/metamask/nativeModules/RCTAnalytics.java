@@ -55,6 +55,16 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 	}
 
 	@ReactMethod
+	public void trackEventAnonymously(ReadableMap e) {
+		String eventCategory = e.getString("category");
+		String distinctId = this.mixpanel.getDistinctId();
+		this.mixpanel.identify("0x0000000000000000");
+		JSONObject props = toJSONObject(e);
+		this.mixpanel.track(eventCategory, props);
+		this.mixpanel.identify(distinctId);
+	}
+
+	@ReactMethod
 	public void getDistinctId(Promise promise) {
 		String distinctId = this.mixpanel.getDistinctId();
 		promise.resolve(distinctId);

@@ -562,7 +562,7 @@ class Confirm extends PureComponent {
 		);
 	};
 
-	handleSetGasFee = (customGas, customGasPrice, warningGasPriceHigh, details) => {
+	handleSetGasFee = (customGas, customGasPrice, warningGasPriceHigh) => {
 		const { prepareTransaction, transactionState } = this.props;
 		let transaction = transactionState.transaction;
 		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
