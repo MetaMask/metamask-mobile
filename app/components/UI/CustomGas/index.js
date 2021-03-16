@@ -655,11 +655,9 @@ class CustomGas extends PureComponent {
 				</View>
 				<View style={styles.valueRow}>
 					<Text style={styles.advancedOptionsText}>{strings('custom_gas.gas_price')}</Text>
-					{console.log('Warning', warningGasPriceHigh)}
-					{console.log('Gas Price', customGasPriceBN)}
 					<TextInput
 						keyboardType="numeric"
-						style={!warningGasPriceHigh ? styles.gasInput : styles.gasInputError}
+						style={warningGasPriceHigh ? styles.gasInputError : styles.gasInput}
 						onChangeText={this.onGasPriceChange}
 						value={customGasPriceBN ? customGasPriceBN.toString() : ''}
 					/>
