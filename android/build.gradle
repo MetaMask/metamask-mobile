@@ -12,7 +12,7 @@ buildscript {
 	}
 	repositories {
 		google()
-		jcenter()
+		gradlePluginPortal()
 	}
 
 	dependencies {
@@ -46,8 +46,9 @@ allprojects {
             url("$rootDir/../node_modules/jsc-android/dist")
         }
 		google()
-        jcenter()
-        maven { url 'https://www.jitpack.io' }
+		mavenCentral()
+		maven { url 'https://www.jitpack.io' }
+		gradlePluginPortal()
 	}
 
 	subprojects {
