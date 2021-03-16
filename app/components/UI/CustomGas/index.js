@@ -183,6 +183,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		backgroundColor: colors.white,
 		borderColor: colors.grey100,
+		color: colors.black,
 		borderRadius: 8,
 		borderWidth: 1,
 		fontSize: 14,
@@ -654,9 +655,11 @@ class CustomGas extends PureComponent {
 				</View>
 				<View style={styles.valueRow}>
 					<Text style={styles.advancedOptionsText}>{strings('custom_gas.gas_price')}</Text>
+					{console.log('Warning', warningGasPriceHigh)}
+					{console.log('Gas Price', customGasPriceBN)}
 					<TextInput
 						keyboardType="numeric"
-						style={warningGasPriceHigh ? styles.gasInputError : styles.gasInput}
+						style={!warningGasPriceHigh ? styles.gasInput : styles.gasInputError}
 						onChangeText={this.onGasPriceChange}
 						value={customGasPriceBN ? customGasPriceBN.toString() : ''}
 					/>
