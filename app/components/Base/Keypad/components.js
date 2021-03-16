@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 	},
 	keypadButton: {
 		paddingHorizontal: 20,
-		paddingVertical: Device.isMediumDevice() ? (Device.isIphone5() ? 5 : 10) : 15,
+		paddingVertical: Device.isMediumDevice() ? (Device.isIphone5() ? 4 : 8) : 12,
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center'

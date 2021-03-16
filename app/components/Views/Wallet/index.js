@@ -16,7 +16,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
-import { showTransactionNotification, hideTransactionNotification } from '../../../actions/notification';
+import { showTransactionNotification, hideCurrentNotification } from '../../../actions/notification';
 import ErrorBoundary from '../ErrorBoundary';
 
 const styles = StyleSheet.create({
@@ -256,14 +256,13 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	wizardStep: state.wizard.step
 });
 
 const mapDispatchToProps = dispatch => ({
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
-	hideTransactionNotification: () => dispatch(hideTransactionNotification())
+	hideCurrentNotification: () => dispatch(hideCurrentNotification())
 });
 
 export default connect(
