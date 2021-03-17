@@ -32,6 +32,7 @@ exports[`TransactionEditor should render correctly 1`] = `
         basicGasEstimates={Object {}}
         gasError=""
         handleGasFeeSelection={[Function]}
+        onlyAdvanced={true}
       />
     </AnimatedTransactionModal>
   </KeyboardAwareScrollView>
