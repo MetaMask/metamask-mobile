@@ -317,10 +317,10 @@ class CustomGas extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { gas, gasPrice, toggleAdvancedCustomGas } = this.props;
+		const { gas, gasPrice, toggleAdvancedCustomGas, onlyAdvanced } = this.props;
 		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
 		const { ticker } = this.props;
-		if (ticker && ticker !== 'ETH') {
+		if ((ticker && ticker !== 'ETH') || onlyAdvanced) {
 			toggleAdvancedCustomGas(true);
 		}
 
