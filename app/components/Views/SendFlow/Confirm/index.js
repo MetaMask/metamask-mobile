@@ -57,7 +57,7 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/format';
-import { isMainNet, getNetworkName } from '../../../../util/networks';
+import { isMainNet, getNetworkName, isMainnetByChainId } from '../../../../util/networks';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -415,7 +415,7 @@ class Confirm extends PureComponent {
 
 	estimateGas = async transaction => {
 		const { TransactionController } = Engine.context;
-		const { value, data, to, from, providerType } = transaction;
+		const { value, data, to, from } = transaction;
 		const { chainId } = this.props;
 		let estimation;
 		try {
@@ -430,7 +430,7 @@ class Confirm extends PureComponent {
 		}
 		let basicGasEstimates;
 		try {
-			if (String(chainId) === '1' || providerType === 'mainnet') {
+			if (isMainnetByChainId(chainId)) {
 				basicGasEstimates = await fetchBasicGasEstimates();
 			} else {
 				basicGasEstimates = {
@@ -848,7 +848,7 @@ class Confirm extends PureComponent {
 			transaction: { gas, gasPrice },
 			chainId
 		} = this.props;
-		const isMainnet = String(chainId) === '1';
+		const isMainnet = isMainnetByChainId(chainId);
 		return (
 			<Modal
 				isVisible

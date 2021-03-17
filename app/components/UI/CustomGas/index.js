@@ -317,15 +317,11 @@ class CustomGas extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { gas, gasPrice, toggleAdvancedCustomGas, onlyAdvanced } = this.props;
+		const { gas, gasPrice, toggleAdvancedCustomGas } = this.props;
 		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
 		const { ticker } = this.props;
 		if (ticker && ticker !== 'ETH') {
 			toggleAdvancedCustomGas(true);
-		}
-		if (onlyAdvanced) {
-			toggleAdvancedCustomGas();
-			this.toggleEditionOption();
 		}
 
 		//Applies ISF error if present before any gas modifications
@@ -597,14 +593,14 @@ class CustomGas extends PureComponent {
 
 	renderCustomGasInput = () => {
 		const { customGasLimitBN, customGasPriceBNWei, customGasPriceBN } = this.state;
-		const { generateTransform } = this.props;
+		const { generateTransform, onlyAdvanced } = this.props;
 		const totalGas = customGasLimitBN && customGasLimitBN.mul(customGasPriceBNWei);
 		const ticker = getTicker(this.props.ticker);
 		return (
 			<Animated.View
 				style={[
 					styles.advancedOptionsContainer,
-					generateTransform('editToAdvanced', [Device.getDeviceWidth(), 0])
+					onlyAdvanced ? {} : generateTransform('editToAdvanced', [Device.getDeviceWidth(), 0])
 				]}
 				onLayout={this.saveGasInputHeight}
 			>
@@ -690,25 +686,26 @@ class CustomGas extends PureComponent {
 						<Text style={styles.customGasModalTitleText}>{strings('transaction.edit_network_fee')}</Text>
 						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
 					</View>
-					<View style={styles.optionsContainer}>
-						{onlyAdvanced ? null : (
+					{onlyAdvanced ? null : (
+						<View style={styles.optionsContainer}>
 							<TouchableOpacity
 								style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
 								onPress={this.toggleEditionOption}
 							>
 								<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
 							</TouchableOpacity>
-						)}
-						<TouchableOpacity
-							style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
-							onPress={this.toggleEditionOption}
-						>
-							<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
-						</TouchableOpacity>
-					</View>
+
+							<TouchableOpacity
+								style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
+								onPress={this.toggleEditionOption}
+							>
+								<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
+							</TouchableOpacity>
+						</View>
+					)}
 				</View>
 
-				{this.renderCustomGasSelector()}
+				{onlyAdvanced ? null : this.renderCustomGasSelector()}
 				{this.renderCustomGasInput()}
 
 				<Animated.View style={Device.isIos() && buttonStyle}>

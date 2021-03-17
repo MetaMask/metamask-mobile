@@ -20,6 +20,7 @@ import NotificationManager from '../../../../core/NotificationManager';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Logger from '../../../../util/Logger';
+import { isMainnetByChainId } from '../../../../util/networks';
 
 const { BNToHex, hexToBN } = util;
 
@@ -83,7 +84,11 @@ class Approve extends PureComponent {
 		/**
 		 * Current selected ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Current network chain id
+		 */
+		chainId: PropTypes.string
 	};
 
 	state = {
@@ -119,9 +124,11 @@ class Approve extends PureComponent {
 	};
 
 	handleFetchBasicEstimates = async () => {
+		const { chainId } = this.props;
 		this.setState({ ready: false });
 		const basicGasEstimates = await getBasicGasEstimates();
-		this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
+		if (isMainnetByChainId(chainId))
+			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
 		this.setState({ basicGasEstimates, ready: true });
 	};
 
@@ -234,8 +241,9 @@ class Approve extends PureComponent {
 
 	render = () => {
 		const { gasError, basicGasEstimates, mode, ready, over } = this.state;
-		const { transaction } = this.props;
+		const { transaction, chainId } = this.props;
 		if (!transaction.id) return null;
+		const isMainnet = isMainnetByChainId(chainId);
 		return (
 			<Modal
 				isVisible={this.props.modalVisible}
@@ -266,6 +274,7 @@ class Approve extends PureComponent {
 							gasPrice={transaction.gasPrice}
 							gasError={gasError}
 							mode={mode}
+							onlyAdvanced={!isMainnet}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>
@@ -281,7 +290,8 @@ const mapStateToProps = state => ({
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });
 
 const mapDispatchToProps = dispatch => ({
