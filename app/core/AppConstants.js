@@ -1,5 +1,6 @@
 import Device from '../util/Device';
 import { MAINNET, RINKEBY } from '../constants/network';
+import { Platform } from 'react-native';
 
 const DEVELOPMENT = 'development';
 
@@ -29,7 +30,7 @@ export default {
 	},
 	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 	SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
-	HOMEPAGE_URL: 'https://home.metamask.io/',
+	HOMEPAGE_URL: `https://home.metamask.io/?platform=${Platform.OS}`,
 	ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
 	INSTAPAY_GAS_PONDERATOR: 1.2,
 	USER_AGENT: Device.isAndroid()
