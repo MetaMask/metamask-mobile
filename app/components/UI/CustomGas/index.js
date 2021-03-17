@@ -291,7 +291,11 @@ class CustomGas extends PureComponent {
 		/**
 		 * review or edit
 		 */
-		toAdvancedFrom: PropTypes.string
+		toAdvancedFrom: PropTypes.string,
+		/**
+		 * If true, will not show the slow, normal, fast options, only the advanced option (for all networks other than mainnet)
+		 */
+		onlyAdvanced: PropTypes.bool
 	};
 
 	state = {
@@ -309,10 +313,17 @@ class CustomGas extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { gas, gasPrice, toggleAdvancedCustomGas } = this.props;
+		const { gas, gasPrice, toggleAdvancedCustomGas, onlyAdvanced } = this.props;
 		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
 		const { ticker } = this.props;
-		if (ticker && ticker !== 'ETH') toggleAdvancedCustomGas(true);
+		if (ticker && ticker !== 'ETH') {
+			toggleAdvancedCustomGas(true);
+		}
+		if (onlyAdvanced) {
+			toggleAdvancedCustomGas();
+			this.toggleEditionOption();
+		}
+
 		//Applies ISF error if present before any gas modifications
 		this.setState({ warningSufficientFunds, advancedCustomGas: ticker && ticker !== 'ETH' });
 	};
@@ -651,7 +662,8 @@ class CustomGas extends PureComponent {
 			advancedCustomGas,
 			generateTransform,
 			mode,
-			toAdvancedFrom
+			toAdvancedFrom,
+			onlyAdvanced
 		} = this.props;
 		let buttonStyle;
 
@@ -672,12 +684,14 @@ class CustomGas extends PureComponent {
 						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
 					</View>
 					<View style={styles.optionsContainer}>
-						<TouchableOpacity
-							style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
-							onPress={this.toggleEditionOption}
-						>
-							<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
-						</TouchableOpacity>
+						{onlyAdvanced ? null : (
+							<TouchableOpacity
+								style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
+								onPress={this.toggleEditionOption}
+							>
+								<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
+							</TouchableOpacity>
+						)}
 						<TouchableOpacity
 							style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
 							onPress={this.toggleEditionOption}

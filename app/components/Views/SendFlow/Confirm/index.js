@@ -36,7 +36,8 @@ import {
 	fetchBasicGasEstimates,
 	convertApiValueToGWEI,
 	apiEstimateModifiedToWEI,
-	getBasicGasEstimates
+	getBasicGasEstimates,
+	getValueFromWeiHex
 } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
@@ -300,7 +301,11 @@ class Confirm extends PureComponent {
 		/**
 		 * ETH or fiat, depending on user setting
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Current network chain id
+		 */
+		chainId: PropTypes.string
 	};
 
 	state = {
@@ -410,7 +415,8 @@ class Confirm extends PureComponent {
 
 	estimateGas = async transaction => {
 		const { TransactionController } = Engine.context;
-		const { value, data, to, from } = transaction;
+		const { value, data, to, from, providerType } = transaction;
+		const { chainId } = this.props;
 		let estimation;
 		try {
 			estimation = await TransactionController.estimateGas({
@@ -424,7 +430,17 @@ class Confirm extends PureComponent {
 		}
 		let basicGasEstimates;
 		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
+			if (String(chainId) === '1' || providerType === 'mainnet') {
+				basicGasEstimates = await fetchBasicGasEstimates();
+			} else {
+				basicGasEstimates = {
+					average: getValueFromWeiHex({
+						value: estimation.gasPrice.toString(16),
+						numberOfDecimals: 4,
+						toDenomination: 'GWEI'
+					})
+				};
+			}
 		} catch (error) {
 			Logger.log('Error while trying to get gas limit estimates', error);
 			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
@@ -829,8 +845,10 @@ class Confirm extends PureComponent {
 	renderCustomGasModal = () => {
 		const { basicGasEstimates, gasError, ready, mode, gasSpeedSelected } = this.state;
 		const {
-			transaction: { gas, gasPrice }
+			transaction: { gas, gasPrice },
+			chainId
 		} = this.props;
+		const isMainnet = String(chainId) === '1';
 		return (
 			<Modal
 				isVisible
@@ -857,6 +875,7 @@ class Confirm extends PureComponent {
 							mode={mode}
 							onPress={this.handleSetGasSpeed}
 							gasSpeedSelected={gasSpeedSelected}
+							onlyAdvanced={!isMainnet}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>
@@ -1075,7 +1094,8 @@ const mapStateToProps = state => ({
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });
 
 const mapDispatchToProps = dispatch => ({

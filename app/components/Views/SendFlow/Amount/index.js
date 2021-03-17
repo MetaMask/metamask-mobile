@@ -1070,7 +1070,7 @@ class Amount extends PureComponent {
 										disabled={!paymentChannelTransaction && !estimatedTotalGas}
 										onPress={this.useMax}
 									>
-										<Text style={styles.maxText}>asd{strings('transaction.use_max')}</Text>
+										<Text style={styles.maxText}>{strings('transaction.use_max')}</Text>
 									</TouchableOpacity>
 								)}
 							</View>
