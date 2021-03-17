@@ -123,7 +123,7 @@ class Transactions extends PureComponent {
 		/**
 		 * Current network chain id
 		 */
-		chainId: PropTypes.bool
+		chainId: PropTypes.string
 	};
 
 	static defaultProps = {
