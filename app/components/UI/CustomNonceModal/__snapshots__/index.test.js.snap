@@ -280,7 +280,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               underline={false}
               upper={false}
             >
-              Warning: There are older transactions pending. This is an advanced feature and should only be used with caution.
+              Warning: You may encounter issues with future transactions if you continue. Used with caution.
             </Text>
           </View>
           <Text
