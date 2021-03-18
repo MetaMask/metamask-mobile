@@ -247,7 +247,7 @@
 		"title": "Nộp tiền"
 	},
 	"receive": {
-		"title": "Nhận"
+		"title": "Nhận tiền"
 	},
 	"wallet": {
 		"title": "Ví",
@@ -336,7 +336,7 @@
 		"collectible_token_id": "Mã nhận dạng",
 		"collectible_description": "Mô tả",
 		"address_must_be_valid": "Địa chỉ của vật phẩm sưu tập phải là địa chỉ hợp lệ.",
-		"address_must_be_smart_contract": "Đã tìm thấy địa chỉ cá nhân. Nhập địa chỉ hợp đồng vật phẩm sưu tập.",
+		"address_must_be_smart_contract": "Đã tìm thấy địa chỉ cá nhân. Nhập địa chỉ hợp đồng thông minh vật phẩm sưu tập.",
 		"address_cant_be_empty": "Không được phép để trống địa chỉ vật phẩm sưu tập.",
 		"token_id_cant_be_empty": "Không được phép để trống mã nhận dạng vật phẩm sưu tập.",
 		"ownership_error_title": "Rất tiếc! Đã xảy ra lỗi.",
@@ -605,12 +605,12 @@
 		"speedup_tx_message": "Việc gửi lần thử này không đảm bảo rằng giao dịch gốc của bạn sẽ được tăng tốc. Nếu lần tăng tốc này thành công, bạn sẽ chịu phí giao dịch nêu ở trên.",
 		"nevermind": "Bỏ qua",
 		"edit_network_fee": "Chỉnh sửa phí giao mạng",
-		"gas_cancel_fee": "Phí gas hủy",
+		"gas_cancel_fee": "Phí hủy gas",
 		"gas_speedup_fee": "Phí tăng tốc gas",
 		"use_max": "Sử dụng mức tối đa",
 		"set_gas": "Đặt",
 		"cancel_gas": "Hủy",
-		"transaction_fee": "Phí mạng",
+		"transaction_fee": "Phí giao dịch",
 		"transaction_fee_less": "Không có phí",
 		"total_amount": "Tổng số tiền",
 		"view_data": "Xem dữ liệu",
@@ -803,11 +803,11 @@
 		"address_already_saved": "Đã lưu người liên hệ này trước đây",
 		"address": "Địa chỉ",
 		"name": "Tên",
-		"nickname": "Tên",
+		"nickname": "Biệt danh",
 		"add_input_placeholder": "Địa chỉ công khai (0x) hoặc ENS",
 		"between_account": "Chuyển giữa các tài khoản của tôi",
 		"others": "Khác",
-		"memo": "Thư báo"
+		"memo": "MEMO"
 	},
 	"transaction_submitted": {
 		"title": "Đã gửi giao dịch",
@@ -1343,7 +1343,7 @@
 		"wyre_loading_rates": " ",
 		"wyre_estimated": "Ước tính {{amount}} {{currency}}",
 		"wyre_minutes": "1 – 2 phút",
-		"wyre_max": "Tối đa 50$4 mỗi tuần",
+		"wyre_max": "Tối đa $450 mỗi tuần",
 		"wyre_requires_debit_card": "Cần có thẻ ghi nợ",
 		"wyre_us_only": "Chỉ có tại Hoa Kỳ",
 		"wyre_modal_text": "Tính năng thanh toán bằng Apple Pay do Wyre cung cấp chỉ được hỗ trợ tại Hoa Kỳ, ngoại trừ các tiểu bang Connecticut, Hawaii, North Carolina, New Hampshire, New York, Virginia và Vermont.",
