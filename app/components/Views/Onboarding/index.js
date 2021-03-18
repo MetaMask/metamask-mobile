@@ -284,6 +284,7 @@ class Onboarding extends PureComponent {
 	componentWillUnmount() {
 		this.mounted = false;
 		this.pubnubWrapper && this.pubnubWrapper.disconnectWebsockets();
+		this.props.unsetLoading();
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot.allow();
 		});
@@ -332,6 +333,7 @@ class Onboarding extends PureComponent {
 			await this.pubnubWrapper.startSync();
 			return true;
 		} catch (e) {
+			this.props.unsetLoading();
 			if (!firstAttempt) {
 				this.props.navigation.goBack();
 				if (e.message === 'Sync::timeout') {
@@ -436,6 +438,7 @@ class Onboarding extends PureComponent {
 			this.done = true;
 			this.dataToSync = null;
 			this.props.navigation.push('SyncWithExtensionSuccess');
+			this.props.unsetLoading();
 		} catch (e) {
 			Logger.error(e, 'Sync::disconnect');
 			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));

@@ -53,8 +53,9 @@ import Notification from '../../UI/Notification';
 import FiatOrders from '../../UI/FiatOrders';
 import {
 	showTransactionNotification,
-	hideTransactionNotification,
-	showSimpleNotification
+	hideCurrentNotification,
+	showSimpleNotification,
+	removeNotificationById
 } from '../../../actions/notification';
 import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
@@ -62,7 +63,11 @@ import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils, util } from '@estebanmino/controllers';
+import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import BigNumber from 'bignumber.js';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -196,6 +201,97 @@ const Main = props => {
 		[props.navigation, props.transactions]
 	);
 
+	const trackSwaps = useCallback(
+		async (event, transactionMeta) => {
+			try {
+				const { TransactionController } = Engine.context;
+				const newSwapsTransactions = props.swapsTransactions;
+				const swapTransaction = newSwapsTransactions[transactionMeta.id];
+				const {
+					sentAt,
+					gasEstimate,
+					ethAccountBalance,
+					approvalTransactionMetaId
+				} = swapTransaction.paramsForAnalytics;
+
+				const approvalTransaction = TransactionController.state.transactions.find(
+					({ id }) => id === approvalTransactionMetaId
+				);
+				const ethBalance = await util.query(TransactionController.ethQuery, 'getBalance', [
+					props.selectedAddress
+				]);
+				const receipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
+					transactionMeta.transactionHash
+				]);
+
+				const currentBlock = await util.query(TransactionController.ethQuery, 'getBlockByHash', [
+					receipt.blockHash,
+					false
+				]);
+				let approvalReceipt;
+				if (approvalTransaction?.transactionHash) {
+					approvalReceipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
+						approvalTransaction.transactionHash
+					]);
+				}
+				const tokensReceived = swapsUtils.getSwapsTokensReceived(
+					receipt,
+					approvalReceipt,
+					transactionMeta?.transaction,
+					approvalTransaction?.transaction,
+					swapTransaction.destinationToken,
+					ethAccountBalance,
+					ethBalance
+				);
+
+				newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
+				if (tokensReceived) {
+					newSwapsTransactions[transactionMeta.id].receivedDestinationAmount = new BigNumber(
+						tokensReceived,
+						16
+					).toString(10);
+				}
+				TransactionController.update({ swapsTransactions: newSwapsTransactions });
+
+				const timeToMine = currentBlock.timestamp - sentAt;
+				const estimatedVsUsedGasRatio = `${new BigNumber(receipt.gasUsed)
+					.div(gasEstimate)
+					.times(100)
+					.toFixed(2)}%`;
+				const quoteVsExecutionRatio = `${util
+					.calcTokenAmount(tokensReceived || '0x0', swapTransaction.destinationTokenDecimals)
+					.div(swapTransaction.destinationAmount)
+					.times(100)
+					.toFixed(2)}%`;
+				const tokenToAmountReceived = util.calcTokenAmount(
+					tokensReceived,
+					swapTransaction.destinationToken.decimals
+				);
+				const analyticsParams = { ...swapTransaction.analytics };
+				delete newSwapsTransactions[transactionMeta.id].analytics;
+				delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
+
+				InteractionManager.runAfterInteractions(() => {
+					const parameters = {
+						...analyticsParams,
+						time_to_mine: timeToMine,
+						estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
+						quote_vs_executionRatio: quoteVsExecutionRatio,
+						token_to_amount_received: tokenToAmountReceived.toString()
+					};
+					Analytics.trackEventWithParameters(event, {});
+					Analytics.trackEventWithParameters(event, parameters, true);
+				});
+			} catch (e) {
+				Logger.error(e, ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED);
+				InteractionManager.runAfterInteractions(() => {
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED, { error: e });
+				});
+			}
+		},
+		[props.selectedAddress, props.swapsTransactions]
+	);
+
 	const autoSign = useCallback(
 		async transactionMeta => {
 			const { TransactionController } = Engine.context;
@@ -208,7 +304,15 @@ const Main = props => {
 							assetType: transactionMeta.transaction.assetType
 						});
 					} else {
+						if (props.swapsTransactions[transactionMeta.id]?.analytics) {
+							trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_FAILED, transactionMeta);
+						}
 						throw transactionMeta.error;
+					}
+				});
+				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, transactionMeta => {
+					if (props.swapsTransactions[transactionMeta.id]?.analytics) {
+						trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
 					}
 				});
 				await TransactionController.approveTransaction(transactionMeta.id);
@@ -219,7 +323,7 @@ const Main = props => {
 				Logger.error(error, 'error while trying to send transaction (Main)');
 			}
 		},
-		[props.navigation]
+		[props.navigation, props.swapsTransactions, trackSwaps]
 	);
 
 	const onUnapprovedTransaction = useCallback(
@@ -232,14 +336,15 @@ const Main = props => {
 
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
-
 			if (
 				to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
 				(data &&
 					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
 					decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS)
 			) {
-				autoSign(transactionMeta);
+				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
+					autoSign(transactionMeta);
+				}
 			} else if (
 				props.paymentChannelsEnabled &&
 				AppConstants.CONNEXT.SUPPORTED_NETWORKS.includes(props.providerType) &&
@@ -712,12 +817,13 @@ const Main = props => {
 		);
 
 		setTimeout(() => {
-			NotificationManager.init(
-				props.navigation,
-				props.showTransactionNotification,
-				props.hideTransactionNotification,
-				props.showSimpleNotification
-			);
+			NotificationManager.init({
+				navigation: props.navigation,
+				showTransactionNotification: props.showTransactionNotification,
+				hideCurrentNotification: props.hideCurrentNotification,
+				showSimpleNotification: props.showSimpleNotification,
+				removeNotificationById: props.removeNotificationById
+			});
 			pollForIncomingTransactions();
 
 			// Only if enabled under settings
@@ -760,6 +866,7 @@ const Main = props => {
 				<FadeOutOverlay />
 				<Notification navigation={props.navigation} />
 				<FiatOrders />
+				<SwapsLiveness />
 				<BackupAlert onDismiss={toggleRemindLater} navigation={props.navigation} />
 				<SkipAccountSecurityModal
 					modalVisible={showRemindLaterModal}
@@ -783,6 +890,7 @@ const Main = props => {
 Main.router = MainNavigator.router;
 
 Main.propTypes = {
+	swapsTransactions: PropTypes.object,
 	/**
 	 * Object that represents the navigator
 	 */
@@ -814,7 +922,8 @@ Main.propTypes = {
 	/**
 	 * Dispatch hiding a transaction notification
 	 */
-	hideTransactionNotification: PropTypes.func,
+	hideCurrentNotification: PropTypes.func,
+	removeNotificationById: PropTypes.func,
 	/**
 	 * Indicates whether the current transaction is a deep link transaction
 	 */
@@ -877,7 +986,8 @@ const mapStateToProps = state => ({
 	isPaymentRequest: state.transaction.paymentRequest,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
-	approveModalVisible: state.modals.approveModalVisible
+	approveModalVisible: state.modals.approveModalVisible,
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {}
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -885,7 +995,8 @@ const mapDispatchToProps = dispatch => ({
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
 	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
-	hideTransactionNotification: () => dispatch(hideTransactionNotification()),
+	hideCurrentNotification: () => dispatch(hideCurrentNotification()),
+	removeNotificationById: id => dispatch(removeNotificationById(id)),
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
 	toggleApproveModal: show => dispatch(toggleApproveModal(show))
 });

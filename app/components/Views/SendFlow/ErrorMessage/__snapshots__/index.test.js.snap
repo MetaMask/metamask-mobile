@@ -39,6 +39,7 @@ exports[`ErrorMessage should render correctly 1`] = `
           "color": "#D73A49",
         }
       }
+      underline={false}
       upper={false}
     >
       error

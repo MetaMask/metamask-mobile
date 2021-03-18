@@ -3,7 +3,6 @@
 import PushNotification from 'react-native-push-notification';
 import Engine from './Engine';
 import Networks, { isKnownNetwork } from '../util/networks';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/Device';
 import { strings } from '../../locales/i18n';
@@ -12,6 +11,63 @@ import AsyncStorage from '@react-native-community/async-storage';
 import AppConstants from './AppConstants';
 import { PUSH_NOTIFICATIONS_PROMPT_COUNT, PUSH_NOTIFICATIONS_PROMPT_TIME } from '../constants/storage';
 import { RPC } from '../constants/network';
+import { safeToChecksumAddress } from '../util/address';
+
+const constructTitleAndMessage = data => {
+	let title, message;
+	switch (data.type) {
+		case 'pending':
+			title = strings('notifications.pending_title');
+			message = strings('notifications.pending_message');
+			break;
+		case 'pending_deposit':
+			title = strings('notifications.pending_deposit_title');
+			message = strings('notifications.pending_deposit_message');
+			break;
+		case 'pending_withdrawal':
+			title = strings('notifications.pending_withdrawal_title');
+			message = strings('notifications.pending_withdrawal_message');
+			break;
+		case 'success':
+			title = strings('notifications.success_title', { nonce: data?.transaction?.nonce || '' });
+			message = strings('notifications.success_message');
+			break;
+		case 'speedup':
+			title = strings('notifications.speedup_title', { nonce: data?.transaction?.nonce || '' });
+			message = strings('notifications.speedup_message');
+			break;
+		case 'success_withdrawal':
+			title = strings('notifications.success_withdrawal_title');
+			message = strings('notifications.success_withdrawal_message');
+			break;
+		case 'success_deposit':
+			title = strings('notifications.success_deposit_title');
+			message = strings('notifications.success_deposit_message');
+			break;
+		case 'error':
+			title = strings('notifications.error_title');
+			message = strings('notifications.error_message');
+			break;
+		case 'cancelled':
+			title = strings('notifications.cancelled_title');
+			message = strings('notifications.cancelled_message');
+			break;
+		case 'received':
+			title = strings('notifications.received_title', {
+				amount: data.transaction.amount,
+				assetType: data.transaction.assetType
+			});
+			message = strings('notifications.received_message');
+			break;
+		case 'received_payment':
+			title = strings('notifications.received_payment_title');
+			message = strings('notifications.received_payment_message', {
+				amount: data.transaction.amount
+			});
+			break;
+	}
+	return { title, message };
+};
 
 /**
  * Singleton class responsible for managing all the
@@ -55,65 +111,7 @@ class NotificationManager {
 
 	_showNotification(data) {
 		if (this._backgroundMode) {
-			let title = '';
-			let message = '';
-			let nonce = '';
-
-			if (data && data.transaction && data.transaction.nonce) {
-				nonce = data.transaction.nonce;
-			}
-
-			switch (data.type) {
-				case 'pending':
-					title = strings('notifications.pending_title');
-					message = strings('notifications.pending_message');
-					break;
-				case 'pending_deposit':
-					title = strings('notifications.pending_deposit_title');
-					message = strings('notifications.pending_deposit_message');
-					break;
-				case 'pending_withdrawal':
-					title = strings('notifications.pending_withdrawal_title');
-					message = strings('notifications.pending_withdrawal_message');
-					break;
-				case 'success':
-					title = strings('notifications.success_title', { nonce });
-					message = strings('notifications.success_message');
-					break;
-				case 'speedup':
-					title = strings('notifications.speedup_title', { nonce });
-					message = strings('notifications.speedup_message');
-					break;
-				case 'success_withdrawal':
-					title = strings('notifications.success_withdrawal_title');
-					message = strings('notifications.success_withdrawal_message');
-					break;
-				case 'success_deposit':
-					title = strings('notifications.success_deposit_title');
-					message = strings('notifications.success_deposit_message');
-					break;
-				case 'error':
-					title = strings('notifications.error_title');
-					message = strings('notifications.error_message');
-					break;
-				case 'cancelled':
-					title = strings('notifications.cancelled_title');
-					message = strings('notifications.cancelled_message');
-					break;
-				case 'received':
-					title = strings('notifications.received_title', {
-						amount: data.transaction.amount,
-						assetType: data.transaction.assetType
-					});
-					message = strings('notifications.received_message');
-					break;
-				case 'received_payment':
-					title = strings('notifications.received_payment_title');
-					message = strings('notifications.received_payment_message', {
-						amount: data.transaction.amount
-					});
-					break;
-			}
+			const { title, message } = constructTitleAndMessage(data);
 
 			const pushData = {
 				title,
@@ -121,7 +119,7 @@ class NotificationManager {
 				largeIcon: 'ic_notification',
 				smallIcon: 'ic_notification_small'
 			};
-			const id = (data && data.transaction && data.transaction.id) || null;
+			const id = data?.transaction?.id || null;
 
 			const extraData = { action: 'tx', id };
 			if (Device.isAndroid()) {
@@ -129,6 +127,7 @@ class NotificationManager {
 			} else {
 				pushData.userInfo = extraData;
 			}
+
 			PushNotification.localNotification(pushData);
 
 			if (id) {
@@ -143,25 +142,9 @@ class NotificationManager {
 		}
 	}
 
-	_handleTransactionsWatchListUpdate = transactionMeta => {
-		const nonce = transactionMeta.transaction.nonce;
-		if (this._transactionsWatchTable[nonce]) {
-			// Clean up of other txs listeners
-			this._transactionsWatchTable[nonce].forEach(id => {
-				if (id !== transactionMeta.id) {
-					this._removeListeners(id);
-				}
-			});
-			this._transactionsWatchTable[nonce] = this._transactionsWatchTable[nonce].filter(
-				id => id === transactionMeta.id
-			);
-		}
-	};
-
 	_finishedCallback = transactionMeta => {
-		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// If it fails we hide the pending tx notification
-		this._hideTransactionNotification(transactionMeta.id);
+		this._removeNotificationById(transactionMeta.id);
 		const transaction = this._transactionsWatchTable[transactionMeta.transaction.nonce];
 		transaction &&
 			transaction.length &&
@@ -180,9 +163,8 @@ class NotificationManager {
 	};
 
 	_confirmedCallback = (transactionMeta, originalTransaction) => {
-		this._handleTransactionsWatchListUpdate(transactionMeta);
 		// Once it's confirmed we hide the pending tx notification
-		this._hideTransactionNotification(transactionMeta.id);
+		this._removeNotificationById(transactionMeta.id);
 		this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
 			setTimeout(() => {
 				// Then we show the success notification
@@ -203,7 +185,7 @@ class NotificationManager {
 				// Detect assets and tokens for ERC20 txs
 				// Detect assets for ERC721 txs
 				// right after a transaction was confirmed
-				const pollPromises = [AccountTrackerController.poll()];
+				const pollPromises = [AccountTrackerController.refresh()];
 				switch (originalTransaction.assetType) {
 					case 'ERC20': {
 						pollPromises.push(...[TokenBalancesController.poll(), AssetsDetectionController.poll()]);
@@ -242,12 +224,19 @@ class NotificationManager {
 	/**
 	 * Creates a NotificationManager instance
 	 */
-	constructor(_navigation, _showTransactionNotification, _hideTransactionNotification, _showSimpleNotification) {
+	constructor(
+		_navigation,
+		_showTransactionNotification,
+		_hideTransactionNotification,
+		_showSimpleNotification,
+		_removeNotificationById
+	) {
 		if (!NotificationManager.instance) {
 			this._navigation = _navigation;
 			this._showTransactionNotification = _showTransactionNotification;
 			this._hideTransactionNotification = _hideTransactionNotification;
 			this._showSimpleNotification = _showSimpleNotification;
+			this._removeNotificationById = _removeNotificationById;
 			this._transactionToView = [];
 			this._backgroundMode = false;
 			NotificationManager.instance = this;
@@ -317,12 +306,15 @@ class NotificationManager {
 	 * Shows a notification with title and description
 	 */
 	showSimpleNotification = data => {
+		const id = Date.now();
 		this._showSimpleNotification({
+			id,
 			autodismiss: data.duration,
 			title: data.title,
 			description: data.description,
 			status: data.status
 		});
+		return id;
 	};
 
 	/**
@@ -363,7 +355,12 @@ class NotificationManager {
 	 * Generates a notification for an incoming transaction
 	 */
 	gotIncomingTransaction = async lastBlock => {
-		const { TransactionController, PreferencesController, NetworkController } = Engine.context;
+		const {
+			AccountTrackerController,
+			TransactionController,
+			PreferencesController,
+			NetworkController
+		} = Engine.context;
 		const { selectedAddress } = PreferencesController.state;
 		const { type: networkType } = NetworkController.state.provider;
 
@@ -379,9 +376,8 @@ class NotificationManager {
 				.reverse()
 				.filter(
 					tx =>
-						tx.transaction.to &&
-						toChecksumAddress(tx.transaction.to) === selectedAddress &&
-						toChecksumAddress(tx.transaction.from) !== selectedAddress &&
+						safeToChecksumAddress(tx.transaction?.to) === selectedAddress &&
+						safeToChecksumAddress(tx.transaction?.from) !== selectedAddress &&
 						((networkId && networkId.toString() === tx.networkID) ||
 							(networkType === RPC && !isKnownNetwork(tx.networkID))) &&
 						tx.status === 'confirmed' &&
@@ -394,7 +390,7 @@ class NotificationManager {
 					transaction: {
 						nonce: `${hexToBN(txs[0].transaction.nonce).toString()}`,
 						amount: `${renderFromWei(hexToBN(txs[0].transaction.value))}`,
-						id: txs[0].id,
+						id: txs[0]?.id,
 						assetType: strings('unit.eth')
 					},
 					autoHide: true,
@@ -402,43 +398,47 @@ class NotificationManager {
 				});
 			}
 		}
-
-		// Update balance upon detecting
-		// a new incoming transaction
-		const { AccountTrackerController } = Engine.context;
-		AccountTrackerController.poll();
+		// Update balance upon detecting a new incoming transaction
+		AccountTrackerController.refresh();
 	};
 }
 
 let instance;
 
 export default {
-	init(_navigation, _showTransactionNotification, _hideTransactionNotification, _showSimpleNotification) {
+	init({
+		navigation,
+		showTransactionNotification,
+		hideCurrentNotification,
+		showSimpleNotification,
+		removeNotificationById
+	}) {
 		instance = new NotificationManager(
-			_navigation,
-			_showTransactionNotification,
-			_hideTransactionNotification,
-			_showSimpleNotification
+			navigation,
+			showTransactionNotification,
+			hideCurrentNotification,
+			showSimpleNotification,
+			removeNotificationById
 		);
 		return instance;
 	},
 	watchSubmittedTransaction(transaction) {
-		return instance.watchSubmittedTransaction(transaction);
+		return instance?.watchSubmittedTransaction(transaction);
 	},
 	getTransactionToView() {
-		return instance.getTransactionToView();
+		return instance?.getTransactionToView();
 	},
 	setTransactionToView(id) {
-		return instance.setTransactionToView(id);
+		return instance?.setTransactionToView(id);
 	},
 	gotIncomingTransaction(lastBlock) {
-		return instance.gotIncomingTransaction(lastBlock);
+		return instance?.gotIncomingTransaction(lastBlock);
 	},
 	requestPushNotificationsPermission() {
-		return instance.requestPushNotificationsPermission();
+		return instance?.requestPushNotificationsPermission();
 	},
 	showSimpleNotification(data) {
-		return instance.showSimpleNotification(data);
+		return instance?.showSimpleNotification(data);
 	},
 	showInstantPaymentNotification(type) {
 		setTimeout(() => {
