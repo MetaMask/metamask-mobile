@@ -305,7 +305,6 @@ class Transactions extends PureComponent {
 		if (!this.props.transactions.length) {
 			return this.renderEmpty();
 		}
-
 		const { submittedTransactions, confirmedTransactions, header } = this.props;
 		const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
 		const transactions =
@@ -376,7 +375,8 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	thirdPartyApiMode: state.privacy.thirdPartyApiMode
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+	importTime: state.user.importTime
 });
 
 const mapDispatchToProps = dispatch => ({

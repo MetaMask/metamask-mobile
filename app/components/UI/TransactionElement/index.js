@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableHighlight, StyleSheet, Image } from 'react-native';
+import { TouchableOpacity, TouchableHighlight, StyleSheet, Image, Text, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
@@ -38,6 +38,11 @@ const styles = StyleSheet.create({
 	icon: {
 		width: 28,
 		height: 28
+	},
+	listDivider: {
+		height: 1,
+		flex: 1,
+		backgroundColor: colors.grey000
 	}
 });
 
@@ -88,7 +93,11 @@ class TransactionElement extends PureComponent {
 		 */
 		onCancelAction: PropTypes.func,
 		swapsTransactions: PropTypes.object,
-		swapsTokens: PropTypes.arrayOf(PropTypes.object)
+		swapsTokens: PropTypes.arrayOf(PropTypes.object),
+		/**
+		 * String that is the time the wallet was imported
+		 */
+		importTime: PropTypes.number
 	};
 
 	state = {
@@ -98,7 +107,8 @@ class TransactionElement extends PureComponent {
 		detailsModalVisible: false,
 		transactionGas: { gasBN: undefined, gasPriceBN: undefined, gasTotal: undefined },
 		transactionElement: undefined,
-		transactionDetails: undefined
+		transactionDetails: undefined,
+		importRowSet: false
 	};
 
 	mounted = false;
@@ -133,8 +143,26 @@ class TransactionElement extends PureComponent {
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return `${
-			(!incoming || selfSent) && tx.transaction.nonce ? `#${parseInt(tx.transaction.nonce, 16)}  - ` : ''
-		}${toDateFormat(tx.time)}`;
+			(!incoming || selfSent) && tx.transaction.nonce
+				? `#${parseInt(tx.transaction.nonce, 16)} - ${toDateFormat(tx.time)} from this device`
+				: `${toDateFormat(tx.time)} 
+			`
+		}`;
+	};
+
+	renderImportTime = () => {
+		const { tx } = this.props;
+		return (
+			<View>
+				<TouchableOpacity>
+					<View style={styles.listDivider} />
+					<ListItem.Body alignItems="center">
+						<Text>Imported wallet to this device</Text>
+						<ListItem.Date>{toDateFormat(tx.time)}</ListItem.Date>
+					</ListItem.Body>
+				</TouchableOpacity>
+			</View>
+		);
 	};
 
 	renderTxElementIcon = (transactionElement, status) => {
@@ -178,28 +206,31 @@ class TransactionElement extends PureComponent {
 		const { value, fiatValue = false, actionKey } = transactionElement;
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		return (
-			<ListItem>
-				<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
-				<ListItem.Content>
-					<ListItem.Icon>{this.renderTxElementIcon(transactionElement, status)}</ListItem.Icon>
-					<ListItem.Body>
-						<ListItem.Title numberOfLines={1}>{actionKey}</ListItem.Title>
-						<StatusText status={status} />
-					</ListItem.Body>
-					{Boolean(value) && (
-						<ListItem.Amounts>
-							<ListItem.Amount>{value}</ListItem.Amount>
-							<ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
-						</ListItem.Amounts>
+			<View>
+				<ListItem>
+					<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
+					<ListItem.Content>
+						<ListItem.Icon>{this.renderTxElementIcon(transactionElement, status)}</ListItem.Icon>
+						<ListItem.Body>
+							<ListItem.Title numberOfLines={1}>{actionKey}</ListItem.Title>
+							<StatusText status={status} />
+						</ListItem.Body>
+						{Boolean(value) && (
+							<ListItem.Amounts>
+								<ListItem.Amount>{value}</ListItem.Amount>
+								<ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
+							</ListItem.Amounts>
+						)}
+					</ListItem.Content>
+					{!!renderTxActions && (
+						<ListItem.Actions>
+							{this.renderSpeedUpButton()}
+							{this.renderCancelButton()}
+						</ListItem.Actions>
 					)}
-				</ListItem.Content>
-				{!!renderTxActions && (
-					<ListItem.Actions>
-						{this.renderSpeedUpButton()}
-						{this.renderCancelButton()}
-					</ListItem.Actions>
-				)}
-			</ListItem>
+				</ListItem>
+				{!this.importRowSet && this.props.tx.time >= this.props.importTime && this.renderImportTime()}
+			</View>
 		);
 	};
 
@@ -289,6 +320,7 @@ const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	primaryCurrency: state.settings.primaryCurrency,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+	importTime: state.user.importTime
 });
 export default connect(mapStateToProps)(TransactionElement);

@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
-import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { importTimeSet, passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -190,6 +190,11 @@ class ImportFromSeed extends PureComponent {
 		 */
 		setLockTime: PropTypes.func,
 		/**
+		 * The action to set the import wallet time
+		 * in the redux store
+		 */
+		importTimeSet: PropTypes.func,
+		/**
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
 		 */
@@ -279,6 +284,8 @@ class ImportFromSeed extends PureComponent {
 				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 				this.setState({ loading: false });
 				this.props.passwordSet();
+				console.log(Date.now());
+				this.props.importTimeSet(Date.now());
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
 				if (!metricsOptIn) {
@@ -592,6 +599,7 @@ const mapDispatchToProps = dispatch => ({
 	setLockTime: time => dispatch(setLockTime(time)),
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
 	passwordSet: () => dispatch(passwordSet()),
+	importTimeSet: importTime => dispatch(importTimeSet(importTime)),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
 });
 
