@@ -13,11 +13,12 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/Device';
 import Confetti from '../../UI/Confetti';
 import HintModal from '../../UI/HintModal';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN, SEED_PHRASE_HINTS } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
+		marginTop: 40,
 		backgroundColor: colors.white,
 		flex: 1
 	},
@@ -70,14 +71,11 @@ const HARDWARE_BACK_PRESS = 'hardwareBackPress';
  * the backup seed phrase flow
  */
 class ManualBackupStep3 extends PureComponent {
-	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation }) => getTransparentOnboardingNavbarOptions(navigation);
 
 	constructor(props) {
 		super(props);
 		this.steps = props.navigation.getParam('steps', undefined);
-		props.navigation.setParams({
-			headerLeft: <View />
-		});
 	}
 
 	state = {

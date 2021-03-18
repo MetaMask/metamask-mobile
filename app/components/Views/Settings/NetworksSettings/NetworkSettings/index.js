@@ -261,12 +261,13 @@ class NetworkSettings extends PureComponent {
 
 		if (this.validateRpcUrl()) {
 			const url = new URL(rpcUrl);
+			const decimalChainId = this.getDecimalChainId(chainId);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
 			CurrencyRateController.configure({ nativeCurrency: ticker });
-			PreferencesController.addToFrequentRpcList(url.href, this.getDecimalChainId(chainId), ticker, nickname, {
+			PreferencesController.addToFrequentRpcList(url.href, decimalChainId, ticker, nickname, {
 				blockExplorerUrl
 			});
-			NetworkController.setRpcTarget(url.href, chainId, ticker, nickname);
+			NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
 			navigation.navigate('WalletView');
 		}
 	};

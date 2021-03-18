@@ -57,15 +57,32 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
       name
     </Text>
   </View>
-  <AssetActionButtons
-    leftText="Send"
-    middleText="Add"
-    middleType="add"
-    onLeftPress={[Function]}
-    onMiddlePress={[Function]}
-    onRightPress={[Function]}
-    rightText="Info"
-    testID="collectible-info-button"
-  />
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+        "width": "50%",
+      }
+    }
+  >
+    <AssetActionButton
+      icon="send"
+      label="Send"
+      onPress={[Function]}
+    />
+    <AssetActionButton
+      icon="add"
+      label="Add"
+      onPress={[Function]}
+    />
+    <AssetActionButton
+      icon="add"
+      label="Info"
+      onPress={[Function]}
+      testID="collectible-info-button"
+    />
+  </View>
 </View>
 `;

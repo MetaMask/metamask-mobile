@@ -4,7 +4,6 @@ import Keypad from './components';
 import rules from './rules';
 
 // TODO: get displayable keys from the currency (eg: a comma instead of a period)
-// TODO: handle onLongPress for delete button
 
 export const Keys = {
 	DIGIT_1: '1',
@@ -18,7 +17,8 @@ export const Keys = {
 	DIGIT_9: '9',
 	DIGIT_0: '0',
 	PERIOD: 'PERIOD',
-	BACK: 'BACK'
+	BACK: 'BACK',
+	INITIAL: 'INITIAL'
 };
 
 function KeypadComponent({ onChange, value, currency }) {
@@ -42,6 +42,7 @@ function KeypadComponent({ onChange, value, currency }) {
 	const handleKeypadPress0 = useCallback(() => handleKeypadPress(Keys.DIGIT_0), [handleKeypadPress]);
 	const handleKeypadPressPeriod = useCallback(() => handleKeypadPress(Keys.PERIOD), [handleKeypadPress]);
 	const handleKeypadPressBack = useCallback(() => handleKeypadPress(Keys.BACK), [handleKeypadPress]);
+	const handleKeypadLongPressBack = useCallback(() => handleKeypadPress(Keys.INITIAL), [handleKeypadPress]);
 
 	return (
 		<Keypad>
@@ -63,7 +64,11 @@ function KeypadComponent({ onChange, value, currency }) {
 			<Keypad.Row>
 				<Keypad.Button onPress={handleKeypadPressPeriod}>.</Keypad.Button>
 				<Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>
-				<Keypad.DeleteButton onPress={handleKeypadPressBack} />
+				<Keypad.DeleteButton
+					onPress={handleKeypadPressBack}
+					onLongPress={handleKeypadLongPressBack}
+					delayLongPress={500}
+				/>
 			</Keypad.Row>
 		</Keypad>
 	);

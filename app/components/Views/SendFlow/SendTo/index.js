@@ -461,6 +461,7 @@ class SendFlow extends PureComponent {
 							<View style={styles.addInputWrapper}>
 								<View style={styles.input}>
 									<TextInput
+										autoFocus
 										autoCapitalize="none"
 										autoCorrect={false}
 										onChangeText={this.onChangeAlias}

@@ -83,6 +83,9 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textTransform: 'uppercase'
 	},
+	balanceFiatTokenError: {
+		textTransform: 'capitalize'
+	},
 	ethLogo: {
 		width: 50,
 		height: 50,
@@ -132,9 +135,9 @@ class Tokens extends PureComponent {
 		 */
 		primaryCurrency: PropTypes.string,
 		/**
-		 * Network id
+		 * Chain id
 		 */
-		network: PropTypes.string
+		chainId: PropTypes.string
 	};
 
 	actionSheet = null;
@@ -181,6 +184,11 @@ class Tokens extends PureComponent {
 			secondaryBalance = !balanceFiat ? balanceFiat : balanceValue;
 		}
 
+		if (asset?.balanceError) {
+			mainBalance = asset.symbol;
+			secondaryBalance = strings('wallet.unable_to_load');
+		}
+
 		asset = { ...asset, ...{ logo, balance, balanceFiat } };
 		return (
 			<AssetElement
@@ -200,7 +208,11 @@ class Tokens extends PureComponent {
 
 				<View style={styles.balances} testID={'balance'}>
 					<Text style={styles.balance}>{mainBalance}</Text>
-					{secondaryBalance ? <Text style={styles.balanceFiat}>{secondaryBalance}</Text> : null}
+					{secondaryBalance ? (
+						<Text style={[styles.balanceFiat, asset?.balanceError && styles.balanceFiatTokenError]}>
+							{secondaryBalance}
+						</Text>
+					) : null}
 				</View>
 			</AssetElement>
 		);
@@ -214,8 +226,8 @@ class Tokens extends PureComponent {
 	};
 
 	renderBuyEth() {
-		const { tokens, network, tokenBalances } = this.props;
-		if (!allowedToBuy(network)) {
+		const { tokens, chainId, tokenBalances } = this.props;
+		if (!allowedToBuy(chainId)) {
 			return null;
 		}
 		const eth = tokens.find(token => token.isETH);
@@ -294,7 +306,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	network: state.engine.backgroundState.NetworkController.network,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	primaryCurrency: state.settings.primaryCurrency,

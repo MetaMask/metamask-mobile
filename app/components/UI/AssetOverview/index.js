@@ -1,17 +1,27 @@
 import React, { PureComponent } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
+import { swapsUtils } from '@estebanmino/controllers';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
+import AssetActionButton from '../AssetActionButton';
+import AppConstants from '../../../core/AppConstants';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import AssetActionButtons from '../AssetActionButtons';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
+import { isMainNet } from '../../../util/networks';
+import { swapsLivenessSelector, swapsTokensObjectSelector } from '../../../reducers/swaps';
+import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
+import Analytics from '../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { allowedToBuy } from '../FiatOrders';
+import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -50,6 +60,26 @@ const styles = StyleSheet.create({
 		color: colors.fontSecondary,
 		...fontStyles.light,
 		textTransform: 'uppercase'
+	},
+	actions: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'flex-start',
+		flexDirection: 'row'
+	},
+	warning: {
+		borderRadius: 8,
+		color: colors.black,
+		...fontStyles.normal,
+		fontSize: 14,
+		lineHeight: 20,
+		borderWidth: 1,
+		borderColor: colors.yellow,
+		backgroundColor: colors.yellow100,
+		padding: 20
+	},
+	warningLinks: {
+		color: colors.blue
 	}
 });
 
@@ -105,12 +135,31 @@ class AssetOverview extends PureComponent {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Chain id
+		 */
+		chainId: PropTypes.string,
+		/**
+		 * Wether Swaps feature is live or not
+		 */
+		swapsIsLive: PropTypes.bool,
+		/**
+		 * Object that contains swaps tokens addresses as key
+		 */
+		swapsTokens: PropTypes.object
 	};
 
 	onReceive = () => {
 		const { asset } = this.props;
 		this.props.toggleReceiveModal(asset);
+	};
+
+	onBuy = () => {
+		this.props.navigation.navigate('PaymentMethodSelector');
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+		});
 	};
 
 	onSend = async () => {
@@ -123,6 +172,18 @@ class AssetOverview extends PureComponent {
 			this.props.navigation.navigate('SendFlowView');
 		}
 	};
+
+	goToSwaps = () => {
+		this.props.navigation.navigate('Swaps', {
+			sourceToken: this.props.asset.isETH ? swapsUtils.ETH_SWAPS_TOKEN_ADDRESS : this.props.asset.address
+		});
+	};
+
+	goToBrowserUrl(url) {
+		this.props.navigation.navigate('BrowserView', {
+			newTabUrl: url
+		});
+	}
 
 	renderLogo = () => {
 		const {
@@ -139,16 +200,46 @@ class AssetOverview extends PureComponent {
 		);
 	};
 
+	componentDidMount = async () => {
+		const { SwapsController } = Engine.context;
+		try {
+			await SwapsController.fetchTokenWithCache();
+		} catch (error) {
+			Logger.error(error, 'Swaps: error while fetching tokens with catche in AssetOverview');
+		}
+	};
+
+	renderWarning = () => {
+		const {
+			asset: { symbol }
+		} = this.props;
+
+		const supportArticleUrl =
+			'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate';
+		return (
+			<TouchableOpacity onPress={() => this.goToBrowserUrl(supportArticleUrl)}>
+				<Text style={styles.warning}>
+					{strings('asset_overview.were_unable')} {symbol} {strings('asset_overview.balance')}{' '}
+					<Text style={styles.warningLinks}>{strings('asset_overview.troubleshooting_missing')}</Text>{' '}
+					{strings('asset_overview.for_help')}
+				</Text>
+			</TouchableOpacity>
+		);
+	};
+
 	render() {
 		const {
 			accounts,
-			asset: { address, isETH = undefined, decimals, symbol },
+			asset: { address, isETH = undefined, decimals, symbol, balanceError = null },
 			primaryCurrency,
 			selectedAddress,
 			tokenExchangeRates,
 			tokenBalances,
 			conversionRate,
-			currentCurrency
+			currentCurrency,
+			chainId,
+			swapsIsLive,
+			swapsTokens
 		} = this.props;
 		let mainBalance, secondaryBalance;
 		const itemAddress = safeToChecksumAddress(address);
@@ -170,25 +261,52 @@ class AssetOverview extends PureComponent {
 			mainBalance = !balanceFiat ? `${balance} ${symbol}` : balanceFiat;
 			secondaryBalance = !balanceFiat ? balanceFiat : `${balance} ${symbol}`;
 		}
-
 		return (
 			<View style={styles.wrapper} testID={'token-asset-overview'}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.balance}>
-					<Text style={styles.amount} testID={'token-amount'}>
-						{mainBalance}
-					</Text>
-					<Text style={styles.amountFiat}>{secondaryBalance}</Text>
+					{balanceError ? (
+						this.renderWarning()
+					) : (
+						<>
+							<Text style={styles.amount} testID={'token-amount'}>
+								{mainBalance}
+							</Text>
+							<Text style={styles.amountFiat}>{secondaryBalance}</Text>
+						</>
+					)}
 				</View>
 
-				<AssetActionButtons
-					leftText={strings('asset_overview.send_button').toUpperCase()}
-					testID={'token-send-button'}
-					middleText={strings('asset_overview.receive_button').toUpperCase()}
-					onLeftPress={this.onSend}
-					onMiddlePress={this.onReceive}
-					middleType={'receive'}
-				/>
+				{!balanceError && (
+					<View style={styles.actions}>
+						<AssetActionButton
+							icon="receive"
+							onPress={this.onReceive}
+							label={strings('asset_overview.receive_button')}
+						/>
+						{isETH && allowedToBuy(chainId) && (
+							<AssetActionButton
+								icon="buy"
+								onPress={this.onBuy}
+								label={strings('asset_overview.buy_button')}
+							/>
+						)}
+						<AssetActionButton
+							testID={'token-send-button'}
+							icon="send"
+							onPress={this.onSend}
+							label={strings('asset_overview.send_button')}
+						/>
+						{AppConstants.SWAPS.ACTIVE && (
+							<AssetSwapButton
+								isFeatureLive={swapsIsLive}
+								isNetworkAllowed={AppConstants.SWAPS.ONLY_MAINNET ? isMainNet(chainId) : true}
+								isAssetAllowed={isETH || address?.toLowerCase() in swapsTokens}
+								onPress={this.goToSwaps}
+							/>
+						)}
+					</View>
+				)}
 			</View>
 		);
 	}
@@ -201,7 +319,10 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	swapsIsLive: swapsLivenessSelector(state),
+	swapsTokens: swapsTokensObjectSelector(state)
 });
 
 const mapDispatchToProps = dispatch => ({

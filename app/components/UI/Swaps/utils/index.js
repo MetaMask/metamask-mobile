@@ -3,6 +3,10 @@ import BigNumber from 'bignumber.js';
 import { swapsUtils } from '@estebanmino/controllers';
 import { strings } from '../../../../../locales/i18n';
 
+export function isSwapsETH(token) {
+	return Boolean(token) && token?.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
+}
+
 /**
  * Sets required parameters for Swaps Quotes View
  * @param {string} sourceTokenAddress Token contract address used as swaps source
@@ -100,6 +104,33 @@ export function getErrorMessage(errorKey) {
 				strings('swaps.error_fetching_quote'),
 				strings('swaps.unexpected_error', { error: errorKey || 'error-not-provided' }),
 				errorAction
+			];
+		}
+	}
+}
+
+export function getQuotesSourceMessage(type) {
+	switch (type) {
+		case 'DEX': {
+			return [
+				strings('swaps.quote_source_dex.1'),
+				strings('swaps.quote_source_dex.2'),
+				strings('swaps.quote_source_dex.3')
+			];
+		}
+		case 'RFQ': {
+			return [
+				strings('swaps.quote_source_rfq.1'),
+				strings('swaps.quote_source_rfq.2'),
+				strings('swaps.quote_source_rfq.3')
+			];
+		}
+		case 'AGG':
+		default: {
+			return [
+				strings('swaps.quote_source_agg.1'),
+				strings('swaps.quote_source_agg.2'),
+				strings('swaps.quote_source_agg.3')
 			];
 		}
 	}
