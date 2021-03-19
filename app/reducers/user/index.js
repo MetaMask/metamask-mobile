@@ -72,7 +72,6 @@ const userReducer = (state = initialState, action) => {
 				protectWalletModalVisible: false
 			};
 		case 'IMPORT_TIME_SET':
-			console.log('Reducer', action.importTime);
 			return {
 				...state,
 				importTime: action.importTime

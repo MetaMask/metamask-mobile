@@ -617,6 +617,7 @@
 		"invalid_amount": "Invalid amount",
 		"invalid_gas": "Invalid gas amount",
 		"invalid_gas_price": "Invalid gas price",
+		"high_gas_price": "Your gas fee is set unnecessarily high ({{currentGasPrice}}). Consider lowering the amount.",
 		"low_gas_price": "Gas price extremely low",
 		"invalid_collectible_ownership": "You don't own this collectible",
 		"known_asset_contract": "Known asset contract address",
@@ -819,7 +820,10 @@
 		"address_from_balance": "Balance:",
 		"status": "Status",
 		"date": "Date",
-		"nonce": "Nonce"
+		"nonce": "Nonce",
+		"import_wallet_row": "Imported wallet to this device",
+		"import_wallet_label": "Imported Wallet",
+		"import_wallet_tip": "All future transactions made from this device will include a lable \"from this device\" next to the timestamp. For transactions dated before importing the wallet, this history will not indicate which outgoing transactions originated from this device."
 	},
 	"address_book": {
 		"recents": "Recents",

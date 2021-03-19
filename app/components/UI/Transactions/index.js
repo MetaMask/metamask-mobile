@@ -118,7 +118,11 @@ class Transactions extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * String that is the time the wallet was imported
+		 */
+		importWalletTime: PropTypes.number
 	};
 
 	static defaultProps = {
@@ -278,6 +282,24 @@ class Transactions extends PureComponent {
 		this.onCancelCompleted();
 	};
 
+	/**
+	 * Function that parses all transactions and inserts a import wallet flag
+	 * @param {*} transactions transactions to be displayed
+	 * @returns transactions to be displayed with import flag inserted
+	 */
+	insertImportWalletFlag = transactions => {
+		let insertPointFound = false;
+		transactions.forEach(tx => {
+			if (this.props.importWalletTime >= tx.time && !insertPointFound) {
+				tx.insertImportTime = true;
+				insertPointFound = true;
+			} else {
+				tx.insertImportTime = false;
+			}
+		});
+		return transactions;
+	};
+
 	renderItem = ({ item, index }) => (
 		<TransactionElement
 			tx={item}
@@ -316,7 +338,7 @@ class Transactions extends PureComponent {
 				<FlatList
 					ref={this.flatList}
 					getItemLayout={this.getItemLayout}
-					data={transactions}
+					data={this.insertImportWalletFlag(transactions)}
 					extraData={this.state}
 					keyExtractor={this.keyExtractor}
 					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
@@ -376,7 +398,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-	importTime: state.user.importTime
+	importWalletTime: state.user.importTime
 });
 
 const mapDispatchToProps = dispatch => ({

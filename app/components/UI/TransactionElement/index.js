@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, TouchableHighlight, StyleSheet, Image, Text, View } from 'react-native';
-import { colors } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
+import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
 import TransactionDetails from './TransactionDetails';
@@ -43,6 +44,19 @@ const styles = StyleSheet.create({
 		height: 1,
 		flex: 1,
 		backgroundColor: colors.grey000
+	},
+	summaryWrapper: {
+		padding: 15
+	},
+	importText: {
+		color: colors.fontSecondary,
+		fontSize: 14,
+		marginBottom: 10,
+		...fontStyles.normal
+	},
+	importRowBody: {
+		alignItems: 'center',
+		paddingTop: 10
 	}
 });
 
@@ -105,10 +119,10 @@ class TransactionElement extends PureComponent {
 		cancelIsOpen: false,
 		speedUpIsOpen: false,
 		detailsModalVisible: false,
+		importModalVisible: false,
 		transactionGas: { gasBN: undefined, gasPriceBN: undefined, gasTotal: undefined },
 		transactionElement: undefined,
-		transactionDetails: undefined,
-		importRowSet: false
+		transactionDetails: undefined
 	};
 
 	mounted = false;
@@ -134,6 +148,14 @@ class TransactionElement extends PureComponent {
 		this.setState({ detailsModalVisible: true });
 	};
 
+	onPressImportWalletTip = () => {
+		this.setState({ importModalVisible: true });
+	};
+
+	onCloseImportWalletModal = () => {
+		this.setState({ importModalVisible: false });
+	};
+
 	onCloseDetailsModal = () => {
 		this.setState({ detailsModalVisible: false });
 	};
@@ -150,19 +172,28 @@ class TransactionElement extends PureComponent {
 		}`;
 	};
 
+	/**
+	 * Function that evaluates tx to see if the Import Wallet Transaction time needs to be imported.
+	 * @returns Wallet import view
+	 */
 	renderImportTime = () => {
-		const { tx } = this.props;
-		return (
-			<View>
-				<TouchableOpacity>
-					<View style={styles.listDivider} />
-					<ListItem.Body alignItems="center">
-						<Text>Imported wallet to this device</Text>
-						<ListItem.Date>{toDateFormat(tx.time)}</ListItem.Date>
-					</ListItem.Body>
-				</TouchableOpacity>
-			</View>
-		);
+		const { tx, importTime } = this.props;
+		if (tx.insertImportTime) {
+			return (
+				<View>
+					<TouchableOpacity onPress={this.onPressImportWalletTip}>
+						<View style={styles.listDivider} />
+						<ListItem.Body sytle={styles.importRowBody}>
+							<Text style={fontStyles.thin}>
+								{`${strings('transactions.import_wallet_row')} `}
+								<FAIcon name="info-circle" style={styles.infoIcon} />
+							</Text>
+							<ListItem.Date>{toDateFormat(importTime)}</ListItem.Date>
+						</ListItem.Body>
+					</TouchableOpacity>
+				</View>
+			);
+		}
 	};
 
 	renderTxElementIcon = (transactionElement, status) => {
@@ -229,7 +260,7 @@ class TransactionElement extends PureComponent {
 						</ListItem.Actions>
 					)}
 				</ListItem>
-				{!this.importRowSet && this.props.tx.time >= this.props.importTime && this.renderImportTime()}
+				{this.renderImportTime()}
 			</View>
 		);
 	};
@@ -276,7 +307,7 @@ class TransactionElement extends PureComponent {
 
 	render() {
 		const { tx } = this.props;
-		const { detailsModalVisible, transactionElement, transactionDetails } = this.state;
+		const { detailsModalVisible, importModalVisible, transactionElement, transactionDetails } = this.state;
 
 		if (!transactionElement || !transactionDetails) return null;
 		return (
@@ -309,6 +340,25 @@ class TransactionElement extends PureComponent {
 							navigation={this.props.navigation}
 							close={this.onCloseDetailsModal}
 						/>
+					</DetailsModal>
+				</Modal>
+				<Modal
+					isVisible={importModalVisible}
+					onBackdropPress={this.onCloseImportWalletModal}
+					onBackButtonPress={this.onCloseImportWalletModal}
+					onSwipeComplete={this.onCloseImportWalletModal}
+					swipeDirection={'down'}
+				>
+					<DetailsModal>
+						<DetailsModal.Header>
+							<DetailsModal.Title onPress={this.onCloseImportWalletModal}>
+								{strings('transactions.import_wallet_label')}
+							</DetailsModal.Title>
+							<DetailsModal.CloseIcon onPress={this.onCloseImportWalletModal} />
+						</DetailsModal.Header>
+						<View style={styles.summaryWrapper}>
+							<Text style={styles.importText}>{strings('transactions.import_wallet_tip')}</Text>
+						</View>
 					</DetailsModal>
 				</Modal>
 			</>
