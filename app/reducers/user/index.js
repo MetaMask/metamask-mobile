@@ -18,7 +18,8 @@ const userReducer = (state = initialState, action) => {
 		case 'LOADING_SET':
 			return {
 				...state,
-				loadingSet: true
+				loadingSet: true,
+				loadingMsg: action.loadingMsg
 			};
 		case 'LOADING_UNSET':
 			return {
