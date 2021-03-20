@@ -289,9 +289,7 @@ class Onboarding extends PureComponent {
 		this.mounted = false;
 		this.pubnubWrapper && this.pubnubWrapper.disconnectWebsockets();
 		this.props.unsetLoading();
-		InteractionManager.runAfterInteractions(() => {
-			PreventScreenshot.allow();
-		});
+		InteractionManager.runAfterInteractions(PreventScreenshot.allow);
 	}
 
 	async checkIfExistingUser() {
