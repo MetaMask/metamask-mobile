@@ -19,16 +19,16 @@ const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		paddingTop: 24,
-		minHeight: Device.isIos() ? '72%' : '80%',
+		minHeight: '90%',
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	expandedHeight2: {
-		minHeight: '80%'
+		minHeight: '90%'
 	},
 	expandedHeight1: {
-		minHeight: '75%'
+		minHeight: '90%'
 	},
 	signingInformation: {
 		alignItems: 'center',
@@ -237,15 +237,6 @@ class SignatureRequest extends PureComponent {
 		}
 		return (
 			<View style={[styles.root, expandedHeight]}>
-				<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
-				<View style={styles.signingInformation}>
-					<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
-					{showWarning ? (
-						<TouchableOpacity style={styles.warningWrapper} onPress={this.goToWarning}>
-							<WarningMessage warningMessage={this.renderWarning()} />
-						</TouchableOpacity>
-					) : null}
-				</View>
 				<ActionView
 					cancelTestID={'request-signature-cancel-button'}
 					confirmTestID={'request-signature-confirm-button'}
@@ -255,7 +246,18 @@ class SignatureRequest extends PureComponent {
 					onConfirmPress={this.onConfirm}
 					confirmButtonMode="sign"
 				>
-					{this.renderActionViewChildren()}
+					<View>
+						<TransactionHeader currentPageInformation={currentPageInformation} type={type} />
+						<View style={styles.signingInformation}>
+							<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
+							{showWarning ? (
+								<TouchableOpacity style={styles.warningWrapper} onPress={this.goToWarning}>
+									<WarningMessage warningMessage={this.renderWarning()} />
+								</TouchableOpacity>
+							) : null}
+						</View>
+						{this.renderActionViewChildren()}
+					</View>
 				</ActionView>
 			</View>
 		);

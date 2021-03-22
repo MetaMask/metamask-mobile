@@ -415,7 +415,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <View
           style={
             Object {
-              "flex": 1,
+              "width": 26,
             }
           }
         />
@@ -423,6 +423,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           style={
             Object {
               "color": "#000000",
+              "flex": 1,
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
@@ -445,7 +446,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           style={
             Object {
               "alignItems": "flex-end",
-              "flex": 1,
+              "padding": 5,
             }
           }
         >
