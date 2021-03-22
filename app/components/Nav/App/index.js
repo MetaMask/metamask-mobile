@@ -15,7 +15,6 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSeed from '../../Views/ImportFromSeed';
-import SyncWithExtension from '../../Views/SyncWithExtension';
 import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
 import Entry from '../../Views/Entry';
 import LockScreen from '../../Views/LockScreen';
@@ -65,9 +64,6 @@ const OnboardingNav = createStackNavigator(
 		},
 		ImportFromSeed: {
 			screen: ImportFromSeed
-		},
-		SyncWithExtension: {
-			screen: SyncWithExtension
 		},
 		OptinMetrics: {
 			screen: OptinMetrics
