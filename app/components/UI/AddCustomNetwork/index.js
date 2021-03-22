@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
-import { StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
@@ -215,9 +215,11 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, na
 		</View>
 	);
 
-	const openLink = () => {
-		cancel();
-		navigation.navigate('SimpleWebview', { url: 'https://chainid.network' });
+	const openHowToUseCustomNetworks = () => {
+		Linking.openURL('https://metamask.zendesk.com/hc/en-us/articles/360056196151');
+	};
+	const openHowToVerifyCustomNetworks = () => {
+		Linking.openURL('https://metamask.zendesk.com/hc/en-us/articles/360057142392');
 	};
 
 	const renderAlert = () => {
@@ -245,7 +247,7 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, na
 						</Text>
 						<Text primary noMargin>
 							{strings('add_custom_network.alert_recommend')}{' '}
-							<Text primary link noMargin onPress={openLink}>
+							<Text primary link noMargin onPress={openHowToVerifyCustomNetworks}>
 								{strings('add_custom_network.alert_verify')}
 							</Text>
 							.
@@ -270,7 +272,7 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, na
 					{strings('add_custom_network.warning_subtext_1')}
 				</Text>{' '}
 				{strings('add_custom_network.warning_subtext_2')}
-				<Text primary link noMargin>
+				<Text primary link noMargin onPress={openHowToUseCustomNetworks}>
 					{' '}
 					{strings('add_custom_network.warning_subtext_3')}
 				</Text>
