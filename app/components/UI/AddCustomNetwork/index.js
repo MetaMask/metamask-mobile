@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
-import { StyleSheet, View, TouchableOpacity, Text, ScrollView } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, ScrollView, Text } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
@@ -329,6 +328,4 @@ AddCustomNetwork.propTypes = {
 	navigation: PropTypes.object
 };
 
-const mapStateToProps = state => ({});
-
-export default connect(mapStateToProps)(withNavigation(AddCustomNetwork));
+export default withNavigation(AddCustomNetwork);

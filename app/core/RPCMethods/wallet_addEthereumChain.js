@@ -14,8 +14,6 @@ const wallet_addEthereumChain = async ({
 	showSwitchCustomNetworkDialog,
 	addCustomNetworkRequest,
 	switchCustomNetworkRequest,
-	frequentRpcList,
-	networkProvider,
 	setCustomNetworkToSwitch,
 	setShowSwitchCustomNetworkDialog,
 	setCustomNetworkToAdd,
@@ -91,10 +89,11 @@ const wallet_addEthereumChain = async ({
 		throw ethErrors.rpc.invalidParams(`May not specify default MetaMask chain.`);
 	}
 
+	const frequentRpcList = PreferencesController.state.frequentRpcList;
 	const existingNetwork = frequentRpcList.find(rpc => rpc.chainId === chainIdDecimal);
 
 	if (existingNetwork) {
-		const currentChainId = networkProvider.chainId;
+		const currentChainId = NetworkController.state.provider.chainId;
 		if (currentChainId === chainIdDecimal) {
 			res.result = null;
 			return;
@@ -112,7 +111,7 @@ const wallet_addEthereumChain = async ({
 			switchCustomNetworkRequest.current = { resolve, reject };
 		});
 
-		if (!switchCustomNetworkApprove) throw ethErrors.provider.userRejectedRequest('User rejected the request.');
+		if (!switchCustomNetworkApprove) throw ethErrors.provider.userRejectedRequest();
 
 		CurrencyRateController.configure({ nativeCurrency: existingNetwork.ticker });
 		NetworkController.setRpcTarget(
@@ -221,7 +220,7 @@ const wallet_addEthereumChain = async ({
 		addCustomNetworkRequest.current = { resolve, reject };
 	});
 
-	if (!addCustomNetworkApprove) throw ethErrors.provider.userRejectedRequest('User rejected the request.');
+	if (!addCustomNetworkApprove) throw ethErrors.provider.userRejectedRequest();
 
 	PreferencesController.addToFrequentRpcList(firstValidRPCUrl, chainIdDecimal, ticker, _chainName, {
 		blockExplorerUrl: firstValidBlockExplorerUrl
@@ -236,10 +235,10 @@ const wallet_addEthereumChain = async ({
 		switchCustomNetworkRequest.current = { resolve, reject };
 	});
 
-	if (!switchCustomNetworkApprove) throw ethErrors.provider.userRejectedRequest('User rejected the request.');
+	if (!switchCustomNetworkApprove) throw ethErrors.provider.userRejectedRequest();
 
 	CurrencyRateController.configure({ nativeCurrency: ticker });
-	NetworkController.setRpcTarget(firstValidBlockExplorerUrl, chainIdDecimal, ticker, _chainName);
+	NetworkController.setRpcTarget(firstValidRPCUrl, chainIdDecimal, ticker, _chainName);
 
 	res.result = null;
 };

@@ -737,8 +737,6 @@ export const BrowserTab = props => {
 						showSwitchCustomNetworkDialog,
 						addCustomNetworkRequest,
 						switchCustomNetworkRequest,
-						frequentRpcList: props.frequentRpcList,
-						networkProvider: props.networkProvider,
 						setCustomNetworkToSwitch,
 						setShowSwitchCustomNetworkDialog,
 						setCustomNetworkToAdd,
@@ -1653,16 +1651,12 @@ export const BrowserTab = props => {
 
 	const onAddCustomNetworkReject = () => {
 		setShowAddCustomNetworkDialog(false);
-		addCustomNetworkRequest.current &&
-			addCustomNetworkRequest.current.reject &&
-			addCustomNetworkRequest.current.reject(new Error('User rejected the request.'));
+		addCustomNetworkRequest?.current?.resolve?.(false);
 	};
 
 	const onAddCustomNetworkConfirm = () => {
 		setShowAddCustomNetworkDialog(false);
-		addCustomNetworkRequest.current &&
-			addCustomNetworkRequest.current.resolve &&
-			addCustomNetworkRequest.current.resolve('Approved');
+		addCustomNetworkRequest?.current?.resolve?.(true);
 	};
 
 	/**
@@ -1695,17 +1689,13 @@ export const BrowserTab = props => {
 	);
 
 	const onSwitchCustomNetworkReject = () => {
-		setShowSwitchCustomNetworkDialog(false);
-		switchCustomNetworkRequest.current &&
-			switchCustomNetworkRequest.current.reject &&
-			switchCustomNetworkRequest.current.reject(new Error('User rejected the request.'));
+		setShowSwitchCustomNetworkDialog(undefined);
+		switchCustomNetworkRequest?.current?.resolve?.(false);
 	};
 
 	const onSwitchCustomNetworkConfirm = () => {
-		setShowSwitchCustomNetworkDialog(false);
-		switchCustomNetworkRequest.current &&
-			switchCustomNetworkRequest.current.resolve &&
-			switchCustomNetworkRequest.current.resolve('Approved');
+		setShowSwitchCustomNetworkDialog(undefined);
+		switchCustomNetworkRequest?.current?.resolve?.(true);
 	};
 
 	/**
@@ -1951,11 +1941,7 @@ BrowserTab.propTypes = {
 	/**
 	 * An object representing the selected network provider
 	 */
-	networkProvider: PropTypes.object,
-	/**
-	 * An array representing the list of added custom networks
-	 */
-	frequentRpcList: PropTypes.array
+	networkProvider: PropTypes.object
 };
 
 BrowserTab.defaultProps = {
@@ -1974,8 +1960,7 @@ const mapStateToProps = state => ({
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
 	activeTab: state.browser.activeTab,
-	wizardStep: state.wizard.step,
-	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
+	wizardStep: state.wizard.step
 });
 
 const mapDispatchToProps = dispatch => ({
