@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.0.1 - Mar 22 2021
+- [#2417](https://github.com/MetaMask/metamask-mobile/pull/2417): Bugfix/sync improvements
+- [#2418](https://github.com/MetaMask/metamask-mobile/pull/2418): V2 fixes
+- [#2156](https://github.com/MetaMask/metamask-mobile/pull/2156): Translations with update script
+
 ## v2.0.0 - Mar 16 2021
 - [#2383](https://github.com/MetaMask/metamask-mobile/pull/2383): swaps/received destination amount
 - [#2379](https://github.com/MetaMask/metamask-mobile/pull/2379): Swaps/fix decode tx render amounts
