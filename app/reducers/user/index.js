@@ -1,6 +1,7 @@
 import { REHYDRATE } from 'redux-persist';
 
 const initialState = {
+	loadingMsg: '',
 	loadingSet: false,
 	passwordSet: false,
 	seedphraseBackedUp: false,
