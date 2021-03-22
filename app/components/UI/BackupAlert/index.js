@@ -8,6 +8,7 @@ import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
 import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
+import { findBottomTabRouteNameFromNavigatorState, findRouteNameFromNavigatorState } from '../../../util/general';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -114,8 +115,8 @@ class BackupAlert extends PureComponent {
 
 	componentDidUpdate = async prevProps => {
 		if (prevProps.navigation.state !== this.props.navigation.state) {
-			const currentRouteName = this.findRouteNameFromNavigatorState(this.props.navigation.state);
-			const currentTabRouteName = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
+			const currentRouteName = findRouteNameFromNavigatorState(this.props.navigation.state);
+			const currentTabRouteName = findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
 
 			const inBrowserView = currentRouteName === BROWSER_ROUTE;
 			const blockedView =
@@ -124,22 +125,6 @@ class BackupAlert extends PureComponent {
 			this.setState({ inBrowserView, blockedView });
 		}
 	};
-
-	findBottomTabRouteNameFromNavigatorState({ routes }) {
-		let route = routes[routes.length - 1];
-		let routeName;
-		while (route.index !== undefined) {
-			routeName = route.routeName;
-			route = route.routes[route.index];
-		}
-		return routeName;
-	}
-
-	findRouteNameFromNavigatorState({ routes }) {
-		let route = routes[routes.length - 1];
-		while (route.index !== undefined) route = route.routes[route.index];
-		return route.routeName;
-	}
 
 	goToBackupFlow = () => {
 		this.props.navigation.navigate('AccountBackupStep1');

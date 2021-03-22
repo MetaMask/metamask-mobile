@@ -46,7 +46,7 @@ function Notification(props) {
 		const routes = navigation.state.routes;
 		let route = routes[routes.length - 1];
 		while (route.index !== undefined) route = route.routes[route.index];
-		return route.routeName === BROWSER_ROUTE;
+		return route?.routeName === BROWSER_ROUTE;
 	}, [navigation.state]);
 
 	useEffect(() => () => removeCurrentNotification(), [removeCurrentNotification]);
