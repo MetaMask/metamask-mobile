@@ -152,9 +152,8 @@ class AccountList extends PureComponent {
 	};
 
 	scrollToCurrentAccount() {
-		this.flatList &&
-			this.flatList.current &&
-			this.flatList.current.scrollToIndex({ index: this.state.selectedAccountIndex, animated: true });
+		// eslint-disable-next-line no-unused-expressions
+		this.flatList?.current?.scrollToIndex({ index: this.state.selectedAccountIndex, animated: true });
 	}
 
 	onAccountChange = async newIndex => {
