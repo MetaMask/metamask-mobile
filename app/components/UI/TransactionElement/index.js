@@ -268,7 +268,7 @@ class TransactionElement extends PureComponent {
 					<DetailsModal>
 						<DetailsModal.Header>
 							<DetailsModal.Title onPress={this.onCloseDetailsModal}>
-								{transactionElement.actionKey}
+								{transactionElement?.actionKey}
 							</DetailsModal.Title>
 							<DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
 						</DetailsModal.Header>
