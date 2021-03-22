@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
-import { StyleSheet, View, TouchableOpacity, ScrollView, Text } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
@@ -10,6 +10,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Alert from '../../Base/Alert';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { withNavigation } from 'react-navigation';
+import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
 	root: {
@@ -28,35 +29,23 @@ const styles = StyleSheet.create({
 		margin: 24
 	},
 	intro: {
-		...fontStyles.bold,
-		textAlign: 'center',
-		color: colors.fontPrimary,
 		fontSize: Device.isSmallDevice() ? 18 : 24,
 		marginBottom: 16,
 		marginTop: 16,
 		marginRight: 24,
 		marginLeft: 24
 	},
-	bold: {
-		...fontStyles.bold
-	},
 	warning: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
 		paddingHorizontal: 24,
 		fontSize: 13,
 		width: '100%',
-		textAlign: 'center',
 		paddingBottom: 12
 	},
 	warningSubtext: {
 		lineHeight: 20,
-		...fontStyles.normal,
-		color: colors.fontPrimary,
 		paddingHorizontal: 24,
 		fontSize: 13,
-		width: '100%',
-		textAlign: 'center'
+		width: '100%'
 	},
 	actionContainer: {
 		flex: 0,
@@ -77,11 +66,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	viewDetailsText: {
-		...fontStyles.bold,
-		color: colors.blue,
 		fontSize: 12,
-		lineHeight: 16,
-		textAlign: 'center'
+		lineHeight: 16
 	},
 	textSection: {
 		flexDirection: 'row',
@@ -91,23 +77,11 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	networkInfoTitle: {
-		...fontStyles.normal,
-		paddingRight: 10,
-		fontSize: 12
+		paddingRight: 10
 	},
 	networkInfoValue: {
-		...fontStyles.bold,
 		flex: 1,
-		textAlign: 'right',
 		fontSize: 13
-	},
-	link: {
-		color: colors.blue
-	},
-	detailsTitle: {
-		textAlign: 'center',
-		...fontStyles.bold,
-		fontSize: 14
 	},
 	detailsBackButton: {
 		height: 24,
@@ -129,10 +103,6 @@ const styles = StyleSheet.create({
 	},
 	flexAux: {
 		flex: 1
-	},
-	alertText: {
-		...fontStyles.normal,
-		fontSize: 14
 	},
 	alertContainer: {
 		marginHorizontal: 24,
@@ -178,26 +148,46 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, na
 	const renderNetworkInfo = moreDetails => (
 		<View style={styles.accountCardWrapper}>
 			<View style={styles.textSection}>
-				<Text style={styles.networkInfoTitle}>{strings('add_custom_network.display_name')}</Text>
-				<Text style={styles.networkInfoValue}>{customNetworkInformation.chainName}</Text>
+				<Text small primary noMargin style={styles.networkInfoTitle}>
+					{strings('add_custom_network.display_name')}
+				</Text>
+				<Text primary bold noMargin right style={styles.networkInfoValue}>
+					{customNetworkInformation.chainName}
+				</Text>
 			</View>
 			<View style={styles.textSection}>
-				<Text style={styles.networkInfoTitle}>{strings('add_custom_network.chain_id')}</Text>
-				<Text style={styles.networkInfoValue}>{customNetworkInformation.chainId}</Text>
+				<Text small primary noMargin style={styles.networkInfoTitle}>
+					{strings('add_custom_network.chain_id')}
+				</Text>
+				<Text primary bold noMargin right style={styles.networkInfoValue}>
+					{customNetworkInformation.chainId}
+				</Text>
 			</View>
 			<View style={moreDetails ? styles.textSection : styles.textSectionLast}>
-				<Text style={styles.networkInfoTitle}>{strings('add_custom_network.network_url')}</Text>
-				<Text style={styles.networkInfoValue}>{customNetworkInformation.rpcUrl}</Text>
+				<Text small primary noMargin style={styles.networkInfoTitle}>
+					{strings('add_custom_network.network_url')}
+				</Text>
+				<Text primary bold noMargin right style={styles.networkInfoValue}>
+					{customNetworkInformation.rpcUrl}
+				</Text>
 			</View>
 			{moreDetails ? (
 				<View>
 					<View style={styles.textSection}>
-						<Text style={styles.networkInfoTitle}>{strings('add_custom_network.currency_symbol')}</Text>
-						<Text style={styles.networkInfoValue}>{customNetworkInformation.ticker}</Text>
+						<Text small primary noMargin style={styles.networkInfoTitle}>
+							{strings('add_custom_network.currency_symbol')}
+						</Text>
+						<Text primary bold noMargin right style={styles.networkInfoValue}>
+							{customNetworkInformation.ticker}
+						</Text>
 					</View>
 					<View style={styles.textSectionLast}>
-						<Text style={styles.networkInfoTitle}>{strings('add_custom_network.block_explorer_url')}</Text>
-						<Text style={styles.networkInfoValue}>{customNetworkInformation.blockExplorerUrl}</Text>
+						<Text small primary noMargin style={styles.networkInfoTitle}>
+							{strings('add_custom_network.block_explorer_url')}
+						</Text>
+						<Text primary bold noMargin right style={styles.networkInfoValue}>
+							{customNetworkInformation.blockExplorerUrl}
+						</Text>
 					</View>
 				</View>
 			) : null}
@@ -216,7 +206,9 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, na
 						<Icon name="angle-left" size={24} style={styles.detailsBackIcon} />
 					</TouchableOpacity>
 				</View>
-				<Text style={styles.detailsTitle}>{strings('add_custom_network.details_title')}</Text>
+				<Text bold centered primary noMargin>
+					{strings('add_custom_network.details_title')}
+				</Text>
 				<View style={styles.flexAux} />
 			</View>
 			{renderNetworkInfo(true)}
@@ -246,14 +238,14 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, na
 				renderIcon={() => <EvilIcons name="bell" style={styles.alertIcon} />}
 			>
 				<View style={styles.alertTextContainer}>
-					<Text style={styles.alertText}>
-						<Text style={styles.bold}>
+					<Text primary noMargin style={styles.alertText}>
+						<Text primary bold noMargin>
 							{alertText}
 							{'\n'}
 						</Text>
-						<Text>
+						<Text primary noMargin>
 							{strings('add_custom_network.alert_recommend')}{' '}
-							<Text onPress={openLink} style={styles.link}>
+							<Text primary link noMargin onPress={openLink}>
 								{strings('add_custom_network.alert_verify')}
 							</Text>
 							.
@@ -267,18 +259,30 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, na
 	const renderApproval = () => (
 		<ScrollView>
 			<TransactionHeader currentPageInformation={currentPageInformation} />
-			<Text style={styles.intro}>{strings('add_custom_network.title')}</Text>
-			<Text style={styles.warning}>{strings('add_custom_network.warning')}</Text>
-			<Text style={styles.warningSubtext}>
-				<Text style={styles.bold}>{strings('add_custom_network.warning_subtext_1')}</Text>{' '}
+			<Text centered bold primary noMargin style={styles.intro}>
+				{strings('add_custom_network.title')}
+			</Text>
+			<Text primary centered noMargin style={styles.warning}>
+				{strings('add_custom_network.warning')}
+			</Text>
+			<Text primary centered noMargin style={styles.warningSubtext}>
+				<Text primary bold noMargin>
+					{strings('add_custom_network.warning_subtext_1')}
+				</Text>{' '}
 				{strings('add_custom_network.warning_subtext_2')}
-				<Text style={styles.link}> {strings('add_custom_network.warning_subtext_3')}</Text>.
+				<Text primary link noMargin>
+					{' '}
+					{strings('add_custom_network.warning_subtext_3')}
+				</Text>
+				.
 			</Text>
 			{renderNetworkInfo()}
 			{renderAlert()}
 			<TouchableOpacity style={styles.actionTouchable} onPress={toggleViewDetails}>
 				<View style={styles.viewDetailsWrapper}>
-					<Text style={styles.viewDetailsText}>{strings('spend_limit_edition.view_details')}</Text>
+					<Text bold link centered noMargin style={styles.viewDetailsText}>
+						{strings('spend_limit_edition.view_details')}
+					</Text>
 				</View>
 			</TouchableOpacity>
 			<View style={styles.actionContainer}>

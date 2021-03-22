@@ -2,11 +2,12 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import { strings } from '../../../../locales/i18n';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors } from '../../../styles/common';
 import Device from '../../../util/Device';
+import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
 	root: {
@@ -18,9 +19,6 @@ const styles = StyleSheet.create({
 		paddingBottom: Device.isIphoneX() ? 20 : 0
 	},
 	intro: {
-		...fontStyles.bold,
-		textAlign: 'center',
-		color: colors.fontPrimary,
 		fontSize: Device.isSmallDevice() ? 18 : 24,
 		marginBottom: 16,
 		marginTop: 16,
@@ -28,8 +26,6 @@ const styles = StyleSheet.create({
 		marginLeft: 24
 	},
 	warning: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
 		paddingHorizontal: 24,
 		fontSize: 13,
 		width: '100%',
@@ -72,14 +68,7 @@ const styles = StyleSheet.create({
 		padding: 10
 	},
 	networkText: {
-		...fontStyles.normal,
 		fontSize: 12
-	},
-	bold: {
-		...fontStyles.bold
-	},
-	light: {
-		color: colors.grey500
 	}
 });
 
@@ -104,18 +93,18 @@ const SwitchCustomNetwork = ({ customNetworkInformation, currentPageInformation,
 	return (
 		<View style={styles.root}>
 			{type === 'switch' ? <TransactionHeader currentPageInformation={currentPageInformation} /> : null}
-			<Text style={styles.intro}>
+			<Text bold centered primary noMargin style={styles.intro}>
 				{type === 'switch'
 					? strings('switch_custom_network.title_existing_network')
 					: strings('switch_custom_network.title_new_network')}
 			</Text>
-			<Text style={styles.warning}>
+			<Text primary noMargin style={styles.warning}>
 				{type === 'switch' ? (
 					strings('switch_custom_network.switch_warning')
 				) : (
 					<Text>
-						<Text style={styles.bold}>{`"${customNetworkInformation.chainName}"`}</Text>
-						<Text style={styles.light}> {strings('switch_custom_network.available')}</Text>
+						<Text bold primary noMargin>{`"${customNetworkInformation.chainName}"`}</Text>
+						<Text noMargin> {strings('switch_custom_network.available')}</Text>
 					</Text>
 				)}
 			</Text>
@@ -123,7 +112,9 @@ const SwitchCustomNetwork = ({ customNetworkInformation, currentPageInformation,
 				<View style={styles.networkContainer}>
 					<View style={styles.networkBadge}>
 						<View style={styles.otherNetworkIcon} />
-						<Text style={styles.networkText}>{customNetworkInformation.chainName}</Text>
+						<Text primary noMargin style={styles.networkText}>
+							{customNetworkInformation.chainName}
+						</Text>
 					</View>
 				</View>
 			) : null}
