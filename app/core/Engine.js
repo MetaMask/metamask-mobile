@@ -65,76 +65,128 @@ class Engine {
 				currentCurrency: 'usd'
 			};
 
-			this.datamodel = new ComposableController(
-				[
-					new KeyringController({ encryptor }, initialState.KeyringController),
-					new AccountTrackerController(),
-					new AddressBookController(),
-					new AssetsContractController(),
-					new AssetsController(),
-					new AssetsDetectionController(),
-					new CurrencyRateController({
-						nativeCurrency,
-						currentCurrency
-					}),
-					new PersonalMessageManager(),
-					new MessageManager(),
-					new NetworkController({
-						infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-						providerConfig: {
-							static: {
-								eth_sendTransaction: async (payload, next, end) => {
-									const { TransactionController } = this.datamodel.context;
-									try {
-										const hash = await (await TransactionController.addTransaction(
-											payload.params[0],
-											payload.origin,
-											WalletDevice.MM_MOBILE
-										)).result;
-										end(undefined, hash);
-									} catch (error) {
-										end(error);
-									}
-								}
-							},
-							getAccounts: (end, payload) => {
-								const { approvedHosts, privacyMode } = store.getState();
-								const isEnabled = !privacyMode || approvedHosts[payload.hostname];
-								const { KeyringController } = this.datamodel.context;
-								const isUnlocked = KeyringController.isUnlocked();
-								const selectedAddress = this.datamodel.context.PreferencesController.state
-									.selectedAddress;
-								end(null, isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : []);
+			const preferencesController = new PreferencesController(
+				{},
+				{
+					ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL
+				}
+			);
+			const networkController = new NetworkController({
+				infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+				providerConfig: {
+					static: {
+						eth_sendTransaction: async (payload, next, end) => {
+							const { TransactionController } = this.context;
+							try {
+								const hash = await (await TransactionController.addTransaction(
+									payload.params[0],
+									payload.origin,
+									WalletDevice.MM_MOBILE
+								)).result;
+								end(undefined, hash);
+							} catch (error) {
+								end(error);
 							}
 						}
-					}),
-					new PhishingController(),
-					new PreferencesController(
-						{},
-						{
-							ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL
-						}
+					},
+					getAccounts: (end, payload) => {
+						const { approvedHosts, privacyMode } = store.getState();
+						const isEnabled = !privacyMode || approvedHosts[payload.hostname];
+						const { KeyringController } = this.context;
+						const isUnlocked = KeyringController.isUnlocked();
+						const selectedAddress = this.context.PreferencesController.state.selectedAddress;
+						end(null, isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : []);
+					}
+				}
+			});
+			const assetsContractController = new AssetsContractController();
+			const assetsController = new AssetsController({
+				onPreferencesStateChange: listener => preferencesController.subscribe(listener),
+				onNetworkStateChange: listener => networkController.subscribe(listener),
+				getAssetName: assetsContractController.getAssetName.bind(assetsContractController),
+				getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
+				getCollectibleTokenURI: assetsContractController.getCollectibleTokenURI.bind(assetsContractController)
+			});
+			const currencyRateController = new CurrencyRateController({
+				nativeCurrency,
+				currentCurrency
+			});
+
+			const controllers = [
+				new KeyringController(
+					{
+						removeIdentity: preferencesController.removeIdentity.bind(preferencesController),
+						syncIdentities: preferencesController.syncIdentities.bind(preferencesController),
+						updateIdentities: preferencesController.updateIdentities.bind(preferencesController),
+						setSelectedAddress: preferencesController.setSelectedAddress.bind(preferencesController)
+					},
+					{ encryptor },
+					initialState.KeyringController
+				),
+				new AccountTrackerController({
+					onPreferencesStateChange: listener => preferencesController.subscribe(listener),
+					initialIdentities: initialState.preferencesController?.identities
+				}),
+				new AddressBookController(),
+				assetsContractController,
+				assetsController,
+				new AssetsDetectionController({
+					onAssetsStateChange: listener => assetsController.subscribe(listener),
+					onPreferencesStateChange: listener => preferencesController.subscribe(listener),
+					onNetworkStateChange: listener => networkController.subscribe(listener),
+					getOpenSeaApiKey: assetsController.openSeaApiKey,
+					getBalancesInSingleCall: assetsContractController.getBalancesInSingleCall.bind(
+						assetsContractController
 					),
-					new TokenBalancesController({ interval: 10000 }),
-					new TokenRatesController(),
-					new TransactionController(),
-					new TypedMessageManager(),
-					new SwapsController({
-						clientId: AppConstants.SWAPS.CLIENT_ID,
-						fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-						fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-						fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
-					})
-				],
-				initialState
-			);
+					addTokens: assetsController.addTokens.bind(assetsController),
+					addCollectible: assetsController.addCollectible.bind(assetsController),
+					removeCollectible: assetsController.removeCollectible.bind(assetsController),
+					getAssetsState: () => assetsController.state
+				}),
+				currencyRateController,
+				new PersonalMessageManager(),
+				new MessageManager(),
+				networkController,
+				new PhishingController(),
+				preferencesController,
+				new TokenBalancesController(
+					{
+						onAssetsStateChange: listener => assetsController.subscribe(listener),
+						getSelectedAddress: () => preferencesController.state.selectedAddress,
+						getBalanceOf: assetsContractController.getBalanceOf.bind(assetsContractController)
+					},
+					{ interval: 10000 }
+				),
+				new TokenRatesController({
+					onAssetsStateChange: listener => assetsController.subscribe(listener),
+					onCurrencyRateStateChange: listener => currencyRateController.subscribe(listener)
+				}),
+				new TransactionController({
+					getNetworkState: () => networkController.state,
+					onNetworkStateChange: listener => networkController.subscribe(listener),
+					getProvider: () => networkController.provider
+				}),
+				new TypedMessageManager(),
+				new SwapsController({
+					clientId: AppConstants.SWAPS.CLIENT_ID,
+					fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+					fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
+				})
+			];
+
+			this.datamodel = new ComposableController(controllers, initialState);
+			this.context = controllers.reduce((context, controller) => {
+				context[controller.name] = controller;
+				return context;
+			}, {});
 
 			const {
 				AssetsController: assets,
 				KeyringController: keyring,
 				NetworkController: network,
 				TransactionController: transaction
-			} = this.datamodel.context;
+			} = this.context;
 
 			assets.setApiKey(process.env.MM_OPENSEA_KEY);
 			network.refreshNetwork();
@@ -162,7 +214,7 @@ class Engine {
 			NetworkController: { provider, state: NetworkControllerState },
 			TransactionController,
 			SwapsController
-		} = this.datamodel.context;
+		} = this.context;
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		AccountTrackerController.configure({ provider });
@@ -181,7 +233,7 @@ class Engine {
 	}
 
 	refreshTransactionHistory = async forceCheck => {
-		const { TransactionController, PreferencesController, NetworkController } = this.datamodel.context;
+		const { TransactionController, PreferencesController, NetworkController } = this.context;
 		const { selectedAddress } = PreferencesController.state;
 		const { type: networkType } = NetworkController.state.provider;
 		const { networkId } = Networks[networkType];
@@ -242,7 +294,7 @@ class Engine {
 			AssetsController,
 			TokenBalancesController,
 			TokenRatesController
-		} = this.datamodel.context;
+		} = this.context;
 		const { selectedAddress } = PreferencesController.state;
 		const { conversionRate, currentCurrency } = CurrencyRateController.state;
 		const { accounts } = AccountTrackerController.state;
@@ -308,12 +360,7 @@ class Engine {
 		// Whenever we are gonna start a new wallet
 		// either imported or created, we need to
 		// get rid of the old data from state
-		const {
-			TransactionController,
-			AssetsController,
-			TokenBalancesController,
-			TokenRatesController
-		} = this.datamodel.context;
+		const { TransactionController, AssetsController, TokenBalancesController, TokenRatesController } = this.context;
 
 		//Clear assets info
 		AssetsController.update({
@@ -346,7 +393,7 @@ class Engine {
 			NetworkController,
 			TransactionController,
 			AssetsController
-		} = this.datamodel.context;
+		} = this.context;
 
 		// Select same network ?
 		await NetworkController.setProviderType(network.provider.type);
@@ -434,7 +481,7 @@ let instance;
 
 export default {
 	get context() {
-		return instance && instance.datamodel && instance.datamodel.context;
+		return instance && instance.context;
 	},
 	get state() {
 		const {
