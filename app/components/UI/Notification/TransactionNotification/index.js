@@ -240,7 +240,7 @@ function TransactionNotification(props) {
 						<View style={styles.modalContainer}>
 							<View style={styles.titleWrapper}>
 								<Text style={styles.title} onPress={onCloseDetails}>
-									{transactionElement.actionKey}
+									{transactionElement?.actionKey}
 								</Text>
 								<Ionicons
 									onPress={onCloseDetails}
