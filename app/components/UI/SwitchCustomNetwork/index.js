@@ -1,5 +1,4 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
 import { StyleSheet, View } from 'react-native';
@@ -163,6 +162,4 @@ SwitchCustomNetwork.propTypes = {
 	type: PropTypes.string
 };
 
-const mapStateToProps = state => ({});
-
-export default connect(mapStateToProps)(SwitchCustomNetwork);
+export default SwitchCustomNetwork;
