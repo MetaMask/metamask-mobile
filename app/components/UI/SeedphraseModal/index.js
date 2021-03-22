@@ -8,6 +8,7 @@ import ActionModal from '../../UI/ActionModal';
 
 const styles = {
 	whatIsSeedphraseTitle: {
+		flex: 1,
 		fontSize: 18,
 		color: colors.fontPrimary,
 		textAlign: 'center',
@@ -22,7 +23,7 @@ const styles = {
 		flexDirection: 'column'
 	},
 	modalXButton: {
-		flex: 1,
+		padding: 5,
 		alignItems: 'flex-end'
 	},
 	titleContainer: {
@@ -32,7 +33,7 @@ const styles = {
 		marginBottom: 16
 	},
 	auxCenterView: {
-		flex: 1
+		width: 26
 	},
 	explanationText: {
 		fontSize: 14,
