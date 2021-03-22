@@ -637,10 +637,9 @@ class Confirm extends PureComponent {
 			transactionState: {
 				ticker,
 				paymentChannelTransaction,
-				transaction: { value, gas, gasPrice, warningGasPriceHigh }
+				transaction: { value, gas, gasPrice }
 			}
 		} = this.props;
-		console.log('CONFRIM', warningGasPriceHigh);
 		const selectedAddress = transaction.from;
 		let weiBalance, weiInput, errorMessage;
 		if (isDecimal(value)) {

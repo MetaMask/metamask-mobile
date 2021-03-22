@@ -235,7 +235,6 @@ class Approve extends PureComponent {
 		const { gasError, basicGasEstimates, mode, ready, over, warningGasPriceHigh } = this.state;
 		const { transaction } = this.props;
 		if (!transaction.id) return null;
-		console.log('RENDER GAS', warningGasPriceHigh);
 		return (
 			<Modal
 				isVisible={this.props.modalVisible}
