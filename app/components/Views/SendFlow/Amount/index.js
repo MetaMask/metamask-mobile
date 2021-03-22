@@ -54,6 +54,7 @@ import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
+import { isMainnetByChainId } from '../../../../util/networks';
 
 const { hexToBN, BNToHex } = util;
 
@@ -371,7 +372,11 @@ class Amount extends PureComponent {
 		/**
 		 * function to call when the 'Next' button is clicked
 		 */
-		onConfirm: PropTypes.func
+		onConfirm: PropTypes.func,
+		/**
+		 * Current network chain id
+		 */
+		chainId: PropTypes.string
 	};
 
 	state = {
@@ -648,7 +653,7 @@ class Amount extends PureComponent {
 	 */
 	estimateTransactionTotalGas = async () => {
 		const { TransactionController } = Engine.context;
-		const { providerType } = this.props;
+		const { chainId } = this.props;
 		const {
 			transaction: { from },
 			transactionTo
@@ -663,7 +668,7 @@ class Amount extends PureComponent {
 			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
 		}
 		try {
-			if (providerType === 'mainnet') {
+			if (isMainnetByChainId(chainId)) {
 				basicGasEstimates = await fetchBasicGasEstimates();
 			} else {
 				basicGasEstimates = {
@@ -1117,7 +1122,8 @@ const mapStateToProps = (state, ownProps) => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
-	selectedAsset: state.transaction.selectedAsset
+	selectedAsset: state.transaction.selectedAsset,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });
 
 const mapDispatchToProps = dispatch => ({
