@@ -140,12 +140,9 @@ class Approve extends PureComponent {
 
 	handleSetGasFee = (customGas, customGasPrice, warningGasPriceHigh) => {
 		const { setTransactionObject } = this.props;
-
 		this.setState({ gasEstimationReady: false });
-		this.setState({ warningGasPriceHigh: this.warningGasPriceHigh });
-
+		this.setState({ warningGasPriceHigh });
 		setTransactionObject({ gas: customGas, gasPrice: customGasPrice });
-
 		setTimeout(() => {
 			this.setState({
 				gasEstimationReady: true,
@@ -158,10 +155,9 @@ class Approve extends PureComponent {
 		let error;
 		const {
 			ticker,
-			transaction: { value, gas, gasPrice, from, warningGasPriceHigh },
+			transaction: { value, gas, gasPrice, from },
 			accounts
 		} = this.props;
-		console.log('CHECK', warningGasPriceHigh);
 		const fromAccount = accounts[safeToChecksumAddress(from)];
 		const total = value.add(gas.mul(gasPrice));
 		if (!gas) error = strings('transaction.invalid_gas');
@@ -236,9 +232,10 @@ class Approve extends PureComponent {
 	};
 
 	render = () => {
-		const { gasError, basicGasEstimates, mode, ready, over } = this.state;
+		const { gasError, basicGasEstimates, mode, ready, over, warningGasPriceHigh } = this.state;
 		const { transaction } = this.props;
 		if (!transaction.id) return null;
+		console.log('RENDER GAS', warningGasPriceHigh);
 		return (
 			<Modal
 				isVisible={this.props.modalVisible}
@@ -258,6 +255,7 @@ class Approve extends PureComponent {
 					<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
 						<ApproveTransactionReview
 							gasError={gasError}
+							warningGasPriceHigh={warningGasPriceHigh}
 							onCancel={this.onCancel}
 							onConfirm={this.onConfirm}
 							over={over}

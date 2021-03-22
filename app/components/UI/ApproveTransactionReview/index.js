@@ -205,6 +205,10 @@ class ApproveTransactionReview extends PureComponent {
 		 */
 		gasError: PropTypes.string,
 		/**
+		 * Warning coming from high gas set in CustomGas component
+		 */
+		warningGasPriceHigh: PropTypes.string,
+		/**
 		 * Primary currency, either ETH or Fiat
 		 */
 		primaryCurrency: PropTypes.string,
@@ -484,7 +488,8 @@ class ApproveTransactionReview extends PureComponent {
 			activeTabUrl,
 			transaction: { origin },
 			network,
-			over
+			over,
+			warningGasPriceHigh
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
@@ -586,6 +591,11 @@ class ApproveTransactionReview extends PureComponent {
 																</Text>
 															)}
 														</TouchableOpacity>
+													</View>
+												)}
+												{!!warningGasPriceHigh && (
+													<View style={styles.errorWrapper}>
+														<Text style={styles.error}>{warningGasPriceHigh}</Text>
 													</View>
 												)}
 											</View>
