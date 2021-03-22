@@ -41,6 +41,8 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.blue,
 		marginLeft: 14,
+		flex: 1,
+		textAlign: 'right',
 		...fontStyles.normal
 	},
 	touchableView: {
@@ -52,7 +54,14 @@ const styles = StyleSheet.create({
 	modalViewNotInBrowserView: {
 		bottom: Device.isIphoneX() ? 20 : 10
 	},
-	buttonsWrapper: { flexDirection: 'row-reverse', alignContent: 'flex-end' }
+	buttonsWrapper: {
+		flexDirection: 'row-reverse',
+		alignContent: 'flex-end',
+		flex: 1
+	},
+	dismissButton: {
+		flex: 1
+	}
 });
 
 const BLOCKED_LIST = [
@@ -166,7 +175,7 @@ class BackupAlert extends PureComponent {
 									{strings('backup_alert.right_button')}
 								</Text>
 							</TouchableOpacity>
-							<TouchableOpacity onPress={this.onDismiss}>
+							<TouchableOpacity onPress={this.onDismiss} style={styles.dismissButton}>
 								<Text style={styles.backupAlertMessage} testID={'notification-remind-later-button'}>
 									{strings('backup_alert.left_button')}
 								</Text>
