@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		fontSize: 12,
 		lineHeight: 16,
-		marginTop: 20,
+		marginTop: 8,
 		textAlign: 'center'
 	},
 	actionTouchable: {
@@ -115,7 +115,6 @@ const styles = StyleSheet.create({
 		textAlign: 'right'
 	},
 	errorWrapper: {
-		// marginHorizontal: 24,
 		marginTop: 12,
 		paddingHorizontal: 10,
 		paddingVertical: 8,
@@ -569,18 +568,6 @@ class ApproveTransactionReview extends PureComponent {
 														</View>
 													</View>
 												</TouchableOpacity>
-												{!gasError && (
-													<TouchableOpacity
-														style={styles.actionTouchable}
-														onPress={this.toggleViewDetails}
-													>
-														<View style={styles.viewDetailsWrapper}>
-															<Text style={styles.viewDetailsText}>
-																{strings('spend_limit_edition.view_details')}
-															</Text>
-														</View>
-													</TouchableOpacity>
-												)}
 												{gasError && (
 													<View style={styles.errorWrapper}>
 														<TouchableOpacity onPress={errorPress}>
@@ -598,6 +585,18 @@ class ApproveTransactionReview extends PureComponent {
 													<View style={styles.errorWrapper}>
 														<Text style={styles.error}>{warningGasPriceHigh}</Text>
 													</View>
+												)}
+												{!gasError && (
+													<TouchableOpacity
+														style={styles.actionTouchable}
+														onPress={this.toggleViewDetails}
+													>
+														<View>
+															<Text style={styles.viewDetailsText}>
+																{strings('spend_limit_edition.view_details')}
+															</Text>
+														</View>
+													</TouchableOpacity>
 												)}
 											</View>
 										</View>
