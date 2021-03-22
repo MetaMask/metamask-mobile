@@ -111,7 +111,7 @@ export default class QrScanner extends PureComponent {
 				Alert.alert(strings('qr_scanner.error'), strings('qr_scanner.attempting_to_scan_with_wallet_locked'), [
 					{
 						text: 'OK',
-						onPress: this.props.navigation.goBack
+						onPress: () => this.props.navigation.goBack()
 					}
 				]);
 				return;
