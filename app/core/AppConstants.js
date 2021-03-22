@@ -58,7 +58,7 @@ export default {
 	},
 	SWAPS: {
 		ACTIVE: true,
-		ONLY_MAINNET: true,
+		ONLY_MAINNET: false,
 		CLIENT_ID: 'mobile',
 		LIVENESS_POLLING_FREQUENCY: 5 * 60 * 1000,
 		POLL_COUNT_LIMIT: 3,
