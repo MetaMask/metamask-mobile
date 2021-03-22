@@ -36,6 +36,7 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from 'react-navigation';
 import { getNetworkName, isMainNet } from '../../../util/networks';
 import { capitalize } from '../../../util/format';
+import scaling from '../../../util/scaling';
 import EditPermission from './EditPermission';
 
 const { hexToBN } = util;
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.bold,
-		fontSize: 24,
+		fontSize: scaling.scale(24),
 		textAlign: 'center',
 		color: colors.black,
 		lineHeight: 34,
