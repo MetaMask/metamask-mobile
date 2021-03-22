@@ -169,9 +169,8 @@ export default class PubNubWrapper {
 					this.incomingDataStr += message.data;
 					if (message.totalPkg === message.currentPkg) {
 						try {
-							// const data = JSON.parse(this.incomingDataStr);
-							throw new Error('Failed to sync!');
-							// onSyncingData(data);
+							const data = JSON.parse(this.incomingDataStr);
+							onSyncingData(data);
 						} catch (e) {
 							Logger.error(e, 'Sync::parsing');
 							onErrorSync();
