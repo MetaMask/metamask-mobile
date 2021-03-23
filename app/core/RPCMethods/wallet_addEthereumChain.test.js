@@ -1,5 +1,5 @@
 import wallet_addEthereumChain from './wallet_addEthereumChain';
-
+import Engine from '../Engine';
 const correctParams = {
 	chainId: '0x64',
 	chainName: 'xDai',
@@ -11,12 +11,28 @@ const correctParams = {
 const otherOptions = {
 	res: {},
 	addCustomNetworkRequest: {},
-	switchCustomNetworkRequest: {},
-	frequentRpcList: [],
-	networkProvider: { chainId: '1' }
+	switchCustomNetworkRequest: {}
 };
 
 describe('RPC Method - wallet_addEthereumChain', () => {
+	const MOCK_ENGINE = {
+		context: {
+			PreferencesController: {
+				state: {
+					frequentRpcList: []
+				}
+			},
+			NetworkController: {
+				state: {
+					provider: {
+						chainId: '1'
+					}
+				}
+			}
+		}
+	};
+	Engine.context = MOCK_ENGINE.context;
+
 	it('should report missing params', async () => {
 		try {
 			await wallet_addEthereumChain({

@@ -252,7 +252,7 @@ export const BrowserTab = props => {
 	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
 	const [showAddCustomNetworkDialog, setShowAddCustomNetworkDialog] = useState(false);
 	const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
-	const [showSwitchCustomNetworkDialog, setShowSwitchCustomNetworkDialog] = useState(false);
+	const [showSwitchCustomNetworkDialog, setShowSwitchCustomNetworkDialog] = useState(undefined);
 
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
