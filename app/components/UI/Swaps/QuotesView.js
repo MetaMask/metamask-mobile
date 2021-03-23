@@ -1038,7 +1038,13 @@ function SwapsQuotesView({
 						</Alert>
 					</View>
 				)}
-
+				{!!warningGasPriceHigh && !(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
+					<View style={styles.alertBar}>
+						<Alert small type="error">
+							<Text reset>{warningGasPriceHigh}</Text>
+						</Alert>
+					</View>
+				)}
 				{!!selectedQuote && hasEnoughTokenBalance && hasEnoughEthBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
 						<ActionAlert
@@ -1094,13 +1100,6 @@ function SwapsQuotesView({
 								)
 							}
 						</ActionAlert>
-					</View>
-				)}
-				{!!warningGasPriceHigh && (
-					<View style={styles.alertBar}>
-						<Alert small type="error">
-							<Text reset>{warningGasPriceHigh}</Text>
-						</Alert>
 					</View>
 				)}
 				{isInPolling && (
