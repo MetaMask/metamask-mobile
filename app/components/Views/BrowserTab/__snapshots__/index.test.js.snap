@@ -434,7 +434,6 @@ exports[`Browser should render correctly 1`] = `
         customNetworkInformation={null}
         onCancel={[Function]}
         onConfirm={[Function]}
-        type={false}
       />
     </ReactNativeModal>
   </View>
