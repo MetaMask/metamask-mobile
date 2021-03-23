@@ -134,7 +134,7 @@ class Engine {
 					onAssetsStateChange: listener => assetsController.subscribe(listener),
 					onPreferencesStateChange: listener => preferencesController.subscribe(listener),
 					onNetworkStateChange: listener => networkController.subscribe(listener),
-					getOpenSeaApiKey: assetsController.openSeaApiKey,
+					getOpenSeaApiKey: () => assetsController.openSeaApiKey,
 					getBalancesInSingleCall: assetsContractController.getBalancesInSingleCall.bind(
 						assetsContractController
 					),
