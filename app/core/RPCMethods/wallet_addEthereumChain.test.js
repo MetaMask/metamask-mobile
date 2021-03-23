@@ -122,6 +122,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 				...otherOptions
 			});
 		} catch (error) {
+			console.log('-----', error.message, `Expected non-empty string 'chainName'.`);
 			expect(error.message).toContain(`Expected non-empty string 'chainName'.`);
 		}
 	});
