@@ -201,12 +201,14 @@ workflows:
               only:
                 - master
                 - develop
+                - new-build
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
+                - new-build
       - lint:
           requires:
             - prep-node-deps
