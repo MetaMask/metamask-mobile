@@ -123,7 +123,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 			});
 		} catch (error) {
 			console.log('-----', error.message, `Expected non-empty string 'chainName'.`);
-			expect(error.message).toContain(`Expected non-empty string 'chainName'.`);
+			expect(error.message).toContain(`Expected non-empty string`);
 		}
 	});
 
@@ -152,19 +152,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 			expect(error.message).toContain(
 				`Expected the number 18 for 'nativeCurrency.decimals' when 'nativeCurrency' is provided.`
 			);
-		}
-	});
-
-	it('should report missing native currency symbol', async () => {
-		try {
-			await wallet_addEthereumChain({
-				req: {
-					params: [{ ...correctParams, nativeCurrency: { symbol: null, decimals: 18 } }]
-				},
-				...otherOptions
-			});
-		} catch (error) {
-			expect(error.message).toContain(`Expected a string 'nativeCurrency.symbol'.`);
 		}
 	});
 });
