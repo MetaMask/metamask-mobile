@@ -104,6 +104,13 @@ export default class QrScanner extends PureComponent {
 				this.props.navigation.goBack();
 			}
 		} else {
+			if (!failedSeedPhraseRequirements(content) && isValidMnemonic(content)) {
+				this.shouldReadBarCode = false;
+				data = { seed: content };
+				this.end(data, content);
+				return;
+			}
+
 			const { KeyringController } = Engine.context;
 			const isUnlocked = KeyringController.isUnlocked();
 
@@ -122,13 +129,6 @@ export default class QrScanner extends PureComponent {
 				this.mounted = false;
 				this.props.navigation.goBack();
 				this.props.navigation.state.params.onScanSuccess(data, content);
-				return;
-			}
-
-			if (!failedSeedPhraseRequirements(content) && isValidMnemonic(content)) {
-				this.shouldReadBarCode = false;
-				data = { seed: content };
-				this.end(data, content);
 				return;
 			}
 
