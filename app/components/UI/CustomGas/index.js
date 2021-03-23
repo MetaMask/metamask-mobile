@@ -462,7 +462,8 @@ class CustomGas extends PureComponent {
 		let warningGasPriceHigh = '';
 		if (parseInt(gasPrice) < parseInt(this.props.basicGasEstimates.safeLowGwei))
 			warningGasPrice = strings('transaction.low_gas_price');
-		if (parseInt(gasPrice) > parseInt(this.props.basicGasEstimates.fastGwei)) {
+		//Warning should be displayed when the gas fee is 1.5 times higher than the fast rate
+		if (parseInt(gasPrice) > parseInt(this.props.basicGasEstimates.fastGwei) * 1.5) {
 			const currentGasPrice = getRenderableFiatGasFee(
 				gasPrice,
 				this.props.conversionRate,
