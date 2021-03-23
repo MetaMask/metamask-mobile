@@ -16,7 +16,6 @@ import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettin
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
-import SyncWithExtension from '../../Views/SyncWithExtension';
 import Asset from '../../Views/Asset';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
@@ -152,9 +151,6 @@ export default createStackNavigator(
 				},
 				ContactForm: {
 					screen: ContactForm
-				},
-				SyncWithExtensionView: {
-					screen: SyncWithExtension
 				},
 				RevealPrivateCredentialView: {
 					screen: RevealPrivateCredential

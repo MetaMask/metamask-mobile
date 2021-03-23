@@ -87,6 +87,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             Array [
               Object {
                 "color": "#000000",
+                "flex": 1,
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
