@@ -113,19 +113,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		}
 	});
 
-	it('should report chainId not matching rpcUrl returned chainId', async () => {
-		try {
-			await wallet_addEthereumChain({
-				req: {
-					params: [{ ...correctParams, chainId: '0x65' }]
-				},
-				...otherOptions
-			});
-		} catch (error) {
-			expect(error.message).toContain('does not match');
-		}
-	});
-
 	it('should report invalid chain name', async () => {
 		try {
 			await wallet_addEthereumChain({
