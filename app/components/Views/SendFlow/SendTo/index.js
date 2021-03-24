@@ -578,25 +578,26 @@ class SendFlow extends PureComponent {
 						inputWidth={inputWidth}
 					/>
 				</View>
-				<ScrollView>
-					{addressError && (
-						<View style={styles.addressErrorWrapper} testID={'address-error'}>
-							<ErrorMessage
-								errorMessage={addressError}
-								errorContinue={!!errorContinue}
-								onContinue={this.onTransactionDirectionSet}
-								isOnlyWarning={!!isOnlyWarning}
-							/>
-						</View>
-					)}
-					{!toSelectedAddressReady ? (
-						<AddressList
-							inputSearch={toSelectedAddress}
-							onAccountPress={this.onToSelectedAddressChange}
-							onAccountLongPress={dummy}
-						/>
-					) : (
-						<View style={styles.nextActionWrapper}>
+
+				{!toSelectedAddressReady ? (
+					<AddressList
+						inputSearch={toSelectedAddress}
+						onAccountPress={this.onToSelectedAddressChange}
+						onAccountLongPress={dummy}
+					/>
+				) : (
+					<View style={styles.nextActionWrapper}>
+						<ScrollView>
+							{addressError && (
+								<View style={styles.addressErrorWrapper} testID={'address-error'}>
+									<ErrorMessage
+										errorMessage={addressError}
+										errorContinue={!!errorContinue}
+										onContinue={this.onTransactionDirectionSet}
+										isOnlyWarning={!!isOnlyWarning}
+									/>
+								</View>
+							)}
 							{addToAddressToAddressBook && (
 								<TouchableOpacity
 									style={styles.myAccountsTouchable}
@@ -608,36 +609,36 @@ class SendFlow extends PureComponent {
 									</Text>
 								</TouchableOpacity>
 							)}
-							<View style={styles.footerContainer} testID={'no-eth-message'}>
-								{!isPaymentChannelTransaction && balanceIsZero && (
-									<View style={styles.warningContainer}>
-										<WarningMessage
-											warningMessage={
-												<>
-													{strings('transaction.not_enough_for_gas')}
+							{!isPaymentChannelTransaction && balanceIsZero && (
+								<View style={styles.warningContainer}>
+									<WarningMessage
+										warningMessage={
+											<>
+												{strings('transaction.not_enough_for_gas')}
 
-													{this.renderBuyEth()}
-												</>
-											}
-										/>
-									</View>
-								)}
-								{!errorContinue && (
-									<View style={styles.buttonNextWrapper}>
-										<StyledButton
-											type={'confirm'}
-											containerStyle={styles.buttonNext}
-											onPress={this.onTransactionDirectionSet}
-											testID={'address-book-next-button'}
-										>
-											{strings('address_book.next')}
-										</StyledButton>
-									</View>
-								)}
-							</View>
+												{this.renderBuyEth()}
+											</>
+										}
+									/>
+								</View>
+							)}
+						</ScrollView>
+						<View style={styles.footerContainer} testID={'no-eth-message'}>
+							{!errorContinue && (
+								<View style={styles.buttonNextWrapper}>
+									<StyledButton
+										type={'confirm'}
+										containerStyle={styles.buttonNext}
+										onPress={this.onTransactionDirectionSet}
+										testID={'address-book-next-button'}
+									>
+										{strings('address_book.next')}
+									</StyledButton>
+								</View>
+							)}
 						</View>
-					)}
-				</ScrollView>
+					</View>
+				)}
 
 				{this.renderFromAccountModal()}
 				{this.renderAddToAddressBookModal()}

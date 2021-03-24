@@ -45,12 +45,10 @@ exports[`SendTo should render correctly 1`] = `
       onToSelectedAddressChange={[Function]}
     />
   </View>
-  <ScrollView>
-    <Connect(AddressList)
-      onAccountLongPress={[Function]}
-      onAccountPress={[Function]}
-    />
-  </ScrollView>
+  <Connect(AddressList)
+    onAccountLongPress={[Function]}
+    onAccountPress={[Function]}
+  />
   <ReactNativeModal
     animationIn="slideInUp"
     animationInTiming={300}
