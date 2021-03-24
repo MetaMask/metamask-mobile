@@ -9,7 +9,7 @@ module.exports = {
       statements: 100,
     },
   },
-  moduleFileExtensions: ['ts', 'tsx', 'json', 'js', 'jsx', 'node'],
+  moduleFileExtensions: ['js', 'json', 'jsx', 'ts', 'tsx', 'node'],
   preset: 'ts-jest',
   testEnvironment: 'node',
   testRegex: [

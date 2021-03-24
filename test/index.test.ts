@@ -1,4 +1,4 @@
-import greeter from './index';
+import greeter from '../src';
 
 describe('Test', () => {
   it('greets', () => {

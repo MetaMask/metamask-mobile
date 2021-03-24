@@ -1,17 +1,20 @@
 {
   "compilerOptions": {
-    "moduleResolution": "Node",
     "declaration": true,
+    "esModuleInterop": true,
+    "inlineSources": true,
+    "lib": [
+      "ES2017"
+    ],
     "module": "ES6",
+    "moduleResolution": "Node",
+    "outDir": "dist",
+    "rootDir": "src",
     "sourceMap": true,
     "strict": true,
-    "target": "es5",
-    "lib": [
-      "DOM",
-      "ES2016"
-    ]
+    "target": "ES2017"
   },
   "include": [
-    "./**/*.ts"
+    "./src/*.ts"
   ]
 }
