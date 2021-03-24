@@ -195,14 +195,14 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 					</View>
 					<View style={styles.actionRow}>
 						<StyledButton type={'normal'} containerStyle={styles.actionButton} onPress={close}>
-							Cancel
+							{strings('transaction.cancel')}
 						</StyledButton>
 						<StyledButton
 							type={'blue'}
 							onPress={() => saveAndClose(nonce)}
 							containerStyle={styles.actionButton}
 						>
-							Save
+							{strings('transaction.save')}
 						</StyledButton>
 					</View>
 				</SafeAreaView>

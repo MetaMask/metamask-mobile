@@ -597,6 +597,7 @@
 		"reject": "Reject",
 		"edit": "Edit",
 		"cancel": "Cancel",
+		"save": "Save",
 		"speedup": "Speed up",
 		"from": "From",
 		"gas_fee": "Network fee",
