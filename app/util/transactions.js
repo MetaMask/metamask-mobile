@@ -435,8 +435,6 @@ export const getProposedNonce = ({
 
 	const nonces = transactions
 		.filter(
-			// TODO: account for 'pending'
-			// see about pending transactions, do we keep a list, can you had multiple pending transactions?
 			({ status, transaction: { from } }) => status === 'confirmed' && toLowerCaseCompare(from, selectedAddress)
 		)
 		.map(({ transaction }) => {
