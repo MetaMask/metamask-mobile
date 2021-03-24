@@ -20,6 +20,8 @@ describe('tlc', () => {
 describe('toLowerCaseCompare', () => {
 	it('compare two things', () => {
 		expect(toLowerCaseCompare('A', 'A')).toEqual(true);
+		expect(toLowerCaseCompare('aBCDefH', 'abcdefh')).toEqual(true);
 		expect(toLowerCaseCompare('A', 'B')).toEqual(false);
+		expect(toLowerCaseCompare('aBCDefH', 'abcdefi')).toEqual(false);
 	});
 });
