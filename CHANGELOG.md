@@ -1,6 +1,7 @@
 # Changelog
 
-## v2.0.1 - Mar 22 2021
+## v2.0.1 - Mar 24 2021
+- [#2430](https://github.com/MetaMask/metamask-mobile/pull/2430): bFix/send to style
 - [#2426](https://github.com/MetaMask/metamask-mobile/pull/2426): bugfix/allow seedphrases when locked
 - [#2422](https://github.com/MetaMask/metamask-mobile/pull/2422): bugfix/delete wallet with random password
 - [#2417](https://github.com/MetaMask/metamask-mobile/pull/2417): Bugfix/sync improvements
