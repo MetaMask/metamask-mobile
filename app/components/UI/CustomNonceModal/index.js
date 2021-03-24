@@ -1,7 +1,6 @@
 import React from 'react';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import IncrementDecrementSvg from '../IncrementDecrementSvg';
 import { StyleSheet, View, TextInput, SafeAreaView, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ModalDragger from '../../Base/ModalDragger';
@@ -10,6 +9,7 @@ import StyledButton from '../../UI/StyledButton';
 import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
 
 const styles = StyleSheet.create({
 	bottomModal: {
@@ -95,12 +95,15 @@ const styles = StyleSheet.create({
 		marginHorizontal: 8
 	},
 	incrementHit: {
-		padding: 10
+		padding: 4
 	},
 	icon: {
 		flex: 0,
 		marginTop: 6,
 		paddingRight: 14
+	},
+	incrementDecrementIcon: {
+		color: colors.blue
 	}
 });
 
@@ -166,13 +169,13 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 						</Text>
 						<View style={styles.incrementDecrementNonceContainer}>
 							<TouchableOpacity style={styles.incrementHit} onPress={() => incrementDecrementNonce(true)}>
-								<IncrementDecrementSvg />
+								<EvilIcons name="minus" size={64} style={styles.incrementDecrementIcon} />
 							</TouchableOpacity>
 							<TouchableOpacity
 								style={styles.incrementHit}
 								onPress={() => incrementDecrementNonce(false)}
 							>
-								<IncrementDecrementSvg plus />
+								<EvilIcons name="plus" size={64} style={styles.incrementDecrementIcon} />
 							</TouchableOpacity>
 						</View>
 						<View style={styles.descWarningContainer}>
