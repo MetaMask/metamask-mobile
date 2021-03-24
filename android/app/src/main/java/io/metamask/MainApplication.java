@@ -58,13 +58,13 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 	public void onCreate() {
 		super.onCreate();
 
-		try {
-			Field field = CursorWindow.class.getDeclaredField("sCursorWindowSize");
-			field.setAccessible(true);
-			field.set(null, 10 * 1024 * 1024); //the 10MB is the new size
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		// try {
+		// 	Field field = CursorWindow.class.getDeclaredField("sCursorWindowSize");
+		// 	field.setAccessible(true);
+		// 	field.set(null, 10 * 1024 * 1024); //the 10MB is the new size
+		// } catch (Exception e) {
+		// 	e.printStackTrace();
+		// }
 
     if (BuildConfig.DEBUG)
     { WebView.setWebContentsDebuggingEnabled(true); }
