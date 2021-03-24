@@ -200,22 +200,38 @@ exports[`CustomNonceModal should render correctly 1`] = `
             onPress={[Function]}
             style={
               Object {
-                "padding": 10,
+                "padding": 4,
               }
             }
           >
-            <IncrementDecrementSvg />
+            <Icon
+              allowFontScaling={false}
+              name="minus"
+              size={64}
+              style={
+                Object {
+                  "color": "#037dd6",
+                }
+              }
+            />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={[Function]}
             style={
               Object {
-                "padding": 10,
+                "padding": 4,
               }
             }
           >
-            <IncrementDecrementSvg
-              plus={true}
+            <Icon
+              allowFontScaling={false}
+              name="plus"
+              size={64}
+              style={
+                Object {
+                  "color": "#037dd6",
+                }
+              }
             />
           </TouchableOpacity>
         </View>
