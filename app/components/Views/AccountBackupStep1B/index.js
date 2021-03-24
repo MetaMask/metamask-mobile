@@ -90,10 +90,11 @@ const styles = StyleSheet.create({
 	},
 	secureModalContainer: { flex: 1, padding: 27, flexDirection: 'column' },
 	secureModalXButton: {
-		flex: 1,
+		padding: 5,
 		alignItems: 'flex-end'
 	},
 	whySecureTitle: {
+		flex: 1,
 		fontSize: 18,
 		color: colors.fontPrimary,
 		textAlign: 'center',
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
 		fontSize: 16
 	},
 	auxCenterView: {
-		flex: 1
+		width: 26
 	},
 	secureModalTitleContainer: {
 		flexDirection: 'row',
