@@ -9,34 +9,48 @@ import Logger from '../util/Logger';
 
 const MigratedStorage = {
 	async getItem(key) {
-		try {
-			const res = await FilesystemStorage.getItem(key);
-			if (res) {
-				// Using new storage system
-				return res;
-			}
-		} catch {
-			//Fail silently
-		}
+		const fileKey = await FilesystemStorage.getAllKeys();
 
-		// Using old storage system, should only happen once
-		try {
-			const res = await AsyncStorage.getItem(key);
-			if (res) {
-				// Using old storage system
-				return res;
+		if (fileKey.includes(key)) {
+			try {
+				const res = await FilesystemStorage.getItem(key);
+				if (res) {
+					// Using new storage system
+					return res;
+				}
+			} catch {
+				// Using old storage system, should only happen once
+				try {
+					const res = await AsyncStorage.getItem(key);
+					if (res) {
+						// Using old storage system
+						return res;
+					}
+				} catch (error) {
+					Logger.error(error, { message: 'Failed to run migration' });
+					throw new Error('Failed async storage storage fetch.');
+				}
 			}
-		} catch (error) {
-			Logger.error(error, { message: 'Failed to run migration' });
-			throw new Error('Failed async storage storage fetch.');
+		} else {
+			// Using old storage system, should only happen once
+			try {
+				const res = await AsyncStorage.getItem(key);
+				if (res) {
+					// Using old storage system
+					return res;
+				}
+			} catch (error) {
+				Logger.error(error, { message: 'Failed to run migration' });
+				throw new Error('Failed async storage storage fetch.');
+			}
 		}
 	},
-	setItem(key, value) {
-		return FilesystemStorage.setItem(key, value);
+	async setItem(key, value) {
+		return await FilesystemStorage.setItem(key, value);
 	},
-	removeItem(key) {
+	async removeItem(key) {
 		try {
-			return FilesystemStorage.removeItem(key);
+			return await FilesystemStorage.removeItem(key);
 		} catch (error) {
 			Logger.error(error, { message: 'Failed to remove item' });
 		}
