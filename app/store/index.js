@@ -9,18 +9,14 @@ import Logger from '../util/Logger';
 
 const MigratedStorage = {
 	async getItem(key) {
-		const fileKey = await FilesystemStorage.getAllKeys();
-
-		if (fileKey.includes(key)) {
-			try {
-				const res = await FilesystemStorage.getItem(key);
-				if (res) {
-					// Using new storage system
-					return res;
-				}
-			} catch {
-				//Fail silently
+		try {
+			const res = await FilesystemStorage.getItem(key);
+			if (res) {
+				// Using new storage system
+				return res;
 			}
+		} catch {
+			//Fail silently
 		}
 
 		// Using old storage system, should only happen once
