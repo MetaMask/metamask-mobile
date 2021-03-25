@@ -45,18 +45,10 @@ exports[`SendTo should render correctly 1`] = `
       onToSelectedAddressChange={[Function]}
     />
   </View>
-  <View
-    style={
-      Object {
-        "flex": 1,
-      }
-    }
-  >
-    <Connect(AddressList)
-      onAccountLongPress={[Function]}
-      onAccountPress={[Function]}
-    />
-  </View>
+  <Connect(AddressList)
+    onAccountLongPress={[Function]}
+    onAccountPress={[Function]}
+  />
   <ReactNativeModal
     animationIn="slideInUp"
     animationInTiming={300}

@@ -173,6 +173,7 @@ export default class PubNubWrapper {
 							onSyncingData(data);
 						} catch (e) {
 							Logger.error(e, 'Sync::parsing');
+							onErrorSync();
 						}
 					}
 				}
