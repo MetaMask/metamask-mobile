@@ -56,12 +56,10 @@
   "lint-staged": {
     "*.js": [
       "prettier --write",
-      "eslint --ignore-path=.prettierignore",
-      "git add"
+      "eslint --ignore-path=.prettierignore"
     ],
     "*.json": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ]
   },
   "resolutions": {
