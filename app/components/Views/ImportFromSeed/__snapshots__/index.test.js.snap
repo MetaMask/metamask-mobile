@@ -67,8 +67,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
           <Text
             style={
               Object {
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "marginBottom": 12,
               }
@@ -95,8 +96,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
             <Text
               style={
                 Object {
+                  "color": "#24292E",
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "marginBottom": 12,
                 }
@@ -137,6 +139,14 @@ exports[`ImportFromSeed should render correctly 1`] = `
         placeholder="Enter your seed phrase here"
         returnKeyType="next"
         secureTextEntry={true}
+        style={
+          Object {
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "paddingTop": 2,
+          }
+        }
         testID="input-seed-phrase"
         textColor="rgba(0, 0, 0, .87)"
         tintColor="#037dd6"
@@ -170,6 +180,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         style={
           Object {
             "marginVertical": 5,
+            "position": "relative",
           }
         }
       >
@@ -191,8 +202,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
             <Text
               style={
                 Object {
+                  "color": "#24292E",
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "marginBottom": 12,
                 }
@@ -219,8 +231,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
               <Text
                 style={
                   Object {
+                    "color": "#24292E",
                     "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "marginBottom": 12,
                   }
@@ -256,6 +269,14 @@ exports[`ImportFromSeed should render correctly 1`] = `
           placeholder="New Password"
           returnKeyType="next"
           secureTextEntry={true}
+          style={
+            Object {
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "paddingTop": 2,
+            }
+          }
           testID="input-password-field"
           textColor="rgba(0, 0, 0, .87)"
           tintColor="#037dd6"
@@ -265,14 +286,11 @@ exports[`ImportFromSeed should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#777777",
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontSize": 15,
               "fontWeight": "400",
               "height": 20,
-              "marginLeft": 5,
-              "marginTop": 10,
-              "textAlign": "left",
             }
           }
         />
@@ -281,14 +299,16 @@ exports[`ImportFromSeed should render correctly 1`] = `
         style={
           Object {
             "marginVertical": 5,
+            "position": "relative",
           }
         }
       >
         <Text
           style={
             Object {
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "400",
               "marginBottom": 12,
             }
@@ -321,6 +341,14 @@ exports[`ImportFromSeed should render correctly 1`] = `
           placeholder="Confirm password"
           returnKeyType="next"
           secureTextEntry={true}
+          style={
+            Object {
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "paddingTop": 2,
+            }
+          }
           testID="input-password-field-confirm"
           textColor="rgba(0, 0, 0, .87)"
           tintColor="#037dd6"
@@ -331,22 +359,20 @@ exports[`ImportFromSeed should render correctly 1`] = `
           style={
             Object {
               "alignSelf": "flex-end",
-              "marginTop": 8,
               "position": "absolute",
+              "right": 17,
+              "top": 52,
             }
           }
         />
         <Text
           style={
             Object {
-              "color": "#777777",
+              "color": "#24292E",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontSize": 15,
               "fontWeight": "400",
               "height": 20,
-              "marginLeft": 5,
-              "marginTop": 10,
-              "textAlign": "left",
             }
           }
         >
@@ -364,6 +390,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         <Text
           style={
             Object {
+              "color": "#24292E",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
