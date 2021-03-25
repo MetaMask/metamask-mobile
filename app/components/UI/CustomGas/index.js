@@ -373,7 +373,8 @@ class CustomGas extends PureComponent {
 		this.setState({
 			gasSpeedSelected: 'fast',
 			customGasPrice: fastGwei,
-			customGasPriceBNWei: gasPriceBN
+			customGasPriceBNWei: gasPriceBN,
+			warningGasPriceHigh: ''
 		});
 	};
 
@@ -387,7 +388,8 @@ class CustomGas extends PureComponent {
 		this.setState({
 			gasSpeedSelected: 'average',
 			customGasPrice: averageGwei,
-			customGasPriceBNWei: gasPriceBN
+			customGasPriceBNWei: gasPriceBN,
+			warningGasPriceHigh: ''
 		});
 	};
 
@@ -401,7 +403,8 @@ class CustomGas extends PureComponent {
 		this.setState({
 			gasSpeedSelected: 'slow',
 			customGasPrice: safeLowGwei,
-			customGasPriceBNWei: gasPriceBN
+			customGasPriceBNWei: gasPriceBN,
+			warningGasPriceHigh: ''
 		});
 	};
 
@@ -487,7 +490,7 @@ class CustomGas extends PureComponent {
 
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
 	saveCustomGasSelection = () => {
-		const { gasSpeedSelected, customGasLimit, customGasPrice, warningGasPriceHigh } = this.state;
+		const { gasSpeedSelected, customGasLimit, customGasPrice } = this.state;
 		const {
 			review,
 			gas,
@@ -499,19 +502,20 @@ class CustomGas extends PureComponent {
 			handleGasFeeSelection(
 				new BN(customGasLimit),
 				apiEstimateModifiedToWEI(customGasPrice),
-				warningGasPriceHigh,
+				this.state.warningGasPriceHigh,
 				{
 					mode: 'advanced'
 				}
 			);
 		} else {
 			const mode = { mode: gasSpeedSelected };
+			const noGasWarning = '';
 			if (gasSpeedSelected === 'slow')
-				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei), warningGasPriceHigh, mode);
+				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei), noGasWarning, mode);
 			if (gasSpeedSelected === 'average')
-				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei), warningGasPriceHigh, mode);
+				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei), noGasWarning, mode);
 			if (gasSpeedSelected === 'fast')
-				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), warningGasPriceHigh, mode);
+				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), noGasWarning, mode);
 		}
 		review();
 	};
